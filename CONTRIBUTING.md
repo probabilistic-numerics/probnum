@@ -2,12 +2,12 @@
 
 Contributions to Probnum are very welcome. Before getting started make sure to read the following notes.
 
-* [Getting Started](#about)
+* [Getting Started](#getting-started)
 * [Code Quality](#code-quality)
-* [Tests and continuous integration](#testing)
+* [Tests and CI](#tests-ci)
 * [Documentation](#documentation)
 
-## Getting Started
+## <a name="getting-started">Getting Started</a>
 
 All contributions to Probnum should be made via pull requests (PR) to the development branch. Some suggestions for a 
 good PR are:
@@ -19,7 +19,7 @@ good PR are:
 If you would like to contribute but are unsure how, then writing examples, documentation or `jupyter` notebooks are a 
 good way to start.
 
-## Code Quality
+## <a name="code-quality">Code Quality</a>
 
 Code quality is an essential component in a collaborative open-source project.
 
@@ -58,12 +58,12 @@ def some_function(param1, param2):
     return param1 + param2
 ```
 
-## Tests and CI
+## <a name="tests-ci">Tests and CI</a>
 
 We aim to cover as much code with tests as possible. Make sure to add tests for newly implemented code. Tests are run by 
-the continuous integration tool `travis` and coverage is reported by `codecov`.
+the continuous integration (CI) tool `travis` and coverage is reported by `codecov`.
 
-## Documentation
+## <a name="documentation">Documentation</a>
 
 [Documentation](https://readthedocs.org/probabilistic-numerics/probnum) is automatically built using `sphinx` and 
 `travis`. When implementing published probabilistic numeric methods please give credit and include citations. 
