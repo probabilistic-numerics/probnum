@@ -1,5 +1,6 @@
-# Probabilistic Numerics Code Repository ![PN logo](https://github.com/probabilistic-numerics/probnum/img/pn_logo.png "Probabilistic Numerics")
+# Probabilistic Numerics Code Repository ![PN logo](https://github.com/probabilistic-numerics/probnum/blob/master/img/pn_logo.png "Probabilistic Numerics")
 
+![PN logo](https://github.com/probabilistic-numerics/probnum/blob/master/img/pn_logo.png "Probabilistic Numerics")
 
 [![Build Status](https://travis-ci.com/probabilistic-numerics/probnum.svg?branch=master)](https://travis-ci.com/probabilistic-numerics/probnum)
 [![Coverage Status](http://codecov.io/github/probabilistic-numerics/probnum/coverage.svg?branch=master)](http://codecov.io/github/probabilistic-numerics/probnum?branch=master)
