@@ -21,7 +21,7 @@ cd probnum
 python setup.py install
 ```
 For tips on getting started and how to use this package please refer to the
-[documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
+[documentation](https://probabilistic-numerics.github.io/probnum/index.html).
 
 ## Examples
 Example usage of the methods provided by this repository can be found [here](https://probabilistic-numerics.github.io/probnum/examples.html). In the future we will provide Jupyter notebooks to illustrate basic usage examples of implemented probabilistic numerics routines.
