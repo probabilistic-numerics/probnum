@@ -12,7 +12,7 @@
 * [Contributing](#contributing)
 
 ## <a name="introduction">Introduction</a>
-[Probabilistic Numerics](http://probabilistic-numerics.org/) (PN) interprets classic numerical routines as _inference procedures_ by taking a probabilistic viewpoint. This allows principled treatment of _uncertainty arising from finite computational resources_. The vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be propagated along the chain of computation. This repository aims to collect standard PN algorithms and to provide a common interface for them. <img align="right" src="img/pn_logo.png" alt="probabilistic numerics" width="128"/>
+<img align="left" src="img/pn_logo.png" alt="probabilistic numerics" width="128"/> [Probabilistic Numerics](http://probabilistic-numerics.org/) (PN) interprets classic numerical routines as _inference procedures_ by taking a probabilistic viewpoint. This allows principled treatment of _uncertainty arising from finite computational resources_. The vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be propagated along the chain of computation. This repository aims to collect standard PN algorithms and to provide a common interface for them.
 
 ## <a name="installation">Installation and Documentation</a>
 You can install this Python 3 package using `pip` (or `pip3`):
