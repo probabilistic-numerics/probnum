@@ -1,2 +1,7 @@
 .. _intro:
-.. include:: ../../README.md
+
+============
+Introduction
+============
+
+.. mdinclude:: ../../README.md

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# pycalib documentation build configuration file, created by
+# probnum documentation build configuration file, created by
 # sphinx-quickstart on Fri Nov  2 15:54:04 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -20,7 +20,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../../../probnum'))
+sys.path.insert(0, os.path.abspath('../../../probnum/src'))
 
 # -- General configuration ------------------------------------------------
 
@@ -40,6 +40,7 @@ extensions = [  # 'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'm2r',
     'sphinx.ext.githubpages']
 
 # Add any paths that contain templates here, relative to this directory.
@@ -57,8 +58,7 @@ automodsumm_inherited_members = True
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
