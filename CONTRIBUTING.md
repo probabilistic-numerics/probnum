@@ -1,10 +1,10 @@
-# Contributing to Probnum
+# Contributing to ProbNum
 
-Contributions to Probnum are very welcome. Before getting started make sure to read the following guidelines.
+Contributions to ProbNum are very welcome. Before getting started make sure to read the following guidelines.
 
 ## Getting Started
 
-All contributions to Probnum should be made via pull requests (PR) to the development branch. Some suggestions for a
+All contributions to ProbNum should be made via pull requests (PR) to the development branch. Some suggestions for a
 good PR are:
 
 - implements or fixes one functionality
@@ -20,7 +20,7 @@ Code quality is an essential component in a collaborative open-source project.
 
 - All code should be covered by tests. We use the [pytest](https://docs.pytest.org/) framework. Every time a commit is
 made [travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
-- Documentation of code is essential for any collaborative project. Probnum uses the
+- Documentation of code is essential for any collaborative project. ProbNum uses the
 [numpy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
 - Python code should follow the [*PEP8* style](https://www.python.org/dev/peps/pep-0008/).
 - Keep dependencies to a minimum.
@@ -67,5 +67,5 @@ the continuous integration (CI) tool [travis](https://travis-ci.org/probabilisti
 
 ## Credit
 
-If you feel like you have contributed significantly to Probnum make sure to add your name to the [authors](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md)
+If you feel like you have contributed significantly to ProbNum make sure to add your name to the [authors](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md)
 file alongside your contributions and to the [license](https://github.com/probabilistic-numerics/probnum/blob/master/LICENSE.txt).

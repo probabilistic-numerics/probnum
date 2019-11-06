@@ -30,7 +30,7 @@ Example usage of the methods provided by this repository can be found [here](htt
 This repository is currently under development and benefits from contribution to the code, examples or documentation.
 Please refer to the [contribution guide](https://probabilistic-numerics.github.io/probnum/contributing.html) before making a pull request.
 
-A list of core contributors to Probnum can be found [here](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md).
+A list of core contributors to ProbNum can be found [here](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md).
 
 ## License and Contact
 This work is released under the [MIT License](https://github.com/probabilistic-numerics/probnum/blob/master/LICENSE.txt).
