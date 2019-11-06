@@ -8,7 +8,7 @@ Contributions to Probnum are very welcome. Before getting started make sure to r
 * [Documentation](#documentation)
 * [Credit](#credit)
 
-## <a name="getting-started">Getting Started</a>
+## <a id="getting-started">Getting Started</a>
 
 All contributions to Probnum should be made via pull requests (PR) to the development branch. Some suggestions for a
 good PR are:
@@ -20,7 +20,7 @@ good PR are:
 If you would like to contribute but are unsure how, then writing examples, documentation or working on
 [open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start.
 
-## <a name="code-quality">Code Quality</a>
+## <a id="code-quality">Code Quality</a>
 
 Code quality is an essential component in a collaborative open-source project.
 
