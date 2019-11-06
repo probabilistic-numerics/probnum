@@ -2,8 +2,6 @@
 
 Contributions to Probnum are very welcome. Before getting started make sure to read the following notes.
 
-#### Table Of Contents
-
 * [Getting Started](#about)
 * [Code Quality](#code-quality)
 * [Tests and continuous integration](#testing)
@@ -19,18 +17,20 @@ good PR are:
 - makes minimal changes to the interface and core codebase
 
 If you would like to contribute but are unsure how, then writing examples, documentation or `jupyter` notebooks are a 
-good way to get started.
+good way to start.
 
 ## Code Quality
+
+Code quality is an essential component in a collaborative open-source project.
 
 - All code should be covered by tests. We use the [pytest](https://docs.pytest.org/) framework. Every time a commit is 
 made `travis` builds the project and runs the test suite.
 - Documentation of code is essential for any collaborative project. Probnum uses the 
-[*numpy* docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
+[`numpy` docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
 - Python code should follow the [*PEP8* style](https://www.python.org/dev/peps/pep-0008/). 
 - Make sure to observe good coding practice. The existing ProbNum code is a good starting point for coding style.
 
-Example:
+Documentation example:
 
 ```python
 def some_function(param1, param2):
