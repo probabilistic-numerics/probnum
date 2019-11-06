@@ -1,5 +1,7 @@
-# Probnum Contributors (sorted alphabetically)
+# Code Contributors
 
-- [**Jonathan Wenger**](https://github.com/JonathanWenger)
+The following people (in alphabetical order) contributed to the Probnum repository.
+
+#### [Jonathan Wenger](https://github.com/JonathanWenger)
     - example contribution
 

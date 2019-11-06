@@ -1,4 +1,4 @@
-# Probabilistic Numerics Code Repository
+# Probabilistic Numerics in Python
 
 [![Build Status](https://travis-ci.org/probabilistic-numerics/probnum.svg?branch=master)](https://travis-ci.org/probabilistic-numerics/probnum)
 [![Coverage Status](http://codecov.io/github/probabilistic-numerics/probnum/coverage.svg?branch=master)](http://codecov.io/github/probabilistic-numerics/probnum?branch=master)
@@ -15,7 +15,7 @@
 This repository aims to implement standard PN algorithms in Python 3 and to provide a common interface for them. This is
 currently a work in progress (see [Contributing Code](#contributing)), therefore interfaces are subject to change.
 
-## <a name="installation">Installation and Documentation</a>
+## <a name="installation"></a>Installation and Documentation
 You can install this Python 3 package using `pip` (or `pip3`):
 ```
 pip install git+https://github.com/probabilistic-numerics/probnum.git
@@ -27,20 +27,20 @@ cd probnum
 python setup.py install
 ```
 For tips on getting started and how to use this package please refer to the
-[documentation](https://probabilistic-numerics.github.io/probnum/).
+[documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
 
-## <a name="examples">Examples</a>
-In the future we will provide [Jupyter notebooks](notebooks) to illustrate basic usage examples of implemented
+## <a name="examples"></a>Examples
+Example usage of the routines provided by this repository are shown in the [documentation](https://probabilistic-numerics.github.io/probnum/examples.html). In the future we will provide [Jupyter notebooks](notebooks) to illustrate basic usage examples of implemented
 probabilistic numerics routines.
 
-## <a name="contributing">Contributing Code</a>
+## <a name="contributing"></a>Contributing Code
 This repository is currently under development and benefits from contribution to the code, examples or documentation.
 Please refer to the [contribution guide](https://github.com/probabilistic-numerics/probnum/blob/master/CONTRIBUTING.md) before making a pull request.
 
 A list of core contributors to Probnum can be found [here](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md).
 
-## <a name="license">License and Contact</a>
-This work is released under the [MIT License](LICENSE.txt).
+## <a name="license"></a>License and Contact
+This work is released under the [MIT License](https://github.com/probabilistic-numerics/probnum/blob/master/LICENSE.txt).
 
 Please submit an [issue](https://github.com/probabilistic-numerics/probnum/issues/new) to report bugs or request
 changes.

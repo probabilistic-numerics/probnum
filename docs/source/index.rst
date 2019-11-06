@@ -9,6 +9,7 @@ Welcome to probnum's documentation!
    intro
    modules
    examples
+   contributing
    authors
    license
 
