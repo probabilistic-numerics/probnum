@@ -21,10 +21,6 @@ import logging
 
 from probnum import __version__
 
-__author__ = "Jonathan Wenger"
-__copyright__ = "Jonathan Wenger"
-__license__ = "mit"
-
 _logger = logging.getLogger(__name__)
 
 
