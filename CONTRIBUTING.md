@@ -2,13 +2,7 @@
 
 Contributions to Probnum are very welcome. Before getting started make sure to read the following guidelines.
 
-* [Getting Started](#getting-started)
-* [Code Quality](#code-quality)
-* [Tests and CI](#tests-ci)
-* [Documentation](#documentation)
-* [Credit](#credit)
-
-## <a id="getting-started">Getting Started</a>
+## Getting Started
 
 All contributions to Probnum should be made via pull requests (PR) to the development branch. Some suggestions for a
 good PR are:
@@ -20,7 +14,7 @@ good PR are:
 If you would like to contribute but are unsure how, then writing examples, documentation or working on
 [open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start.
 
-## <a id="code-quality">Code Quality</a>
+## Code Quality
 
 Code quality is an essential component in a collaborative open-source project.
 
@@ -32,7 +26,7 @@ made [travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the p
 - Keep dependencies to a minimum.
 - Make sure to observe good coding practice. The existing ProbNum code is a good starting point for coding style.
 
-### Documentation example:
+#### Docstring Example
 
 ```python
 def some_function(param1, param2):
@@ -60,18 +54,18 @@ def some_function(param1, param2):
     return param1 + param2
 ```
 
-## <a name="tests-ci">Tests and CI</a>
+## Tests and CI
 
 We aim to cover as much code with tests as possible. Make sure to add tests for newly implemented code. Tests are run by
 the continuous integration (CI) tool [travis](https://travis-ci.org/probabilistic-numerics/probnum) and coverage is reported by [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master).
 
-## <a name="documentation">Documentation</a>
+## Documentation
 
 [Documentation](https://probabilistic-numerics.github.io/probnum/modules.html) is automatically built using `sphinx` and
 [travis](https://travis-ci.org/probabilistic-numerics/probnum). When implementing published probabilistic numeric methods please give credit and include citations.
 
 
-## <a name="credit">Credit</a>
+## Credit
 
 If you feel like you have contributed significantly to Probnum make sure to add your name to the [authors](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md)
 file alongside your contributions and to the [license](https://github.com/probabilistic-numerics/probnum/blob/master/LICENSE.txt).
