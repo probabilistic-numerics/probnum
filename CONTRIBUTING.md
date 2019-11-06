@@ -17,8 +17,8 @@ good PR are:
 - includes tests and appropriate documentation
 - makes minimal changes to the interface and core codebase
 
-If you would like to contribute but are unsure how, then writing examples, documentation or `jupyter` notebooks are a 
-good way to start.
+If you would like to contribute but are unsure how, then writing examples, documentation or working on 
+[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start.
 
 ## <a name="code-quality">Code Quality</a>
 

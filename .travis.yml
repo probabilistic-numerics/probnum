@@ -1,39 +1,37 @@
-# Travis configuration file using the build matrix feature
+# Travis configuration file
 # Read more under http://docs.travis-ci.com/user/build-configuration/
-# THIS SCRIPT IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
 
+
+# Disable sudo to speed up the build
 sudo: false
+
+# Set the build language to Python
 language: python
-virtualenv:
-  system_site_packages: false
-matrix:
-  fast_finish: true
-  include:
-    - python: 3.6
-      env: DISTRIB="ubuntu" TOX_PYTHON_VERSION="py36" COVERAGE="true"
-    - env: DISTRIB="conda" PYTHON_VERSION="3.6" COVERAGE="false"
+dist: xenial
+python:
+  - "3.6"
 install:
   - source tests/travis_install.sh
+  - pip install pytest pytest-cov # testing 
+  - pip install sphinx # python documentation tool
+  - pip install sphinx_rtd_theme # documentation theme
+  - pip install sphinx_automodapi # automated function documentation
   - pip install -r requirements.txt
   # ^  DEPRECATION WARNING:
   # The automatic creation of a `requirements.txt` file is deprecated.
   # See `Dependency Management` in the docs for other options.
-before_script:
-  - git config --global user.email "you@example.com"
-  - git config --global user.name "Your Name"
 script:
-  - python setup.py develop
-  - tox
-  - |
-    if [[ "$COVERAGE" == "true" ]]; then
-      pre-commit install
-      pre-commit run --all-files
-    fi
+  - cd docs/
+  - make html # build documentation
+  - cd -
+  - pytest --cov=./ # run tests and coverage
 after_success:
-  - if [[ "$COVERAGE" == "true" ]]; then coveralls || echo "failed"; fi
+  - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecov
 after_script:
   - travis-cleanup
-cache:
-  pip: true
-  directories:
-    - $HOME/miniconda
+deploy: # deploy documentation to github page
+- provider: pages
+  skip_cleanup: true
+  local_dir: docs/_build/html
+  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+  keep_history: true
