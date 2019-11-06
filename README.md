@@ -10,8 +10,10 @@
 * [Installation and Documentation](#installation)
 * [Examples](#examples)
 * [License and Contact](#contact)
+* [Contributing](#contributing)
 
 ## <a name="introduction">Introduction</a>
+[Probabilistic Numerics](http://probabilistic-numerics.org/) (PN) interprets classic numerical routines as inference procedures by taking a probabilistic viewpoint. This allows principled treatment of uncertainty arising from finite computational resources. The vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be propagated along the chain of computation. This repository aims to collect standard PN algorithms and to provide a common interface for them.
 
 
 ## <a name="installation">Installation and Documentation</a>
@@ -34,3 +36,6 @@ In the future we will provide Jupyter notebooks to illustrate basic usage exampl
 This work is released under the [MIT License](LICENSE.txt).
 
 Please submit an [issue](https://github.com/probabilistic-numerics/probnum/issues/new) to report bugs or request changes.
+
+## <a name="contributing">Contributing</a>
+This repository is currently under development and benefits from contribution to the code, examples or documentation. Please refer to the [contribution guide](CONTRIBUTING.md) before making a pull request.
