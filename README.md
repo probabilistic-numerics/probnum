@@ -15,7 +15,7 @@
 This repository aims to implement standard PN algorithms in Python 3 and to provide a common interface for them. This is
 currently a work in progress (see [Contributing Code](#contributing)), therefore interfaces are subject to change.
 
-## <a name="installation"></a>Installation and Documentation
+## Installation and Documentation<a name="installation"></a>
 You can install this Python 3 package using `pip` (or `pip3`):
 ```
 pip install git+https://github.com/probabilistic-numerics/probnum.git
