@@ -23,7 +23,7 @@ install:
 script:
   - cd docs/
   - make html # build documentation
-  - cd -
+  - cd ..
   - pytest --cov=./ # run tests and coverage
 after_success:
   - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecov
