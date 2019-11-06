@@ -1,7 +1,3 @@
 .. _authors:
 
-=======
-Authors
-=======
-
-.. include:: ../../AUTHORS.md
+.. mdinclude:: ../../AUTHORS.md

@@ -1,5 +1,5 @@
 # Probnum Contributors (sorted alphabetically)
 
-- **[Jonathan Wenger](https://github.com/JonathanWenger)**
+- [**Jonathan Wenger**](https://github.com/JonathanWenger)
     - example contribution
 
