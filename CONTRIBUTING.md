@@ -6,6 +6,7 @@ Contributions to Probnum are very welcome. Before getting started make sure to r
 * [Code Quality](#code-quality)
 * [Tests and CI](#tests-ci)
 * [Documentation](#documentation)
+* [Credit](#credit)
 
 ## <a name="getting-started">Getting Started</a>
 
@@ -28,6 +29,7 @@ made `travis` builds the project and runs the test suite.
 - Documentation of code is essential for any collaborative project. Probnum uses the 
 [`numpy` docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
 - Python code should follow the [*PEP8* style](https://www.python.org/dev/peps/pep-0008/). 
+- Keep dependencies to a minimum.
 - Make sure to observe good coding practice. The existing ProbNum code is a good starting point for coding style.
 
 Documentation example:
@@ -67,3 +69,9 @@ the continuous integration (CI) tool `travis` and coverage is reported by `codec
 
 [Documentation](https://readthedocs.org/probabilistic-numerics/probnum) is automatically built using `sphinx` and 
 `travis`. When implementing published probabilistic numeric methods please give credit and include citations. 
+
+
+## <a name="credit">Credit</a>
+
+If you feel like you have contributed significantly to Probnum make sure to add your name to the [authors](AUTHORS.md)
+file alongside your contributions and to the [license](LICENSE.txt).
