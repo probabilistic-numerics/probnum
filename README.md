@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/probabilistic-numerics/probnum/badge/?version=master)](http://gpflow.readthedocs.io/en/master/?badge=master)
 
 <p align="center">
-  <img src="img/pn_logo.png" alt="probabilistic numerics" width="512"/>
+  <img src="img/pn_logo.png" alt="probabilistic numerics" width="256"/>
 </p>
 
 * [Introduction](#introduction)
