@@ -5,6 +5,5 @@ Changelog
 Version 0.1
 ===========
 
-- Feature A added
-- FIX: nasty bug #1729 fixed
-- add your changes here!
+- README added.
+- Basic documentation functionality via Sphinx and automated testing using travis added.
