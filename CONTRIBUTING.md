@@ -32,8 +32,9 @@ made [travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the p
 def some_function(param1, param2):
     """Short function description.
 
-    Extensive function description which explains its purpose in more detail and may reference parameters or output.
-    References [1]_ can also be included, e.g. if the method implementation is based on a paper.
+    Extensive function description which explains its purpose in more detail and may reference
+    parameters or output. References [1]_ can also be included, e.g. if the method 
+    implementation is based on a paper.
 
     Parameters
     ----------
