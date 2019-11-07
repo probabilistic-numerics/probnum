@@ -1,6 +1,7 @@
 import abc
 import numpy as np
 
+
 class ProbabilisticLinearSolver(abc.ABC):
     """
     Probabilistic linear solvers infer solutions to linear systems in a Bayesian framework.
@@ -54,4 +55,3 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
         if np.shape(A)[0] != np.shape(b)[0]:
             raise ValueError("Dimension mismatch.")
         raise NotImplementedError("Not yet implemented.")
-
