@@ -1,2 +1,2 @@
-.. automodapi:: probnum.linear_algebra
+.. automodapi:: probnum.linear_solvers
    :no-inheritance-diagram:
