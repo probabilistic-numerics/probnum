@@ -117,7 +117,7 @@ html_theme_options = {
     'navbar_title': project,
 
     # Tab name for entire site. (Default: "Site")
-    'navbar_site_name': "Contents",
+    'navbar_site_name': "Site",
 
     # A list of tuples containing pages or urls to link to.
     # Valid tuples should be in the following forms:
@@ -131,6 +131,7 @@ html_theme_options = {
         ("Documentation", "modules"),
         ("Examples", "examples"),
         ("Development", "contributing"),
+        ("GitHub", "https://github.com/probabilistic-numerics/probnum", True),
     ],
 
     # Render the next and previous page links in navbar. (Default: true)

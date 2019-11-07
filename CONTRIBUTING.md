@@ -4,8 +4,9 @@ Contributions to ProbNum are very welcome. Before getting started make sure to r
 
 ## Getting Started
 
-All contributions to ProbNum should be made via pull requests (PR) to the development branch. Some suggestions for a
-good PR are:
+All contributions to ProbNum should be made via pull requests (PR) to the 
+[development branch](https://github.com/probabilistic-numerics/probnum/tree/development) on GitHub. Some suggestions for 
+a good PR are:
 
 - implements or fixes one functionality
 - includes tests and appropriate documentation
@@ -18,7 +19,7 @@ If you would like to contribute but are unsure how, then writing examples, docum
 
 Code quality is an essential component in a collaborative open-source project.
 
-- All code should be covered by tests. We use the [pytest](https://docs.pytest.org/) framework. Every time a commit is
+- All code should be covered by tests. ProbNum uses the [pytest](https://docs.pytest.org/) framework. Every time a commit is
 made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
 - Documentation of code is essential for any collaborative project. ProbNum uses the
 [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
