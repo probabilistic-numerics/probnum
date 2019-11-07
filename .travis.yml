@@ -12,7 +12,7 @@ python:
 install:
   - pip install pytest pytest-cov # testing 
   - pip install sphinx # python documentation tool
-  - pip install sphinx_bootstraph_theme # documentation theme
+  - pip install sphinx_bootstrap_theme # documentation theme
   - pip install sphinx_automodapi # automated function documentation
   - pip install npsphinx # jupyter notebook documentation support
   - pip install m2r # markdown to restructuredText conversion for sphinx

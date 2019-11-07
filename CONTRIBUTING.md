@@ -1,4 +1,4 @@
-# Contributing to ProbNum
+# Package Development
 
 Contributions to ProbNum are very welcome. Before getting started make sure to read the following guidelines.
 
@@ -14,7 +14,7 @@ good PR are:
 If you would like to contribute but are unsure how, then writing examples, documentation or working on
 [open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start.
 
-## Code Quality
+### Code Quality
 
 Code quality is an essential component in a collaborative open-source project.
 
@@ -54,18 +54,13 @@ def some_function(param1, param2):
     return param1 + param2
 ```
 
-## Tests and CI
+### Tests and CI
 
 We aim to cover as much code with tests as possible. Make sure to add tests for newly implemented code. Tests are run by
 the continuous integration (CI) tool [travis](https://travis-ci.org/probabilistic-numerics/probnum) and coverage is reported by [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master).
 
-## Documentation
+### Documentation
 
 [Documentation](https://probabilistic-numerics.github.io/probnum/modules.html) is automatically built using `sphinx` and
-[travis](https://travis-ci.org/probabilistic-numerics/probnum). When implementing published probabilistic numeric methods please give credit and include citations.
-
-
-## Credit
-
-If you feel like you have contributed significantly to ProbNum make sure to add your name to the [authors](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md)
-file alongside your contributions and to the [license](https://github.com/probabilistic-numerics/probnum/blob/master/LICENSE.txt).
+[travis](https://travis-ci.org/probabilistic-numerics/probnum). When implementing published methods please give credit 
+and include the appropriate citations.
