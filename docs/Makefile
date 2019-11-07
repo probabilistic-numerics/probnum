@@ -41,7 +41,7 @@ help:
 
 # Remove the automodapidir as it does not update with e.g. "make html"
 clean:
-	@$(SPHINXBUILD) -b clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 	$(info Deleting contents of $(AUTOMODAPIDIR) directory...)
 	-rm -r $(AUTOMODAPIDIR)/*
 

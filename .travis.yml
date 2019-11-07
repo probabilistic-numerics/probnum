@@ -12,8 +12,9 @@ python:
 install:
   - pip install pytest pytest-cov # testing 
   - pip install sphinx # python documentation tool
-  - pip install sphinx_rtd_theme # documentation theme
+  - pip install sphinx_bootstraph_theme # documentation theme
   - pip install sphinx_automodapi # automated function documentation
+  - pip install npsphinx # jupyter notebook documentation support
   - pip install m2r # markdown to restructuredText conversion for sphinx
   - pip install -r requirements.txt
   - python setup.py develop
@@ -22,6 +23,7 @@ install:
   # See `Dependency Management` in the docs for other options.
 script:
   - cd docs/
+  - make clean # remove modules from automodapi
   - make html # build documentation
   - cd ..
   - pytest --cov=./ # run tests and coverage
