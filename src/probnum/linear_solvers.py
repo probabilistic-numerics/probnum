@@ -1,5 +1,5 @@
 import abc
-
+import numpy as np
 
 class ProbabilisticLinearSolver(abc.ABC):
     """
@@ -46,5 +46,12 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
     """
 
     def solve(self, A, b, **kwargs):
+        # Convert arguments
+        A = np.asarray(A)
+        b = np.asarray(b)
+
+        # Check for dimension mismatch
+        if np.shape(A)[0] != np.shape(b)[0]:
+            raise ValueError("Dimension mismatch.")
         raise NotImplementedError("Not yet implemented.")
 
