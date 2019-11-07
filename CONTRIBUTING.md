@@ -50,7 +50,7 @@ def some_function(param1, param2):
 
     References
     ----------
-    .. [1] Some paper title, A. Author, EXAMPLE conference 2019
+    .. [1] Author A. et al., Some paper title, *EXAMPLE conference* 2019
     """
     return param1 + param2
 ```

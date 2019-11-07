@@ -42,9 +42,9 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
     on the matrix inverse :math:`H=A^{-1}` and outputs a posterior belief over :math:`H`. This code implements the
     method described in [1]_.
 
-    .. [1] Hennig, P., Probabilistic Interpretation of Linear Solvers, _SIAM Journal on Optimization_, 2015, 25, 234-260
+    .. [1] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
     """
 
     def solve(self, A, b, **kwargs):
-        pass
+        raise NotImplementedError("Not yet implemented.")
 
