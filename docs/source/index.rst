@@ -10,7 +10,6 @@ Welcome to probnum's documentation!
    modules
    examples
    contributing
-   authors
    license
 
 

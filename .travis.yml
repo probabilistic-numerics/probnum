@@ -1,7 +1,6 @@
 # Travis configuration file
 # Read more under http://docs.travis-ci.com/user/build-configuration/
 
-
 # Disable sudo to speed up the build
 sudo: false
 
@@ -30,7 +29,7 @@ after_success:
   - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecov
 after_script:
   - travis-cleanup
-deploy: # deploy documentation to github page
+deploy: # deploy documentation to github pages
 - provider: pages
   skip_cleanup: true
   local_dir: docs/_build/html
