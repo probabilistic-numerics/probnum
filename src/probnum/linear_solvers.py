@@ -1,17 +1,19 @@
-import numpy
+from abc import ABC, abstractmethod
 
-def example_linear_solver():
+
+class ProbabilisticLinearSolver(ABC):
     """
-    Updated Documentation
+    Probabilistic linear solvers infer solutions to linear systems in a Bayesian framework.
 
-    Returns
-    -------
+    Probabilistic numerical linear solvers infer solutions to problems of the form
 
+    .. math:: Ax^*=b,
+    where :math:`A \\in \\mathbb{R}^{m \\times n}` and :math:`b \\in \\mathbb{R}^{m}`. They output a probability measure
+    which quantifies uncertainty in the solution. 
     """
-    return 0
 
-def example_linear_solver2():
-    return 1
+    @abstractmethod
+    def solve(self, A, b, **kwargs):
+        pass
 
-def example_linear_solver3():
-    return 3
+

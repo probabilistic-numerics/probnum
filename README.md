@@ -19,7 +19,7 @@ Alternatively you can clone this repository with
 ```
 git clone https://github.com/probabilistic-numerics/probnum
 cd probnum
-python setup.py install
+pip install .
 ```
 For tips on getting started and how to use this package please refer to the
 [documentation](https://probabilistic-numerics.github.io/probnum/intro.html).
