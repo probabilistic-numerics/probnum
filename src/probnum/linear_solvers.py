@@ -35,6 +35,13 @@ class ProbabilisticLinearSolver(abc.ABC):
         pass
 
 
+def _check_parameters(A, b):
+    if A.shape[0] != b.shape[0]:
+        raise ValueError("Dimension mismatch.")
+    if A.shape[0] != A.shape[1]:
+        raise ValueError("Matrix A must be square.")
+
+
 class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
     """
     Conjugate Gradients using prior information on the matrix inverse.
@@ -46,12 +53,22 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
     .. [1] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
     """
 
+    def __init__(self, prior_mean, prior_cov):
+        """
+
+        Parameters
+        ----------
+        prior_mean
+        prior_cov
+        """
+
     def solve(self, A, b, **kwargs):
         # Convert arguments
         A = np.asarray(A)
         b = np.asarray(b)
 
-        # Check for dimension mismatch
-        if np.shape(A)[0] != np.shape(b)[0]:
-            raise ValueError("Dimension mismatch.")
+        # Check for correct dimensions
+        _check_parameters(A=A, b=b)
+
+        # Matrix-based Gaussian inference
         raise NotImplementedError("Not yet implemented.")
