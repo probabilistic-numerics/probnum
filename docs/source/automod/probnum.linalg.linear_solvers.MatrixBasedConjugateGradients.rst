@@ -1,7 +1,7 @@
 MatrixBasedConjugateGradients
 =============================
 
-.. currentmodule:: probnum.linear_solvers
+.. currentmodule:: probnum.linalg.linear_solvers
 
 .. autoclass:: MatrixBasedConjugateGradients
    :show-inheritance:

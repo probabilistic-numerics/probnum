@@ -1,7 +1,7 @@
 ProbabilisticLinearSolver
 =========================
 
-.. currentmodule:: probnum.linear_solvers
+.. currentmodule:: probnum.linalg.linear_solvers
 
 .. autoclass:: ProbabilisticLinearSolver
    :show-inheritance:
