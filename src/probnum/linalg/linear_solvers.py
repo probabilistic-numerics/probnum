@@ -1,3 +1,5 @@
+"""Probabilistic numerical methods for solving linear systems"""
+
 import abc
 import numpy as np
 
@@ -69,13 +71,42 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
     ----------
     H_mean : array-like
         Mean of the Gaussian prior on :math:`H=A^{-1}`.
-    H_cov_kronfac
+    H_cov_kronfac : array-like
         Kronecker factor of the covariance :math:`W_H \\otimes W_H` of the Gaussian prior on :math:`H=A^{-1}`.
     """
 
     def __init__(self, H_mean, H_cov_kronfac):
         self.H_mean = H_mean
         self.H_cov_kronfac = H_cov_kronfac
+
+    def _check_convergence(self, iter, maxiter, resid, resid_tol):
+        """
+
+        Parameters
+        ----------
+        iter : int
+            Current iteration of solver.
+        maxiter : int
+            Maximum number of iterations
+        resid : array-like
+            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
+        resid_tol : float
+            Residual tolerance.
+
+        Returns
+        -------
+        is_converged : bool
+        """
+        # maximum iterations
+        if iter == maxiter - 1:
+            return True
+        # residual below error tolerance
+        elif np.linalg.norm(resid) < resid_tol:
+            return True
+        # uncertainty-based
+        # todo: based on posterior contraction
+        else:
+            return False
 
     def solve(self, A, b, maxiter=None, resid_tol=10 ** -6, reorth=False):
         """
@@ -99,56 +130,90 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
         -------
 
         """
-        # Convert arguments
-        A = np.asarray(A)  # make sure this doesn't de-sparsify the matrix, replace with more general type checking
+        # todo: allow for linear operator A
+        # todo: split this function into general MB linear solver and MB CG version
+
+        # convert arguments
+        # todo: make sure this doesn't de-sparsify the matrix, replace with more general type checking
+        A = np.asarray(A)
         b = np.asarray(b)
 
-        # Check linear system dimensionality
+        # check linear system dimensionality
         _check_linear_system(A=A, b=b)
 
-        # Setup
+        # setup
         n = len(b)
         if maxiter is None:
             maxiter = n * 10
 
-        # Initialization
+        # initialization
         iter = 0
         x = np.matmul(self.H_mean, b)
         resid = np.matmul(A, x) - b
 
-        # Iteration
+        # iteration
         while True:
 
-            # Compute search direction
-            search_dir = - np.matmul(self.H_mean, resid)
-
+            # compute search direction
             if reorth:
-                # Reorthogonalize to all previous search directions
-                s = 0
+                # todo: reorthogonalize to all previous search directions
+                search_dir = 0
             else:
-                # Orthogonalization
-                s = 0
+                search_dir = - np.matmul(self.H_mean, resid)
 
-            # Perform action and observe
+            # perform action and observe
             obs = np.matmul(A, search_dir)
 
-            # Compute step size
-            step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
+            # compute step size
+            step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)  # todo: ensure safe division
 
-            # Step and residual update
+            # step and residual update
             x = x + step_size * search_dir
             resid = resid + step_size * obs
 
-            # Mean and covariance update
+            # mean and covariance update
+            # raise NotImplementedError("Not yet implemented.")
 
-            # Stopping criteria
-            if iter == maxiter - 1:
-                # Maximum iterations
-                break
-            if np.linalg.norm(resid) < resid_tol:
-                # Residual below error tolerance
+            # stopping criteria
+            if self._check_convergence(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
                 break
 
-                # Uncertainty-based
+        return x, self.H_mean, self.H_cov_kronfac
 
+
+class SolutionBasedConjugateGradients(ProbabilisticLinearSolver):
+    """
+    Conjugate Gradients using prior information on the solution of the linear system.
+
+    In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information
+    on the solution and outputs a posterior belief over :math:`x`. This code implements the
+    method described in [1]_.
+
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
+
+    Attributes
+    ----------
+    x_mean : array-like
+        Mean of the Gaussian prior on :math:`x`.
+    x_cov : array-like
+        Covariance :math:`\\Sigma` of the Gaussian prior on :math:`x`.
+    """
+
+    def solve(self, A, b, maxiter=None):
+        """
+        Solve the given linear system.
+
+        Parameters
+        ----------
+        A : array-like
+            The matrix of the linear system.
+        b : array-like
+            The right-hand-side of the linear system.
+        maxiter : int
+            Maximum number of iterations.
+
+        Returns
+        -------
+
+        """
         raise NotImplementedError("Not yet implemented.")
