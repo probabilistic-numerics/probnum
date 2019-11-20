@@ -4,7 +4,8 @@ import probnum.linalg.linear_solvers
 
 
 @pytest.mark.parametrize("prob_linear_solver",
-                         [probnum.linalg.linear_solvers.MatrixBasedConjugateGradients()])
+                         [probnum.linalg.linear_solvers.MatrixBasedConjugateGradients(),
+                          probnum.linalg.linear_solvers.SolutionBasedConjugateGradients()])
 def test_dimension_mismatch_exception(prob_linear_solver):
     """Test whether linear solvers throw an exception for input with mismatched dimensions."""
     A = np.zeros(shape=[3, 2])

@@ -75,7 +75,8 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
         Kronecker factor of the covariance :math:`W_H \\otimes W_H` of the Gaussian prior on :math:`H=A^{-1}`.
     """
 
-    def __init__(self, H_mean, H_cov_kronfac):
+    def __init__(self, H_mean=None, H_cov_kronfac=None):
+        # todo: initialize as identity operators (avoids having to specify dimensions at this point)
         self.H_mean = H_mean
         self.H_cov_kronfac = H_cov_kronfac
 
@@ -131,7 +132,8 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
 
         """
         # todo: allow for linear operator A
-        # todo: split this function into general MB linear solver and MB CG version
+        # todo: make sure for A-conjugate search directions (i.e. specific choice for W this is similarly
+        #  efficient as CG)
 
         # convert arguments
         # todo: make sure this doesn't de-sparsify the matrix, replace with more general type checking
@@ -155,11 +157,10 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
         while True:
 
             # compute search direction
+            search_dir = - np.matmul(self.H_mean, resid)
             if reorth:
                 # todo: reorthogonalize to all previous search directions
-                search_dir = 0
-            else:
-                search_dir = - np.matmul(self.H_mean, resid)
+                raise NotImplementedError("Not yet implemented.")
 
             # perform action and observe
             obs = np.matmul(A, search_dir)
@@ -199,6 +200,10 @@ class SolutionBasedConjugateGradients(ProbabilisticLinearSolver):
         Covariance :math:`\\Sigma` of the Gaussian prior on :math:`x`.
     """
 
+    def __init__(self, x_mean=None, x_cov=None):
+        self.x_mean = x_mean
+        self.x_cov = x_cov
+
     def solve(self, A, b, maxiter=None):
         """
         Solve the given linear system.
@@ -216,4 +221,8 @@ class SolutionBasedConjugateGradients(ProbabilisticLinearSolver):
         -------
 
         """
+
+        # check linear system dimensionality
+        _check_linear_system(A=A, b=b)
+
         raise NotImplementedError("Not yet implemented.")
