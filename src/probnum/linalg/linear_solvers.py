@@ -2,6 +2,7 @@
 
 import abc
 import numpy as np
+import scipy.sparse.linalg
 
 
 class ProbabilisticLinearSolver(abc.ABC):
@@ -78,9 +79,15 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
     """
 
     def __init__(self, H_mean=None, H_cov_kronfac=None):
-        # todo: initialize as identity operators (avoids having to specify dimensions at this point)
-        self.H_mean = H_mean
-        self.H_cov_kronfac = H_cov_kronfac
+        # todo: refactor as dimension of linear operator is not known at this point
+        if H_mean is not None:
+            self.H_mean = scipy.sparse.linalg.aslinearoperator(H_mean)
+        else:
+            self.H_mean = None
+        if H_cov_kronfac is not None:
+            self.H_cov_kronfac = scipy.sparse.linalg.aslinearoperator(H_cov_kronfac)
+        else:
+            self.H_cov_kronfac = None
 
     def _has_converged(self, iter, maxiter, resid, resid_tol):
         """
@@ -112,6 +119,38 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         else:
             return False
 
+    def _mean_update_operator(self, u, v, shape):
+
+        def mv(x):
+            return np.dot(v, x) * u + np.dot(u, x) * v
+
+        def mm(M):
+            return np.outer(u, np.matmul(M, v)) + np.outer(v, np.matmul(u, M))
+
+        return scipy.sparse.linalg.LinearOperator(
+            shape=shape,
+            matvec=mv,
+            rmatvec=mv,
+            matmat=mm,
+            dtype=u.dtype
+        )
+
+    def _cov_kron_fac_update_operator(self, u, Ws, shape):
+
+        def mv(x):
+            return np.dot(Ws, x) * u
+
+        def mm(M):
+            return np.outer(u, np.matmul(M, Ws))
+
+        return scipy.sparse.linalg.LinearOperator(
+            shape=shape,
+            matvec=mv,
+            rmatvec=mv,
+            matmat=mm,
+            dtype=u.dtype
+        )
+
     def solve(self, A, b, maxiter=None, resid_tol=10 ** -6, reorth=False):
         """
         Solve the given linear system for symmetric, positive-definite :math:`A`.
@@ -135,15 +174,12 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         x : array-like
             Approximate solution :math:`Ax \\approx b` to the linear system.
         """
-        # todo: allow for linear operator A (via scipy.sparse.linalg.LinearOperator) and replace matrix multiplication
-        # with sparse matrix multiplication for efficiency
         # todo: make sure for A-conjugate search directions (i.e. choice of W st. Y'WY diagonal) this is similarly
         #  efficient as CG
 
-        # convert arguments
-        # todo: make sure this doesn't de-sparsify the matrix, replace with more general type checking
-        A = np.asarray(A)
-        b = np.asarray(b)
+        # make linear system
+        A = scipy.sparse.linalg.interface.aslinearoperator(A)
+        b = np.asanyarray(b)
 
         # check linear system dimensionality
         _check_linear_system(A=A, b=b)
@@ -152,28 +188,28 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         n = len(b)
         if maxiter is None:
             maxiter = n * 10
-        if self.H_mean is None:  # todo: replace with initialization with identity linear operator in __init__
-            self.H_mean = np.eye(n)
+        if self.H_mean is None:
+            self.H_mean = scipy.sparse.linalg.interface.IdentityOperator(shape=(n, n))
         if self.H_cov_kronfac is None:
-            self.H_cov_kronfac = np.eye(n)
+            self.H_cov_kronfac = scipy.sparse.linalg.interface.IdentityOperator(shape=(n, n))
 
         # initialization
         iter = 0
-        x = np.matmul(self.H_mean, b)
-        resid = np.matmul(A, x) - b
+        x = self.H_mean.matvec(b)
+        resid = A.matvec(x) - b
 
         # iteration with stopping criteria
         # todo: extract iteration and make into iterator
         while not self._has_converged(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
 
             # compute search direction
-            search_dir = - np.matmul(self.H_mean, resid)
+            search_dir = - self.H_mean.matvec(resid)
             if reorth:
                 # todo: re-orthogonalize to all previous search directions (i.e. perform full inversion of MxM matrix?)
                 raise NotImplementedError("Not yet implemented.")
 
             # perform action and observe
-            obs = np.matmul(A, search_dir)
+            obs = A.matvec(search_dir)
 
             # compute step size
             step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
@@ -182,12 +218,16 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             resid = resid + step_size * obs
 
             # mean and covariance updates
-            Ws = np.matmul(self.H_cov_kronfac, search_dir)
-            delta = obs - np.matmul(self.H_mean, search_dir)
+            Ws = self.H_cov_kronfac.matvec(search_dir)
+            delta = obs - self.H_mean.matvec(search_dir)
             u = Ws / np.dot(search_dir, Ws)
-            udelta = np.outer(u, delta)
-            self.H_mean = udelta + udelta.T - np.dot(delta, search_dir) * np.outer(u, u)  # rank 2 update
-            self.H_cov_kronfac = self.H_cov_kronfac - np.outer(u, Ws)  # rank 1 update
+            v = delta - 0.5 * np.dot(search_dir, delta) * u
+
+            # rank 2 mean update operator (+= uv' + vu')
+            self.H_mean = self.H_mean + self._mean_update_operator(u=u, v=v, shape=(n, n))
+
+            # rank 1 covariance kronecker factor update operator (-= u(Ws)')
+            self.H_cov_kronfac = self.H_cov_kronfac - self._cov_kron_fac_update_operator(u=u, Ws=Ws, shape=(n, n))
 
             # iteration incrementation
             iter += 1
@@ -197,6 +237,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             "n_iter": iter,
             "resid_norm": np.linalg.norm(resid)
         }
+        print(info)
         # todo: return solution, some general distribution class and dict with convergence info (iter, resid, ...)
         return x, info
 

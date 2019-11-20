@@ -15,6 +15,21 @@ def test_dimension_mismatch_exception(prob_linear_solver):
     with pytest.raises(ValueError, match="Dimension mismatch.") as e:
         assert prob_linear_solver.solve(A=A, b=b), "Invalid input formats should raise a ValueError."
 
+@pytest.mark.parametrize("mb_linear_solver",
+                         [probnum.linalg.linear_solvers.MatrixBasedLinearSolver()])
+def test_symmetric_posterior_params(mb_linear_solver):
+    np.random.seed(1)
+    n = 10
+    A = np.random.rand(n, n)
+    A = 0.5 * (A + A.T) + n * np.eye(n)
+    b = np.random.rand(n)
+
+    _, _ = mb_linear_solver.solve(A=A, b=b)
+    np.testing.assert_allclose(mb_linear_solver.H_mean.matmat(np.eye(n)),
+                               mb_linear_solver.H_mean.H.matmat(np.eye(n)), rtol=1e-2)
+    np.testing.assert_allclose(mb_linear_solver.H_cov_kronfac.matmat(np.eye(n)),
+                               mb_linear_solver.H_cov_kronfac.H.matmat(np.eye(n)), rtol=1e-2)
+
 
 @pytest.mark.parametrize("prob_linear_solver",
                          [probnum.linalg.linear_solvers.MatrixBasedLinearSolver()])
@@ -27,7 +42,6 @@ def test_zero_rhs(prob_linear_solver):
 
     for tol in tols:
         x, info = prob_linear_solver.solve(A=A, b=b, resid_tol=tol)
-        # np.testing.assert_equal(info, 0)
         np.testing.assert_allclose(x, 0, atol=1e-15)
 
 
@@ -35,21 +49,21 @@ def test_zero_rhs(prob_linear_solver):
                          [probnum.linalg.linear_solvers.MatrixBasedLinearSolver()])
 def test_spd_matrix(prob_linear_solver):
     np.random.seed(1234)
-    n = 10
+    n = 40
     A = np.random.rand(n, n)
     A = 0.5 * (A + A.T) + n * np.eye(n)
     b = np.random.rand(n)
     x = np.linalg.solve(A, b)
 
-    x_solver, _ = prob_linear_solver.solve(A=A, b=b)
+    x_solver, info = prob_linear_solver.solve(A=A, b=b)
     np.testing.assert_allclose(x_solver, x, rtol=1e-2)
 
 
 @pytest.mark.parametrize("prob_linear_solver",
                          [probnum.linalg.linear_solvers.MatrixBasedLinearSolver()])
-def test_poisson(prob_linear_solver):
+def test_sparse_poisson(prob_linear_solver):
     np.random.seed(1234)
-    n = 20
+    n = 40
     data = np.ones((3, n))
     data[0, :] = 2
     data[1, :] = -1
