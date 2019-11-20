@@ -1,16 +1,16 @@
-MatrixBasedConjugateGradients
-=============================
+MatrixBasedLinearSolver
+=======================
 
 .. currentmodule:: probnum.linalg.linear_solvers
 
-.. autoclass:: MatrixBasedConjugateGradients
+.. autoclass:: MatrixBasedLinearSolver
    :show-inheritance:
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~MatrixBasedConjugateGradients.solve
+      ~MatrixBasedLinearSolver.solve
 
    .. rubric:: Methods Documentation
 

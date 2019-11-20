@@ -82,7 +82,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         self.H_mean = H_mean
         self.H_cov_kronfac = H_cov_kronfac
 
-    def _check_convergence(self, iter, maxiter, resid, resid_tol):
+    def _has_converged(self, iter, maxiter, resid, resid_tol):
         """
 
         Parameters
@@ -98,7 +98,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
 
         Returns
         -------
-        is_converged : bool
+        has_converged : bool
         """
         # maximum iterations
         if iter == maxiter - 1:
@@ -132,7 +132,8 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
 
         Returns
         -------
-
+        x : array-like
+            Approximate solution :math:`Ax \\approx b` to the linear system.
         """
         # todo: allow for linear operator A (via scipy.sparse.linalg.LinearOperator) and replace matrix multiplication
         # with sparse matrix multiplication for efficiency
@@ -151,19 +152,24 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         n = len(b)
         if maxiter is None:
             maxiter = n * 10
+        if self.H_mean is None:  # todo: replace with initialization with identity linear operator in __init__
+            self.H_mean = np.eye(n)
+        if self.H_cov_kronfac is None:
+            self.H_cov_kronfac = np.eye(n)
 
         # initialization
         iter = 0
         x = np.matmul(self.H_mean, b)
         resid = np.matmul(A, x) - b
 
-        # iteration
-        while True:
+        # iteration with stopping criteria
+        # todo: extract iteration and make into iterator
+        while not self._has_converged(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
 
             # compute search direction
             search_dir = - np.matmul(self.H_mean, resid)
             if reorth:
-                # todo: reorthogonalize to all previous search directions (i.e. perform full inversion of MxM matrix?)
+                # todo: re-orthogonalize to all previous search directions (i.e. perform full inversion of MxM matrix?)
                 raise NotImplementedError("Not yet implemented.")
 
             # perform action and observe
@@ -171,24 +177,28 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
 
             # compute step size
             step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
-
             # step and residual update
             x = x + step_size * search_dir
             resid = resid + step_size * obs
 
-            # mean and covariance (rank 2) update
+            # mean and covariance updates
             Ws = np.matmul(self.H_cov_kronfac, search_dir)
             delta = obs - np.matmul(self.H_mean, search_dir)
             u = Ws / np.dot(search_dir, Ws)
             udelta = np.outer(u, delta)
-            self.H_mean = udelta + udelta.T - np.dot(delta, search_dir) * np.outer(u, u)
-            self.H_cov_kronfac = self.H_cov_kronfac - np.outer(u, Ws)
+            self.H_mean = udelta + udelta.T - np.dot(delta, search_dir) * np.outer(u, u)  # rank 2 update
+            self.H_cov_kronfac = self.H_cov_kronfac - np.outer(u, Ws)  # rank 1 update
 
-            # stopping criteria
-            if self._check_convergence(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
-                break
+            # iteration incrementation
+            iter += 1
 
-        return x, self.H_mean, self.H_cov_kronfac
+        # Information
+        info = {
+            "n_iter": iter,
+            "resid_norm": np.linalg.norm(resid)
+        }
+        # todo: return solution, some general distribution class and dict with convergence info (iter, resid, ...)
+        return x, info
 
 
 class SolutionBasedConjugateGradients(ProbabilisticLinearSolver):
