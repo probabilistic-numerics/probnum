@@ -57,15 +57,17 @@ def _check_linear_system(A, b):
         raise ValueError("Matrix A must be square.")
 
 
-class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
+class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
     """
-    Conjugate Gradients using prior information on the matrix inverse.
+    Probabilistic linear solver using prior information on the matrix inverse.
 
     In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information either
-    on the matrix inverse :math:`H=A^{-1}` and outputs a posterior belief over :math:`H`. This code implements the
-    method described in [1]_.
+    on the matrix inverse :math:`H=A^{-1}` and outputs a posterior belief over :math:`H`. For a specific prior choice
+    this recovers the iterates of the conjugate gradient method. This code implements the method described in [1]_ and
+    [2]_.
 
     .. [1] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [2] Hennig, P. et al., Probabilistic Numerics, 2020
 
     Attributes
     ----------
@@ -102,6 +104,7 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
         if iter == maxiter - 1:
             return True
         # residual below error tolerance
+        # todo: add / replace with relative tolerance
         elif np.linalg.norm(resid) < resid_tol:
             return True
         # uncertainty-based
@@ -119,7 +122,7 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
             The matrix of the linear system.
         b : array-like
             The right-hand-side of the linear system.
-        maxiter : int
+        maxiter : int, default=len(b)*10
             Maximum number of iterations.
         resid_tol : float
             Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
@@ -131,9 +134,10 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
         -------
 
         """
-        # todo: allow for linear operator A
-        # todo: make sure for A-conjugate search directions (i.e. specific choice for W this is similarly
-        #  efficient as CG)
+        # todo: allow for linear operator A (via scipy.sparse.linalg.LinearOperator) and replace matrix multiplication
+        # with sparse matrix multiplication for efficiency
+        # todo: make sure for A-conjugate search directions (i.e. choice of W st. Y'WY diagonal) this is similarly
+        #  efficient as CG
 
         # convert arguments
         # todo: make sure this doesn't de-sparsify the matrix, replace with more general type checking
@@ -159,21 +163,26 @@ class MatrixBasedConjugateGradients(ProbabilisticLinearSolver):
             # compute search direction
             search_dir = - np.matmul(self.H_mean, resid)
             if reorth:
-                # todo: reorthogonalize to all previous search directions
+                # todo: reorthogonalize to all previous search directions (i.e. perform full inversion of MxM matrix?)
                 raise NotImplementedError("Not yet implemented.")
 
             # perform action and observe
             obs = np.matmul(A, search_dir)
 
             # compute step size
-            step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)  # todo: ensure safe division
+            step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
 
             # step and residual update
             x = x + step_size * search_dir
             resid = resid + step_size * obs
 
-            # mean and covariance update
-            # raise NotImplementedError("Not yet implemented.")
+            # mean and covariance (rank 2) update
+            Ws = np.matmul(self.H_cov_kronfac, search_dir)
+            delta = obs - np.matmul(self.H_mean, search_dir)
+            u = Ws / np.dot(search_dir, Ws)
+            udelta = np.outer(u, delta)
+            self.H_mean = udelta + udelta.T - np.dot(delta, search_dir) * np.outer(u, u)
+            self.H_cov_kronfac = self.H_cov_kronfac - np.outer(u, Ws)
 
             # stopping criteria
             if self._check_convergence(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
