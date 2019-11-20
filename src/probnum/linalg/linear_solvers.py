@@ -108,7 +108,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         has_converged : bool
         """
         # maximum iterations
-        if iter == maxiter - 1:
+        if iter >= maxiter:
             return True
         # residual below error tolerance
         # todo: add / replace with relative tolerance
@@ -120,6 +120,22 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             return False
 
     def _mean_update_operator(self, u, v, shape):
+        """
+        Implements the rank 2 update term for the posterior mean of :math:`H`.
+
+        Parameters
+        ----------
+        u : array-like
+            Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
+        v : array-like
+            Update vector :math:`v_i=\\Delta - \\frac{1}{2} u_iy_i^{\\top}\\Delta`
+        shape : tuple
+            Shape of the resulting update operator.
+
+        Returns
+        -------
+        update : LinearOperator
+        """
 
         def mv(x):
             return np.dot(v, x) * u + np.dot(u, x) * v
@@ -135,13 +151,29 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             dtype=u.dtype
         )
 
-    def _cov_kron_fac_update_operator(self, u, Ws, shape):
+    def _cov_kron_fac_update_operator(self, u, Wy, shape):
+        """
+        Implements the rank 1 update term for the posterior covariance Kronecker factor :math:`W`.
+
+        Parameters
+        ----------
+        u : array-like
+            Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
+        Wy : array-like
+            Update vector :math:`W_iy_i`
+        shape : tuple
+            Shape of the resulting update operator.
+
+        Returns
+        -------
+        update : LinearOperator
+        """
 
         def mv(x):
-            return np.dot(Ws, x) * u
+            return np.dot(Wy, x) * u
 
         def mm(M):
-            return np.outer(u, np.matmul(M, Ws))
+            return np.outer(u, np.matmul(M, Wy))
 
         return scipy.sparse.linalg.LinearOperator(
             shape=shape,
@@ -175,7 +207,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             Approximate solution :math:`Ax \\approx b` to the linear system.
         """
         # todo: make sure for A-conjugate search directions (i.e. choice of W st. Y'WY diagonal) this is similarly
-        #  efficient as CG
+        #  efficient as CG modulo uncertainty estimation
 
         # make linear system
         A = scipy.sparse.linalg.interface.aslinearoperator(A)
@@ -189,6 +221,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         if maxiter is None:
             maxiter = n * 10
         if self.H_mean is None:
+            # todo: use / implement better operator classes (PyLops?) that can perform .T, .todense() for H_mean as well
             self.H_mean = scipy.sparse.linalg.interface.IdentityOperator(shape=(n, n))
         if self.H_cov_kronfac is None:
             self.H_cov_kronfac = scipy.sparse.linalg.interface.IdentityOperator(shape=(n, n))
@@ -217,28 +250,30 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             x = x + step_size * search_dir
             resid = resid + step_size * obs
 
-            # mean and covariance updates
-            Ws = self.H_cov_kronfac.matvec(search_dir)
-            delta = obs - self.H_mean.matvec(search_dir)
-            u = Ws / np.dot(search_dir, Ws)
-            v = delta - 0.5 * np.dot(search_dir, delta) * u
+            # (symmetric) mean and covariance updates
+            Wy = self.H_cov_kronfac.matvec(obs)
+            delta = search_dir - self.H_mean.matvec(obs)
+            u = Wy / np.dot(obs, Wy)
+            v = delta - 0.5 * np.dot(obs, delta) * u
 
             # rank 2 mean update operator (+= uv' + vu')
+            # todo: speedup: implement full update as operator and do not rely on +?
             self.H_mean = self.H_mean + self._mean_update_operator(u=u, v=v, shape=(n, n))
 
-            # rank 1 covariance kronecker factor update operator (-= u(Ws)')
-            self.H_cov_kronfac = self.H_cov_kronfac - self._cov_kron_fac_update_operator(u=u, Ws=Ws, shape=(n, n))
+            # rank 1 covariance kronecker factor update operator (-= u(Wy)')
+            self.H_cov_kronfac = self.H_cov_kronfac - self._cov_kron_fac_update_operator(u=u, Wy=Wy, shape=(n, n))
 
-            # iteration incrementation
+            # iteration increment
             iter += 1
 
-        # Information
+        # information about convergence
         info = {
             "n_iter": iter,
             "resid_norm": np.linalg.norm(resid)
         }
         print(info)
-        # todo: return solution, some general distribution class and dict with convergence info (iter, resid, ...)
+        # todo: return solution, some general distribution class and dict with
+        #  convergence info (iter, resid, convergence criterion)
         return x, info
 
 
