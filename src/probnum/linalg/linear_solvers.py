@@ -1,4 +1,4 @@
-"""Probabilistic numerical methods for solving linear systems"""
+"""Probabilistic numerical methods for solving linear systems."""
 
 import abc
 import numpy as np
