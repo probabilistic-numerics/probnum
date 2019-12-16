@@ -183,7 +183,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             dtype=u.dtype
         )
 
-    def solve(self, A, b, maxiter=None, resid_tol=10 ** -6, reorth=False):
+    def solve(self, A, b, maxiter=None, resid_tol=10 ** -6):
         """
         Solve the given linear system for symmetric, positive-definite :math:`A`.
 
@@ -198,16 +198,12 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         resid_tol : float
             Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
             terminates.
-        reorth : bool, default=False
-            Reorthogonalize search directions at each step with all previous ones.
 
         Returns
         -------
         x : array-like
             Approximate solution :math:`Ax \\approx b` to the linear system.
         """
-        # todo: make sure for A-conjugate search directions (i.e. choice of W st. Y'WY diagonal) this is similarly
-        #  efficient as CG modulo uncertainty estimation
 
         # make linear system
         A = scipy.sparse.linalg.interface.aslinearoperator(A)
@@ -235,11 +231,8 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         # todo: extract iteration and make into iterator
         while not self._has_converged(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
 
-            # compute search direction
+            # compute search direction (with implicit reorthogonalization)
             search_dir = - self.H_mean.matvec(resid)
-            if reorth:
-                # todo: re-orthogonalize to all previous search directions (i.e. perform full inversion of MxM matrix?)
-                raise NotImplementedError("Not yet implemented.")
 
             # perform action and observe
             obs = A.matvec(search_dir)
