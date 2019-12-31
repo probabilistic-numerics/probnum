@@ -15,6 +15,7 @@ class RandomVariable:
     ```
     output_rv = probnum_method(input_rv, method_params)
     ```
+
     Instances of this class must at least provide a mean and a sampling method.
     """
 
@@ -24,6 +25,8 @@ class RandomVariable:
         # TODO: add some type checking
         # TODO: allow construction from scipy distribution object
         raise NotImplementedError()
+
+    # TODO: implement addition and multiplication with constant matrices / vectors
 
     def pdf(self, x):
         raise NotImplementedError()

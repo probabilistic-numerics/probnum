@@ -55,11 +55,10 @@ numpydoc_show_class_members = False
 # Settings for automodapi
 automodapi_toctreedirnm = 'automod'
 automodapi_writereprocessed = False
-automodsumm_inherited_members = True
+automodsumm_inherited_members = False
 
 # The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
+# You can specify multiple suffixes as a list of strings:
 source_suffix = ['.rst', '.md']
 
 # The master toctree document.

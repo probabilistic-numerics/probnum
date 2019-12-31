@@ -2,7 +2,122 @@
 
 import abc
 import numpy as np
-import scipy.sparse.linalg
+import scipy
+
+
+def problinsolve(a, b, assume_a="sympos"):
+    """
+    Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
+
+    Probabilistic linear solvers infer solutions to problems of the form
+
+    .. math:: Ax=b,
+
+    where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{m}`. They return a probability measure
+    which quantifies uncertainty in the output arising from finite computational resources.
+
+    In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information either
+    on :math:`A` or the matrix inverse :math:`H=A^{-1}` and outputs a posterior belief over :math:`A` or :math:`H`. For
+    a specific prior choice this recovers the iterates of the conjugate gradient method. This code implements the method
+    described in [1]_ and [2]_.
+
+    .. [1] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [2] Hennig, P. and Osborne M., Probabilistic Numerics, 2020
+
+    Parameters
+    ----------
+    a : array-like or LinearOperator or RandomVariable, shape=(n,n)
+        A square matrix or linear operator. A prior distribution can be provided as a :class:`probnum.probability.RandomVariable`. If an array or
+        linear operator are given, a prior distribution is chosen automatically.
+    b : array_like, shape=(n,) or (n, nrhs)
+        Right-hand side vector or matrix in :math:`A x = b`.
+    assume_a : str, default='sympos'
+        Assumptions on the matrix, which can influence solver choice or behavior. The available options are
+
+        ====================  =========
+         generic matrix       'gen'
+         symmetric            'sym'
+         positive definite    'pos'
+         symmetric pos. def.  'sympos'
+        ====================  =========
+
+
+    check_finite : boolean, optional
+        Whether to check that the input matrices contain only finite numbers.
+        Disabling may give a performance gain, but may result in problems
+        (crashes, non-termination) if the inputs do contain infinities or NaNs.
+
+    Returns
+    -------
+        x : RandomVariable, shape=(n,) or (n, nrhs)
+            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+        info : dict
+            Information on convergence of the solver.
+
+    Raises
+    ------
+    ValueError
+        If size mismatches detected or input ``a`` is not square.
+    LinAlgError
+        If the matrix is singular.
+    LinAlgWarning
+        If an ill-conditioned input a is detected.
+    """
+
+    # Check linear system
+    _check_linear_system(a, b)
+
+    # Broadcast size 1 arrays
+
+    # Check assumptions on linear operator A
+    if assume_a not in ('gen', 'sym', 'pos', 'sympos'):
+        raise ValueError('{} is not a recognized linear operator assumption.'.format(assume_a))
+
+
+def _check_linear_system(a, b):
+    """
+    Check linear system compatibility.
+
+    Raises an exception if the input arguments are not compatible.
+
+    Parameters
+    ----------
+    a : array-like or LinearOperator or RandomVariable
+        Linear operator.
+    b : array-like
+        Right-hand side.
+
+    Raises
+    ------
+    ValueError
+        If size mismatches detected or input ``a`` is not square.
+    """
+    if a.shape[0] != b.shape[0]:
+        # Dimension mismatch
+        raise ValueError("Dimension mismatch.")
+    if a.shape[0] != a.shape[1]:
+        # Square matrix A
+        raise ValueError("Matrix A must be square.")
+
+
+def _check_solution(info):
+    """
+
+    Parameters
+    ----------
+    info : dict
+        Convergence information output by a probabilistic linear solver.
+
+    Raises
+    ------
+    LinAlgError
+        If the matrix is singular.
+    LinAlgWarning
+        If an ill-conditioned input a is detected.
+    """
+    # Singular matrix
+
+    # Ill-conditioned matrix A
 
 
 class ProbabilisticLinearSolver(abc.ABC):
@@ -36,26 +151,6 @@ class ProbabilisticLinearSolver(abc.ABC):
 
         """
         pass
-
-
-def _check_linear_system(A, b):
-    """
-    Check linear system dimensions.
-
-    Raises an exception if the input arguments are not compatible.
-
-    Parameters
-    ----------
-    A : array-like
-        Matrix.
-    b : array-like
-        Right-hand side vector.
-
-    """
-    if A.shape[0] != b.shape[0]:
-        raise ValueError("Dimension mismatch.")
-    if A.shape[0] != A.shape[1]:
-        raise ValueError("Matrix A must be square.")
 
 
 class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
@@ -230,7 +325,6 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
         # iteration with stopping criteria
         # todo: extract iteration and make into iterator
         while not self._has_converged(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
-
             # compute search direction (with implicit reorthogonalization)
             search_dir = - self.H_mean.matvec(resid)
 
@@ -239,6 +333,9 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
 
             # compute step size
             step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
+
+            # todo: scale search_dir and obs by step-size to fulfill theory on conjugate directions?
+
             # step and residual update
             x = x + step_size * search_dir
             resid = resid + step_size * obs

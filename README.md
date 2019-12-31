@@ -12,11 +12,11 @@ currently a work in progress, therefore interfaces are subject to change.
 
 ## Installation and Documentation
 You can install this Python 3 package using `pip` (or `pip3`):
-```
+```bash
 pip install git+https://github.com/probabilistic-numerics/probnum.git
 ```
 Alternatively you can clone this repository with
-```
+```bash
 git clone https://github.com/probabilistic-numerics/probnum
 cd probnum
 pip install .
