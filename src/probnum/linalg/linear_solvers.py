@@ -13,7 +13,7 @@ def problinsolve(a, b, assume_a="sympos"):
 
     .. math:: Ax=b,
 
-    where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{m}`. They return a probability measure
+    where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`. They return a probability measure
     which quantifies uncertainty in the output arising from finite computational resources.
 
     In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information either
@@ -65,13 +65,22 @@ def problinsolve(a, b, assume_a="sympos"):
     """
 
     # Check linear system
-    _check_linear_system(a, b)
+    _check_linear_system(a=a, b=b)
 
-    # Broadcast size 1 arrays
+    # Transform arrays to correct dimensions
 
     # Check assumptions on linear operator A
     if assume_a not in ('gen', 'sym', 'pos', 'sympos'):
         raise ValueError('{} is not a recognized linear operator assumption.'.format(assume_a))
+
+    # Solve linear system
+
+    # Check solution and issue warnings (e.g. singular or ill-conditioned matrix)
+    _check_solution(info=info)
+
+    # Log information on solution
+
+    return x, info
 
 
 def _check_linear_system(a, b):

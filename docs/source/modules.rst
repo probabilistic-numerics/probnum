@@ -6,3 +6,4 @@ Documentation
 
    probability
    linalg
+   utils

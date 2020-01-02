@@ -236,7 +236,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'probnum', 'probnum\'s Documentation',
-     author, 'probnum', 'Probabilistic numerics method in Python.',
+     author, 'probnum', 'Probabilistic Numerics in Python.',
      'Miscellaneous'),
 ]
 
