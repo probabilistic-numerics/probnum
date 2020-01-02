@@ -115,6 +115,7 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
         maxiter = n * 10
 
     # Solve linear system
+    # TODO: specify arguments of solve iterator
     x, iter_, resid, info = solve_iter()
 
     # Check solution and issue warnings (e.g. singular or ill-conditioned matrix)
@@ -132,7 +133,7 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
     return x, A, Ainv, info
 
 
-def bayescg(A, b, x0):
+def bayescg(A, b, x0=None):
     """
     Conjugate Gradients using prior information on the solution of the linear system.
 
@@ -159,6 +160,9 @@ def bayescg(A, b, x0):
     --------
     problinsolve
     """
+    # Check linear system for type and dimension mismatch
+    _check_linear_system(A=A, b=b, Ainv=None, x0=x0)
+
     raise NotImplementedError
 
 
@@ -200,7 +204,7 @@ def _check_linear_system(A, b, Ainv=None, x0=None):
     # Dimension mismatch
     if A.shape[0] != b.shape[0]:
         raise ValueError("Dimension mismatch. The dimensions of A and b must match.")
-    if A.shape == Ainv.shape:
+    if Ainv is not None and A.shape == Ainv.shape:
         raise ValueError("Dimension mismatch. The dimensions of A and Ainv must match.")
     if x0 is not None and A.shape[1] != x0.shape[0]:
         raise ValueError("Dimension mismatch. The dimensions of A and x0 must match.")
@@ -208,7 +212,7 @@ def _check_linear_system(A, b, Ainv=None, x0=None):
     # Square matrices
     if A.shape[0] != A.shape[1]:
         raise ValueError("Matrix A must be square.")
-    if Ainv.shape[0] != Ainv.shape[1]:
+    if Ainv is not None and Ainv.shape[0] != Ainv.shape[1]:
         raise ValueError("The inverse of A must be square.")
 
 
@@ -288,6 +292,7 @@ def _check_solution(info):
     LinAlgWarning
         If an ill-conditioned input a is detected.
     """
+    raise NotImplementedError
     # Singular matrix
 
     # Ill-conditioned matrix A

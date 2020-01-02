@@ -1,0 +1,8 @@
+/* Inline code highlighting */
+code {
+    font-size: 90%;
+    color: #107d79;
+    padding: 2px 4px;
+		background-color: #e9f4f4;
+		border-radius: 4px;
+}

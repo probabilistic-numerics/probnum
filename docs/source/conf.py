@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.abspath('../../../probnum/src'))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
+needs_sphinx = '1.6.1'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -181,10 +181,16 @@ html_favicon = "../../img/pn_logo.ico"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ["_static"]
+
+
+def setup(app):
+    app.add_stylesheet("my-styles.css")  # also can be a full URL
+    # app.add_stylesheet("ANOTHER.css")
+
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+# html_sidebars = {}
 html_sidebars = {'sidebar': ['localtoc.html', 'sourcelink.html', 'searchbox.html']}
 
 # -- Options for HTMLHelp output ------------------------------------------
