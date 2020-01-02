@@ -10,7 +10,7 @@ import probnum.linalg.linear_operators as linear_operators
 import probnum.utils as utils
 
 
-def problinsolve(a, b, ainv=None, x0=None, assume_a="sympos", maxiter=None, resid_tol=10 ** -6):
+def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resid_tol=10 ** -6):
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -33,18 +33,18 @@ def problinsolve(a, b, ainv=None, x0=None, assume_a="sympos", maxiter=None, resi
 
     Parameters
     ----------
-    a : array-like or LinearOperator or RandomVariable, shape=(n,n)
+    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
         A square matrix or linear operator. A prior distribution can be provided as a
         :class:`~probnum.probability.RandomVariable`. If an array or linear operator is given, a prior distribution is
         chosen automatically.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
-    ainv : array-like or LinearOperator or RandomVariable, shape=(n,n)
+    Ainv : array-like or LinearOperator or RandomVariable, shape=(n,n)
         Optional. A square matrix, linear operator or random variable representing the prior belief over the inverse
         :math:`H=A^{-1}`.
     x0 : array-like, shape=(n,) or (n, nrhs)
-        Optional. Initial guess for the solution of the linear system. Will be ignored if ``ainv`` is given.
-    assume_a : str, default='sympos'
+        Optional. Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
+    assume_A : str, default='sympos'
         Assumptions on the matrix, which can influence solver choice or behavior. The available options are
 
         ====================  =========
@@ -54,71 +54,115 @@ def problinsolve(a, b, ainv=None, x0=None, assume_a="sympos", maxiter=None, resi
          symmetric pos. def.  'sympos'
         ====================  =========
     maxiter : int
-        Maximum number of iterations.
+        Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the dimension of :math:`A`.
     resid_tol : float
         Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
         terminates.
 
     Returns
     -------
-        x : RandomVariable, shape=(n,) or (n, nrhs)
-            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
-        a : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator.
-        ainv : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
-        info : dict
-            Information on convergence of the solver.
+    x : RandomVariable, shape=(n,) or (n, nrhs)
+        Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+    A : RandomVariable, shape=(n,n)
+        Posterior belief over the linear operator.
+    Ainv : RandomVariable, shape=(n,n)
+        Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
+    info : dict
+        Information on convergence of the solver.
 
     Raises
     ------
     ValueError
-        If size mismatches detected or input ``a`` is not square.
+        If size mismatches detected or input ``A`` is not square.
     LinAlgError
         If the matrix is singular.
     LinAlgWarning
         If an ill-conditioned input a is detected.
+
+    See Also
+    --------
+    bayescg
     """
 
-    # Check linear system
-    _check_linear_system(a=a, b=b, ainv=ainv, x0=x0)
-    if ainv is not None and x0 is not None:
-        warnings.warn(
-            "Cannot use prior information on both the matrix inverse and on a guess of the solution." +
-            "The latter will be ignored")
-        x0 = None
+    # Check linear system for type and dimension mismatch
+    _check_linear_system(A=A, b=b, Ainv=Ainv, x0=x0)
 
-    # Transform array(s) to correct dimensions
-    # Todo: write util functions who do this for random variables
-    if isinstance(a, linear_operators.LinearOperator):
-        a1 = a
-    else:
-        a1 = np.atleast_2d(a)
-    b1 = utils.atleast_1d(b)
-    if ainv is not None and not isinstance(ainv, linear_operators.LinearOperator):
-        ainv1 = np.atleast_2d(ainv)
-    if x0 is not None:
-        x = utils.atleast_1d(x0)
-
-    # Check assumptions on linear operator A
-    if assume_a not in ('gen', 'sym', 'pos', 'sympos'):
-        raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_a))
-
-    # Choose prior if none is given
+    # Transform linear system types to random variables and linear operators
+    # and set a default prior if not specified
+    A, b, Ainv, x = _preprocess_linear_system(A=A, b=b, Ainv=Ainv, x0=x0)
 
     # Select solver
+    if assume_A in ('sym', 'sympos'):
+        if isinstance(Ainv, probability.RandomVariable):
+            solve_iter = _problinsolve_symm_iter
+        elif isinstance(x0, probability.RandomVariable):
+            solve_iter = _bayescg_iter
+        else:
+            raise ValueError("No prior information specified on Ainv or x.")
+    elif assume_A in ('gen', 'pos'):
+        if isinstance(Ainv, probability.RandomVariable):
+            solve_iter = _problinsolve_gen_iter
+        elif isinstance(x0, probability.RandomVariable):
+            solve_iter = _bayescg_iter
+        else:
+            raise ValueError("No prior information specified on Ainv or x.")
+    else:
+        raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
+
+    # Set default parameters
+    n = b.shape[0]
+    if maxiter is None:
+        maxiter = n * 10
 
     # Solve linear system
+    x, iter_, resid, info = solve_iter()
 
     # Check solution and issue warnings (e.g. singular or ill-conditioned matrix)
     _check_solution(info=info)
 
     # Log information on solution
+    info = {
+        "iter": 0,
+        "maxiter": maxiter,
+        "resid": 0,
+        "conv_crit": "resid",
+        "matrix_cond": 10
+    }
 
-    return x, a1, ainv1, info
+    return x, A, Ainv, info
 
 
-def _check_linear_system(a, b, ainv=None, x0=None):
+def bayescg(A, b, x0):
+    """
+    Conjugate Gradients using prior information on the solution of the linear system.
+
+    In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information
+    on the solution and outputs a posterior belief over :math:`x`. This code implements the
+    method described in [1]_. Note that the solution-based view of BayesCG and the matrix-based view of
+    :meth:`problinsolve` correspond (see [2]_).
+
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
+    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
+
+    Parameters
+    ----------
+    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
+        A square matrix or linear operator. A prior distribution can be provided as a
+        :class:`~probnum.probability.RandomVariable`. If an array or linear operator are given, a prior distribution is
+        chosen automatically.
+    b : array_like, shape=(n,) or (n, nrhs)
+        Right-hand side vector or matrix in :math:`A x = b`.
+    x0 : array-like or RandomVariable, shape=(n,) or or (n, nrhs)
+        Prior belief over the solution of the linear system.
+
+    See Also
+    --------
+    problinsolve
+    """
+    raise NotImplementedError
+
+
+def _check_linear_system(A, b, Ainv=None, x0=None):
     """
     Check linear system compatibility.
 
@@ -126,46 +170,107 @@ def _check_linear_system(a, b, ainv=None, x0=None):
 
     Parameters
     ----------
-    a : array-like or LinearOperator or RandomVariable
+    A : array-like or LinearOperator or RandomVariable
         Linear operator.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
-    ainv : array-like or LinearOperator or RandomVariable, shape=(n,n)
+    Ainv : array-like or LinearOperator or RandomVariable, shape=(n,n)
         Optional. A square matrix, linear operator or random variable representing the prior belief over the inverse
         :math:`H=A^{-1}`.
     x0 : array-like, shape=(n,) or (n, nrhs)
-        Optional. Initial guess for the solution of the linear system. Will be ignored if ``ainv`` is given.
+        Optional. Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
 
     Raises
     ------
     ValueError
-        If type or size mismatches detected or inputs ``a`` and ``ainv`` are not square.
+        If type or size mismatches detected or inputs ``A`` and ``Ainv`` are not square.
     """
     # Check types
     linop_types = (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator, probability.RandomVariable)
     vector_types = (np.ndarray, scipy.sparse.spmatrix, probability.RandomVariable)
-    if not isinstance(a, linop_types):
+    if not isinstance(A, linop_types):
         raise ValueError("A must be either an array, a linear operator or a RandomVariable of either.")
     if not isinstance(b, vector_types):
         raise ValueError("The right hand side must be a (sparse) array.")
-    if ainv is not None and not isinstance(ainv, linop_types):
+    if Ainv is not None and not isinstance(Ainv, linop_types):
         raise ValueError("The inverse of A must be either an array, a linear operator or a RandomVariable of either.")
     if x0 is not None and not isinstance(x0, vector_types):
         raise ValueError("The initial guess for the solution must be a (sparse) array.")
 
     # Dimension mismatch
-    if a.shape[0] != b.shape[0]:
+    if A.shape[0] != b.shape[0]:
         raise ValueError("Dimension mismatch. The dimensions of A and b must match.")
-    if a.shape == ainv.shape:
+    if A.shape == Ainv.shape:
         raise ValueError("Dimension mismatch. The dimensions of A and Ainv must match.")
-    if x0 is not None and a.shape[1] != x0.shape[0]:
+    if x0 is not None and A.shape[1] != x0.shape[0]:
         raise ValueError("Dimension mismatch. The dimensions of A and x0 must match.")
 
     # Square matrices
-    if a.shape[0] != a.shape[1]:
+    if A.shape[0] != A.shape[1]:
         raise ValueError("Matrix A must be square.")
-    if ainv.shape[0] != ainv.shape[1]:
+    if Ainv.shape[0] != Ainv.shape[1]:
         raise ValueError("The inverse of A must be square.")
+
+
+def _preprocess_linear_system(A, b, Ainv=None, x0=None):
+    """
+    Transform the linear system to linear operator and random variable form.
+
+    .
+
+    Parameters
+    ----------
+    A : array-like or LinearOperator or RandomVariable
+        Linear operator.
+    b : array_like, shape=(n,) or (n, nrhs)
+        Right-hand side vector or matrix in :math:`A x = b`.
+    Ainv : array-like or LinearOperator or RandomVariable, shape=(n,n)
+        Optional. A square matrix, linear operator or random variable representing the prior belief over the inverse
+        :math:`H=A^{-1}`.
+    x0 : array-like, shape=(n,) or (n, nrhs)
+        Optional. Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
+
+    Returns
+    -------
+    A : RandomVariable, shape=(n,n)
+        Posterior belief over the linear operator.
+    b : array-like, shape=(n,) or (n, nrhs)
+        Right-hand-side of the linear system.
+    Ainv : RandomVariable, shape=(n,n)
+        Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
+    x : array-like or RandomVariable, shape=(n,) or (n, nrhs)
+        Approximate solution :math:`x` to the linear system.
+
+    Raises
+    ------
+
+    """
+    # Choose matrix based view if not clear from arguments
+    if Ainv is not None and x0 is not None:
+        warnings.warn(
+            "Cannot use prior information on both the matrix inverse and the solution. The latter will be ignored.")
+        x = None
+    else:
+        x = x0
+
+    # Todo Automatic prior selection based on data scale, etc.?
+
+    # Transform linear system to correct dimensions
+    if isinstance(A, linear_operators.LinearOperator):
+        A1 = A
+    else:
+        A1 = utils.atleast_2d(A)
+    b1 = utils.atleast_1d(b)
+    if Ainv is not None and not isinstance(Ainv, linear_operators.LinearOperator):
+        Ainv1 = utils.atleast_2d(Ainv)
+    if x0 is not None:
+        x = utils.atleast_1d(x0)
+
+    # TODO create random variables and linear operators
+
+    assert(not (Ainv is None and x is None)), "Both Ainv and x are not specified."
+
+    return A, b, Ainv, x
 
 
 def _check_solution(info):
@@ -188,29 +293,15 @@ def _check_solution(info):
     # Ill-conditioned matrix A
 
 
-def bayescg(a, b, x0):
-    """
-    Conjugate Gradients using prior information on the solution of the linear system.
+def _problinsolve_gen_iter():
+    raise NotImplementedError
 
-    In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information
-    on the solution and outputs a posterior belief over :math:`x`. This code implements the
-    method described in [1]_. Note that the solution-based view of BayesCG and the matrix-based view of
-    :meth:`problinsolve` correspond (see [2]_).
 
-    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
-    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
+def _problinsolve_symm_iter():
+    raise NotImplementedError
 
-    Parameters
-    ----------
-    a : array-like or LinearOperator or RandomVariable, shape=(n,n)
-        A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~probnum.probability.RandomVariable`. If an array or linear operator are given, a prior distribution is
-        chosen automatically.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
-    x0 : array-like or RandomVariable, shape=(n,) or or (n, nrhs)
-        Prior belief over the solution of the linear system.
-    """
+
+def _bayescg_iter():
     raise NotImplementedError
 
 

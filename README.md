@@ -7,7 +7,7 @@
 <a href="https://github.com/probabilistic-numerics"><img align="left" src="https://raw.githubusercontent.com/probabilistic-numerics/probnum/master/img/pn_logo.png" alt="probabilistic numerics" width="128" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics on GitHub"/></a> 
 [Probabilistic Numerics](http://probabilistic-numerics.org/) (PN) interprets classic numerical routines as _inference procedures_ by taking a probabilistic viewpoint. This allows principled treatment of _uncertainty arising from finite computational resources_. The vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be propagated along the chain of computation.
 
-This repository aims to implement standard PN algorithms in Python 3 and to provide a common interface for them. This is
+This repository aims to implement methods from PN in Python 3 and to provide a common interface for them. This is
 currently a work in progress, therefore interfaces are subject to change.
 
 ## Installation and Documentation

@@ -19,14 +19,15 @@ class RandomVariable:
     Instances of this class must at least provide a mean and a sampling method.
     """
 
-    def __init__(self, mean=None, covariance=None):
+    def __init__(self, mean=None, cov=None):
         self.mean = mean
-        self.covariance = covariance  # TODO: variance or covariance here?
+        self.cov = cov  # TODO: variance or covariance here?
         # TODO: add some type checking
         # TODO: allow construction from scipy distribution object
         raise NotImplementedError()
 
     # TODO: implement addition and multiplication with constant matrices / vectors
+    # Example of spmatrix class: https://github.com/scipy/scipy/blob/v0.19.0/scipy/sparse/base.py#L62-L1108
 
     def pdf(self, x):
         raise NotImplementedError()
@@ -55,18 +56,18 @@ class RandomVariable:
 
 class Normal(RandomVariable):
 
-    def __init__(self, mean=0, covariance=1):
+    def __init__(self, mean=0, cov=1):
         #todo: allow for linear operators as mean and covariance
-        super().__init__(mean=mean, covariance=covariance)
+        super().__init__(mean=mean, cov=cov)
 
     def pdf(self, x):
-        return scipy.stats.multivariate_normal.pdf(x, mean=self.mean, cov=self.covariance)
+        return scipy.stats.multivariate_normal.pdf(x, mean=self.mean, cov=self.cov)
 
     def logpdf(self, x):
-        return scipy.stats.multivariate_normal.logpdf(x, mean=self.mean, cov=self.covariance)
+        return scipy.stats.multivariate_normal.logpdf(x, mean=self.mean, cov=self.cov)
 
     def cdf(self, x):
-        return scipy.stats.multivariate_normal.cdf(x, mean=self.mean, cov=self.covariance)
+        return scipy.stats.multivariate_normal.cdf(x, mean=self.mean, cov=self.cov)
 
     def sample(self, size=1):
-        return np.random.multivariate_normal(mean=self.mean, cov=self.covariance, size=size)
+        return np.random.multivariate_normal(mean=self.mean, cov=self.cov, size=size)

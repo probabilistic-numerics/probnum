@@ -64,4 +64,18 @@ def atleast_2d(*rvs):
     --------
     atleast_1d
     """
-    
+    res = []
+    for rv in rvs:
+        if isinstance(rv, scipy.sparse.spmatrix):
+            result = rv
+        elif isinstance(rv, np.ndarray):
+            result = np.atleast_2d(rv)
+        elif isinstance(rv, probability.RandomVariable):
+            result = atleast_2d(rv.mean)
+        else:
+            result = rv
+        res.append(result)
+    if len(res) == 1:
+        return res[0]
+    else:
+        return res
