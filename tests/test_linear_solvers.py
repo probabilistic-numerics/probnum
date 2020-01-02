@@ -2,19 +2,33 @@ import pytest
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
-from probnum.linalg.linear_solvers import problinsolve, bayescg, \
-    _check_linear_system, _preprocess_linear_system, _check_solution
+from probnum.linalg.linear_solvers import problinsolve, bayescg
 
 
 # Linear solvers
 @pytest.mark.parametrize("plsolve", [problinsolve, bayescg])
-def test_dimension_mismatch_exception(plsolve):
+def test_dimension_mismatch(plsolve):
     """Test whether linear solvers throw an exception for input with mismatched dimensions."""
-    A = np.zeros(shape=[3, 2])
+    A = np.zeros(shape=[3, 3])
     b = np.zeros(shape=[4])
-    with pytest.raises(ValueError, match="Dimension mismatch.") as e:
-        assert plsolve(A=A, b=b), "Invalid input formats should raise a ValueError."
-
+    x0 = np.zeros(shape=[1])
+    assertion_warning = "Invalid input formats should raise a ValueError."
+    with pytest.raises(ValueError) as e:
+        # A, b dimension mismatch
+        assert plsolve(A=A, b=b), assertion_warning
+        # A, x0 dimension mismatch
+        assert plsolve(A=A, b=np.zeros(A.shape[0]), x0=x0), assertion_warning
+        # A not square
+        assert plsolve(A=np.zeros([3, 4]), b=np.zeros(A.shape[0]),
+                                    x0=np.zeros(shape=[A.shape[1]])), assertion_warning
+        # A inverse not square
+        assert plsolve(A=A, b=np.zeros(A.shape[0]),
+                                    Ainv=np.zeros([2, 3]),
+                                    x0=np.zeros(shape=[A.shape[1]])), assertion_warning
+        # A, Ainv dimension mismatch
+        assert plsolve(A=A, b=np.zeros(A.shape[0]),
+                                    Ainv=np.zeros([2, 2]),
+                                    x0=np.zeros(shape=[A.shape[1]])), assertion_warning
 
 # todo: Write matrices as variables and tests for output properties separately to run all combinations
 
@@ -27,11 +41,11 @@ def test_symmetric_posterior_params(mblinsolve):
     A = 0.5 * (A + A.T) + n * np.eye(n)
     b = np.random.rand(n)
 
-    _, _ = mblinsolve(A=A, b=b)
-    np.testing.assert_allclose(mblinsolve.H_mean.matmat(np.eye(n)),
-                               mblinsolve.H_mean.H.matmat(np.eye(n)), rtol=1e-2)
-    np.testing.assert_allclose(mblinsolve.H_cov_kronfac.matmat(np.eye(n)),
-                               mblinsolve.H_cov_kronfac.H.matmat(np.eye(n)), rtol=1e-2)
+    _, _, Ainv, _ = mblinsolve(A=A, b=b)
+    np.testing.assert_allclose(Ainv.mean.matmat(np.eye(n)),
+                               Ainv.mean.H.matmat(np.eye(n)), rtol=1e-2)
+    np.testing.assert_allclose(Ainv.cov.cov_kronfac.matmat(np.eye(n)),
+                               Ainv.cov.cov_kronfac.H.matmat(np.eye(n)), rtol=1e-2)
 
 
 @pytest.mark.parametrize("plsolve", [problinsolve])
@@ -79,28 +93,3 @@ def test_sparse_poisson(plsolve):
     #
     # x_solver, _, _, info = plsolve(A=Poisson1D, b=b)
     # np.testing.assert_allclose(x_solver, x, rtol=1e-2)
-
-
-# Helper functions
-def test_dimension_mismatch():
-    """Test whether linear solvers throw an exception for input with mismatched dimensions."""
-    A = np.zeros(shape=[3, 3])
-    b = np.zeros(shape=[4])
-    x0 = np.zeros(shape=[1])
-    assertion_warning = "Invalid input formats should raise a ValueError."
-    with pytest.raises(ValueError) as e:
-        # A, b dimension mismatch
-        assert _check_linear_system(A=A, b=b), assertion_warning
-        # A, x0 dimension mismatch
-        assert _check_linear_system(A=A, b=np.zeros(A.shape[0]), x0=x0), assertion_warning
-        # A not square
-        assert _check_linear_system(A=np.zeros([3, 4]), b=np.zeros(A.shape[0]),
-                                    x0=np.zeros(shape=[A.shape[1]])), assertion_warning
-        # A inverse not square
-        assert _check_linear_system(A=A, b=np.zeros(A.shape[0]),
-                                    Ainv=np.zeros([2, 3]),
-                                    x0=np.zeros(shape=[A.shape[1]])), assertion_warning
-        # A, Ainv dimension mismatch
-        assert _check_linear_system(A=A, b=np.zeros(A.shape[0]),
-                                    Ainv=np.zeros([2, 2]),
-                                    x0=np.zeros(shape=[A.shape[1]])), assertion_warning
