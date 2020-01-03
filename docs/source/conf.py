@@ -50,12 +50,12 @@ templates_path = ['_templates']
 
 # Remove possible duplicate methods when using 'automodapi'
 # autodoc_default_flags = ['no-members']
-numpydoc_show_class_members = False
+numpydoc_show_class_members = True
 
 # Settings for automodapi
 automodapi_toctreedirnm = 'automod'
 automodapi_writereprocessed = False
-automodsumm_inherited_members = False
+automodsumm_inherited_members = True
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:
@@ -66,7 +66,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'probnum'
-copyright = '2019'
+copyright = '2020'
 author = 'Jonathan Wenger'
 
 # The version info for the project you're documenting, acts as replacement for

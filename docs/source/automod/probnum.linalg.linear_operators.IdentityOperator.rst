@@ -1,31 +1,31 @@
-LinearOperator
-==============
+IdentityOperator
+================
 
 .. currentmodule:: probnum.linalg.linear_operators
 
-.. autoclass:: LinearOperator
+.. autoclass:: IdentityOperator
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~LinearOperator.H
-      ~LinearOperator.T
+      ~IdentityOperator.H
+      ~IdentityOperator.T
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~LinearOperator.__call__
-      ~LinearOperator.adjoint
-      ~LinearOperator.dot
-      ~LinearOperator.matmat
-      ~LinearOperator.matvec
-      ~LinearOperator.rmatmat
-      ~LinearOperator.rmatvec
-      ~LinearOperator.todense
-      ~LinearOperator.transpose
+      ~IdentityOperator.__call__
+      ~IdentityOperator.adjoint
+      ~IdentityOperator.dot
+      ~IdentityOperator.matmat
+      ~IdentityOperator.matvec
+      ~IdentityOperator.rmatmat
+      ~IdentityOperator.rmatvec
+      ~IdentityOperator.todense
+      ~IdentityOperator.transpose
 
    .. rubric:: Attributes Documentation
 

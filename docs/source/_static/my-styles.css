@@ -1,8 +1,42 @@
+:root {
+  --main-color: #107d79;
+  --text-bg-color: #e9f4f4;
+  --text-highlight-color: #ff9933;
+}
+
 /* Inline code highlighting */
 code {
     font-size: 90%;
-    color: #107d79;
+    color: var(--main-color);
     padding: 2px 4px;
-		background-color: #e9f4f4;
+		background-color: var(--text-bg-color);
 		border-radius: 4px;
+}
+
+/* Hyperlinks */
+a {
+    color: var(--main-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--main-color);
+    text-decoration: underline;
+}
+
+/* Alert boxes (e.g. documentation "see also")*/
+.alert-info {
+		color: #777;
+		background-color: #e7e7e7;
+		background-image: linear-gradient(to bottom, #fbfbfb 0, #dee1e1 100%);
+		border-color: #ccc;
+}
+
+/* Brand image on navigation bar */
+.navbar-brand {
+	float: left;
+	height: 50px;
+	padding: 7px 7px 5px 5px;
+	font-size: 18px;
+	line-height: 20px;
 }

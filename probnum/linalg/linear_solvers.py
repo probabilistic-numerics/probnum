@@ -1,4 +1,9 @@
-"""Probabilistic numerical methods for solving linear systems."""
+"""Probabilistic numerical methods for solving linear systems.
+
+This module provides routines to solve linear systems of equations in a Bayesian framework. This means that a prior
+distribution over elements of the linear system can be provided and is updated with information collected by the solvers
+to return a posterior distribution.
+"""
 
 import abc
 import warnings
@@ -81,7 +86,7 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
 
     See Also
     --------
-    bayescg
+    bayescg : Solve linear systems with prior information on the solution.
     """
 
     # Check linear system for type and dimension mismatch
@@ -158,7 +163,7 @@ def bayescg(A, b, x0=None):
 
     See Also
     --------
-    problinsolve
+    problinsolve : Solve linear systems in a Bayesian framework.
     """
     # Check linear system for type and dimension mismatch
     _check_linear_system(A=A, b=b, Ainv=None, x0=x0)
