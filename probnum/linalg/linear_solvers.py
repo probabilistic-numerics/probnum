@@ -114,6 +114,9 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
     else:
         raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
 
+    # TODO: make kronecker structure explicit in solver selection and implement via Kronecker linear operator as in
+    #  https://github.com/equinor/pylops/blob/master/pylops/basicoperators/Kronecker.py
+
     # Set default parameters
     n = b.shape[0]
     if maxiter is None:
@@ -277,7 +280,7 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
 
     # TODO create random variables and linear operators
 
-    assert(not (Ainv is None and x is None)), "Both Ainv and x are not specified."
+    assert (not (Ainv is None and x is None)), "Both Ainv and x are not specified."
 
     return A, b, Ainv, x
 
@@ -431,7 +434,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             return np.dot(v, x) * u + np.dot(u, x) * v
 
         def mm(M):
-            return np.outer(u, np.matmul(M, v)) + np.outer(v, np.matmul(u, M))
+            return np.outer(u, M @ v) + np.outer(v, u @ M)
 
         return scipy.sparse.linalg.LinearOperator(
             shape=shape,
@@ -463,7 +466,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             return np.dot(Wy, x) * u
 
         def mm(M):
-            return np.outer(u, np.matmul(M, Wy))
+            return np.outer(u, M @Wy)
 
         return scipy.sparse.linalg.LinearOperator(
             shape=shape,
@@ -524,7 +527,7 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             search_dir = - self.H_mean.matvec(resid)
 
             # perform action and observe
-            obs = A.matvec(search_dir)
+            obs = A @ search_dir
 
             # compute step size
             step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
@@ -536,16 +539,16 @@ class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
             resid = resid + step_size * obs
 
             # (symmetric) mean and covariance updates
-            Wy = self.H_cov_kronfac.matvec(obs)
-            delta = search_dir - self.H_mean.matvec(obs)
+            Wy = self.H_cov_kronfac @ obs
+            delta = search_dir - self.H_mean @ obs
             u = Wy / np.dot(obs, Wy)
             v = delta - 0.5 * np.dot(obs, delta) * u
 
-            # rank 2 mean update operator (+= uv' + vu')
-            # todo: speedup: implement full update as operator and do not rely on +?
+            # rank 2 mean update (+= uv' + vu')
+            # todo: only use linear operators if necessary (only create update operators if H is a LinearOperator)
             self.H_mean = self.H_mean + self._mean_update_operator(u=u, v=v, shape=(n, n))
 
-            # rank 1 covariance kronecker factor update operator (-= u(Wy)')
+            # rank 1 covariance kronecker factor update (-= u(Wy)')
             self.H_cov_kronfac = self.H_cov_kronfac - self._cov_kron_fac_update_operator(u=u, Wy=Wy, shape=(n, n))
 
             # iteration increment

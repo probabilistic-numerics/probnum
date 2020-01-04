@@ -13,6 +13,7 @@ import scipy.sparse.linalg
 import probnum.probability as probability
 
 
+# TODO: multiple inheritance with RandomVariable;
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
     """
     Finite dimensional linear operators.
@@ -58,7 +59,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
     See Also
     --------
-    aslinearoperator : Construct LinearOperators.
+    aslinearoperator : Transform into a LinearOperator.
 
     Examples
     --------
@@ -173,13 +174,22 @@ class IdentityOperator(LinearOperator):
         return self
 
 
+class Kronecker(LinearOperator):
+    """
+    Kronecker product operator.
+
+    Perform the Kronecker product between two operators.
+    """
+    # todo see pylops and tensorflow implementation
+
+
 def aslinearoperator(A):
     """
-    Return A as a LinearOperator.
+    Return `A` as a :class:`LinearOperator`.
 
     Parameters
     ----------
-    A : array-like or spmatrix or LinearOperator or RandomVariable or object
+    A : array-like or LinearOperator or RandomVariable or object
         Argument to be represented as a linear operator. When `A` is an object it needs to have the attributes `.shape`
         and `.matvec`.
 
