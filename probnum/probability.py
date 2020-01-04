@@ -8,7 +8,7 @@ class RandomVariable:
     """
     Random variables are the main objects used by probabilistic numerical methods.
 
-    In ``probnum`` every input is treated as a random variable even though most have Dirac or Gaussian measure. Each
+    In ``probnum`` every input is treated as a random variable even though most have Dirac or Gaussian measure. Every
     probabilistic numerical method takes a random variable encoding the prior distribution as input and outputs a
     random variable whose distribution encodes the uncertainty arising from finite computation. The generic signature
     of a probabilistic numerical method is:
@@ -36,19 +36,52 @@ class RandomVariable:
         self.cov = cov  # TODO: variance or covariance here?
         # TODO: add some type checking
         # TODO: allow construction from scipy distribution object
-        raise NotImplementedError()
+        raise NotImplementedError
 
     # TODO: implement addition and multiplication with constant matrices / vectors
     # Example of spmatrix class: https://github.com/scipy/scipy/blob/v0.19.0/scipy/sparse/base.py#L62-L1108
 
     def pdf(self, x):
-        raise NotImplementedError()
+        """
+        Probability density function.
+
+        Parameters
+        ----------
+        x
+
+        Returns
+        -------
+
+        """
+        raise NotImplementedError
 
     def logpdf(self, x):
-        raise NotImplementedError()
+        """
+        Natural logarithm of the probability density function.
 
-    def cdf(self, x):
-        raise NotImplementedError()
+        Parameters
+        ----------
+        x
+
+        Returns
+        -------
+
+        """
+        raise NotImplementedError
+
+    def cdf(self, y):
+        """
+        Cumulative distribution function.
+
+        Parameters
+        ----------
+        y
+
+        Returns
+        -------
+
+        """
+        raise NotImplementedError
 
     def sample(self, size=1):
         """
@@ -63,7 +96,50 @@ class RandomVariable:
         -------
 
         """
-        raise NotImplementedError()
+        raise NotImplementedError
+
+
+class DiracRV(RandomVariable):
+    """
+
+    See Also
+    --------
+    RandomVariable : Random variables are the main in- and outputs of probabilistic numerical methods.
+    """
+
+    def __init__(self, mean):
+        super().__init__(mean=mean)
+
+    def sample(self, size=1):
+        if size == 1:
+            return self.mean
+        else:
+            return self.mean * np.ones(shape=size)
+
+
+class NormalRV(RandomVariable):
+    """
+
+    See Also
+    --------
+    RandomVariable : Random variables are the main in- and outputs of probabilistic numerical methods.
+    """
+
+    def __init__(self, mean=0, cov=1):
+        # todo: allow for linear operators as mean and covariance
+        super().__init__(mean=mean, cov=cov)
+
+    def pdf(self, x):
+        return scipy.stats.multivariate_normal.pdf(x, mean=self.mean, cov=self.cov)
+
+    def logpdf(self, x):
+        return scipy.stats.multivariate_normal.logpdf(x, mean=self.mean, cov=self.cov)
+
+    def cdf(self, y):
+        return scipy.stats.multivariate_normal.cdf(y, mean=self.mean, cov=self.cov)
+
+    def sample(self, size=1):
+        return np.random.multivariate_normal(mean=self.mean, cov=self.cov, size=size)
 
 
 def asrandomvariable(X):
@@ -100,22 +176,3 @@ def asrandomvariable(X):
         raise NotImplementedError
     else:
         raise ValueError("Argument of type {} cannot be converted to a random variable.".format(type(X)))
-
-
-class Normal(RandomVariable):
-
-    def __init__(self, mean=0, cov=1):
-        # todo: allow for linear operators as mean and covariance
-        super().__init__(mean=mean, cov=cov)
-
-    def pdf(self, x):
-        return scipy.stats.multivariate_normal.pdf(x, mean=self.mean, cov=self.cov)
-
-    def logpdf(self, x):
-        return scipy.stats.multivariate_normal.logpdf(x, mean=self.mean, cov=self.cov)
-
-    def cdf(self, x):
-        return scipy.stats.multivariate_normal.cdf(x, mean=self.mean, cov=self.cov)
-
-    def sample(self, size=1):
-        return np.random.multivariate_normal(mean=self.mean, cov=self.cov, size=size)

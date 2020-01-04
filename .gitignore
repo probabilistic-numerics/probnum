@@ -13,7 +13,7 @@
 __pycache__/*
 .cache/*
 .*.swp
-*/.ipynb_checkpoints/*
+*.ipynb_checkpoints
 .DS_Store
 ._.DS_Store
 

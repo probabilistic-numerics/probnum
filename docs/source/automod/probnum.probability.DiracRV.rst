@@ -1,19 +1,19 @@
-Normal
-======
+DiracRV
+=======
 
 .. currentmodule:: probnum.probability
 
-.. autoclass:: Normal
+.. autoclass:: DiracRV
    :show-inheritance:
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~Normal.cdf
-      ~Normal.logpdf
-      ~Normal.pdf
-      ~Normal.sample
+      ~DiracRV.cdf
+      ~DiracRV.logpdf
+      ~DiracRV.pdf
+      ~DiracRV.sample
 
    .. rubric:: Methods Documentation
 

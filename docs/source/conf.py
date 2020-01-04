@@ -32,7 +32,8 @@ needs_sphinx = '1.6.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [  # 'sphinx.ext.autodoc',
+extensions = [
+    # 'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx_automodapi.automodapi',
     'sphinx.ext.doctest',
@@ -41,9 +42,10 @@ extensions = [  # 'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
     'nbsphinx',
-    'm2r',
-    'sphinx.ext.githubpages']
+    'm2r'
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -59,7 +61,7 @@ automodsumm_inherited_members = True
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst', '.md', '.ipynb']
 
 # The master toctree document.
 master_doc = 'index'
@@ -128,7 +130,7 @@ html_theme_options = {
     'navbar_links': [
         ("About", "intro"),
         ("Documentation", "modules"),
-        ("Examples", "examples"),
+        ("Examples", "notebooks/examples"),
         ("Development", "contributing"),
         ("GitHub", "https://github.com/probabilistic-numerics/probnum", True),
     ],
@@ -192,6 +194,30 @@ def setup(app):
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
 html_sidebars = {'sidebar': ['localtoc.html', 'sourcelink.html', 'searchbox.html']}
+
+# -- Jupyter notebooks (nbsphinx) ------------------------------
+
+# Work-around until https://github.com/sphinx-doc/sphinx/issues/4229 is solved:
+html_scaled_image_link = False
+
+# Don't add .txt suffix to source files:
+html_sourcelink_suffix = ''
+
+# Allow errors in the build process
+nbsphinx_allow_errors = True
+
+# List of arguments to be passed to the kernel that executes the notebooks:
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",  # e.g. for matplotlib plots
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
+# Use a different kernel than stored in the notebook metadata
+nbsphinx_kernel_name = 'local-venv'
+
+# Width of input/output prompts (HTML only). Any CSS length can be specified.
+# nbsphinx_prompt_width = 1000px
+
 
 # -- Options for HTMLHelp output ------------------------------------------
 

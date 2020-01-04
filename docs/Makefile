@@ -44,6 +44,7 @@ clean:
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 	$(info Deleting contents of $(AUTOMODAPIDIR) directory...)
 	-rm -r $(AUTOMODAPIDIR)/*
+	-rm -r source/notebooks/.ipynb_checkpoints
 
 html:
 	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html $(SPHINXOPTS)

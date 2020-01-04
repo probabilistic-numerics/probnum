@@ -1,13 +1,13 @@
 :root {
   --main-color: #107d79;
-  --text-bg-color: #e9f4f4;
+  --text-background-color: #e9f4f4;
   --text-highlight-color: #ff9933;
 }
 
 /* Mobile friendly width */
 div.body {
 		min-width: 375px;
-		max-width: 800px;
+		max-width: 1000px;
 }
 
 /* Inline code highlighting */
@@ -15,7 +15,7 @@ code {
     font-size: 90%;
     color: var(--main-color);
     padding: 2px 4px;
-		background-color: var(--text-bg-color);
+		background-color: var(--text-background-color);
 		border-radius: 4px;
 }
 

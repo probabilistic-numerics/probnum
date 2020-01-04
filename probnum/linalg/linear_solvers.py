@@ -280,7 +280,7 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
 
     # TODO create random variables and linear operators
 
-    assert (not (Ainv is None and x is None)), "Both Ainv and x are not specified."
+    assert (not (Ainv is None and x is None)), "Neither Ainv nor x are specified."
 
     return A, b, Ainv, x
 
@@ -318,40 +318,7 @@ def _bayescg_iter():
     raise NotImplementedError
 
 
-class ProbabilisticLinearSolver(abc.ABC):
-    """
-    Probabilistic linear solvers infer solutions to linear systems in a Bayesian framework.
-
-    Probabilistic numerical linear solvers infer solutions to problems of the form
-
-    .. math:: Ax^*=b,
-
-    where :math:`A \\in \\mathbb{R}^{m \\times n}` and :math:`b \\in \\mathbb{R}^{m}`. They output a probability measure
-    which quantifies uncertainty in the solution.
-    """
-
-    @abc.abstractmethod
-    def solve(self, A, b, maxiter=None):
-        """
-        Solve the given linear system.
-
-        Parameters
-        ----------
-        A : array-like
-            The matrix of the linear system.
-        b : array-like
-            The right-hand-side of the linear system.
-        maxiter : int
-            Maximum number of iterations.
-
-        Returns
-        -------
-
-        """
-        pass
-
-
-class MatrixBasedLinearSolver(ProbabilisticLinearSolver):
+class MatrixBasedLinearSolver:
     """
     Probabilistic linear solver using prior information on the matrix inverse.
 

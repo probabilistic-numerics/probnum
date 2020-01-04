@@ -8,7 +8,7 @@ Welcome to probnum's documentation!
 
    intro
    modules
-   examples
+   notebooks/examples
    contributing
    license
 
