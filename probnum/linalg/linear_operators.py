@@ -10,7 +10,10 @@ Several algorithms in the :mod:`probnum.linalg` library are able to operate on :
 
 import numpy as np
 import scipy.sparse.linalg
+import warnings
 import probnum.probability as probability
+
+__all__ = ["LinearOperator", "Identity", "Kronecker", "SymmetricKronecker", "aslinearoperator"]
 
 
 # TODO: multiple inheritance with RandomVariable;
@@ -78,57 +81,73 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
     """
 
-    def __init__(self, Op=None, explicit=False):
+    def __new__(cls, *args, **kwargs):
+        if cls is LinearOperator:
+            # Operate as _CustomLinearOperator factory.
+            return super(LinearOperator, cls).__new__(_CustomLinearOperator)
+        else:
+            obj = super(LinearOperator, cls).__new__(cls)
+
+            if (type(obj)._matvec == LinearOperator._matvec and type(obj)._matmat == LinearOperator._matmat):
+                warnings.warn("LinearOperator subclass should implement"
+                              " at least one of _matvec and _matmat.",
+                              category=RuntimeWarning, stacklevel=2)
+
+            return obj
+
+    def __init__(self, dtype, shape):
+        super().__init__(dtype=dtype, shape=shape)
         # todo: how should this constructor work and is it necessary to have our own?
-        # todo: should we just allow subclassing of LinearOperator?
-        self.explicit = explicit
-        if Op is not None:
-            self.Op = Op
-            self.shape = self.Op.shape
-            self.dtype = self.Op.dtype
+        # todo: should we only allow subclassing of LinearOperator?
 
-    def _matvec(self, x):
-        if callable(self.Op._matvec):
-            return self.Op._matvec(x)
-
-    def _rmatvec(self, x):
-        if callable(self.Op._rmatvec):
-            return self.Op._rmatvec(x)
-
-    def _matmat(self, X):
-        """Matrix-matrix multiplication handler.
-        Modified version of scipy _matmat to avoid having trailing dimension
-        in col when provided to matvec.
-        """
-        # TODO: do we need this?
-        return np.vstack([self.matvec(col.reshape(-1)) for col in X.T]).T
-
-    def __mul__(self, x):
-        y = super().__mul__(x)
-        if isinstance(y, scipy.sparse.linalg.LinearOperator):
-            y = LinearOperator(y)
-        return y
-
-    def __rmul__(self, x):
-        return LinearOperator(super().__rmul__(x))
-
-    def __pow__(self, p):
-        return LinearOperator(super().__pow__(p))
-
-    def __add__(self, x):
-        return LinearOperator(super().__add__(x))
-
-    def __neg__(self):
-        return LinearOperator(super().__neg__())
-
-    def __sub__(self, x):
-        return LinearOperator(super().__sub__(x))
-
-    def _adjoint(self):
-        return LinearOperator(super()._adjoint())
-
-    def _transpose(self):
-        return LinearOperator(super()._transpose())
+    # self.explicit = explicit
+    # if Op is not None:
+    #     self.Op = Op
+    #     self.shape = self.Op.shape
+    #     self.dtype = self.Op.dtype
+    #
+    # def _matvec(self, x):
+    #     if callable(self.Op._matvec):
+    #         return self.Op._matvec(x)
+    #
+    # def _rmatvec(self, x):
+    #     if callable(self.Op._rmatvec):
+    #         return self.Op._rmatvec(x)
+    #
+    # def _matmat(self, X):
+    #     """Matrix-matrix multiplication handler.
+    #     Modified version of scipy _matmat to avoid having trailing dimension
+    #     in col when provided to matvec.
+    #     """
+    #     # TODO: do we need this?
+    #     return np.vstack([self.matvec(col.reshape(-1)) for col in X.T]).T
+    #
+    # def __mul__(self, x):
+    #     y = super().__mul__(x)
+    #     if isinstance(y, scipy.sparse.linalg.LinearOperator):
+    #         y = LinearOperator(y)
+    #     return y
+    #
+    # def __rmul__(self, x):
+    #     return LinearOperator(super().__rmul__(x))
+    #
+    # def __pow__(self, p):
+    #     return LinearOperator(super().__pow__(p))
+    #
+    # def __add__(self, x):
+    #     return LinearOperator(super().__add__(x))
+    #
+    # def __neg__(self):
+    #     return LinearOperator(super().__neg__())
+    #
+    # def __sub__(self, x):
+    #     return LinearOperator(super().__sub__(x))
+    #
+    # def _adjoint(self):
+    #     return LinearOperator(super()._adjoint())
+    #
+    # def _transpose(self):
+    #     return LinearOperator(super()._transpose())
 
     def todense(self):
         """
@@ -150,13 +169,60 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     # TODO: implement operations (eigs, cond, ...)
 
 
-class IdentityOperator(LinearOperator):
+# todo avoid code duplication and use scipy implementation instead
+class _CustomLinearOperator(LinearOperator):
+    """Linear operator defined in terms of user-specified operations."""
+
+    def __init__(self, shape, matvec, rmatvec=None, matmat=None,
+                 dtype=None, rmatmat=None):
+        super(_CustomLinearOperator, self).__init__(dtype, shape)
+
+        self.args = ()
+
+        self.__matvec_impl = matvec
+        self.__rmatvec_impl = rmatvec
+        self.__rmatmat_impl = rmatmat
+        self.__matmat_impl = matmat
+
+        self._init_dtype()
+
+    def _matmat(self, X):
+        if self.__matmat_impl is not None:
+            return self.__matmat_impl(X)
+        else:
+            return super(_CustomLinearOperator, self)._matmat(X)
+
+    def _matvec(self, x):
+        return self.__matvec_impl(x)
+
+    def _rmatvec(self, x):
+        func = self.__rmatvec_impl
+        if func is None:
+            raise NotImplementedError("rmatvec is not defined")
+        return self.__rmatvec_impl(x)
+
+    def _rmatmat(self, X):
+        if self.__rmatmat_impl is not None:
+            return self.__rmatmat_impl(X)
+        else:
+            return super(_CustomLinearOperator, self)._rmatmat(X)
+
+    def _adjoint(self):
+        return _CustomLinearOperator(shape=(self.shape[1], self.shape[0]),
+                                     matvec=self.__rmatvec_impl,
+                                     rmatvec=self.__matvec_impl,
+                                     matmat=self.__rmatmat_impl,
+                                     rmatmat=self.__matmat_impl,
+                                     dtype=self.dtype)
+
+
+class Identity(LinearOperator):
     """
     The identity operator returning its input.
     """
 
     def __init__(self, shape, dtype=None):
-        super(IdentityOperator, self).__init__(dtype, shape)
+        super(Identity, self).__init__(dtype, shape)
 
     def _matvec(self, x):
         return x
@@ -176,11 +242,26 @@ class IdentityOperator(LinearOperator):
 
 class Kronecker(LinearOperator):
     """
-    Kronecker product operator.
+    Kronecker product of two linear operators.
 
-    Perform the Kronecker product between two operators.
+    Perform the Kronecker product between two linear operators.
     """
+
     # todo see pylops and tensorflow implementation
+
+    def __init__(self):
+        raise NotImplementedError
+
+
+class SymmetricKronecker(LinearOperator):
+    """
+    Symmetric Kronecker product of two linear operators.
+
+    Perform the symmetric Kronecker product between two linear operators.
+    """
+
+    def __init__(self):
+        raise NotImplementedError
 
 
 def aslinearoperator(A):

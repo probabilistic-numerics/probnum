@@ -5,7 +5,6 @@ distribution over elements of the linear system can be provided and is updated w
 to return a posterior distribution.
 """
 
-import abc
 import warnings
 import numpy as np
 import scipy
@@ -13,6 +12,8 @@ import scipy.sparse
 import probnum.probability as probability
 import probnum.linalg.linear_operators as linear_operators
 import probnum.utils as utils
+
+__all__ = ["problinsolve", "bayescg"]
 
 
 def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resid_tol=10 ** -6):
@@ -433,7 +434,7 @@ class MatrixBasedLinearSolver:
             return np.dot(Wy, x) * u
 
         def mm(M):
-            return np.outer(u, M @Wy)
+            return np.outer(u, M @ Wy)
 
         return scipy.sparse.linalg.LinearOperator(
             shape=shape,

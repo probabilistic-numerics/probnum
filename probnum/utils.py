@@ -4,6 +4,7 @@ import numpy as np
 import scipy.sparse
 import probnum.probability as probability
 
+__all__ = ["atleast_1d", "atleast_2d"]
 
 def atleast_1d(*rvs):
     """

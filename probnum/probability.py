@@ -2,6 +2,9 @@
 
 import scipy.stats
 import numpy as np
+from .linalg.linear_operators import LinearOperator
+
+__all__ = ["RandomVariable", "DiracRV", "NormalRV", "asrandomvariable"]
 
 
 class RandomVariable:
@@ -16,9 +19,9 @@ class RandomVariable:
     ``output_rv = probnum_method(input_rv, method_params)``
 
     Instances of :class:`RandomVariable` can be added, multiplied, etc. in a similar manner to vectors or linear
-    operators, however depending on their distribution the result might not admit all methods. When creating a new
-    subclass implementing a certain distribution, these operations should be overridden to represent the properties of
-    the distribution.
+    operators, however depending on their distribution the result might not admit all previously available methods
+    anymore. When creating a new subclass implementing a certain distribution, these operations should be overridden to
+    represent the properties of the distribution.
 
     Parameters
     ----------
@@ -31,15 +34,84 @@ class RandomVariable:
     --------
     """
 
-    def __init__(self, mean=None, cov=None):
+    def __new__(cls, *args, **kwargs):
+        if cls is RandomVariable:
+            # Operate as _CustomRandomVariable factory.
+            return super(RandomVariable, cls).__new__(_CustomRandomVariable)
+        else:
+            # Run constructor of the corresponding class.
+            return super(RandomVariable, cls).__new__(cls)
+
+    # Todo: See RandomVariable in tensorflow
+    # Todo: Attribute sample_type for operator overloading; dtype as init arg needed?
+    def __init__(self, mean=None, cov=None, shape=None):
         self.mean = mean
-        self.cov = cov  # TODO: variance or covariance here?
+        self.cov = cov
+        # Set shape
+        self._shape = None
+        if mean is not None and shape is not None:
+            if mean.shape != shape:
+                raise ValueError("Shape of mean and given shape do not match.")
+        elif shape is not None:
+            self._get_shape(shape)
+        else:
+            self._get_shape(mean.shape)
         # TODO: add some type checking
         # TODO: allow construction from scipy distribution object
-        raise NotImplementedError
 
     # TODO: implement addition and multiplication with constant matrices / vectors
     # Example of spmatrix class: https://github.com/scipy/scipy/blob/v0.19.0/scipy/sparse/base.py#L62-L1108
+
+    def _set_shape(self, shape):
+        """
+        Set the shape of a random variable.
+
+        See Also
+        --------
+        reshape : Give a new shape to a random variable.
+        """
+        shape = tuple(shape)
+
+        try:
+            shape = int(shape[0]), int(shape[1])  # floats, other weirdness
+        except:
+            raise TypeError('Invalid shape.')
+
+        if not all([i >= 0 for i in shape]):
+            raise ValueError('Invalid shape.')
+
+        if (self._shape != shape) and (self._shape is not None):
+            try:
+                self = self.reshape(shape)
+            except NotImplementedError:
+                raise NotImplementedError("Reshaping not implemented for %s." %
+                                          self.__class__.__name__)
+        self._shape = shape
+
+    def _get_shape(self):
+        """If applicable, return the shape of the random variable."""
+        return self._shape
+
+    shape = property(fget=_get_shape, fset=_set_shape)
+
+    def reshape(self, shape):
+        """
+        Give a new shape to a random variable.
+
+        Parameters
+        ----------
+        shape : tuple of ints
+            The new shape should be compatible with the original shape.
+
+        Returns
+        -------
+        reshaped_rv : ``self`` with the new dimensions of ``shape``.
+
+        See Also
+        --------
+        np.matrix.reshape : NumPy's `'reshape'` for matrices.
+        """
+        raise NotImplementedError("Reshaping not implemented for {}.".format(self.__class__.__name__))
 
     def pdf(self, x):
         """
@@ -83,7 +155,7 @@ class RandomVariable:
         """
         raise NotImplementedError
 
-    def sample(self, size=1):
+    def sample(self, size=1, seed=None):
         """
         Returns realizations from the associated random variable.
 
@@ -97,6 +169,13 @@ class RandomVariable:
 
         """
         raise NotImplementedError
+
+
+class _CustomRandomVariable(RandomVariable):
+    """
+    User-defined random variable via specified attributes and methods.
+    """
+    # TODO implement this similar to scipy's _CustomLinearOperator
 
 
 class DiracRV(RandomVariable):

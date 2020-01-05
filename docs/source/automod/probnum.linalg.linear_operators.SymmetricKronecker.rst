@@ -1,31 +1,31 @@
-IdentityOperator
-================
+SymmetricKronecker
+==================
 
 .. currentmodule:: probnum.linalg.linear_operators
 
-.. autoclass:: IdentityOperator
+.. autoclass:: SymmetricKronecker
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~IdentityOperator.H
-      ~IdentityOperator.T
+      ~SymmetricKronecker.H
+      ~SymmetricKronecker.T
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~IdentityOperator.__call__
-      ~IdentityOperator.adjoint
-      ~IdentityOperator.dot
-      ~IdentityOperator.matmat
-      ~IdentityOperator.matvec
-      ~IdentityOperator.rmatmat
-      ~IdentityOperator.rmatvec
-      ~IdentityOperator.todense
-      ~IdentityOperator.transpose
+      ~SymmetricKronecker.__call__
+      ~SymmetricKronecker.adjoint
+      ~SymmetricKronecker.dot
+      ~SymmetricKronecker.matmat
+      ~SymmetricKronecker.matvec
+      ~SymmetricKronecker.rmatmat
+      ~SymmetricKronecker.rmatvec
+      ~SymmetricKronecker.todense
+      ~SymmetricKronecker.transpose
 
    .. rubric:: Attributes Documentation
 
