@@ -11,7 +11,7 @@ Several algorithms in the :mod:`probnum.linalg` library are able to operate on :
 import numpy as np
 import scipy.sparse.linalg
 import warnings
-import probnum.probability as probability
+from probnum.probability import RandomVariable
 
 __all__ = ["LinearOperator", "Identity", "Kronecker", "SymmetricKronecker", "aslinearoperator"]
 
@@ -249,9 +249,6 @@ class Kronecker(LinearOperator):
 
     # todo see pylops and tensorflow implementation
 
-    def __init__(self):
-        raise NotImplementedError
-
 
 class SymmetricKronecker(LinearOperator):
     """
@@ -259,9 +256,6 @@ class SymmetricKronecker(LinearOperator):
 
     Perform the symmetric Kronecker product between two linear operators.
     """
-
-    def __init__(self):
-        raise NotImplementedError
 
 
 def aslinearoperator(A):
@@ -291,7 +285,7 @@ def aslinearoperator(A):
     >>> aslinearoperator(M)
     <2x3 MatrixLinearOperator with dtype=int32>
     """
-    if isinstance(A, probability.RandomVariable):
+    if isinstance(A, RandomVariable):
         # TODO: aslinearoperator also for random variables; change docstring example
         raise NotImplementedError
     else:

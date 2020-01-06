@@ -1,35 +1,37 @@
-DiracRV
-=======
+Dirac
+=====
 
 .. currentmodule:: probnum.probability
 
-.. autoclass:: DiracRV
+.. autoclass:: Dirac
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~DiracRV.shape
+      ~Dirac.parameters
+      ~Dirac.random_state
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~DiracRV.cdf
-      ~DiracRV.logpdf
-      ~DiracRV.pdf
-      ~DiracRV.reshape
-      ~DiracRV.sample
+      ~Dirac.cdf
+      ~Dirac.logcdf
+      ~Dirac.logpdf
+      ~Dirac.pdf
+      ~Dirac.sample
 
    .. rubric:: Attributes Documentation
 
-   .. autoattribute:: shape
+   .. autoattribute:: parameters
+   .. autoattribute:: random_state
 
    .. rubric:: Methods Documentation
 
    .. automethod:: cdf
+   .. automethod:: logcdf
    .. automethod:: logpdf
    .. automethod:: pdf
-   .. automethod:: reshape
    .. automethod:: sample

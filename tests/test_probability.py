@@ -24,7 +24,7 @@ def test_rv_from_linearoperator(A):
 
 
 def test_rv_linop_kroneckercov():
-    """Create a random variable with linear operator mean and Kronecker covariance."""
+    """Create a random variable with linear operator mean and Kronecker product covariance."""
 
     def mv(v):
         return np.array([2 * v[0], 3 * v[1]])

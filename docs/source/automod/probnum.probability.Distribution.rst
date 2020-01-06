@@ -1,35 +1,37 @@
-NormalRV
-========
+Distribution
+============
 
 .. currentmodule:: probnum.probability
 
-.. autoclass:: NormalRV
+.. autoclass:: Distribution
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~NormalRV.shape
+      ~Distribution.parameters
+      ~Distribution.random_state
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~NormalRV.cdf
-      ~NormalRV.logpdf
-      ~NormalRV.pdf
-      ~NormalRV.reshape
-      ~NormalRV.sample
+      ~Distribution.cdf
+      ~Distribution.logcdf
+      ~Distribution.logpdf
+      ~Distribution.pdf
+      ~Distribution.sample
 
    .. rubric:: Attributes Documentation
 
-   .. autoattribute:: shape
+   .. autoattribute:: parameters
+   .. autoattribute:: random_state
 
    .. rubric:: Methods Documentation
 
    .. automethod:: cdf
+   .. automethod:: logcdf
    .. automethod:: logpdf
    .. automethod:: pdf
-   .. automethod:: reshape
    .. automethod:: sample

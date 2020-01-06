@@ -1,4 +1,5 @@
-"""Probabilistic numerical methods for solving linear systems.
+"""
+Probabilistic numerical methods for solving linear systems.
 
 This module provides routines to solve linear systems of equations in a Bayesian framework. This means that a prior
 distribution over elements of the linear system can be provided and is updated with information collected by the solvers
@@ -7,11 +8,10 @@ to return a posterior distribution.
 
 import warnings
 import numpy as np
-import scipy
 import scipy.sparse
-import probnum.probability as probability
-import probnum.linalg.linear_operators as linear_operators
-import probnum.utils as utils
+from probnum.probability import RandomVariable
+import probnum.linalg.linear_operators as linops
+from probnum.utils import atleast_1d, atleast_2d
 
 __all__ = ["problinsolve", "bayescg"]
 
@@ -99,24 +99,23 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
 
     # Select solver
     if assume_A in ('sym', 'sympos'):
-        if isinstance(Ainv, probability.RandomVariable):
+        if isinstance(Ainv, RandomVariable):
             solve_iter = _problinsolve_symm_iter
-        elif isinstance(x0, probability.RandomVariable):
+        elif isinstance(x0, RandomVariable):
             solve_iter = _bayescg_iter
         else:
             raise ValueError("No prior information specified on Ainv or x.")
     elif assume_A in ('gen', 'pos'):
-        if isinstance(Ainv, probability.RandomVariable):
+        if isinstance(Ainv, RandomVariable):
             solve_iter = _problinsolve_gen_iter
-        elif isinstance(x0, probability.RandomVariable):
+        elif isinstance(x0, RandomVariable):
             solve_iter = _bayescg_iter
         else:
             raise ValueError("No prior information specified on Ainv or x.")
     else:
         raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
 
-    # TODO: make kronecker structure explicit in solver selection and implement via Kronecker linear operator as in
-    #  https://github.com/equinor/pylops/blob/master/pylops/basicoperators/Kronecker.py
+    # TODO: make kronecker structure explicit in solver selection and implement via Kronecker linear operator
 
     # Set default parameters
     n = b.shape[0]
@@ -199,8 +198,8 @@ def _check_linear_system(A, b, Ainv=None, x0=None):
         If type or size mismatches detected or inputs ``A`` and ``Ainv`` are not square.
     """
     # Check types
-    linop_types = (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator, probability.RandomVariable)
-    vector_types = (np.ndarray, scipy.sparse.spmatrix, probability.RandomVariable)
+    linop_types = (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator, RandomVariable)
+    vector_types = (np.ndarray, scipy.sparse.spmatrix, RandomVariable)
     if not isinstance(A, linop_types):
         raise ValueError("A must be either an array, a linear operator or a RandomVariable of either.")
     if not isinstance(b, vector_types):
@@ -269,15 +268,15 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
     # Todo Automatic prior selection based on data scale, etc.?
 
     # Transform linear system to correct dimensions
-    if isinstance(A, linear_operators.LinearOperator):
+    if isinstance(A, linops.LinearOperator):
         A1 = A
     else:
-        A1 = utils.atleast_2d(A)
-    b1 = utils.atleast_1d(b)
-    if Ainv is not None and not isinstance(Ainv, linear_operators.LinearOperator):
-        Ainv1 = utils.atleast_2d(Ainv)
+        A1 = atleast_2d(A)
+    b1 = atleast_1d(b)
+    if Ainv is not None and not isinstance(Ainv, linops.LinearOperator):
+        Ainv1 = atleast_2d(Ainv)
     if x0 is not None:
-        x = utils.atleast_1d(x0)
+        x = atleast_1d(x0)
 
     # TODO create random variables and linear operators
 
