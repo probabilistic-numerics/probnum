@@ -213,7 +213,8 @@ nbsphinx_execute_arguments = [
 ]
 
 # Use a different kernel than stored in the notebook metadata
-nbsphinx_kernel_name = 'local-venv'
+# Install the kernel (in the current virtualenv) via 'ipython kernel install --user --name=probnum_kernel'
+nbsphinx_kernel_name = 'probnum_kernel'
 
 # Width of input/output prompts (HTML only). Any CSS length can be specified.
 # nbsphinx_prompt_width = 1000px
