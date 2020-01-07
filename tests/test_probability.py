@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import scipy
 from probability import RandomVariable
 from linear_operators import LinearOperator, Kronecker
 

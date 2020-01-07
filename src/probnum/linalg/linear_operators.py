@@ -218,7 +218,7 @@ class _CustomLinearOperator(LinearOperator):
 
 class Identity(LinearOperator):
     """
-    The identity operator returning its input.
+    The identity operator.
     """
 
     def __init__(self, shape, dtype=None):
@@ -244,9 +244,28 @@ class Kronecker(LinearOperator):
     """
     Kronecker product of two linear operators.
 
-    Perform the Kronecker product between two linear operators.
-    """
+    The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A` and :math:`B` is given by
 
+    .. math::
+        A \\otimes B = \\begin{bmatrix}
+            A_{1,1} B   &  \\dots   & A_{1,m_1} B  \\\\
+            \\vdots     &  \\ddots  & \\vdots \\\\
+            A_{n_1,1} B &  \\dots   & A_{n_1,m_1} B
+        \\end{bmatrix}
+
+    where :math:`A_{ij}v=A(v_j e_i)`, where :math:`e_i` is the :math:`i^{\\text{th}}` unit vector. The result is a new linear
+    operator mapping from :math:`\\mathbb{R}^{n_1n_2}` to :math:`\\mathbb{R}^{m_1m_2}`. By recognizing that
+    :math:`(A \\otimes B)\\operatorname{vec}(X) = AXB^{\\top}`, the Kronecker product can be understood as "translation"
+    between matrix multiplication and (row-wise) vectorization.
+
+    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
+            123, 85-100
+
+    See Also
+    --------
+    SymmetricKronecker : The symmetric Kronecker product of two linear operators.
+
+    """
     # todo see pylops and tensorflow implementation
 
 
@@ -254,8 +273,21 @@ class SymmetricKronecker(LinearOperator):
     """
     Symmetric Kronecker product of two linear operators.
 
-    Perform the symmetric Kronecker product between two linear operators.
+    The symmetric Kronecker product [1]_ :math:`A \\otimes_{\\text{symm}} B` of two linear operators :math:`A` and
+    :math:`B` is given by
+
+    .. math::
+        A \\otimes_{\\text{symm}} B =
+
+
+    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
+            123, 85-100
+
+    See Also
+    --------
+    Kronecker : The Kronecker product of two linear operators.
     """
+    # TODO: Airplane: write documentation based on Philipp's book and Van Loan
 
 
 def aslinearoperator(A):
@@ -286,7 +318,8 @@ def aslinearoperator(A):
     <2x3 MatrixLinearOperator with dtype=int32>
     """
     if isinstance(A, RandomVariable):
-        # TODO: aslinearoperator also for random variables; change docstring example
+        # TODO: aslinearoperator also for random variables; change docstring example;
+        #  not needed if LinearOperator inherits from Random Variable
         raise NotImplementedError
     else:
         return scipy.sparse.linalg.aslinearoperator(A)

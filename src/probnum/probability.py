@@ -60,9 +60,9 @@ class RandomVariable:
             self._dtype = distribution.mean.dtype
         # Set distribution of random variable
         if distribution is not None:
-            self._distribution = Distribution(distribution)
+            self._distribution = asdistribution(dist=distribution)
         else:
-            self._distribution = Distribution(mean=distribution.mean, cov=distribution.cov, sample=distribution.sample)
+            self._distribution = Distribution()
         # TODO: add some type checking (e.g. for shape as a tuple of ints)
 
     @property
