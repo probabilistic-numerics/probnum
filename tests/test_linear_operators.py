@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-import linear_operators as linops
+import probnum.linalg.linear_operators as linops
 
 
 def test_linop_construction():

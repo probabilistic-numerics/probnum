@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
-from linalg import problinsolve, bayescg
+from probnum.linalg import problinsolve, bayescg
 
 
 # Linear solvers

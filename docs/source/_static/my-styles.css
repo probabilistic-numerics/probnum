@@ -32,9 +32,9 @@ a:hover {
 
 /* Alert boxes (e.g. documentation "see also")*/
 .alert-info {
-		color: #777;
+		color: #333;
 		background-color: #e7e7e7;
-		background-image: linear-gradient(to bottom, #fbfbfb 0, #dee1e1 100%);
+		background-image: linear-gradient(to bottom, #fbfbfb 0, #f2f2f2 100%);
 		border-color: #ccc;
 }
 

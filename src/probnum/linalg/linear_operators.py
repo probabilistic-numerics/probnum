@@ -248,9 +248,9 @@ class Kronecker(LinearOperator):
 
     .. math::
         A \\otimes B = \\begin{bmatrix}
-            A_{1,1} B   &  \\dots   & A_{1,m_1} B  \\\\
+            A_{11} B   &  \\dots   & A_{1 m_1} B  \\\\
             \\vdots     &  \\ddots  & \\vdots \\\\
-            A_{n_1,1} B &  \\dots   & A_{n_1,m_1} B
+            A_{n_11} B &  \\dots   & A_{n_1 m_1} B
         \\end{bmatrix}
 
     where :math:`A_{ij}v=A(v_j e_i)`, where :math:`e_i` is the :math:`i^{\\text{th}}` unit vector. The result is a new linear
@@ -266,28 +266,53 @@ class Kronecker(LinearOperator):
     SymmetricKronecker : The symmetric Kronecker product of two linear operators.
 
     """
-    # todo see pylops and tensorflow implementation
+
+    # todo: double check reshape and ravel (for row-wise stacking) and test this implementation
+    def __init__(self, A, B, dtype=None):
+        self.A = A
+        self.B = B
+        self.shape = (self.A.shape[0] * self.B.shape[0],
+                      self.A.shape[1] * self.B.shape[1])
+        self.dtype = np.dtype(dtype)
+
+    def _matvec(self, x):
+        x = x.reshape(self.A.shape[1], self.B.shape[1])
+        y = self.B.matmat(x.T).T
+        y = self.A.matmat(y).ravel()
+        return y
+
+    def _rmatvec(self, x):
+        x = x.reshape(self.A.shape[0], self.B.shape[0])
+        y = self.B.H.matmat(x.T).T
+        y = self.A.H.matmat(y).ravel()
+        return y
 
 
 class SymmetricKronecker(LinearOperator):
     """
     Symmetric Kronecker product of two linear operators.
 
-    The symmetric Kronecker product [1]_ :math:`A \\otimes_{\\text{symm}} B` of two linear operators :math:`A` and
-    :math:`B` is given by
+    The symmetric Kronecker product [1]_ :math:`A \\otimes_{s} B` of two square linear operators :math:`A` and
+    :math:`B` maps a symmetric linear operator :math:`X` to :math:`\\mathbb{R}^{\\frac{1}{2}n (n+1)}`. It is given by
 
     .. math::
-        A \\otimes_{\\text{symm}} B =
+        (A \\otimes_{s} B)\\operatorname{svec}(X) = \\frac{1}{2} \\operatorname{svec}(AXB^{\\top} + BXA^{\\top})
 
+    where :math:`\\operatorname{svec}(X) = (X_{11}, \\sqrt{2} X_{12}, \\dots, X_{1n}, X_{22}, \\sqrt{2} X_{23},
+    \\dots, \\sqrt{2}X_{2n}, \\dots X_{nn})^{\\top}` is the (row-wise, normalized) symmetric stacking operator.
 
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
             123, 85-100
+
+    Note
+    ----
+    The symmetric Kronecker product has a symmetric matrix representation if both :math:`A` and :math:`B` are symmetric.
 
     See Also
     --------
     Kronecker : The Kronecker product of two linear operators.
     """
-    # TODO: Airplane: write documentation based on Philipp's book and Van Loan
+    # TODO: Make sure definition matches the one in "Hennig, P. and Osborne M. A., Probabilistic Numerics, 2020"
 
 
 def aslinearoperator(A):

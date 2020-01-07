@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from probability import RandomVariable
-from linear_operators import LinearOperator, Kronecker
+from probnum.probability import RandomVariable
+from probnum.linalg.linear_operators import LinearOperator, Kronecker
 
 
 @pytest.mark.parametrize("x", [0, int(1), .1, np.nan, np.inf])
