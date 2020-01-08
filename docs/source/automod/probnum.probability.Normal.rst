@@ -20,8 +20,12 @@ Normal
       ~Normal.cdf
       ~Normal.logcdf
       ~Normal.logpdf
+      ~Normal.mean
+      ~Normal.median
       ~Normal.pdf
       ~Normal.sample
+      ~Normal.std
+      ~Normal.var
 
    .. rubric:: Attributes Documentation
 
@@ -33,5 +37,9 @@ Normal
    .. automethod:: cdf
    .. automethod:: logcdf
    .. automethod:: logpdf
+   .. automethod:: mean
+   .. automethod:: median
    .. automethod:: pdf
    .. automethod:: sample
+   .. automethod:: std
+   .. automethod:: var

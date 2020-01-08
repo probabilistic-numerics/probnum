@@ -10,7 +10,7 @@ import warnings
 import numpy as np
 import scipy.sparse
 from probnum.probability import RandomVariable
-import probnum.linalg.linear_operators as linops
+from probnum.linalg import linear_operators as linops
 from probnum.utils import atleast_1d, atleast_2d
 
 __all__ = ["problinsolve", "bayescg"]

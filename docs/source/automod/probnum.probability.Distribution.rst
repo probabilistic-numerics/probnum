@@ -20,8 +20,12 @@ Distribution
       ~Distribution.cdf
       ~Distribution.logcdf
       ~Distribution.logpdf
+      ~Distribution.mean
+      ~Distribution.median
       ~Distribution.pdf
       ~Distribution.sample
+      ~Distribution.std
+      ~Distribution.var
 
    .. rubric:: Attributes Documentation
 
@@ -33,5 +37,9 @@ Distribution
    .. automethod:: cdf
    .. automethod:: logcdf
    .. automethod:: logpdf
+   .. automethod:: mean
+   .. automethod:: median
    .. automethod:: pdf
    .. automethod:: sample
+   .. automethod:: std
+   .. automethod:: var

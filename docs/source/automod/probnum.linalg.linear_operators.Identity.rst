@@ -22,7 +22,6 @@ Identity
       ~Identity.dot
       ~Identity.matmat
       ~Identity.matvec
-      ~Identity.rmatmat
       ~Identity.rmatvec
       ~Identity.todense
       ~Identity.transpose
@@ -39,7 +38,6 @@ Identity
    .. automethod:: dot
    .. automethod:: matmat
    .. automethod:: matvec
-   .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
    .. automethod:: transpose

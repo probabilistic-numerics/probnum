@@ -20,8 +20,12 @@ Dirac
       ~Dirac.cdf
       ~Dirac.logcdf
       ~Dirac.logpdf
+      ~Dirac.mean
+      ~Dirac.median
       ~Dirac.pdf
       ~Dirac.sample
+      ~Dirac.std
+      ~Dirac.var
 
    .. rubric:: Attributes Documentation
 
@@ -33,5 +37,9 @@ Dirac
    .. automethod:: cdf
    .. automethod:: logcdf
    .. automethod:: logpdf
+   .. automethod:: mean
+   .. automethod:: median
    .. automethod:: pdf
    .. automethod:: sample
+   .. automethod:: std
+   .. automethod:: var

@@ -106,3 +106,9 @@ def test_sparse_poisson(plinsolve):
     #
     # x_solver, _, _, info = plsolve(A=Poisson1D, b=b)
     # np.testing.assert_allclose(x_solver, x, rtol=1e-2)
+
+
+@pytest.mark.parametrize("plinsolve", [problinsolve])  # , bayescg])
+def test_searchdir_conjugacy(plinsolve):
+    """Search directions should remain A-conjugate up to machine precision."""
+    pass

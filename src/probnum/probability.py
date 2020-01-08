@@ -13,12 +13,13 @@ class RandomVariable:
     """
     Random variables are the main objects used by probabilistic numerical methods.
 
-    In ``probnum`` in- and outputs are treated as random variables even though most have Dirac or Gaussian measure.
     Every probabilistic numerical method takes a random variable encoding the prior distribution as input and outputs a
     random variable whose distribution encodes the uncertainty arising from finite computation. The generic signature
     of a probabilistic numerical method is:
 
     ``output_rv = probnum_method(input_rv, method_params)``
+
+    In practice, most random variables used by methods in ProbNum have Dirac or Gaussian measure.
 
     Instances of :class:`RandomVariable` can be added, multiplied, etc. in a similar manner to arrays or linear
     operators, however depending on their ``distribution`` the result might not admit all previously available methods
@@ -70,18 +71,16 @@ class RandomVariable:
         """Distribution of random variable."""
         return self._distribution
 
-    @property
     def mean(self):
         """Expected value of the random variable."""
         if self._distribution is not None:
             try:
-                return self._distribution.parameters["mean"]
+                return self._distribution.mean()
             except KeyError:
                 raise NotImplementedError("Underlying {} has no mean.".format(type(self._distribution).__name__))
         else:
             raise NotImplementedError("No underlying distribution specified.")
 
-    @property
     def cov(self):
         """Covariance operator of the random variable"""
         if self._distribution is not None:
@@ -160,23 +159,29 @@ class Distribution:
     """
     A class representing probability distributions.
 
-    When creating a subclass implementing a certain distribution, generic operations (addition, multiplication, ...)
-     should be overridden to represent the properties of the distribution.
+    This class is primarily intended to be subclassed to provide distribution-specific implementations of the various
+    methods (logpdf, logcdf, sample, mean, var, ...). When creating a subclass implementing a certain distribution,
+    make sure to override generic operations (addition, multiplication, ...) to represent the properties of the
+    distribution. This allows algebraic operations on instances of :class:`Distribution` and :class:`RandomVariable`.
 
     Parameters
     ----------
-    distparams : dict
-        Dictionary of distribution parameters such as mean, variance et cetera.
+    parameters : dict
+        Dictionary of distribution parameters such as mean, variance, et cetera.
     pdf : function
         Probability density or mass function.
     logpdf : function
         Log-probability density or mass function.
     cdf : function
         Cumulative distribution function.
-    cdf : function
+    logcdf : function
         Log-cumulative distribution function.
     sample : function
         Function implementing sampling. Must have signature ``sample(size=())``.
+    mean : function
+        Function returning the mean of the distribution.
+    var : function
+        Function returning the variance of the distribution.
     random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
         This parameter defines the RandomState object to use for drawing
         realizations from this distribution.
@@ -194,19 +199,29 @@ class Distribution:
 
     """
 
-    def __init__(self, distparams=None, pdf=None, logpdf=None, cdf=None, logcdf=None, sample=None, random_state=None):
-        self._parameters = distparams
+    def __init__(self, parameters=None, pdf=None, logpdf=None, cdf=None, logcdf=None, sample=None,
+                 mean=None, var=None, random_state=None):
+        if parameters is None:
+            parameters = {}  # sentinel value to avoid anti-pattern
+        self._parameters = parameters
         self._pdf = pdf
         self._logpdf = logpdf
         self._cdf = cdf
         self._logcdf = logcdf
         self._sample = sample
+        self._mean = mean
+        self._var = var
         self._random_state = check_random_state(random_state)
-        # TODO: allow construction from scipy distribution object
 
     @property
     def random_state(self):
-        """Random state of the distribution."""
+        """Random state of the distribution.
+
+        This attribute defines the RandomState object to use for drawing
+        realizations from this distribution.
+        If None (or np.random), the global np.random state is used.
+        If integer, it is used to seed the local :class:`~numpy.random.RandomState` instance.
+        """
         return self._random_state
 
     @random_state.setter
@@ -222,7 +237,11 @@ class Distribution:
 
     @property
     def parameters(self):
-        """Parameters of the probability distribution."""
+        """
+        Parameters of the probability distribution.
+
+        The parameters of the distribution such as mean, variance, et cetera stored in a ``dict``.
+        """
         if self._parameters is not None:
             return self._parameters
         else:
@@ -230,7 +249,7 @@ class Distribution:
 
     def _check_distparams(self):
         pass
-        # TODO: type checking of self.parameters
+        # TODO: type checking of self._parameters; check method signatures.
 
     def pdf(self, x):
         """
@@ -273,44 +292,44 @@ class Distribution:
             return np.log(self._pdf(x))
         raise NotImplementedError('The function \'logpdf\' is not implemented for {}'.format(type(self).__name__))
 
-    def cdf(self, y):
+    def cdf(self, x):
         """
         Cumulative distribution function.
 
         Parameters
         ----------
-        y : array-like
+        x : array-like
             Evaluation points of the cumulative distribution function.
 
         Returns
         -------
-        x : array-like
+        q : array-like
             Value of the cumulative density function at the given points.
         """
         if self._cdf is not None:
-            return self._cdf(y)
+            return self._cdf(x)
         if self._logcdf is not None:
-            return np.exp(self._logcdf(y))
+            return np.exp(self._logcdf(x))
         raise NotImplementedError('The function \'cdf\' is not implemented for {}'.format(type(self).__name__))
 
-    def logcdf(self, y):
+    def logcdf(self, x):
         """
         Log-cumulative distribution function.
 
         Parameters
         ----------
-        y : array-like
+        x : array-like
             Evaluation points of the cumulative distribution function.
 
         Returns
         -------
-        x : array-like
+        q : array-like
             Value of the log-cumulative density function at the given points.
         """
         if self._logcdf is not None:
-            return self._logpdf(y)
+            return self._logcdf(x)
         if self._cdf is not None:
-            return np.log(self._cdf(y))
+            return np.log(self._cdf(x))
         raise NotImplementedError('The function \'logcdf\' is not implemented for {}'.format(type(self).__name__))
 
     def sample(self, size=()):
@@ -330,38 +349,189 @@ class Distribution:
             return self._sample(size=size)
         raise NotImplementedError('The function \'sample\' is not implemented for {}'.format(type(self).__name__))
 
+    def median(self):
+        """
+        Median of the distribution.
+
+        Returns
+        -------
+        median : float
+            The median of the distribution.
+        """
+        return self.cdf(x=0.5)
+
+    def mean(self):
+        """
+        Mean :math:`\\mathbb{E}(X)` of the distribution.
+
+        Returns
+        -------
+        mean : float
+            The mean of the distribution.
+        """
+        if self._mean is not None:
+            return self._mean()
+        elif "mean" in self._parameters:
+            return self._parameters["mean"]
+        else:
+            raise NotImplementedError('The function \'mean\' is not implemented for {}'.format(type(self).__name__))
+
+    def var(self):
+        """
+        Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of the distribution.
+
+        Returns
+        -------
+        var : float
+            The variance of the distribution.
+        """
+        if self._var is not None:
+            return self._var()
+        elif "var" in self._parameters:
+            return self._parameters["var"]
+        else:
+            raise NotImplementedError('The function \'var\' is not implemented for {}'.format(type(self).__name__))
+
+    def std(self):
+        """
+        Standard deviation of the distribution.
+
+        Returns
+        -------
+        std : float
+            The standard deviation of the distribution.
+        """
+        return np.sqrt(self.var())
+
+    # Binary arithmetic operations
+    def __add__(self, other):
+        # handle other being a number, etc. in asdistribution (avoids type checking in each overloaded method)
+        otherdist = asdistribution(other)
+        raise NotImplementedError
+
+    def __sub__(self, other):
+        raise NotImplementedError
+
+    def __mul__(self, other):
+        raise NotImplementedError
+
+    def __matmul__(self, other):
+        raise NotImplementedError
+
+    def __truediv__(self, other):
+        raise NotImplementedError
+
+    def __pow__(self, power, modulo=None):
+        raise NotImplementedError
+
+    # Binary arithmetic operations with reflected (swapped) operands
+    def __radd__(self, other):
+        raise NotImplementedError
+
+    def __rsub__(self, other):
+        raise NotImplementedError
+
+    def __rmul__(self, other):
+        raise NotImplementedError
+
+    def __rmatmul__(self, other):
+        raise NotImplementedError
+
+    def __rtruediv__(self, other):
+        raise NotImplementedError
+
+    def __rpow__(self, power, modulo=None):
+        raise NotImplementedError
+
+    # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
+    def __iadd__(self, other):
+        raise NotImplementedError
+
+    def __isub__(self, other):
+        raise NotImplementedError
+
+    def __imul__(self, other):
+        raise NotImplementedError
+
+    def __imatmul__(self, other):
+        raise NotImplementedError
+
+    def __itruediv__(self, other):
+        raise NotImplementedError
+
+    def __ipow__(self, power, modulo=None):
+        raise NotImplementedError
+
+    # Unary arithmetic operations
+    def __neg__(self):
+        raise NotImplementedError
+
+    def __pos__(self):
+        raise NotImplementedError
+
+    def __abs__(self):
+        raise NotImplementedError
+
 
 class Dirac(Distribution):
     """
-    The Delta or Dirac distribution.
+    The Dirac delta function.
+
+    This distribution models a point mass and can be useful to represent numbers as random variables with Dirac measure.
+    It has the useful property that algebraic operations between a :class:`Dirac` random variable and an arbitrary
+    :class:`RandomVariable` acts in the same way as the algebraic operation with a constant.
+
+    Note, that a Dirac measure does not admit a probability density function but can be viewed as a distribution
+    (generalized function).
 
     See Also
     --------
-    Distribution : Class implementing probability distributions.
+    Distribution : Class representing general probability distributions.
     """
 
-    def __init__(self, mean):
-        super().__init__(distparams={"mean": mean})
+    def __init__(self, support=0):
+        super().__init__(parameters={"support": support})
+
+    def cdf(self, x):
+        if x < self.parameters["support"]:
+            return 0
+        else:
+            return 1
+
+    def median(self):
+        return self.parameters["support"]
+
+    def mean(self):
+        return self.parameters["support"]
+
+    def var(self):
+        return 0
 
     def sample(self, size=(), seed=None):
         if size == 1:
-            return self._parameters["mean"]
+            return self.parameters["support"]
         else:
-            return self._parameters["mean"] * np.ones(shape=size)
+            return self.parameters["support"] * np.ones(shape=size)
 
 
 class Normal(Distribution):
     """
-    The multi-variate normal distribution.
+    The (multi-variate) normal distribution.
+
+    The Gaussian distribution is ubiquitous in probability theory, since it is the final and stable or equilibrium
+    distribution to which other distributions gravitate under a wide variety of smooth operations, e.g.,
+    convolutions and stochastic transformations. One example of this is the central limit theorem. The Gaussian
+    distribution is also attractive from a numerical point of view as it is maintained through many transformations
+    (e.g. it is stable).
 
     See Also
     --------
-    Distribution : Class implementing probability distributions.
+    Distribution : Class representing general probability distributions.
     """
 
     def __init__(self, mean=0, cov=1):
         # todo: allow for linear operators as mean and covariance
-        super().__init__(distparams={"mean": mean, "cov": cov})
+        super().__init__(parameters={"mean": mean, "cov": cov})
 
     def pdf(self, x):
         return scipy.stats.multivariate_normal.pdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
@@ -369,8 +539,8 @@ class Normal(Distribution):
     def logpdf(self, x):
         return scipy.stats.multivariate_normal.logpdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
-    def cdf(self, y):
-        return scipy.stats.multivariate_normal.cdf(y, mean=self.parameters["mean"], cov=self.parameters["cov"])
+    def cdf(self, x):
+        return scipy.stats.multivariate_normal.cdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
     def sample(self, size=1, seed=None):
         return np.random.multivariate_normal(mean=self.parameters["mean"], cov=self.parameters["cov"], size=size)
@@ -439,6 +609,7 @@ def asdistribution(dist):
 
     """
     if isinstance(dist, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
+        # TODO: allow construction from scipy distribution object
         raise NotImplementedError
     else:
         raise NotImplementedError

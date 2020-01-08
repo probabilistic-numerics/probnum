@@ -10,10 +10,8 @@ RandomVariable
 
    .. autosummary::
 
-      ~RandomVariable.cov
       ~RandomVariable.distribution
       ~RandomVariable.dtype
-      ~RandomVariable.mean
       ~RandomVariable.random_state
       ~RandomVariable.shape
 
@@ -21,19 +19,21 @@ RandomVariable
 
    .. autosummary::
 
+      ~RandomVariable.cov
+      ~RandomVariable.mean
       ~RandomVariable.reshape
       ~RandomVariable.sample
 
    .. rubric:: Attributes Documentation
 
-   .. autoattribute:: cov
    .. autoattribute:: distribution
    .. autoattribute:: dtype
-   .. autoattribute:: mean
    .. autoattribute:: random_state
    .. autoattribute:: shape
 
    .. rubric:: Methods Documentation
 
+   .. automethod:: cov
+   .. automethod:: mean
    .. automethod:: reshape
    .. automethod:: sample
