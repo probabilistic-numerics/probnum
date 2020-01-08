@@ -17,6 +17,7 @@ install:
   - pip install nbsphinx # jupyter notebook documentation support
   - pip install jupyter # jupyter notebooks
   - sudo apt-get install pandoc # pandoc for jupyter notebooks
+  - sudo apt install python-pydot python-pydot-ng graphviz # graphviz for class inheritance diagrams in docs
   - pip install m2r # markdown to restructuredText conversion for sphinx
   - pip install -r requirements.txt
   - pip install -e . # development installation of package, alternatively: python setup.py develop

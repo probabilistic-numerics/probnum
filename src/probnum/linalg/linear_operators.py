@@ -16,7 +16,7 @@ from probnum.probability import RandomVariable
 __all__ = ["LinearOperator", "Identity", "Kronecker", "SymmetricKronecker", "aslinearoperator"]
 
 
-# TODO: multiple inheritance with RandomVariable;
+# TODO: multiple inheritance with RandomVariable
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
     """
     Finite dimensional linear operators.
@@ -56,7 +56,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     matmat : callable f(V)
         Returns :math:`AV`, where :math:`V` is a dense matrix with dimensions (N, K).
     dtype : dtype
-        Data type of the matrix.
+        Data type of the operator.
     rmatmat : callable f(V)
         Returns :math:`A^H V`, where :math:`V` is a dense matrix with dimensions (M, K).
 
@@ -88,7 +88,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         else:
             obj = super(LinearOperator, cls).__new__(cls)
 
-            if (type(obj)._matvec == LinearOperator._matvec and type(obj)._matmat == LinearOperator._matmat):
+            if type(obj)._matvec == LinearOperator._matvec and type(obj)._matmat == LinearOperator._matmat:
                 warnings.warn("LinearOperator subclass should implement"
                               " at least one of _matvec and _matmat.",
                               category=RuntimeWarning, stacklevel=2)
@@ -166,7 +166,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         identity = np.eye(self.shape[1], dtype=self.dtype)
         return linop.matmat(identity)
 
-    # TODO: implement operations (eigs, cond, ...)
+    # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
 
 
 # todo avoid code duplication and use scipy implementation instead
@@ -222,7 +222,9 @@ class Identity(LinearOperator):
     """
 
     def __init__(self, shape, dtype=None):
-        super(Identity, self).__init__(dtype, shape)
+        if shape[0] != shape[1]:
+            raise ValueError("The identity operator must be square.")
+        super(Identity, self).__init__(dtype=dtype, shape=shape)
 
     def _matvec(self, x):
         return x
@@ -238,6 +240,9 @@ class Identity(LinearOperator):
 
     def _adjoint(self):
         return self
+
+    def todense(self):
+        return np.eye(N=self.shape[0], M=self.shape[1])
 
 
 class Kronecker(LinearOperator):
@@ -261,31 +266,40 @@ class Kronecker(LinearOperator):
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
             123, 85-100
 
+    Parameters
+    ----------
+    A : LinearOperator
+        The first operator.
+    B : LinearOperator
+        The second operator.
+    dtype : dtype
+        Data type of the operator.
+
     See Also
     --------
     SymmetricKronecker : The symmetric Kronecker product of two linear operators.
 
     """
 
-    # todo: double check reshape and ravel (for row-wise stacking) and test this implementation
+    # todo: extend this to list of operators
     def __init__(self, A, B, dtype=None):
         self.A = A
         self.B = B
-        self.shape = (self.A.shape[0] * self.B.shape[0],
-                      self.A.shape[1] * self.B.shape[1])
-        self.dtype = np.dtype(dtype)
+        super().__init__(dtype=dtype, shape=(self.A.shape[0] * self.B.shape[0],
+                                             self.A.shape[1] * self.B.shape[1]))
 
     def _matvec(self, x):
+        """
+        Efficient multiplication via (A x B)vec(X) = vec(AXB^T) where vec is the row-wise vectorization operator.
+        """
         x = x.reshape(self.A.shape[1], self.B.shape[1])
         y = self.B.matmat(x.T).T
-        y = self.A.matmat(y).ravel()
-        return y
+        return self.A.matmat(y).ravel()
 
     def _rmatvec(self, x):
         x = x.reshape(self.A.shape[0], self.B.shape[0])
         y = self.B.H.matmat(x.T).T
-        y = self.A.H.matmat(y).ravel()
-        return y
+        return self.A.H.matmat(y).ravel()
 
 
 class SymmetricKronecker(LinearOperator):
@@ -312,6 +326,9 @@ class SymmetricKronecker(LinearOperator):
     --------
     Kronecker : The Kronecker product of two linear operators.
     """
+
+    def __init__(self, A, B, dtype=None):
+        raise NotImplementedError
     # TODO: Make sure definition matches the one in "Hennig, P. and Osborne M. A., Probabilistic Numerics, 2020"
 
 
@@ -344,7 +361,7 @@ def aslinearoperator(A):
     """
     if isinstance(A, RandomVariable):
         # TODO: aslinearoperator also for random variables; change docstring example;
-        #  not needed if LinearOperator inherits from Random Variable
+        #  not needed if LinearOperator inherits from RandomVariable
         raise NotImplementedError
     else:
-        return scipy.sparse.linalg.aslinearoperator(A)
+        return LinearOperator(scipy.sparse.linalg.aslinearoperator(A))

@@ -183,9 +183,12 @@ class RandomVariable:
             except (ValueError, NotImplementedError):
                 try:
                     # infer attribute (shape, dtype, ...) from broadcasting with sampling
+                    self.random_state = check_random_state(1)
+                    other.random_state = check_random_state(1)
                     warnings.warn(
                         "Attributes of combined random variable inferred through a sample. This might adversely" +
-                        " affect performance. Consider matching attributes (shape, dtype, ...).")
+                        " affect performance. Consider matching attributes (shape, dtype, ...) before combining.")
+                    return getattr(op(self.sample(size=1), other.sample(size=1)), attr)
                 except (ValueError, NotImplementedError):
                     raise ValueError(
                         "ValueError: Objects {} does not match or cannot be broadcast together.".format(attr))
