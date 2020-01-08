@@ -1,10 +1,10 @@
 """Random variables represent in- and outputs of probabilistic numerical methods."""
 
+import numpy as np
+import operator
+import warnings
 import scipy.stats
 from scipy._lib._util import check_random_state
-import numpy as np
-
-# from .linalg.linear_operators import LinearOperator
 
 __all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandomvariable", "asdistribution"]
 
@@ -29,8 +29,8 @@ class RandomVariable:
     ----------
     shape : tuple
         Shape of realizations of this random variable.
-    dtype : str or numpy.dtype
-        ``Dtype`` of realizations of this random variable.
+    dtype : numpy.dtype or object
+        Data type of realizations of this random variable. If ``object`` will be converted to ``numpy.dtype``.
     distribution : Distribution
         Probability distribution of the random variable.
 
@@ -153,6 +153,144 @@ class RandomVariable:
         reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
         raise NotImplementedError("Reshaping not implemented for {}.".format(self.__class__.__name__))
+
+    # Arithmetic operations
+    def _get_new_attr(self, attr, other, op):
+        """
+        Get new shared attribute of self and other.
+
+        Parameters
+        ----------
+        attr : str
+            Attribute to be combined.
+        other : RandomVariable
+            Other random variable to combine with ``self``.
+
+        Returns
+        -------
+        value : object
+            Shared attribute value.
+
+        """
+        self_attr = getattr(self, attr)
+        other_attr = getattr(other, attr)
+        if self_attr is None or other_attr is None:
+            return None
+        elif self_attr != other_attr:
+            try:
+                # infer attribute (shape, dtype, ...) from broadcasting with means
+                return getattr(op(self.mean(), other.mean()), attr)
+            except (ValueError, NotImplementedError):
+                try:
+                    # infer attribute (shape, dtype, ...) from broadcasting with sampling
+                    warnings.warn(
+                        "Attributes of combined random variable inferred through a sample. This might adversely" +
+                        " affect performance. Consider matching attributes (shape, dtype, ...).")
+                except (ValueError, NotImplementedError):
+                    raise ValueError(
+                        "ValueError: Objects {} does not match or cannot be broadcast together.".format(attr))
+        else:
+            return self_attr
+
+    # Binary arithmetic operations
+    def _rv_from_op(self, other, op):
+        """
+        Create a new random variable by applying a binary operation.
+
+        Parameters
+        ----------
+        other : object
+        op : function
+            Binary operation.
+
+        Returns
+        -------
+        combined_randvar : RandomVariable
+            Random variable resulting from ``op``.
+
+        """
+        other_rv = asrandomvariable(other)
+        return RandomVariable(shape=self._get_new_attr(attr="shape", other=other_rv, op=op),
+                              dtype=self._get_new_attr(attr="dtype", other=other_rv, op=op),
+                              distribution=op(self.distribution, other_rv.distribution))
+
+    def __add__(self, other):
+        return self._rv_from_op(other=other, op=operator.add)
+
+    def __sub__(self, other):
+        return self._rv_from_op(other=other, op=operator.sub)
+
+    def __mul__(self, other):
+        return self._rv_from_op(other=other, op=operator.mul)
+
+    def __matmul__(self, other):
+        return self._rv_from_op(other=other, op=operator.matmul)
+
+    def __truediv__(self, other):
+        return self._rv_from_op(other=other, op=operator.truediv)
+
+    def __pow__(self, power, modulo=None):
+        return self._rv_from_op(other=power, op=operator.pow)
+
+    # Binary arithmetic operations with reflected (swapped) operands
+    def __radd__(self, other):
+        other_rv = asrandomvariable(other)
+        return other_rv._rv_from_op(other=self, op=operator.add)
+
+    def __rsub__(self, other):
+        other_rv = asrandomvariable(other)
+        return other_rv._rv_from_op(other=self, op=operator.sub)
+
+    def __rmul__(self, other):
+        other_rv = asrandomvariable(other)
+        return other_rv._rv_from_op(other=self, op=operator.mul)
+
+    def __rmatmul__(self, other):
+        other_rv = asrandomvariable(other)
+        return other_rv._rv_from_op(other=self, op=operator.matmul)
+
+    def __rtruediv__(self, other):
+        other_rv = asrandomvariable(other)
+        return other_rv._rv_from_op(other=self, op=operator.truediv)
+
+    def __rpow__(self, power, modulo=None):
+        other_rv = asrandomvariable(power)
+        return other_rv._rv_from_op(other=self, op=operator.pow)
+
+    # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
+    def __iadd__(self, other):
+        raise NotImplementedError
+
+    def __isub__(self, other):
+        raise NotImplementedError
+
+    def __imul__(self, other):
+        raise NotImplementedError
+
+    def __imatmul__(self, other):
+        raise NotImplementedError
+
+    def __itruediv__(self, other):
+        raise NotImplementedError
+
+    def __ipow__(self, power, modulo=None):
+        raise NotImplementedError
+
+    # Unary arithmetic operations
+    def __neg__(self):
+        return RandomVariable(shape=self.shape,
+                              dtype=self.dtype,
+                              distribution=operator.neg(self.distribution))
+
+    def __pos__(self):
+        return RandomVariable(shape=self.shape,
+                              dtype=self.dtype,
+                              distribution=operator.pos(self.distribution))
+
+    def __abs__(self):
+        return RandomVariable(shape=self.shape,
+                              dtype=self.dtype,
+                              distribution=operator.abs(self.distribution))
 
 
 class Distribution:
@@ -405,7 +543,7 @@ class Distribution:
 
     # Binary arithmetic operations
     def __add__(self, other):
-        # handle other being a number, etc. in asdistribution (avoids type checking in each overloaded method)
+        # todo: handle other being a number, etc. in asdistribution (avoids type checking in each overloaded method)
         otherdist = asdistribution(other)
         raise NotImplementedError
 
@@ -611,5 +749,6 @@ def asdistribution(dist):
     if isinstance(dist, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
         # TODO: allow construction from scipy distribution object
         raise NotImplementedError
+    # Todo: allow construction from numbers / arrays to create dirac distribution
     else:
         raise NotImplementedError
