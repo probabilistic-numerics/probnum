@@ -132,7 +132,6 @@ html_theme_options = {
         ("Documentation", "modules"),
         ("Examples", "notebooks/examples"),
         ("Development", "contributing"),
-        ("GitHub", "https://github.com/probabilistic-numerics/probnum", True),
     ],
 
     # Render the next and previous page links in navbar. (Default: true)
