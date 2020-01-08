@@ -42,7 +42,12 @@ a:hover {
 .navbar-brand {
 	float: left;
 	height: 50px;
-	padding: 7px 7px 5px 5px;
+	padding: 8px 8px 5px 5px;
 	font-size: 18px;
 	line-height: 20px;
+}
+
+/* Citations in documentation */
+dl.footnote > dd, dl.citation > dd {
+    margin-bottom: -.5em;
 }

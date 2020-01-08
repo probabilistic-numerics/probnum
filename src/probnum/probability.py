@@ -54,11 +54,11 @@ class RandomVariable:
             else:
                 self._dtype = np.dtype(dtype)
         if distribution.mean is not None:
-            if distribution.mean.shape != shape:
+            if distribution.mean().shape != shape:
                 raise ValueError("Shape of distribution mean and given shape do not match.")
             else:
-                self._shape = distribution.mean.shape
-            self._dtype = distribution.mean.dtype
+                self._shape = distribution.mean().shape
+            self._dtype = distribution.mean().dtype
         # Set distribution of random variable
         if distribution is not None:
             self._distribution = asdistribution(dist=distribution)
@@ -668,6 +668,14 @@ class Normal(Distribution):
     See Also
     --------
     Distribution : Class representing general probability distributions.
+
+    Examples
+    --------
+    >>> from probnum import Normal
+    >>> N = Normal(mean=0.5, cov=1)
+    >>> N1 = 2*X - 1
+    >>> N1.mean()
+
     """
 
     def __init__(self, mean=0, cov=1):
@@ -683,7 +691,7 @@ class Normal(Distribution):
     def cdf(self, x):
         return scipy.stats.multivariate_normal.cdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
-    def sample(self, size=1, seed=None):
+    def sample(self, size=(), seed=None):
         return np.random.multivariate_normal(mean=self.parameters["mean"], cov=self.parameters["cov"], size=size)
 
 
@@ -713,7 +721,7 @@ def asrandomvariable(X):
     <2x3 RandomVariable with dtype=int32>
     """
     if isinstance(X, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
-        # TODO: transform scipy distribution objects and numpy arrays automatically
+        # TODO: transform scipy distribution objects, Distribution and numpy arrays automatically
         raise NotImplementedError
     elif isinstance(X, np.ndarray):
         raise NotImplementedError

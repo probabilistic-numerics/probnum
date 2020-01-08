@@ -6,6 +6,7 @@ import probnum.probability as probability
 
 __all__ = ["atleast_1d", "atleast_2d"]
 
+
 def atleast_1d(*rvs):
     """
     Convert arrays or random variables to arrays or random variables with at least one dimension.

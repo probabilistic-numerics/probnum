@@ -29,12 +29,14 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
 
     This solver can take prior information either on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` and
     outputs a posterior belief over :math:`A` or :math:`H`. For a specific class of priors this recovers the iterates of
-    the conjugate gradient method as the posterior mean. This code implements the method described in [1]_, [2]_ and
-    [3]_.
+    the conjugate gradient method [1]_ as the posterior mean. This code implements the method described in [2]_, [3]_
+    and [4]_.
 
-    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [3] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
+    .. [1] Hestenes, M. R. and Stiefel E., Methods of Conjugate Gradients for Solving Linear Systems,
+            *Journal of Research of the National Bureau of Standards*, 1952, 49 (6): 409
+    .. [2] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
+    .. [3] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [4] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
            University Press
 
     Parameters
@@ -50,14 +52,14 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
         :math:`H=A^{-1}`.
     x0 : array-like, shape=(n,) or (n, nrhs)
         Optional. Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
-    assume_A : str, default='sympos'
+    assume_A : str, default="sympos"
         Assumptions on the matrix, which can influence solver choice or behavior. The available options are
 
         ====================  =========
-         generic matrix       'gen'
-         symmetric            'sym'
-         positive definite    'pos'
-         symmetric pos. def.  'sympos'
+         generic matrix       ``gen``
+         symmetric            ``sym``
+         positive definite    ``pos``
+         symmetric pos. def.  ``sympos``
         ====================  =========
     maxiter : int
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the dimension of :math:`A`.
@@ -88,6 +90,9 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
     See Also
     --------
     bayescg : Solve linear systems with prior information on the solution.
+
+    Examples
+    --------
     """
 
     # Check linear system for type and dimension mismatch
