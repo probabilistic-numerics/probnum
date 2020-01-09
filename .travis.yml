@@ -29,7 +29,7 @@ script:
   - make clean # remove modules from automodapi
   - make html # build documentation
   - cd ..
-  - pytest --cov=./ # run tests and coverage
+#  - pytest --cov=./ # run tests and coverage
 after_success:
   - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecov
 deploy: # deploy documentation to github pages
