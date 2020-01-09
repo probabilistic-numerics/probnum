@@ -67,6 +67,7 @@ def test_rv_linop_matmul(A):
     x = RandomVariable()
     A @ x
 
+@pytest.mark.parametrize("rv1, rv2", [(RandomVariable(), RandomVariable())])
 def test_different_rv_seeds(rv1, rv2):
     """Arithmetic operation between two random variables with different seeds."""
     pass
