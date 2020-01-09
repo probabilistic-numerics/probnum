@@ -22,6 +22,7 @@ LinearOperator
       ~LinearOperator.dot
       ~LinearOperator.matmat
       ~LinearOperator.matvec
+      ~LinearOperator.rmatmat
       ~LinearOperator.rmatvec
       ~LinearOperator.todense
       ~LinearOperator.transpose
@@ -38,6 +39,7 @@ LinearOperator
    .. automethod:: dot
    .. automethod:: matmat
    .. automethod:: matvec
+   .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
    .. automethod:: transpose
