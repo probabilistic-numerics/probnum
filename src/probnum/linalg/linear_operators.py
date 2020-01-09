@@ -148,6 +148,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     #
     # def _transpose(self):
     #     return LinearOperator(super()._transpose())
+    # TODO: override arithmetic operations to make sure that arithmetic operations with random variables work as intended
 
     def todense(self):
         """
