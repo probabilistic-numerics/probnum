@@ -4,6 +4,7 @@ import numpy as np
 import operator
 import warnings
 import scipy.stats
+from scipy.sparse import spmatrix
 from scipy._lib._util import check_random_state
 
 __all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandomvariable", "asdistribution"]
@@ -21,9 +22,8 @@ class RandomVariable:
 
     In practice, most random variables used by methods in ProbNum have Dirac or Gaussian measure.
 
-    Instances of :class:`RandomVariable` can be added, multiplied, etc. in a similar manner to arrays or linear
-    operators, however depending on their ``distribution`` the result might not admit all previously available methods
-    anymore.
+    Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and linear operators. This may
+    change their ``distribution`` and not necessarily all previously available methods are retained.
 
     Parameters
     ----------
@@ -61,7 +61,7 @@ class RandomVariable:
             self._dtype = distribution.mean().dtype
         # Set distribution of random variable
         if distribution is not None:
-            self._distribution = asdistribution(dist=distribution)
+            self._distribution = asdistribution(obj=distribution)
         else:
             self._distribution = Distribution()
         # TODO: add some type checking (e.g. for shape as a tuple of ints)
@@ -117,9 +117,6 @@ class RandomVariable:
         """
         self.distribution._random_state = check_random_state(seed)
 
-    # TODO: implement addition and multiplication with constant matrices / vectors
-    # Example of spmatrix class: https://github.com/scipy/scipy/blob/v0.19.0/scipy/sparse/base.py#L62-L1108
-
     def sample(self, size=()):
         """
         Draw realizations from a random variable.
@@ -155,6 +152,8 @@ class RandomVariable:
         raise NotImplementedError("Reshaping not implemented for {}.".format(self.__class__.__name__))
 
     # Arithmetic operations
+    # TODO: implement addition and multiplication with constant matrices / vectors
+    # Example of spmatrix class: https://github.com/scipy/scipy/blob/v0.19.0/scipy/sparse/base.py#L62-L1108
     def _get_new_attr(self, attr, other, op):
         """
         Get new shared attribute of self and other.
@@ -261,6 +260,7 @@ class RandomVariable:
         return other_rv._rv_from_op(other=self, op=operator.pow)
 
     # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
+    # TODO: needs setter functions for properties `shape` and `dtype` to do in place
     def __iadd__(self, other):
         raise NotImplementedError
 
@@ -301,9 +301,10 @@ class Distribution:
     A class representing probability distributions.
 
     This class is primarily intended to be subclassed to provide distribution-specific implementations of the various
-    methods (logpdf, logcdf, sample, mean, var, ...). When creating a subclass implementing a certain distribution,
-    make sure to override generic operations (addition, multiplication, ...) to represent the properties of the
-    distribution. This allows algebraic operations on instances of :class:`Distribution` and :class:`RandomVariable`.
+    methods (``logpdf``, ``logcdf``, ``sample``, ``mean``, ``var``, ...). When creating a subclass implementing a
+    certain distribution, make sure to override generic operations (addition, multiplication, ...) to represent the
+    properties of the distribution. This allows arithmetic operations on instances of :class:`Distribution` and
+    :class:`RandomVariable`.
 
     Parameters
     ----------
@@ -548,41 +549,55 @@ class Distribution:
     def __add__(self, other):
         # todo: handle other being a number, etc. in asdistribution (avoids type checking in each overloaded method)
         otherdist = asdistribution(other)
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Addition not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __sub__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Subtraction not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __mul__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Multiplication not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __matmul__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
+                                                                          other.__class__.__name__))
 
     def __truediv__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Division not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __pow__(self, power, modulo=None):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Exponentiation not implemented for {} and {}.".format(self.__class__.__name__, power.__class__.__name__))
 
     # Binary arithmetic operations with reflected (swapped) operands
     def __radd__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Addition not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rsub__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Subtraction not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rmul__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Multiplication not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rmatmul__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Matrix multiplication not implemented for {} and {}.".format(other.__class__.__name__,
+                                                                          self.__class__.__name__))
 
     def __rtruediv__(self, other):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Division not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rpow__(self, power, modulo=None):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Exponentiation not implemented for {} and {}.".format(power.__class__.__name__, self.__class__.__name__))
 
     # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
     def __iadd__(self, other):
@@ -605,13 +620,16 @@ class Distribution:
 
     # Unary arithmetic operations
     def __neg__(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Negation not implemented for {}.".format(self.__class__.__name__))
 
     def __pos__(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Pos (+) not implemented for {}.".format(self.__class__.__name__))
 
     def __abs__(self):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Absolute value not implemented for {}.".format(self.__class__.__name__))
 
 
 class Dirac(Distribution):
@@ -625,6 +643,11 @@ class Dirac(Distribution):
     Note, that a Dirac measure does not admit a probability density function but can be viewed as a distribution
     (generalized function).
 
+    Parameters
+    ----------
+    support : scalar or array-like or LinearOperator
+        The support of the dirac delta function.
+
     See Also
     --------
     Distribution : Class representing general probability distributions.
@@ -635,9 +658,9 @@ class Dirac(Distribution):
 
     def cdf(self, x):
         if x < self.parameters["support"]:
-            return 0
+            return 0.
         else:
-            return 1
+            return 1.
 
     def median(self):
         return self.parameters["support"]
@@ -646,7 +669,7 @@ class Dirac(Distribution):
         return self.parameters["support"]
 
     def var(self):
-        return 0
+        return 0.
 
     def sample(self, size=(), seed=None):
         if size == 1:
@@ -680,7 +703,7 @@ class Normal(Distribution):
 
     def __init__(self, mean=0, cov=1):
         # todo: allow for linear operators as mean and covariance
-        super().__init__(parameters={"mean": mean, "cov": cov})
+        super().__init__(parameters={"mean": np.array(mean), "cov": np.array(cov)})
 
     def pdf(self, x):
         return scipy.stats.multivariate_normal.pdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
@@ -691,23 +714,25 @@ class Normal(Distribution):
     def cdf(self, x):
         return scipy.stats.multivariate_normal.cdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
-    def sample(self, size=(), seed=None):
+    def sample(self, size=()):
         return np.random.multivariate_normal(mean=self.parameters["mean"], cov=self.parameters["cov"], size=size)
 
 
-def asrandomvariable(X):
+def asrandomvariable(obj):
     """
-    Return `X` as a :class:`RandomVariable`.
+    Return `obj` as a :class:`RandomVariable`.
+
+    Converts scalars, (sparse) arrays or distribution classes to a :`class:RandomVariable`.
 
     Parameters
     ----------
-    X : array-like or LinearOperator or scipy.stats.rv_continuous or scipy.stats.rv_discrete
-        Argument to be represented as a random variable.
+    obj : array-like or LinearOperator or scipy.stats.rv_continuous or scipy.stats.rv_discrete
+        Argument to be represented as a :`class:RandomVariable`.
 
     Returns
     -------
-    X : RandomVariable
-        X as a random variable.
+    rv : RandomVariable
+        The object `obj` as a as a :`class:RandomVariable`.
 
     See Also
     --------
@@ -720,46 +745,86 @@ def asrandomvariable(X):
     >>> asrandomvariable(M)
     <2x3 RandomVariable with dtype=int32>
     """
-    if isinstance(X, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
+    if isinstance(obj, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
         # TODO: transform scipy distribution objects, Distribution and numpy arrays automatically
         raise NotImplementedError
-    elif isinstance(X, np.ndarray):
+    elif isinstance(obj, np.ndarray):
         raise NotImplementedError
-    elif isinstance(X, scipy.sparse.linalg.LinearOperator):
+    elif isinstance(obj, scipy.sparse.linalg.LinearOperator):
         raise NotImplementedError
     else:
-        raise ValueError("Argument of type {} cannot be converted to a random variable.".format(type(X)))
+        raise ValueError("Argument of type {} cannot be converted to a random variable.".format(type(obj)))
 
 
-def asdistribution(dist):
+def asdistribution(obj):
     """
-    Return ``dist`` as a :class:`Distribution`.
+    Return ``obj`` as a :class:`Distribution`.
+
+    Converts scalars, (sparse) arrays or distribution classes to a :class:`Distribution`.
 
     Parameters
     ----------
-    dist : scipy.stats.rv_continuous or scipy.stats.rv_discrete or object
+    obj : object
         Argument to be represented as a :class:`Distribution`.
 
     Returns
     -------
     dist : Distribution
-        The object `dist` as a :class:`Distribution`.
+        The object `obj` as a :class:`Distribution`.
 
     See Also
     --------
-    Distribution : A class representing probability distributions.
+    Distribution : Class representing probability distributions.
 
     Examples
     --------
     >>> from scipy.stats import bernoulli
     >>> from probnum.probability import asdistribution
-    >>> d = asdistribution(bernoulli)
-    >>> d.sample()
-
+    >>> bern = bernoulli(p=0.5)
+    >>> bern.random_state = 42  # Seed for reproducibility
+    >>> d = asdistribution(bern)
+    >>> d.sample(size=5)
+    array([0, 1, 1, 1, 0])
     """
-    if isinstance(dist, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
-        # TODO: allow construction from scipy distribution object
-        raise NotImplementedError
-    # Todo: allow construction from numbers / arrays to create dirac distribution
+    # Distribution
+    if isinstance(obj, Distribution):
+        return obj
+    # Scalar
+    elif np.isscalar(obj):
+        return Dirac(support=obj)
+    # Sparse Array
+    elif isinstance(obj, scipy.sparse.spmatrix):
+        return Dirac(support=obj)
+    # Linear Operator
+    elif isinstance(obj, scipy.sparse.linalg.LinearOperator):
+        return Dirac(support=obj)
+    # Scipy distribution
+    elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen):
+        # Normal distribution
+        if obj.dist.name == "norm":
+            return Normal(mean=obj.mean(), cov=obj.var())
+        elif obj.__class__.__name__ == "multivariate_normal_frozen":  # Multivariate normal
+            return Normal(mean=obj.mean, cov=obj.cov)
+        else:
+            # Generic distribution
+            if hasattr(obj, "pmf"):
+                pdf = obj.pmf
+                logpdf = obj.logpmf
+            else:
+                pdf = obj.pdf
+                logpdf = obj.logpdf
+            return Distribution(parameters={},
+                                pdf=pdf,
+                                logpdf=logpdf,
+                                cdf=obj.cdf,
+                                logcdf=obj.logcdf,
+                                sample=obj.rvs,
+                                mean=obj.mean,
+                                var=obj.var,
+                                random_state=obj.random_state)
     else:
-        raise NotImplementedError
+        try:
+            # Numpy array
+            return Dirac(support=np.array(obj))
+        except Exception:
+            raise NotImplementedError("Cannot convert object of type {} to a distribution.".format(type(obj)))
