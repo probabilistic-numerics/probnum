@@ -1,25 +1,25 @@
 import pytest
 import numpy as np
-from probnum.probability import RandomVariable
-from probnum.linalg.linear_operators import LinearOperator, Kronecker
+from probnum.probability import RandomVariable, asrandomvariable
+from probnum.linalg.linear_operators import LinearOperator, Matrix, Kronecker, SymmetricKronecker
 
 
 @pytest.mark.parametrize("x", [0, int(1), .1, np.nan, np.inf])
 def test_rv_from_number(x):
     """Create a random variable from a number."""
-    RandomVariable(x)
+    asrandomvariable(x)
 
 
-@pytest.mark.parametrize("x", [np.zeros(4), np.array([]), np.array([1, 2])])
+@pytest.mark.parametrize("x", [np.empty([1]), np.zeros(4), np.array([]), np.array([1, 2])])
 def test_rv_from_ndarray(x):
     """Create a random variable from an array."""
-    RandomVariable(x)
+    asrandomvariable(x)
 
 
-@pytest.mark.parametrize("A", [LinearOperator()])
-def test_rv_from_linearoperator(A):
-    """Create a random variable from a linear operator."""
-    RandomVariable(A)
+# @pytest.mark.parametrize("A", [LinearOperator()])
+# def test_rv_from_linearoperator(A):
+#     """Create a random variable from a linear operator."""
+#     asrandomvariable(A)
 
 
 def test_rv_linop_kroneckercov():
@@ -59,3 +59,14 @@ def test_rv_matmul(A):
     x = RandomVariable()
     np.matmul(A, x)
     A @ x
+
+
+@pytest.mark.parametrize("A", [Matrix(np.array([[1, 2, 2], [4, 5, 6]]))])
+def test_rv_linop_matmul(A):
+    """Linear operator applied to a random variable."""
+    x = RandomVariable()
+    A @ x
+
+def test_different_rv_seeds(rv1, rv2):
+    """Arithmetic operation between two random variables with different seeds."""
+    pass

@@ -13,7 +13,7 @@ import scipy.sparse.linalg
 import warnings
 from probnum.probability import RandomVariable
 
-__all__ = ["LinearOperator", "Identity", "Kronecker", "SymmetricKronecker", "aslinearoperator"]
+__all__ = ["LinearOperator", "Identity", "Matrix", "Kronecker", "SymmetricKronecker", "aslinearoperator"]
 
 
 # TODO: multiple inheritance with RandomVariable
@@ -245,6 +245,21 @@ class Identity(LinearOperator):
         return np.eye(N=self.shape[0], M=self.shape[1])
 
 
+# TODO: replace this with own implementation?
+class Matrix(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
+    """
+    A linear operator defined via a matrix.
+
+    Parameters
+    ----------
+    A : array-like or scipy.sparse.spmatrix
+        The explicit matrix.
+    """
+
+    def __init__(self, A):
+        super().__init__(A=A)
+
+
 class Kronecker(LinearOperator):
     """
     Kronecker product of two linear operators.
@@ -363,5 +378,7 @@ def aslinearoperator(A):
         # TODO: aslinearoperator also for random variables; change docstring example;
         #  not needed if LinearOperator inherits from RandomVariable
         raise NotImplementedError
+    elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
+        return Matrix(A=A)
     else:
         return LinearOperator(scipy.sparse.linalg.aslinearoperator(A))
