@@ -296,10 +296,13 @@ class SymmetricKronecker(LinearOperator):
         (A \\otimes_{s} B)\\operatorname{svec}(X) = \\frac{1}{2} \\operatorname{svec}(AXB^{\\top} + BXA^{\\top})
 
     where :math:`\\operatorname{svec}(X) = (X_{11}, \\sqrt{2} X_{12}, \\dots, X_{1n}, X_{22}, \\sqrt{2} X_{23},
-    \\dots, \\sqrt{2}X_{2n}, \\dots X_{nn})^{\\top}` is the (row-wise, normalized) symmetric stacking operator.
+    \\dots, \\sqrt{2}X_{2n}, \\dots X_{nn})^{\\top}` is the (row-wise, normalized) symmetric stacking operator. The
+    implementation is based on the relationship :math:`Q^\\top \\operatorname{svec}(X) = \\operatorname{vec}(X)` with a
+    orthonormal matrix :math:`Q` [2]_.
 
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
             123, 85-100
+    .. [2] de Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, The Netherlands, 2002
 
     Note
     ----
@@ -310,9 +313,43 @@ class SymmetricKronecker(LinearOperator):
     Kronecker : The Kronecker product of two linear operators.
     """
 
-    def __init__(self, A, B, dtype=None):
-        raise NotImplementedError
     # TODO: Make sure definition matches the one in "Hennig, P. and Osborne M. A., Probabilistic Numerics, 2020"
+    def __init__(self, A, B, dtype=None):
+        # Set parameters
+        self.A = aslinop(A)
+        self.B = aslinop(B)
+        self._n = self.A.shape[0]
+        if self.A.shape != self.B.shape or self.A.shape[1] != self._n:
+            raise ValueError("Linear operators A and B must be square and have the same dimensions.")
+
+        # Compute matrix Q
+        # TODO: test this function with unit test
+        self._Q = None
+
+        # Initiator of superclass
+        n_symkron = int(0.5 * self._n * (self._n + 1))
+        super().__init__(dtype=dtype, shape=(n_symkron, n_symkron))
+
+
+    def _matvec(self, x):
+        """
+        Efficient multiplication via (A (x)_s B)svec(X) = 1/2 svec(BXA^T + AXB^T) where svec is the column-wise normalized
+        symmetric stacking operator.
+        """
+
+        # Orthonormal Q
+        Q = self._Q
+
+        # Q^T svec(x) = vec(x)
+        X = (Q.transpose() @ x).reshape(self._n, self._n)
+
+        # (A (x)_s B)svec(X) = 1/2 Q vec(BXA^T + AXB^T)
+        Y = self.B @ (X @ self.A.transpose())
+        Y = Y + Y.transpose()
+        return 0.5 * Q @ Y.ravel()
+
+    def _rmatvec(self, x):
+        raise NotImplementedError
 
 
 def aslinop(A):
