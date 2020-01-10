@@ -38,7 +38,7 @@ Please refer to the [contribution guide](https://probabilistic-numerics.github.i
 making a pull request.
 
 A list of core contributors to ProbNum can be found 
-[here](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md).
+[here](https://probabilistic-numerics.github.io/probnum/contributing.html#code-contributors).
 
 ## License and Contact
 This work is released under the [MIT License](https://github.com/probabilistic-numerics/probnum/blob/master/LICENSE.txt).
