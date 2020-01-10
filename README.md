@@ -28,9 +28,9 @@ For tips on getting started and how to use this package please refer to the
 [documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
 
 ## Examples
-Example usage of the methods provided by this repository are available in the 
-[examples section](https://probabilistic-numerics.github.io/probnum/examples.html) of the documentation. In the future 
-we will provide Jupyter notebooks to illustrate basic usage examples of implemented probabilistic numerics routines.
+Examples of how to use this repository are available in the 
+[examples section](https://probabilistic-numerics.github.io/probnum/notebooks/examples.html) of the documentation. It 
+contains Jupyter notebooks illustrating the basic usage of implemented probabilistic numerics routines.
 
 ## Package Development
 This repository is currently under development and benefits from contribution to the code, examples or documentation.
