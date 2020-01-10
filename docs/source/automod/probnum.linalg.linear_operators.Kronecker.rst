@@ -19,12 +19,7 @@ Kronecker
 
       ~Kronecker.__call__
       ~Kronecker.adjoint
-      ~Kronecker.apply_columns
-      ~Kronecker.cond
-      ~Kronecker.conj
-      ~Kronecker.div
       ~Kronecker.dot
-      ~Kronecker.eigs
       ~Kronecker.matmat
       ~Kronecker.matvec
       ~Kronecker.rmatvec
@@ -39,12 +34,7 @@ Kronecker
 
    .. automethod:: __call__
    .. automethod:: adjoint
-   .. automethod:: apply_columns
-   .. automethod:: cond
-   .. automethod:: conj
-   .. automethod:: div
    .. automethod:: dot
-   .. automethod:: eigs
    .. automethod:: matmat
    .. automethod:: matvec
    .. automethod:: rmatvec

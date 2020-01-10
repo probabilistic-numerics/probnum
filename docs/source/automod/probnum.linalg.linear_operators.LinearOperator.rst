@@ -1,29 +1,29 @@
-SymmetricKronecker
-==================
+LinearOperator
+==============
 
 .. currentmodule:: probnum.linalg.linear_operators
 
-.. autoclass:: SymmetricKronecker
+.. autoclass:: LinearOperator
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~SymmetricKronecker.H
-      ~SymmetricKronecker.T
+      ~LinearOperator.H
+      ~LinearOperator.T
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~SymmetricKronecker.__call__
-      ~SymmetricKronecker.adjoint
-      ~SymmetricKronecker.dot
-      ~SymmetricKronecker.matmat
-      ~SymmetricKronecker.matvec
-      ~SymmetricKronecker.rmatvec
-      ~SymmetricKronecker.transpose
+      ~LinearOperator.__call__
+      ~LinearOperator.adjoint
+      ~LinearOperator.dot
+      ~LinearOperator.matmat
+      ~LinearOperator.matvec
+      ~LinearOperator.rmatvec
+      ~LinearOperator.transpose
 
    .. rubric:: Attributes Documentation
 

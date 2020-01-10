@@ -1,29 +1,29 @@
-SymmetricKronecker
-==================
+MatrixMult
+==========
 
 .. currentmodule:: probnum.linalg.linear_operators
 
-.. autoclass:: SymmetricKronecker
+.. autoclass:: MatrixMult
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~SymmetricKronecker.H
-      ~SymmetricKronecker.T
+      ~MatrixMult.H
+      ~MatrixMult.T
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~SymmetricKronecker.__call__
-      ~SymmetricKronecker.adjoint
-      ~SymmetricKronecker.dot
-      ~SymmetricKronecker.matmat
-      ~SymmetricKronecker.matvec
-      ~SymmetricKronecker.rmatvec
-      ~SymmetricKronecker.transpose
+      ~MatrixMult.__call__
+      ~MatrixMult.adjoint
+      ~MatrixMult.dot
+      ~MatrixMult.matmat
+      ~MatrixMult.matvec
+      ~MatrixMult.rmatvec
+      ~MatrixMult.transpose
 
    .. rubric:: Attributes Documentation
 

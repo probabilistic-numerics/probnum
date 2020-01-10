@@ -658,7 +658,7 @@ class Distribution:
             return Distribution(parameters={},
                                 sample=lambda size: delta @ self.sample(size=size),
                                 mean=lambda: delta @ self.mean,
-                                var=delta @ self.var @ delta.transpose(),
+                                var=delta @ (self.var @ delta.transpose()),
                                 random_state=self.random_state)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(other.__class__.__name__,
@@ -1075,7 +1075,7 @@ class Normal(Distribution):
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Normal(mean=self.parameters["mean"] @ delta,
-                          cov=delta @ self.parameters["cov"] @ delta.transpose(),
+                          cov=delta @ (self.parameters["cov"] @ delta.transpose()),
                           random_state=self.random_state)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
