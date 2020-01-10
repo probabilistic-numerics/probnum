@@ -10,7 +10,7 @@ import warnings
 import numpy as np
 import scipy.sparse
 from probnum.probability import RandomVariable
-from probnum.linalg import linear_operators as linops
+from probnum.linalg.linear_operators import LinearOperator
 from probnum.utils import atleast_1d, atleast_2d
 
 __all__ = ["problinsolve", "bayescg"]
@@ -103,6 +103,7 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
     A, b, Ainv, x = _preprocess_linear_system(A=A, b=b, Ainv=Ainv, x0=x0)
 
     # Select solver
+    # TODO: include also random variable covariance type in this selection? (symmkron => sympos)
     if assume_A in ('sym', 'sympos'):
         if isinstance(Ainv, RandomVariable):
             solve_iter = _problinsolve_symm_iter
@@ -128,20 +129,12 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
         maxiter = n * 10
 
     # Solve linear system
-    # TODO: specify arguments of solve iterator
-    x, iter_, resid, info = solve_iter()
+    # TODO: refactor into returning random variables and unify signatures of solve_iter
+    A, Ainv_mean, Ainv_cov_kronfac, x, info = solve_iter(A=A, Ainv_mean=Ainv.mean(), Ainv_cov_kronfac=Ainv.cov().A, b=b,
+                                                         maxiter=maxiter, resid_tol=resid_tol)
 
     # Check solution and issue warnings (e.g. singular or ill-conditioned matrix)
     _check_solution(info=info)
-
-    # Log information on solution
-    info = {
-        "iter": 0,
-        "maxiter": maxiter,
-        "resid": 0,
-        "conv_crit": "resid",
-        "matrix_cond": 10
-    }
 
     return x, A, Ainv, info
 
@@ -191,11 +184,11 @@ def _check_linear_system(A, b, Ainv=None, x0=None):
         Linear operator.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
-    Ainv : array-like or LinearOperator or RandomVariable, shape=(n,n)
-        Optional. A square matrix, linear operator or random variable representing the prior belief over the inverse
+    Ainv : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+        A square matrix, linear operator or random variable representing the prior belief over the inverse
         :math:`H=A^{-1}`.
-    x0 : array-like, shape=(n,) or (n, nrhs)
-        Optional. Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
+    x0 : array-like, shape=(n,) or (n, nrhs), optional
+        Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
 
     Raises
     ------
@@ -273,13 +266,13 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
     # Todo Automatic prior selection based on data scale, etc.?
 
     # Transform linear system to correct dimensions
-    if isinstance(A, linops.LinearOperator):
-        A1 = A
+    if isinstance(A, LinearOperator):
+        A = A
     else:
-        A1 = atleast_2d(A)
-    b1 = atleast_1d(b)
-    if Ainv is not None and not isinstance(Ainv, linops.LinearOperator):
-        Ainv1 = atleast_2d(Ainv)
+        A = atleast_2d(A)
+    b = atleast_1d(b)
+    if Ainv is not None and not isinstance(Ainv, LinearOperator):
+        Ainv = atleast_2d(Ainv)
     if x0 is not None:
         x = atleast_1d(x0)
 
@@ -315,223 +308,164 @@ def _problinsolve_gen_iter():
     raise NotImplementedError
 
 
-def _problinsolve_symm_iter():
-    raise NotImplementedError
+def _mean_update_operator(self, u, v, shape):
+    """
+    Implements the rank 2 update term for the posterior mean of :math:`H`.
+
+    Parameters
+    ----------
+    u : array-like
+        Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
+    v : array-like
+        Update vector :math:`v_i=\\Delta - \\frac{1}{2} u_iy_i^{\\top}\\Delta`
+    shape : tuple
+        Shape of the resulting update operator.
+
+    Returns
+    -------
+    update : LinearOperator
+    """
+
+    def mv(x):
+        return np.dot(v, x) * u + np.dot(u, x) * v
+
+    def mm(M):
+        return np.outer(u, M @ v) + np.outer(v, u @ M)
+
+    return LinearOperator(
+        shape=shape,
+        matvec=mv,
+        rmatvec=mv,
+        matmat=mm,
+        dtype=u.dtype
+    )
+
+
+def _cov_kron_fac_update_operator(self, u, Wy, shape):
+    """
+    Implements the rank 1 update term for the posterior covariance Kronecker factor :math:`W`.
+
+    Parameters
+    ----------
+    u : array-like
+        Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
+    Wy : array-like
+        Update vector :math:`W_iy_i`
+    shape : tuple
+        Shape of the resulting update operator.
+
+    Returns
+    -------
+    update : LinearOperator
+    """
+
+    def mv(x):
+        return np.dot(Wy, x) * u
+
+    def mm(M):
+        return np.outer(u, M @ Wy)
+
+    return LinearOperator(
+        shape=shape,
+        matvec=mv,
+        rmatvec=mv,
+        matmat=mm,
+        dtype=u.dtype
+    )
+
+
+def _problinsolve_symm_iter(A, Ainv_mean, Ainv_cov_kronfac, b, maxiter, resid_tol):
+    # initialization
+    iter_ = 0
+    n = Ainv_mean.shape[0]
+    x = Ainv_mean @ b
+    resid = A @ x - b
+
+    # iteration with stopping criteria
+    # todo: extract iteration and make into iterator
+    while True:
+        # check convergence
+        _has_converged, _conv_crit = _check_convergence(iter=iter_, maxiter=maxiter, resid=resid, resid_tol=resid_tol)
+        if _has_converged:
+            break
+
+        # compute search direction (with implicit reorthogonalization)
+        search_dir = - Ainv_mean @ resid
+
+        # perform action and observe
+        obs = A @ search_dir
+
+        # compute step size
+        step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
+
+        # todo: scale search_dir and obs by step-size to fulfill theory on conjugate directions?
+
+        # step and residual update
+        x = x + step_size * search_dir
+        resid = resid + step_size * obs
+
+        # (symmetric) mean and covariance updates
+        Wy = Ainv_cov_kronfac @ obs
+        delta = search_dir - Ainv_mean @ obs
+        u = Wy / np.dot(obs, Wy)
+        v = delta - 0.5 * np.dot(obs, delta) * u
+
+        # rank 2 mean update (+= uv' + vu')
+        # todo: only use linear operators if necessary (only create update operators if H is a LinearOperator)
+        Ainv_mean = Ainv_mean + _mean_update_operator(u=u, v=v, shape=(n, n))
+
+        # rank 1 covariance kronecker factor update (-= u(Wy)')
+        Ainv_cov_kronfac = Ainv_cov_kronfac - _cov_kron_fac_update_operator(u=u, Wy=Wy, shape=(n, n))
+
+        # iteration increment
+        iter_ += 1
+
+    # Log information on solution
+    # TODO: matrix condition from solver (see scipy solvers)
+    info = {
+        "iter": iter_,
+        "maxiter": maxiter,
+        "resid": resid,
+        "conv_crit": _conv_crit,
+        "matrix_cond": None
+    }
+
+    return A, Ainv_mean, Ainv_cov_kronfac, x, info
 
 
 def _bayescg_iter():
     raise NotImplementedError
 
 
-class MatrixBasedLinearSolver:
+def _check_convergence(iter, maxiter, resid, resid_tol):
     """
-    Probabilistic linear solver using prior information on the matrix inverse.
 
-    In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information either
-    on the matrix inverse :math:`H=A^{-1}` and outputs a posterior belief over :math:`H`. For a specific prior choice
-    this recovers the iterates of the conjugate gradient method. This code implements the method described in [1]_ and
-    [2]_.
-
-    .. [1] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [2] Hennig, P. et al., Probabilistic Numerics, 2020
-
-    Attributes
+    Parameters
     ----------
-    H_mean : array-like
-        Mean of the Gaussian prior on :math:`H=A^{-1}`.
-    H_cov_kronfac : array-like
-        Kronecker factor of the covariance :math:`W_H \\otimes W_H` of the Gaussian prior on :math:`H=A^{-1}`.
+    iter : int
+        Current iteration of solver.
+    maxiter : int
+        Maximum number of iterations
+    resid : array-like
+        Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
+    resid_tol : float
+        Residual tolerance.
+
+    Returns
+    -------
+    has_converged : bool
+        True if the method has converged.
+    convergence_criterion : str
+        Convergence criterion which caused termination.
     """
-
-    def __init__(self, H_mean=None, H_cov_kronfac=None):
-        # todo: refactor as dimension of linear operator is not known at this point
-        if H_mean is not None:
-            self.H_mean = scipy.sparse.linalg.aslinop(H_mean)
-        else:
-            self.H_mean = None
-        if H_cov_kronfac is not None:
-            self.H_cov_kronfac = scipy.sparse.linalg.aslinop(H_cov_kronfac)
-        else:
-            self.H_cov_kronfac = None
-
-    def _has_converged(self, iter, maxiter, resid, resid_tol):
-        """
-
-        Parameters
-        ----------
-        iter : int
-            Current iteration of solver.
-        maxiter : int
-            Maximum number of iterations
-        resid : array-like
-            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
-        resid_tol : float
-            Residual tolerance.
-
-        Returns
-        -------
-        has_converged : bool
-        """
-        # maximum iterations
-        if iter >= maxiter:
-            return True
-        # residual below error tolerance
-        # todo: add / replace with relative tolerance
-        elif np.linalg.norm(resid) < resid_tol:
-            return True
-        # uncertainty-based
-        # todo: based on posterior contraction
-        else:
-            return False
-
-    def _mean_update_operator(self, u, v, shape):
-        """
-        Implements the rank 2 update term for the posterior mean of :math:`H`.
-
-        Parameters
-        ----------
-        u : array-like
-            Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
-        v : array-like
-            Update vector :math:`v_i=\\Delta - \\frac{1}{2} u_iy_i^{\\top}\\Delta`
-        shape : tuple
-            Shape of the resulting update operator.
-
-        Returns
-        -------
-        update : LinearOperator
-        """
-
-        def mv(x):
-            return np.dot(v, x) * u + np.dot(u, x) * v
-
-        def mm(M):
-            return np.outer(u, M @ v) + np.outer(v, u @ M)
-
-        return scipy.sparse.linalg.LinearOperator(
-            shape=shape,
-            matvec=mv,
-            rmatvec=mv,
-            matmat=mm,
-            dtype=u.dtype
-        )
-
-    def _cov_kron_fac_update_operator(self, u, Wy, shape):
-        """
-        Implements the rank 1 update term for the posterior covariance Kronecker factor :math:`W`.
-
-        Parameters
-        ----------
-        u : array-like
-            Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
-        Wy : array-like
-            Update vector :math:`W_iy_i`
-        shape : tuple
-            Shape of the resulting update operator.
-
-        Returns
-        -------
-        update : LinearOperator
-        """
-
-        def mv(x):
-            return np.dot(Wy, x) * u
-
-        def mm(M):
-            return np.outer(u, M @ Wy)
-
-        return scipy.sparse.linalg.LinearOperator(
-            shape=shape,
-            matvec=mv,
-            rmatvec=mv,
-            matmat=mm,
-            dtype=u.dtype
-        )
-
-    def solve(self, A, b, maxiter=None, resid_tol=10 ** -6):
-        """
-        Solve the given linear system for symmetric, positive-definite :math:`A`.
-
-        Parameters
-        ----------
-        A : array-like
-            The matrix of the linear system.
-        b : array-like
-            The right-hand-side of the linear system.
-        maxiter : int, default=len(b)*10
-            Maximum number of iterations.
-        resid_tol : float
-            Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
-            terminates.
-
-        Returns
-        -------
-        x : array-like
-            Approximate solution :math:`Ax \\approx b` to the linear system.
-        """
-
-        # make linear system
-        A = scipy.sparse.linalg.interface.aslinop(A)
-        b = np.asanyarray(b)
-
-        # check linear system dimensionality
-        _check_linear_system(A=A, b=b)
-
-        # setup
-        n = len(b)
-        if maxiter is None:
-            maxiter = n * 10
-        if self.H_mean is None:
-            # todo: use / implement better operator classes (PyLops?) that can perform .T, .todense() for H_mean as well
-            self.H_mean = scipy.sparse.linalg.interface.IdentityOperator(shape=(n, n))
-        if self.H_cov_kronfac is None:
-            self.H_cov_kronfac = scipy.sparse.linalg.interface.IdentityOperator(shape=(n, n))
-
-        # initialization
-        iter = 0
-        x = self.H_mean.matvec(b)
-        resid = A.matvec(x) - b
-
-        # iteration with stopping criteria
-        # todo: extract iteration and make into iterator
-        while not self._has_converged(iter=iter, maxiter=maxiter, resid=resid, resid_tol=resid_tol):
-            # compute search direction (with implicit reorthogonalization)
-            search_dir = - self.H_mean.matvec(resid)
-
-            # perform action and observe
-            obs = A @ search_dir
-
-            # compute step size
-            step_size = - np.dot(search_dir, resid) / np.dot(search_dir, obs)
-
-            # todo: scale search_dir and obs by step-size to fulfill theory on conjugate directions?
-
-            # step and residual update
-            x = x + step_size * search_dir
-            resid = resid + step_size * obs
-
-            # (symmetric) mean and covariance updates
-            Wy = self.H_cov_kronfac @ obs
-            delta = search_dir - self.H_mean @ obs
-            u = Wy / np.dot(obs, Wy)
-            v = delta - 0.5 * np.dot(obs, delta) * u
-
-            # rank 2 mean update (+= uv' + vu')
-            # todo: only use linear operators if necessary (only create update operators if H is a LinearOperator)
-            self.H_mean = self.H_mean + self._mean_update_operator(u=u, v=v, shape=(n, n))
-
-            # rank 1 covariance kronecker factor update (-= u(Wy)')
-            self.H_cov_kronfac = self.H_cov_kronfac - self._cov_kron_fac_update_operator(u=u, Wy=Wy, shape=(n, n))
-
-            # iteration increment
-            iter += 1
-
-        # information about convergence
-        info = {
-            "n_iter": iter,
-            "resid_norm": np.linalg.norm(resid)
-        }
-        print(info)
-        # todo: return solution, some general distribution class and dict with
-        #  convergence info (iter, resid, convergence criterion)
-        return x, info
+    # maximum iterations
+    if iter >= maxiter:
+        return True, "maxiter"
+    # residual below error tolerance
+    # todo: add / replace with relative tolerance
+    elif np.linalg.norm(resid) < resid_tol:
+        return True, "resid"
+    # uncertainty-based
+    # todo: based on posterior contraction
+    else:
+        return False, ""
