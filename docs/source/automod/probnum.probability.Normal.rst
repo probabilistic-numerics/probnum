@@ -10,6 +10,7 @@ Normal
 
    .. autosummary::
 
+      ~Normal.dtype
       ~Normal.parameters
       ~Normal.random_state
 
@@ -29,6 +30,7 @@ Normal
 
    .. rubric:: Attributes Documentation
 
+   .. autoattribute:: dtype
    .. autoattribute:: parameters
    .. autoattribute:: random_state
 

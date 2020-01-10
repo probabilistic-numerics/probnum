@@ -15,5 +15,5 @@ def test_linop_construction():
 def test_matvec():
     """Matrix vector multiplication."""
     A = 2 * np.eye(5)
-    Aop = linops.aslinearoperator(A)
+    Aop = linops.aslinop(A)
     np.allclose(A, Aop @ np.eye(5))

@@ -118,7 +118,7 @@ html_theme_options = {
     'navbar_title': project,
 
     # Tab name for entire site. (Default: "Site")
-    'navbar_site_name': "Site",
+    'navbar_site_name': "Sitemap",
 
     # A list of tuples containing pages or urls to link to.
     # Valid tuples should be in the following forms:

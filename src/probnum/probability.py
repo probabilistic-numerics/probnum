@@ -7,7 +7,7 @@ import scipy.stats
 from scipy.sparse import spmatrix
 from scipy._lib._util import check_random_state
 
-__all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandomvariable", "asdistribution"]
+__all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandvar", "asdist"]
 
 
 class RandomVariable:
@@ -43,10 +43,9 @@ class RandomVariable:
     --------
     """
 
-    def __init__(self, shape=(), dtype=None, distribution=None):
+    def __init__(self, shape=None, dtype=None, distribution=None):
         """Create a new random variable."""
-        # Set shape and dtype (in accordance with distribution)
-        self._shape = shape
+        # Set dtype (in accordance with distribution)
         self._dtype = dtype
         if dtype is not None:
             if isinstance(dtype, np.dtype):
@@ -54,22 +53,28 @@ class RandomVariable:
             else:
                 self._dtype = np.dtype(dtype)
         if distribution is not None:
+            if self.dtype is None:
+                self._dtype = distribution.dtype
+            elif self.dtype != distribution.dtype:
+                # Change distribution dtype if random variable type is different
+                distribution.dtype = dtype
+
+        # Set shape (in accordance with distribution mean)
+        self._shape = shape
+        if distribution is not None:
             if distribution.mean is not None:
                 if np.isscalar(distribution.mean()):
                     shape_mean = ()
-                    dtype_mean = np.dtype(type(distribution.mean()))
                 else:
                     shape_mean = distribution.mean().shape
-                    dtype_mean = distribution.mean().dtype
-                if shape_mean == shape:
+                if shape is None or shape_mean == shape:
                     self._shape = shape_mean
                 else:
                     raise ValueError("Shape of distribution mean and given shape do not match.")
-                self._dtype = dtype_mean
 
         # Set distribution of random variable
         if distribution is not None:
-            self._distribution = asdistribution(obj=distribution)
+            self._distribution = asdist(obj=distribution)
         else:
             self._distribution = Distribution()
         # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
@@ -80,7 +85,7 @@ class RandomVariable:
             dt = 'unspecified dtype'
         else:
             dt = 'dtype=' + str(self.dtype)
-        return '<(' + 'x'.join(map(str, self.shape)) + ') %s with %s>' % (self.__class__.__name__, dt)
+        return '<%s %s with %s>' % (str(self.shape), self.__class__.__name__, dt)
 
     @property
     def distribution(self):
@@ -168,6 +173,13 @@ class RandomVariable:
         raise NotImplementedError("Reshaping not implemented for {}.".format(self.__class__.__name__))
 
     # Binary arithmetic operations
+
+    # The below prevents numpy from calling elementwise arithmetic operations allowing expressions like:
+    # y = np.array([1, 1]) + RV
+    # to call the arithmetic operations defined by RandomVariable instead of elementwise. Thus no
+    # array of RandomVariables but a RandomVariable with the correct shape is returned.
+    __array_ufunc__ = None
+
     def _rv_from_op(self, other, op):
         """
         Create a new random variable by applying a binary operation.
@@ -184,8 +196,9 @@ class RandomVariable:
             Random variable resulting from ``op``.
 
         """
-        other_rv = asrandomvariable(other)
-        return RandomVariable(distribution=op(self.distribution, other_rv.distribution))
+        other_rv = asrandvar(other)
+        combined_rv = RandomVariable(distribution=op(self.distribution, other_rv.distribution))
+        return combined_rv
 
     def __add__(self, other):
         return self._rv_from_op(other=other, op=operator.add)
@@ -207,27 +220,27 @@ class RandomVariable:
 
     # Binary arithmetic operations with reflected (swapped) operands
     def __radd__(self, other):
-        other_rv = asrandomvariable(other)
+        other_rv = asrandvar(other)
         return other_rv._rv_from_op(other=self, op=operator.add)
 
     def __rsub__(self, other):
-        other_rv = asrandomvariable(other)
+        other_rv = asrandvar(other)
         return other_rv._rv_from_op(other=self, op=operator.sub)
 
     def __rmul__(self, other):
-        other_rv = asrandomvariable(other)
+        other_rv = asrandvar(other)
         return other_rv._rv_from_op(other=self, op=operator.mul)
 
     def __rmatmul__(self, other):
-        other_rv = asrandomvariable(other)
+        other_rv = asrandvar(other)
         return other_rv._rv_from_op(other=self, op=operator.matmul)
 
     def __rtruediv__(self, other):
-        other_rv = asrandomvariable(other)
+        other_rv = asrandvar(other)
         return other_rv._rv_from_op(other=self, op=operator.truediv)
 
     def __rpow__(self, power, modulo=None):
-        other_rv = asrandomvariable(power)
+        other_rv = asrandvar(power)
         return other_rv._rv_from_op(other=self, op=operator.pow)
 
     # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
@@ -295,6 +308,8 @@ class Distribution:
         Function returning the mean of the distribution.
     var : function
         Function returning the variance of the distribution.
+    dtype : numpy.dtype or object
+        Data type of realizations of a random variable with this distribution. If ``object`` will be converted to ``numpy.dtype``.
     random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
         This parameter defines the RandomState object to use for drawing
         realizations from this distribution.
@@ -313,7 +328,7 @@ class Distribution:
     """
 
     def __init__(self, parameters=None, pdf=None, logpdf=None, cdf=None, logcdf=None, sample=None,
-                 mean=None, var=None, random_state=None):
+                 mean=None, var=None, dtype=None, random_state=None):
         if parameters is None:
             parameters = {}  # sentinel value to avoid anti-pattern
         self._parameters = parameters
@@ -324,7 +339,18 @@ class Distribution:
         self._sample = sample
         self._mean = mean
         self._var = var
+        self._dtype = dtype
         self._random_state = check_random_state(random_state)
+
+    @property
+    def dtype(self):
+        """`Dtype` of elements of samples from this distribution."""
+        return self._dtype
+
+    @dtype.setter
+    def dtype(self, newtype):
+        """Set the `dtype` of the distribution."""
+        self._dtype = newtype
 
     @property
     def random_state(self):
@@ -383,7 +409,8 @@ class Distribution:
             return self._pdf(x)
         if self._logpdf is not None:
             return np.exp(self._logpdf(x))
-        raise NotImplementedError('The function \'pdf\' is not implemented for object of class {}'.format(type(self).__name__))
+        raise NotImplementedError(
+            'The function \'pdf\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def logpdf(self, x):
         """
@@ -403,7 +430,8 @@ class Distribution:
             return self._logpdf(x)
         if hasattr(self, '_pdf'):
             return np.log(self._pdf(x))
-        raise NotImplementedError('The function \'logpdf\' is not implemented for object of class {}'.format(type(self).__name__))
+        raise NotImplementedError(
+            'The function \'logpdf\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def cdf(self, x):
         """
@@ -423,7 +451,8 @@ class Distribution:
             return self._cdf(x)
         if self._logcdf is not None:
             return np.exp(self._logcdf(x))
-        raise NotImplementedError('The function \'cdf\' is not implemented for object of class {}'.format(type(self).__name__))
+        raise NotImplementedError(
+            'The function \'cdf\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def logcdf(self, x):
         """
@@ -443,7 +472,8 @@ class Distribution:
             return self._logcdf(x)
         if self._cdf is not None:
             return np.log(self._cdf(x))
-        raise NotImplementedError('The function \'logcdf\' is not implemented for object of class {}'.format(type(self).__name__))
+        raise NotImplementedError(
+            'The function \'logcdf\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def sample(self, size=()):
         """
@@ -461,7 +491,8 @@ class Distribution:
         """
         if self._sample is not None:
             return self._sample(size=size)
-        raise NotImplementedError('The function \'sample\' is not implemented for object of class {}'.format(type(self).__name__))
+        raise NotImplementedError(
+            'The function \'sample\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def median(self):
         """
@@ -488,7 +519,8 @@ class Distribution:
         elif "mean" in self._parameters:
             return self._parameters["mean"]
         else:
-            raise NotImplementedError('The function \'mean\' is not implemented for object of class {}'.format(type(self).__name__))
+            raise NotImplementedError(
+                'The function \'mean\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def var(self):
         """
@@ -504,7 +536,8 @@ class Distribution:
         elif "var" in self._parameters:
             return self._parameters["var"]
         else:
-            raise NotImplementedError('The function \'var\' is not implemented for object of class {}'.format(type(self).__name__))
+            raise NotImplementedError(
+                'The function \'var\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def std(self):
         """
@@ -519,7 +552,7 @@ class Distribution:
 
     # Binary arithmetic operations
     def __add__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Distribution(parameters={},  # correct updates of parameters should be handled in subclasses
@@ -536,7 +569,7 @@ class Distribution:
                 "Addition not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __sub__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return self + (-otherdist)
         else:
@@ -544,7 +577,7 @@ class Distribution:
                 "Subtraction not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __mul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             if delta == 0:
@@ -565,13 +598,13 @@ class Distribution:
                                                                        other.__class__.__name__))
 
     def __matmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Distribution(parameters={},
                                 sample=lambda size: self.sample(size=size) @ delta,
                                 mean=lambda: self.mean() @ delta,
-                                var=delta @ self.var @ delta.T,
+                                var=delta @ self.var @ delta.transpose(),
                                 random_state=self.random_state)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
@@ -581,7 +614,7 @@ class Distribution:
         if other == 0:
             raise ZeroDivisionError("Division by zero not supported.")
         else:
-            otherdist = asdistribution(other)
+            otherdist = asdist(other)
             if isinstance(otherdist, Dirac):
                 return self * operator.inv(otherdist)
             else:
@@ -594,7 +627,7 @@ class Distribution:
 
     # Binary arithmetic operations with reflected (swapped) operands
     def __radd__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return self + otherdist
         else:
@@ -602,7 +635,7 @@ class Distribution:
                 "Addition not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rsub__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return operator.neg(self) + otherdist
         else:
@@ -610,7 +643,7 @@ class Distribution:
                 "Subtraction not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return self * otherdist
         else:
@@ -619,20 +652,20 @@ class Distribution:
                                                                        self.__class__.__name__))
 
     def __rmatmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Distribution(parameters={},
                                 sample=lambda size: delta @ self.sample(size=size),
                                 mean=lambda: delta @ self.mean,
-                                var=delta @ self.var @ delta.T,
+                                var=delta @ self.var @ delta.transpose(),
                                 random_state=self.random_state)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(other.__class__.__name__,
                                                                           self.__class__.__name__))
 
     def __rtruediv__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return operator.inv(self) * otherdist
         else:
@@ -735,7 +768,14 @@ class Dirac(Distribution):
     """
 
     def __init__(self, support, random_state=None):
-        super().__init__(parameters={"support": support}, random_state=random_state)
+        # Set dtype
+        if np.isscalar(support):
+            _dtype = np.dtype(type(support))
+        else:
+            _dtype = support.dtype
+
+        # Initializer of superclass
+        super().__init__(parameters={"support": support}, dtype=_dtype, random_state=random_state)
 
     def cdf(self, x):
         if x < self.parameters["support"]:
@@ -756,79 +796,79 @@ class Dirac(Distribution):
         if size == 1:
             return self.parameters["support"]
         else:
-            return self.parameters["support"] * np.ones(shape=size)
+            return np.full(fill_value=self.parameters["support"], shape=size)
 
     # Binary arithmetic operations
     def __add__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
-            self.parameters["support"] = self.parameters["support"] + otherdist.parameters["support"]
-            return self
+            return Dirac(support=self.parameters["support"] + otherdist.parameters["support"],
+                         random_state=self.random_state)
         else:
             return other.__add__(other=self)
 
     def __sub__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
-            self.parameters["support"] = self.parameters["support"] - otherdist.parameters["support"]
-            return self
+            return Dirac(support=self.parameters["support"] - otherdist.parameters["support"],
+                         random_state=self.random_state)
         else:
             return other.__rsub__(other=self)
 
     def __mul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
-            self.parameters["support"] = self.parameters["support"] * otherdist.parameters["support"]
-            return self
+            return Dirac(support=self.parameters["support"] * otherdist.parameters["support"],
+                         random_state=self.random_state)
         else:
             return other.__mul__(other=self)
 
     def __matmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
-            self.parameters["support"] = self.parameters["support"] @ otherdist.parameters["support"]
-            return self
+            return Dirac(support=self.parameters["support"] @ otherdist.parameters["support"],
+                         random_state=self.random_state)
         else:
             return other.__rmatmul__(other=self)
 
     def __truediv__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
-            self.parameters["support"] = operator.truediv(self.parameters["support"], otherdist.parameters["support"])
-            return self
+            return Dirac(support=operator.truediv(self.parameters["support"], otherdist.parameters["support"]),
+                         random_state=self.random_state)
         else:
             return other.__rtruediv__(other=self)
 
     def __pow__(self, power, modulo=None):
-        otherdist = asdistribution(power)
+        otherdist = asdist(power)
         if isinstance(otherdist, Dirac):
-            self.parameters["support"] = pow(self.parameters["support"], otherdist.parameters["support"], modulo)
-            return self
+            return Dirac(support=pow(self.parameters["support"], otherdist.parameters["support"], modulo),
+                         random_state=self.random_state)
         else:
-            return power.__rtruediv__(other=self, modulo=modulo)
+            return power.__rpow__(power=self, modulo=modulo)
 
     # Binary arithmetic operations with reflected (swapped) operands
     def __radd__(self, other):
-        return asdistribution(other).__add__(other=self)
+        return asdist(other).__add__(other=self)
 
     def __rsub__(self, other):
-        return asdistribution(other).__sub__(other=self)
+        return asdist(other).__sub__(other=self)
 
     def __rmul__(self, other):
-        return asdistribution(other).__mul__(other=self)
+        return asdist(other).__mul__(other=self)
 
     def __rmatmul__(self, other):
-        return asdistribution(other).__matmul__(other=self)
+        return asdist(other).__matmul__(other=self)
 
     def __rtruediv__(self, other):
-        return asdistribution(other).__truediv__(other=self)
+        return asdist(other).__truediv__(other=self)
 
     def __rpow__(self, power, modulo=None):
-        return asdistribution(power).__pow__(power=self)
+        return asdist(power).__pow__(power=self)
 
     # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
     def __iadd__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             self.parameters["support"] = self.parameters["support"] + otherdist.parameters["support"]
             return self
@@ -836,7 +876,7 @@ class Dirac(Distribution):
             raise NotImplementedError
 
     def __isub__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             self.parameters["support"] = self.parameters["support"] - otherdist.parameters["support"]
             return self
@@ -844,7 +884,7 @@ class Dirac(Distribution):
             raise NotImplementedError
 
     def __imul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             self.parameters["support"] = self.parameters["support"] * otherdist.parameters["support"]
             return self
@@ -852,7 +892,7 @@ class Dirac(Distribution):
             raise NotImplementedError
 
     def __imatmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             self.parameters["support"] = self.parameters["support"] @ otherdist.parameters["support"]
             return self
@@ -860,7 +900,7 @@ class Dirac(Distribution):
             raise NotImplementedError
 
     def __itruediv__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             self.parameters["support"] = operator.truediv(self.parameters["support"], otherdist.parameters["support"])
             return self
@@ -868,7 +908,7 @@ class Dirac(Distribution):
             raise NotImplementedError
 
     def __ipow__(self, power, modulo=None):
-        otherdist = asdistribution(power)
+        otherdist = asdist(power)
         if isinstance(otherdist, Dirac):
             self.parameters["support"] = pow(self.parameters["support"], otherdist.parameters["support"], modulo)
             return self
@@ -911,6 +951,13 @@ class Normal(Distribution):
     cov : array-like or LinearOperator
         (Co-)variance of the normal distribution.
 
+    random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
+        This parameter defines the RandomState object to use for drawing
+        realizations from this distribution.
+        If None (or np.random), the global np.random state is used.
+        If integer, it is used to seed the local :class:`~numpy.random.RandomState` instance.
+        Default is None.
+
     See Also
     --------
     Distribution : Class representing general probability distributions.
@@ -926,16 +973,19 @@ class Normal(Distribution):
 
     def __init__(self, mean=0, cov=1, random_state=None):
         # todo: allow for linear operators as mean and covariance (pdf, logpdf computation, sampling, etc...)
+        # Set dtype to float
+        _dtype = float
+
         # Check input for univariate vs multivariate
         if np.isscalar(mean) and np.isscalar(cov):
             self._ismultivariate = False
-            super().__init__(parameters={"mean": mean, "cov": cov}, random_state=random_state)
+            super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
         elif isinstance(mean, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)) and isinstance(
                 cov, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)):
             self._ismultivariate = True
             # Check matching shape
             if mean.shape[0] == cov.shape[0] and mean.shape[0] == cov.shape[1]:
-                super().__init__(parameters={"mean": mean, "cov": cov}, random_state=random_state)
+                super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
             else:
                 raise ValueError("Shape mismatch of mean and covariance.")
         else:
@@ -987,7 +1037,7 @@ class Normal(Distribution):
 
     # Binary arithmetic operations
     def __add__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Normal(mean=self.parameters["mean"] + delta,
@@ -998,7 +1048,7 @@ class Normal(Distribution):
                 "Addition not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __sub__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return self + (-otherdist)
         else:
@@ -1006,7 +1056,7 @@ class Normal(Distribution):
                 "Subtraction not implemented for {} and {}.".format(self.__class__.__name__, other.__class__.__name__))
 
     def __mul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             if delta == 0:
@@ -1021,11 +1071,11 @@ class Normal(Distribution):
                                                                        other.__class__.__name__))
 
     def __matmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Normal(mean=self.parameters["mean"] @ delta,
-                          cov=delta @ self.parameters["cov"] @ delta.T,
+                          cov=delta @ self.parameters["cov"] @ delta.transpose(),
                           random_state=self.random_state)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
@@ -1035,7 +1085,7 @@ class Normal(Distribution):
         if other == 0:
             raise ZeroDivisionError("Division by zero not supported.")
         else:
-            otherdist = asdistribution(other)
+            otherdist = asdist(other)
             if isinstance(otherdist, Dirac):
                 return self * operator.inv(otherdist)
             else:
@@ -1048,7 +1098,7 @@ class Normal(Distribution):
 
     # Binary arithmetic operations with reflected (swapped) operands
     def __radd__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return self + otherdist
         else:
@@ -1056,7 +1106,7 @@ class Normal(Distribution):
                 "Addition not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rsub__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return operator.neg(self) + otherdist
         else:
@@ -1064,7 +1114,7 @@ class Normal(Distribution):
                 "Subtraction not implemented for {} and {}.".format(other.__class__.__name__, self.__class__.__name__))
 
     def __rmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return self * otherdist
         else:
@@ -1073,18 +1123,19 @@ class Normal(Distribution):
                                                                        self.__class__.__name__))
 
     def __rmatmul__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Normal(mean=delta @ self.parameters["mean"],
-                          cov=delta @ self.parameters["cov"] @ delta.T,
+                          # Todo: REPLACE @.TRANSPOSE WITH RMATMUL
+                          cov=delta @ self.parameters["cov"] @ delta.transpose(),
                           random_state=self.random_state)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(other.__class__.__name__,
                                                                           self.__class__.__name__))
 
     def __rtruediv__(self, other):
-        otherdist = asdistribution(other)
+        otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             return operator.inv(self) * otherdist
         else:
@@ -1153,7 +1204,7 @@ class Normal(Distribution):
                 "Inversion not implemented for {}.".format(self.__class__.__name__))
 
 
-def asrandomvariable(obj):
+def asrandvar(obj):
     """
     Return `obj` as a :class:`RandomVariable`.
 
@@ -1161,7 +1212,7 @@ def asrandomvariable(obj):
 
     Parameters
     ----------
-    obj : array-like or LinearOperator or scipy.stats.rv_continuous or scipy.stats.rv_discrete
+    obj : object
         Argument to be represented as a :`class:RandomVariable`.
 
     Returns
@@ -1175,9 +1226,9 @@ def asrandomvariable(obj):
 
     Examples
     --------
-    >>> from probnum.probability import asrandomvariable
+    >>> from probnum.probability import asrandvar
     >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
-    >>> asrandomvariable(M)
+    >>> asrandvar(M)
     <2x3 RandomVariable with dtype=int32>
     """
     # RandomVariable
@@ -1196,7 +1247,7 @@ def asrandomvariable(obj):
         raise ValueError("Argument of type {} cannot be converted to a random variable.".format(type(obj)))
 
 
-def asdistribution(obj):
+def asdist(obj):
     """
     Return ``obj`` as a :class:`Distribution`.
 
@@ -1219,10 +1270,10 @@ def asdistribution(obj):
     Examples
     --------
     >>> from scipy.stats import bernoulli
-    >>> from probnum.probability import asdistribution
+    >>> from probnum.probability import asdist
     >>> bern = bernoulli(p=0.5)
     >>> bern.random_state = 42  # Seed for reproducibility
-    >>> d = asdistribution(bern)
+    >>> d = asdist(bern)
     >>> d.sample(size=5)
     array([0, 1, 1, 1, 0])
     """

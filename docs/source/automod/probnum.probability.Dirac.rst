@@ -10,6 +10,7 @@ Dirac
 
    .. autosummary::
 
+      ~Dirac.dtype
       ~Dirac.parameters
       ~Dirac.random_state
 
@@ -29,6 +30,7 @@ Dirac
 
    .. rubric:: Attributes Documentation
 
+   .. autoattribute:: dtype
    .. autoattribute:: parameters
    .. autoattribute:: random_state
 

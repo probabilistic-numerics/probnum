@@ -24,8 +24,8 @@ git clone https://github.com/probabilistic-numerics/probnum
 pip install probnum/.
 ```
 For tips on getting started and how to use this package please refer to the
-<strong>[documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
-</strong>
+[documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
+
 ## Examples
 Examples of how to use this repository are available in the 
 [examples section](https://probabilistic-numerics.github.io/probnum/notebooks/examples.html) of the documentation. It 

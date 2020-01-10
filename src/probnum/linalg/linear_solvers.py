@@ -346,11 +346,11 @@ class MatrixBasedLinearSolver:
     def __init__(self, H_mean=None, H_cov_kronfac=None):
         # todo: refactor as dimension of linear operator is not known at this point
         if H_mean is not None:
-            self.H_mean = scipy.sparse.linalg.aslinearoperator(H_mean)
+            self.H_mean = scipy.sparse.linalg.aslinop(H_mean)
         else:
             self.H_mean = None
         if H_cov_kronfac is not None:
-            self.H_cov_kronfac = scipy.sparse.linalg.aslinearoperator(H_cov_kronfac)
+            self.H_cov_kronfac = scipy.sparse.linalg.aslinop(H_cov_kronfac)
         else:
             self.H_cov_kronfac = None
 
@@ -471,7 +471,7 @@ class MatrixBasedLinearSolver:
         """
 
         # make linear system
-        A = scipy.sparse.linalg.interface.aslinearoperator(A)
+        A = scipy.sparse.linalg.interface.aslinop(A)
         b = np.asanyarray(b)
 
         # check linear system dimensionality

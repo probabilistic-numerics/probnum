@@ -19,11 +19,15 @@ SymmetricKronecker
 
       ~SymmetricKronecker.__call__
       ~SymmetricKronecker.adjoint
+      ~SymmetricKronecker.apply_columns
+      ~SymmetricKronecker.cond
+      ~SymmetricKronecker.conj
+      ~SymmetricKronecker.div
       ~SymmetricKronecker.dot
+      ~SymmetricKronecker.eigs
       ~SymmetricKronecker.matmat
       ~SymmetricKronecker.matvec
       ~SymmetricKronecker.rmatvec
-      ~SymmetricKronecker.todense
       ~SymmetricKronecker.transpose
 
    .. rubric:: Attributes Documentation
@@ -35,9 +39,13 @@ SymmetricKronecker
 
    .. automethod:: __call__
    .. automethod:: adjoint
+   .. automethod:: apply_columns
+   .. automethod:: cond
+   .. automethod:: conj
+   .. automethod:: div
    .. automethod:: dot
+   .. automethod:: eigs
    .. automethod:: matmat
    .. automethod:: matvec
    .. automethod:: rmatvec
-   .. automethod:: todense
    .. automethod:: transpose

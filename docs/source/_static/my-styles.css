@@ -1,3 +1,4 @@
+/* Color variables */
 :root {
   --main-color: #107d79;
   --text-background-color: #e9f4f4;
@@ -45,6 +46,11 @@ a:hover {
 	padding: 8px 8px 5px 5px;
 	font-size: 18px;
 	line-height: 20px;
+}
+
+/* Dropdown menu in navigation bar */
+.dropdown-menu .caption {
+	margin: 0 0 10px 10px;
 }
 
 /* Citations in documentation */

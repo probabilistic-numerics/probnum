@@ -10,6 +10,7 @@ Distribution
 
    .. autosummary::
 
+      ~Distribution.dtype
       ~Distribution.parameters
       ~Distribution.random_state
 
@@ -29,6 +30,7 @@ Distribution
 
    .. rubric:: Attributes Documentation
 
+   .. autoattribute:: dtype
    .. autoattribute:: parameters
    .. autoattribute:: random_state
 
