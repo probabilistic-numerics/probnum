@@ -739,11 +739,11 @@ class Distribution:
 
 class Dirac(Distribution):
     """
-    The Dirac delta function.
+    The Dirac delta distribution.
 
     This distribution models a point mass and can be useful to represent numbers as random variables with Dirac measure.
-    It has the useful property that algebraic operations between a :class:`Dirac` random variable and an arbitrary
-    :class:`RandomVariable` acts in the same way as the algebraic operation with a constant.
+    It has the useful property that arithmetic operations between a :class:`Dirac` random variable and an arbitrary
+    :class:`RandomVariable` acts in the same way as the arithmetic operation with a constant.
 
     Note, that a Dirac measure does not admit a probability density function but can be viewed as a distribution
     (generalized function).
