@@ -23,6 +23,7 @@ LinearOperator
       ~LinearOperator.matmat
       ~LinearOperator.matvec
       ~LinearOperator.rmatvec
+      ~LinearOperator.todense
       ~LinearOperator.transpose
 
    .. rubric:: Attributes Documentation
@@ -38,4 +39,5 @@ LinearOperator
    .. automethod:: matmat
    .. automethod:: matvec
    .. automethod:: rmatvec
+   .. automethod:: todense
    .. automethod:: transpose

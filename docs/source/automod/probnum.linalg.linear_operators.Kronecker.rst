@@ -23,6 +23,7 @@ Kronecker
       ~Kronecker.matmat
       ~Kronecker.matvec
       ~Kronecker.rmatvec
+      ~Kronecker.todense
       ~Kronecker.transpose
 
    .. rubric:: Attributes Documentation
@@ -38,4 +39,5 @@ Kronecker
    .. automethod:: matmat
    .. automethod:: matvec
    .. automethod:: rmatvec
+   .. automethod:: todense
    .. automethod:: transpose

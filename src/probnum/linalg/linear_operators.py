@@ -151,6 +151,19 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
         return y
 
+    def todense(self):
+        """
+        Dense matrix representation of the linear operator.
+
+        This method can be computationally very costly depending on the shape of the linear operator. Use with caution.
+
+        Returns
+        -------
+        matrix : np.ndarray
+            Matrix representation of the linear operator.
+        """
+        return self.matmat(np.eye(self.shape[1], dtype=self.dtype))
+
     # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
 
 
@@ -160,9 +173,15 @@ class Identity(LinearOperator):
     """
 
     def __init__(self, shape, dtype=None):
-        if shape[0] != shape[1]:
+        # Check shape
+        if np.isscalar(shape):
+            _shape = (shape, shape)
+        elif shape[0] != shape[1]:
             raise ValueError("The identity operator must be square.")
-        super(Identity, self).__init__(dtype=dtype, shape=shape)
+        else:
+            _shape = shape
+        # Initiator of super class
+        super(Identity, self).__init__(dtype=dtype, shape=_shape)
 
     def _matvec(self, x):
         return x
@@ -201,6 +220,12 @@ class MatrixMult(MatrixLinearOperator, LinearOperator):
 
     def _matmat(self, X):
         return self.A @ X
+
+    def todense(self):
+        if isinstance(self.A, scipy.sparse.spmatrix):
+            return self.A.todense()
+        else:
+            return np.asarray(self.A)
 
 
 class Kronecker(LinearOperator):
@@ -241,8 +266,8 @@ class Kronecker(LinearOperator):
 
     # todo: extend this to list of operators
     def __init__(self, A, B, dtype=None):
-        self.A = A
-        self.B = B
+        self.A = aslinop(A)
+        self.B = aslinop(B)
         super().__init__(dtype=dtype, shape=(self.A.shape[0] * self.B.shape[0],
                                              self.A.shape[1] * self.B.shape[1]))
 

@@ -2,7 +2,7 @@ Documentation
 ==========================
 
 This reference details modules, functions and classes implemented in ProbNum, describing their functionality and how to
-use them. See also the `examples <notebooks/examples.html>`__ to learn more about how to use ProbNum.
+use them.
 
 .. toctree::
    :maxdepth: 6
@@ -10,3 +10,5 @@ use them. See also the `examples <notebooks/examples.html>`__ to learn more abou
    probability
    linalg
    utils
+
+See also the `examples <notebooks/examples.html>`__ to learn more about ProbNum.

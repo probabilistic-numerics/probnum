@@ -187,7 +187,7 @@ class RandomVariable:
         Parameters
         ----------
         other : object
-        op : function
+        op : callable
             Binary operation.
 
         Returns
@@ -294,19 +294,19 @@ class Distribution:
     ----------
     parameters : dict
         Dictionary of distribution parameters such as mean, variance, et cetera.
-    pdf : function
+    pdf : callable
         Probability density or mass function.
-    logpdf : function
+    logpdf : callable
         Log-probability density or mass function.
-    cdf : function
+    cdf : callable
         Cumulative distribution function.
-    logcdf : function
+    logcdf : callable
         Log-cumulative distribution function.
-    sample : function
+    sample : callable
         Function implementing sampling. Must have signature ``sample(size=())``.
-    mean : function
+    mean : callable
         Function returning the mean of the distribution.
-    var : function
+    var : callable
         Function returning the variance of the distribution.
     dtype : numpy.dtype or object
         Data type of realizations of a random variable with this distribution. If ``object`` will be converted to ``numpy.dtype``.

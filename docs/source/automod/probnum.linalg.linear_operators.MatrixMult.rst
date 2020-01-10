@@ -23,6 +23,7 @@ MatrixMult
       ~MatrixMult.matmat
       ~MatrixMult.matvec
       ~MatrixMult.rmatvec
+      ~MatrixMult.todense
       ~MatrixMult.transpose
 
    .. rubric:: Attributes Documentation
@@ -38,4 +39,5 @@ MatrixMult
    .. automethod:: matmat
    .. automethod:: matvec
    .. automethod:: rmatvec
+   .. automethod:: todense
    .. automethod:: transpose
