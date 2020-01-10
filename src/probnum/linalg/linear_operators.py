@@ -10,7 +10,6 @@ Several algorithms in the :mod:`probnum.linalg` library are able to operate on :
 
 import numpy as np
 import scipy.sparse.linalg
-import warnings
 from probnum.probability import RandomVariable
 from scipy.sparse.linalg.interface import MatrixLinearOperator
 
@@ -43,7 +42,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     compatibility.
 
     This class wraps :class:`scipy.sparse.linalg.LinearOperator` to provide support for
-    :class:`~probnum.RandomVariable`.
+    :class:`~probnum.RandomVariable` arguments to linear operators.
 
     Parameters
     ----------
@@ -184,7 +183,6 @@ class Identity(LinearOperator):
         return np.eye(N=self.shape[0], M=self.shape[1])
 
 
-# # TODO: replace this with own implementation?
 class MatrixMult(MatrixLinearOperator, LinearOperator):
     """
     A linear operator defined via a matrix.
