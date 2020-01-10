@@ -4,7 +4,7 @@
 [![Coverage Status](http://codecov.io/github/probabilistic-numerics/probnum/coverage.svg?branch=master)](http://codecov.io/github/probabilistic-numerics/probnum?branch=master)
 <br>
 
-<a href="https://github.com/probabilistic-numerics"><img align="left" src="https://raw.githubusercontent.com/probabilistic-numerics/probnum/master/docs/source/img/pn_logo.png" alt="probabilistic numerics" width="128" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics on GitHub"/></a> 
+<a href="https://probabilistic-numerics.github.io/probnum/intro.html"><img align="left" src="https://raw.githubusercontent.com/probabilistic-numerics/probnum/master/docs/source/img/pn_logo.png" alt="probabilistic numerics" width="128" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics on GitHub"/></a> 
 [Probabilistic Numerics](http://probabilistic-numerics.org/) (PN) interprets classic numerical routines as 
 _inference procedures_ by taking a probabilistic viewpoint. This allows principled treatment of _uncertainty arising 
 from finite computational resources_. The vision of probabilistic numerics is to provide well-calibrated probability 
@@ -21,12 +21,11 @@ pip install git+https://github.com/probabilistic-numerics/probnum.git
 Alternatively you can clone this repository with
 ```bash
 git clone https://github.com/probabilistic-numerics/probnum
-cd probnum
-pip install .
+pip install probnum/.
 ```
 For tips on getting started and how to use this package please refer to the
-[documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
-
+<strong>[documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
+</strong>
 ## Examples
 Examples of how to use this repository are available in the 
 [examples section](https://probabilistic-numerics.github.io/probnum/notebooks/examples.html) of the documentation. It 
