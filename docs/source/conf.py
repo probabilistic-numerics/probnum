@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # probnum documentation build configuration file, created by
-# sphinx-quickstart on Fri Nov  2 15:54:04 2018.
+# sphinx-quickstart on Fri Nov  2 15:54:04 2019.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.

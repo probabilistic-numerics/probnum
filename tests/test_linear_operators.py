@@ -12,11 +12,32 @@ def test_linop_construction():
     # linops.LinearOperator(shape=(2, 2), matvec=mv)
 
 
+@pytest.mark.parametrize("A, alpha", [(np.array([[3, 4],
+                                                 [1, 5]]), 2)])
+def test_scalar_mult(A, alpha):
+    """Linear operator multiplication with scalars."""
+    Aop = linops.MatrixMult(A)
+
+    np.testing.assert_allclose((alpha * Aop).todense(), alpha * A)
+
+
+@pytest.mark.parametrize("A, B", [(np.array([[3, 4],
+                                             [1, 5]]),
+                                   np.array([[-3, 0],
+                                             [1, -2.4]]))])
+def test_addition(A, B):
+    """Linear operator addition"""
+    Aop = linops.MatrixMult(A)
+    Bop = linops.MatrixMult(B)
+
+    np.testing.assert_allclose((Aop + Bop).todense(), A + B)
+
+
 def test_matvec():
     """Matrix vector multiplication."""
     A = 2 * np.eye(5)
     Aop = linops.aslinop(A)
-    np.allclose(A, Aop @ np.eye(5))
+    np.testing.assert_allclose(A, Aop @ np.eye(5))
 
 
 # Linear map Q such that svec(x) = Qvec(x).
@@ -60,24 +81,55 @@ def test_vec2svec_explicit_form():
 
 
 # Kronecker products
-def test_kronecker_transpose():
+@pytest.mark.parametrize("A,B", [(np.array([[4, 1, 4], [2, 3, 2]]), np.array([[-1, 4], [2, 1]])),
+                                 (np.array([[.4, 2, .8], [-.4, 0, -.9]]), np.array([[1, 4]]))])
+def test_kronecker_transpose(A, B):
     """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
-    pass
+    W = linops.Kronecker(A=A, B=B)
+    V = linops.Kronecker(A=A.T, B=B.T)
+
+    np.testing.assert_allclose(W.T.todense(), V)
 
 
-def test_kronecker_explicit():
+@pytest.mark.parametrize("A,B", [(np.array([[4, 1, 4], [2, 3, 2]]), np.array([[-1, 4], [2, 1]])),
+                                 (np.array([[.4, 2, .8], [-.4, 0, -.9]]), np.array([[1, 4]]))])
+def test_kronecker_explicit(A, B):
     """Test the Kronecker operator against explicit matrix representations."""
-    pass
+    W = linops.Kronecker(A=A, B=B)
+    AkronB = np.kron(A, B)
+
+    np.testing.assert_allclose(W.todense(), AkronB)
 
 
 def test_symmkronecker_todense():
-    """Dense matrix from Kronecker product."""
+    """Dense matrix from symmetric Kronecker product."""
     C = np.array([[5, 1], [2, 10]])
     Ws = linops.SymmetricKronecker(A=C, B=C)
-
-    # in order to plot both heatmaps on the same scale, find the plotting range
     Ws_dense = Ws.todense()
+
 
 def test_symmkronecker_explicit():
     """Test the symmetric Kronecker operator against explicit matrix representations."""
     pass
+
+
+@pytest.mark.parametrize("A,B", [(np.array([[4, 1], [2, 3]]), np.array([[-1, 4], [2, 1]])),
+                                 (np.array([[.4, 2, .8], [-.4, 0, -.9], [1, 0, 2]]),
+                                  np.array([[1, 4, 0], [-3, -.4, -100], [.18, -2, 10]]))])
+def test_kronecker_transpose(A, B):
+    """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
+    W = linops.SymmetricKronecker(A=A, B=B)
+    V = linops.SymmetricKronecker(A=A.T, B=B.T)
+
+    np.testing.assert_allclose(W.T.todense(), V.todense())
+
+
+@pytest.mark.parametrize("A,B", [(np.array([[4, 1], [2, 3]]), np.array([[-1, 4], [2, 1]])),
+                                 (np.array([[.4, 2, .8], [-.4, 0, -.9], [1, 0, 2]]),
+                                  np.array([[1, 4, 0], [-3, -.4, -100], [.18, -2, 10]]))])
+def test_symmkronecker_commutation(A, B):
+    """Symmetric Kronecker products fulfill A (x)_s B = B (x)_s A"""
+    W = linops.SymmetricKronecker(A=A, B=B)
+    V = linops.SymmetricKronecker(A=B, B=A)
+
+    np.testing.assert_allclose(W.todense(), V.todense())
