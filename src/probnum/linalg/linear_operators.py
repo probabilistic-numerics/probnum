@@ -228,6 +228,75 @@ class MatrixMult(MatrixLinearOperator, LinearOperator):
             return np.asarray(self.A)
 
 
+class Vec(LinearOperator):
+    """
+    Vectorization operator.
+
+    The column- or row-wise vectorization operator stacking the columns or rows of a matrix representation of a
+    linear operator into a vector.
+
+    Parameters
+    ----------
+    order : str
+        Stacking order to apply. One of ``row`` or ``col``. Defaults to column-wise stacking.
+    dim : int
+        Either number of rows or columns, depending on the vectorization ``order``.
+    """
+
+    def __init__(self, order="col", dim=None):
+        if order not in ["col", "row"]:
+            raise ValueError("Not a valid stacking order. Choose one of 'col' or 'row'.")
+        self.mode = order
+        super().__init__(dtype=float, shape=(dim, dim))
+
+    def _matvec(self, x):
+        """Vectorization of a vector is the identity."""
+        return x
+
+    def _matmat(self, X):
+        """Stacking of matrix rows or columns."""
+        if self.mode == "row":
+            return X.ravel(order='C')
+        else:
+            return X.ravel(order='F')
+
+
+class Svec(LinearOperator):
+    """
+    Symmetric vectorization operator.
+
+    The column- or row-wise symmetric normalized vectorization operator :math:`\\operatorname{svec}` [1]_ stacking the
+    (normalized) lower/upper triangular components of a symmetric matrix representation of a linear operator into a
+    vector. It is defined by
+
+    .. math::
+        \\operatorname{svec}(S) = \\begin{bmatrix}
+                                    S_{11} \\\\
+                                    \\sqrt{2} S_{21} \\\\
+                                    \\vdots \\\\
+                                    \\sqrt{2} S_{n1} \\\\
+                                    S_{22} \\\\
+                                    \\sqrt{2} S_{32} \\\\
+                                    \\vdots \\\\
+                                    \\sqrt{2} S_{n2} \\\\
+                                    \\vdots \\\\
+                                    S_{nn}
+                                  \\end{bmatrix}
+
+    where :math:`S` is a symmetric linear operator defined on :math:`\\mathbb{R}^n`.
+
+    .. [1] de Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
+
+    Notes
+    -----
+    It holds that :math:`Q\\operatorname{svec}(S) = \\operatorname{vec}(S)`, where :math:`Q` is a unique matrix with
+    orthonormal rows.
+    """
+
+    def __init__(self, dim):
+        raise NotImplementedError
+
+
 class Kronecker(LinearOperator):
     """
     Kronecker product of two linear operators.
@@ -273,16 +342,73 @@ class Kronecker(LinearOperator):
 
     def _matvec(self, x):
         """
-        Efficient multiplication via (A x B)vec(X) = vec(AXB^T) where vec is the row-wise vectorization operator.
+        Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the row-wise vectorization operator.
         """
         x = x.reshape(self.A.shape[1], self.B.shape[1])
         y = self.B.matmat(x.T)
         return self.A.matmat(y.T).ravel()
 
     def _rmatvec(self, x):
+        """
+        Based on (A (x) B)^T = A^T (x) B^T.
+        """
         x = x.reshape(self.A.shape[0], self.B.shape[0])
         y = self.B.H.matmat(x.T)
         return self.A.H.matmat(y.T).ravel()
+
+
+def _vec2svec(n):
+    """
+    Linear map from :math:`\\operatorname{vec}(S)` to :math:`\\operatorname{svec}(S)`
+
+    Defines the unique matrix :math:`Q` with orthonormal rows such that
+    :math:`\\operatorname{svec}(S) = Q\\operatorname{vec}(S)` [1]_ used to efficiently compute the symmetric Kronecker
+    product.
+
+    .. [1] de Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the symmetric matrix :math:`S`.
+
+    Returns
+    -------
+    Q : scipy.spmatrix
+        Sparse array representing :math:`Q`.
+
+    """
+    # TODO: do not build matrices of size n^2 in this function to improve computational efficiency
+    #  (possibly by writing C ufunc instead: https://docs.scipy.org/doc/numpy/user/c-info.ufunc-tutorial.html)
+    if not isinstance(n, int) or n <= 0:
+        raise ValueError("Dimension of the input matrix S must be a positive integer.")
+
+    # Get svec and vec indices
+    cind, rind = np.triu_indices(n=n, k=0)
+    rind_full, cind_full = np.indices(
+        dimensions=(n, n))
+    rind_full = rind_full.ravel()
+    cind_full = cind_full.ravel()
+
+    # Define entries with 1
+    rows1 = np.nonzero(rind == cind)[0]
+    cols1 = np.nonzero(rind_full == cind_full)[0]
+    entries1 = np.ones_like(rows1)
+
+    # Define entries with sqrt(2)/2
+    # see also: Schaecke, K., On the Kronecker product. Master's thesis, University of Waterloo, 2004
+    # TODO: these pairwise comparisons are extremely inefficient, find a better implementation without building Q
+    boolmask1 = np.equal.outer(rind, rind_full) & np.equal.outer(cind, cind_full) & np.not_equal.outer(cind, rind_full)
+    boolmask2 = np.equal.outer(rind, cind_full) & np.equal.outer(cind, rind_full) & np.not_equal.outer(cind, cind_full)
+    boolmask = boolmask1 | boolmask2
+    rowsS2, colsS2 = np.nonzero(boolmask)
+    entriesS2 = np.sqrt(2) / 2 * np.ones_like(rowsS2)
+
+    # Build sparse matrix from row and column indices
+    data = np.concatenate([entries1, entriesS2])
+    row_ind = np.concatenate([rows1, rowsS2])
+    col_ind = np.concatenate([cols1, colsS2])
+    return scipy.sparse.csr_matrix((data, (row_ind, col_ind)), shape=(int(0.5 * n * (n + 1)), n ** 2), dtype=float)
 
 
 class SymmetricKronecker(LinearOperator):
@@ -302,7 +428,7 @@ class SymmetricKronecker(LinearOperator):
 
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
             123, 85-100
-    .. [2] de Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, The Netherlands, 2002
+    .. [2] de Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
 
     Note
     ----
@@ -322,34 +448,37 @@ class SymmetricKronecker(LinearOperator):
         if self.A.shape != self.B.shape or self.A.shape[1] != self._n:
             raise ValueError("Linear operators A and B must be square and have the same dimensions.")
 
-        # Compute matrix Q
-        # TODO: test this function with unit test
-        self._Q = None
+        # Orthonormal Q: svec to vec mapping
+        self._Q = _vec2svec(n=self._n)
 
         # Initiator of superclass
         n_symkron = int(0.5 * self._n * (self._n + 1))
         super().__init__(dtype=dtype, shape=(n_symkron, n_symkron))
-
 
     def _matvec(self, x):
         """
         Efficient multiplication via (A (x)_s B)svec(X) = 1/2 svec(BXA^T + AXB^T) where svec is the column-wise normalized
         symmetric stacking operator.
         """
-
-        # Orthonormal Q
-        Q = self._Q
-
         # Q^T svec(x) = vec(x)
-        X = (Q.transpose() @ x).reshape(self._n, self._n)
+        X = (self._Q.transpose() @ x).reshape(self._n, self._n)
 
         # (A (x)_s B)svec(X) = 1/2 Q vec(BXA^T + AXB^T)
-        Y = self.B @ (X @ self.A.transpose())
+        Y = self.B @ (self.A @ X).transpose()
         Y = Y + Y.transpose()
-        return 0.5 * Q @ Y.ravel()
+        return 0.5 * self._Q @ Y.ravel()
 
     def _rmatvec(self, x):
-        raise NotImplementedError
+        """Based on (A (x)_s B)^T = A^T (x)_s B^T."""
+        # Q^T svec(x) = vec(x)
+        X = (self._Q.transpose() @ x).reshape(self._n, self._n)
+
+        # (A^T (x)_s B^T)svec(X) = 1/2 Q vec(B^T XA + A^T XB)
+        Y = self.B.transpose() @ (self.A.transpose() @ X).transpose()
+        Y = Y + Y.transpose()
+        return 0.5 * self._Q @ Y.ravel()
+
+    # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker properties
 
 
 def aslinop(A):

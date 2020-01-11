@@ -22,6 +22,7 @@ SymmetricKronecker
       ~SymmetricKronecker.dot
       ~SymmetricKronecker.matmat
       ~SymmetricKronecker.matvec
+      ~SymmetricKronecker.rmatmat
       ~SymmetricKronecker.rmatvec
       ~SymmetricKronecker.todense
       ~SymmetricKronecker.transpose
@@ -38,6 +39,7 @@ SymmetricKronecker
    .. automethod:: dot
    .. automethod:: matmat
    .. automethod:: matvec
+   .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
    .. automethod:: transpose

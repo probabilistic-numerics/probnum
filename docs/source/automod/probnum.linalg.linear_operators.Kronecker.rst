@@ -22,6 +22,7 @@ Kronecker
       ~Kronecker.dot
       ~Kronecker.matmat
       ~Kronecker.matvec
+      ~Kronecker.rmatmat
       ~Kronecker.rmatvec
       ~Kronecker.todense
       ~Kronecker.transpose
@@ -38,6 +39,7 @@ Kronecker
    .. automethod:: dot
    .. automethod:: matmat
    .. automethod:: matvec
+   .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
    .. automethod:: transpose

@@ -22,6 +22,7 @@ MatrixMult
       ~MatrixMult.dot
       ~MatrixMult.matmat
       ~MatrixMult.matvec
+      ~MatrixMult.rmatmat
       ~MatrixMult.rmatvec
       ~MatrixMult.todense
       ~MatrixMult.transpose
@@ -38,6 +39,7 @@ MatrixMult
    .. automethod:: dot
    .. automethod:: matmat
    .. automethod:: matvec
+   .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
    .. automethod:: transpose
