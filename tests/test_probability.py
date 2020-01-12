@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from probnum.probability import RandomVariable, asrandvar, Normal, Dirac
-from probnum.linalg.linear_operators import LinearOperator, MatrixMult, Kronecker, SymmetricKronecker
+from probnum.linalg.linear_operators import LinearOperator, MatrixMult, Identity, Kronecker, SymmetricKronecker
 
 
 def test_rv_dtype():
@@ -84,7 +84,7 @@ def test_rv_matmul(A):
 def test_rv_linop_matmul(A):
     """Linear operator applied to a random variable."""
     x = RandomVariable(distribution=Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]])))
-    y = A @ x
+    y = A @ x + np.array([-1, 1])
 
 
 @pytest.mark.parametrize("rv1, rv2", [(RandomVariable(), RandomVariable())])
