@@ -19,7 +19,7 @@ If you would like to contribute but are unsure how, then writing examples, docum
 
 Code quality is an essential component in a collaborative open-source project.
 
-- All code should be covered by tests. ProbNum uses the [pytest](https://docs.pytest.org/) framework. Every time a commit is
+- All code should be covered by tests within the [pytest](https://docs.pytest.org/) framework. Every time a commit is
 made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
 - Documentation of code is essential for any collaborative project. ProbNum uses the
 [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
