@@ -208,7 +208,7 @@ nbsphinx_allow_errors = True
 # List of arguments to be passed to the kernel that executes the notebooks:
 nbsphinx_execute_arguments = [
     "--InlineBackend.figure_formats={'svg', 'pdf'}",  # e.g. for matplotlib plots
-    "--InlineBackend.rc={'figure.dpi': 96}",
+    "--InlineBackend.rc={'figure.dpi': 96}"
 ]
 
 # Use a different kernel than stored in the notebook metadata
