@@ -203,7 +203,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
 
 
-# TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4, implement our own instead?
+# TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4, maybe implement our own instead?
 class _TransposedLinearOperator(scipy.sparse.linalg.interface._TransposedLinearOperator, LinearOperator):
     """Transposition of a linear operator."""
     def __init__(self, A):
