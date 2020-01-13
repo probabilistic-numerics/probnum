@@ -206,6 +206,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 # TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4, maybe implement our own instead?
 class _TransposedLinearOperator(scipy.sparse.linalg.interface._TransposedLinearOperator, LinearOperator):
     """Transposition of a linear operator."""
+
     def __init__(self, A):
         super().__init__(A=A)
 
@@ -307,6 +308,8 @@ class MatrixMult(MatrixLinearOperator, LinearOperator):
 
     def _matmat(self, X):
         return self.A @ X
+
+    # TODO: overload arithmetic operators to prevent lazy arithmetic. Use numpy/scipy matrix arithmetic instead.
 
     def todense(self):
         if isinstance(self.A, scipy.sparse.spmatrix):
@@ -593,8 +596,10 @@ def aslinop(A):
     >>> from probnum.linalg import aslinop
     >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
     >>> aslinop(M)
-    <2x3 MatrixLinearOperator with dtype=int32>
+    <2x3 MatrixMult with dtype=int32>
     """
+    if isinstance(A, LinearOperator):
+        return A
     if isinstance(A, RandomVariable):
         # TODO: aslinearoperator also for random variables; change docstring example;
         #  not needed if LinearOperator inherits from RandomVariable
@@ -602,4 +607,5 @@ def aslinop(A):
     elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
         return MatrixMult(A=A)
     else:
-        return LinearOperator(scipy.sparse.linalg.aslinearoperator(A))
+        op = scipy.sparse.linalg.aslinearoperator(A)
+        return LinearOperator(op, shape=op.shape)
