@@ -9,8 +9,8 @@ to return a posterior distribution.
 import warnings
 import numpy as np
 import scipy.sparse
-from probnum.probability import RandomVariable
-from probnum.linalg.linear_operators import LinearOperator
+import probnum.probability
+import probnum.linalg.linear_operators
 from probnum.utils import atleast_1d, atleast_2d
 
 __all__ = ["problinsolve", "bayescg"]
@@ -105,16 +105,16 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resi
     # Select solver
     # TODO: include also random variable covariance type in this selection? (symmkron => sympos)
     if assume_A in ('sym', 'sympos'):
-        if isinstance(Ainv, RandomVariable):
+        if isinstance(Ainv, probnum.probability.RandomVariable):
             solve_iter = _problinsolve_symm_iter
-        elif isinstance(x0, RandomVariable):
+        elif isinstance(x0, probnum.probability.RandomVariable):
             solve_iter = _bayescg_iter
         else:
             raise ValueError("No prior information specified on Ainv or x.")
     elif assume_A in ('gen', 'pos'):
-        if isinstance(Ainv, RandomVariable):
+        if isinstance(Ainv, probnum.probability.RandomVariable):
             solve_iter = _problinsolve_gen_iter
-        elif isinstance(x0, RandomVariable):
+        elif isinstance(x0, probnum.probability.RandomVariable):
             solve_iter = _bayescg_iter
         else:
             raise ValueError("No prior information specified on Ainv or x.")
@@ -196,14 +196,17 @@ def _check_linear_system(A, b, Ainv=None, x0=None):
         If type or size mismatches detected or inputs ``A`` and ``Ainv`` are not square.
     """
     # Check types
-    linop_types = (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator, RandomVariable)
-    vector_types = (np.ndarray, scipy.sparse.spmatrix, RandomVariable)
+    linop_types = (
+    np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator, probnum.probability.RandomVariable)
+    vector_types = (np.ndarray, scipy.sparse.spmatrix, probnum.probability.RandomVariable)
     if not isinstance(A, linop_types):
-        raise ValueError("A must be either an array, a linear operator or a RandomVariable of either.")
+        raise ValueError(
+            "A must be either an array, a linear operator or a RandomVariable of either.")
     if not isinstance(b, vector_types):
         raise ValueError("The right hand side must be a (sparse) array.")
     if Ainv is not None and not isinstance(Ainv, linop_types):
-        raise ValueError("The inverse of A must be either an array, a linear operator or a RandomVariable of either.")
+        raise ValueError(
+            "The inverse of A must be either an array, a linear operator or a RandomVariable of either.")
     if x0 is not None and not isinstance(x0, vector_types):
         raise ValueError("The initial guess for the solution must be a (sparse) array.")
 
@@ -266,12 +269,12 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
     # Todo Automatic prior selection based on data scale, etc.?
 
     # Transform linear system to correct dimensions
-    if isinstance(A, LinearOperator):
+    if isinstance(A, probnum.linalg.linear_operators.LinearOperator):
         A = A
     else:
         A = atleast_2d(A)
     b = atleast_1d(b)
-    if Ainv is not None and not isinstance(Ainv, LinearOperator):
+    if Ainv is not None and not isinstance(Ainv, probnum.linalg.linear_operators.LinearOperator):
         Ainv = atleast_2d(Ainv)
     if x0 is not None:
         x = atleast_1d(x0)
@@ -323,7 +326,7 @@ def _mean_update_operator(self, u, v, shape):
 
     Returns
     -------
-    update : LinearOperator
+    update : probnum.linalg.linear_operators.LinearOperator
     """
 
     def mv(x):
@@ -332,7 +335,7 @@ def _mean_update_operator(self, u, v, shape):
     def mm(M):
         return np.outer(u, M @ v) + np.outer(v, u @ M)
 
-    return LinearOperator(
+    return probnum.linalg.linear_operators.LinearOperator(
         shape=shape,
         matvec=mv,
         rmatvec=mv,
@@ -365,7 +368,7 @@ def _cov_kron_fac_update_operator(self, u, Wy, shape):
     def mm(M):
         return np.outer(u, M @ Wy)
 
-    return LinearOperator(
+    return probnum.linalg.linear_operators.LinearOperator(
         shape=shape,
         matvec=mv,
         rmatvec=mv,

@@ -2,7 +2,7 @@
 
 import numpy as np
 import scipy.sparse
-import probnum.probability as probability
+import probnum.probability
 
 __all__ = ["atleast_1d", "atleast_2d"]
 
@@ -35,7 +35,7 @@ def atleast_1d(*rvs):
             result = rv
         elif isinstance(rv, np.ndarray):
             result = np.atleast_1d(rv)
-        elif isinstance(rv, probability.RandomVariable):
+        elif isinstance(rv, probnum.probability.RandomVariable):
             result = atleast_1d(rv.mean)
         else:
             result = rv
@@ -72,7 +72,7 @@ def atleast_2d(*rvs):
             result = rv
         elif isinstance(rv, np.ndarray):
             result = np.atleast_2d(rv)
-        elif isinstance(rv, probability.RandomVariable):
+        elif isinstance(rv, probnum.probability.RandomVariable):
             result = atleast_2d(rv.mean)
         else:
             result = rv

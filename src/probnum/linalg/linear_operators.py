@@ -10,10 +10,9 @@ Several algorithms in the :mod:`probnum.linalg` library are able to operate on :
 
 import numpy as np
 import scipy.sparse.linalg
-from probnum.probability import RandomVariable
 from scipy.sparse.linalg.interface import MatrixLinearOperator
 
-__all__ = ["LinearOperator", "MatrixMult", "Identity", "Kronecker", "SymmetricKronecker", "aslinop"]
+__all__ = ["LinearOperator", "MatrixMult", "Identity", "Diagonal", "Kronecker", "SymmetricKronecker", "aslinop"]
 
 
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
@@ -41,8 +40,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     other automatically. Implementing ``_adjoint`` is preferable; ``_rmatvec`` is mostly there for backwards
     compatibility.
 
-    This class wraps :class:`scipy.sparse.linalg.LinearOperator` to provide support for
-    :class:`~probnum.RandomVariable` arguments to linear operators.
+    This class inherits from :class:`scipy.sparse.linalg.LinearOperator`.
 
     Parameters
     ----------
@@ -66,7 +64,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.linalg import LinearOperator
+    >>> from probnum.linalg.linear_operators import LinearOperator
     >>> def mv(v):
     ...     return np.array([2*v[0], 3*v[1]])
     ...
@@ -155,10 +153,6 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
         if isinstance(x, np.matrix):
             y = scipy.sparse.sputils.asmatrix(y)
-        elif isinstance(x, RandomVariable):
-            pass
-        else:
-            y = np.asarray(y)
 
         if isinstance(x, (np.matrix, np.ndarray)):
             if x.ndim == 1:
@@ -288,6 +282,21 @@ class Identity(LinearOperator):
 
     def todense(self):
         return np.eye(N=self.shape[0], M=self.shape[1])
+
+
+class Diagonal(LinearOperator):
+    """
+    A linear operator representing the diagonal from another linear operator.
+
+    Parameters
+    ----------
+    Op : LinearOperator
+        Linear operator of which to represent the diagonal.
+    """
+    # TODO: should this be an operator itself or a function of a LinearOperator?
+    #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient versions than n products e_i A e_i
+    def __init__(self, Op):
+        raise NotImplementedError
 
 
 class MatrixMult(MatrixLinearOperator, LinearOperator):
@@ -600,10 +609,11 @@ def aslinop(A):
     """
     if isinstance(A, LinearOperator):
         return A
-    if isinstance(A, RandomVariable):
-        # TODO: aslinearoperator also for random variables; change docstring example;
-        #  not needed if LinearOperator inherits from RandomVariable
-        raise NotImplementedError
+    # if isinstance(A, RandomVariable):
+    #     # TODO: aslinearoperator also for random variables; change docstring example;
+    #     #  not needed if LinearOperator inherits from RandomVariable
+    #     # TODO: this causes a circular dependency between RandomVariable and LinearOperator
+    #     raise NotImplementedError
     elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
         return MatrixMult(A=A)
     else:

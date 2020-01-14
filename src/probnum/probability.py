@@ -2,10 +2,10 @@
 
 import numpy as np
 import operator
-import warnings
 import scipy.stats
 from scipy.sparse import spmatrix
 from scipy._lib._util import check_random_state
+from probnum.linalg.linear_operators import Diagonal
 
 __all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandvar", "asdist"]
 
@@ -163,14 +163,18 @@ class RandomVariable:
 
         Parameters
         ----------
-        shape : tuple of ints
-            The new shape should be compatible with the original shape.
+        shape : int or tuple of ints
+            New shape for the random variable. It must be compatible with the original shape.
 
         Returns
         -------
         reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
-        raise NotImplementedError("Reshaping not implemented for {}.".format(self.__class__.__name__))
+        # Set shape
+        self._shape = shape
+
+        # Change distribution parameters
+        self._distribution.reshape(shape=shape)
 
     # Binary arithmetic operations
 
@@ -550,6 +554,23 @@ class Distribution:
         """
         return np.sqrt(self.var())
 
+    def reshape(self, shape):
+        """
+        Give a new shape to (realizations of) this distribution.
+
+        Parameters
+        ----------
+        shape : int or tuple of ints
+            New shape for the realizations and parameters of this distribution. It must be compatible with the original
+            shape.
+
+        Returns
+        -------
+        reshaped_rv : ``self`` with the new dimensions of ``shape``.
+        """
+        raise NotImplementedError(
+            "Reshaping not implemented for distribution of type: {}.".format(self.__class__.__name__))
+
     # Binary arithmetic operations
     def __add__(self, other):
         otherdist = asdist(other)
@@ -798,6 +819,13 @@ class Dirac(Distribution):
         else:
             return np.full(fill_value=self.parameters["support"], shape=size)
 
+    def reshape(self, shape):
+        try:
+            # Reshape support
+            self._parameters["support"].reshape(shape=shape)
+        except ValueError:
+            raise ValueError("Cannot reshape this Dirac distribution to the given shape: {}".format(str(shape)))
+
     # Binary arithmetic operations
     def __add__(self, other):
         otherdist = asdist(other)
@@ -972,68 +1000,94 @@ class Normal(Distribution):
     """
 
     def __init__(self, mean=0, cov=1, random_state=None):
-        # todo: allow for linear operators as mean and covariance (pdf, logpdf computation, sampling, etc...)
         # Set dtype to float
         _dtype = float
 
-        # Check input for univariate vs multivariate
+        # Check input for univariate, multivariate, matrix-variate or operator-variate
         if np.isscalar(mean) and np.isscalar(cov):
-            self._ismultivariate = False
-            super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
-        elif isinstance(mean, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)) and isinstance(
-                cov, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)):
-            self._ismultivariate = True
-            # Check matching shape
-            if mean.shape[0] == cov.shape[0] and mean.shape[0] == cov.shape[1]:
-                super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
+            self._normal_type = "scalar"
+        elif isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,)) and isinstance(cov,
+                                                                                   (np.ndarray, scipy.sparse.spmatrix)):
+            if len(mean.shape) == 1:
+                self._normal_type = "vector"
             else:
-                raise ValueError("Shape mismatch of mean and covariance.")
+                self._normal_type = "matrix"
+        elif isinstance(mean, scipy.sparse.linalg.LinearOperator) and isinstance(cov,
+                                                                                 scipy.sparse.linalg.LinearOperator):
+            self._normal_type = "operator"
         else:
             raise ValueError(
                 "Cannot instantiate normal distribution with mean of type {} and covariance of type {}.".format(
                     mean.__class__.__name__, cov.__class__.__name__))
 
+        # Check shape mismatch of mean and covariance
+        if self._normal_type in ["scalar", "vector", "matrix"]:
+            _mean_dim = np.prod(mean.shape)
+            if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
+                raise ValueError(
+                    "Shape mismatch of mean and covariance. Total number of elements of the mean must match " +
+                    "the first and second dimension of the covariance.")
+        elif self._normal_type == "operator":
+            # General case
+            pass
+            # Special case for (symmetric) Kronecker structured covariance
+
+        # Call to super class initiator
+        super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
+
+    # TODO: allow for linear operators as mean and covariance (pdf, logpdf computation, sampling, etc...)
     # TODO: implement (more efficient) versions of these functions (for linear operators)
+    # TODO: refactor into superclass with subclasses (_ScalarNormal, _VectorNormal, _MatrixNormal, _LinOpNormal)
     def pdf(self, x):
-        if self._ismultivariate:
-            return scipy.stats.multivariate_normal.pdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
-        else:
+        if self._normal_type == "scalar":
             return scipy.stats.norm.pdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
+        if self._normal_type == "vector":
+            return scipy.stats.multivariate_normal.pdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
     def logpdf(self, x):
-        if self._ismultivariate:
-            return scipy.stats.multivariate_normal.logpdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
-        else:
+        if self._normal_type == "scalar":
             return scipy.stats.norm.logpdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
+        if self._normal_type == "vector":
+            return scipy.stats.multivariate_normal.logpdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
     def cdf(self, x):
-        if self._ismultivariate:
-            return scipy.stats.multivariate_normal.cdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
-        else:
+        if self._normal_type == "scalar":
             return scipy.stats.norm.cdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
+        if self._normal_type == "vector":
+            return scipy.stats.multivariate_normal.cdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
     def logcdf(self, x):
-        if self._ismultivariate:
-            return scipy.stats.multivariate_normal.logcdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
-        else:
+        if self._normal_type == "scalar":
             return scipy.stats.norm.logcdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
+        if self._normal_type == "vector":
+            return scipy.stats.multivariate_normal.logcdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
 
     def sample(self, size=()):
-        if self._ismultivariate:
-            return scipy.stats.multivariate_normal.rvs(mean=self.parameters["mean"], cov=self.parameters["cov"],
-                                                       size=size, random_state=self.random_state)
-        else:
+        if self._normal_type == "scalar":
             return scipy.stats.norm.rvs(loc=self.parameters["mean"], scale=self.std(),
                                         size=size, random_state=self.random_state)
+        if self._normal_type == "vector":
+            return scipy.stats.multivariate_normal.rvs(mean=self.parameters["mean"], cov=self.parameters["cov"],
+                                                       size=size, random_state=self.random_state)
 
     def mean(self):
         return self.parameters["mean"]
 
     def var(self):
-        if self._ismultivariate:
-            return np.diag(self.parameters["cov"])
-        else:
+        if self._normal_type == "scalar":
             return self.parameters["cov"]
+        if self._normal_type in ["vector", "matrix"]:
+            return np.diag(self.parameters["cov"])
+        if self._normal_type == "operator":
+            return Diagonal(Op=self.parameters["cov"])
+
+    # def reshape(self, shape):
+    #     try:
+    #         # Reshape mean and covariance
+    #         self._parameters["mean"].reshape(shape=shape)
+    #         # self._parameters["cov"]. # TODO: how to realize this? Need to implement Matrix-variate normal first.
+    #     except ValueError:
+    #         raise ValueError("Cannot reshape this Normal distribution to the given shape: {}".format(str(shape)))
 
     # Binary arithmetic operations
     def __add__(self, other):
@@ -1127,8 +1181,7 @@ class Normal(Distribution):
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             return Normal(mean=delta @ self.parameters["mean"],
-                          # Todo: REPLACE @.TRANSPOSE WITH RMATMUL
-                          cov=delta @ self.parameters["cov"] @ delta.transpose(),
+                          cov=delta @ (self.parameters["cov"] @ delta.transpose()),
                           random_state=self.random_state)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(other.__class__.__name__,
