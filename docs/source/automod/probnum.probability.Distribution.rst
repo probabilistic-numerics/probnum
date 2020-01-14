@@ -24,6 +24,7 @@ Distribution
       ~Distribution.mean
       ~Distribution.median
       ~Distribution.pdf
+      ~Distribution.reshape
       ~Distribution.sample
       ~Distribution.std
       ~Distribution.var
@@ -42,6 +43,7 @@ Distribution
    .. automethod:: mean
    .. automethod:: median
    .. automethod:: pdf
+   .. automethod:: reshape
    .. automethod:: sample
    .. automethod:: std
    .. automethod:: var

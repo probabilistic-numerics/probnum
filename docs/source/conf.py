@@ -21,7 +21,7 @@ import os
 import sys
 import sphinx_bootstrap_theme
 
-sys.path.insert(0, os.path.abspath('../../../probnum'))
+sys.path.insert(0, os.path.abspath('../../../probnum/src'))
 
 # -- General configuration ------------------------------------------------
 

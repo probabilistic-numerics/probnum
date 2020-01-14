@@ -24,6 +24,7 @@ Normal
       ~Normal.mean
       ~Normal.median
       ~Normal.pdf
+      ~Normal.reshape
       ~Normal.sample
       ~Normal.std
       ~Normal.var
@@ -42,6 +43,7 @@ Normal
    .. automethod:: mean
    .. automethod:: median
    .. automethod:: pdf
+   .. automethod:: reshape
    .. automethod:: sample
    .. automethod:: std
    .. automethod:: var

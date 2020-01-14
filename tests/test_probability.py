@@ -2,6 +2,7 @@ import itertools
 
 import pytest
 import numpy as np
+import scipy.sparse
 
 from probnum import probability
 from probnum.linalg import linear_operators
@@ -114,12 +115,17 @@ def test_different_rv_seeds(rv1, rv2):
 
 # Normal distribution
 np.random.seed(seed=42)
+m = 7
+n = 3
+sparsemat = scipy.sparse.rand(m=m, n=n, density=0.1, random_state=1)
 normal_params = [
     (-1, 3),
     (np.random.uniform(size=10), np.eye(10)),
     (np.array([1, -5]), linear_operators.MatrixMult(A=np.array([[2, 1], [1, -.1]]))),
     (linear_operators.MatrixMult(A=np.array([[0, -5]])), linear_operators.Identity(shape=(2, 2))),
     (np.array([[1, 2], [-3, -.4], [4, 1]]), linear_operators.Kronecker(A=np.eye(3), B=5 * np.eye(2))),
+    (linear_operators.MatrixMult(A=sparsemat.todense()),
+     linear_operators.Kronecker(0.1 * linear_operators.Identity(m), linear_operators.Identity(n))),
     (linear_operators.MatrixMult(A=np.random.uniform(size=(2, 2))),
      linear_operators.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])))
 ]
@@ -154,17 +160,20 @@ def test_normal_cdf():
 
 @pytest.mark.parametrize("mean,cov", normal_params)
 def test_sample(mean, cov):
-    """Draw samples and check sample dimensions."""
-    dist = probability.Normal(mean=mean, cov=cov)
-    dist_sample = dist.sample(size=1)
+    """Draw samples and check all sample dimensions."""
+    # TODO: check dimension of each realization in dist_sample
+    dist = probability.Normal(mean=mean, cov=cov, random_state=1)
+    dist_sample = dist.sample(size=5)
     if not np.isscalar(dist.mean()):
-        assert dist_sample.shape == dist.mean().shape, "Realization shape does not match mean shape."
+        ndims_rv = len(mean.shape)
+        np.testing.assert_equal(dist_sample.shape[-ndims_rv:], mean.shape,
+                                err_msg="Realization shape does not match mean shape.")
 
 
 @pytest.mark.parametrize("mean,cov", normal_params)
 def test_sample_zero_cov(mean, cov):
     """Draw sample from distribution with zero covariance and check whether it equals the mean."""
-    dist = probability.Normal(mean=mean, cov=0 * cov)
+    dist = probability.Normal(mean=mean, cov=0 * cov, random_state=1)
     dist_sample = dist.sample(size=1)
     assert_str = "Draw with covariance zero does not match mean."
     if isinstance(dist.mean(), linear_operators.LinearOperator):

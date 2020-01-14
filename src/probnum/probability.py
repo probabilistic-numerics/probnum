@@ -1171,7 +1171,7 @@ class Normal(Distribution):
                                                                    cov=cov,
                                                                    size=size,
                                                                    random_state=self.random_state)
-            return samples_ravelled.reshape(self.parameters["mean"].shape)
+            return samples_ravelled.reshape(samples_ravelled.shape[:-1] + self.parameters["mean"].shape)
         else:
             raise NotImplementedError
 

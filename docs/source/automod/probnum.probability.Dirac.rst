@@ -24,6 +24,7 @@ Dirac
       ~Dirac.mean
       ~Dirac.median
       ~Dirac.pdf
+      ~Dirac.reshape
       ~Dirac.sample
       ~Dirac.std
       ~Dirac.var
@@ -42,6 +43,7 @@ Dirac
    .. automethod:: mean
    .. automethod:: median
    .. automethod:: pdf
+   .. automethod:: reshape
    .. automethod:: sample
    .. automethod:: std
    .. automethod:: var
