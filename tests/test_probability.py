@@ -110,3 +110,13 @@ def test_rv_linop_matmul(A, rv):
 def test_different_rv_seeds(rv1, rv2):
     """Arithmetic operation between two random variables with different seeds."""
     pass
+
+
+# Normal distribution
+
+@pytest.mark.parametrize("mean,cov", [(0, [1]),
+                                      (np.array([1, 2]), np.array([1, 0])),
+                                      (np.array([[-1, 0], [2, 1]]), np.eye(3))])
+def test_dimension_mismatch(mean, cov):
+    with pytest.raises(ValueError):
+        assert probability.Normal(mean=mean, cov=cov), "Mean and covariance mismatch in normal distribution."

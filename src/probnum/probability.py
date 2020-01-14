@@ -7,7 +7,7 @@ import scipy.stats
 import scipy.sparse
 import scipy._lib._util
 
-import probnum.linalg.linear_operators
+from probnum.linalg import linear_operators
 
 __all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandvar", "asdist"]
 
@@ -998,7 +998,7 @@ class Normal(Distribution):
     >>> N = Normal(mean=0.5, cov=1)
     >>> N1 = 2*N - 1
     >>> N1.parameters
-    {'mean': 0.0, 'cov': 4}
+    {'mean': 0.0, 'cov': 4.0}
     """
 
     def __init__(self, mean=0, cov=1, random_state=None):
@@ -1014,8 +1014,8 @@ class Normal(Distribution):
                 self._normal_type = "vector"
             else:
                 self._normal_type = "matrix"
-        elif isinstance(mean, scipy.sparse.linalg.LinearOperator) and isinstance(cov,
-                                                                                 scipy.sparse.linalg.LinearOperator):
+        elif isinstance(mean, scipy.sparse.linalg.LinearOperator) or isinstance(cov,
+                                                                                scipy.sparse.linalg.LinearOperator):
             self._normal_type = "operator"
         else:
             raise ValueError(
@@ -1023,16 +1023,33 @@ class Normal(Distribution):
                     mean.__class__.__name__, cov.__class__.__name__))
 
         # Check shape mismatch of mean and covariance
+        _mean_dim = np.prod(mean.shape)
         if self._normal_type in ["scalar", "vector", "matrix"]:
-            _mean_dim = np.prod(mean.shape)
             if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
                 raise ValueError(
                     "Shape mismatch of mean and covariance. Total number of elements of the mean must match " +
                     "the first and second dimension of the covariance.")
         elif self._normal_type == "operator":
+            m, n = mean.shape
+            # Kronecker structured covariance
+            if isinstance(cov, linear_operators.Kronecker):
+                # If mean has dimension (m x n) then covariance factors must be (m x m) and (n x n)
+                if m != cov.A.shape[0] or m != cov.A.shape[1] or n != cov.B.shape[0] or n != cov.B.shape[1]:
+                    raise ValueError(
+                        "Kronecker structured covariance must have factors with the same shape as the mean.")
+            # Symmetric Kronecker structured covariance
+            if isinstance(cov, linear_operators.SymmetricKronecker):
+                # Mean has to be square. If mean has dimension (n x n) then covariance factors must be (n x n).
+                if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
+                    raise ValueError(
+                        "Normal distribution with symmetric Kronecker structured covariance must have square mean"
+                        + " and square covariance factors with matching dimensions."
+                    )
             # General case
-            pass
-            # Special case for (symmetric) Kronecker structured covariance
+            if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
+                raise ValueError(
+                    "Shape mismatch of mean and covariance."
+                )
 
         # Call to super class initiator
         super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
@@ -1081,7 +1098,7 @@ class Normal(Distribution):
         if self._normal_type in ["vector", "matrix"]:
             return np.diag(self.parameters["cov"])
         if self._normal_type == "operator":
-            return probnum.linalg.linear_operators.Diagonal(Op=self.parameters["cov"])
+            return linear_operators.Diagonal(Op=self.parameters["cov"])
 
     # def reshape(self, shape):
     #     try:
