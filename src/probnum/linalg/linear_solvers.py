@@ -7,11 +7,13 @@ to return a posterior distribution.
 """
 
 import warnings
+
 import numpy as np
 import scipy.sparse
+
 import probnum.probability
 import probnum.linalg.linear_operators
-from probnum.utils import atleast_1d, atleast_2d
+import probnum.utils
 
 __all__ = ["problinsolve", "bayescg"]
 
@@ -272,12 +274,12 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
     if isinstance(A, probnum.linalg.linear_operators.LinearOperator):
         A = A
     else:
-        A = atleast_2d(A)
-    b = atleast_1d(b)
+        A = probnum.utils.atleast_2d(A)
+    b = probnum.utils.atleast_1d(b)
     if Ainv is not None and not isinstance(Ainv, probnum.linalg.linear_operators.LinearOperator):
-        Ainv = atleast_2d(Ainv)
+        Ainv = probnum.utils.atleast_2d(Ainv)
     if x0 is not None:
-        x = atleast_1d(x0)
+        x = probnum.utils.atleast_1d(x0)
 
     # TODO create random variables and linear operators
 

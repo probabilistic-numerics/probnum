@@ -10,7 +10,7 @@ Several algorithms in the :mod:`probnum.linalg` library are able to operate on :
 
 import numpy as np
 import scipy.sparse.linalg
-from scipy.sparse.linalg.interface import MatrixLinearOperator
+import scipy.sparse.linalg.interface
 
 __all__ = ["LinearOperator", "MatrixMult", "Identity", "Diagonal", "Kronecker", "SymmetricKronecker", "aslinop"]
 
@@ -299,7 +299,7 @@ class Diagonal(LinearOperator):
         raise NotImplementedError
 
 
-class MatrixMult(MatrixLinearOperator, LinearOperator):
+class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
     """
     A linear operator defined via a matrix.
 

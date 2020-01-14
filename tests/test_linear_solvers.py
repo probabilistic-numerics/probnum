@@ -2,11 +2,12 @@ import pytest
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
-from probnum.linalg import problinsolve, bayescg
+
+from probnum.linalg import linear_solvers
 
 
 # Linear solvers
-@pytest.mark.parametrize("plinsolve", [problinsolve, bayescg])
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve, linear_solvers.bayescg])
 def test_dimension_mismatch(plinsolve):
     """Test whether linear solvers throw an exception for input with mismatched dimensions."""
     A = np.zeros(shape=[3, 3])
@@ -33,7 +34,7 @@ def test_dimension_mismatch(plinsolve):
 
 # todo: Write matrices as variables and tests for output properties separately to run all combinations
 
-@pytest.mark.parametrize("matblinsolve", [problinsolve])
+@pytest.mark.parametrize("matblinsolve", [linear_solvers.problinsolve])
 def test_symmetric_posterior_params(matblinsolve):
     """Test whether posterior parameters are symmetric."""
     np.random.seed(1)
@@ -49,7 +50,7 @@ def test_symmetric_posterior_params(matblinsolve):
                                Ainv.cov.cov_kronfac.H.matmat(np.eye(n)), rtol=1e-2)
 
 
-@pytest.mark.parametrize("plinsolve", [problinsolve])  # , bayescg])
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
 def test_zero_rhs(plinsolve):
     """Linear system with zero right hand side."""
     np.random.seed(1234)
@@ -63,7 +64,7 @@ def test_zero_rhs(plinsolve):
         np.testing.assert_allclose(x, 0, atol=1e-15)
 
 
-@pytest.mark.parametrize("plinsolve", [problinsolve])  # , bayescg])
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
 def test_multiple_rhs(plinsolve):
     """Linear system with matrix right hand side."""
     np.random.seed(42)
@@ -75,7 +76,7 @@ def test_multiple_rhs(plinsolve):
     assert x.shape == B.shape, "Shape of solution and right hand side do not match."
 
 
-@pytest.mark.parametrize("plinsolve", [problinsolve])  # , bayescg])
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
 def test_spd_matrix(plinsolve):
     """Random spd matrix."""
     np.random.seed(1234)
@@ -89,7 +90,7 @@ def test_spd_matrix(plinsolve):
     np.testing.assert_allclose(x_solver, x, rtol=1e-2)
 
 
-@pytest.mark.parametrize("plinsolve", [problinsolve])  # , bayescg])
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
 def test_sparse_poisson(plinsolve):
     """Linear system with ill-conditioned matrix."""
     np.random.seed(1234)
@@ -108,7 +109,7 @@ def test_sparse_poisson(plinsolve):
     # np.testing.assert_allclose(x_solver, x, rtol=1e-2)
 
 
-@pytest.mark.parametrize("plinsolve", [problinsolve])  # , bayescg])
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
 def test_searchdir_conjugacy(plinsolve):
     """Search directions should remain A-conjugate up to machine precision."""
     pass

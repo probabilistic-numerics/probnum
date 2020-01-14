@@ -1,11 +1,13 @@
 """Random variables represent in- and outputs of probabilistic numerical methods."""
 
-import numpy as np
 import operator
+
+import numpy as np
 import scipy.stats
-from scipy.sparse import spmatrix
-from scipy._lib._util import check_random_state
-from probnum.linalg.linear_operators import Diagonal
+import scipy.sparse
+import scipy._lib._util
+
+import probnum.linalg.linear_operators
 
 __all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandvar", "asdist"]
 
@@ -136,7 +138,7 @@ class RandomVariable:
         If already a :class:`~numpy.random.RandomState` instance, use it.
         If an int, use a new :class:`~numpy.random.RandomState` instance seeded with seed.
         """
-        self.distribution._random_state = check_random_state(seed)
+        self.distribution._random_state = scipy._lib._util.check_random_state(seed)
 
     def sample(self, size=()):
         """
@@ -344,7 +346,7 @@ class Distribution:
         self._mean = mean
         self._var = var
         self._dtype = dtype
-        self._random_state = check_random_state(random_state)
+        self._random_state = scipy._lib._util.check_random_state(random_state)
 
     @property
     def dtype(self):
@@ -376,7 +378,7 @@ class Distribution:
         If already a RandomState instance, use it.
         If an int, use a new RandomState instance seeded with seed.
         """
-        self._random_state = check_random_state(seed)
+        self._random_state = scipy._lib._util.check_random_state(seed)
 
     @property
     def parameters(self):
@@ -992,7 +994,7 @@ class Normal(Distribution):
 
     Examples
     --------
-    >>> from probnum import Normal
+    >>> from probnum.probability import Normal
     >>> N = Normal(mean=0.5, cov=1)
     >>> N1 = 2*N - 1
     >>> N1.parameters
@@ -1079,7 +1081,7 @@ class Normal(Distribution):
         if self._normal_type in ["vector", "matrix"]:
             return np.diag(self.parameters["cov"])
         if self._normal_type == "operator":
-            return Diagonal(Op=self.parameters["cov"])
+            return probnum.linalg.linear_operators.Diagonal(Op=self.parameters["cov"])
 
     # def reshape(self, shape):
     #     try:
