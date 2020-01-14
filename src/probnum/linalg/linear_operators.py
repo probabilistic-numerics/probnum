@@ -579,6 +579,10 @@ class SymmetricKronecker(LinearOperator):
 
     # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker properties
 
+    # def todense(self):
+    #     """Dense representation of the symmetric Kronecker product"""
+    #     # TODO: return n^2 x n^2 representation here?
+
 
 def aslinop(A):
     """

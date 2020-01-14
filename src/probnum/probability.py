@@ -1023,22 +1023,30 @@ class Normal(Distribution):
                     mean.__class__.__name__, cov.__class__.__name__))
 
         # Check shape mismatch of mean and covariance
-        _mean_dim = np.prod(mean.shape)
-        if self._normal_type in ["scalar", "vector", "matrix"]:
+        if np.isscalar(mean):
+            _mean_dim = ()
+        else:
+            _mean_dim = np.prod(mean.shape)
+        if self._normal_type == "scalar" and (not np.isscalar(mean) or not np.isscalar(cov)):
+            raise ValueError("The univariate normal distribution must have scalar parameters.")
+        elif self._normal_type in ["vector", "matrix"]:
+            if len(cov.shape) != 2:
+                raise ValueError("Covariance must be a 2D matrix.")
             if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
                 raise ValueError(
                     "Shape mismatch of mean and covariance. Total number of elements of the mean must match " +
                     "the first and second dimension of the covariance.")
         elif self._normal_type == "operator":
-            m, n = mean.shape
             # Kronecker structured covariance
             if isinstance(cov, linear_operators.Kronecker):
+                m, n = mean.shape
                 # If mean has dimension (m x n) then covariance factors must be (m x m) and (n x n)
                 if m != cov.A.shape[0] or m != cov.A.shape[1] or n != cov.B.shape[0] or n != cov.B.shape[1]:
                     raise ValueError(
                         "Kronecker structured covariance must have factors with the same shape as the mean.")
             # Symmetric Kronecker structured covariance
-            if isinstance(cov, linear_operators.SymmetricKronecker):
+            elif isinstance(cov, linear_operators.SymmetricKronecker):
+                m, n = mean.shape
                 # Mean has to be square. If mean has dimension (n x n) then covariance factors must be (n x n).
                 if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
                     raise ValueError(
@@ -1046,7 +1054,7 @@ class Normal(Distribution):
                         + " and square covariance factors with matching dimensions."
                     )
             # General case
-            if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
+            elif _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
                 raise ValueError(
                     "Shape mismatch of mean and covariance."
                 )
@@ -1054,32 +1062,95 @@ class Normal(Distribution):
         # Call to super class initiator
         super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
 
-    # TODO: allow for linear operators as mean and covariance (pdf, logpdf computation, sampling, etc...)
-    # TODO: implement (more efficient) versions of these functions (for linear operators)
+    # TODO: implement more efficient versions of (pdf, logpdf, sample) functions for linear operators without todense()
     # TODO: refactor into superclass with subclasses (_ScalarNormal, _VectorNormal, _MatrixNormal, _LinOpNormal)
+    def _params_todense(self):
+        """Returns the mean and covariance of a distribution as dense matrices."""
+        if isinstance(self.parameters["mean"], linear_operators.LinearOperator):
+            mean = self.parameters["mean"].todense()
+        else:
+            mean = self.parameters["mean"]
+        if isinstance(self.parameters["cov"], linear_operators.LinearOperator):
+            cov = self.parameters["cov"].todense()
+        else:
+            cov = self.parameters["cov"]
+        return mean, cov
+
     def pdf(self, x):
         if self._normal_type == "scalar":
             return scipy.stats.norm.pdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
-        if self._normal_type == "vector":
+        elif self._normal_type in "vector":
             return scipy.stats.multivariate_normal.pdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
+        elif self._normal_type == "matrix":
+            pdf_ravelled = scipy.stats.multivariate_normal.pdf(x.ravel(),
+                                                               mean=self.parameters["mean"].ravel(),
+                                                               cov=self.parameters["cov"])
+            return pdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        elif self._normal_type == "operator":
+            if isinstance(x, linear_operators.LinearOperator):
+                x = x.todense()
+            mean, cov = self._params_todense()
+            pdf_ravelled = scipy.stats.multivariate_normal.pdf(x.ravel(), mean=mean.ravel(), cov=cov)
+            return pdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        else:
+            raise NotImplementedError
 
     def logpdf(self, x):
         if self._normal_type == "scalar":
             return scipy.stats.norm.logpdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
-        if self._normal_type == "vector":
+        elif self._normal_type == "vector":
             return scipy.stats.multivariate_normal.logpdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
+        elif self._normal_type == "matrix":
+            logpdf_ravelled = scipy.stats.multivariate_normal.logpdf(x.ravel(),
+                                                                     mean=self.parameters["mean"].ravel(),
+                                                                     cov=self.parameters["cov"])
+            return logpdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        elif self._normal_type == "operator":
+            if isinstance(x, linear_operators.LinearOperator):
+                x = x.todense()
+            mean, cov = self._params_todense()
+            logpdf_ravelled = scipy.stats.multivariate_normal.logpdf(x.ravel(), mean=mean.ravel(), cov=cov)
+            return logpdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        else:
+            raise NotImplementedError
 
     def cdf(self, x):
         if self._normal_type == "scalar":
             return scipy.stats.norm.cdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
-        if self._normal_type == "vector":
+        elif self._normal_type == "vector":
             return scipy.stats.multivariate_normal.cdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
+        elif self._normal_type == "matrix":
+            cdf_ravelled = scipy.stats.multivariate_normal.cdf(x.ravel(),
+                                                               mean=self.parameters["mean"].ravel(),
+                                                               cov=self.parameters["cov"])
+            return cdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        elif self._normal_type == "operator":
+            if isinstance(x, linear_operators.LinearOperator):
+                x = x.todense()
+            mean, cov = self._params_todense()
+            cdf_ravelled = scipy.stats.multivariate_normal.cdf(x.ravel(), mean=mean.ravel(), cov=cov)
+            return cdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        else:
+            raise NotImplementedError
 
     def logcdf(self, x):
         if self._normal_type == "scalar":
             return scipy.stats.norm.logcdf(x, loc=self.parameters["mean"], scale=np.sqrt(self.parameters["cov"]))
-        if self._normal_type == "vector":
+        elif self._normal_type == "vector":
             return scipy.stats.multivariate_normal.logcdf(x, mean=self.parameters["mean"], cov=self.parameters["cov"])
+        elif self._normal_type == "matrix":
+            logcdf_ravelled = scipy.stats.multivariate_normal.logcdf(x.ravel(),
+                                                                     mean=self.parameters["mean"].ravel(),
+                                                                     cov=self.parameters["cov"])
+            return logcdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        elif self._normal_type == "operator":
+            if isinstance(x, linear_operators.LinearOperator):
+                x = x.todense()
+            mean, cov = self._params_todense()
+            logcdf_ravelled = scipy.stats.multivariate_normal.logcdf(x.ravel(), mean=mean.ravel(), cov=cov)
+            return logcdf_ravelled.reshape(shape=self.parameters["mean"].shape)
+        else:
+            raise NotImplementedError
 
     def sample(self, size=()):
         if self._normal_type == "scalar":
@@ -1088,6 +1159,21 @@ class Normal(Distribution):
         if self._normal_type == "vector":
             return scipy.stats.multivariate_normal.rvs(mean=self.parameters["mean"], cov=self.parameters["cov"],
                                                        size=size, random_state=self.random_state)
+        elif self._normal_type == "matrix":
+            samples_ravelled = scipy.stats.multivariate_normal.rvs(mean=self.parameters["mean"].ravel(),
+                                                                   cov=self.parameters["cov"],
+                                                                   size=size,
+                                                                   random_state=self.random_state)
+            return samples_ravelled.reshape(shape=self.parameters["mean"].shape)
+        elif self._normal_type == "operator":
+            mean, cov = self._params_todense()
+            samples_ravelled = scipy.stats.multivariate_normal.rvs(mean=mean.ravel(),
+                                                                   cov=cov,
+                                                                   size=size,
+                                                                   random_state=self.random_state)
+            return samples_ravelled.reshape(self.parameters["mean"].shape)
+        else:
+            raise NotImplementedError
 
     def mean(self):
         return self.parameters["mean"]

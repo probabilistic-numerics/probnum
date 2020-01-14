@@ -113,10 +113,61 @@ def test_different_rv_seeds(rv1, rv2):
 
 
 # Normal distribution
+np.random.seed(seed=42)
+normal_params = [
+    (-1, 3),
+    (np.random.uniform(size=10), np.eye(10)),
+    (np.array([1, -5]), linear_operators.MatrixMult(A=np.array([[2, 1], [1, -.1]]))),
+    (linear_operators.MatrixMult(A=np.array([[0, -5]])), linear_operators.Identity(shape=(2, 2))),
+    (np.array([[1, 2], [-3, -.4], [4, 1]]), linear_operators.Kronecker(A=np.eye(3), B=5 * np.eye(2))),
+    (linear_operators.MatrixMult(A=np.random.uniform(size=(2, 2))),
+     linear_operators.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])))
+]
+
 
 @pytest.mark.parametrize("mean,cov", [(0, [1]),
                                       (np.array([1, 2]), np.array([1, 0])),
                                       (np.array([[-1, 0], [2, 1]]), np.eye(3))])
-def test_dimension_mismatch(mean, cov):
+def test_normal_dimension_mismatch(mean, cov):
+    """Instantiating a normal distribution with mismatched mean and covariance should result in a ValueError."""
     with pytest.raises(ValueError):
         assert probability.Normal(mean=mean, cov=cov), "Mean and covariance mismatch in normal distribution."
+
+
+@pytest.mark.parametrize("mean,cov", normal_params)
+def test_normal_instantiation(mean, cov):
+    """Instantiation of a normal distribution with mixed mean and cov type."""
+    probability.Normal(mean=mean, cov=cov)
+
+
+@pytest.mark.parametrize("mean,cov", normal_params)
+def test_normal_pdf(mean, cov):
+    """Evaluate pdf at random input."""
+    dist = probability.Normal(mean=mean, cov=cov)
+    pass
+
+
+def test_normal_cdf():
+    """Evaluate cdf at random input."""
+    pass
+
+
+@pytest.mark.parametrize("mean,cov", normal_params)
+def test_sample(mean, cov):
+    """Draw samples and check sample dimensions."""
+    dist = probability.Normal(mean=mean, cov=cov)
+    dist_sample = dist.sample(size=1)
+    if not np.isscalar(dist.mean()):
+        assert dist_sample.shape == dist.mean().shape, "Realization shape does not match mean shape."
+
+
+@pytest.mark.parametrize("mean,cov", normal_params)
+def test_sample_zero_cov(mean, cov):
+    """Draw sample from distribution with zero covariance and check whether it equals the mean."""
+    dist = probability.Normal(mean=mean, cov=0 * cov)
+    dist_sample = dist.sample(size=1)
+    assert_str = "Draw with covariance zero does not match mean."
+    if isinstance(dist.mean(), linear_operators.LinearOperator):
+        np.testing.assert_allclose(dist_sample, dist.mean().todense(), err_msg=assert_str)
+    else:
+        np.testing.assert_allclose(dist_sample, dist.mean(), err_msg=assert_str)
