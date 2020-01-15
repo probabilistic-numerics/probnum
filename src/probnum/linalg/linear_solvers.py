@@ -19,7 +19,7 @@ import probnum.utils
 __all__ = ["problinsolve", "bayescg"]
 
 
-def problinsolve(A, b, Ainv=None, x0=None, assume_A="gen", maxiter=None, resid_tol=10 ** -6):
+def problinsolve(A, b, Ainv=None, x0=None, assume_A="sympos", maxiter=None, resid_tol=10 ** -6):
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -31,16 +31,18 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="gen", maxiter=None, resid_t
     which quantifies uncertainty in the output arising from finite computational resources.
 
     This solver can take prior information either on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` and
-    outputs a posterior belief over :math:`A` or :math:`H`. For a specific class of priors this recovers the iterates of
-    the conjugate gradient method [1]_ as the posterior mean. This code implements the method described in [2]_, [3]_
-    and [4]_.
+    outputs a posterior belief over :math:`A` or :math:`H`. This code implements the method described in [1]_, [2]_
+    and [3]_.
 
-    .. [1] Hestenes, M. R. and Stiefel E., Methods of Conjugate Gradients for Solving Linear Systems,
-            *Journal of Research of the National Bureau of Standards*, 1952, 49 (6): 409
-    .. [2] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [3] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [4] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [3] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
            University Press
+
+    Notes
+    -----
+    For a specific class of priors this recovers the iterates of the conjugate gradient method as the posterior mean of
+    the induced distribution on :math:`x=Hb`.
 
     Parameters
     ----------
@@ -55,7 +57,7 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="gen", maxiter=None, resid_t
         :math:`H=A^{-1}`.
     x0 : array-like, shape=(n,) or (n, nrhs)
         Optional. Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
-    assume_A : str, default="gen"
+    assume_A : str, default="sympos"
         Assumptions on the matrix, which can influence solver choice or behavior. The available options are
 
         ====================  =========
@@ -109,7 +111,7 @@ def problinsolve(A, b, Ainv=None, x0=None, assume_A="gen", maxiter=None, resid_t
     A, b, Ainv, x = _preprocess_linear_system(A=A, b=b, Ainv=Ainv, x0=x0)
 
     # Select solver
-    linear_solver = _select_solver(A=A, Ainv=Ainv, x=x0, assume_A=assume_A)
+    linear_solver = _select_solver(A=A, Ainv=Ainv, b=b, x0=x0, assume_A=assume_A)
 
     # Set default convergence parameters
     n = A.shape[0]
@@ -236,7 +238,7 @@ def _check_linear_system(A, b, Ainv=None, x0=None):
         raise ValueError("The inverse of A must be square.")
 
 
-def _preprocess_linear_system(A, b, Ainv=None, x0=None):
+def _preprocess_linear_system(A, b, Ainv=None, x0=None, assume_A=None):
     """
     Transform the linear system to linear operator and random variable form.
 
@@ -251,6 +253,18 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
         :math:`H=A^{-1}`.
     x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
         Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv`` is given.
+    assume_A : str, default="sympos"
+        Assumptions on the matrix, which can influence solver choice or behavior. The available options are
+
+        ====================  =========
+         generic matrix       ``gen``
+         symmetric            ``sym``
+         positive definite    ``pos``
+         symmetric pos. def.  ``sympos``
+        ====================  =========
+
+        If ``A`` or ``Ainv`` are random variables, then the encoded assumptions in the distribution are used
+        automatically.
 
     Returns
     -------
@@ -275,7 +289,11 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
     else:
         x = x0
 
-    # Choose prior if none specified
+    # Check matrix assumptions
+    if assume_A not in ["gen", "sym", "pos", "sympos"]:
+        raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
+
+    # Choose prior if none specified, based on matrix assumptions in "assume_A"
     # Todo Automatic prior selection based on data scale, etc.?
 
     # Transform linear system to correct dimensions
@@ -296,37 +314,46 @@ def _preprocess_linear_system(A, b, Ainv=None, x0=None):
     return A, b, Ainv, x
 
 
-def _select_solver(A, Ainv, x, assume_A):
-    # TODO: include also random variable covariance type in this selection? (symmkron => sympos)
+def _select_solver(A, Ainv, b, x0):
+    """
+    Selects a probabilistic linear solver based on the prior information given.
 
+    Parameters
+    ----------
+    A : RandomVariable, shape=(n,n)
+        Random variable representing the prior belief over the linear operator :math:`A`.
+    Ainv : RandomVariable, shape=(n,n)
+        Optional. Random variable representing the prior belief over the inverse :math:`H=A^{-1}`.
+    x0 : array-like, shape=(n,) or (n, nrhs)
+        Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv`` is given.
+
+    Returns
+    -------
+    linear_solver : object
+        Object of class :class:`_ProbabilisticLinearSolver` implementing the solve method for linear systems.
+
+    """
     # Select solution-based or matrix-based view
-    prior_info_view = "matrix"
-    if isinstance(x, probability.RandomVariable):
+    if isinstance(A, probability.RandomVariable) or isinstance(Ainv, probability.RandomVariable):
+        prior_info_view = "matrix"
+    elif isinstance(x0, probability.RandomVariable):
         prior_info_view = "solution"
-
-    # Compare assumptions on A with distribution assumptions
-
-    # Select solver
-    if assume_A in ('sym', 'sympos'):
-        if isinstance(Ainv, probability.RandomVariable):
-            linear_solver = _SymmetricMatrixSolver()
-        elif isinstance(x, probability.RandomVariable):
-            linear_solver = _BayesCG
-        else:
-            raise ValueError("No prior information specified on Ainv or x.")
-    elif assume_A in ('gen', 'pos'):
-        if isinstance(Ainv, probability.RandomVariable):
-            linear_solver = _GeneralMatrixSolver()
-        elif isinstance(x, probability.RandomVariable):
-            linear_solver = _BayesCG()
-        else:
-            raise ValueError("No prior information specified on Ainv or x.")
     else:
-        raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
+        raise ValueError("No prior information on A, Ainv or x specified.")
 
-    # TODO: make kronecker structure explicit in solver selection and implement via Kronecker linear operator
-
-    return linear_solver
+    # Combine assumptions on A with distribution assumptions
+    if prior_info_view == "matrix":
+        if isinstance(A.cov(), linear_operators.SymmetricKronecker):
+            return _SymmetricMatrixSolver(A=A, b=b, A_mean=A.mean(), A_covfactor=A.cov().A,
+                                                   Ainv_mean=Ainv.mean(), Ainv_covfactor=Ainv.cov().A)
+        elif isinstance(A.cov(), linear_operators.Kronecker):
+            return _GeneralMatrixSolver(A=A, b=b)
+        else:
+            raise NotImplementedError
+    elif prior_info_view == "solution":
+        return _BayesCG(A=A, b=b, x=x0)
+    else:
+        raise NotImplementedError
 
 
 def _check_convergence(iter, maxiter, resid, resid_tol):
