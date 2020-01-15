@@ -3,7 +3,8 @@ import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 
-from probnum.linalg import linear_solvers
+from probnum.linalg import linear_solvers, linear_operators
+from probnum import probability
 
 
 # Linear solvers
@@ -107,6 +108,21 @@ def test_sparse_poisson(plinsolve):
     #
     # x_solver, _, _, info = plsolve(A=Poisson1D, b=b)
     # np.testing.assert_allclose(x_solver, x, rtol=1e-2)
+
+
+@pytest.mark.parametrize("matlinsolve", [linear_solvers.problinsolve])
+def test_matrixprior(matlinsolve):
+    # Linear system
+    n=10
+    A = np.random.rand(n, n)
+    A = A.dot(A.T) + n * np.eye(n)  # Symmetrize and make diagonally dominant
+    b = np.random.rand(n, 1)
+
+    # Prior distribution on A
+    covA = linear_operators.SymmetricKronecker(A=np.eye(n), B=np.eye(n))
+    Ainv0 = probability.RandomVariable(distribution=probability.Normal(mean=np.eye(n), cov=covA))
+
+    x, A, Ainv, info = matlinsolve(A=A, Ainv0=Ainv0, b=b)
 
 
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])

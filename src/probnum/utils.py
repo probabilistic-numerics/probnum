@@ -36,7 +36,7 @@ def atleast_1d(*rvs):
         elif isinstance(rv, np.ndarray):
             result = np.atleast_1d(rv)
         elif isinstance(rv, probnum.probability.RandomVariable):
-            result = atleast_1d(rv.mean)
+            raise NotImplementedError
         else:
             result = rv
         res.append(result)
@@ -73,7 +73,7 @@ def atleast_2d(*rvs):
         elif isinstance(rv, np.ndarray):
             result = np.atleast_2d(rv)
         elif isinstance(rv, probnum.probability.RandomVariable):
-            result = atleast_2d(rv.mean)
+            raise NotImplementedError
         else:
             result = rv
         res.append(result)

@@ -7,6 +7,7 @@ one would expect from matrix algebra.
 
 Several algorithms in the :mod:`probnum.linalg` library are able to operate on :class:`LinearOperator` instances.
 """
+import warnings
 
 import numpy as np
 import scipy.sparse.linalg
@@ -77,6 +78,20 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     array([ 2.,  3.])
 
     """
+# TODO: allow creation from custom function
+    # def __new__(cls, *args, **kwargs):
+    #     if cls is LinearOperator:
+    #         # Operate as _CustomLinearOperator factory.
+    #         return super(LinearOperator, cls).__new__(scipy.sparse.linalg.interface._CustomLinearOperator)
+    #     else:
+    #         obj = super(LinearOperator, cls).__new__(cls)
+    #
+    #         if (type(obj)._matvec == scipy.sparse.linalg.LinearOperator._matvec
+    #                 and type(obj)._matmat == scipy.sparse.linalg.LinearOperator._matmat):
+    #             warnings.warn("LinearOperator subclass should implement at least one of _matvec and _matmat.",
+    #                           category=RuntimeWarning, stacklevel=2)
+    #
+    #         return obj
 
     # Overload arithmetic operators to give access to implemented functions (e.g. todense())
     def __rmul__(self, x):
@@ -293,6 +308,7 @@ class Diagonal(LinearOperator):
     Op : LinearOperator
         Linear operator of which to represent the diagonal.
     """
+
     # TODO: should this be an operator itself or a function of a LinearOperator?
     #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient versions than n products e_i A e_i
     def __init__(self, Op):
