@@ -107,11 +107,11 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     >>> np.random.seed(1)
     >>> n = 20
     >>> A = np.random.rand(n, n)
-    >>> A = 0.5 * (A + A.T) + n * np.eye(n)
+    >>> A = 0.5 * (A + A.T) + 5 * np.eye(n)
     >>> b = np.random.rand(n)
     >>> x, A, Ainv, info = problinsolve(A=A, b=b)
     >>> print(info["iter"])
-    7
+    10
     """
 
     # Check linear system for type and dimension mismatch
@@ -594,7 +594,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             v = delta - 0.5 * (obs.T @ delta) * u
 
             # rank 2 mean update (+= uv' + vu')
-            # TODO: should we perform these updates in operator form?
+            # TODO: should we really perform these updates in operator form?
             uvT = u @ v.T
             self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + linear_operators.MatrixMult(uvT + uvT.T)
 
@@ -614,16 +614,19 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         Ainv = probability.RandomVariable(shape=self.Ainv_mean.shape,
                                           dtype=float,
                                           distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
-        # Induced distribution on x via Ainv
-        # TODO: Derive normal distribution parameters with (symmetric Kronecker) structure; direct computation is inefficient
-        x = (self.Ainv_mean @ self.b).ravel()  # probability.Normal(mean=self.Ainv_mean @ self.b, cov= cov_Ainv @ self.b)
+        # Induced distribution on x via Ainv (see Hennig2020)
+        # E = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
+        Wb = self.Ainv_covfactor @ self.b
+        # TODO: do we want todense() here or just not a linear operator?
+        x = probability.Normal(mean=(self.Ainv_mean @ self.b).ravel(),
+                               cov=0.5 * (self.Ainv_covfactor.todense() * (Wb.T @ self.b) + Wb @ Wb.T))
 
         # Log information on solution
         # TODO: matrix condition from solver (see scipy solvers)
         info = {
             "iter": iter_,
             "maxiter": maxiter,
-            "resid": resid,
+            "resid_l2norm": np.linalg.norm(resid, ord=2),
             "conv_crit": _conv_crit,
             "matrix_cond": None
         }

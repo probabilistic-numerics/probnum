@@ -49,11 +49,11 @@ def test_symmetric_posterior_params(matblinsolve):
     Ainv_cov_A = Ainv.cov().A.todense()
     Ainv_cov_B = Ainv.cov().B.todense()
     np.testing.assert_allclose(Ainv_mean,
-                               Ainv_mean.T, rtol=1e-2)
+                               Ainv_mean.T, rtol=1e-4)
     np.testing.assert_allclose(Ainv_cov_A,
                                Ainv_cov_B, rtol=1e-6)
     np.testing.assert_allclose(Ainv_cov_A,
-                               Ainv_cov_A.T, rtol=1e-2)
+                               Ainv_cov_A.T, rtol=1e-4)
 
 
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
@@ -67,7 +67,7 @@ def test_zero_rhs(plinsolve):
 
     for tol in tols:
         x, _, _, info = plinsolve(A=A, b=b, resid_tol=tol)
-        np.testing.assert_allclose(x, 0, atol=1e-15)
+        np.testing.assert_allclose(x.mean(), 0, atol=1e-15)
 
 
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
@@ -93,7 +93,7 @@ def test_spd_matrix(plinsolve):
     x = np.linalg.solve(A, b)
 
     x_solver, _, _, info = plinsolve(A=A, b=b)
-    np.testing.assert_allclose(x_solver, x, rtol=1e-2)
+    np.testing.assert_allclose(x_solver.mean(), x, rtol=1e-4)
 
 
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
