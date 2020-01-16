@@ -28,12 +28,13 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     .. math:: Ax=b,
 
     where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`. They return a probability measure
-    which quantifies uncertainty in the output arising from finite computational resources.
-
-    This solver can take prior information either on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in
+    which quantifies uncertainty in the output arising from finite computational resources. This solver can take prior
+    information either on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in
     the form of a random variable ``A0`` or ``Ainv0`` and outputs a posterior belief over :math:`A` or :math:`H`. This
     code implements the method described in [1]_, [2]_ and [3]_.
 
+    References
+    ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
     .. [3] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
@@ -41,8 +42,8 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
     Notes
     -----
-    For a specific class of priors this recovers the iterates of the conjugate gradient method as the posterior mean of
-    the induced distribution on :math:`x=Hb`.
+    For a specific class of priors the probabilistic linear solver recovers the iterates of the conjugate gradient
+    method as the posterior mean of the induced distribution on :math:`x=Hb`.
 
     Parameters
     ----------
@@ -102,6 +103,15 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
     Examples
     --------
+    >>> import numpy as np
+    >>> np.random.seed(1)
+    >>> n = 20
+    >>> A = np.random.rand(n, n)
+    >>> A = 0.5 * (A + A.T) + n * np.eye(n)
+    >>> b = np.random.rand(n)
+    >>> x, A, Ainv, info = problinsolve(A=A, b=b)
+    >>> print(info["iter"])
+    7
     """
 
     # Check linear system for type and dimension mismatch
@@ -119,12 +129,12 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         maxiter = n * 10
 
     # Solve linear system
-    x, A, Ainv, info = linear_solver.solve(maxiter=maxiter, resid_tol=resid_tol)
+    x, A_post, Ainv_post, info = linear_solver.solve(maxiter=maxiter, resid_tol=resid_tol)
 
     # Check solution and issue warnings (e.g. singular or ill-conditioned matrix)
     _check_solution(info=info)
 
-    return x, A, Ainv, info
+    return x, A_post, Ainv_post, info
 
 
 def bayescg(A, b, x0=None, maxiter=None, resid_tol=None):
@@ -133,9 +143,12 @@ def bayescg(A, b, x0=None, maxiter=None, resid_tol=None):
 
     In the setting where :math:`A` is a symmetric positive-definite matrix, this solver takes prior information
     on the solution and outputs a posterior belief over :math:`x`. This code implements the
-    method described in [1]_. Note that the solution-based view of BayesCG and the matrix-based view of
-    :meth:`problinsolve` correspond (see [2]_).
+    method described in Cockayne et al. [1]_.
 
+    Note that the solution-based view of BayesCG and the matrix-based view of :meth:`problinsolve` correspond [2]_.
+
+    References
+    ----------
     .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
     .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
 
@@ -303,19 +316,24 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
         raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
 
     # Choose prior if none specified, based on matrix assumptions in "assume_A"
-    # TODO: Automatic prior selection based on data scale, etc.?
+    # TODO: Automatic prior selection based on data scale, matrix trace, etc.?
+    # TODO: Consider situation where only a pre-conditioner is given
+    if A0 is None and Ainv0 is None:
+        dist = probability.Normal(mean=np.eye(A.shape[0]),
+                                  cov=linear_operators.SymmetricKronecker(np.eye(A.shape[0]), np.eye(A.shape[0])))
+        Ainv0 = probability.RandomVariable(distribution=dist)
 
     # Translate A0 prior into Ainv0 prior or vice versa
+    # TODO: Implement theory from paper
     if A0 is None:
         dist = probability.Normal(mean=np.eye(A.shape[0]),
                                   cov=linear_operators.SymmetricKronecker(np.eye(A.shape[0]), np.eye(A.shape[0])))
         A0 = probability.RandomVariable(distribution=dist)  # Remove me
-    # TODO: Implement theory from paper
 
     # Transform linear system to correct dimensions
-    b = probnum.utils.atleast_1d(b)
+    b = probnum.utils.as_colvec(b)  # (n,) -> (n, 1)
     if x0 is not None:
-        x = probnum.utils.atleast_1d(x0)
+        x = probnum.utils.as_colvec(x0)  # (n,) -> (n, 1)
 
     assert (not (Ainv0 is None and x is None)), "Neither Ainv nor x are specified."
 
@@ -392,6 +410,7 @@ def _check_convergence(iter, maxiter, resid, resid_tol):
     """
     # maximum iterations
     if iter >= maxiter:
+        warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
         return True, "maxiter"
     # residual below error tolerance
     # todo: add / replace with relative tolerance
@@ -421,10 +440,11 @@ def _check_solution(info):
     LinAlgWarning
         If an ill-conditioned input a is detected.
     """
-    raise NotImplementedError
-    # Singular matrix
 
+    # Singular matrix
+    # TODO: get info from solver
     # Ill-conditioned matrix A
+    pass
 
 
 class _ProbabilisticLinearSolver(abc.ABC):
@@ -494,6 +514,8 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
 
     Implements the solve iteration of the symmetric matrix-based probabilistic linear solver [1]_ [2]_ [3]_.
 
+    References
+    ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
     .. [3] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
@@ -515,6 +537,17 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
     Ainv_covfactor : array-like or LinearOperator
         The Kronecker factor :math:`W_H` of the covariance :math:`\\operatorname{Cov}(H) = W_H \\otimes_s W_H` of
         :math:`H = A^{-1}`.
+
+    Returns
+    -------
+    A : RandomVariable
+        Posterior belief over the linear operator.
+    Ainv : RandomVariable
+        Posterior belief over the inverse linear operator.
+    x : RandomVariable
+        Posterior belief over the solution of the linear system.
+    info : dict
+        Information about convergence and the solution.
     """
 
     def __init__(self, A, b, A_mean, A_covfactor, Ainv_mean, Ainv_covfactor):
@@ -524,72 +557,6 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         self.Ainv_covfactor = Ainv_covfactor
         # TODO: call class function here which derives missing prior mean and covariance via posterior correspondence
         super().__init__(A=A, b=b)
-
-    @staticmethod
-    def _mean_update_operator(u, v, shape):
-        """
-        Implements the rank 2 update term for the posterior mean of :math:`H`.
-
-        Parameters
-        ----------
-        u : array-like
-            Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
-        v : array-like
-            Update vector :math:`v_i=\\Delta - \\frac{1}{2} u_iy_i^{\\top}\\Delta`
-        shape : tuple
-            Shape of the resulting update operator.
-
-        Returns
-        -------
-        update : probnum.linalg.linear_operators.LinearOperator
-        """
-
-        def mv(x):
-            return (v.T @ x) * u + (u.T @ x) * v
-
-        def mm(M):
-            return u @ (M @ v).T + v @ (u @ M).T
-
-        return probnum.linalg.linear_operators.LinearOperator(
-            shape=shape,
-            matvec=mv,
-            rmatvec=mv,
-            matmat=mm,
-            dtype=u.dtype
-        )
-
-    @staticmethod
-    def _cov_kron_fac_update_operator(u, Wy, shape):
-        """
-        Implements the rank 1 update term for the posterior covariance Kronecker factor :math:`W`.
-
-        Parameters
-        ----------
-        u : array-like
-            Update vector :math:`u_i=\\frac{W_iy_i}{y_i^{\\top}W_iy_i}`
-        Wy : array-like
-            Update vector :math:`W_iy_i`
-        shape : tuple
-            Shape of the resulting update operator.
-
-        Returns
-        -------
-        update : LinearOperator
-        """
-
-        def mv(x):
-            return (Wy.T @ x) * u
-
-        def mm(M):
-            return u @ (M @ Wy).T
-
-        return probnum.linalg.linear_operators.LinearOperator(
-            shape=shape,
-            matvec=mv,
-            rmatvec=mv,
-            matmat=mm,
-            dtype=u.dtype
-        )
 
     def solve(self, maxiter, resid_tol):
         # initialization
@@ -627,19 +594,29 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             v = delta - 0.5 * (obs.T @ delta) * u
 
             # rank 2 mean update (+= uv' + vu')
-            # todo: only use linear operators if necessary (only create update operators if H is a LinearOperator)
-            self.Ainv_mean = self.Ainv_mean + self._mean_update_operator(u=u, v=v, shape=(n, n))
+            # TODO: should we perform these updates in operator form?
+            uvT = u @ v.T
+            self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + linear_operators.MatrixMult(uvT + uvT.T)
 
             # rank 1 covariance kronecker factor update (-= u(Wy)')
-            self.Ainv_covfactor = self.Ainv_covfactor - self._cov_kron_fac_update_operator(u=u, Wy=Wy, shape=(n, n))
+            self.Ainv_covfactor = linear_operators.aslinop(self.Ainv_covfactor) - linear_operators.MatrixMult(Wy @ u.T)
 
             # iteration increment
             iter_ += 1
 
         # Create output random variables
-        _A = probability.Normal(mean=self.A_mean, cov=self.A_covfactor)
-        _Ainv = probability.Normal(mean=self.Ainv_mean, cov=self.Ainv_covfactor)
-        _x = _Ainv @ self.b  # induced distribution on x via Ainv
+        A = probability.RandomVariable(shape=self.A_mean.shape,
+                                       dtype=float,
+                                       distribution=probability.Normal(mean=self.A_mean,
+                                                                       cov=linear_operators.SymmetricKronecker(
+                                                                           A=self.A_covfactor, B=self.A_covfactor)))
+        cov_Ainv = linear_operators.SymmetricKronecker(A=self.Ainv_covfactor, B=self.Ainv_covfactor)
+        Ainv = probability.RandomVariable(shape=self.Ainv_mean.shape,
+                                          dtype=float,
+                                          distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
+        # Induced distribution on x via Ainv
+        # TODO: Derive normal distribution parameters with (symmetric Kronecker) structure; direct computation is inefficient
+        x = (self.Ainv_mean @ self.b).ravel()  # probability.Normal(mean=self.Ainv_mean @ self.b, cov= cov_Ainv @ self.b)
 
         # Log information on solution
         # TODO: matrix condition from solver (see scipy solvers)
@@ -651,7 +628,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             "matrix_cond": None
         }
 
-        return _A, _Ainv, _x, info
+        return x, A, Ainv, info
 
 
 class _BayesCG(_ProbabilisticLinearSolver):
@@ -660,6 +637,8 @@ class _BayesCG(_ProbabilisticLinearSolver):
 
     Implements the solve iteration of BayesCG [1]_ [2]_.
 
+    References
+    ----------
     .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
     .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
 

@@ -35,15 +35,15 @@ def test_rv_from_ndarray(arr):
 #     probability.asrandvar(A)
 
 
-# def test_rv_linop_kroneckercov():
-#     """Create a random variable with linear operator mean and Kronecker product covariance."""
-#
-#     def mv(v):
-#         return np.array([2 * v[0], 3 * v[1]])
-#
-#     A = LinearOperator(shape=(2, 2), matvec=mv)
-#     V = Kronecker(A, A)
-#     probability.RandomVariable(mean=A, cov=V)
+def test_rv_linop_kroneckercov():
+    """Create a random variable with linear operator mean and Kronecker product covariance."""
+
+    def mv(v):
+        return np.array([2 * v[0], 3 * v[1]])
+
+    A = linear_operators.LinearOperator(shape=(2, 2), matvec=mv)
+    V = linear_operators.Kronecker(A, A)
+    probability.RandomVariable(distribution=probability.Normal(mean=A, cov=V))
 
 
 # Random variable arithmetic
@@ -52,6 +52,10 @@ matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
 linops2d = [linear_operators.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
 randvars2d = [
     probability.RandomVariable(distribution=probability.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]])))]
+randvars2x2 = [
+    probability.Normal(mean=np.array([[-2, .3], [0, 1]]),
+                       cov=linear_operators.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))))
+]
 
 
 @pytest.mark.parametrize("x,rv", list(itertools.product(arrays2d, randvars2d)))
@@ -105,6 +109,18 @@ def test_rv_linop_matmul(A, rv):
     """Linear operator applied to a random variable."""
     y = A @ rv + np.array([-1, 1.1])
     assert y.shape[0] == A.shape[0]
+
+
+@pytest.mark.parametrize("rv", randvars2x2)
+def test_rv_vector_product(rv):
+    """Matrix-variate random variable applied to vector."""
+    x = np.array([1, -4])
+    y = rv @ x
+    y1 = rv @ x[:, None]
+    assert isinstance(y, probability.RandomVariable)
+    assert isinstance(y1, probability.RandomVariable)
+    np.testing.assert_equal(y.shape == (2,))
+    np.testing.assert_equal(y1.shape == (2, 1))
 
 
 @pytest.mark.parametrize("rv1, rv2", [(probability.RandomVariable(), probability.RandomVariable())])
@@ -180,3 +196,17 @@ def test_sample_zero_cov(mean, cov):
         np.testing.assert_allclose(dist_sample, dist.mean().todense(), err_msg=assert_str)
     else:
         np.testing.assert_allclose(dist_sample, dist.mean(), err_msg=assert_str)
+
+
+def test_symmetric_samples():
+    """Samples from a normal distribution with symmetric Kronecker covariance of two symmetric matrices are
+    symmetric."""
+    n = 25
+    A = np.random.uniform(size=(n, n))
+    A = 0.5 * (A + A.T)
+    dist = probability.Normal(mean=A, cov=linear_operators.SymmetricKronecker(A=np.ones((n, n)), B=np.ones((n, n))),
+                              random_state=100)
+    dist_sample = dist.sample(size=10)
+    for B in dist_sample:
+        np.testing.assert_allclose(B, B.T, atol=1e-5, rtol=1e-5,
+                                   err_msg="Sample from symmetric Kronecker distribution is not symmetric.")

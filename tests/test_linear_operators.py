@@ -6,10 +6,12 @@ import scipy.sparse.linalg
 
 from probnum.linalg import linear_operators
 
+
 # Linear operator construction
 
 def mv(v):
     return np.array([2 * v[0], v[0] + 3 * v[1]])
+
 
 def test_linop_construction():
     """Create linear operators via various construction methods."""
@@ -25,13 +27,17 @@ def test_linop_construction():
 # Linear operator arithmetic
 np.random.seed(42)
 scalars = [0, int(1), .1, -4.2, np.nan, np.inf]
-arrays = [np.random.normal(size=[5, 4]), np.array([[3, 4], [1, 5]])]
-ops = [linear_operators.MatrixMult(np.array([[-1.5, 3], [0, -230]])),
+arrays = [np.random.normal(size=[5, 4]), np.array([[3, 4],
+                                                   [1, 5]])]
+ops = [linear_operators.MatrixMult(np.array([[-1.5, 3],
+                                             [0, -230]])),
        linear_operators.LinearOperator(shape=(2, 2), matvec=mv),
        linear_operators.Identity(shape=4),
-       linear_operators.Kronecker(A=linear_operators.MatrixMult(np.array([[2, -3.5], [12, 6.5]])),
+       linear_operators.Kronecker(A=linear_operators.MatrixMult(np.array([[2, -3.5],
+                                                                          [12, 6.5]])),
                                   B=linear_operators.Identity(shape=2)),
-       linear_operators.SymmetricKronecker(A=linear_operators.MatrixMult(np.array([[1, -2], [-2.2, 5]])),
+       linear_operators.SymmetricKronecker(A=linear_operators.MatrixMult(np.array([[1, -2],
+                                                                                   [-2.2, 5]])),
                                            B=linear_operators.MatrixMult(np.array([[1, -3],
                                                                                    [0, -.5]])))]
 
@@ -60,6 +66,8 @@ def test_matvec(op):
     A = op.todense()
     x = np.random.normal(size=op.shape[1])
     np.testing.assert_allclose(A @ x, op @ x)
+    np.testing.assert_allclose(A @ x[:, None], op @ x[:, None],
+                               err_msg="Matrix-vector multiplication with (n,1) vector failed.")
 
 
 # Basic operations

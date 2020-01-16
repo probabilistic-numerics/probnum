@@ -19,12 +19,18 @@ LinearOperator
 
       ~LinearOperator.__call__
       ~LinearOperator.adjoint
+      ~LinearOperator.cond
+      ~LinearOperator.det
       ~LinearOperator.dot
+      ~LinearOperator.eigvals
+      ~LinearOperator.logabsdet
       ~LinearOperator.matmat
       ~LinearOperator.matvec
+      ~LinearOperator.rank
       ~LinearOperator.rmatmat
       ~LinearOperator.rmatvec
       ~LinearOperator.todense
+      ~LinearOperator.trace
       ~LinearOperator.transpose
 
    .. rubric:: Attributes Documentation
@@ -36,10 +42,16 @@ LinearOperator
 
    .. automethod:: __call__
    .. automethod:: adjoint
+   .. automethod:: cond
+   .. automethod:: det
    .. automethod:: dot
+   .. automethod:: eigvals
+   .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec
+   .. automethod:: rank
    .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
+   .. automethod:: trace
    .. automethod:: transpose

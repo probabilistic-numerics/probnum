@@ -209,13 +209,42 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         """
         return self.matmat(np.eye(self.shape[1], dtype=self.dtype))
 
-    def eigs(self):
-        """Eigenvalue spectrum of the linear operator."""
+    def rank(self):
+        """Rank of the linear operator."""
         # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
         raise NotImplementedError
 
-    def cond(self):
-        """Condition number of the linear operator."""
+    def eigvals(self):
+        """Eigenvalue spectrum of the linear operator."""
+        raise NotImplementedError
+
+    def cond(self, p=None):
+        """
+        Compute the condition number of the linear operator.
+
+        The condition number of the linear operator with respect to the ``p`` norm. It measures how much the solution
+        :math:`x` of the linear system :math:`Ax=b` changes with respect to small changes in :math:`b`.
+
+        Parameters
+        ----------
+        p : {None, 1, , 2, , inf, 'fro'}, optional
+            Order of the norm:
+
+            =======  ============================
+            p        norm for matrices
+            =======  ============================
+            None     2-norm, computed directly via singular value decomposition
+            'fro'    Frobenius norm
+            np.inf   max(sum(abs(x), axis=1))
+            1        max(sum(abs(x), axis=0))
+            2        2-norm (largest sing. value)
+            =======  ============================
+
+        Returns
+        -------
+        cond : {float, inf}
+            The condition number of the linear operator. May be infinite.
+        """
         raise NotImplementedError
 
     def det(self):
@@ -325,6 +354,24 @@ class Identity(LinearOperator):
     def todense(self):
         return np.eye(N=self.shape[0], M=self.shape[1])
 
+    def rank(self):
+        return self.shape[0]
+
+    def eigvals(self):
+        return np.ones(self.shape[0])
+
+    def cond(self, p=None):
+        return 1.
+
+    def det(self):
+        return 1.
+
+    def logabsdet(self):
+        return 0.
+
+    def trace(self):
+        return self.shape[0]
+
 
 class Diagonal(LinearOperator):
     """
@@ -361,13 +408,34 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
     def _matmat(self, X):
         return self.A @ X
 
-    # TODO: overload arithmetic operators to prevent lazy arithmetic. Use numpy/scipy matrix arithmetic instead.
-
     def todense(self):
         if isinstance(self.A, scipy.sparse.spmatrix):
             return self.A.todense()
         else:
             return np.asarray(self.A)
+
+    # Arithmetic operations
+    # TODO: perform arithmetic operations between MatrixMult operators explicitly
+
+    # Properties
+    def rank(self):
+        return np.linalg.matrix_rank(self.A)
+
+    def eigvals(self):
+        return np.linalg.eigvals(self.A)
+
+    def cond(self, p=None):
+        return np.linalg.cond(self.A, p=p)
+
+    def det(self):
+        return np.linalg.det(self.A)
+
+    def logabsdet(self):
+        sign, logdet = np.linalg.slogdet(self.A)
+        return logdet
+
+    def trace(self):
+        return np.trace(self.A)
 
 
 class Vec(LinearOperator):
@@ -427,6 +495,8 @@ class Svec(LinearOperator):
 
     where :math:`S` is a symmetric linear operator defined on :math:`\\mathbb{R}^n`.
 
+    References
+    ----------
     .. [1] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
 
     Notes
@@ -457,6 +527,8 @@ class Kronecker(LinearOperator):
     :math:`(A \\otimes B)\\operatorname{vec}(X) = AXB^{\\top}`, the Kronecker product can be understood as "translation"
     between matrix multiplication and (row-wise) vectorization.
 
+    References
+    ----------
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
             123, 85-100
 
@@ -482,21 +554,21 @@ class Kronecker(LinearOperator):
         super().__init__(dtype=dtype, shape=(self.A.shape[0] * self.B.shape[0],
                                              self.A.shape[1] * self.B.shape[1]))
 
-    def _matvec(self, x):
+    def _matvec(self, X):
         """
         Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the row-wise vectorization operator.
         """
-        x = x.reshape(self.A.shape[1], self.B.shape[1])
-        y = self.B.matmat(x.T)
-        return self.A.matmat(y.T).ravel()
+        X = X.reshape(self.A.shape[1], self.B.shape[1])
+        Y = self.B.matmat(X.T)
+        return self.A.matmat(Y.T).ravel()
 
-    def _rmatvec(self, x):
+    def _rmatvec(self, X):
         """
         Based on (A (x) B)^T = A^T (x) B^T.
         """
-        x = x.reshape(self.A.shape[0], self.B.shape[0])
-        y = self.B.H.matmat(x.T)
-        return self.A.H.matmat(y.T).ravel()
+        X = X.reshape(self.A.shape[0], self.B.shape[0])
+        Y = self.B.H.matmat(X.T)
+        return self.A.H.matmat(Y.T).ravel()
 
 
 def _vec2svec(n):
@@ -507,6 +579,8 @@ def _vec2svec(n):
     :math:`\\operatorname{svec}(S) = Q\\operatorname{vec}(S)` [1]_ used to efficiently compute the symmetric Kronecker
     product.
 
+    References
+    ----------
     .. [1] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
 
     Parameters
@@ -568,6 +642,8 @@ class SymmetricKronecker(LinearOperator):
     implementation is based on the relationship :math:`Q^\\top \\operatorname{svec}(X) = \\operatorname{vec}(X)` with an
     orthonormal matrix :math:`Q` [2]_.
 
+    References
+    ----------
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
             123, 85-100
     .. [2] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
@@ -581,7 +657,8 @@ class SymmetricKronecker(LinearOperator):
     Kronecker : The Kronecker product of two linear operators.
     """
 
-    # TODO: Make sure definition matches the one in "Hennig, P. and Osborne M. A., Probabilistic Numerics, 2020"
+    # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1), representation symmetric n2xn2
+
     def __init__(self, A, B, dtype=None):
         # Set parameters
         self.A = aslinop(A)
@@ -590,41 +667,42 @@ class SymmetricKronecker(LinearOperator):
         if self.A.shape != self.B.shape or self.A.shape[1] != self._n:
             raise ValueError("Linear operators A and B must be square and have the same dimensions.")
 
-        # Orthonormal Q: svec to vec mapping
-        self._Q = _vec2svec(n=self._n)
-
         # Initiator of superclass
-        n_symkron = int(0.5 * self._n * (self._n + 1))
-        super().__init__(dtype=dtype, shape=(n_symkron, n_symkron))
+        super().__init__(dtype=dtype, shape=(self._n ** 2, self._n ** 2))
 
     def _matvec(self, x):
         """
-        Efficient multiplication via (A (x)_s B)svec(X) = 1/2 svec(BXA^T + AXB^T) where svec is the column-wise normalized
+        Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where vec is the column-wise normalized
         symmetric stacking operator.
         """
-        # Q^T svec(x) = vec(x)
-        X = (self._Q.transpose() @ x).reshape(self._n, self._n)
+        # vec(x)
+        X = x.reshape(self._n, self._n)
 
-        # (A (x)_s B)svec(X) = 1/2 Q vec(BXA^T + AXB^T)
-        Y = self.B @ (self.A @ X).transpose()
-        Y = Y + Y.transpose()
-        return 0.5 * self._Q @ Y.ravel()
+        # (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T)
+        Y1 = (self.A @ (self.B @ X).T).T
+        Y2 = (self.B @ (self.A @ X).T).T
+        Y = 0.5 * (Y1 + Y2)
+        return Y.ravel()
 
     def _rmatvec(self, x):
         """Based on (A (x)_s B)^T = A^T (x)_s B^T."""
-        # Q^T svec(x) = vec(x)
-        X = (self._Q.transpose() @ x).reshape(self._n, self._n)
+        # vec(x)
+        X = x.reshape(self._n, self._n)
 
-        # (A^T (x)_s B^T)svec(X) = 1/2 Q vec(B^T XA + A^T XB)
-        Y = self.B.transpose() @ (self.A.transpose() @ X).transpose()
-        Y = Y + Y.transpose()
-        return 0.5 * self._Q @ Y.ravel()
+        # (A^T (x)_s B^T)vec(X) = 1/2 vec(B^T XA + A^T XB)
+        Y1 = (self.A.H @ (self.B.H @ X).T).T
+        Y2 = (self.B.H @ (self.A.H @ X).T).T
+        Y = 0.5 * (Y1 + Y2)
+        return Y.ravel()
 
     # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker properties
 
-    # def todense(self):
-    #     """Dense representation of the symmetric Kronecker product"""
-    #     # TODO: return n^2 x n^2 representation here?
+    def todense(self):
+        """Dense representation of the symmetric Kronecker product"""
+        # 1/2 (A (x) B + B (x) A)
+        A_dense = self.A.todense()
+        B_dense = self.B.todense()
+        return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
 
 
 def aslinop(A):

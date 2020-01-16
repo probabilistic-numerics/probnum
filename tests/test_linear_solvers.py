@@ -45,10 +45,15 @@ def test_symmetric_posterior_params(matblinsolve):
     b = np.random.rand(n)
 
     _, _, Ainv, _ = matblinsolve(A=A, b=b)
-    np.testing.assert_allclose(Ainv.mean.matmat(np.eye(n)),
-                               Ainv.mean.H.matmat(np.eye(n)), rtol=1e-2)
-    np.testing.assert_allclose(Ainv.cov.cov_kronfac.matmat(np.eye(n)),
-                               Ainv.cov.cov_kronfac.H.matmat(np.eye(n)), rtol=1e-2)
+    Ainv_mean = Ainv.mean().todense()
+    Ainv_cov_A = Ainv.cov().A.todense()
+    Ainv_cov_B = Ainv.cov().B.todense()
+    np.testing.assert_allclose(Ainv_mean,
+                               Ainv_mean.T, rtol=1e-2)
+    np.testing.assert_allclose(Ainv_cov_A,
+                               Ainv_cov_B, rtol=1e-6)
+    np.testing.assert_allclose(Ainv_cov_A,
+                               Ainv_cov_A.T, rtol=1e-2)
 
 
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
@@ -113,7 +118,7 @@ def test_sparse_poisson(plinsolve):
 @pytest.mark.parametrize("matlinsolve", [linear_solvers.problinsolve])
 def test_matrixprior(matlinsolve):
     # Linear system
-    n=10
+    n = 10
     A = np.random.rand(n, n)
     A = A.dot(A.T) + n * np.eye(n)  # Symmetrize and make diagonally dominant
     b = np.random.rand(n, 1)

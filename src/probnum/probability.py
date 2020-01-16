@@ -1236,6 +1236,8 @@ class Normal(Distribution):
             return Normal(mean=self.parameters["mean"] @ delta,
                           cov=delta @ (self.parameters["cov"] @ delta.transpose()),
                           random_state=self.random_state)
+        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
+        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
                                                                           other.__class__.__name__))

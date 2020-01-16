@@ -19,12 +19,18 @@ Identity
 
       ~Identity.__call__
       ~Identity.adjoint
+      ~Identity.cond
+      ~Identity.det
       ~Identity.dot
+      ~Identity.eigvals
+      ~Identity.logabsdet
       ~Identity.matmat
       ~Identity.matvec
+      ~Identity.rank
       ~Identity.rmatmat
       ~Identity.rmatvec
       ~Identity.todense
+      ~Identity.trace
       ~Identity.transpose
 
    .. rubric:: Attributes Documentation
@@ -36,10 +42,16 @@ Identity
 
    .. automethod:: __call__
    .. automethod:: adjoint
+   .. automethod:: cond
+   .. automethod:: det
    .. automethod:: dot
+   .. automethod:: eigvals
+   .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec
+   .. automethod:: rank
    .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
+   .. automethod:: trace
    .. automethod:: transpose

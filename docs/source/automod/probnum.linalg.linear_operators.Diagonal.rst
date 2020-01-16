@@ -19,12 +19,18 @@ Diagonal
 
       ~Diagonal.__call__
       ~Diagonal.adjoint
+      ~Diagonal.cond
+      ~Diagonal.det
       ~Diagonal.dot
+      ~Diagonal.eigvals
+      ~Diagonal.logabsdet
       ~Diagonal.matmat
       ~Diagonal.matvec
+      ~Diagonal.rank
       ~Diagonal.rmatmat
       ~Diagonal.rmatvec
       ~Diagonal.todense
+      ~Diagonal.trace
       ~Diagonal.transpose
 
    .. rubric:: Attributes Documentation
@@ -36,10 +42,16 @@ Diagonal
 
    .. automethod:: __call__
    .. automethod:: adjoint
+   .. automethod:: cond
+   .. automethod:: det
    .. automethod:: dot
+   .. automethod:: eigvals
+   .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec
+   .. automethod:: rank
    .. automethod:: rmatmat
    .. automethod:: rmatvec
    .. automethod:: todense
+   .. automethod:: trace
    .. automethod:: transpose
