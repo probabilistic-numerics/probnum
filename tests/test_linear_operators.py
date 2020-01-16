@@ -2,18 +2,24 @@ import itertools
 
 import pytest
 import numpy as np
+import scipy.sparse.linalg
 
 from probnum.linalg import linear_operators
 
-
 # Linear operator construction
+
+def mv(v):
+    return np.array([2 * v[0], v[0] + 3 * v[1]])
+
 def test_linop_construction():
     """Create linear operators via various construction methods."""
-    pass
-    # def mv(v):
-    #     return np.array([v[0], v[0] + v[1]])
-    #
-    # LinearOperator(shape=(2, 2), matvec=mv)
+
+    # Custom linear operator
+    linear_operators.LinearOperator(shape=(2, 2), matvec=mv)
+
+    # Scipy linear operator
+    # scipy_linop = scipy.sparse.linalg.LinearOperator(shape=(2, 2), matvec=mv)
+    # linear_operators.LinearOperator(scipy_linop)
 
 
 # Linear operator arithmetic
@@ -21,12 +27,13 @@ np.random.seed(42)
 scalars = [0, int(1), .1, -4.2, np.nan, np.inf]
 arrays = [np.random.normal(size=[5, 4]), np.array([[3, 4], [1, 5]])]
 ops = [linear_operators.MatrixMult(np.array([[-1.5, 3], [0, -230]])),
+       linear_operators.LinearOperator(shape=(2, 2), matvec=mv),
        linear_operators.Identity(shape=4),
        linear_operators.Kronecker(A=linear_operators.MatrixMult(np.array([[2, -3.5], [12, 6.5]])),
                                   B=linear_operators.Identity(shape=2)),
        linear_operators.SymmetricKronecker(A=linear_operators.MatrixMult(np.array([[1, -2], [-2.2, 5]])),
-                          B=linear_operators.MatrixMult(np.array([[1, -3],
-                                                                  [0, -.5]])))]
+                                           B=linear_operators.MatrixMult(np.array([[1, -3],
+                                                                                   [0, -.5]])))]
 
 
 @pytest.mark.parametrize("A, alpha", list(itertools.product(arrays, scalars)))

@@ -67,33 +67,33 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     >>> import numpy as np
     >>> from probnum.linalg.linear_operators import LinearOperator
     >>> def mv(v):
-    ...     return np.array([2*v[0], 3*v[1]])
+    ...     return np.array([2 * v[0] - v[1], 3 * v[1]])
     ...
-    >>> A = LinearOperator((2,2), matvec=mv)
+    >>> A = LinearOperator(shape=(2, 2), matvec=mv)
     >>> A
     <2x2 _CustomLinearOperator with dtype=float64>
-    >>> A.matvec(np.ones(2))
-    array([ 2.,  3.])
-    >>> A * np.ones(2)
-    array([ 2.,  3.])
-
+    >>> A.matvec(np.array([1., 2.]))
+    array([0., 6.])
+    >>> A @ np.ones(2)
+    array([1., 3.])
     """
-# TODO: allow creation from custom function
-    # def __new__(cls, *args, **kwargs):
-    #     if cls is LinearOperator:
-    #         # Operate as _CustomLinearOperator factory.
-    #         return super(LinearOperator, cls).__new__(scipy.sparse.linalg.interface._CustomLinearOperator)
-    #     else:
-    #         obj = super(LinearOperator, cls).__new__(cls)
-    #
-    #         if (type(obj)._matvec == scipy.sparse.linalg.LinearOperator._matvec
-    #                 and type(obj)._matmat == scipy.sparse.linalg.LinearOperator._matmat):
-    #             warnings.warn("LinearOperator subclass should implement at least one of _matvec and _matmat.",
-    #                           category=RuntimeWarning, stacklevel=2)
-    #
-    #         return obj
 
-    # Overload arithmetic operators to give access to implemented functions (e.g. todense())
+    def __new__(cls, *args, **kwargs):
+        if cls is LinearOperator:
+            # _CustomLinearOperator factory
+            return super().__new__(_CustomLinearOperator)
+        else:
+            obj = super().__new__(cls)
+
+            if (type(obj)._matvec == scipy.sparse.linalg.LinearOperator._matvec
+                    and type(obj)._matmat == scipy.sparse.linalg.LinearOperator._matmat):
+                warnings.warn("LinearOperator subclass should implement"
+                              " at least one of _matvec and _matmat.",
+                              category=RuntimeWarning, stacklevel=2)
+
+            return obj
+
+    # Overload arithmetic operators to give access to newly implemented functions (e.g. todense())
     def __rmul__(self, x):
         if np.isscalar(x):
             return _ScaledLinearOperator(self, x)
@@ -209,7 +209,34 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         """
         return self.matmat(np.eye(self.shape[1], dtype=self.dtype))
 
-    # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
+    def eigs(self):
+        """Eigenvalue spectrum of the linear operator."""
+        # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
+        raise NotImplementedError
+
+    def cond(self):
+        """Condition number of the linear operator."""
+        raise NotImplementedError
+
+    def det(self):
+        """Determinant of the linear operator."""
+        raise NotImplementedError
+
+    def logabsdet(self):
+        """Log absolute determinant of the linear operator."""
+        raise NotImplementedError
+
+    def trace(self):
+        """Trace of the linear operator."""
+        raise NotImplementedError
+
+
+class _CustomLinearOperator(scipy.sparse.linalg.interface._CustomLinearOperator, LinearOperator):
+    """Linear operator defined in terms of user-specified operations."""
+
+    def __init__(self, shape, matvec, rmatvec=None, matmat=None,
+                 rmatmat=None, dtype=None):
+        super().__init__(shape=shape, matvec=matvec, rmatvec=rmatvec, matmat=matmat, rmatmat=rmatmat, dtype=dtype)
 
 
 # TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4, maybe implement our own instead?
