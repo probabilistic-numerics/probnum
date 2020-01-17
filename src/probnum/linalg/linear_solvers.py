@@ -588,18 +588,28 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             resid = resid + step_size * obs
 
             # (symmetric) mean and covariance updates
+            Vs = self.A_covfactor @ search_dir
+            delta_A = obs - self.A_mean @ search_dir
+            u_A = Vs / (search_dir.T @ Vs)
+            v_A = delta_A - 0.5 * (search_dir.T @ delta_A) * u_A
+
             Wy = self.Ainv_covfactor @ obs
-            delta = search_dir - self.Ainv_mean @ obs
-            u = Wy / (obs.T @ Wy)
-            v = delta - 0.5 * (obs.T @ delta) * u
+            delta_Ainv = search_dir - self.Ainv_mean @ obs
+            u_Ainv = Wy / (obs.T @ Wy)
+            v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
 
-            # rank 2 mean update (+= uv' + vu')
+            # rank 2 mean updates (+= uv' + vu')
             # TODO: should we really perform these updates in operator form?
-            uvT = u @ v.T
-            self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + linear_operators.MatrixMult(uvT + uvT.T)
+            uvT_A = u_A @ v_A.T
+            uvT_Ainv = u_Ainv @ v_Ainv.T
+            self.A_mean = linear_operators.aslinop(self.A_mean) + linear_operators.MatrixMult(uvT_A + uvT_A.T)
+            self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + linear_operators.MatrixMult(
+                uvT_Ainv + uvT_Ainv.T)
 
-            # rank 1 covariance kronecker factor update (-= u(Wy)')
-            self.Ainv_covfactor = linear_operators.aslinop(self.Ainv_covfactor) - linear_operators.MatrixMult(Wy @ u.T)
+            # rank 1 covariance kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
+            self.A_covfactor = linear_operators.aslinop(self.A_covfactor) - linear_operators.MatrixMult(Vs @ u_A.T)
+            self.Ainv_covfactor = linear_operators.aslinop(self.Ainv_covfactor) - linear_operators.MatrixMult(
+                Wy @ u_Ainv.T)
 
             # iteration increment
             iter_ += 1
