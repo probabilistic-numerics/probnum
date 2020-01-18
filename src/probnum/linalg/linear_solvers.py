@@ -628,8 +628,11 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         # E = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
         Wb = self.Ainv_covfactor @ self.b
         # TODO: do we want todense() here or just not a linear operator?
-        x = probability.Normal(mean=(self.Ainv_mean @ self.b).ravel(),
-                               cov=0.5 * (self.Ainv_covfactor.todense() * (Wb.T @ self.b) + Wb @ Wb.T))
+        x = probability.RandomVariable(shape=(self.A_mean.shape[0],),
+                                       dtype=float,
+                                       distribution = probability.Normal(mean=(self.Ainv_mean @ self.b).ravel(),
+                                                                         cov=0.5 * (self.Ainv_covfactor.todense() * (
+                                                                                     Wb.T @ self.b) + Wb @ Wb.T)))
 
         # Log information on solution
         # TODO: matrix condition from solver (see scipy solvers)

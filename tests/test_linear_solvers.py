@@ -33,7 +33,22 @@ def test_dimension_mismatch(plinsolve):
                          x0=np.zeros(shape=[A.shape[1]])), assertion_warning
 
 
-# todo: Write matrices as variables and tests for output properties separately to run all combinations
+# todo: Write linear systems as parameters and test for output properties separately to run all combinations
+
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])
+def test_randvar_output(plinsolve):
+    """Probabilistic linear solvers output random variables"""
+    np.random.seed(1)
+    n = 10
+    A = np.random.rand(n, n)
+    A = 0.5 * (A + A.T) + n * np.eye(n)
+    b = np.random.rand(n)
+
+    x, A, Ainv, _ = plinsolve(A=A, b=b)
+    for rv in [x, A, Ainv]:
+        assert isinstance(rv,
+                          probability.RandomVariable), "Output of probabilistic linear solver is not a random variable."
+
 
 @pytest.mark.parametrize("matblinsolve", [linear_solvers.problinsolve])
 def test_symmetric_posterior_params(matblinsolve):

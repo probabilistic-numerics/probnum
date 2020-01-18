@@ -90,6 +90,8 @@ def test_rv_dotproduct(x, rv):
     """Dot product of random variables with constant vectors."""
     z1 = np.dot(x, rv)
     z2 = np.dot(rv, x)
+    z1 = rv @ x[:, None]
+    z2 = x[None, :] @ rv
     assert z1.shape == ()
     assert z2.shape == ()
     assert isinstance(z1, probability.RandomVariable)
