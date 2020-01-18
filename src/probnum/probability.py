@@ -995,13 +995,13 @@ class Normal(Distribution):
     Examples
     --------
     >>> from probnum.probability import Normal
-    >>> N = Normal(mean=0.5, cov=1)
-    >>> N1 = 2*N - 1
+    >>> N = Normal(mean=0.5, cov=1.)
+    >>> N1 = 2 * N - 1
     >>> N1.parameters
     {'mean': 0.0, 'cov': 4.0}
     """
 
-    def __init__(self, mean=0, cov=1, random_state=None):
+    def __init__(self, mean=0., cov=1., random_state=None):
         # Set dtype to float
         _dtype = float
 
@@ -1064,17 +1064,6 @@ class Normal(Distribution):
 
     # TODO: implement more efficient versions of (pdf, logpdf, sample) functions for linear operators without todense()
     # TODO: refactor into superclass with subclasses (_ScalarNormal, _VectorNormal, _MatrixNormal, _LinOpNormal)
-    def _params_todense(self):
-        """Returns the mean and covariance of a distribution as dense matrices."""
-        if isinstance(self.parameters["mean"], linear_operators.LinearOperator):
-            mean = self.parameters["mean"].todense()
-        else:
-            mean = self.parameters["mean"]
-        if isinstance(self.parameters["cov"], linear_operators.LinearOperator):
-            cov = self.parameters["cov"].todense()
-        else:
-            cov = self.parameters["cov"]
-        return mean, cov
 
     def pdf(self, x):
         if self._normal_type == "scalar":
@@ -1362,6 +1351,143 @@ class Normal(Distribution):
         except Exception:
             raise NotImplementedError(
                 "Inversion not implemented for {}.".format(self.__class__.__name__))
+
+
+class _UnivariateNormal(Normal):
+    """The univariate normal distribution."""
+
+    def __init__(self, mean=0., var=1., random_state=None):
+        super().__init__(mean=mean, cov=var, random_state=random_state)
+
+    def var(self):
+        return self.parameters["cov"]
+
+    def pdf(self, x):
+        return scipy.stats.norm.pdf(x, loc=self.mean(), scale=self.std())
+
+    def logpdf(self, x):
+        return scipy.stats.norm.logpdf(x, loc=self.mean(), scale=self.std())
+
+    def cdf(self, x):
+        return scipy.stats.norm.cdf(x, loc=self.mean(), scale=self.std())
+
+    def logcdf(self, x):
+        return scipy.stats.norm.logcdf(x, loc=self.mean(), scale=self.std())
+
+    def sample(self, size=()):
+        return scipy.stats.norm.rvs(loc=self.mean(), scale=self.std(), size=size, random_state=self.random_state)
+
+
+class _MultivariateNormal(Normal):
+    """The multivariate normal distribution."""
+
+    def __init__(self, mean, cov, random_state=None):
+        super().__init__(mean=mean, cov=cov, random_state=random_state)
+
+    def var(self):
+        return np.diag()
+
+    def cov(self):
+        return self.parameters["cov"]
+
+    def pdf(self, x):
+        return scipy.stats.multivariate_normal.pdf(x, mean=self.mean(), cov=self.cov())
+
+    def logpdf(self, x):
+        return scipy.stats.multivariate_normal.logpdf(x, mean=self.mean(), cov=self.cov())
+
+    def cdf(self, x):
+        return scipy.stats.multivariate_normal.cdf(x, mean=self.mean(), cov=self.cov())
+
+    def logcdf(self, x):
+        return scipy.stats.multivariate_normal.logcdf(x, mean=self.mean(), cov=self.cov())
+
+    def sample(self, size=()):
+        return scipy.stats.multivariate_normal.rvs(mean=self.mean(), cov=self.cov(), size=size,
+                                                   random_state=self.random_state)
+
+
+class _MatrixvariateNormal(Normal):
+    """The matrixvariate normal distribution."""
+
+    def __init__(self, mean, cov, random_state=None):
+        super().__init__(mean=mean, cov=cov, random_state=random_state)
+
+    def var(self):
+        return np.diag(self.parameters["cov"])
+
+    def cov(self):
+        return self.parameters["cov"]
+
+    def pdf(self, x):
+        # TODO: need to reshape x into number of matrices given
+        pdf_ravelled = scipy.stats.multivariate_normal.pdf(x.ravel(),
+                                                           mean=self.mean().ravel(),
+                                                           cov=self.cov())
+        # TODO: this reshape doesnt make sense, write test for multiple matrices
+        return pdf_ravelled.reshape(shape=self.mean().shape)
+
+    def logpdf(self, x):
+        raise NotImplementedError
+
+    def cdf(self, x):
+        raise NotImplementedError
+
+    def logcdf(self, x):
+        raise NotImplementedError
+
+    def sample(self, size=()):
+        samples_ravelled = scipy.stats.multivariate_normal.rvs(mean=self.mean().ravel(),
+                                                               cov=self.cov(),
+                                                               size=size,
+                                                               random_state=self.random_state)
+        # TODO: maybe distributions need an attribute sample_shape
+        return samples_ravelled.reshape(shape=self.mean().shape)
+
+
+class _OperatorvariateNormal(Normal):
+    """A normal distribution over finite dimensional linear operators."""
+
+    def __init__(self, mean, cov, random_state=None):
+        super().__init__(mean=mean, cov=cov, random_state=random_state)
+
+    def var(self):
+        return linear_operators.Diagonal(Op=self.parameters["cov"])
+
+    def cov(self):
+        return self.parameters["cov"]
+
+    def _params_todense(self):
+        """Returns the mean and covariance of a distribution as dense matrices."""
+        if isinstance(self.mean(), linear_operators.LinearOperator):
+            mean = self.mean().todense()
+        else:
+            mean = self.mean()
+        if isinstance(self.cov(), linear_operators.LinearOperator):
+            cov = self.cov().todense()
+        else:
+            cov = self.cov()
+        return mean, cov
+
+    def pdf(self, x):
+        raise NotImplementedError
+
+    def logpdf(self, x):
+        raise NotImplementedError
+
+    def cdf(self, x):
+        raise NotImplementedError
+
+    def logcdf(self, x):
+        raise NotImplementedError
+
+    def sample(self, size=()):
+        mean, cov = self._params_todense()
+        samples_ravelled = scipy.stats.multivariate_normal.rvs(mean=mean.ravel(),
+                                                               cov=cov,
+                                                               size=size,
+                                                               random_state=self.random_state)
+        return samples_ravelled.reshape(samples_ravelled.shape[:-1] + self.mean().shape)
 
 
 def asrandvar(obj):
