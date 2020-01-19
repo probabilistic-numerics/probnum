@@ -1005,7 +1005,9 @@ class Normal(Distribution):
         # Factory method for Normal subclasses
         if cls is Normal:
             # Check input for univariate, multivariate, matrix-variate or operator-variate
-            if np.isscalar(mean) and np.isscalar(cov):
+            dim1shapes = [(1, 1), (1,), ()]
+            if (np.isscalar(mean) and np.isscalar(cov)) or (
+                    np.shape(mean) in dim1shapes and np.shape(cov) in dim1shapes):
                 return super(Normal, cls).__new__(_UnivariateNormal)
             elif isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,)) and isinstance(cov,
                                                                                        (np.ndarray,
@@ -1082,19 +1084,6 @@ class Normal(Distribution):
             raise NotImplementedError(
                 "Multiplication not implemented for {} and {}.".format(self.__class__.__name__,
                                                                        other.__class__.__name__))
-
-    def __matmul__(self, other):
-        otherdist = asdist(other)
-        if isinstance(otherdist, Dirac):
-            delta = otherdist.mean()
-            return Normal(mean=self.mean() @ delta,
-                          cov=delta @ (self.cov() @ delta.transpose()),
-                          random_state=self.random_state)
-        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
-        raise NotImplementedError(
-            "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
-                                                                          other.__class__.__name__))
 
     def __truediv__(self, other):
         if other == 0:
@@ -1222,7 +1211,7 @@ class _UnivariateNormal(Normal):
     """The univariate normal distribution."""
 
     def __init__(self, mean=0., cov=1., random_state=None):
-        super().__init__(mean=mean, cov=cov, random_state=random_state)
+        super().__init__(mean=float(mean), cov=float(cov), random_state=random_state)
 
     def var(self):
         return self.cov()
@@ -1244,6 +1233,20 @@ class _UnivariateNormal(Normal):
 
     def reshape(self, shape):
         raise NotImplementedError
+
+    # Arithmetic Operations
+    def __matmul__(self, other):
+        otherdist = asdist(other)
+        if isinstance(otherdist, Dirac):
+            delta = otherdist.mean()
+            return Normal(mean=np.squeeze(self.mean() @ delta),
+                          cov=np.squeeze(delta @ (self.cov() @ delta.transpose())),
+                          random_state=self.random_state)
+        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
+        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
+        raise NotImplementedError(
+            "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
+                                                                          other.__class__.__name__))
 
 
 class _MultivariateNormal(Normal):
@@ -1284,6 +1287,29 @@ class _MultivariateNormal(Normal):
 
     def reshape(self, shape):
         raise NotImplementedError
+
+    # Arithmetic Operations
+    def __matmul__(self, other):
+        otherdist = asdist(other)
+        if isinstance(otherdist, Dirac):
+            delta = otherdist.mean()
+            return Normal(mean=self.mean() @ delta,
+                          cov=delta.T @ (self.cov() @ delta),
+                          random_state=self.random_state)
+        raise NotImplementedError(
+            "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
+                                                                          other.__class__.__name__))
+
+    def __rmatmul__(self, other):
+        otherdist = asdist(other)
+        if isinstance(otherdist, Dirac):
+            delta = otherdist.mean()
+            return Normal(mean=self.mean() @ delta,
+                          cov=delta @ (self.cov() @ delta.T),
+                          random_state=self.random_state)
+        raise NotImplementedError(
+            "Matrix multiplication not implemented for {} and {}.".format(other.__class__.__name__,
+                                                                          self.__class__.__name__))
 
 
 class _MatrixvariateNormal(Normal):
@@ -1333,6 +1359,19 @@ class _MatrixvariateNormal(Normal):
 
     def reshape(self, shape):
         raise NotImplementedError
+
+    # Arithmetic Operations
+    def __matmul__(self, other):
+        otherdist = asdist(other)
+        if isinstance(otherdist, Dirac):
+            delta = otherdist.mean()
+            raise NotImplementedError
+        # TODO: implement generic:
+        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
+        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
+        raise NotImplementedError(
+            "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
+                                                                          other.__class__.__name__))
 
 
 class _OperatorvariateNormal(Normal):
@@ -1405,6 +1444,20 @@ class _OperatorvariateNormal(Normal):
 
     def reshape(self, shape):
         raise NotImplementedError
+
+    # Arithmetic Operations
+    def __matmul__(self, other):
+        otherdist = asdist(other)
+        if isinstance(otherdist, Dirac):
+            delta = otherdist.mean()
+            return Normal(mean=self.mean() @ delta,
+                          cov=delta @ (self.cov() @ delta.T),
+                          random_state=self.random_state)
+        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
+        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
+        raise NotImplementedError(
+            "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
+                                                                          other.__class__.__name__))
 
 
 def asrandvar(obj):

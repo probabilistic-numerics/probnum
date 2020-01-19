@@ -88,10 +88,10 @@ def test_rv_broadcasting(alpha, rv):
 @pytest.mark.parametrize("x, rv", list(itertools.product([np.array([1, 2]), np.array([0, -1.4])], randvars2d)))
 def test_rv_dotproduct(x, rv):
     """Dot product of random variables with constant vectors."""
-    z1 = np.dot(x, rv)
-    z2 = np.dot(rv, x)
+    # z1 = np.dot(x, rv)
+    # z2 = np.dot(rv, x)
     z1 = rv @ x[:, None]
-    z2 = x[None, :] @ rv
+    z2 = x @ rv
     assert z1.shape == ()
     assert z2.shape == ()
     assert isinstance(z1, probability.RandomVariable)
@@ -117,12 +117,9 @@ def test_rv_linop_matmul(A, rv):
 def test_rv_vector_product(rv):
     """Matrix-variate random variable applied to vector."""
     x = np.array([1, -4])
-    y = rv @ x
-    y1 = rv @ x[:, None]
+    y = rv @ x[:, None]
     assert isinstance(y, probability.RandomVariable)
-    assert isinstance(y1, probability.RandomVariable)
     np.testing.assert_equal(y.shape == (2,))
-    np.testing.assert_equal(y1.shape == (2, 1))
 
 
 @pytest.mark.parametrize("rv1, rv2", [(probability.RandomVariable(), probability.RandomVariable())])
@@ -149,7 +146,7 @@ normal_params = [
 ]
 
 
-@pytest.mark.parametrize("mean,cov", [(0, [1]),
+@pytest.mark.parametrize("mean,cov", [(0, [1, 2]),
                                       (np.array([1, 2]), np.array([1, 0])),
                                       (np.array([[-1, 0], [2, 1]]), np.eye(3))])
 def test_normal_dimension_mismatch(mean, cov):
