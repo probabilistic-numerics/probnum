@@ -1304,7 +1304,7 @@ class _MultivariateNormal(Normal):
         otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
-            return Normal(mean=self.mean() @ delta,
+            return Normal(mean=delta @ self.mean(),
                           cov=delta @ (self.cov() @ delta.T),
                           random_state=self.random_state)
         raise NotImplementedError(
