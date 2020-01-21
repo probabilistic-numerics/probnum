@@ -53,8 +53,10 @@ linops2d = [linear_operators.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
 randvars2d = [
     probability.RandomVariable(distribution=probability.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]])))]
 randvars2x2 = [
-    probability.Normal(mean=np.array([[-2, .3], [0, 1]]),
-                       cov=linear_operators.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))))
+    probability.RandomVariable(shape=(2, 2),
+                               distribution=probability.Normal(mean=np.array([[-2, .3], [0, 1]]),
+                                                               cov=linear_operators.SymmetricKronecker(
+                                                                   A=np.eye(2), B=np.ones((2, 2)))))
 ]
 
 
@@ -116,10 +118,17 @@ def test_rv_linop_matmul(A, rv):
 @pytest.mark.parametrize("rv", randvars2x2)
 def test_rv_vector_product(rv):
     """Matrix-variate random variable applied to vector."""
-    x = np.array([1, -4])
-    y = rv @ x[:, None]
-    assert isinstance(y, probability.RandomVariable)
-    np.testing.assert_equal(y.shape == (2,))
+    x = np.array([[1], [-4]])
+    y = rv @ x
+    X = np.kron(np.eye(rv.shape[0]), x)
+    truemean = rv.mean() @ x
+    truecov = X.T @ rv.cov().todense() @ X
+    assert isinstance(y, probability.RandomVariable), "The variable y does not have the correct type."
+    np.testing.assert_equal(y.shape, (2, 1), err_msg="Shape of resulting random variable incorrect.")
+    np.testing.assert_allclose(y.mean(), truemean,
+                               err_msg="Means of random variables do not match.")
+    np.testing.assert_allclose(y.cov().todense(), truecov,
+                               err_msg="Covariances of random variables do not match.")
 
 
 @pytest.mark.parametrize("rv1, rv2", [(probability.RandomVariable(), probability.RandomVariable())])

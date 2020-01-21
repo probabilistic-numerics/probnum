@@ -1046,7 +1046,7 @@ class Normal(Distribution):
     #     try:
     #         # Reshape mean and covariance
     #         self._parameters["mean"].reshape(shape=shape)
-    #         # self._parameters["cov"]. # TODO: how to realize this? Need to implement Matrix-variate normal first.
+    #         # self._parameters["cov"].
     #     except ValueError:
     #         raise ValueError("Cannot reshape this Normal distribution to the given shape: {}".format(str(shape)))
 
@@ -1361,14 +1361,15 @@ class _MatrixvariateNormal(Normal):
         raise NotImplementedError
 
     # Arithmetic Operations
+    # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
+    #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
+
     def __matmul__(self, other):
         otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
             delta = otherdist.mean()
             raise NotImplementedError
         # TODO: implement generic:
-        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
                                                                           other.__class__.__name__))
@@ -1446,15 +1447,16 @@ class _OperatorvariateNormal(Normal):
         raise NotImplementedError
 
     # Arithmetic Operations
+    # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
+    #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
     def __matmul__(self, other):
         otherdist = asdist(other)
         if isinstance(otherdist, Dirac):
-            delta = otherdist.mean()
-            return Normal(mean=self.mean() @ delta,
-                          cov=delta @ (self.cov() @ delta.T),
+            othermean = otherdist.mean()
+            delta = linear_operators.Kronecker(linear_operators.Identity(othermean.shape[0]), othermean)
+            return Normal(mean=self.mean() @ othermean,
+                          cov=delta.T @ (self.cov() @ delta),
                           random_state=self.random_state)
-        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
                                                                           other.__class__.__name__))

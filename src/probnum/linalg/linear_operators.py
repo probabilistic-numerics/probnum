@@ -292,14 +292,14 @@ class _SumLinearOperator(scipy.sparse.linalg.interface._SumLinearOperator, Linea
 
 
 class _ProductLinearOperator(scipy.sparse.linalg.interface._ProductLinearOperator, LinearOperator):
-    """Product of two linear operators."""
+    """(Operator) Product of two linear operators."""
 
     def __init__(self, A, B):
         super().__init__(A=A, B=B)
 
     def todense(self):
         A, B = self.args
-        return A.todense() * B.todense()
+        return A.todense() @ B.todense()
 
 
 class _ScaledLinearOperator(scipy.sparse.linalg.interface._ScaledLinearOperator, LinearOperator):

@@ -14,7 +14,7 @@ import scipy.sparse
 
 from probnum import probability
 from probnum.linalg import linear_operators
-import probnum.utils
+import probnum.utils as utils
 
 __all__ = ["problinsolve", "bayescg"]
 
@@ -50,7 +50,8 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     A : array-like or LinearOperator, shape=(n,n)
         A square matrix or linear operator.
     b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
+        Right-hand side vector or matrix in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems are solved
+        sequentially with the posteriors over the matrices acting as priors for subsequent solves.
     A0 : RandomVariable, shape=(n,n), optional
         Prior belief over the linear operator :math:`A` provided as a :class:`~probnum.probability.RandomVariable`.
     Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
@@ -118,23 +119,35 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     _check_linear_system(A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x0)
 
     # Transform linear system components to random variables and linear operators
-    A, b, A0, Ainv0, x = _preprocess_linear_system(A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x0, assume_A=assume_A)
+    A, b, A0, Ainv0, x0 = _preprocess_linear_system(A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x0, assume_A=assume_A)
 
-    # Select solver
-    linear_solver = _select_solver(A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x0)
-
-    # Set default convergence parameters
+    # Parameter initialization
     n = A.shape[0]
+    nrhs = b.shape[1]
+    x = x0
+    info = {}
+
+    # Set convergence parameters
     if maxiter is None:
         maxiter = n * 10
 
-    # Solve linear system
-    x, A_post, Ainv_post, info = linear_solver.solve(maxiter=maxiter, resid_tol=resid_tol)
+    # Iteratively solve for multiple right hand sides (with posteriors as new priors)
+    # TODO: move this into the solver iteration itself (compute with matrices)
+    for i in range(nrhs):
+        # Select and initialize solver
+        linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x)
+
+        # Solve linear system
+        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, resid_tol=resid_tol)
+
+    # Return Ainv @ b for multiple rhs
+    if nrhs > 1:
+        x = Ainv0 @ b
 
     # Check solution and issue warnings (e.g. singular or ill-conditioned matrix)
     _check_solution(info=info)
 
-    return x, A_post, Ainv_post, info
+    return x, A0, Ainv0, info
 
 
 def bayescg(A, b, x0=None, maxiter=None, resid_tol=None):
@@ -331,18 +344,18 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
         A0 = probability.RandomVariable(distribution=dist)  # Remove me
 
     # Transform linear system to correct dimensions
-    b = probnum.utils.as_colvec(b)  # (n,) -> (n, 1)
+    b = utils.as_colvec(b)  # (n,) -> (n, 1)
     if x0 is not None:
-        x = probnum.utils.as_colvec(x0)  # (n,) -> (n, 1)
+        x = utils.as_colvec(x0)  # (n,) -> (n, 1)
 
     assert (not (Ainv0 is None and x is None)), "Neither Ainv nor x are specified."
 
     return A, b, A0, Ainv0, x
 
 
-def _select_solver(A, A0, Ainv0, b, x0):
+def _init_solver(A, A0, Ainv0, b, x0):
     """
-    Selects a probabilistic linear solver based on the prior information given.
+    Selects and initializes probabilistic linear solver based on the prior information given.
 
     Parameters
     ----------
