@@ -64,11 +64,11 @@ def test_symmetric_posterior_params(matblinsolve):
     Ainv_cov_A = Ainv.cov().A.todense()
     Ainv_cov_B = Ainv.cov().B.todense()
     np.testing.assert_allclose(Ainv_mean,
-                               Ainv_mean.T, rtol=1e-4)
+                               Ainv_mean.T, rtol=1e-6)
     np.testing.assert_allclose(Ainv_cov_A,
                                Ainv_cov_B, rtol=1e-6)
     np.testing.assert_allclose(Ainv_cov_A,
-                               Ainv_cov_A.T, rtol=1e-4)
+                               Ainv_cov_A.T, rtol=1e-6)
 
 
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
@@ -111,23 +111,32 @@ def test_spd_matrix(plinsolve):
     np.testing.assert_allclose(x_solver.mean(), x, rtol=1e-4)
 
 
+@pytest.fixture
+def poisson_linear_system():
+    """
+    Poisson equation with Dirichlet conditions.
+
+      - Laplace(u) = f    in the interior
+                 u = u_D  on the boundary
+    where
+        u_D = 1 + x^2 + 2y^2
+        f = -4
+
+    Linear system resulting from discretization on an elliptic grid.
+    """
+    A = scipy.sparse.load_npz(file="resources/matrix_poisson.npz")
+    f = np.load(file="resources/rhs_poisson.npy")
+    return A, f
+
+
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
-def test_sparse_poisson(plinsolve):
-    """Linear system with ill-conditioned matrix."""
-    np.random.seed(1234)
-    n = 40
-    data = np.ones((3, n))
-    data[0, :] = 2
-    data[1, :] = -1
-    data[2, :] = -1
-    Poisson1D = scipy.sparse.spdiags(data, [0, -1, 1], n, n, format='csr')
-    b = np.random.rand(n)
-    # todo: use with pre-conditioner, as ill-conditioned for large n
-    # print(np.linalg.cond(Poisson1D.todense()))
-    # x = scipy.sparse.linalg.spsolve(Poisson1D, b)
-    #
-    # x_solver, _, _, info = plsolve(A=Poisson1D, b=b)
-    # np.testing.assert_allclose(x_solver, x, rtol=1e-2)
+def test_sparse_poisson(plinsolve, poisson_linear_system):
+    """(Sparse) linear system from Poisson PDE with boundary conditions."""
+    A, f = poisson_linear_system
+    u = scipy.sparse.linalg.spsolve(A=A, b=f)
+
+    u_solver, _, _, info = plinsolve(A=A, b=f)
+    np.testing.assert_allclose(u_solver.mean(), u, rtol=1e-5)
 
 
 @pytest.mark.parametrize("matlinsolve", [linear_solvers.problinsolve])
