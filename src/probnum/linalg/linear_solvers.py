@@ -19,7 +19,8 @@ import probnum.utils as utils
 __all__ = ["problinsolve", "bayescg"]
 
 
-def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, resid_tol=10 ** -6):
+def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, resid_tol=10 ** -6,
+                 callback=None):
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -77,6 +78,10 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     resid_tol : float, optional
         Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
         terminates.
+    callback : function, optional
+        User-supplied function called after each iteration of the linear solver. It is called as
+        ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
+        depending on the function supplied, this can slow down the solver.
 
     Returns
     -------
@@ -138,7 +143,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x)
 
         # Solve linear system
-        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, resid_tol=resid_tol)
+        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, resid_tol=resid_tol, callback=callback)
 
     # Return Ainv @ b for multiple rhs
     if nrhs > 1:
@@ -150,7 +155,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     return x, A0, Ainv0, info
 
 
-def bayescg(A, b, x0=None, maxiter=None, resid_tol=None):
+def bayescg(A, b, x0=None, maxiter=None, resid_tol=None, callback=None):
     """
     Conjugate Gradients using prior information on the solution of the linear system.
 
@@ -180,6 +185,10 @@ def bayescg(A, b, x0=None, maxiter=None, resid_tol=None):
     resid_tol : float
         Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
         terminates.
+    callback : function, optional
+        User-supplied function called after each iteration of the linear solver. It is called as
+        ``callback(xk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
+        depending on the function supplied, this can slow down the solver.
 
     See Also
     --------
@@ -330,7 +339,7 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
 
     # Choose prior if none specified, based on matrix assumptions in "assume_A"
     # TODO: Automatic prior selection based on data scale, matrix trace, etc.?
-    # TODO: Consider situation where only a pre-conditioner is given
+    # TODO: Implement case where only a pre-conditioner is given as Ainv0
     if A0 is None and Ainv0 is None:
         dist = probability.Normal(mean=np.eye(A.shape[0]),
                                   cov=linear_operators.SymmetricKronecker(np.eye(A.shape[0]), np.eye(A.shape[0])))
@@ -481,12 +490,16 @@ class _ProbabilisticLinearSolver(abc.ABC):
         self.A = A
         self.b = b
 
-    def solve(self, **convergence_args):
+    def solve(self, callback=None, **convergence_args):
         """
         Solve the linear system :math:`Ax=b`.
 
         Parameters
         ----------
+        callback : function, optional
+            User-supplied function called after each iteration of the linear solver. It is called as
+            ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration.
+            Note that depending on the function supplied, this can slow down the solver.
         convergence_args
             Arguments specifying when the solver has converged to a solution.
 
@@ -517,7 +530,7 @@ class _GeneralMatrixSolver(_ProbabilisticLinearSolver):
         raise NotImplementedError
         # super().__init__(A=A, b=b)
 
-    def solve(self, maxiter, resid_tol):
+    def solve(self, callback=None, maxiter=None, resid_tol=None):
         raise NotImplementedError
 
 
@@ -568,15 +581,37 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         self.A_covfactor = A_covfactor
         self.Ainv_mean = Ainv_mean
         self.Ainv_covfactor = Ainv_covfactor
+        self.x = Ainv_mean @ b
         # TODO: call class function here which derives missing prior mean and covariance via posterior correspondence
         super().__init__(A=A, b=b)
 
-    def solve(self, maxiter, resid_tol):
+    def _create_output_randvars(self):
+        """Return output random variables x, A, Ainv from their means and covariances."""
+        # Create output random variables
+        A = probability.RandomVariable(shape=self.A_mean.shape,
+                                       dtype=float,
+                                       distribution=probability.Normal(mean=self.A_mean,
+                                                                       cov=linear_operators.SymmetricKronecker(
+                                                                           A=self.A_covfactor, B=self.A_covfactor)))
+        cov_Ainv = linear_operators.SymmetricKronecker(A=self.Ainv_covfactor, B=self.Ainv_covfactor)
+        Ainv = probability.RandomVariable(shape=self.Ainv_mean.shape,
+                                          dtype=float,
+                                          distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
+        # Induced distribution on x via Ainv (see Hennig2020)
+        # E = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
+        Wb = self.Ainv_covfactor @ self.b
+        # TODO: do we want todense() here or just not a linear operator?
+        x = probability.RandomVariable(shape=(self.A_mean.shape[0],),
+                                       dtype=float,
+                                       distribution=probability.Normal(mean=self.x.ravel(),
+                                                                       cov=0.5 * (self.Ainv_covfactor.todense() * (
+                                                                               Wb.T @ self.b) + Wb @ Wb.T)))
+        return x, A, Ainv
+
+    def solve(self, callback=None, maxiter=None, resid_tol=None):
         # initialization
         iter_ = 0
-        n = self.Ainv_mean.shape[0]
-        x = self.Ainv_mean @ self.b
-        resid = self.A @ x - self.b
+        resid = self.A @ self.x - self.b
 
         # iteration with stopping criteria
         while True:
@@ -597,7 +632,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             # todo: scale search_dir and obs by step-size to fulfill theory on conjugate directions?
 
             # step and residual update
-            x = x + step_size * search_dir
+            self.x = self.x + step_size * search_dir
             resid = resid + step_size * obs
 
             # (symmetric) mean and covariance updates
@@ -624,28 +659,16 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             self.Ainv_covfactor = linear_operators.aslinop(self.Ainv_covfactor) - linear_operators.MatrixMult(
                 Wy @ u_Ainv.T)
 
+            # callback function used to extract quantities from iteration
+            if callback is not None:
+                xk, Ak, Ainvk = self._create_output_randvars()
+                callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
+
             # iteration increment
             iter_ += 1
 
         # Create output random variables
-        A = probability.RandomVariable(shape=self.A_mean.shape,
-                                       dtype=float,
-                                       distribution=probability.Normal(mean=self.A_mean,
-                                                                       cov=linear_operators.SymmetricKronecker(
-                                                                           A=self.A_covfactor, B=self.A_covfactor)))
-        cov_Ainv = linear_operators.SymmetricKronecker(A=self.Ainv_covfactor, B=self.Ainv_covfactor)
-        Ainv = probability.RandomVariable(shape=self.Ainv_mean.shape,
-                                          dtype=float,
-                                          distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
-        # Induced distribution on x via Ainv (see Hennig2020)
-        # E = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
-        Wb = self.Ainv_covfactor @ self.b
-        # TODO: do we want todense() here or just not a linear operator?
-        x = probability.RandomVariable(shape=(self.A_mean.shape[0],),
-                                       dtype=float,
-                                       distribution=probability.Normal(mean=x.ravel(),
-                                                                       cov=0.5 * (self.Ainv_covfactor.todense() * (
-                                                                               Wb.T @ self.b) + Wb @ Wb.T)))
+        x, A, Ainv = self._create_output_randvars()
 
         # Log information on solution
         # TODO: matrix condition from solver (see scipy solvers)
