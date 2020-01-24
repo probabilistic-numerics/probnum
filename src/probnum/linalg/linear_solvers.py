@@ -32,14 +32,12 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     which quantifies uncertainty in the output arising from finite computational resources. This solver can take prior
     information either on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in
     the form of a random variable ``A0`` or ``Ainv0`` and outputs a posterior belief over :math:`A` or :math:`H`. This
-    code implements the method described in [1]_, [2]_ and [3]_.
+    code implements the method described in [1]_ and [2]_.
 
     References
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [3] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
-           University Press
 
     Notes
     -----
