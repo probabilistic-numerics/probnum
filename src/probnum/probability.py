@@ -1001,6 +1001,8 @@ class Normal(Distribution):
     {'mean': 0.0, 'cov': 4.0}
     """
 
+    # TODO: only keep Cholesky factors as covariance to avoid losing symmetry
+
     def __new__(cls, mean=0., cov=1., random_state=None):
         # Factory method for Normal subclasses
         if cls is Normal:

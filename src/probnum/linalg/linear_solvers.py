@@ -339,16 +339,18 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
     # TODO: Automatic prior selection based on data scale, matrix trace, etc.?
     # TODO: Implement case where only a pre-conditioner is given as Ainv0
     if A0 is None and Ainv0 is None:
-        dist = probability.Normal(mean=np.eye(A.shape[0]),
-                                  cov=linear_operators.SymmetricKronecker(np.eye(A.shape[0]), np.eye(A.shape[0])))
+        dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
+                                  cov=linear_operators.SymmetricKronecker(linear_operators.Identity(shape=A.shape[0]),
+                                                                          linear_operators.Identity(shape=A.shape[0])))
         Ainv0 = probability.RandomVariable(distribution=dist)
 
     # Translate A0 prior into Ainv0 prior or vice versa
     # TODO: Implement theory from paper
     if A0 is None:
-        dist = probability.Normal(mean=np.eye(A.shape[0]),
-                                  cov=linear_operators.SymmetricKronecker(np.eye(A.shape[0]), np.eye(A.shape[0])))
-        A0 = probability.RandomVariable(distribution=dist)  # Remove me
+        dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
+                                  cov=linear_operators.SymmetricKronecker(linear_operators.Identity(shape=A.shape[0]),
+                                                                          linear_operators.Identity(shape=A.shape[0])))
+        A0 = probability.RandomVariable(distribution=dist)  # TODO: Remove me
 
     # Transform linear system to correct dimensions
     b = utils.as_colvec(b)  # (n,) -> (n, 1)
@@ -536,14 +538,12 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
     """
     Solver iteration of the symmetric probabilistic linear solver.
 
-    Implements the solve iteration of the symmetric matrix-based probabilistic linear solver [1]_ [2]_ [3]_.
+    Implements the solve iteration of the symmetric matrix-based probabilistic linear solver described in [1]_ and [2]_.
 
     References
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [3] Hennig, P. and Osborne M. A., *Probabilistic Numerics. Computation as Machine Learning*, 2020, Cambridge
-           University Press
 
     Parameters
     ----------
@@ -645,8 +645,9 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
 
             # rank 2 mean updates (+= uv' + vu')
-            # TODO: should we really perform these updates in operator form?
-            uvT_A = u_A @ v_A.T
+            # TODO: should we really perform these updates in operator form? Yes, cannot build full matrices
+            #  for example in deep learning. BUT: Ensure speed of iteration is fast.
+            uvT_A = u_A @ v_A.T  # TODO: handle this via a product_operator implementing matvec(x) = u * v @ x
             uvT_Ainv = u_Ainv @ v_Ainv.T
             self.A_mean = linear_operators.aslinop(self.A_mean) + linear_operators.MatrixMult(uvT_A + uvT_A.T)
             self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + linear_operators.MatrixMult(
