@@ -84,6 +84,27 @@ def test_todense():
 
 
 # Linear map Q such that svec(x) = Qvec(x).
+@pytest.mark.parametrize("n", [1, 3, 5, 100])
+def test_svec(n):
+    """Test symmetric vectorization operator shape and entries."""
+    A = np.random.normal(size=(n, n))
+    A = 0.5 * (A + A.T)
+    svec = linear_operators.Vec2Svec(dim=n, check_symmetric=True)
+    y = svec @ A.ravel()
+
+    # Check shape
+    assert np.shape(y) == (int(0.5 * n * (n + 1)),), "Svec(X) does not have the correct dimension."
+
+    # Check diagonal entries
+    diagind = np.hstack([0, np.cumsum(np.arange(2, n + 1)[::-1])])
+    np.testing.assert_array_equal(y[diagind], np.diag(A), "Entries of diagonal are not correct.")
+
+    # Check off-diagonal entries
+    supdiagtri = np.sqrt(2) * A[np.triu_indices(n, k=1)]
+    np.testing.assert_array_equal(np.delete(y, diagind), supdiagtri,
+                                  "Off-diagonal entries are incorrect.")
+
+
 @pytest.mark.parametrize("n", [-1, 0, 1.1, np.inf, np.nan])
 def test_vec2svec_dimension(n):
     """Check faulty dimension for Q."""
@@ -131,6 +152,25 @@ symmkronecker_matrices = [(np.array([[4, 1], [2, 3]]), np.array([[-1, 4], [2, 1]
                            np.array([[1, 4, 0], [-3, -.4, -100], [.18, -2, 10]]))]
 
 
+@pytest.mark.parametrize("n", [1, 2, 3, 5, 12])
+def test_symmetrize(n):
+    """The Symmetrize operators should symmetrize vectors and columns of matrices."""
+    x = np.random.uniform(size=n*n)
+    X = np.reshape(x, (n, n))
+    y = linear_operators.Symmetrize(dim=n) @ x
+
+    np.testing.assert_array_equal(y.reshape(n, n), 0.5 * (X + X.T), err_msg="Matrix not symmetric.")
+
+    Z = np.random.uniform(size=(9, 5))
+    W = linear_operators.Symmetrize(dim=3) @ Z
+
+    np.testing.assert_array_equal(W, np.vstack([linear_operators.Symmetrize(dim=3) @ col for col in Z.T]).T,
+                                  err_msg="Matrix columns were not symmetrized.")
+
+    np.testing.assert_array_equal(np.shape(W), np.shape(Z),
+                                  err_msg="Symmetrized matrix columns do not have the right shape.")
+
+
 @pytest.mark.parametrize("A,B", kronecker_matrices)
 def test_kronecker_transpose(A, B):
     """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
@@ -149,11 +189,14 @@ def test_kronecker_explicit(A, B):
     np.testing.assert_allclose(W.todense(), AkronB)
 
 
-def test_symmkronecker_todense():
-    """Dense matrix from symmetric Kronecker product."""
-    C = np.array([[5, 1], [2, 10]])
+def test_symmkronecker_todense_symmetric():
+    """Dense matrix from symmetric Kronecker product of two symmetric matrices must be symmetric."""
+    C = np.array([[5, 1], [1, 10]])
+    D = np.array([[-2, .1], [.1, 8]])
     Ws = linear_operators.SymmetricKronecker(A=C, B=C)
     Ws_dense = Ws.todense()
+    np.testing.assert_array_equal(Ws_dense, Ws_dense.T,
+                                  err_msg="Symmetric Kronecker product of symmetric matrices is not symmetric.")
 
 
 def test_symmkronecker_explicit():

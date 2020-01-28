@@ -1020,7 +1020,10 @@ class Normal(Distribution):
                     return super(Normal, cls).__new__(_MatrixvariateNormal)
             elif isinstance(mean, scipy.sparse.linalg.LinearOperator) or isinstance(cov,
                                                                                     scipy.sparse.linalg.LinearOperator):
-                return super(Normal, cls).__new__(_OperatorvariateNormal)
+                if isinstance(cov, linear_operators.SymmetricKronecker) and cov._ABequal:
+                    return super(Normal, cls).__new__(_SymmetricKroneckerIdenticalFactorsNormal)
+                else:
+                    return super(Normal, cls).__new__(_OperatorvariateNormal)
             else:
                 raise ValueError(
                     "Cannot instantiate normal distribution with mean of type {} and covariance of type {}.".format(
@@ -1382,7 +1385,7 @@ class _OperatorvariateNormal(Normal):
 
     def __init__(self, mean, cov, random_state=None):
         # Check parameters
-        _mean_dim = np.prod(mean.shape)
+        self._mean_dim = np.prod(mean.shape)
 
         # Kronecker structured covariance
         if isinstance(cov, linear_operators.Kronecker):
@@ -1401,7 +1404,7 @@ class _OperatorvariateNormal(Normal):
                     + " and square covariance factors with matching dimensions."
                 )
         # General case
-        elif _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
+        elif self._mean_dim != cov.shape[0] or self._mean_dim != cov.shape[1]:
             raise ValueError(
                 "Shape mismatch of mean and covariance."
             )
@@ -1462,6 +1465,44 @@ class _OperatorvariateNormal(Normal):
         raise NotImplementedError(
             "Matrix multiplication not implemented for {} and {}.".format(self.__class__.__name__,
                                                                           other.__class__.__name__))
+
+
+class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
+    """Normal distribution with symmetric Kronecker structured covariance with identical factors V (x)_s V."""
+
+    def __init__(self, mean, cov, random_state=None):
+        m, self._n = mean.shape
+        # Mean has to be square. If mean has dimension (n x n) then covariance factors must be (n x n).
+        if m != self._n or self._n != cov.A.shape[0] or self._n != cov.B.shape[1]:
+            raise ValueError(
+                "Normal distribution with symmetric Kronecker structured covariance must have square mean"
+                + " and square covariance factors with matching dimensions."
+            )
+
+        super().__init__(mean=mean, cov=cov, random_state=random_state)
+
+    def sample(self, size=()):
+        # Draw standard normal samples
+        if np.isscalar(size):
+            size = [size]
+        size_sample = [self._n * self._n] + list(size)
+        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample, random_state=self.random_state)
+
+        # Cholesky decomposition
+        cholA = np.linalg.cholesky(self.cov().A.todense())
+
+        # Scale and shift
+        # TODO: can we avoid todense here and just return operator samples?
+        if isinstance(self.mean(), scipy.sparse.linalg.LinearOperator):
+            mean = self.mean().todense()
+        else:
+            mean = self.mean()
+
+        # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
+        samples_scaled = (linear_operators.Symmetrize(dim=self._n) @ (
+                    linear_operators.Kronecker(A=cholA, B=cholA) @ stdnormal_samples))
+
+        return mean[None, :, :] + samples_scaled.T.reshape(-1, self._n, self._n)
 
 
 def asrandvar(obj):

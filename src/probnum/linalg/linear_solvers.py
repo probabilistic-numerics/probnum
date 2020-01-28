@@ -590,8 +590,8 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
                                        dtype=float,
                                        distribution=probability.Normal(mean=self.A_mean,
                                                                        cov=linear_operators.SymmetricKronecker(
-                                                                           A=self.A_covfactor, B=self.A_covfactor)))
-        cov_Ainv = linear_operators.SymmetricKronecker(A=self.Ainv_covfactor, B=self.Ainv_covfactor)
+                                                                           A=self.A_covfactor)))
+        cov_Ainv = linear_operators.SymmetricKronecker(A=self.Ainv_covfactor)
         Ainv = probability.RandomVariable(shape=self.Ainv_mean.shape,
                                           dtype=float,
                                           distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))

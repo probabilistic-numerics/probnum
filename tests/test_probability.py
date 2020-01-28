@@ -151,7 +151,8 @@ normal_params = [
     (linear_operators.MatrixMult(A=sparsemat.todense()),
      linear_operators.Kronecker(0.1 * linear_operators.Identity(m), linear_operators.Identity(n))),
     (linear_operators.MatrixMult(A=np.random.uniform(size=(2, 2))),
-     linear_operators.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])))
+     linear_operators.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]]))),
+    (linear_operators.Identity(shape=25), linear_operators.SymmetricKronecker(A=linear_operators.Identity(25)))
 ]
 
 
@@ -209,12 +210,13 @@ def test_sample_zero_cov(mean, cov):
 def test_symmetric_samples():
     """Samples from a normal distribution with symmetric Kronecker covariance of two symmetric matrices are
     symmetric."""
-    n = 25
+    np.random.seed(42)
+    n = 3
     A = np.random.uniform(size=(n, n))
-    A = 0.5 * (A + A.T)
-    dist = probability.Normal(mean=A, cov=linear_operators.SymmetricKronecker(A=np.ones((n, n)), B=np.ones((n, n))),
-                              random_state=100)
+    A = 0.5 * (A + A.T) + n * np.eye(n)
+    dist = probability.Normal(mean=np.eye(A.shape[0]),
+                              cov=linear_operators.SymmetricKronecker(A=A))
     dist_sample = dist.sample(size=10)
-    for B in dist_sample:
+    for i, B in enumerate(dist_sample):
         np.testing.assert_allclose(B, B.T, atol=1e-5, rtol=1e-5,
-                                   err_msg="Sample from symmetric Kronecker distribution is not symmetric.")
+                                   err_msg="Sample {} from symmetric Kronecker distribution is not symmetric.".format(i))

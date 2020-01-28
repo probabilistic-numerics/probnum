@@ -471,12 +471,12 @@ class Vec(LinearOperator):
             return X.ravel(order='F')
 
 
-class Svec(LinearOperator):
+class Vec2Svec(LinearOperator):
     """
     Symmetric vectorization operator.
 
     The column- or row-wise symmetric normalized vectorization operator :math:`\\operatorname{svec}` [1]_ stacking the
-    (normalized) lower/upper triangular components of a symmetric matrix representation of a linear operator into a
+    (normalized) lower/upper triangular components of a symmetric matrix of a linear operator into a
     vector. It is defined by
 
     .. math::
@@ -503,72 +503,33 @@ class Svec(LinearOperator):
     -----
     It holds that :math:`Q\\operatorname{svec}(S) = \\operatorname{vec}(S)`, where :math:`Q` is a unique matrix with
     orthonormal rows.
-    """
-
-    def __init__(self, dim):
-        raise NotImplementedError
-
-
-class Kronecker(LinearOperator):
-    """
-    Kronecker product of two linear operators.
-
-    The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A` and :math:`B` is given by
-
-    .. math::
-        A \\otimes B = \\begin{bmatrix}
-            A_{11} B   &  \\dots   & A_{1 m_1} B  \\\\
-            \\vdots     &  \\ddots  & \\vdots \\\\
-            A_{n_11} B &  \\dots   & A_{n_1 m_1} B
-        \\end{bmatrix}
-
-    where :math:`A_{ij}v=A(v_j e_i)`, where :math:`e_i` is the :math:`i^{\\text{th}}` unit vector. The result is a new linear
-    operator mapping from :math:`\\mathbb{R}^{n_1n_2}` to :math:`\\mathbb{R}^{m_1m_2}`. By recognizing that
-    :math:`(A \\otimes B)\\operatorname{vec}(X) = AXB^{\\top}`, the Kronecker product can be understood as "translation"
-    between matrix multiplication and (row-wise) vectorization.
-
-    References
-    ----------
-    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
-            123, 85-100
 
     Parameters
     ----------
-    A : LinearOperator
-        The first operator.
-    B : LinearOperator
-        The second operator.
-    dtype : dtype
-        Data type of the operator.
-
-    See Also
-    --------
-    SymmetricKronecker : The symmetric Kronecker product of two linear operators.
-
+    dim : int
+        Dimension of the symmetric matrix to be reshaped.
+    check_symmetric : bool, default=False
+        Check whether the given matrix or vector corresponds to a symmetric matrix argument. Note, this option can slow
+        down performance.
     """
 
-    # todo: extend this to list of operators
-    def __init__(self, A, B, dtype=None):
-        self.A = aslinop(A)
-        self.B = aslinop(B)
-        super().__init__(dtype=dtype, shape=(self.A.shape[0] * self.B.shape[0],
-                                             self.A.shape[1] * self.B.shape[1]))
+    def __init__(self, dim, check_symmetric=False):
+        self._dim = dim
+        self.check_symmetric = check_symmetric
+        super().__init__(dtype=float, shape=(int(0.5 * dim * (dim + 1)), dim * dim))
 
-    def _matvec(self, X):
-        """
-        Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the row-wise vectorization operator.
-        """
-        X = X.reshape(self.A.shape[1], self.B.shape[1])
-        Y = self.B.matmat(X.T)
-        return self.A.matmat(Y.T).ravel()
+    def _matvec(self, x):
+        """Assumes x = vec(X)."""
+        X = np.reshape(x.copy(), (self._dim, self._dim))
+        if self.check_symmetric:
+            assert (X.T == X).all(), "Given vector does not correspond to a symmetric matrix."
 
-    def _rmatvec(self, X):
-        """
-        Based on (A (x) B)^T = A^T (x) B^T.
-        """
-        X = X.reshape(self.A.shape[0], self.B.shape[0])
-        Y = self.B.H.matmat(X.T)
-        return self.A.H.matmat(Y.T).ravel()
+        X[np.triu_indices(self._dim, k=1)] *= np.sqrt(2)
+        ind = np.triu_indices(self._dim, k=0)
+        return X[ind]
+
+    def _matmat(self, X):
+        return self._matvec(X.ravel())
 
 
 def _vec2svec(n):
@@ -627,6 +588,91 @@ def _vec2svec(n):
     return scipy.sparse.csr_matrix((data, (row_ind, col_ind)), shape=(int(0.5 * n * (n + 1)), n ** 2), dtype=float)
 
 
+class Symmetrize(LinearOperator):
+    """
+    Symmetrizes a vector in its matrix representation.
+
+    Given a vector x=vec(X) representing a square matrix X, this linear operator computes y=vec(1/2(X + X^T)).
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of matrix X.
+    """
+
+    def __init__(self, dim):
+        self._dim = dim
+        super().__init__(dtype=float, shape=(dim * dim, dim * dim))
+
+    def _matvec(self, x):
+        """Assumes x=vec(X)."""
+        X = np.reshape(x.copy(), (self._dim, self._dim))
+        Y = 0.5 * (X + X.T)
+        return Y.reshape(-1, 1)
+
+
+class Kronecker(LinearOperator):
+    """
+    Kronecker product of two linear operators.
+
+    The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A` and :math:`B` is given by
+
+    .. math::
+        A \\otimes B = \\begin{bmatrix}
+            A_{11} B   &  \\dots   & A_{1 m_1} B  \\\\
+            \\vdots     &  \\ddots  & \\vdots \\\\
+            A_{n_11} B &  \\dots   & A_{n_1 m_1} B
+        \\end{bmatrix}
+
+    where :math:`A_{ij}v=A(v_j e_i)`, where :math:`e_i` is the :math:`i^{\\text{th}}` unit vector. The result is a new linear
+    operator mapping from :math:`\\mathbb{R}^{n_1n_2}` to :math:`\\mathbb{R}^{m_1m_2}`. By recognizing that
+    :math:`(A \\otimes B)\\operatorname{vec}(X) = AXB^{\\top}`, the Kronecker product can be understood as "translation"
+    between matrix multiplication and (row-wise) vectorization.
+
+    References
+    ----------
+    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
+            123, 85-100
+
+    Parameters
+    ----------
+    A : np.ndarray or LinearOperator
+        The first operator.
+    B : np.ndarray or LinearOperator
+        The second operator.
+    dtype : dtype
+        Data type of the operator.
+
+    See Also
+    --------
+    SymmetricKronecker : The symmetric Kronecker product of two linear operators.
+
+    """
+
+    # todo: extend this to list of operators
+    def __init__(self, A, B, dtype=None):
+        self.A = aslinop(A)
+        self.B = aslinop(B)
+        super().__init__(dtype=dtype, shape=(self.A.shape[0] * self.B.shape[0],
+                                             self.A.shape[1] * self.B.shape[1]))
+
+    def _matvec(self, X):
+        """
+        Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the row-wise vectorization operator.
+        """
+        X = X.reshape(self.A.shape[1], self.B.shape[1])
+        Y = self.B.matmat(X.T)
+        return self.A.matmat(Y.T).ravel()
+
+    def _rmatvec(self, X):
+        """
+        Based on (A (x) B)^T = A^T (x) B^T.
+        """
+        X = X.reshape(self.A.shape[0], self.B.shape[0])
+        Y = self.B.H.matmat(X.T)
+        return self.A.H.matmat(Y.T).ravel()
+
+
 class SymmetricKronecker(LinearOperator):
     """
     Symmetric Kronecker product of two linear operators.
@@ -659,10 +705,15 @@ class SymmetricKronecker(LinearOperator):
 
     # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1), representation symmetric n2xn2
 
-    def __init__(self, A, B, dtype=None):
+    def __init__(self, A, B=None, dtype=None):
         # Set parameters
         self.A = aslinop(A)
-        self.B = aslinop(B)
+        self._ABequal = False
+        if B is None:
+            self.B = self.A
+            self._ABequal = True
+        else:
+            self.B = aslinop(B)
         self._n = self.A.shape[0]
         if self.A.shape != self.B.shape or self.A.shape[1] != self._n:
             raise ValueError("Linear operators A and B must be square and have the same dimensions.")
