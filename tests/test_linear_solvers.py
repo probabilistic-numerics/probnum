@@ -81,7 +81,7 @@ def test_zero_rhs(plinsolve):
     tols = np.r_[np.logspace(np.log10(1e-10), np.log10(1e2), 7)]
 
     for tol in tols:
-        x, _, _, info = plinsolve(A=A, b=b, resid_tol=tol)
+        x, _, _, info = plinsolve(A=A, b=b, atol=tol)
         np.testing.assert_allclose(x.mean(), 0, atol=1e-15)
 
 

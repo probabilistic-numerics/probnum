@@ -1489,7 +1489,8 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
         stdnormal_samples = scipy.stats.norm.rvs(size=size_sample, random_state=self.random_state)
 
         # Cholesky decomposition
-        cholA = np.linalg.cholesky(self.cov().A.todense())
+        eps = 10 ** - 12  # TODO: damping needed to avoid negative definite covariances
+        cholA = scipy.linalg.cholesky(self.cov().A.todense() + eps * np.eye(self._n), lower=True)
 
         # Scale and shift
         # TODO: can we avoid todense here and just return operator samples?
@@ -1500,7 +1501,7 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
         samples_scaled = (linear_operators.Symmetrize(dim=self._n) @ (
-                    linear_operators.Kronecker(A=cholA, B=cholA) @ stdnormal_samples))
+                linear_operators.Kronecker(A=cholA, B=cholA) @ stdnormal_samples))
 
         return mean[None, :, :] + samples_scaled.T.reshape(-1, self._n, self._n)
 

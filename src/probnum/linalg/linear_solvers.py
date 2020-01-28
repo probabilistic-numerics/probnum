@@ -16,11 +16,10 @@ from probnum import probability
 from probnum.linalg import linear_operators
 import probnum.utils as utils
 
-__all__ = ["problinsolve", "bayescg"]
+__all__ = ["problinsolve"]#, "bayescg"]
 
 
-def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, resid_tol=10 ** -6,
-                 callback=None):
+def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, atol=10 ** -6, rtol=10**-6, callback=None):
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -73,9 +72,12 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         automatically.
     maxiter : int, optional
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the dimension of :math:`A`.
-    resid_tol : float, optional
-        Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
-        terminates.
+    atol : float, optional
+        Absolute residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{atol}`, the
+        iteration terminates.
+    rtol : float, optional
+        Relative residual tolerance. If :math:`\\lVert r_i \\rVert  < \\text{rtol} \\lVert b \\rVert`, the
+        iteration terminates.
     callback : function, optional
         User-supplied function called after each iteration of the linear solver. It is called as
         ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
@@ -141,7 +143,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x)
 
         # Solve linear system
-        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, resid_tol=resid_tol, callback=callback)
+        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback)
 
     # Return Ainv @ b for multiple rhs
     if nrhs > 1:
@@ -153,7 +155,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     return x, A0, Ainv0, info
 
 
-def bayescg(A, b, x0=None, maxiter=None, resid_tol=None, callback=None):
+def bayescg(A, b, x0=None, maxiter=None, atol=None, callback=None):
     """
     Conjugate Gradients using prior information on the solution of the linear system.
 
@@ -180,9 +182,12 @@ def bayescg(A, b, x0=None, maxiter=None, resid_tol=None, callback=None):
         Prior belief over the solution of the linear system.
     maxiter : int
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the dimension of :math:`A`.
-    resid_tol : float
-        Residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{tol}`, the iteration
-        terminates.
+    atol : float, optional
+        Absolute residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{atol}`, the
+        iteration terminates.
+    rtol : float, optional
+        Relative residual tolerance. If :math:`\\lVert r_i \\rVert  < \\text{rtol} \\lVert b \\rVert`, the
+        iteration terminates.
     callback : function, optional
         User-supplied function called after each iteration of the linear solver. It is called as
         ``callback(xk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
@@ -205,7 +210,7 @@ def bayescg(A, b, x0=None, maxiter=None, resid_tol=None, callback=None):
         maxiter = n * 10
 
     # Solve linear system
-    x, _, _, info = _BayesCG(A=A, b=b, x=x0).solve(maxiter=maxiter, resid_tol=resid_tol)
+    x, _, _, info = _BayesCG(A=A, b=b, x=x0).solve(maxiter=maxiter, atol=atol, rtol=rtol)
 
     # Check solution and issue warnings (e.g. singular or ill-conditioned matrix)
     _check_solution(info=info)
@@ -406,44 +411,6 @@ def _init_solver(A, A0, Ainv0, b, x0):
         raise NotImplementedError
 
 
-def _check_convergence(iter, maxiter, resid, resid_tol):
-    """
-    Check convergence of a linear solver.
-
-    Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
-
-    Parameters
-    ----------
-    iter : int
-        Current iteration of solver.
-    maxiter : int
-        Maximum number of iterations
-    resid : array-like
-        Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
-    resid_tol : float
-        Residual tolerance.
-
-    Returns
-    -------
-    has_converged : bool
-        True if the method has converged.
-    convergence_criterion : str
-        Convergence criterion which caused termination.
-    """
-    # maximum iterations
-    if iter >= maxiter:
-        warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
-        return True, "maxiter"
-    # residual below error tolerance
-    # todo: add / replace with relative tolerance
-    elif np.linalg.norm(resid) < resid_tol:
-        return True, "resid"
-    # uncertainty-based
-    # todo: based on posterior contraction
-    else:
-        return False, ""
-
-
 def _check_solution(info):
     """
     Check the solution of the linear system.
@@ -490,6 +457,47 @@ class _ProbabilisticLinearSolver(abc.ABC):
         self.A = A
         self.b = b
 
+    def _check_convergence(self, iter, maxiter, resid, atol, rtol):
+        """
+        Check convergence of a linear solver.
+
+        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+
+        Parameters
+        ----------
+        iter : int
+            Current iteration of solver.
+        maxiter : int
+            Maximum number of iterations
+        resid : array-like
+            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
+        atol : float
+            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{atol}`.
+        rtol : float
+            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{rtol} \\lVert b \\rVert`.
+
+        Returns
+        -------
+        has_converged : bool
+            True if the method has converged.
+        convergence_criterion : str
+            Convergence criterion which caused termination.
+        """
+        # maximum iterations
+        if iter >= maxiter:
+            warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
+            return True, "maxiter"
+        # residual below error tolerance
+        # todo: add / replace with relative tolerance
+        elif np.linalg.norm(resid) <= atol:
+            return True, "resid_atol"
+        elif np.linalg.norm(resid) <= rtol * np.linalg.norm(self.b):
+            return True, "resid_rtol"
+        # uncertainty-based
+        # todo: based on posterior contraction
+        else:
+            return False, ""
+
     def solve(self, callback=None, **convergence_args):
         """
         Solve the linear system :math:`Ax=b`.
@@ -530,7 +538,7 @@ class _GeneralMatrixSolver(_ProbabilisticLinearSolver):
         raise NotImplementedError
         # super().__init__(A=A, b=b)
 
-    def solve(self, callback=None, maxiter=None, resid_tol=None):
+    def solve(self, callback=None, maxiter=None, atol=None):
         raise NotImplementedError
 
 
@@ -606,7 +614,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
                                                                                Wb.T @ self.b) + Wb @ Wb.T)))
         return x, A, Ainv
 
-    def solve(self, callback=None, maxiter=None, resid_tol=None):
+    def solve(self, callback=None, maxiter=None, atol=None, rtol=None):
         # initialization
         iter_ = 0
         resid = self.A @ self.x - self.b
@@ -614,8 +622,8 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         # iteration with stopping criteria
         while True:
             # check convergence
-            _has_converged, _conv_crit = _check_convergence(iter=iter_, maxiter=maxiter,
-                                                            resid=resid, resid_tol=resid_tol)
+            _has_converged, _conv_crit = self._check_convergence(iter=iter_, maxiter=maxiter,
+                                                                 resid=resid, atol=atol, rtol=rtol)
             if _has_converged:
                 break
 
@@ -627,7 +635,6 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
 
             # compute step size
             step_size = - (search_dir.T @ resid) / (search_dir.T @ obs)
-            # todo: scale search_dir and obs by step-size to fulfill theory on conjugate directions?
 
             # step and residual update
             self.x = self.x + step_size * search_dir
@@ -670,13 +677,12 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         x, A, Ainv = self._create_output_randvars()
 
         # Log information on solution
-        # TODO: matrix condition from solver (see scipy solvers)
         info = {
             "iter": iter_,
             "maxiter": maxiter,
             "resid_l2norm": np.linalg.norm(resid, ord=2),
             "conv_crit": _conv_crit,
-            "matrix_cond": None
+            "matrix_cond": None  # TODO: matrix condition from solver (see scipy solvers)
         }
 
         return x, A, Ainv, info
@@ -703,5 +709,5 @@ class _BayesCG(_ProbabilisticLinearSolver):
         self.x = x
         super().__init__(A=A, b=b)
 
-    def solve(self, maxiter, resid_tol):
+    def solve(self, maxiter, atol, rtol):
         raise NotImplementedError
