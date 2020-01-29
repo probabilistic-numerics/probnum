@@ -16,10 +16,11 @@ from probnum import probability
 from probnum.linalg import linear_operators
 import probnum.utils as utils
 
-__all__ = ["problinsolve"]#, "bayescg"]
+__all__ = ["problinsolve"]  # , "bayescg"]
 
 
-def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, atol=10 ** -6, rtol=10**-6, callback=None):
+def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, atol=10 ** -6, rtol=10 ** -6,
+                 callback=None):
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -155,7 +156,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     return x, A0, Ainv0, info
 
 
-def bayescg(A, b, x0=None, maxiter=None, atol=None, callback=None):
+def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
     """
     Conjugate Gradients using prior information on the solution of the linear system.
 
@@ -604,15 +605,43 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
                                           dtype=float,
                                           distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
         # Induced distribution on x via Ainv (see Hennig2020)
-        # E = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
+        # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
         Wb = self.Ainv_covfactor @ self.b
-        # TODO: do we want todense() here or just not a linear operator?
+        bWb = np.squeeze(Wb.T @ self.b)
+
+        def _mv(x):
+            return Wb @ (Wb.T @ x)
+
+        update_op = linear_operators.LinearOperator(shape=np.shape(self.Ainv_covfactor), dtype=float,
+                                                    matvec=_mv,  matmat=_mv)
+        cov_op = 0.5 * bWb * (self.Ainv_covfactor + update_op)
+
         x = probability.RandomVariable(shape=(self.A_mean.shape[0],),
                                        dtype=float,
-                                       distribution=probability.Normal(mean=self.x.ravel(),
-                                                                       cov=0.5 * (self.Ainv_covfactor.todense() * (
-                                                                               Wb.T @ self.b) + Wb @ Wb.T)))
+                                       distribution=probability.Normal(mean=self.x.ravel(), cov=cov_op))
         return x, A, Ainv
+
+    def _mean_update(self, u, v):
+        """Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu')."""
+
+        def mv(x):
+            return u @ (v.T @ x) + v @ (u.T @ x)
+
+        def mm(X):
+            return u @ (v.T @ X) + v @ (u.T @ X)
+
+        return linear_operators.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
+
+    def _covariance_update(self, u, Ws):
+        """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
+
+        def mv(x):
+            return u @ (Ws.T @ x)
+
+        def mm(X):
+            return u @ (Ws.T @ X)
+
+        return linear_operators.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
 
     def solve(self, callback=None, maxiter=None, atol=None, rtol=None):
         # initialization
@@ -654,16 +683,13 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             # rank 2 mean updates (+= uv' + vu')
             # TODO: should we really perform these updates in operator form? Yes, cannot build full matrices
             #  for example in deep learning. BUT: Ensure speed of iteration is fast.
-            uvT_A = u_A @ v_A.T  # TODO: handle this via a product_operator implementing matvec(x) = u * v @ x
-            uvT_Ainv = u_Ainv @ v_Ainv.T
-            self.A_mean = linear_operators.aslinop(self.A_mean) + linear_operators.MatrixMult(uvT_A + uvT_A.T)
-            self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + linear_operators.MatrixMult(
-                uvT_Ainv + uvT_Ainv.T)
+            self.A_mean = linear_operators.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A)
+            self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + self._mean_update(u=u_Ainv, v=v_Ainv)
 
             # rank 1 covariance kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
-            self.A_covfactor = linear_operators.aslinop(self.A_covfactor) - linear_operators.MatrixMult(Vs @ u_A.T)
-            self.Ainv_covfactor = linear_operators.aslinop(self.Ainv_covfactor) - linear_operators.MatrixMult(
-                Wy @ u_Ainv.T)
+            self.A_covfactor = linear_operators.aslinop(self.A_covfactor) - self._covariance_update(u=u_A, Ws=Vs)
+            self.Ainv_covfactor = linear_operators.aslinop(self.Ainv_covfactor) - self._covariance_update(u=u_Ainv,
+                                                                                                          Ws=Wy)
 
             # callback function used to extract quantities from iteration
             if callback is not None:
