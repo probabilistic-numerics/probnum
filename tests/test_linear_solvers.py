@@ -75,9 +75,10 @@ def test_symmetric_posterior_params(matblinsolve):
 def test_zero_rhs(plinsolve):
     """Linear system with zero right hand side."""
     np.random.seed(1234)
-    A = np.random.rand(10, 10)
-    A = A.dot(A.T) + 10 * np.eye(10)
-    b = np.zeros(10)
+    n = 10
+    A = np.random.rand(n, n)
+    A = 0.5 * (A + A.T) + n * np.eye(n)
+    b = np.zeros(n)
     tols = np.r_[np.logspace(np.log10(1e-10), np.log10(1e2), 7)]
 
     for tol in tols:
@@ -89,8 +90,9 @@ def test_zero_rhs(plinsolve):
 def test_multiple_rhs(plinsolve):
     """Linear system with matrix right hand side."""
     np.random.seed(42)
-    A = np.random.rand(10, 10)
-    A = A.dot(A.T) + 10 * np.eye(10)
+    n = 10
+    A = np.random.rand(n, n)
+    A = 0.5 * (A + A.T) + n * np.eye(n)
     B = np.random.rand(10, 5)
 
     x, _, _, info = plinsolve(A=A, b=B)
