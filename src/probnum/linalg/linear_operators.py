@@ -320,6 +320,7 @@ class _PowerLinearOperator(scipy.sparse.linalg.interface._PowerLinearOperator, L
         super().__init__(A=A, p=p)
 
 
+# TODO: replace with general Scalar linear operator: \alpha * I
 class Identity(LinearOperator):
     """
     The identity operator.
@@ -387,6 +388,51 @@ class Diagonal(LinearOperator):
     #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient versions than n products e_i A e_i
     def __init__(self, Op):
         raise NotImplementedError
+
+
+class ScalarMult(LinearOperator):
+    """
+    A linear operator representing scalar multiplication.
+
+    Parameters
+    ----------
+    shape : tuple
+        Matrix dimensions (M, N).
+    scalar : float
+        Scalar to multiply by.
+    """
+
+    def __init__(self, shape, scalar):
+        self.scalar = scalar
+        super().__init__(shape=shape, dtype=float)
+
+    def _matvec(self, x):
+        return self.scalar * x
+
+    def _matmat(self, X):
+        return self.scalar * X
+
+    def todense(self):
+        return np.eye(self.shape[0]) * self.scalar
+
+    # Properties
+    def rank(self):
+        return self.shape[0]
+
+    def eigvals(self):
+        return np.ones(self.shape[0]) * self.scalar
+
+    def cond(self, p=None):
+        return 1
+
+    def det(self):
+        return self.scalar ** self.shape[0]
+
+    def logabsdet(self):
+        return np.log(np.abs(self.scalar))
+
+    def trace(self):
+        return self.scalar * self.shape[0]
 
 
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
@@ -783,7 +829,7 @@ def aslinop(A):
     >>> aslinop(M)
     <2x3 MatrixMult with dtype=int32>
     """
-    if isinstance(A, LinearOperator):
+    if isinstance(A, scipy.sparse.linalg.LinearOperator):
         return A
     # if isinstance(A, RandomVariable):
     #     # TODO: aslinearoperator also for random variables; change docstring example;
@@ -794,4 +840,4 @@ def aslinop(A):
         return MatrixMult(A=A)
     else:
         op = scipy.sparse.linalg.aslinearoperator(A)
-        return LinearOperator(op, shape=op.shape)
+        return LinearOperator(op)

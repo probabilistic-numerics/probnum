@@ -138,7 +138,7 @@ def test_sparse_poisson(plinsolve, poisson_linear_system):
     A, f = poisson_linear_system
     u = scipy.sparse.linalg.spsolve(A=A, b=f)
 
-    u_solver, Ahat, Ainvhat, info = plinsolve(A=A, b=f)
+    u_solver, Ahat, Ainvhat, info = plinsolve(A=A, b=f, maxiter=20)
     np.testing.assert_allclose(u_solver.mean(), u, rtol=1e-5,
                                err_msg="Solution from probabilistic linear solver does" +
                                        " not match scipy.sparse.linalg.spsolve.")
@@ -285,4 +285,10 @@ def test_searchdir_conjugacy(plinsolve, poisson_linear_system):
 @pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
 def test_posterior_mean_CG_equivalency(plinsolve, poisson_linear_system):
     """The probabilistic linear solver should recover CG iterates as a posterior mean for specific covariances."""
+    pass
+
+
+@pytest.mark.parametrize("matlinsolve", [linear_solvers.problinsolve])
+def test_prior_distributions(matlinsolve, poisson_linear_system):
+    """The solver should automatically handle different types of prior information."""
     pass
