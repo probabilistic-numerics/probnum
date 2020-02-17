@@ -1,38 +1,38 @@
-LinearOperator
-==============
+Svec
+====
 
 .. currentmodule:: probnum.linalg.linear_operators
 
-.. autoclass:: LinearOperator
+.. autoclass:: Svec
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~LinearOperator.H
-      ~LinearOperator.T
+      ~Svec.H
+      ~Svec.T
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~LinearOperator.__call__
-      ~LinearOperator.adjoint
-      ~LinearOperator.cond
-      ~LinearOperator.det
-      ~LinearOperator.dot
-      ~LinearOperator.eigvals
-      ~LinearOperator.inv
-      ~LinearOperator.logabsdet
-      ~LinearOperator.matmat
-      ~LinearOperator.matvec
-      ~LinearOperator.rank
-      ~LinearOperator.rmatmat
-      ~LinearOperator.rmatvec
-      ~LinearOperator.todense
-      ~LinearOperator.trace
-      ~LinearOperator.transpose
+      ~Svec.__call__
+      ~Svec.adjoint
+      ~Svec.cond
+      ~Svec.det
+      ~Svec.dot
+      ~Svec.eigvals
+      ~Svec.inv
+      ~Svec.logabsdet
+      ~Svec.matmat
+      ~Svec.matvec
+      ~Svec.rank
+      ~Svec.rmatmat
+      ~Svec.rmatvec
+      ~Svec.todense
+      ~Svec.trace
+      ~Svec.transpose
 
    .. rubric:: Attributes Documentation
 

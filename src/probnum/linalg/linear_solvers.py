@@ -15,9 +15,9 @@ import GPy
 
 from probnum import probability
 from probnum.linalg import linear_operators
-import probnum.utils as utils
+from probnum import utils
 
-__all__ = ["problinsolve"]  # , "bayescg"]
+__all__ = ["problinsolve", "bayescg"]
 
 
 def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, atol=10 ** -6, rtol=10 ** -6,
@@ -33,18 +33,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     which quantifies uncertainty in the output arising from finite computational resources. This solver can take prior
     information either on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in
     the form of a random variable ``A0`` or ``Ainv0`` and outputs a posterior belief over :math:`A` or :math:`H`. This
-    code implements the method described in [1]_ based on the work in [2]_ and [3]_.
-
-    References
-    ----------
-    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
-
-    Notes
-    -----
-    For a specific class of priors the probabilistic linear solver recovers the iterates of the conjugate gradient
-    method as the posterior mean of the induced distribution on :math:`x=Hb`.
+    code implements the method described in [1]_ based on the work in [2]_.
 
     Parameters
     ----------
@@ -85,7 +74,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         User-supplied function called after each iteration of the linear solver. It is called as
         ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
         depending on the function supplied, this can slow down the solver.
-    kwargs :
+    kwargs : optional
         Keyword arguments passed onto the solver iteration.
 
     Returns
@@ -107,6 +96,18 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         If the matrix ``A`` is singular.
     LinAlgWarning
         If an ill-conditioned input ``A`` is detected.
+
+    Notes
+    -----
+    For a specific class of priors the probabilistic linear solver recovers the iterates of the conjugate gradient
+    method as the posterior mean of the induced distribution on :math:`x=Hb`. The matrix-based view taken here
+    recovers the solution-based inference of :func:`bayescg` [3]_.
+
+    References
+    ----------
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
 
     See Also
     --------
@@ -169,11 +170,6 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
 
     Note that the solution-based view of BayesCG and the matrix-based view of :meth:`problinsolve` correspond [2]_.
 
-    References
-    ----------
-    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
-    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
-
     Parameters
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
@@ -196,6 +192,11 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
         User-supplied function called after each iteration of the linear solver. It is called as
         ``callback(xk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
         depending on the function supplied, this can slow down the solver.
+
+    References
+    ----------
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
+    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
 
     See Also
     --------
@@ -602,11 +603,6 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
 
     Implements the solve iteration of the symmetric matrix-based probabilistic linear solver described in [1]_ and [2]_.
 
-    References
-    ----------
-    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-
     Parameters
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
@@ -634,6 +630,11 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         Posterior belief over the solution of the linear system.
     info : dict
         Information about convergence and the solution.
+
+    References
+    ----------
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
     """
 
     def __init__(self, A, b, A_mean, A_covfactor, Ainv_mean, Ainv_covfactor):
@@ -861,10 +862,6 @@ class _BayesCG(_ProbabilisticLinearSolver):
 
     Implements the solve iteration of BayesCG [1]_.
 
-    References
-    ----------
-    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
-
     Parameters
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
@@ -872,6 +869,9 @@ class _BayesCG(_ProbabilisticLinearSolver):
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
 
+    References
+    ----------
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
     """
 
     def __init__(self, A, b, x):

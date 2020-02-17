@@ -23,6 +23,7 @@ SymmetricKronecker
       ~SymmetricKronecker.det
       ~SymmetricKronecker.dot
       ~SymmetricKronecker.eigvals
+      ~SymmetricKronecker.inv
       ~SymmetricKronecker.logabsdet
       ~SymmetricKronecker.matmat
       ~SymmetricKronecker.matvec
@@ -46,6 +47,7 @@ SymmetricKronecker
    .. automethod:: det
    .. automethod:: dot
    .. automethod:: eigvals
+   .. automethod:: inv
    .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec

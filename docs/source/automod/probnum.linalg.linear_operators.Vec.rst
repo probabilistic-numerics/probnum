@@ -1,37 +1,38 @@
-Diagonal
-========
+Vec
+===
 
 .. currentmodule:: probnum.linalg.linear_operators
 
-.. autoclass:: Diagonal
+.. autoclass:: Vec
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~Diagonal.H
-      ~Diagonal.T
+      ~Vec.H
+      ~Vec.T
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~Diagonal.__call__
-      ~Diagonal.adjoint
-      ~Diagonal.cond
-      ~Diagonal.det
-      ~Diagonal.dot
-      ~Diagonal.eigvals
-      ~Diagonal.logabsdet
-      ~Diagonal.matmat
-      ~Diagonal.matvec
-      ~Diagonal.rank
-      ~Diagonal.rmatmat
-      ~Diagonal.rmatvec
-      ~Diagonal.todense
-      ~Diagonal.trace
-      ~Diagonal.transpose
+      ~Vec.__call__
+      ~Vec.adjoint
+      ~Vec.cond
+      ~Vec.det
+      ~Vec.dot
+      ~Vec.eigvals
+      ~Vec.inv
+      ~Vec.logabsdet
+      ~Vec.matmat
+      ~Vec.matvec
+      ~Vec.rank
+      ~Vec.rmatmat
+      ~Vec.rmatvec
+      ~Vec.todense
+      ~Vec.trace
+      ~Vec.transpose
 
    .. rubric:: Attributes Documentation
 
@@ -46,6 +47,7 @@ Diagonal
    .. automethod:: det
    .. automethod:: dot
    .. automethod:: eigvals
+   .. automethod:: inv
    .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec

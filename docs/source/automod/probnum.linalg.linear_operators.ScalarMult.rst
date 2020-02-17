@@ -1,38 +1,38 @@
-LinearOperator
-==============
+ScalarMult
+==========
 
 .. currentmodule:: probnum.linalg.linear_operators
 
-.. autoclass:: LinearOperator
+.. autoclass:: ScalarMult
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~LinearOperator.H
-      ~LinearOperator.T
+      ~ScalarMult.H
+      ~ScalarMult.T
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~LinearOperator.__call__
-      ~LinearOperator.adjoint
-      ~LinearOperator.cond
-      ~LinearOperator.det
-      ~LinearOperator.dot
-      ~LinearOperator.eigvals
-      ~LinearOperator.inv
-      ~LinearOperator.logabsdet
-      ~LinearOperator.matmat
-      ~LinearOperator.matvec
-      ~LinearOperator.rank
-      ~LinearOperator.rmatmat
-      ~LinearOperator.rmatvec
-      ~LinearOperator.todense
-      ~LinearOperator.trace
-      ~LinearOperator.transpose
+      ~ScalarMult.__call__
+      ~ScalarMult.adjoint
+      ~ScalarMult.cond
+      ~ScalarMult.det
+      ~ScalarMult.dot
+      ~ScalarMult.eigvals
+      ~ScalarMult.inv
+      ~ScalarMult.logabsdet
+      ~ScalarMult.matmat
+      ~ScalarMult.matvec
+      ~ScalarMult.rank
+      ~ScalarMult.rmatmat
+      ~ScalarMult.rmatvec
+      ~ScalarMult.todense
+      ~ScalarMult.trace
+      ~ScalarMult.transpose
 
    .. rubric:: Attributes Documentation
 

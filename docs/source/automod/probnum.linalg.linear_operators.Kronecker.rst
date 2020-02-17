@@ -23,6 +23,7 @@ Kronecker
       ~Kronecker.det
       ~Kronecker.dot
       ~Kronecker.eigvals
+      ~Kronecker.inv
       ~Kronecker.logabsdet
       ~Kronecker.matmat
       ~Kronecker.matvec
@@ -46,6 +47,7 @@ Kronecker
    .. automethod:: det
    .. automethod:: dot
    .. automethod:: eigvals
+   .. automethod:: inv
    .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec

@@ -23,6 +23,7 @@ MatrixMult
       ~MatrixMult.det
       ~MatrixMult.dot
       ~MatrixMult.eigvals
+      ~MatrixMult.inv
       ~MatrixMult.logabsdet
       ~MatrixMult.matmat
       ~MatrixMult.matvec
@@ -46,6 +47,7 @@ MatrixMult
    .. automethod:: det
    .. automethod:: dot
    .. automethod:: eigvals
+   .. automethod:: inv
    .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec

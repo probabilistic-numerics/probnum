@@ -13,7 +13,8 @@ import numpy as np
 import scipy.sparse.linalg
 import scipy.sparse.linalg.interface
 
-__all__ = ["LinearOperator", "MatrixMult", "Identity", "Diagonal", "Kronecker", "SymmetricKronecker", "aslinop"]
+__all__ = ["LinearOperator", "Identity", "ScalarMult", "MatrixMult", "Kronecker", "SymmetricKronecker", "Vec", "Svec",
+           "aslinop"]
 
 
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
@@ -530,15 +531,6 @@ class Svec(LinearOperator):
 
     where :math:`S` is a symmetric linear operator defined on :math:`\\mathbb{R}^n`.
 
-    References
-    ----------
-    .. [1] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
-
-    Notes
-    -----
-    It holds that :math:`Q\\operatorname{svec}(S) = \\operatorname{vec}(S)`, where :math:`Q` is a unique matrix with
-    orthonormal rows.
-
     Parameters
     ----------
     dim : int
@@ -546,6 +538,15 @@ class Svec(LinearOperator):
     check_symmetric : bool, default=False
         Check whether the given matrix or vector corresponds to a symmetric matrix argument. Note, this option can slow
         down performance.
+
+    Notes
+    -----
+    It holds that :math:`Q\\operatorname{svec}(S) = \\operatorname{vec}(S)`, where :math:`Q` is a unique matrix with
+    orthonormal rows.
+
+    References
+    ----------
+    .. [1] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
     """
 
     def __init__(self, dim, check_symmetric=False):
@@ -616,11 +617,6 @@ class Kronecker(LinearOperator):
     :math:`(A \\otimes B)\\operatorname{vec}(X) = AXB^{\\top}`, the Kronecker product can be understood as "translation"
     between matrix multiplication and (row-wise) vectorization.
 
-    References
-    ----------
-    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
-            123, 85-100
-
     Parameters
     ----------
     A : np.ndarray or LinearOperator
@@ -629,6 +625,11 @@ class Kronecker(LinearOperator):
         The second operator.
     dtype : dtype
         Data type of the operator.
+
+    References
+    ----------
+    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
+            123, 85-100
 
     See Also
     --------
@@ -687,15 +688,15 @@ class SymmetricKronecker(LinearOperator):
     implementation is based on the relationship :math:`Q^\\top \\operatorname{svec}(X) = \\operatorname{vec}(X)` with an
     orthonormal matrix :math:`Q` [2]_.
 
+    Note
+    ----
+    The symmetric Kronecker product has a symmetric matrix representation if both :math:`A` and :math:`B` are symmetric.
+
     References
     ----------
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
             123, 85-100
     .. [2] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
-
-    Note
-    ----
-    The symmetric Kronecker product has a symmetric matrix representation if both :math:`A` and :math:`B` are symmetric.
 
     See Also
     --------

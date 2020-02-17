@@ -23,6 +23,7 @@ Identity
       ~Identity.det
       ~Identity.dot
       ~Identity.eigvals
+      ~Identity.inv
       ~Identity.logabsdet
       ~Identity.matmat
       ~Identity.matvec
@@ -46,6 +47,7 @@ Identity
    .. automethod:: det
    .. automethod:: dot
    .. automethod:: eigvals
+   .. automethod:: inv
    .. automethod:: logabsdet
    .. automethod:: matmat
    .. automethod:: matvec

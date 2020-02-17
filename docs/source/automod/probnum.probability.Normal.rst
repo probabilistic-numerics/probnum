@@ -19,6 +19,7 @@ Normal
    .. autosummary::
 
       ~Normal.cdf
+      ~Normal.cov
       ~Normal.logcdf
       ~Normal.logpdf
       ~Normal.mean
@@ -38,6 +39,7 @@ Normal
    .. rubric:: Methods Documentation
 
    .. automethod:: cdf
+   .. automethod:: cov
    .. automethod:: logcdf
    .. automethod:: logpdf
    .. automethod:: mean
