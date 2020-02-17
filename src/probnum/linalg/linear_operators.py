@@ -209,9 +209,13 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         """
         return self.matmat(np.eye(self.shape[1], dtype=self.dtype))
 
+    def inv(self):
+        """Inverse of the linear operator."""
+        raise NotImplementedError
+
+    # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
     def rank(self):
         """Rank of the linear operator."""
-        # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
         raise NotImplementedError
 
     def eigvals(self):
@@ -273,33 +277,41 @@ class _TransposedLinearOperator(scipy.sparse.linalg.interface._TransposedLinearO
     """Transposition of a linear operator."""
 
     def __init__(self, A):
+        self.A = A
         super().__init__(A=A)
 
     def todense(self):
-        A = self.args[0]
-        return A.todense().T
+        return self.A.todense().T
+
+    def inv(self):
+        return self.A.inv().T
 
 
 class _SumLinearOperator(scipy.sparse.linalg.interface._SumLinearOperator, LinearOperator):
     """Sum of two linear operators."""
 
     def __init__(self, A, B):
+        self.A = A
+        self.B = B
         super().__init__(A=A, B=B)
 
     def todense(self):
-        A, B = self.args
-        return A.todense() + B.todense()
+        return self.A.todense() + self.B.todense()
+
+    def inv(self):
+        return self.A.inv() + self.B.inv()
 
 
 class _ProductLinearOperator(scipy.sparse.linalg.interface._ProductLinearOperator, LinearOperator):
     """(Operator) Product of two linear operators."""
 
     def __init__(self, A, B):
+        self.A = A
+        self.B = B
         super().__init__(A=A, B=B)
 
     def todense(self):
-        A, B = self.args
-        return A.todense() @ B.todense()
+        return self.A.todense() @ self.B.todense()
 
 
 class _ScaledLinearOperator(scipy.sparse.linalg.interface._ScaledLinearOperator, LinearOperator):
@@ -312,66 +324,16 @@ class _ScaledLinearOperator(scipy.sparse.linalg.interface._ScaledLinearOperator,
         A, alpha = self.args
         return alpha * A.todense()
 
+    def inv(self):
+        A, alpha = self.args
+        return _ScaledLinearOperator(A.inv(), 1 / alpha)
+
 
 class _PowerLinearOperator(scipy.sparse.linalg.interface._PowerLinearOperator, LinearOperator):
     """Linear operator raised to a non-negative integer power."""
 
     def __init__(self, A, p):
         super().__init__(A=A, p=p)
-
-
-# TODO: replace with general Scalar linear operator: \alpha * I
-class Identity(LinearOperator):
-    """
-    The identity operator.
-    """
-
-    def __init__(self, shape, dtype=None):
-        # Check shape
-        if np.isscalar(shape):
-            _shape = (shape, shape)
-        elif shape[0] != shape[1]:
-            raise ValueError("The identity operator must be square.")
-        else:
-            _shape = shape
-        # Initiator of super class
-        super(Identity, self).__init__(dtype=dtype, shape=_shape)
-
-    def _matvec(self, x):
-        return x
-
-    def _rmatvec(self, x):
-        return x
-
-    def _rmatmat(self, x):
-        return x
-
-    def _matmat(self, x):
-        return x
-
-    def _adjoint(self):
-        return self
-
-    def todense(self):
-        return np.eye(N=self.shape[0], M=self.shape[1])
-
-    def rank(self):
-        return self.shape[0]
-
-    def eigvals(self):
-        return np.ones(self.shape[0])
-
-    def cond(self, p=None):
-        return 1.
-
-    def det(self):
-        return 1.
-
-    def logabsdet(self):
-        return 0.
-
-    def trace(self):
-        return self.shape[0]
 
 
 class Diagonal(LinearOperator):
@@ -415,6 +377,9 @@ class ScalarMult(LinearOperator):
     def todense(self):
         return np.eye(self.shape[0]) * self.scalar
 
+    def inv(self):
+        return ScalarMult(shape=self.shape, scalar=1 / self.scalar)
+
     # Properties
     def rank(self):
         return self.shape[0]
@@ -433,6 +398,23 @@ class ScalarMult(LinearOperator):
 
     def trace(self):
         return self.scalar * self.shape[0]
+
+
+class Identity(ScalarMult):
+    """
+    The identity operator.
+    """
+
+    def __init__(self, shape, dtype=None):
+        # Check shape
+        if np.isscalar(shape):
+            _shape = (shape, shape)
+        elif shape[0] != shape[1]:
+            raise ValueError("The identity operator must be square.")
+        else:
+            _shape = shape
+        # Initiator of super class
+        super().__init__(shape=_shape, scalar=1.)
 
 
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
@@ -459,6 +441,13 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
             return self.A.todense()
         else:
             return np.asarray(self.A)
+
+    def inv(self):
+        if isinstance(self.A, scipy.sparse.spmatrix):
+            invmat = scipy.sparse.linalg.inv(self.A)
+        else:
+            invmat = np.linalg.inv(self.A)
+        return MatrixMult(invmat)
 
     # Arithmetic operations
     # TODO: perform arithmetic operations between MatrixMult operators explicitly
@@ -517,7 +506,7 @@ class Vec(LinearOperator):
             return X.ravel(order='F')
 
 
-class Vec2Svec(LinearOperator):
+class Svec(LinearOperator):
     """
     Symmetric vectorization operator.
 
@@ -560,9 +549,11 @@ class Vec2Svec(LinearOperator):
     """
 
     def __init__(self, dim, check_symmetric=False):
+        if not isinstance(dim, int) or dim <= 0:
+            raise ValueError("Dimension of the input matrix S must be a positive integer.")
         self._dim = dim
         self.check_symmetric = check_symmetric
-        super().__init__(dtype=float, shape=(int(0.5 * dim * (dim + 1)), dim * dim))
+        super().__init__(dtype=float, shape=(dim * dim, int(0.5 * dim * (dim + 1))))
 
     def _matvec(self, x):
         """Assumes x = vec(X)."""
@@ -575,63 +566,13 @@ class Vec2Svec(LinearOperator):
         return X[ind]
 
     def _matmat(self, X):
-        return self._matvec(X.ravel())
-
-
-def _vec2svec(n):
-    """
-    Linear map from :math:`\\operatorname{vec}(S)` to :math:`\\operatorname{svec}(S)`
-
-    Defines the unique matrix :math:`Q` with orthonormal rows such that
-    :math:`\\operatorname{svec}(S) = Q\\operatorname{vec}(S)` [1]_ used to efficiently compute the symmetric Kronecker
-    product.
-
-    References
-    ----------
-    .. [1] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
-
-    Parameters
-    ----------
-    n : int
-        Dimension of the symmetric matrix :math:`S`.
-
-    Returns
-    -------
-    Q : scipy.spmatrix
-        Sparse array representing :math:`Q`.
-
-    """
-    # TODO: these pairwise comparisons are extremely inefficient, find a better implementation without building Q by
-    #   directly implementing the vectorwise definition. By making this function into a linear operator we can still
-    #   obtain a dense representation if necessary.
-    if not isinstance(n, int) or n <= 0:
-        raise ValueError("Dimension of the input matrix S must be a positive integer.")
-
-    # Get svec and vec indices
-    cind, rind = np.triu_indices(n=n, k=0)
-    rind_full, cind_full = np.indices(
-        dimensions=(n, n))
-    rind_full = rind_full.ravel()
-    cind_full = cind_full.ravel()
-
-    # Define entries with 1
-    rows1 = np.nonzero(rind == cind)[0]
-    cols1 = np.nonzero(rind_full == cind_full)[0]
-    entries1 = np.ones_like(rows1)
-
-    # Define entries with sqrt(2)/2
-    # see also: Schaecke, K., On the Kronecker product. Master's thesis, University of Waterloo, 2004
-    boolmask1 = np.equal.outer(rind, rind_full) & np.equal.outer(cind, cind_full) & np.not_equal.outer(cind, rind_full)
-    boolmask2 = np.equal.outer(rind, cind_full) & np.equal.outer(cind, rind_full) & np.not_equal.outer(cind, cind_full)
-    boolmask = boolmask1 | boolmask2
-    rowsS2, colsS2 = np.nonzero(boolmask)
-    entriesS2 = np.sqrt(2) / 2 * np.ones_like(rowsS2)
-
-    # Build sparse matrix from row and column indices
-    data = np.concatenate([entries1, entriesS2])
-    row_ind = np.concatenate([rows1, rowsS2])
-    col_ind = np.concatenate([cols1, colsS2])
-    return scipy.sparse.csr_matrix((data, (row_ind, col_ind)), shape=(int(0.5 * n * (n + 1)), n ** 2), dtype=float)
+        """Vectorizes X if of dimension n^2, otherwise applies Svec to each column of X."""
+        if np.shape(X)[0] == np.shape(X)[1] == self._dim:
+            return self._matvec(X.ravel())
+        elif np.shape(X)[0] == self._dim * self._dim:
+            return np.hstack([self._matvec(col.reshape(-1, 1)) for col in X.T])
+        else:
+            raise ValueError("Dimension mismatch. Argument must be either a (n x n) matrix or (n^2 x k)")
 
 
 class Symmetrize(LinearOperator):
@@ -717,6 +658,18 @@ class Kronecker(LinearOperator):
         X = X.reshape(self.A.shape[0], self.B.shape[0])
         Y = self.B.H.matmat(X.T)
         return self.A.H.matmat(Y.T).ravel()
+
+    def transpose(self):
+        """
+        (A (x) B)^T = A^T (x) B^T
+        """
+        return Kronecker(A=self.A.transpose(), B=self.B.transpose(), dtype=self.dtype)
+
+    def inv(self):
+        """
+        (A (x) B)^-1 = A^-1 (x) B^-1
+        """
+        return Kronecker(A=self.A.inv(), B=self.B.inv(), dtype=self.dtype)
 
 
 class SymmetricKronecker(LinearOperator):
@@ -831,11 +784,6 @@ def aslinop(A):
     """
     if isinstance(A, scipy.sparse.linalg.LinearOperator):
         return A
-    # if isinstance(A, RandomVariable):
-    #     # TODO: aslinearoperator also for random variables; change docstring example;
-    #     #  not needed if LinearOperator inherits from RandomVariable
-    #     # TODO: this causes a circular dependency between RandomVariable and LinearOperator
-    #     raise NotImplementedError
     elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
         return MatrixMult(A=A)
     else:

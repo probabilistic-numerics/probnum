@@ -21,7 +21,7 @@ __all__ = ["problinsolve"]  # , "bayescg"]
 
 
 def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, atol=10 ** -6, rtol=10 ** -6,
-                 callback=None):
+                 callback=None, **kwargs):
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -33,12 +33,13 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     which quantifies uncertainty in the output arising from finite computational resources. This solver can take prior
     information either on the linear operator :math:`A` or its inverse :math:`H=A^{-1}` in
     the form of a random variable ``A0`` or ``Ainv0`` and outputs a posterior belief over :math:`A` or :math:`H`. This
-    code implements the method described in [1]_ and [2]_.
+    code implements the method described in [1]_ based on the work in [2]_ and [3]_.
 
     References
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
 
     Notes
     -----
@@ -52,7 +53,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems are solved
         sequentially with the posteriors over the matrices acting as priors for subsequent solves.
-    A0 : RandomVariable, shape=(n,n), optional
+    A0 : RandomVariable, shape=(n, n), optional
         Prior belief over the linear operator :math:`A` provided as a :class:`~probnum.probability.RandomVariable`.
     Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
         A square matrix, linear operator or random variable representing the prior belief over the inverse
@@ -84,6 +85,8 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         User-supplied function called after each iteration of the linear solver. It is called as
         ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
         depending on the function supplied, this can slow down the solver.
+    kwargs :
+        Keyword arguments passed onto the solver iteration.
 
     Returns
     -------
@@ -139,13 +142,12 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         maxiter = n * 10
 
     # Iteratively solve for multiple right hand sides (with posteriors as new priors)
-    # TODO: move this into the solver iteration itself (compute with matrices)
     for i in range(nrhs):
         # Select and initialize solver
         linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x)
 
         # Solve linear system
-        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback)
+        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs)
 
     # Return Ainv @ b for multiple rhs
     if nrhs > 1:
@@ -342,22 +344,72 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
     if assume_A not in ["gen", "sym", "pos", "sympos"]:
         raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
 
-    # Choose prior if none specified, based on matrix assumptions in "assume_A"
-    # TODO: Automatic prior selection based on data scale, matrix trace, etc.?
-    # TODO: Implement case where only a pre-conditioner is given as Ainv0
-    if A0 is None and Ainv0 is None:
-        dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
-                                  cov=linear_operators.SymmetricKronecker(linear_operators.Identity(shape=A.shape[0]),
-                                                                          linear_operators.Identity(shape=A.shape[0])))
-        Ainv0 = probability.RandomVariable(distribution=dist)
+    # Choose priors for A and Ainv if not specified, based on matrix assumptions in "assume_A"
+    if assume_A == "sympos":
+        # No priors specified
+        if A0 is None and Ainv0 is None:
+            dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
+                                      cov=linear_operators.SymmetricKronecker(
+                                          linear_operators.Identity(shape=A.shape[0]),
+                                          linear_operators.Identity(shape=A.shape[0])))
+            Ainv0 = probability.RandomVariable(distribution=dist)
 
-    # Translate A0 prior into Ainv0 prior or vice versa
-    # TODO: Implement theory from paper
-    if A0 is None:
-        dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
-                                  cov=linear_operators.SymmetricKronecker(linear_operators.Identity(shape=A.shape[0]),
-                                                                          linear_operators.Identity(shape=A.shape[0])))
-        A0 = probability.RandomVariable(distribution=dist)  # TODO: Remove me
+            dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
+                                      cov=linear_operators.SymmetricKronecker(
+                                          linear_operators.Identity(shape=A.shape[0]),
+                                          linear_operators.Identity(shape=A.shape[0])))
+            A0 = probability.RandomVariable(distribution=dist)
+        # Only prior on Ainv specified
+        elif A0 is None and Ainv0 is not None:
+            try:
+                if isinstance(Ainv0, probability.RandomVariable):
+                    A0_mean = Ainv0.mean().inv()
+                else:
+                    A0_mean = Ainv0.inv()
+            except AttributeError:
+                warnings.warn(message="Prior specified only for Ainv. Inverting prior mean naively. " +
+                              "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+                A0_mean = np.linalg.inv(Ainv0.mean())
+            except NotImplementedError:
+                A0_mean = linear_operators.Identity(A.shape[0])
+                warnings.warn(message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
+                                      + "falling back to standard normal prior.")
+            # hereditary positive definiteness
+            A0_covfactor = A
+
+            dist = probability.Normal(mean=A0_mean,
+                                      cov=linear_operators.SymmetricKronecker(A=A0_covfactor, B=A0_covfactor))
+            A0 = probability.RandomVariable(distribution=dist)
+        # Only prior on A specified
+        if A0 is not None and Ainv0 is None:
+            try:
+                if isinstance(A0, probability.RandomVariable):
+                    Ainv0_mean = A0.mean().inv()
+                else:
+                    Ainv0_mean = A0.inv()
+            except AttributeError:
+                warnings.warn(message="Prior specified only for Ainv. Inverting prior mean naively. " +
+                              "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+                Ainv0_mean = np.linalg.inv(A0.mean())
+            except NotImplementedError:
+                Ainv0_mean = linear_operators.Identity(A.shape[0])
+                warnings.warn(message="Prior specified only for Ainv. " +
+                                      "Automatic prior mean inversion failed, falling back to standard normal prior.")
+            # (non-symmetric) posterior correspondence
+            Ainv0_covfactor = Ainv0_mean
+
+            dist = probability.Normal(mean=Ainv0_mean,
+                                      cov=linear_operators.SymmetricKronecker(A=Ainv0_covfactor, B=Ainv0_covfactor))
+            Ainv0 = probability.RandomVariable(distribution=dist)
+
+    elif assume_A == "sym":
+        raise NotImplementedError
+    elif assume_A == "pos":
+        raise NotImplementedError
+    elif assume_A == "gen":
+        # TODO: Implement case where only a pre-conditioner is given as Ainv0
+        # TODO: Automatic prior selection based on data scale, matrix trace, etc.
+        raise NotImplementedError
 
     # Transform linear system to correct dimensions
     b = utils.as_colvec(b)  # (n,) -> (n, 1)
@@ -490,7 +542,6 @@ class _ProbabilisticLinearSolver(abc.ABC):
             warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
             return True, "maxiter"
         # residual below error tolerance
-        # todo: add / replace with relative tolerance
         elif np.linalg.norm(resid) <= atol:
             return True, "resid_atol"
         elif np.linalg.norm(resid) <= rtol * np.linalg.norm(self.b):
@@ -500,7 +551,7 @@ class _ProbabilisticLinearSolver(abc.ABC):
         else:
             return False, ""
 
-    def solve(self, callback=None, **convergence_args):
+    def solve(self, callback=None, **kwargs):
         """
         Solve the linear system :math:`Ax=b`.
 
@@ -510,8 +561,9 @@ class _ProbabilisticLinearSolver(abc.ABC):
             User-supplied function called after each iteration of the linear solver. It is called as
             ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration.
             Note that depending on the function supplied, this can slow down the solver.
-        convergence_args
-            Arguments specifying when the solver has converged to a solution.
+        kwargs
+            Key-word arguments adjusting the behaviour of the ``solve`` iteration. These are usually convergence
+            criteria.
 
         Returns
         -------
@@ -586,24 +638,29 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
 
     def __init__(self, A, b, A_mean, A_covfactor, Ainv_mean, Ainv_covfactor):
         self.A_mean = A_mean
-        self.A_covfactor = A  # TODO: MAKE THESE ASSUMPTIONS CLEAR
+        self.A_covfactor = A_covfactor
         self.Ainv_mean = Ainv_mean
-        self.Ainv_covfactor = Ainv_mean  # TODO: MAKE THESE ASSUMPTIONS CLEAR
+        self.Ainv_covfactor = Ainv_covfactor
         self.x = Ainv_mean @ b
         self.S = []
         self.Y = []
         self.sy = []
-        # TODO: call class function here which derives missing prior mean and covariance via posterior correspondence
         super().__init__(A=A, b=b)
 
     def _calibrate_uncertainty(self):
-        """Calibrate uncertainty based on the remaining degrees of freedom in the covariance of A and H."""
+        """
+        Calibrate uncertainty based on the Rayleigh coefficients
+
+        A regression model for the log-Rayleigh coefficient is built based on the collected observations. The degrees of
+        freedom in the covariance of A and H are set according to the predicted log-Rayleigh coefficient for the
+        remaining unexplored dimensions.
+        """
         # Transform to arrays
         _sy = np.squeeze(np.array(self.sy))
         _S = np.squeeze(np.array(self.S)).T
         _Y = np.squeeze(np.array(self.Y)).T
 
-        if self.iter_ > 1:
+        if self.iter_ > 5:  # only calibrate if enough iterations for a regression model have been performed
             # Rayleigh quotient
             iters = np.arange(self.iter_)
             logR = np.log(_sy) - np.log(np.einsum('ij,ij->j', _S, _S))
@@ -626,8 +683,8 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             R_pred = np.exp(GP_pred[0].ravel() + beta0)
 
             # Set scale
-            Phi = linear_operators.ScalarMult(shape=self.A.shape, scalar=np.mean(R_pred))
-            Psi = linear_operators.ScalarMult(shape=self.A.shape, scalar=np.mean(R_pred))
+            Phi = linear_operators.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.mean(R_pred)))
+            Psi = linear_operators.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.mean(1 / R_pred)))
 
         else:
             Phi = None
@@ -641,27 +698,26 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         _A_covfactor = self.A_covfactor
         _Ainv_covfactor = self.Ainv_covfactor
 
-        if len(S) > 0:
-            # Orthogonal space correction from uncertainty calibration
-            if Phi is not None:
-                def _mv(x):
-                    def _I_S_fun(x):
-                        return x - S @ np.linalg.solve(S.T @ S, S.T @ x)
+        # Set degrees of freedom based on uncertainty calibration in unexplored space
+        if Phi is not None:
+            def _mv(x):
+                def _I_S_fun(x):
+                    return x - S @ np.linalg.solve(S.T @ S, S.T @ x)
 
-                    return _I_S_fun(Phi @ _I_S_fun(x))
+                return _I_S_fun(Phi @ _I_S_fun(x))
 
-                I_S_Phi_I_S_op = linear_operators.LinearOperator(shape=self.A.shape, matvec=_mv)
-                _A_covfactor = self.A_covfactor + I_S_Phi_I_S_op
+            I_S_Phi_I_S_op = linear_operators.LinearOperator(shape=self.A.shape, matvec=_mv)
+            _A_covfactor = self.A_covfactor + I_S_Phi_I_S_op
 
-            if Psi is not None:
-                def _mv(x):
-                    def _I_Y_fun(x):
-                        return x - Y @ np.linalg.solve(Y.T @ Y, Y.T @ x)
+        if Psi is not None:
+            def _mv(x):
+                def _I_Y_fun(x):
+                    return x - Y @ np.linalg.solve(Y.T @ Y, Y.T @ x)
 
-                    return _I_Y_fun(Psi @ _I_Y_fun(x))
+                return _I_Y_fun(Psi @ _I_Y_fun(x))
 
-                I_Y_Psi_I_Y_op = linear_operators.LinearOperator(shape=self.A.shape, matvec=_mv)
-                _Ainv_covfactor = self.Ainv_covfactor + I_Y_Psi_I_Y_op
+            I_Y_Psi_I_Y_op = linear_operators.LinearOperator(shape=self.A.shape, matvec=_mv)
+            _Ainv_covfactor = self.Ainv_covfactor + I_Y_Psi_I_Y_op
 
         # Create output random variables
         A = probability.RandomVariable(shape=self.A_mean.shape,
@@ -673,7 +729,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         Ainv = probability.RandomVariable(shape=self.Ainv_mean.shape,
                                           dtype=float,
                                           distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
-        # Induced distribution on x via Ainv (see Hennig2020)
+        # Induced distribution on x via Ainv
         # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
         Wb = _Ainv_covfactor @ self.b
         bWb = np.squeeze(Wb.T @ self.b)
@@ -711,7 +767,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
 
         return linear_operators.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
 
-    def solve(self, callback=None, maxiter=None, atol=None, rtol=None):
+    def solve(self, callback=None, maxiter=None, atol=None, rtol=None, calibrate=True):
         # initialization
         self.iter_ = 0
         resid = self.A @ self.x - self.b
@@ -753,8 +809,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
             v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
 
             # rank 2 mean updates (+= uv' + vu')
-            # TODO: should we really perform these updates in operator form? Yes, cannot build full matrices
-            #  for example in deep learning. BUT: Ensure speed of iteration is fast.
+            # TODO: Operator form may cause stack size issues for too many iterations
             self.A_mean = linear_operators.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A)
             self.Ainv_mean = linear_operators.aslinop(self.Ainv_mean) + self._mean_update(u=u_Ainv, v=v_Ainv)
 
@@ -768,21 +823,25 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
 
             # callback function used to extract quantities from iteration
             if callback is not None:
-                #Phi, Psi = self._calibrate_uncertainty()
+                # Phi, Psi = self._calibrate_uncertainty()
                 xk, Ak, Ainvk = self._create_output_randvars(S=np.squeeze(np.array(self.S)).T,
                                                              Y=np.squeeze(np.array(self.Y)).T,
-                                                             Phi=None,#Phi,
-                                                             Psi=None)#Psi)
+                                                             Phi=None,  # Phi,
+                                                             Psi=None)  # Psi)
                 callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
 
         # Calibrate uncertainty
-        #Phi, Psi = self._calibrate_uncertainty()
+        if calibrate:
+            Phi, Psi = self._calibrate_uncertainty()
+        else:
+            Phi = None
+            Psi = None
 
         # Create output random variables
         x, A, Ainv = self._create_output_randvars(S=np.squeeze(np.array(self.S)).T,
                                                   Y=np.squeeze(np.array(self.Y)).T,
-                                                  Phi=None, #Phi,
-                                                  Psi=None)#Psi)
+                                                  Phi=Phi,
+                                                  Psi=Psi)
 
         # Log information on solution
         info = {
@@ -800,16 +859,18 @@ class _BayesCG(_ProbabilisticLinearSolver):
     """
     Solver iteration of BayesCG.
 
-    Implements the solve iteration of BayesCG [1]_ [2]_.
+    Implements the solve iteration of BayesCG [1]_.
 
     References
     ----------
     .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
-    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
 
     Parameters
     ----------
-
+    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
+        The square matrix or linear operator of the linear system.
+    b : array_like, shape=(n,) or (n, nrhs)
+        Right-hand side vector or matrix in :math:`A x = b`.
 
     """
 
@@ -817,5 +878,5 @@ class _BayesCG(_ProbabilisticLinearSolver):
         self.x = x
         super().__init__(A=A, b=b)
 
-    def solve(self, maxiter, atol, rtol):
+    def solve(self, callback=None, maxiter=None, atol=None, rtol=None):
         raise NotImplementedError

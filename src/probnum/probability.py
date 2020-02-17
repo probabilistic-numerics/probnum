@@ -1342,7 +1342,7 @@ class _MatrixvariateNormal(Normal):
         pdf_ravelled = scipy.stats.multivariate_normal.pdf(x.ravel(),
                                                            mean=self.mean().ravel(),
                                                            cov=self.cov())
-        # TODO: this reshape doesnt make sense, write test for multiple matrices
+        # TODO: this reshape is incorrect, write test for multiple matrices
         return pdf_ravelled.reshape(shape=self.mean().shape)
 
     def logpdf(self, x):

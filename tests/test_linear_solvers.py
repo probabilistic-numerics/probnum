@@ -138,7 +138,7 @@ def test_sparse_poisson(plinsolve, poisson_linear_system):
     A, f = poisson_linear_system
     u = scipy.sparse.linalg.spsolve(A=A, b=f)
 
-    u_solver, Ahat, Ainvhat, info = plinsolve(A=A, b=f, maxiter=20)
+    u_solver, Ahat, Ainvhat, info = plinsolve(A=A, b=f)
     np.testing.assert_allclose(u_solver.mean(), u, rtol=1e-5,
                                err_msg="Solution from probabilistic linear solver does" +
                                        " not match scipy.sparse.linalg.spsolve.")
@@ -167,12 +167,12 @@ def test_posterior_distribution_parameters(matblinsolve, poisson_linear_system):
     Y = []  # observations
 
     # Priors
-    H0 = np.eye(A.shape[0])  # inverse prior mean
-    A0 = np.eye(A.shape[0])  # prior mean
-    WH0 = np.eye(A.shape[0])  # inverse prior Kronecker factor
-    WA0 = np.eye(A.shape[0])  # prior Kronecker factor
+    H0 = linear_operators.Identity(A.shape[0])  # inverse prior mean
+    A0 = linear_operators.Identity(A.shape[0])  # prior mean
+    WH0 = H0  # inverse prior Kronecker factor
+    WA0 = A  # prior Kronecker factor
     covH = linear_operators.SymmetricKronecker(WH0, WH0)
-    covA = covH
+    covA = linear_operators.SymmetricKronecker(WA0, WA0)
     Ahat0 = probability.RandomVariable(distribution=probability.Normal(mean=A0, cov=covA))
     Ainvhat0 = probability.RandomVariable(distribution=probability.Normal(mean=H0, cov=covH))
 
@@ -182,7 +182,8 @@ def test_posterior_distribution_parameters(matblinsolve, poisson_linear_system):
         Y.append(yk)
 
     # Solve linear system
-    u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f, A0=Ahat0, Ainv0=Ainvhat0, callback=callback_postparams)
+    u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f, A0=Ahat0, Ainv0=Ainvhat0,
+                                                 callback=callback_postparams, calibrate=False)
 
     # Create arrays from lists
     S = np.squeeze(np.array(S)).T
@@ -192,13 +193,13 @@ def test_posterior_distribution_parameters(matblinsolve, poisson_linear_system):
     def posterior_mean(A0, WA0, S, Y):
         """Compute posterior mean of the symmetric probabilistic linear solver."""
         Delta = (Y - A0 @ S)
-        U_T = np.linalg.solve(S.T @ WA0 @ S, S.T @ WA0)
+        U_T = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
         U = U_T.T
         Ak = A0 + Delta @ U_T + U @ Delta.T - U @ S.T @ Delta @ U_T
         return Ak
 
-    Ak = posterior_mean(A0, WA0, S, Y)
-    Hk = posterior_mean(H0, WH0, Y, S)
+    Ak = posterior_mean(A0.todense(), WA0, S, Y)
+    Hk = posterior_mean(H0.todense(), WH0, Y, S)
 
     np.testing.assert_allclose(Ahat.mean().todense(), Ak, rtol=1e-5,
                                err_msg="The matrix estimated by the probabilistic linear solver does not match the " +
@@ -210,7 +211,7 @@ def test_posterior_distribution_parameters(matblinsolve, poisson_linear_system):
     # Cov[A] and Cov[A^-1]
     def posterior_cov_kronfac(WA0, S):
         """Compute the covariance symmetric Kronecker factor of the probabilistic linear solver."""
-        U_AT = np.linalg.solve(S.T @ WA0 @ S, S.T @ WA0)
+        U_AT = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
         covfac = WA0 @ (np.identity(np.shape(WA0)[0]) - S @ U_AT)
         return covfac
 
