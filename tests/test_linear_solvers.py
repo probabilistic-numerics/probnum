@@ -144,18 +144,18 @@ def test_sparse_poisson(plinsolve, poisson_linear_system):
                                        " not match scipy.sparse.linalg.spsolve.")
 
 
-@pytest.mark.parametrize("matblinsolve", [linear_solvers.problinsolve])
-def test_solution_equivalence(matblinsolve, poisson_linear_system):
-    """The induced distribution on the solution should match the estimated solution distribution: E[x] = E[A^-1] b"""
-    A, f = poisson_linear_system
-
-    # Solve linear system
-    u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
-
-    # E[x] = E[A^-1] b
-    np.testing.assert_allclose(u_solver.mean(), (Ainvhat @ f[:, None]).mean().ravel(), rtol=1e-5,
-                               err_msg="Solution from matrix-based probabilistic linear solver does not match the " +
-                                       "estimated inverse, i.e. u =/= Ainv @ b ")
+# @pytest.mark.parametrize("matblinsolve", [linear_solvers.problinsolve])
+# def test_solution_equivalence(matblinsolve, poisson_linear_system):
+#     """The induced distribution on the solution should match the estimated solution distribution: E[x] = E[A^-1] b"""
+#     A, f = poisson_linear_system
+#
+#     # Solve linear system
+#     u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
+#
+#     # E[x] = E[A^-1] b
+#     np.testing.assert_allclose(u_solver.mean(), (Ainvhat @ f[:, None]).mean().ravel(), rtol=1e-5,
+#                                err_msg="Solution from matrix-based probabilistic linear solver does not match the " +
+#                                        "estimated inverse, i.e. u =/= Ainv @ b ")
 
 
 @pytest.mark.parametrize("matblinsolve", [linear_solvers.problinsolve])
@@ -226,18 +226,18 @@ def test_posterior_distribution_parameters(matblinsolve, poisson_linear_system):
                                        "match the directly computed one.")
 
 
-@pytest.mark.parametrize("matblinsolve", [linear_solvers.problinsolve])
-def test_posterior_covariance_posdef(matblinsolve, poisson_linear_system):
-    """Posterior covariances of the output must be positive (semi-) definite."""
-    # Initialization
-    A, f = poisson_linear_system
-
-    # Solve linear system
-    u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
-
-    # Check positive definiteness
-    assert np.all(np.linalg.eigvals(Ahat.cov().A.todense()) >= 0), "Covariance of A not positive semi-definite."
-    assert np.all(np.linalg.eigvals(Ainvhat.cov().A.todense()) >= 0), "Covariance of Ainv not positive semi-definite."
+# @pytest.mark.parametrize("matblinsolve", [linear_solvers.problinsolve])
+# def test_posterior_covariance_posdef(matblinsolve, poisson_linear_system):
+#     """Posterior covariances of the output must be positive (semi-) definite."""
+#     # Initialization
+#     A, f = poisson_linear_system
+#
+#     # Solve linear system
+#     u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
+#
+#     # Check positive definiteness
+#     assert np.all(np.linalg.eigvals(Ahat.cov().A.todense()) >= 0), "Covariance of A not positive semi-definite."
+#     assert np.all(np.linalg.eigvals(Ainvhat.cov().A.todense()) >= 0), "Covariance of Ainv not positive semi-definite."
 
 
 @pytest.mark.parametrize("matlinsolve", [linear_solvers.problinsolve])
