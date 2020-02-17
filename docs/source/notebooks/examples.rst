@@ -2,8 +2,8 @@ Examples
 ========
 
 See the notebooks below to learn more about how to use ProbNum and its functionality. They describe random variables,
-the main in- and outputs of probabilistic numerical methods; linear operators; linear systems and their application to
-solving (discretized) differential equations.
+the main in- and outputs of probabilistic numerical methods, linear operators, probabilistic linear solvers and their
+application to solving (partial) differential equations.
 
 .. toctree::
    :maxdepth: 2

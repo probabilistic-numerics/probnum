@@ -283,7 +283,7 @@ def test_searchdir_conjugacy(plinsolve, poisson_linear_system):
                                          err_msg="Search directions from solver are not A-conjugate.")
 
 
-@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])  # , linear_solvers.bayescg])
+@pytest.mark.parametrize("plinsolve", [linear_solvers.problinsolve])
 def test_posterior_mean_CG_equivalency(plinsolve, poisson_linear_system):
     """The probabilistic linear solver should recover CG iterates as a posterior mean for specific covariances."""
     pass

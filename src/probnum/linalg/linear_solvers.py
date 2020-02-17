@@ -351,13 +351,11 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
         if A0 is None and Ainv0 is None:
             dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
                                       cov=linear_operators.SymmetricKronecker(
-                                          linear_operators.Identity(shape=A.shape[0]),
                                           linear_operators.Identity(shape=A.shape[0])))
             Ainv0 = probability.RandomVariable(distribution=dist)
 
             dist = probability.Normal(mean=linear_operators.Identity(shape=A.shape[0]),
                                       cov=linear_operators.SymmetricKronecker(
-                                          linear_operators.Identity(shape=A.shape[0]),
                                           linear_operators.Identity(shape=A.shape[0])))
             A0 = probability.RandomVariable(distribution=dist)
         # Only prior on Ainv specified
@@ -379,7 +377,7 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
             A0_covfactor = A
 
             dist = probability.Normal(mean=A0_mean,
-                                      cov=linear_operators.SymmetricKronecker(A=A0_covfactor, B=A0_covfactor))
+                                      cov=linear_operators.SymmetricKronecker(A=A0_covfactor))
             A0 = probability.RandomVariable(distribution=dist)
         # Only prior on A specified
         if A0 is not None and Ainv0 is None:
@@ -400,7 +398,7 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
             Ainv0_covfactor = Ainv0_mean
 
             dist = probability.Normal(mean=Ainv0_mean,
-                                      cov=linear_operators.SymmetricKronecker(A=Ainv0_covfactor, B=Ainv0_covfactor))
+                                      cov=linear_operators.SymmetricKronecker(A=Ainv0_covfactor))
             Ainv0 = probability.RandomVariable(distribution=dist)
 
     elif assume_A == "sym":
