@@ -1,4 +1,5 @@
 import pytest
+import os
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
@@ -126,8 +127,9 @@ def poisson_linear_system():
 
     Linear system resulting from discretization on an elliptic grid.
     """
-    A = scipy.sparse.load_npz(file="resources/matrix_poisson.npz")
-    f = np.load(file="resources/rhs_poisson.npy")
+    fpath = os.path.join(os.path.dirname(__file__), 'resources')
+    A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
+    f = np.load(file=fpath + "/rhs_poisson.npy")
     return A, f
 
 
