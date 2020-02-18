@@ -1,12 +1,8 @@
 # Travis configuration file
 # Read more under http://docs.travis-ci.com/user/build-configuration/
 
-# Disable sudo to speed up the build
-sudo: false
-
 # Set the build language to Python
 language: python
-dist: xenial
 python:
   - "3.6"
 install:
