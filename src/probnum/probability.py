@@ -1508,7 +1508,7 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
 
 def asrandvar(obj):
     """
-    Return `obj` as a :class:`RandomVariable`.
+    Return ``obj`` as a :class:`RandomVariable`.
 
     Converts scalars, (sparse) arrays or distribution classes to a :`class:RandomVariable`.
 
