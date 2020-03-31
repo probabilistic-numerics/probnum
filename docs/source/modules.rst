@@ -2,13 +2,39 @@ Documentation
 ==========================
 
 This reference details modules, functions and classes implemented in ProbNum, describing their functionality and how to
-use them.
+use them. See also the `examples <notebooks/examples.html>`__ to learn more about ProbNum.
 
+Random Variables and Distributions
+""""""""""""""""""""""""""""""""""
 .. toctree::
    :maxdepth: 6
 
    probability
-   linalg
-   utils
 
-See also the `examples <notebooks/examples.html>`__ to learn more about ProbNum.
+Linear Algebra
+""""""""""""""
+.. toctree::
+   :maxdepth: 6
+
+   linalg
+
+Integration
+"""""""""""
+.. toctree::
+   :maxdepth: 6
+
+   quad
+
+Differential Equations
+""""""""""""""""""""""
+.. toctree::
+   :maxdepth: 6
+
+   diffeq
+
+Other
+"""""
+.. toctree::
+   :maxdepth: 6
+
+   utils

@@ -1,11 +1,16 @@
 """
 Bayesian Quadrature.
 
+This module provides routines to integrate functions through Bayesian quadrature, meaning a model over the integrand
+is constructed in order to actively select evaluation points of the integrand to estimate the value of the integral.
+Bayesian quadrature methods return a random variable with a distribution, specifying the belief about the true value of
+the integral.
 """
 
 import abc
+import numpy as np
 
-__all__ = ["bayesquad"]
+__all__ = ["bayesquad", "nbayesquad"]
 
 
 def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
@@ -15,9 +20,9 @@ def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
     Parameters
     ----------
     func : function
-        Symbolic representation of the function to be integrated.
+        Function to be integrated.
     func0 : RandomProcess
-        Stochastic process modelling function to be integrated.
+        Stochastic process modelling the function to be integrated.
     a : float
         Lower limit of integration.
     b : float
@@ -30,7 +35,7 @@ def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
         ====================  ===========
          vanilla              ``vanilla``
          WASABI               ``wasabi``
-        ====================  =========
+        ====================  ===========
 
     kwargs : optional
         Keyword arguments passed on.
@@ -38,7 +43,7 @@ def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
     Returns
     -------
     F : RandomVariable
-        The integral of ``fun`` from ``a`` to ``b``.
+        The integral of ``func`` from ``a`` to ``b``.
     func0 : RandomProcess
         Stochastic process modelling the function to be integrated after ``neval`` observations.
     info : dict
@@ -57,12 +62,56 @@ def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
     if type == "vanilla":
         bqmethod = _VanillaBayesianQuadrature(func=func, func0=func0)
     elif type == "wasabi":
-        bqmethod = _WASABIBayesian_Quadrature(func=func, func0=func0)
+        bqmethod = _WASABIBayesianQuadrature(func=func, func0=func0)
 
     # Integrate
-    F, func0, info = bqmethod.integrate(nevals=nevals, **kwargs)
+    F, func0, info = bqmethod.integrate(nevals=nevals, domain=np.array([a, b]), **kwargs)
 
     return F, func0, info
+
+
+def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
+    """
+    N-dimensional Bayesian Quadrature.
+
+    Parameters
+    ----------
+    func : function
+        Function to be integrated.
+    func0 : RandomProcess
+        Stochastic process modelling the function to be integrated.
+    domain :
+        Domain of integration.
+    nevals : int
+        Number of function evaluations.
+    type : str
+        Type of Bayesian quadrature to use. The available options are
+
+        ====================  ===========
+         vanilla              ``vanilla``
+         WASABI               ``wasabi``
+        ====================  ===========
+
+    kwargs : optional
+        Keyword arguments passed on.
+
+    Returns
+    -------
+    F : RandomVariable
+        The integral of ``func`` on the domain.
+    func0 : RandomProcess
+        Stochastic process modelling the function to be integrated after ``neval`` observations.
+    info : dict
+        Information on the performance of the method.
+
+    References
+    ----------
+
+    See Also
+    --------
+    bayesquad : 1-dimensional Bayesian quadrature.
+    """
+    raise NotImplementedError
 
 
 class _BayesianQuadrature(abc.ABC):
@@ -80,8 +129,9 @@ class _BayesianQuadrature(abc.ABC):
             Stochastic process modelling function to be integrated.
         """
         self.func = func
+        self.func0 = func0
 
-    def integrate(self, **kwargs):
+    def integrate(self, domain, **kwargs):
         """
         Integrate the function ``func``.
 
@@ -102,8 +152,7 @@ class _VanillaBayesianQuadrature(_BayesianQuadrature):
     """
 
     def __init__(self, func, func0):
-        self.func = func
-        self.func0 = func0
+        super().__init__(func=func, func0=func0)
 
     def integrate(self, nevals, **kwargs):
         """
@@ -139,14 +188,13 @@ class _VanillaBayesianQuadrature(_BayesianQuadrature):
         return F, self.func0, info
 
 
-class _WASABIBayesian_Quadrature(_BayesianQuadrature):
+class _WASABIBayesianQuadrature(_BayesianQuadrature):
     """
-    WASABI
+    Weighted Adaptive Surrogate Approximations for Bayesian Inference (WASABI).
     """
 
     def __init__(self, func, func0):
-        self.func = func
-        self.func0 = func0
+        super().__init__(func=func, func0=func0)
 
     def integrate(self, nevals, **kwargs):
         raise NotImplementedError
