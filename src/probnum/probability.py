@@ -1,4 +1,9 @@
-"""Random variables represent in- and outputs of probabilistic numerical methods."""
+"""
+Random Variables and Distributions.
+
+This module provides classes implementing random variables, probability distributions and sampling. Random variables are
+the main in- and outputs of probabilistic numerical methods.
+"""
 
 import operator
 

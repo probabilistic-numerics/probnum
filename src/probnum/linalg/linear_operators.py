@@ -1,4 +1,5 @@
-"""Finite dimensional linear operators.
+"""
+Finite dimensional linear operators.
 
 This module defines classes and methods that implement finite dimensional linear operators. It can be used to do linear
 algebra with (structured) matrices without explicitly representing them in memory. This often allows for the definition
