@@ -3,6 +3,7 @@
 The following people contributed significantly to the ProbNum repository:
 
 - **Jonathan Wenger**: (https://github.com/JonathanWenger)
+- **Nicholas Krämer**: (https://github.com/pnkraemer)
 
 
 If you feel like you have made substantial contributions to ProbNum, contact the maintainers of the package. Your name 
