@@ -64,7 +64,7 @@ by [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=mas
 can run the test suite on your machine via:
 ```bash
 cd probnum
-python -m unittest
+pytest
 ```
 
 ### Documentation
