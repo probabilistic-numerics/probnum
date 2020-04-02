@@ -13,7 +13,7 @@ import scipy._lib._util
 
 from probnum.linalg import linear_operators
 from probnum.probability.distribution import Distribution, asdist
-from .dirac import Dirac
+from probnum.probability.distribution.dirac import Dirac
 
 __all__ = ["Normal"]
 

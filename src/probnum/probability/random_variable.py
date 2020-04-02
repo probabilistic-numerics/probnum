@@ -12,8 +12,8 @@ import scipy.stats
 import scipy.sparse
 import scipy._lib._util
 
-from .distribution import Distribution, asdist
-from .distributions.dirac import Dirac
+from probnum.probability.distribution import Distribution, asdist
+from probnum.probability.distributions.dirac import Dirac
 
 __all__ = ["RandomVariable", "asrandvar"]
 
