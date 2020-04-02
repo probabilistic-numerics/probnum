@@ -8,29 +8,31 @@ import scipy.sparse
 from probnum import probability
 from probnum.linalg import linear_operators
 
-# Seed
-np.random.seed(seed=42)
 
-# Parameters
-m = 7
-n = 3
-sparsemat = scipy.sparse.rand(m=m, n=n, density=0.1, random_state=1)
-normal_params = [
-    (-1, 3),
-    (np.random.uniform(size=10), np.eye(10)),
-    (np.array([1, -5]), linear_operators.MatrixMult(A=np.array([[2, 1], [1, -.1]]))),
-    (linear_operators.MatrixMult(A=np.array([[0, -5]])), linear_operators.Identity(shape=(2, 2))),
-    (np.array([[1, 2], [-3, -.4], [4, 1]]), linear_operators.Kronecker(A=np.eye(3), B=5 * np.eye(2))),
-    (linear_operators.MatrixMult(A=sparsemat.todense()),
-     linear_operators.Kronecker(0.1 * linear_operators.Identity(m), linear_operators.Identity(n))),
-    (linear_operators.MatrixMult(A=np.random.uniform(size=(2, 2))),
-     linear_operators.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]]))),
-    (linear_operators.Identity(shape=25), linear_operators.SymmetricKronecker(A=linear_operators.Identity(25)))
-]
+class NormalTestCase(unittest.TestCase, NumpyAssertions):
+    """General test case for the normal distribution."""
 
+    def setUp(self):
+        """Resources for tests."""
+        # Seed
+        np.random.seed(seed=42)
 
-class TestNormal(unittest.TestCase, NumpyAssertions):
-    """Test the normal distribution."""
+        # Parameters
+        m = 7
+        n = 3
+        sparsemat = scipy.sparse.rand(m=m, n=n, density=0.1, random_state=1)
+        self.normal_params = [
+            (-1, 3),
+            (np.random.uniform(size=10), np.eye(10)),
+            (np.array([1, -5]), linear_operators.MatrixMult(A=np.array([[2, 1], [1, -.1]]))),
+            (linear_operators.MatrixMult(A=np.array([[0, -5]])), linear_operators.Identity(shape=(2, 2))),
+            (np.array([[1, 2], [-3, -.4], [4, 1]]), linear_operators.Kronecker(A=np.eye(3), B=5 * np.eye(2))),
+            (linear_operators.MatrixMult(A=sparsemat.todense()),
+             linear_operators.Kronecker(0.1 * linear_operators.Identity(m), linear_operators.Identity(n))),
+            (linear_operators.MatrixMult(A=np.random.uniform(size=(2, 2))),
+             linear_operators.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]]))),
+            (linear_operators.Identity(shape=25), linear_operators.SymmetricKronecker(A=linear_operators.Identity(25)))
+        ]
 
     def test_rv_linop_kroneckercov(self):
         """Create a rv with a normal distribution with linear operator mean and Kronecker product covariance."""
@@ -54,13 +56,13 @@ class TestNormal(unittest.TestCase, NumpyAssertions):
 
     def test_normal_instantiation(self):
         """Instantiation of a normal distribution with mixed mean and cov type."""
-        for mean, cov in normal_params:
+        for mean, cov in self.normal_params:
             with self.subTest():
                 probability.Normal(mean=mean, cov=cov)
 
     def test_normal_pdf(self):
         """Evaluate pdf at random input."""
-        for mean, cov in normal_params:
+        for mean, cov in self.normal_params:
             with self.subTest():
                 dist = probability.Normal(mean=mean, cov=cov)
                 pass
@@ -71,7 +73,7 @@ class TestNormal(unittest.TestCase, NumpyAssertions):
 
     def test_sample(self):
         """Draw samples and check all sample dimensions."""
-        for mean, cov in normal_params:
+        for mean, cov in self.normal_params:
             with self.subTest():
                 # TODO: check dimension of each realization in dist_sample
                 dist = probability.Normal(mean=mean, cov=cov, random_state=1)
@@ -83,7 +85,7 @@ class TestNormal(unittest.TestCase, NumpyAssertions):
 
     def test_sample_zero_cov(self):
         """Draw sample from distribution with zero covariance and check whether it equals the mean."""
-        for mean, cov in normal_params:
+        for mean, cov in self.normal_params:
             with self.subTest():
                 dist = probability.Normal(mean=mean, cov=0 * cov, random_state=1)
                 dist_sample = dist.sample(size=1)
@@ -101,8 +103,12 @@ class TestNormal(unittest.TestCase, NumpyAssertions):
         A = np.random.uniform(size=(n, n))
         A = 0.5 * (A + A.T) + n * np.eye(n)
         dist = probability.Normal(mean=np.eye(A.shape[0]),
-                                  cov=linear_operators.SymmetricKronecker(A=A))
+                                  cov=linear_operators.SymmetricKronecker(A=A), random_state=1)
         dist_sample = dist.sample(size=10)
         for i, B in enumerate(dist_sample):
             self.assertAllClose(B, B.T, atol=1e-5, rtol=1e-5,
                                 msg="Sample {} from symmetric Kronecker distribution is not symmetric.".format(i))
+
+
+if __name__ == "__main__":
+    unittest.main()
