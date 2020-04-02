@@ -5,12 +5,14 @@ This style guide summarizes code conventions used in `probnum`. This is intended
 ## Code
 
 ### Imports
+
 - `import x` for importing packages and modules.
 - `from x import y` where `x` is the package prefix and `y` is the module name with no prefix.
 - `from x import y as z` if two modules named `y` are to be imported or if `y` is an inconveniently long name.
 - `import y as z` only when `z` is a standard abbreviation (e.g., `np` for `numpy`).
 
 ### Naming
+
 - `joined_lower` for functions, methods, attributes, variables
 - `joined_lower` or `ALL_CAPS` for constants
 - `StudlyCaps` for classes
@@ -23,6 +25,7 @@ This style guide summarizes code conventions used in `probnum`. This is intended
 ## Documentation
 
 ### Docstrings
+
 This package uses the [`numpy` docstring format](https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring-guide). For probabilistic numerical methods make sure to include the appropriate citations and include examples which can be used as tests via `doctest`. Here is a detailed example of a docstring for a PN method.
 
 ```python
@@ -33,19 +36,12 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
     Probabilistic linear solvers infer solutions to problems of the form
 
-    .. math:: Ax=b,
-
-    where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`. They return a probability measure
-
     ...
 
     Parameters
     ----------
     A : array-like or LinearOperator, shape=(n,n)
         A square matrix or linear operator.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems are solved
-        sequentially with the posteriors over the matrices acting as priors for subsequent solves.
 
     ...
 
@@ -64,14 +60,14 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     Notes
     -----
     For a specific class of priors the probabilistic linear solver recovers the iterates of the conjugate gradient
-    method as the posterior mean of the induced distributions on :math:`x=Hb`. The matrix-based view taken here
-    recovers the solution-based inference of :func:`bayescg` [3]_.
+
+    ...
 
     References
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
+
+    ...
 
     See Also
     --------
@@ -93,3 +89,5 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 ```
 
 ### Example Notebooks
+
+Functionality of `probnum` is explained in detail in the form of `jupyter` notebooks under `/docs/source/notebooks`. These can be added to the documentation by editing `/docs/source/notebooks/examples`.
