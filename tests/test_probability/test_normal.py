@@ -1,7 +1,8 @@
-"""Tests for the normal distribution."""
+"""Tests for the normal distributions."""
 
 import unittest
-from tests.custom_assertions import NumpyAssertions
+from tests.utils_for_tests import NumpyAssertions
+
 import numpy as np
 import scipy.sparse
 
@@ -10,7 +11,7 @@ from probnum.linalg import linear_operators
 
 
 class NormalTestCase(unittest.TestCase, NumpyAssertions):
-    """General test case for the normal distribution."""
+    """General test case for the normal distributions."""
 
     def setUp(self):
         """Resources for tests."""
@@ -35,7 +36,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         ]
 
     def test_rv_linop_kroneckercov(self):
-        """Create a rv with a normal distribution with linear operator mean and Kronecker product covariance."""
+        """Create a rv with a normal distributions with linear operator mean and Kronecker product covariance."""
 
         def mv(v):
             return np.array([2 * v[0], 3 * v[1]])
@@ -45,17 +46,17 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         probability.RandomVariable(distribution=probability.Normal(mean=A, cov=V))
 
     def test_normal_dimension_mismatch(self):
-        """Instantiating a normal distribution with mismatched mean and covariance should result in a ValueError."""
+        """Instantiating a normal distributions with mismatched mean and covariance should result in a ValueError."""
         for mean, cov in [(0, [1, 2]),
                           (np.array([1, 2]), np.array([1, 0])),
                           (np.array([[-1, 0], [2, 1]]), np.eye(3))]:
             with self.subTest():
                 with self.assertRaises(ValueError):
                     assert probability.Normal(mean=mean,
-                                              cov=cov), "Mean and covariance mismatch in normal distribution."
+                                              cov=cov), "Mean and covariance mismatch in normal distributions."
 
     def test_normal_instantiation(self):
-        """Instantiation of a normal distribution with mixed mean and cov type."""
+        """Instantiation of a normal distributions with mixed mean and cov type."""
         for mean, cov in self.normal_params:
             with self.subTest():
                 probability.Normal(mean=mean, cov=cov)
@@ -84,7 +85,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                                      msg="Realization shape does not match mean shape.")
 
     def test_sample_zero_cov(self):
-        """Draw sample from distribution with zero covariance and check whether it equals the mean."""
+        """Draw sample from distributions with zero covariance and check whether it equals the mean."""
         for mean, cov in self.normal_params:
             with self.subTest():
                 dist = probability.Normal(mean=mean, cov=0 * cov, random_state=1)
@@ -96,7 +97,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertAllClose(dist_sample, dist.mean(), msg=assert_str)
 
     def test_symmetric_samples(self):
-        """Samples from a normal distribution with symmetric Kronecker covariance of two symmetric matrices are
+        """Samples from a normal distributions with symmetric Kronecker covariance of two symmetric matrices are
         symmetric."""
         np.random.seed(42)
         n = 3
@@ -107,7 +108,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         dist_sample = dist.sample(size=10)
         for i, B in enumerate(dist_sample):
             self.assertAllClose(B, B.T, atol=1e-5, rtol=1e-5,
-                                msg="Sample {} from symmetric Kronecker distribution is not symmetric.".format(i))
+                                msg="Sample {} from symmetric Kronecker distributions is not symmetric.".format(i))
 
 
 if __name__ == "__main__":

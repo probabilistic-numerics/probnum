@@ -2,8 +2,8 @@
 Probabilistic numerical methods for solving linear systems.
 
 This module provides routines to solve linear systems of equations in a Bayesian framework. This means that a prior
-distribution over elements of the linear system can be provided and is updated with information collected by the solvers
-to return a posterior distribution.
+distributions over elements of the linear system can be provided and is updated with information collected by the solvers
+to return a posterior distributions.
 """
 
 import warnings
@@ -47,7 +47,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
         A square matrix, linear operator or random variable representing the prior belief over the inverse
         :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
-        given, a prior distribution is chosen automatically.
+        given, a prior distributions is chosen automatically.
     x0 : array-like, shape=(n,) or (n, nrhs), optional
         Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
     assume_A : str, default="sympos"
@@ -60,7 +60,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
          symmetric pos. def.  ``sympos``
         ====================  =========
 
-        If ``A`` or ``Ainv`` are random variables, then the encoded assumptions in the distribution are used
+        If ``A`` or ``Ainv`` are random variables, then the encoded assumptions in the distributions are used
         automatically.
     maxiter : int, optional
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the dimension of :math:`A`.
@@ -100,7 +100,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     Notes
     -----
     For a specific class of priors the probabilistic linear solver recovers the iterates of the conjugate gradient
-    method as the posterior mean of the induced distribution on :math:`x=Hb`. The matrix-based view taken here
+    method as the posterior mean of the induced distributions on :math:`x=Hb`. The matrix-based view taken here
     recovers the solution-based inference of :func:`bayescg` [3]_.
 
     References
@@ -173,8 +173,8 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
     Parameters
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
-        A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~probnum.probability.RandomVariable`. If an array or linear operator are given, a prior distribution is
+        A square matrix or linear operator. A prior distributions can be provided as a
+        :class:`~probnum.probability.RandomVariable`. If an array or linear operator are given, a prior distributions is
         chosen automatically.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
@@ -266,10 +266,10 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
     if x0 is not None and not isinstance(x0, vector_types):
         raise ValueError("The initial guess for the solution must be a (sparse) array.")
 
-    # Prior distribution mismatch
+    # Prior distributions mismatch
     if ((isinstance(A0, probability.RandomVariable) or isinstance(Ainv0, probability.RandomVariable)) and
             isinstance(x0, probability.RandomVariable)):
-        raise ValueError("Cannot specify distribution on the linear operator and the solution simultaneously.")
+        raise ValueError("Cannot specify distributions on the linear operator and the solution simultaneously.")
 
     # Dimension mismatch
     if A.shape[0] != b.shape[0]:
@@ -310,7 +310,7 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
          symmetric pos. def.  ``sympos``
         ====================  =========
 
-        If ``A`` or ``Ainv`` are random variables, then the encoded assumptions in the distribution are used
+        If ``A`` or ``Ainv`` are random variables, then the encoded assumptions in the distributions are used
         automatically.
     A0 : RandomVariable, shape=(n,n)
         Random variable representing the prior belief over the linear operator :math:`A`.
@@ -449,7 +449,7 @@ def _init_solver(A, A0, Ainv0, b, x0):
     else:
         raise ValueError("No prior information on A, Ainv or x specified.")
 
-    # Combine assumptions on A with distribution assumptions
+    # Combine assumptions on A with distributions assumptions
     if prior_info_view == "matrix":
         if isinstance(Ainv0.cov(), linear_operators.SymmetricKronecker):
             return _SymmetricMatrixSolver(A=A, b=b, A_mean=A0.mean(), A_covfactor=A0.cov().A,
@@ -499,8 +499,8 @@ class _ProbabilisticLinearSolver(abc.ABC):
     Parameters
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
-        A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~probnum.probability.RandomVariable`. If an array or linear operator is given, a prior distribution is
+        A square matrix or linear operator. A prior distributions can be provided as a
+        :class:`~probnum.probability.RandomVariable`. If an array or linear operator is given, a prior distributions is
         chosen automatically.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
@@ -608,12 +608,12 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
     A_mean : array-like or LinearOperator
-        Mean of the prior distribution on the linear operator :math:`A`.
+        Mean of the prior distributions on the linear operator :math:`A`.
     A_covfactor : array-like or LinearOperator
         The Kronecker factor :math:`W_A` of the covariance :math:`\\operatorname{Cov}(A) = W_A \\otimes_s W_A` of
         :math:`A`.
     Ainv_mean : array-like or LinearOperator
-        Mean of the prior distribution on the linear operator :math:`A^{-1}`.
+        Mean of the prior distributions on the linear operator :math:`A^{-1}`.
     Ainv_covfactor : array-like or LinearOperator
         The Kronecker factor :math:`W_H` of the covariance :math:`\\operatorname{Cov}(H) = W_H \\otimes_s W_H` of
         :math:`H = A^{-1}`.
@@ -728,7 +728,7 @@ class _SymmetricMatrixSolver(_ProbabilisticLinearSolver):
         Ainv = probability.RandomVariable(shape=self.Ainv_mean.shape,
                                           dtype=float,
                                           distribution=probability.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
-        # Induced distribution on x via Ainv
+        # Induced distributions on x via Ainv
         # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
         Wb = _Ainv_covfactor @ self.b
         bWb = np.squeeze(Wb.T @ self.b)

@@ -3,7 +3,7 @@
 import itertools
 
 import unittest
-from tests.custom_assertions import NumpyAssertions
+from tests.utils_for_tests import NumpyAssertions
 import numpy as np
 
 from probnum.linalg import linear_operators

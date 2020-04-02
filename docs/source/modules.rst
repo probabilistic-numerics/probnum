@@ -32,6 +32,13 @@ Differential Equations
 
    diffeq
 
+Filters and Smoothers
+"""""""""""""""""""""
+.. toctree::
+   :maxdepth: 6
+
+   filtsmooth
+
 Other
 """""
 .. toctree::

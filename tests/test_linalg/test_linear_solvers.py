@@ -1,7 +1,7 @@
 """Tests for linear solvers."""
 
 import unittest
-from tests.custom_assertions import NumpyAssertions
+from tests.utils_for_tests import NumpyAssertions
 import os
 
 import numpy as np
@@ -158,7 +158,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                                         " not match scipy.sparse.linalg.spsolve.")
 
     # def test_solution_equivalence(self):
-    #     """The induced distribution on the solution should match the estimated solution distribution: E[x] = E[A^-1] b"""
+    #     """The induced distributions on the solution should match the estimated solution distributions: E[x] = E[A^-1] b"""
     #     A, f = self.poisson_linear_system
     # 
     #     for matblinsolve in self.matblinsolvers:
@@ -262,7 +262,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         A = A.dot(A.T) + n * np.eye(n)  # Symmetrize and make diagonally dominant
         b = np.random.rand(n, 1)
 
-        # Prior distribution on A
+        # Prior distributions on A
         covA = linear_operators.SymmetricKronecker(A=np.eye(n), B=np.eye(n))
         Ainv0 = probability.RandomVariable(distribution=probability.Normal(mean=np.eye(n), cov=covA))
 

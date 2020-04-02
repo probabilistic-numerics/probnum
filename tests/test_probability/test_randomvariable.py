@@ -1,7 +1,7 @@
 """Tests for the random variable implementation."""
 
 import unittest
-from tests.custom_assertions import NumpyAssertions
+from tests.utils_for_tests import NumpyAssertions
 
 import itertools
 import numpy as np

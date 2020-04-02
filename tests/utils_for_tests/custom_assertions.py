@@ -1,7 +1,8 @@
 """This module implements custom assertion classes for test cases in unittest."""
 
-import unittest
 import numpy as np
+
+__all__ = ["NumpyAssertions"]
 
 
 class NumpyAssertions:
@@ -175,6 +176,7 @@ class NumpyAssertions:
         dimension. In contrast to the standard usage in numpy, NaNs are
         compared, no assertion is raised if both objects have NaNs in the same
         positions.
+
         Parameters
         ----------
         smaller : array_like
