@@ -12,13 +12,21 @@ This style guide summarizes code conventions used in `probnum`. This is intended
 - `import y as z` only when `z` is a standard abbreviation (e.g., `np` for `numpy`).
 
 ### Naming
-
+- `low` (shortened lower caps) for modules in the namespace, e.g. `probnum.linalg.linops`
+- `lower` for modules not in the namespace, e.g. `probnum/prob/distributions`
 - `joined_lower` for functions, methods, attributes, variables
 - `joined_lower` or `ALL_CAPS` for constants
 - `StudlyCaps` for classes
 - `camelCase` only to conform to pre-existing conventions, e.g. in `unittest`
 
+### Printable Representations
+The way an object is printed defined by `def __repr__(self)` is structured as:
+```
+
+```
+
 ### Other Notational Conventions
+- `cov`: covariance
 - mat vs mtrx
 
 

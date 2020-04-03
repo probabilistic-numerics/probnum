@@ -1,5 +1,4 @@
-.. automodapi:: probnum.linalg.linear_operators
-
-
-.. automodapi:: probnum.linalg.linear_solvers
+.. automodapi:: probnum.linalg
    :no-inheritance-diagram:
+
+.. automodapi:: probnum.linalg.linops
