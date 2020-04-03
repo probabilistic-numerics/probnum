@@ -1,1 +1,1 @@
-.. automodapi:: probnum.quad.bayesian_quadrature
+.. automodapi:: probnum.quad

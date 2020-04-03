@@ -1,4 +1,4 @@
-from .linear_solvers import problinsolve
+from .linearsolvers import *
 
-from .linear_operators import LinearOperator
-from .linear_operators import aslinop
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["problinsolve", "bayescg"]

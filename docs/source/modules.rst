@@ -9,7 +9,7 @@ Random Variables and Distributions
 .. toctree::
    :maxdepth: 6
 
-   probability
+   prob
 
 Linear Algebra
 """"""""""""""
