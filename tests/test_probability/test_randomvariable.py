@@ -154,19 +154,3 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
         Arithmetic operation between two random variables with different seeds.
         """
         pass
-
-
-class TestEmptyInit(unittest.TestCase):
-    """
-    Tests that a RandomVariable object can be set up with an empty init.
-    """
-
-    def test_empty(self):
-        """No input."""
-        rv = probability.RandomVariable()
-        self.assertEqual(isinstance(rv, probability.RandomVariable), True)
-        self.assertEqual(0, 1)
-
-
-if __name__ == "__main__":
-    unittest.main()
