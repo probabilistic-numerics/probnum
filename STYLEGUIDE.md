@@ -6,6 +6,8 @@ This style guide summarizes code conventions used in `probnum`. This is intended
 
 ### Imports
 
+Use absolute imports over relative imports.
+
 - `import x` for importing packages and modules.
 - `from x import y` where `x` is the package prefix and `y` is the module name with no prefix.
 - `from x import y as z` if two modules named `y` are to be imported or if `y` is an inconveniently long name.

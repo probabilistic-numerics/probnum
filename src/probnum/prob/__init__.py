@@ -1,6 +1,6 @@
-from .interface import *
-from .randomvariable import *
-from .distributions import *
+from probnum.prob.interface import *
+from probnum.prob.randomvariable import *
+from probnum.prob.distributions import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandvar", "asdist"]
