@@ -90,6 +90,12 @@ class Normal(Distribution):
         # Call to super class initiator
         super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype, random_state=random_state)
 
+    def median(self):
+        return self.parameters["mean"]
+
+    def mode(self):
+        return self.parameters["mean"]
+
     def mean(self):
         return self.parameters["mean"]
 

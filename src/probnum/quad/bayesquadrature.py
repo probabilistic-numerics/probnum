@@ -10,8 +10,6 @@ the integral.
 import abc
 import numpy as np
 
-__all__ = ["bayesquad", "nbayesquad"]
-
 
 def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
     """
@@ -60,9 +58,9 @@ def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
     # Choose Method
     bqmethod = None
     if type == "vanilla":
-        bqmethod = _VanillaBayesianQuadrature(func=func, func0=func0)
+        bqmethod = VanillaBayesianQuadrature(func=func, func0=func0)
     elif type == "wasabi":
-        bqmethod = _WASABIBayesianQuadrature(func=func, func0=func0)
+        bqmethod = WASABIBayesianQuadrature(func=func, func0=func0)
 
     # Integrate
     F, func0, info = bqmethod.integrate(nevals=nevals, domain=np.array([a, b]), **kwargs)
@@ -114,9 +112,11 @@ def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
     raise NotImplementedError
 
 
-class _BayesianQuadrature(abc.ABC):
+class BayesianQuadrature(abc.ABC):
     """
     An abstract base class for Bayesian Quadrature methods.
+
+    This class is designed to be subclassed by implementations of Bayesian quadrature with an :meth:`integrate` method.
     """
 
     def __init__(self, func, func0):
@@ -146,7 +146,7 @@ class _BayesianQuadrature(abc.ABC):
         raise NotImplementedError
 
 
-class _VanillaBayesianQuadrature(_BayesianQuadrature):
+class VanillaBayesianQuadrature(BayesianQuadrature):
     """
     Vanilla Bayesian Quadrature in 1D.
     """
@@ -188,7 +188,7 @@ class _VanillaBayesianQuadrature(_BayesianQuadrature):
         return F, self.func0, info
 
 
-class _WASABIBayesianQuadrature(_BayesianQuadrature):
+class WASABIBayesianQuadrature(BayesianQuadrature):
     """
     Weighted Adaptive Surrogate Approximations for Bayesian Inference (WASABI).
     """

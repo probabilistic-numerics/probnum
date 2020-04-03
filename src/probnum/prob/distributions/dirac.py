@@ -57,6 +57,9 @@ class Dirac(Distribution):
     def median(self):
         return self.parameters["support"]
 
+    def mode(self):
+        return self.parameters["support"]
+
     def mean(self):
         return self.parameters["support"]
 

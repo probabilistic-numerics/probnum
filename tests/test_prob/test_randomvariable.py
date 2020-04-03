@@ -9,6 +9,7 @@ from tests.testing import NumpyAssertions
 from probnum import prob
 from probnum.linalg import linops
 
+
 class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
     """General test case for random variables."""
 
@@ -29,15 +30,15 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         self.randvars2d = [
             prob.RandomVariable(
                 distribution=prob.Normal(mean=np.array([1, 2]),
-                                                cov=np.array(
-                                                    [[2, 0], [0, 5]])))]
+                                         cov=np.array(
+                                             [[2, 0], [0, 5]])))]
         self.randvars2x2 = [
             prob.RandomVariable(shape=(2, 2),
-                                       distribution=prob.Normal(
-                                           mean=np.array([[-2, .3], [0, 1]]),
-                                           cov=linops.SymmetricKronecker(
-                                               A=np.eye(2),
-                                               B=np.ones((2, 2)))))
+                                distribution=prob.Normal(
+                                    mean=np.array([[-2, .3], [0, 1]]),
+                                    cov=linops.SymmetricKronecker(
+                                        A=np.eye(2),
+                                        B=np.ones((2, 2)))))
         ]
 
 
@@ -162,7 +163,6 @@ class TestEmptyInit(unittest.TestCase):
         """No input."""
         rv = prob.RandomVariable()
         self.assertEqual(isinstance(rv, prob.RandomVariable), True)
-        self.assertEqual(0, 1)
 
 
 if __name__ == "__main__":
