@@ -55,31 +55,49 @@ def asdist(obj):
         return Dirac(support=obj)
     # Scipy distributions
     elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen):
-        # Normal distributions
-        if obj.dist.name == "norm":
-            return Normal(mean=obj.mean(), cov=obj.var(), random_state=obj.random_state)
-        elif obj.__class__.__name__ == "multivariate_normal_frozen":  # Multivariate normal
-            return Normal(mean=obj.mean, cov=obj.cov, random_state=obj.random_state)
-        else:
-            # Generic distributions
-            if hasattr(obj, "pmf"):
-                pdf = obj.pmf
-                logpdf = obj.logpmf
-            else:
-                pdf = obj.pdf
-                logpdf = obj.logpdf
-            return Distribution(parameters={},
-                                pdf=pdf,
-                                logpdf=logpdf,
-                                cdf=obj.cdf,
-                                logcdf=obj.logcdf,
-                                sample=obj.rvs,
-                                mean=obj.mean,
-                                var=obj.var,
-                                random_state=obj.random_state)
+        return _scipystats_to_dist(obj=obj)
     else:
         try:
             # Numpy array
             return Dirac(support=np.array(obj))
         except Exception:
             raise NotImplementedError("Cannot convert object of type {} to a distributions.".format(type(obj)))
+
+
+def _scipystats_to_dist(obj):
+    """
+    Transform scipy distributions to probnum distributions.
+
+    Parameters
+    ----------
+    obj : object
+        Scipy distribution.
+
+    Returns
+    -------
+    dist : Distribution
+        ProbNum distribution object.
+
+    """
+    # Normal distributions
+    if obj.dist.name == "norm":
+        return Normal(mean=obj.mean(), cov=obj.var(), random_state=obj.random_state)
+    elif obj.__class__.__name__ == "multivariate_normal_frozen":  # Multivariate normal
+        return Normal(mean=obj.mean, cov=obj.cov, random_state=obj.random_state)
+    else:
+        # Generic distributions
+        if hasattr(obj, "pmf"):
+            pdf = obj.pmf
+            logpdf = obj.logpmf
+        else:
+            pdf = obj.pdf
+            logpdf = obj.logpdf
+        return Distribution(parameters={},
+                            pdf=pdf,
+                            logpdf=logpdf,
+                            cdf=obj.cdf,
+                            logcdf=obj.logcdf,
+                            sample=obj.rvs,
+                            mean=obj.mean,
+                            var=obj.var,
+                            random_state=obj.random_state)

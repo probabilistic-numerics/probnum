@@ -23,7 +23,7 @@ class Distribution:
     Parameters
     ----------
     parameters : dict
-        Dictionary of distribution parameters such as mean, variance, et cetera.
+        Dictionary of distribution parameters such as mean, variance, shape, etc.
     pdf : callable
         Probability density or mass function.
     logpdf : callable
@@ -114,7 +114,7 @@ class Distribution:
         if self._parameters is not None:
             return self._parameters
         else:
-            raise NotImplementedError("No parameters of {} are available.".format(type(self).__name__))
+            raise AttributeError("No parameters of {} are available.".format(type(self).__name__))
 
     def _check_distparams(self):
         pass
@@ -156,12 +156,13 @@ class Distribution:
         logp : array-like
             Value of the log-probability density / mass function at the given points.
         """
-        if hasattr(self, '_logpdf'):
+        if self._logpdf is not None:
             return self._logpdf(x)
-        if hasattr(self, '_pdf'):
+        elif self._pdf is not None:
             return np.log(self._pdf(x))
-        raise NotImplementedError(
-            'The function \'logpdf\' is not implemented for object of class {}'.format(type(self).__name__))
+        else:
+            raise NotImplementedError(
+                'The function \'logpdf\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def cdf(self, x):
         """
@@ -179,10 +180,11 @@ class Distribution:
         """
         if self._cdf is not None:
             return self._cdf(x)
-        if self._logcdf is not None:
+        elif self._logcdf is not None:
             return np.exp(self._logcdf(x))
-        raise NotImplementedError(
-            'The function \'cdf\' is not implemented for object of class {}'.format(type(self).__name__))
+        else:
+            raise NotImplementedError(
+                'The function \'cdf\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def logcdf(self, x):
         """
@@ -200,10 +202,11 @@ class Distribution:
         """
         if self._logcdf is not None:
             return self._logcdf(x)
-        if self._cdf is not None:
+        elif self._cdf is not None:
             return np.log(self._cdf(x))
-        raise NotImplementedError(
-            'The function \'logcdf\' is not implemented for object of class {}'.format(type(self).__name__))
+        else:
+            raise NotImplementedError(
+                'The function \'logcdf\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def sample(self, size=()):
         """
@@ -221,8 +224,9 @@ class Distribution:
         """
         if self._sample is not None:
             return self._sample(size=size)
-        raise NotImplementedError(
-            'The function \'sample\' is not implemented for object of class {}'.format(type(self).__name__))
+        else:
+            raise NotImplementedError(
+                'The function \'sample\' is not implemented for object of class {}'.format(type(self).__name__))
 
     def median(self):
         """
