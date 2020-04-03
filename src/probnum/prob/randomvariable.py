@@ -12,8 +12,8 @@ import scipy.stats
 import scipy.sparse
 import scipy._lib._util
 
-from .distributions.distribution import Distribution
-from .distributions.dirac import Dirac
+from probnum.prob.distributions.distribution import Distribution
+from probnum.prob.distributions.dirac import Dirac
 
 
 class RandomVariable:

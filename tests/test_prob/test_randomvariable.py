@@ -1,14 +1,13 @@
 """Tests for the random variable implementation."""
 
-import unittest
-from tests.testing import NumpyAssertions
-
 import itertools
+import unittest
+
 import numpy as np
 
+from tests.testing import NumpyAssertions
 from probnum import prob
 from probnum.linalg import linops
-
 
 class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
     """General test case for random variables."""
@@ -17,20 +16,28 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         """Scalars, arrays, linear operators and random variables for tests."""
         # Random variable instantiation
         self.scalars = [0, int(1), .1, np.nan, np.inf]
-        self.arrays = [np.empty(2), np.zeros(4), np.array([]), np.array([1, 2])]
+        self.arrays = [np.empty(2), np.zeros(4), np.array([]),
+                       np.array([1, 2])]
 
         # Random variable arithmetic
-        self.arrays2d = [np.empty(2), np.zeros(2), np.array([np.inf, 1]), np.array([1, -2.5])]
-        self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
-        self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
+        self.arrays2d = [np.empty(2), np.zeros(2), np.array([np.inf, 1]),
+                         np.array([1, -2.5])]
+        self.matrices2d = [np.array([[1, 2], [3, 2]]),
+                           np.array([[0, 0], [1.0, -4.3]])]
+        self.linops2d = [
+            linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
             prob.RandomVariable(
-                distribution=prob.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]])))]
+                distribution=prob.Normal(mean=np.array([1, 2]),
+                                                cov=np.array(
+                                                    [[2, 0], [0, 5]])))]
         self.randvars2x2 = [
             prob.RandomVariable(shape=(2, 2),
-                                distribution=prob.Normal(mean=np.array([[-2, .3], [0, 1]]),
-                                                         cov=linops.SymmetricKronecker(
-                                                                           A=np.eye(2), B=np.ones((2, 2)))))
+                                       distribution=prob.Normal(
+                                           mean=np.array([[-2, .3], [0, 1]]),
+                                           cov=linops.SymmetricKronecker(
+                                               A=np.eye(2),
+                                               B=np.ones((2, 2)))))
         ]
 
 
@@ -76,7 +83,8 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
 
     def test_rv_scalarmult(self):
         """Multiplication of random variables with scalar constants."""
-        for (alpha, rv) in list(itertools.product(self.scalars, self.randvars2d)):
+        for (alpha, rv) in list(
+                itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
                 z = alpha * rv
                 self.assertEqual(z.shape, rv.shape)
@@ -84,7 +92,8 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
 
     def test_rv_broadcasting(self):
         """Broadcasting for arrays and random variables."""
-        for alpha, rv in list(itertools.product(self.scalars, self.randvars2d)):
+        for alpha, rv in list(
+                itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
                 z = alpha + rv
                 z = rv - alpha
@@ -92,7 +101,9 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
 
     def test_rv_dotproduct(self):
         """Dot product of random variables with constant vectors."""
-        for x, rv in list(itertools.product([np.array([1, 2]), np.array([0, -1.4])], self.randvars2d)):
+        for x, rv in list(
+                itertools.product([np.array([1, 2]), np.array([0, -1.4])],
+                                  self.randvars2d)):
             with self.subTest():
                 # z1 = np.dot(x, rv)
                 # z2 = np.dot(rv, x)
@@ -136,8 +147,22 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
 
     # Random seed
     def test_different_rv_seeds(self):
-        """Arithmetic operation between two random variables with different seeds."""
+        """
+        Arithmetic operation between two random variables with different seeds.
+        """
         pass
+
+
+class TestEmptyInit(unittest.TestCase):
+    """
+    Tests that a RandomVariable object can be set up with an empty init.
+    """
+
+    def test_empty(self):
+        """No input."""
+        rv = prob.RandomVariable()
+        self.assertEqual(isinstance(rv, prob.RandomVariable), True)
+        self.assertEqual(0, 1)
 
 
 if __name__ == "__main__":
