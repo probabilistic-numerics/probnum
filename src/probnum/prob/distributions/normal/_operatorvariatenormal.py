@@ -20,7 +20,9 @@ from probnum.prob.distributions.normal._normal import _Normal
 
 
 class _OperatorvariateNormal(_Normal):
-    """A normal distribution over finite dimensional linear operators."""
+    """
+    A normal distribution over finite dimensional linear operators.
+    """
 
     def __init__(self, mean, cov, random_state=None):
         # Check parameters
@@ -104,16 +106,19 @@ class _OperatorvariateNormal(_Normal):
 
 
 class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
-    """Normal distribution with symmetric Kronecker structured covariance with identical factors V (x)_s V."""
+    """
+    Normal distribution with symmetric Kronecker structured
+    covariance with identical factors V (x)_s V.
+    """
 
     def __init__(self, mean, cov, random_state=None):
         m, self._n = mean.shape
         # Mean has to be square. If mean has dimension (n x n) then covariance factors must be (n x n).
         if m != self._n or self._n != cov.A.shape[0] or self._n != cov.B.shape[1]:
-            raise ValueError(
-                "Normal distributions with symmetric Kronecker structured covariance must have square mean"
-                + " and square covariance factors with matching dimensions."
-            )
+            raise ValueError("Normal distributions with symmetric Kronecker"
+                             "structured covariance must have square mean and"
+                             "square covariance factors with matching"
+                             "dimensions.")
 
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
@@ -122,7 +127,8 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
         if np.isscalar(size):
             size = [size]
         size_sample = [self._n * self._n] + list(size)
-        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample, random_state=self.random_state)
+        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample,
+                                                 random_state=self.random_state)
 
         # Cholesky decomposition
         eps = 10 ** - 12  # TODO: damping needed to avoid negative definite covariances

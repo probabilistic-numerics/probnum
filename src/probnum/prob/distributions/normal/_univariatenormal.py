@@ -11,7 +11,6 @@ from probnum.prob.distributions.dirac import Dirac
 from probnum.prob.distributions.normal._normal import _Normal
 
 
-
 class _UnivariateNormal(_Normal):
     """
     The univariate normal distribution.
@@ -36,20 +35,27 @@ class _UnivariateNormal(_Normal):
         return scipy.stats.norm.logcdf(x, loc=self.mean(), scale=self.std())
 
     def sample(self, size=()):
-        return scipy.stats.norm.rvs(loc=self.mean(), scale=self.std(), size=size, random_state=self.random_state)
+        return scipy.stats.norm.rvs(loc=self.mean(), scale=self.std(),
+                                    size=size, random_state=self.random_state)
 
     def reshape(self, shape):
         raise NotImplementedError
 
-    # Arithmetic Operations
+    # Arithmetic Operations ###############################
+
     def __matmul__(self, other):
+        """
+        TODO
+        ----
+        Implement special rules for matrix-variate RVs and
+        Kronecker structured covariances (see e.g. p.64
+        Thm. 2.3.10 of Gupta: Matrix-variate distribution)
+        """
         if isinstance(other, Dirac):
             delta = other.mean()
-            return Normal(mean=np.squeeze(self.mean() @ delta),
+            return _Normal(mean=np.squeeze(self.mean() @ delta),
                           cov=np.squeeze(delta @ (self.cov() @ delta.transpose())),
                           random_state=self.random_state)
-        # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-        #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate distribution)
         return NotImplemented
 
 

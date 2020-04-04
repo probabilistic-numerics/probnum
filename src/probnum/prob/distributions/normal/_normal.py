@@ -1,5 +1,10 @@
 """
 Normal distribution base class.
+
+Each of type of normal distribution inherits from this
+base class.
+
+It is internal. Use normal.Normal() instead.
 """
 
 
@@ -18,10 +23,6 @@ class _Normal(Distribution):
         super().__init__(parameters={"mean": mean, "cov": cov}, dtype=_dtype,
                          random_state=random_state)
 
-    def __repr__(self):
-        """This is a test."""
-        return "Normal object (from interface)"
-
     def mean(self):
         return self.parameters["mean"]
 
@@ -36,7 +37,7 @@ class _Normal(Distribution):
     def __add__(self, other):
         if isinstance(other, Dirac):
             delta = other.mean()
-            return Normal(mean=self.mean() + delta,
+            return _Normal(mean=self.mean() + delta,
                           cov=self.cov(),
                           random_state=self.random_state)
         else:
@@ -54,7 +55,7 @@ class _Normal(Distribution):
             if delta == 0:
                 return Dirac(support=0 * self.mean(), random_state=self.random_state)
             else:
-                return Normal(mean=self.mean() * delta,
+                return _Normal(mean=self.mean() * delta,
                               cov=self.cov() * delta ** 2,
                               random_state=self.random_state)
         else:
@@ -96,7 +97,7 @@ class _Normal(Distribution):
     def __rmatmul__(self, other):
         if isinstance(other, Dirac):
             delta = other.mean()
-            return Normal(mean=delta @ self.mean(),
+            return _Normal(mean=delta @ self.mean(),
                           cov=delta @ (self.cov() @ delta.transpose()),
                           random_state=self.random_state)
         return NotImplemented
@@ -135,7 +136,7 @@ class _Normal(Distribution):
     # Unary arithmetic operations #########################
     def __neg__(self):
         try:
-            return Normal(mean=- self.mean(),
+            return _Normal(mean=- self.mean(),
                           cov=self.cov(),
                           random_state=self.random_state)
         except Exception:
@@ -143,7 +144,7 @@ class _Normal(Distribution):
 
     def __pos__(self):
         try:
-            return Normal(mean=operator.pos(self.mean()),
+            return _Normal(mean=operator.pos(self.mean()),
                           cov=self.cov(),
                           random_state=self.random_state)
         except Exception:
