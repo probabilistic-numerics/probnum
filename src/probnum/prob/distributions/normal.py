@@ -19,7 +19,7 @@ from probnum.prob.distributions.dirac import Dirac
 
 class Normal(Distribution):
     """
-    The (multi-variate) normal distribution.
+    The normal distribution.
 
     The Gaussian distribution is ubiquitous in probability theory, since
     it is the final and stable or equilibrium distribution to which

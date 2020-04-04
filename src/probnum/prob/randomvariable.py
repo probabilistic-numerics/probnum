@@ -129,7 +129,7 @@ class RandomVariable:
         """Covariance operator of the random variable"""
         if self._distribution is not None:
             try:
-                return self._distribution.parameters["cov"]
+                return self._distribution.cov()
             except KeyError:
                 raise NotImplementedError("Underlying {} has no covariance.".format(type(self._distribution).__name__))
         else:
@@ -387,5 +387,5 @@ def _scipystats_to_rv(obj):
                             logcdf=obj.logcdf,
                             sample=obj.rvs,
                             mean=obj.mean,
-                            var=obj.var,
+                            cov=obj.cov,
                             random_state=obj.random_state)

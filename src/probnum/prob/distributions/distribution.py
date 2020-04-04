@@ -61,7 +61,7 @@ class Distribution:
     """
 
     def __init__(self, parameters=None, pdf=None, logpdf=None, cdf=None, logcdf=None, sample=None,
-                 mean=None, var=None, dtype=None, random_state=None):
+                 mean=None, cov=None, dtype=None, random_state=None):
         if parameters is None:
             parameters = {}  # sentinel value to avoid anti-pattern
         self._parameters = parameters
@@ -71,7 +71,7 @@ class Distribution:
         self._logcdf = logcdf
         self._sample = sample
         self._mean = mean
-        self._var = var
+        self._cov = cov
         self._dtype = dtype
         self._random_state = scipy._lib._util.check_random_state(random_state)
 
@@ -122,7 +122,6 @@ class Distribution:
             return self._parameters
         else:
             raise AttributeError("No parameters of {} are available.".format(type(self).__name__))
-
 
     def pdf(self, x):
         """
@@ -275,6 +274,24 @@ class Distribution:
             raise NotImplementedError(
                 'The function \'mean\' is not implemented for object of class {}'.format(type(self).__name__))
 
+    def cov(self):
+        """
+        Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the
+        distribution.
+
+        Returns
+        -------
+        cov : array-like
+            The covariance of the distribution.
+        """
+        if self._cov is not None:
+            return self._cov()
+        elif "cov" in self._parameters:
+            return self._parameters["cov"]
+        else:
+            raise NotImplementedError(
+                'The function \'cov\' is not implemented for object of class {}'.format(type(self).__name__))
+
     def var(self):
         """
         Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of the distribution.
@@ -284,9 +301,7 @@ class Distribution:
         var : array-like
             The variance of the distribution.
         """
-        if self._var is not None:
-            return self._var()
-        elif "var" in self._parameters:
+        if "var" in self._parameters:
             return self._parameters["var"]
         else:
             raise NotImplementedError(
