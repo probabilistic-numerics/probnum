@@ -14,11 +14,15 @@ class Distribution:
     """
     A class representing probability distributions.
 
-    This class is primarily intended to be subclassed to provide distribution-specific implementations of the various
-    methods (``logpdf``, ``logcdf``, ``sample``, ``mean``, ``var``, ...). When creating a subclass implementing a
-    certain distribution, make sure to override generic operations (addition, multiplication, ...) to represent the
-    properties of the distribution. The overriden methods should also update the ``parameters`` of the distribution.
-    This allows arithmetic operations on instances of :class:`Distribution` and :class:`RandomVariable`.
+    This class is primarily intended to be subclassed to provide
+    distribution-specific implementations of the various methods
+    (``logpdf``, ``logcdf``, ``sample``, ``mean``, ``var``, ...). When
+    creating a subclass implementing a certain distribution for which
+    operations like addition or multiplication are available, please
+    consider implementing them, as done for instance in :class:`Normal`.
+    The overriden methods should also update the ``parameters`` of the
+    distribution. This allows arithmetic operations on instances of
+    :class:`Distribution` and :class:`RandomVariable`.
 
     Parameters
     ----------
@@ -72,6 +76,10 @@ class Distribution:
         self._dtype = dtype
         self._random_state = scipy._lib._util.check_random_state(random_state)
 
+    def _check_distparams(self):
+        pass
+        # TODO: type checking of self._parameters; check method signatures.
+
     @property
     def dtype(self):
         """`Dtype` of elements of samples from this distribution."""
@@ -116,9 +124,6 @@ class Distribution:
         else:
             raise AttributeError("No parameters of {} are available.".format(type(self).__name__))
 
-    def _check_distparams(self):
-        pass
-        # TODO: type checking of self._parameters; check method signatures.
 
     def pdf(self, x):
         """
@@ -315,73 +320,3 @@ class Distribution:
         """
         raise NotImplementedError(
             "Reshaping not implemented for distribution of type: {}.".format(self.__class__.__name__))
-
-    # Binary arithmetic operations (to be implemented in subclasses)
-    def __add__(self, other):
-        return NotImplemented
-
-    def __sub__(self, other):
-        return NotImplemented
-
-    def __mul__(self, other):
-        return NotImplemented
-
-    def __matmul__(self, other):
-        return NotImplemented
-
-    def __truediv__(self, other):
-        return NotImplemented
-
-    def __pow__(self, power, modulo=None):
-        return NotImplemented
-
-    # Binary arithmetic operations with reflected (swapped) operands
-    def __radd__(self, other):
-        return NotImplemented
-
-    def __rsub__(self, other):
-        return NotImplemented
-
-    def __rmul__(self, other):
-        return NotImplemented
-
-    def __rmatmul__(self, other):
-        return NotImplemented
-
-    def __rtruediv__(self, other):
-        return NotImplemented
-
-    def __rpow__(self, power, modulo=None):
-        return NotImplemented
-
-    # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
-    def __iadd__(self, other):
-        return NotImplemented
-
-    def __isub__(self, other):
-        return NotImplemented
-
-    def __imul__(self, other):
-        return NotImplemented
-
-    def __imatmul__(self, other):
-        return NotImplemented
-
-    def __itruediv__(self, other):
-        return NotImplemented
-
-    def __ipow__(self, power, modulo=None):
-        return NotImplemented
-
-    # Unary arithmetic operations
-    def __neg__(self):
-        return NotImplemented
-
-    def __pos__(self):
-        return NotImplemented
-
-    def __abs__(self):
-        return NotImplemented
-
-    def __invert__(self):
-        return NotImplemented

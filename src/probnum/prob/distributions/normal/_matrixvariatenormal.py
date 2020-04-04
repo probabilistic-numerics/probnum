@@ -1,8 +1,8 @@
 """
-Univariate normal class.
+Matrixvariate normal class.
+
+It is internal. For public use, refer to normal.Normal instead.
 """
-import operator
-import abc
 
 import numpy as np
 import scipy.stats
@@ -11,8 +11,6 @@ import scipy._lib._util
 
 from probnum.linalg import linops
 from probnum.prob.distributions.dirac import Dirac
-
-# Import "private" convenience modules
 from probnum.prob.distributions.normal._normal import _Normal
 
 
@@ -23,8 +21,10 @@ class _MatrixvariateNormal(_Normal):
     """
 
     def __init__(self, mean, cov, random_state=None):
-
-        # Check parameters
+        """
+        Checks if mean and covariance have matching shapes before
+        initialising.
+        """
         _mean_dim = np.prod(mean.shape)
         if len(cov.shape) != 2:
             raise ValueError("Covariance must be a 2D matrix.")
@@ -66,8 +66,9 @@ class _MatrixvariateNormal(_Normal):
         raise NotImplementedError
 
     # Arithmetic Operations
-    # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-    #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
+    # TODO: implement special rules for matrix-variate RVs and Kronecker
+    #  structured covariances (see e.g. p.64 Thm. 2.3.10 of Gupta:
+    #  Matrix-variate Distributions)
 
     def __matmul__(self, other):
         if isinstance(other, Dirac):
@@ -77,40 +78,23 @@ class _MatrixvariateNormal(_Normal):
         return NotImplemented
 
 
-
-
 class _OperatorvariateNormal(_Normal):
     """
     A normal distribution over finite dimensional linear operators.
     """
 
     def __init__(self, mean, cov, random_state=None):
-        # Check parameters
+        """
+        Checks shapes of mean and cov depending on the type
+        of operator that cov is before initialising.
+        """
         self._mean_dim = np.prod(mean.shape)
-
-        # Kronecker structured covariance
         if isinstance(cov, linops.Kronecker):
-            m, n = mean.shape
-            # If mean has dimension (m x n) then covariance factors must be (m x m) and (n x n)
-            if m != cov.A.shape[0] or m != cov.A.shape[1] or n != cov.B.shape[0] or n != cov.B.shape[1]:
-                raise ValueError(
-                    "Kronecker structured covariance must have factors with the same shape as the mean.")
-        # Symmetric Kronecker structured covariance
+            _check_shapes_if_kronecker(mean, cov)
         elif isinstance(cov, linops.SymmetricKronecker):
-            m, n = mean.shape
-            # Mean has to be square. If mean has dimension (n x n) then covariance factors must be (n x n).
-            if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
-                raise ValueError(
-                    "Normal distributions with symmetric Kronecker structured covariance must have square mean"
-                    + " and square covariance factors with matching dimensions."
-                )
-        # General case
+            _check_shapes_if_symmetric_kronecker(mean, cov)
         elif self._mean_dim != cov.shape[0] or self._mean_dim != cov.shape[1]:
-            raise ValueError(
-                "Shape mismatch of mean and covariance."
-            )
-
-        # Superclass initiator
+            raise ValueError("Shape mismatch of mean and covariance.")
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
     def var(self):
@@ -152,7 +136,8 @@ class _OperatorvariateNormal(_Normal):
     def reshape(self, shape):
         raise NotImplementedError
 
-    # Arithmetic Operations
+    # Arithmetic Operations ############################################
+
     # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
     #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
     def __matmul__(self, other):
@@ -165,6 +150,17 @@ class _OperatorvariateNormal(_Normal):
         return NotImplemented
 
 
+def _check_shapes_if_kronecker(mean, cov):
+    """
+    If mean has dimension (m x n) then covariance factors must be
+    (m x m) and (n x n)
+    """
+    m, n = mean.shape
+    if m != cov.A.shape[0] or m != cov.A.shape[1] or n != cov.B.shape[0] or n !=cov.B.shape[1]:
+        raise ValueError("Kronecker structured covariance must have"
+                         "factors with the same shape as the mean.")
+
+
 class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
     """
     Normal distribution with symmetric Kronecker structured
@@ -172,17 +168,18 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
     """
 
     def __init__(self, mean, cov, random_state=None):
-        m, self._n = mean.shape
-        # Mean has to be square. If mean has dimension (n x n) then covariance factors must be (n x n).
-        if m != self._n or self._n != cov.A.shape[0] or self._n != cov.B.shape[1]:
-            raise ValueError("Normal distributions with symmetric Kronecker"
-                             "structured covariance must have square mean and"
-                             "square covariance factors with matching"
-                             "dimensions.")
-
+        _check_shapes_if_symmetric_kronecker(mean, cov)
+        self._n = mean.shape[1]
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
     def sample(self, size=()):
+        """
+        Note by N.
+        ----------
+        I think the below code is more readable if split into smaller functions
+        (_draw_stdnormal(), _chol(), _scale_and_shift()) but I didn't
+        dare touch this function.
+        """
         # Draw standard normal samples
         if np.isscalar(size):
             size = [size]
@@ -206,3 +203,18 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
                 linops.Kronecker(A=cholA, B=cholA) @ stdnormal_samples))
 
         return mean[None, :, :] + samples_scaled.T.reshape(-1, self._n, self._n)
+
+
+def _check_shapes_if_symmetric_kronecker(mean, cov):
+    """
+    Mean has to be square. If mean has dimension (n x n) then covariance
+    factors must be (n x n).
+    """
+    m, n = mean.shape
+    if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
+        raise ValueError("Normal distributions with symmetric"
+                         "Kronecker structured covariance must"
+                         "have square mean and square"
+                         "covariance factors with matching"
+                         "dimensions.")
+

@@ -51,7 +51,45 @@ class RandomVariable:
 
     def __init__(self, shape=None, dtype=None, distribution=None):
         """Create a new random variable."""
-        # Set dtype (in accordance with distribution)
+        self._set_dtype(distribution, dtype)
+        self._set_shape(distribution, shape)
+        self._set_distribution(distribution)
+
+    def _set_distribution(self, distribution):
+        """
+        Set distribution of random variable
+        """
+        if isinstance(distribution, Distribution):
+            self._distribution = distribution
+        elif distribution is None:
+            self._distribution = Distribution()
+        else:
+            raise ValueError("The distribution parameter must be an"
+                             "instance of `Distribution`.")
+        # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
+        # TODO: Extract dtype and shape checking as a function
+
+    def _set_shape(self, distribution, shape):
+        """
+        Sets shape in accordance with distribution mean.
+        """
+        self._shape = shape
+        if distribution is not None:
+            if distribution.mean is not None:
+                if np.isscalar(distribution.mean()):
+                    shape_mean = ()
+                else:
+                    shape_mean = distribution.mean().shape
+                if shape is None or shape_mean == shape:
+                    self._shape = shape_mean
+                else:
+                    raise ValueError("Shape of distribution mean and"
+                                     "given shape do not match.")
+
+    def _set_dtype(self, distribution, dtype):
+        """
+        Sets dtype in accordance with distribution.
+        """
         self._dtype = dtype
         if dtype is not None:
             if isinstance(dtype, np.dtype):
@@ -65,28 +103,6 @@ class RandomVariable:
                 # Change distribution dtype if random variable type is different
                 distribution.dtype = dtype
 
-        # Set shape (in accordance with distribution mean)
-        self._shape = shape
-        if distribution is not None:
-            if distribution.mean is not None:
-                if np.isscalar(distribution.mean()):
-                    shape_mean = ()
-                else:
-                    shape_mean = distribution.mean().shape
-                if shape is None or shape_mean == shape:
-                    self._shape = shape_mean
-                else:
-                    raise ValueError("Shape of distribution mean and given shape do not match.")
-
-        # Set distribution of random variable
-        if isinstance(distribution, Distribution):
-            self._distribution = distribution
-        elif distribution is None:
-            self._distribution = Distribution()
-        else:
-            raise ValueError("The distribution parameter must be an instance of `Distribution`.")
-        # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
-        # TODO: Extract dtype and shape checking as a function
 
     def __repr__(self):
         if self.dtype is None:

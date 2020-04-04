@@ -6,9 +6,9 @@ import numpy as np
 import scipy.sparse
 import scipy.stats
 
-from .distributions.distribution import Distribution
-from .distributions.normal import Normal
-from .distributions.dirac import Dirac
+from probnum.prob.distributions.distribution import Distribution
+from probnum.prob.distributions.normal import Normal
+from probnum.prob.distributions.dirac import Dirac
 
 
 def asdist(obj):

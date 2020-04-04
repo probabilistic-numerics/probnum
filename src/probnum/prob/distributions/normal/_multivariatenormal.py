@@ -1,5 +1,7 @@
 """
-Univariate normal class.
+Multivariate normal distribution class.
+
+It is internal. For public use, refer to normal.Normal instead.
 """
 
 import numpy as np
@@ -9,7 +11,7 @@ import scipy._lib._util
 
 from probnum.prob.distributions.dirac import Dirac
 from probnum.prob.distributions.normal._normal import _Normal
-
+from probnum.prob.distributions.normal._univariatenormal import _UnivariateNormal
 
 class _MultivariateNormal(_Normal):
     """
@@ -17,13 +19,15 @@ class _MultivariateNormal(_Normal):
     """
 
     def __init__(self, mean, cov, random_state=None):
-
-        # Check parameters
-        _mean_dim = np.prod(mean.shape)
+        """
+        Checks if mean and covariance have matching shapes before
+        initialising.
+        """
+        meandim = np.prod(mean.shape)
         if len(cov.shape) != 2:
             raise ValueError("Covariance must be a 2D matrix"
                              "or linear operator.")
-        if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
+        if meandim != cov.shape[0] or meandim != cov.shape[1]:
             raise ValueError("Shape mismatch of mean and covariance. Total "
                              "number of elements of the mean must match the "
                              "first and second dimension of the covariance.")
@@ -59,22 +63,37 @@ class _MultivariateNormal(_Normal):
     # Arithmetic Operations ###############################
 
     def __matmul__(self, other):
+        """
+        Only works if other is a Dirac, which implies
+        matrix-multiplication with some constant.
+        """
         if isinstance(other, Dirac):
             delta = other.mean()
-            return _Normal(mean=self.mean() @ delta,
-                          cov=delta.T @ (self.cov() @ delta),
-                          random_state=self.random_state)
-        return NotImplemented
+            newmean = self.mean() @ delta
+            newcov = delta.T @ (self.cov() @ delta)
+            if np.isscalar(newmean) and np.isscalar(newcov):
+                return _UnivariateNormal(mean=newmean, cov=newcov,
+                                         random_state=self.random_state)
+            else:
+                return _MultivariateNormal(mean=newmean, cov=newcov,
+                                           random_state=self.random_state)
+        else:
+            return NotImplemented
 
     def __rmatmul__(self, other):
+        """
+        Only works if other is a Dirac, which implies
+        matrix-multiplication with some constant.
+        """
         if isinstance(other, Dirac):
             delta = other.mean()
-            return _Normal(mean=delta @ self.mean(),
-                          cov=delta @ (self.cov() @ delta.T),
-                          random_state=self.random_state)
-        return NotImplemented
-
-
-
-
-
+            newmean = delta @ self.mean()
+            newcov = delta @ (self.cov() @ delta.T)
+            if np.isscalar(newmean) and np.isscalar(newcov):
+                return _UnivariateNormal(mean=newmean, cov=newcov,
+                                         random_state=self.random_state)
+            else:
+                return _MultivariateNormal(mean=newmean, cov=newcov,
+                                           random_state=self.random_state)
+        else:
+            return NotImplemented

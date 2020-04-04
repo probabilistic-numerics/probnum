@@ -73,6 +73,7 @@ class Normal(_Normal):
         type of Normal distribution:
             * _UnivariateNormal
             * _MultivariateNormal
+            * _MatrixvariateNormal
             * _SymmetricKroneckerIdenticalFactorsNormal
             * _OperatorvariateNormal
         If neither applies, a ValueError is raised.

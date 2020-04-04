@@ -106,14 +106,12 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
                 itertools.product([np.array([1, 2]), np.array([0, -1.4])],
                                   self.randvars2d)):
             with self.subTest():
-                # z1 = np.dot(x, rv)
-                # z2 = np.dot(rv, x)
-                z1 = rv @ x[:, None]
+                z1 = rv @ x
                 z2 = x @ rv
-                self.assertEqual(z1.shape, ())
-                self.assertEqual(z2.shape, ())
                 self.assertIsInstance(z1, prob.RandomVariable)
                 self.assertIsInstance(z2, prob.RandomVariable)
+                self.assertEqual(z1.shape, ())
+                self.assertEqual(z2.shape, ())
 
     def test_rv_matmul(self):
         """Multiplication of random variables with constant matrices."""

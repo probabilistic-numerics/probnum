@@ -6,7 +6,6 @@ Each of type of normal distribution inherits from this base class.
 It is internal. For public use, refer to normal.Normal instead.
 """
 
-
 import operator
 from probnum.prob.distributions.distribution import Distribution
 from probnum.prob.distributions.dirac import Dirac
@@ -129,8 +128,9 @@ class _Normal(Distribution):
         """
         if isinstance(other, Dirac):
             delta = other.mean()
-            return type(self)(mean=delta @ self.mean(),
-                              cov=delta @ (self.cov() @ delta.transpose()),
+            newmean = delta @ self.mean()
+            newcov = delta @ (self.cov() @ delta.transpose())
+            return type(self)(mean=newmean, cov=newcov,
                               random_state=self.random_state)
         return NotImplemented
 
@@ -146,45 +146,31 @@ class _Normal(Distribution):
     def __rpow__(self, power, modulo=None):
         return NotImplemented
 
-    # # Augmented arithmetic assignments (+=, -=, *=, ...) ###############
-    # # attempting to do the operation in place ##########################
-    #
-    # def __iadd__(self, other):
-    #     return NotImplemented
-    #
-    # def __isub__(self, other):
-    #     return NotImplemented
-    #
-    # def __imul__(self, other):
-    #     return NotImplemented
-    #
-    # def __imatmul__(self, other):
-    #     return NotImplemented
-    #
-    # def __itruediv__(self, other):
-    #     return NotImplemented
-    #
-    # def __ipow__(self, power, modulo=None):
-    #     return NotImplemented
-
     # Unary arithmetic operations ######################################
 
     def __neg__(self):
         """
         Negation of r.v.
+
+        The type(self)(...) makes sure that adding a Dirac to, say,
+        a _MultivariateNormal returns a _MultivariateNormal.
         """
         try:
-            return _Normal(mean=- self.mean(),
-                           cov=self.cov(),
-                           random_state=self.random_state)
+            return type(self)(mean=-self.mean(),
+                              cov=self.cov(),
+                              random_state=self.random_state)
         except Exception:
             return NotImplemented
 
     def __pos__(self):
+        """
+        The type(self)(...) makes sure that adding a Dirac to, say,
+        a _MultivariateNormal returns a _MultivariateNormal.
+        """
         try:
-            return _Normal(mean=operator.pos(self.mean()),
-                           cov=self.cov(),
-                           random_state=self.random_state)
+            return type(self)(mean=operator.pos(self.mean()),
+                              cov=self.cov(),
+                              random_state=self.random_state)
         except Exception:
             return NotImplemented
 

@@ -1,5 +1,7 @@
 """
 Univariate normal distribution.
+
+It is internal. For public use, refer to normal.Normal instead.
 """
 
 import numpy as np
@@ -17,7 +19,8 @@ class _UnivariateNormal(_Normal):
     """
 
     def __init__(self, mean=0., cov=1., random_state=None):
-        super().__init__(mean=float(mean), cov=float(cov), random_state=random_state)
+        super().__init__(mean=float(mean), cov=float(cov),
+                         random_state=random_state)
 
     def var(self):
         return self.cov()
@@ -50,6 +53,12 @@ class _UnivariateNormal(_Normal):
         Implement special rules for matrix-variate RVs and
         Kronecker structured covariances (see e.g. p.64
         Thm. 2.3.10 of Gupta: Matrix-variate distribution)
+
+        Question from N.
+        ----------------
+        Why is this function implemented? self.mean() is a float
+        so the "@" operator is not supported anyway. Is this a relict
+        from older versions of the code?
         """
         if isinstance(other, Dirac):
             delta = other.mean()
