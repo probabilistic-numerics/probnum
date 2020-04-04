@@ -14,9 +14,11 @@ from probnum.linalg import linops
 from probnum.prob.distributions.normal._normal import _Normal
 from probnum.prob.distributions.normal._univariatenormal import _UnivariateNormal
 from probnum.prob.distributions.normal._multivariatenormal import _MultivariateNormal
-from probnum.prob.distributions.normal._matrixvariatenormal import _MatrixvariateNormal, _OperatorvariateNormal, _SymmetricKroneckerIdenticalFactorsNormal
+from probnum.prob.distributions.normal._matrixvariatenormal import _MatrixvariateNormal, _OperatorvariateNormal, \
+    _SymmetricKroneckerIdenticalFactorsNormal
 
 __all__ = ["Normal"]
+
 
 class Normal(_Normal):
     """
@@ -58,12 +60,9 @@ class Normal(_Normal):
     >>> N = Normal(mean=0.5, cov=1.0)
     >>> N.parameters
     {'mean': 0.5, 'cov': 1.0}
-
-    Todo
-    ----
-    Only keep Cholesky factors as covariance to avoid
-    losing symmetry
     """
+
+    # TODO: Only keep Cholesky factors as covariance to avoid losing symmetry
 
     def __new__(cls, mean=0., cov=1., random_state=None):
         """
@@ -100,73 +99,57 @@ class Normal(_Normal):
             return super(Normal, cls).__new__(cls, mean=mean, cov=cov,
                                               random_state=random_state)
 
+
 def _both_are_univariate(mean, cov):
     """
-    Checks whether mean and covar correspond to the
+    Checks whether mean and covariance correspond to the
     UNIVARIATE normal distribution.
     """
     both_are_scalars = np.isscalar(mean) and np.isscalar(cov)
     mean_shape_dim1 = np.shape(mean) in [(1, 1), (1,), ()]
     cov_shape_dim1 = np.shape(cov) in [(1, 1), (1,), ()]
     both_in_dim1shapes = mean_shape_dim1 and cov_shape_dim1
-    if both_are_scalars or both_in_dim1shapes:
-        return True
-    else:
-        return False
+    return both_are_scalars or both_in_dim1shapes
 
 
 def _both_are_multivariate(mean, cov):
     """
-    Checks whether mean and covar correspond to the
+    Checks whether mean and covariance correspond to the
     MULTI- or MATRIXVARIATE normal distribution.
-
-    The assert statement makes sure that .shape is not
-    called on a float.
     """
     mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
     cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix,))
-    if mean_is_multivar and cov_is_multivar and len(mean.shape) == 1:
-        return True
-    else:
-        return False
+    return mean_is_multivar and cov_is_multivar and len(mean.shape) == 1
 
 
 def _both_are_matrixvariate(mean, cov):
     """
-    Checks whether mean and covar correspond to the
+    Checks whether mean and covariance correspond to the
     MULTI- or MATRIXVARIATE normal distribution.
     """
     mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
     cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix,))
-    if mean_is_multivar and cov_is_multivar and len(mean.shape) > 1:
-        return True
-    else:
-        return False
+    return mean_is_multivar and cov_is_multivar and len(mean.shape) > 1
+
 
 def _both_are_symmkronidfactors(mean, cov):
     """
-    Checks whether mean OR (!) covar correspond to the
+    Checks whether mean OR (!) covariance correspond to the
     OPERATORVARIATE normal distribution.
     """
     mean_is_opvariate = isinstance(mean, scipy.sparse.linalg.LinearOperator)
     cov_is_opvariate = isinstance(cov, scipy.sparse.linalg.LinearOperator)
     if mean_is_opvariate or cov_is_opvariate:
-        if isinstance(cov, linops.SymmetricKronecker) and cov._ABequal:
-            return True
-        else:
-            return False
+        return isinstance(cov, linops.SymmetricKronecker) and cov._ABequal
     else:
         return False
 
 
 def _both_are_operatorvariate(mean, cov):
     """
-    Checks whether mean OR (!) covar correspond to the
+    Checks whether mean OR (!) covariance correspond to the
     OPERATORVARIATE normal distribution.
     """
     mean_is_opvariate = isinstance(mean, scipy.sparse.linalg.LinearOperator)
     cov_is_opvariate = isinstance(cov, scipy.sparse.linalg.LinearOperator)
-    if mean_is_opvariate or cov_is_opvariate:
-        return True
-    else:
-        return False
+    return mean_is_opvariate or cov_is_opvariate

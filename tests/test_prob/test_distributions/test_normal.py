@@ -1,6 +1,7 @@
 """Tests for the normal distribution."""
 
 import unittest
+import itertools
 from tests.testing import NumpyAssertions
 
 import numpy as np
@@ -21,6 +22,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         # Parameters
         m = 7
         n = 3
+        self.constants = [-1, -2.4, 0, 200, np.pi]
         sparsemat = scipy.sparse.rand(m=m, n=n, density=0.1, random_state=1)
         self.normal_params = [
             (-1, 3),
@@ -34,6 +36,24 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
              linops.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]]))),
             (linops.Identity(shape=25), linops.SymmetricKronecker(A=linops.Identity(25)))
         ]
+
+    def test_correct_instantiation(self):
+        """Test whether different variants of the normal distribution are instances of Normal."""
+        for mean, cov in self.normal_params:
+            with self.subTest():
+                dist = prob.Normal(mean=mean, cov=cov)
+                self.assertIsInstance(dist, prob.Normal)
+
+    def test_scalarmult(self):
+        """Multiply a rv with a normal distribution with a scalar."""
+        for (mean, cov), const in list(itertools.product(self.normal_params, self.constants)):
+            with self.subTest():
+                normrv = const * prob.RandomVariable(distribution=prob.Normal(mean=mean, cov=cov))
+                self.assertIsInstance(normrv, prob.RandomVariable)
+                if const != 0:
+                    self.assertIsInstance(normrv.distribution, prob.Normal)
+                else:
+                    self.assertIsInstance(normrv.distribution, prob.Dirac)
 
     def test_rv_linop_kroneckercov(self):
         """Create a rv with a normal distribution with linear operator mean and Kronecker product covariance."""
@@ -51,9 +71,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                           (np.array([1, 2]), np.array([1, 0])),
                           (np.array([[-1, 0], [2, 1]]), np.eye(3))]:
             with self.subTest():
-                with self.assertRaises(ValueError):
-                    assert prob.Normal(mean=mean,
-                                       cov=cov), "Mean and covariance mismatch in normal distribution."
+                err_msg = "Mean and covariance mismatch in normal distribution did not raise a ValueError."
+                with self.assertRaises(ValueError, msg=err_msg):
+                    assert prob.Normal(mean=mean, cov=cov)
 
     def test_normal_instantiation(self):
         """Instantiation of a normal distribution with mixed mean and cov type."""

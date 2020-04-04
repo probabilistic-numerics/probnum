@@ -9,7 +9,6 @@ import scipy.stats
 import scipy.sparse
 import scipy._lib._util
 
-from probnum.prob.distributions.dirac import Dirac
 from probnum.prob.distributions.normal._normal import _Normal
 
 
@@ -43,29 +42,6 @@ class _UnivariateNormal(_Normal):
 
     def reshape(self, shape):
         raise NotImplementedError
-
-    # Arithmetic Operations ###############################
-
-    def __matmul__(self, other):
-        """
-        TODO
-        ----
-        Implement special rules for matrix-variate RVs and
-        Kronecker structured covariances (see e.g. p.64
-        Thm. 2.3.10 of Gupta: Matrix-variate distribution)
-
-        Question from N.
-        ----------------
-        Why is this function implemented? self.mean() is a float
-        so the "@" operator is not supported anyway. Is this a relict
-        from older versions of the code?
-        """
-        if isinstance(other, Dirac):
-            delta = other.mean()
-            return _Normal(mean=np.squeeze(self.mean() @ delta),
-                          cov=np.squeeze(delta @ (self.cov() @ delta.transpose())),
-                          random_state=self.random_state)
-        return NotImplemented
 
 
 

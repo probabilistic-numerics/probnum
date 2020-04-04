@@ -14,6 +14,7 @@ import scipy._lib._util
 
 from probnum.prob.distributions.distribution import Distribution
 from probnum.prob.distributions.dirac import Dirac
+from probnum.prob.distributions.normal import Normal
 
 
 class RandomVariable:
@@ -57,7 +58,7 @@ class RandomVariable:
 
     def _set_distribution(self, distribution):
         """
-        Set distribution of random variable
+        Set distribution of random variable.
         """
         if isinstance(distribution, Distribution):
             self._distribution = distribution
@@ -102,7 +103,6 @@ class RandomVariable:
             elif self.dtype != distribution.dtype:
                 # Change distribution dtype if random variable type is different
                 distribution.dtype = dtype
-
 
     def __repr__(self):
         if self.dtype is None:
@@ -223,8 +223,7 @@ class RandomVariable:
 
         """
         other_rv = asrandvar(other)
-        combined_rv = RandomVariable(distribution=op(self.distribution,
-                                                     other_rv.distribution))
+        combined_rv = RandomVariable(distribution=op(self.distribution, other_rv.distribution))
         return combined_rv
 
     def __add__(self, other):
@@ -311,17 +310,17 @@ def asrandvar(obj):
     """
     Return ``obj`` as a :class:`RandomVariable`.
 
-    Converts scalars, (sparse) arrays or distributions classes to a :`class:RandomVariable`.
+    Converts scalars, (sparse) arrays or distribution classes to a :class:`RandomVariable`.
 
     Parameters
     ----------
     obj : object
-        Argument to be represented as a :`class:RandomVariable`.
+        Argument to be represented as a :class:`RandomVariable`.
 
     Returns
     -------
     rv : RandomVariable
-        The object `obj` as a as a :`class:RandomVariable`.
+        The object `obj` as a as a :class:`RandomVariable`.
 
     See Also
     --------
@@ -329,10 +328,13 @@ def asrandvar(obj):
 
     Examples
     --------
+    >>> from scipy.stats import bernoulli
     >>> from probnum.prob import asrandvar
-    >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
-    >>> asrandvar(M)
-    <2x3 RandomVariable with dtype=int32>
+    >>> bern = bernoulli(p=0.5)
+    >>> bern.random_state = 42  # Seed for reproducibility
+    >>> b = asrandvar(bern)
+    >>> b.sample(size=5)
+    array([0, 1, 1, 1, 0])
     """
     # RandomVariable
     if isinstance(obj, RandomVariable):
@@ -343,8 +345,48 @@ def asrandvar(obj):
     # Numpy array, sparse array or Linear Operator
     elif isinstance(obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)):
         return RandomVariable(shape=obj.shape, dtype=obj.dtype, distribution=Dirac(support=obj))
-    elif isinstance(obj, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
-        # TODO: transform scipy distributions objects (rvs?), Distribution objects automatically
-        raise NotImplementedError
+    # Scipy random variable
+    # elif isinstance(obj, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
+    elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen):
+        return _scipystats_to_rv(obj=obj)
     else:
         raise ValueError("Argument of type {} cannot be converted to a random variable.".format(type(obj)))
+
+
+def _scipystats_to_rv(obj):
+    """
+    Transform SciPy distributions to Probnum :class:`RandomVariable`s.
+
+    Parameters
+    ----------
+    obj : object
+        SciPy distribution.
+
+    Returns
+    -------
+    dist : RandomVariable
+        ProbNum random variable.
+
+    """
+    # Normal distributions
+    if obj.dist.name == "norm":
+        return Normal(mean=obj.mean(), cov=obj.var(), random_state=obj.random_state)
+    elif obj.__class__.__name__ == "multivariate_normal_frozen":  # Multivariate normal
+        return Normal(mean=obj.mean, cov=obj.cov, random_state=obj.random_state)
+    else:
+        # Generic distributions
+        if hasattr(obj, "pmf"):
+            pdf = obj.pmf
+            logpdf = obj.logpmf
+        else:
+            pdf = obj.pdf
+            logpdf = obj.logpdf
+        return Distribution(parameters={},
+                            pdf=pdf,
+                            logpdf=logpdf,
+                            cdf=obj.cdf,
+                            logcdf=obj.logcdf,
+                            sample=obj.rvs,
+                            mean=obj.mean,
+                            var=obj.var,
+                            random_state=obj.random_state)

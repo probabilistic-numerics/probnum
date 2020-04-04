@@ -14,12 +14,19 @@ Use absolute imports over relative imports.
 - `import y as z` only when `z` is a standard abbreviation (e.g., `np` for `numpy`).
 
 ### Naming
-- `low` (shortened lower caps) for modules in the namespace, e.g. `probnum.linalg.linops`
-- `lower` for modules not in the namespace, e.g. `probnum/prob/distributions`
+
+#### Modules and Folders
+- `low` (shortened lower caps) for modules/folders in the namespace, e.g. `probnum.linalg.linops`
+- `lower` for modules/folders not in the namespace, e.g. `probnum/prob/distributions`
+
+PN methods should be in a file with the same name as the containing folder (e.g. `probnum/linalg/linearsolvers/linearsolvers.py`), while their implementation (in classes) is in the same folder in other files.
+
+#### Classes, Functions, Methods and Variables
 - `joined_lower` for functions, methods, attributes, variables
 - `joined_lower` or `ALL_CAPS` for constants
 - `StudlyCaps` for classes
 - `camelCase` only to conform to pre-existing conventions, e.g. in `unittest`
+
 
 ### Printable Representations
 The way an object is printed defined by `def __repr__(self)` is structured as:
