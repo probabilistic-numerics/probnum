@@ -75,67 +75,6 @@ class _MultivariateNormal(_Normal):
         return NotImplemented
 
 
-class _MatrixvariateNormal(_Normal):
-    """
-    The matrixvariate normal distribution.
-    """
-
-    def __init__(self, mean, cov, random_state=None):
-
-        # Check parameters
-        _mean_dim = np.prod(mean.shape)
-        if len(cov.shape) != 2:
-            raise ValueError("Covariance must be a 2D matrix.")
-        if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
-            raise ValueError("Shape mismatch of mean and covariance. Total "
-                             "number of elements of the mean must match the "
-                             "first and second dimension of the covariance.")
-        super().__init__(mean=mean, cov=cov, random_state=random_state)
-
-    def var(self):
-        return np.diag(self.cov())
-
-    def pdf(self, x):
-        # TODO: need to reshape x into number of matrices given
-        pdf_ravelled = scipy.stats.multivariate_normal.pdf(x.ravel(),
-                                                           mean=self.mean().ravel(),
-                                                           cov=self.cov())
-        # TODO: this reshape is incorrect, write test for multiple matrices
-        return pdf_ravelled.reshape(shape=self.mean().shape)
-
-    def logpdf(self, x):
-        raise NotImplementedError
-
-    def cdf(self, x):
-        raise NotImplementedError
-
-    def logcdf(self, x):
-        raise NotImplementedError
-
-    def sample(self, size=()):
-        ravelled = scipy.stats.multivariate_normal.rvs(mean=self.mean().ravel(),
-                                                       cov=self.cov(),
-                                                       size=size,
-                                                       random_state=self.random_state)
-        # TODO: maybe distributions need an attribute sample_shape
-        return ravelled.reshape(shape=self.mean().shape)
-
-    def reshape(self, shape):
-        raise NotImplementedError
-
-    # Arithmetic Operations
-    # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-    #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
-
-    def __matmul__(self, other):
-        if isinstance(other, Dirac):
-            delta = other.mean()
-            raise NotImplementedError
-        # TODO: implement generic:
-        return NotImplemented
-
-
-
 
 
 

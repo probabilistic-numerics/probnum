@@ -183,10 +183,11 @@ class RandomVariable:
 
     # Binary arithmetic operations
 
-    # The below prevents numpy from calling elementwise arithmetic operations allowing expressions like:
-    # y = np.array([1, 1]) + RV
-    # to call the arithmetic operations defined by RandomVariable instead of elementwise. Thus no
-    # array of RandomVariables but a RandomVariable with the correct shape is returned.
+    # The below prevents numpy from calling elementwise arithmetic
+    # operations allowing expressions like: y = np.array([1, 1]) + RV
+    # to call the arithmetic operations defined by RandomVariable
+    # instead of elementwise. Thus no array of RandomVariables but a
+    # RandomVariable with the correct shape is returned.
     __array_ufunc__ = None
 
     def _rv_from_binary_operation(self, other, op):
@@ -206,7 +207,8 @@ class RandomVariable:
 
         """
         other_rv = asrandvar(other)
-        combined_rv = RandomVariable(distribution=op(self.distribution, other_rv.distribution))
+        combined_rv = RandomVariable(distribution=op(self.distribution,
+                                                     other_rv.distribution))
         return combined_rv
 
     def __add__(self, other):

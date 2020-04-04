@@ -1,9 +1,8 @@
 """
 Normal distribution.
 
-This module implements the Gaussian distribution in its
-univariate, multi-variate, matrix-variate and
-operator-variate forms.
+This module implements the Gaussian distribution in its univariate,
+multi-variate, matrix-variate and operator-variate forms.
 """
 
 import numpy as np
@@ -12,25 +11,24 @@ import scipy.sparse
 import scipy._lib._util
 
 from probnum.linalg import linops
+from probnum.prob.distributions.normal._normal import _Normal
 from probnum.prob.distributions.normal._univariatenormal import _UnivariateNormal
-from probnum.prob.distributions.normal._multivariatenormal import _MultivariateNormal, _MatrixvariateNormal
-from probnum.prob.distributions.normal._operatorvariatenormal import _OperatorvariateNormal, _SymmetricKroneckerIdenticalFactorsNormal
+from probnum.prob.distributions.normal._multivariatenormal import _MultivariateNormal
+from probnum.prob.distributions.normal._matrixvariatenormal import _MatrixvariateNormal, _OperatorvariateNormal, _SymmetricKroneckerIdenticalFactorsNormal
 
 __all__ = ["Normal"]
 
-class Normal:
+class Normal(_Normal):
     """
     The (multi-variate) normal distribution.
 
-    The Gaussian distribution is ubiquitous in probability
-    theory, since it is the final and stable or equilibrium
-    distribution to which other distributions gravitate
-    under a wide variety of smooth operations, e.g.,
-    convolutions and stochastic transformations. One
-    example of this is the central limit theorem. The
-    Gaussian distribution is also attractive from a
-    numerical point of view as it is maintained through
-    many transformations (e.g. it is stable).
+    The Gaussian distribution is ubiquitous in probability theory, since
+    it is the final and stable or equilibrium distribution to which
+    other distributions gravitate under a wide variety of smooth
+    operations, e.g., convolutions and stochastic transformations.
+    One example of this is the central limit theorem. The Gaussian
+    distribution is also attractive from a numerical point of view as it
+    is maintained through many transformations (e.g. it is stable).
 
     Parameters
     ----------
@@ -43,7 +41,8 @@ class Normal:
     random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
         This parameter defines the RandomState object to
         use for drawing realizations from this
-        distribution. If None (or np.random), the global
+        distribution. Think of it like a random seed.
+        If None (or np.random), the global
         np.random state is used. If integer, it is used to
         seed the local
         :class:`~numpy.random.RandomState` instance.
@@ -70,8 +69,8 @@ class Normal:
         """
         Factory method for normal subclasses.
 
-        Checks shape/type of mean and cov and returns the
-        corresponding type of Normal distribution:
+        Checks shape/type of mean and cov and returns the corresponding
+        type of Normal distribution:
             * _UnivariateNormal
             * _MultivariateNormal
             * _SymmetricKroneckerIdenticalFactorsNormal
@@ -81,16 +80,15 @@ class Normal:
         if cls is Normal:
             if _both_are_univariate(mean, cov):
                 return _UnivariateNormal(mean, cov, random_state)
-            elif _both_are_multi_or_matrixvariate(mean, cov):
-                if len(mean.shape) == 1:
-                    return _MultivariateNormal(mean, cov, random_state)
-                else:
-                    return _MatrixvariateNormal(mean, cov, random_state)
+            elif _both_are_multivariate(mean, cov):
+                return _MultivariateNormal(mean, cov, random_state)
+            elif _both_are_matrixvariate(mean, cov):
+                return _MatrixvariateNormal(mean, cov, random_state)
+            elif _both_are_symmkronidfactors(mean, cov):
+                return _SymmetricKroneckerIdenticalFactorsNormal(mean, cov,
+                                                                 random_state)
             elif _both_are_operatorvariate(mean, cov):
-                if isinstance(cov, linops.SymmetricKronecker) and cov._ABequal:
-                    return _SymmetricKroneckerIdenticalFactorsNormal(mean, cov, random_state)
-                else:
-                    return _OperatorvariateNormal(mean, cov, random_state)
+                return _OperatorvariateNormal(mean, cov, random_state)
             else:
                 errmsg = ("Cannot instantiate normal distribution with mean of"
                           + "type {} and".format(mean.__class__.__name__)
@@ -116,17 +114,49 @@ def _both_are_univariate(mean, cov):
         return False
 
 
-def _both_are_multi_or_matrixvariate(mean, cov):
+def _both_are_multivariate(mean, cov):
+    """
+    Checks whether mean and covar correspond to the
+    MULTI- or MATRIXVARIATE normal distribution.
+
+    The assert statement makes sure that .shape is not
+    called on a float.
+    """
+    mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
+    cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix,))
+    if mean_is_multivar and cov_is_multivar and len(mean.shape) == 1:
+        return True
+    else:
+        return False
+
+
+def _both_are_matrixvariate(mean, cov):
     """
     Checks whether mean and covar correspond to the
     MULTI- or MATRIXVARIATE normal distribution.
     """
     mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
     cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix,))
-    if mean_is_multivar and cov_is_multivar:
+    if mean_is_multivar and cov_is_multivar and len(mean.shape) > 1:
         return True
     else:
         return False
+
+def _both_are_symmkronidfactors(mean, cov):
+    """
+    Checks whether mean OR (!) covar correspond to the
+    OPERATORVARIATE normal distribution.
+    """
+    mean_is_opvariate = isinstance(mean, scipy.sparse.linalg.LinearOperator)
+    cov_is_opvariate = isinstance(cov, scipy.sparse.linalg.LinearOperator)
+    if mean_is_opvariate or cov_is_opvariate:
+        if isinstance(cov, linops.SymmetricKronecker) and cov._ABequal:
+            return True
+        else:
+            return False
+    else:
+        return False
+
 
 def _both_are_operatorvariate(mean, cov):
     """
