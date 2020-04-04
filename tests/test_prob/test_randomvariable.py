@@ -158,13 +158,8 @@ class TestEmptyInit(unittest.TestCase):
     """
     Tests that a RandomVariable object can be set up with an empty init.
     """
-
     def test_empty(self):
         """No input."""
         rv = prob.RandomVariable()
         self.assertEqual(isinstance(rv, prob.RandomVariable), True)
 
-
-if __name__ == "__main__":
-    unittest.main()
->>>>>>> a14aefa6b675c23dd6e7c34f24488d50d464bd23:tests/test_prob/test_randomvariable.py
