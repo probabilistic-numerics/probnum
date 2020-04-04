@@ -53,7 +53,6 @@ class Distribution:
 
     See Also
     --------
-    asdist : Transform object into a :class:`Distribution`.
     RandomVariable : Random variables are the main objects used by probabilistic numerical methods.
 
     Examples

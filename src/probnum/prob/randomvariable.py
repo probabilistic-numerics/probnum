@@ -68,7 +68,6 @@ class RandomVariable:
             raise ValueError("The distribution parameter must be an"
                              "instance of `Distribution`.")
         # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
-        # TODO: Extract dtype and shape checking as a function
 
     def _set_shape(self, distribution, shape):
         """
@@ -320,7 +319,7 @@ def asrandvar(obj):
     Returns
     -------
     rv : RandomVariable
-        The object `obj` as a as a :class:`RandomVariable`.
+        The object `obj` as a :class:`RandomVariable`.
 
     See Also
     --------

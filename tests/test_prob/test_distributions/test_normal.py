@@ -55,6 +55,19 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 else:
                     self.assertIsInstance(normrv.distribution, prob.Dirac)
 
+    def test_addition_normal(self):
+        """Add two random variables with a normal distribution"""
+        for (mean0, cov0), (mean1, cov1) in list(itertools.product(self.normal_params, self.normal_params)):
+            with self.subTest():
+                normrv0 = prob.RandomVariable(distribution=prob.Normal(mean=mean0, cov=cov0))
+                normrv1 = prob.RandomVariable(distribution=prob.Normal(mean=mean1, cov=cov1))
+
+                if normrv0.shape == normrv1.shape:
+                    self.assertIsInstance((normrv0 + normrv1).distribution, prob.Normal)
+                else:
+                    with self.assertRaises(TypeError):
+                        normrv_added = normrv0 + normrv1
+
     def test_rv_linop_kroneckercov(self):
         """Create a rv with a normal distribution with linear operator mean and Kronecker product covariance."""
 
