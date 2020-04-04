@@ -65,7 +65,7 @@ class RandomVariable:
         elif distribution is None:
             self._distribution = Distribution()
         else:
-            raise ValueError("The distribution parameter must be an"
+            raise ValueError("The distribution parameter must be an "
                              "instance of `Distribution`.")
         # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
 
@@ -83,7 +83,7 @@ class RandomVariable:
                 if shape is None or shape_mean == shape:
                     self._shape = shape_mean
                 else:
-                    raise ValueError("Shape of distribution mean and"
+                    raise ValueError("Shape of distribution mean and "
                                      "given shape do not match.")
 
     def _set_dtype(self, distribution, dtype):
@@ -102,6 +102,8 @@ class RandomVariable:
             elif self.dtype != distribution.dtype:
                 # Change distribution dtype if random variable type is different
                 distribution.dtype = dtype
+        if self._dtype is None:
+            raise ValueError("No \'dtype\' set.")
 
     def __repr__(self):
         if self.dtype is None:
