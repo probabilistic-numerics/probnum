@@ -19,6 +19,7 @@ Dirac
    .. autosummary::
 
       ~Dirac.cdf
+      ~Dirac.cov
       ~Dirac.logcdf
       ~Dirac.logpdf
       ~Dirac.mean
@@ -39,6 +40,7 @@ Dirac
    .. rubric:: Methods Documentation
 
    .. automethod:: cdf
+   .. automethod:: cov
    .. automethod:: logcdf
    .. automethod:: logpdf
    .. automethod:: mean

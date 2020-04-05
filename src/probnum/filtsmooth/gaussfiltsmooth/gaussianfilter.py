@@ -11,6 +11,10 @@ import numpy as np
 from probnum.filtsmooth import bayesianfilter
 
 
+__all__ = ["GaussianFilter"]
+
+
+
 class GaussianFilter(bayesianfilter.BayesianFilter, ABC):
     """
     Maintains "abstractness" of predict() and update()

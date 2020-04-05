@@ -8,6 +8,8 @@ from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous import LinearSDEModel
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 
+__all__ = ["ExtendedKalmanFilter"]
+
 
 class ExtendedKalmanFilter(gaussianfilter.GaussianFilter):
     """
