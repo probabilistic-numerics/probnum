@@ -26,7 +26,7 @@ __all__ = ["LinearSDEModel", "LTISDEModel"]
 class LinearSDEModel(continuousmodel.ContinuousModel):
     """
     Linear time-continuous Markov models of the form
-        dx = [F(t) x(t) + u(t)] dt + L(t) dB(t).
+    dx = [F(t) x(t) + u(t)] dt + L(t) dB(t).
     In the language of dynamic models,
     x(t) : state process
     F(t) : drift matrix
@@ -119,7 +119,7 @@ class LTISDEModel(LinearSDEModel):
     """
     Linear time-invariant continuous Markov models of the
     form
-        dx = [F x(t) + u] dt + L dBt.
+    dx = [F x(t) + u] dt + L dBt.
     In the language of dynamic models,
     x(t) : state process
     F : drift matrix
@@ -180,6 +180,8 @@ class LTISDEModel(LinearSDEModel):
         in Applied SDEs.
         """
         mean, covar = randvar.mean(), randvar.cov()
+        if np.isscalar(mean) and np.isscalar(covar):
+            mean, covar = mean * np.ones(1), covar * np.eye(1)
         h = stop - start
         nsteps = int((h) / step)
         if nsteps % 2 == 0:

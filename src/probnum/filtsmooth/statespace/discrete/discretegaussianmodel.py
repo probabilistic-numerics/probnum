@@ -137,4 +137,4 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
         """
         """
         super().__init__(lambda t: dynamat, lambda t: forcevec,
-                        lambda t: diffmat)
+                         lambda t: diffmat)
