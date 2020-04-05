@@ -1,45 +1,87 @@
 """
-Interface for quadrature rules,
-i.e. computation of nodes and weights.
+Quadrature, i.e. numerical integration.
+
+This module provides an abstract base class defining quadrature methods.
 """
 
-from probnum import utils
+import abc
 
 
-__all__ = ["Quadrature"]
-
-
-class Quadrature:
+def quad(func, bounds, type=None):
     """
-    A quadrature rule is a collection of nodes and weights,
-    both need to correspond to each other.
-    It also knows about current integration bounds.
+    One-dimensional numerical integration
+
+    Parameters
+    ----------
+    func : function
+        Function to be integrated.
+    bounds : ndarray, shape=(2,)
+        Domain of integration.
+    type : str
+        Type of quadrature to use. The available options are
+
+        ====================  ===========
+         Bayesian              ``bayes``
+         Clenshaw-Curtis       ``cc``
+        ====================  ===========
+
+    Returns
+    -------
+    F : RandomVariable
+        The integral of ``func`` within the given bounds.
+    """
+    raise NotImplementedError
+
+
+def nquad(func, domain, type=None):
+    """
+    N-dimensional numerical integration
+
+    Parameters
+    ----------
+    func : function
+        Function to be integrated.
+    domain : ndarray, shape=(d,2)
+        Domain of integration.
+    type : str
+        Type of quadrature to use. The available options are
+
+        ====================  ===========
+         Bayesian              ``bayes``
+         Clenshaw-Curtis       ``cc``
+        ====================  ===========
+
+    Returns
+    -------
+    F : RandomVariable
+        The integral of ``func`` on the domain.
+    """
+    raise NotImplementedError
+
+
+class Quadrature(abc.ABC):
+    """
+    An abstract base class for Quadrature methods.
+
+    This class is designed to be subclassed by quadrature implementations.
     """
 
-    def __init__(self, nodes, weights, ilbds):
+    def __init__(self):
         """
-        nodes are a (n, d) shaped numpy array!
-        weights are a (n,) shaped numpy array!
         """
-        utils.assert_is_2d_ndarray(nodes)
-        utils.assert_is_1d_ndarray(weights)
-        utils.assert_is_2d_ndarray(ilbds)
-        if len(nodes) != len(weights) or len(nodes.T) != len(ilbds):
-            raise TypeError("Nodes and weights and ilbds are incompatible")
-        self.nodes = nodes
-        self.weights = weights
-        self.ilbds = ilbds
 
-    def compute(self, integrand, vect=False):
+    def integrate(self, func, **kwargs):
         """
-        Computes integral approximation
-        vect is a bool, indicating whether integrand allows vectorised evaluation
-        (i.e. evaluation of all nodes at once)
+        Numerically integrate the given function.
+
+        Parameters
+        ----------
+        func : function
+            Function to be integrated.
+        kwargs
+
+        Returns
+        -------
+
         """
-        if vect is False:
-            output = 0.0
-            for (node, weight) in zip(self.nodes, self.weights):
-                output = output + weight * integrand(node)
-        else:
-            output = self.weights @ integrand(self.nodes)
-        return output
+        raise NotImplementedError

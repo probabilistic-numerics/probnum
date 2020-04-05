@@ -10,8 +10,8 @@ Quadrature
 
    .. autosummary::
 
-      ~Quadrature.compute
+      ~Quadrature.integrate
 
    .. rubric:: Methods Documentation
 
-   .. automethod:: compute
+   .. automethod:: integrate

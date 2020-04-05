@@ -1,16 +1,16 @@
-ClenshawCurtis
-==============
+InterpolationQuadrature
+=======================
 
 .. currentmodule:: probnum.quad
 
-.. autoclass:: ClenshawCurtis
+.. autoclass:: InterpolationQuadrature
    :show-inheritance:
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~ClenshawCurtis.integrate
+      ~InterpolationQuadrature.integrate
 
    .. rubric:: Methods Documentation
 

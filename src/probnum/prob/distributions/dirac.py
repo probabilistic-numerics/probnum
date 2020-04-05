@@ -5,7 +5,7 @@ import operator
 
 import numpy as np
 
-from .distribution import Distribution
+from probnum.prob.distributions.distribution import Distribution
 
 
 class Dirac(Distribution):

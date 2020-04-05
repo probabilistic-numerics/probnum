@@ -40,8 +40,8 @@ class Distribution:
         Function implementing sampling. Must have signature ``sample(size=())``.
     mean : callable
         Function returning the mean of the distribution.
-    var : callable
-        Function returning the variance of the distribution.
+    cov : callable
+        Function returning the covariance of the distribution.
     dtype : numpy.dtype or object
         Data type of realizations of a random variable with this distribution. If ``object`` will be converted to ``numpy.dtype``.
     random_state : None or int or :class:`~numpy.random.RandomState` instance, optional

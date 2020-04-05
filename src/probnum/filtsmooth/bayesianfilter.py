@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 __all__ = ["BayesianFilter"]
 
+
 class BayesianFilter(ABC):
     """
     Cp. Theorem 4.1 in 'Bayesian Filtering and Smoothing'.
@@ -21,9 +22,14 @@ class BayesianFilter(ABC):
     @abstractmethod
     def predict(self, start, stop, randvar, *args, **kwargs):
         """
-        Pretends value of model at "stop" from "randvar" at "start".
-        randvar : auxiliary.randomvariable.RandomVariable object
-            usually a Gaussian
+        Predicts value of model at "stop" from "randvar" at "start".
+
+        Parameters
+        ----------
+        start :
+        stop :
+        randvar : RandomVariable
+            Typically a Gaussian.
         """
         raise NotImplementedError
 

@@ -25,11 +25,16 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
     Discrete Gauss-Markov models of the form
     x_{i+1} = N(g(t_i, x_i), S(t_i)),
 
-    Terminology
+    Notes
     -----------
     g : dynamics
     x : state
     S : diffusion matrix
+
+    See Also
+    --------
+    DiscreteGaussianLinearModel :
+    DiscreteGaussianLTIModel :
     """
 
     def __init__(self, dynafct, diffmatfct, jacfct=None):

@@ -19,6 +19,7 @@ Distribution
    .. autosummary::
 
       ~Distribution.cdf
+      ~Distribution.cov
       ~Distribution.logcdf
       ~Distribution.logpdf
       ~Distribution.mean
@@ -39,6 +40,7 @@ Distribution
    .. rubric:: Methods Documentation
 
    .. automethod:: cdf
+   .. automethod:: cov
    .. automethod:: logcdf
    .. automethod:: logpdf
    .. automethod:: mean

@@ -17,7 +17,7 @@ class ExtendedKalmanFilter(gaussianfilter.GaussianFilter):
         """
         dynmod: continuousmodel.linear.Linear or subclass
         measmod: discretemodel.gaussmarkov.Nonlinear or subclass
-        initdist : gaussian.MultivariateGaussian
+        initdist : interpolating.MultivariateGaussian
         _nsteps : approximate integration.
 
         Functionality so far restricted to linear SDEs because these implement

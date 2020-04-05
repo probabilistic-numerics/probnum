@@ -197,8 +197,8 @@ class LTISDEModel(LinearSDEModel):
                                        diff @ integ1(x) @ disp)
 
         trans = integ1(0)
-        force = quad.compute(lambda x: integ1(x) @ self.force, vect=False)
-        transdiff = quad.compute(integ2, vect=False)
+        force = quad.integrate(lambda x: integ1(x) @ self.force, isvectorized=False)
+        transdiff = quad.integrate(integ2, isvectorized=False)
         newmean = trans @ mean + force
         newcov = trans @ covar @ trans.T + transdiff
         return RandomVariable(distribution=Normal(newmean, newcov))

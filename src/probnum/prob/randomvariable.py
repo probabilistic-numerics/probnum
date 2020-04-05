@@ -144,7 +144,7 @@ class RandomVariable:
 
     @property
     def dtype(self):
-        """`Dtype` of elements in this random variable."""
+        """Data type of (elements of) a realization of this random variable."""
         return self._dtype
 
     @property

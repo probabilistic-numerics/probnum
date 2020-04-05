@@ -11,7 +11,7 @@ import unittest
 import numpy as np
 import numpy.polynomial.polynomial as npoly
 
-from probnum.quad.classic.polyn import clenshawcurtis
+from probnum.quad.interpolating import clenshawcurtis
 
 
 class TestPolynomialExactness(unittest.TestCase):
@@ -57,7 +57,7 @@ class TestPolynomialExactness(unittest.TestCase):
                       + npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 0],
                                         c=integrated_poly)
 
-            abserror = np.abs(cc.compute(testpoly, vect=True) - truesol)
+            abserror = np.abs(cc.integrate(testpoly, isvectorized=True) - truesol)
             relerror = abserror / np.abs(truesol)
             self.assertLess(relerror, 1e-14)
 
@@ -88,7 +88,7 @@ class TestPolynomialExactness(unittest.TestCase):
                           + npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 0],
                                             c=integrated_poly)
 
-                abserror = np.abs(cc.compute(testpoly, vect=True) - truesol)
+                abserror = np.abs(cc.integrate(testpoly, isvectorized=True) - truesol)
                 relerror = abserror / np.abs(truesol)
                 self.assertLess(1e-10, relerror)
 
@@ -123,7 +123,7 @@ class TestGaussian(unittest.TestCase):
 
         ilbds = np.array([[mean - 3 * np.sqrt(var), mean]])
         self.cc = clenshawcurtis.ClenshawCurtis(npts_per_dim=35, ndim=1,
-                                                ilbds=ilbds)
+                                                bounds=ilbds)
         self.gaussian = gaussian
 
     def test_integral(self):
@@ -132,6 +132,6 @@ class TestGaussian(unittest.TestCase):
         what we can expect, given that THREE_SIGMA
         has 14 decimals.
         """
-        approx = self.cc.compute(self.gaussian)
+        approx = self.cc.integrate(self.gaussian)
         relerror = np.abs(approx - THREE_SIGMA / 2) / (THREE_SIGMA / 2)
         self.assertLess(relerror, 1e-14)

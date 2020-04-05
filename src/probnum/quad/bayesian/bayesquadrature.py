@@ -7,11 +7,11 @@ Bayesian quadrature methods return a random variable with a distribution, specif
 the integral.
 """
 
-import abc
 import numpy as np
+from probnum.quad.quadrature import Quadrature
 
 
-def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
+def bayesquad(func, func0, bounds, nevals=None, type="vanilla", **kwargs):
     """
     One dimensional Bayesian Quadrature.
 
@@ -21,10 +21,8 @@ def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
         Function to be integrated.
     func0 : RandomProcess
         Stochastic process modelling the function to be integrated.
-    a : float
-        Lower limit of integration.
-    b : float
-        Upper limit of integration.
+    bounds : ndarray, shape=(2,)
+        Lower and upper limit of integration.
     nevals : int
         Number of function evaluations.
     type : str
@@ -58,12 +56,12 @@ def bayesquad(func, func0, a, b, nevals=None, type="vanilla", **kwargs):
     # Choose Method
     bqmethod = None
     if type == "vanilla":
-        bqmethod = VanillaBayesianQuadrature(func=func, func0=func0)
+        bqmethod = VanillaBayesianQuadrature()
     elif type == "wasabi":
-        bqmethod = WASABIBayesianQuadrature(func=func, func0=func0)
+        bqmethod = WASABIBayesianQuadrature()
 
     # Integrate
-    F, func0, info = bqmethod.integrate(nevals=nevals, domain=np.array([a, b]), **kwargs)
+    F, func0, info = bqmethod.integrate(func=func, func0=func0, nevals=nevals, domain=bounds, **kwargs)
 
     return F, func0, info
 
@@ -78,7 +76,7 @@ def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
         Function to be integrated.
     func0 : RandomProcess
         Stochastic process modelling the function to be integrated.
-    domain :
+    domain : ndarray
         Domain of integration.
     nevals : int
         Number of function evaluations.
@@ -112,31 +110,30 @@ def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
     raise NotImplementedError
 
 
-class BayesianQuadrature(abc.ABC):
+class BayesianQuadrature(Quadrature):
     """
     An abstract base class for Bayesian Quadrature methods.
 
     This class is designed to be subclassed by implementations of Bayesian quadrature with an :meth:`integrate` method.
     """
 
-    def __init__(self, func, func0):
-        """
-        Parameters
-        ----------
-        func : function
-            Symbolic representation of the function to be integrated.
-        func0 : RandomProcess
-            Stochastic process modelling function to be integrated.
-        """
-        self.func = func
-        self.func0 = func0
+    def __init__(self):
+        super().__init__()
 
-    def integrate(self, domain, **kwargs):
+    def integrate(self, func, func0, domain, nevals, **kwargs):
         """
         Integrate the function ``func``.
 
         Parameters
         ----------
+        func : function
+            Function to be integrated.
+        func0 : RandomProcess
+            Stochastic process modelling function to be integrated.
+        domain : ndarray, shape=()
+            Domain to integrate over.
+        nevals : int
+            Number of function evaluations.
         kwargs
 
         Returns
@@ -151,14 +148,21 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
     Vanilla Bayesian Quadrature in 1D.
     """
 
-    def __init__(self, func, func0):
-        super().__init__(func=func, func0=func0)
+    def __init__(self):
+        super().__init__()
 
-    def integrate(self, nevals, **kwargs):
+    def integrate(self, func, func0, domain, nevals, **kwargs):
         """
+        Integrate the function ``func``.
 
         Parameters
         ----------
+        func : function
+            Function to be integrated.
+        func0 : RandomProcess
+            Stochastic process modelling function to be integrated.
+        domain : ndarray, shape=()
+            Domain to integrate over.
         nevals : int
             Number of function evaluations.
 
@@ -193,8 +197,27 @@ class WASABIBayesianQuadrature(BayesianQuadrature):
     Weighted Adaptive Surrogate Approximations for Bayesian Inference (WASABI).
     """
 
-    def __init__(self, func, func0):
-        super().__init__(func=func, func0=func0)
+    def __init__(self):
+        super().__init__()
 
-    def integrate(self, nevals, **kwargs):
+    def integrate(self, func, func0, domain, nevals, **kwargs):
+        """
+        Integrate the function ``func``.
+
+        Parameters
+        ----------
+        func : function
+            Function to be integrated.
+        func0 : RandomProcess
+            Stochastic process modelling function to be integrated.
+        domain : ndarray, shape=()
+            Domain to integrate over.
+        nevals : int
+            Number of function evaluations.
+
+        Returns
+        -------
+
+        """
+
         raise NotImplementedError

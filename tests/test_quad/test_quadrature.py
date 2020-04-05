@@ -1,11 +1,11 @@
 """
-We set up a MC quadrature rule as a test case.
+We set up an MC quadrature rule as a test case.
 """
 import unittest
 
 import numpy as np
 
-from probnum.quad import quadrature
+from probnum.quad.interpolating import interpolationquadrature
 
 
 class TestQuadrature(unittest.TestCase):
@@ -20,8 +20,8 @@ class TestQuadrature(unittest.TestCase):
         ndim = 1
         nodes = np.random.rand(npts, ndim)
         weights = np.ones(npts) / npts
-        ilbds = np.array([[0.0, 1.0]])
-        self.quad = quadrature.Quadrature(nodes, weights, ilbds)
+        bounds = np.array([[0.0, 1.0]])
+        self.quad = interpolationquadrature.InterpolationQuadrature(nodes, weights, bounds)
 
     def test_compute(self):
         """
@@ -30,8 +30,8 @@ class TestQuadrature(unittest.TestCase):
         def testfct(x):
             return 10 * x ** 3 - x  # true integral: 2.5*x**4 - 0.5*x**2 + const
 
-        res_seq = self.quad.compute(testfct, vect=False)
-        res_vec = self.quad.compute(testfct, vect=True)
+        res_seq = self.quad.integrate(testfct, isvectorized=False)
+        res_vec = self.quad.integrate(testfct, isvectorized=True)
         self.assertLess(np.abs(res_seq - 2.0), 0.1)
         self.assertLess(np.abs(res_vec - 2.0), 0.1)
         self.assertLess(np.abs(res_vec - res_seq), 1e-10)
@@ -48,11 +48,11 @@ class TestQuadrature(unittest.TestCase):
         incomp_weights = np.ones(npts + 1) / npts
         good_ilbds = np.array([[0.0, 1.0]])
         bad_ilbds = np.array([0.0, 1.0])
-        with self.assertRaises(TypeError):
-            quadrature.Quadrature(good_nodes, good_weights, bad_ilbds)
-        with self.assertRaises(TypeError):
-            quadrature.Quadrature(good_nodes, bad_weights, good_ilbds)
-        with self.assertRaises(TypeError):
-            quadrature.Quadrature(good_nodes, incomp_weights, good_ilbds)
-        with self.assertRaises(TypeError):
-            quadrature.Quadrature(bad_nodes, good_weights, good_ilbds)
+        with self.assertRaises(ValueError):
+            interpolationquadrature.InterpolationQuadrature(good_nodes, good_weights, bad_ilbds)
+        with self.assertRaises(ValueError):
+            interpolationquadrature.InterpolationQuadrature(good_nodes, bad_weights, good_ilbds)
+        with self.assertRaises(ValueError):
+            interpolationquadrature.InterpolationQuadrature(good_nodes, incomp_weights, good_ilbds)
+        with self.assertRaises(ValueError):
+            interpolationquadrature.InterpolationQuadrature(bad_nodes, good_weights, good_ilbds)

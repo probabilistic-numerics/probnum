@@ -1,5 +1,7 @@
 """
-Clenshaw-Curtis quadrature formula.
+Clenshaw-Curtis quadrature rule.
+
+This module implements the Clenshaw-Curtis quadrature rule and associated functions.
 
 Formula for nodes and weights:
     [1] Sparse Grid Quadrature in High Dimensions with Applications in Finance and Insurance
@@ -10,30 +12,44 @@ URL:
     ojw&hl=de&sa=X&ved=2ahUKEwijovCC1O7kAhUKr6QKHaVWCwQQ6AEwD3oECAgQAQ#v=onepage&q=
     filippi%20formula%20clenshaw%20curtis&f=false
 
+Note
+----
 This is a lot of old code. It is well tested, but the _compute_*(...)
 functions are really hard to read (they are efficient, though).
 """
 
 import numpy as np
 
-from probnum.quad import quadrature
+from probnum.quad.interpolating.interpolationquadrature import InterpolationQuadrature
 from probnum import utils
 
 
-__all__ = ["ClenshawCurtis"]
-
-
-class ClenshawCurtis(quadrature.Quadrature):
+class ClenshawCurtis(InterpolationQuadrature):
     """
+    Clenshaw-Curtis quadrature rule.
+
+    Method of numerical integration based on an expansion of the integrand in terms of Chebyshev polynomials. Formulas
+    for nodes and weights can be found in [1]_.
+
+    Parameters
+    ----------
+    npts_per_dim : ndarray
+        Number of evaluation points per dimension.
+    ndim : int
+        Number of dimensions.
+    bounds : ndarray, shape=(d, 2)
+        Integration bounds.
+
+    References
+    ----------
+    .. [1] Holtz, M., Sparse Grid Quadrature in High Dimensions with Applications in Finance and Insurance, Springer, 2010
     """
 
-    def __init__(self, npts_per_dim, ndim, ilbds):
-        """
-        """
-        utils.assert_is_2d_ndarray(ilbds)
-        weights = _compute_weights(npts_per_dim, ndim, ilbds)
-        nodes = _compute_nodes(npts_per_dim, ndim, ilbds)
-        quadrature.Quadrature.__init__(self, nodes, weights, ilbds)
+    def __init__(self, npts_per_dim, ndim, bounds):
+        utils.assert_is_2d_ndarray(bounds)
+        weights = _compute_weights(npts_per_dim, ndim, bounds)
+        nodes = _compute_nodes(npts_per_dim, ndim, bounds)
+        InterpolationQuadrature.__init__(self, nodes, weights, bounds)
 
 
 def _compute_weights(npts, ndim, ilbds):
@@ -57,7 +73,7 @@ def _compute_weights_1d(npts, ndim, ilbds1d):
     """
     """
     if npts % 2 == 0:
-        raise TypeError("Please enter odd npts")
+        raise ValueError("Please enter odd npts")
     nhalfpts = int((npts + 1.0) / 2.0)
     ind_j = 2.0 * np.arange(1, nhalfpts + 1) - 1.0
     ind_i = np.arange(1, npts + 1)
@@ -72,7 +88,7 @@ def _compute_nodes(npts, ndim, ilbds):
     """
     """
     if npts ** ndim * ndim >= 1e9:
-        raise TypeError("Tensor-mesh too large for memory.")
+        raise ValueError("Tensor-mesh too large for memory.")
     nodes = _compute_nodes_1d(npts, ilbds[0])
     productmesh = np.repeat(nodes, npts ** (ndim - 1))
     for i in range(1, ndim):
@@ -108,7 +124,7 @@ def _compute_nodes_1d(npts, ilbds1d):
         1d CC nodes in ilbds1d
     """
     if npts % 2 == 0:
-        raise TypeError("Please enter odd npts")
+        raise ValueError("Please enter odd npts")
     ind = np.arange(1, npts + 1)
     nodes = 0.5 * (1 - np.cos(np.pi * ind / (npts + 1)))
     return nodes * (ilbds1d[1] - ilbds1d[0]) + ilbds1d[0]
