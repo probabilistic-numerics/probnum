@@ -6,6 +6,10 @@ to adaptively choose points to evaluate the integrand.
 """
 
 from .bayesquadrature import *
+from .quadrature import *
+from .classic.polyn.clenshawcurtis import *
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["bayesquad", "nbayesquad", "BayesianQuadrature", "VanillaBayesianQuadrature", "WASABIBayesianQuadrature"]
+__all__ = ["Quadrature", "bayesquad", "nbayesquad", "BayesianQuadrature",
+           "VanillaBayesianQuadrature", "WASABIBayesianQuadrature",
+           "ClenshawCurtis"]
