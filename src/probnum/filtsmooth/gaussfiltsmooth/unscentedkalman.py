@@ -1,10 +1,10 @@
 import numpy as np
 
-from diffeq.bayesianfilter.gaussianfilter import gaussianfilter, \
-    unscentedtransform
-from diffeq.randomvariable import gaussian
-from diffeq.statespace.continuousmodel import linearcontinuous
-from diffeq.statespace.discretemodel import gaussmarkov
+from probnum.filtsmooth.gaussfiltsmooth import gaussianfilter, unscentedtransform
+from probnum.prob import RandomVariable
+from probnum.prob.distributions import Normal
+from probnum.filtsmooth.statespace.continuous import LinearSDEModel
+from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel, DiscreteGaussianLinearModel
 
 
 
@@ -28,14 +28,14 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
         of the differential equation in Linear.chapmankolmogorov().
         """
         if _is_not_gaussian(dynamod):
-            raise TypeError(
-                "Extended Kalman filter doesn't support dynamic model")
-        if not issubclass(type(measmod), gaussmarkov.Nonlinear):
-            raise TypeError(
-                "Extended Kalman filter doesn't support measurement model")
-        if not issubclass(type(initdist), gaussian.MultivariateGaussian):
-            raise TypeError(
-                "Extended Kalman filter doesn't support initial distribution")
+            raise TypeError("Unscented Kalman filter doesn't "
+                            "support dynamic model")
+        if not issubclass(type(measmod), DiscreteGaussianModel):
+            raise TypeError("Extended Kalman filter doesn't "
+                            "support measurement model")
+        if not issubclass(type(initdist.distribution), Normal):
+            raise TypeError("Extended Kalman filter doesn't "
+                            "support initial distribution")
         self.dynamod = dynamod
         self.measmod = measmod
         self.initdist = initdist
@@ -70,7 +70,7 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
     def _predict_discrete(self, start, randvar, *args, **kwargs):
         """
         """
-        if issubclass(type(self.dynamod), gaussmarkov.Linear):
+        if issubclass(type(self.dynamod), DiscreteGaussianLinearModel):
             return self._predict_discrete_linear(start, randvar, *args,
                                                  **kwargs)
         else:
@@ -80,25 +80,29 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
     def _predict_discrete_linear(self, start, randvar, *args, **kwargs):
         """
         """
-        mean, covar = randvar.mean, randvar.covar
+        mean, covar = randvar.mean(), randvar.cov()
+        if np.isscalar(mean) and np.isscalar(covar):
+            mean, covar = mean*np.ones(1), covar*np.eye(1)
         dynamat = self.dynamod.dynamicsmatrix(start, *args, **kwargs)
         forcevec = self.dynamod.force(start, *args, **kwargs)
         diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
         mpred = dynamat @ mean + forcevec
         cpred = dynamat @ covar @ dynamat.T + diffmat
-        return gaussian.MultivariateGaussian(mpred, cpred)
+        return RandomVariable(distribution=Normal(mpred, cpred))
 
     def _predict_discrete_nonlinear(self, start, randvar, *args, **kwargs):
         """
         Executes unscented transform!
         """
-        mean, covar = randvar.mean, randvar.covar
+        mean, covar = randvar.mean(), randvar.cov()
+        if np.isscalar(mean) and np.isscalar(covar):
+            mean, covar = mean*np.ones(1), covar*np.eye(1)
         sigmapts = self.ut.sigma_points(mean, covar)
         proppts = self.ut.propagate(start, sigmapts, self.dynamod.dynamics)
         diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
         mpred, cpred, __ = self.ut.estimate_statistics(proppts, sigmapts,
                                                        diffmat, mean)
-        return gaussian.MultivariateGaussian(mpred, cpred)
+        return RandomVariable(distribution=Normal(mpred, cpred))
 
     def _predict_continuous(self, start, stop, randvar, *args, **kwargs):
         """
@@ -123,7 +127,7 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
     def _update_discrete(self, time, randvar, data, *args, **kwargs):
         """
         """
-        if issubclass(type(self.dynamod), gaussmarkov.Linear):
+        if issubclass(type(self.dynamod), DiscreteGaussianLinearModel):
             return self._update_discrete_linear(time, randvar, data, *args,
                                                 **kwargs)
         else:
@@ -133,7 +137,9 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
     def _update_discrete_linear(self, time, randvar, data, *args, **kwargs):
         """
         """
-        mpred, cpred = randvar.mean, randvar.covar
+        mpred, cpred = randvar.mean(), randvar.cov()
+        if np.isscalar(mpred) and np.isscalar(cpred):
+            mpred, cpred = mpred*np.ones(1), cpred*np.eye(1)
         measmat = self.measurementmodel.dynamicsmatrix(time, *args, **kwargs)
         meascov = self.measurementmodel.diffusionmatrix(time, *args, **kwargs)
         meanest = measmat @ mpred
@@ -141,12 +147,14 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
         ccest = cpred @ measmat.T
         mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
         cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-        return gaussian.MultivariateGaussian(mean, cov), covest, ccest, meanest
+        return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
     def _update_discrete_nonlinear(self, time, randvar, data, *args, **kwargs):
         """
         """
-        mpred, cpred = randvar.mean, randvar.covar
+        mpred, cpred = randvar.mean(), randvar.cov()
+        if np.isscalar(mpred) and np.isscalar(cpred):
+            mpred, cpred = mpred*np.ones(1), cpred*np.eye(1)
         sigmapts = self.ut.sigma_points(mpred, cpred)
         proppts = self.ut.propagate(time, sigmapts, self.measmod.dynamics)
         meascov = self.measmod.diffusionmatrix(time, *args, **kwargs)
@@ -154,7 +162,7 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
                                                         meascov, mpred)
         mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
         cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-        return gaussian.MultivariateGaussian(mean, cov), covest, ccest, meanest
+        return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
 
 def _is_discrete(model):
@@ -163,7 +171,7 @@ def _is_discrete(model):
     Used in determining whether to use discrete or
     continuous KF update.
     """
-    return issubclass(type(model), gaussmarkov.Nonlinear)
+    return issubclass(type(model), DiscreteGaussianModel)
 
 
 def _is_not_gaussian(model):
@@ -171,86 +179,9 @@ def _is_not_gaussian(model):
     If model is neither discrete Gaussian or continuous linear,
     it returns false.
     """
-    if issubclass(type(model), linearcontinuous.Linear):
+    if issubclass(type(model), LinearSDEModel):
         return False
-    elif issubclass(type(model), gaussmarkov.Nonlinear):
+    elif issubclass(type(model), DiscreteGaussianModel):
         return False
     return True
 
-#
-#
-#
-#
-#
-#
-# """
-# This implementation has not been run even once
-# and is more of a draft. Do not expect anything
-# to be correct here.
-# """
-#
-# import numpy as np
-#
-# from diffeq.auxiliary.randomvariable import gaussian
-# from diffeq.bayesianfilter import gaussfiltsmooth
-# from diffeq.bayesianfilter.gaussfiltsmooth import unscentedtransform
-# from diffeq.archive.archive import additivegaussian
-#
-#
-# class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
-#     """
-#     """
-#
-#     def __init__(self, nonlineargaussian, alpha, beta, kappa):
-#         """
-#         Input is a NonLinearGaussian statespace model.
-#         """
-#         if not issubclass(type(nonlineargaussian.dynamicmodel), additivegaussian.NonLinearGaussian):
-#             raise TypeError("Extended Kalman filter needs a linearised state space model.")
-#         if not issubclass(type(nonlineargaussian.measurementmodel), additivegaussian.NonLinearGaussian):
-#             raise TypeError("Extended Kalman filter needs a linearised state space model.")
-#
-#         self.nonlineargaussian = nonlineargaussian
-#         ndim = self.nonlineargaussian.dynamicmodel.ndim
-#         self.ut = unscentedtransform.UnscentedTransform(ndim, alpha, beta, kappa)
-#
-#     def predict(self, time, randvar, *args, **kwargs):
-#         """
-#         Input and output are multivariate Gaussian random variables.
-#         """
-#         mean, covar = randvar.mean, randvar.covar
-#         sigmapts = self.ut.sigma_points(mean, covar)
-#         proppts = self.ut.propagate(time, sigmapts, self.nonlineargaussian.dynamicmodel.evaluate)
-#         meascovmat = self.nonlineargaussian.dynamicmodel.covariance(time, *args, **kwargs)
-#         mpred, cpred, __ = self.ut.estimate_statistics(proppts, sigmapts, meascovmat, mean)
-#         return gaussian.MultivariateGaussian(mpred, cpred)
-#
-#     def update(self, time, randvar, data, *args, **kwargs):
-#         """
-#         Input and output are multivariate Gaussian random variables.
-#         data is a 1d array
-#
-#         Arguments
-#         ---------
-#         time: float
-#             current time
-#         randvar: auxiliary.randomvariable.RandomVariable object; d-valued
-#             usually a Gaussian
-#         data: np.ndarray, shape (d,)
-#             current data input
-#         """
-#         mpred, cpred = randvar.mean, randvar.covar
-#         sigmapts = self.ut.sigma_points(mpred, cpred)
-#         proppts = self.ut.propagate(time, sigmapts, self.nonlineargaussian.measurementmodel.evaluate)
-#         meascovmat = self.nonlineargaussian.measurementmodel.covariance(time, *args, **kwargs)
-#         mest, cest, ccest = self.ut.estimate_statistics(proppts, sigmapts, meascovmat, mpred)
-#         kalgain = ccest @ np.linalg.inv(cest)  # should be stable, cest is small
-#         mean = mpred + kalgain @ (data - mest)
-#         covar = cpred - kalgain @ cest @ kalgain.T
-#         return gaussian.MultivariateGaussian(mean, covar)
-#
-#     @property
-#     def statespacemodel(self):
-#         """
-#         """
-#         return self.nonlineargaussian

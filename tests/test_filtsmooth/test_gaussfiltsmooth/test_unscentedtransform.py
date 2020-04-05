@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from diffeq.bayesianfilter.gaussianfilter import unscentedtransform
+from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform
 
 
 class TestUnscentedTransform(unittest.TestCase):

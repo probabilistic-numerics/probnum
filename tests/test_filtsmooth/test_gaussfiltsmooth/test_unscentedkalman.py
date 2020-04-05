@@ -4,11 +4,12 @@ import unittest
 import numpy as np
 import scipy.linalg
 
-from diffeq import statespace
-from diffeq.bayesianfilter.gaussianfilter import ukf
-from diffeq.randomvariable import gaussian
-from diffeq.statespace.continuousmodel import linearcontinuous
-from diffeq.statespace.discretemodel import gaussmarkov
+from probnum.filtsmooth.statespace import util
+from probnum.filtsmooth.gaussfiltsmooth import unscentedkalman
+from probnum.prob import RandomVariable
+from probnum.prob.distributions import Normal
+from probnum.filtsmooth.statespace.continuous.linearsdemodel import *
+from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
 
 VISUALISE = False  # show plots or not?
 
@@ -37,12 +38,12 @@ class TestExtendedKalmanFilterDiscreteDiscrete(unittest.TestCase):
     def setUp(self):
         """
         """
-        self.dynmod = gaussmarkov.LTI(DYNAMAT, np.zeros(len(DYNAMAT)),
+        self.dynmod = DiscreteGaussianLTIModel(DYNAMAT, np.zeros(len(DYNAMAT)),
                                       DYNADIFF)
-        self.measmod = gaussmarkov.LTI(MEASMAT, np.zeros(len(MEASMAT)),
+        self.measmod = DiscreteGaussianLTIModel(MEASMAT, np.zeros(len(MEASMAT)),
                                        MEASDIFF)
-        self.initdist = gaussian.MultivariateGaussian(MEAN, COV)
-        self.kf = ukf.UnscentedKalmanFilter(self.dynmod,
+        self.initdist = RandomVariable(distribution=Normal(MEAN, COV))
+        self.kf = unscentedkalman.UnscentedKalmanFilter(self.dynmod,
                                             self.measmod,
                                             self.initdist,
                                             1.0, 1.0, 1.0)
@@ -66,29 +67,29 @@ class TestExtendedKalmanFilterDiscreteDiscrete(unittest.TestCase):
         """
         """
         pred = self.kf.predict(0., DELTA_T, self.initdist)
-        self.assertEqual(pred.mean.ndim, 1)
-        self.assertEqual(pred.mean.shape[0], 4)
-        self.assertEqual(pred.covar.ndim, 2)
-        self.assertEqual(pred.covar.shape[0], 4)
-        self.assertEqual(pred.covar.shape[1], 4)
+        self.assertEqual(pred.mean().ndim, 1)
+        self.assertEqual(pred.mean().shape[0], 4)
+        self.assertEqual(pred.cov().ndim, 2)
+        self.assertEqual(pred.cov().shape[0], 4)
+        self.assertEqual(pred.cov().shape[1], 4)
 
     def test_update(self):
         """
         """
-        data = self.measmod.sample(0., self.initdist.mean)
+        data = self.measmod.sample(0., self.initdist.mean()*np.ones(1))
         upd, __, __, __ = self.kf.update(0., self.initdist, data)
-        self.assertEqual(upd.mean.ndim, 1)
-        self.assertEqual(upd.mean.shape[0], 4)
-        self.assertEqual(upd.covar.ndim, 2)
-        self.assertEqual(upd.covar.shape[0], 4)
-        self.assertEqual(upd.covar.shape[1], 4)
+        self.assertEqual(upd.mean().ndim, 1)
+        self.assertEqual(upd.mean().shape[0], 4)
+        self.assertEqual(upd.cov().ndim, 2)
+        self.assertEqual(upd.cov().shape[0], 4)
+        self.assertEqual(upd.cov().shape[1], 4)
 
     def test_filter(self):
         """
         RMSE of filter smaller than rmse of measurements?
         """
         tms = np.arange(0, 20, DELTA_T)
-        states, obs = statespace.generate_dd(self.dynmod, self.measmod,
+        states, obs = util.generate_dd(self.dynmod, self.measmod,
                                              self.initdist, tms)
         means, covars = self.kf.filter(obs, tms)
         rmse_means = np.linalg.norm(means[1:, :2] - states[1:, :2]) / np.sqrt(
@@ -123,11 +124,10 @@ class TestExtendedKalmanFilterContinuousDiscrete(unittest.TestCase):
         self.force = np.zeros(1)
         self.disp = np.ones(1)
         self.diff = self.q * np.eye(1)
-        self.dynmod = linearcontinuous.LTI(self.drift, self.force, self.disp, self.diff)
-        self.measmod = gaussmarkov.LTI(np.eye(1), np.zeros(1), r * np.eye(1))
-        self.initdist = gaussian.MultivariateGaussian(10 * np.ones(1),
-                                                      np.eye(1))
-        self.kf = ukf.UnscentedKalmanFilter(self.dynmod,
+        self.dynmod = LTISDEModel(self.drift, self.force, self.disp, self.diff)
+        self.measmod = DiscreteGaussianLTIModel(np.eye(1), np.zeros(1), r * np.eye(1))
+        self.initdist = RandomVariable(distribution=Normal(10 * np.ones(1), np.eye(1)))
+        self.kf = unscentedkalman.UnscentedKalmanFilter(self.dynmod,
                                             self.measmod,
                                             self.initdist,
                                             1.0, 1.0, 1.0)
@@ -151,11 +151,8 @@ class TestExtendedKalmanFilterContinuousDiscrete(unittest.TestCase):
         """
         """
         pred = self.kf.predict(0., DELTA_T, self.initdist)
-        self.assertEqual(pred.mean.ndim, 1)
-        self.assertEqual(pred.mean.shape[0], 1)
-        self.assertEqual(pred.covar.ndim, 2)
-        self.assertEqual(pred.covar.shape[0], 1)
-        self.assertEqual(pred.covar.shape[1], 1)
+        self.assertEqual(np.isscalar(pred.mean()), True)
+        self.assertEqual(np.isscalar(pred.cov()), True)
 
     def test_predict_value(self):
         """
@@ -164,28 +161,25 @@ class TestExtendedKalmanFilterContinuousDiscrete(unittest.TestCase):
         ah = scipy.linalg.expm(DELTA_T * self.drift)
         qh = self.q / (2 * self.lam) * (
                 1 - scipy.linalg.expm(2 * self.drift * DELTA_T))
-        diff_mean = ah @ self.initdist.mean - pred.mean
-        diff_covar = ah @ self.initdist.covar @ ah.T + qh - pred.covar
+        diff_mean = ah @ (self.initdist.mean()*np.ones(1)) - pred.mean()
+        diff_covar = ah @ (self.initdist.cov()*np.eye(1)) @ ah.T + qh - (np.eye(1)*pred.cov())
         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
         self.assertLess(np.linalg.norm(diff_covar), 1e-14)
 
     def test_update(self):
         """
         """
-        data = self.measmod.sample(0., self.initdist.mean)
+        data = self.measmod.sample(0., self.initdist.mean()*np.ones(1))
         upd, __, __, __ = self.kf.update(0., self.initdist, data)
-        self.assertEqual(upd.mean.ndim, 1)
-        self.assertEqual(upd.mean.shape[0], 1)
-        self.assertEqual(upd.covar.ndim, 2)
-        self.assertEqual(upd.covar.shape[0], 1)
-        self.assertEqual(upd.covar.shape[1], 1)
+        self.assertEqual(np.isscalar(upd.mean()), True)
+        self.assertEqual(np.isscalar(upd.cov()), True)
 
     def test_filter(self):
         """
         RMSE of filter smaller than rmse of measurements?
         """
         tms = np.arange(0, 20, DELTA_T)
-        states, obs = statespace.generate_cd(self.dynmod, self.measmod,
+        states, obs = util.generate_cd(self.dynmod, self.measmod,
                                              self.initdist, tms)
         means, covars = self.kf.filter(obs, tms)
         rmse_means = np.linalg.norm(means[1:] - states[1:]) / np.sqrt(
@@ -231,9 +225,9 @@ class TestPendulum(unittest.TestCase):
         self.r = var * np.eye(1)
         initmean = np.ones(2)
         initcov = var * np.eye(2)
-        self.dynamod = gaussmarkov.Nonlinear(f, lambda t: q)
-        self.measmod = gaussmarkov.Nonlinear(h, lambda t: self.r)
-        self.initdist = gaussian.MultivariateGaussian(initmean, initcov)
+        self.dynamod = DiscreteGaussianModel(f, lambda t: q)
+        self.measmod = DiscreteGaussianModel(h, lambda t: self.r)
+        self.initdist = RandomVariable(distribution=Normal(initmean, initcov))
         self.times = np.arange(0, 4, delta_t)
         self.q = q
 
@@ -241,11 +235,11 @@ class TestPendulum(unittest.TestCase):
         """
         """
         alpha, beta, kappa = np.random.rand(3)
-        ukfi = ukf.UnscentedKalmanFilter(self.dynamod,
+        ukfi = unscentedkalman.UnscentedKalmanFilter(self.dynamod,
                                         self.measmod,
                                         self.initdist, alpha,
                                         beta, kappa)
-        states, obs = statespace.generate_dd(self.dynamod, self.measmod,
+        states, obs = util.generate_dd(self.dynamod, self.measmod,
                                              self.initdist, self.times)
         means, covars = ukfi.filter(obs, self.times)
         rmse_ukf = np.linalg.norm(means[:, 0] - states[:, 0]) / np.sqrt(
