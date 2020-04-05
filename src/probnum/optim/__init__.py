@@ -7,6 +7,9 @@ points based on it.
 """
 
 from probnum.optim.bayesopt import *
+from probnum.optim.graddescent import *
+from probnum.optim.linesearch import *
+from probnum.optim.newtontype import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = []

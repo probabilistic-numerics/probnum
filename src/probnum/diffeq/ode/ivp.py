@@ -51,9 +51,8 @@ def log_sol(t, params, x0):
 
 def fitzhughnagumo(timespan, initdist, params=(0.0, 0.08, 0.07, 1.25)):
     """
-    Computes f(t, x) = (x1 - x1**3/3 - x2 + c_0,
-                        1/c_3 * (x1 + c_1 - c_2 * x2))
-    for parameters c = (c_0, ..., c_3).
+    Computes :math:`f(t, x) = (x1 - x1^3/3 - x2 + c_0, 1/c_3 * (x1 + c_1 - c_2 * x2))`
+    for parameters :math:`c = (c_0, ..., c_3)`.
     """
 
     def rhs(t, x):

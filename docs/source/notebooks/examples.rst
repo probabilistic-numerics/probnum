@@ -25,7 +25,10 @@ probabilistic approaches to solving ordinary and partial differential equations.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Differential Equations:
+   :caption: Differential Equations and Filters:
+
+   convergence_rates_odefilter
+   uncertainties_odefilter
 
 If you want to try out the examples for yourself you can download the notebooks
 `here <https://github.com/probabilistic-numerics/probnum/tree/master/docs/source/notebooks>`_.

@@ -64,6 +64,8 @@ class UnscentedTransform:
 
     def sigma_points(self, mean, covar):
         """
+        Sigma points.
+
         Parameters
         ----------
         mean: np.ndarray, shape (d,)
@@ -93,17 +95,15 @@ class UnscentedTransform:
 
         Parameters
         ----------
-        sigmapts: np.ndarray, shape (2*N+1, N)
-            Sigma points ("N" is the spatial dimension of the dynamic model)
-        modelfct: callable with signature (t, x, *args, **kwargs)
+        sigmapts: np.ndarray, shape=(2*N+1, N)
+            Sigma points (N is the spatial dimension of the dynamic model)
+        modelfct: callable with signature (t, x, \*args, \**kwargs)
             Function through which to propagate
-        vect: bool
-            If true, evaluation of function is vectorised.
 
         Returns
         -------
-        np.ndarray, shape (2 * N + 1, M),
-            "M" is the dimension of the measurement model
+        np.ndarray, shape=(2 * N + 1, M),
+            M is the dimension of the measurement model
         """
         propsigpts = np.array([modelfct(time, pt) for pt in sigmapts])
         return propsigpts
