@@ -1,11 +1,16 @@
 """
-Each method is implemented with a loop for readability.
-As soon as tests are there, we vectorise.
+
+Todo
+----
+Vectorization
 
 See BFaS; p. 84f.
 """
 
 import numpy as np
+
+
+__all__ = ["UnscentedTransform"]
 
 
 class UnscentedTransform:
@@ -28,8 +33,8 @@ class UnscentedTransform:
 
         Source
         ------
-        P. 7 ("Unscented transform:") of https://www.pdx.edu/biomedical-signal-processing-lab/s
-        ites/www.pdx.edu.biomedical-signal-processing-lab/files/ukf.wan_.chapt7_.pdf
+        P. 7 ("Unscented transform:") of
+        https://www.pdx.edu/biomedical-signal-processing-lab/sites/www.pdx.edu.biomedical-signal-processing-lab/files/ukf.wan_.chapt7_.pdf
         """
         self.scale = _compute_scale(ndim, spread, special_scale)
         self.ndim = ndim

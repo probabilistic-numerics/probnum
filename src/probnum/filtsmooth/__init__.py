@@ -7,10 +7,13 @@ to adaptively choose points to evaluate the integrand.
 
 from .statespace import *
 from .bayesianfilter import *
+from .gaussfiltsmooth import *
+
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["BayesianFilter",
-            "ContinuousModel", "LinearSDEModel", "LTISDEModel",
+__all__ = ["BayesianFilter", "GaussianFilter", "KalmanFilter", "ExtendedKalmanFilter",
+           "UnscentedKalmanFilter", "UnscentedTransform",
+           "ContinuousModel", "LinearSDEModel", "LTISDEModel",
            "DiscreteModel", "DiscreteGaussianModel",
            "DiscreteGaussianLinearModel", "DiscreteGaussianLTIModel",
            "generate_cd", "generate_dd"]

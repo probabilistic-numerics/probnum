@@ -7,8 +7,8 @@ from probnum.filtsmooth.statespace.continuous import LinearSDEModel
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel, DiscreteGaussianLinearModel
 
 
+__all__ = ["UnscentedKalmanFilter"]
 
-np.random.seed(1)
 
 class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
     """
