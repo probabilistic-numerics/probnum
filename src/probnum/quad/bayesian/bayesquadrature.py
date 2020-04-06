@@ -11,15 +11,15 @@ import numpy as np
 from probnum.quad.quadrature import Quadrature
 
 
-def bayesquad(func, func0, bounds, nevals=None, type="vanilla", **kwargs):
+def bayesquad(fun, fun0, bounds, nevals=None, type="vanilla", **kwargs):
     """
     One-dimensional Bayesian quadrature.
 
     Parameters
     ----------
-    func : function
+    fun : function
         Function to be integrated.
-    func0 : RandomProcess
+    fun0 : RandomProcess
         Stochastic process modelling the function to be integrated.
     bounds : ndarray, shape=(2,)
         Lower and upper limit of integration.
@@ -40,7 +40,7 @@ def bayesquad(func, func0, bounds, nevals=None, type="vanilla", **kwargs):
     -------
     F : RandomVariable
         The integral of ``func`` from ``a`` to ``b``.
-    func0 : RandomProcess
+    fun0 : RandomProcess
         Stochastic process modelling the function to be integrated after ``neval`` observations.
     info : dict
         Information on the performance of the method.
@@ -61,20 +61,20 @@ def bayesquad(func, func0, bounds, nevals=None, type="vanilla", **kwargs):
         bqmethod = WASABIBayesianQuadrature()
 
     # Integrate
-    F, func0, info = bqmethod.integrate(func=func, func0=func0, nevals=nevals, domain=bounds, **kwargs)
+    F, fun0, info = bqmethod.integrate(fun=fun, fun0=fun0, nevals=nevals, domain=bounds, **kwargs)
 
-    return F, func0, info
+    return F, fun0, info
 
 
-def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
+def nbayesquad(fun, fun0, domain, nevals=None, type=None, **kwargs):
     """
     N-dimensional Bayesian quadrature.
 
     Parameters
     ----------
-    func : function
+    fun : function
         Function to be integrated.
-    func0 : RandomProcess
+    fun0 : RandomProcess
         Stochastic process modelling the function to be integrated.
     domain : ndarray
         Domain of integration.
@@ -95,7 +95,7 @@ def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
     -------
     F : RandomVariable
         The integral of ``func`` on the domain.
-    func0 : RandomProcess
+    fun0 : RandomProcess
         Stochastic process modelling the function to be integrated after ``neval`` observations.
     info : dict
         Information on the performance of the method.
@@ -120,15 +120,15 @@ class BayesianQuadrature(Quadrature):
     def __init__(self):
         super().__init__()
 
-    def integrate(self, func, func0, domain, nevals, **kwargs):
+    def integrate(self, fun, fun0, domain, nevals, **kwargs):
         """
-        Integrate the function ``func``.
+        Integrate the function ``fun``.
 
         Parameters
         ----------
-        func : function
+        fun : function
             Function to be integrated.
-        func0 : RandomProcess
+        fun0 : RandomProcess
             Stochastic process modelling function to be integrated.
         domain : ndarray, shape=()
             Domain to integrate over.
@@ -151,15 +151,15 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
     def __init__(self):
         super().__init__()
 
-    def integrate(self, func, func0, domain, nevals, **kwargs):
+    def integrate(self, fun, fun0, domain, nevals, **kwargs):
         """
-        Integrate the function ``func``.
+        Integrate the function ``fun``.
 
         Parameters
         ----------
-        func : function
+        fun : function
             Function to be integrated.
-        func0 : RandomProcess
+        fun0 : RandomProcess
             Stochastic process modelling function to be integrated.
         domain : ndarray, shape=()
             Domain to integrate over.
@@ -177,19 +177,19 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
         # Iteration
         for i in range(nevals):
             # Predictive Distribution
-            func_pred = None
+            fun_pred = None
 
             # Observation
 
             # Update Distribution
-            self.func0 = None
+            self.fun0 = None
 
         # Information on result
         info = {
             "model_fit_diagnostic": None
         }
 
-        return F, self.func0, info
+        return F, self.fun0, info
 
 
 class WASABIBayesianQuadrature(BayesianQuadrature):
@@ -200,15 +200,15 @@ class WASABIBayesianQuadrature(BayesianQuadrature):
     def __init__(self):
         super().__init__()
 
-    def integrate(self, func, func0, domain, nevals, **kwargs):
+    def integrate(self, fun, fun0, domain, nevals, **kwargs):
         """
-        Integrate the function ``func``.
+        Integrate the function ``fun``.
 
         Parameters
         ----------
-        func : function
+        fun : function
             Function to be integrated.
-        func0 : RandomProcess
+        fun0 : RandomProcess
             Stochastic process modelling function to be integrated.
         domain : ndarray, shape=()
             Domain to integrate over.

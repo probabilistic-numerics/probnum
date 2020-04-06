@@ -33,7 +33,7 @@ class ClenshawCurtis(PolynomialQuadrature):
 
     Parameters
     ----------
-    npts_per_dim : ndarray
+    npts_per_dim : ndarray, shape=(d,)
         Number of evaluation points per dimension.
     ndim : int
         Number of dimensions.

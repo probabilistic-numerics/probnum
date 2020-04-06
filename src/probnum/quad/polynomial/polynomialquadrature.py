@@ -43,13 +43,13 @@ class PolynomialQuadrature(Quadrature):
         self.bounds = bounds
         super().__init__()
 
-    def integrate(self, func, isvectorized=False):
+    def integrate(self, fun, isvectorized=False):
         """
         Numerically integrate the function ``func``.
 
         Parameters
         ----------
-        func : function
+        fun : function
             Function to be integrated.
         isvectorized : bool
             Whether integrand allows vectorised evaluation (i.e. evaluation of all nodes at once).
@@ -57,7 +57,7 @@ class PolynomialQuadrature(Quadrature):
         if isvectorized is False:
             output = 0.0
             for (node, weight) in zip(self.nodes, self.weights):
-                output = output + weight * func(node)
+                output = output + weight * fun(node)
         else:
-            output = self.weights @ func(self.nodes)
+            output = self.weights @ fun(self.nodes)
         return output
