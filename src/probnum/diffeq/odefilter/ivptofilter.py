@@ -179,7 +179,7 @@ def _dddx(t, x, ivp):
     x'''(t) = f(x)^T @ H_f(x)^T @ f(x) + J_f(X)^T @ J_f(x) @ f(x)
     with an approximate Hessian-vector product.
     """
-    rate = 1e-12
+    rate = 1e-14
     jac = ivp.jacobian(t, x)
     evl = ivp.rhs(t, x)
     hess_at_f = (ivp.jacobian(0., x + rate*evl) - jac)
