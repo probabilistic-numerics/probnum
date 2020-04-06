@@ -48,11 +48,11 @@ class TestQuadrature(unittest.TestCase):
         incomp_weights = np.ones(npts + 1) / npts
         good_ilbds = np.array([[0.0, 1.0]])
         bad_ilbds = np.array([0.0, 1.0])
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             polynomialquadrature.PolynomialQuadrature(good_nodes, good_weights, bad_ilbds)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             polynomialquadrature.PolynomialQuadrature(good_nodes, bad_weights, good_ilbds)
         with self.assertRaises(ValueError):
             polynomialquadrature.PolynomialQuadrature(good_nodes, incomp_weights, good_ilbds)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             polynomialquadrature.PolynomialQuadrature(bad_nodes, good_weights, good_ilbds)

@@ -77,7 +77,7 @@ class AdaptiveSteps(StepRule):
                  limitchange=(0.1, 5.0), safetyscale=0.95):
         self.tol_per_step = float(tol_per_step)
         self.safetyscale = float(safetyscale)
-        self.localconvrate = float(localconvrate)
+        self.localconvrate = float(localconvrate + 1)
         self.limitchange = limitchange
 
     def suggest(self, laststep, errorest, *args, **kwargs):

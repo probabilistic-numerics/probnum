@@ -118,7 +118,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
 def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", **pars):
     """
-    Solve ivp with constant step size (-> *_h()).
+    Solve ivp with adaptive step size.
 
     Easy way out. No option to choose interesting priors
     (with parameters). For better tuning, use the objects.
@@ -128,9 +128,10 @@ def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", **pars):
     creats a GaussianODEFilter object and calls solve().
 
     which_prior : string, element of
-        [ibm1, ibm2, ibm3, ibm4, ibm5
-         ioup1, ioup2, ioup3, ioup4, ioup5
+        [ibm1, ibm2, ibm3, ibm4, ibm5,
+         ioup1, ioup2, ioup3, ioup4, ioup5,
          matern32, matern52, matern72, matern92]
+
     which_prior : string, element of {kf, ekf, ukf}
     step : float
     ivp : IVP object
@@ -145,7 +146,7 @@ def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", **pars):
 
 def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
     """
-    Solve ivp with constant step size (-> *_h()).
+    Solve ivp with constant step size.
 
     Easy way out. No option to choose interesting priors
     (with parameters). For better tuning, use the objects.
@@ -155,9 +156,10 @@ def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
     creats a GaussianODEFilter object and calls solve().
 
     which_prior : string, element of
-        [ibm1, ibm2, ibm3, ibm4, ibm5
-         ioup1, ioup2, ioup3, ioup4, ioup5
+        [ibm1, ibm2, ibm3, ibm4, ibm5,
+         ioup1, ioup2, ioup3, ioup4, ioup5,
          matern32, matern52, matern72, matern92]
+
     which_prior : string, element of {kf, ekf, ukf}
     step : float
     ivp : IVP object

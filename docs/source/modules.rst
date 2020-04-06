@@ -18,12 +18,20 @@ Linear Algebra
 
    linalg
 
-Integration
-"""""""""""
+Quadrature / Numerical Integration
+""""""""""""""""""""""""""""""""""
 .. toctree::
    :maxdepth: 6
 
    quad
+
+
+Optimization
+""""""""""""
+.. toctree::
+   :maxdepth: 6
+
+   optim
 
 Differential Equations
 """"""""""""""""""""""

@@ -75,7 +75,8 @@ class PHMC(metropolishastings.MetropolisHastings):
     In fact, the true name would be either
         * Riemannian-Gaussian HMC: if the preconditioner depends on the state
         * Euclidean-Gaussian HMC: if the preconditioner is constant
-    [Girolami and Calderhead, 2011; Betancourt, 2018]
+        
+    See Girolami and Calderhead, 2011; Betancourt, 2018.
 
     Optimal acceptance ratio seems to be 0.651 (at least in high dim.)
 

@@ -30,6 +30,7 @@ class TestConstantStep(unittest.TestCase):
         isacc = self.sr.is_accepted(np.inf, np.nan)
         self.assertEqual(isacc, True)
 
+
 class TestAdaptiveStep(unittest.TestCase):
     """
     We pretend that we have a solver of local error rate
@@ -37,7 +38,8 @@ class TestAdaptiveStep(unittest.TestCase):
     """
     def setUp(self):
         """
-        Set up imaginative solver of rate 3.
+        Set up imaginative solver of convergence rate 3.
+        That is,
         """
         self.tol = 1e-4
         self.asr = steprule.AdaptiveSteps(self.tol, 3)
@@ -53,7 +55,7 @@ class TestAdaptiveStep(unittest.TestCase):
         """
         """
         step = 0.25 * np.random.rand()
-        errorest = step**3 / 3
+        errorest = step
         sugg = self.asr.suggest(step, errorest)
         err = sugg**3 / 3
         self.assertEqual(self.asr.is_accepted(sugg, err), True)
