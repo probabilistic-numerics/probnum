@@ -1,16 +1,16 @@
-InterpolationQuadrature
-=======================
+PolynomialQuadrature
+====================
 
 .. currentmodule:: probnum.quad
 
-.. autoclass:: InterpolationQuadrature
+.. autoclass:: PolynomialQuadrature
    :show-inheritance:
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~InterpolationQuadrature.integrate
+      ~PolynomialQuadrature.integrate
 
    .. rubric:: Methods Documentation
 

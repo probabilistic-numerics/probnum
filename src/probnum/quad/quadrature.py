@@ -9,7 +9,7 @@ import abc
 
 def quad(func, bounds, type=None):
     """
-    One-dimensional numerical integration
+    One-dimensional numerical integration.
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ def quad(func, bounds, type=None):
 
 def nquad(func, domain, type=None):
     """
-    N-dimensional numerical integration
+    N-dimensional numerical integration.
 
     Parameters
     ----------
@@ -61,7 +61,7 @@ def nquad(func, domain, type=None):
 
 class Quadrature(abc.ABC):
     """
-    An abstract base class for Quadrature methods.
+    An abstract base class for quadrature methods.
 
     This class is designed to be subclassed by quadrature implementations.
     """

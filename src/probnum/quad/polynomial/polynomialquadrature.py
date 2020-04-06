@@ -1,19 +1,19 @@
 """
-Quadrature rules based on interpolating functions.
+Quadrature rules based on polynomial functions.
 
-Class of quadrature rules derived by constructing interpolating functions which are simple to integrate.
+Class of quadrature rules derived by constructing polynomial functions which are simple to integrate.
 """
 
 from probnum.quad.quadrature import Quadrature
 from probnum import utils
 
 
-class InterpolationQuadrature(Quadrature):
+class PolynomialQuadrature(Quadrature):
     """
-    Quadrature rule based on interpolating functions.
+    Quadrature rule based on polynomial functions.
 
-    An interpolation quadrature rule is given by a collection of nodes, the roots of the
-    interpolating function and a set of corresponding weights.
+    A polynomial quadrature rule is given by a collection of nodes, the roots of the
+    polynomial function and a set of corresponding weights.
 
     Parameters
     ----------

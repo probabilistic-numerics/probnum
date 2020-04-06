@@ -13,7 +13,7 @@ from probnum.quad.quadrature import Quadrature
 
 def bayesquad(func, func0, bounds, nevals=None, type="vanilla", **kwargs):
     """
-    One dimensional Bayesian Quadrature.
+    One-dimensional Bayesian quadrature.
 
     Parameters
     ----------
@@ -68,7 +68,7 @@ def bayesquad(func, func0, bounds, nevals=None, type="vanilla", **kwargs):
 
 def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
     """
-    N-dimensional Bayesian Quadrature.
+    N-dimensional Bayesian quadrature.
 
     Parameters
     ----------
@@ -112,7 +112,7 @@ def nbayesquad(func, func0, domain, nevals=None, type=None, **kwargs):
 
 class BayesianQuadrature(Quadrature):
     """
-    An abstract base class for Bayesian Quadrature methods.
+    An abstract base class for Bayesian quadrature methods.
 
     This class is designed to be subclassed by implementations of Bayesian quadrature with an :meth:`integrate` method.
     """
@@ -145,7 +145,7 @@ class BayesianQuadrature(Quadrature):
 
 class VanillaBayesianQuadrature(BayesianQuadrature):
     """
-    Vanilla Bayesian Quadrature in 1D.
+    Vanilla Bayesian quadrature in 1D.
     """
 
     def __init__(self):

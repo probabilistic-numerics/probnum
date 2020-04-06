@@ -20,11 +20,11 @@ functions are really hard to read (they are efficient, though).
 
 import numpy as np
 
-from probnum.quad.interpolating.interpolationquadrature import InterpolationQuadrature
+from probnum.quad.polynomial.polynomialquadrature import PolynomialQuadrature
 from probnum import utils
 
 
-class ClenshawCurtis(InterpolationQuadrature):
+class ClenshawCurtis(PolynomialQuadrature):
     """
     Clenshaw-Curtis quadrature rule.
 
@@ -49,7 +49,7 @@ class ClenshawCurtis(InterpolationQuadrature):
         utils.assert_is_2d_ndarray(bounds)
         weights = _compute_weights(npts_per_dim, ndim, bounds)
         nodes = _compute_nodes(npts_per_dim, ndim, bounds)
-        InterpolationQuadrature.__init__(self, nodes, weights, bounds)
+        PolynomialQuadrature.__init__(self, nodes, weights, bounds)
 
 
 def _compute_weights(npts, ndim, ilbds):

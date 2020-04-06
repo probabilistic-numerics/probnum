@@ -11,7 +11,7 @@ import unittest
 import numpy as np
 import numpy.polynomial.polynomial as npoly
 
-from probnum.quad.interpolating import clenshawcurtis
+from probnum.quad.polynomial import clenshawcurtis
 
 
 class TestPolynomialExactness(unittest.TestCase):
