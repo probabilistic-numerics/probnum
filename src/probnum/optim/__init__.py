@@ -6,10 +6,12 @@ requiring derivatives). The optimizer builds an internal model of the function i
 points based on it.
 """
 
-from probnum.optim.bayesopt import *
-from probnum.optim.graddescent import *
-from probnum.optim.linesearch import *
-from probnum.optim.newtontype import *
-
 # Public classes and functions. Order is reflected in documentation.
-__all__ = []
+
+from .objective import *
+from .linesearch import *
+from .stoppingcriterion import *
+
+__all__ = ["LineSearch", "ConstantLearningRate", "BacktrackingLineSearch",
+           "Objective", "Eval",
+           "StoppingCriterion", "NormOfGradient", "DiffOfFctValues"]
