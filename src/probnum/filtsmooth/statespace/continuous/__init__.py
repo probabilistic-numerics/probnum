@@ -1,5 +1,5 @@
 """
-Import convenience functions in conveniencefunctions.py to create an
+Import convenience functions in optim.py to create an
 intuitive, numpy-like interface.
 
 Note

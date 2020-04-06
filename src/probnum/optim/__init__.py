@@ -11,7 +11,16 @@ points based on it.
 from .objective import *
 from .linesearch import *
 from .stoppingcriterion import *
+from .bayesopt import *
+from .deterministic import *
+from .stochastic import *
+from .optimizer import *
+from .optim import *
+
 
 __all__ = ["LineSearch", "ConstantLearningRate", "BacktrackingLineSearch",
            "Objective", "Eval",
-           "StoppingCriterion", "NormOfGradient", "DiffOfFctValues"]
+           "StoppingCriterion", "NormOfGradient", "DiffOfFctValues",
+           "Optimizer", "RandomSearch", "SteepestDescent", "GradientDescent",
+           "NewtonMethod", "LevenbergMarquardt",
+           "minimise_rs", "minimise_gd", "minimise_levmarq", "minimise_newton"]

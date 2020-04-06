@@ -12,10 +12,13 @@ of such methods looks like this:
 
 """
 
-from probnum.prob.randomvariable import *
-from probnum.prob.distributions import *
-from probnum.prob.randomprocess import *
-from probnum.prob.sampling import *
+from .randomvariable import *
+from .distributions import *
+from .randomprocess import *
+from .sampling import *
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["RandomVariable", "RandomProcess", "Distribution", "Dirac", "Normal", "asrandvar"]
+__all__ = ["RandomVariable", "RandomProcess",
+           "Distribution", "Dirac", "Normal", "asrandvar"
+           "MetropolisHastings", "RandomWalkMH" ,"HMC", "PHMC", "MALA", "PMALA",
+           "rwmh", "mala", "pmala", "hmc", "phmc"]

@@ -79,7 +79,7 @@ class Eval(namedtuple('ObjEval', 'x fx dfx ddfx')):
 
     We want states to be glued together with evalautions of e.g.
     probability densitiy functions and gradients.
-    This data structure is used almost everywhere, especially in the metropolishastings
+    This data structure is used almost everywhere, especially in the mcmc
     and optimiser modules.
 
     We provide _add__, __mult__ and other fundamental methods
