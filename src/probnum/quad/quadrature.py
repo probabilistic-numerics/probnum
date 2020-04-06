@@ -7,13 +7,13 @@ This module provides an abstract base class defining quadrature methods.
 import abc
 
 
-def quad(func, bounds, type=None):
+def quad(fun, bounds, type=None):
     """
-    One-dimensional numerical integration
+    One-dimensional numerical integration.
 
     Parameters
     ----------
-    func : function
+    fun : function
         Function to be integrated.
     bounds : ndarray, shape=(2,)
         Domain of integration.
@@ -28,18 +28,18 @@ def quad(func, bounds, type=None):
     Returns
     -------
     F : RandomVariable
-        The integral of ``func`` within the given bounds.
+        The integral of ``fun`` within the given bounds.
     """
     raise NotImplementedError
 
 
-def nquad(func, domain, type=None):
+def nquad(fun, domain, type=None):
     """
-    N-dimensional numerical integration
+    N-dimensional numerical integration.
 
     Parameters
     ----------
-    func : function
+    fun : function
         Function to be integrated.
     domain : ndarray, shape=(d,2)
         Domain of integration.
@@ -54,14 +54,14 @@ def nquad(func, domain, type=None):
     Returns
     -------
     F : RandomVariable
-        The integral of ``func`` on the domain.
+        The integral of ``fun`` on the domain.
     """
     raise NotImplementedError
 
 
 class Quadrature(abc.ABC):
     """
-    An abstract base class for Quadrature methods.
+    An abstract base class for quadrature methods.
 
     This class is designed to be subclassed by quadrature implementations.
     """
@@ -70,13 +70,13 @@ class Quadrature(abc.ABC):
         """
         """
 
-    def integrate(self, func, **kwargs):
+    def integrate(self, fun, **kwargs):
         """
         Numerically integrate the given function.
 
         Parameters
         ----------
-        func : function
+        fun : function
             Function to be integrated.
         kwargs
 

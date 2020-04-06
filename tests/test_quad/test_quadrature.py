@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from probnum.quad.interpolating import interpolationquadrature
+from probnum.quad.polynomial import polynomialquadrature
 
 
 class TestQuadrature(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestQuadrature(unittest.TestCase):
         nodes = np.random.rand(npts, ndim)
         weights = np.ones(npts) / npts
         bounds = np.array([[0.0, 1.0]])
-        self.quad = interpolationquadrature.InterpolationQuadrature(nodes, weights, bounds)
+        self.quad = polynomialquadrature.PolynomialQuadrature(nodes, weights, bounds)
 
     def test_compute(self):
         """
@@ -49,10 +49,10 @@ class TestQuadrature(unittest.TestCase):
         good_ilbds = np.array([[0.0, 1.0]])
         bad_ilbds = np.array([0.0, 1.0])
         with self.assertRaises(ValueError):
-            interpolationquadrature.InterpolationQuadrature(good_nodes, good_weights, bad_ilbds)
+            polynomialquadrature.PolynomialQuadrature(good_nodes, good_weights, bad_ilbds)
         with self.assertRaises(ValueError):
-            interpolationquadrature.InterpolationQuadrature(good_nodes, bad_weights, good_ilbds)
+            polynomialquadrature.PolynomialQuadrature(good_nodes, bad_weights, good_ilbds)
         with self.assertRaises(ValueError):
-            interpolationquadrature.InterpolationQuadrature(good_nodes, incomp_weights, good_ilbds)
+            polynomialquadrature.PolynomialQuadrature(good_nodes, incomp_weights, good_ilbds)
         with self.assertRaises(ValueError):
-            interpolationquadrature.InterpolationQuadrature(bad_nodes, good_weights, good_ilbds)
+            polynomialquadrature.PolynomialQuadrature(bad_nodes, good_weights, good_ilbds)

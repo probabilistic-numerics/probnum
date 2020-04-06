@@ -1,19 +1,19 @@
 """
-Quadrature rules based on interpolating functions.
+Quadrature rules based on polynomial functions.
 
-Class of quadrature rules derived by constructing interpolating functions which are simple to integrate.
+Class of quadrature rules derived by constructing polynomial functions which are simple to integrate.
 """
 
 from probnum.quad.quadrature import Quadrature
 from probnum import utils
 
 
-class InterpolationQuadrature(Quadrature):
+class PolynomialQuadrature(Quadrature):
     """
-    Quadrature rule based on interpolating functions.
+    Quadrature rule based on polynomial functions.
 
-    An interpolation quadrature rule is given by a collection of nodes, the roots of the
-    interpolating function and a set of corresponding weights.
+    A polynomial quadrature rule is given by a collection of nodes, the roots of the
+    polynomial function and a set of corresponding weights.
 
     Parameters
     ----------
@@ -43,13 +43,13 @@ class InterpolationQuadrature(Quadrature):
         self.bounds = bounds
         super().__init__()
 
-    def integrate(self, func, isvectorized=False):
+    def integrate(self, fun, isvectorized=False):
         """
         Numerically integrate the function ``func``.
 
         Parameters
         ----------
-        func : function
+        fun : function
             Function to be integrated.
         isvectorized : bool
             Whether integrand allows vectorised evaluation (i.e. evaluation of all nodes at once).
@@ -57,7 +57,7 @@ class InterpolationQuadrature(Quadrature):
         if isvectorized is False:
             output = 0.0
             for (node, weight) in zip(self.nodes, self.weights):
-                output = output + weight * func(node)
+                output = output + weight * fun(node)
         else:
-            output = self.weights @ func(self.nodes)
+            output = self.weights @ fun(self.nodes)
         return output
