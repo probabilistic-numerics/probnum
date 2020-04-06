@@ -21,8 +21,6 @@ from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver, steprule
 from probnum.diffeq.odefilter import prior, ivptofilter
 
-__all__ = ["GaussianIVPFilter", "filter_ivp_h"]
-
 
 class GaussianIVPFilter(odesolver.ODESolver):
     """
@@ -69,8 +67,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
             predicted = self.gfilt.predict(times[-1], new_time, current, *args, **kwargs)
             zero_data = 0.0
             current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, *args, **kwargs)
-            ssq = mnest @ np.linalg.solve(covest, mnest)
-            errorest = self._estimate_error(ccest, covest, mnest)
+            errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
             if self.steprule.is_accepted(step, errorest) is True:
                 times.append(new_time)
                 means.append(current.mean())
@@ -82,17 +79,29 @@ class GaussianIVPFilter(odesolver.ODESolver):
             step = self._suggest_step(step, errorest)
         return np.array(means), ssqest * np.array(covars), np.array(times)
 
-    def _estimate_error(self, ccest, covest, mnest):
+    def _estimate_error(self, currmn, ccest, covest, mnest):
         """
-        Estimates error; relies on max. square root
-        of S_n.
+        Error estimate.
+
+        Estimates error as whitened residual using the
+        residual as weight vector.
 
         THIS IS NOT A PERFECT ERROR ESTIMATE, but this is a question of
         research, not a question of implementation as of now.
         """
         std_like = np.linalg.cholesky(covest)
         whitened_res = np.linalg.solve(std_like, mnest)
-        return np.amax(whitened_res)
+        ssq = whitened_res @ whitened_res
+        # errorest = np.amax(np.abs(whitened_res))
+        # if np.isscalar(currmn):
+        #     currmn = currmn*np.ones(1)
+        # if len(currmn) == 4:
+        #     currmn = currmn[[0, 2]]
+        #     # print(currmn, np.abs(whitened_res))
+        #     # weights = (1/(1e-12 + np.abs(currmn)))
+        weights = np.ones(len(whitened_res))
+        errorest = np.abs(whitened_res) @ weights/np.linalg.norm(weights)
+        return errorest, ssq
 
 
     def _suggest_step(self, step, errorest):
@@ -105,6 +114,33 @@ class GaussianIVPFilter(odesolver.ODESolver):
             print("Warning: Stepsize is num. zero (%.1e)" % step)
         return step
 
+
+
+def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", **pars):
+    """
+    Solve ivp with constant step size (-> *_h()).
+
+    Easy way out. No option to choose interesting priors
+    (with parameters). For better tuning, use the objects.
+
+    Turns prior-string into actual prior,
+    filt-string into actual filter,
+    creats a GaussianODEFilter object and calls solve().
+
+    which_prior : string, element of
+        [ibm1, ibm2, ibm3, ibm4, ibm5
+         ioup1, ioup2, ioup3, ioup4, ioup5
+         matern32, matern52, matern72, matern92]
+    which_prior : string, element of {kf, ekf, ukf}
+    step : float
+    ivp : IVP object
+    """
+    prior = _string_to_prior(ivp, which_prior, **pars)
+    gfilt = _string_to_filter(ivp, prior, which_filt, **pars)
+    stprl = _step_to_adaptive_steprule(tol, prior)
+    ofi = GaussianIVPFilter(ivp, gfilt, stprl)
+    firststep = ivp.tmax - ivp.t0
+    return ofi.solve(firststep)
 
 
 def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
@@ -234,4 +270,11 @@ def _step_to_steprule(stp):
     """
     """
     return steprule.ConstantSteps(stp)
+
+
+def _step_to_adaptive_steprule(tol, prior, **pars):
+    """
+    """
+    convrate = prior.ordint + 1
+    return steprule.AdaptiveSteps(tol, convrate, **pars)
 

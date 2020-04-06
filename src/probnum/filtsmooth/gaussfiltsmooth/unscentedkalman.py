@@ -15,7 +15,7 @@ class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
     """
 
     def __init__(self, dynamod, measmod, initdist, alpha, beta, kappa,
-                 _nsteps=5):
+                 _nsteps=15):
         """
         dynmod: continuousmodel.linear.Linear or subclass
         measmod: discretemodel.gaussmarkov.Nonlinear or subclass

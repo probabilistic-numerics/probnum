@@ -1,260 +1,194 @@
 """
 We test on two test-problems:
     * logistic ODE (because it has a closed form sol.)
-        -> compare error to standard deviation of solvers
         -> make sure error converges to zero (even with rate q?)
         -> Check if iterates match the closed-form solutions in
         Schober et al.
     * Lotka-Volterra (because it provides meaningful uncertainty estimates,
     if e.g. EKF-based ODE filter is implemented correctly)
-        -> Uncertainty is larger around peaks than around valleys.
-
-    * OPTIONAL: Benchmark tests: Solutions to FHN (easy) and Res2Bod (hard)
-    are expected to cross a certain benchmark point
-
-Todo
-----
-Adaptive step size tests and some more cleverness in the current tests...
+        -> error estimates from adaptive step sizes are roughly satsified
+        (for the ibm1-kf combo, the other ones do not apply.)
 """
 
 import unittest
 
 import numpy as np
 
-from probnum.diffeq import steprule, ode
-from probnum.diffeq.odefilter import prior, odefilter, ivptofilter
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Dirac
+from probnum.diffeq import ode, odefilter
+from probnum.prob import RandomVariable, Dirac
 
-VISUALISE = True
-
-if VISUALISE is True:
-    import matplotlib.pyplot as plt
+from tests.testing import NumpyAssertions
 
 
-class TestErrorLogisticQ1(unittest.TestCase):
+class TestConvergenceOnLogisticODE(unittest.TestCase):
     """
-    Test whether the mean and covariance output of
-    applying the solver to a SCALAR ODE coincide
-    with the ones in the proof of Proposition 1 in [1]; see p. 108.
+    We test whether the convergence rates roughly hold true.
     """
-
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
         initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
         self.ivp = ode.logistic([0.0, 1.5], initdist)
+        self.stps = [0.2, 0.1]
 
-    def test_visualise(self):
-        """
-        """
-        maxerr, maxstd = [], []
-        stps = np.array([0.5 ** i for i in range(3, 10)])
-        for step in stps:
-            ms, cs, ts = odefilter.filter_ivp_h(self.ivp, step, which_prior="ibm1")
-            means = ms[:, 0]
-            sols = np.array([self.ivp.solution(t) for t in ts])
-            maxerr.append(np.amax(np.abs(sols[:, 0] - means)))
-            maxstd.append(np.amax(np.sqrt(np.abs(cs[:, 0, 0]))))
-
-        if VISUALISE is True:
-            plt.loglog(stps, maxerr, "x-", label="Error")
-            plt.loglog(stps, stps ** 2, "--", label="O(h^2)", alpha=0.5)
-            plt.xlabel("Stepsize h")
-            plt.ylabel("Error")
-            plt.title("Max. Pointwise error: IBM(1)")
-            plt.grid()
-            plt.legend()
-            plt.show()
+    def test_error_ibm1(self):
+        """Expect error rate q+1 """
+        stp1, stp2 = self.stps
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp1, which_prior="ibm1")
+        means1 = ms[:, 0]
+        sols1 = np.array([self.ivp.solution(t) for t in ts])
+        err1 = np.amax(np.abs(sols1[:, 0] - means1))
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp2, which_prior="ibm1")
+        means2 = ms[:, 0]
+        sols2 = np.array([self.ivp.solution(t) for t in ts])
+        err2 = np.amax(np.abs(sols2[:, 0] - means2))
+        exp_decay = (stp2 / stp1)**2
+        diff = np.abs(exp_decay*err1 - err2) / np.abs(err2)
+        self.assertLess(diff, 1.0)
 
 
-class TestErrorLogisticQ2(unittest.TestCase):
+    def test_error_ibm2(self):
+        """Expect error rate q+1 """
+        stp1, stp2 = self.stps
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp1, which_prior="ibm2")
+        means1 = ms[:, 0]
+        sols1 = np.array([self.ivp.solution(t) for t in ts])
+        err1 = np.amax(np.abs(sols1[:, 0] - means1))
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp2, which_prior="ibm2")
+        means2 = ms[:, 0]
+        sols2 = np.array([self.ivp.solution(t) for t in ts])
+        err2 = np.amax(np.abs(sols2[:, 0] - means2))
+        exp_decay = (stp2 / stp1)**3
+        diff = np.abs(exp_decay*err1 - err2) / np.abs(err2)
+        self.assertLess(diff, 1.0)
+
+    def test_error_ibm3(self):
+        """Expect error rate q+1 """
+        stp1, stp2 = self.stps
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp1, which_prior="ibm3")
+        means1 = ms[:, 0]
+        sols1 = np.array([self.ivp.solution(t) for t in ts])
+        err1 = np.amax(np.abs(sols1[:, 0] - means1))
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp2, which_prior="ibm3")
+        means2 = ms[:, 0]
+        sols2 = np.array([self.ivp.solution(t) for t in ts])
+        err2 = np.amax(np.abs(sols2[:, 0] - means2))
+        exp_decay = (stp2 / stp1)**4
+        diff = np.abs(exp_decay*err1 - err2) / np.abs(err2)
+        self.assertLess(diff, 1.0)
+
+    def test_error_ioup1(self):
+        """Expect error rate q+1 """
+        stp1, stp2 = self.stps
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp1, which_prior="ioup1")
+        means1 = ms[:, 0]
+        sols1 = np.array([self.ivp.solution(t) for t in ts])
+        err1 = np.amax(np.abs(sols1[:, 0] - means1))
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp2, which_prior="ioup1")
+        means2 = ms[:, 0]
+        sols2 = np.array([self.ivp.solution(t) for t in ts])
+        err2 = np.amax(np.abs(sols2[:, 0] - means2))
+        exp_decay = (stp2 / stp1)**2
+        diff = np.abs(exp_decay*err1 - err2) / np.abs(err2)
+        self.assertLess(diff, 1.0)
+
+
+    def test_error_ioup2(self):
+        """Expect error rate q+1 """
+        stp1, stp2 = self.stps
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp1, which_prior="ioup2")
+        means1 = ms[:, 0]
+        sols1 = np.array([self.ivp.solution(t) for t in ts])
+        err1 = np.amax(np.abs(sols1[:, 0] - means1))
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp2, which_prior="ioup2")
+        means2 = ms[:, 0]
+        sols2 = np.array([self.ivp.solution(t) for t in ts])
+        err2 = np.amax(np.abs(sols2[:, 0] - means2))
+        exp_decay = (stp2 / stp1)**3
+        diff = np.abs(exp_decay*err1 - err2) / np.abs(err2)
+        self.assertLess(diff, 1.0)
+
+    def test_error_ioup3(self):
+        """Expect error rate q+1 """
+        stp1, stp2 = self.stps
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp1, which_prior="ioup3")
+        means1 = ms[:, 0]
+        sols1 = np.array([self.ivp.solution(t) for t in ts])
+        err1 = np.amax(np.abs(sols1[:, 0] - means1))
+        ms, cs, ts = odefilter.filter_ivp_h(self.ivp, stp2, which_prior="ioup3")
+        means2 = ms[:, 0]
+        sols2 = np.array([self.ivp.solution(t) for t in ts])
+        err2 = np.amax(np.abs(sols2[:, 0] - means2))
+        exp_decay = (stp2 / stp1)**4
+        diff = np.abs(exp_decay*err1 - err2) / np.abs(err2)
+        self.assertLess(diff, 1.0)
+
+
+class TestFirstIterations(unittest.TestCase, NumpyAssertions):
     """
-    Test whether the mean and covariance output of
-    applying the solver to a SCALAR ODE coincide
-    with the ones in the proof of Proposition 1 in [1]; see p. 108.
+    Test whether first few means and covariances coincide with Prop. 1
+    in Schober et al., 2019.
+    """
+    def setUp(self):
+        """ """
+        initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        self.ivp = ode.logistic([0.0, 1.5], initdist)
+        self.step = 0.5
+        self.ms, self.cs, __ = odefilter.filter_ivp_h(self.ivp, self.step,
+                                                 initdist=initdist,
+                                                 diffconst=1.0,
+                                                 which_prior="ibm1")
+
+    def test_t0(self):
+        """ """
+        exp_mean = np.array([self.ivp.initdist.mean(),
+                             self.ivp.rhs(0, self.ivp.initdist.mean())])
+
+        self.assertAllClose(self.ms[0], exp_mean[:, 0], rtol=1e-14)
+        self.assertAllClose(self.cs[0], np.zeros((2, 2)), rtol=1e-14)
+
+    def test_t1(self):
+        """
+        The covariance does not coincide exactly because of the
+        uncertainty calibration that takes place in
+        GaussianIVPFilter.solve()
+        and not in Prop. 1 of Schober et al., 2019.
+        """
+        y0 = self.ivp.initdist.mean()
+        z0 = self.ivp.rhs(0, y0)
+        z1 = self.ivp.rhs(0, y0 + self.step*z0)
+        exp_mean = np.array([y0 + 0.5*self.step*(z0 + z1), z1])
+        self.assertAllClose(self.ms[1], exp_mean[:, 0], rtol=1e-14)
+
+
+class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
+    """
+    Only test on "kf" with IBM(1) prior, since every other combination
+    seems to dislike the adaptive scheme based on the whitened residual
+    as an error estimate.
     """
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
-        self.ivp = ode.logistic([0.0, 1.5], initdist)
+        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        self.ivp = ode.lotkavolterra([0.0, 0.5], initdist)
+        self.tol = 1e-2
 
-    def test_visualise(self):
+
+    def test_kf_ibm1_stdev(self):
         """
+        Standard deviation at end point roughly equal to tolerance.
         """
-        maxerr, maxstd = [], []
-        stps = np.array([0.5 ** i for i in range(3, 10)])
-        for step in stps:
-            ms, cs, ts = odefilter.filter_ivp_h(self.ivp, step, which_prior="ibm2")
-            means = ms[:, 0]
-            sols = np.array([self.ivp.solution(t) for t in ts])
-            maxerr.append(np.amax(np.abs(sols[:, 0] - means)))
-            maxstd.append(np.amax(np.sqrt(np.abs(cs[:, 0, 0]))))
-
-        if VISUALISE is True:
-            plt.loglog(stps, maxerr, "x-", label="Error")
-            plt.loglog(stps, stps ** 3, "--", label="O(h^3)", alpha=0.5)
-            plt.xlabel("Stepsize h")
-            plt.ylabel("Error")
-            plt.title("Max. Pointwise error: IBM(2)")
-            plt.grid()
-            plt.legend()
-            plt.show()
+        ms, cs, ts = odefilter.filter_ivp(self.ivp, tol=self.tol,
+                                          which_prior="ibm1", which_filt="kf")
+        self.assertLess(np.sqrt(cs[-1, 0, 0]), 10*self.tol)
+        self.assertLess(0.1*self.tol, np.sqrt(cs[-1, 0, 0]))
 
 
-class TestErrorLogisticQ3(unittest.TestCase):
-    """
-    Test whether the mean and covariance output of
-    applying the solver to a SCALAR ODE coincide
-    with the ones in the proof of Proposition 1 in [1]; see p. 108.
-    """
-
-    def setUp(self):
-        """Setup odesolver and solve a scalar ode"""
-        initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
-        self.ivp = ode.logistic([0.0, 1.5], initdist)
-
-    def test_visualise(self):
+    def test_kf_ibm1(self):
         """
+        Tests whether resulting steps are not evenly distributed.
         """
-        maxerr, maxstd = [], []
-        stps = np.array([0.5 ** i for i in range(3, 10)])
-        for step in stps:
-            ms, cs, ts = odefilter.filter_ivp_h(self.ivp, step, which_prior="ibm3")
-            means = ms[:, 0]
-            sols = np.array([self.ivp.solution(t) for t in ts])
-            maxerr.append(np.amax(np.abs(sols[:, 0] - means)))
-            maxstd.append(np.amax(np.sqrt(np.abs(cs[:, 0, 0]))))
-
-        if VISUALISE is True:
-            plt.loglog(stps, maxerr, "x-", label="Error")
-            plt.loglog(stps, stps ** 4, "--", label="O(h^4)", alpha=0.5)
-            plt.xlabel("Stepsize h")
-            plt.ylabel("Error")
-            plt.title("Max. Pointwise error: IBM(3)")
-            plt.grid()
-            plt.legend()
-            plt.show()
-
-
-class TestErrorLogisticQ3_IOUP(unittest.TestCase):
-    """
-    Test whether the mean and covariance output of
-    applying the solver to a SCALAR ODE coincide
-    with the ones in the proof of Proposition 1 in [1]; see p. 108.
-    """
-
-    def setUp(self):
-        """Setup odesolver and solve a scalar ode"""
-        initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
-        self.ivp = ode.logistic([0.0, 1.5], initdist)
-
-    def test_visualise(self):
-        """
-        """
-        maxerr, maxstd = [], []
-        stps = np.array([0.5 ** i for i in range(3, 9)])
-        for step in stps:
-            ms, cs, ts = odefilter.filter_ivp_h(self.ivp, step, which_prior="ioup3")
-            means = ms[:, 0]
-            sols = np.array([self.ivp.solution(t) for t in ts])
-            maxerr.append(np.amax(np.abs(sols[:, 0] - means)))
-            maxstd.append(np.amax(np.sqrt(np.abs(cs[:, 0, 0]))))
-
-        if VISUALISE is True:
-            plt.loglog(stps, maxerr, "x-", label="Error")
-            plt.loglog(stps, stps ** 4, "--", label="O(h^4)", alpha=0.5)
-            plt.xlabel("Stepsize h")
-            plt.ylabel("Error")
-            plt.title("Max. Pointwise error: IOUP(3)")
-            plt.grid()
-            plt.legend()
-            plt.show()
-
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-# class TestErrorLogistic2(unittest.TestCase):
-#     """
-#     Test whether the mean and covariance output of
-#     applying the solver to a SCALAR ODE coincide
-#     with the ones in the proof of Proposition 1 in [1]; see p. 108.
-#     """
-#
-#     def setUp(self):
-#         """Setup odesolver and solve a scalar ode"""
-#         ibm = prior.IBM(1, 1, 1.0)
-#         stepsize = 0.1
-#         initdist = dirac.Dirac(0.1 * np.ones(1))
-#         self.ivp = ode.logistic([0.0, 2.0], initdist)
-#         kfilt = ivp_to_kf(self.ivp, ibm, 0.0)
-#         stprl = steprule.ConstantSteps(stepsize)
-#         ofi = odefilter.GaussianODEFilter(self.ivp, kfilt, stprl)
-#         self.means, self.covars, self.times = ofi.solve(stepsize)
-#
-#     def test_visualise(self):
-#         """
-#         """
-#         means = self.means[:, 0]
-#         sols = np.array([self.ivp.solution(t) for t in self.times])
-#         avgerr = np.mean(np.abs(sols[:, 0] - means))
-#         avgstd = np.mean(np.sqrt(self.covars[:, 0, 0]))
-#         if VISUALISE is True:
-#             plt.plot(self.times, means)
-#             plt.title(
-#                 "Logistic; avgerr: %.1e; avgstd: %.1e" % (avgerr, avgstd))
-#             plt.plot(self.times, sols, color="black")
-#             plt.fill_between(self.times, means, alpha=0.25)
-#             plt.show()
-#
-#     #
-# def test_first_few_iterations(self):
-#     """
-#     Test whether first few means and covariances coincide with Prop. 1.
-#     """
-#     self.check_mean_t0()
-#     self.check_stdevs_t0()
-#     self.check_mean_t1()
-#     self.check_stdevs_t1()
-#
-# def check_mean_t0(self):
-#     """Expect: m(t0) = (y0, z0) where z0=f(y0)"""
-#     y0 = self.ode.initval
-#     z0 = self.ode.modeval(t=0.0, x=y0)
-#     mean_at_t0 = self.means[0][0]
-#     self.assertEqual(mean_at_t0[0], y0)
-#     self.assertEqual(mean_at_t0[1], z0)
-#
-# def check_stdevs_t0(self):
-#     """Expect: C(t0) = 0, hence stdevs equal to zero"""
-#     stdev_at_t0 = self.stdevs[0][0]
-#     self.assertEqual(stdev_at_t0[0], 0.0)
-#     self.assertEqual(stdev_at_t0[1], 0.0)
-#
-# def check_mean_t1(self):
-#     """Expect: m(t0) = (y0 + h/2*(z0 + z1), z1)"""
-#     y0 = self.ode.initval
-#     z0 = self.ode.modeval(t=0.0, x=y0)
-#     z1 = self.ode.modeval(t=0.0, x=(y0 + self.h * z0))
-#     mean_at_t1 = self.means[1][0]
-#     self.assertEqual(mean_at_t1[0], y0 + 0.5 * self.h * (z0 + z1))
-#     self.assertEqual(mean_at_t1[1], z1)
-#
-# def check_stdevs_t1(self):
-#     """Expect: C(t1) = (sigma**2 h**3/12, 0; 0, 0)"""
-#     stdev_at_t1 = self.stdevs[1][0]
-#     sigmasquared = self.solver.filt.ssm.diffconst       # digging deep
-#     self.assertAlmostEqual(stdev_at_t1[0],
-#                            np.sqrt(self.h**3 * sigmasquared / 12.0),
-#                            places=12)
-#     self.assertEqual(stdev_at_t1[1], 0.0)
+        ms, cs, ts = odefilter.filter_ivp(self.ivp, tol=self.tol,
+                                          which_prior="ibm1", which_filt="kf")
+        steps = np.diff(ts)
+        self.assertLess(np.amin(steps) / np.amax(steps), 0.8)

@@ -84,7 +84,7 @@ class AdaptiveSteps(StepRule):
         """
         """
         small, large = self.limitchange
-        ratio = self.tol_per_step / errorest
+        ratio = self.tol_per_step / (laststep*errorest)
         change = self.safetyscale * ratio ** (1.0 / self.localconvrate)
         if change < small:
             step = small * laststep
@@ -100,7 +100,7 @@ class AdaptiveSteps(StepRule):
     def is_accepted(self, proposedstep, errorest, *args, **kwargs):
         """
         """
-        if errorest < self.tol_per_step:
+        if errorest *proposedstep < self.tol_per_step:
             return True
         else:
             return False

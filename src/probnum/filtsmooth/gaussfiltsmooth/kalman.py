@@ -22,7 +22,7 @@ class KalmanFilter(gaussianfilter.GaussianFilter):
     """
     """
 
-    def __init__(self, dynamod, measmod, initrv, _nsteps=5):
+    def __init__(self, dynamod, measmod, initrv, _nsteps=15):
         """
         """
         if _is_not_linear(dynamod):
