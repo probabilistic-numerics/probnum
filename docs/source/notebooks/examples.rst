@@ -29,6 +29,7 @@ probabilistic approaches to solving ordinary and partial differential equations.
 
    convergence_rates_odefilter
    uncertainties_odefilter
+   adaptive_steps_odefilter
 
 If you want to try out the examples for yourself you can download the notebooks
 `here <https://github.com/probabilistic-numerics/probnum/tree/master/docs/source/notebooks>`_.
