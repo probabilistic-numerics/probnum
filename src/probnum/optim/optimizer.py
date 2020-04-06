@@ -24,8 +24,10 @@ from probnum import utils
 
 class Optimizer(ABC):
     """
-    Abstract optimiser class. An optimiser is an object
-    with a minimise() method and a LineSearch attribute
+    Abstract optimiser class.
+
+    An optimiser is an object
+    with a minimise() method and a LineSearch attribute.
     """
 
     def __init__(self, lsearch, stopcrit, maxit):

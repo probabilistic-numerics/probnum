@@ -15,10 +15,10 @@ NOTE:
 
 import numpy as np
 
-from probnum.prob.sampling.mcmc import metropolishastings
+from probnum.prob.sampling.mcmc.metropolishastings import MetropolisHastings
 
 
-class MALA(metropolishastings.MetropolisHastings):
+class MetropolisAdjustedLangevinAlgorithm(MetropolisHastings):
     """
     Optimal acceptance ratio seems to be 0.574
 
@@ -57,7 +57,7 @@ class MALA(metropolishastings.MetropolisHastings):
         return 0.5 * dist / (2 * pwidth)
 
 
-class PMALA(metropolishastings.MetropolisHastings):
+class PreconditionedMetropolisAdjustedLangevinAlgorithm(MetropolisHastings):
     """
     Preconditioning with (inverse) Hessian.
 

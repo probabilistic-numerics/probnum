@@ -18,7 +18,7 @@ import numpy as np
 from probnum.prob.sampling.mcmc import metropolishastings
 
 
-class HMC(metropolishastings.MetropolisHastings):
+class HamiltonianMonteCarlo(metropolishastings.MetropolisHastings):
     """
     Optimal acceptance ratio seems to be 0.651 (at least in high dim.)
 
@@ -70,7 +70,7 @@ class HMC(metropolishastings.MetropolisHastings):
         return 0.5 * (mom_new.T @ mom_new - mom.T @ mom)
 
 
-class PHMC(metropolishastings.MetropolisHastings):
+class PreconditionedHamiltonianMonteCarlo(metropolishastings.MetropolisHastings):
     """
     In fact, the true name would be either
         * Riemannian-Gaussian HMC: if the preconditioner depends on the state

@@ -1,24 +1,24 @@
-HMC
-===
+HamiltonianMonteCarlo
+=====================
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.sampling
 
-.. autoclass:: HMC
+.. autoclass:: HamiltonianMonteCarlo
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~HMC.good_acc_ratio
+      ~HamiltonianMonteCarlo.good_acc_ratio
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~HMC.accept_or_reject
-      ~HMC.generate_proposal
-      ~HMC.sample_nd
+      ~HamiltonianMonteCarlo.accept_or_reject
+      ~HamiltonianMonteCarlo.generate_proposal
+      ~HamiltonianMonteCarlo.sample_nd
 
    .. rubric:: Attributes Documentation
 

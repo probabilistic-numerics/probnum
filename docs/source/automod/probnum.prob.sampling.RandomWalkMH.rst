@@ -1,24 +1,24 @@
-MALA
-====
+RandomWalkMH
+============
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.sampling
 
-.. autoclass:: MALA
+.. autoclass:: RandomWalkMH
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~MALA.good_acc_ratio
+      ~RandomWalkMH.good_acc_ratio
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~MALA.accept_or_reject
-      ~MALA.generate_proposal
-      ~MALA.sample_nd
+      ~RandomWalkMH.accept_or_reject
+      ~RandomWalkMH.generate_proposal
+      ~RandomWalkMH.sample_nd
 
    .. rubric:: Attributes Documentation
 

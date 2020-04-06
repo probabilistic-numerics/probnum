@@ -35,7 +35,7 @@ class TestHMC(unittest.TestCase):
             return x
 
         self.logpdf = objective.Objective(obj, der)
-        self.hmc = hamiltonian.HMC(self.logpdf, nsteps=5)
+        self.hmc = hamiltonian.HamiltonianMonteCarlo(self.logpdf, nsteps=5)
 
     def test_higher_prob_accepted(self):
         """
@@ -59,7 +59,7 @@ class TestHMC(unittest.TestCase):
         def der(x):
             return x
 
-        mh_norm = hamiltonian.HMC(objective.Objective(obj, der), nsteps=5)
+        mh_norm = hamiltonian.HamiltonianMonteCarlo(objective.Objective(obj, der), nsteps=5)
         samples, __, __ = mh_norm.sample_nd(1250, np.zeros(1), 1.725)
         sortsamps, quants = _compute_qqvals(samples[:, 0],
                                             scipy.stats.norm.ppf)
@@ -79,7 +79,7 @@ class TestHMC(unittest.TestCase):
         def der(x):
             return np.sign(x)
 
-        mh_norm = hamiltonian.HMC(objective.Objective(obj, der), nsteps=5)
+        mh_norm = hamiltonian.HamiltonianMonteCarlo(objective.Objective(obj, der), nsteps=5)
         samples, __, __ = mh_norm.sample_nd(1250, np.ones(1), 0.9)
         sortsamps, quants = _compute_qqvals(samples[:, 0],
                                             scipy.stats.laplace.ppf)
@@ -105,7 +105,7 @@ class TestHMC(unittest.TestCase):
             else:
                 return np.inf
 
-        mh_norm = hamiltonian.HMC(objective.Objective(obj, der), nsteps=5)
+        mh_norm = hamiltonian.HamiltonianMonteCarlo(objective.Objective(obj, der), nsteps=5)
         samples, __, __ = mh_norm.sample_nd(1250, np.ones(1), 0.18)
         sortsamps, quants = _compute_qqvals(samples[:, 0],
                                             scipy.stats.expon.ppf)
@@ -132,8 +132,8 @@ class TestHMC(unittest.TestCase):
             else:
                 return np.inf
 
-        ham = hamiltonian.HMC(objective.Objective(obj, der), nsteps=1)
-        lang = langevin.MALA(objective.Objective(obj, der))
+        ham = hamiltonian.HamiltonianMonteCarlo(objective.Objective(obj, der), nsteps=1)
+        lang = langevin.MetropolisAdjustedLangevinAlgorithm(objective.Objective(obj, der))
 
         np.random.seed(1)
         samples_ham, __, __ = ham.sample_nd(250, 0.5 * np.ones(1), 1.2)
@@ -166,7 +166,7 @@ class TestPHMC(unittest.TestCase):
 
         # deriv = objective.Objective(der, hess)
         self.logpdf = objective.Objective(obj, der, hess)
-        self.phmc = hamiltonian.PHMC(self.logpdf, nsteps=5)
+        self.phmc = hamiltonian.PreconditionedHamiltonianMonteCarlo(self.logpdf, nsteps=5)
 
     def test_higher_prob_accepted(self):
         """
@@ -210,8 +210,8 @@ class TestPHMC(unittest.TestCase):
         # deriv = objective.Objective(der, hess)
         logpdf = objective.Objective(obj, der, hess)
 
-        pham = hamiltonian.PHMC(logpdf, nsteps=1)
-        plang = langevin.PMALA(logpdf)
+        pham = hamiltonian.PreconditionedHamiltonianMonteCarlo(logpdf, nsteps=1)
+        plang = langevin.PreconditionedMetropolisAdjustedLangevinAlgorithm(logpdf)
 
         np.random.seed(1)
         samples_ham, __, __ = pham.sample_nd(250, 0.5 * np.ones(1), 1.8)

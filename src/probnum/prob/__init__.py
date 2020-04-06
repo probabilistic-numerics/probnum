@@ -15,11 +15,6 @@ of such methods looks like this:
 from .randomvariable import *
 from .distributions import *
 from .randomprocess import *
-from .sampling import *
-
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["RandomVariable", "RandomProcess",
-           "Distribution", "Dirac", "Normal", "asrandvar",
-           "MetropolisHastings", "RandomWalkMH" ,"HMC", "PHMC", "MALA", "PMALA",
-           "rwmh", "mala", "pmala", "hmc", "phmc"]
+__all__ = ["RandomVariable", "RandomProcess", "Distribution", "Dirac", "Normal", "asrandvar"]

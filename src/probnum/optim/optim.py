@@ -166,8 +166,7 @@ def minimise_newton(objec, derivative, hessian, initval, tol,
     ...     return 2.0 * np.ones((len(x), len(x)))
     ...
     >>> initval = np.array([150.0])
-    >>> traj, objs = minimise_newton(obj, der, hess, initval, \
-                                     tol=1e-5, lsearch='backtrack')
+    >>> traj, objs = minimise_newton(obj, der, hess, initval, tol=1e-5, lsearch='backtrack')
     >>> print(traj[-1])
     [0.]
     """

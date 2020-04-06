@@ -36,7 +36,7 @@ class TestMALA(unittest.TestCase):
             return x
 
         self.logpdf = objective.Objective(obj, der)
-        self.mala = langevin.MALA(self.logpdf)
+        self.mala = langevin.MetropolisAdjustedLangevinAlgorithm(self.logpdf)
 
     def test_higher_prob_accepted(self):
         """
@@ -60,7 +60,7 @@ class TestMALA(unittest.TestCase):
         def der(x):
             return x
 
-        mh_norm = langevin.MALA(objective.Objective(obj, der))
+        mh_norm = langevin.MetropolisAdjustedLangevinAlgorithm(objective.Objective(obj, der))
         samples, __, __ = mh_norm.sample_nd(2500, np.zeros(1), 1.75)
         sortsamps, quants = _compute_qqvals(samples[:, 0],
                                             scipy.stats.norm.ppf)
@@ -80,7 +80,7 @@ class TestMALA(unittest.TestCase):
         def der(x):
             return np.sign(x)
 
-        mh_norm = langevin.MALA(objective.Objective(obj, der))
+        mh_norm = langevin.MetropolisAdjustedLangevinAlgorithm(objective.Objective(obj, der))
         samples, __, __ = mh_norm.sample_nd(2500, np.ones(1), 2.25)
         sortsamps, quants = _compute_qqvals(samples[:, 0],
                                             scipy.stats.laplace.ppf)
@@ -106,7 +106,7 @@ class TestMALA(unittest.TestCase):
             else:
                 return np.inf
 
-        mh_norm = langevin.MALA(objective.Objective(obj, der))
+        mh_norm = langevin.MetropolisAdjustedLangevinAlgorithm(objective.Objective(obj, der))
         samples, __, __ = mh_norm.sample_nd(2500, np.ones(1), 0.75)
         sortsamps, quants = _compute_qqvals(samples[:, 0],
                                             scipy.stats.expon.ppf)
@@ -137,7 +137,7 @@ class TestPMALA(unittest.TestCase):
             return np.ones((len(x), len(x)))
 
         self.logpdf = objective.Objective(obj, der, hess)
-        self.pmala = langevin.PMALA(self.logpdf)
+        self.pmala = langevin.PreconditionedMetropolisAdjustedLangevinAlgorithm(self.logpdf)
 
     def test_higher_prob_accepted(self):
         """
@@ -181,8 +181,8 @@ class TestPMALA(unittest.TestCase):
         # deriv = autodiff.asautodiff(der, hess)
         logpdf = objective.Objective(obj, der, hess)
 
-        pham = hamiltonian.PHMC(logpdf, nsteps=1)
-        plang = langevin.PMALA(logpdf)
+        pham = hamiltonian.PreconditionedHamiltonianMonteCarlo(logpdf, nsteps=1)
+        plang = langevin.PreconditionedMetropolisAdjustedLangevinAlgorithm(logpdf)
 
         np.random.seed(1)
         samples_ham, __, __ = pham.sample_nd(250, 0.5 * np.ones(1), 1.8)

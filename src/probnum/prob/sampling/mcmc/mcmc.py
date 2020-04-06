@@ -9,19 +9,12 @@ Functionalities
 * Hamiltonian MC
 * Hamiltonian MC with preconditioning
 
-Access
-------
-The functions in this module can be accessed either
-via diffeq.mcmc.conveniencefunctions.rwmh(...)
-or viia diffeq.mcmc.rwmh(...) due to the
-import in the __init__ file.
-
 Note
 ----
 The functionality of this module is restricted to log-densities,
 i.e. densities of the form p(s) = exp(-E(s)). We work with E(s) only.
 The reason is that in Bayesian inference, evaluations of exp(-E(s))
-are too instable in a numerical sense.
+are too unstable in a numerical sense.
 """
 
 from probnum.optim import objective
@@ -35,10 +28,7 @@ def rwmh(logpdf, nsamps, initstate, pwidth):
 
     Examples
     --------
-
-
     Sampling from a Gaussian distribution.
-
 
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
@@ -50,11 +40,11 @@ def rwmh(logpdf, nsamps, initstate, pwidth):
     ...
     >>> xval = np.linspace(-4, 4, 200)
     >>> yval = np.exp(-xval**2 / 2.0)/np.sqrt(2*np.pi)
-    >>> __ = plt.plot(xval, yval)
+    >>> _ = plt.plot(xval, yval)
     >>>
     >>> a, b, c = rwmh(logpdf, 7500, np.array([.5]), pwidth=18.0)
-    >>> __ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
-    >>> __ = plt.title("RW Samples")
+    >>> _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
+    >>> _ = plt.title("RW Samples")
     >>> plt.show()
 
 
@@ -83,8 +73,8 @@ def mala(logpdf, loggrad, nsamps, initstate, pwidth):
     Convenience function for Metropolis-Hastings sampling with
     Langevin dynamics proposal kernel.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>>
@@ -98,15 +88,15 @@ def mala(logpdf, loggrad, nsamps, initstate, pwidth):
     ...
     >>> xval = np.linspace(-4, 4, 200)
     >>> yval = np.exp(-xval**2 / 2.0)/np.sqrt(2*np.pi)
-    >>> __ = plt.plot(xval, yval)
+    >>> _ = plt.plot(xval, yval)
     >>>
     >>> a, b, c = mala(logpdf, logder, 2500, np.array([.5]), pwidth=1.5)
-    >>> __ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
-    >>> __ = plt.title("MALA Samples")
+    >>> _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
+    >>> _ = plt.title("MALA Samples")
     >>> plt.show()
     """
     logdens = objective.Objective(logpdf, loggrad)
-    langmh = langevin.MALA(logdens)
+    langmh = langevin.MetropolisAdjustedLangevinAlgorithm(logdens)
     return langmh.sample_nd(nsamps, initstate, pwidth)
 
 
@@ -115,8 +105,8 @@ def pmala(logpdf, loggrad, loghess, nsamps, initstate, pwidth):
     Convenience function for Metropolis-Hastings sampling with
     Riemannian (preconditioned) Langevin dynamics proposal kernel.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>>
@@ -141,7 +131,7 @@ def pmala(logpdf, loggrad, loghess, nsamps, initstate, pwidth):
     >>> plt.show()
     """
     logdens = objective.Objective(logpdf, loggrad, loghess)
-    plangmh = langevin.PMALA(logdens)
+    plangmh = langevin.PreconditionedMetropolisAdjustedLangevinAlgorithm(logdens)
     return plangmh.sample_nd(nsamps, initstate, pwidth)
 
 
@@ -149,8 +139,8 @@ def hmc(logpdf, loggrad, nsamps, initstate, stepsize, nsteps):
     """
     Convenience function for Hamiltonian MCMC.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>>
@@ -172,7 +162,7 @@ def hmc(logpdf, loggrad, nsamps, initstate, stepsize, nsteps):
     >>> plt.show()
     """
     logdens = objective.Objective(logpdf, loggrad)
-    hmc = hamiltonian.HMC(logdens, nsteps)
+    hmc = hamiltonian.HamiltonianMonteCarlo(logdens, nsteps)
     return hmc.sample_nd(nsamps, initstate, stepsize)
 
 
@@ -180,8 +170,8 @@ def phmc(logpdf, logder, loghess, nsamps, initstate, stepsize, nsteps):
     """
     Convenience function for preconditioned Hamiltonian MCMC.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>>
@@ -206,5 +196,5 @@ def phmc(logpdf, logder, loghess, nsamps, initstate, stepsize, nsteps):
     >>> plt.show()
     """
     logdens = objective.Objective(logpdf, logder, loghess)
-    phmc = hamiltonian.PHMC(logdens, nsteps)
+    phmc = hamiltonian.PreconditionedHamiltonianMonteCarlo(logdens, nsteps)
     return phmc.sample_nd(nsamps, initstate, stepsize)

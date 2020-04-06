@@ -36,7 +36,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     Parameters
     ----------
     A : array-like or LinearOperator, shape=(n,n)
-        A square matrix or linear operator.
+        A linear operator (or square matrix). Only matrix-vector products :math:`Av` are used internally.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems are solved
         sequentially with the posteriors over the matrices acting as priors for subsequent solves.

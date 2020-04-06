@@ -1,24 +1,24 @@
-RandomWalkMH
-============
+MetropolisHastings
+==================
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.sampling
 
-.. autoclass:: RandomWalkMH
+.. autoclass:: MetropolisHastings
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~RandomWalkMH.good_acc_ratio
+      ~MetropolisHastings.good_acc_ratio
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~RandomWalkMH.accept_or_reject
-      ~RandomWalkMH.generate_proposal
-      ~RandomWalkMH.sample_nd
+      ~MetropolisHastings.accept_or_reject
+      ~MetropolisHastings.generate_proposal
+      ~MetropolisHastings.sample_nd
 
    .. rubric:: Attributes Documentation
 
