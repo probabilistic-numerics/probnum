@@ -28,7 +28,8 @@ class ClenshawCurtis(PolynomialQuadrature):
     """
     Clenshaw-Curtis quadrature rule.
 
-    Method of numerical integration based on an expansion of the integrand in terms of Chebyshev polynomials. Formulas
+    Method of numerical integration based on an expansion of the
+    integrand in terms of Chebyshev polynomials. Formulas
     for nodes and weights can be found in [1]_.
 
     Parameters
@@ -71,6 +72,11 @@ def _compute_weights(npts, ndim, ilbds):
 
 def _compute_weights_1d(npts, ndim, ilbds1d):
     """
+    Computes weights of Clenshaw-Curtis formula.
+
+    The :math:`i^\textrm{th}` weight is given by
+    .. math::
+        w_i = 2/(n+1) \\sin(i \\pi / (n+1)) \\sum_{j=1}^{(n+1)/2} 1/(2j-1) \\sin(((2j-1) i pi )/(n+1))
     """
     if npts % 2 == 0:
         raise ValueError("Please enter odd npts")
