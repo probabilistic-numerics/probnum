@@ -29,21 +29,76 @@ class ClenshawCurtis(PolynomialQuadrature):
     Clenshaw-Curtis quadrature rule.
 
     Method of numerical integration based on an expansion of the
-    integrand in terms of Chebyshev polynomials. Formulas
-    for nodes and weights can be found in [1]_.
+    integrand in terms of a discrete cosine transform.
+
+
+    The nodes of the Clenshaw-Curtis rule are the roots of the Chebyshev
+    polynomials. The :math:`i^\\text{th}` root is
+
+    .. math:: x_i = \\frac{1}{2} \\left(1 - \\cos\\left( \\frac{i \\pi}{n+1} \\right) \\right)
+
+    for :math:`i=1, ..., n`. The :math:`i^\\text{th}` weight is given by
+
+    .. math:: w_i = \\frac{2}{n+1} \\sin\\left(\\frac{i \\pi}{n+1}\\right)\\sum_{j=1}^{(n+1)/2} \\frac{1}{2j-1}\\sin\\left(\\frac{(2j-1)i \\pi}{n+1}\\right).
+
+    These formulas can be found in [1]_. For an :math:`r`-times
+    differentiable integrand, the Clenshaw-Curtis approximation error is
+    proportional to :math:`\\mathcal{O}(n^{-r})`. It integrates
+    polynomials of degree :math:`\\leq n+1` exactly.
 
     Parameters
     ----------
-    npts_per_dim : ndarray, shape=(d,)
-        Number of evaluation points per dimension.
+    npts_per_dim : int
+        Number of evaluation points per dimension. The resulting mesh
+        will have `npts_per_dim**ndim` elements.
     ndim : int
         Number of dimensions.
-    bounds : ndarray, shape=(d, 2)
+    bounds : ndarray, shape=(n, 2)
         Integration bounds.
+
+    See Also
+    --------
+    PolynomialQuadrature : Quadrature rule based on polynomial functions.
 
     References
     ----------
     .. [1] Holtz, M., Sparse Grid Quadrature in High Dimensions with Applications in Finance and Insurance, Springer, 2010
+
+
+    Examples
+    --------
+    >>> cc = ClenshawCurtis(npts_per_dim=3, ndim=2, bounds=np.array([[0, 1], [0, 0.1]]))
+    >>> print(cc.nodes)
+    [[0.14644661 0.01464466]
+     [0.14644661 0.05      ]
+     [0.14644661 0.08535534]
+     [0.5        0.01464466]
+     [0.5        0.05      ]
+     [0.5        0.08535534]
+     [0.85355339 0.01464466]
+     [0.85355339 0.05      ]
+     [0.85355339 0.08535534]]
+    >>> print(cc.weights)
+    [0.01111111 0.01111111 0.01111111 0.01111111 0.01111111 0.01111111
+     0.01111111 0.01111111 0.01111111]
+    >>> print(cc.integrate(lambda x: x[0] + x[1]))
+    0.05500000000000001
+
+    >>> cc = ClenshawCurtis(npts_per_dim=7, ndim=1, bounds=np.array([[0, 1]]))
+    >>> print(cc.weights)
+    [0.08898234 0.12380952 0.19673195 0.18095238 0.19673195 0.12380952
+     0.08898234]
+    >>> print(cc.nodes)
+    [[0.03806023]
+     [0.14644661]
+     [0.30865828]
+     [0.5       ]
+     [0.69134172]
+     [0.85355339]
+     [0.96193977]]
+    >>> print(cc.integrate(lambda x: np.sin(x)))
+    [0.45969769]
+
     """
 
     def __init__(self, npts_per_dim, ndim, bounds):
@@ -55,9 +110,12 @@ class ClenshawCurtis(PolynomialQuadrature):
 
 def _compute_weights(npts, ndim, ilbds):
     """
+    Computes 1D Clenshaw-Curtis weights and aligns them in
+    correspondence to the computed nodes. Since the resulting mesh is of
+    size (n**d, d), the weight array is of size (n**d,).
     """
     if npts ** ndim * ndim >= 1e9:
-        raise TypeError("Tensor-mesh too large for memory.")
+        raise TypeError("Weights for tensor-mesh too large for memory.")
     num_tiles = np.arange(ndim)
     num_reps = ndim - np.arange(ndim) - 1
     weights = _compute_weights_1d(npts, ndim, ilbds[0])
@@ -75,8 +133,8 @@ def _compute_weights_1d(npts, ndim, ilbds1d):
     Computes weights of Clenshaw-Curtis formula.
 
     The :math:`i^\textrm{th}` weight is given by
-    .. math::
-        w_i = 2/(n+1) \\sin(i \\pi / (n+1)) \\sum_{j=1}^{(n+1)/2} 1/(2j-1) \\sin(((2j-1) i pi )/(n+1))
+
+    .. math:: w_i = \\frac{2}{n+1} \\sin\\left(\\frac{i \\pi}{n+1}\\right)\\sum_{j=1}^{(n+1)/2} \\frac{1}{2j-1}\\sin\\left(\\frac{(2j-1)i \\pi}{n+1}\\right).
     """
     if npts % 2 == 0:
         raise ValueError("Please enter odd npts")
@@ -92,6 +150,9 @@ def _compute_weights_1d(npts, ndim, ilbds1d):
 
 def _compute_nodes(npts, ndim, ilbds):
     """
+    Computes 1D Clenshaw-Curtis nodes and aligns them in order to create
+    a tensor mesh: each point is aligned with each point to create a
+    mesh of size (n^d, d).
     """
     if npts ** ndim * ndim >= 1e9:
         raise ValueError("Tensor-mesh too large for memory.")
@@ -111,6 +172,10 @@ def _compute_nodes(npts, ndim, ilbds):
 def _compute_nodes_1d(npts, ilbds1d):
     """
     Computes Clenshaw-Curtis nodes in 1d.
+
+    The :math:`i^\\text{th}` root is
+
+    .. math:: x_i = \\frac{1}{2} \\left(1 - \\cos\\left( \\frac{i \\pi}{n+1} \\right) \\right)
 
     Parameters
     ----------
