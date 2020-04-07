@@ -36,6 +36,7 @@ The way an object is printed defined by `def __repr__(self)` is structured as:
 
 ### Other Notational Conventions
 - `cov`: covariance
+- `fun`: function
 - mat vs mtrx
 
 
@@ -107,4 +108,9 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
 ### Example Notebooks
 
-Functionality of `probnum` is explained in detail in the form of `jupyter` notebooks under `/docs/source/notebooks`. These can be added to the documentation by editing `/docs/source/notebooks/examples`.
+Functionality of `probnum` is explained in detail in the form of `jupyter` notebooks under `/docs/source/notebooks`. 
+These can be added to the documentation by 
+1. Creating a `.ipynb` notebook in `/docs/source/notebooks/`.
+2. Adding the notebook in the appropriate section in `/docs/source/notebooks/examples.rst`.
+
+Note that notebooks must start with a upper level markdown header (`# Header`) to be converted correctly.
