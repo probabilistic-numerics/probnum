@@ -3,9 +3,6 @@ Adapter from initial value problems + state space model to
 filters.
 """
 
-
-
-
 import numpy as np
 
 from probnum.prob import RandomVariable

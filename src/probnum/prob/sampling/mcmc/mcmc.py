@@ -43,9 +43,11 @@ def rwmh(logpdf, nsamps, initstate, pwidth):
     >>> _ = plt.plot(xval, yval)
     >>>
     >>> a, b, c = rwmh(logpdf, 7500, np.array([.5]), pwidth=18.0)
-    >>> _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
-    >>> _ = plt.title("RW Samples")
-    >>> plt.show()
+    >>>
+    >>> # Uncomment if you like a plot
+    >>> # _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
+    >>> # _ = plt.title("RW Samples")
+    >>> # plt.show()
 
 
     Raising a warning about bad acceptance ratios.
@@ -90,10 +92,11 @@ def mala(logpdf, loggrad, nsamps, initstate, pwidth):
     >>> yval = np.exp(-xval**2 / 2.0)/np.sqrt(2*np.pi)
     >>> _ = plt.plot(xval, yval)
     >>>
-    >>> a, b, c = mala(logpdf, logder, 2500, np.array([.5]), pwidth=1.5)
-    >>> _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
-    >>> _ = plt.title("MALA Samples")
-    >>> plt.show()
+    >>>
+    >>> # Uncomment if you like a plot
+    >>> # _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
+    >>> # _ = plt.title("MALA Samples")
+    >>> # plt.show()
     """
     logdens = objective.Objective(logpdf, loggrad)
     langmh = langevin.MetropolisAdjustedLangevinAlgorithm(logdens)
@@ -126,9 +129,11 @@ def pmala(logpdf, loggrad, loghess, nsamps, initstate, pwidth):
     >>> __ = plt.plot(xval, yval)
     >>>
     >>> a, b, c = pmala(logpdf, logder, loghess, 2500, np.array([.5]), pwidth=1.5)
-    >>> __ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
-    >>> __ = plt.title("PMALA Samples")
-    >>> plt.show()
+    >>>
+    >>> # Uncomment if you like a plot
+    >>> # _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
+    >>> # _ = plt.title("PMALA Samples")
+    >>> # plt.show()
     """
     logdens = objective.Objective(logpdf, loggrad, loghess)
     plangmh = langevin.PreconditionedMetropolisAdjustedLangevinAlgorithm(logdens)
@@ -157,9 +162,11 @@ def hmc(logpdf, loggrad, nsamps, initstate, stepsize, nsteps):
     >>> __ = plt.plot(xval, yval)
     >>>
     >>> a, b, c = hmc(logpdf, logder, 2500, np.array([.5]), stepsize=1.75, nsteps=5)
-    >>> __ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
-    >>> __ = plt.title("HMC Samples")
-    >>> plt.show()
+    >>>
+    >>> # Uncomment if you like a plot
+    >>> # _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
+    >>> # _ = plt.title("HMC Samples")
+    >>> # plt.show()
     """
     logdens = objective.Objective(logpdf, loggrad)
     hmc = hamiltonian.HamiltonianMonteCarlo(logdens, nsteps)
@@ -191,9 +198,11 @@ def phmc(logpdf, logder, loghess, nsamps, initstate, stepsize, nsteps):
     >>> __ = plt.plot(xval, yval)
     >>>
     >>> a, b, c = phmc(logpdf, logder, loghess, 2500, np.array([.5]), stepsize=1.75, nsteps=5)
-    >>> __ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
-    >>> __ = plt.title("PHMC Samples")
-    >>> plt.show()
+    >>>
+    >>> # Uncomment if you like a plot
+    >>> # _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
+    >>> # _ = plt.title("PHMC Samples")
+    >>> # plt.show()
     """
     logdens = objective.Objective(logpdf, logder, loghess)
     phmc = hamiltonian.PreconditionedHamiltonianMonteCarlo(logdens, nsteps)

@@ -5,20 +5,13 @@ dx(t) = F(t) x(t) dt + L(t) dB(t).
 
 If initial condition is Gaussian RV, the solution
 is a Gauss-Markov process.
-
-Todo
-----
-chapmankolmogorov() is not tested!!!
 """
 
 import numpy as np
 import scipy.linalg
-
-from probnum.quad import ClenshawCurtis
+from probnum.filtsmooth.statespace.continuous import continuousmodel
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
-from probnum.filtsmooth.statespace.continuous import continuousmodel
-
 
 __all__ = ["LinearSDEModel", "LTISDEModel"]
 
@@ -143,9 +136,9 @@ class LTISDEModel(LinearSDEModel):
         diffmatrix : ndarray (Q)
         """
         super().__init__((lambda t, *args, **kwargs: driftmatrix),
-                                (lambda t, *args, **kwargs: force),
-                                (lambda t, *args, **kwargs: dispmatrix),
-                                diffmatrix)
+                         (lambda t, *args, **kwargs: force),
+                         (lambda t, *args, **kwargs: dispmatrix),
+                         diffmatrix)
         self._driftmatrix = driftmatrix
         self._force = force
         self._dispmatrix = dispmatrix
@@ -171,35 +164,63 @@ class LTISDEModel(LinearSDEModel):
 
     def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
         """
-        Overwrites StateSpaceComponent.chapmankolmogorov()
-        since for linear SDEs, there exists a closed form
-        solution.
+        Overwrites super().chapmankolmogorov()
+        since for linear time-invariante SDEs, there exists a closed
+        form solution.
 
         Closed form solution for mean and
-        covariance of the SDE solution, Eq. 6.9 to Eq. 6.11
+        covariance of the SDE solution.
+
+        References
+        ----------
+        Eq. (8) in
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.390.380&rep=rep1&type=pdf
+        and Eq. 6.41 and Eq. 6.42
         in Applied SDEs.
         """
-        mean, covar = randvar.mean(), randvar.cov()
-        if np.isscalar(mean) and np.isscalar(covar):
-            mean, covar = mean * np.ones(1), covar * np.eye(1)
-        h = stop - start
-        nsteps = int((h) / step)
-        if nsteps % 2 == 0:
-            nsteps = nsteps + 1
-        quad = ClenshawCurtis(nsteps, 1, np.array([[0, h]]))
-        drift, disp, diff = self.driftmatrix, self.dispersionmatrix, self.diffusionmatrix
-
-        def integ1(x):
-            return scipy.linalg.expm(drift * (h - x))
-
-        def integ2(x):
-            return np.outer(integ1(x) @ disp,
-                                       diff @ integ1(x) @ disp)
-
-        trans = integ1(0)
-        force = quad.integrate(lambda x: integ1(x) @ self.force, isvectorized=False)
-        transdiff = quad.integrate(integ2, isvectorized=False)
-        newmean = trans @ mean + force
-        newcov = trans @ covar @ trans.T + transdiff
+        mean, cov = randvar.mean(), randvar.cov()
+        if np.isscalar(mean) and np.isscalar(cov):
+            mean, cov = mean * np.ones(1), cov * np.eye(1)
+        increment = stop - start
+        newmean = self._predict_mean(increment, mean)
+        newcov = self._predict_covar(increment, cov)
         return RandomVariable(distribution=Normal(newmean, newcov))
 
+    def _predict_mean(self, h, mean):
+        """
+        Predicts mean via closed-form solution to Chapman-Kolmogorov
+        equation for Gauss-Markov processes according to Eq. (8) in
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.390.380&rep=rep1&type=pdf
+
+        This function involves a lot of concatenation of matrices,
+        hence readibility is hard to guarantee. If you know better how
+        to make this readable, feedback is welcome!
+        """
+        extended_state = np.hstack((mean, self.force))
+        firstrowblock = np.hstack(
+            (self.driftmatrix, np.eye(*self.driftmatrix.shape)))
+        blockmat = np.hstack((firstrowblock.T, 0.0 * firstrowblock.T)).T
+        proj = np.eye(*firstrowblock.shape)
+        return proj @ scipy.linalg.expm(h * blockmat) @ extended_state
+
+    def _predict_covar(self, increment, covar):
+        """
+        Predicts mean via closed-form solution to Chapman-Kolmogorov
+        equation for Gauss-Markov processes according to Eq. 6.41 and
+        Eq. 6.42 in Applied SDEs.
+
+        This function involves a lot of concatenation of matrices,
+        hence readibility is hard to guarantee. If you know better how
+        to make this readable, feedback is welcome!
+        """
+        drift, disp, diff = self.driftmatrix, self.dispersionmatrix, self.diffusionmatrix
+        firstrowblock = np.hstack((drift, np.outer(disp, diff @ disp)))
+        secondrowblock = np.hstack((0 * drift.T, -1.0 * drift.T))
+        blockmat = np.hstack((firstrowblock.T, secondrowblock.T)).T
+        proj = np.eye(*firstrowblock.shape)
+        initstate = np.flip(proj).T
+        transformed_sol = proj @ scipy.linalg.expm(
+            increment * blockmat) @ initstate
+        trans = scipy.linalg.expm(increment * drift)
+        transdiff = transformed_sol @ trans.T
+        return trans @ covar @ trans.T + transdiff
