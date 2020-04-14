@@ -12,6 +12,8 @@ import numpy as np
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.diffeq.odefilter import prior
+from tests.testing import NumpyAssertions
+
 
 STEP = np.random.rand()
 DIFFCONST = np.random.rand()
@@ -53,7 +55,7 @@ class TestIBM(unittest.TestCase):
         self.assertLess(diff_covar, 1e-14)
 
 
-class TestIOUP(unittest.TestCase):
+class TestIOUP(unittest.TestCase, NumpyAssertions):
     """
     """
 
@@ -69,6 +71,18 @@ class TestIOUP(unittest.TestCase):
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
         initdist = RandomVariable(distribution=Normal(mean, cov))
         self.ibm.chapmankolmogorov(0., STEP, STEP, initdist)
+
+
+    def test_ibm(self):
+        """
+        Checks that for driftspeed==0, it coincides with the IBM prior.
+        """
+        ioup_speed0 = prior.IOUP(2, 3, driftspeed=0, diffconst=1.2345)
+        ibm = prior.IBM(2, 3, diffconst=1.2345)
+        self.assertAllClose(ioup_speed0.driftmatrix, ibm.driftmatrix)
+        self.assertAllClose(ioup_speed0.dispersionmatrix, ibm.dispersionmatrix)
+        self.assertAllClose(ioup_speed0.diffusionmatrix, ibm.diffusionmatrix)
+
 
 class TestMatern(unittest.TestCase):
     """
