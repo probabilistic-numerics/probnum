@@ -92,9 +92,23 @@ class GaussianIVPFilter(odesolver.ODESolver):
         std_like = np.linalg.cholesky(covest)
         whitened_res = np.linalg.solve(std_like, mnest)
         ssq = whitened_res @ whitened_res
-        weights = np.ones(len(whitened_res))
-        errorest = np.abs(whitened_res) @ weights/np.linalg.norm(weights)
+        abserrors = np.abs(whitened_res)
+        errorest = self._rel_and_abs_error(abserrors, currmn)
         return errorest, ssq
+
+    def _rel_and_abs_error(self, abserrors, currmn):
+        """
+        Returns maximum of absolute and relative error.
+        This way, both are guaranteed to be satisfied.
+        """
+        ordint, spatialdim = self.gfilt.dynamicmodel.ordint, self.ivp.ndim
+        h0_1d = np.eye(ordint + 1)[:, 0].reshape((1, ordint + 1))
+        projmat = np.kron(np.eye(spatialdim), h0_1d)
+        weights = np.ones(len(abserrors))
+        rel_error = (abserrors / np.abs(projmat @ currmn)) @ weights / np.linalg.norm(weights)
+        abs_error = abserrors @ weights / np.linalg.norm(weights)
+        return np.maximum(rel_error, abs_error)
+
 
 
     def _suggest_step(self, step, errorest):
