@@ -92,13 +92,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         std_like = np.linalg.cholesky(covest)
         whitened_res = np.linalg.solve(std_like, mnest)
         ssq = whitened_res @ whitened_res
-        # errorest = np.amax(np.abs(whitened_res))
-        # if np.isscalar(currmn):
-        #     currmn = currmn*np.ones(1)
-        # if len(currmn) == 4:
-        #     currmn = currmn[[0, 2]]
-        #     # print(currmn, np.abs(whitened_res))
-        #     # weights = (1/(1e-12 + np.abs(currmn)))
         weights = np.ones(len(whitened_res))
         errorest = np.abs(whitened_res) @ weights/np.linalg.norm(weights)
         return errorest, ssq
@@ -116,7 +109,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
 
 
-def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", **pars):
+def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", firststep=None, **pars):
     """
     Solve ivp with adaptive step size.
 
@@ -140,7 +133,8 @@ def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", **pars):
     gfilt = _string_to_filter(ivp, prior, which_filt, **pars)
     stprl = _step_to_adaptive_steprule(tol, prior)
     ofi = GaussianIVPFilter(ivp, gfilt, stprl)
-    firststep = ivp.tmax - ivp.t0
+    if firststep == None:
+        firststep = ivp.tmax - ivp.t0
     return ofi.solve(firststep)
 
 
@@ -173,9 +167,9 @@ def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
 def _string_to_prior(ivp, which_prior, **pars):
     """
     """
-    ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4", "ibm5"]
-    ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4", "ioup5"]
-    matern_family = ["matern32", "matern52", "matern72", "matern92"]
+    ibm_family = ["ibm1", "ibm2", "ibm3"]
+    ioup_family = ["ioup1", "ioup2", "ioup3"]
+    matern_family = ["matern32", "matern52", "matern72"]
     if which_prior in ibm_family:
         return _string_to_prior_ibm(ivp, which_prior, **pars)
     elif which_prior in ioup_family:
@@ -198,10 +192,6 @@ def _string_to_prior_ibm(ivp, which_prior, **pars):
         return prior.IBM(2, ivp.ndim, diffconst)
     elif which_prior == "ibm3":
         return prior.IBM(3, ivp.ndim, diffconst)
-    elif which_prior == "ibm4":
-        return prior.IBM(4, ivp.ndim, diffconst)
-    elif which_prior == "ibm5":
-        return prior.IBM(5, ivp.ndim, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -222,10 +212,6 @@ def _string_to_prior_ioup(ivp, which_prior, **pars):
         return prior.IOUP(2, ivp.ndim, driftspeed, diffconst)
     elif which_prior == "ioup3":
         return prior.IOUP(3, ivp.ndim, driftspeed, diffconst)
-    elif which_prior == "ioup4":
-        return prior.IOUP(4, ivp.ndim, driftspeed, diffconst)
-    elif which_prior == "ioup5":
-        return prior.IOUP(5, ivp.ndim, driftspeed, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -246,8 +232,6 @@ def _string_to_prior_matern(ivp, which_prior, **pars):
         return prior.Matern(2, ivp.ndim, lengthscale, diffconst)
     elif which_prior == "matern72":
         return prior.Matern(3, ivp.ndim, lengthscale, diffconst)
-    elif which_prior == "matern92":
-        return prior.Matern(4, ivp.ndim, lengthscale, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
