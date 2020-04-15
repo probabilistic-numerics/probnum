@@ -121,7 +121,7 @@ class TestKalmanFilterContinuousDiscrete(unittest.TestCase):
         self.lam, self.q, r = 0.21, 0.5, 0.1
         self.drift = -self.lam * np.eye(1)
         self.force = np.zeros(1)
-        self.disp = np.ones(1)
+        self.disp = np.eye(1)
         self.diff = self.q * np.eye(1)
         self.dynmod = LTISDEModel(self.drift, self.force, self.disp, self.diff)
         self.measmod = DiscreteGaussianLTIModel(np.eye(1), np.zeros(1), r * np.eye(1))

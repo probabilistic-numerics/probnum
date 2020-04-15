@@ -39,13 +39,15 @@ class ContinuousModel(ABC):
     B(t) : Brownian motion with const. diffusion matrix Q.
     """
 
-    def sample(self, start, stop, step, initstate, *args, **kwargs):
+    def sample(self, start, stop, step, initstate, **kwargs):
         """
         Samples from "initstate" at "start" to "stop" with
         stepsize "step".
 
         Start, stop and step lead to a np.arange-like
         interface.
+        Returns a single element at the end of the time, not the
+        entire arary!
         """
         if type(initstate) != np.ndarray:
             raise TypeError("Init state is not array!")
@@ -55,10 +57,9 @@ class ContinuousModel(ABC):
             bmsamp = np.random.multivariate_normal(
                 np.zeros(len(self.diffusionmatrix)),
                 self.diffusionmatrix * step)
-            driftvl = self.drift(times[idx - 1], currstate, *args, **kwargs)
-            dispvl = self.dispersion(times[idx - 1], currstate, *args,
-                                     **kwargs)
-            currstate = currstate + step * driftvl + bmsamp * dispvl
+            driftvl = self.drift(times[idx - 1], currstate, **kwargs)
+            dispvl = self.dispersion(times[idx - 1], currstate, **kwargs)
+            currstate = currstate + step * driftvl + dispvl @ bmsamp
         return currstate
 
     @abstractmethod
@@ -91,11 +92,12 @@ class ContinuousModel(ABC):
         raise NotImplementedError
 
     @property
+    @abstractmethod
     def ndim(self):
         """
         Spatial dimension (utility attribute).
         """
-        return len(self.diffusionmatrix)
+        raise NotImplementedError
 
     def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
         """

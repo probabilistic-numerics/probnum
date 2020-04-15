@@ -9,10 +9,8 @@ Matern will be easy to implement, just reuse the template
 provided by IOUP and change parameters
 """
 import numpy as np
-from scipy.special import binom   # for matern!
+from scipy.special import binom   # for Matern
 
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
 
 
@@ -25,7 +23,7 @@ class IBM(LTISDEModel):
 
     F = I_d \\otimes F
     L = I_d \\otimes L = I_d \\otimes diffconst*(0, ..., 1)
-    Q = I_d \\otimes I_(q+1)
+    Q = I_d
     """
 
     def __init__(self, ordint, spatialdim, diffconst):
@@ -40,57 +38,8 @@ class IBM(LTISDEModel):
         driftmat = _dynamat_ibm(self.ordint, self.spatialdim)
         forcevec = np.zeros(len(driftmat))
         dispvec = _dispvec_ibm_ioup_matern(self.ordint, self.spatialdim, diffconst)
-        diffmat = np.eye(self.spatialdim * (self.ordint + 1))
+        diffmat = np.eye(self.spatialdim)
         super().__init__(driftmat, forcevec, dispvec, diffmat)
-
-    def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
-        """
-        Overwrites CKE solution with closed form according to IBM.
-        "step" variable is obsolent here and is ignored.
-        """
-        mean, covar = randvar.mean(), randvar.cov()
-        ah = self._ah_ibm(start, stop)
-        qh = self._qh_ibm(start, stop)
-        mpred = ah @ mean
-        cpred = ah @ covar @ ah.T + qh
-        return RandomVariable(distribution=Normal(mpred, cpred))
-
-    def _ah_ibm(self, start, stop):
-        """
-        Computes A(h)
-        """
-
-        def element(stp, rw, cl):
-            """Closed form for A(h)_ij"""
-            if rw <= cl:
-                return stp ** (cl - rw) / np.math.factorial(cl - rw)
-            else:
-                return 0.0
-
-        step = stop - start
-        ah_1d = np.array([[element(step, row, col)
-                           for col in range(self.ordint + 1)]
-                          for row in range(self.ordint + 1)])
-        return np.kron(np.eye(self.spatialdim), ah_1d)
-
-    def _qh_ibm(self, start, stop):
-        """
-        Computes Q(h)
-        """
-
-        def element(stp, ordint, rw, cl, dconst):
-            """Closed form for Q(h)_ij"""
-            idx = 2 * ordint + 1 - rw - cl
-            fact_rw = np.math.factorial(ordint - rw)
-            fact_cl = np.math.factorial(ordint - cl)
-            return dconst ** 2 * (stp ** idx) / (idx * fact_rw * fact_cl)
-
-        step = stop - start
-        qh_1d = np.array([[element(step, self.ordint, row, col, self.diffconst)
-                           for col in range(self.ordint + 1)]
-                          for row in range(self.ordint + 1)])
-        return np.kron(np.eye(self.spatialdim), qh_1d)
-
 
 def _dynamat_ibm(ordint, spatialdim):
     """
@@ -106,7 +55,7 @@ class IOUP(LTISDEModel):
 
     F = I_d \\otimes F
     L = I_d \\otimes L = I_d \\otimes diffconst*(0, ..., 1)
-    Q = I_d \\otimes I_(q+1)
+    Q = I_d
     """
 
     def __init__(self, ordint, spatialdim, driftspeed, diffconst):
@@ -124,7 +73,7 @@ class IOUP(LTISDEModel):
         driftmat = _dynamat_ioup(self.ordint, self.spatialdim, self.driftspeed)
         forcevec = np.zeros(len(driftmat))
         dispvec = _dispvec_ibm_ioup_matern(self.ordint, self.spatialdim, diffconst)
-        diffmat = np.eye(self.spatialdim * (self.ordint + 1))
+        diffmat = np.eye(self.spatialdim)
         super().__init__(driftmat, forcevec, dispvec, diffmat)
 
 
@@ -137,10 +86,6 @@ def _dynamat_ioup(ordint, spatialdim, driftspeed):
     return np.kron(np.eye(spatialdim), dynamat)
 
 
-
-
-
-
 class Matern(LTISDEModel):
     """
     Matern(q) prior --> Matern process with reg. q+0.5
@@ -148,7 +93,7 @@ class Matern(LTISDEModel):
 
     F = I_d \\otimes F
     L = I_d \\otimes L = I_d \\otimes diffconst*(0, ..., 1)
-    Q = I_d \\otimes I_(q+1)
+    Q = I_d
     """
 
     def __init__(self, ordint, spatialdim, lengthscale, diffconst):
@@ -166,7 +111,7 @@ class Matern(LTISDEModel):
         driftmat = _dynamat_matern(self.ordint, self.spatialdim, self.lengthscale)
         forcevec = np.zeros(len(driftmat))
         dispvec = _dispvec_ibm_ioup_matern(self.ordint, self.spatialdim, diffconst)
-        diffmat = np.eye(self.spatialdim * (self.ordint + 1))
+        diffmat = np.eye(self.spatialdim)
         super().__init__(driftmat, forcevec, dispvec, diffmat)
 
 
@@ -187,7 +132,7 @@ def _dispvec_ibm_ioup_matern(ordint, spatialdim, diffconst):
     diffconst = sigma**2
     """
     dispvec = diffconst * np.eye(ordint + 1)[:, -1]
-    return np.kron(np.ones(spatialdim), dispvec)
+    return np.kron(np.eye(spatialdim), dispvec).T
 
 
 

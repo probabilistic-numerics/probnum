@@ -23,7 +23,7 @@ class MockContinuousModel(continuousmodel.ContinuousModel):
 
     SDE is
     dx(t) = x(t)dt + x(t)dB(t),
-    where B(t) is standard Brownian motion with diffusion
+    where B(t) is standard 1d-Brownian motion with diffusion
     equal to 1.
     """
 
@@ -37,14 +37,21 @@ class MockContinuousModel(continuousmodel.ContinuousModel):
         """
         Identity dispersion
         """
-        return state
+        return np.eye(len(state), 1)
 
     @property
     def diffusionmatrix(self):
         """
         Unit diffusion
         """
-        return np.eye(TEST_NDIM)
+        return np.eye(1)
+
+    @property
+    def ndim(self):
+        """
+        Unit diffusion
+        """
+        return TEST_NDIM
 
 
 class TestContinuousModel(unittest.TestCase):
@@ -99,14 +106,21 @@ class DeterministicModel(continuousmodel.ContinuousModel):
         """
         Identity dispersion
         """
-        return 0.0
+        return 0*np.eye(len(state), 1)
 
     @property
     def diffusionmatrix(self):
         """
         Unit diffusion
         """
-        return np.eye(TEST_NDIM)
+        return np.eye(1)
+
+    @property
+    def ndim(self):
+        """
+        Unit diffusion
+        """
+        return TEST_NDIM
 
 
 class TestDeterministicModel(unittest.TestCase):
@@ -120,7 +134,7 @@ class TestDeterministicModel(unittest.TestCase):
         """
         """
         dm = DeterministicModel()
-        randvar = RandomVariable(distribution=Dirac(np.ones(1)))
+        randvar = RandomVariable(distribution=Dirac(np.ones(TEST_NDIM)))
         self.samp = dm.sample(0., 1., 0.01, randvar.mean())
 
     def test_sample_shape(self):

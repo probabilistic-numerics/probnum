@@ -18,14 +18,29 @@ __all__ = ["LinearSDEModel", "LTISDEModel"]
 
 class LinearSDEModel(continuousmodel.ContinuousModel):
     """
-    Linear time-continuous Markov models of the form
+    Linear time-continuous Markov models given by the solution of the
+    stochastic differential equation
     dx = [F(t) x(t) + u(t)] dt + L(t) dB(t).
-    In the language of dynamic models,
-    x(t) : state process
-    F(t) : drift matrix
-    u(t) : forcing term
-    L(t) : dispersion matrix.
-    B(t) : Brownian motion with diffusion matrix Q.
+
+
+    Parameters
+    ----------
+    driftmatrixfunction : callable, signature (t, **kwargs)
+        This is F = F(t). The evaluations of this funciton are called
+        the drift(matrix) of the SDE.
+        Returns np.ndarray with shape=(n, n)
+    forcfct : callable, signature (t, **kwargs)
+        This is u = u(t). Evaluations of this function are called
+        the force(vector) of the SDE.
+        Returns np.ndarray with shape=(n,)
+    dispmatrixfuction : callable, signature (t, **kwargs)
+        This is L = L(t). Evaluations of this function are called
+        the dispersion(matrix) of the SDE.
+        Returns np.ndarray with shape=(n, s)
+    diffmatrix : np.ndarray, shape=(s, s)
+        This is the diffusion matrix Q of the Brownian motion.
+        It is always a square matrix and the size of this matrix matches
+        the number of columns of the dispersionmatrix.
 
     Note
     ----
@@ -38,7 +53,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         """
         Arguments
         ---------
-        driftmatrixfct : callable, signature (t, *args, **kwargs)
+        driftmatrixfct : callable, signature (t, **kwargs)
             maps t -> F(t)
         forcfct : callable, signature (t, *args, **kwargs)
             maps t -> u(t)
@@ -78,6 +93,14 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         Evaluates Q.
         """
         return self._diffmatrix
+
+    @property
+    def ndim(self):
+        """
+        Spatial dimension (utility attribute).
+        """
+        return len(self._driftmatrixfct(0.))
+
 
     def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
         """
@@ -120,6 +143,18 @@ class LTISDEModel(LinearSDEModel):
     L : dispersion matrix.
     Bt : Brownian motion with constant diffusion matrix Q.
 
+    Parameters
+    ----------
+    driftmatrix : np.ndarray, shape=(n, n)
+        This is F. It is the drift matrix of the SDE.
+    force : np.ndarray, shape=(n,)
+        This is U. It is the force vector of the SDE.
+    dispmatrix : np.ndarray, shape(n, s)
+        This is L. It is the dispersion matrix of the SDE.
+    diffmatrix : np.ndarray, shape=(s, s)
+        This is the diffusion matrix Q of the Brownian motion
+        driving the SDE.
+
     Note
     ----
     It assumes Gaussian initial conditions (otherwise
@@ -135,6 +170,7 @@ class LTISDEModel(LinearSDEModel):
         dispmatrix : ndarray (L)
         diffmatrix : ndarray (Q)
         """
+        _check_initial_state_dimensions(driftmatrix, force, dispmatrix, diffmatrix)
         super().__init__((lambda t, *args, **kwargs: driftmatrix),
                          (lambda t, *args, **kwargs: force),
                          (lambda t, *args, **kwargs: dispmatrix),
@@ -164,12 +200,11 @@ class LTISDEModel(LinearSDEModel):
 
     def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
         """
-        Overwrites super().chapmankolmogorov()
-        since for linear time-invariante SDEs, there exists a closed
-        form solution.
+        Solves Chapman-Kolmogorov equation.
 
-        Closed form solution for mean and
-        covariance of the SDE solution.
+        Computes closed form solutions for the Chapman-Kolmogorov
+        equations via closed form solutions to the ODE for mean and
+        covariance (see super().chapmankolmogorov(...))
 
         References
         ----------
@@ -197,13 +232,12 @@ class LTISDEModel(LinearSDEModel):
         to make this readable, feedback is welcome!
         """
         extended_state = np.hstack((mean, self.force))
-        firstrowblock = np.hstack(
-            (self.driftmatrix, np.eye(*self.driftmatrix.shape)))
+        firstrowblock = np.hstack((self.driftmatrix, np.eye(*self.driftmatrix.shape)))
         blockmat = np.hstack((firstrowblock.T, 0.0 * firstrowblock.T)).T
         proj = np.eye(*firstrowblock.shape)
         return proj @ scipy.linalg.expm(h * blockmat) @ extended_state
 
-    def _predict_covar(self, increment, covar):
+    def _predict_covar(self, increment, cov):
         """
         Predicts mean via closed-form solution to Chapman-Kolmogorov
         equation for Gauss-Markov processes according to Eq. 6.41 and
@@ -214,13 +248,43 @@ class LTISDEModel(LinearSDEModel):
         to make this readable, feedback is welcome!
         """
         drift, disp, diff = self.driftmatrix, self.dispersionmatrix, self.diffusionmatrix
-        firstrowblock = np.hstack((drift, np.outer(disp, diff @ disp)))
+        firstrowblock = np.hstack((drift, disp @ diff @ disp.T))
         secondrowblock = np.hstack((0 * drift.T, -1.0 * drift.T))
         blockmat = np.hstack((firstrowblock.T, secondrowblock.T)).T
         proj = np.eye(*firstrowblock.shape)
         initstate = np.flip(proj).T
-        transformed_sol = proj @ scipy.linalg.expm(
-            increment * blockmat) @ initstate
+        transformed_sol = scipy.linalg.expm(increment * blockmat) @ initstate
         trans = scipy.linalg.expm(increment * drift)
-        transdiff = transformed_sol @ trans.T
-        return trans @ covar @ trans.T + transdiff
+        transdiff = proj @ transformed_sol @ trans.T
+        return trans @ cov @ trans.T + transdiff
+
+
+def _check_initial_state_dimensions(drift, force, disp, diff):
+    """
+    Checks that the matrices all align and are of proper shape.
+
+    If all the bugs are removed and the tests run, these asserts
+    are turned into Exception-catchers.
+
+    Parameters
+    ----------
+    drift : np.ndarray, shape=(n, n)
+    force : np.ndarray, shape=(n,)
+    disp : np.ndarray, shape=(n, s)
+    diff : np.ndarray, shape=(s, s)
+
+    """
+    if drift.ndim != 2 or drift.shape[0] != drift.shape[1]:
+        raise TypeError("driftmatrix not of shape (n, n)")
+    if force.ndim != 1:
+        raise TypeError("force not of shape (n,)")
+    if force.shape[0] != drift.shape[1]:
+        raise TypeError("force not of shape (n,)"
+                        "or driftmatrix not of shape (n, n)")
+    if disp.ndim != 2:
+        raise TypeError("dispersion not of shape (n, s)")
+    if diff.ndim != 2 or diff.shape[0] != diff.shape[1]:
+        raise TypeError("diffusion not of shape (s, s)")
+    if disp.shape[1] != diff.shape[0]:
+        raise TypeError("dispersion not of shape (n, s)"
+                        "or diffusion not of shape (s, s)")

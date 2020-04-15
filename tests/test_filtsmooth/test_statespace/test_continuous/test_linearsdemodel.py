@@ -105,15 +105,15 @@ class TestLTISDEModel(unittest.TestCase):
     Check whether each function/property can be accessed
     as expected.
 
-    Test on Integrated Brownian motion (q=1, sig=1), because it allows
-    a closed form solution for integrals.
+    Test on Integrated Brownian motion (q=1, sig=1), driven by 1d BM,
+    because it allows a closed form solution for integrals.
     """
 
     def setUp(self):
         """ """
         self.driftmat = np.diag(np.ones(TEST_NDIM - 1), 1)
-        self.dispmat = 1.5 * np.eye(TEST_NDIM)[:, -1]
-        self.diffmat = np.eye(TEST_NDIM)
+        self.dispmat = 1.5 * np.eye(TEST_NDIM)[:, -1].reshape((TEST_NDIM, 1))
+        self.diffmat = np.eye(1)
         self.force = np.zeros(TEST_NDIM)
         self.lti = linearsdemodel.LTISDEModel(self.driftmat, self.force, self.dispmat,
                                     self.diffmat)

@@ -17,6 +17,7 @@ from tests.testing import NumpyAssertions
 
 STEP = np.random.rand()
 DIFFCONST = np.random.rand()
+
 AH_22_IBM = np.array([[1., STEP, STEP ** 2 / 2., 0., 0., 0.],
                   [0., 1., STEP, 0., 0., 0.],
                   [0., 0., 1., 0., 0., 0.],
@@ -33,7 +34,7 @@ QH_22_IBM = DIFFCONST ** 2 * np.array(
      [0., 0., 0., STEP ** 3 / 6., STEP ** 2 / 2., STEP]])
 
 
-class TestIBM(unittest.TestCase):
+class TestIBM(unittest.TestCase, NumpyAssertions):
     """
     """
 
@@ -48,11 +49,9 @@ class TestIBM(unittest.TestCase):
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
         initdist = RandomVariable(distribution=Normal(mean, cov))
         cke = self.ibm.chapmankolmogorov(0., STEP, STEP, initdist)
-        diff_mean = np.linalg.norm(AH_22_IBM @ initdist.mean() - cke.mean())
-        diff_covar = np.linalg.norm(
-            AH_22_IBM @ initdist.cov() @ AH_22_IBM.T + QH_22_IBM - cke.cov())
-        self.assertLess(diff_mean, 1e-14)
-        self.assertLess(diff_covar, 1e-14)
+        self.assertAllClose(AH_22_IBM @ initdist.mean(), cke.mean(), 1e-14)
+        self.assertAllClose(AH_22_IBM @ initdist.cov() @ AH_22_IBM.T + QH_22_IBM,
+                            cke.cov(), 1e-14)
 
 
 class TestIOUP(unittest.TestCase, NumpyAssertions):
@@ -73,7 +72,7 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         self.ibm.chapmankolmogorov(0., STEP, STEP, initdist)
 
 
-    def test_ibm(self):
+    def test_asymptotically_ibm(self):
         """
         Checks that for driftspeed==0, it coincides with the IBM prior.
         """
@@ -84,7 +83,7 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(ioup_speed0.diffusionmatrix, ibm.diffusionmatrix)
 
 
-class TestMatern(unittest.TestCase):
+class TestMatern(unittest.TestCase, NumpyAssertions):
     """
     Test whether coefficients for q=1, 2 match closed form.
     and whether coefficients for q=0 are Ornstein Uhlenbeck.
@@ -104,31 +103,24 @@ class TestMatern(unittest.TestCase):
         This is OUP.
         """
         xi = np.sqrt(2*(self.mat0.ndim-0.5))/self.mat0.lengthscale
-        diff_0 = np.abs(self.mat0.driftmatrix[0, 0] + xi)
-        self.assertLess(diff_0, 1e-14)
-
+        self.assertAlmostEqual(self.mat0.driftmatrix[0, 0], -xi)
 
     def test_n1(self):
         """
         Closed form solution for n=1.
         """
         xi = np.sqrt(2*(self.mat1.ndim-0.5))/self.mat1.lengthscale
-        diff_0 = np.abs(self.mat1.driftmatrix[-1, 0] + xi**2)
-        diff_1 = np.abs(self.mat1.driftmatrix[-1, 1] + 2*xi)
-        self.assertLess(diff_0, 1e-14)
-        self.assertLess(diff_1, 1e-14)
+        expected = np.array([-xi**2, -2*xi])
+        self.assertAllClose(self.mat1.driftmatrix[-1, :], expected)
+
 
     def test_n2(self):
         """
         Closed form solution for n=2.
         """
         xi = np.sqrt(2*(self.mat2.ndim-0.5))/self.mat2.lengthscale
-        diff_0 = np.abs(self.mat2.driftmatrix[-1, 0] + xi**3)
-        diff_1 = np.abs(self.mat2.driftmatrix[-1, 1] + 3*xi**2)
-        diff_2 = np.abs(self.mat2.driftmatrix[-1, 2] + 3*xi)
-        self.assertLess(diff_0, 1e-14)
-        self.assertLess(diff_1, 1e-14)
-        self.assertLess(diff_2, 1e-14)
+        expected = np.array([-xi**3, -3*xi**2, -3*xi])
+        self.assertAllClose(self.mat2.driftmatrix[-1, :], expected)
 
     def test_larger_shape(self):
         """

@@ -192,3 +192,86 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
                                           which_prior="ibm1", which_filt="kf")
         steps = np.diff(ts)
         self.assertLess(np.amin(steps) / np.amax(steps), 0.8)
+
+
+
+class TestLotkaVolterraOtherPriors(unittest.TestCase):
+    """
+    We only test whether all the prior-filter-adaptivity combinations
+    finish.
+    """
+
+    def setUp(self):
+        """Setup odesolver and Lotka-Volterra IVP"""
+        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        self.ivp = ode.lotkavolterra([0.0, 0.5], initdist)
+        self.tol = 1e-1
+        self.step = 0.1
+
+    def test_filter_ivp_ioup1_kf(self):
+        """
+        """
+        odefilter.filter_ivp(self.ivp, tol=self.tol, which_prior="ioup1", which_filt="kf")
+
+    def test_filter_ivp_ioup2_ekf(self):
+        """
+        """
+        odefilter.filter_ivp(self.ivp, tol=self.tol, which_prior="ioup2", which_filt="ekf")
+
+    def test_filter_ivp_ioup3_ukf(self):
+        """
+        UKF requires some evaluation-variance to have a positive definite
+        innovation matrix, apparently.
+        """
+        odefilter.filter_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="ioup3", which_filt="ukf")
+
+    def test_filter_ivp_h_ioup1_ekf(self):
+        """
+        """
+        odefilter.filter_ivp_h(self.ivp, step=self.step, which_prior="ioup1", which_filt="ekf")
+
+    def test_filter_ivp_h_ioup2_ukf(self):
+        """
+        UKF requires some evaluation-variance to have a positive definite
+        innovation matrix, apparently.
+        """
+        odefilter.filter_ivp_h(self.ivp, step=self.step, evlvar=0.01, which_prior="ioup2", which_filt="ukf")
+
+    def test_filter_ivp_h_ioup3_kf(self):
+        """
+        """
+        odefilter.filter_ivp_h(self.ivp, step=self.step, which_prior="ioup3", which_filt="kf")
+
+    def test_filter_ivp_mat32_kf(self):
+        """
+        """
+        odefilter.filter_ivp(self.ivp, tol=self.tol, which_prior="matern32", which_filt="kf")
+
+    def test_filter_ivp_mat52_ekf(self):
+        """
+        """
+        odefilter.filter_ivp(self.ivp, tol=self.tol, which_prior="matern52", which_filt="ekf")
+
+    def test_filter_ivp_mat72_ukf(self):
+        """
+        UKF requires some evaluation-variance to have a positive definite
+        innovation matrix, apparently.
+        """
+        odefilter.filter_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="matern72", which_filt="ukf")
+
+    def test_filter_ivp_h_mat32_ekf(self):
+        """
+        """
+        odefilter.filter_ivp_h(self.ivp, step=self.step, which_prior="matern32", which_filt="ekf")
+
+    def test_filter_ivp_h_mat52_ukf(self):
+        """
+        UKF requires some evaluation-variance to have a positive definite
+        innovation matrix, apparently.
+        """
+        odefilter.filter_ivp_h(self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", which_filt="ukf")
+
+    def test_filter_ivp_h_mat72_kf(self):
+        """
+        """
+        odefilter.filter_ivp_h(self.ivp, step=self.step, which_prior="matern72", which_filt="kf")

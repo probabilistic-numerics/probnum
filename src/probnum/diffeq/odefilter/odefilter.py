@@ -128,11 +128,11 @@ def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", **pars):
     creats a GaussianODEFilter object and calls solve().
 
     which_prior : string, element of
-        [ibm1, ibm2, ibm3, ibm4, ibm5,
-         ioup1, ioup2, ioup3, ioup4, ioup5,
-         matern32, matern52, matern72, matern92]
+        [ibm1, ibm2, ibm3,
+         ioup1, ioup2, ioup3,
+         matern32, matern52, matern72]
 
-    which_prior : string, element of {kf, ekf, ukf}
+    which_filter : string, element of [kf, ekf, ukf]
     step : float
     ivp : IVP object
     """

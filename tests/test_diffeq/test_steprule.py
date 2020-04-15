@@ -5,6 +5,7 @@ from probnum.diffeq import steprule
 import unittest
 import numpy as np
 
+np.random.seed(75468)
 
 
 class TestConstantStep(unittest.TestCase):
