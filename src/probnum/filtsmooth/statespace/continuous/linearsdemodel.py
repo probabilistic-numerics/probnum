@@ -20,20 +20,20 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
     """
     Linear time-continuous Markov models given by the solution of the
     stochastic differential equation
-    dx = [F(t) x(t) + u(t)] dt + L(t) dB(t).
+    :math:`dx = [F(t) x(t) + u(t)] dt + L(t) dB(t)`.
 
 
     Parameters
     ----------
-    driftmatrixfunction : callable, signature (t, **kwargs)
+    driftmatrixfunction : callable, signature (t, \**kwargs)
         This is F = F(t). The evaluations of this funciton are called
         the drift(matrix) of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcfct : callable, signature (t, **kwargs)
+    forcfct : callable, signature (t, \**kwargs)
         This is u = u(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatrixfuction : callable, signature (t, **kwargs)
+    dispmatrixfuction : callable, signature (t, \**kwargs)
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
@@ -42,11 +42,10 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         It is always a square matrix and the size of this matrix matches
         the number of columns of the dispersionmatrix.
 
-    Note
-    ----
-    If initial conditions are Gaussian, it is a
-    Gauss-Markov process.
-    We assume Gaussianity for chapmankolmogorov()
+    Notes
+    -----
+    If initial conditions are Gaussian, the solution is a Gauss-Markov process.
+    We assume Gaussianity for :meth:`chapmankolmogorov`.
     """
 
     def __init__(self, driftmatrixfct, forcfct, dispmatrixfct, diffmatrix):
@@ -108,7 +107,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         covariance of the SDE solution (Eq. 5.50 and 5.51
         or Eq. 10.73 in Applied SDEs).
 
-        By default, we assume that randvar is Gaussian.
+        By default, we assume that ``randvar`` is Gaussian.
         """
         mean, covar = randvar.mean(), randvar.cov()
         time = start
@@ -155,16 +154,16 @@ class LTISDEModel(LinearSDEModel):
         This is the diffusion matrix Q of the Brownian motion
         driving the SDE.
 
-    Note
-    ----
+    Notes
+    -----
     It assumes Gaussian initial conditions (otherwise
     it is no Gauss-Markov process).
     """
 
     def __init__(self, driftmatrix, force, dispmatrix, diffmatrix):
         """
-        Arguments
-        ---------
+        Parameters
+        ----------
         driftmatrix : ndarray (F)
         force : ndarray (u)
         dispmatrix : ndarray (L)
