@@ -2,7 +2,7 @@
 """
 
 from .ode import *
-from .odefilter import *
+from .odefiltsmooth import *
 from .steprule import *
 from .odesolver import *
 

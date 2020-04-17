@@ -19,8 +19,26 @@ import numpy as np
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver, steprule
-from probnum.diffeq.odefilter import prior, ivptofilter
+from probnum.diffeq.odefiltsmooth import prior, ivptofilter
+from probnum.filtsmooth import GaussianSmoother
 
+class GaussianIVPSmoother(odesolver.ODESolver):
+    """
+    ODE solver that behaves like a Gaussian smoother.
+
+    Builds on top of Gaussian IVP Filter.
+    """
+    def __init__(self, ivp, gaussfilt, steprl):
+        """ """
+        self.gauss_ode_filt = GaussianIVPFilter(ivp, gaussfilt, steprl)
+        self.smoother = GaussianSmoother(gaussfilt)
+
+    def solve(self, firststep, **kwargs):
+        """
+        """
+        means, covars, times = self.gauss_ode_filt.solve(firststep, **kwargs)
+        smoothed_means, smoothed_covars = self.smoother.smoothen_filteroutput(means, covars, times, **kwargs)
+        return smoothed_means, smoothed_covars, times
 
 class GaussianIVPFilter(odesolver.ODESolver):
     """
@@ -123,6 +141,72 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
 
 
+
+
+
+def smoother_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", firststep=None, **pars):
+    """
+    Solve ivp with adaptive step size.
+
+    Easy way out. No option to choose interesting priors
+    (with parameters). For better tuning, use the objects.
+
+    Turns prior-string into actual prior,
+    filt-string into actual filter,
+    creats a GaussianODEFilter object and calls solve().
+
+    which_prior : string, element of
+        [ibm1, ibm2, ibm3,
+         ioup1, ioup2, ioup3,
+         matern32, matern52, matern72]
+
+    which_filter : string, element of [kf, ekf, ukf]
+    step : float
+    ivp : IVP object
+    """
+    prior = _string_to_prior(ivp, which_prior, **pars)
+    gfilt = _string_to_filter(ivp, prior, which_filt, **pars)
+    stprl = _step_to_adaptive_steprule(tol, prior)
+    ofi = GaussianIVPSmoother(ivp, gfilt, stprl)
+    if firststep == None:
+        firststep = ivp.tmax - ivp.t0
+    return ofi.solve(firststep)
+
+
+def smoother_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
+    """
+    Solve ivp with constant step size.
+
+    Easy way out. No option to choose interesting priors
+    (with parameters). For better tuning, use the objects.
+
+    Turns prior-string into actual prior,
+    filt-string into actual filter,
+    creats a GaussianODEFilter object and calls solve().
+
+    which_prior : string, element of
+        [ibm1, ibm2, ibm3, ibm4, ibm5,
+         ioup1, ioup2, ioup3, ioup4, ioup5,
+         matern32, matern52, matern72, matern92]
+
+    which_prior : string, element of {kf, ekf, ukf}
+    step : float
+    ivp : IVP object
+    """
+    prior = _string_to_prior(ivp, which_prior, **pars)
+    gfilt = _string_to_filter(ivp, prior, which_filt, **pars)
+    stprl = _step_to_steprule(step)
+    ofi = GaussianIVPSmoother(ivp, gfilt, stprl)
+    return ofi.solve(firststep=step)
+
+
+
+
+
+
+
+
+
 def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", firststep=None, **pars):
     """
     Solve ivp with adaptive step size.
@@ -177,6 +261,12 @@ def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
     stprl = _step_to_steprule(step)
     ofi = GaussianIVPFilter(ivp, gfilt, stprl)
     return ofi.solve(firststep=step)
+
+
+
+
+
+
 
 def _string_to_prior(ivp, which_prior, **pars):
     """

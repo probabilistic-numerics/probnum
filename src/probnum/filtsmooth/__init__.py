@@ -11,8 +11,11 @@ from .gaussfiltsmooth import *
 
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["BayesianFilter", "GaussianFilter", "KalmanFilter", "ExtendedKalmanFilter",
-           "UnscentedKalmanFilter", "UnscentedTransform",
+__all__ = ["BayesianFilter", "GaussianSmoother", "GaussianFilter",
+           "KalmanFilter", "KalmanSmoother",
+           "ExtendedKalmanFilter", "ExtendedKalmanSmoother",
+           "UnscentedKalmanFilter", "UnscentedKalmanSmoother",
+           "UnscentedTransform",
            "ContinuousModel", "LinearSDEModel", "LTISDEModel",
            "DiscreteModel", "DiscreteGaussianModel",
            "DiscreteGaussianLinearModel", "DiscreteGaussianLTIModel",

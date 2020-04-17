@@ -103,7 +103,6 @@ class GaussianSmoother(GaussFiltSmooth):
         newcov = pk + (crosscov @ np.linalg.solve(pk1, firstsolve.T)).T
         return RandomVariable(distribution=Normal(newmean, newcov))
 
-
     @property
     def dynamicmodel(self):
         """ """
@@ -124,6 +123,13 @@ class GaussianSmoother(GaussFiltSmooth):
         First some filtering, then backwards in time some smoothing.
         """
         means, covs = self.gaussfilt.filter_stream(datastream, times, **kwargs)
+        smoothed_means, smoothed_covs = self.smoothen_filteroutput(means, covs, times)
+        return smoothed_means, smoothed_covs
+
+    def smoothen_filteroutput(self, _means, _covs, times, **kwargs):
+        """
+        """
+        means, covs = _means.copy(), _covs.copy()
         currdist = RandomVariable(distribution=Normal(means[-1], covs[-1]))
         for idx in reversed(range(1, len(times))):
             dist_from = RandomVariable(distribution=Normal(means[idx-1],

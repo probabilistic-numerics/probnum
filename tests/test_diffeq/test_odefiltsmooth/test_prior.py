@@ -11,7 +11,7 @@ import numpy as np
 
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
-from probnum.diffeq.odefilter import prior
+from probnum.diffeq.odefiltsmooth import prior
 from tests.testing import NumpyAssertions
 
 

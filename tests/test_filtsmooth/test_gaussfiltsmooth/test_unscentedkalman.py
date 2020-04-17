@@ -11,6 +11,8 @@ from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous.linearsdemodel import *
 from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
 
+
+np.random.seed(265312)
 VISUALISE = False  # show plots or not?
 
 if VISUALISE is True:
