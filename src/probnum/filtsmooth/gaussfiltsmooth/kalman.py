@@ -9,16 +9,16 @@ to create consistency in the codebase.
 """
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth import gaussianfilter
+from probnum.filtsmooth.gaussfiltsmooth import gaussfiltsmooth
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous.linearsdemodel import *
 from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
 
 
-__all__ = ["KalmanFilter"]
 
-class KalmanFilter(gaussianfilter.GaussianFilter):
+
+class KalmanFilter(gaussfiltsmooth.GaussianFilter):
     """
     """
 
@@ -63,7 +63,6 @@ class KalmanFilter(gaussianfilter.GaussianFilter):
 
     def _predict_discrete(self, start, randvar, *args, **kwargs):
         """
-        "Stop" is ignored in the discrete case.
         """
         mean, covar = randvar.mean(), randvar.cov()
         if np.isscalar(mean) and np.isscalar(covar):
@@ -89,6 +88,9 @@ class KalmanFilter(gaussianfilter.GaussianFilter):
         Only discrete measurement models reach this point.
 
         Hence, the update is straightforward.
+
+        data : Gaussian RandomVariable (for smoothers) or Dirac
+            RandomVariable (for filters).
         """
         return self._update_discrete(time, randvar, data, *args, **kwargs)
 

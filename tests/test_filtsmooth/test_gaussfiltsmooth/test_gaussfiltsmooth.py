@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth import gaussianfilter
+from probnum.filtsmooth.gaussfiltsmooth import gaussfiltsmooth
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import DiscreteGaussianLinearModel
@@ -13,7 +13,7 @@ from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import Discret
 TEST_NDIM = 2
 
 
-class MockGaussianFilter(gaussianfilter.GaussianFilter):
+class MockGaussianFilter(gaussfiltsmooth.GaussianFilter):
     """
     """
 

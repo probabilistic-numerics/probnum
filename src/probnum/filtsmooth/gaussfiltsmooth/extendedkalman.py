@@ -2,7 +2,7 @@
 """
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth import gaussianfilter
+from probnum.filtsmooth.gaussfiltsmooth import gaussfiltsmooth
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous import LinearSDEModel
@@ -11,7 +11,7 @@ from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 __all__ = ["ExtendedKalmanFilter"]
 
 
-class ExtendedKalmanFilter(gaussianfilter.GaussianFilter):
+class ExtendedKalmanFilter(gaussfiltsmooth.GaussianFilter):
     """
     """
 

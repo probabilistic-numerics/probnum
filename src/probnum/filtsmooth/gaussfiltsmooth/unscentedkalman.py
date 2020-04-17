@@ -1,6 +1,6 @@
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth import gaussianfilter, unscentedtransform
+from probnum.filtsmooth.gaussfiltsmooth import gaussfiltsmooth, unscentedtransform
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous import LinearSDEModel
@@ -10,7 +10,7 @@ from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel, Discre
 __all__ = ["UnscentedKalmanFilter"]
 
 
-class UnscentedKalmanFilter(gaussianfilter.GaussianFilter):
+class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
     """
     """
 
