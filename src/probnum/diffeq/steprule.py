@@ -11,7 +11,7 @@ class StepRule(ABC):
     """
 
     @abstractmethod
-    def suggest(self, laststep, errorest, *args, **kwargs):
+    def suggest(self, laststep, errorest, **kwargs):
         """
         Suggests a new step h_{n+1} given error estimate
         e_n at step h_n.
@@ -19,7 +19,7 @@ class StepRule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def is_accepted(self, proposedstep, errorest, *args, **kwargs):
+    def is_accepted(self, proposedstep, errorest, **kwargs):
         """
         Checks if proposed step should be accepted or not.
         Variable "proposedstep" not used yet, but may be
@@ -40,12 +40,12 @@ class ConstantSteps(StepRule):
         """
         self.step = stepsize
 
-    def suggest(self, laststep, errorest, *args, **kwargs):
+    def suggest(self, laststep, errorest, **kwargs):
         """
         """
         return self.step
 
-    def is_accepted(self, proposedstep, errorest, *args, **kwargs):
+    def is_accepted(self, proposedstep, errorest, **kwargs):
         """
         Meaningless since always True.
         """
@@ -80,7 +80,7 @@ class AdaptiveSteps(StepRule):
         self.localconvrate = float(localconvrate + 1)
         self.limitchange = limitchange
 
-    def suggest(self, laststep, errorest, *args, **kwargs):
+    def suggest(self, laststep, errorest, **kwargs):
         """
         """
         small, large = self.limitchange
@@ -97,7 +97,7 @@ class AdaptiveSteps(StepRule):
         return step
 
 
-    def is_accepted(self, proposedstep, errorest, *args, **kwargs):
+    def is_accepted(self, proposedstep, errorest, **kwargs):
         """
         """
         if errorest *proposedstep < self.tol_per_step:

@@ -97,7 +97,7 @@ class UnscentedTransform:
         ----------
         sigmapts: np.ndarray, shape=(2*N+1, N)
             Sigma points (N is the spatial dimension of the dynamic model)
-        modelfct: callable with signature (t, x, \*args, \**kwargs)
+        modelfct: callable with signature (t, x, \ \**kwargs)
             Function through which to propagate
 
         Returns

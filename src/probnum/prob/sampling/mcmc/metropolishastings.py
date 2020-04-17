@@ -45,7 +45,7 @@ class MetropolisHastings(ABC):
         """
         return "MetropolisHastings() object"
 
-    def sample_nd(self, nsamps, init_state, pwidth, *args, **kwargs):
+    def sample_nd(self, nsamps, init_state, pwidth, **kwargs):
         """
         """
         self._assert_inputs_compatible(init_state)
@@ -55,7 +55,7 @@ class MetropolisHastings(ABC):
         states[0], logprobs[0], accepted = currstate.x, currstate.fx, 1
         for idx in range(1, nsamps):
             proposal, corrfact = self.generate_proposal(currstate, pwidth,
-                                                        *args, **kwargs)
+                                                        **kwargs)
             currstate, is_accept = self.accept_or_reject(currstate, proposal,
                                                          corrfact)
             states[idx], logprobs[idx] = currstate.x, currstate.fx
@@ -103,7 +103,7 @@ class MetropolisHastings(ABC):
         return corrfact + (proposal.fx - currstate.fx)
 
     @abstractmethod
-    def generate_proposal(self, currstate, pwidth, *args, **kwargs):
+    def generate_proposal(self, currstate, pwidth, **kwargs):
         """
         """
         pass

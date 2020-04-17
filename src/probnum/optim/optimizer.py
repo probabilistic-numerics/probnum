@@ -40,7 +40,7 @@ class Optimizer(ABC):
         self.stopcrit = stopcrit
         self.maxit = maxit
 
-    def minimise_nd(self, objective, initval, *args, **kwargs):
+    def minimise_nd(self, objective, initval,  **kwargs):
         """
         objective: AutoDiff instance
         initval: ndarray
@@ -52,12 +52,12 @@ class Optimizer(ABC):
         utils.assert_is_1d_ndarray(initval)
         utils.assert_evaluates_to_scalar(objective.objective, initval)
         curriter = objective.evaluate(initval)
-        lastiter = self.stopcrit.create_unfulfilled(curriter, *args, **kwargs)
+        lastiter = self.stopcrit.create_unfulfilled(curriter,  **kwargs)
         traj, objvals = self._make_traj_objvals(initval)
         count, traj[0], objvals[0] = 0, curriter.x, curriter.fx
         while not self._stop_now(curriter, lastiter, count):
             count = count + 1
-            curriter = self.iterate(curriter, objective, *args, **kwargs)
+            curriter = self.iterate(curriter, objective,  **kwargs)
             traj[count], objvals[count] = curriter.x, curriter.fx
         return traj[0:count + 1], objvals[0:count + 1]
 
@@ -77,7 +77,7 @@ class Optimizer(ABC):
         return stopcrit_yes or maxit_yes
 
     @abstractmethod
-    def iterate(self, curriter, objective, *args, **kwargs):
+    def iterate(self, curriter, objective,  **kwargs):
         """
         Needs to be implemented for minimise() to be complete.
         """

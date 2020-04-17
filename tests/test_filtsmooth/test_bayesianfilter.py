@@ -16,12 +16,12 @@ class MockBayesianFilter(bayesianfilter.BayesianFilter):
     As little implementation as necessary.
     """
 
-    def predict(self, start, stop, randvar, *args, **kwargs):
+    def predict(self, start, stop, randvar, **kwargs):
         """
         """
         return randvar
 
-    def update(self, time, randvar, data, *args, **kwargs):
+    def update(self, time, randvar, data, **kwargs):
         """
         """
         return randvar

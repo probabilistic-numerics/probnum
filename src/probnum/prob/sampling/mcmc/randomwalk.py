@@ -29,7 +29,7 @@ class RandomWalkMH(metropolishastings.MetropolisHastings):
 
     good_acc_ratio = [.15, .30]
 
-    def generate_proposal(self, currstate, pwidth, *args, **kwargs):
+    def generate_proposal(self, currstate, pwidth, **kwargs):
         """
         """
         newloc = self._sample_randomwalk(currstate.x, pwidth)

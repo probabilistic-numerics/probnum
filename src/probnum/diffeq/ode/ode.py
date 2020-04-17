@@ -46,29 +46,29 @@ class ODE(ABC):
         self.jac = jac
         self.sol = sol
 
-    def rhs(self, t, x, *args, **kwargs):
+    def rhs(self, t, x, **kwargs):
         """
         Evaluates model function f.
         """
-        return self.rhs(t, x, *args, **kwargs)
+        return self.rhs(t, x, **kwargs)
 
-    def jacobian(self, t, x, *args, **kwargs):
+    def jacobian(self, t, x, **kwargs):
         """
         Jacobian of model function f.
         """
         if self.jac is None:
             raise NotImplementedError
         else:
-            return self.jac(t, x, *args, **kwargs)
+            return self.jac(t, x, **kwargs)
 
-    def solution(self, t, *args, **kwargs):
+    def solution(self, t, **kwargs):
         """
         Solution of the IVP.
         """
         if self.sol is None:
             raise NotImplementedError
         else:
-            return self.sol(t, *args, **kwargs)
+            return self.sol(t, **kwargs)
 
     @property
     def timespan(self):

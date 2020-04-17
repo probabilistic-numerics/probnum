@@ -17,13 +17,13 @@ class StoppingCriterion(ABC):
     """
 
     @abstractmethod
-    def fulfilled(self, curriter, lastiter, *args, **kwargs):
+    def fulfilled(self, curriter, lastiter, **kwargs):
         """
         """
         raise NotImplementedError
 
     @abstractmethod
-    def create_unfulfilled(self, iter, *args, **kwargs):
+    def create_unfulfilled(self, iter, **kwargs):
         """
         For initialisation of optimisers, we need an opportunity
         to create an iteration which does NOT fulfill the stopping
@@ -42,7 +42,7 @@ class NormOfGradient(StoppingCriterion):
         assert tol >= 0, "Please enter nonnegative atol"
         self._tol = tol
 
-    def fulfilled(self, curriter, lastiter, *args, **kwargs):
+    def fulfilled(self, curriter, lastiter, **kwargs):
         """
         lastiter: only included because of required signature, not used here.
         """
@@ -53,7 +53,7 @@ class NormOfGradient(StoppingCriterion):
         else:
             return False
 
-    def create_unfulfilled(self, curriter, *args, **kwargs):
+    def create_unfulfilled(self, curriter, **kwargs):
         """
         This should have no input?????
         """
@@ -73,7 +73,7 @@ class DiffOfFctValues(StoppingCriterion):
         assert tol >= 0, "Please enter nonnegative rtol"
         self._tol = tol
 
-    def fulfilled(self, curriter, lastiter, *args, **kwargs):
+    def fulfilled(self, curriter, lastiter, **kwargs):
         """
         """
         if curriter.fx is None or lastiter.fx is None:
@@ -83,7 +83,7 @@ class DiffOfFctValues(StoppingCriterion):
         else:
             return False
 
-    def create_unfulfilled(self, curriter, *args, **kwargs):
+    def create_unfulfilled(self, curriter, **kwargs):
         """
         """
         output = Eval(None, curriter.fx + 10 * self._tol, None, None)

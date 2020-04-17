@@ -27,13 +27,13 @@ class MockContinuousModel(continuousmodel.ContinuousModel):
     equal to 1.
     """
 
-    def drift(self, time, state, *args, **kwargs):
+    def drift(self, time, state, **kwargs):
         """
         Identity drift
         """
         return state
 
-    def dispersion(self, time, state, *args, **kwargs):
+    def dispersion(self, time, state, **kwargs):
         """
         Identity dispersion
         """
@@ -96,13 +96,13 @@ class DeterministicModel(continuousmodel.ContinuousModel):
     with exponential function.
     """
 
-    def drift(self, time, state, *args, **kwargs):
+    def drift(self, time, state, **kwargs):
         """
         Identity drift
         """
         return state
 
-    def dispersion(self, time, state, *args, **kwargs):
+    def dispersion(self, time, state, **kwargs):
         """
         Identity dispersion
         """

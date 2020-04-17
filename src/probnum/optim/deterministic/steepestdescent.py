@@ -31,16 +31,16 @@ class SteepestDescent(Optimizer):
     """
     """
 
-    def iterate(self, curriter, objec, *args, **kwargs):
+    def iterate(self, curriter, objec,  **kwargs):
         """
         """
-        direction = self.compute_direction(curriter, *args, **kwargs)
+        direction = self.compute_direction(curriter,  **kwargs)
         lrate = self.lsearch.next_lrate(curriter, objec, direction)
         new_iterate = curriter.x + lrate * direction
         return objec.evaluate(new_iterate)
 
     @abstractmethod
-    def compute_direction(self, curriter, *args, **kwargs):
+    def compute_direction(self, curriter,  **kwargs):
         """
         """
         raise NotImplementedError
@@ -50,7 +50,7 @@ class GradientDescent(SteepestDescent):
     """
     """
 
-    def compute_direction(self, curriter, *args, **kwargs):
+    def compute_direction(self, curriter,  **kwargs):
         """
         """
         if curriter.dfx is None:
@@ -62,7 +62,7 @@ class NewtonMethod(SteepestDescent):
     """
     """
 
-    def compute_direction(self, curriter, *args, **kwargs):
+    def compute_direction(self, curriter,  **kwargs):
         """
         """
         if curriter.dfx is None:
@@ -94,7 +94,7 @@ class LevenbergMarquardt(SteepestDescent):
         self.dampingpar = dampingpar
         SteepestDescent.__init__(self, lsearch, stopcrit, maxit)
 
-    def compute_direction(self, curriter, *args, **kwargs):
+    def compute_direction(self, curriter,  **kwargs):
         """
         """
         if curriter.dfx is None:

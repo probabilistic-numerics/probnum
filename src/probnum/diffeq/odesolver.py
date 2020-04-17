@@ -18,7 +18,7 @@ class ODESolver(ABC):
         self.steprule = steprule
 
     @abstractmethod
-    def solve(self, ivp, minstep, maxstep, *args, **kwargs):
+    def solve(self, ivp, minstep, maxstep, **kwargs):
         """
         Every ODE solver has a solve() method.
         Optional: callback function. Allows  e.g. printing variables

@@ -223,27 +223,27 @@ class TestPHMC(unittest.TestCase):
         self.assertLess(avgdiff, 1e-14)
 
 
-def _compute_qqvals(samples, ppf, *args, **kwargs):
+def _compute_qqvals(samples, ppf, **kwargs):
     """
     """
     sortedsamps = np.sort(samples)
     enums = np.arange(1, 1 + len(sortedsamps)) / (len(sortedsamps) + 1)
-    quantiles = ppf(enums, *args, **kwargs)
+    quantiles = ppf(enums, **kwargs)
     return sortedsamps, quantiles
 
 
-def _visualise(samples, pdf, sortsamps, quants, title, *args, **kwargs):
+def _visualise(samples, pdf, sortsamps, quants, title, **kwargs):
     """
     """
-    _show_histplot(samples, pdf, title, *args, **kwargs)
+    _show_histplot(samples, pdf, title, **kwargs)
     _show_qqplot(sortsamps, quants, title)
 
 
-def _show_histplot(samples, pdf, title, *args, **kwargs):
+def _show_histplot(samples, pdf, title, **kwargs):
     """
     """
     xvals = np.linspace(1.1 * np.amin(samples), 1.1 * np.amax(samples))
-    yvals = pdf(xvals, *args, **kwargs)
+    yvals = pdf(xvals, **kwargs)
     plt.hist(samples, density=True, bins=75, alpha=0.5)
     plt.plot(xvals, yvals)
     plt.title(title)

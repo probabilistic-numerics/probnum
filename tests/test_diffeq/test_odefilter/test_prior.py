@@ -48,7 +48,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         """
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
         initdist = RandomVariable(distribution=Normal(mean, cov))
-        cke = self.ibm.chapmankolmogorov(0., STEP, STEP, initdist)
+        cke, __ = self.ibm.chapmankolmogorov(0., STEP, STEP, initdist)
         self.assertAllClose(AH_22_IBM @ initdist.mean(), cke.mean(), 1e-14)
         self.assertAllClose(AH_22_IBM @ initdist.cov() @ AH_22_IBM.T + QH_22_IBM,
                             cke.cov(), 1e-14)

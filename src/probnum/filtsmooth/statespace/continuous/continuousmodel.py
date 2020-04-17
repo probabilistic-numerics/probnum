@@ -63,20 +63,20 @@ class ContinuousModel(ABC):
         return currstate
 
     @abstractmethod
-    def drift(self, time, state, *args, **kwargs):
+    def drift(self, time, state, **kwargs):
         """
         Evaluates f = f(t, x(t)).
         """
         raise NotImplementedError
 
     @abstractmethod
-    def dispersion(self, time, state, *args, **kwargs):
+    def dispersion(self, time, state, **kwargs):
         """
         Evaluates l = l(t, x(t)).
         """
         raise NotImplementedError
 
-    def jacobian(self, time, state, *args, **kwargs):
+    def jacobian(self, time, state, **kwargs):
         """
         Jacobian of drift w.r.t. state: d_x f(t, x(t))
         """
@@ -99,7 +99,7 @@ class ContinuousModel(ABC):
         """
         raise NotImplementedError
 
-    def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
+    def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
         """
         If available, this returns the closed form solution to the
         Chapman-Kolmogorov equations (CKEs).

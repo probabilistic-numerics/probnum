@@ -11,7 +11,7 @@ from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous.linearsdemodel import *
 from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
 
-VISUALISE = True  # show plots or not?
+VISUALISE = False  # show plots or not?
 
 if VISUALISE is True:
     import matplotlib.pyplot as plt

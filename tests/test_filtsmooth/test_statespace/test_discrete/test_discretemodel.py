@@ -12,7 +12,7 @@ class MockDiscreteModel(discretemodel.DiscreteModel):
     """
     """
 
-    def sample(self, time, state, *args, **kwargs):
+    def sample(self, time, state, **kwargs):
         """
         """
         return state

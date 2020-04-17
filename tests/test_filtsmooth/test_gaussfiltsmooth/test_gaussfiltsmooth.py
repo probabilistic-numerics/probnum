@@ -24,10 +24,10 @@ class MockGaussianFilter(gaussfiltsmooth.GaussianFilter):
         self.measmod = measmod
         self.initdist = initdist
 
-    def predict(self, start, stop, randvar, *args, **kwargs):
-        return randvar
+    def predict(self, start, stop, randvar, **kwargs):
+        return randvar, 0.
 
-    def update(self, time, randvar, data, *args, **kwargs):
+    def update(self, time, randvar, data, **kwargs):
         return randvar, None, None, None
 
     @property

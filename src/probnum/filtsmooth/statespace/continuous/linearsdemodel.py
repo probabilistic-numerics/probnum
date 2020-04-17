@@ -55,9 +55,9 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         ---------
         driftmatrixfct : callable, signature (t, **kwargs)
             maps t -> F(t)
-        forcfct : callable, signature (t, *args, **kwargs)
+        forcfct : callable, signature (t,  **kwargs)
             maps t -> u(t)
-        dispmatrixfct : callable, signature (t, *args, **kwargs)
+        dispmatrixfct : callable, signature (t,  **kwargs)
             maps t -> L(t)
         diffmatrix : np.ndarray, shape (d, d)
             Diffusion matrix Q
@@ -67,25 +67,25 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         self._dispmatrixfct = dispmatrixfct
         self._diffmatrix = diffmatrix
 
-    def drift(self, time, state, *args, **kwargs):
+    def drift(self, time, state,  **kwargs):
         """
         Evaluates f(t, x(t)) = F(t) x(t) + u(t).
         """
-        driftmatrix = self._driftmatrixfct(time, *args, **kwargs)
-        force = self._forcefct(time, *args, **kwargs)
+        driftmatrix = self._driftmatrixfct(time,  **kwargs)
+        force = self._forcefct(time,  **kwargs)
         return driftmatrix @ state + force
 
-    def dispersion(self, time, state, *args, **kwargs):
+    def dispersion(self, time, state,  **kwargs):
         """
         Evaluates l(t, x(t)) = L(t).
         """
-        return self._dispmatrixfct(time, *args, **kwargs)
+        return self._dispmatrixfct(time,  **kwargs)
 
-    def jacobian(self, time, state, *args, **kwargs):
+    def jacobian(self, time, state,  **kwargs):
         """
         maps t -> F(t)
         """
-        return self._driftmatrixfct(time, *args, **kwargs)
+        return self._driftmatrixfct(time,  **kwargs)
 
     @property
     def diffusionmatrix(self):
@@ -102,7 +102,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         return len(self._driftmatrixfct(0.))
 
 
-    def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
+    def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
         """
         Solves differential equations for mean and
         covariance of the SDE solution (Eq. 5.50 and 5.51
@@ -113,20 +113,20 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         mean, covar = randvar.mean(), randvar.cov()
         time = start
         while time < stop:
-            meanincr, covarincr = self._increment(time, mean, covar, *args,
+            meanincr, covarincr = self._increment(time, mean, covar,
                                                 **kwargs)
             mean, covar = mean + step * meanincr, covar + step * covarincr
             time = time + step
         return RandomVariable(distribution=Normal(mean, covar)), None
 
-    def _increment(self, time, mean, covar, *args, **kwargs):
+    def _increment(self, time, mean, covar,  **kwargs):
         """
         RHS of Eq. 10.82 in Applied SDEs
         """
-        disped = self.dispersion(time, mean, *args, **kwargs)
-        jacob = self.jacobian(time, mean, *args, **kwargs)
+        disped = self.dispersion(time, mean,  **kwargs)
+        jacob = self.jacobian(time, mean,  **kwargs)
         diff = self.diffusionmatrix
-        newmean = self.drift(time, mean, *args, **kwargs)
+        newmean = self.drift(time, mean,  **kwargs)
         newcovar = covar @ jacob.T + jacob @ covar.T + disped @ diff @ disped.T
         return newmean, newcovar
 
@@ -171,9 +171,9 @@ class LTISDEModel(LinearSDEModel):
         diffmatrix : ndarray (Q)
         """
         _check_initial_state_dimensions(driftmatrix, force, dispmatrix, diffmatrix)
-        super().__init__((lambda t, *args, **kwargs: driftmatrix),
-                         (lambda t, *args, **kwargs: force),
-                         (lambda t, *args, **kwargs: dispmatrix),
+        super().__init__((lambda t,  **kwargs: driftmatrix),
+                         (lambda t,  **kwargs: force),
+                         (lambda t,  **kwargs: dispmatrix),
                          diffmatrix)
         self._driftmatrix = driftmatrix
         self._force = force
@@ -198,7 +198,7 @@ class LTISDEModel(LinearSDEModel):
         """
         return self._dispmatrix
 
-    def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
+    def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
         """
         Solves Chapman-Kolmogorov equation.
 

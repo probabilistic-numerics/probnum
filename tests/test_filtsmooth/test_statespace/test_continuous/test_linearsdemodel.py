@@ -69,7 +69,7 @@ class TestLinearSDEModel(unittest.TestCase):
         """
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
         rvar = RandomVariable(distribution=Normal(mean, cov))
-        cke = self.lm.chapmankolmogorov(0.0, 1.0, 1.0, rvar)
+        cke, __ = self.lm.chapmankolmogorov(0.0, 1.0, 1.0, rvar)
         diff_mean = self.driftmat @ rvar.mean() + self.force - cke.mean() + rvar.mean()
         diff_cov = self.driftmat @ rvar.cov() + rvar.cov() @ self.driftmat.T \
                    + self.dispmat @ self.diffmat @ self.dispmat.T \
@@ -174,7 +174,7 @@ class TestLTISDEModel(unittest.TestCase):
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
         rvar = RandomVariable(distribution=Normal(mean, cov))
         delta = 0.1
-        cke = self.lti.chapmankolmogorov(0.0, 1.0, delta, rvar)
+        cke, __ = self.lti.chapmankolmogorov(0.0, 1.0, delta, rvar)
         ah, xih, qh = ibm_a(1.0), ibm_xi(1.0), ibm_q(1.0)
         diff_mean = np.linalg.norm(ah @ rvar.mean() + xih - cke.mean())
         diff_cov = np.linalg.norm(ah @ rvar.cov() @ ah.T + qh - cke.cov())

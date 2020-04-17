@@ -48,7 +48,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.gfilt = gaussfilt
         odesolver.ODESolver.__init__(self, steprl)
 
-    def solve(self, firststep, *args, **kwargs):
+    def solve(self, firststep, **kwargs):
         """
         Solves IVP and calibrates uncertainty according
         to Proposition 4 in Tronarp et al.
@@ -64,9 +64,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         times, means, covars = [self.ivp.t0], [current.mean()], [current.cov()]
         while times[-1] < self.ivp.tmax:
             new_time = times[-1] + step
-            predicted = self.gfilt.predict(times[-1], new_time, current, *args, **kwargs)
+            predicted, __ = self.gfilt.predict(times[-1], new_time, current, **kwargs)
             zero_data = 0.0
-            current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, *args, **kwargs)
+            current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, **kwargs)
             errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
             if self.steprule.is_accepted(step, errorest) is True:
                 times.append(new_time)

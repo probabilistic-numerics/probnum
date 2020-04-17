@@ -1,6 +1,6 @@
 # Style Guide for Code Contributions
 
-This style guide summarizes code conventions used in `probnum`. This is intended as a reference for developers. The primary standard that should be applied is [PEP 8](https://www.python.org/dev/peps/pep-0008/).
+This style guide summarizes code conventions used in `probnum`. This is intended as a reference for developers. The primary standard that should be applied is [PEP 8](https://www.python.org/dev/peps/pep-0008/). Use a linter (pylint, flake8) if necessary.
 
 ## Code
 
@@ -38,6 +38,7 @@ The way an object is printed defined by `def __repr__(self)` is structured as:
 - `cov`: covariance
 - `fun`: function
 - mat vs mtrx
+- optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
 
 
 ## Documentation
@@ -105,6 +106,14 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     """
 
 ```
+
+**Some objectives for writing docstrings**
+
+* Do your best to cover "Parameters", "Returns", "Examples" and "See Also" at every publicly visible docstring.
+* Examples are tested via doctest.
+* When in doubt, more explanation rather than less.
+* A little maths goes a long way.
+* References make everything easier for someone who doesn't know the details of an algorithm.
 
 ### Example Notebooks
 

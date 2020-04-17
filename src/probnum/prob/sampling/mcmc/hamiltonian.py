@@ -35,7 +35,7 @@ class HamiltonianMonteCarlo(metropolishastings.MetropolisHastings):
         metropolishastings.MetropolisHastings.__init__(self, logdens)
         self.nsteps = nsteps
 
-    def generate_proposal(self, currstate, pwidth, *args, **kwargs):
+    def generate_proposal(self, currstate, pwidth, **kwargs):
         """
         pwidth is used as stepsize for self.nsteps leapfrog steps.
         The correction factor is the quotient of the hamiltonian terms.
@@ -95,7 +95,7 @@ class PreconditionedHamiltonianMonteCarlo(metropolishastings.MetropolisHastings)
         metropolishastings.MetropolisHastings.__init__(self, logdens)
         self.nsteps = nsteps
 
-    def generate_proposal(self, currstate, pwidth, *args, **kwargs):
+    def generate_proposal(self, currstate, pwidth, **kwargs):
         """
         pwidth is used as stepsize for self.nsteps leapfrog steps.
         The correction factor is the quotient of the hamiltonian terms.

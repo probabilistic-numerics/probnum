@@ -15,7 +15,7 @@ from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
 
 
 np.random.seed(2532)
-VISUALISE = True  # show plots or not?
+VISUALISE = False  # show plots or not?
 
 if VISUALISE is True:
     import matplotlib.pyplot as plt

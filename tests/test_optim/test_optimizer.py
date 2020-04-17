@@ -21,7 +21,7 @@ class MockOptimizer(optimizer.Optimizer):
     Mock object to check whether Optimiser can be subclassed
     """
 
-    def iterate(self, curriter, *args, **kwargs):
+    def iterate(self, curriter, **kwargs):
         """
         Print optional arguments. Used for testing
         whether these are passed down properly.

@@ -66,29 +66,29 @@ class ExtendedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         """ """
         return self.initdist
 
-    def predict(self, start, stop, randvar, *args, **kwargs):
+    def predict(self, start, stop, randvar, **kwargs):
         """
         """
         if _is_discrete(self.dynamod):
-            return self._predict_discrete(start, randvar, *args, **kwargs)
+            return self._predict_discrete(start, randvar, **kwargs)
         else:
-            return self._predict_continuous(start, stop, randvar, *args,
+            return self._predict_continuous(start, stop, randvar,
                                             **kwargs)
 
-    def _predict_discrete(self, start, randvar, *args, **kwargs):
+    def _predict_discrete(self, start, randvar, **kwargs):
         """
         """
         mean, covar = randvar.mean(), randvar.cov()
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean*np.ones(1), covar*np.eye(1)
-        diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
-        jacob = self.dynamod.jacobian(start, mean, *args, **kwargs)
-        mpred = self.dynamod.dynamics(start, mean, *args, **kwargs)
+        diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
+        jacob = self.dynamod.jacobian(start, mean, **kwargs)
+        mpred = self.dynamod.dynamics(start, mean, **kwargs)
         crosscov = covar @ jacob.T
         cpred = jacob @ crosscov + diffmat
         return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
-    def _predict_continuous(self, start, stop, randvar, *args, **kwargs):
+    def _predict_continuous(self, start, stop, randvar, **kwargs):
         """
         The cont. models that are allowed here all have an
         implementation of chapman-kolmogorov.
@@ -98,25 +98,25 @@ class ExtendedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         """
         step = ((stop - start) / self._nsteps)
         return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar,
-                                                   *args, **kwargs)
+                                                   **kwargs)
 
-    def update(self, time, randvar, data, *args, **kwargs):
+    def update(self, time, randvar, data, **kwargs):
         """
         Only discrete measurement models reach this point.
 
         Hence, the update is straightforward.
         """
-        return self._update_discrete(time, randvar, data, *args, **kwargs)
+        return self._update_discrete(time, randvar, data, **kwargs)
 
-    def _update_discrete(self, time, randvar, data, *args, **kwargs):
+    def _update_discrete(self, time, randvar, data, **kwargs):
         """
         """
         mpred, cpred = randvar.mean(), randvar.cov()
         if np.isscalar(mpred) and np.isscalar(cpred):
             mpred, cpred = mpred*np.ones(1), cpred*np.eye(1)
-        jacob = self.measurementmodel.jacobian(time, mpred, *args, **kwargs)
-        meascov = self.measurementmodel.diffusionmatrix(time, *args, **kwargs)
-        meanest = self.measurementmodel.dynamics(time, mpred, *args, **kwargs)
+        jacob = self.measurementmodel.jacobian(time, mpred,  **kwargs)
+        meascov = self.measurementmodel.diffusionmatrix(time,  **kwargs)
+        meanest = self.measurementmodel.dynamics(time, mpred,  **kwargs)
         covest = jacob @ cpred @ jacob.T + meascov
         ccest = cpred @ jacob.T
         mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)

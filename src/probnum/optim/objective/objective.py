@@ -33,42 +33,42 @@ class Objective:
         self._grad = grad
         self._hess = hess
 
-    def evaluate(self, evalhere, *args, **kwargs):
+    def evaluate(self, evalhere, **kwargs):
         """
         Evaluates all and returns an Eval(...) object.
         """
-        objval = self._obj(evalhere, *args, **kwargs)
+        objval = self._obj(evalhere, **kwargs)
         if self._grad is not None:
-            gradval = self._grad(evalhere, *args, **kwargs)
+            gradval = self._grad(evalhere, **kwargs)
         else:
             gradval = None
         if self._hess is not None:
-            hessval = self._hess(evalhere, *args, **kwargs)
+            hessval = self._hess(evalhere, **kwargs)
         else:
             hessval = None
         return Eval(evalhere, objval, gradval, hessval)
 
-    def objective(self, evalhere, *args, **kwargs):
+    def objective(self, evalhere, **kwargs):
         """
         Evaluates just the objective function.
         """
-        return self._obj(evalhere, *args, **kwargs)
+        return self._obj(evalhere, **kwargs)
 
-    def gradient(self, evalhere, *args, **kwargs):
+    def gradient(self, evalhere, **kwargs):
         """
         Evaluates just the gradient.
         """
         if self._grad is not None:
-            return self._grad(evalhere, *args, **kwargs)
+            return self._grad(evalhere, **kwargs)
         else:
             raise NotImplementedError("Gradient not available.")
 
-    def hessian(self, evalhere, *args, **kwargs):
+    def hessian(self, evalhere, **kwargs):
         """
         Evaluates just the hessian.
         """
         if self._hess is not None:
-            return self._hess(evalhere, *args, **kwargs)
+            return self._hess(evalhere, **kwargs)
         else:
             raise NotImplementedError("Hessian not available.")
 

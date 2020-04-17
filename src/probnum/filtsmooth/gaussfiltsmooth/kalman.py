@@ -62,39 +62,39 @@ class KalmanFilter(gaussfiltsmooth.GaussianFilter):
         """ """
         return self.initdist
 
-    def predict(self, start, stop, randvar, *args, **kwargs):
+    def predict(self, start, stop, randvar, **kwargs):
         """
         """
         if _is_discrete(self.dynamod):
-            return self._predict_discrete(start, randvar, *args, **kwargs)
+            return self._predict_discrete(start, randvar, **kwargs)
         else:
-            return self._predict_continuous(start, stop, randvar, *args,
+            return self._predict_continuous(start, stop, randvar,
                                             **kwargs)
 
-    def _predict_discrete(self, start, randvar, *args, **kwargs):
+    def _predict_discrete(self, start, randvar, **kwargs):
         """
         """
         mean, covar = randvar.mean(), randvar.cov()
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
-        dynamat = self.dynamod.dynamicsmatrix(start, *args, **kwargs)
-        forcevec = self.dynamod.force(start, *args, **kwargs)
-        diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
+        dynamat = self.dynamod.dynamicsmatrix(start, **kwargs)
+        forcevec = self.dynamod.force(start, **kwargs)
+        diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
         mpred = dynamat @ mean + forcevec
         ccpred = covar @ dynamat.T
         cpred = dynamat @ ccpred + diffmat
         return RandomVariable(distribution=Normal(mpred, cpred)), ccpred
 
-    def _predict_continuous(self, start, stop, randvar, *args, **kwargs):
+    def _predict_continuous(self, start, stop, randvar, **kwargs):
         """
         The cont. models that are allowed here all have an
         implementation of chapman-kolmogorov.
         """
         step = ((stop - start) / self._nsteps)
         return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar,
-                                                   *args, **kwargs)
+                                                   **kwargs)
 
-    def update(self, time, randvar, data, *args, **kwargs):
+    def update(self, time, randvar, data, **kwargs):
         """
         Only discrete measurement models reach this point.
 
@@ -103,9 +103,9 @@ class KalmanFilter(gaussfiltsmooth.GaussianFilter):
         data : Gaussian RandomVariable (for smoothers) or Dirac
             RandomVariable (for filters).
         """
-        return self._update_discrete(time, randvar, data, *args, **kwargs)
+        return self._update_discrete(time, randvar, data, **kwargs)
 
-    def _update_discrete(self, time, randvar, data, *args, **kwargs):
+    def _update_discrete(self, time, randvar, data, **kwargs):
         """
         Kalman gain: ccest @ inv(covest)
 
@@ -114,8 +114,8 @@ class KalmanFilter(gaussfiltsmooth.GaussianFilter):
         mpred, cpred = randvar.mean(), randvar.cov()
         if np.isscalar(mpred) and np.isscalar(cpred):
             mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
-        measmat = self.measurementmodel.dynamicsmatrix(time, *args, **kwargs)
-        meascov = self.measurementmodel.diffusionmatrix(time, *args, **kwargs)
+        measmat = self.measurementmodel.dynamicsmatrix(time, **kwargs)
+        meascov = self.measurementmodel.diffusionmatrix(time, **kwargs)
         meanest = measmat @ mpred
         covest = measmat @ cpred @ measmat.T + meascov
         ccest = cpred @ measmat.T

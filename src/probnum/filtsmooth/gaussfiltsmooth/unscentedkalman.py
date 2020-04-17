@@ -71,40 +71,40 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         """ """
         return self.initdist
 
-    def predict(self, start, stop, randvar, *args, **kwargs):
+    def predict(self, start, stop, randvar, **kwargs):
         """
         """
         if _is_discrete(self.dynamod):
-            return self._predict_discrete(start, randvar, *args, **kwargs)
+            return self._predict_discrete(start, randvar, **kwargs)
         else:
-            return self._predict_continuous(start, stop, randvar, *args,
+            return self._predict_continuous(start, stop, randvar,
                                             **kwargs)
 
-    def _predict_discrete(self, start, randvar, *args, **kwargs):
+    def _predict_discrete(self, start, randvar, **kwargs):
         """
         """
         if issubclass(type(self.dynamod), DiscreteGaussianLinearModel):
-            return self._predict_discrete_linear(start, randvar, *args,
+            return self._predict_discrete_linear(start, randvar,
                                                  **kwargs)
         else:
-            return self._predict_discrete_nonlinear(start, randvar, *args,
+            return self._predict_discrete_nonlinear(start, randvar,
                                                     **kwargs)
 
-    def _predict_discrete_linear(self, start, randvar, *args, **kwargs):
+    def _predict_discrete_linear(self, start, randvar, **kwargs):
         """
         """
         mean, covar = randvar.mean(), randvar.cov()
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean*np.ones(1), covar*np.eye(1)
-        dynamat = self.dynamod.dynamicsmatrix(start, *args, **kwargs)
-        forcevec = self.dynamod.force(start, *args, **kwargs)
-        diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
+        dynamat = self.dynamod.dynamicsmatrix(start, **kwargs)
+        forcevec = self.dynamod.force(start, **kwargs)
+        diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
         mpred = dynamat @ mean + forcevec
         crosscov = covar @ dynamat.T
         cpred = dynamat @ crosscov + diffmat
         return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
-    def _predict_discrete_nonlinear(self, start, randvar, *args, **kwargs):
+    def _predict_discrete_nonlinear(self, start, randvar, **kwargs):
         """
         Executes unscented transform!
         """
@@ -113,12 +113,12 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
             mean, covar = mean*np.ones(1), covar*np.eye(1)
         sigmapts = self.ut.sigma_points(mean, covar)
         proppts = self.ut.propagate(start, sigmapts, self.dynamod.dynamics)
-        diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
+        diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
         mpred, cpred, crosscov = self.ut.estimate_statistics(proppts, sigmapts,
                                                        diffmat, mean)
         return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
-    def _predict_continuous(self, start, stop, randvar, *args, **kwargs):
+    def _predict_continuous(self, start, stop, randvar, **kwargs):
         """
         The cont. models that are allowed here all have an
         implementation of chapman-kolmogorov.
@@ -128,34 +128,34 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         """
         step = ((stop - start) / self._nsteps)
         return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar,
-                                                   *args, **kwargs)
+                                                   **kwargs)
 
-    def update(self, time, randvar, data, *args, **kwargs):
+    def update(self, time, randvar, data, **kwargs):
         """
         Only discrete measurement models reach this point.
 
         Hence, the update is straightforward.
         """
-        return self._update_discrete(time, randvar, data, *args, **kwargs)
+        return self._update_discrete(time, randvar, data,  **kwargs)
 
-    def _update_discrete(self, time, randvar, data, *args, **kwargs):
+    def _update_discrete(self, time, randvar, data,  **kwargs):
         """
         """
         if issubclass(type(self.dynamod), DiscreteGaussianLinearModel):
-            return self._update_discrete_linear(time, randvar, data, *args,
+            return self._update_discrete_linear(time, randvar, data,
                                                 **kwargs)
         else:
-            return self._update_discrete_nonlinear(time, randvar, data, *args,
+            return self._update_discrete_nonlinear(time, randvar, data,
                                                    **kwargs)
 
-    def _update_discrete_linear(self, time, randvar, data, *args, **kwargs):
+    def _update_discrete_linear(self, time, randvar, data, **kwargs):
         """
         """
         mpred, cpred = randvar.mean(), randvar.cov()
         if np.isscalar(mpred) and np.isscalar(cpred):
             mpred, cpred = mpred*np.ones(1), cpred*np.eye(1)
-        measmat = self.measurementmodel.dynamicsmatrix(time, *args, **kwargs)
-        meascov = self.measurementmodel.diffusionmatrix(time, *args, **kwargs)
+        measmat = self.measurementmodel.dynamicsmatrix(time,  **kwargs)
+        meascov = self.measurementmodel.diffusionmatrix(time,  **kwargs)
         meanest = measmat @ mpred
         covest = measmat @ cpred @ measmat.T + meascov
         ccest = cpred @ measmat.T
@@ -163,7 +163,7 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
-    def _update_discrete_nonlinear(self, time, randvar, data, *args, **kwargs):
+    def _update_discrete_nonlinear(self, time, randvar, data, **kwargs):
         """
         """
         mpred, cpred = randvar.mean(), randvar.cov()
@@ -171,7 +171,7 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
             mpred, cpred = mpred*np.ones(1), cpred*np.eye(1)
         sigmapts = self.ut.sigma_points(mpred, cpred)
         proppts = self.ut.propagate(time, sigmapts, self.measmod.dynamics)
-        meascov = self.measmod.diffusionmatrix(time, *args, **kwargs)
+        meascov = self.measmod.diffusionmatrix(time,  **kwargs)
         meanest, covest, ccest = self.ut.estimate_statistics(proppts, sigmapts,
                                                         meascov, mpred)
         mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)

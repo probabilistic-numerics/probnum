@@ -46,14 +46,14 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         self._diffmatfct = diffmatfct
         self._jacfct = jacfct
 
-    def dynamics(self, time, state, *args, **kwargs):
+    def dynamics(self, time, state,  **kwargs):
         """
         Evaluate g(t_i, x_i).
         """
-        dynas = self._dynafct(time, state, *args, **kwargs)
+        dynas = self._dynafct(time, state,  **kwargs)
         return dynas
 
-    def jacobian(self, time, state, *args, **kwargs):
+    def jacobian(self, time, state,  **kwargs):
         """
         Evaluate Jacobian, d_x g(t_i, x_i),
         of g(t_i, x_i) w.r.t. x_i.
@@ -61,15 +61,15 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         if self._jacfct is None:
             raise NotImplementedError("Jacobian not provided")
         else:
-            return self._jacfct(time, state, *args, **kwargs)
+            return self._jacfct(time, state,  **kwargs)
 
-    def diffusionmatrix(self, time, *args, **kwargs):
+    def diffusionmatrix(self, time,  **kwargs):
         """
         Evaluate S(t_i)
         """
-        return self._diffmatfct(time, *args, **kwargs)
+        return self._diffmatfct(time,  **kwargs)
 
-    def sample(self, time, state, *args, **kwargs):
+    def sample(self, time, state,  **kwargs):
         """
         Samples x_{t} ~ p(x_{t} | x_{s})
         as a function of t and x_s (plus additional parameters).
@@ -79,17 +79,17 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         In an ODE solver setting, one of the additional parameters
         would be the step size.
         """
-        dynavl = self.dynamics(time, state, *args, **kwargs)
-        diffvl = self.diffusionmatrix(time, *args, **kwargs)
+        dynavl = self.dynamics(time, state,  **kwargs)
+        diffvl = self.diffusionmatrix(time,  **kwargs)
         rv = RandomVariable(distribution=Normal(dynavl, diffvl))
         return rv.sample()
 
-    def pdf(self, loc, time, state, *args, **kwargs):
+    def pdf(self, loc, time, state,  **kwargs):
         """
         Evaluates "future" pdf p(x_t | x_s) at loc.
         """
-        dynavl = self.dynamics(time, state, *args, **kwargs)
-        diffvl = self.diffusionmatrix(time, *args, **kwargs)
+        dynavl = self.dynamics(time, state,  **kwargs)
+        diffvl = self.diffusionmatrix(time,  **kwargs)
         normaldist = Normal(dynavl, diffvl)
         return normaldist.pdf(loc)
 
@@ -109,27 +109,27 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         """
         """
 
-        def dynafct(t, x, *args, **kwargs):
-            return dynamatfct(t, *args, **kwargs) @ x + forcefct(t, *args,
+        def dynafct(t, x,  **kwargs):
+            return dynamatfct(t,  **kwargs) @ x + forcefct(t,
                                                                  **kwargs)
 
-        def jacfct(t, x, *args, **kwargs):
-            return dynamatfct(t, *args, **kwargs)
+        def jacfct(t, x,  **kwargs):
+            return dynamatfct(t,  **kwargs)
 
         super().__init__(dynafct, diffmatfct, jacfct)
         self.forcefct = forcefct
 
-    def dynamicsmatrix(self, time, *args, **kwargs):
+    def dynamicsmatrix(self, time,  **kwargs):
         """
         Convenient access to dynamics matrix
         (alternative to "jacobian").
         """
-        return self.jacobian(time, None, *args, **kwargs)
+        return self.jacobian(time, None,  **kwargs)
 
-    def force(self, time, *args, **kwargs):
+    def force(self, time,  **kwargs):
         """
         """
-        return self.forcefct(time, *args, **kwargs)
+        return self.forcefct(time,  **kwargs)
 
 
 class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):

@@ -20,7 +20,7 @@ class BayesianFilter(ABC):
     """
 
     @abstractmethod
-    def predict(self, start, stop, randvar, *args, **kwargs):
+    def predict(self, start, stop, randvar, **kwargs):
         """
         Predicts value of model at "stop" from "randvar" at "start".
 
@@ -34,7 +34,7 @@ class BayesianFilter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def update(self, time, randvar, data, *args, **kwargs):
+    def update(self, time, randvar, data, **kwargs):
         """
         """
         raise NotImplementedError
