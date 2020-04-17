@@ -113,13 +113,13 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         mean, covar = randvar.mean(), randvar.cov()
         time = start
         while time < stop:
-            meanincr, covarincr = self._iterate(time, mean, covar, *args,
+            meanincr, covarincr = self._increment(time, mean, covar, *args,
                                                 **kwargs)
             mean, covar = mean + step * meanincr, covar + step * covarincr
             time = time + step
-        return RandomVariable(distribution=Normal(mean, covar))
+        return RandomVariable(distribution=Normal(mean, covar)), None
 
-    def _iterate(self, time, mean, covar, *args, **kwargs):
+    def _increment(self, time, mean, covar, *args, **kwargs):
         """
         RHS of Eq. 10.82 in Applied SDEs
         """
@@ -218,8 +218,8 @@ class LTISDEModel(LinearSDEModel):
             mean, cov = mean * np.ones(1), cov * np.eye(1)
         increment = stop - start
         newmean = self._predict_mean(increment, mean)
-        newcov = self._predict_covar(increment, cov)
-        return RandomVariable(distribution=Normal(newmean, newcov))
+        newcov, crosscov = self._predict_covar(increment, cov)
+        return RandomVariable(distribution=Normal(newmean, newcov)), crosscov
 
     def _predict_mean(self, h, mean):
         """
@@ -256,7 +256,9 @@ class LTISDEModel(LinearSDEModel):
         transformed_sol = scipy.linalg.expm(increment * blockmat) @ initstate
         trans = scipy.linalg.expm(increment * drift)
         transdiff = proj @ transformed_sol @ trans.T
-        return trans @ cov @ trans.T + transdiff
+        crosscov = cov @ trans.T
+        newcov = trans @ crosscov + transdiff
+        return newcov, crosscov
 
 
 def _check_initial_state_dimensions(drift, force, disp, diff):

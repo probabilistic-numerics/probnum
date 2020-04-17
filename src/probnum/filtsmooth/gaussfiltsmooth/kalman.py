@@ -16,6 +16,16 @@ from probnum.filtsmooth.statespace.continuous.linearsdemodel import *
 from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
 
 
+class KalmanSmoother(gaussfiltsmooth.GaussianSmoother):
+    """
+    Kalman smoother as a simple add-on to the filtering.
+    The rest is implemented in GaussianSmoother.
+    """
+
+    def __init__(self, dynamod, measmod, initrv, _nsteps=15):
+        """ """
+        kalfilt = KalmanFilter(dynamod, measmod, initrv, _nsteps)
+        super().__init__(kalfilt)
 
 
 class KalmanFilter(gaussfiltsmooth.GaussianFilter):
@@ -71,8 +81,9 @@ class KalmanFilter(gaussfiltsmooth.GaussianFilter):
         forcevec = self.dynamod.force(start, *args, **kwargs)
         diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
         mpred = dynamat @ mean + forcevec
-        cpred = dynamat @ covar @ dynamat.T + diffmat
-        return RandomVariable(distribution=Normal(mpred, cpred))
+        ccpred = covar @ dynamat.T
+        cpred = dynamat @ ccpred + diffmat
+        return RandomVariable(distribution=Normal(mpred, cpred)), ccpred
 
     def _predict_continuous(self, start, stop, randvar, *args, **kwargs):
         """
@@ -108,8 +119,8 @@ class KalmanFilter(gaussfiltsmooth.GaussianFilter):
         meanest = measmat @ mpred
         covest = measmat @ cpred @ measmat.T + meascov
         ccest = cpred @ measmat.T
-        mean = mpred + ccest @ np.linalg.solve(covest, data.mean() - meanest)
-        cov = cpred + ccest @ np.linalg.solve((data.cov() - covest).T, ccest.T)
+        mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
+        cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
 

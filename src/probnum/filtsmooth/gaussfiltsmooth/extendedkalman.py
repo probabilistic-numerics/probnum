@@ -8,7 +8,17 @@ from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace.continuous import LinearSDEModel
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 
-__all__ = ["ExtendedKalmanFilter"]
+
+class ExtendedKalmanSmoother(gaussfiltsmooth.GaussianSmoother):
+    """
+    ExtendedKalman smoother as a simple add-on to the filtering.
+    The rest is implemented in GaussianSmoother.
+    """
+
+    def __init__(self, dynamod, measmod, initrv, _nsteps=15):
+        """ """
+        extkalfilt = ExtendedKalmanFilter(dynamod, measmod, initrv, _nsteps)
+        super().__init__(extkalfilt)
 
 
 class ExtendedKalmanFilter(gaussfiltsmooth.GaussianFilter):
@@ -74,8 +84,9 @@ class ExtendedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
         jacob = self.dynamod.jacobian(start, mean, *args, **kwargs)
         mpred = self.dynamod.dynamics(start, mean, *args, **kwargs)
-        cpred = jacob @ covar @ jacob.T + diffmat
-        return RandomVariable(distribution=Normal(mpred, cpred))
+        crosscov = covar @ jacob.T
+        cpred = jacob @ crosscov + diffmat
+        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
     def _predict_continuous(self, start, stop, randvar, *args, **kwargs):
         """
@@ -108,8 +119,8 @@ class ExtendedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         meanest = self.measurementmodel.dynamics(time, mpred, *args, **kwargs)
         covest = jacob @ cpred @ jacob.T + meascov
         ccest = cpred @ jacob.T
-        mean = mpred + ccest @ np.linalg.solve(covest, data.mean() - meanest)
-        cov = cpred + ccest @ np.linalg.solve((data.cov() - covest).T, ccest.T)
+        mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
+        cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
 
