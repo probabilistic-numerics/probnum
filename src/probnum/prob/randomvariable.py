@@ -389,5 +389,5 @@ def _scipystats_to_rv(obj):
                             logcdf=obj.logcdf,
                             sample=obj.rvs,
                             mean=obj.mean,
-                            cov=obj.cov,
+                            cov=obj.var,
                             random_state=obj.random_state)
