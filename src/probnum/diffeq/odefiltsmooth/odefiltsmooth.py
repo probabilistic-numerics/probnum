@@ -271,9 +271,9 @@ def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
 def _string_to_prior(ivp, which_prior, **pars):
     """
     """
-    ibm_family = ["ibm1", "ibm2", "ibm3"]
-    ioup_family = ["ioup1", "ioup2", "ioup3"]
-    matern_family = ["matern32", "matern52", "matern72"]
+    ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
+    ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
+    matern_family = ["matern32", "matern52", "matern72", "matern92"]
     if which_prior in ibm_family:
         return _string_to_prior_ibm(ivp, which_prior, **pars)
     elif which_prior in ioup_family:
@@ -296,6 +296,8 @@ def _string_to_prior_ibm(ivp, which_prior, **pars):
         return prior.IBM(2, ivp.ndim, diffconst)
     elif which_prior == "ibm3":
         return prior.IBM(3, ivp.ndim, diffconst)
+    elif which_prior == "ibm4":
+        return prior.IBM(4, ivp.ndim, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -316,6 +318,8 @@ def _string_to_prior_ioup(ivp, which_prior, **pars):
         return prior.IOUP(2, ivp.ndim, driftspeed, diffconst)
     elif which_prior == "ioup3":
         return prior.IOUP(3, ivp.ndim, driftspeed, diffconst)
+    elif which_prior == "ioup4":
+        return prior.IOUP(4, ivp.ndim, driftspeed, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -336,6 +340,8 @@ def _string_to_prior_matern(ivp, which_prior, **pars):
         return prior.Matern(2, ivp.ndim, lengthscale, diffconst)
     elif which_prior == "matern72":
         return prior.Matern(3, ivp.ndim, lengthscale, diffconst)
+    elif which_prior == "matern92":
+        return prior.Matern(4, ivp.ndim, lengthscale, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 

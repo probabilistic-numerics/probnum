@@ -160,15 +160,22 @@ def _initialmean(ivp, h0, prior):
         return _alternate3(x0, dx0, ddx0)
     elif prior.ordint == 3:  # (x0, f(x0), ddx, dddx)
         return _alternate4(x0, dx0, ddx0, dddx0)
+    elif prior.ordint == 4:
+        return _alternate5(x0, dx0, ddx0, dddx0, np.zeros(x0.shape))
     else:
-        raise NotImplementedError("Higher order methods require higher order derivatives of f")
+        raise NotImplementedError("Higher order methods not supported")
 
 def _ddx(t, x, ivp):
     """
     x''(t) = J_f(x(t)) @ f(x(t))
     """
-    jac = ivp.jacobian(t, x)
+    try:
+        jac = ivp.jacobian(t, x)
+    except NotImplementedError:
+        jac = np.zeros((len(x), len(x)))
     evl = ivp.rhs(t, x)
+    if np.isscalar(evl) is True:
+        evl = evl * np.ones(1)
     return jac @ evl
 
 def _dddx(t, x, ivp):
@@ -177,9 +184,13 @@ def _dddx(t, x, ivp):
     with an approximate Hessian-vector product.
     """
     rate = 1e-14
-    jac = ivp.jacobian(t, x)
     evl = ivp.rhs(t, x)
-    hess_at_f = (ivp.jacobian(0., x + rate*evl) - jac)
+    try:
+        jac = ivp.jacobian(t, x)
+        hess_at_f = (ivp.jacobian(0., x + rate * evl) - jac)
+    except NotImplementedError:
+        jac = np.zeros((len(x), len(x)))
+        hess_at_f = jac.copy()
     return hess_at_f @ evl + jac.T @ jac @ evl
 
 
@@ -201,3 +212,9 @@ def _alternate4(arr1, arr2, arr3, arr4):
     takes (a, b, c) and (d, e, f) into (a, d, b, e, c, f).
     """
     return np.vstack((arr1.T, arr2.T, arr3.T, arr4.T)).T.flatten()
+
+def _alternate5(arr1, arr2, arr3, arr4, arr5):
+    """
+    takes (a, b, c) and (d, e, f) into (a, d, b, e, c, f).
+    """
+    return np.vstack((arr1.T, arr2.T, arr3.T, arr4.T, arr5.T)).T.flatten()
