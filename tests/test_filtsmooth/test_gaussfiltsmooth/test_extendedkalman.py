@@ -15,7 +15,7 @@ from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
 
 
 np.random.seed(2532)
-VISUALISE = False  # show plots or not?
+VISUALISE = True  # show plots or not?
 
 if VISUALISE is True:
     import matplotlib.pyplot as plt
@@ -96,21 +96,16 @@ class TestExtendedKalmanFilterDiscreteDiscrete(ExtendedKalmanDDTestCase):
         RMSE of filter smaller than rmse of measurements?
         """
         tms = np.arange(0, 20, DELTA_T)
-        states, obs = util.generate_dd(self.dynmod, self.measmod,
-                                             self.initdist, tms)
+        states, obs = util.generate_dd(self.dynmod, self.measmod, self.initdist, tms)
         means, covars = self.kf.filter(obs, tms)
-        rmse_means = np.linalg.norm(means[1:, :2] - states[1:, :2]) / np.sqrt(
-            states[1:, :2].size)
-        rmse_obs = np.linalg.norm(obs - states[1:, :2]) / np.sqrt(
-            states[1:, :2].size)
+        rmse_means = np.linalg.norm(means[1:, :2] - states[1:, :2]) / np.sqrt(states[1:, :2].size)
+        rmse_obs = np.linalg.norm(obs - states[1:, :2]) / np.sqrt(states[1:, :2].size)
         if VISUALISE is True:
             plt.title("Car tracking trajectory (%.2f < %.2f?)" % (
                 rmse_means, rmse_obs))
-            plt.plot(obs[:, 0], obs[:, 1], '.', label="Observations",
-                     alpha=0.5)
+            plt.plot(obs[:, 0], obs[:, 1], '.', label="Observations", alpha=0.5)
             plt.plot(means[:, 0], means[:, 1], '-', label="Filter guess")
-            plt.plot(states[:, 0], states[:, 1], '-', linewidth=6, alpha=0.25,
-                     label="Truth")
+            plt.plot(states[:, 0], states[:, 1], '-', linewidth=6, alpha=0.25, label="Truth")
             plt.legend()
             plt.show()
         self.assertLess(rmse_means, rmse_obs)
@@ -216,7 +211,7 @@ class ExtendedKalmanCDTestCase(unittest.TestCase):
     def setUp(self):
         """
         """
-        self.lam, self.q, r = 0.21, 0.5, 0.1
+        self.lam, self.q, r = 0.21, 0.5, 0.01
         self.drift = -self.lam * np.eye(1)
         self.force = np.zeros(1)
         self.disp = np.eye(1)
@@ -296,15 +291,20 @@ class TestExtendedKalmanFilterContinuousDiscrete(ExtendedKalmanCDTestCase):
         rmse_means = np.linalg.norm(means[1:] - states[1:]) / np.sqrt(
             states[1:].size)
         rmse_obs = np.linalg.norm(obs - states[1:]) / np.sqrt(states[1:].size)
-
         if VISUALISE is True:
-            plt.title(
+            stdevs = np.sqrt(covars[:, 0, 0])
+            fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+            fig.suptitle(
                 "Ornstein Uhlenbeck (%.2f < %.2f?)" % (rmse_means, rmse_obs))
-            plt.plot(tms[1:], obs[:, 0], '.', label="Observations", alpha=0.5)
-            plt.plot(tms, means, '-', label="Filter guess")
-            plt.plot(tms, states, '-', linewidth=6, alpha=0.25, label="Truth")
-            plt.legend()
+            ax[0].plot(tms[1:], obs[:, 0], '.', label="Observations", alpha=0.5)
+            ax[0].plot(tms, means, '-', label="Filter guess")
+            ax[0].plot(tms, states, '-', linewidth=6, alpha=0.25, label="Truth")
+            ax[0].legend()
+
+            ax[1].plot(tms, means, '-', label="Filter guess")
+            ax[1].fill_between(tms, means[:, 0]-3*stdevs, means[:, 0]+3*stdevs, alpha=0.25, label="Unc.")
             plt.show()
+
         self.assertLess(rmse_means, rmse_obs)
 
 
@@ -370,7 +370,7 @@ class TestExtendedKalmanSmootherContinuousDiscrete(ExtendedKalmanCDTestCase):
         RMSE of smoother smaller than rmse of filter
         smaller than rmse of measurements?
         """
-        tms = np.arange(0, 20, DELTA_T)
+        tms = np.arange(0, 2, DELTA_T)
         states, obs = util.generate_cd(self.dynmod, self.measmod,
                                              self.initdist, tms)
         fimeans, ficovars = self.kf.filter(obs, tms)
@@ -382,14 +382,24 @@ class TestExtendedKalmanSmootherContinuousDiscrete(ExtendedKalmanCDTestCase):
         rmse_obs = np.linalg.norm(obs - states[1:]) / np.sqrt(states[1:].size)
 
         if VISUALISE is True:
-            plt.title(
-                "Ornstein Uhlenbeck (%.2f < %.2f < %.2f?)" % (rmse_means, rmse_fimeans, rmse_obs))
-            plt.plot(tms[1:], obs[:, 0], '.', label="Observations", alpha=0.5)
-            plt.plot(tms, means, '-', label="Smoother guess")
-            plt.plot(tms, fimeans, '-', label="Filter guess")
-            plt.plot(tms, states, '-', linewidth=6, alpha=0.25, label="Truth")
-            plt.legend()
+
+            fistdevs = np.sqrt(ficovars[:, 0, 0])
+            stdevs = np.sqrt(covars[:, 0, 0])
+            fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+            fig.suptitle("Ornstein Uhlenbeck (%.2f < %.2f < %.2f?)" % (rmse_means, rmse_fimeans, rmse_obs))
+            ax[0].plot(tms[1:], obs[:, 0], '.', label="Observations", alpha=0.5)
+            ax[0].plot(tms, fimeans, '-', label="Filter guess")
+            ax[0].plot(tms, means, '-', label="Smoother guess")
+            ax[0].plot(tms, states, '-', linewidth=6, alpha=0.25, label="Truth")
+            ax[0].legend()
+
+            ax[1].plot(tms, fimeans, 'x-', label="Filter guess")
+            ax[1].fill_between(tms, fimeans[:, 0]-3*fistdevs, fimeans[:, 0]+3*fistdevs, alpha=0.25, label="Filter Unc.")
+            ax[1].plot(tms, means, 'x-', label="Smoother guess")
+            ax[1].fill_between(tms, means[:, 0]-3*stdevs, means[:, 0]+3*stdevs, alpha=0.25, label="Smoother Unc.")
+            ax[1].legend()
             plt.show()
+
         self.assertLess(rmse_means, rmse_fimeans)
         self.assertLess(rmse_fimeans, rmse_obs)
 

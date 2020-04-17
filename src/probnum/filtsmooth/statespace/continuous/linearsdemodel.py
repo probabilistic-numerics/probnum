@@ -199,11 +199,11 @@ class LTISDEModel(LinearSDEModel):
 
     def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
         """
-        Solves Chapman-Kolmogorov equation.
+        Solves Chapman-Kolmogorov equation from start to stop via step.
 
-        Computes closed form solutions for the Chapman-Kolmogorov
-        equations via closed form solutions to the ODE for mean and
-        covariance (see super().chapmankolmogorov(...))
+        For LTISDEs, there is a closed form solutions to the ODE for
+        mean and covariance (see super().chapmankolmogorov(...)). We
+        exploit this for [(stop - start)/step] steps.
 
         References
         ----------
@@ -216,6 +216,9 @@ class LTISDEModel(LinearSDEModel):
         if np.isscalar(mean) and np.isscalar(cov):
             mean, cov = mean * np.ones(1), cov * np.eye(1)
         increment = stop - start
+
+
+
         newmean = self._predict_mean(increment, mean)
         newcov, crosscov = self._predict_covar(increment, cov)
         return RandomVariable(distribution=Normal(newmean, newcov)), crosscov
@@ -238,7 +241,7 @@ class LTISDEModel(LinearSDEModel):
 
     def _predict_covar(self, increment, cov):
         """
-        Predicts mean via closed-form solution to Chapman-Kolmogorov
+        Predicts covariance via closed-form solution to Chapman-Kolmogorov
         equation for Gauss-Markov processes according to Eq. 6.41 and
         Eq. 6.42 in Applied SDEs.
 
