@@ -20,7 +20,7 @@ class GaussianFilter(bayesianfilter.BayesianFilter, ABC):
     Maintains "abstractness" of predict() and update()
     of BayesianFilter class but adds a filter()
     method.
-    Kalman-like filters (KF, EKF, UKF)inherit from
+    Kalman-like filters (KF, EKF, UKF) inherit from
     GaussianFilter instead of BayesianFilter
     to leverage the filter() method.
     """
