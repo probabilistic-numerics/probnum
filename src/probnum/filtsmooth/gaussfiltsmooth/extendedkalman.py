@@ -108,8 +108,8 @@ class ExtendedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         meanest = self.measurementmodel.dynamics(time, mpred, *args, **kwargs)
         covest = jacob @ cpred @ jacob.T + meascov
         ccest = cpred @ jacob.T
-        mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
-        cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
+        mean = mpred + ccest @ np.linalg.solve(covest, data.mean() - meanest)
+        cov = cpred + ccest @ np.linalg.solve((data.cov() - covest).T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
 

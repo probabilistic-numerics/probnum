@@ -77,7 +77,8 @@ class TestExtendedKalmanFilterDiscreteDiscrete(unittest.TestCase):
         """
         """
         data = self.measmod.sample(0., self.initdist.mean()*np.ones(1))
-        upd, __, __, __ = self.kf.update(0., self.initdist, data)
+        data_as_rv = RandomVariable(distribution=Normal(data, np.zeros((len(data), len(data)))))
+        upd, __, __, __ = self.kf.update(0., self.initdist, data_as_rv)
         self.assertEqual(upd.mean().ndim, 1)
         self.assertEqual(upd.mean().shape[0], 4)
         self.assertEqual(upd.cov().ndim, 2)
@@ -169,8 +170,9 @@ class TestExtendedKalmanFilterContinuousDiscrete(unittest.TestCase):
     def test_update(self):
         """
         """
-        data = self.measmod.sample(0., self.initdist.mean()*np.ones(1))
-        upd, __, __, __ = self.kf.update(0., self.initdist, data)
+        data = np.array([self.measmod.sample(0., self.initdist.mean()*np.ones(1))])
+        data_as_rv = RandomVariable(distribution=Normal(data, np.zeros((len(data), len(data)))))
+        upd, __, __, __ = self.kf.update(0., self.initdist, data_as_rv)
         self.assertEqual(np.isscalar(upd.mean()), True)
         self.assertEqual(np.isscalar(upd.cov()), True)
 

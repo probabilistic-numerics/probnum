@@ -145,8 +145,8 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         meanest = measmat @ mpred
         covest = measmat @ cpred @ measmat.T + meascov
         ccest = cpred @ measmat.T
-        mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
-        cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
+        mean = mpred + ccest @ np.linalg.solve(covest, data.mean() - meanest)
+        cov = cpred + ccest @ np.linalg.solve((data.cov() - covest).T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
     def _update_discrete_nonlinear(self, time, randvar, data, *args, **kwargs):
@@ -160,8 +160,8 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         meascov = self.measmod.diffusionmatrix(time, *args, **kwargs)
         meanest, covest, ccest = self.ut.estimate_statistics(proppts, sigmapts,
                                                         meascov, mpred)
-        mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
-        cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
+        mean = mpred + ccest @ np.linalg.solve(covest, data.mean() - meanest)
+        cov = cpred + ccest @ np.linalg.solve((data.cov() - covest).T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
 

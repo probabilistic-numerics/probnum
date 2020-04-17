@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from probnum.prob import RandomVariable, Normal
 from probnum.filtsmooth import bayesianfilter
 
 
@@ -97,7 +98,8 @@ class GaussianFilter(bayesianfilter.BayesianFilter, ABC):
             predicted = self.predict(times[idx - 1], times[idx],
                                      currdist, *args, **kwargs)
             data = datastream(times[idx], *args, **kwargs)
-            currdist, __, __, __ = self.update(times[idx], predicted, data, *args, **kwargs)
+            data_as_rv = RandomVariable(distribution=Normal(data, np.zeros((len(data), len(data)))))
+            currdist, __, __, __ = self.update(times[idx], predicted, data_as_rv, *args, **kwargs)
             means[idx], covars[idx] = currdist.mean(), currdist.cov()
         return means, covars
 
