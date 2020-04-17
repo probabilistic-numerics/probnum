@@ -7,7 +7,20 @@ from probnum.filtsmooth.statespace.continuous import LinearSDEModel
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel, DiscreteGaussianLinearModel
 
 
-__all__ = ["UnscentedKalmanFilter"]
+
+class UnscentedKalmanSmoother(gaussfiltsmooth.GaussianSmoother):
+    """
+    Kalman smoother as a simple add-on to the filtering.
+    The rest is implemented in GaussianSmoother.
+    """
+
+    def __init__(self, dynamod, measmod, initdist, alpha, beta, kappa,
+                 _nsteps=15):
+        """ """
+        unscentedkalfilt = UnscentedKalmanFilter(dynamod, measmod, initdist, alpha, beta, kappa,
+                 _nsteps)
+        super().__init__(unscentedkalfilt)
+
 
 
 class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
@@ -87,8 +100,9 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         forcevec = self.dynamod.force(start, *args, **kwargs)
         diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
         mpred = dynamat @ mean + forcevec
-        cpred = dynamat @ covar @ dynamat.T + diffmat
-        return RandomVariable(distribution=Normal(mpred, cpred))
+        crosscov = covar @ dynamat.T
+        cpred = dynamat @ crosscov + diffmat
+        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
     def _predict_discrete_nonlinear(self, start, randvar, *args, **kwargs):
         """
@@ -100,9 +114,9 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         sigmapts = self.ut.sigma_points(mean, covar)
         proppts = self.ut.propagate(start, sigmapts, self.dynamod.dynamics)
         diffmat = self.dynamod.diffusionmatrix(start, *args, **kwargs)
-        mpred, cpred, __ = self.ut.estimate_statistics(proppts, sigmapts,
+        mpred, cpred, crosscov = self.ut.estimate_statistics(proppts, sigmapts,
                                                        diffmat, mean)
-        return RandomVariable(distribution=Normal(mpred, cpred))
+        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
     def _predict_continuous(self, start, stop, randvar, *args, **kwargs):
         """
@@ -145,8 +159,8 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         meanest = measmat @ mpred
         covest = measmat @ cpred @ measmat.T + meascov
         ccest = cpred @ measmat.T
-        mean = mpred + ccest @ np.linalg.solve(covest, data.mean() - meanest)
-        cov = cpred + ccest @ np.linalg.solve((data.cov() - covest).T, ccest.T)
+        mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
+        cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
     def _update_discrete_nonlinear(self, time, randvar, data, *args, **kwargs):
@@ -160,8 +174,8 @@ class UnscentedKalmanFilter(gaussfiltsmooth.GaussianFilter):
         meascov = self.measmod.diffusionmatrix(time, *args, **kwargs)
         meanest, covest, ccest = self.ut.estimate_statistics(proppts, sigmapts,
                                                         meascov, mpred)
-        mean = mpred + ccest @ np.linalg.solve(covest, data.mean() - meanest)
-        cov = cpred + ccest @ np.linalg.solve((data.cov() - covest).T, ccest.T)
+        mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
+        cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
         return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
 
 
