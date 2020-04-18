@@ -37,7 +37,7 @@ class GaussianIVPSmoother(odesolver.ODESolver):
         """
         """
         means, covars, times = self.gauss_ode_filt.solve(firststep, **kwargs)
-        smoothed_means, smoothed_covars = self.smoother.smoothen_filteroutput(means, covars, times, **kwargs)
+        smoothed_means, smoothed_covars = self.smoother.smooth_filterout(means, covars, times, **kwargs)
         return smoothed_means, smoothed_covars, times
 
 class GaussianIVPFilter(odesolver.ODESolver):
