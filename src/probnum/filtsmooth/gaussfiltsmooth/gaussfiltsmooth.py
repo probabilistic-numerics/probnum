@@ -9,90 +9,94 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from probnum.prob import RandomVariable, Normal
-from probnum.filtsmooth import bayesianfilter, LinearSDEModel, LTISDEModel
+from probnum.filtsmooth.statespace import *
+
+__all__ = ["GaussianFilter", "GaussianSmoother", "ContContGaussianFilter",
+           "ContDiscGaussianFilter", "DiscDiscGaussianFilter"]
 
 
+# _GaussFiltSmooth #####################################################
 
-class GaussFiltSmooth(bayesianfilter.BayesianFilter, ABC):
+class _GaussFiltSmooth:
     """
+    General properties of filters and smoothers.
+
+    E.g. properties
+        * dynamicmodel
+        * measurementmodel
+        * initialdistribution
     """
-    @abstractmethod
-    def predict(self, start, stop, randvar, **kwargs):
-        """
-        Overwrites superclass' abstract method with another
-        abstract method. Same interface.
-
-        Arguments
-        ---------
-        randvar : auxiliary.randomvariable.RandomVariable object
-            usually a Gaussian
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def update(self, time, randvar, data, **kwargs):
-        """
-        Overwrites superclass' abstract method with another
-        abstract method. Same interface.
-        """
-        raise NotImplementedError
+    def __init__(self, dynamod, measmod, initrv):
+        """ """
+        if not issubclass(type(initrv.distribution), Normal):
+            raise TypeError("Gaussian filters need initial random "
+                            "variables with Normal distribution.")
+        self.dynamod = dynamod
+        self.measmod = measmod
+        self.initrv = initrv
 
     @property
-    @abstractmethod
     def dynamicmodel(self):
-        """
-        Overwrites superclass' abstract method with another
-        abstract method. Same interface.
-        """
-        raise NotImplementedError
+        return self.dynamod
 
     @property
-    @abstractmethod
     def measurementmodel(self):
-        """
-        Overwrites superclass' abstract method with another
-        abstract method. Same interface.
-        """
-        raise NotImplementedError
+        return self.measmod
 
     @property
-    @abstractmethod
+    def initialrandomvariable(self):
+        return self.initrv
+
+    @property
     def initialdistribution(self):
-        """
-        Overwrites superclass' abstract method with another
-        abstract method. Same interface.
-        """
-        raise NotImplementedError
+        """ """
+        return self.initrv.distribution
 
 
-class GaussianSmoother(GaussFiltSmooth):
+# Gaussian Smoother ####################################################
+
+class GaussianSmoother(_GaussFiltSmooth):
     """
-    Builds on top of a GaussianFilter. Passes things like predict()
-    down to the filter and has its own smooth() methods instead of the
-    filter() method.
+    Gaussian smoothing.
 
-    Out of the many types of smoothing, the current functionality is
-    restricted to computing smoothing moments on the "mesh", i.e. the
-    locations of the data.
+    Builds on top of GaussianFilter instances
     """
     def __init__(self, gaussfilt):
         """ """
-        assert issubclass(type(gaussfilt), GaussianFilter)
-        if issubclass(type(gaussfilt.dynamicmodel), LinearSDEModel):
-            if not issubclass(type(gaussfilt.dynamicmodel), LTISDEModel):
-                raise TypeError("Only LTI continuous models supported.")
         self.gaussfilt = gaussfilt
+        super().__init__(dynamod=gaussfilt.dynamicmodel,
+                         measmod=gaussfilt.measurementmodel,
+                         initrv=gaussfilt.initialrandomvariable)
 
-    def predict(self, start, stop, randvar, **kwargs):
-        """ """
-        return self.gaussfilt.predict(start, stop, randvar, **kwargs)
+    def smooth(self, dataset, times, **kwargs):
+        """
+        """
 
-    def update(self, time, randvar, data, **kwargs):
-        """ """
-        return self.gaussfilt.update(time, randvar, data, **kwargs)
+        def set_as_stream(time, **kwargs):
+            return dataset[times[1:] == time][0]
 
-    def smoothingstep(self, dist_from, predicted, currdist, crosscov):
+        return self.smooth_stream(set_as_stream, times, **kwargs)
+
+    def smooth_stream(self, datastream, times, **kwargs):
         """ """
+        means, covs, fitimes = self.gaussfilt.filter_stream(datastream, times,
+                                                           **kwargs)
+        smmeans, smcovs = self.smooth_filterout(means, covs, fitimes, **kwargs)
+        return smmeans, smcovs, fitimes
+
+    def smooth_filterout(self, means, covs, times, **kwargs):
+        """ """
+        currdist = RandomVariable(distribution=Normal(means[-1], covs[-1]))
+        for idx in reversed(range(1, len(times))):
+            dist_from = RandomVariable(distribution=Normal(means[idx-1],
+                                                           covs[idx-1]))
+            predicted, crosscov = self.gaussfilt.predict(times[idx-1], times[idx], dist_from, **kwargs)
+            currdist = self.smoothing_step(dist_from, predicted, currdist, crosscov)
+            means[idx-1], covs[idx-1] = currdist.mean(), currdist.cov()
+        return means, covs
+
+    def smoothing_step(self, dist_from, predicted, currdist, crosscov):
+        """Needs some meaningful naming when this is all over with."""
         ms1, ps1 = currdist.mean(), currdist.cov()
         mk, pk = dist_from.mean(), dist_from.cov()
         mk1, pk1 = predicted.mean(), predicted.cov()
@@ -103,101 +107,154 @@ class GaussianSmoother(GaussFiltSmooth):
         newcov = pk + (crosscov @ np.linalg.solve(pk1, firstsolve.T)).T
         return RandomVariable(distribution=Normal(newmean, newcov))
 
-    @property
-    def dynamicmodel(self):
-        """ """
-        return self.gaussfilt.dynamicmodel
 
-    @property
-    def measurementmodel(self):
-        """ """
-        return self.gaussfilt.measurementmodel
+# Gaussian Filter ######################################################
 
-    @property
-    def initialdistribution(self):
-        """ """
-        return self.gaussfilt.initialdistribution
-
-    def smoother_stream(self, datastream, times, **kwargs):
-        """
-        First some filtering, then backwards in time some smoothing.
-        """
-        means, covs = self.gaussfilt.filter_stream(datastream, times, **kwargs)
-        smoothed_means, smoothed_covs = self.smoothen_filteroutput(means, covs, times)
-        return smoothed_means, smoothed_covs
-
-    def smoothen_filteroutput(self, _means, _covs, times, **kwargs):
-        """
-        """
-        means, covs = _means.copy(), _covs.copy()
-        currdist = RandomVariable(distribution=Normal(means[-1], covs[-1]))
-        for idx in reversed(range(1, len(times))):
-            dist_from = RandomVariable(distribution=Normal(means[idx-1],
-                                                           covs[idx-1]))
-            predicted, crosscov = self.predict(times[idx-1], times[idx], dist_from, **kwargs)
-            currdist = self.smoothingstep(dist_from, predicted, currdist, crosscov)
-            means[idx-1], covs[idx-1] = currdist.mean(), currdist.cov()
-        return means, covs
-
-    def smoother(self, dataset, times, **kwargs):
-        """
-        """
-
-        def set_as_stream(time):
-            return dataset[times[1:] == time][0]
-
-        return self.smoother_stream(set_as_stream, times, **kwargs)
-
-class GaussianFilter(GaussFiltSmooth):
+class GaussianFilter(_GaussFiltSmooth, ABC):
     """
-    Maintains "abstractness" of predict() and update()
-    of BayesianFilter class but adds a filter()
-    method.
-    Kalman-like filters (KF, EKF, UKF) inherit from
-    GaussianFilter instead of BayesianFilter
-    to leverage the filter() method.
-
-
-    Note
-    ----
-    The subclasses are forced to implement the abstractmethods in
-    GaussFiltSmooth. Not sure whether this is clean design, but for
-    now it works.
+    Abstract interface for Gaussian filters.
+    Has abstract methods:
+        * filter()         -> Implemented by _**GaussianFilter, ...
+        * filter_stream()  -> Implemented by _**GaussianFilter, ...
+        * predict()        -> implemented by Kalman, ExtendedKalman, ...
+        * update()         -> implemented by Kalman, ExtendedKalman, ...
+    Hence, "proper" subclasses must do both: subclass one of
+    {_ContinuousContinuousGaussianFilter, ...} and provide predict() and
+    update() methods. It is recommended to duplicate the factory pattern
+    from this class at all subclasses.
     """
+
+    def __init__(self, dynamod, measmod, initrv):
+        """
+        """
+        super().__init__(dynamod, measmod, initrv)
+
+    def filter(self, dataset, times, **kwargs):
+        """ """
+
+        def set_as_stream(tm, **kwargs):
+            return dataset[times[1:] == tm][0]
+
+        return self.filter_stream(set_as_stream, times, **kwargs)
+
+    @abstractmethod
+    def filter_stream(self, datastream, times, **kwargs):
+        """ """
+        raise NotImplementedError
+
+    @abstractmethod
+    def predict(self, start, stop, randvar, **kwargs):
+        """ """
+        raise NotImplementedError
+
+    @abstractmethod
+    def update(self, time, randvar, data, **kwargs):
+        """ """
+        raise NotImplementedError
+
+
+class ContContGaussianFilter:
+    """
+    Implements filter() for cont.-cont. state space models.
+
+    If you decide to implement it, feel free to subclass accordingly.
+    """
+    def __init__(self, dynamod, measmod, initrv):
+        """ """
+        raise NotImplementedError("Continuous/Continuous filtering and "
+                                  "smoothing not supported.")
+
+
+class ContDiscGaussianFilter(GaussianFilter):
+    """
+    Incomplete implementation of GaussianFilter for  continuous-discrete
+    models.
+
+    Misses predict() and update() which are provided by the type of
+    Gaussian filter employed: KF, EKF, UKF, etc..
+
+    Implements filter() and filter_stream() for cont.-disc. state space
+    models.
+    """
+    def __init__(self, dynamod, measmod, initrv):
+        """
+        Cannot be created without subclassing and providing predict()
+        and update().
+
+        Asserts that dynamod is continuous and measmod is discrete.
+        """
+        if not issubclass(type(dynamod), ContinuousModel):
+            raise TypeError("ContinuousDiscreteGaussianFilter needs a "
+                            "continuous dynamic model.")
+        if not issubclass(type(measmod), DiscreteModel):
+            raise TypeError("ContinuousDiscreteGaussianFilter needs a "
+                            "discrete measurement model.")
+
+        super().__init__(dynamod, measmod, initrv)
 
     def filter_stream(self, datastream, times, **kwargs):
         """
-        Returns arrays of means and covariances.
-        Assumes discrete measurement model.
-        Able to handle both continuous and discrete dynamics.
-
-
-        Arguments
-        ---------
-        datastream: callable, maps t to (d,) array.
-            Data stream for filtering.
-        times: np.ndarray, shape (ndata + 1, d)
-            time steps of the observations.
+        The zero-th element of 'times' is the time
+        of initial distribution.
         """
-        ndim = self.dynamicmodel.ndim
-        means = np.zeros((len(times), ndim))
-        covars = np.zeros((len(times), ndim, ndim))
-        means[0] = self.initialdistribution.mean()
-        covars[0] = self.initialdistribution.cov()
+        if "nsteps" in kwargs.keys():
+            nsteps = kwargs["nsteps"]
+        else:
+            nsteps = 1
+        filtertimes = [times[0]]
+        means = [self.initialdistribution.mean()]
+        covars = [self.initialdistribution.cov()]
         currdist = self.initialdistribution
         for idx in range(1, len(times)):
-            predicted, __ = self.predict(times[idx - 1], times[idx],
-                                     currdist, **kwargs)
+            intermediate_step = float((times[idx] - times[idx-1]) / nsteps)
+            tm = times[idx - 1]
+            for jdx in range(nsteps):
+                currdist, __ = self.predict(tm, tm + intermediate_step,
+                                            currdist, **kwargs)
+                tm = tm + intermediate_step
+                filtertimes.append(tm)
+                means.append(currdist.mean())
+                covars.append(currdist.cov())
             data = datastream(times[idx], **kwargs)
-            currdist, __, __, __ = self.update(times[idx], predicted, data, **kwargs)
-            means[idx], covars[idx] = currdist.mean(), currdist.cov()
-        return means, covars
+            currdist, __, __, __ = self.update(times[idx], currdist,
+                                               data, **kwargs)
+            means[-1] = currdist.mean()
+            covars[-1] = currdist.cov()
+        return np.array(means), np.array(covars), np.array(filtertimes)
 
-    def filter(self, dataset, times, **kwargs):
-        """
-        """
 
-        def set_as_stream(time):
-            return dataset[times[1:] == time][0]
+class DiscDiscGaussianFilter(GaussianFilter):
+    """
+    Incomplete implementation of GaussianFilter for discrete models.
 
-        return self.filter_stream(set_as_stream, times, **kwargs)
+    Misses predict() and update() which are provided by the type of
+    Gaussian filter employed: KF, EKF, UKF, etc..
+
+    Implements filter() and filter_stream() for disc.-disc. state space
+    models. This is the plain-vanilla filter.
+    """
+    def __init__(self, dynamod, measmod, initrv):
+        """ """
+        if not issubclass(type(dynamod), DiscreteModel):
+            raise TypeError("DiscreteDiscreteGaussianFilter needs a "
+                            "discrete dynamic model.")
+        if not issubclass(type(measmod), DiscreteModel):
+            raise TypeError("DiscreteDiscreteGaussianFilter needs a "
+                            "discrete measurement model.")
+
+        super().__init__(dynamod, measmod, initrv)
+
+    def filter_stream(self, datastream, times, **kwargs):
+        """ """
+        means = [self.initialdistribution.mean()]
+        covars = [self.initialdistribution.cov()]
+        currdist = self.initialdistribution
+        for idx in range(1, len(times)):
+            pred, __ = self.predict(times[idx-1], times[idx],
+                                         currdist, **kwargs)
+            data = datastream(times[idx], **kwargs)
+            currdist, __, __, __ = self.update(times[idx], pred,
+                                               data, **kwargs)
+            means.append(currdist.mean())
+            covars.append(currdist.cov())
+        return np.array(means), np.array(covars), times

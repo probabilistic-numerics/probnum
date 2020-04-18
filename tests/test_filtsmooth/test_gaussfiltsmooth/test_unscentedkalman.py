@@ -322,7 +322,7 @@ class TestUnscentedKalmanFilterContinuousDiscrete(UnscentedKalmanCDTestCase):
         states, obs = util.generate_cd(self.dynmod, self.measmod,
                                              self.initdist, tms)
         means, covars = self.kf.filter(obs, tms)
-        rmse_means = np.linalg.norm(means[1:] - states[1:]) / np.sqrt(
+        rmse_means = np.linalg.norm(means[1:] - states[1:, 0]) / np.sqrt(
             states[1:].size)
         rmse_obs = np.linalg.norm(obs - states[1:]) / np.sqrt(states[1:].size)
 
@@ -414,9 +414,9 @@ class TestUnscentedKalmanSmootherContinuousDiscrete(UnscentedKalmanCDTestCase):
                                              self.initdist, tms)
         fimeans, ficovars = self.kf.filter(obs, tms)
         means, covars = self.ks.smoother(obs, tms)
-        rmse_fimeans = np.linalg.norm(fimeans[1:] - states[1:]) / np.sqrt(
+        rmse_fimeans = np.linalg.norm(fimeans[1:] - states[1:, 0]) / np.sqrt(
             states[1:].size)
-        rmse_means = np.linalg.norm(means[1:] - states[1:]) / np.sqrt(
+        rmse_means = np.linalg.norm(means[1:] - states[1:, 0]) / np.sqrt(
             states[1:].size)
         rmse_obs = np.linalg.norm(obs - states[1:]) / np.sqrt(states[1:].size)
 

@@ -110,8 +110,7 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         """
 
         def dynafct(t, x,  **kwargs):
-            return dynamatfct(t,  **kwargs) @ x + forcefct(t,
-                                                                 **kwargs)
+            return dynamatfct(t,  **kwargs) @ x + forcefct(t, **kwargs)
 
         def jacfct(t, x,  **kwargs):
             return dynamatfct(t,  **kwargs)
@@ -141,5 +140,5 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
     def __init__(self, dynamat, forcevec, diffmat):
         """
         """
-        super().__init__(lambda t: dynamat, lambda t: forcevec,
-                         lambda t: diffmat)
+        super().__init__(lambda t, **kwargs: dynamat, lambda t, **kwargs: forcevec,
+                         lambda t, **kwargs: diffmat)

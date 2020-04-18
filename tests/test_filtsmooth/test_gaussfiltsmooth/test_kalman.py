@@ -1,16 +1,9 @@
 """"""
-import unittest
-
-import numpy as np
 import scipy.linalg
 
-from probnum.filtsmooth.statespace import util
-from probnum.filtsmooth.gaussfiltsmooth import kalman
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
-from probnum.filtsmooth.statespace.continuous.linearsdemodel import *
-from probnum.filtsmooth.statespace.discrete.discretegaussianmodel import *
+from probnum.filtsmooth.gaussfiltsmooth import *
 
+from .filtsmooth_testcases import *
 
 np.random.seed(5472)
 VISUALISE = False  # show plots or not?
@@ -18,58 +11,41 @@ VISUALISE = False  # show plots or not?
 if VISUALISE is True:
     import matplotlib.pyplot as plt
 
-# Car tracking: Ex. 4.3 in Bayesian Filtering and Smoothing
-DELTA_T = 0.1
-VAR = 0.5
-DYNAMAT = np.eye(4) + DELTA_T * np.diag(np.ones(2), 2)
-DYNADIFF = np.diag(
-    np.array([DELTA_T ** 3 / 3, DELTA_T ** 3 / 3, DELTA_T, DELTA_T])) \
-           + np.diag(np.array([DELTA_T ** 2 / 2, DELTA_T ** 2 / 2]), 2) \
-           + np.diag(np.array([DELTA_T ** 2 / 2, DELTA_T ** 2 / 2]), -2)
-MEASMAT = np.eye(2, 4)
-MEASDIFF = VAR * np.eye(2)
-MEAN = np.zeros(4)
-COV = 0.5 * VAR * np.eye(4)
 
+class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
+    """
+    Try Kalman filtering and smoothing on a discrete setting.
+    """
 
-class KalmanDDTestCase(unittest.TestCase):
-    """ """
     def setUp(self):
-        """ """
-        self.dynmod = DiscreteGaussianLTIModel(DYNAMAT, np.zeros(len(DYNAMAT)),
-                                               DYNADIFF)
-        self.measmod = DiscreteGaussianLTIModel(MEASMAT, np.zeros(len(MEASMAT)),
-                                                MEASDIFF)
-        self.initdist = RandomVariable(distribution=Normal(MEAN, COV))
-        self.kf = kalman.KalmanFilter(self.dynmod, self.measmod, self.initdist)
-        self.ks = kalman.KalmanSmoother(self.dynmod, self.measmod, self.initdist)
-
-
-class TestKalmanSmootherDiscreteDiscrete(KalmanDDTestCase):
-    """
-    Try Kalman smoothing on a discrete setting.
-    """
-
+        """
+        """
+        super().setup_cartracking()
+        self.filt = KalmanFilter(self.dynmod, self.measmod, self.initrv)
+        self.smoo = KalmanSmoother(self.dynmod, self.measmod, self.initrv)
 
     def test_dynamicmodel(self):
         """
         """
-        self.assertEqual(self.dynmod, self.ks.dynamicmodel)
+        self.assertEqual(self.dynmod, self.filt.dynamicmodel)
+        self.assertEqual(self.dynmod, self.smoo.dynamicmodel)
 
     def test_measurementmodel(self):
         """
         """
-        self.assertEqual(self.measmod, self.ks.measurementmodel)
+        self.assertEqual(self.measmod, self.filt.measurementmodel)
+        self.assertEqual(self.measmod, self.smoo.measurementmodel)
 
     def test_initialdistribution(self):
         """
         """
-        self.assertEqual(self.initdist, self.ks.initialdistribution)
+        self.assertEqual(self.initrv, self.filt.initialrandomvariable)
+        self.assertEqual(self.initrv, self.smoo.initialrandomvariable)
 
     def test_predict(self):
         """
         """
-        pred, __ = self.ks.predict(0., DELTA_T, self.initdist)
+        pred, __ = self.filt.predict(0., self.delta_t, self.initrv)
         self.assertEqual(pred.mean().ndim, 1)
         self.assertEqual(pred.mean().shape[0], 4)
         self.assertEqual(pred.cov().ndim, 2)
@@ -79,308 +55,123 @@ class TestKalmanSmootherDiscreteDiscrete(KalmanDDTestCase):
     def test_update(self):
         """
         """
-        data = self.measmod.sample(0., self.initdist.mean())
-        upd, __, __, __ = self.ks.update(0., self.initdist, data)
+        data = self.measmod.sample(0., self.initrv.mean())
+        upd, __, __, __ = self.filt.update(0., self.initrv, data)
         self.assertEqual(upd.mean().ndim, 1)
         self.assertEqual(upd.mean().shape[0], 4)
         self.assertEqual(upd.cov().ndim, 2)
         self.assertEqual(upd.cov().shape[0], 4)
         self.assertEqual(upd.cov().shape[1], 4)
+
+    def test_filtsmooth(self):
+        """
+        RMSE of smoother smaller than rmse of filter smaller
+        than of measurements?
+        """
+        filtms, filtcs, filtts = self.filt.filter(self.obs, self.tms)
+        smooms, smoocs, smoots = self.smoo.smooth(self.obs, self.tms)
+
+        normaliser = np.sqrt(self.states[1:, :2].size)
+        filtrmse = np.linalg.norm(filtms[1:, :2] - self.states[1:, :2]) / normaliser
+        smoormse = np.linalg.norm(smooms[1:, :2] - self.states[1:, :2]) / normaliser
+        obs_rmse = np.linalg.norm(self.obs - self.states[1:, :2]) / normaliser
+
+        if VISUALISE is True:
+            plt.title("Car tracking trajectory (%.2f " % smoormse
+                      + "< %.2f < %.2f?)" % (filtrmse, obs_rmse))
+            plt.plot(self.obs[:, 0], self.obs[:, 1], '.',
+                     label="Observations", alpha=0.5)
+            plt.plot(filtms[:, 0], filtms[:, 1], '-', label="Filter guess")
+            plt.plot(smooms[:, 0], smooms[:, 1], '-', label="Smoother guess")
+            plt.plot(self.states[:, 0], self.states[:, 1], '-',
+                     linewidth=6, alpha=0.25, label="Truth")
+            plt.legend()
+            plt.show()
+        self.assertLess(smoormse, filtrmse)
+        self.assertLess(filtrmse, obs_rmse)
+
+
+class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
+    """
+    Try Kalman filtering on a continuous-discrete setting.
+
+    Try OU process.
+    """
+
+    def setUp(self):
+        """ """
+        super().setup_ornsteinuhlenbeck()
+        self.smoo = KalmanSmoother(self.dynmod, self.measmod, self.initrv)
+        self.filt = KalmanFilter(self.dynmod, self.measmod, self.initrv)
+
+    def test_dynamicmodel(self):
+        """
+        """
+        self.assertEqual(self.dynmod, self.smoo.dynamicmodel)
+        self.assertEqual(self.dynmod, self.filt.dynamicmodel)
+
+    def test_measurementmodel(self):
+        """
+        """
+        self.assertEqual(self.measmod, self.smoo.measurementmodel)
+        self.assertEqual(self.measmod, self.filt.measurementmodel)
+
+    def test_initialdistribution(self):
+        """
+        """
+        self.assertEqual(self.initrv, self.smoo.initialrandomvariable)
+        self.assertEqual(self.initrv, self.filt.initialrandomvariable)
+
+
+    def test_predict_shape(self):
+        """
+        """
+        pred, __ = self.filt.predict(0., self.delta_t, self.initrv)
+        self.assertEqual(np.isscalar(pred.mean()), True)
+        self.assertEqual(np.isscalar(pred.cov()), True)
+
+    def test_predict_value(self):
+        """
+        """
+        pred, __ = self.filt.predict(0., self.delta_t, self.initrv)
+        ah = scipy.linalg.expm(self.delta_t * self.drift)
+        qh = self.q / (2 * self.lam) \
+             * (1 - scipy.linalg.expm(2 * self.drift * self.delta_t))
+        expectedmean = np.squeeze(ah @ (self.initrv.mean()*np.ones(1)))
+        expectedcov = np.squeeze(ah @ (self.initrv.cov()*np.eye(1)) @ ah.T + qh)
+        self.assertAlmostEqual(float(expectedmean), pred.mean())
+        self.assertAlmostEqual(float(expectedcov), pred.cov())
+
+    def test_update(self):
+        """
+        """
+        data = np.array([self.measmod.sample(0., self.initrv.mean()*np.ones(1))])
+        upd, __, __, __ = self.filt.update(0., self.initrv, data)
+        self.assertEqual(np.isscalar(upd.mean()), True)
+        self.assertEqual(np.isscalar(upd.cov()), True)
 
     def test_smoother(self):
         """
         RMSE of filter smaller than rmse of measurements?
         """
-        tms = np.arange(0, 20, DELTA_T)
-        states, obs = util.generate_dd(self.dynmod, self.measmod,
-                                             self.initdist, tms)
-        fimeans, ficovars = self.kf.filter(obs, tms)
-        means, covars = self.ks.smoother(obs, tms)
-        rmse_fimeans = np.linalg.norm(fimeans[1:, :2] - states[1:, :2]) / np.sqrt(
-            states[1:, :2].size)
-        rmse_means = np.linalg.norm(means[1:, :2] - states[1:, :2]) / np.sqrt(
-            states[1:, :2].size)
-        rmse_obs = np.linalg.norm(obs - states[1:, :2]) / np.sqrt(
-            states[1:, :2].size)
+        filtms, filtcs, filtts = self.filt.filter(self.obs, self.tms)
+        smooms, smoocs, smoots = self.smoo.smooth(self.obs, self.tms)
+
+        normaliser = np.sqrt(self.states[1:].size)
+        filtrmse = np.linalg.norm(filtms[1:] - self.states[1:, 0]) / normaliser
+        smoormse = np.linalg.norm(smooms[1:] - self.states[1:, 0]) / normaliser
+        obs_rmse = np.linalg.norm(self.obs - self.states[1:]) / normaliser
 
         if VISUALISE is True:
-            plt.title("Car tracking trajectory (%.2f < %.2f< %.2f?)" % (
-                rmse_means, rmse_fimeans, rmse_obs))
-            plt.plot(obs[:, 0], obs[:, 1], '.', label="Observations",
-                     alpha=0.5)
-            plt.plot(fimeans[:, 0], fimeans[:, 1], '-', label="Filter guess")
-            plt.plot(means[:, 0], means[:, 1], '-', label="Smoother guess")
-            plt.plot(states[:, 0], states[:, 1], '-', linewidth=6, alpha=0.25,
-                     label="Truth")
+            plt.title("Ornstein Uhlenbeck (%.2f < " % smoormse
+                      + "%.2f < %.2f?)" % (filtrmse, obs_rmse))
+            plt.plot(self.tms[1:], self.obs[:, 0], '.',
+                     label="Observations", alpha=0.5)
+            plt.plot(filtts, filtms, '-', label="Filter guess")
+            plt.plot(smoots, smooms, '-', label="Smoother guess")
+            plt.plot(self.tms, self.states, '-',
+                     linewidth=6, alpha=0.25, label="Truth")
             plt.legend()
             plt.show()
-        self.assertLess(rmse_means, rmse_fimeans)
-        self.assertLess(rmse_means, rmse_obs)
-
-class TestKalmanFilterDiscreteDiscrete(KalmanDDTestCase):
-    """
-    Try Kalman filtering on a discrete setting.
-    """
-
-
-    def test_dynamicmodel(self):
-        """
-        """
-        self.assertEqual(self.dynmod, self.kf.dynamicmodel)
-
-    def test_measurementmodel(self):
-        """
-        """
-        self.assertEqual(self.measmod, self.kf.measurementmodel)
-
-    def test_initialdistribution(self):
-        """
-        """
-        self.assertEqual(self.initdist, self.kf.initialdistribution)
-
-    def test_predict(self):
-        """
-        """
-        pred, __ = self.kf.predict(0., DELTA_T, self.initdist)
-        self.assertEqual(pred.mean().ndim, 1)
-        self.assertEqual(pred.mean().shape[0], 4)
-        self.assertEqual(pred.cov().ndim, 2)
-        self.assertEqual(pred.cov().shape[0], 4)
-        self.assertEqual(pred.cov().shape[1], 4)
-
-    def test_update(self):
-        """
-        """
-        data = self.measmod.sample(0., self.initdist.mean())
-        upd, __, __, __ = self.kf.update(0., self.initdist, data)
-        self.assertEqual(upd.mean().ndim, 1)
-        self.assertEqual(upd.mean().shape[0], 4)
-        self.assertEqual(upd.cov().ndim, 2)
-        self.assertEqual(upd.cov().shape[0], 4)
-        self.assertEqual(upd.cov().shape[1], 4)
-
-    def test_filter(self):
-        """
-        RMSE of filter smaller than rmse of measurements?
-        """
-        tms = np.arange(0, 20, DELTA_T)
-        states, obs = util.generate_dd(self.dynmod, self.measmod,
-                                             self.initdist, tms)
-        means, covars = self.kf.filter(obs, tms)
-        rmse_means = np.linalg.norm(means[1:, :2] - states[1:, :2]) / np.sqrt(
-            states[1:, :2].size)
-        rmse_obs = np.linalg.norm(obs - states[1:, :2]) / np.sqrt(
-            states[1:, :2].size)
-        if VISUALISE is True:
-            plt.title("Car tracking trajectory (%.2f < %.2f?)" % (
-                rmse_means, rmse_obs))
-            plt.plot(obs[:, 0], obs[:, 1], '.', label="Observations",
-                     alpha=0.5)
-            plt.plot(means[:, 0], means[:, 1], '-', label="Filter guess")
-            plt.plot(states[:, 0], states[:, 1], '-', linewidth=6, alpha=0.25,
-                     label="Truth")
-            plt.legend()
-            plt.show()
-        self.assertLess(rmse_means, rmse_obs)
-
-
-
-class KalmanCDTestCase(unittest.TestCase):
-    """ """
-    def setUp(self):
-        """
-        """
-        self.lam, self.q, r = 0.21, 0.5, 0.1
-        self.drift = -self.lam * np.eye(1)
-        self.force = np.zeros(1)
-        self.disp = np.eye(1)
-        self.diff = self.q * np.eye(1)
-        self.dynmod = LTISDEModel(self.drift, self.force, self.disp, self.diff)
-        self.measmod = DiscreteGaussianLTIModel(np.eye(1), np.zeros(1), r * np.eye(1))
-        self.initdist = RandomVariable(distribution=Normal(10 * np.ones(1), np.eye(1)))
-        self.kf = kalman.KalmanFilter(self.dynmod, self.measmod, self.initdist)
-        self.ks = kalman.KalmanSmoother(self.dynmod, self.measmod, self.initdist)
-
-
-class TestKalmanSmootherContinuousDiscrete(KalmanCDTestCase):
-    """
-    Try Kalman filtering on a continuous-discrete setting.
-
-    Try OU process.
-    """
-
-    def test_dynamicmodel(self):
-        """
-        """
-        self.assertEqual(self.dynmod, self.ks.dynamicmodel)
-
-    def test_measurementmodel(self):
-        """
-        """
-        self.assertEqual(self.measmod, self.ks.measurementmodel)
-
-    def test_initialdistribution(self):
-        """
-        """
-        self.assertEqual(self.initdist, self.ks.initialdistribution)
-
-    def test_predict_shape(self):
-        """
-        """
-        pred, __ = self.ks.predict(0., DELTA_T, self.initdist)
-        self.assertEqual(np.isscalar(pred.mean()), True)
-        self.assertEqual(np.isscalar(pred.cov()), True)
-
-    def test_predict_value(self):
-        """
-        """
-        pred, __ = self.ks.predict(0., DELTA_T, self.initdist)
-        ah = scipy.linalg.expm(DELTA_T * self.drift)
-        qh = self.q / (2 * self.lam) * (
-                1 - scipy.linalg.expm(2 * self.drift * DELTA_T))
-        initmean = self.initdist.mean() * np.ones(1)
-        initcov = self.initdist.cov() * np.eye(1)
-        predmean = pred.mean() * np.ones(1)
-        predcov = pred.cov() * np.eye(1)
-        diff_mean = ah @ initmean - predmean
-        diff_covar = ah @ initcov @ ah.T + qh - predcov
-        self.assertLess(np.linalg.norm(diff_mean), 1e-14)
-        self.assertLess(np.linalg.norm(diff_covar), 1e-14)
-
-    def test_update(self):
-        """
-        """
-        data = np.array([self.measmod.sample(0., self.initdist.mean()*np.ones(1))])
-        upd, __, __, __ = self.ks.update(0., self.initdist, data)
-        self.assertEqual(np.isscalar(upd.mean()), True)
-        self.assertEqual(np.isscalar(upd.cov()), True)
-
-    def test_filter(self):
-        """
-        RMSE of filter smaller than rmse of measurements?
-        """
-        tms = np.arange(0, 20, DELTA_T)
-        states, obs = util.generate_cd(self.dynmod, self.measmod,
-                                             self.initdist, tms)
-        fimeans, ficovars = self.kf.filter(obs, tms)
-        means, covars = self.ks.smoother(obs, tms)
-        rmse_fimeans = np.linalg.norm(fimeans[1:] - states[1:]) / np.sqrt(
-            states[1:].size)
-        rmse_means = np.linalg.norm(means[1:] - states[1:]) / np.sqrt(
-            states[1:].size)
-        rmse_obs = np.linalg.norm(obs - states[1:]) / np.sqrt(states[1:].size)
-
-        if VISUALISE is True:
-            plt.title("Ornstein Uhlenbeck (%.2f < %.2f < %.2f?)" % (rmse_means, rmse_fimeans, rmse_obs))
-            plt.plot(tms[1:], obs[:, 0], '.', label="Observations", alpha=0.5)
-            plt.plot(tms, fimeans, '-', label="Filter guess")
-            plt.plot(tms, means, '-', label="Smoother guess")
-            plt.plot(tms, states, '-', linewidth=6, alpha=0.25, label="Truth")
-            plt.legend()
-            plt.show()
-        self.assertLess(rmse_means, rmse_fimeans)
-        self.assertLess(rmse_fimeans, rmse_obs)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class TestKalmanFilterContinuousDiscrete(KalmanCDTestCase):
-    """
-    Try Kalman filtering on a continuous-discrete setting.
-
-    Try OU process.
-    """
-
-    def test_dynamicmodel(self):
-        """
-        """
-        self.assertEqual(self.dynmod, self.kf.dynamicmodel)
-
-    def test_measurementmodel(self):
-        """
-        """
-        self.assertEqual(self.measmod, self.kf.measurementmodel)
-
-    def test_initialdistribution(self):
-        """
-        """
-        self.assertEqual(self.initdist, self.kf.initialdistribution)
-
-    def test_predict_shape(self):
-        """
-        """
-        pred, __ = self.kf.predict(0., DELTA_T, self.initdist)
-        self.assertEqual(np.isscalar(pred.mean()), True)
-        self.assertEqual(np.isscalar(pred.cov()), True)
-
-    def test_predict_value(self):
-        """
-        """
-        pred, __ = self.kf.predict(0., DELTA_T, self.initdist)
-        ah = scipy.linalg.expm(DELTA_T * self.drift)
-        qh = self.q / (2 * self.lam) * (
-                1 - scipy.linalg.expm(2 * self.drift * DELTA_T))
-        initmean = self.initdist.mean() * np.ones(1)
-        initcov = self.initdist.cov() * np.eye(1)
-        predmean = pred.mean() * np.ones(1)
-        predcov = pred.cov() * np.eye(1)
-        diff_mean = ah @ initmean - predmean
-        diff_covar = ah @ initcov @ ah.T + qh - predcov
-        self.assertLess(np.linalg.norm(diff_mean), 1e-14)
-        self.assertLess(np.linalg.norm(diff_covar), 1e-14)
-
-    def test_update(self):
-        """
-        """
-        data = np.array([self.measmod.sample(0., self.initdist.mean()*np.ones(1))])
-        upd, __, __, __ = self.kf.update(0., self.initdist, data)
-        self.assertEqual(np.isscalar(upd.mean()), True)
-        self.assertEqual(np.isscalar(upd.cov()), True)
-
-    def test_filter(self):
-        """
-        RMSE of filter smaller than rmse of measurements?
-        """
-        tms = np.arange(0, 20, DELTA_T)
-        states, obs = util.generate_cd(self.dynmod, self.measmod,
-                                             self.initdist, tms)
-        means, covars = self.kf.filter(obs, tms)
-        rmse_means = np.linalg.norm(means[1:] - states[1:]) / np.sqrt(
-            states[1:].size)
-        rmse_obs = np.linalg.norm(obs - states[1:]) / np.sqrt(states[1:].size)
-
-        if VISUALISE is True:
-            plt.title(
-                "Ornstein Uhlenbeck (%.2f < %.2f?)" % (rmse_means, rmse_obs))
-            plt.plot(tms[1:], obs[:, 0], '.', label="Observations", alpha=0.5)
-            plt.plot(tms, means, '-', label="Filter guess")
-            plt.plot(tms, states, '-', linewidth=6, alpha=0.25, label="Truth")
-            plt.legend()
-            plt.show()
-        self.assertLess(rmse_means, rmse_obs)
+        self.assertLess(smoormse, filtrmse)
+        self.assertLess(filtrmse, obs_rmse)
