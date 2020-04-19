@@ -44,6 +44,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
     """
     ODE solver that behaves like a Gaussian filter.
 
+
+    This is based on continuous-discrete Gaussian filtering.
+
     Note: this is specific for IVPs and does not apply without
     further considerations to, e.g., BVPs.
     """
@@ -80,16 +83,33 @@ class GaussianIVPFilter(odesolver.ODESolver):
         step = firststep
         ssqest, ct = 0.0, 0
         times, means, covars = [self.ivp.t0], [current.mean()], [current.cov()]
+        if "nsteps" in kwargs.keys():
+            nsteps = kwargs["nsteps"]
+        else:
+            nsteps = 1
         while times[-1] < self.ivp.tmax:
-            new_time = times[-1] + step
-            predicted, __ = self.gfilt.predict(times[-1], new_time, current, **kwargs)
+            intermediate_step = float(step / nsteps)
+            tm = times[-1]
+            interms, intercs, interts = [], [], []
+            for idx in range(nsteps):
+                newtm = tm + intermediate_step
+                current, __ = self.gfilt.predict(tm, newtm, current, **kwargs)
+                interms.append(current.mean())
+                intercs.append(current.cov())
+                interts.append(newtm)
+                tm = newtm
+            predicted = current
+            new_time = tm
+            # predicted, __ = self.gfilt.predict(times[-1], new_time, current, **kwargs)
             zero_data = 0.0
             current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, **kwargs)
+            interms[-1] = current.mean()
+            intercs[-1] = current.cov()
             errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
             if self.steprule.is_accepted(step, errorest) is True:
-                times.append(new_time)
-                means.append(current.mean())
-                covars.append(current.cov())
+                times.extend(interts)
+                means.extend(interms)
+                covars.extend(intercs)
                 ct = ct + 1
                 ssqest = (ssqest + (ssq - ssqest) / ct)
             else:
@@ -170,7 +190,7 @@ def smoother_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", firststep=None, 
     ofi = GaussianIVPSmoother(ivp, gfilt, stprl)
     if firststep == None:
         firststep = ivp.tmax - ivp.t0
-    return ofi.solve(firststep)
+    return ofi.solve(firststep, **pars)
 
 
 def smoother_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
@@ -197,7 +217,7 @@ def smoother_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
     gfilt = _string_to_filter(ivp, prior, which_filt, **pars)
     stprl = _step_to_steprule(step)
     ofi = GaussianIVPSmoother(ivp, gfilt, stprl)
-    return ofi.solve(firststep=step)
+    return ofi.solve(firststep=step, **pars)
 
 
 
@@ -233,7 +253,7 @@ def filter_ivp(ivp, tol, which_prior="ibm1", which_filt="kf", firststep=None, **
     ofi = GaussianIVPFilter(ivp, gfilt, stprl)
     if firststep == None:
         firststep = ivp.tmax - ivp.t0
-    return ofi.solve(firststep)
+    return ofi.solve(firststep, **pars)
 
 
 def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
@@ -260,7 +280,7 @@ def filter_ivp_h(ivp, step, which_prior="ibm1", which_filt="kf", **pars):
     gfilt = _string_to_filter(ivp, prior, which_filt, **pars)
     stprl = _step_to_steprule(step)
     ofi = GaussianIVPFilter(ivp, gfilt, stprl)
-    return ofi.solve(firststep=step)
+    return ofi.solve(firststep=step, **pars)
 
 
 

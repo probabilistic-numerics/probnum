@@ -96,15 +96,22 @@ class GaussianSmoother(_GaussFiltSmooth):
         return means, covs
 
     def smoothing_step(self, dist_from, predicted, currdist, crosscov):
-        """Needs some meaningful naming when this is all over with."""
-        ms1, ps1 = currdist.mean(), currdist.cov()
-        mk, pk = dist_from.mean(), dist_from.cov()
-        mk1, pk1 = predicted.mean(), predicted.cov()
-        if np.isscalar(mk1) and np.isscalar(pk1):
-            mk1, pk1 = mk1 * np.ones(1), pk1 * np.eye(1)
-        newmean = mk + crosscov @ np.linalg.solve(pk1, ms1 - mk1)
-        firstsolve = crosscov @ np.linalg.solve(pk1, ps1 - pk1)
-        newcov = pk + (crosscov @ np.linalg.solve(pk1, firstsolve.T)).T
+        """
+        Needs some meaningful naming when this is all over with.
+        """
+        currmean, currcov = currdist.mean(), currdist.cov()
+        initmean, initcov = dist_from.mean(), dist_from.cov()
+        predmean, predcov = predicted.mean(), predicted.cov()
+        if np.isscalar(predmean) and np.isscalar(predcov):
+            predmean = predmean * np.ones(1)
+            predcov = predcov * np.eye(1)
+        print(np.linalg.cond(predcov))
+        newmean = initmean + crosscov @ np.linalg.solve(predcov, currmean - predmean)
+        firstsolve = crosscov @ np.linalg.solve(predcov, currcov - predcov)
+        newcov = initcov + (crosscov @ np.linalg.solve(predcov, firstsolve.T)).T
+        # gain = crosscov @ np.linalg.inv(predcov)
+        # newmean = initmean + gain @ (currmean - predmean)
+        # newcov = initcov + crosscov @ gain @ (currcov - predcov) @ gain.T
         return RandomVariable(distribution=Normal(newmean, newcov))
 
 

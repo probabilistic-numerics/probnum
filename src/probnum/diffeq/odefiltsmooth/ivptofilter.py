@@ -29,7 +29,7 @@ def ivp_to_kf(ivp, prior, evlvar):
     measmod = _measmod_kf(ivp, h0, prior, evlvar)
     initdist = _initialdistribution(ivp, h0, prior)
     return extendedkalman.ExtendedKalmanFilter(prior, measmod,
-                                    initdist)
+                                               initdist)
 
 
 def _measmod_kf(ivp, h0, prior, evlvar):
@@ -44,13 +44,13 @@ def _measmod_kf(ivp, h0, prior, evlvar):
     h1_1d = np.eye(ordint + 1)[:, 1].reshape((1, ordint + 1))
     h1 = np.kron(np.eye(spatialdim), h1_1d)
 
-    def dyna(t, x):
+    def dyna(t, x, **kwargs):
         return h1 @ x - ivp.rhs(t, h0 @ x)
 
-    def diff(t):
+    def diff(t, **kwargs):
         return evlvar * np.eye(spatialdim)
 
-    def jaco(t, x):
+    def jaco(t, x, **kwargs):
         return h1
 
     return DiscreteGaussianModel(dyna, diff, jaco)
@@ -81,13 +81,13 @@ def _measmod_ekf(ivp, h0, prior, evlvar):
     h1_1d = np.eye(ordint + 1)[:, 1].reshape((1, ordint + 1))
     h1 = np.kron(np.eye(spatialdim), h1_1d)
 
-    def dyna(t, x):
+    def dyna(t, x, **kwargs):
         return h1 @ x - ivp.rhs(t, h0 @ x)
 
-    def diff(t):
+    def diff(t, **kwargs):
         return evlvar * np.eye(spatialdim)
 
-    def jaco(t, x):
+    def jaco(t, x, **kwargs):
         return h1 - ivp.jacobian(t, h0 @ x) @ h0
 
     return DiscreteGaussianModel(dyna, diff, jaco)
@@ -117,10 +117,10 @@ def _measmod_ukf(ivp, h0, prior, measvar):
     h1_1d = np.eye(ordint + 1)[:, 1].reshape((1, ordint + 1))
     h1 = np.kron(np.eye(spatialdim), h1_1d)
 
-    def dyna(t, x):
+    def dyna(t, x, **kwargs):
         return h1 @ x - ivp.rhs(t, h0 @ x)
 
-    def diff(t):
+    def diff(t, **kwargs):
         return measvar * np.eye(spatialdim)
 
     return DiscreteGaussianModel(dyna, diff)

@@ -12,7 +12,7 @@ import numpy as np
 from scipy.special import binom   # for Matern
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
-
+from probnum.prob import RandomVariable, Normal
 
 __all__ = ["IBM", "IOUP", "Matern"]
 
@@ -40,6 +40,58 @@ class IBM(LTISDEModel):
         dispvec = _dispvec_ibm_ioup_matern(self.ordint, self.spatialdim, diffconst)
         diffmat = np.eye(self.spatialdim)
         super().__init__(driftmat, forcevec, dispvec, diffmat)
+
+
+    def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
+        """
+        Overwrites CKE solution with closed form according to IBM.
+        The reason is that for this closed form solution here is more
+        numerically stable than the matrix exponential.
+        "step" variable is obsolent here and is ignored.
+        """
+        mean, covar = randvar.mean(), randvar.cov()
+        ah = self._ah_ibm(start, stop)
+        qh = self._qh_ibm(start, stop)
+        mpred = ah @ mean
+        crosscov = covar @ ah.T
+        cpred = ah @ crosscov + qh
+        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
+
+    def _ah_ibm(self, start, stop):
+        """
+        Computes A(h)
+        """
+
+        def element(stp, rw, cl):
+            """Closed form for A(h)_ij"""
+            if rw <= cl:
+                return stp ** (cl - rw) / np.math.factorial(cl - rw)
+            else:
+                return 0.0
+
+        step = stop - start
+        ah_1d = np.array([[element(step, row, col)
+                           for col in range(self.ordint + 1)]
+                          for row in range(self.ordint + 1)])
+        return np.kron(np.eye(self.spatialdim), ah_1d)
+
+    def _qh_ibm(self, start, stop):
+        """
+        Computes Q(h)
+        """
+
+        def element(stp, ordint, rw, cl, dconst):
+            """Closed form for Q(h)_ij"""
+            idx = 2 * ordint + 1 - rw - cl
+            fact_rw = np.math.factorial(ordint - rw)
+            fact_cl = np.math.factorial(ordint - cl)
+            return dconst ** 2 * (stp ** idx) / (idx * fact_rw * fact_cl)
+
+        step = stop - start
+        qh_1d = np.array([[element(step, self.ordint, row, col, self.diffconst)
+                           for col in range(self.ordint + 1)]
+                          for row in range(self.ordint + 1)])
+        return np.kron(np.eye(self.spatialdim), qh_1d)
 
 def _dynamat_ibm(ordint, spatialdim):
     """
