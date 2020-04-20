@@ -142,9 +142,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """
         ordint, spatialdim = self.gfilt.dynamicmodel.ordint, self.ivp.ndim
         h0_1d = np.eye(ordint + 1)[:, 0].reshape((1, ordint + 1))
-        projmtrx = np.kron(np.eye(spatialdim), h0_1d)
+        projmat = np.kron(np.eye(spatialdim), h0_1d)
         weights = np.ones(len(abserrors))
-        rel_error = (abserrors / np.abs(projmtrx @ currmn)) @ weights / np.linalg.norm(weights)
+        rel_error = (abserrors / np.abs(projmat @ currmn)) @ weights / np.linalg.norm(weights)
         abs_error = abserrors @ weights / np.linalg.norm(weights)
         return np.maximum(rel_error, abs_error)
 

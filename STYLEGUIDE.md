@@ -45,12 +45,14 @@ The way an object is printed defined by `def __repr__(self)` is structured as:
 ```
 
 ### Other Notational Conventions
+Generally, we tend to stick to the first few letters for abbreviations
+if they are sufficiently desciptive. E.g.:
 - `cov`: covariance
 - `fun`: function
-- `mtrx`: matrix
+- `mat`: matrix
 - `vec`: vector
-- `arr`: array; wherever applicable, specify `vec` or `mtrx`
-- `mtrx2arr` vs `mtrx_to_arr` ?
+- `arr`: array; wherever applicable, specify `vec` or `mat`
+- `mat2arr` vs `mat_to_arr` ?
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
 
 

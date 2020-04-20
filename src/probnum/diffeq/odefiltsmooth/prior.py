@@ -28,12 +28,12 @@ class ODEPrior(LTISDEModel):
     The first two are important within the ODE filter, the latter
     turned out to be very convenient to have.
     """
-    def __init__(self, driftmtrx, forcevec, dispmtrx, diffmtrx,
+    def __init__(self, driftmat, forcevec, dispmat, diffmat,
                  ordint, spatialdim):
         """ """
         self.ordint = ordint
         self.spatialdim = spatialdim
-        super().__init__(driftmtrx, forcevec, dispmtrx, diffmtrx)
+        super().__init__(driftmat, forcevec, dispmat, diffmat)
 
     def proj2coord(self, coord):
         """
@@ -44,8 +44,8 @@ class ODEPrior(LTISDEModel):
         Convenience function for development.
         """
         projvec1d = np.eye(self.ordint + 1)[:, coord]
-        projmtrx1d = projvec1d.reshape((1, self.ordint + 1))
-        return np.kron(np.eye(self.spatialdim), projmtrx1d)
+        projmat1d = projvec1d.reshape((1, self.ordint + 1))
+        return np.kron(np.eye(self.spatialdim), projmat1d)
 
 
 class IBM(ODEPrior):

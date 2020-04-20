@@ -260,9 +260,9 @@ class IVP(ODE):
     >>> print(ivp.rhs(0., 2.))
     4.0
     >>> print(ivp.timespan)
-    [0., 10.]
+    [0, 10]
     >>> print(ivp.t0)
-    0.0
+    0
 
     >>> initrv = RandomVariable(distribution=Normal(0.1, 1.0))
     >>> ivp = IVP(timespan, initrv, rhsfun)

@@ -126,15 +126,15 @@ def _initialdistribution(ivp, prior):
     h0 = prior.proj2coord(coord=0)
     h1 = prior.proj2coord(coord=1)
     if prior.ordint == 1:
-        projmtrx = np.hstack((h0.T, h1.T)).T
+        projmat = np.hstack((h0.T, h1.T)).T
         data = np.hstack((x0, dx0))
     else:
         h2 = prior.proj2coord(coord=2)
-        projmtrx = np.hstack((h0.T, h1.T, h2.T)).T
+        projmat = np.hstack((h0.T, h1.T, h2.T)).T
         data = np.hstack((x0, dx0, ddx0))
-    s = projmtrx @ projmtrx.T
-    newmean = projmtrx.T @ np.linalg.solve(s, data)
-    newcov = np.eye(len(newmean)) - projmtrx.T @ np.linalg.solve(s, projmtrx)
+    s = projmat @ projmat.T
+    newmean = projmat.T @ np.linalg.solve(s, data)
+    newcov = np.eye(len(newmean)) - projmat.T @ np.linalg.solve(s, projmat)
     return RandomVariable(distribution=Normal(newmean, newcov))
 
 
