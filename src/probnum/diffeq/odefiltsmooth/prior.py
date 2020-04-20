@@ -24,6 +24,7 @@ class ODEPrior(LTISDEModel):
         * projection to X_0 (the state estimate)
         * projection to X_1 (the derivative estimate)
         * projection to X_2 (the second derivative estimate) (optional)
+
     The first two are important within the ODE filter, the latter
     turned out to be very convenient to have.
     """
