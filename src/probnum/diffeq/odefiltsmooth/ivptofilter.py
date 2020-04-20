@@ -1,20 +1,16 @@
 """
-Adapter from initial value problems + state space model to
-filters.
+Adapter methods:
+from initial value problems + state space model to filters.
 """
 
 import numpy as np
-
+from probnum.filtsmooth import ExtendedKalmanFilter, UnscentedKalmanFilter
+from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
-from probnum.filtsmooth.gaussfiltsmooth import extendedkalman
-from probnum.filtsmooth.gaussfiltsmooth import unscentedkalman
-from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
-
-__all__ = ["ivp_to_kf", "ivp_to_ekf", "ivp_to_ukf"]
 
 
-def ivp_to_kf(ivp, prior, evlvar):
+def ivp_to_ekf0(ivp, prior, evlvar):
     """
     Computes measurement model and initial distribution
     for KF based on IVP and prior.
@@ -23,26 +19,23 @@ def ivp_to_kf(ivp, prior, evlvar):
     the GaussianIVPFilter.
 
     evlvar : float,
-        measurement variance; in the literaturem, this is "R"
+        measurement variance; in the literature, this is "R"
     """
-    h0 = _h0(prior)
-    measmod = _measmod_kf(ivp, h0, prior, evlvar)
-    initdist = _initialdistribution(ivp, h0, prior)
-    return extendedkalman.ExtendedKalmanFilter(prior, measmod,
-                                               initdist)
+    measmod = _measmod_ekf0(ivp, prior, evlvar)
+    initrv = _initialdistribution(ivp, prior)
+    return ExtendedKalmanFilter(prior, measmod, initrv)
 
 
-def _measmod_kf(ivp, h0, prior, evlvar):
+def _measmod_ekf0(ivp, prior, evlvar):
     """
     Zero-th order Taylor approximation as linearisation.
 
     We call it Kalman filter for convenience;
     it is no Kalman filter in reality.
     """
-    ordint = prior.ordint
     spatialdim = prior.spatialdim
-    h1_1d = np.eye(ordint + 1)[:, 1].reshape((1, ordint + 1))
-    h1 = np.kron(np.eye(spatialdim), h1_1d)
+    h0 = prior.proj2coord(coord=0)
+    h1 = prior.proj2coord(coord=1)
 
     def dyna(t, x, **kwargs):
         return h1 @ x - ivp.rhs(t, h0 @ x)
@@ -56,7 +49,7 @@ def _measmod_kf(ivp, h0, prior, evlvar):
     return DiscreteGaussianModel(dyna, diff, jaco)
 
 
-def ivp_to_ekf(ivp, prior, evlvar):
+def ivp_to_ekf1(ivp, prior, evlvar):
     """
     Computes measurement model and initial distribution
     for EKF based on IVP and prior.
@@ -65,21 +58,18 @@ def ivp_to_ekf(ivp, prior, evlvar):
 
     evlvar : float, (this is "R")
     """
-    h0 = _h0(prior)
-    measmod = _measmod_ekf(ivp, h0, prior, evlvar)
-    initdist = _initialdistribution(ivp, h0, prior)
-    return extendedkalman.ExtendedKalmanFilter(prior, measmod,
-                                    initdist)
+    measmod = _measmod_ekf1(ivp, prior, evlvar)
+    initrv = _initialdistribution(ivp, prior)
+    return ExtendedKalmanFilter(prior, measmod, initrv)
 
 
-def _measmod_ekf(ivp, h0, prior, evlvar):
+def _measmod_ekf1(ivp, prior, evlvar):
     """
     Computes H and R
     """
-    ordint = prior.ordint
     spatialdim = prior.spatialdim
-    h1_1d = np.eye(ordint + 1)[:, 1].reshape((1, ordint + 1))
-    h1 = np.kron(np.eye(spatialdim), h1_1d)
+    h0 = prior.proj2coord(coord=0)
+    h1 = prior.proj2coord(coord=1)
 
     def dyna(t, x, **kwargs):
         return h1 @ x - ivp.rhs(t, h0 @ x)
@@ -102,20 +92,18 @@ def ivp_to_ukf(ivp, prior, evlvar):
 
     evlvar : float, (this is "R")
     """
-    h0 = _h0(prior)
-    measmod = _measmod_ukf(ivp, h0, prior, evlvar)
-    initdist = _initialdistribution(ivp, h0, prior)
-    return unscentedkalman.UnscentedKalmanFilter(prior, measmod,
-                                    initdist, 1.0, 1.0, 1.0)
+    measmod = _measmod_ukf(ivp, prior, evlvar)
+    initrv = _initialdistribution(ivp, prior)
+    return UnscentedKalmanFilter(prior, measmod,
+                                 initrv, 1.0, 1.0, 1.0)
 
 
-def _measmod_ukf(ivp, h0, prior, measvar):
+def _measmod_ukf(ivp, prior, measvar):
     """
     """
-    ordint = prior.ordint
     spatialdim = prior.spatialdim
-    h1_1d = np.eye(ordint + 1)[:, 1].reshape((1, ordint + 1))
-    h1 = np.kron(np.eye(spatialdim), h1_1d)
+    h0 = prior.proj2coord(coord=0)
+    h1 = prior.proj2coord(coord=1)
 
     def dyna(t, x, **kwargs):
         return h1 @ x - ivp.rhs(t, h0 @ x)
@@ -126,48 +114,35 @@ def _measmod_ukf(ivp, h0, prior, measvar):
     return DiscreteGaussianModel(dyna, diff)
 
 
-def _h0(prior):
+def _initialdistribution(ivp, prior):
     """
-    Returns H0
-    """
-    ordint = prior.ordint
-    spatialdim = prior.spatialdim
-    h0_1d = np.eye(ordint + 1)[:, 0].reshape((1, ordint + 1))
-    return np.kron(np.eye(spatialdim), h0_1d)
-
-
-def _initialdistribution(ivp, h0, prior):
-    """
-    Eq. 39 in Schober et al.
-    """
-    initmean = _initialmean(ivp, h0, prior)
-    initcovar = 0. * np.eye(len(initmean))
-    return RandomVariable(distribution=Normal(initmean, initcovar))
-
-
-
-def _initialmean(ivp, h0, prior):
-    """
+    Perform initial Kalman update to condition the initial distribution
+    of the prior on the initial values (and all available derivatives).
     """
     x0 = ivp.initialdistribution.mean()
-    dx0 = ivp.rhs(0., x0)
-    ddx0 = _ddx(0., x0, ivp)
-    dddx0 = _dddx(0., x0, ivp)
+    dx0 = ivp.rhs(ivp.t0, x0)
+    ddx0 = _ddx(ivp.t0, x0, ivp)
 
-    if prior.ordint == 1:  # (x0, f(x0))
-        return _alternate2(x0, dx0)
-    elif prior.ordint == 2:  # (x0, f(x0), ddx)
-        return _alternate3(x0, dx0, ddx0)
-    elif prior.ordint == 3:  # (x0, f(x0), ddx, dddx)
-        return _alternate4(x0, dx0, ddx0, dddx0)
-    elif prior.ordint == 4:
-        return _alternate5(x0, dx0, ddx0, dddx0, np.zeros(x0.shape))
+    h0 = prior.proj2coord(coord=0)
+    h1 = prior.proj2coord(coord=1)
+    if prior.ordint == 1:
+        projmtrx = np.hstack((h0.T, h1.T)).T
+        data = np.hstack((x0, dx0))
     else:
-        raise NotImplementedError("Higher order methods not supported")
+        h2 = prior.proj2coord(coord=2)
+        projmtrx = np.hstack((h0.T, h1.T, h2.T)).T
+        data = np.hstack((x0, dx0, ddx0))
+    s = projmtrx @ projmtrx.T
+    newmean = projmtrx.T @ np.linalg.solve(s, data)
+    newcov = np.eye(len(newmean)) - projmtrx.T @ np.linalg.solve(s, projmtrx)
+    return RandomVariable(distribution=Normal(newmean, newcov))
+
 
 def _ddx(t, x, ivp):
     """
+    If Jacobian is available:
     x''(t) = J_f(x(t)) @ f(x(t))
+    Else it just returns zero.
     """
     try:
         jac = ivp.jacobian(t, x)
@@ -177,44 +152,3 @@ def _ddx(t, x, ivp):
     if np.isscalar(evl) is True:
         evl = evl * np.ones(1)
     return jac @ evl
-
-def _dddx(t, x, ivp):
-    """
-    x'''(t) = f(x)^T @ H_f(x)^T @ f(x) + J_f(X)^T @ J_f(x) @ f(x)
-    with an approximate Hessian-vector product.
-    """
-    rate = 1e-14
-    evl = ivp.rhs(t, x)
-    try:
-        jac = ivp.jacobian(t, x)
-        hess_at_f = (ivp.jacobian(0., x + rate * evl) - jac)
-    except NotImplementedError:
-        jac = np.zeros((len(x), len(x)))
-        hess_at_f = jac.copy()
-    return hess_at_f @ evl + jac.T @ jac @ evl
-
-
-def _alternate2(arr1, arr2):
-    """
-    takes (a, b, c) and (d, e, f) into (a, d, b, e, c, f).
-    """
-    return np.vstack((arr1.T, arr2.T)).T.flatten()
-
-def _alternate3(arr1, arr2, arr3):
-    """
-    takes (a, b, c) and (d, e, f) into (a, d, b, e, c, f).
-    """
-    return np.vstack((arr1.T, arr2.T, arr3.T)).T.flatten()
-
-
-def _alternate4(arr1, arr2, arr3, arr4):
-    """
-    takes (a, b, c) and (d, e, f) into (a, d, b, e, c, f).
-    """
-    return np.vstack((arr1.T, arr2.T, arr3.T, arr4.T)).T.flatten()
-
-def _alternate5(arr1, arr2, arr3, arr4, arr5):
-    """
-    takes (a, b, c) and (d, e, f) into (a, d, b, e, c, f).
-    """
-    return np.vstack((arr1.T, arr2.T, arr3.T, arr4.T, arr5.T)).T.flatten()

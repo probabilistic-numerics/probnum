@@ -8,7 +8,7 @@ import numpy as np
 
 __all__ = ["generate_cd", "generate_dd"]
 
-def generate_cd(dynmod, measmod, initdist, times, _nsteps=5):
+def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
     """
     Samples true states and observations at pre-determined
     timesteps "times" for a continuous-discrete model.
@@ -19,7 +19,7 @@ def generate_cd(dynmod, measmod, initdist, times, _nsteps=5):
         Continuous dynamic model.
     measmod : discrete.DiscreteModel instance
         Discrete measurement model.
-    initdist : prob.RandomVariable object
+    initrv : prob.RandomVariable object
         Random variable according to initial distribution
     times : np.ndarray, shape (n,)
         Timesteps on which the states are to be sampled.
@@ -33,7 +33,7 @@ def generate_cd(dynmod, measmod, initdist, times, _nsteps=5):
     """
     states = np.zeros((len(times), dynmod.ndim))
     obs = np.zeros((len(times) - 1, measmod.ndim))
-    states[0] = initdist.sample()
+    states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
         step = (stop - start) / _nsteps
@@ -42,7 +42,7 @@ def generate_cd(dynmod, measmod, initdist, times, _nsteps=5):
     return states, obs
 
 
-def generate_dd(dynmod, measmod, initdist, times):
+def generate_dd(dynmod, measmod, initrv, times):
     """
     Samples true states and observations at pre-determined
     timesteps "times" for a continuous-discrete model.
@@ -53,7 +53,7 @@ def generate_dd(dynmod, measmod, initdist, times):
         Discrete dynamic model.
     measmod : discrete.DiscreteModel instance
         Discrete measurement model.
-    initdist : prob.RandomVariable object
+    initrv : prob.RandomVariable object
         Random variable according to initial distribution
     times : np.ndarray, shape (n,)
         Timesteps on which the states are to be sampled.
@@ -67,7 +67,7 @@ def generate_dd(dynmod, measmod, initdist, times):
     """
     states = np.zeros((len(times), dynmod.ndim))
     obs = np.zeros((len(times) - 1, measmod.ndim))
-    states[0] = initdist.sample()
+    states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
         states[idx] = dynmod.sample(start, states[idx - 1])

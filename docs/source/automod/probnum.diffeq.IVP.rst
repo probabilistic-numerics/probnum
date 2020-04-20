@@ -11,6 +11,7 @@ IVP
    .. autosummary::
 
       ~IVP.initialdistribution
+      ~IVP.initialrandomvariable
       ~IVP.ndim
       ~IVP.timespan
 
@@ -25,6 +26,7 @@ IVP
    .. rubric:: Attributes Documentation
 
    .. autoattribute:: initialdistribution
+   .. autoattribute:: initialrandomvariable
    .. autoattribute:: ndim
    .. autoattribute:: timespan
 

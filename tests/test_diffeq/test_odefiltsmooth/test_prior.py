@@ -47,10 +47,10 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         """
         """
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
-        initdist = RandomVariable(distribution=Normal(mean, cov))
-        cke, __ = self.ibm.chapmankolmogorov(0., STEP, STEP, initdist)
-        self.assertAllClose(AH_22_IBM @ initdist.mean(), cke.mean(), 1e-14)
-        self.assertAllClose(AH_22_IBM @ initdist.cov() @ AH_22_IBM.T + QH_22_IBM,
+        initrv = RandomVariable(distribution=Normal(mean, cov))
+        cke, __ = self.ibm.chapmankolmogorov(0., STEP, STEP, initrv)
+        self.assertAllClose(AH_22_IBM @ initrv.mean(), cke.mean(), 1e-14)
+        self.assertAllClose(AH_22_IBM @ initrv.cov() @ AH_22_IBM.T + QH_22_IBM,
                             cke.cov(), 1e-14)
 
 
@@ -68,8 +68,8 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         """
         """
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
-        initdist = RandomVariable(distribution=Normal(mean, cov))
-        self.ibm.chapmankolmogorov(0., STEP, STEP, initdist)
+        initrv = RandomVariable(distribution=Normal(mean, cov))
+        self.ibm.chapmankolmogorov(0., STEP, STEP, initrv)
 
 
     def test_asymptotically_ibm(self):
@@ -133,6 +133,6 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         """
         """
         mean, cov = np.ones(self.mat1.ndim), np.eye(self.mat1.ndim)
-        initdist = RandomVariable(distribution=Normal(mean, cov))
-        self.mat1.chapmankolmogorov(0., STEP, STEP, initdist)
+        initrv = RandomVariable(distribution=Normal(mean, cov))
+        self.mat1.chapmankolmogorov(0., STEP, STEP, initrv)
 

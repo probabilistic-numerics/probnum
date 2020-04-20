@@ -14,10 +14,40 @@ from scipy.special import binom   # for Matern
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
 from probnum.prob import RandomVariable, Normal
 
-__all__ = ["IBM", "IOUP", "Matern"]
+class ODEPrior(LTISDEModel):
+    """
+    Prior dynamic model for ODE filtering and smoothing.
+
+    An ODE prior is an LTI state space model with specific attributes:
+        * order of integration
+        * spatial dimension of the underlying ODE
+        * projection to X_0 (the state estimate)
+        * projection to X_1 (the derivative estimate)
+        * projection to X_2 (the second derivative estimate) (optional)
+    The first two are important within the ODE filter, the latter
+    turned out to be very convenient to have.
+    """
+    def __init__(self, driftmtrx, forcevec, dispmtrx, diffmtrx,
+                 ordint, spatialdim):
+        """ """
+        self.ordint = ordint
+        self.spatialdim = spatialdim
+        super().__init__(driftmtrx, forcevec, dispmtrx, diffmtrx)
+
+    def proj2coord(self, coord):
+        """
+        Computes the matrix that projects to the i-th coordinate:
+        H_i = I_d \\otimes e_i,
+        where e_i is the i-th unit vector.
+
+        Convenience function for development.
+        """
+        projvec1d = np.eye(self.ordint + 1)[:, coord]
+        projmtrx1d = projvec1d.reshape((1, self.ordint + 1))
+        return np.kron(np.eye(self.spatialdim), projmtrx1d)
 
 
-class IBM(LTISDEModel):
+class IBM(ODEPrior):
     """
     IBM(q) (integrated Brownian motion of order q) prior:
 
@@ -32,14 +62,12 @@ class IBM(LTISDEModel):
         spatialdim : d
         diffconst : sigma
         """
-        self.ordint = ordint
-        self.spatialdim = spatialdim
         self.diffconst = diffconst
-        driftmat = _dynamat_ibm(self.ordint, self.spatialdim)
+        driftmat = _dynamat_ibm(ordint, spatialdim)
         forcevec = np.zeros(len(driftmat))
-        dispvec = _dispvec_ibm_ioup_matern(self.ordint, self.spatialdim, diffconst)
-        diffmat = np.eye(self.spatialdim)
-        super().__init__(driftmat, forcevec, dispvec, diffmat)
+        dispvec = _dispvec_ibm_ioup_matern(ordint, spatialdim, diffconst)
+        diffmat = np.eye(spatialdim)
+        super().__init__(driftmat, forcevec, dispvec, diffmat, ordint, spatialdim)
 
 
     def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
@@ -101,12 +129,12 @@ def _dynamat_ibm(ordint, spatialdim):
     return np.kron(np.eye(spatialdim), dynamat)
 
 
-class IOUP(LTISDEModel):
+class IOUP(ODEPrior):
     """
     IOUP(q) prior:
 
     F = I_d \\otimes F
-    L = I_d \\otimes L = I_d \\otimes diffconst*(0, ..., 1)
+    L = I_d \\otimes L = I_d \\otimes (0, ...,  diffconst**2)
     Q = I_d
     """
 
@@ -118,15 +146,13 @@ class IOUP(LTISDEModel):
             is used in the OU equation!!
         diffconst : sigma
         """
-        self.ordint = ordint
-        self.spatialdim = spatialdim
         self.driftspeed = driftspeed
         self.diffconst = diffconst
-        driftmat = _dynamat_ioup(self.ordint, self.spatialdim, self.driftspeed)
+        driftmat = _dynamat_ioup(ordint, spatialdim, self.driftspeed)
         forcevec = np.zeros(len(driftmat))
-        dispvec = _dispvec_ibm_ioup_matern(self.ordint, self.spatialdim, diffconst)
-        diffmat = np.eye(self.spatialdim)
-        super().__init__(driftmat, forcevec, dispvec, diffmat)
+        dispvec = _dispvec_ibm_ioup_matern(ordint, spatialdim, diffconst)
+        diffmat = np.eye(spatialdim)
+        super().__init__(driftmat, forcevec, dispvec, diffmat, ordint, spatialdim)
 
 
 def _dynamat_ioup(ordint, spatialdim, driftspeed):
@@ -138,7 +164,7 @@ def _dynamat_ioup(ordint, spatialdim, driftspeed):
     return np.kron(np.eye(spatialdim), dynamat)
 
 
-class Matern(LTISDEModel):
+class Matern(ODEPrior):
     """
     Matern(q) prior --> Matern process with reg. q+0.5
     and hence, with matrix size q+1
@@ -156,15 +182,13 @@ class Matern(LTISDEModel):
         diffconst : sigma
 
         """
-        self.ordint = ordint
-        self.spatialdim = spatialdim
         self.lengthscale = lengthscale
         self.diffconst = diffconst
-        driftmat = _dynamat_matern(self.ordint, self.spatialdim, self.lengthscale)
+        driftmat = _dynamat_matern(ordint, spatialdim, self.lengthscale)
         forcevec = np.zeros(len(driftmat))
-        dispvec = _dispvec_ibm_ioup_matern(self.ordint, self.spatialdim, diffconst)
-        diffmat = np.eye(self.spatialdim)
-        super().__init__(driftmat, forcevec, dispvec, diffmat)
+        dispvec = _dispvec_ibm_ioup_matern(ordint, spatialdim, diffconst)
+        diffmat = np.eye(spatialdim)
+        super().__init__(driftmat, forcevec, dispvec, diffmat, ordint, spatialdim)
 
 
 def _dynamat_matern(ordint, spatialdim, lengthscale):

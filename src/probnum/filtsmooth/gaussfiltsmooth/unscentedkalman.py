@@ -253,10 +253,10 @@ def _update_discrete_nonlinear(time, randvar, data, measurementmodel, ut, **kwar
 #     The rest is implemented in GaussianSmoother.
 #     """
 #
-#     def __init__(self, dynamod, measmod, initdist, alpha, beta, kappa,
+#     def __init__(self, dynamod, measmod, initrv, alpha, beta, kappa,
 #                  _nsteps=15):
 #         """ """
-#         unscentedkalfilt = UnscentedKalmanFilter(dynamod, measmod, initdist, alpha, beta, kappa,
+#         unscentedkalfilt = UnscentedKalmanFilter(dynamod, measmod, initrv, alpha, beta, kappa,
 #                  _nsteps)
 #         super().__init__(unscentedkalfilt)
 #
@@ -266,12 +266,12 @@ def _update_discrete_nonlinear(time, randvar, data, measurementmodel, ut, **kwar
 #     """
 #     """
 #
-#     def __init__(self, dynamod, measmod, initdist, alpha, beta, kappa,
+#     def __init__(self, dynamod, measmod, initrv, alpha, beta, kappa,
 #                  _nsteps=15):
 #         """
 #         dynmod: continuousmodel.linear.Linear or subclass
 #         measmod: discretemodel.gaussmarkov.Nonlinear or subclass
-#         initdist : polynomial.MultivariateGaussian
+#         initrv : polynomial.MultivariateGaussian
 #         _nsteps : approximate integration.
 #
 #         Functionality so far restricted to linear SDEs because these implement
@@ -285,12 +285,12 @@ def _update_discrete_nonlinear(time, randvar, data, measurementmodel, ut, **kwar
 #         if not issubclass(type(measmod), DiscreteGaussianModel):
 #             raise TypeError("Extended Kalman filter doesn't "
 #                             "support measurement model")
-#         if not issubclass(type(initdist.distribution), Normal):
+#         if not issubclass(type(initrv.distribution), Normal):
 #             raise TypeError("Extended Kalman filter doesn't "
 #                             "support initial distribution")
 #         self.dynamod = dynamod
 #         self.measmod = measmod
-#         self.initdist = initdist
+#         self.initrv = initrv
 #         self._nsteps = _nsteps
 #         self.ut = unscentedtransform.UnscentedTransform(self.dynamod.ndim,
 #                                                         alpha, beta, kappa)
@@ -308,7 +308,7 @@ def _update_discrete_nonlinear(time, randvar, data, measurementmodel, ut, **kwar
 #     @property
 #     def initialdistribution(self):
 #         """ """
-#         return self.initdist
+#         return self.initrv
 #
 #     def predict(self, start, stop, randvar, **kwargs):
 #         """

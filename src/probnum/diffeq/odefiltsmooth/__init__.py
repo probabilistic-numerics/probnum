@@ -9,5 +9,6 @@ to work.
 """
 
 from .ivptofilter import *
+from .ivpfiltsmooth import *
 from .odefiltsmooth import *
 from .prior import *

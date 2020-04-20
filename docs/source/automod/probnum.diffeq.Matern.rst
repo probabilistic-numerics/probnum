@@ -24,6 +24,7 @@ Matern
       ~Matern.dispersion
       ~Matern.drift
       ~Matern.jacobian
+      ~Matern.proj2coord
       ~Matern.sample
 
    .. rubric:: Attributes Documentation
@@ -40,4 +41,5 @@ Matern
    .. automethod:: dispersion
    .. automethod:: drift
    .. automethod:: jacobian
+   .. automethod:: proj2coord
    .. automethod:: sample

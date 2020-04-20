@@ -1,31 +1,31 @@
-IBM
-===
+ODEPrior
+========
 
 .. currentmodule:: probnum.diffeq
 
-.. autoclass:: IBM
+.. autoclass:: ODEPrior
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~IBM.diffusionmatrix
-      ~IBM.dispersionmatrix
-      ~IBM.driftmatrix
-      ~IBM.force
-      ~IBM.ndim
+      ~ODEPrior.diffusionmatrix
+      ~ODEPrior.dispersionmatrix
+      ~ODEPrior.driftmatrix
+      ~ODEPrior.force
+      ~ODEPrior.ndim
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~IBM.chapmankolmogorov
-      ~IBM.dispersion
-      ~IBM.drift
-      ~IBM.jacobian
-      ~IBM.proj2coord
-      ~IBM.sample
+      ~ODEPrior.chapmankolmogorov
+      ~ODEPrior.dispersion
+      ~ODEPrior.drift
+      ~ODEPrior.jacobian
+      ~ODEPrior.proj2coord
+      ~ODEPrior.sample
 
    .. rubric:: Attributes Documentation
 

@@ -24,6 +24,7 @@ IOUP
       ~IOUP.dispersion
       ~IOUP.drift
       ~IOUP.jacobian
+      ~IOUP.proj2coord
       ~IOUP.sample
 
    .. rubric:: Attributes Documentation
@@ -40,4 +41,5 @@ IOUP
    .. automethod:: dispersion
    .. automethod:: drift
    .. automethod:: jacobian
+   .. automethod:: proj2coord
    .. automethod:: sample

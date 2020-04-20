@@ -12,14 +12,44 @@ IVP : Initial value problems (ivp.py)
 from abc import ABC, abstractmethod
 
 
-__all__ = ["ODE"]
-
 class ODE(ABC):
     """
-    Base Ordinary differential equation class.
+    Ordinary differential equations.
 
-    Subclassed by the types of ODEs: IVPs, BVPs and whatever you
-    can imagine.
+    Extended by the types of ODEs, e.g. IVPs, BVPs.
+    This class describes systems of irst order ordinary differential
+    equations (ODEs),
+
+    .. math:: \\dot x(t) = f(t, x(t)), \\quad t \\in [t_0, T].
+
+    It provides options for defining custom right-hand side (RHS)
+    functions, their Jacobians and closed form solutions.
+
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    rhs : callable, signature: ``(t, x, **kwargs)``
+        RHS function
+        :math:`f : [t_0, T] \times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
+        of the ODE system. As such it takes a float and an
+        np.ndarray of shape (d,) and returns a np.ndarray
+        of shape (d,). As of now, no vectorization is supported
+        (nor needed).
+    jac : callable, signature: ``(t, x, **kwargs)``, optional
+        Jacobian of RHS function
+        :math:`J_f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
+        of the ODE system. As such it takes a float and an
+        np.ndarray of shape (d,) and returns a np.ndarray
+        of shape (d,). As of now, no vectorization is supported
+        (nor needed).
+    sol : callable, signature: ``(t, **kwargs)``, optional
+        Solution of the ODE system. Only well-defined in subclasses like
+        IVP or BVP.
+
+    See Also
+    --------
+    IVP : Extends ODE for initial value problems.
     """
     def __init__(self, timespan, rhs, jac=None, sol=None):
         """
@@ -30,16 +60,6 @@ class ODE(ABC):
 
         We take timespan as a tuple to mimic the
         scipy.solve_ivp interface.
-
-        timespan : (t0, tmax); tuple of two floats,
-            time span of IVP
-        initdist : randomvariable.RandomVariable,
-            usually dirac.Dirac (noise-free)
-            or gaussian.MultivariateGaussian (noisy)
-        rhs : callable, signature (t, x)
-            right hand side vector field function
-        jac : callable, signature (t, x)
-            Jacobian of right hand side function
         """
         self.t0, self.tmax = timespan
         self.rhs = rhs
@@ -73,6 +93,10 @@ class ODE(ABC):
     @property
     def timespan(self):
         """
+        Returns :math:`(t_0, T)` as ``[self.t0, self.tmax]``.
+        Mainly here to provide an interface to scipy.integrate.
+        Both :math:`t_0` and :math:`T` can be accessed via
+        ``self.t0`` and ``self.tmax`` respectively.
         """
         return [self.t0, self.tmax]
 

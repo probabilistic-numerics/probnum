@@ -14,7 +14,8 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq import ode, odefiltsmooth
+from probnum.diffeq.odefiltsmooth import *
+from probnum.diffeq import ode
 from probnum.prob import RandomVariable, Dirac
 
 from tests.testing import NumpyAssertions
@@ -26,18 +27,18 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
     """
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
-        self.ivp = ode.logistic([0.0, 1.5], initdist)
+        initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
 
     def test_error_ibm1(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp1, which_prior="ibm1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, which_prior="ibm1")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp2, which_prior="ibm1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, which_prior="ibm1")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -49,11 +50,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
     def test_error_ibm2(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp1, which_prior="ibm2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, which_prior="ibm2")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp2, which_prior="ibm2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, which_prior="ibm2")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -64,11 +65,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
     def test_error_ibm3(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp1, which_prior="ibm3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, which_prior="ibm3")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp2, which_prior="ibm3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, which_prior="ibm3")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -79,11 +80,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
     def test_error_ioup1(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp1, which_prior="ioup1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, which_prior="ioup1")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp2, which_prior="ioup1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, which_prior="ioup1")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -95,11 +96,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
     def test_error_ioup2(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp1, which_prior="ioup2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, which_prior="ioup2")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp2, which_prior="ioup2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, which_prior="ioup2")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -110,11 +111,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
     def test_error_ioup3(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp1, which_prior="ioup3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, which_prior="ioup3")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.filter_ivp_h(self.ivp, stp2, which_prior="ioup3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, which_prior="ioup3")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -130,18 +131,18 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
     """
     def setUp(self):
         """ """
-        initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
-        self.ivp = ode.logistic([0.0, 1.5], initdist)
+        initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.step = 0.5
-        self.ms, self.cs, __ = odefiltsmooth.filter_ivp_h(self.ivp, self.step,
-                                                 initdist=initdist,
+        self.ms, self.cs, __ = probsolve_ivp(self.ivp, step=self.step,
+                                                 initrv=initrv,
                                                  diffconst=1.0,
                                                  which_prior="ibm1")
 
     def test_t0(self):
         """ """
-        exp_mean = np.array([self.ivp.initdist.mean(),
-                             self.ivp.rhs(0, self.ivp.initdist.mean())])
+        exp_mean = np.array([self.ivp.initrv.mean(),
+                             self.ivp.rhs(0, self.ivp.initrv.mean())])
 
         self.assertAllClose(self.ms[0], exp_mean[:, 0], rtol=1e-14)
         self.assertAllClose(self.cs[0], np.zeros((2, 2)), rtol=1e-14)
@@ -153,7 +154,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
         GaussianIVPFilter.solve()
         and not in Prop. 1 of Schober et al., 2019.
         """
-        y0 = self.ivp.initdist.mean()
+        y0 = self.ivp.initrv.mean()
         z0 = self.ivp.rhs(0, y0)
         z1 = self.ivp.rhs(0, y0 + self.step*z0)
         exp_mean = np.array([y0 + 0.5*self.step*(z0 + z1), z1])
@@ -162,15 +163,15 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
 
 class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
     """
-    Only test on "kf" with IBM(1) prior, since every other combination
+    Only test on "ekf0" with IBM(1) prior, since every other combination
     seems to dislike the adaptive scheme based on the whitened residual
     as an error estimate.
     """
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
-        self.ivp = ode.lotkavolterra([0.0, 0.5], initdist)
+        initrv = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2
 
 
@@ -178,8 +179,8 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
         """
         Standard deviation at end point roughly equal to tolerance.
         """
-        ms, cs, ts = odefiltsmooth.filter_ivp(self.ivp, tol=self.tol,
-                                          which_prior="ibm1", which_filt="kf")
+        ms, cs, ts = probsolve_ivp(self.ivp, tol=self.tol,
+                                          which_prior="ibm1", method="ekf0")
         self.assertLess(np.sqrt(cs[-1, 0, 0]), 10*self.tol)
         self.assertLess(0.1*self.tol, np.sqrt(cs[-1, 0, 0]))
 
@@ -188,8 +189,8 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
         """
         Tests whether resulting steps are not evenly distributed.
         """
-        ms, cs, ts = odefiltsmooth.filter_ivp(self.ivp, tol=self.tol,
-                                          which_prior="ibm1", which_filt="kf")
+        ms, cs, ts = probsolve_ivp(self.ivp, tol=self.tol,
+                                          which_prior="ibm1", method="ekf0")
         steps = np.diff(ts)
         self.assertLess(np.amin(steps) / np.amax(steps), 0.8)
 
@@ -203,78 +204,78 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and Lotka-Volterra IVP"""
-        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
-        self.ivp = ode.lotkavolterra([0.0, 0.5], initdist)
+        initrv = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-1
         self.step = 0.1
 
     def test_filter_ivp_ioup1_kf(self):
         """
         """
-        odefiltsmooth.filter_ivp(self.ivp, tol=self.tol, which_prior="ioup1", which_filt="kf", nsteps=12)
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup1", method="ekf0", nsteps=12)
 
     def test_filter_ivp_ioup2_ekf(self):
         """
         """
-        odefiltsmooth.filter_ivp(self.ivp, tol=self.tol, which_prior="ioup2", which_filt="ekf")
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup2", method="ekf1")
 
     def test_filter_ivp_ioup3_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.filter_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="ioup3", which_filt="ukf")
+        probsolve_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="ioup3", method="ukf")
 
     def test_filter_ivp_h_ioup1_ekf(self):
         """
         """
-        odefiltsmooth.filter_ivp_h(self.ivp, step=self.step, which_prior="ioup1", which_filt="ekf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="ioup1", method="ekf1")
 
     def test_filter_ivp_h_ioup2_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.filter_ivp_h(self.ivp, step=self.step, evlvar=0.01, which_prior="ioup2", which_filt="ukf")
+        probsolve_ivp(self.ivp, step=self.step, evlvar=0.01, which_prior="ioup2", method="ukf")
 
     def test_filter_ivp_h_ioup3_kf(self):
         """
         """
-        odefiltsmooth.filter_ivp_h(self.ivp, step=self.step, which_prior="ioup3", which_filt="kf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="ioup3", method="ekf0")
 
     def test_filter_ivp_mat32_kf(self):
         """
         """
-        odefiltsmooth.filter_ivp(self.ivp, tol=self.tol, which_prior="matern32", which_filt="kf")
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern32", method="ekf0")
 
     def test_filter_ivp_mat52_ekf(self):
         """
         """
-        odefiltsmooth.filter_ivp(self.ivp, tol=self.tol, which_prior="matern52", which_filt="ekf")
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern52", method="ekf1")
 
     def test_filter_ivp_mat72_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.filter_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="matern72", which_filt="ukf")
+        probsolve_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="matern72", method="ukf")
 
     def test_filter_ivp_h_mat32_ekf(self):
         """
         """
-        odefiltsmooth.filter_ivp_h(self.ivp, step=self.step, which_prior="matern32", which_filt="ekf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="ekf1")
 
     def test_filter_ivp_h_mat52_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.filter_ivp_h(self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", which_filt="ukf")
+        probsolve_ivp(self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="ukf")
 
     def test_filter_ivp_h_mat72_kf(self):
         """
         """
-        odefiltsmooth.filter_ivp_h(self.ivp, step=self.step, which_prior="matern72", which_filt="kf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="ekf0")
 
 
 
@@ -349,18 +350,18 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
     """
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initdist = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
-        self.ivp = ode.logistic([0.0, 1.5], initdist)
+        initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
 
     def test_error_ibm1(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp1, which_prior="ibm1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ibm1")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp2, which_prior="ibm1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ibm1")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -372,11 +373,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
     def test_error_ibm2(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp1, which_prior="ibm2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ibm2")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp2, which_prior="ibm2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ibm2")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -387,11 +388,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
     def test_error_ibm3(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp1, which_prior="ibm3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ibm3")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp2, which_prior="ibm3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ibm3")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -402,11 +403,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
     def test_error_ioup1(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp1, which_prior="ioup1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ioup1")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp2, which_prior="ioup1")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ioup1")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -418,11 +419,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
     def test_error_ioup2(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp1, which_prior="ioup2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ioup2")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp2, which_prior="ioup2")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ioup2")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -433,11 +434,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
     def test_error_ioup3(self):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp1, which_prior="ioup3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ioup3")
         means1 = ms[:, 0]
         sols1 = np.array([self.ivp.solution(t) for t in ts])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
-        ms, cs, ts = odefiltsmooth.smoother_ivp_h(self.ivp, stp2, which_prior="ioup3")
+        ms, cs, ts = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ioup3")
         means2 = ms[:, 0]
         sols2 = np.array([self.ivp.solution(t) for t in ts])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
@@ -449,15 +450,15 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
 
 class TestAdaptivityOnLotkaVolterraSmoother(unittest.TestCase):
     """
-    Only test on "kf" with IBM(1) prior, since every other combination
+    Only test on "ekf0" with IBM(1) prior, since every other combination
     seems to dislike the adaptive scheme based on the whitened residual
     as an error estimate.
     """
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
-        self.ivp = ode.lotkavolterra([0.0, 0.5], initdist)
+        initrv = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2
 
 
@@ -465,8 +466,8 @@ class TestAdaptivityOnLotkaVolterraSmoother(unittest.TestCase):
         """
         Standard deviation at end point roughly equal to tolerance.
         """
-        ms, cs, ts = odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol,
-                                          which_prior="ibm1", which_filt="kf")
+        ms, cs, ts = probsolve_ivp(self.ivp, tol=self.tol,
+                                          which_prior="ibm1", method="eks0")
         self.assertLess(np.sqrt(cs[-1, 0, 0]), 10*self.tol)
         self.assertLess(0.1*self.tol, np.sqrt(cs[-1, 0, 0]))
 
@@ -475,8 +476,8 @@ class TestAdaptivityOnLotkaVolterraSmoother(unittest.TestCase):
         """
         Tests whether resulting steps are not evenly distributed.
         """
-        ms, cs, ts = odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol,
-                                          which_prior="ibm1", which_filt="kf")
+        ms, cs, ts = probsolve_ivp(self.ivp, tol=self.tol,
+                                          which_prior="ibm1", method="eks0")
         steps = np.diff(ts)
         self.assertLess(np.amin(steps) / np.amax(steps), 0.8)
 
@@ -498,67 +499,67 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
     def test_filter_ivp_ioup1_kf(self):
         """
         """
-        odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol, which_prior="ioup1", which_filt="kf")
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup1", method="eks0")
 
     def test_filter_ivp_ioup2_ekf(self):
         """
         """
-        odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol, which_prior="ioup2", which_filt="ekf")
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup2", method="eks1")
 
     def test_filter_ivp_ioup3_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="ioup3", which_filt="ukf")
+        probsolve_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="ioup3", method="uks")
 
     def test_filter_ivp_h_ioup1_ekf(self):
         """
         """
-        odefiltsmooth.smoother_ivp_h(self.ivp, step=self.step, which_prior="ioup1", which_filt="ekf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="ioup1", method="eks1")
 
     def test_filter_ivp_h_ioup2_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.smoother_ivp_h(self.ivp, step=self.step, evlvar=0.01, which_prior="ioup2", which_filt="ukf")
+        probsolve_ivp(self.ivp, step=self.step, evlvar=0.01, which_prior="ioup2", method="uks")
 
     def test_filter_ivp_h_ioup3_kf(self):
         """
         """
-        odefiltsmooth.smoother_ivp_h(self.ivp, step=self.step, which_prior="ioup3", which_filt="kf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="ioup3", method="eks0")
 
     def test_filter_ivp_mat32_kf(self):
         """
         """
-        odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol, which_prior="matern32", which_filt="kf")
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern32", method="eks0")
 
     def test_filter_ivp_mat52_ekf(self):
         """
         """
-        odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol, which_prior="matern52", which_filt="ekf")
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern52", method="eks1")
 
     def test_filter_ivp_mat72_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.smoother_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="matern72", which_filt="ukf")
+        probsolve_ivp(self.ivp, tol=self.tol, evlvar=0.01, which_prior="matern72", method="uks")
 
     def test_filter_ivp_h_mat32_ekf(self):
         """
         """
-        odefiltsmooth.smoother_ivp_h(self.ivp, step=self.step, which_prior="matern32", which_filt="ekf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="eks1")
 
     def test_filter_ivp_h_mat52_ukf(self):
         """
         UKF requires some evaluation-variance to have a positive definite
         innovation matrix, apparently.
         """
-        odefiltsmooth.smoother_ivp_h(self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", which_filt="ukf")
+        probsolve_ivp(self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="uks")
 
     def test_filter_ivp_h_mat72_kf(self):
         """
         """
-        odefiltsmooth.smoother_ivp_h(self.ivp, step=self.step, which_prior="matern72", which_filt="kf")
+        probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="eks0")

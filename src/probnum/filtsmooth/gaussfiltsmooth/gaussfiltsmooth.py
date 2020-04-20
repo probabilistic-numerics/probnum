@@ -105,7 +105,7 @@ class GaussianSmoother(_GaussFiltSmooth):
         if np.isscalar(predmean) and np.isscalar(predcov):
             predmean = predmean * np.ones(1)
             predcov = predcov * np.eye(1)
-        print(np.linalg.cond(predcov))
+        # print(np.linalg.cond(predcov))
         newmean = initmean + crosscov @ np.linalg.solve(predcov, currmean - predmean)
         firstsolve = crosscov @ np.linalg.solve(predcov, currcov - predcov)
         newcov = initcov + (crosscov @ np.linalg.solve(predcov, firstsolve.T)).T

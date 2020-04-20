@@ -12,6 +12,7 @@ GaussianFilter
 
       ~GaussianFilter.dynamicmodel
       ~GaussianFilter.initialdistribution
+      ~GaussianFilter.initialrandomvariable
       ~GaussianFilter.measurementmodel
 
    .. rubric:: Methods Summary
@@ -27,6 +28,7 @@ GaussianFilter
 
    .. autoattribute:: dynamicmodel
    .. autoattribute:: initialdistribution
+   .. autoattribute:: initialrandomvariable
    .. autoattribute:: measurementmodel
 
    .. rubric:: Methods Documentation

@@ -352,14 +352,14 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #                                       DYNADIFF)
 #         self.measmod = DiscreteGaussianLTIModel(MEASMAT, np.zeros(len(MEASMAT)),
 #                                        MEASDIFF)
-#         self.initdist = RandomVariable(distribution=Normal(MEAN, COV))
+#         self.initrv = RandomVariable(distribution=Normal(MEAN, COV))
 #         self.ukf = unscentedkalman.UnscentedKalmanFilter(self.dynmod,
 #                                             self.measmod,
-#                                             self.initdist,
+#                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
 #         self.uks = unscentedkalman.UnscentedKalmanSmoother(self.dynmod,
 #                                             self.measmod,
-#                                             self.initdist,
+#                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
 #
 #
@@ -381,12 +381,12 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #     def test_initialdistribution(self):
 #         """
 #         """
-#         self.assertEqual(self.initdist, self.ukf.initialdistribution)
+#         self.assertEqual(self.initrv, self.ukf.initialdistribution)
 #
 #     def test_predict(self):
 #         """
 #         """
-#         pred, __ = self.ukf.predict(0., DELTA_T, self.initdist)
+#         pred, __ = self.ukf.predict(0., DELTA_T, self.initrv)
 #         self.assertEqual(pred.mean().ndim, 1)
 #         self.assertEqual(pred.mean().shape[0], 4)
 #         self.assertEqual(pred.cov().ndim, 2)
@@ -396,8 +396,8 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #     def test_update(self):
 #         """
 #         """
-#         data = self.measmod.sample(0., self.initdist.mean()*np.ones(1))
-#         upd, __, __, __ = self.ukf.update(0., self.initdist, data)
+#         data = self.measmod.sample(0., self.initrv.mean()*np.ones(1))
+#         upd, __, __, __ = self.ukf.update(0., self.initrv, data)
 #         self.assertEqual(upd.mean().ndim, 1)
 #         self.assertEqual(upd.mean().shape[0], 4)
 #         self.assertEqual(upd.cov().ndim, 2)
@@ -410,7 +410,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #         """
 #         tms = np.arange(0, 20, DELTA_T)
 #         states, obs = util.generate_dd(self.dynmod, self.measmod,
-#                                              self.initdist, tms)
+#                                              self.initrv, tms)
 #         means, covars = self.ukf.filter(obs, tms)
 #         rmse_means = np.linalg.norm(means[1:, :2] - states[1:, :2]) / np.sqrt(
 #             states[1:, :2].size)
@@ -448,12 +448,12 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #     def test_initialdistribution(self):
 #         """
 #         """
-#         self.assertEqual(self.initdist, self.uks.initialdistribution)
+#         self.assertEqual(self.initrv, self.uks.initialdistribution)
 #
 #     def test_predict(self):
 #         """
 #         """
-#         pred, __ = self.uks.predict(0., DELTA_T, self.initdist)
+#         pred, __ = self.uks.predict(0., DELTA_T, self.initrv)
 #         self.assertEqual(pred.mean().ndim, 1)
 #         self.assertEqual(pred.mean().shape[0], 4)
 #         self.assertEqual(pred.cov().ndim, 2)
@@ -463,8 +463,8 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #     def test_update(self):
 #         """
 #         """
-#         data = self.measmod.sample(0., self.initdist.mean()*np.ones(1))
-#         upd, __, __, __ = self.uks.update(0., self.initdist, data)
+#         data = self.measmod.sample(0., self.initrv.mean()*np.ones(1))
+#         upd, __, __, __ = self.uks.update(0., self.initrv, data)
 #         self.assertEqual(upd.mean().ndim, 1)
 #         self.assertEqual(upd.mean().shape[0], 4)
 #         self.assertEqual(upd.cov().ndim, 2)
@@ -477,7 +477,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #         """
 #         tms = np.arange(0, 20, DELTA_T)
 #         states, obs = util.generate_dd(self.dynmod, self.measmod,
-#                                              self.initdist, tms)
+#                                              self.initrv, tms)
 #         fimeans, ficovars = self.ukf.filter(obs, tms)
 #         means, covars = self.uks.smoother(obs, tms)
 #         rmse_fimeans = np.linalg.norm(fimeans[1:, :2] - states[1:, :2]) / np.sqrt(
@@ -541,14 +541,14 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #         self.diff = self.q * np.eye(1)
 #         self.dynmod = LTISDEModel(self.drift, self.force, self.disp, self.diff)
 #         self.measmod = DiscreteGaussianLTIModel(np.eye(1), np.zeros(1), r * np.eye(1))
-#         self.initdist = RandomVariable(distribution=Normal(10 * np.ones(1), np.eye(1)))
+#         self.initrv = RandomVariable(distribution=Normal(10 * np.ones(1), np.eye(1)))
 #         self.kf = unscentedkalman.UnscentedKalmanFilter(self.dynmod,
 #                                             self.measmod,
-#                                             self.initdist,
+#                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
 #         self.ks = unscentedkalman.UnscentedKalmanSmoother(self.dynmod,
 #                                             self.measmod,
-#                                             self.initdist,
+#                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
 #
 #
@@ -591,32 +591,32 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #     def test_initialdistribution(self):
 #         """
 #         """
-#         self.assertEqual(self.initdist, self.kf.initialdistribution)
+#         self.assertEqual(self.initrv, self.kf.initialdistribution)
 #
 #     def test_predict_shape(self):
 #         """
 #         """
-#         pred, __ = self.kf.predict(0., DELTA_T, self.initdist)
+#         pred, __ = self.kf.predict(0., DELTA_T, self.initrv)
 #         self.assertEqual(np.isscalar(pred.mean()), True)
 #         self.assertEqual(np.isscalar(pred.cov()), True)
 #
 #     def test_predict_value(self):
 #         """
 #         """
-#         pred, __ = self.kf.predict(0., DELTA_T, self.initdist)
+#         pred, __ = self.kf.predict(0., DELTA_T, self.initrv)
 #         ah = scipy.linalg.expm(DELTA_T * self.drift)
 #         qh = self.q / (2 * self.lam) * (
 #                 1 - scipy.linalg.expm(2 * self.drift * DELTA_T))
-#         diff_mean = ah @ (self.initdist.mean()*np.ones(1)) - pred.mean()
-#         diff_covar = ah @ (self.initdist.cov()*np.eye(1)) @ ah.T + qh - (np.eye(1)*pred.cov())
+#         diff_mean = ah @ (self.initrv.mean()*np.ones(1)) - pred.mean()
+#         diff_covar = ah @ (self.initrv.cov()*np.eye(1)) @ ah.T + qh - (np.eye(1)*pred.cov())
 #         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
 #         self.assertLess(np.linalg.norm(diff_covar), 1e-14)
 #
 #     def test_update(self):
 #         """
 #         """
-#         data = np.array([self.measmod.sample(0., self.initdist.mean()*np.ones(1))])
-#         upd, __, __, __ = self.kf.update(0., self.initdist, data)
+#         data = np.array([self.measmod.sample(0., self.initrv.mean()*np.ones(1))])
+#         upd, __, __, __ = self.kf.update(0., self.initrv, data)
 #         self.assertEqual(np.isscalar(upd.mean()), True)
 #         self.assertEqual(np.isscalar(upd.cov()), True)
 #
@@ -626,7 +626,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #         """
 #         tms = np.arange(0, 20, DELTA_T)
 #         states, obs = util.generate_cd(self.dynmod, self.measmod,
-#                                              self.initdist, tms)
+#                                              self.initrv, tms)
 #         means, covars = self.kf.filter(obs, tms)
 #         rmse_means = np.linalg.norm(means[1:] - states[1:, 0]) / np.sqrt(
 #             states[1:].size)
@@ -682,32 +682,32 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #     def test_initialdistribution(self):
 #         """
 #         """
-#         self.assertEqual(self.initdist, self.ks.initialdistribution)
+#         self.assertEqual(self.initrv, self.ks.initialdistribution)
 #
 #     def test_predict_shape(self):
 #         """
 #         """
-#         pred, __ = self.ks.predict(0., DELTA_T, self.initdist)
+#         pred, __ = self.ks.predict(0., DELTA_T, self.initrv)
 #         self.assertEqual(np.isscalar(pred.mean()), True)
 #         self.assertEqual(np.isscalar(pred.cov()), True)
 #
 #     def test_predict_value(self):
 #         """
 #         """
-#         pred, __ = self.ks.predict(0., DELTA_T, self.initdist)
+#         pred, __ = self.ks.predict(0., DELTA_T, self.initrv)
 #         ah = scipy.linalg.expm(DELTA_T * self.drift)
 #         qh = self.q / (2 * self.lam) * (
 #                 1 - scipy.linalg.expm(2 * self.drift * DELTA_T))
-#         diff_mean = ah @ (self.initdist.mean()*np.ones(1)) - pred.mean()
-#         diff_covar = ah @ (self.initdist.cov()*np.eye(1)) @ ah.T + qh - (np.eye(1)*pred.cov())
+#         diff_mean = ah @ (self.initrv.mean()*np.ones(1)) - pred.mean()
+#         diff_covar = ah @ (self.initrv.cov()*np.eye(1)) @ ah.T + qh - (np.eye(1)*pred.cov())
 #         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
 #         self.assertLess(np.linalg.norm(diff_covar), 1e-14)
 #
 #     def test_update(self):
 #         """
 #         """
-#         data = np.array([self.measmod.sample(0., self.initdist.mean()*np.ones(1))])
-#         upd, __, __, __ = self.ks.update(0., self.initdist, data)
+#         data = np.array([self.measmod.sample(0., self.initrv.mean()*np.ones(1))])
+#         upd, __, __, __ = self.ks.update(0., self.initrv, data)
 #         self.assertEqual(np.isscalar(upd.mean()), True)
 #         self.assertEqual(np.isscalar(upd.cov()), True)
 #
@@ -811,7 +811,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #                      label="Observations")
 #             ax1.plot(self.times[1:], np.sin(states)[1:, 0], '-', linewidth=4,
 #                      alpha=0.5, label="Truth")
-#             ax1.plot(self.times[1:], np.sin(means)[1:, 0], '-', label="EKF")
+#             ax1.plot(self.times[1:], np.sin(means)[1:, 0], '-', label="ekf1")
 #             ax1.set_xlabel("time")
 #             ax1.set_ylabel("horizontal pos. = sin(angular)")
 #             ax1.legend()
@@ -820,7 +820,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #             # ax2.plot(self.times[1:], self.obs[:, 0], '.', alpha=0.25, label="Observations")
 #             ax2.plot(self.times[1:], (states)[1:, 0], '-', linewidth=4,
 #                      alpha=0.5, label="Truth")
-#             ax2.plot(self.times[1:], (means)[1:, 0], '-', label="EKF")
+#             ax2.plot(self.times[1:], (means)[1:, 0], '-', label="ekf1")
 #             ax2.set_xlabel("time")
 #             ax2.set_ylabel("angular pos.")
 #             ax2.legend()

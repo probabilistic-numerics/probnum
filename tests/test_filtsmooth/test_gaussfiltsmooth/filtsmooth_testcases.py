@@ -66,7 +66,7 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase):
         self.tms = np.arange(0, 20, self.delta_t)
         self.states, self.obs = generate_cd(dynmod=self.dynmod,
                                             measmod=self.measmod,
-                                            initdist=self.initrv,
+                                            initrv=self.initrv,
                                             times=self.tms)
 
 
