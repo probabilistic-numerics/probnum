@@ -6,12 +6,11 @@ to adaptively choose points to evaluate the integrand.
 """
 
 from .statespace import *
-from .bayesianfilter import *
 from .gaussfiltsmooth import *
 
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["BayesianFilter", "GaussianSmoother", "GaussianFilter",
+__all__ = ["GaussianSmoother", "GaussianFilter",
            "KalmanFilter", "KalmanSmoother",
            "ExtendedKalmanFilter", "ExtendedKalmanSmoother",
            "UnscentedKalmanFilter", "UnscentedKalmanSmoother",
