@@ -1,7 +1,7 @@
 # Style Guide for Code Contributions
 
 This style guide summarizes code conventions used in `probnum`. This is intended as a reference for developers. The primary standard that should be applied is [PEP 8](https://www.python.org/dev/peps/pep-0008/). Use a linter (pylint, flake8) if necessary.
-As of now the documentation is written in American English (although this is not 100% consistent through the code base).
+As of now the documentation is written in American English (although this is not 100% consistent throughout the code base).
 
 ## Code
 
@@ -46,7 +46,7 @@ The way an object is printed defined by `def __repr__(self)` is structured as:
 
 ### Other Notational Conventions
 Generally, we tend to stick to the first few letters for abbreviations
-if they are sufficiently desciptive. E.g.:
+if they are sufficiently descriptive. E.g.:
 - `cov`: covariance
 - `fun`: function
 - `mat`: matrix
@@ -122,14 +122,14 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
 ```
 
-**Some objectives for writing docstrings**
+**Some objectives for writing docstrings:**
 
 * Do your best to cover "Parameters", "Returns", and "Examples" at every publicly visible docstring---in that order.
 * Examples are tested via doctest. Bear that in mind when writing examples.
 * When in doubt, more explanation rather than less.
 * A little maths goes a long way.
 * References make everything easier for someone who doesn't know the details of an algorithm.
-* Parameters which are to be chosen benefit from a rule of thumb of how to choose it, perhaps even why.
+* Parameters which are to be chosen benefit from a rule of thumb of how to choose them, perhaps even why.
 
 
 ### Example Notebooks

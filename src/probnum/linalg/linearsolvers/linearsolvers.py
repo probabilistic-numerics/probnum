@@ -14,7 +14,8 @@ import scipy.sparse
 from probnum import prob
 from probnum.linalg import linops
 from probnum import utils
-from probnum.linalg.linearsolvers.matrixbased import GeneralMatrixBasedSolver, SymmetricMatrixBasedSolver
+from probnum.linalg.linearsolvers.matrixbased import GeneralMatrixBasedSolver, NoisySymmetricMatrixBasedSolver, \
+    SymmetricMatrixBasedSolver
 from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
 
@@ -49,17 +50,16 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     x0 : array-like, shape=(n,) or (n, nrhs), optional
         Initial guess for the solution of the linear system. Will be ignored if ``Ainv`` is given.
     assume_A : str, default="sympos"
-        Assumptions on the matrix, which can influence solver choice or behavior. The available options are
+        Assumptions on the linear operator, which can influence solver choice or behavior. The available options are
+        (combinations of)
 
         ====================  =========
          generic matrix       ``gen``
          symmetric            ``sym``
          positive definite    ``pos``
-         symmetric pos. def.  ``sympos``
+         (additive) noise     ``noise``
         ====================  =========
 
-        If ``A`` or ``Ainv`` are random variables, then the encoded assumptions in the distribution are used
-        automatically.
     maxiter : int, optional
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the dimension of :math:`A`.
     atol : float, optional
@@ -143,7 +143,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     # Iteratively solve for multiple right hand sides (with posteriors as new priors)
     for i in range(nrhs):
         # Select and initialize solver
-        linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x)
+        linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A)
 
         # Solve linear system
         x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs)
@@ -299,17 +299,16 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
     assume_A : str, default="sympos"
-        Assumptions on the matrix, which can influence solver choice or behavior. The available options are
+        Assumptions on the linear operator, which can influence solver choice or behavior. The available options are
+        (combinations of)
 
         ====================  =========
          generic matrix       ``gen``
          symmetric            ``sym``
          positive definite    ``pos``
-         symmetric pos. def.  ``sympos``
+         (additive) noise     ``noise``
         ====================  =========
 
-        If ``A`` or ``Ainv`` are random variables, then the encoded assumptions in the distribution are used
-        automatically.
     A0 : RandomVariable, shape=(n,n)
         Random variable representing the prior belief over the linear operator :math:`A`.
     Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n)
@@ -339,12 +338,16 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
     else:
         x = x0
 
-    # Check matrix assumptions
-    if assume_A not in ["gen", "sym", "pos", "sympos"]:
-        raise ValueError('\'{}\' is not a recognized linear operator assumption.'.format(assume_A))
+    # Check matrix assumptions for correctness
+    assume_A = assume_A.lower()
+    _assume_A_tmp = assume_A
+    for allowed_str in ["gen", "sym", "pos", "noise"]:
+        _assume_A_tmp = _assume_A_tmp.replace(allowed_str, "")
+    if _assume_A_tmp != "":
+        raise ValueError('\'{}\' contains unrecognized linear operator assumptions.'.format(assume_A))
 
     # Choose priors for A and Ainv if not specified, based on matrix assumptions in "assume_A"
-    if assume_A == "sympos":
+    if "sym" in assume_A and "pos" in assume_A and "noise" not in assume_A:
         # No priors specified
         if A0 is None and Ainv0 is None:
             dist = prob.Normal(mean=linops.Identity(shape=A.shape[0]),
@@ -399,14 +402,15 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
                                cov=linops.SymmetricKronecker(A=Ainv0_covfactor))
             Ainv0 = prob.RandomVariable(distribution=dist)
 
-    elif assume_A == "sym":
+    elif "sym" in assume_A:
         raise NotImplementedError
-    elif assume_A == "pos":
+    elif "pos" in assume_A:
         raise NotImplementedError
-    elif assume_A == "gen":
-        # TODO: Implement case where only a pre-conditioner is given as Ainv0
-        # TODO: Automatic prior selection based on data scale, matrix trace, etc.
+    elif "gen" in assume_A:
         raise NotImplementedError
+
+    # TODO: Implement case where only a pre-conditioner is given as Ainv0
+    # TODO: Automatic prior selection based on data scale, matrix trace, etc.
 
     # Transform linear system to correct dimensions
     b = utils.as_colvec(b)  # (n,) -> (n, 1)
@@ -418,7 +422,7 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
     return A, b, A0, Ainv0, x
 
 
-def _init_solver(A, A0, Ainv0, b, x0):
+def _init_solver(A, A0, Ainv0, b, x0, assume_A):
     """
     Selects and initializes probabilistic linear solver based on the prior information given.
 
@@ -432,6 +436,16 @@ def _init_solver(A, A0, Ainv0, b, x0):
         Optional. Random variable representing the prior belief over the inverse :math:`H=A^{-1}`.
     x0 : array-like, shape=(n,) or (n, nrhs)
         Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv`` is given.
+    assume_A : str
+        Assumptions on the linear operator, which can influence solver choice or behavior. The available options are
+        (combinations of)
+
+        ====================  =========
+         generic matrix       ``gen``
+         symmetric            ``sym``
+         positive definite    ``pos``
+         (additive) noise     ``noise``
+        ====================  =========
 
     Returns
     -------
@@ -450,8 +464,12 @@ def _init_solver(A, A0, Ainv0, b, x0):
     # Combine assumptions on A with distribution assumptions
     if prior_info_view == "matrix":
         if isinstance(Ainv0.cov(), linops.SymmetricKronecker):
-            return SymmetricMatrixBasedSolver(A=A, b=b, A_mean=A0.mean(), A_covfactor=A0.cov().A,
-                                              Ainv_mean=Ainv0.mean(), Ainv_covfactor=Ainv0.cov().A)
+            if "noise" in assume_A:
+                return NoisySymmetricMatrixBasedSolver(A=A, b=b, A_mean=A0.mean(), A_covfactor=A0.cov().A,
+                                                       Ainv_mean=Ainv0.mean(), Ainv_covfactor=Ainv0.cov().A)
+            else:
+                return SymmetricMatrixBasedSolver(A=A, b=b, A_mean=A0.mean(), A_covfactor=A0.cov().A,
+                                                  Ainv_mean=Ainv0.mean(), Ainv_covfactor=Ainv0.cov().A)
         elif isinstance(Ainv0.cov(), linops.Kronecker):
             return GeneralMatrixBasedSolver(A=A, b=b)
         else:

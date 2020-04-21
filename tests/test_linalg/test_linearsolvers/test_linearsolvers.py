@@ -304,3 +304,16 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     def test_prior_distributions(self):
         """The solver should automatically handle different types of prior information."""
         pass
+
+
+class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
+    """Tests the probabilistic linear solver with noise functionality."""
+
+    def setUp(self):
+        """Resources for tests."""
+
+
+    def test_optimal_scale(self):
+        """Tests the computation of the optimal scale for the posterior covariance."""
+        pass
+

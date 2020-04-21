@@ -10,8 +10,10 @@ GeneralMatrixBasedSolver
 
    .. autosummary::
 
+      ~GeneralMatrixBasedSolver.has_converged
       ~GeneralMatrixBasedSolver.solve
 
    .. rubric:: Methods Documentation
 
+   .. automethod:: has_converged
    .. automethod:: solve

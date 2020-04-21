@@ -1,17 +1,17 @@
-SolutionBasedSolver
-===================
+NoisySymmetricMatrixBasedSolver
+===============================
 
 .. currentmodule:: probnum.linalg
 
-.. autoclass:: SolutionBasedSolver
+.. autoclass:: NoisySymmetricMatrixBasedSolver
    :show-inheritance:
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~SolutionBasedSolver.has_converged
-      ~SolutionBasedSolver.solve
+      ~NoisySymmetricMatrixBasedSolver.has_converged
+      ~NoisySymmetricMatrixBasedSolver.solve
 
    .. rubric:: Methods Documentation
 

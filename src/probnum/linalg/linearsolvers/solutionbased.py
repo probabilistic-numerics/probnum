@@ -5,6 +5,9 @@ Implementations of solution-based linear solvers which perform inference on the 
 observations.
 """
 
+import warnings
+import numpy as np
+
 from probnum.linalg.linearsolvers.matrixbased import ProbabilisticLinearSolver
 
 
@@ -29,6 +32,46 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
     def __init__(self, A, b, x):
         self.x = x
         super().__init__(A=A, b=b)
+
+    def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
+        """
+        Check convergence of a linear solver.
+
+        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+
+        Parameters
+        ----------
+        iter : int
+            Current iteration of solver.
+        maxiter : int
+            Maximum number of iterations
+        resid : array-like
+            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
+        atol : float
+            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{atol}`.
+        rtol : float
+            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{rtol} \\lVert b \\rVert`.
+
+        Returns
+        -------
+        has_converged : bool
+            True if the method has converged.
+        convergence_criterion : str
+            Convergence criterion which caused termination.
+        """
+        # maximum iterations
+        if iter >= maxiter:
+            warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
+            return True, "maxiter"
+        # residual below error tolerance
+        elif np.linalg.norm(resid) <= atol:
+            return True, "resid_atol"
+        elif np.linalg.norm(resid) <= rtol * np.linalg.norm(self.b):
+            return True, "resid_rtol"
+        # uncertainty-based
+        # todo: based on posterior contraction
+        else:
+            return False, ""
 
     def solve(self, callback=None, maxiter=None, atol=None, rtol=None):
         raise NotImplementedError

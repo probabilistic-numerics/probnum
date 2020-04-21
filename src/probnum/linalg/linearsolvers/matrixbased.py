@@ -35,7 +35,7 @@ class ProbabilisticLinearSolver(abc.ABC):
         self.A = A
         self.b = b
 
-    def _check_convergence(self, iter, maxiter, resid, atol, rtol):
+    def has_converged(self, iter, maxiter, **kwargs):
         """
         Check convergence of a linear solver.
 
@@ -47,12 +47,6 @@ class ProbabilisticLinearSolver(abc.ABC):
             Current iteration of solver.
         maxiter : int
             Maximum number of iterations
-        resid : array-like
-            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
-        atol : float
-            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{atol}`.
-        rtol : float
-            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{rtol} \\lVert b \\rVert`.
 
         Returns
         -------
@@ -65,13 +59,6 @@ class ProbabilisticLinearSolver(abc.ABC):
         if iter >= maxiter:
             warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
             return True, "maxiter"
-        # residual below error tolerance
-        elif np.linalg.norm(resid) <= atol:
-            return True, "resid_atol"
-        elif np.linalg.norm(resid) <= rtol * np.linalg.norm(self.b):
-            return True, "resid_rtol"
-        # uncertainty-based
-        # todo: based on posterior contraction
         else:
             return False, ""
 
@@ -158,6 +145,10 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+
+    See Also
+    --------
+    NoisySymmetricMatrixBasedSolver : Class implementing the noisy symmetric probabilistic linear solver.
     """
 
     def __init__(self, A, b, A_mean, A_covfactor, Ainv_mean, Ainv_covfactor):
@@ -166,10 +157,50 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         self.Ainv_mean = Ainv_mean
         self.Ainv_covfactor = Ainv_covfactor
         self.x = Ainv_mean @ b
-        self.S = []
-        self.Y = []
+        self.search_dir_list = []
+        self.obs_list = []
         self.sy = []
         super().__init__(A=A, b=b)
+
+    def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
+        """
+        Check convergence of a linear solver.
+
+        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+
+        Parameters
+        ----------
+        iter : int
+            Current iteration of solver.
+        maxiter : int
+            Maximum number of iterations
+        resid : array-like
+            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
+        atol : float
+            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{atol}`.
+        rtol : float
+            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{rtol} \\lVert b \\rVert`.
+
+        Returns
+        -------
+        has_converged : bool
+            True if the method has converged.
+        convergence_criterion : str
+            Convergence criterion which caused termination.
+        """
+        # maximum iterations
+        if iter >= maxiter:
+            warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
+            return True, "maxiter"
+        # residual below error tolerance
+        elif np.linalg.norm(resid) <= atol:
+            return True, "resid_atol"
+        elif np.linalg.norm(resid) <= rtol * np.linalg.norm(self.b):
+            return True, "resid_rtol"
+        # uncertainty-based
+        # todo: based on posterior contraction
+        else:
+            return False, ""
 
     def _calibrate_uncertainty(self):
         """
@@ -181,8 +212,8 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         """
         # Transform to arrays
         _sy = np.squeeze(np.array(self.sy))
-        _S = np.squeeze(np.array(self.S)).T
-        _Y = np.squeeze(np.array(self.Y)).T
+        _S = np.squeeze(np.array(self.search_dir_list)).T
+        _Y = np.squeeze(np.array(self.obs_list)).T
 
         if self.iter_ > 5:  # only calibrate if enough iterations for a regression model have been performed
             # Rayleigh quotient
@@ -292,6 +323,35 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
 
     def solve(self, callback=None, maxiter=None, atol=None, rtol=None, calibrate=True):
+        """
+        Solve the linear system :math:`Ax=b`.
+
+        Parameters
+        ----------
+        callback : function, optional
+            User-supplied function called after each iteration of the linear solver. It is called as
+            ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration.
+            Note that depending on the function supplied, this can slow down the solver.
+        maxiter : int
+            Maximum number of iterations
+        atol : float
+            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{atol}`.
+        rtol : float
+            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{rtol} \\lVert b \\rVert`.
+        calibrate : bool, default=True
+            Should the posterior covariances be calibrated based on a Rayleigh quotient regression?
+
+        Returns
+        -------
+        x : RandomVariable, shape=(n,) or (n, nrhs)
+            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+        A : RandomVariable, shape=(n,n)
+            Posterior belief over the linear operator.
+        Ainv : RandomVariable, shape=(n,n)
+            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
+        info : dict
+            Information on convergence of the solver.
+        """
         # initialization
         self.iter_ = 0
         resid = self.A @ self.x - self.b
@@ -299,18 +359,18 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         # iteration with stopping criteria
         while True:
             # check convergence
-            _has_converged, _conv_crit = self._check_convergence(iter=self.iter_, maxiter=maxiter,
-                                                                 resid=resid, atol=atol, rtol=rtol)
+            _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter,
+                                                            resid=resid, atol=atol, rtol=rtol)
             if _has_converged:
                 break
 
-            # compute search direction (with implicit reorthogonalization)
+            # compute search direction (with implicit reorthogonalization) via policy
             search_dir = - self.Ainv_mean @ resid
-            self.S.append(search_dir)
+            self.search_dir_list.append(search_dir)
 
             # perform action and observe
             obs = self.A @ search_dir
-            self.Y.append(obs)
+            self.obs_list.append(obs)
 
             # compute step size
             sy = search_dir.T @ obs
@@ -348,8 +408,8 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             # callback function used to extract quantities from iteration
             if callback is not None:
                 # Phi, Psi = self._calibrate_uncertainty()
-                xk, Ak, Ainvk = self._create_output_randvars(S=np.squeeze(np.array(self.S)).T,
-                                                             Y=np.squeeze(np.array(self.Y)).T,
+                xk, Ak, Ainvk = self._create_output_randvars(S=np.squeeze(np.array(self.search_dir_list)).T,
+                                                             Y=np.squeeze(np.array(self.obs_list)).T,
                                                              Phi=None,  # Phi,
                                                              Psi=None)  # Psi)
                 callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
@@ -362,8 +422,8 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             Psi = None
 
         # Create output random variables
-        x, A, Ainv = self._create_output_randvars(S=np.squeeze(np.array(self.S)).T,
-                                                  Y=np.squeeze(np.array(self.Y)).T,
+        x, A, Ainv = self._create_output_randvars(S=np.squeeze(np.array(self.search_dir_list)).T,
+                                                  Y=np.squeeze(np.array(self.obs_list)).T,
                                                   Phi=Phi,
                                                   Psi=Psi)
 
@@ -372,6 +432,266 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             "iter": self.iter_,
             "maxiter": maxiter,
             "resid_l2norm": np.linalg.norm(resid, ord=2),
+            "conv_crit": _conv_crit,
+            "matrix_cond": None  # TODO: matrix condition from solver (see scipy solvers)
+        }
+
+        return x, A, Ainv, info
+
+
+class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
+    """
+    Solver iteration of the noisy symmetric probabilistic linear solver.
+
+    Implements the solve iteration of the symmetric matrix-based probabilistic linear solver taking into account noisy
+    matrix-vector products :math:`y_k = (A + E_k)s_k` as described in [1]_ and [2]_.
+
+    Parameters
+    ----------
+    A : LinearOperator or RandomVariable, shape=(n,n)
+        The square matrix or linear operator of the linear system.
+    b : array_like, shape=(n,) or (n, nrhs)
+        Right-hand side vector or matrix in :math:`A x = b`.
+    A_mean : array-like or LinearOperator
+        Mean of the prior distribution on the linear operator :math:`A`.
+    A_covfactor : array-like or LinearOperator
+        The Kronecker factor :math:`W_A` of the covariance :math:`\\operatorname{Cov}(A) = W_A \\otimes_s W_A` of
+        :math:`A`.
+    Ainv_mean : array-like or LinearOperator
+        Mean of the prior distribution on the linear operator :math:`A^{-1}`.
+    Ainv_covfactor : array-like or LinearOperator
+        The Kronecker factor :math:`W_H` of the covariance :math:`\\operatorname{Cov}(H) = W_H \\otimes_s W_H` of
+        :math:`H = A^{-1}`.
+
+    Returns
+    -------
+    A : RandomVariable
+        Posterior belief over the linear operator.
+    Ainv : RandomVariable
+        Posterior belief over the inverse linear operator.
+    x : RandomVariable
+        Posterior belief over the solution of the linear system.
+    info : dict
+        Information about convergence and the solution.
+
+    References
+    ----------
+    .. [1] Wenger, J., de Roos, F. and Hennig, P., Probabilistic Solution of Noisy Linear Systems, 2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+
+    See Also
+    --------
+    SymmetricMatrixBasedSolver : Class implementing the symmetric probabilistic linear solver.
+    """
+
+    def __init__(self, A, b, A_mean, A_covfactor, Ainv_mean, Ainv_covfactor):
+        self.A_mean = A_mean
+        self.A_covfactor = A_covfactor
+        self.Ainv_mean = Ainv_mean
+        self.Ainv_covfactor = Ainv_covfactor
+        self.x = Ainv_mean @ b
+        self.searchdir_list = []
+        self.obs_list = []
+        # self.sy = []
+        super().__init__(A=A, b=b)
+
+    def has_converged(self, iter, maxiter, covtol=None):
+        """
+        Check convergence of a linear solver.
+
+        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+
+        Parameters
+        ----------
+        iter : int
+            Current iteration of solver.
+        maxiter : int
+            Maximum number of iterations
+        covtol : float
+            Tolerance for the uncertainty about the solution estimate. Stops if
+            :math:`\\text{tr}(\\Sigma) \leq \\text{covtol}`, where :math:`\\Sigma` is the covariance of the solution
+            ``x``.
+
+        Returns
+        -------
+        has_converged : bool
+            True if the method has converged.
+        convergence_criterion : str
+            Convergence criterion which caused termination.
+        """
+        # maximum iterations
+        if iter >= maxiter:
+            warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
+            return True, "maxiter"
+        # uncertainty-based
+        cov = self.x.cov()
+        if isinstance(cov, linops.LinearOperator):
+            tracecov = cov.trace()
+        else:
+            tracecov = np.trace(cov)
+        if tracecov <= covtol:
+            return True, "covariance"
+        else:
+            return False, ""
+
+    def _mean_update(self, u, v, noise_scale):
+        """Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu')."""
+
+        def mv(x):
+            return 1 / (1 + noise_scale) * u @ (v.T @ x) + v @ (u.T @ x)
+
+        def mm(X):
+            return 1 / (1 + noise_scale) * u @ (v.T @ X) + v @ (u.T @ X)
+
+        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
+
+    def _covariance_update(self, u, Ws, noise_scale):
+        """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
+
+        def mv(x):
+            return u @ (Ws.T @ x)
+
+        def mm(X):
+            return u @ (Ws.T @ X)
+
+        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
+
+    def _create_output_randvars(self, S=None, Y=None, Phi=None, Psi=None):
+        """Return output random variables x, A, Ainv from their means and covariances."""
+
+        _A_covfactor = self.A_covfactor
+        _Ainv_covfactor = self.Ainv_covfactor
+
+        # Set degrees of freedom based on uncertainty calibration in unexplored space
+
+        # System matrix A
+        A = prob.RandomVariable(shape=self.A_mean.shape,
+                                dtype=float,
+                                distribution=prob.Normal(mean=self.A_mean,
+                                                         cov=linops.SymmetricKronecker(
+                                                             A=_A_covfactor)))
+
+        # Inverse H
+        cov_Ainv = linops.SymmetricKronecker(A=_Ainv_covfactor)
+        Ainv = prob.RandomVariable(shape=self.Ainv_mean.shape,
+                                   dtype=float,
+                                   distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
+
+        # Induced distribution on x via Ainv
+        # TODO: derive correct expression for (mean and) covariance of solution based on H
+        def _mv(x):
+            return 0
+
+        cov_op = linops.LinearOperator(shape=np.shape(_Ainv_covfactor), dtype=float,
+                                       matvec=_mv, matmat=_mv)
+
+        x = prob.RandomVariable(shape=(self.A_mean.shape[0],),
+                                dtype=float,
+                                distribution=prob.Normal(mean=self.x.ravel(), cov=cov_op))
+        return x, A, Ainv
+
+    def solve(self, callback=None, maxiter=None, covtol=None, noise_scale=None):
+        """
+        Solve the linear system :math:`Ax=b`.
+
+        Parameters
+        ----------
+        callback : function, optional
+            User-supplied function called after each iteration of the linear solver. It is called as
+            ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration.
+            Note that depending on the function supplied, this can slow down the solver.
+        maxiter : int
+            Maximum number of iterations
+        covtol : float
+            Tolerance for the uncertainty about the solution estimate. Stops if
+            :math:`\\text{tr}(\\Sigma) \leq \\text{covtol}`, where :math:`\\Sigma` is the covariance of the solution ``x``.
+        noise_scale : float
+            Assumed (initial) noise scale. Defaults to :math:`0.01 \\text{tr}(A)`.
+
+        Returns
+        -------
+        x : RandomVariable, shape=(n,) or (n, nrhs)
+            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+        A : RandomVariable, shape=(n,n)
+            Posterior belief over the linear operator.
+        Ainv : RandomVariable, shape=(n,n)
+            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
+        info : dict
+            Information on convergence of the solver.
+        """
+        # Initialization
+        self.iter_ = 0
+        resid = self.A @ self.x - self.b
+        if noise_scale is None:
+            noise_scale = 0.01 * self.A.trace()
+        if noise_scale <= 0:
+            raise ValueError("Noise scale must be positive.")
+
+        # Iteration with stopping criteria
+        while True:
+            # Check convergence
+            _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter, covtol=covtol)
+            if _has_converged:
+                break
+
+            # Compute search direction via policy
+            search_dir = - self.Ainv_mean @ resid
+            self.searchdir_list.append(search_dir)
+
+            # Perform action and observe
+            obs = self.A @ search_dir
+            self.obs_list.append(obs)
+
+            # Compute step size
+            sy = search_dir.T @ obs
+            step_size = - (search_dir.T @ resid) / sy
+
+            # Step and residual update
+            self.x = self.x + step_size * search_dir
+            resid = resid + step_size * obs
+
+            # Mean and covariance updates
+            Vs = self.A_covfactor @ search_dir
+            delta_A = obs - self.A_mean @ search_dir
+            u_A = Vs / (search_dir.T @ Vs)
+            v_A = delta_A - 0.5 * (search_dir.T @ delta_A) * u_A
+
+            Wy = self.Ainv_covfactor @ obs
+
+            # rank 2 mean updates (+= 1/(1+eps^2)*(uv' + vu'))
+            # TODO: Operator form may cause stack size issues for too many iterations
+            self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A, noise_scale=noise_scale)
+            self.Ainv_mean = np.linalg.inv(self.A_mean.todense())  # TODO: clearly this is intractable
+
+            # Solution covariance update
+
+            # Iteration increment
+            self.iter_ += 1
+
+            # Callback function used to extract quantities from iteration
+            if callback is not None:
+                # Phi, Psi = self._calibrate_uncertainty()
+                xk, Ak, Ainvk = self._create_output_randvars(S=np.squeeze(np.array(self.searchdir_list)).T,
+                                                             Y=np.squeeze(np.array(self.obs_list)).T,
+                                                             Phi=None,  # Phi,
+                                                             Psi=None)  # Psi)
+                callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
+
+        # Calibrate uncertainty
+
+        # Compute optimal noise scale
+
+        # Create output random variables
+        x, A, Ainv = self._create_output_randvars(S=np.squeeze(np.array(self.searchdir_list)).T,
+                                                  Y=np.squeeze(np.array(self.obs_list)).T,
+                                                  Phi=None,
+                                                  Psi=None)
+
+        # Log information on solution
+        info = {
+            "iter": self.iter_,
+            "maxiter": maxiter,
+            "trace_cov_sol": x.cov().trace(),
             "conv_crit": _conv_crit,
             "matrix_cond": None  # TODO: matrix condition from solver (see scipy solvers)
         }
