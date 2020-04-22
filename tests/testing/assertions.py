@@ -40,7 +40,8 @@ class NumpyAssertions:
         AssertionError
           If actual and desired are not equal up to specified precision.
         """
-        np.assert_approx_equal(actual=actual, desired=desired, significant=significant, err_msg=msg, verbose=True)
+        np.testing.assert_approx_equal(actual=actual, desired=desired, significant=significant, err_msg=msg,
+                                       verbose=True)
 
     def assertAllClose(self, actual, desired, rtol=1e-7, atol=0, equal_nan=True, msg=''):
         """

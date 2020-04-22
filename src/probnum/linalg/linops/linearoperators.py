@@ -259,8 +259,28 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         raise NotImplementedError
 
     def trace(self):
-        """Trace of the linear operator."""
-        raise NotImplementedError
+        """
+        Trace of the linear operator.
+
+        Computes the trace of a square linear operator :math:`\\text{tr}(A) = \\sum_{i-1}^n A_ii`.
+
+        Returns
+        -------
+        trace : float
+            Trace of the linear operator.
+
+        Raises
+        ------
+        ValueError : If :meth:`trace` is called on a non-square matrix.
+        """
+        if self.shape[0] != self.shape[1]:
+            raise ValueError("The trace is only defined for square linear operators.")
+        else:
+            _identity = np.eye(self.shape[0])
+            trace = 0.
+            for i in range(self.shape[0]):
+                trace += _identity[i, :] @ self.matvec(_identity[i, :])
+            return trace
 
 
 class _CustomLinearOperator(scipy.sparse.linalg.interface._CustomLinearOperator, LinearOperator):
@@ -469,7 +489,10 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         return logdet
 
     def trace(self):
-        return np.trace(self.A)
+        if self.shape[0] != self.shape[1]:
+            raise NotImplementedError("The trace is only defined for square linear operators.")
+        else:
+            return np.trace(self.A)
 
 
 def aslinop(A):

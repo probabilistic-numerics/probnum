@@ -226,5 +226,18 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                     self.assertAllClose(W.todense(), V.todense())
 
 
-if __name__ == "__main__":
-    unittest.main()
+class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
+    """Test functions of linear operators."""
+
+    def test_trace_only_square(self):
+        """Test that the trace can only be computed for square matrices."""
+        nonsquare_op = linops.MatrixMult(np.array([[-1.5, 3, 1],
+                                                   [0, -230, 0]]))
+        with self.assertRaises(ValueError):
+            nonsquare_op.trace()
+
+    def test_trace_computation(self):
+        """Check whether the trace of various linear operators is computed correctly."""
+        for A in self.ops:
+            with self.subTest():
+                self.assertApproxEqual(A.trace(), np.trace(a=A.todense()), significant=7)
