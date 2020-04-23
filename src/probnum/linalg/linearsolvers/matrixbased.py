@@ -103,6 +103,9 @@ class GeneralMatrixBasedSolver(ProbabilisticLinearSolver):
         raise NotImplementedError
         # super().__init__(A=A, b=b)
 
+    def has_converged(self, iter, maxiter, **kwargs):
+        raise NotImplementedError
+
     def solve(self, callback=None, maxiter=None, atol=None):
         raise NotImplementedError
 
@@ -433,7 +436,7 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             "maxiter": maxiter,
             "resid_l2norm": np.linalg.norm(resid, ord=2),
             "conv_crit": _conv_crit,
-            "matrix_cond": None  # TODO: matrix condition from solver (see scipy solvers)
+            "rel_cond": None  # TODO: matrix condition from solver (see scipy solvers)
         }
 
         return x, A, Ainv, info
@@ -489,13 +492,21 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         self.A_covfactor = A_covfactor
         self.Ainv_mean = Ainv_mean
         self.Ainv_covfactor = Ainv_covfactor
-        self.x = Ainv_mean @ b
-        self.searchdir_list = []
-        self.obs_list = []
-        # self.sy = []
+
+        # Induced distribution on x via Ainv
+        # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
+        Wb = Ainv_covfactor @ b
+        bWb = np.squeeze(Wb.T @ b)
+
+        def _mv(x):
+            return 0.5 * (bWb * Ainv_covfactor @ x + Wb @ (Wb.T @ x))
+
+        self.x_cov = linops.LinearOperator(shape=np.shape(Ainv_covfactor), dtype=float, matvec=_mv, matmat=_mv)
+
+        self.x_mean = Ainv_mean @ b
         super().__init__(A=A, b=b)
 
-    def has_converged(self, iter, maxiter, covtol=None):
+    def has_converged(self, iter, maxiter, ctol=None):
         """
         Check convergence of a linear solver.
 
@@ -507,9 +518,9 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             Current iteration of solver.
         maxiter : int
             Maximum number of iterations
-        covtol : float
+        ctol : float
             Tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\text{tr}(\\Sigma) \leq \\text{covtol}`, where :math:`\\Sigma` is the covariance of the solution
+            :math:`\\text{tr}(\\Sigma) \\leq \\text{ctol}`, where :math:`\\Sigma` is the covariance of the solution
             ``x``.
 
         Returns
@@ -524,12 +535,11 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
             return True, "maxiter"
         # uncertainty-based
-        cov = self.x.cov()
-        if isinstance(cov, linops.LinearOperator):
-            tracecov = cov.trace()
+        if isinstance(self.x_cov, linops.LinearOperator):
+            tracecov = self.x_cov.trace()
         else:
-            tracecov = np.trace(cov)
-        if tracecov <= covtol:
+            tracecov = np.trace(self.x_cov)
+        if tracecov <= ctol:
             return True, "covariance"
         else:
             return False, ""
@@ -556,41 +566,36 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
 
         return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
 
-    def _create_output_randvars(self, S=None, Y=None, Phi=None, Psi=None):
+    def _create_output_randvars(self):
         """Return output random variables x, A, Ainv from their means and covariances."""
 
-        _A_covfactor = self.A_covfactor
-        _Ainv_covfactor = self.Ainv_covfactor
-
-        # Set degrees of freedom based on uncertainty calibration in unexplored space
-
-        # System matrix A
+        # Estimate of matrix A
         A = prob.RandomVariable(shape=self.A_mean.shape,
                                 dtype=float,
                                 distribution=prob.Normal(mean=self.A_mean,
                                                          cov=linops.SymmetricKronecker(
-                                                             A=_A_covfactor)))
+                                                             A=self.A_covfactor)))
 
-        # Inverse H
-        cov_Ainv = linops.SymmetricKronecker(A=_Ainv_covfactor)
+        # Estimate of inverse Ainv
+        cov_Ainv = linops.SymmetricKronecker(A=self.Ainv_covfactor)
         Ainv = prob.RandomVariable(shape=self.Ainv_mean.shape,
                                    dtype=float,
                                    distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
 
-        # Induced distribution on x via Ainv
+        # Estimate of solution x induced via Ainv
         # TODO: derive correct expression for (mean and) covariance of solution based on H
         def _mv(x):
-            return 0
+            return np.zeros_like(x)
 
-        cov_op = linops.LinearOperator(shape=np.shape(_Ainv_covfactor), dtype=float,
+        cov_op = linops.LinearOperator(shape=np.shape(self.Ainv_covfactor), dtype=float,
                                        matvec=_mv, matmat=_mv)
 
         x = prob.RandomVariable(shape=(self.A_mean.shape[0],),
                                 dtype=float,
-                                distribution=prob.Normal(mean=self.x.ravel(), cov=cov_op))
+                                distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op))
         return x, A, Ainv
 
-    def solve(self, callback=None, maxiter=None, covtol=None, noise_scale=None):
+    def solve(self, callback=None, maxiter=None, ctol=None, noise_scale=None, **kwargs):
         """
         Solve the linear system :math:`Ax=b`.
 
@@ -602,9 +607,9 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             Note that depending on the function supplied, this can slow down the solver.
         maxiter : int
             Maximum number of iterations
-        covtol : float
+        ctol : float
             Tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\text{tr}(\\Sigma) \leq \\text{covtol}`, where :math:`\\Sigma` is the covariance of the solution ``x``.
+            :math:`\\text{tr}(\\Sigma) \leq \\text{ctol}`, where :math:`\\Sigma` is the covariance of the solution ``x``.
         noise_scale : float
             Assumed (initial) noise scale. Defaults to :math:`0.01 \\text{tr}(A)`.
 
@@ -621,7 +626,6 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         """
         # Initialization
         self.iter_ = 0
-        resid = self.A @ self.x - self.b
         if noise_scale is None:
             noise_scale = 0.01 * self.A.trace()
         if noise_scale <= 0:
@@ -630,25 +634,20 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         # Iteration with stopping criteria
         while True:
             # Check convergence
-            _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter, covtol=covtol)
+            _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter, ctol=ctol)
             if _has_converged:
                 break
 
             # Compute search direction via policy
-            search_dir = - self.Ainv_mean @ resid
-            self.searchdir_list.append(search_dir)
+            search_dir = - self.Ainv_mean @ (self.A @ self.x_mean - self.b)
 
             # Perform action and observe
             obs = self.A @ search_dir
-            self.obs_list.append(obs)
 
             # Compute step size
-            sy = search_dir.T @ obs
-            step_size = - (search_dir.T @ resid) / sy
 
-            # Step and residual update
-            self.x = self.x + step_size * search_dir
-            resid = resid + step_size * obs
+            # Solution estimate update
+            self.x_mean = self.Ainv_mean @ self.b
 
             # Mean and covariance updates
             Vs = self.A_covfactor @ search_dir
@@ -656,12 +655,12 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             u_A = Vs / (search_dir.T @ Vs)
             v_A = delta_A - 0.5 * (search_dir.T @ delta_A) * u_A
 
-            Wy = self.Ainv_covfactor @ obs
-
-            # rank 2 mean updates (+= 1/(1+eps^2)*(uv' + vu'))
+            # Mean update(s)
             # TODO: Operator form may cause stack size issues for too many iterations
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A, noise_scale=noise_scale)
             self.Ainv_mean = np.linalg.inv(self.A_mean.todense())  # TODO: clearly this is intractable
+
+            # Covariance update(s)
 
             # Solution covariance update
 
@@ -671,21 +670,13 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             # Callback function used to extract quantities from iteration
             if callback is not None:
                 # Phi, Psi = self._calibrate_uncertainty()
-                xk, Ak, Ainvk = self._create_output_randvars(S=np.squeeze(np.array(self.searchdir_list)).T,
-                                                             Y=np.squeeze(np.array(self.obs_list)).T,
-                                                             Phi=None,  # Phi,
-                                                             Psi=None)  # Psi)
-                callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
-
-        # Calibrate uncertainty
+                xk, Ak, Ainvk = self._create_output_randvars()
+                callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=None, resid=None)
 
         # Compute optimal noise scale
 
         # Create output random variables
-        x, A, Ainv = self._create_output_randvars(S=np.squeeze(np.array(self.searchdir_list)).T,
-                                                  Y=np.squeeze(np.array(self.obs_list)).T,
-                                                  Phi=None,
-                                                  Psi=None)
+        x, A, Ainv = self._create_output_randvars()
 
         # Log information on solution
         info = {
@@ -693,7 +684,7 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             "maxiter": maxiter,
             "trace_cov_sol": x.cov().trace(),
             "conv_crit": _conv_crit,
-            "matrix_cond": None  # TODO: matrix condition from solver (see scipy solvers)
+            "rel_cond": None  # TODO: relative matrix condition from solver (see scipy solvers)
         }
 
         return x, A, Ainv, info

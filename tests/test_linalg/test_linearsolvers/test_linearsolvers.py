@@ -8,8 +8,9 @@ import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 
-from probnum.linalg import linearsolvers, linops
 from probnum import prob
+from probnum import linalg
+from probnum.linalg import linops
 
 
 class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
@@ -33,20 +34,20 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         self.poisson_linear_system = A, f
 
         # Probabilistic linear solvers
-        self.problinsolvers = [linearsolvers.problinsolve]  # , linearsolvers.bayescg]
+        self.problinsolvers = [linalg.problinsolve]  # , linalg.bayescg]
 
         # Matrix-based linear solvers
-        self.matblinsolvers = [linearsolvers.problinsolve]
+        self.matblinsolvers = [linalg.problinsolve]
 
         # Solution-based linear solvers
-        self.solblinsolvers = [linearsolvers.bayescg]
+        self.solblinsolvers = [linalg.bayescg]
 
     def test_dimension_mismatch(self):
         """Test whether linear solvers throw an exception for input with mismatched dimensions."""
         A = np.zeros(shape=[3, 3])
         b = np.zeros(shape=[4])
         x0 = np.zeros(shape=[1])
-        for plinsolve in [linearsolvers.problinsolve, linearsolvers.bayescg]:
+        for plinsolve in [linalg.problinsolve, linalg.bayescg]:
             with self.subTest():
                 with self.assertRaises(ValueError, msg="Invalid input formats should raise a ValueError."):
                     # A, b dimension mismatch
@@ -64,8 +65,6 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     plinsolve(A=A, b=np.zeros(A.shape[0]),
                               Ainv=np.zeros([2, 2]),
                               x0=np.zeros(shape=[A.shape[1]]))
-
-    # TODO: Write linear systems as parameters and test for output properties separately to run all combinations
 
     def test_randvar_output(self):
         """Probabilistic linear solvers output random variables."""
@@ -194,8 +193,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             Y.append(yk)
 
         # Solve linear system
-        u_solver, Ahat, Ainvhat, info = linearsolvers.problinsolve(A=A, b=f, A0=Ahat0, Ainv0=Ainvhat0,
-                                                                   callback=callback_postparams, calibrate=False)
+        u_solver, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=f, A0=Ahat0, Ainv0=Ainvhat0,
+                                                            callback=callback_postparams, calibrate=False)
 
         # Create arrays from lists
         S = np.squeeze(np.array(S)).T
@@ -311,9 +310,35 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
     def setUp(self):
         """Resources for tests."""
+        # Structured noise E
+        self.noise = [
+            prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(2, 2), scalar=0),
+                                                         cov=linops.SymmetricKronecker(
+                                                             A=.75 ** 2 * linops.Identity(2))))
+        ]
 
+        # Noisy matrices A+E
+        self.noisy_system_matrices = [
+            linops.MatrixMult(np.array([[4., 1.], [1., 2.]]))
+        ]
+
+        # Noisy linear operators
+        self.noisy_linops = [
+
+        ]
+        # System right hand sides b
+        self.right_hand_sides = [
+            np.array([1, -1])
+        ]
+
+    def test_solve_noisy_problem(self):
+        """Solve a simple noisy problem."""
+        for (A, E, b) in zip(self.noisy_system_matrices, self.noise, self.right_hand_sides):
+            with self.subTest():
+                np.random.seed(1)
+                x, _, _, info = linalg.problinsolve(A=A+E, b=b, ctol=10**-6, assume_A="symposnoise")
+                self.assertAllClose(A @ x.mean(), b)
 
     def test_optimal_scale(self):
         """Tests the computation of the optimal scale for the posterior covariance."""
         pass
-

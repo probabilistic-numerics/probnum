@@ -279,7 +279,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             _identity = np.eye(self.shape[0])
             trace = 0.
             for i in range(self.shape[0]):
-                trace += _identity[i, :] @ self.matvec(_identity[i, :])
+                trace += np.squeeze(_identity[np.newaxis, i, :] @ self.matvec(_identity[i, :, np.newaxis]))
             return trace
 
 
@@ -490,7 +490,7 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
 
     def trace(self):
         if self.shape[0] != self.shape[1]:
-            raise NotImplementedError("The trace is only defined for square linear operators.")
+            raise ValueError("The trace is only defined for square linear operators.")
         else:
             return np.trace(self.A)
 
