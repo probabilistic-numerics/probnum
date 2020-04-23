@@ -51,7 +51,7 @@ class ODE(ABC):
     --------
     IVP : Extends ODE for initial value problems.
     """
-    def __init__(self, timespan, rhs, jac=None, sol=None):
+    def __init__(self, timespan, rhs, jac=None, hess=None, sol=None):
         """
         Initialises basic ODE attributes.
 
@@ -64,6 +64,7 @@ class ODE(ABC):
         self.t0, self.tmax = timespan
         self.rhs = rhs
         self.jac = jac
+        self.hess = hess
         self.sol = sol
 
     def rhs(self, t, x, **kwargs):
@@ -80,6 +81,25 @@ class ODE(ABC):
             raise NotImplementedError
         else:
             return self.jac(t, x, **kwargs)
+
+    def hessian(self, t, x, **kwargs):
+        """
+        Hessian of model function f.
+
+        For :math:`d=3`, the Hessian
+        :math:`H_f(t, x) \\in \\mathbb{R}^{3 \\times 3 \\times 3}`
+        is expected be evaluated as
+
+        .. math:: H_f(t, x) = \\left[H_{f_1}(t, x), H_{f_2}(t, x), H_{f_3}(t, x) \\right]^\\top
+
+        since for any directions :math:`v_1, v_2` the outcome of
+        :math:`H_f(t_0, x_0) \\cdot v_1 \\cdot v_2` is expected to contain
+        the incline of :math:`f_i` in direction :math:`(v_1, v_2)`.
+        """
+        if self.hess is None:
+            raise NotImplementedError
+        else:
+            return self.hess(t, x, **kwargs)
 
     def solution(self, t, **kwargs):
         """

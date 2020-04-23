@@ -17,6 +17,7 @@ ODE
 
    .. autosummary::
 
+      ~ODE.hessian
       ~ODE.jacobian
       ~ODE.rhs
       ~ODE.solution
@@ -28,6 +29,7 @@ ODE
 
    .. rubric:: Methods Documentation
 
+   .. automethod:: hessian
    .. automethod:: jacobian
    .. automethod:: rhs
    .. automethod:: solution

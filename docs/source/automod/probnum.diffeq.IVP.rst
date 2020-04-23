@@ -19,6 +19,7 @@ IVP
 
    .. autosummary::
 
+      ~IVP.hessian
       ~IVP.jacobian
       ~IVP.rhs
       ~IVP.solution
@@ -32,6 +33,7 @@ IVP
 
    .. rubric:: Methods Documentation
 
+   .. automethod:: hessian
    .. automethod:: jacobian
    .. automethod:: rhs
    .. automethod:: solution

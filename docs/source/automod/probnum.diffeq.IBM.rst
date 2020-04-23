@@ -14,7 +14,9 @@ IBM
       ~IBM.dispersionmatrix
       ~IBM.driftmatrix
       ~IBM.force
+      ~IBM.inverse_preconditioner
       ~IBM.ndim
+      ~IBM.preconditioner
 
    .. rubric:: Methods Summary
 
@@ -24,6 +26,7 @@ IBM
       ~IBM.dispersion
       ~IBM.drift
       ~IBM.jacobian
+      ~IBM.precond2nordsieck
       ~IBM.proj2coord
       ~IBM.sample
 
@@ -33,7 +36,9 @@ IBM
    .. autoattribute:: dispersionmatrix
    .. autoattribute:: driftmatrix
    .. autoattribute:: force
+   .. autoattribute:: inverse_preconditioner
    .. autoattribute:: ndim
+   .. autoattribute:: preconditioner
 
    .. rubric:: Methods Documentation
 
@@ -41,5 +46,6 @@ IBM
    .. automethod:: dispersion
    .. automethod:: drift
    .. automethod:: jacobian
+   .. automethod:: precond2nordsieck
    .. automethod:: proj2coord
    .. automethod:: sample

@@ -14,7 +14,9 @@ ODEPrior
       ~ODEPrior.dispersionmatrix
       ~ODEPrior.driftmatrix
       ~ODEPrior.force
+      ~ODEPrior.inverse_preconditioner
       ~ODEPrior.ndim
+      ~ODEPrior.preconditioner
 
    .. rubric:: Methods Summary
 
@@ -24,6 +26,7 @@ ODEPrior
       ~ODEPrior.dispersion
       ~ODEPrior.drift
       ~ODEPrior.jacobian
+      ~ODEPrior.precond2nordsieck
       ~ODEPrior.proj2coord
       ~ODEPrior.sample
 
@@ -33,7 +36,9 @@ ODEPrior
    .. autoattribute:: dispersionmatrix
    .. autoattribute:: driftmatrix
    .. autoattribute:: force
+   .. autoattribute:: inverse_preconditioner
    .. autoattribute:: ndim
+   .. autoattribute:: preconditioner
 
    .. rubric:: Methods Documentation
 
@@ -41,5 +46,6 @@ ODEPrior
    .. automethod:: dispersion
    .. automethod:: drift
    .. automethod:: jacobian
+   .. automethod:: precond2nordsieck
    .. automethod:: proj2coord
    .. automethod:: sample

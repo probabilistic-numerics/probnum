@@ -25,7 +25,7 @@ from probnum.diffeq.odefiltsmooth import GaussianIVPFilter, GaussianIVPSmoother
 
 
 def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
-                  step=None, firststep=None, **kwargs):
+                  step=None, firststep=None, precond=False, expectedstep=None, **kwargs):
     """
     Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -212,7 +212,14 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
     """
     _check_step_tol(step, tol)
     _check_method(method)
-    _prior = _string_to_prior(ivp, which_prior, **kwargs)
+    if step is not None:
+        expectedstep = step
+    if "nsteps" in kwargs.keys():
+        nsteps = kwargs["nsteps"]
+    else:
+        nsteps = 1
+    expectedstep = expectedstep / float(nsteps)
+    _prior = _string_to_prior(ivp, which_prior, step, precond, expectedstep, **kwargs)
     if tol is not None:
         stprl = _step_to_adaptive_steprule(tol, _prior)
         if firststep is None:
@@ -243,24 +250,24 @@ def _check_method(method):
         raise TypeError("Method not supported.")
 
 
-def _string_to_prior(ivp, which_prior, **kwargs):
+def _string_to_prior(ivp, which_prior, step, precond, expectedstep, **kwargs):
     """
     """
     ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
     ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
     matern_family = ["matern32", "matern52", "matern72", "matern92"]
     if which_prior in ibm_family:
-        return _string_to_prior_ibm(ivp, which_prior, **kwargs)
+        return _string_to_prior_ibm(ivp, which_prior, precond, expectedstep, **kwargs)
     elif which_prior in ioup_family:
-        return _string_to_prior_ioup(ivp, which_prior, **kwargs)
+        return _string_to_prior_ioup(ivp, which_prior, precond, expectedstep, **kwargs)
     elif which_prior in matern_family:
-        return _string_to_prior_matern(ivp, which_prior, **kwargs)
+        return _string_to_prior_matern(ivp, which_prior, precond, expectedstep, **kwargs)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_prior_ibm(ivp, which_prior, **kwargs):
+def _string_to_prior_ibm(ivp, which_prior, precond, expectedstep, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -268,19 +275,19 @@ def _string_to_prior_ibm(ivp, which_prior, **kwargs):
     else:
         diffconst = 1.0
     if which_prior == "ibm1":
-        return prior.IBM(1, ivp.ndim, diffconst)
+        return prior.IBM(1, ivp.ndim, diffconst, precond, expectedstep)
     elif which_prior == "ibm2":
-        return prior.IBM(2, ivp.ndim, diffconst)
+        return prior.IBM(2, ivp.ndim, diffconst, precond, expectedstep)
     elif which_prior == "ibm3":
-        return prior.IBM(3, ivp.ndim, diffconst)
+        return prior.IBM(3, ivp.ndim, diffconst, precond, expectedstep)
     elif which_prior == "ibm4":
-        return prior.IBM(4, ivp.ndim, diffconst)
+        return prior.IBM(4, ivp.ndim, diffconst, precond, expectedstep)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_prior_ioup(_ivp, _which_prior, **kwargs):
+def _string_to_prior_ioup(_ivp, _which_prior, precond, expectedstep, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -292,19 +299,19 @@ def _string_to_prior_ioup(_ivp, _which_prior, **kwargs):
     else:
         driftspeed = 1.0
     if _which_prior == "ioup1":
-        return prior.IOUP(1, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(1, _ivp.ndim, driftspeed, diffconst, precond, expectedstep)
     elif _which_prior == "ioup2":
-        return prior.IOUP(2, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(2, _ivp.ndim, driftspeed, diffconst, precond, expectedstep)
     elif _which_prior == "ioup3":
-        return prior.IOUP(3, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(3, _ivp.ndim, driftspeed, diffconst, precond, expectedstep)
     elif _which_prior == "ioup4":
-        return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst, precond, expectedstep)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_prior_matern(ivp, which_prior, **kwargs):
+def _string_to_prior_matern(ivp, which_prior, precond, expectedstep, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -316,13 +323,13 @@ def _string_to_prior_matern(ivp, which_prior, **kwargs):
     else:
         lengthscale = 1.0
     if which_prior == "matern32":
-        return prior.Matern(1, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(1, ivp.ndim, lengthscale, diffconst, precond, expectedstep)
     elif which_prior == "matern52":
-        return prior.Matern(2, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(2, ivp.ndim, lengthscale, diffconst, precond, expectedstep)
     elif which_prior == "matern72":
-        return prior.Matern(3, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(3, ivp.ndim, lengthscale, diffconst, precond, expectedstep)
     elif which_prior == "matern92":
-        return prior.Matern(4, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(4, ivp.ndim, lengthscale, diffconst, precond, expectedstep)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
