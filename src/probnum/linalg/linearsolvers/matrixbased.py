@@ -628,8 +628,8 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         self.iter_ = 0
         if noise_scale is None:
             noise_scale = 0.01 * self.A.trace()
-        if noise_scale <= 0:
-            raise ValueError("Noise scale must be positive.")
+        if noise_scale < 0:
+            raise ValueError("Noise scale must be non-negative.")
 
         # Iteration with stopping criteria
         while True:

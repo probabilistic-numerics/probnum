@@ -342,3 +342,7 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     def test_optimal_scale(self):
         """Tests the computation of the optimal scale for the posterior covariance."""
         pass
+
+    def test_CG_equivalence(self):
+        """Test recovery of CG iterates as posterior mean of the solution estimate for zero noise."""
+        pass
