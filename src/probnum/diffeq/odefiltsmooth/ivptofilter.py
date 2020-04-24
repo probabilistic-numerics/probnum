@@ -159,26 +159,12 @@ def _measmod_ukf(ivp, prior, measvar):
     return DiscreteGaussianModel(dyna, diff)
 
 
-def _initialdistribution(ivp, prior):
+def _initialdistribution2(ivp, prior):
     """
     Perform initial Kalman update to condition the initial distribution
     of the prior on the initial values (and all available derivatives).
     """
-    precond = prior.preconditioner
-    if precond is None:
-        return _initialdistribution_no_precond(ivp, prior)
-    else:
-        return _initialdistribution_precond(ivp, prior)
-
-
-def _initialdistribution_precond(ivp, prior):
-    """
-    Stable version of below.
-
-    More pencil work than on the other function. In particular:
-    - innovation term is always identity in this config.
-    -
-    """
+    raise RuntimeError("Put in initial value variance before proceeding")
     x0 = ivp.initialdistribution.mean()
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)
@@ -215,7 +201,7 @@ def _initialdistribution_precond(ivp, prior):
 
 
 
-def _initialdistribution_precond2(ivp, prior):
+def _initialdistribution(ivp, prior):
     """
     Conditions initialdistribution :math:`\mathcal{N}(0, P P^\\top)`
     on the initial values :math:`(x_0, f(t_0, x_0), ...)` using
@@ -245,15 +231,11 @@ def _initialdistribution_precond2(ivp, prior):
         h3 = prior.proj2coord(coord=3)
         projmat = np.hstack((h0.T, h1.T, h2.T, h3.T)).T
         data = np.hstack((x0, dx0, ddx0, dddx0))
-    s = projmat @ initcov @ projmat.T  # always identity matrix bc proj. matrices are identities
-    crosscov = initcov @ projmat.T #@ np.linalg.inv(s)
+    largecov = np.kron(np.eye(prior.ordint + 1), ivp.initialdistribution.cov())
+    s = projmat @ initcov @ projmat.T + largecov
+    crosscov = initcov @ projmat.T
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s.T, crosscov.T)).T
-    # print("Innovation:\n", s)
-    # print("crosscov^2:\n", crosscov @ crosscov.T)
-    # print("Initial covariance:\n", initcov)
-    # print("Difference:\n", initcov - crosscov @ crosscov.T)
-    # print("Outcome:\n", newcov)
     return RandomVariable(distribution=Normal(newmean, newcov))
 
 

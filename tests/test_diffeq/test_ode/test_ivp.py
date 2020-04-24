@@ -11,6 +11,7 @@ from probnum.prob.distributions import Dirac
 
 TEST_NDIM = 3
 
+
 class TestExamples(unittest.TestCase):
     """
     Test cases for example IVPs: Lotka-Volterra, etc.
@@ -53,12 +54,12 @@ class TestIVP(unittest.TestCase):
     """
     def setUp(self):
         """ """
-        def rhs(t, x): return -x
-        def jac(t, x): return -np.eye(len(x))
-        def sol(t): return np.exp(-t) * np.ones(TEST_NDIM)
+        def rhs_(t, x): return -x
+        def jac_(t, x): return -np.eye(len(x))
+        def sol_(t): return np.exp(-t) * np.ones(TEST_NDIM)
         some_center = np.random.rand(TEST_NDIM)
         rv = RandomVariable(distribution=Dirac(some_center))
-        self.mockivp = ivp.IVP((0., np.random.rand()), rv, rhs, jac, sol)
+        self.mockivp = ivp.IVP((0., np.random.rand()), rv, rhs=rhs_, jac=jac_, sol=sol_)
 
     def test_rhs(self):
         """

@@ -1,17 +1,4 @@
 """
-Check if all filters have the same solve() method.
-If yes, make a ODEFilter() object.
-If not, make ODEKalmanFilter, ODEExtendedKalmanFilter, ... objects.
-
-Desired
--------
-diffeq.solver.solve_filter(ode, stepsize=0.1, prior='ibm_4', filter="kalman")
-diffeq.solver.solve_filter(ode, tol=1e-04, prior='matern_52', filter="ekf1")
-
-
-Beware
-------
-Unittests for this function are yet to be transferred.
 """
 
 import numpy as np
@@ -19,6 +6,7 @@ import numpy as np
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver
+from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.filtsmooth import GaussianSmoother
 
 
@@ -37,7 +25,6 @@ class GaussianIVPSmoother(odesolver.ODESolver):
         """
         """
         means, covars, times = self.gauss_ode_filt.solve(firststep, **kwargs)
-        # means, covars, times, ipre = self.gauss_ode_filt.solve(firststep, **kwargs)
         means, covars = self.gauss_ode_filt.redo_preconditioning(means, covars)
         smoothed_means, smoothed_covars = self.smoother.smooth_filterout(means, covars, times, **kwargs)
         smoothed_means, smoothed_covars = self.gauss_ode_filt.undo_preconditioning(smoothed_means, smoothed_covars)
@@ -69,6 +56,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         * gaussfilt.initialdistribution contains the information about
         the initial values.
         """
+        if not issubclass(type(gaussfilt.dynamicmodel), ODEPrior):
+            raise ValueError("Please initialise a Gaussian filter "
+                             "with an ODEPrior")
         self.ivp = ivp
         self.gfilt = gaussfilt
         odesolver.ODESolver.__init__(self, steprl)
@@ -82,7 +72,11 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ----------
         firststep : float
             First step for adaptive step size rule.
+
         """
+
+        ####### This function surely can use some code cleanup. #######
+
         current = self.gfilt.initialdistribution
         step = firststep
         ssqest, ct = 0.0, 0
@@ -102,18 +96,10 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 intercs.append(current.cov())
                 interts.append(newtm)
                 tm = newtm
-                print(np.linalg.cond(current.cov()))
             predicted = current
             new_time = tm
             zero_data = 0.0
             current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, **kwargs)
-
-            # transform back from preconditioner
-            # mean, covar = current.mean(), current.cov()
-            # newmean = np.linalg.solve(precond_, mean)
-            # newcovar = np.linalg.solve(precond_, covar) @ np.linalg.inv(precond_)
-            # current = RandomVariable(distribution=Normal(newmean, newcovar))
-
             interms[-1] = current.mean()
             intercs[-1] = current.cov()
             errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
@@ -126,25 +112,14 @@ class GaussianIVPFilter(odesolver.ODESolver):
             else:
                 current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
             step = self._suggest_step(step, errorest)
-
-        # undo preconditioning
-        if self.gfilt.dynamicmodel.invprecond is not None:
-            means, covars = self.undo_preconditioning(means, covars)
-        finalmeans = np.array(means)
-        finalcovs = ssqest * np.array(covars)
-        finaltimes = np.array(times)
-        print("SSQ is estimated as", ssqest)
-        # return finalmeans, finalcovs, finaltimes, self.gfilt.dynamicmodel.invprecond
-        return finalmeans, finalcovs, finaltimes
+        means, covars = self.undo_preconditioning(means, covars)
+        return np.array(means), ssqest * np.array(covars), np.array(times)
 
     def undo_preconditioning(self, means, covs):
         """ """
         ipre = self.gfilt.dynamicmodel.invprecond
-        # pre = self.gfilt.dynamicmodel.precond
         newmeans = np.array([ipre @ mean for mean in means])
         newcovs = np.array([ipre @ cov @ ipre.T for cov in covs])
-        # newmeans[0] = pre @ newmeans[0]
-        # newcovs[0] = pre @ newcovs[0] @ pre.T
         return newmeans, newcovs
 
     def redo_preconditioning(self, means, covs):
@@ -164,12 +139,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         THIS IS NOT A PERFECT ERROR ESTIMATE, but this is a question of
         research, not a question of implementation as of now.
         """
-        print(covest, mnest)
-        # std_like = np.linalg.cholesky(covest)   # commented out bc. it breaks here for small steps
-        std_like = np.eye(*covest.shape)
+        std_like = np.linalg.cholesky(covest)
         whitened_res = np.linalg.solve(std_like, mnest)
-        ssq = mnest @ np.linalg.solve(covest, mnest)
-        # ssq = whitened_res @ whitened_res       # commented out bc. it breaks here for small steps
+        ssq = whitened_res @ whitened_res / mnest.size
         abserrors = np.abs(whitened_res)
         errorest = self._rel_and_abs_error(abserrors, currmn)
         return errorest, ssq
@@ -199,6 +171,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
             print("Warning: Stepsize is num. zero (%.1e)" % step)
         return step
 
-
-
-
+    @property
+    def prior(self):
+        """ """
+        return self.gfilt.dynamicmodel

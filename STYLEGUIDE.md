@@ -52,8 +52,24 @@ if they are sufficiently desciptive. E.g.:
 - `mat`: matrix
 - `vec`: vector
 - `arr`: array; wherever applicable, specify `vec` or `mat`
-- `mat2arr` vs `mat_to_arr` ?
+- `mat2arr`: convert matrix to array
+- `proj`: projection (if required: `projmat`, `projvec`, `projlinop`, ...)
+- `precond`: preconditioner
+- `inv*`: for inverse of matrix; e.g. `invprecond`, `invcovmat`, ...
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
+
+
+## Errors and Warnings
+- Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)
+- If dunder method is not implemented for a type, return `NotImplemented`
+- If a warning for a user is raised,
+  e.q. if a step size for an ODE solver is below numerical precision,
+  print a warning as `!!! Warning: step size below 1e-15 (2.7e-17)`
+- recall the difference between TypeError and ValueError
+
+
+    TypeError is thrown when an operation or function is applied to an object of an inappropriate type.
+    ValueError is thrown when a function's argument is of an inappropriate type.
 
 
 ## Documentation
