@@ -298,7 +298,38 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_posterior_mean_CG_equivalency(self):
         """The probabilistic linear solver should recover CG iterates as a posterior mean for specific covariances."""
-        pass
+
+        # Linear system
+        A, f = self.poisson_linear_system
+
+        # Callback function to return CG iterates
+        cg_iterates = []
+
+        def callback_iterates_CG(xk):
+            cg_iterates.append(np.eye(np.shape(A)[0]) @ xk)  # identity hack to actually save different iterations
+
+        # Define callback function to obtain search directions
+        pls_iterates = []
+
+        def callback_iterates_PLS(xk, Ak, Ainvk, sk, yk, alphak, resid):
+            pls_iterates.append(xk.mean())
+
+        # Solve linear system
+
+        # Initial guess as chosen by PLS: x0 = Ainv.mean() @ f
+        x0 = f
+
+        # Conjugate gradient method
+        xhat_cg, _ = scipy.sparse.linalg.cg(A=A, b=f, x0=x0, tol=10 ** -6, callback=callback_iterates_CG)
+        cg_iters_arr = np.array([x0] + cg_iterates)
+
+        # Probabilistic linear solver
+
+        xhat_pls, _, _, _ = linalg.problinsolve(A=A, b=f, assume_A="sympos", rtol=10 ** -6,
+                                                callback=callback_iterates_PLS)
+        pls_iters_arr = np.array([x0] + pls_iterates)
+
+        self.assertAllClose(pls_iters_arr, cg_iters_arr, rtol=10 ** -12)
 
     def test_prior_distributions(self):
         """The solver should automatically handle different types of prior information."""
@@ -336,8 +367,8 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         for (A, E, b) in zip(self.noisy_system_matrices, self.noise, self.right_hand_sides):
             with self.subTest():
                 np.random.seed(1)
-                x, _, _, info = linalg.problinsolve(A=A+E, b=b, ctol=10**-6, assume_A="symposnoise")
-                self.assertAllClose(A @ x.mean(), b, rtol=10**-6)
+                x, _, _, info = linalg.problinsolve(A=A + E, b=b, ctol=10 ** -6, assume_A="symposnoise")
+                self.assertAllClose(A @ x.mean(), b, rtol=10 ** -6)
 
     def test_optimal_scale(self):
         """Tests the computation of the optimal scale for the posterior covariance."""

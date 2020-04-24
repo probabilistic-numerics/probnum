@@ -362,13 +362,8 @@ def _preprocess_linear_system(A, b, A0=None, Ainv0=None, x0=None, assume_A=None)
                                cov=linops.SymmetricKronecker(
                                    linops.Identity(shape=A.shape[0])))
             Ainv0 = prob.RandomVariable(distribution=dist)
-
-            dist = prob.Normal(mean=linops.Identity(shape=A.shape[0]),
-                               cov=linops.SymmetricKronecker(
-                                   linops.Identity(shape=A.shape[0])))
-            A0 = prob.RandomVariable(distribution=dist)
         # Only prior on Ainv specified
-        elif A0 is None and Ainv0 is not None:
+        if A0 is None and Ainv0 is not None:
             try:
                 if isinstance(Ainv0, prob.RandomVariable):
                     A0_mean = Ainv0.mean().inv()
@@ -382,14 +377,14 @@ def _preprocess_linear_system(A, b, A0=None, Ainv0=None, x0=None, assume_A=None)
                 A0_mean = linops.Identity(A.shape[0])
                 warnings.warn(message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
                                       + "falling back to standard normal prior.")
-            # hereditary positive definiteness
+            # Symmetric posterior correspondence
             A0_covfactor = A
 
             dist = prob.Normal(mean=A0_mean,
                                cov=linops.SymmetricKronecker(A=A0_covfactor))
             A0 = prob.RandomVariable(distribution=dist)
         # Only prior on A specified
-        if A0 is not None and Ainv0 is None:
+        elif A0 is not None and Ainv0 is None:
             try:
                 if isinstance(A0, prob.RandomVariable):
                     Ainv0_mean = A0.mean().inv()
@@ -403,7 +398,7 @@ def _preprocess_linear_system(A, b, A0=None, Ainv0=None, x0=None, assume_A=None)
                 Ainv0_mean = linops.Identity(A.shape[0])
                 warnings.warn(message="Prior specified only for Ainv. " +
                                       "Automatic prior mean inversion failed, falling back to standard normal prior.")
-            # (non-symmetric) posterior correspondence
+            # Symmetric posterior correspondence
             Ainv0_covfactor = Ainv0_mean
 
             dist = prob.Normal(mean=Ainv0_mean,

@@ -70,7 +70,7 @@ class ProbabilisticLinearSolver(abc.ABC):
         ----------
         callback : function, optional
             User-supplied function called after each iteration of the linear solver. It is called as
-            ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration.
+            ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration.
             Note that depending on the function supplied, this can slow down the solver.
         kwargs
             Key-word arguments adjusting the behaviour of the ``solve`` iteration. These are usually convergence
@@ -333,7 +333,7 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         ----------
         callback : function, optional
             User-supplied function called after each iteration of the linear solver. It is called as
-            ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration.
+            ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration.
             Note that depending on the function supplied, this can slow down the solver.
         maxiter : int
             Maximum number of iterations
@@ -548,12 +548,9 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         """Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu')."""
 
         def mv(x):
-            return 1 / (1 + noise_scale) * (u @ (v.T @ x) + v @ (u.T @ x))
+            return (u @ (v.T @ x) + v @ (u.T @ x)) / (1 + noise_scale)
 
-        def mm(X):
-            return 1 / (1 + noise_scale) * (u @ (v.T @ X) + v @ (u.T @ X))
-
-        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
+        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mv)
 
     def _covariance_update(self, u, Ws, noise_scale):
         """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
@@ -561,10 +558,7 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         def mv(x):
             return u @ (Ws.T @ x)
 
-        def mm(X):
-            return u @ (Ws.T @ X)
-
-        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
+        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mv)
 
     def _create_output_randvars(self):
         """Return output random variables x, A, Ainv from their means and covariances."""
@@ -582,17 +576,10 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
                                    dtype=float,
                                    distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
 
-        # Estimate of solution x induced via Ainv
-        # TODO: derive correct expression for (mean and) covariance of solution based on H
-        def _mv(x):
-            return np.zeros_like(x)
-
-        cov_op = linops.LinearOperator(shape=np.shape(self.Ainv_covfactor), dtype=float,
-                                       matvec=_mv, matmat=_mv)
-
+        # Estimate of solution x
         x = prob.RandomVariable(shape=(self.A_mean.shape[0],),
                                 dtype=float,
-                                distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op))
+                                distribution=prob.Normal(mean=self.x_mean.ravel(), cov=self.x_cov))
         return x, A, Ainv
 
     def solve(self, callback=None, maxiter=None, ctol=None, noise_scale=None, **kwargs):
@@ -603,7 +590,7 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         ----------
         callback : function, optional
             User-supplied function called after each iteration of the linear solver. It is called as
-            ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration.
+            ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration.
             Note that depending on the function supplied, this can slow down the solver.
         maxiter : int
             Maximum number of iterations
@@ -627,7 +614,7 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         # Initialization
         self.iter_ = 0
         if noise_scale is None:
-            noise_scale = 0.01 * self.A.trace()
+            noise_scale = 0.01
         if noise_scale < 0:
             raise ValueError("Noise scale must be non-negative.")
 
@@ -644,11 +631,6 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             # Perform action and observe
             obs = self.A @ search_dir
 
-            # Compute step size
-
-            # Solution estimate update
-            self.x_mean = self.Ainv_mean @ self.b
-
             # Mean and covariance updates
             Vs = self.A_covfactor @ search_dir
             delta_A = obs - self.A_mean @ search_dir
@@ -658,11 +640,23 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             # Mean update(s)
             # TODO: Operator form may cause stack size issues for too many iterations
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A, noise_scale=noise_scale)
-            self.Ainv_mean = np.linalg.inv(self.A_mean.todense())  # TODO: clearly this is intractable
+            #self.Ainv_mean = None
 
             # Covariance update(s)
 
+            # Compute step size
+
+            # Solution estimate update
+            # TODO: clearly this is intractable
+            self.x_mean = np.linalg.solve(self.A_mean.todense(), self.b)
+
             # Solution covariance update
+            # TODO: derive correct expression for (mean and) covariance of solution based on H
+            def _mv(x):
+                return np.zeros_like(x)
+
+            self.mean_cov = linops.LinearOperator(shape=np.shape(self.Ainv_covfactor), dtype=float,
+                                                  matvec=_mv, matmat=_mv)
 
             # Iteration increment
             self.iter_ += 1

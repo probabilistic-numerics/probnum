@@ -49,7 +49,7 @@ class Dirac(Distribution):
         super().__init__(parameters={"support": support}, dtype=_dtype, random_state=random_state)
 
     def cdf(self, x):
-        if x < self.parameters["support"]:
+        if np.any(x < self.parameters["support"]):
             return 0.
         else:
             return 1.
