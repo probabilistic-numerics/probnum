@@ -49,9 +49,7 @@ class Dirac(Distribution):
                          random_state=random_state)
 
     def cdf(self, x):
-        if self.parameters["support"].ndim > 1:
-            raise ValueError("CDF for Dirac only defined in 1d.")
-        if x < self.parameters["support"]:
+        if np.any(x < self.parameters["support"]):
             return 0.
         else:
             return 1.

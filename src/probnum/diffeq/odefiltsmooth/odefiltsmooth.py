@@ -24,8 +24,8 @@ from probnum.diffeq.odefiltsmooth import prior, ivptofilter
 from probnum.diffeq.odefiltsmooth import GaussianIVPFilter, GaussianIVPSmoother
 
 
-def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
-                  step=None, firststep=None, precond_step=1.0, **kwargs):
+def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
+                  firststep=None, precond_step=1.0, nsteps=1, **kwargs):
     """
     Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -123,6 +123,20 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
         efficient to start out with smaller :math:`h_0` so that the
         first acceptance occurs earlier.
 
+    precond_step : float, optional
+        Expected average step size, used for preconditioning.
+        See :class:`ODEPrior` for details.
+        Default is ``precond_step=1.0` which amounts to no
+        preconditioning. If constant step size, precond_step is
+        overwritten with the actual step size to provide optimal
+        preconditioning.
+
+    nsteps : int, optional
+        Number of intermediate steps in between ODE right-hand side
+        evaluation. Default is ``nsteps=1``. Choosing ``nsteps > 1``
+        will result in solution estimates in between points which
+        will enable for instance uncertainty estimates in these regions.
+
     Returns
     -------
     means : np.ndarray, shape=(N, d*(q+1))
@@ -214,25 +228,21 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
     _check_method(method)
     if step is not None:
         precond_step = step
-    if "nsteps" in kwargs.keys():
-        nsteps = kwargs["nsteps"]
-    else:
-        nsteps = 1
     precond_step = precond_step / float(nsteps)
-    _prior = _string_to_prior(ivp, which_prior, precond_step, **kwargs)
+    _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
-        stprl = _step_to_adaptive_steprule(tol, _prior)
+        stprl = _step2steprule_adap(tol, _prior)
         if firststep is None:
             firststep = ivp.tmax - ivp.t0
     else:
-        stprl = _step_to_steprule(step)
+        stprl = _step2steprule_const(step)
         firststep = step
-    gfilt = _string_to_filter(ivp, _prior, method, **kwargs)
+    gfilt = _string2filter(ivp, _prior, method, **kwargs)
     if method in ["ekf0", "ekf1", "ukf"]:
         solver = GaussianIVPFilter(ivp, gfilt, stprl)
     else:
         solver = GaussianIVPSmoother(ivp, gfilt, stprl)
-    return solver.solve(firststep=firststep, **kwargs)
+    return solver.solve(firststep=firststep, nsteps=nsteps, **kwargs)
 
 
 def _check_step_tol(step, tol):
@@ -250,24 +260,24 @@ def _check_method(method):
         raise TypeError("Method not supported.")
 
 
-def _string_to_prior(ivp, which_prior, precond_step, **kwargs):
+def _string2prior(ivp, which_prior, precond_step, **kwargs):
     """
     """
     ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
     ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
     matern_family = ["matern32", "matern52", "matern72", "matern92"]
     if which_prior in ibm_family:
-        return _string_to_prior_ibm(ivp, which_prior, precond_step, **kwargs)
+        return _string2ibm(ivp, which_prior, precond_step, **kwargs)
     elif which_prior in ioup_family:
-        return _string_to_prior_ioup(ivp, which_prior, precond_step, **kwargs)
+        return _string2ioup(ivp, which_prior, precond_step, **kwargs)
     elif which_prior in matern_family:
-        return _string_to_prior_matern(ivp, which_prior, precond_step, **kwargs)
+        return _string2matern(ivp, which_prior, precond_step, **kwargs)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_prior_ibm(ivp, which_prior, precond_step, **kwargs):
+def _string2ibm(ivp, which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -287,7 +297,7 @@ def _string_to_prior_ibm(ivp, which_prior, precond_step, **kwargs):
                            "reach this point.")
 
 
-def _string_to_prior_ioup(_ivp, _which_prior, precond_step, **kwargs):
+def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -311,7 +321,7 @@ def _string_to_prior_ioup(_ivp, _which_prior, precond_step, **kwargs):
                            "reach this point.")
 
 
-def _string_to_prior_matern(ivp, which_prior, precond_step, **kwargs):
+def _string2matern(ivp, which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -335,7 +345,7 @@ def _string_to_prior_matern(ivp, which_prior, precond_step, **kwargs):
                            "reach this point.")
 
 
-def _string_to_filter(_ivp, _prior, _method, **kwargs):
+def _string2filter(_ivp, _prior, _method, **kwargs):
     """
     """
     if "evlvar" in kwargs.keys():
@@ -352,13 +362,13 @@ def _string_to_filter(_ivp, _prior, _method, **kwargs):
         raise TypeError("Type of filter not supported.")
 
 
-def _step_to_steprule(stp):
+def _step2steprule_const(stp):
     """
     """
     return steprule.ConstantSteps(stp)
 
 
-def _step_to_adaptive_steprule(_tol, _prior, **kwargs):
+def _step2steprule_adap(_tol, _prior, **kwargs):
     """
     """
     convrate = _prior.ordint + 1

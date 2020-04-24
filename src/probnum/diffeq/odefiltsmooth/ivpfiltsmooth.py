@@ -21,10 +21,10 @@ class GaussianIVPSmoother(odesolver.ODESolver):
         self.gauss_ode_filt = GaussianIVPFilter(ivp, gaussfilt, steprl)
         self.smoother = GaussianSmoother(gaussfilt)
 
-    def solve(self, firststep, **kwargs):
+    def solve(self, firststep, nsteps=1, **kwargs):
         """
         """
-        means, covars, times = self.gauss_ode_filt.solve(firststep, **kwargs)
+        means, covars, times = self.gauss_ode_filt.solve(firststep, nsteps, **kwargs)
         means, covars = self.gauss_ode_filt.redo_preconditioning(means, covars)
         smoothed_means, smoothed_covars = self.smoother.smooth_filterout(means, covars, times, **kwargs)
         smoothed_means, smoothed_covars = self.gauss_ode_filt.undo_preconditioning(smoothed_means, smoothed_covars)
@@ -63,7 +63,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.gfilt = gaussfilt
         odesolver.ODESolver.__init__(self, steprl)
 
-    def solve(self, firststep, **kwargs):
+    def solve(self, firststep, nsteps=1, **kwargs):
         """
         Solves IVP and calibrates uncertainty according
         to Proposition 4 in Tronarp et al.
@@ -72,7 +72,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ----------
         firststep : float
             First step for adaptive step size rule.
-
+        nsteps : int, optional
+            Number of inbetween steps for the filter. Default is 1.
         """
 
         ####### This function surely can use some code cleanup. #######
@@ -81,10 +82,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         step = firststep
         ssqest, ct = 0.0, 0
         times, means, covars = [self.ivp.t0], [current.mean()], [current.cov()]
-        if "nsteps" in kwargs.keys():
-            nsteps = kwargs["nsteps"]
-        else:
-            nsteps = 1
         while times[-1] < self.ivp.tmax:
             intermediate_step = float(step / nsteps)
             tm = times[-1]
