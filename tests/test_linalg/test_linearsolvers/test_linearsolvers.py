@@ -337,7 +337,7 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 np.random.seed(1)
                 x, _, _, info = linalg.problinsolve(A=A+E, b=b, ctol=10**-6, assume_A="symposnoise")
-                self.assertAllClose(A @ x.mean(), b)
+                self.assertAllClose(A @ x.mean(), b, rtol=10**-6)
 
     def test_optimal_scale(self):
         """Tests the computation of the optimal scale for the posterior covariance."""

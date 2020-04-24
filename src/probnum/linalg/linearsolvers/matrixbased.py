@@ -548,10 +548,10 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         """Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu')."""
 
         def mv(x):
-            return 1 / (1 + noise_scale) * u @ (v.T @ x) + v @ (u.T @ x)
+            return 1 / (1 + noise_scale) * (u @ (v.T @ x) + v @ (u.T @ x))
 
         def mm(X):
-            return 1 / (1 + noise_scale) * u @ (v.T @ X) + v @ (u.T @ X)
+            return 1 / (1 + noise_scale) * (u @ (v.T @ X) + v @ (u.T @ X))
 
         return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
 
@@ -669,7 +669,6 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
 
             # Callback function used to extract quantities from iteration
             if callback is not None:
-                # Phi, Psi = self._calibrate_uncertainty()
                 xk, Ak, Ainvk = self._create_output_randvars()
                 callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=None, resid=None)
 
