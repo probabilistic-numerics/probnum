@@ -89,16 +89,16 @@ class GaussianIVPFilter(odesolver.ODESolver):
             for idx in range(nsteps):
                 newtm = tm + intermediate_step
                 current, __ = self.gfilt.predict(tm, newtm, current, **kwargs)
-                interms.append(current.mean())
-                intercs.append(current.cov())
+                interms.append(current.mean().copy())
+                intercs.append(current.cov().copy())
                 interts.append(newtm)
                 tm = newtm
             predicted = current
             new_time = tm
             zero_data = 0.0
             current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, **kwargs)
-            interms[-1] = current.mean()
-            intercs[-1] = current.cov()
+            interms[-1] = current.mean().copy()
+            intercs[-1] = current.cov().copy()
             errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
             if self.steprule.is_accepted(step, errorest) is True:
                 times.extend(interts)

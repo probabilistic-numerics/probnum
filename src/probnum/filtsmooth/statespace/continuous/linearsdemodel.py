@@ -25,15 +25,15 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
 
     Parameters
     ----------
-    driftmatrixfunction : callable, signature (t, \**kwargs)
+    driftmatrixfct : callable, signature=``(t, **kwargs)``
         This is F = F(t). The evaluations of this funciton are called
         the drift(matrix) of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcfct : callable, signature (t, \**kwargs)
+    forcfct : callable, signature=``(t, **kwargs)``
         This is u = u(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatrixfuction : callable, signature (t, \**kwargs)
+    dispmatrixfct : callable, signature=``(t, **kwargs)``
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
@@ -99,7 +99,6 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         Spatial dimension (utility attribute).
         """
         return len(self._driftmatrixfct(0.))
-
 
     def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
         """
@@ -261,10 +260,6 @@ class LTISDEModel(LinearSDEModel):
         transdiff = proj @ transformed_sol @ trans.T
         crosscov = cov @ trans.T
         newcov = trans @ crosscov + transdiff
-        # print("Just Q(h):\n", transdiff, np.linalg.cond(transdiff))
-        # print("Predicted covariance:\n", newcov, np.linalg.cond(newcov))
-        # print("Just A(h):\n", trans)
-        # print("Just Q(h):\n", transdiff, "\n", np.linalg.cond(transdiff))
         return newcov, crosscov
 
 

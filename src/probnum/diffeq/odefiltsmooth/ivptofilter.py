@@ -222,16 +222,19 @@ def _initialdistribution(ivp, prior):
     if prior.ordint == 1:
         projmat = np.hstack((h0.T, h1.T)).T
         data = np.hstack((x0, dx0))
+        _size = 2
     elif prior.ordint == 2:   # try only jacobian
         h2 = prior.proj2coord(coord=2)
         projmat = np.hstack((h0.T, h1.T, h2.T)).T
         data = np.hstack((x0, dx0, ddx0))
+        _size = 3
     else:   # try jacobian and hessian
         h2 = prior.proj2coord(coord=2)
         h3 = prior.proj2coord(coord=3)
         projmat = np.hstack((h0.T, h1.T, h2.T, h3.T)).T
         data = np.hstack((x0, dx0, ddx0, dddx0))
-    largecov = np.kron(np.eye(prior.ordint + 1), ivp.initialdistribution.cov())
+        _size = 4
+    largecov = np.kron(np.eye(_size), ivp.initialdistribution.cov())
     s = projmat @ initcov @ projmat.T + largecov
     crosscov = initcov @ projmat.T
     newmean = crosscov @ np.linalg.solve(s, data)
