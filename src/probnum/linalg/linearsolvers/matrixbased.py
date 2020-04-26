@@ -206,7 +206,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         The square matrix or linear operator of the linear system.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
-    A0 : RandomVariable, shape=(n, n), optional
+    A0 : array-like or LinearOperator or RandomVariable, shape=(n, n), optional
         A square matrix, linear operator or random variable representing the prior belief over the linear operator
         :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
     Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
@@ -662,16 +662,15 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         The square matrix or linear operator of the linear system.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
-    A_mean : array-like or LinearOperator
-        Mean of the prior distribution on the linear operator :math:`A`.
-    A_covfactor : array-like or LinearOperator
-        The Kronecker factor :math:`W_A` of the covariance :math:`\\operatorname{Cov}(A) = W_A \\otimes_s W_A` of
-        :math:`A`.
-    Ainv_mean : array-like or LinearOperator
-        Mean of the prior distribution on the linear operator :math:`A^{-1}`.
-    Ainv_covfactor : array-like or LinearOperator
-        The Kronecker factor :math:`W_H` of the covariance :math:`\\operatorname{Cov}(H) = W_H \\otimes_s W_H` of
-        :math:`H = A^{-1}`.
+    A0 : array-like or LinearOperator or RandomVariable, shape=(n, n), optional
+        A square matrix, linear operator or random variable representing the prior belief over the linear operator
+        :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
+    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+        A square matrix, linear operator or random variable representing the prior belief over the inverse
+        :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+        given, a prior distribution is chosen automatically.
+    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
+        Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv0`` is given.
 
     Returns
     -------
@@ -730,6 +729,122 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         self.x_cov = linops.LinearOperator(shape=np.shape(Ainv0_covfactor), dtype=float, matvec=_mv, matmat=_mv)
         self.x_mean = Ainv0_mean @ b
         self.x0 = self.x_mean
+
+    def _get_prior_params(self, A0, Ainv0, x0):
+        """
+        Get the parameters of the matrix priors on A and H.
+
+        Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
+
+        Parameters
+        ----------
+        A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+            A square matrix, linear operator or random variable representing the prior belief over the linear operator
+            :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
+        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+            A square matrix, linear operator or random variable representing the prior belief over the inverse
+            :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+            given, a prior distribution is chosen automatically.
+        x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
+            Optional. Prior belief for the solution of the linear system. Will be ignored if ``A0`` or ``Ainv0`` is
+            given.
+
+        Returns
+        -------
+        A0_mean : array-like or LinearOperator, shape=(n,n)
+            Prior mean of the linear operator :math:`A`.
+        A0_covfactor : array-like or LinearOperator, shape=(n,n)
+            Factor :math:`W^A` of the symmetric Kronecker product prior covariance :math:`W^A \\otimes_s W^A` of
+            :math:`A`.
+        Ainv0_mean : array-like or LinearOperator, shape=(n,n)
+            Prior mean of the linear operator :math:`H`.
+        Ainv0_covfactor : array-like or LinearOperator, shape=(n,n)
+            Factor :math:`W^H` of the symmetric Kronecker product prior covariance :math:`W^H \\otimes_s W^H` of
+            :math:`H`.
+        """
+        # No matrix priors specified
+        if A0 is None and Ainv0 is None:
+            # No prior information given
+            if x0 is None:
+                Ainv0_mean = linops.Identity(shape=self.n)
+                Ainv0_covfactor = linops.Identity(shape=self.n)
+                # Standard normal covariance
+                A0_mean = linops.Identity(shape=self.n)
+                A0_covfactor = linops.Identity(shape=self.n)
+                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+            # Construct matrix priors from initial guess x0
+            elif isinstance(x0, np.ndarray):
+                A0_mean, Ainv0_mean = self._matrix_prior_means_from_initial_solution_guess()
+                Ainv0_covfactor = Ainv0_mean
+                # Standard normal covariance
+                A0_covfactor = linops.Identity(shape=self.n)
+                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+            elif isinstance(x0, prob.RandomVariable):
+                raise NotImplementedError
+
+        # Only prior on Ainv specified
+        if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
+            if isinstance(Ainv0, prob.RandomVariable):
+                Ainv0_mean = Ainv0.mean()
+                Ainv0_covfactor = Ainv0.cov().A
+            else:
+                Ainv0_mean = Ainv0
+                Ainv0_covfactor = linops.Identity(shape=self.n)  # Standard normal covariance
+            try:
+                if A0 is not None:
+                    A0_mean = A0
+                elif isinstance(Ainv0, prob.RandomVariable):
+                    A0_mean = Ainv0.mean().inv()
+                else:
+                    A0_mean = Ainv0.inv()
+            except AttributeError:
+                warnings.warn(message="Prior specified only for Ainv. Inverting prior mean naively. " +
+                                      "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+                A0_mean = np.linalg.inv(Ainv0.mean())
+            except NotImplementedError:
+                A0_mean = linops.Identity(self.n)
+                warnings.warn(
+                    message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
+                            + "falling back to standard normal prior.")
+            # Standard normal covariance
+            A0_covfactor = linops.Identity(shape=self.n)
+            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+
+        # Only prior on A specified
+        elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
+            if isinstance(A0, prob.RandomVariable):
+                A0_mean = A0.mean()
+                A0_covfactor = A0.cov().A
+            else:
+                A0_mean = A0
+                A0_covfactor = linops.Identity(shape=self.n)  # Standard normal covariance
+            try:
+                if Ainv0 is not None:
+                    Ainv0_mean = Ainv0
+                elif isinstance(A0, prob.RandomVariable):
+                    Ainv0_mean = A0.mean().inv()
+                else:
+                    Ainv0_mean = A0.inv()
+            except AttributeError:
+                warnings.warn(message="Prior specified only for A. Inverting prior mean naively. " +
+                                      "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+                Ainv0_mean = np.linalg.inv(A0.mean())
+            except NotImplementedError:
+                Ainv0_mean = linops.Identity(self.n)
+                warnings.warn(message="Prior specified only for A. " +
+                                      "Automatic prior mean inversion failed, falling back to standard normal prior.")
+            # Standard normal covariance
+            Ainv0_covfactor = linops.Identity(shape=self.n)
+            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+        # Both matrix priors on A and H specified
+        elif isinstance(A0, prob.RandomVariable) and isinstance(Ainv0, prob.RandomVariable):
+            A0_mean = A0.mean()
+            A0_covfactor = A0.cov().A
+            Ainv0_mean = Ainv0.mean()
+            Ainv0_covfactor = Ainv0.cov().A
+            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+        else:
+            raise NotImplementedError
 
     def has_converged(self, iter, maxiter, ctol=None):
         """
@@ -790,7 +905,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         # Estimate of matrix A
         A = prob.RandomVariable(shape=self.A_mean.shape,
-                                dtype=float,
+                                dtype=self.b.dtype,
                                 distribution=prob.Normal(mean=self.A_mean,
                                                          cov=linops.SymmetricKronecker(
                                                              A=self.A_covfactor)))
@@ -798,12 +913,12 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Estimate of inverse Ainv
         cov_Ainv = linops.SymmetricKronecker(A=self.Ainv_covfactor)
         Ainv = prob.RandomVariable(shape=self.Ainv_mean.shape,
-                                   dtype=float,
+                                   dtype=self.b.dtype,
                                    distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
 
         # Estimate of solution x
         x = prob.RandomVariable(shape=(self.A_mean.shape[0],),
-                                dtype=float,
+                                dtype=self.b.dtype,
                                 distribution=prob.Normal(mean=self.x_mean.ravel(), cov=self.x_cov))
         return x, A, Ainv
 

@@ -1,17 +1,17 @@
-GeneralMatrixBasedSolver
-========================
+AsymmetricMatrixBasedSolver
+===========================
 
 .. currentmodule:: probnum.linalg
 
-.. autoclass:: GeneralMatrixBasedSolver
+.. autoclass:: AsymmetricMatrixBasedSolver
    :show-inheritance:
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~GeneralMatrixBasedSolver.has_converged
-      ~GeneralMatrixBasedSolver.solve
+      ~AsymmetricMatrixBasedSolver.has_converged
+      ~AsymmetricMatrixBasedSolver.solve
 
    .. rubric:: Methods Documentation
 

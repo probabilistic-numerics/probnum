@@ -431,11 +431,12 @@ def _postprocess(info, A):
     rel_cond = info["rel_cond"]
 
     # Get the correct machine epsilon for the precision used.
-    if A.dtype.char in 'fF':  # single precision
-        lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='f')
-    else:
-        lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='d')
-    machine_eps = lamch('E')
+    # if A.dtype.char in 'fF':  # single precision
+    #     lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='f')
+    # else:
+    #     lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='d')
+    # machine_eps = lamch('E')
+    machine_eps = 10 ** -16
 
     # Singular matrix
     # TODO: get info from solver
