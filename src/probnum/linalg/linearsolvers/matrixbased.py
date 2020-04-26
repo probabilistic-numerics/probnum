@@ -8,6 +8,7 @@ import warnings
 import abc
 
 import numpy as np
+import scipy.sparse
 import GPy
 
 from probnum import prob
@@ -34,6 +35,7 @@ class ProbabilisticLinearSolver(abc.ABC):
     def __init__(self, A, b):
         self.A = A
         self.b = b
+        self.n = A.shape[1]
 
     def has_converged(self, iter, maxiter, **kwargs):
         """
@@ -91,17 +93,76 @@ class ProbabilisticLinearSolver(abc.ABC):
         raise NotImplementedError
 
 
-class GeneralMatrixBasedSolver(ProbabilisticLinearSolver):
+class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
     """
-    Solver iteration of a (general) matrix-based probabilistic linear solver.
+    Abstract class for matrix-based probabilistic linear solvers.
 
     Parameters
     ----------
+    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
+        A square matrix or linear operator. A prior distribution can be provided as a
+        :class:`~probnum.prob.RandomVariable`. If an array or linear operator is given, a prior distribution is
+        chosen automatically.
+    b : array_like, shape=(n,) or (n, nrhs)
+        Right-hand side vector or matrix in :math:`A x = b`.
+    x0 : array-like, shape=(n,) or (n, nrhs)
+        Optional. Guess for the solution of the linear system.
     """
 
-    def __init__(self, A, b):
+    def __init__(self, A, b, x0=None):
+        self.x0 = x0
+        super().__init__(A=A, b=b)
+
+    def _get_prior_params(self, A0, Ainv0, x0):
+        """
+        Get the parameters of the matrix priors on A and H.
+
+        Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
+
+        """
         raise NotImplementedError
-        # super().__init__(A=A, b=b)
+
+    def _matrix_prior_means_from_initial_solution_guess(self):
+        """
+        Create matrix prior means from an initial guess for the solution of the linear system.
+
+        Constructs a matrix-variate prior mean for H from ``x0`` and ``b`` such that :math:`H_0b = x_0`, :math:`H_0`
+        symmetric positive definite and :math:`A_0 = H_0^{-1}`.
+
+        Returns
+        -------
+        A0_mean : linops.LinearOperator
+            Mean of the matrix-variate prior distribution on the system matrix :math:`A`.
+        Ainv0_mean : linops.LinearOperator
+            Mean of the matrix-variate prior distribution on the inverse of the system matrix :math:`H = A^{-1}`.
+        """
+        # Check inner product between x0 and b; if negative choose better initialization
+        bx0 = np.squeeze(self.b.T @ self.x0)
+        if bx0 < 0:
+            self.x0 = -self.x0
+            bx0 = - bx0
+        elif bx0 == 0:
+            self.x0 = self.b
+
+        # Construct prior mean of A and H
+        alpha = 0.5 * bx0 / np.linalg.norm(self.b) ** 2
+
+        def _mv(v):
+            return (self.x0 - alpha * self.b) * (self.x0 - alpha * self.b).T @ v
+
+        def _mm(M):
+            return (self.x0 - alpha * self.b) @ (self.x0 - alpha * self.b).T @ M
+
+        Ainv0_mean = linops.ScalarMult(scalar=alpha, shape=(self.n, self.n)) + 2 / bx0 * linops.LinearOperator(
+            matvec=_mv,
+            matmat=_mm,
+            shape=(self.n, self.n))
+        A0_mean = linops.ScalarMult(scalar=1 / alpha, shape=(self.n, self.n)) - 1 / (
+                alpha * np.squeeze((self.x0 - alpha * self.b).T @ self.x0)) * linops.LinearOperator(matvec=_mv,
+                                                                                                  matmat=_mm,
+                                                                                                  shape=(
+                                                                                                  self.n, self.n))
+        return A0_mean, Ainv0_mean
 
     def has_converged(self, iter, maxiter, **kwargs):
         raise NotImplementedError
@@ -110,9 +171,32 @@ class GeneralMatrixBasedSolver(ProbabilisticLinearSolver):
         raise NotImplementedError
 
 
-class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
+class AsymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
     """
-    Solver iteration of the symmetric probabilistic linear solver.
+    Asymmetric matrix-based probabilistic linear solver.
+
+    Parameters
+    ----------
+    A : array-like or LinearOperator or RandomVariable, shape=(n,n)
+        The square matrix or linear operator of the linear system.
+    b : array_like, shape=(n,) or (n, nrhs)
+        Right-hand side vector or matrix in :math:`A x = b`.
+    """
+
+    def __init__(self, A, b, x0):
+        self.x0 = x0
+        super().__init__(A=A, b=b)
+
+    def has_converged(self, iter, maxiter, **kwargs):
+        raise NotImplementedError
+
+    def solve(self, callback=None, maxiter=None, atol=None):
+        raise NotImplementedError
+
+
+class SymmetricMatrixBasedSolver(MatrixBasedSolver):
+    """
+    Symmetric matrix-based probabilistic linear solver.
 
     Implements the solve iteration of the symmetric matrix-based probabilistic linear solver described in [1]_ and [2]_.
 
@@ -122,16 +206,15 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         The square matrix or linear operator of the linear system.
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
-    A_mean : array-like or LinearOperator
-        Mean of the prior distribution on the linear operator :math:`A`.
-    A_covfactor : array-like or LinearOperator
-        The Kronecker factor :math:`W_A` of the covariance :math:`\\operatorname{Cov}(A) = W_A \\otimes_s W_A` of
-        :math:`A`.
-    Ainv_mean : array-like or LinearOperator
-        Mean of the prior distribution on the linear operator :math:`A^{-1}`.
-    Ainv_covfactor : array-like or LinearOperator
-        The Kronecker factor :math:`W_H` of the covariance :math:`\\operatorname{Cov}(H) = W_H \\otimes_s W_H` of
-        :math:`H = A^{-1}`.
+    A0 : RandomVariable, shape=(n, n), optional
+        A square matrix, linear operator or random variable representing the prior belief over the linear operator
+        :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
+    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+        A square matrix, linear operator or random variable representing the prior belief over the inverse
+        :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+        given, a prior distribution is chosen automatically.
+    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
+        Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv0`` is given.
 
     Returns
     -------
@@ -154,16 +237,140 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
     NoisySymmetricMatrixBasedSolver : Class implementing the noisy symmetric probabilistic linear solver.
     """
 
-    def __init__(self, A, b, A_mean, A_covfactor, Ainv_mean, Ainv_covfactor):
-        self.A_mean = A_mean
-        self.A_covfactor = A_covfactor
-        self.Ainv_mean = Ainv_mean
-        self.Ainv_covfactor = Ainv_covfactor
-        self.x = Ainv_mean @ b
+    def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
+
+        super().__init__(A=A, b=b, x0=x0)
+
+        # Get or construct prior parameters
+        A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=x0)
+
+        # Initialize prior parameters
+        self.A_mean = A0_mean
+        self.A_covfactor = A0_covfactor
+        self.Ainv_mean = Ainv0_mean
+        self.Ainv_covfactor = Ainv0_covfactor
+        self.x = Ainv0_mean @ b
+
+        # Computed search directions and observations
         self.search_dir_list = []
         self.obs_list = []
         self.sy = []
-        super().__init__(A=A, b=b)
+
+    def _get_prior_params(self, A0, Ainv0, x0):
+        """
+        Get the parameters of the matrix priors on A and H.
+
+        Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
+
+        Parameters
+        ----------
+        A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+            A square matrix, linear operator or random variable representing the prior belief over the linear operator
+            :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
+        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+            A square matrix, linear operator or random variable representing the prior belief over the inverse
+            :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+            given, a prior distribution is chosen automatically.
+        x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
+            Optional. Prior belief for the solution of the linear system. Will be ignored if ``A0`` or ``Ainv0`` is
+            given.
+
+        Returns
+        -------
+        A0_mean : array-like or LinearOperator, shape=(n,n)
+            Prior mean of the linear operator :math:`A`.
+        A0_covfactor : array-like or LinearOperator, shape=(n,n)
+            Factor :math:`W^A` of the symmetric Kronecker product prior covariance :math:`W^A \\otimes_s W^A` of
+            :math:`A`.
+        Ainv0_mean : array-like or LinearOperator, shape=(n,n)
+            Prior mean of the linear operator :math:`H`.
+        Ainv0_covfactor : array-like or LinearOperator, shape=(n,n)
+            Factor :math:`W^H` of the symmetric Kronecker product prior covariance :math:`W^H \\otimes_s W^H` of
+            :math:`H`.
+        """
+        # No matrix priors specified
+        if A0 is None and Ainv0 is None:
+            # No prior information given
+            if x0 is None:
+                Ainv0_mean = linops.Identity(shape=self.n)
+                Ainv0_covfactor = linops.Identity(shape=self.n)
+                # Symmetric posterior correspondence
+                A0_mean = linops.Identity(shape=self.n)
+                A0_covfactor = self.A
+                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+            # Construct matrix priors from initial guess x0
+            elif isinstance(x0, np.ndarray):
+                A0_mean, Ainv0_mean = self._matrix_prior_means_from_initial_solution_guess()
+                Ainv0_covfactor = Ainv0_mean
+                # Symmetric posterior correspondence
+                A0_covfactor = self.A
+                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+            elif isinstance(x0, prob.RandomVariable):
+                raise NotImplementedError
+
+        # Only prior on Ainv specified
+        if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
+            if isinstance(Ainv0, prob.RandomVariable):
+                Ainv0_mean = Ainv0.mean()
+                Ainv0_covfactor = Ainv0.cov().A
+            else:
+                Ainv0_mean = Ainv0
+                Ainv0_covfactor = Ainv0  # Symmetric posterior correspondence
+            try:
+                if A0 is not None:
+                    A0_mean = A0
+                elif isinstance(Ainv0, prob.RandomVariable):
+                    A0_mean = Ainv0.mean().inv()
+                else:
+                    A0_mean = Ainv0.inv()
+            except AttributeError:
+                warnings.warn(message="Prior specified only for Ainv. Inverting prior mean naively. " +
+                                      "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+                A0_mean = np.linalg.inv(Ainv0.mean())
+            except NotImplementedError:
+                A0_mean = linops.Identity(self.n)
+                warnings.warn(
+                    message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
+                            + "falling back to standard normal prior.")
+            # Symmetric posterior correspondence
+            A0_covfactor = self.A
+            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+
+        # Only prior on A specified
+        elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
+            if isinstance(A0, prob.RandomVariable):
+                A0_mean = A0.mean()
+                A0_covfactor = A0.cov().A
+            else:
+                A0_mean = A0
+                A0_covfactor = A0  # Symmetric posterior correspondence
+            try:
+                if Ainv0 is not None:
+                    Ainv0_mean = Ainv0
+                elif isinstance(A0, prob.RandomVariable):
+                    Ainv0_mean = A0.mean().inv()
+                else:
+                    Ainv0_mean = A0.inv()
+            except AttributeError:
+                warnings.warn(message="Prior specified only for A. Inverting prior mean naively. " +
+                                      "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+                Ainv0_mean = np.linalg.inv(A0.mean())
+            except NotImplementedError:
+                Ainv0_mean = linops.Identity(self.n)
+                warnings.warn(message="Prior specified only for A. " +
+                                      "Automatic prior mean inversion failed, falling back to standard normal prior.")
+            # Symmetric posterior correspondence
+            Ainv0_covfactor = Ainv0_mean
+            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+        # Both matrix priors on A and H specified
+        elif isinstance(A0, prob.RandomVariable) and isinstance(Ainv0, prob.RandomVariable):
+            A0_mean = A0.mean()
+            A0_covfactor = A0.cov().A
+            Ainv0_mean = Ainv0.mean()
+            Ainv0_covfactor = Ainv0.cov().A
+            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
+        else:
+            raise NotImplementedError
 
     def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
         """
@@ -442,7 +649,7 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         return x, A, Ainv, info
 
 
-class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
+class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
     """
     Solver iteration of the noisy symmetric probabilistic linear solver.
 
@@ -487,24 +694,42 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
     SymmetricMatrixBasedSolver : Class implementing the symmetric probabilistic linear solver.
     """
 
-    def __init__(self, A, b, A_mean, A_covfactor, Ainv_mean, Ainv_covfactor):
-        self.A_mean = A_mean
-        self.A_covfactor = A_covfactor
-        self.Ainv_mean = Ainv_mean
-        self.Ainv_covfactor = Ainv_covfactor
+    def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
+
+        # Transform system to linear operator
+        A_preproc = A
+        if not isinstance(A, scipy.sparse.linalg.LinearOperator):
+            if isinstance(A, prob.RandomVariable):
+                def mv(x):
+                    return (A @ x).sample(size=1)
+
+                A_preproc = linops.LinearOperator(matvec=mv, matmat=mv, shape=A.shape, dtype=A.dtype)
+            else:
+                warnings.warn(
+                    message="A is assumed to be noisy, but is neither a random variable nor a linear operator.")
+
+        super().__init__(A=A_preproc, b=b, x0=x0)
+
+        # Get or initialize prior parameters
+        A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=x0)
+
+        # Matrix prior parameters
+        self.A_mean = A0_mean
+        self.A_covfactor = A0_covfactor
+        self.Ainv_mean = Ainv0_mean
+        self.Ainv_covfactor = Ainv0_covfactor
 
         # Induced distribution on x via Ainv
         # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
-        Wb = Ainv_covfactor @ b
+        Wb = Ainv0_covfactor @ b
         bWb = np.squeeze(Wb.T @ b)
 
         def _mv(x):
-            return 0.5 * (bWb * Ainv_covfactor @ x + Wb @ (Wb.T @ x))
+            return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
 
-        self.x_cov = linops.LinearOperator(shape=np.shape(Ainv_covfactor), dtype=float, matvec=_mv, matmat=_mv)
-
-        self.x_mean = Ainv_mean @ b
-        super().__init__(A=A, b=b)
+        self.x_cov = linops.LinearOperator(shape=np.shape(Ainv0_covfactor), dtype=float, matvec=_mv, matmat=_mv)
+        self.x_mean = Ainv0_mean @ b
+        self.x0 = self.x_mean
 
     def has_converged(self, iter, maxiter, ctol=None):
         """
@@ -640,7 +865,7 @@ class NoisySymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             # Mean update(s)
             # TODO: Operator form may cause stack size issues for too many iterations
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A, noise_scale=noise_scale)
-            #self.Ainv_mean = None
+            # self.Ainv_mean = None
 
             # Covariance update(s)
 

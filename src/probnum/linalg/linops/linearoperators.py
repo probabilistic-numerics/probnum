@@ -422,6 +422,11 @@ class ScalarMult(LinearOperator):
 class Identity(ScalarMult):
     """
     The identity operator.
+
+    Parameters
+    ----------
+    shape : int or tuple
+        Shape of the identity operator.
     """
 
     def __init__(self, shape):

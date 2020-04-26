@@ -29,8 +29,8 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
     .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
     """
 
-    def __init__(self, A, b, x):
-        self.x = x
+    def __init__(self, A, b, x0=None):
+        self.x0 = x0
         super().__init__(A=A, b=b)
 
     def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):

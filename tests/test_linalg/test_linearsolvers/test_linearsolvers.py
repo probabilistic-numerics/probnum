@@ -300,7 +300,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         """The probabilistic linear solver should recover CG iterates as a posterior mean for specific covariances."""
 
         # Linear system
-        A, f = self.poisson_linear_system
+        A, b = self.poisson_linear_system
 
         # Callback function to return CG iterates
         cg_iterates = []
@@ -316,17 +316,19 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Solve linear system
 
-        # Initial guess as chosen by PLS: x0 = Ainv.mean() @ f
-        x0 = f
+        # Initial guess as chosen by PLS: x0 = Ainv.mean() @ b
+        x0 = b
 
         # Conjugate gradient method
-        xhat_cg, _ = scipy.sparse.linalg.cg(A=A, b=f, x0=x0, tol=10 ** -6, callback=callback_iterates_CG)
+        xhat_cg, info_cg = scipy.sparse.linalg.cg(A=A, b=b, x0=x0, tol=10 ** -6, callback=callback_iterates_CG)
         cg_iters_arr = np.array([x0] + cg_iterates)
 
         # Probabilistic linear solver
-
-        xhat_pls, _, _, _ = linalg.problinsolve(A=A, b=f, assume_A="sympos", rtol=10 ** -6,
-                                                callback=callback_iterates_PLS)
+        Ainv0 = prob.RandomVariable(distribution=prob.Normal(mean=linops.Identity(A.shape[1]),
+                                                             cov=linops.SymmetricKronecker(
+                                                                 A=linops.Identity(A.shape[1]))))
+        xhat_pls, _, _, info_pls = linalg.problinsolve(A=A, b=b, Ainv0=Ainv0, assume_A="sympos", rtol=10 ** -6,
+                                                       callback=callback_iterates_PLS)
         pls_iters_arr = np.array([x0] + pls_iterates)
 
         self.assertAllClose(pls_iters_arr, cg_iters_arr, rtol=10 ** -12)
@@ -334,6 +336,66 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     def test_prior_distributions(self):
         """The solver should automatically handle different types of prior information."""
         pass
+
+
+class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
+    """Tests the matrix-based probabilistic linear solver."""
+
+    def setUp(self):
+        """Resources for tests."""
+
+        # Poisson equation with Dirichlet conditions.
+        #
+        #   - Laplace(u) = f    in the interior
+        #              u = u_D  on the boundary
+        # where
+        #     u_D = 1 + x^2 + 2y^2
+        #     f = -4
+        #
+        # Linear system resulting from discretization on an elliptic grid.
+        fpath = os.path.join(os.path.dirname(__file__), '../../resources')
+        A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
+        f = np.load(file=fpath + "/rhs_poisson.npy")
+        self.poisson_linear_system = A, f
+
+    def test_prior_distribution_from_solution_guess(self):
+        """
+        When constructing prior means for A and H from a guess for the solution x0, then A_0 and H_0 should be symmetric
+        positive definite, inverses of each other and x0=Hb should hold.
+        """
+        np.random.seed(42)
+
+        # Linear system
+        A, b = self.poisson_linear_system
+        b = b[:, np.newaxis]
+        x0 = np.random.randn(len(b))[:, np.newaxis]
+
+        if x0.T @ b < 0:
+            x0_true = -x0
+        elif x0.T @ b == 0:
+            x0_true = np.zeros_like(b)
+        else:
+            x0_true = x0
+
+        # Matrix-based solver
+        smbs = linalg.MatrixBasedSolver(A=A, b=b, x0=x0)
+        A0_mean, Ainv0_mean = smbs._matrix_prior_means_from_initial_solution_guess()
+        A0_mean_dense = A0_mean.todense()
+        Ainv0_mean_dense = Ainv0_mean.todense()
+
+        # Inverse prior mean corresponding to x0
+        self.assertAllClose(Ainv0_mean @ b, x0_true)
+
+        # Inverse correspondence
+        self.assertAllClose(A0_mean @ Ainv0_mean @ np.eye(np.shape(A)[0]), np.eye(np.shape(A)[0]), atol=10 ** -12)
+
+        # Symmetry
+        self.assertAllClose(Ainv0_mean_dense, Ainv0_mean_dense.T)
+        self.assertAllClose(A0_mean_dense, A0_mean_dense.T)
+
+        # Positive definiteness
+        self.assertTrue(np.all(np.linalg.eigvals(Ainv0_mean_dense) > 0))
+        self.assertTrue(np.all(np.linalg.eigvals(A0_mean_dense) > 0))
 
 
 class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
