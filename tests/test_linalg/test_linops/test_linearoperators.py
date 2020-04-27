@@ -81,6 +81,15 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                 self.assertAllClose(A @ x[:, None], op @ x[:, None],
                                     msg="Matrix-vector multiplication with (n,1) vector failed.")
 
+    def test_broadcasting(self):
+        """Test broadcasting rules for linear operators and compare to np.array broadcasting."""
+        # for alpha, A in list(itertools.product(self.scalars, self.ops)):
+        #     with self.subTest():
+        #         self.assertAllClose((alpha * A).todense(), alpha * A.todense())
+        #         self.assertAllClose((alpha + A).todense(), alpha + A.todense())
+        #         self.assertAllClose((A - alpha).todense(), A.todense() - alpha)
+        pass
+
     class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
         """Test linear operator functions."""
 

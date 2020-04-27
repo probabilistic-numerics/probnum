@@ -1,36 +1,38 @@
 """
 ProbNum
 =====
-Probabilistic Numerics routines in Python.
+Probabilistic Numerics in Python.
   1. Linear Algebra
-  2. Differential Equations
-  3. Bayesian filtering and smoothing
+  2. Optimization
+  3. Quadrature
+  4. Differential Equations
+  5. Bayesian filtering and smoothing
 and more.
 
 
 Available subpackages
 ---------------------
-linalg
-    Probabilistic numerical linear algebra
 prob
-    Random variables and distributions.
+    Random variables, distributions and sampling.
+linalg
+    Probabilistic numerical linear algebra.
+quad
+    Bayesian quadrature / numerical integration.
+optim
+    Bayesian optimization.
 filtsmooth
-    Bayesian filtering and smoothing
+    Bayesian filtering and smoothing.
 diffeq
-    Probabilistic solvers for ordinary differential equation
-
+    Probabilistic solvers for ordinary differential equations.
 """
 
-from . import diffeq
-from . import filtsmooth
+# from . import diffeq
+# from . import filtsmooth
 from . import linalg
 from . import prob
-from . import optim
+# from . import optim
 from . import quad
 from . import utils
-
-
-# What does the block below do? ###########################
 
 # -*- coding: utf-8 -*-
 from pkg_resources import get_distribution, DistributionNotFound

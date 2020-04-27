@@ -151,6 +151,8 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     # Iteratively solve for multiple right hand sides (with posteriors as new priors)
     for i in range(nrhs):
         # Select and initialize solver
+        if i > 0:
+            x = None  # Only use prior information on Ainv for multiple rhs
         linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A)
 
         # Solve linear system
@@ -374,10 +376,10 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
 
     """
     # Choose matrix based view if not clear from arguments
-    if (Ainv0 is not None or A0 is not None) and x0 is not None:
+    if (Ainv0 is not None or A0 is not None) and isinstance(x0, prob.RandomVariable):
         warnings.warn(
-            "Cannot use prior information on both the matrix (inverse) and the solution. The latter will be ignored.")
-        x0 = None
+            "Cannot use prior uncertainty on both the matrix (inverse) and the solution. The latter will be ignored.")
+        x0 = x0.mean()
 
     # Extract information from priors
     # System matrix is symmetric
@@ -390,7 +392,7 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
     # System matrix is NOT noisy
     if not isinstance(A, prob.RandomVariable) and not isinstance(A, scipy.sparse.linalg.LinearOperator) and \
             "noise" in assume_A:
-        assume_A = assume_A.replace("noise", "")
+        warnings.warn("System matrix is not noisy. Use exact probabilistic linear solver instead for speedup.")
 
     # Solution-based view
     if isinstance(x0, prob.RandomVariable):

@@ -159,9 +159,9 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
             shape=(self.n, self.n))
         A0_mean = linops.ScalarMult(scalar=1 / alpha, shape=(self.n, self.n)) - 1 / (
                 alpha * np.squeeze((self.x0 - alpha * self.b).T @ self.x0)) * linops.LinearOperator(matvec=_mv,
-                                                                                                  matmat=_mm,
-                                                                                                  shape=(
-                                                                                                  self.n, self.n))
+                                                                                                    matmat=_mm,
+                                                                                                    shape=(
+                                                                                                        self.n, self.n))
         return A0_mean, Ainv0_mean
 
     def has_converged(self, iter, maxiter, **kwargs):
@@ -249,7 +249,12 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         self.A_covfactor = A0_covfactor
         self.Ainv_mean = Ainv0_mean
         self.Ainv_covfactor = Ainv0_covfactor
-        self.x = Ainv0_mean @ b
+        if isinstance(x0, np.ndarray):
+            self.x = x0
+        elif x0 is None:
+            self.x = Ainv0_mean @ b
+        else:
+            raise NotImplementedError
 
         # Computed search directions and observations
         self.search_dir_list = []
@@ -562,36 +567,36 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         info : dict
             Information on convergence of the solver.
         """
-        # initialization
+        # Initialization
         self.iter_ = 0
         resid = self.A @ self.x - self.b
 
-        # iteration with stopping criteria
+        # Iteration with stopping criteria
         while True:
-            # check convergence
+            # Check convergence
             _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter,
                                                             resid=resid, atol=atol, rtol=rtol)
             if _has_converged:
                 break
 
-            # compute search direction (with implicit reorthogonalization) via policy
+            # Compute search direction (with implicit reorthogonalization) via policy
             search_dir = - self.Ainv_mean @ resid
             self.search_dir_list.append(search_dir)
 
-            # perform action and observe
+            # Perform action and observe
             obs = self.A @ search_dir
             self.obs_list.append(obs)
 
-            # compute step size
+            # Compute step size
             sy = search_dir.T @ obs
             step_size = - (search_dir.T @ resid) / sy
             self.sy.append(sy)
 
-            # step and residual update
+            # Step and residual update
             self.x = self.x + step_size * search_dir
             resid = resid + step_size * obs
 
-            # (symmetric) mean and covariance updates
+            # (Symmetric) mean and covariance updates
             Vs = self.A_covfactor @ search_dir
             delta_A = obs - self.A_mean @ search_dir
             u_A = Vs / (search_dir.T @ Vs)
@@ -602,20 +607,20 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             u_Ainv = Wy / (obs.T @ Wy)
             v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
 
-            # rank 2 mean updates (+= uv' + vu')
+            # Rank 2 mean updates (+= uv' + vu')
             # TODO: Operator form may cause stack size issues for too many iterations
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A)
             self.Ainv_mean = linops.aslinop(self.Ainv_mean) + self._mean_update(u=u_Ainv, v=v_Ainv)
 
-            # rank 1 covariance kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
+            # Rank 1 covariance kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
             self.A_covfactor = linops.aslinop(self.A_covfactor) - self._covariance_update(u=u_A, Ws=Vs)
             self.Ainv_covfactor = linops.aslinop(self.Ainv_covfactor) - self._covariance_update(u=u_Ainv,
                                                                                                 Ws=Wy)
 
-            # iteration increment
+            # Iteration increment
             self.iter_ += 1
 
-            # callback function used to extract quantities from iteration
+            # Callback function used to extract quantities from iteration
             if callback is not None:
                 # Phi, Psi = self._calibrate_uncertainty()
                 xk, Ak, Ainvk = self._create_output_randvars(S=np.squeeze(np.array(self.search_dir_list)).T,
@@ -727,7 +732,12 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
 
         self.x_cov = linops.LinearOperator(shape=np.shape(Ainv0_covfactor), dtype=float, matvec=_mv, matmat=_mv)
-        self.x_mean = Ainv0_mean @ b
+        if isinstance(x0, np.ndarray):
+            self.x_mean = x0
+        elif x0 is None:
+            self.x_mean = Ainv0_mean @ b
+        else:
+            raise NotImplementedError
         self.x0 = self.x_mean
 
     def _get_prior_params(self, A0, Ainv0, x0):
@@ -967,10 +977,18 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 break
 
             # Compute search direction via policy
-            search_dir = - self.Ainv_mean @ (self.A @ self.x_mean - self.b)
+            resid = self.A @ self.x_mean - self.b
+            search_dir = - self.Ainv_mean @ resid
 
             # Perform action and observe
             obs = self.A @ search_dir
+
+            # Compute step size
+            sy = search_dir.T @ obs
+            step_size = - (search_dir.T @ resid) / sy
+
+            # Step and residual update
+            self.x_mean = self.x_mean + step_size * search_dir
 
             # Mean and covariance updates
             Vs = self.A_covfactor @ search_dir
@@ -978,26 +996,25 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             u_A = Vs / (search_dir.T @ Vs)
             v_A = delta_A - 0.5 * (search_dir.T @ delta_A) * u_A
 
-            # Mean update(s)
+            Wy = self.Ainv_covfactor @ obs
+            delta_Ainv = search_dir - self.Ainv_mean @ obs
+            u_Ainv = Wy / (obs.T @ Wy)
+            v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
+
+            # Mean updates
             # TODO: Operator form may cause stack size issues for too many iterations
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A, noise_scale=noise_scale)
-            # self.Ainv_mean = None
+            self.Ainv_mean = linops.aslinop(self.Ainv_mean) + self._mean_update(u=u_Ainv, v=v_Ainv,
+                                                                                noise_scale=noise_scale)
 
             # Covariance update(s)
-
-            # Compute step size
-
-            # Solution estimate update
-            # TODO: clearly this is intractable
-            self.x_mean = np.linalg.solve(self.A_mean.todense(), self.b)
 
             # Solution covariance update
             # TODO: derive correct expression for (mean and) covariance of solution based on H
             def _mv(x):
                 return np.zeros_like(x)
 
-            self.mean_cov = linops.LinearOperator(shape=np.shape(self.Ainv_covfactor), dtype=float,
-                                                  matvec=_mv, matmat=_mv)
+            self.mean_cov = linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv)
 
             # Iteration increment
             self.iter_ += 1
