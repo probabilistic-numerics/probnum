@@ -936,9 +936,10 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             Maximum number of iterations
         ctol : float
             Tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\text{tr}(\\Sigma) \leq \\text{ctol}`, where :math:`\\Sigma` is the covariance of the solution ``x``.
+            :math:`\\text{tr}(\\Sigma) \\leq \\text{ctol}`, where :math:`\\Sigma` is the covariance of the estimated
+            solution ``x``.
         noise_scale : float
-            Assumed (initial) noise scale. Defaults to :math:`0.01 \\text{tr}(A)`.
+            Assumed (initial) noise scale :math:`\\varepsilon^2`.
 
         Returns
         -------

@@ -15,7 +15,7 @@ Use absolute imports over relative imports.
 - `import y as z` only when `z` is a standard abbreviation (e.g., `np` for `numpy`).
 
 Use `__all__ = [...]` in `__init__.py` files to imply the order in which the methods are visible in the documentation.
-Almost all methods are "pulled up" to a higher-level namespace. Import from there wherever there is no chance for confusion and/or circular imports. This makes imports more readable.
+Almost all methods are "pulled up" to a higher-level namespace. Import from there wherever there is no chance for confusion and/or circular imports. This makes imports more readable. Set the corresponding module of each super class to enable correct module paths in the documentation by setting `SuperClass.__module__ = "probnum.module"`.
 
 
 ### Naming
