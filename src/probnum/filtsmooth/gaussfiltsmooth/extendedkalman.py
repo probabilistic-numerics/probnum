@@ -20,7 +20,6 @@ class ExtendedKalmanSmoother(GaussianSmoother):
         super().__init__(extkalfilt)
 
 
-
 class ExtendedKalmanFilter:
     """
     Factory method for Kalman filters.
@@ -28,9 +27,6 @@ class ExtendedKalmanFilter:
     def __new__(cls, dynamod, measmod, initrv, **kwargs):
         """ """
         if cls is ExtendedKalmanFilter:
-            if _cont_cont(dynamod, measmod):
-                return ContContExtendedKalmanFilter(dynamod, measmod,
-                                                    initrv, **kwargs)
             if _cont_disc(dynamod, measmod):
                 return ContDiscExtendedKalmanFilter(dynamod, measmod,
                                                     initrv, **kwargs)
@@ -45,13 +41,6 @@ class ExtendedKalmanFilter:
             return super().__new__(cls)
 
 
-def _cont_cont(dynamod, measmod):
-    """ """
-    dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
-    meas_is_cont = issubclass(type(measmod), ContinuousModel)
-    return dyna_is_cont and meas_is_cont
-
-
 def _cont_disc(dynamod, measmod):
     """ """
     dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
@@ -64,22 +53,6 @@ def _disc_disc(dynamod, measmod):
     dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
     meas_is_disc = issubclass(type(measmod), DiscreteModel)
     return dyna_is_disc and meas_is_disc
-
-
-class ContContExtendedKalmanFilter(ContContGaussianFilter,
-                                   ExtendedKalmanFilter):
-    """
-    Not implemented.
-
-    Error is raised in super().__init__().
-
-    If you'd like to implement it, do your magic here.
-    """
-    def __init__(self, dynamod, measmod, initrv, **kwargs):
-        """ """
-        raise NotImplementedError("Continuous-Continuous Extended "
-                                  "Kalman Filtering is not implemented")
-
 
 class ContDiscExtendedKalmanFilter(ContDiscGaussianFilter,
                                    ExtendedKalmanFilter):

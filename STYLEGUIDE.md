@@ -65,7 +65,9 @@ if they are sufficiently desciptive. E.g.:
   with step size `h` use the signature `(start, stop, step, **kwargs)`
   or any corresponding subset of that. This is in line with `np.arange`
   for instance. Use it like `(start=t0, stop=t1, step=h, **kwargs)`.
-
+- methods with "Bayesian" in the name come with the prefix `bayes`,
+  e.g. `bayesquad`: Bayesian quadrature, `BayesFilter`: Bayesian filter,
+  `BayesSmoother`: Bayesian smoother
 
 ## Errors and Warnings
 - Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)

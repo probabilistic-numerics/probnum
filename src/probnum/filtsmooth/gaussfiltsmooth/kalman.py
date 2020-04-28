@@ -31,8 +31,6 @@ class KalmanFilter:
     def __new__(cls, dynamod, measmod, initrv, **kwargs):
         """ """
         if cls is KalmanFilter:
-            if _cont_cont(dynamod, measmod):
-                return ContContKalmanFilter(dynamod, measmod, initrv, **kwargs)
             if _cont_disc(dynamod, measmod):
                 return ContDiscKalmanFilter(dynamod, measmod, initrv, **kwargs)
             if _disc_disc(dynamod, measmod):
@@ -43,13 +41,6 @@ class KalmanFilter:
                 raise ValueError(errmsg)
         else:
             return super().__new__(cls)
-
-
-def _cont_cont(dynamod, measmod):
-    """ """
-    dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
-    meas_is_cont = issubclass(type(measmod), ContinuousModel)
-    return dyna_is_cont and meas_is_cont
 
 
 def _cont_disc(dynamod, measmod):
@@ -66,20 +57,6 @@ def _disc_disc(dynamod, measmod):
     return dyna_is_disc and meas_is_disc
 
 
-class ContContKalmanFilter(ContContGaussianFilter, KalmanFilter):
-    """
-    Not implemented.
-
-    Error is raised in super().__init__().
-
-    If you'd like to implement it, do your magic here.
-    """
-    def __init__(self, dynamod, measmod, initrv, **kwargs):
-        """ """
-        raise NotImplementedError("Continuous-Continuous Kalman "
-                                  "Filtering is not implemented.")
-
-
 class ContDiscKalmanFilter(ContDiscGaussianFilter, KalmanFilter):
     """
     Completes implementation of ContinuousContinuousGaussianFilter.
@@ -92,10 +69,10 @@ class ContDiscKalmanFilter(ContDiscGaussianFilter, KalmanFilter):
         """
         if not issubclass(type(dynamod), LinearSDEModel):
             raise ValueError("ContinuosDiscreteKalmanFilter requires "
-                            "a linear dynamic model.")
+                             "a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianLinearModel):
             raise ValueError("DiscreteDiscreteKalmanFilter requires "
-                            "a linear measurement model.")
+                             "a linear measurement model.")
         if "cke_nsteps" in kwargs.keys():
             self.cke_nsteps = kwargs["cke_nsteps"]
         else:
@@ -123,10 +100,10 @@ class DiscDiscKalmanFilter(DiscDiscGaussianFilter, KalmanFilter):
         """
         if not issubclass(type(dynamod), DiscreteGaussianLinearModel):
             raise ValueError("ContinuousDiscreteKalmanFilter requires "
-                            "a linear dynamic model.")
+                             "a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianLinearModel):
             raise ValueError("DiscreteDiscreteKalmanFilter requires "
-                            "a linear measurement model.")
+                             "a linear measurement model.")
         super().__init__(dynamod, measmod, initrv)
 
     def predict(self, start, stop, randvar, **kwargs):

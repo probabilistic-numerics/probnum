@@ -73,7 +73,7 @@ class TestUnscentedKalmanDiscDisc(CarTrackingDDTestCase):
         RMSE of smoother smaller than rmse of filter smaller
         than of measurements?
         """
-        filtms, filtcs, filtts = self.filt.filter(self.obs, self.tms)
+        filtms, filtcs, filtts = self.filt.filter_set(self.obs, self.tms)
         smooms, smoocs, smoots = self.smoo.smooth(self.obs, self.tms)
 
         comp = self.states[1:, :2]
@@ -164,7 +164,7 @@ class TestUnscentedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         """
         RMSE of filter smaller than rmse of measurements?
         """
-        filtms, filtcs, filtts = self.filt.filter(self.obs, self.tms)
+        filtms, filtcs, filtts = self.filt.filter_set(self.obs, self.tms)
         smooms, smoocs, smoots = self.smoo.smooth(self.obs, self.tms)
 
         comp = self.states[1:, 0]
@@ -205,7 +205,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
     def test_filtsmooth(self):
         """
         """
-        filtms, filtcs, filtts = self.filt.filter(self.obs, self.tms)
+        filtms, filtcs, filtts = self.filt.filter_set(self.obs, self.tms)
         smooms, smoocs, smoots = self.smoo.smooth(self.obs, self.tms)
 
         comp = self.states[:, 0]

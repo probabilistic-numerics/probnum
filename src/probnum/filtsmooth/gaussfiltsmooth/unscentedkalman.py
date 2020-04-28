@@ -26,9 +26,6 @@ class UnscentedKalmanFilter:
     def __new__(cls, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
         """ """
         if cls is UnscentedKalmanFilter:
-            if _cont_cont(dynamod, measmod):
-                return ContContUnscentedKalmanFilter(dynamod, measmod,
-                                                    initrv, alpha, beta, kappa, **kwargs)
             if _cont_disc(dynamod, measmod):
                 return ContDiscUnscentedKalmanFilter(dynamod, measmod,
                                                     initrv, alpha, beta, kappa, **kwargs)
@@ -41,12 +38,6 @@ class UnscentedKalmanFilter:
                 raise ValueError(errmsg)
         else:
             return super().__new__(cls)
-
-def _cont_cont(dynamod, measmod):
-    """ """
-    dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
-    meas_is_cont = issubclass(type(measmod), ContinuousModel)
-    return dyna_is_cont and meas_is_cont
 
 
 def _cont_disc(dynamod, measmod):
@@ -61,21 +52,6 @@ def _disc_disc(dynamod, measmod):
     dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
     meas_is_disc = issubclass(type(measmod), DiscreteModel)
     return dyna_is_disc and meas_is_disc
-
-
-class ContContUnscentedKalmanFilter(ContContGaussianFilter,
-                                    UnscentedKalmanFilter):
-    """
-    Not implemented.
-
-    Error is raised in super().__init__().
-
-    If you'd like to implement it, do your magic here.
-    """
-    def __init__(self, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
-        """ """
-        raise NotImplementedError("Continuous-Continuous Unscented "
-                                  "Kalman Filtering is not implemented")
 
 
 class ContDiscUnscentedKalmanFilter(ContDiscGaussianFilter,

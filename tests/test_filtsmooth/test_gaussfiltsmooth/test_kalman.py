@@ -68,7 +68,7 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         RMSE of smoother smaller than rmse of filter smaller
         than of measurements?
         """
-        filtms, filtcs, filtts = self.filt.filter(self.obs, self.tms)
+        filtms, filtcs, filtts = self.filt.filter_set(self.obs, self.tms)
         smooms, smoocs, smoots = self.smoo.smooth(self.obs, self.tms)
 
         normaliser = np.sqrt(self.states[1:, :2].size)
@@ -154,7 +154,7 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         """
         RMSE of filter smaller than rmse of measurements?
         """
-        filtms, filtcs, filtts = self.filt.filter(self.obs, self.tms)
+        filtms, filtcs, filtts = self.filt.filter_set(self.obs, self.tms)
         smooms, smoocs, smoots = self.smoo.smooth(self.obs, self.tms)
 
         normaliser = np.sqrt(self.states[1:].size)
