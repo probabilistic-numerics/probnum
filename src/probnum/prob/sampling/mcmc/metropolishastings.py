@@ -36,8 +36,9 @@ class MetropolisHastings(ABC):
     def __init__(self, logdens):
         """
         """
-        if not issubclass(type(logdens), objective.Objective):
-            raise TypeError("Please initialise with AutoDiff instance.")
+        if not isinstance(logdens, objective.Objective):
+            raise ValueError("Please initialise with Objective "
+                             "(function) instance.")
         self.logdens = logdens
 
     def __repr__(self):

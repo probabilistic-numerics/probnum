@@ -119,9 +119,9 @@ def assert_is_1d_ndarray(arr):
     Used in classic optimization and mcmc, for instance.
     """
     if not isinstance(arr, np.ndarray):
-        raise TypeError("Please enter arr of shape (d,)")
+        raise ValueError("Please enter arr of shape (d,)")
     elif len(arr.shape) != 1:
-        raise TypeError("Please enter arr of shape (d,)")
+        raise ValueError("Please enter arr of shape (d,)")
 
 
 def assert_is_2d_ndarray(arr):
@@ -131,7 +131,7 @@ def assert_is_2d_ndarray(arr):
     Used in classic optimization and mcmc, for instance.
     """
     if not isinstance(arr, np.ndarray):
-        raise TypeError("Please enter arr of shape (n, d)")
+        raise ValueError("Please enter arr of shape (n, d)")
     elif arr.ndim != 2:
-        raise TypeError("Please enter arr of shape (n, d)")
+        raise ValueError("Please enter arr of shape (n, d)")
 

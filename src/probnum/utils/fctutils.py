@@ -13,5 +13,5 @@ def assert_evaluates_to_scalar(fct, valid_input):
     Checks whether the output of a function is a scalar.
     """
     if not np.isscalar(fct(valid_input)):
-        raise TypeError("Function does not evaluate to scalar.")
+        raise ValueError("Function does not evaluate to scalar.")
 

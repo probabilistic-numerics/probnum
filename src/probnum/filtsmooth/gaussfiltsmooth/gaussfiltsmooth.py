@@ -19,37 +19,73 @@ __all__ = ["GaussianFilter", "GaussianSmoother", "ContContGaussianFilter",
 
 class _GaussFiltSmooth:
     """
-    General properties of filters and smoothers.
+    Gaussian filters and smoothers.
 
-    E.g. properties
-        * dynamicmodel
-        * measurementmodel
-        * initialdistribution
+    General properties of Gaussian filters and smoothers that apply to
+    both. For instance, the underlying state space model.
+    At initialisation, this object checks whether the underlying
+    model is Gaussian or not. That is, if the dynamic model is
+    continuous it has to be a linear SDE. If it is discrete, it has
+    to be discrete Gaussian. The initial random variable needs some
+    kind of Normal distribution.
+
+    Parameters
+    ----------
+    dynamod :
+        Dynamic model.
+    measmod :
+        Measurement model.
+    initrv : RandomVariable
+        Initial random variable with a Normal distribution.
+
+    Raises
+    ------
+    ValueError
+        If ``initrv.distribution != Normal``, i.e. if the initial
+        distribution is not a Normal distribution.
+
+    Attributes
+    ----------
+    dynamicmodel
+    measurementmodel
+    initialdistribution
+    initialrandomvariable
     """
     def __init__(self, dynamod, measmod, initrv):
         """ """
         if not issubclass(type(initrv.distribution), Normal):
-            raise TypeError("Gaussian filters need initial random "
-                            "variables with Normal distribution.")
+            raise ValueError("Gaussian filters need initial random "
+                             "variables with Normal distribution.")
         self.dynamod = dynamod
         self.measmod = measmod
         self.initrv = initrv
 
     @property
     def dynamicmodel(self):
+        """
+        Convenience function for accessing ``self.dynamod``.
+        """
         return self.dynamod
 
     @property
     def measurementmodel(self):
+        """
+        Convenience function for accessing ``self.measmod``.
+        """
         return self.measmod
 
     @property
     def initialrandomvariable(self):
+        """
+        Convenience function for accessing ``self.initrv``.
+        """
         return self.initrv
 
     @property
     def initialdistribution(self):
-        """ """
+        """
+        Convenience function for accessing ``self.initdist``.
+        """
         return self.initrv.distribution
 
 
@@ -193,10 +229,10 @@ class ContDiscGaussianFilter(GaussianFilter):
         Asserts that dynamod is continuous and measmod is discrete.
         """
         if not issubclass(type(dynamod), ContinuousModel):
-            raise TypeError("ContinuousDiscreteGaussianFilter needs a "
+            raise ValueError("ContinuousDiscreteGaussianFilter needs a "
                             "continuous dynamic model.")
         if not issubclass(type(measmod), DiscreteModel):
-            raise TypeError("ContinuousDiscreteGaussianFilter needs a "
+            raise ValueError("ContinuousDiscreteGaussianFilter needs a "
                             "discrete measurement model.")
 
         super().__init__(dynamod, measmod, initrv)
@@ -245,10 +281,10 @@ class DiscDiscGaussianFilter(GaussianFilter):
     def __init__(self, dynamod, measmod, initrv):
         """ """
         if not issubclass(type(dynamod), DiscreteModel):
-            raise TypeError("DiscreteDiscreteGaussianFilter needs a "
+            raise ValueError("DiscreteDiscreteGaussianFilter needs a "
                             "discrete dynamic model.")
         if not issubclass(type(measmod), DiscreteModel):
-            raise TypeError("DiscreteDiscreteGaussianFilter needs a "
+            raise ValueError("DiscreteDiscreteGaussianFilter needs a "
                             "discrete measurement model.")
 
         super().__init__(dynamod, measmod, initrv)

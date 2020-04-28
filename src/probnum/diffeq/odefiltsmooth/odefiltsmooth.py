@@ -251,13 +251,13 @@ def _check_step_tol(step, tol):
     both_not_none = tol is not None and step is not None
     if both_none or both_not_none:
         errormsg = "Please specify either a tolerance or a step size."
-        raise TypeError(errormsg)
+        raise ValueError(errormsg)
 
 
 def _check_method(method):
     """ """
     if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
-        raise TypeError("Method not supported.")
+        raise ValueError("Method not supported.")
 
 
 def _string2prior(ivp, which_prior, precond_step, **kwargs):
@@ -359,7 +359,7 @@ def _string2filter(_ivp, _prior, _method, **kwargs):
     elif _method == "ukf" or _method == "uks":
         return ivptofilter.ivp_to_ukf(_ivp, _prior, evlvar)
     else:
-        raise TypeError("Type of filter not supported.")
+        raise ValueError("Type of filter not supported.")
 
 
 def _step2steprule_const(stp):

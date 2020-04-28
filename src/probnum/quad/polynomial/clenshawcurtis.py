@@ -115,7 +115,7 @@ def _compute_weights(npts, ndim, ilbds):
     size (n**d, d), the weight array is of size (n**d,).
     """
     if npts ** ndim * ndim >= 1e9:
-        raise TypeError("Weights for tensor-mesh too large for memory.")
+        raise MemoryError("Weights for tensor-mesh too large for memory.")
     num_tiles = np.arange(ndim)
     num_reps = ndim - np.arange(ndim) - 1
     weights = _compute_weights_1d(npts, ndim, ilbds[0])
@@ -186,7 +186,7 @@ def _compute_nodes_1d(npts, ilbds1d):
 
     Raises
     ------
-    TypeError
+    ValueError
         if  'npts' is even (CC needs odd number of points for reasons)
 
     Returns

@@ -31,7 +31,7 @@ class TestAssertsEvaluatesToScalar(unittest.TestCase):
             return np.array(x)
 
         inp = np.random.rand(10)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             fctutils.assert_evaluates_to_scalar(fct, inp)
 
 

@@ -78,7 +78,7 @@ class UnscentedTransform:
         np.ndarray, shape (2 * d + 1, d)
         """
         if len(mean) != self.ndim:
-            raise TypeError("Dimensionality does not match UT")
+            raise ValueError("Dimensionality does not match UT")
         sigpts = np.zeros((2 * self.ndim + 1, self.ndim))
         sqrtcovar = np.linalg.cholesky(covar)
         sigpts[0] = mean.copy()

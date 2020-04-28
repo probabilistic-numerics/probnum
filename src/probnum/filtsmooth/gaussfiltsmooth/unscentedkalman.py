@@ -89,11 +89,11 @@ class ContDiscUnscentedKalmanFilter(ContDiscGaussianFilter,
         """
         """
         if not issubclass(type(dynamod), LinearSDEModel):
-            raise TypeError("This implementation of "
+            raise ValueError("This implementation of "
                             "ContDiscUnscentedKalmanFilter "
                             "requires a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise TypeError("DiscDiscUnscentedKalmanFilter requires "
+            raise ValueError("DiscDiscUnscentedKalmanFilter requires "
                             "a Gaussian measurement model.")
         if "cke_nsteps" in kwargs.keys():
             self.cke_nsteps = kwargs["cke_nsteps"]
@@ -121,10 +121,10 @@ class DiscDiscUnscentedKalmanFilter(DiscDiscGaussianFilter, UnscentedKalmanFilte
         Checks that dynamod and measmod are linear and moves on.
         """
         if not issubclass(type(dynamod), DiscreteGaussianModel):
-            raise TypeError("DiscDiscExtendedKalmanFilter requires "
+            raise ValueError("DiscDiscExtendedKalmanFilter requires "
                             "a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise TypeError("DiscDiscExtendedKalmanFilter requires "
+            raise ValueError("DiscDiscExtendedKalmanFilter requires "
                             "a linear measurement model.")
         super().__init__(dynamod, measmod, initrv)
         self.ut = UnscentedTransform(self.dynamod.ndim, alpha, beta, kappa)
@@ -280,13 +280,13 @@ def _update_discrete_nonlinear(time, randvar, data, measurementmodel, ut, **kwar
 #         of the differential equation in Linear.chapmankolmogorov().
 #         """
 #         if _is_not_gaussian(dynamod):
-#             raise TypeError("Unscented Kalman filter doesn't "
+#             raise ValueError("Unscented Kalman filter doesn't "
 #                             "support dynamic model")
 #         if not issubclass(type(measmod), DiscreteGaussianModel):
-#             raise TypeError("Extended Kalman filter doesn't "
+#             raise ValueError("Extended Kalman filter doesn't "
 #                             "support measurement model")
 #         if not issubclass(type(initrv.distribution), Normal):
-#             raise TypeError("Extended Kalman filter doesn't "
+#             raise ValueError("Extended Kalman filter doesn't "
 #                             "support initial distribution")
 #         self.dynamod = dynamod
 #         self.measmod = measmod

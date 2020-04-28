@@ -7,7 +7,7 @@ import numpy as np
 from probnum.filtsmooth import ExtendedKalmanFilter, UnscentedKalmanFilter
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
+from probnum.prob.distributions import Normal, Dirac
 
 
 def ivp_to_ekf0(ivp, prior, evlvar):
@@ -210,6 +210,9 @@ def _initialdistribution(ivp, prior):
     Note that the projection matrices :math:`H_0` and :math:`H_1`
     become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
     """
+    if not issubclass(type(ivp.initrv.distribution), Normal):
+        if not issubclass(type(ivp.initrv.distribution), Dirac):
+            raise RuntimeError("Initial distribution not Normal nor Dirac")
     x0 = ivp.initialdistribution.mean()
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)

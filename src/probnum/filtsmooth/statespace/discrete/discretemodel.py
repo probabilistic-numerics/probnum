@@ -24,11 +24,6 @@ class DiscreteModel(ABC):
         """
         Samples x_{t} ~ p(x_{t} | x_{s})
         as a function of t and x_s (plus additional parameters).
-
-        In a discrete system, i.e. t = s + 1, s \\in \\mathbb{N}
-
-        In an ODE solver setting, one of the additional parameters
-        would be the step size.
         """
         raise NotImplementedError
 
@@ -36,7 +31,7 @@ class DiscreteModel(ABC):
         """
         Evaluates pdf of p(x_t | x_s).
         Required for particle filtering and should be
-        possible to implement for everything.
+        possible to implement for every reasonable model.
         """
         raise NotImplementedError("PDF not implemented.")
 
