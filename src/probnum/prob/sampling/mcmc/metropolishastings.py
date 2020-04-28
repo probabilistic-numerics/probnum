@@ -18,7 +18,7 @@ can too instable in a numerical sense.
 """
 
 from abc import ABC, abstractmethod
-
+import warnings
 import numpy as np
 
 from probnum.optim import objective
@@ -75,13 +75,20 @@ class MetropolisHastings(ABC):
         """
         Checks---if available---if acceptance ratio is within given
         interval of "good values". If not, it prints a warning.
+
+        Raises
+        ------
+        UserWarning
+            If the acceptance ratio is not in the interval of desirable
+            values.
         """
         if self.good_acc_ratio is not None:
-            if ratio < self.good_acc_ratio[0] or ratio > self.good_acc_ratio[
-                1]:
-                print("!!! Careful: acc_ratio is not near optimality")
-                print("!!! Desired: %s, got: %s" % (
-                    str(self.good_acc_ratio), str(ratio)))
+            lower, upper = self.good_acc_ratio
+            if ratio < lower or ratio > upper:
+                warnmsg = ("Acceptance ratio is not near optimality.\n"
+                           + "Desired: %s, " % str(self.good_acc_ratio)
+                           + "got: %s" % str(ratio))
+                warnings.warn(message=warnmsg, category=UserWarning)
 
     def accept_or_reject(self, currstate, proposal, corrfact):
         """

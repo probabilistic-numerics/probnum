@@ -48,22 +48,6 @@ def rwmh(logpdf, nsamps, initstate, pwidth):
     >>> # _ = plt.hist(a[:, 0], bins=50, density=True, alpha=0.5)
     >>> # _ = plt.title("RW Samples")
     >>> # plt.show()
-
-
-    Raising a warning about bad acceptance ratios.
-
-
-    >>> import numpy as np
-    >>> import matplotlib.pyplot as plt
-    >>>
-    >>> np.random.seed(1)
-    >>>
-    >>> def logpdf(x):
-    ...     return x.T @ x / 2.0
-    ...
-    >>> a, b, c = rwmh(logpdf, 100, np.array([.5]), pwidth=0.1)
-    !!! Careful: acc_ratio is not near optimality
-    !!! Desired: [0.15, 0.3], got: 0.9
     """
     logdens = objective.Objective(logpdf)
     rwmh = randomwalk.RandomWalkMH(logdens)

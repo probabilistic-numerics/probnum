@@ -8,6 +8,7 @@ them to statespace module (->thoughts?)
 Matern will be easy to implement, just reuse the template
 provided by IOUP and change parameters
 """
+import warnings
 import numpy as np
 from scipy.special import binom   # for Matern
 
@@ -143,8 +144,9 @@ class ODEPrior(LTISDEModel):
         """
         smallval = step**self.ordint
         if smallval < 1e-15:
-            print("!!! Warning: preconditioner contains values below "
-                  "machine precision", smallval)
+            warnmsg = "Preconditioner contains values below " \
+                      "machine precision (%.1e)" % smallval
+            warnings.warn(message=warnmsg, category=RuntimeWarning)
             step = 1e-15**(1/self.ordint)
         powers = np.arange(self.ordint + 1)
         diags = step**powers

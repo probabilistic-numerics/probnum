@@ -1,6 +1,6 @@
 """
 """
-
+import warnings
 import numpy as np
 
 from probnum.prob import RandomVariable
@@ -157,15 +157,20 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return np.maximum(rel_error, abs_error)
 
 
-
     def _suggest_step(self, step, errorest):
         """
         Suggests step according to steprule and warns if
         step is extremely small.
+
+        Raises
+        ------
+        RuntimeWarning
+            If suggested step is smaller than :math:`10^{-15}`.
         """
         step = self.steprule.suggest(step, errorest)
         if step < 1e-15:
-            print("Warning: Stepsize is num. zero (%.1e)" % step)
+            warnmsg = "Stepsize is num. zero (%.1e)" % step
+            warnings.warn(message=warnmsg, category=RuntimeWarning)
         return step
 
     @property
