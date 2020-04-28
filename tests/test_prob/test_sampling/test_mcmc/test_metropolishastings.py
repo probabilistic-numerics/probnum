@@ -40,7 +40,7 @@ class TestMetropolisHastings(unittest.TestCase):
             return x.T @ x
 
         initstate = np.ones(1)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             methast = MockMetropolisHastings(no_ad)
 
         ad = objective.Objective(no_ad)  # control variate
@@ -57,7 +57,7 @@ class TestMetropolisHastings(unittest.TestCase):
         methast = MockMetropolisHastings(logdens)
         good_init = np.ones(1)
         bad_init = 1.0
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             methast.sample_nd(100, bad_init, 0.1)
         methast.sample_nd(100, good_init, 0.1)  # control variate
 

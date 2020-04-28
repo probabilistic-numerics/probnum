@@ -91,10 +91,10 @@ class ContDiscKalmanFilter(ContDiscGaussianFilter, KalmanFilter):
         Checks that dynamod and measmod are linear and moves on.
         """
         if not issubclass(type(dynamod), LinearSDEModel):
-            raise TypeError("ContinuosDiscreteKalmanFilter requires "
+            raise ValueError("ContinuosDiscreteKalmanFilter requires "
                             "a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianLinearModel):
-            raise TypeError("DiscreteDiscreteKalmanFilter requires "
+            raise ValueError("DiscreteDiscreteKalmanFilter requires "
                             "a linear measurement model.")
         if "cke_nsteps" in kwargs.keys():
             self.cke_nsteps = kwargs["cke_nsteps"]
@@ -122,10 +122,10 @@ class DiscDiscKalmanFilter(DiscDiscGaussianFilter, KalmanFilter):
         Checks that dynamod and measmod are linear and moves on.
         """
         if not issubclass(type(dynamod), DiscreteGaussianLinearModel):
-            raise TypeError("ContinuousDiscreteKalmanFilter requires "
+            raise ValueError("ContinuousDiscreteKalmanFilter requires "
                             "a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianLinearModel):
-            raise TypeError("DiscreteDiscreteKalmanFilter requires "
+            raise ValueError("DiscreteDiscreteKalmanFilter requires "
                             "a linear measurement model.")
         super().__init__(dynamod, measmod, initrv)
 

@@ -52,8 +52,24 @@ if they are sufficiently desciptive. E.g.:
 - `mat`: matrix
 - `vec`: vector
 - `arr`: array; wherever applicable, specify `vec` or `mat`
-- `mat2arr` vs `mat_to_arr` ?
+- `mat2arr`: convert matrix to array
+- `proj`: projection (if required: `projmat`, `projvec`, `projlinop`, ...)
+- `precond`: preconditioner
+- `inv*`: for inverse of matrix; e.g. `invprecond`, `invcovmat`, ...
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
+- `msg`: message, e.g. for issuing raising and warnings (`errmsg`, `warnmsg`)
+
+
+## Errors and Warnings
+- Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)
+- If dunder method is not implemented for a type, return `NotImplemented`
+- Warnings via `warnings.warn()`. See https://docs.python.org/2/library/warnings.html
+or https://docs.python.org/2/library/exceptions.html#exceptions.Warning.
+- recall the difference between TypeError and ValueError
+
+
+    TypeError is thrown when an operation or function is applied to an object of an inappropriate type.
+    ValueError is thrown when a function's argument is of an inappropriate type.
 
 
 ## Documentation
@@ -74,7 +90,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
     Parameters
     ----------
-    A : array-like or LinearOperator, shape=(n,n)
+    A : array_like or LinearOperator, shape=(n,n)
         A square matrix or linear operator.
 
     ...
@@ -130,7 +146,11 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 * A little maths goes a long way.
 * References make everything easier for someone who doesn't know the details of an algorithm.
 * Parameters which are to be chosen benefit from a rule of thumb of how to choose it, perhaps even why.
-
+* `np.ndarray`'s are documented as `array_like` (this is whay `numpy` does).
+  Mention its shape in the docstring via `bla : array_like, shape=(a, b)` wherever possible (see example above)
+* Callables are use as parameters if the expected signature is part of the docstring:
+  `bla2 : callable, signature=``(t, **kwargs)`` `. The main effect of the double apostrophes is
+  that the `**kwargs` does not raise a warning during building the documentation.
 
 ### Example Notebooks
 

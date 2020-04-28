@@ -25,15 +25,15 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
 
     Parameters
     ----------
-    driftmatrixfunction : callable, signature (t, \**kwargs)
+    driftmatrixfct : callable, signature=``(t, **kwargs)``
         This is F = F(t). The evaluations of this funciton are called
         the drift(matrix) of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcfct : callable, signature (t, \**kwargs)
+    forcfct : callable, signature=``(t, **kwargs)``
         This is u = u(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatrixfuction : callable, signature (t, \**kwargs)
+    dispmatrixfct : callable, signature=``(t, **kwargs)``
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
@@ -100,7 +100,6 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         """
         return len(self._driftmatrixfct(0.))
 
-
     def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
         """
         Solves differential equations for mean and
@@ -109,18 +108,26 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
 
         By default, we assume that ``randvar`` is Gaussian.
         """
+        if not issubclass(type(randvar.distribution), Normal):
+            errormsg = "Closed form solution for Chapman-Kolmogorov " \
+                       "equations in linear SDE models is only " \
+                       "available for Gaussian initial conditions."
+            raise ValueError(errormsg)
         mean, covar = randvar.mean(), randvar.cov()
         time = start
         while time < stop:
-            meanincr, covarincr = self._increment(time, mean, covar,
-                                                **kwargs)
+            meanincr, covarincr = self._increment(time, mean, covar, **kwargs)
             mean, covar = mean + step * meanincr, covar + step * covarincr
             time = time + step
         return RandomVariable(distribution=Normal(mean, covar)), None
 
     def _increment(self, time, mean, covar,  **kwargs):
         """
-        RHS of Eq. 10.82 in Applied SDEs
+        Euler step for closed form solutions of ODE defining mean
+        and covariance of the solution of the Chapman-Kolmogoro
+        equations (via Fokker-Planck equations, but that is not crucial
+        here).
+        See RHS of Eq. 10.82 in Applied SDEs.
         """
         disped = self.dispersion(time, mean,  **kwargs)
         jacob = self.jacobian(time, mean,  **kwargs)
@@ -216,14 +223,11 @@ class LTISDEModel(LinearSDEModel):
         if np.isscalar(mean) and np.isscalar(cov):
             mean, cov = mean * np.ones(1), cov * np.eye(1)
         increment = stop - start
-
-
-
-        newmean = self._predict_mean(increment, mean)
-        newcov, crosscov = self._predict_covar(increment, cov)
+        newmean = self._predict_mean(increment, mean, **kwargs)
+        newcov, crosscov = self._predict_covar(increment, cov, **kwargs)
         return RandomVariable(distribution=Normal(newmean, newcov)), crosscov
 
-    def _predict_mean(self, h, mean):
+    def _predict_mean(self, h, mean, **kwargs):
         """
         Predicts mean via closed-form solution to Chapman-Kolmogorov
         equation for Gauss-Markov processes according to Eq. (8) in
@@ -233,13 +237,15 @@ class LTISDEModel(LinearSDEModel):
         hence readibility is hard to guarantee. If you know better how
         to make this readable, feedback is welcome!
         """
-        extended_state = np.hstack((mean, self.force))
-        firstrowblock = np.hstack((self.driftmatrix, np.eye(*self.driftmatrix.shape)))
+        drift = self.driftmatrix
+        force = self.force
+        extended_state = np.hstack((mean, force))
+        firstrowblock = np.hstack((drift, np.eye(*drift.shape)))
         blockmat = np.hstack((firstrowblock.T, 0.0 * firstrowblock.T)).T
         proj = np.eye(*firstrowblock.shape)
         return proj @ scipy.linalg.expm(h * blockmat) @ extended_state
 
-    def _predict_covar(self, increment, cov):
+    def _predict_covar(self, increment, cov, **kwargs):
         """
         Predicts covariance via closed-form solution to Chapman-Kolmogorov
         equation for Gauss-Markov processes according to Eq. 6.41 and
@@ -249,7 +255,9 @@ class LTISDEModel(LinearSDEModel):
         hence readibility is hard to guarantee. If you know better how
         to make this readable, feedback is welcome!
         """
-        drift, disp, diff = self.driftmatrix, self.dispersionmatrix, self.diffusionmatrix
+        drift = self.driftmatrix
+        disp = self.dispersionmatrix
+        diff = self.diffusionmatrix
         firstrowblock = np.hstack((drift, disp @ diff @ disp.T))
         secondrowblock = np.hstack((0 * drift.T, -1.0 * drift.T))
         blockmat = np.hstack((firstrowblock.T, secondrowblock.T)).T
@@ -279,16 +287,16 @@ def _check_initial_state_dimensions(drift, force, disp, diff):
 
     """
     if drift.ndim != 2 or drift.shape[0] != drift.shape[1]:
-        raise TypeError("driftmatrix not of shape (n, n)")
+        raise ValueError("driftmatrix not of shape (n, n)")
     if force.ndim != 1:
-        raise TypeError("force not of shape (n,)")
+        raise ValueError("force not of shape (n,)")
     if force.shape[0] != drift.shape[1]:
-        raise TypeError("force not of shape (n,)"
+        raise ValueError("force not of shape (n,)"
                         "or driftmatrix not of shape (n, n)")
     if disp.ndim != 2:
-        raise TypeError("dispersion not of shape (n, s)")
+        raise ValueError("dispersion not of shape (n, s)")
     if diff.ndim != 2 or diff.shape[0] != diff.shape[1]:
-        raise TypeError("diffusion not of shape (s, s)")
+        raise ValueError("diffusion not of shape (s, s)")
     if disp.shape[1] != diff.shape[0]:
-        raise TypeError("dispersion not of shape (n, s)"
+        raise ValueError("dispersion not of shape (n, s)"
                         "or diffusion not of shape (s, s)")

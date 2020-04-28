@@ -55,10 +55,13 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
     def jac(t, x):
         return log_jac(t, x, params)
 
+    def hess(t, x):
+        return log_hess(t, x, params)
+
     def sol(t):
         return log_sol(t, params, initrv.mean())
 
-    return IVP(timespan, initrv, rhs, jac, sol)
+    return IVP(timespan, initrv, rhs, jac, hess, sol)
 
 
 def log_rhs(t, x, params):
@@ -70,7 +73,12 @@ def log_rhs(t, x, params):
 def log_jac(t, x, params):
     """Jacobian for logistic model."""
     l0, l1 = params
-    return np.array([l0 - l0/l1*2*x])
+    return np.array([l0 - l0/l1 * 2 * x])
+
+def log_hess(t, x, params):
+    """Hessian for logistic model."""
+    l0, l1 = params
+    return np.array([[-2 * l0/l1]])
 
 
 def log_sol(t, params, x0):
@@ -274,11 +282,11 @@ class IVP(ODE):
     2.0
     """
 
-    def __init__(self, timespan, initrv, rhs, jac=None, sol=None):
+    def __init__(self, timespan, initrv, rhs, jac=None, hess=None, sol=None):
         """
         """
         self.initrv = initrv
-        super().__init__(timespan, rhs, jac, sol)
+        super().__init__(timespan, rhs, jac, hess, sol)
 
     @property
     def initialdistribution(self):

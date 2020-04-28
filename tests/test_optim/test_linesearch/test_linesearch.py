@@ -22,13 +22,13 @@ class TestConstantLearningRate(unittest.TestCase):
     def test_negative_lrate(self):
         """
         """
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             linesearch.ConstantLearningRate(-1.0)
 
     def test_zero_lrate(self):
         """
         """
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             linesearch.ConstantLearningRate(0.0)
 
 

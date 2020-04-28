@@ -23,11 +23,11 @@ class TestAssertIsArray(unittest.TestCase):
         """
         """
         arr_wrong = np.random.rand(4, 1)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             arrayutils.assert_is_1d_ndarray(arr_wrong)
 
         float_wrong = np.random.rand()
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             arrayutils.assert_is_1d_ndarray(float_wrong)
 
     def test_assert_is_2d_ndarray_pass(self):
@@ -41,15 +41,15 @@ class TestAssertIsArray(unittest.TestCase):
         """
         """
         arr_wrong1 = np.random.rand(4, )
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             arrayutils.assert_is_2d_ndarray(arr_wrong1)
 
         arr_wrong2 = np.random.rand(4, 3, 2)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             arrayutils.assert_is_2d_ndarray(arr_wrong2)
 
         float_wrong = np.random.rand()
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             arrayutils.assert_is_2d_ndarray(float_wrong)
 
 

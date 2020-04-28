@@ -92,11 +92,11 @@ class ContDiscExtendedKalmanFilter(ContDiscGaussianFilter,
         """
         """
         if not issubclass(type(dynamod), LinearSDEModel):
-            raise TypeError("This implementation of "
+            raise ValueError("This implementation of "
                             "ContDiscExtendedKalmanFilter "
                             "requires a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise TypeError("DiscreteDiscreteKalmanFilter requires "
+            raise ValueError("DiscreteDiscreteKalmanFilter requires "
                             "a Gaussian measurement model.")
         if "cke_nsteps" in kwargs.keys():
             self.cke_nsteps = kwargs["cke_nsteps"]
@@ -124,10 +124,10 @@ class DiscDiscExtendedKalmanFilter(DiscDiscGaussianFilter, ExtendedKalmanFilter)
         Checks that dynamod and measmod are linear and moves on.
         """
         if not issubclass(type(dynamod), DiscreteGaussianModel):
-            raise TypeError("DiscDiscExtendedKalmanFilter requires "
+            raise ValueError("DiscDiscExtendedKalmanFilter requires "
                             "a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise TypeError("DiscDiscExtendedKalmanFilter requires "
+            raise ValueError("DiscDiscExtendedKalmanFilter requires "
                             "a linear measurement model.")
         super().__init__(dynamod, measmod, initrv)
 
@@ -146,7 +146,7 @@ class DiscDiscExtendedKalmanFilter(DiscDiscGaussianFilter, ExtendedKalmanFilter)
     def update(self, time, randvar, data, **kwargs):
         """ """
         return _discrete_extkalman_update(time, randvar, data,
-                                       self.measurementmodel, **kwargs)
+                                          self.measurementmodel, **kwargs)
 
 
 def _discrete_extkalman_update(time, randvar, data, measurementmodel, **kwargs):
@@ -219,13 +219,13 @@ def _discrete_extkalman_update(time, randvar, data, measurementmodel, **kwargs):
 #         of the differential equation in Linear.chapmankolmogorov().
 #         """
 #         if _is_not_linear(dynamod):
-#             raise TypeError(
+#             raise ValueError(
 #                 "Extended Kalman filter doesn't support dynamic model")
 #         if not issubclass(type(measmod), DiscreteGaussianModel):
-#             raise TypeError(
+#             raise ValueError(
 #                 "Extended Kalman filter doesn't support measurement model")
 #         if not issubclass(type(initrv.distribution), Normal):
-#             raise TypeError("Extended Kalman filter doesn't support "
+#             raise ValueError("Extended Kalman filter doesn't support "
 #                             "initial distribution")
 #         self.dynamod = dynamod
 #         self.measmod = measmod

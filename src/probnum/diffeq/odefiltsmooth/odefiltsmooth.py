@@ -24,8 +24,8 @@ from probnum.diffeq.odefiltsmooth import prior, ivptofilter
 from probnum.diffeq.odefiltsmooth import GaussianIVPFilter, GaussianIVPSmoother
 
 
-def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
-                  step=None, firststep=None, **kwargs):
+def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
+                  firststep=None, precond_step=1.0, nsteps=1, **kwargs):
     """
     Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -123,6 +123,20 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
         efficient to start out with smaller :math:`h_0` so that the
         first acceptance occurs earlier.
 
+    precond_step : float, optional
+        Expected average step size, used for preconditioning.
+        See :class:`ODEPrior` for details.
+        Default is ``precond_step=1.0` which amounts to no
+        preconditioning. If constant step size, precond_step is
+        overwritten with the actual step size to provide optimal
+        preconditioning.
+
+    nsteps : int, optional
+        Number of intermediate steps in between ODE right-hand side
+        evaluation. Default is ``nsteps=1``. Choosing ``nsteps > 1``
+        will result in solution estimates in between points which
+        will enable for instance uncertainty estimates in these regions.
+
     Returns
     -------
     means : np.ndarray, shape=(N, d*(q+1))
@@ -193,39 +207,42 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None,
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> means, covs, times = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
     >>> print(means)
-    [[  0.15         0.51         1.428       -0.57058847]
-     [  0.20791497   0.65874554   2.03752238  -7.07137359]
-     [  0.28229381   0.81041611   1.08305597   2.71961497]
-     [  0.36925352   0.93162419   1.16158644 -10.36628566]
-     [  0.46646306   0.99550295   0.17033983  -6.20762551]
-     [  0.56587493   0.9826431   -0.45689221  -8.50556098]
-     [  0.66048248   0.89698152  -1.1848091   -3.68614765]
-     [  0.74369637   0.76244935  -1.47038678  -1.49777207]
-     [  0.8123721    0.60969654  -1.53817311   1.57340589]
-     [  0.86592643   0.46439253  -1.35515267   2.37437168]
-     [  0.90598187   0.34071527  -1.11173213   2.83861203]
-     [  0.93495652   0.24325135  -0.84433513   2.40538222]
-     [  0.95544694   0.17027234  -0.62178048   2.0057747 ]
-     [  0.96968716   0.11757592  -0.44062203   1.46760485]
-     [  0.97947605   0.08041089  -0.3090062    1.07105312]
-     [  0.98614523   0.05465129  -0.20824359   0.94816533]]
+    [[  0.15         0.51         1.428        1.9176    ]
+     [  0.20795795   0.65884674   2.00211064  -6.59817856]
+     [  0.28228416   0.81039925   1.10201443   1.99947952]
+     [  0.36926      0.93163093   1.15809878 -10.29411145]
+     [  0.46646494   0.99550339   0.17201064  -6.25619529]
+     [  0.5658788    0.98264107  -0.45761145  -8.49165628]
+     [  0.66048505   0.89697823  -1.1844693   -3.69769413]
+     [  0.74369892   0.76244437  -1.47053431  -1.49540782]
+     [  0.81237394   0.60969196  -1.53808527   1.57069856]
+     [  0.86592791   0.46438819  -1.35517427   2.37556924]
+     [  0.90598293   0.34071182  -1.11171014   2.83875749]
+     [  0.9349573    0.24324862  -0.84433565   2.40611949]
+     [  0.95544749   0.17027033  -0.62177491   2.00601395]
+     [  0.96968754   0.11757447  -0.44061846   1.46774923]
+     [  0.97947631   0.08040988  -0.30900324   1.07108871]
+     [  0.98614541   0.05465059  -0.20824105   0.94815346]]
     """
     _check_step_tol(step, tol)
     _check_method(method)
-    _prior = _string_to_prior(ivp, which_prior, **kwargs)
+    if step is not None:
+        precond_step = step
+    precond_step = precond_step / float(nsteps)
+    _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
-        stprl = _step_to_adaptive_steprule(tol, _prior)
+        stprl = _step2steprule_adap(tol, _prior)
         if firststep is None:
             firststep = ivp.tmax - ivp.t0
     else:
-        stprl = _step_to_steprule(step)
+        stprl = _step2steprule_const(step)
         firststep = step
-    gfilt = _string_to_filter(ivp, _prior, method, **kwargs)
+    gfilt = _string2filter(ivp, _prior, method, **kwargs)
     if method in ["ekf0", "ekf1", "ukf"]:
         solver = GaussianIVPFilter(ivp, gfilt, stprl)
     else:
         solver = GaussianIVPSmoother(ivp, gfilt, stprl)
-    return solver.solve(firststep=firststep, **kwargs)
+    return solver.solve(firststep=firststep, nsteps=nsteps, **kwargs)
 
 
 def _check_step_tol(step, tol):
@@ -234,33 +251,33 @@ def _check_step_tol(step, tol):
     both_not_none = tol is not None and step is not None
     if both_none or both_not_none:
         errormsg = "Please specify either a tolerance or a step size."
-        raise TypeError(errormsg)
+        raise ValueError(errormsg)
 
 
 def _check_method(method):
     """ """
     if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
-        raise TypeError("Method not supported.")
+        raise ValueError("Method not supported.")
 
 
-def _string_to_prior(ivp, which_prior, **kwargs):
+def _string2prior(ivp, which_prior, precond_step, **kwargs):
     """
     """
     ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
     ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
     matern_family = ["matern32", "matern52", "matern72", "matern92"]
     if which_prior in ibm_family:
-        return _string_to_prior_ibm(ivp, which_prior, **kwargs)
+        return _string2ibm(ivp, which_prior, precond_step, **kwargs)
     elif which_prior in ioup_family:
-        return _string_to_prior_ioup(ivp, which_prior, **kwargs)
+        return _string2ioup(ivp, which_prior, precond_step, **kwargs)
     elif which_prior in matern_family:
-        return _string_to_prior_matern(ivp, which_prior, **kwargs)
+        return _string2matern(ivp, which_prior, precond_step, **kwargs)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_prior_ibm(ivp, which_prior, **kwargs):
+def _string2ibm(ivp, which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -268,19 +285,19 @@ def _string_to_prior_ibm(ivp, which_prior, **kwargs):
     else:
         diffconst = 1.0
     if which_prior == "ibm1":
-        return prior.IBM(1, ivp.ndim, diffconst)
+        return prior.IBM(1, ivp.ndim, diffconst, precond_step)
     elif which_prior == "ibm2":
-        return prior.IBM(2, ivp.ndim, diffconst)
+        return prior.IBM(2, ivp.ndim, diffconst, precond_step)
     elif which_prior == "ibm3":
-        return prior.IBM(3, ivp.ndim, diffconst)
+        return prior.IBM(3, ivp.ndim, diffconst, precond_step)
     elif which_prior == "ibm4":
-        return prior.IBM(4, ivp.ndim, diffconst)
+        return prior.IBM(4, ivp.ndim, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_prior_ioup(_ivp, _which_prior, **kwargs):
+def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -292,19 +309,19 @@ def _string_to_prior_ioup(_ivp, _which_prior, **kwargs):
     else:
         driftspeed = 1.0
     if _which_prior == "ioup1":
-        return prior.IOUP(1, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(1, _ivp.ndim, driftspeed, diffconst, precond_step)
     elif _which_prior == "ioup2":
-        return prior.IOUP(2, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(2, _ivp.ndim, driftspeed, diffconst, precond_step)
     elif _which_prior == "ioup3":
-        return prior.IOUP(3, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(3, _ivp.ndim, driftspeed, diffconst, precond_step)
     elif _which_prior == "ioup4":
-        return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst)
+        return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_prior_matern(ivp, which_prior, **kwargs):
+def _string2matern(ivp, which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -316,19 +333,19 @@ def _string_to_prior_matern(ivp, which_prior, **kwargs):
     else:
         lengthscale = 1.0
     if which_prior == "matern32":
-        return prior.Matern(1, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(1, ivp.ndim, lengthscale, diffconst, precond_step)
     elif which_prior == "matern52":
-        return prior.Matern(2, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(2, ivp.ndim, lengthscale, diffconst, precond_step)
     elif which_prior == "matern72":
-        return prior.Matern(3, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(3, ivp.ndim, lengthscale, diffconst, precond_step)
     elif which_prior == "matern92":
-        return prior.Matern(4, ivp.ndim, lengthscale, diffconst)
+        return prior.Matern(4, ivp.ndim, lengthscale, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to "
                            "reach this point.")
 
 
-def _string_to_filter(_ivp, _prior, _method, **kwargs):
+def _string2filter(_ivp, _prior, _method, **kwargs):
     """
     """
     if "evlvar" in kwargs.keys():
@@ -342,16 +359,16 @@ def _string_to_filter(_ivp, _prior, _method, **kwargs):
     elif _method == "ukf" or _method == "uks":
         return ivptofilter.ivp_to_ukf(_ivp, _prior, evlvar)
     else:
-        raise TypeError("Type of filter not supported.")
+        raise ValueError("Type of filter not supported.")
 
 
-def _step_to_steprule(stp):
+def _step2steprule_const(stp):
     """
     """
     return steprule.ConstantSteps(stp)
 
 
-def _step_to_adaptive_steprule(_tol, _prior, **kwargs):
+def _step2steprule_adap(_tol, _prior, **kwargs):
     """
     """
     convrate = _prior.ordint + 1

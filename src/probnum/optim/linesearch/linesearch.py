@@ -42,7 +42,7 @@ class ConstantLearningRate(LineSearch):
         """
         """
         if lrate <= 0:
-            raise TypeError("Please enter a positive lrate.")
+            raise ValueError("Please enter a positive lrate.")
         self._lrate = lrate
 
     def next_lrate(self, curriter, objective, direction, *pars, **namedpars):

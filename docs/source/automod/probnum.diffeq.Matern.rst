@@ -14,7 +14,9 @@ Matern
       ~Matern.dispersionmatrix
       ~Matern.driftmatrix
       ~Matern.force
+      ~Matern.inverse_preconditioner
       ~Matern.ndim
+      ~Matern.preconditioner
 
    .. rubric:: Methods Summary
 
@@ -24,6 +26,7 @@ Matern
       ~Matern.dispersion
       ~Matern.drift
       ~Matern.jacobian
+      ~Matern.precond2nordsieck
       ~Matern.proj2coord
       ~Matern.sample
 
@@ -33,7 +36,9 @@ Matern
    .. autoattribute:: dispersionmatrix
    .. autoattribute:: driftmatrix
    .. autoattribute:: force
+   .. autoattribute:: inverse_preconditioner
    .. autoattribute:: ndim
+   .. autoattribute:: preconditioner
 
    .. rubric:: Methods Documentation
 
@@ -41,5 +46,6 @@ Matern
    .. automethod:: dispersion
    .. automethod:: drift
    .. automethod:: jacobian
+   .. automethod:: precond2nordsieck
    .. automethod:: proj2coord
    .. automethod:: sample

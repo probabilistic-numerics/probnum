@@ -190,7 +190,7 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
         Tests whether resulting steps are not evenly distributed.
         """
         ms, cs, ts = probsolve_ivp(self.ivp, tol=self.tol,
-                                          which_prior="ibm1", method="ekf0")
+                                   which_prior="ibm1", method="ekf0")
         steps = np.diff(ts)
         self.assertLess(np.amin(steps) / np.amax(steps), 0.8)
 

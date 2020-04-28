@@ -60,12 +60,12 @@ class TestOptimizer(unittest.TestCase):
             return np.array(x)
 
         objec = objective.Objective(obj)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             self.opt.minimise_nd(objec, np.array([100.0, 200.0]))
 
     def test_initval_no_array(self):
         """
         If initval is not a ndarray, it should raise a TypeError.
         """
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             self.opt.minimise_nd(self.obj, 200.0)

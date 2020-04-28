@@ -47,10 +47,10 @@ class ContinuousModel(ABC):
         Start, stop and step lead to a np.arange-like
         interface.
         Returns a single element at the end of the time, not the
-        entire arary!
+        entire array!
         """
         if type(initstate) != np.ndarray:
-            raise TypeError("Init state is not array!")
+            raise ValueError("Init state is not array!")
         times = np.arange(start, stop, step)
         currstate = initstate
         for idx in range(1, len(times)):

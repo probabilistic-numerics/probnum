@@ -1,8 +1,9 @@
 """
-Test whether IBM(2) in 2 independent spatial dimensions
-is as expected.
+Tests include:
 
-
+- IBM recovers closed form solutions of Chapman-Kolmogorov equations.
+- IOUP is same as IBM for driftspeed = 0.0
+- Matern driftmatrix satisfies closed form solutions.
 """
 
 import unittest
@@ -18,12 +19,14 @@ from tests.testing import NumpyAssertions
 STEP = np.random.rand()
 DIFFCONST = np.random.rand()
 
-AH_22_IBM = np.array([[1., STEP, STEP ** 2 / 2., 0., 0., 0.],
-                  [0., 1., STEP, 0., 0., 0.],
-                  [0., 0., 1., 0., 0., 0.],
-                  [0., 0., 0., 1., STEP, STEP ** 2 / 2.],
-                  [0., 0., 0., 0., 1., STEP],
-                  [0., 0., 0., 0., 0., 1.]])
+AH_22_IBM = np.array(
+    [[1., STEP, STEP ** 2 / 2., 0., 0., 0.],
+     [0., 1., STEP, 0., 0., 0.],
+     [0., 0., 1., 0., 0., 0.],
+     [0., 0., 0., 1., STEP, STEP ** 2 / 2.],
+     [0., 0., 0., 0., 1., STEP],
+     [0., 0., 0., 0., 0., 1.]]
+    )
 
 QH_22_IBM = DIFFCONST ** 2 * np.array(
     [[STEP ** 5 / 20., STEP ** 4 / 8., STEP ** 3 / 6., 0., 0., 0.],
@@ -31,8 +34,17 @@ QH_22_IBM = DIFFCONST ** 2 * np.array(
      [STEP ** 3 / 6., STEP ** 2 / 2., STEP, 0., 0., 0.],
      [0., 0., 0., STEP ** 5 / 20., STEP ** 4 / 8., STEP ** 3 / 6.],
      [0., 0., 0., STEP ** 4 / 8., STEP ** 3 / 3., STEP ** 2 / 2.],
-     [0., 0., 0., STEP ** 3 / 6., STEP ** 2 / 2., STEP]])
+     [0., 0., 0., STEP ** 3 / 6., STEP ** 2 / 2., STEP]]
+    )
 
+
+AH_21_PRE = np.array([[1, 1, 0.5],
+                      [0, 1, 1],
+                      [0, 0, 1]])
+
+QH_21_PRE = DIFFCONST**2 * STEP**5 * np.array([[1/20, 1/8, 1/6],
+                                               [1/8, 1/3, 1/2],
+                                               [1/6, 1/2, 1]])
 
 class TestIBM(unittest.TestCase, NumpyAssertions):
     """
@@ -51,6 +63,27 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         cke, __ = self.ibm.chapmankolmogorov(0., STEP, STEP, initrv)
         self.assertAllClose(AH_22_IBM @ initrv.mean(), cke.mean(), 1e-14)
         self.assertAllClose(AH_22_IBM @ initrv.cov() @ AH_22_IBM.T + QH_22_IBM,
+                            cke.cov(), 1e-14)
+
+
+class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
+    """
+    """
+
+    def setUp(self):
+        """
+        """
+        self.ibm = prior.IBM(ordint=2, spatialdim=1, diffconst=DIFFCONST, precond_step=STEP)
+
+    def test_chapmankolmogorov(self):
+        """
+        """
+        mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
+        initrv = RandomVariable(distribution=Normal(mean, cov))
+        cke, __ = self.ibm.chapmankolmogorov(0., STEP, STEP, initrv)
+
+        self.assertAllClose(AH_21_PRE @ initrv.mean(), cke.mean(), 1e-14)
+        self.assertAllClose(AH_21_PRE @ initrv.cov() @ AH_21_PRE.T + QH_21_PRE,
                             cke.cov(), 1e-14)
 
 
