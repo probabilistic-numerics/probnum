@@ -335,7 +335,7 @@ def asrandvar(obj):
     >>> bern.random_state = 42  # Seed for reproducibility
     >>> b = asrandvar(bern)
     >>> b.sample(size=5)
-    array([0, 1, 1, 1, 0])
+    array([1, 1, 1, 0, 0])
     """
     # RandomVariable
     if isinstance(obj, RandomVariable):
