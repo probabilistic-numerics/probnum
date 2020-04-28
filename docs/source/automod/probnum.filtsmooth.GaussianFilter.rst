@@ -20,6 +20,8 @@ GaussianFilter
    .. autosummary::
 
       ~GaussianFilter.filter
+      ~GaussianFilter.filter_set
+      ~GaussianFilter.filter_step
       ~GaussianFilter.filter_stream
       ~GaussianFilter.predict
       ~GaussianFilter.update
@@ -34,6 +36,8 @@ GaussianFilter
    .. rubric:: Methods Documentation
 
    .. automethod:: filter
+   .. automethod:: filter_set
+   .. automethod:: filter_step
    .. automethod:: filter_stream
    .. automethod:: predict
    .. automethod:: update

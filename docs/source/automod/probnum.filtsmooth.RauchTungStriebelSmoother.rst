@@ -1,27 +1,27 @@
-GaussianSmoother
-================
+RauchTungStriebelSmoother
+=========================
 
 .. currentmodule:: probnum.filtsmooth
 
-.. autoclass:: GaussianSmoother
+.. autoclass:: RauchTungStriebelSmoother
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~GaussianSmoother.dynamicmodel
-      ~GaussianSmoother.initialdistribution
-      ~GaussianSmoother.initialrandomvariable
-      ~GaussianSmoother.measurementmodel
+      ~RauchTungStriebelSmoother.dynamicmodel
+      ~RauchTungStriebelSmoother.initialdistribution
+      ~RauchTungStriebelSmoother.initialrandomvariable
+      ~RauchTungStriebelSmoother.measurementmodel
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~GaussianSmoother.smooth
-      ~GaussianSmoother.smooth_filteroutput
-      ~GaussianSmoother.smoother_step
+      ~RauchTungStriebelSmoother.smooth
+      ~RauchTungStriebelSmoother.smooth_filteroutput
+      ~RauchTungStriebelSmoother.smoother_step
 
    .. rubric:: Attributes Documentation
 

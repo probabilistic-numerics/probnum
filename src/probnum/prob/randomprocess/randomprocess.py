@@ -17,22 +17,36 @@ class RandomProcess:
     ----------
     """
 
-    def __init__(self, shape=None, dtype=None):
+    def __init__(self, shape=None, dtype=None, sde=None):
         """Create a new random process."""
         self._shape = shape
         self._dtype = dtype
+        self._sde = sde
 
-    def mean(self):
+    def __call__(self, x):
+        """
+        Returns random variable corresponding to the random process evaluated
+        at ``x``.
+        """
+        raise NotImplementedError
+
+    def meanfun(self, x):
         """
         Mean (function) of the random process.
         """
         raise NotImplementedError
 
-    def cov(self):
+    def covfun(self, x1, x2):
         """
         Covariance (function) of the random process, sometimes known as kernel.
         """
         raise NotImplementedError
+
+    def sde(self):
+        """
+        Stochastic differential equation defining the random process.
+        """
+        return self._sde
 
     @property
     def shape(self):
@@ -60,7 +74,7 @@ class RandomProcess:
         """
         raise NotImplementedError
 
-    def sample(self, size=()):
+    def sample(self, x, size=()):
         """
         Draw realizations from the random process.
 
@@ -75,3 +89,8 @@ class RandomProcess:
             Sample of realizations with the given ``size`` and the inherent ``shape``.
         """
         raise NotImplementedError
+
+
+def asrandprocess():
+    """
+    """
