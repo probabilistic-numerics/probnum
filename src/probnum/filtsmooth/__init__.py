@@ -1,8 +1,5 @@
 """
 Bayesian filtering and smoothing.
-
-Bayesian quadrature methods integrate a function by iteratively building a probabilistic model and using its predictions
-to adaptively choose points to evaluate the integrand.
 """
 
 from .statespace import *
@@ -19,7 +16,8 @@ __all__ = ["GaussianSmoother", "GaussianFilter",
            "DiscreteGaussianLinearModel", "DiscreteGaussianLTIModel",
            "generate_cd", "generate_dd"]
 
-# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+# Set correct module paths (for superclasses).
+# Corrects links and module paths in documentation.
 ContinuousModel.__module__ = "probnum.filtsmooth"
 LinearSDEModel.__module__ = "probnum.filtsmooth"
 DiscreteModel.__module__ = "probnum.filtsmooth"
