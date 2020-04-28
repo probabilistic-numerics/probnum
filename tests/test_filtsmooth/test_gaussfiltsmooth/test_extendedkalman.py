@@ -25,7 +25,7 @@ class TestExtendedKalmanDiscDisc(CarTrackingDDTestCase):
         super().setup_cartracking()
         self.filt = ExtendedKalmanFilter(self.dynmod, self.measmod,
                                          self.initrv)
-        self.smoo = ExtendedKalmanSmoother(self.dynmod, self.measmod,
+        self.smoo = ExtendedRauchTungStriebelSmoother(self.dynmod, self.measmod,
                                            self.initrv)
 
     def test_dynamicmodel(self):
@@ -108,7 +108,7 @@ class TestExtendedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
     def setUp(self):
         """ """
         super().setup_ornsteinuhlenbeck()
-        self.smoo = ExtendedKalmanSmoother(self.dynmod, self.measmod,
+        self.smoo = ExtendedRauchTungStriebelSmoother(self.dynmod, self.measmod,
                                            self.initrv)
         self.filt = ExtendedKalmanFilter(self.dynmod, self.measmod,
                                          self.initrv)
@@ -195,7 +195,7 @@ class TestExtendedKalmanPendulum(PendulumNonlinearDDTestCase):
         super().setup_pendulum()
         self.filt = ExtendedKalmanFilter(self.dynamod, self.measmod,
                                          self.initrv)
-        self.smoo = ExtendedKalmanSmoother(self.dynamod, self.measmod,
+        self.smoo = ExtendedRauchTungStriebelSmoother(self.dynamod, self.measmod,
                                            self.initrv)
 
     def test_filtsmooth(self):

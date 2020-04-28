@@ -1,8 +1,6 @@
 """
 Gaussian filtering.
 """
-
-
 import numpy as np
 
 from probnum.prob import RandomVariable, Normal
@@ -16,7 +14,7 @@ class GaussianSmoother(BayesSmoother):
 
     Builds on top of GaussianFilter instances
 
-    This is messy AF code ATM.
+    This is messy AF at the moment.
     """
     def __init__(self, gaussfilt):
         """ """
@@ -26,30 +24,11 @@ class GaussianSmoother(BayesSmoother):
 
     def smooth(self, data, times, **kwargs):
         """ """
-        if isinstance(data, np.ndarray):
-            return self.smooth_set(data, times, **kwargs)
-        elif callable(data):
-            return self.smooth_stream(data, times, **kwargs)
-        else:
-            errormsg = "`data` parameter is not of expected type."
-            raise ValueError(errormsg)
+        mns, cvs, tms = self.bayesfilt.filter(data, times, **kwargs)
+        new_mns, new_cvs = self.smooth_filteroutput(mns, cvs, tms, **kwargs)
+        return new_mns, new_cvs, tms
 
-    def smooth_set(self, dataset, times, **kwargs):
-        """
-        """
-
-        def set_as_stream(time, **kwargs):
-            return dataset[times[1:] == time][0]
-
-        return self.smooth_stream(set_as_stream, times, **kwargs)
-
-    def smooth_stream(self, datastream, times, **kwargs):
-        """ """
-        means, covs, fitimes = self.bayesfilt.filter_stream(datastream, times, **kwargs)
-        smmeans, smcovs = self.smooth_filterout(means, covs, fitimes, **kwargs)
-        return smmeans, smcovs, fitimes
-
-    def smooth_filterout(self, means, covs, times, **kwargs):
+    def smooth_filteroutput(self, means, covs, times, **kwargs):
         """ """
         currdist = RandomVariable(distribution=Normal(means[-1], covs[-1]))
         for idx in reversed(range(1, len(times))):
@@ -57,14 +36,14 @@ class GaussianSmoother(BayesSmoother):
                                                            covs[idx-1]))
             pred, ccov = self.bayesfilt.predict(times[idx-1], times[idx],
                                                 dist_from, **kwargs)
-            currdist = self.smoothing_step(dist_from, pred, currdist, ccov)
+            currdist = self.smoother_step(dist_from, pred, currdist, ccov)
             means[idx-1], covs[idx-1] = currdist.mean(), currdist.cov()
         return means, covs
 
-    def smoothing_step(self, dist_from, predicted, currdist, crosscov):
+    def smoother_step(self, dist_from, predicted, currdist, crosscov):
         """
-        Needs some meaningful naming when this is all over with.
         """
+        # todo: give variables better names
         currmean, currcov = currdist.mean(), currdist.cov()
         initmean, initcov = dist_from.mean(), dist_from.cov()
         predmean, predcov = predicted.mean(), predicted.cov()
@@ -82,17 +61,6 @@ class GaussianSmoother(BayesSmoother):
 class GaussianFilter(BayesFilter, ABC):
     """
     Abstract interface for Gaussian filters.
-
-    Has abstract methods:
-        * :meth:`filter`         implemented by _**GaussianFilter, ...
-        * :meth:`filter_stream`  implemented by _**GaussianFilter, ...
-        * :meth:`predict`        implemented by Kalman, ExtendedKalman, ...
-        * :meth:`update`         implemented by Kalman, ExtendedKalman, ...
-
-    Hence, "proper" subclasses must do both: subclass one of
-    {_ContinuousContinuousGaussianFilter, ...} and provide :meth:`predict` and
-    :meth:`update` methods. It is recommended to duplicate the factory pattern
-    from this class at all subclasses.
     """
 
     def __init__(self, dynamod, measmod, initrv):
@@ -104,8 +72,6 @@ class GaussianFilter(BayesFilter, ABC):
         # check for Gaussianity here.
         super().__init__(dynamod, measmod, initrv)
 
-    # todo: filter() method.
-
     def filter_set(self, dataset, times, **kwargs):
         """ """
         def set_as_stream(tm, **kwargs):
@@ -113,13 +79,22 @@ class GaussianFilter(BayesFilter, ABC):
 
         return self.filter_stream(set_as_stream, times, **kwargs)
 
-    @abstractmethod
     def filter_stream(self, datastream, times, **kwargs):
-        """
-        Gaussian filters have straightforward filtering,
-        so subclasses must implement a filter_stream() method.
-        """
-        raise NotImplementedError
+        """ """
+        means = [self.initialdistribution.mean()]
+        covars = [self.initialdistribution.cov()]
+        fitimes = [times[0]]
+        currdist = self.initialdistribution
+        for idx in range(1, len(times)):
+            data = datastream(times[idx], **kwargs)
+            currdist, mns, cvs, tms = self.filter_step(start=times[idx-1],
+                                                       stop=times[idx],
+                                                       randvar=currdist,
+                                                       data=data, **kwargs)
+            means.extend(mns)
+            covars.extend(cvs)
+            fitimes.extend(tms)
+        return np.array(means), np.array(covars), np.array(fitimes)
 
     @abstractmethod
     def predict(self, start, stop, randvar, **kwargs):
@@ -131,6 +106,11 @@ class GaussianFilter(BayesFilter, ABC):
 
     @abstractmethod
     def update(self, time, randvar, data, **kwargs):
+        """ """
+        raise NotImplementedError
+
+    @abstractmethod
+    def filter_step(self, start, stop, randvar, data, **kwargs):
         """ """
         raise NotImplementedError
 
@@ -164,35 +144,42 @@ class ContDiscGaussianFilter(GaussianFilter):
 
         super().__init__(dynamod, measmod, initrv)
 
-    def filter_stream(self, datastream, times, **kwargs):
+    def filter_step(self, start, stop, randvar, data, **kwargs):
         """
-        The zero-th element of 'times' is the time
-        of initial distribution.
+        Filter step of continuous-discrete Gaussian filter.
+
+        First a fixed number of prediction steps, then an update step.
+
+        Parameters
+        ----------
+        start
+        stop
+        randvar
+        data
+        kwargs
+
+        Returns
+        -------
+
         """
-        if "nsteps" in kwargs.keys():
+        if "nsteps" in kwargs.keys():  # number of steps in between obs.
             nsteps = kwargs["nsteps"]
         else:
             nsteps = 1
-        filtertimes = [times[0]]
-        means = [self.initialdistribution.mean()]
-        covars = [self.initialdistribution.cov()]
-        currdist = self.initialdistribution
-        for idx in range(1, len(times)):
-            intermediate_step = float((times[idx] - times[idx-1]) / nsteps)
-            tm = times[idx - 1]
-            for jdx in range(nsteps):
-                currdist, __ = self.predict(tm, tm + intermediate_step,
-                                            currdist, **kwargs)
-                tm = tm + intermediate_step
-                filtertimes.append(tm)
-                means.append(currdist.mean())
-                covars.append(currdist.cov())
-            data = datastream(times[idx], **kwargs)
-            currdist, __, __, __ = self.update(times[idx], currdist,
-                                               data, **kwargs)
-            means[-1] = currdist.mean()
-            covars[-1] = currdist.cov()
-        return np.array(means), np.array(covars), np.array(filtertimes)
+        intermediate_step = float((stop - start) / nsteps)
+        tm, currdist = start, randvar
+        intermns, intercvs, intertms = [], [], []
+        for jdx in range(nsteps):
+            currdist, __ = self.predict(tm, tm + intermediate_step,
+                                        currdist, **kwargs)
+            tm = tm + intermediate_step
+            intertms.append(tm)
+            intermns.append(currdist.mean())
+            intercvs.append(currdist.cov())
+        currdist, __, __, __ = self.update(stop, currdist, data, **kwargs)
+        intermns[-1] = currdist.mean()
+        intercvs[-1] = currdist.cov()
+        return currdist, intermns, intercvs, intertms
 
     @abstractmethod
     def predict(self, start, stop, randvar, **kwargs):
@@ -229,20 +216,30 @@ class DiscDiscGaussianFilter(GaussianFilter):
 
         super().__init__(dynamod, measmod, initrv)
 
-    def filter_stream(self, datastream, times, **kwargs):
-        """ """
-        means = [self.initialdistribution.mean()]
-        covars = [self.initialdistribution.cov()]
-        currdist = self.initialdistribution
-        for idx in range(1, len(times)):
-            pred, __ = self.predict(times[idx-1], times[idx],
-                                         currdist, **kwargs)
-            data = datastream(times[idx], **kwargs)
-            currdist, __, __, __ = self.update(times[idx], pred,
-                                               data, **kwargs)
-            means.append(currdist.mean())
-            covars.append(currdist.cov())
-        return np.array(means), np.array(covars), times
+    def filter_step(self, start, stop, randvar, data, **kwargs):
+        """
+        Filter step of discrete-discrete Gaussian filter.
+
+        First a prediction step, then an update step
+
+        Parameters
+        ----------
+        start
+        stop
+        randvar
+        data
+        kwargs
+
+        Returns
+        -------
+        RandomVariable
+        list
+        list
+        list
+        """
+        pred, __ = self.predict(start, stop, randvar, **kwargs)
+        currdist, __, __, __ = self.update(stop, pred, data, **kwargs)
+        return currdist, [currdist.mean()], [currdist.cov()], [stop]
 
     @abstractmethod
     def predict(self, start, stop, randvar, **kwargs):

@@ -26,7 +26,7 @@ class GaussianIVPSmoother(odesolver.ODESolver):
         """
         means, covars, times = self.gauss_ode_filt.solve(firststep, nsteps, **kwargs)
         means, covars = self.gauss_ode_filt.redo_preconditioning(means, covars)
-        smoothed_means, smoothed_covars = self.smoother.smooth_filterout(means, covars, times, **kwargs)
+        smoothed_means, smoothed_covars = self.smoother.smooth_filteroutput(means, covars, times, **kwargs)
         smoothed_means, smoothed_covars = self.gauss_ode_filt.undo_preconditioning(smoothed_means, smoothed_covars)
         return smoothed_means, smoothed_covars, times
 

@@ -1,6 +1,6 @@
 """
-Kalman filtering and smoothing
-for continuous-discrete and discrete-discrete state space models.
+Kalman filtering and (Rauch-Tung-Striebel) smoothing for
+continuous-discrete and discrete-discrete state space models.
 """
 import numpy as np
 
@@ -9,16 +9,17 @@ from probnum.prob import RandomVariable, Normal
 from probnum.filtsmooth.statespace import *
 
 
-class KalmanSmoother(GaussianSmoother):
+class RauchTungStriebelSmoother(GaussianSmoother):
     """
-    Gaussian smoother based on Kalman filter instances.
+    Rauch-Tung-Striebel smoother.
 
-    Also known as Rauch-Tung-Striebel smoother.
+    Gaussian smoother based on Kalman filter instances.
     """
 
     def __init__(self, dynamod, measmod, initrv, **kwargs):
         """
-        Makes a KalmanFilter instance and moves on.
+        Makes a KalmanFilter instance and the rest ist taken over
+        by the superclass.
         """
         kalfilt = KalmanFilter(dynamod, measmod, initrv, **kwargs)
         super().__init__(kalfilt)
@@ -34,7 +35,7 @@ class KalmanFilter:
             if _cont_disc(dynamod, measmod):
                 return ContDiscKalmanFilter(dynamod, measmod, initrv, **kwargs)
             if _disc_disc(dynamod, measmod):
-                return DiscDiscKalmanFilter(dynamod, measmod, initrv, **kwargs)
+                return DiscDiscKalmanFilter(dynamod, measmod, initrv)
             else:
                 errmsg = ("Cannot instantiate Kalman filter with given "
                           "dynamic model and measurement model.")
@@ -94,7 +95,7 @@ class ContDiscKalmanFilter(ContDiscGaussianFilter, KalmanFilter):
 class DiscDiscKalmanFilter(DiscDiscGaussianFilter, KalmanFilter):
     """
     """
-    def __init__(self, dynamod, measmod, initrv, **kwargs):
+    def __init__(self, dynamod, measmod, initrv):
         """
         Checks that dynamod and measmod are linear and moves on.
         """
@@ -138,4 +139,5 @@ def _discrete_kalman_update(time, randvar, data, measurementmodel, **kwargs):
     ccest = cpred @ measmat.T
     mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
     cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
+    return RandomVariable(distribution=Normal(mean, cov)), \
+        covest, ccest, meanest

@@ -1,7 +1,7 @@
 
 from .continuous import *
 from .discrete import *
-from .util import *
+from .statespace import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["ContinuousModel", "LinearSDEModel", "LTISDEModel",

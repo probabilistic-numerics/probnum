@@ -8,9 +8,9 @@ from .bayesfiltsmooth import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["GaussianSmoother", "GaussianFilter",
-           "KalmanFilter", "KalmanSmoother",
-           "ExtendedKalmanFilter", "ExtendedKalmanSmoother",
-           "UnscentedKalmanFilter", "UnscentedKalmanSmoother",
+           "KalmanFilter", "RauchTungStriebelSmoother",
+           "ExtendedKalmanFilter", "ExtendedRauchTungStriebelSmoother",
+           "UnscentedKalmanFilter", "UnscentedRauchTungStriebelSmoother",
            "UnscentedTransform",
            "ContinuousModel", "LinearSDEModel", "LTISDEModel",
            "DiscreteModel", "DiscreteGaussianModel",

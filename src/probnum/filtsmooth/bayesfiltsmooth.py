@@ -3,7 +3,7 @@ Interfaces for Bayesian filtering and smoothing.
 """
 
 from abc import ABC, abstractmethod
-
+import numpy as np
 
 class BayesFiltSmooth:
     """
@@ -58,32 +58,23 @@ class BayesSmoother(BayesFiltSmooth, ABC):
 
     def smooth(self, data, times, **kwargs):
         """ """
+        classname = type(self).__name__
         errormsg = ("smooth(...) is not implemented for "
-                    + "the Bayesian filter {}.".format(type(self).__name__))
+                    + "the Bayesian smoother {}.".format(classname))
         raise NotImplementedError(errormsg)
 
-    def smooth_stream(self, datastream, times, **kwargs):
-        """ """
-        errormsg = ("smooth_stream(...) is not implemented for "
-                    + "the Bayesian filter {}.".format(type(self).__name__))
-        raise NotImplementedError(errormsg)
-
-    def smooth_set(self, dataset, times, **kwargs):
-        """ """
-        errormsg = ("smooth_set(...) is not implemented for "
-                    + "the Bayesian filter {}.".format(type(self).__name__))
-        raise NotImplementedError(errormsg)
-
+    @abstractmethod
     def smooth_filteroutput(self, **kwargs):
         """ """
         errormsg = ("smooth_filteroutput(...) is not implemented for "
-                    + "the Bayesian filter {}.".format(type(self).__name__))
+                    + "the Bayesian smoother {}.".format(type(self).__name__))
         raise NotImplementedError(errormsg)
 
-    def smoothing_step(self, **kwargs):
+    @abstractmethod
+    def smoother_step(self, **kwargs):
         """ """
-        errormsg = ("smoothing_step(...) is not implemented for "
-                    + "the Bayesian filter {}.".format(type(self).__name__))
+        errormsg = ("smoother_step(...) is not implemented for "
+                    + "the Bayesian smoother {}.".format(type(self).__name__))
         raise NotImplementedError(errormsg)
 
 
@@ -99,8 +90,9 @@ class BayesFilter(BayesFiltSmooth, ABC):
         Not required for all filters, e.g. the Particle Filter only
         has an `update()` method.
         """
+        classname = type(self).__name__
         errormsg = ("predict(...) is not implemented for "
-                    + "the Bayesian filter {}.".format(type(self).__name__))
+                    + "the Bayesian filter {}.".format(classname))
         raise NotImplementedError(errormsg)
 
     @abstractmethod
@@ -114,9 +106,15 @@ class BayesFilter(BayesFiltSmooth, ABC):
 
     def filter(self, data, times, **kwargs):
         """ """
-        errormsg = ("filter(...) is not implemented for "
-                    + "the Bayesian filter {}.".format(type(self).__name__))
-        raise NotImplementedError(errormsg)
+        if isinstance(data, np.ndarray):
+            return self.filter_set(data, times, **kwargs)
+        elif callable(data):
+            return self.filter_stream(data, times, **kwargs)
+        else:
+            classname = type(self).__name__
+            errormsg = ("filter(...) is not implemented for "
+                        + "the Bayesian filter {}.".format(classname))
+            raise NotImplementedError(errormsg)
 
     def filter_set(self, dataset, times, **kwargs):
         """ """
@@ -128,5 +126,17 @@ class BayesFilter(BayesFiltSmooth, ABC):
         """
         """
         errormsg = ("filter_stream(...) is not implemented for "
+                    + "the Bayesian filter {}.".format(type(self).__name__))
+        raise NotImplementedError(errormsg)
+
+    @abstractmethod
+    def filter_step(self, start, stop, randvar, data, **kwargs):
+        """
+        Filter step.
+
+        For e.g. Gaussian filters, this means a prediction step followed
+        by an update step.
+        """
+        errormsg = ("filter_step(...) is not implemented for "
                     + "the Bayesian filter {}.".format(type(self).__name__))
         raise NotImplementedError(errormsg)

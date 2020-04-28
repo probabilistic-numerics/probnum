@@ -27,7 +27,10 @@ For example
 
 #### Modules and Folders
 - `low` (shortened lower caps) for modules/folders in the namespace, e.g. `probnum.linalg.linops`
-- `lower` for modules/folders not in the namespace, e.g. `probnum/prob/distributions`
+- `lower` for modules/folders not in the namespace, e.g. `probnum/prob/distributions`.
+*Rule of thumb:* the more low-level the module is, the longer
+(more descriptive) the file name can be, because the chances
+that access is provided through higher-level namespaces are rather high.
 
 PN methods should be in a file with the same name as the containing folder (e.g. `probnum/linalg/linearsolvers/linearsolvers.py`), while their implementation (in classes) is in the same folder in other files.
 

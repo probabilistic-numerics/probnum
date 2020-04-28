@@ -26,7 +26,7 @@ class TestUnscentedKalmanDiscDisc(CarTrackingDDTestCase):
         alpha, beta, kappa = np.ones(3)
         self.filt = UnscentedKalmanFilter(self.dynmod, self.measmod,
                                           self.initrv, alpha, beta, kappa)
-        self.smoo = UnscentedKalmanSmoother(self.dynmod, self.measmod,
+        self.smoo = UnscentedRauchTungStriebelSmoother(self.dynmod, self.measmod,
                                             self.initrv, alpha, beta, kappa)
 
     def test_dynamicmodel(self):
@@ -110,7 +110,7 @@ class TestUnscentedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         """ """
         super().setup_ornsteinuhlenbeck()
         alpha, beta, kappa = np.ones(3)
-        self.smoo = UnscentedKalmanSmoother(self.dynmod, self.measmod,
+        self.smoo = UnscentedRauchTungStriebelSmoother(self.dynmod, self.measmod,
                                             self.initrv, alpha, beta, kappa)
         self.filt = UnscentedKalmanFilter(self.dynmod, self.measmod,
                                           self.initrv, alpha, beta, kappa)
@@ -199,7 +199,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
         alpha, beta, kappa = np.ones(3)
         self.filt = UnscentedKalmanFilter(self.dynamod, self.measmod,
                                          self.initrv, alpha, beta, kappa)
-        self.smoo = UnscentedKalmanSmoother(self.dynamod, self.measmod,
+        self.smoo = UnscentedRauchTungStriebelSmoother(self.dynamod, self.measmod,
                                            self.initrv, alpha, beta, kappa)
 
     def test_filtsmooth(self):
@@ -357,7 +357,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #                                             self.measmod,
 #                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
-#         self.uks = unscentedkalman.UnscentedKalmanSmoother(self.dynmod,
+#         self.uks = unscentedkalman.UnscentedRauchTungStriebelSmoother(self.dynmod,
 #                                             self.measmod,
 #                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
@@ -430,7 +430,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #
 #
 #
-# class TestUnscentedKalmanSmootherDiscreteDiscrete(UnscentedKalmanDDTestCase):
+# class TestUnscentedRauchTungStriebelSmootherDiscreteDiscrete(UnscentedKalmanDDTestCase):
 #     """
 #     Try Kalman filtering on a discrete setting.
 #     """
@@ -546,7 +546,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #                                             self.measmod,
 #                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
-#         self.ks = unscentedkalman.UnscentedKalmanSmoother(self.dynmod,
+#         self.ks = unscentedkalman.UnscentedRauchTungStriebelSmoother(self.dynmod,
 #                                             self.measmod,
 #                                             self.initrv,
 #                                             1.0, 1.0, 1.0)
@@ -661,7 +661,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #
 #
 #
-# class TestUnscentedKalmanSmootherContinuousDiscrete(UnscentedKalmanCDTestCase):
+# class TestUnscentedRauchTungStriebelSmootherContinuousDiscrete(UnscentedKalmanCDTestCase):
 #     """
 #     Try Kalman smoothing on a continuous-discrete setting.
 #
@@ -780,7 +780,7 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 #                                         self.measmod,
 #                                         self.initdist, alpha,
 #                                         beta, kappa)
-#         self.uks = unscentedkalman.UnscentedKalmanSmoother(self.dynamod,
+#         self.uks = unscentedkalman.UnscentedRauchTungStriebelSmoother(self.dynamod,
 #                                         self.measmod,
 #                                         self.initdist, alpha,
 #                                         beta, kappa)

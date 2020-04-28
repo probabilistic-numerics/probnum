@@ -22,7 +22,7 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         """
         super().setup_cartracking()
         self.filt = KalmanFilter(self.dynmod, self.measmod, self.initrv)
-        self.smoo = KalmanSmoother(self.dynmod, self.measmod, self.initrv)
+        self.smoo = RauchTungStriebelSmoother(self.dynmod, self.measmod, self.initrv)
 
     def test_dynamicmodel(self):
         """
@@ -101,7 +101,7 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
     def setUp(self):
         """ """
         super().setup_ornsteinuhlenbeck()
-        self.smoo = KalmanSmoother(self.dynmod, self.measmod, self.initrv)
+        self.smoo = RauchTungStriebelSmoother(self.dynmod, self.measmod, self.initrv)
         self.filt = KalmanFilter(self.dynmod, self.measmod, self.initrv)
 
     def test_dynamicmodel(self):

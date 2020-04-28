@@ -95,9 +95,11 @@ class UnscentedTransform:
 
         Parameters
         ----------
-        sigmapts: np.ndarray, shape=(2*N+1, N)
+        time : float
+            Time :math:`t` which is passed on to the modelfunction.
+        sigmapts : np.ndarray, shape=(2*N+1, N)
             Sigma points (N is the spatial dimension of the dynamic model)
-        modelfct: callable with signature (t, x, \ \**kwargs)
+        modelfct : callable, signature=``(t, x, **kwargs)``
             Function through which to propagate
 
         Returns
