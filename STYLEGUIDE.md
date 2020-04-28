@@ -58,6 +58,13 @@ if they are sufficiently desciptive. E.g.:
 - `inv*`: for inverse of matrix; e.g. `invprecond`, `invcovmat`, ...
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
 - `msg`: message, e.g. for issuing raising and warnings (`errmsg`, `warnmsg`)
+- `randvar`: random variable; if concatenated with e.g. `init`, abbreviate to `initrv` (initial random variable)
+- `dist`: distribution
+- `data`: data (don't abbreviate that one)
+- functions/methods that do something *from* time `t0` *to* time `t1`
+  with step size `h` use the signature `(start, stop, step, **kwargs)`
+  or any corresponding subset of that. This is in line with `np.arange`
+  for instance. Use it like `(start=t0, stop=t1, step=h, **kwargs)`.
 
 
 ## Errors and Warnings
