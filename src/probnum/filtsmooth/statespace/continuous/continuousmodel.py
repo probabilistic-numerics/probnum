@@ -41,8 +41,8 @@ class ContinuousModel(ABC):
 
     def sample(self, start, stop, step, initstate, **kwargs):
         """
-        Samples from "initstate" at "start" to "stop" with
-        stepsize "step".
+        Samples from ``initstate`` at ``start`` to ``stop`` with
+        stepsize ``step``.
 
         Start, stop and step lead to a np.arange-like
         interface.

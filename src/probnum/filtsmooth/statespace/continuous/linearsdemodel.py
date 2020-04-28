@@ -25,15 +25,15 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
 
     Parameters
     ----------
-    driftmatrixfct : callable, signature=``(t, **kwargs)``
-        This is F = F(t). The evaluations of this funciton are called
+    driftmatrixfct : callable, signature=(t, \*\*kwargs)
+        This is F = F(t). The evaluations of this function are called
         the drift(matrix) of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcfct : callable, signature=``(t, **kwargs)``
+    forcfct : callable, signature=(t, \*\*kwargs)
         This is u = u(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatrixfct : callable, signature=``(t, **kwargs)``
+    dispmatrixfct : callable, signature=(t, \*\*kwargs)
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
@@ -49,18 +49,6 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
     """
 
     def __init__(self, driftmatrixfct, forcfct, dispmatrixfct, diffmatrix):
-        """
-        Arguments
-        ---------
-        driftmatrixfct : callable, signature (t, **kwargs)
-            maps t -> F(t)
-        forcfct : callable, signature (t,  **kwargs)
-            maps t -> u(t)
-        dispmatrixfct : callable, signature (t,  **kwargs)
-            maps t -> L(t)
-        diffmatrix : np.ndarray, shape (d, d)
-            Diffusion matrix Q
-        """
         self._driftmatrixfct = driftmatrixfct
         self._forcefct = forcfct
         self._dispmatrixfct = dispmatrixfct

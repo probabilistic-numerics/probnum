@@ -14,3 +14,8 @@ from probnum.quad.polynomial import *
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["quad", "nquad", "bayesquad", "nbayesquad", "Quadrature", "PolynomialQuadrature",
            "BayesianQuadrature", "VanillaBayesianQuadrature", "WASABIBayesianQuadrature", "ClenshawCurtis"]
+
+# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+Quadrature.__module__ = "probnum.quad"
+BayesianQuadrature.__module__ = "probnum.quad"
+PolynomialQuadrature.__module__ = "probnum.quad"

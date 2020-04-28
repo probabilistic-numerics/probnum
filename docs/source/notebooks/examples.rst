@@ -27,7 +27,6 @@ probabilistic approaches to solving ordinary and partial differential equations.
    :maxdepth: 2
    :caption: Differential Equations and Filters:
 
-   convergence_rates_odefilter
    uncertainties_odefilter
    adaptive_steps_odefilter
 

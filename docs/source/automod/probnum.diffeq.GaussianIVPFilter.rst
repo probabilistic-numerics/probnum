@@ -6,6 +6,12 @@ GaussianIVPFilter
 .. autoclass:: GaussianIVPFilter
    :show-inheritance:
 
+   .. rubric:: Attributes Summary
+
+   .. autosummary::
+
+      ~GaussianIVPFilter.prior
+
    .. rubric:: Methods Summary
 
    .. autosummary::
@@ -13,6 +19,10 @@ GaussianIVPFilter
       ~GaussianIVPFilter.redo_preconditioning
       ~GaussianIVPFilter.solve
       ~GaussianIVPFilter.undo_preconditioning
+
+   .. rubric:: Attributes Documentation
+
+   .. autoattribute:: prior
 
    .. rubric:: Methods Documentation
 

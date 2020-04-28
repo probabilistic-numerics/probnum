@@ -43,9 +43,9 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
     comparable to those of methods of Runge-Kutta type.
 
 
-    This function turns a prior-string into an ``ODEPrior``, a
-    method-string into a ``GaussianSmoother``, creates a
-    ``GaussianIVPSmoother`` object and calls the ``solve()`` method. For
+    This function turns a prior-string into an :class:`ODEPrior`, a
+    method-string into a :class:`GaussianSmoother`, creates a
+    :class:`GaussianIVPSmoother` object and calls the :meth:`solve()` method. For
     advanced usage we recommend to do this process manually which
     enables advanced methods of tuning the algorithm.
 
@@ -126,7 +126,7 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
     precond_step : float, optional
         Expected average step size, used for preconditioning.
         See :class:`ODEPrior` for details.
-        Default is ``precond_step=1.0` which amounts to no
+        Default is ``precond_step=1.0`` which amounts to no
         preconditioning. If constant step size, precond_step is
         overwritten with the actual step size to provide optimal
         preconditioning.
@@ -139,14 +139,14 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
 
     Returns
     -------
-    means : np.ndarray, shape=(N, d*(q+1))
+    means : np.ndarray, shape=(N, d(q+1))
         Mean vector of the solution at times :math:`t_1, ..., t_N`.
         The elements are ordered as
-        ``(m_1, m_1', m_1'', ..., m_2, m_2', ...)``
+        ``(m_1, m_1\', m_1\'\', ..., m_2, m_2\', ...)``
         where ``m_1`` is the estimate of the first coordinate of the
-        solution, ``m_1'`` is the estimate of the derivative of the
+        solution, ``m_1\'`` is the estimate of the derivative of the
         first coordinate, and so on.
-    covs : np.ndarray, shape=(N, d*(q+1), d*(q+1))
+    covs : np.ndarray, shape=(N, d(q+1), d(q+1))
         Covariance matrices of the solution at times
         :math:`t_1, ..., t_N`. The ordering reflects the ordering of
         the mean vector.

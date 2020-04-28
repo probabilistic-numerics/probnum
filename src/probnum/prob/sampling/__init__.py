@@ -10,3 +10,6 @@ from probnum.prob.sampling.mcmc import *
 __all__ = ["rwmh", "mala", "pmala", "hmc", "phmc", "MetropolisHastings", "RandomWalkMH", "HamiltonianMonteCarlo",
            "PreconditionedHamiltonianMonteCarlo", "MetropolisAdjustedLangevinAlgorithm",
            "PreconditionedMetropolisAdjustedLangevinAlgorithm"]
+
+# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+MetropolisHastings.__module__ = "probnum.prob.sampling"
