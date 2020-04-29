@@ -1,32 +1,32 @@
-RandomProcess
-=============
+GaussianProcess
+===============
 
 .. currentmodule:: probnum.prob
 
-.. autoclass:: RandomProcess
+.. autoclass:: GaussianProcess
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~RandomProcess.dtype
-      ~RandomProcess.initrv
-      ~RandomProcess.random_state
-      ~RandomProcess.range
-      ~RandomProcess.shape
+      ~GaussianProcess.dtype
+      ~GaussianProcess.initrv
+      ~GaussianProcess.random_state
+      ~GaussianProcess.range
+      ~GaussianProcess.shape
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~RandomProcess.__call__
-      ~RandomProcess.condition
-      ~RandomProcess.covfun
-      ~RandomProcess.forward
-      ~RandomProcess.meanfun
-      ~RandomProcess.sample
-      ~RandomProcess.sample_path
+      ~GaussianProcess.__call__
+      ~GaussianProcess.condition
+      ~GaussianProcess.covfun
+      ~GaussianProcess.forward
+      ~GaussianProcess.meanfun
+      ~GaussianProcess.sample
+      ~GaussianProcess.sample_path
 
    .. rubric:: Attributes Documentation
 

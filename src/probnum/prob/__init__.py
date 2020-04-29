@@ -19,7 +19,8 @@ from .randomprocess import *
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["RandomVariable", "RandomProcess", "Distribution", "Dirac", "Normal", "asrandvar"]
 
-# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+# Set correct module paths (for superclasses).
+# Corrects links and module paths in documentation.
 RandomVariable.__module__ = "probnum.prob"
 RandomProcess.__module__ = "probnum.prob"
 Distribution.__module__ = "probnum.prob"

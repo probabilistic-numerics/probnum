@@ -62,7 +62,8 @@ if they are sufficiently desciptive. E.g.:
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
 - `msg`: message, e.g. for issuing raising and warnings (`errmsg`, `warnmsg`)
 - `randvar`: random variable; if concatenated with e.g. `init`, abbreviate to `initrv` (initial random variable)
-- `dist`: distribution
+- `dist`: distribution. The only exception is in instantiation of a
+  `RandomVariable` object, where specifies a `distribution` key.
 - `data`: data (don't abbreviate that one)
 - functions/methods that do something *from* time `t0` *to* time `t1`
   with step size `h` use the signature `(start, stop, step, **kwargs)`

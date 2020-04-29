@@ -1,32 +1,33 @@
-RandomProcess
-=============
+ContinuousProcess
+=================
 
 .. currentmodule:: probnum.prob
 
-.. autoclass:: RandomProcess
+.. autoclass:: ContinuousProcess
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~RandomProcess.dtype
-      ~RandomProcess.initrv
-      ~RandomProcess.random_state
-      ~RandomProcess.range
-      ~RandomProcess.shape
+      ~ContinuousProcess.dtype
+      ~ContinuousProcess.initrv
+      ~ContinuousProcess.random_state
+      ~ContinuousProcess.range
+      ~ContinuousProcess.sde
+      ~ContinuousProcess.shape
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~RandomProcess.__call__
-      ~RandomProcess.condition
-      ~RandomProcess.covfun
-      ~RandomProcess.forward
-      ~RandomProcess.meanfun
-      ~RandomProcess.sample
-      ~RandomProcess.sample_path
+      ~ContinuousProcess.__call__
+      ~ContinuousProcess.condition
+      ~ContinuousProcess.covfun
+      ~ContinuousProcess.forward
+      ~ContinuousProcess.meanfun
+      ~ContinuousProcess.sample
+      ~ContinuousProcess.sample_path
 
    .. rubric:: Attributes Documentation
 
@@ -34,6 +35,7 @@ RandomProcess
    .. autoattribute:: initrv
    .. autoattribute:: random_state
    .. autoattribute:: range
+   .. autoattribute:: sde
    .. autoattribute:: shape
 
    .. rubric:: Methods Documentation

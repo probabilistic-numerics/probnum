@@ -97,14 +97,14 @@ class UnscentedTransform:
         ----------
         time : float
             Time :math:`t` which is passed on to the modelfunction.
-        sigmapts : np.ndarray, shape=(2*N+1, N)
+        sigmapts : np.ndarray, shape=(2 N+1, N)
             Sigma points (N is the spatial dimension of the dynamic model)
         modelfct : callable, signature=``(t, x, **kwargs)``
             Function through which to propagate
 
         Returns
         -------
-        np.ndarray, shape=(2 * N + 1, M),
+        np.ndarray, shape=(2 N + 1, M),
             M is the dimension of the measurement model
         """
         propsigpts = np.array([modelfct(time, pt) for pt in sigmapts])

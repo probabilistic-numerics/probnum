@@ -4,9 +4,46 @@ Utility functions for state space models.
 - generate_*(): generate samples according to continuous-discrete (_cd)
 or discrete-discrete (_dd) models
 """
+
+from abc import ABC, abstractmethod
 import numpy as np
 
-__all__ = ["generate_cd", "generate_dd"]
+from probnum.prob import RandomVariable, Distribution
+
+__all__ = ["ConditionalDistribution", "generate_cd", "generate_dd"]
+
+
+class ConditionalDistribution(ABC):
+    """
+    """
+    def conditional(self, rv_or_val, start, stop, **kwargs):
+        """
+        Returns conditional probability distribution.
+
+        Condition a distribution either on a value or on another
+        distribution.
+        """
+        if isinstance(rv_or_val, np.ndarray) or np.isscalar(rv_or_val):
+            return self.conditional_value(value=rv_or_val, start=start,
+                                          stop=stop, **kwargs)
+        elif isinstance(rv_or_val, RandomVariable):
+            return self.conditional_randvar(randvar=rv_or_val, start=start,
+                                            stop=stop, **kwargs)
+        else:
+            errormsg = ("Conditional distribution not implemented for "
+                        + "input %s" % str(rv_or_val))
+            raise NotImplementedError(errormsg)
+
+    @abstractmethod
+    def conditional_value(self, value, start, stop, **kwargs):
+        """ """
+        raise NotImplementedError
+
+    @abstractmethod
+    def conditional_randvar(self, randvar, start, stop, **kwargs):
+        """ """
+        raise NotImplementedError
+
 
 def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
     """

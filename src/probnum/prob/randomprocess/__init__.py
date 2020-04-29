@@ -1,2 +1,5 @@
-from probnum.prob.randomprocess.randomprocess import *
-from probnum.prob.randomprocess.covfuns import *
+
+from .randomprocess import *
+from .sde import *
+from .transitions import *
+from .covariance import *
