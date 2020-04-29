@@ -24,9 +24,7 @@ class RandomProcess(ABC):
         :header: , Instantiation,
 
         **Discrete time**, "Discrete-time processes are either defined
-        through transition densities (``DiscreteProcess(dens)``) or
-        through a sequence of RandomVariable objects
-        (``DiscreteProcess(seq)``)"
+        through transition densities (``DiscreteProcess(transition)``)"
         **Continuous time**, "Continuous-time processes are defined
         through SDEs (``ContinuousProcess(sde)``)"
         **Space and time**, "``GaussianProcess(meanfun, covfun)``;

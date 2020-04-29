@@ -19,6 +19,9 @@ class SDE(Transition):
 
     Inherits from Transition to provide the same interface.
     In particular, SDEs need the interfaces forward() and condition().
+    (In some sense, SDEs are just continuous-time transition models
+    anyway...)
+
 
     Parameters
     ----------

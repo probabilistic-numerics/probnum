@@ -12,6 +12,8 @@ class Transition(ABC):
     Explicit transition densities p(x_i | x_{i-1}).
 
     Used for observation models and for discrete Random Processes.
+
+    Purposely made light-weight, because it will be reused quite often.
     """
 
     @abstractmethod
