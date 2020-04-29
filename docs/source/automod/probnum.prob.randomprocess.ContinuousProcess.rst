@@ -1,7 +1,7 @@
 ContinuousProcess
 =================
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.randomprocess
 
 .. autoclass:: ContinuousProcess
    :show-inheritance:
@@ -27,7 +27,6 @@ ContinuousProcess
       ~ContinuousProcess.forward
       ~ContinuousProcess.meanfun
       ~ContinuousProcess.sample
-      ~ContinuousProcess.sample_path
 
    .. rubric:: Attributes Documentation
 
@@ -46,4 +45,3 @@ ContinuousProcess
    .. automethod:: forward
    .. automethod:: meanfun
    .. automethod:: sample
-   .. automethod:: sample_path

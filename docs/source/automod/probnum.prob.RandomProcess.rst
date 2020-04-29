@@ -26,7 +26,6 @@ RandomProcess
       ~RandomProcess.forward
       ~RandomProcess.meanfun
       ~RandomProcess.sample
-      ~RandomProcess.sample_path
 
    .. rubric:: Attributes Documentation
 
@@ -44,4 +43,3 @@ RandomProcess
    .. automethod:: forward
    .. automethod:: meanfun
    .. automethod:: sample
-   .. automethod:: sample_path

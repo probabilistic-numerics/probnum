@@ -1,33 +1,32 @@
-DiscreteProcess
+GaussianProcess
 ===============
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.randomprocess
 
-.. autoclass:: DiscreteProcess
+.. autoclass:: GaussianProcess
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~DiscreteProcess.dtype
-      ~DiscreteProcess.initrv
-      ~DiscreteProcess.random_state
-      ~DiscreteProcess.range
-      ~DiscreteProcess.shape
-      ~DiscreteProcess.transition
+      ~GaussianProcess.dtype
+      ~GaussianProcess.initrv
+      ~GaussianProcess.random_state
+      ~GaussianProcess.range
+      ~GaussianProcess.shape
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~DiscreteProcess.__call__
-      ~DiscreteProcess.condition
-      ~DiscreteProcess.covfun
-      ~DiscreteProcess.forward
-      ~DiscreteProcess.meanfun
-      ~DiscreteProcess.sample
-      ~DiscreteProcess.sample_path
+      ~GaussianProcess.__call__
+      ~GaussianProcess.condition
+      ~GaussianProcess.covfun
+      ~GaussianProcess.forward
+      ~GaussianProcess.meanfun
+      ~GaussianProcess.sample
+      ~GaussianProcess.sample_path
 
    .. rubric:: Attributes Documentation
 
@@ -36,7 +35,6 @@ DiscreteProcess
    .. autoattribute:: random_state
    .. autoattribute:: range
    .. autoattribute:: shape
-   .. autoattribute:: transition
 
    .. rubric:: Methods Documentation
 

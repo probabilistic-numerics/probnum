@@ -22,7 +22,6 @@ class SDE(Transition):
     (In some sense, SDEs are just continuous-time transition models
     anyway...)
 
-
     Parameters
     ----------
     driftfun : callable, signature=``(t, x)``
@@ -30,8 +29,6 @@ class SDE(Transition):
     dispfun : callable, signature=``(t, x)``
 
     difffun : callable, signature=``(t)``
-
-    initrv : RandomVariable
 
     jacobfun, callable, signature=``(t, x)``, optional.
         Jacobian of the drift function.
@@ -48,7 +45,7 @@ class SDE(Transition):
         """ """
         return self._driftfun(t, x)
 
-    def dispfun(self, t, x, **kwargs):
+    def dispfun(self, t, x):
         """ """
         return self._driftfun(t, x)
 
@@ -119,15 +116,11 @@ class LinearSDE(SDE):
     """
     def __init__(self, driftfun, forcefun, dispfun, difffun):
         """ """
-        if np.isscalar(initrv.sample()):
-            super().__init__(driftfun=(lambda t, x: driftfun(t, x) * x + forcefun(t)),
-                             dispfun=(lambda t, x: dispfun(t, x) * x),
-                             difffun=difffun)
-        else:
-            super().__init__(driftfun=(lambda t, x: driftfun(t, x) @ x),
-                             dispfun=(lambda t, x: dispfun(t, x) @ x),
-                             difffun=difffun,
-                             jacobfun=driftfun)
+        super().__init__(driftfun=(lambda t, x:
+                                   np.dot(driftfun(t, x), x) + forcefun(t)),
+                         dispfun=(lambda t, x: np.dot(dispfun(t, x), x)),
+                         difffun=difffun,
+                         jacobfun=driftfun)
 
     def solve(self, start, stop, step, randvar):
         """
@@ -173,8 +166,10 @@ class LTISDE(LinearSDE):
     in the space-variable and time-invariant.
     """
     def __init__(self, driftmat, forcevec, dispmat, diffmat):
-            pass
-            # normal init
+        super().__init__(driftfun=(lambda t: driftmat),
+                         forcefun=(lambda t: forcevec),
+                         dispfun=(lambda t: dispmat),
+                         difffun=(lambda t: diffmat))
 
     def solve(self, start, stop, step, randvar):
         """
@@ -203,3 +198,4 @@ class LTISDE(LinearSDE):
         RandomVariable object.
         """
         raise NotImplementedError
+

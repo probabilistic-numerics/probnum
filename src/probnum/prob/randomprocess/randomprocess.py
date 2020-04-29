@@ -6,6 +6,7 @@ i.e. families of random variables.
 """
 
 from abc import ABC, abstractmethod
+import numpy as np
 
 
 class RandomProcess(ABC):
@@ -69,14 +70,7 @@ class RandomProcess(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def sample(self, x, size=(), nsteps=1):
-        """
-        Draw realizations from the random process.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def sample_path(self, x, nsteps=1):
+    def sample(self, x, size=(), **kwargs):
         """
         Draw realizations from the random process.
         """
@@ -127,7 +121,7 @@ class RandomProcess(ABC):
         """Data type of (elements of) a realization of this random process."""
         return self._dtype
 
-    @property   # todo
+    @property
     def random_state(self):
         """Random state of the random process."""
         # todo
@@ -175,20 +169,23 @@ class ContinuousProcess(RandomProcess):
     def covfun(self, x1, x2):
         """
         Covariance (function) of the random process,
-        also known as kernel.
+        also known as a kernel.
         """
         raise NotImplementedError
 
-    def sample(self, x, size=(), nsteps=1):
+    def sample(self, x, size=(), **kwargs):
         """
         Draw realizations from the random process.
         """
-        # todo: use the sde.
-        raise NotImplementedError
+        if size == ():
+            return self._sample_path(x, **kwargs)
+        else:
+            return np.array([self._sample_path(x, **kwargs)
+                             for __ in range(size)])
 
-    def sample_path(self, x, nsteps=1):
+    def _sample_path(self, x, **kwargs):
         """
-        Draw realizations from the random process.
+        Draw a realization from the random process.
         """
         raise NotImplementedError
 
@@ -256,16 +253,15 @@ class DiscreteProcess(RandomProcess):
         """
         raise NotImplementedError
 
-    def sample(self, x, size=(), nsteps=1):
+    def sample(self, x, size=(), **kwargs):
         """
         Draw realizations from the random process.
         """
-        # todo: use the transition density.
         raise NotImplementedError
 
-    def sample_path(self, x, nsteps=1):
+    def _sample_path(self, x, **kwargs):
         """
-        Draw realizations from the random process.
+        Draw a realization from the random process.
         """
         raise NotImplementedError
 

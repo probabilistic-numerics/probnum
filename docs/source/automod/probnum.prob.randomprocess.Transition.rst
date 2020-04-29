@@ -1,7 +1,7 @@
 Transition
 ==========
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.randomprocess
 
 .. autoclass:: Transition
    :show-inheritance:
@@ -10,8 +10,10 @@ Transition
 
    .. autosummary::
 
+      ~Transition.condition
       ~Transition.forward
 
    .. rubric:: Methods Documentation
 
+   .. automethod:: condition
    .. automethod:: forward

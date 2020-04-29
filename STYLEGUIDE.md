@@ -55,7 +55,11 @@ if they are sufficiently desciptive. E.g.:
 - `mat`: matrix
 - `vec`: vector
 - `arr`: array; wherever applicable, specify `vec` or `mat`
-- `mat2arr`: convert matrix to array
+
+Further conventions are
+- `unit2unit`: convert between types or units; e.g. 
+`mat2arr`: convert matrix to array or `s2ms`: convert seconds to miliseconds.
+Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - `proj`: projection (if required: `projmat`, `projvec`, `projlinop`, ...)
 - `precond`: preconditioner
 - `inv*`: for inverse of matrix; e.g. `invprecond`, `invcovmat`, ...
@@ -72,6 +76,7 @@ if they are sufficiently desciptive. E.g.:
 - methods with "Bayesian" in the name come with the prefix `bayes`,
   e.g. `bayesquad`: Bayesian quadrature, `BayesFilter`: Bayesian filter,
   `BayesSmoother`: Bayesian smoother
+- `jacob`: Jacobian, if necessary use `jacobfun`.
 
 ## Errors and Warnings
 - Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)

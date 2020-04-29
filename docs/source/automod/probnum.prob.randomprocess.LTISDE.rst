@@ -1,7 +1,7 @@
 LTISDE
 ======
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.randomprocess
 
 .. autoclass:: LTISDE
    :show-inheritance:
@@ -14,6 +14,7 @@ LTISDE
       ~LTISDE.diffmatfun
       ~LTISDE.dispfun
       ~LTISDE.driftfun
+      ~LTISDE.forward
       ~LTISDE.jacobfun
       ~LTISDE.simulate
       ~LTISDE.solve
@@ -24,6 +25,7 @@ LTISDE
    .. automethod:: diffmatfun
    .. automethod:: dispfun
    .. automethod:: driftfun
+   .. automethod:: forward
    .. automethod:: jacobfun
    .. automethod:: simulate
    .. automethod:: solve
