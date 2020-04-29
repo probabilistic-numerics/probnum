@@ -8,8 +8,8 @@ download the notebooks `here <https://github.com/probabilistic-numerics/probnum/
 Getting Started
 ***************
 Learn how to use ProbNum. These notebooks show how to use random variables, the main in- and outputs of probabilistic
-numerical methods, linear operators, probabilistic linear solvers and probabilistic approaches to solving ordinary and
-partial differential equations.
+numerical methods and linear operators, how to apply probabilistic linear solvers and probabilistic approaches to
+solving ordinary and partial differential equations.
 
 .. toctree::
    :maxdepth: 1
@@ -38,9 +38,16 @@ Case Studies
 See examples of how probabilistic numerics is used in application and the problems it solves compared to classic
 methods.
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Coming Soon!
 
 
 Advanced
 *********
 Implement your own probabilistic numerical method using ProbNum, extend existing code or integrate your Gaussian process
 or automatic differentiation framework.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Coming Soon!
