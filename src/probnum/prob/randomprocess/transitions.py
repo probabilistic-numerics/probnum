@@ -9,7 +9,7 @@ from probnum.prob import RandomVariable, Normal
 
 class Transition(ABC):
     """
-    Markov transition densities.
+    Interface for Markov transition densities.
 
     Representation of time-discrete probabilistic models given by
     a transition density :math:`p(x_i | x_{i-1})`. For example,
@@ -17,7 +17,9 @@ class Transition(ABC):
     :math:`p(x_i | x_{i-1}) = N(2x_i, 0.1)`.
 
     Used for e.g. graphical models and for time-discrete filtering
-    and smoothing.
+    and smoothing. This object also serves as an interface to
+    stochastic differential equations, because that is the usual way of
+    formulating Markov processes in continuous time.
 
     Notes
     -----
