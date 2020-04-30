@@ -275,10 +275,10 @@ class IVP(ODE):
     >>> initrv = RandomVariable(distribution=Normal(0.1, 1.0))
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> jac = lambda t, x, **kwargs: 2.0
-    >>> ivp = IVP(timespan, initrv, rhsfun, jac)
+    >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)
     >>> print(ivp.rhs(0., 2.))
     4.0
-    >>> print(ivp.jac(100., -1))
+    >>> print(ivp.jacobian(100., -1))
     2.0
     """
 
@@ -286,7 +286,7 @@ class IVP(ODE):
         """
         """
         self.initrv = initrv
-        super().__init__(timespan, rhs, jac, hess, sol)
+        super().__init__(timespan=timespan, rhs=rhs, jac=jac, hess=hess, sol=sol)
 
     @property
     def initialdistribution(self):

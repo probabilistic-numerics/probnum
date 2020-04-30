@@ -61,26 +61,32 @@ class ODE(ABC):
         We take timespan as a tuple to mimic the
         scipy.solve_ivp interface.
         """
-        self.t0, self.tmax = timespan
-        self.rhs = rhs
-        self.jac = jac
-        self.hess = hess
-        self.sol = sol
+        self._t0, self._tmax = timespan
+        self._rhs = rhs
+        self._jac = jac
+        self._hess = hess
+        self._sol = sol
+
+    def __call__(self, t, x, **kwargs):
+        """
+        Piggybacks on self.rhs(t, x).
+        """
+        return self.rhs(t, x, **kwargs)
 
     def rhs(self, t, x, **kwargs):
         """
         Evaluates model function f.
         """
-        return self.rhs(t, x, **kwargs)
+        return self._rhs(t, x, **kwargs)
 
     def jacobian(self, t, x, **kwargs):
         """
         Jacobian of model function f.
         """
-        if self.jac is None:
+        if self._jac is None:
             raise NotImplementedError
         else:
-            return self.jac(t, x, **kwargs)
+            return self._jac(t, x, **kwargs)
 
     def hessian(self, t, x, **kwargs):
         """
@@ -96,19 +102,27 @@ class ODE(ABC):
         :math:`H_f(t_0, x_0) \\cdot v_1 \\cdot v_2` is expected to contain
         the incline of :math:`f_i` in direction :math:`(v_1, v_2)`.
         """
-        if self.hess is None:
+        if self._hess is None:
             raise NotImplementedError
         else:
-            return self.hess(t, x, **kwargs)
+            return self._hess(t, x, **kwargs)
 
     def solution(self, t, **kwargs):
         """
         Solution of the IVP.
         """
-        if self.sol is None:
+        if self._sol is None:
             raise NotImplementedError
         else:
-            return self.sol(t, **kwargs)
+            return self._sol(t, **kwargs)
+
+    @property
+    def t0(self):
+        return self._t0
+
+    @property
+    def tmax(self):
+        return self._tmax
 
     @property
     def timespan(self):
@@ -118,7 +132,7 @@ class ODE(ABC):
         Both :math:`t_0` and :math:`T` can be accessed via
         ``self.t0`` and ``self.tmax`` respectively.
         """
-        return [self.t0, self.tmax]
+        return [self._t0, self._tmax]
 
     @property
     @abstractmethod

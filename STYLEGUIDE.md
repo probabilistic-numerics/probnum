@@ -77,6 +77,7 @@ Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
   e.g. `bayesquad`: Bayesian quadrature, `BayesFilter`: Bayesian filter,
   `BayesSmoother`: Bayesian smoother
 - `jacob`: Jacobian, if necessary use `jacobfun`.
+- `param(s)`: parameter(s)
 
 ## Errors and Warnings
 - Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)

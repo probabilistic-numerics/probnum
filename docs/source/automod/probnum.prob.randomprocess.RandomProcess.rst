@@ -1,7 +1,7 @@
 RandomProcess
 =============
 
-.. currentmodule:: probnum.prob
+.. currentmodule:: probnum.prob.randomprocess
 
 .. autoclass:: RandomProcess
    :show-inheritance:

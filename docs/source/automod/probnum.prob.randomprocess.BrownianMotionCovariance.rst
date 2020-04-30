@@ -1,30 +1,30 @@
-Covariance
-==========
+BrownianMotionCovariance
+========================
 
 .. currentmodule:: probnum.prob.randomprocess
 
-.. autoclass:: Covariance
+.. autoclass:: BrownianMotionCovariance
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~Covariance.params
-      ~Covariance.parderiv
-      ~Covariance.xderiv
-      ~Covariance.xidx
-      ~Covariance.yderiv
-      ~Covariance.yidx
+      ~BrownianMotionCovariance.params
+      ~BrownianMotionCovariance.parderiv
+      ~BrownianMotionCovariance.xderiv
+      ~BrownianMotionCovariance.xidx
+      ~BrownianMotionCovariance.yderiv
+      ~BrownianMotionCovariance.yidx
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~Covariance.__call__
-      ~Covariance.check_xderiv
-      ~Covariance.check_yderiv
-      ~Covariance.covfun
+      ~BrownianMotionCovariance.__call__
+      ~BrownianMotionCovariance.check_xderiv
+      ~BrownianMotionCovariance.check_yderiv
+      ~BrownianMotionCovariance.covfun
 
    .. rubric:: Attributes Documentation
 

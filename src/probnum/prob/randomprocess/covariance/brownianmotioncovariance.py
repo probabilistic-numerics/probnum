@@ -6,10 +6,10 @@ from probnum.prob.randomprocess.covariance import covariance
 from probnum.utils import *
 
 
-__all__ = ["IntegratedBrownianMotion", "BrownianMotion"]
+__all__ = ["IntegratedBrownianMotionCovariance", "BrownianMotionCovariance"]
 
 
-class IntegratedBrownianMotion(covariance.Covariance):
+class IntegratedBrownianMotionCovariance(covariance.Covariance):
     """
     """
     def __new__(cls, ordint, diffconst):
@@ -17,9 +17,9 @@ class IntegratedBrownianMotion(covariance.Covariance):
         If q=0, return BrownianMotion object instead
         of IntegratedBrownianMotion.
         """
-        if cls is IntegratedBrownianMotion:
+        if cls is IntegratedBrownianMotionCovariance:
             if ordint == 0:
-                return BrownianMotion(diffconst=diffconst)
+                return BrownianMotionCovariance(diffconst=diffconst)
         else:
             return super().__new__(cls)
 
@@ -30,7 +30,7 @@ class IntegratedBrownianMotion(covariance.Covariance):
         pass
 
 
-class BrownianMotion(covariance.Covariance):
+class BrownianMotionCovariance(covariance.Covariance):
     """
     """
 
