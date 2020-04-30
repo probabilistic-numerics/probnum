@@ -16,6 +16,7 @@ ContinuousProcess
       ~ContinuousProcess.range
       ~ContinuousProcess.sde
       ~ContinuousProcess.shape
+      ~ContinuousProcess.transition
 
    .. rubric:: Methods Summary
 
@@ -36,6 +37,7 @@ ContinuousProcess
    .. autoattribute:: range
    .. autoattribute:: sde
    .. autoattribute:: shape
+   .. autoattribute:: transition
 
    .. rubric:: Methods Documentation
 

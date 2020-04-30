@@ -24,13 +24,14 @@ class RandomProcess(ABC):
     .. csv-table::
         :header: , Instantiation,
 
-        **Discrete time**, "Discrete-time processes are either defined
-        through transition densities (``DiscreteProcess(transition)``)"
+        **Discrete time**, "Discrete-time processes are defined
+        through transition densities in :class:`DiscreteProcess`"
         **Continuous time**, "Continuous-time processes are defined
-        through SDEs (``ContinuousProcess(sde)``)"
-        **Space and time**, "``GaussianProcess(meanfun, covfun)``;
-            spatiotemporal processes are only defined if they are
-            Gaussian processes.",
+        through SDEs in :class:`ContinuousProcess(sde)`"
+        **Continuous space and time**, "Higher dimensional (spatiotemporal)
+        processes are only defined if they are Gaussian processes
+        in :class:`GaussianProcess`"
+
 
     The distinction between countable states and continuous states is
     made through the range of the initial random variable (the support
@@ -40,11 +41,12 @@ class RandomProcess(ABC):
     ----------
     """
 
-    def __init__(self, initrv=None, shape=None, dtype=None):
+    def __init__(self, initrv=None, shape=None, dtype=None, transition=None):
         """Create a new random process."""
         self._initrv = initrv
         self._shape = shape  # todo: check consistency with initrv.shape
         self._dtype = dtype  # todo: check consistency with initrv.dtype
+        self._transition = transition
 
     @abstractmethod
     def __call__(self, x):
@@ -93,7 +95,7 @@ class RandomProcess(ABC):
         distribution at time stop.
 
         This function allows using a random process like a transition
-        density, sometimes without being one.
+        density.
         """
         raise NotImplementedError
 
@@ -142,6 +144,17 @@ class RandomProcess(ABC):
         # todo
         raise NotImplementedError
 
+    @property
+    def transition(self):
+        """
+        Returns Transition object that defines the random process.
+
+        If the process is discrete, this will be a direct subclass of
+        :class:`Transition`. If the process is continuous, it will be
+        a subclass of :class:`SDE`.
+        """
+        return self._transition
+
 
 class ContinuousProcess(RandomProcess):
     """
@@ -151,7 +164,8 @@ class ContinuousProcess(RandomProcess):
     def __init__(self, initrv=None, sde=None):
         """ """
         self._sde = sde
-        super().__init__(initrv=initrv, shape=initrv.shape, dtype=initrv.dtype)
+        super().__init__(initrv=initrv, shape=initrv.shape,
+                         dtype=initrv.dtype, transition=sde)
 
     def __call__(self, x):
         """
@@ -231,7 +245,8 @@ class DiscreteProcess(RandomProcess):
         seq : sequence (array) of RandomVariables
         """
         self._transition = transition
-        super().__init__(initrv=initrv, shape=initrv.shape, dtype=initrv.dtype)
+        super().__init__(initrv=initrv, shape=initrv.shape,
+                         dtype=initrv.dtype, transition=transition)
 
     def __call__(self, x):
         """

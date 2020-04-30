@@ -15,6 +15,7 @@ GaussianProcess
       ~GaussianProcess.random_state
       ~GaussianProcess.range
       ~GaussianProcess.shape
+      ~GaussianProcess.transition
 
    .. rubric:: Methods Summary
 
@@ -35,6 +36,7 @@ GaussianProcess
    .. autoattribute:: random_state
    .. autoattribute:: range
    .. autoattribute:: shape
+   .. autoattribute:: transition
 
    .. rubric:: Methods Documentation
 

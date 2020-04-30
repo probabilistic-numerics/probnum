@@ -76,8 +76,14 @@ Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - methods with "Bayesian" in the name come with the prefix `bayes`,
   e.g. `bayesquad`: Bayesian quadrature, `BayesFilter`: Bayesian filter,
   `BayesSmoother`: Bayesian smoother
-- `jacob`: Jacobian, if necessary use `jacobfun`.
-- `param(s)`: parameter(s)
+- `jacob`: Jacobian, if necessary use `jacobfun`. Hessians are `hess`, respectively
+  `hessfun`.
+- `param(s)`: parameter(s). If abbreviations are necessary
+  (e.g. in inline-function definition, use `par(s)`).
+- Indices via `idx` (either `idx1`, `idx2`, ... or `idx`, `jdx`, `kdx`)
+  and not via `i, j, k`. The former is more readable (and follows PEP8);
+  the latter may collide with the built-in imaginary constant `j=sqrt(-1)`.
+
 
 ## Errors and Warnings
 - Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)
@@ -161,7 +167,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
 * Do your best to cover "Parameters", "Returns", and "Examples" at every publicly visible docstring---in that order.
 * Examples are tested via doctest. Bear that in mind when writing examples.
-* When in doubt, more explanation rather than less.
+* When in doubt, more explanation rather than less. A little text inside an example can be helpful, too.
 * A little maths goes a long way.
 * References make everything easier for someone who doesn't know the details of an algorithm.
 * Parameters which are to be chosen benefit from a rule of thumb of how to choose it, perhaps even why.
