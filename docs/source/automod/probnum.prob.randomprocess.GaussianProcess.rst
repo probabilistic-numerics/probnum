@@ -10,6 +10,9 @@ GaussianProcess
 
    .. autosummary::
 
+      ~GaussianProcess.bounds
+      ~GaussianProcess.dtype
+      ~GaussianProcess.shape
       ~GaussianProcess.support
 
    .. rubric:: Methods Summary
@@ -17,23 +20,30 @@ GaussianProcess
    .. autosummary::
 
       ~GaussianProcess.__call__
+      ~GaussianProcess.append
       ~GaussianProcess.condition
       ~GaussianProcess.covfun
-      ~GaussianProcess.distribution
+      ~GaussianProcess.extend
       ~GaussianProcess.forward
       ~GaussianProcess.meanfun
       ~GaussianProcess.sample
+      ~GaussianProcess.sort
 
    .. rubric:: Attributes Documentation
 
+   .. autoattribute:: bounds
+   .. autoattribute:: dtype
+   .. autoattribute:: shape
    .. autoattribute:: support
 
    .. rubric:: Methods Documentation
 
    .. automethod:: __call__
+   .. automethod:: append
    .. automethod:: condition
    .. automethod:: covfun
-   .. automethod:: distribution
+   .. automethod:: extend
    .. automethod:: forward
    .. automethod:: meanfun
    .. automethod:: sample
+   .. automethod:: sort

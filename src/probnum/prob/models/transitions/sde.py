@@ -3,7 +3,7 @@ Stochastic differential equations.
 """
 import numpy as np
 from probnum.prob.distributions import *
-from probnum.prob.randomprocess.transitions import Transition
+from probnum.prob.models.transitions import Transition
 
 
 class SDE(Transition):

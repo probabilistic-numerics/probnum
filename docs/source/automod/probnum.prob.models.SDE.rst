@@ -1,29 +1,29 @@
-LTISDE
-======
+SDE
+===
 
-.. currentmodule:: probnum.prob.randomprocess
+.. currentmodule:: probnum.prob.models
 
-.. autoclass:: LTISDE
+.. autoclass:: SDE
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~LTISDE.support
+      ~SDE.support
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~LTISDE.condition
-      ~LTISDE.diffmatfun
-      ~LTISDE.dispfun
-      ~LTISDE.driftfun
-      ~LTISDE.forward
-      ~LTISDE.jacobfun
-      ~LTISDE.simulate
-      ~LTISDE.solve
+      ~SDE.condition
+      ~SDE.diffmatfun
+      ~SDE.dispfun
+      ~SDE.driftfun
+      ~SDE.forward
+      ~SDE.jacobfun
+      ~SDE.simulate
+      ~SDE.solve
 
    .. rubric:: Attributes Documentation
 

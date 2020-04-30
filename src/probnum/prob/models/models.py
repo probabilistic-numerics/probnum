@@ -4,7 +4,7 @@ State space models.
 Graphical models and Continuous-discrete state spaces.
 """
 
-from probnum.prob.randomprocess import Transition, SDE
+from probnum.prob.models.transitions import Transition, SDE
 
 
 class ProbabilisticStateSpace:

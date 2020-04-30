@@ -1,29 +1,29 @@
-SDE
-===
+LinearSDE
+=========
 
-.. currentmodule:: probnum.prob.randomprocess
+.. currentmodule:: probnum.prob.models
 
-.. autoclass:: SDE
+.. autoclass:: LinearSDE
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~SDE.support
+      ~LinearSDE.support
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~SDE.condition
-      ~SDE.diffmatfun
-      ~SDE.dispfun
-      ~SDE.driftfun
-      ~SDE.forward
-      ~SDE.jacobfun
-      ~SDE.simulate
-      ~SDE.solve
+      ~LinearSDE.condition
+      ~LinearSDE.diffmatfun
+      ~LinearSDE.dispfun
+      ~LinearSDE.driftfun
+      ~LinearSDE.forward
+      ~LinearSDE.jacobfun
+      ~LinearSDE.simulate
+      ~LinearSDE.solve
 
    .. rubric:: Attributes Documentation
 

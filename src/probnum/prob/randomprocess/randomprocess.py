@@ -43,7 +43,7 @@ class RandomProcess:
 
     Parameters
     ----------
-    randvars : seq or callable
+    rvcoll : seq or callable
         Collection of variables. Either defined as a sequence
         [rv1, rv2, ..., rvN] or as a map x -> rv(x).
     support : seq, optional.
@@ -91,7 +91,7 @@ class RandomProcess:
     >>> import numpy as np
     >>> from probnum.prob.randomprocess import RandomProcess
     >>> from probnum.prob import RandomVariable, Normal
-    >>> rvs = [RandomVariable(distribution=Normal(idx, idx**2))
+    >>> rvs = [RandomVariable(distribution=Normal(0, idx**2))
     ...        for idx in range(20)]
     >>> rp1 = RandomProcess(rvs)
     >>> supp = list(range(0, 40, 2))
@@ -143,44 +143,48 @@ class RandomProcess:
 
     as well as do all kinds of other cool things.
     """
-    def __init__(self, randvars, support=None, bounds=None):
+    def __init__(self, rvcoll, support=None, bounds=None):
         """
         Random process as a sequence of random variables.
         """
 
-        # todo: refine the below. ATM it is ugly AF
+        # todo: refine the below. ATM it is ugly AF.
+        #  Though make it work first.
 
-        self._randvars = randvars
-        if callable(randvars):
-            if support is None and bounds is None:
-                self._support = None
-                self._bounds = (-np.inf, np.inf)
-            elif support is None and bounds is not None:
-                self._support = None
+        # todo: check that if rvmap is a seq, all dtypes and shapes
+        #  coincide and set self._shape and self._dtype accordingly.
+
+        support = _preprocess_support(support)
+        bounds = _preprocess_bounds(bounds)
+        _check_consistency_bounds_support(bounds, support)
+
+        if callable(rvcoll):
+            self._support = support    # None or actual values
+            if bounds is not None:
+                if self._support is not None:
+                    if np.any(self._support < bounds[0]):
+                        raise ValueError("Support must be within bounds")
+                    elif np.any(self._support > bounds[1]):
+                        raise ValueError("Support must be within bounds")
                 self._bounds = bounds
-            elif support is not None and bounds is None:
-                self._support = support
-                self._bounds = (-np.inf, np.inf)
             else:
-                pass
+                if self._support is not None and self._support.ndim > 1:
+                    errormsg = "Please specify bounds for " \
+                               "multidimensional random processes."
+                    raise ValueError(errormsg)
+                self._bounds = (-np.inf, np.inf)
         else:  # randvars is seq
-            if support is None and bounds is None:
-                self._support = list(range(len(randvars)))
-                self._bounds = (min(self._support), max(self._support))
-            elif support is None and bounds is not None:
-                step = (bounds[1] - bounds[0]) / len(randvars)
-                self._support = list(np.arange(bounds[0], bounds[1], step))
-                self._bounds = bounds
-            elif support is not None and bounds is None:
-                assert len(support) == len(randvars)
-                self._support = list(support)
-                self._bounds = (min(self._support), max(self._support))
+            if support is None:
+                self._support = list(range(len(rvcoll)))
             else:
-                assert np.all(np.array(support) > bounds[0])
-                assert np.all(np.array(support) < bounds[1])
-                assert len(support) == len(randvars)
-                self._support = list(support)
-                self._bounds = bounds
+                if len(support) != len(rvcoll):
+                    errormsg = ("Size of support must match "
+                                "size of rvcoll")
+                    raise ValueError(errormsg)
+                self._support = support
+            self._bounds = (min(self._support), max(self._support))
+
+        self._rvcoll = rvcoll
 
     # Callable type methods ############################################
 
@@ -189,11 +193,15 @@ class RandomProcess:
         Find index of x==self.support and return corresponding random
         variable.
         """
-        try:
-            return self._randvars[self._support.index(x)]
-        except ValueError:
-            errormsg = "Random process is not supported at that point"
-            raise ValueError(errormsg)
+        if callable(self._rvcoll):
+            return self._rvcoll(x)
+        else:
+            try:
+                return self._rvcoll[np.where(self._support == x)]
+            except ValueError:
+                errormsg = ("Random process is not supported "
+                            "at that point")
+                raise ValueError(errormsg)
 
     # Container type methods ###########################################
 
@@ -202,24 +210,39 @@ class RandomProcess:
         The length of the process is the length of the array of
         random variables.
         """
-        return len(self._randvars)
+        return len(self._rvcoll)
 
     def __getitem__(self, index):
         """
         Get the i-th item which is a random variable.
         """
-        return self._randvars[index]
+        return self._rvcoll[index]
 
     def __setitem__(self, index, randvar):
         """
         Set the i-th item which is a random variable.
         """
-        self._randvars[index] = randvar
+        self._rvcoll[index] = randvar
 
     def __contains__(self, item):
         """
         """
-        return item in self._randvars
+        return item in self._rvcoll
+
+    def append(self, randvar, support):
+        """
+        """
+        raise NotImplementedError
+
+    def extend(self, randproc):
+        """
+        """
+        raise NotImplementedError
+
+    def sort(self):
+        """
+        """
+        raise NotImplementedError
 
     # Numeric type methods (binary) ####################################
 
@@ -270,13 +293,13 @@ class RandomProcess:
         return self._support
 
     @support.setter
-    def support(self, supp):
+    def support(self, support):
         """
         """
-        if len(self._support) != len(supp):
+        if len(self._support) != len(support):
             errormsg = "Size of support does not fit RandomProcess."
             raise ValueError(errormsg)
-        self._support = supp
+        self._support = support
 
     @property
     def bounds(self):
@@ -285,19 +308,19 @@ class RandomProcess:
         return self._bounds
 
     @bounds.setter
-    def bounds(self, bds):
+    def bounds(self, bounds):
         """
         """
-        if len(self._bounds) != len(bds):  # incomplete check!!
+        if len(self._bounds) != len(bounds):  # incomplete check!!
             errormsg = "Size of bounds does not fit RandomProcess."
             raise ValueError(errormsg)
-        self._bounds = bds
+        self._bounds = bounds
 
     @property
     def dtype(self):
         """
         """
-        return self._randvars[0].dtype
+        raise NotImplementedError("TODO")
 
     @dtype.setter
     def dtype(self, dtype):
@@ -309,7 +332,7 @@ class RandomProcess:
     def shape(self):
         """
         """
-        return self._randvars[0].shape
+        raise NotImplementedError("TODO")
 
     @shape.setter
     def shape(self, shape):
@@ -343,6 +366,64 @@ class RandomProcess:
         return self.__call__(x).sample(size=size)
 
 
+def _check_consistency_bounds_support(bounds, support):
+    """
+    """
+    if bounds is not None:
+        if bounds.ndim == 1:
+            if support is not None and support.ndim > 1:
+                errormsg = ("Please provide support and bounds "
+                            "of the same dimensionality")
+                raise ValueError(errormsg)
+        else:
+            if support.shape[1] != bounds.shape[0]:
+                errormsg = ("Please provide support and bounds "
+                            "of the same dimensionality")
+                raise ValueError(errormsg)
+
+
+def _preprocess_bounds(bounds):
+    """
+    """
+    if bounds is not None:
+        bounds = np.array(bounds)
+        if bounds.ndim == 1:  # 1d inputs
+            if len(bounds) != 2:
+                errormsg = ("Please provide bounds with "
+                            "shape (d, 2) or (2,)")
+                raise ValueError(errormsg)
+            if bounds[1] < bounds[0]:
+                errormsg = ("Please provide bounds with "
+                            "bounds[0] < bounds[1]")
+                raise ValueError(errormsg)
+        else:  # nd inputs
+            if bounds.shape[1] != 2:
+                errormsg = ("Please provide bounds with "
+                            "shape (d, 2) or (2,)")
+                raise ValueError(errormsg)
+    return bounds
+
+
+def _preprocess_support(support):
+    """
+    """
+    if support is not None:
+        support = np.array(support)
+        if not np.issubdtype(support.dtype, np.number):
+            raise ValueError("dtype of support must be a number")
+        if support.ndim == 0:
+            support = support.reshape((1,))
+    return support
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -362,18 +443,10 @@ class RandomProcess:
 def asrandproc(obj):
     """
     Wraps obj as a RandomProcess.
-
-    Parameters
-    ----------
-    obj
-
-    Returns
-    -------
-
     """
     # todo: wrap asrandvar() into asrandproc for sequences
     #  and figure out how to do it well for callables.
-    pass
+    raise NotImplementedError("todo")
 
 
 if __name__ == "__main__":

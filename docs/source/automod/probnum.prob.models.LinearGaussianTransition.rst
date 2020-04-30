@@ -1,7 +1,7 @@
 LinearGaussianTransition
 ========================
 
-.. currentmodule:: probnum.prob.randomprocess
+.. currentmodule:: probnum.prob.models
 
 .. autoclass:: LinearGaussianTransition
    :show-inheritance:

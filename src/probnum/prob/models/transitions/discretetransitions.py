@@ -3,7 +3,7 @@
 """
 
 import numpy as np
-from probnum.prob.randomprocess.transitions.transitions import Transition
+from probnum.prob.models.transitions.transitions import Transition
 from probnum.prob import RandomVariable, Normal
 
 

@@ -1,23 +1,24 @@
-Transition
-==========
+GaussianTransition
+==================
 
-.. currentmodule:: probnum.prob.randomprocess
+.. currentmodule:: probnum.prob.models
 
-.. autoclass:: Transition
+.. autoclass:: GaussianTransition
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~Transition.support
+      ~GaussianTransition.support
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~Transition.condition
-      ~Transition.forward
+      ~GaussianTransition.condition
+      ~GaussianTransition.forward
+      ~GaussianTransition.jacobfun
 
    .. rubric:: Attributes Documentation
 
@@ -27,3 +28,4 @@ Transition
 
    .. automethod:: condition
    .. automethod:: forward
+   .. automethod:: jacobfun
