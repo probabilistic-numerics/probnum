@@ -37,6 +37,10 @@ class RandomProcess:
     (bounds are -inf to inf). If any parameter is initialised, these
     assumptions are influenced accordingly.
 
+    The RandomProcess data structure simultaneously emulates
+    basic callable objects, basic container types and basic numerict
+    types (essentially: arrays).
+
     Parameters
     ----------
     randvars : seq or callable
@@ -144,7 +148,7 @@ class RandomProcess:
         Random process as a sequence of random variables.
         """
 
-        # todo: refine the below.
+        # todo: refine the below. ATM it is ugly AF
 
         self._randvars = randvars
         if callable(randvars):
@@ -178,6 +182,8 @@ class RandomProcess:
                 self._support = list(support)
                 self._bounds = bounds
 
+    # Callable type methods ############################################
+
     def __call__(self, x):
         """
         Find index of x==self.support and return corresponding random
@@ -189,17 +195,73 @@ class RandomProcess:
             errormsg = "Random process is not supported at that point"
             raise ValueError(errormsg)
 
-    def __getitem__(self, item):
-        """
-        """
-        return self._randvars[item]
+    # Container type methods ###########################################
 
     def __len__(self):
         """
+        The length of the process is the length of the array of
+        random variables.
         """
         return len(self._randvars)
 
-    # todo: implement other list-like and numeric-like methods
+    def __getitem__(self, index):
+        """
+        Get the i-th item which is a random variable.
+        """
+        return self._randvars[index]
+
+    def __setitem__(self, index, randvar):
+        """
+        Set the i-th item which is a random variable.
+        """
+        self._randvars[index] = randvar
+
+    def __contains__(self, item):
+        """
+        """
+        return item in self._randvars
+
+    # Numeric type methods (binary) ####################################
+
+    def __add__(self, other):
+        return NotImplemented
+
+    def __sub__(self, other):
+        return NotImplemented
+
+    def __mul__(self, other):
+        return NotImplemented
+
+    def __truediv__(self, other):
+        return NotImplemented
+
+    def __pow__(self, other):
+        return NotImplemented
+
+    def __radd__(self, other):
+        return NotImplemented
+
+    def __rsub__(self, other):
+        return NotImplemented
+
+    def __rmul__(self, other):
+        return NotImplemented
+
+    def __rtruediv__(self, other):
+        return NotImplemented
+
+    def __rpow__(self, other):
+        return NotImplemented
+
+    # Numeric type methods (unary) ####################################
+
+    def __neg__(self, other):
+        return NotImplemented
+
+    def __pos__(self, other):
+        return NotImplemented
+
+    # Properties and setters  ##########################################
 
     @property
     def support(self):
@@ -212,7 +274,8 @@ class RandomProcess:
         """
         """
         if len(self._support) != len(supp):
-            raise ValueError("Size of support does not fit this RandomProcess.")
+            errormsg = "Size of support does not fit RandomProcess."
+            raise ValueError(errormsg)
         self._support = supp
 
     @property
@@ -226,15 +289,43 @@ class RandomProcess:
         """
         """
         if len(self._bounds) != len(bds):  # incomplete check!!
-            raise ValueError("Size of bounds does not fit this RandomProcess.")
+            errormsg = "Size of bounds does not fit RandomProcess."
+            raise ValueError(errormsg)
         self._bounds = bds
+
+    @property
+    def dtype(self):
+        """
+        """
+        return self._randvars[0].dtype
+
+    @dtype.setter
+    def dtype(self, dtype):
+        """
+        """
+        raise NotImplementedError("TODO")
+
+    @property
+    def shape(self):
+        """
+        """
+        return self._randvars[0].shape
+
+    @shape.setter
+    def shape(self, shape):
+        """
+        """
+        raise NotImplementedError("TODO")
+
+    # Statistics functions #############################################
 
     def meanfun(self, x):
         rv = self.__call__(x)
         try:
             return rv.mean()
         except NotImplementedError:
-            errormsg = "Mean of random process is not implemented at x"
+            errormsg = ("Mean of random process "
+                        "is not implemented at x")
             raise NotImplementedError(errormsg)
 
     def covfun(self, x):
@@ -243,19 +334,45 @@ class RandomProcess:
         try:
             return rv.cov()
         except NotImplementedError:
-            errormsg = "Covariance of random process is not implemented at x"
+            errormsg = ("Covariance of random process "
+                        "is not implemented at x")
             raise NotImplementedError(errormsg)
-
-    # todo: implement other rv-like methods
 
     def sample(self, x, size=()):
         """ """
         return self.__call__(x).sample(size=size)
 
 
-def asrandproc():
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def asrandproc(obj):
+    """
+    Wraps obj as a RandomProcess.
+
+    Parameters
+    ----------
+    obj
+
+    Returns
+    -------
+
+    """
     # todo: wrap asrandvar() into asrandproc for sequences
-    #  and figure out how to do it for callables.
+    #  and figure out how to do it well for callables.
     pass
 
 

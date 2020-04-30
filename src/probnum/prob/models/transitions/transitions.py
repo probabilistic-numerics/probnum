@@ -8,7 +8,7 @@ from probnum.prob import RandomVariable
 
 class Transition(ABC):
     """
-    Interface for (Markov) transition densities.
+    Interface for (Markov) transition rules.
 
     Representation of time-discrete probabilistic models given by
     a transition density :math:`p(x_i | x_{i-1})`. For example,
