@@ -1,6 +1,6 @@
 
 from .randomprocess import *
-from .transitions import *
+from src.probnum.prob.models.transitions import *
 from .covariance import *
 from .gaussianprocess import *
 
