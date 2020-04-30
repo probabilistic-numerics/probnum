@@ -14,8 +14,12 @@ Use absolute imports over relative imports.
 - `from x import y as z` if two modules named `y` are to be imported or if `y` is an inconveniently long name.
 - `import y as z` only when `z` is a standard abbreviation (e.g., `np` for `numpy`).
 
-Use `__all__ = [...]` in `__init__.py` files to imply the order in which the methods are visible in the documentation.
-Almost all methods are "pulled up" to a higher-level namespace. Import from there wherever there is no chance for confusion and/or circular imports. This makes imports more readable.
+Use `__all__ = [...]` in `__init__.py` files to imply the order in
+which the methods are visible in the documentation.
+It also helps with imports such as ``from ... import *`` by avoiding
+importing private variables and constants.
+Almost all methods are "pulled up" to a higher-level namespace.
+Import from there wherever there is no chance for confusion and/or circular imports. This makes imports more readable.
 
 
 ### Naming
@@ -42,10 +46,18 @@ PN methods should be in a file with the same name as the containing folder (e.g.
 
 
 ### Printable Representations
+*Begin suggestion by N...*
+
 The way an object is printed defined by `def __repr__(self)` is structured as:
 ```
-
+<class 'RandomProcess(rvcoll=<class 'function'>, support=<class 'list'>, bounds=<class 'list'>)'>
+<class 'RandomProcess(rvcoll=<class 'np.ndarray'>, support=<class 'list'>, bounds=<class 'list'>)'>
 ```
+Essentially, this is similar to the output of `type(obj)`. 
+The effect is that representation of an object provides another level of
+documentation with keys and parameter types.
+
+*... end suggestion*
 
 ### Other Notational Conventions
 Generally, we tend to stick to the first few letters for abbreviations

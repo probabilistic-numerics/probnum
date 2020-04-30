@@ -41,7 +41,7 @@ class GraphicalModel(StateSpaceModel):
         super().__init__(randproc, measmodel)
 
 
-class ContinuousDiscreteModel:
+class ContinuousModel:
     """
     Continuous-discrete state space models.
 

@@ -10,13 +10,7 @@ GaussianProcess
 
    .. autosummary::
 
-      ~GaussianProcess.dtype
-      ~GaussianProcess.initrv
-      ~GaussianProcess.random_state
-      ~GaussianProcess.range
-      ~GaussianProcess.shape
       ~GaussianProcess.support
-      ~GaussianProcess.transition
 
    .. rubric:: Methods Summary
 
@@ -25,25 +19,21 @@ GaussianProcess
       ~GaussianProcess.__call__
       ~GaussianProcess.condition
       ~GaussianProcess.covfun
+      ~GaussianProcess.distribution
       ~GaussianProcess.forward
       ~GaussianProcess.meanfun
       ~GaussianProcess.sample
 
    .. rubric:: Attributes Documentation
 
-   .. autoattribute:: dtype
-   .. autoattribute:: initrv
-   .. autoattribute:: random_state
-   .. autoattribute:: range
-   .. autoattribute:: shape
    .. autoattribute:: support
-   .. autoattribute:: transition
 
    .. rubric:: Methods Documentation
 
    .. automethod:: __call__
    .. automethod:: condition
    .. automethod:: covfun
+   .. automethod:: distribution
    .. automethod:: forward
    .. automethod:: meanfun
    .. automethod:: sample
