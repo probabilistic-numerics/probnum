@@ -6,6 +6,12 @@ SDE
 .. autoclass:: SDE
    :show-inheritance:
 
+   .. rubric:: Attributes Summary
+
+   .. autosummary::
+
+      ~SDE.support
+
    .. rubric:: Methods Summary
 
    .. autosummary::
@@ -18,6 +24,10 @@ SDE
       ~SDE.jacobfun
       ~SDE.simulate
       ~SDE.solve
+
+   .. rubric:: Attributes Documentation
+
+   .. autoattribute:: support
 
    .. rubric:: Methods Documentation
 

@@ -6,6 +6,12 @@ LTISDE
 .. autoclass:: LTISDE
    :show-inheritance:
 
+   .. rubric:: Attributes Summary
+
+   .. autosummary::
+
+      ~LTISDE.support
+
    .. rubric:: Methods Summary
 
    .. autosummary::
@@ -18,6 +24,10 @@ LTISDE
       ~LTISDE.jacobfun
       ~LTISDE.simulate
       ~LTISDE.solve
+
+   .. rubric:: Attributes Documentation
+
+   .. autoattribute:: support
 
    .. rubric:: Methods Documentation
 

@@ -6,6 +6,12 @@ LinearSDE
 .. autoclass:: LinearSDE
    :show-inheritance:
 
+   .. rubric:: Attributes Summary
+
+   .. autosummary::
+
+      ~LinearSDE.support
+
    .. rubric:: Methods Summary
 
    .. autosummary::
@@ -18,6 +24,10 @@ LinearSDE
       ~LinearSDE.jacobfun
       ~LinearSDE.simulate
       ~LinearSDE.solve
+
+   .. rubric:: Attributes Documentation
+
+   .. autoattribute:: support
 
    .. rubric:: Methods Documentation
 

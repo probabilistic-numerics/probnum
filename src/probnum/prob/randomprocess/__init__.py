@@ -1,12 +1,10 @@
 
 from .randomprocess import *
-from .sde import *
 from .transitions import *
 from .covariance import *
+from .gaussianprocess import *
 
-
-__all__ = ["RandomProcess", "ContinuousProcess", "GaussianProcess",
-           "DiscreteProcess",
+__all__ = ["RandomProcess", "GaussianProcess",
            "Transition", "GaussianTransition", "LinearGaussianTransition",
            "SDE", "LinearSDE", "LTISDE",
            "Covariance", "IntegratedBrownianMotionCovariance",

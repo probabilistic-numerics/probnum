@@ -3,34 +3,154 @@ Random / Stochastic processes.
 
 This module implements classes and functions representing random processes,
 i.e. families of random variables.
+
+Incomplete
+----------
+* dtype and shape initialisations (could use some help)
+* Working with random_state's (could use some help)
+* Unittests (matter of time)
+* Documentation (matter of time)
 """
 
-from abc import ABC, abstractmethod
 import numpy as np
 
 
-class RandomProcess(ABC):
+
+
+
+class RandomProcess:
+    """
+    Parameters
+    ----------
+    randvars : seq
+        Sequence of random variables.
+    support : seq
+        Support of the sequence of random variables.
+    """
+    def __init__(self, randvars, support=None):
+        """
+        Random process as a sequence of random variables.
+        """
+        self.randvars = randvars
+        if support is None:
+            self.support = list(range(len(randvars)))
+        else:
+            assert len(support) == len(randvars)
+            self.support = support
+
+    def __call__(self, x):
+        """
+        Find index of x==self.support and return corresponding random
+        variable.
+        """
+        try:
+            return self.randvars[self.support.index(x)]
+        except ValueError:
+            errormsg = "Random process is not supported at that point"
+            raise ValueError(errormsg)
+
+    def __getitem__(self, item):
+        """ """
+        return self.randvars.__getitem__(item)
+
+    def __len__(self):
+        """ """
+        return self.randvars.__len__
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class RandomProcess:
     """
     Random process.
 
     Random processes are (uncountable) collections of random variables,
     often representing numerical values of some system randomly changing
-    over time.
+    over time. A more precise term would be "random field"
+    but since this choice would rather be confusing than helpful we
+    will stick with "random process".
 
 
-    As a guideline of how to implement which type of random process,
+    For a guideline of how to implement which type of random process,
     see below:
+
+    **Markov processes**
 
     .. csv-table::
         :header: , Instantiation,
 
-        **Discrete time**, "Discrete-time processes are defined
-        through transition densities in :class:`DiscreteProcess`"
-        **Continuous time**, "Continuous-time processes are defined
-        through SDEs in :class:`ContinuousProcess(sde)`"
-        **Continuous space and time**, "Higher dimensional (spatiotemporal)
-        processes are only defined if they are Gaussian processes
-        in :class:`GaussianProcess`"
+        **Discrete time**, "Use a transition density with a support on
+        a list of values."
+        **Discrete space**, "Use a transition density with a support on
+        a graph (graph consists of nodes and edges);
+        this is a so-called Markov random field)."
+        **Continuous time**, "Use an SDE object as a transition
+        density."
+        **Continuous space**, "This is only defined for Gaussian
+        processes; initialise :class:`GaussianProcess` in this case."
+
+    **Non-Markov processes**
+
+    .. csv-table::
+        :header: , Instantiation,
+
+        **Discrete time**, "What is a discrete-time non-Markov process?"
+        **Discrete space**, "What is a discrete-space non-Markov process?"
+        **Continuous time**, "Use a corresponding SDE object as a
+        transition density."
+        **Continuous space**, "Gaussian processes are usually not
+        Markovian by default."
 
 
     The distinction between countable states and continuous states is
@@ -41,14 +161,14 @@ class RandomProcess(ABC):
     ----------
     """
 
-    def __init__(self, initrv=None, shape=None, dtype=None, transition=None):
+    def __init__(self, transition=None, initrv=None, shape=None,
+                 dtype=None):
         """Create a new random process."""
         self._initrv = initrv
         self._shape = shape  # todo: check consistency with initrv.shape
         self._dtype = dtype  # todo: check consistency with initrv.dtype
         self._transition = transition
 
-    @abstractmethod
     def __call__(self, x):
         """
         Returns random variable corresponding to the random process
@@ -56,48 +176,92 @@ class RandomProcess(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def meanfun(self, x):
         """
-        Mean (function) of the random process.
+        Evaluates mean (function) of the random process at :math:`x`.
         """
         raise NotImplementedError
 
-    @abstractmethod
     def covfun(self, x1, x2):
         """
-        Covariance (function) of the random process,
-        also known as kernel.
+        Evaluates covariance (function; also known as kernel)
+        of the random process at :math:`x`.
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def sample(self, x, size=(), **kwargs):
+    def sample(self, size=(), x=None, **kwargs):
         """
         Draw realizations from the random process.
-        """
-        raise NotImplementedError
 
-    @abstractmethod
-    def condition(self, start, stop, randvar):
+        Parameters
+        ----------
+        x : array_like, optional.
+            If None, the full trajectory is sampled.
+            If array_like, the values of the random process at
+            times x are sampled.
+        size : tuple, optional.
+            How many samples?
         """
-        Conditions the random process on distribution randvar
-        at time start. Returns RandomVariable representing its
+        if size == ():
+            return self._sample_path(x, **kwargs)
+        else:
+            return np.array([self._sample_path(x, **kwargs)
+                             for __ in range(size)])
+
+    def _sample_path(self, x, **kwargs):
+        """
+        Draw a realization from the random process.
+        """
+        if x is None:
+            return self._transition.sample(**kwargs)
+        else:
+            return self.__call__(x).sample()
+
+    def condition(self, start, stop, randvar, **kwargs):
+        """
+        Conditions the random process on randvar at start.
+
+        If randvar has an explicit parameterization (e.g. mean and
+        covariance for a Normal distribution) and this can be propagated
+        through the transition, this function returns the
+        parameterization of the propagated distribution.
+
+        In the SDE setting, this only works if there is a closed form
+        solution to the SDEs. In the discrete setting,
+
+        Returns RandomVariable representing its
         distribution at time stop.
         """
-        raise NotImplementedError
+        if self._transition is None:
+            raise NotImplementedError
+        else:
+            return self._transition.condition(start, stop, randvar, **kwargs)
 
-    @abstractmethod
-    def forward(self, start, stop, value):
+    def forward(self, start, stop, value, **kwargs):
         """
-        Forwards a particle ``value`` according to the dynamics.
+        Forwards a single particle according to the dynamics.
+
         Returns RandomVariable representing its
         distribution at time stop.
 
         This function allows using a random process like a transition
         density.
         """
-        raise NotImplementedError
+        if self._transition is None:
+            raise NotImplementedError
+        else:
+            return self._transition.forward(start, stop, value, **kwargs)
+
+    @property
+    def transition(self):
+        """
+        Returns Transition object that defines the random process.
+
+        If the process is discrete, this will be a direct subclass of
+        :class:`Transition`. If the process is continuous, it will be
+        a subclass of :class:`SDE`.
+        """
+        return self._transition
 
     @property
     def initrv(self):
@@ -105,6 +269,18 @@ class RandomProcess(ABC):
         RandomVariable representing the distribution at time :math:`t_0`.
         """
         return self._initrv
+
+    @property
+    def support(self):
+        """
+        """
+        return self._transition.support
+
+    @support.setter
+    def support(self, newsupport):
+        """
+        """
+        self._transition.support(newsupport)
 
     @property
     def range(self):
@@ -142,236 +318,4 @@ class RandomProcess(ABC):
         with seed.
         """
         # todo
-        raise NotImplementedError
-
-    @property
-    def transition(self):
-        """
-        Returns Transition object that defines the random process.
-
-        If the process is discrete, this will be a direct subclass of
-        :class:`Transition`. If the process is continuous, it will be
-        a subclass of :class:`SDE`.
-        """
-        return self._transition
-
-
-class ContinuousProcess(RandomProcess):
-    """
-    Uniquely defined through solving an SDE with some initial value
-    distribution.
-    """
-    def __init__(self, initrv=None, sde=None):
-        """ """
-        self._sde = sde
-        super().__init__(initrv=initrv, shape=initrv.shape,
-                         dtype=initrv.dtype, transition=sde)
-
-    def __call__(self, x):
-        """
-        Returns random variable corresponding to the random process
-        evaluated at point ``x``.
-        """
-        raise NotImplementedError
-
-    def meanfun(self, x):
-        """
-        Mean (function) of the random process.
-        """
-        raise NotImplementedError
-
-    def covfun(self, x1, x2):
-        """
-        Covariance (function) of the random process,
-        also known as a kernel.
-        """
-        raise NotImplementedError
-
-    def sample(self, x, size=(), **kwargs):
-        """
-        Draw realizations from the random process.
-        """
-        if size == ():
-            return self._sample_path(x, **kwargs)
-        else:
-            return np.array([self._sample_path(x, **kwargs)
-                             for __ in range(size)])
-
-    def _sample_path(self, x, **kwargs):
-        """
-        Draw a realization from the random process.
-        """
-        raise NotImplementedError
-
-    def condition(self, start, stop, randvar):
-        """
-        Conditions the random process on distribution randvar
-        at time start. Returns RandomVariable representing its
-        distribution at time stop.
-        """
-        # todo: use the sde.
-        raise NotImplementedError
-
-    def forward(self, start, stop, value):
-        """
-        Forwards a particle ``value`` according to the dynamics.
-        Returns RandomVariable representing its
-        distribution at time stop.
-
-        This function allows using a random process like a transition
-        density, sometimes without being one.
-        """
-        # todo: use the sde.
-        raise NotImplementedError
-
-    @property
-    def sde(self):
-        """
-        Stochastic differential equation defining the random process.
-        """
-        if self._sde is not None:
-            return self._sde
-        else:
-            raise NotImplementedError
-
-
-class DiscreteProcess(RandomProcess):
-    """
-    """
-    def __init__(self, initrv=None, transition=None):
-        """
-        dens : Transition
-            transition density p(x_i | x_{i-1})
-        seq : sequence (array) of RandomVariables
-        """
-        self._transition = transition
-        super().__init__(initrv=initrv, shape=initrv.shape,
-                         dtype=initrv.dtype, transition=transition)
-
-    def __call__(self, x):
-        """
-        Returns random variable corresponding to the random process
-        evaluated at point ``x``.
-        """
-        raise NotImplementedError
-
-    def meanfun(self, x):
-        """
-        Mean (function) of the random process.
-        """
-        raise NotImplementedError
-
-    def covfun(self, x1, x2):
-        """
-        Covariance (function) of the random process,
-        also known as kernel.
-        """
-        raise NotImplementedError
-
-    def sample(self, x, size=(), **kwargs):
-        """
-        Draw realizations from the random process.
-        """
-        raise NotImplementedError
-
-    def _sample_path(self, x, **kwargs):
-        """
-        Draw a realization from the random process.
-        """
-        raise NotImplementedError
-
-    def condition(self, start, stop, randvar):
-        """
-        Conditions the random process on distribution randvar
-        at time start. Returns RandomVariable representing its
-        distribution at time stop.
-        """
-        # todo: use the sde.
-        raise NotImplementedError
-
-    def forward(self, start, stop, value):
-        """
-        Forwards a particle ``value`` according to the dynamics.
-        Returns RandomVariable representing its
-        distribution at time stop.
-
-        This function allows using a random process like a transition
-        density, sometimes without being one.
-        """
-        # todo: use the sde.
-        raise NotImplementedError
-
-    @property
-    def transition(self):
-        """
-        Transition density defining the random process.
-        """
-        return self._transition
-
-
-class GaussianProcess(RandomProcess):
-    """
-    We dont subclass from ContinuousProcess but from RandomProcess
-    because we will not reuse any SDE machinery here.
-    If you like to define a Gauss-Markov process use ContinuousProcess
-    with a linear SDE and Gaussian initial variable
-    """
-    def __init__(self, meanfun=None, covfun=None):
-        """
-        """
-        self._meanfun = meanfun
-        self._covfun = covfun
-
-    def __call__(self, x):
-        """
-        Returns random variable corresponding to the random process
-        evaluated at point ``x``.
-        """
-        raise NotImplementedError
-
-    def meanfun(self, x):
-        """
-        Mean (function) of the random process.
-        """
-        raise NotImplementedError
-
-    def covfun(self, x1, x2):
-        """
-        Covariance (function) of the random process,
-        also known as kernel.
-        """
-        raise NotImplementedError
-
-    def sample(self, x, size=(), nsteps=1):
-        """
-        Draw realizations from the random process.
-        """
-        # todo: use the transition density.
-        raise NotImplementedError
-
-    def sample_path(self, x, nsteps=1):
-        """
-        Draw realizations from the random process.
-        """
-        raise NotImplementedError
-
-    def condition(self, start, stop, randvar):
-        """
-        Conditions the random process on distribution randvar
-        at time start. Returns RandomVariable representing its
-        distribution at time stop.
-        """
-        # todo: use the sde.
-        raise NotImplementedError
-
-    def forward(self, start, stop, value):
-        """
-        Forwards a particle ``value`` according to the dynamics.
-        Returns RandomVariable representing its
-        distribution at time stop.
-
-        This function allows using a random process like a transition
-        density, sometimes without being one.
-        """
-        # todo: use the sde.
         raise NotImplementedError

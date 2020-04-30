@@ -6,6 +6,12 @@ LinearGaussianTransition
 .. autoclass:: LinearGaussianTransition
    :show-inheritance:
 
+   .. rubric:: Attributes Summary
+
+   .. autosummary::
+
+      ~LinearGaussianTransition.support
+
    .. rubric:: Methods Summary
 
    .. autosummary::
@@ -14,6 +20,10 @@ LinearGaussianTransition
       ~LinearGaussianTransition.forward
       ~LinearGaussianTransition.jacobfun
       ~LinearGaussianTransition.lintransfun
+
+   .. rubric:: Attributes Documentation
+
+   .. autoattribute:: support
 
    .. rubric:: Methods Documentation
 

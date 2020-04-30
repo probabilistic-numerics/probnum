@@ -15,6 +15,7 @@ RandomProcess
       ~RandomProcess.random_state
       ~RandomProcess.range
       ~RandomProcess.shape
+      ~RandomProcess.support
       ~RandomProcess.transition
 
    .. rubric:: Methods Summary
@@ -35,6 +36,7 @@ RandomProcess
    .. autoattribute:: random_state
    .. autoattribute:: range
    .. autoattribute:: shape
+   .. autoattribute:: support
    .. autoattribute:: transition
 
    .. rubric:: Methods Documentation

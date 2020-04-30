@@ -15,6 +15,7 @@ GaussianProcess
       ~GaussianProcess.random_state
       ~GaussianProcess.range
       ~GaussianProcess.shape
+      ~GaussianProcess.support
       ~GaussianProcess.transition
 
    .. rubric:: Methods Summary
@@ -27,7 +28,6 @@ GaussianProcess
       ~GaussianProcess.forward
       ~GaussianProcess.meanfun
       ~GaussianProcess.sample
-      ~GaussianProcess.sample_path
 
    .. rubric:: Attributes Documentation
 
@@ -36,6 +36,7 @@ GaussianProcess
    .. autoattribute:: random_state
    .. autoattribute:: range
    .. autoattribute:: shape
+   .. autoattribute:: support
    .. autoattribute:: transition
 
    .. rubric:: Methods Documentation
@@ -46,4 +47,3 @@ GaussianProcess
    .. automethod:: forward
    .. automethod:: meanfun
    .. automethod:: sample
-   .. automethod:: sample_path

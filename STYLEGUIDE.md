@@ -165,6 +165,14 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
 **Some objectives for writing docstrings**
 
+* Use full sentences inside docstrings when describing something.
+  Yes: "This value is irrelevant, because it is not being passed on"
+  No: "Value irrelevant, not passed on". 
+* Stick to the imperative style of writing in the "main sentence"
+  of the docstring (i.e.: first line).
+  Yes: "Compute the value". No:"This function computes the value / Let's compute the value".
+  The rest of the explanation talks "about" the function.
+  Yes: "This function computes the value by computing another value".
 * Do your best to cover "Parameters", "Returns", and "Examples" at every publicly visible docstring---in that order.
 * Examples are tested via doctest. Bear that in mind when writing examples.
 * When in doubt, more explanation rather than less. A little text inside an example can be helpful, too.
