@@ -41,7 +41,7 @@ class Distribution:
     mean : callable
         Function returning the mean of the distribution.
     cov : callable
-        Function returning the covariance of the distribution.
+        Function returning the kernels of the distribution.
     dtype : numpy.dtype or object
         Data type of realizations of a random variable with this distribution. If ``object`` will be converted to ``numpy.dtype``.
     random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
@@ -282,7 +282,7 @@ class Distribution:
         Returns
         -------
         cov : array-like
-            The covariance of the distribution.
+            The kernels of the distribution.
         """
         if self._cov is not None:
             return self._cov()

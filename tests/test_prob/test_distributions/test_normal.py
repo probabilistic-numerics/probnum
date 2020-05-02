@@ -69,7 +69,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                         normrv_added = normrv0 + normrv1
 
     def test_rv_linop_kroneckercov(self):
-        """Create a rv with a normal distribution with linear operator mean and Kronecker product covariance."""
+        """Create a rv with a normal distribution with linear operator mean and Kronecker product kernels."""
 
         def mv(v):
             return np.array([2 * v[0], 3 * v[1]])
@@ -79,12 +79,12 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         prob.RandomVariable(distribution=prob.Normal(mean=A, cov=V))
 
     def test_normal_dimension_mismatch(self):
-        """Instantiating a normal distribution with mismatched mean and covariance should result in a ValueError."""
+        """Instantiating a normal distribution with mismatched mean and kernels should result in a ValueError."""
         for mean, cov in [(0, [1, 2]),
                           (np.array([1, 2]), np.array([1, 0])),
                           (np.array([[-1, 0], [2, 1]]), np.eye(3))]:
             with self.subTest():
-                err_msg = "Mean and covariance mismatch in normal distribution did not raise a ValueError."
+                err_msg = "Mean and kernels mismatch in normal distribution did not raise a ValueError."
                 with self.assertRaises(ValueError, msg=err_msg):
                     assert prob.Normal(mean=mean, cov=cov)
 
@@ -118,19 +118,19 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                                      msg="Realization shape does not match mean shape.")
 
     def test_sample_zero_cov(self):
-        """Draw sample from distribution with zero covariance and check whether it equals the mean."""
+        """Draw sample from distribution with zero kernels and check whether it equals the mean."""
         for mean, cov in self.normal_params:
             with self.subTest():
                 dist = prob.Normal(mean=mean, cov=0 * cov, random_state=1)
                 dist_sample = dist.sample(size=1)
-                assert_str = "Draw with covariance zero does not match mean."
+                assert_str = "Draw with kernels zero does not match mean."
                 if isinstance(dist.mean(), linops.LinearOperator):
                     self.assertAllClose(dist_sample, dist.mean().todense(), msg=assert_str)
                 else:
                     self.assertAllClose(dist_sample, dist.mean(), msg=assert_str)
 
     def test_symmetric_samples(self):
-        """Samples from a normal distribution with symmetric Kronecker covariance of two symmetric matrices are
+        """Samples from a normal distribution with symmetric Kronecker kernels of two symmetric matrices are
         symmetric."""
         np.random.seed(42)
         n = 3

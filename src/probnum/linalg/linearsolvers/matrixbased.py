@@ -135,12 +135,12 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
     A_mean : array-like or LinearOperator
         Mean of the prior distribution on the linear operator :math:`A`.
     A_covfactor : array-like or LinearOperator
-        The Kronecker factor :math:`W_A` of the covariance :math:`\\operatorname{Cov}(A) = W_A \\otimes_s W_A` of
+        The Kronecker factor :math:`W_A` of the kernels :math:`\\operatorname{Cov}(A) = W_A \\otimes_s W_A` of
         :math:`A`.
     Ainv_mean : array-like or LinearOperator
         Mean of the prior distribution on the linear operator :math:`A^{-1}`.
     Ainv_covfactor : array-like or LinearOperator
-        The Kronecker factor :math:`W_H` of the covariance :math:`\\operatorname{Cov}(H) = W_H \\otimes_s W_H` of
+        The Kronecker factor :math:`W_H` of the kernels :math:`\\operatorname{Cov}(H) = W_H \\otimes_s W_H` of
         :math:`H = A^{-1}`.
 
     Returns
@@ -176,7 +176,7 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         Calibrate uncertainty based on the Rayleigh coefficients
 
         A regression model for the log-Rayleigh coefficient is built based on the collected observations. The degrees of
-        freedom in the covariance of A and H are set according to the predicted log-Rayleigh coefficient for the
+        freedom in the kernels of A and H are set according to the predicted log-Rayleigh coefficient for the
         remaining unexplored dimensions.
         """
         # Transform to arrays
@@ -281,7 +281,7 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
         return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mm)
 
     def _covariance_update(self, u, Ws):
-        """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
+        """Linear operator implementing the symmetric rank 2 kernels update (-= Ws u^T)."""
 
         def mv(x):
             return u @ (Ws.T @ x)
@@ -321,7 +321,7 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             self.x = self.x + step_size * search_dir
             resid = resid + step_size * obs
 
-            # (symmetric) mean and covariance updates
+            # (symmetric) mean and kernels updates
             Vs = self.A_covfactor @ search_dir
             delta_A = obs - self.A_mean @ search_dir
             u_A = Vs / (search_dir.T @ Vs)
@@ -337,7 +337,7 @@ class SymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A)
             self.Ainv_mean = linops.aslinop(self.Ainv_mean) + self._mean_update(u=u_Ainv, v=v_Ainv)
 
-            # rank 1 covariance kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
+            # rank 1 kernels kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
             self.A_covfactor = linops.aslinop(self.A_covfactor) - self._covariance_update(u=u_A, Ws=Vs)
             self.Ainv_covfactor = linops.aslinop(self.Ainv_covfactor) - self._covariance_update(u=u_Ainv,
                                                                                                 Ws=Wy)

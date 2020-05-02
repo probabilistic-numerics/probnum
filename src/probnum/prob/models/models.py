@@ -196,7 +196,7 @@ class _ExactMeasurements(Transition):
 #
 #     def covfun(self, x1, x2):
 #         """
-#         Evaluates covariance (function; also known as kernel)
+#         Evaluates kernels (function; also known as kernel)
 #         of the random process at :math:`x`.
 #         """
 #         raise NotImplementedError
@@ -234,7 +234,7 @@ class _ExactMeasurements(Transition):
 #         Conditions the random process on randvar at start.
 #
 #         If randvar has an explicit parameterization (e.g. mean and
-#         covariance for a Normal distribution) and this can be propagated
+#         kernels for a Normal distribution) and this can be propagated
 #         through the transition, this function returns the
 #         parameterization of the propagated distribution.
 #

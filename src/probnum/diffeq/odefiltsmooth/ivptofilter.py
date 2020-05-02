@@ -191,7 +191,7 @@ def _initialdistribution2(ivp, prior):
     newcov = initcov - (crosscov @ crosscov.T)
     # doublecross = crosscov @ crosscov.T
     # print("crosscov^2:\n", crosscov @ crosscov.T)
-    # print("Initial covariance:\n", initcov)
+    # print("Initial kernels:\n", initcov)
     # print("Difference:\n", initcov - doublecross)
     # print("Outcome:\n", newcov)
     return RandomVariable(distribution=Normal(newmean, newcov))

@@ -222,7 +222,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Cov[A] and Cov[A^-1]
         def posterior_cov_kronfac(WA0, S):
-            """Compute the covariance symmetric Kronecker factor of the probabilistic linear solver."""
+            """Compute the kernels symmetric Kronecker factor of the probabilistic linear solver."""
             U_AT = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
             covfac = WA0 @ (np.identity(np.shape(WA0)[0]) - S @ U_AT)
             return covfac
@@ -231,10 +231,10 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         H_covfac = posterior_cov_kronfac(WH0, Y)
 
         self.assertAllClose(Ahat.cov().A.todense(), A_covfac, rtol=1e-5,
-                            msg="The covariance estimated by the probabilistic linear solver does not match the " +
+                            msg="The kernels estimated by the probabilistic linear solver does not match the " +
                                 "directly computed one.")
         self.assertAllClose(Ainvhat.cov().A.todense(), H_covfac, rtol=1e-5,
-                            msg="The covariance estimated by the probabilistic linear solver does not" +
+                            msg="The kernels estimated by the probabilistic linear solver does not" +
                                 "match the directly computed one.")
 
     # def test_posterior_covariance_posdef(self):

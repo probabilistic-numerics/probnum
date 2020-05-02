@@ -110,13 +110,13 @@ class Transition(ABC):
 
         If the distribution of a previous state
         :math:`x_{i-1} \\sim p(x_{i-1})` has an explicit
-        parameterisation (e.g. a mean and covariance), this function
+        parameterisation (e.g. a mean and kernels), this function
         returns the parameterisation of of :math:`p(x_i | x_{i-1})`.
 
         For example, if the transition is a linear Gaussian, this
         function takes a Gaussian random variable with mean :math:`m`
-        and covariance :math:`C` and returns a Gaussian random variable
-        with transformed mean and covariance.
+        and kernels :math:`C` and returns a Gaussian random variable
+        with transformed mean and kernels.
 
         Parameters
         ----------

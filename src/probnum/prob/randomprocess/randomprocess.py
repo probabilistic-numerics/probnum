@@ -11,10 +11,93 @@ Incomplete
 * Unittests (matter of time)
 * Documentation (matter of time)
 """
+
+from abc import ABC, abstractmethod
 import numpy as np
 
 
-class RandomProcess:
+class _AbstractRandomProcess(ABC):
+    """
+    Abstract interface for random processes.
+
+    Made abstract because generic RandomProcess instance
+    should serve as data structures for lists of RandomVariables
+    and as such implement things like getitem, etc.
+    GaussianProcesses should not do that, it should not even appear
+    anywhere near their documentation.
+    """
+
+    def __init__(self, bounds, dtype, shape):
+        """ """
+        self._bounds = bounds
+        self._dtype = dtype
+        self._shape = shape
+
+    # Abstract methods: statistics functions ###########################
+
+    @abstractmethod
+    def __call__(self, x):
+        """ """
+        raise NotImplementedError
+
+    @abstractmethod
+    def meanfun(self, x):
+        """ """
+        raise NotImplementedError
+
+    @abstractmethod
+    def covfun(self, x):
+        """ """
+        raise NotImplementedError
+
+    @abstractmethod
+    def sample(self, x, size=()):
+        """ """
+        raise NotImplementedError
+
+    # Properties, getters and setters ##################################
+
+    @property
+    def bounds(self):
+        """
+        """
+        return self._bounds
+
+    @bounds.setter
+    def bounds(self, bounds):
+        """
+        """
+        if len(self._bounds) != len(bounds):  # incomplete check!!
+            errormsg = "Size of bounds does not fit RandomProcess."
+            raise ValueError(errormsg)
+        self._bounds = bounds
+
+    @property
+    def dtype(self):
+        """
+        """
+        raise NotImplementedError("TODO")
+
+    @dtype.setter
+    def dtype(self, dtype):
+        """
+        """
+        raise NotImplementedError("TODO")
+
+    @property
+    def shape(self):
+        """
+        """
+        raise NotImplementedError("TODO")
+
+    @shape.setter
+    def shape(self, shape):
+        """
+        """
+        raise NotImplementedError("TODO")
+
+
+class RandomProcess(_AbstractRandomProcess):
     """
     Random processes.
 
@@ -166,13 +249,13 @@ class RandomProcess:
                         raise ValueError("Support must be within bounds")
                     elif np.any(self._support > bounds[1]):
                         raise ValueError("Support must be within bounds")
-                self._bounds = bounds
+                bounds = bounds
             else:
                 if self._support is not None and self._support.ndim > 1:
                     errormsg = "Please specify bounds for " \
                                "multidimensional random processes."
                     raise ValueError(errormsg)
-                self._bounds = (-np.inf, np.inf)
+                bounds = (-np.inf, np.inf)
         else:  # randvars is seq
             if support is None:
                 self._support = list(range(len(rvcoll)))
@@ -182,8 +265,9 @@ class RandomProcess:
                                 "size of rvcoll")
                     raise ValueError(errormsg)
                 self._support = support
-            self._bounds = (min(self._support), max(self._support))
+            bounds = (min(self._support), max(self._support))
 
+        super().__init__(bounds=bounds, dtype=np.nan, shape=np.nan)
         self._rvcoll = rvcoll
 
     # Callable type methods ############################################
@@ -300,45 +384,6 @@ class RandomProcess:
             errormsg = "Size of support does not fit RandomProcess."
             raise ValueError(errormsg)
         self._support = support
-
-    @property
-    def bounds(self):
-        """
-        """
-        return self._bounds
-
-    @bounds.setter
-    def bounds(self, bounds):
-        """
-        """
-        if len(self._bounds) != len(bounds):  # incomplete check!!
-            errormsg = "Size of bounds does not fit RandomProcess."
-            raise ValueError(errormsg)
-        self._bounds = bounds
-
-    @property
-    def dtype(self):
-        """
-        """
-        raise NotImplementedError("TODO")
-
-    @dtype.setter
-    def dtype(self, dtype):
-        """
-        """
-        raise NotImplementedError("TODO")
-
-    @property
-    def shape(self):
-        """
-        """
-        raise NotImplementedError("TODO")
-
-    @shape.setter
-    def shape(self, shape):
-        """
-        """
-        raise NotImplementedError("TODO")
 
     # Statistics functions #############################################
 

@@ -169,7 +169,7 @@ class TestLTISDEModel(unittest.TestCase):
     def test_chapmankolmogorov(self):
         """
         Test if CK-solution for a single step
-        is according to closed form of IBM covariance..
+        is according to closed form of IBM kernels..
         """
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
         rvar = RandomVariable(distribution=Normal(mean, cov))

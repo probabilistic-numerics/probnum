@@ -19,7 +19,7 @@ class GaussianTransition(Transition):
 
     Examples
     --------
-    >>> from probnum.prob.randomprocess import GaussianTransition
+    >>> from probnum.prob.models import GaussianTransition
     >>> lgt = GaussianTransition(transfun=(lambda t, x: np.sin(x)),
     ...                                    covfun=(lambda t: 0.1))
     >>> forw = lgt.forward(0, 1, value=0.2)
@@ -64,7 +64,7 @@ class LinearGaussianTransition(GaussianTransition):
 
     Examples
     --------
-    >>> from probnum.prob.randomprocess import LinearGaussianTransition
+    >>> from probnum.prob.models import LinearGaussianTransition
     >>> lgt = LinearGaussianTransition(lintransfun=(lambda t: 2),
     ...                                covfun=(lambda t: 0.1))
     >>> forw = lgt.forward(0, 1, value=0.2)

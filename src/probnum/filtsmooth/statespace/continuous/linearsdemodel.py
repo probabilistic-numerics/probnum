@@ -91,7 +91,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
     def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
         """
         Solves differential equations for mean and
-        covariance of the SDE solution (Eq. 5.50 and 5.51
+        kernels of the SDE solution (Eq. 5.50 and 5.51
         or Eq. 10.73 in Applied SDEs).
 
         By default, we assume that ``randvar`` is Gaussian.
@@ -112,7 +112,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
     def _increment(self, time, mean, covar,  **kwargs):
         """
         Euler step for closed form solutions of ODE defining mean
-        and covariance of the solution of the Chapman-Kolmogoro
+        and kernels of the solution of the Chapman-Kolmogoro
         equations (via Fokker-Planck equations, but that is not crucial
         here).
         See RHS of Eq. 10.82 in Applied SDEs.
@@ -197,7 +197,7 @@ class LTISDEModel(LinearSDEModel):
         Solves Chapman-Kolmogorov equation from start to stop via step.
 
         For LTISDEs, there is a closed form solutions to the ODE for
-        mean and covariance (see super().chapmankolmogorov(...)). We
+        mean and kernels (see super().chapmankolmogorov(...)). We
         exploit this for [(stop - start)/step] steps.
 
         References
@@ -235,7 +235,7 @@ class LTISDEModel(LinearSDEModel):
 
     def _predict_covar(self, increment, cov, **kwargs):
         """
-        Predicts covariance via closed-form solution to Chapman-Kolmogorov
+        Predicts kernels via closed-form solution to Chapman-Kolmogorov
         equation for Gauss-Markov processes according to Eq. 6.41 and
         Eq. 6.42 in Applied SDEs.
 

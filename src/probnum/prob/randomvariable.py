@@ -133,7 +133,7 @@ class RandomVariable:
             try:
                 return self._distribution.cov()
             except KeyError:
-                raise NotImplementedError("Underlying {} has no covariance.".format(type(self._distribution).__name__))
+                raise NotImplementedError("Underlying {} has no kernels.".format(type(self._distribution).__name__))
         else:
             raise NotImplementedError("No underlying distribution specified.")
 

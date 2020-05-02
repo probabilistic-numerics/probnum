@@ -1,15 +1,9 @@
 
-import numpy as np
-import scipy.spatial as scs
 
-from probnum.prob.randomprocess.covariance import covariance
-from probnum.utils import *
+from probnum.prob.randomprocess.kernels import kernels
 
 
-__all__ = ["IntegratedBrownianMotionCovariance", "BrownianMotionCovariance"]
-
-
-class IntegratedBrownianMotionCovariance(covariance.Covariance):
+class IntegratedBrownianMotionCovariance(kernels.Kernel):
     """
     """
     def __new__(cls, ordint, diffconst):
@@ -30,7 +24,7 @@ class IntegratedBrownianMotionCovariance(covariance.Covariance):
         pass
 
 
-class BrownianMotionCovariance(covariance.Covariance):
+class BrownianMotionCovariance(kernels.Kernel):
     """
     """
 

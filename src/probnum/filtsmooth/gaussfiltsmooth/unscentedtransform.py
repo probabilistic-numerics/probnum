@@ -56,7 +56,7 @@ class UnscentedTransform:
         np.ndarray, shape (2 * ndim + 1,)
             constant mean weights.
         np.ndarray, shape (2 * ndim + 1,)
-            constant covariance weights.
+            constant kernels weights.
         """
         mweights = _meanweights(self.ndim, self.scale)
         cweights = _covarweights(self.ndim, alp, bet, self.scale)
@@ -71,7 +71,7 @@ class UnscentedTransform:
         mean: np.ndarray, shape (d,)
             mean of Gaussian distribution
         covar: np.ndarray, shape (d, d)
-            covariance of Gaussian distribution
+            kernels of Gaussian distribution
 
         Returns
         -------
@@ -113,10 +113,10 @@ class UnscentedTransform:
     def estimate_statistics(self, proppts, sigpts, covmat, mpred):
         """
         Computes predicted summary statistics,
-        predicted mean/covariance/crosscovariance,
+        predicted mean/kernels/crosscovariance,
         from (propagated) sigmapoints.
 
-        Not to be confused with mean and covariance resulting
+        Not to be confused with mean and kernels resulting
         from the prediction step of the Bayesian filter.
         Hence we call it "estimate_*" instead of "predict_*".
         """
@@ -183,7 +183,7 @@ def _covarweights(ndim, alp, bet, lam):
     Returns
     -------
     np.ndarray, shape (2 * ndim + 1,)
-        the constant covariance weights.
+        the constant kernels weights.
     """
     cw0 = np.ones(1) * lam / (ndim + lam) + (1 - alp ** 2 + bet)
     cw = np.ones(2 * ndim) / (2.0 * (ndim + lam))
@@ -216,7 +216,7 @@ def _estimate_covar(cweights, proppts, mean, covmat):
     Arguments
     ---------
     cweights: np.ndarray, shape (2*ndim + 1,)
-        Constant covariance weights for unscented transform.
+        Constant kernels weights for unscented transform.
     proppts: np.ndarray, shape (2*ndim + 1, ndim)
         Propagated sigma points
     mean: np.ndarray, shape (ndim,)
@@ -227,7 +227,7 @@ def _estimate_covar(cweights, proppts, mean, covmat):
     Returns
     -------
     np.ndarray, shape (ndim, ndim)
-        Estimated covariance.
+        Estimated kernels.
     """
     cent = proppts - mean
     empcov = cent.T @ (cweights * cent.T).T
@@ -241,7 +241,7 @@ def _estimate_crosscovar(cweights, proppts, mean, sigpts, mpred):
     Arguments
     ---------
     cweights: np.ndarray, shape (2*ndim + 1,)
-        Constant covariance weights for unscented transform.
+        Constant kernels weights for unscented transform.
     sigpts: np.ndarray, shape (2*ndim + 1, ndim)
         Sigma points
     mpred: np.ndarray, shape (ndim,)
@@ -254,7 +254,7 @@ def _estimate_crosscovar(cweights, proppts, mean, sigpts, mpred):
     Returns
     -------
     np.ndarray, shape (ndim,)
-        Estimated covariance.
+        Estimated kernels.
     """
     cent_prop = proppts - mean
     cent_sig = sigpts - mpred

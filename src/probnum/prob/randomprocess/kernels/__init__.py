@@ -1,4 +1,4 @@
 
 
-from .covariance import *
+from .kernels import *
 from .brownianmotioncovariance import *

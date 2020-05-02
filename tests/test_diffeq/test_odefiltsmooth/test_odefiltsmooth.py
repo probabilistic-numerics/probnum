@@ -149,7 +149,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
 
     def test_t1(self):
         """
-        The covariance does not coincide exactly because of the
+        The kernels does not coincide exactly because of the
         uncertainty calibration that takes place in
         GaussianIVPFilter.solve()
         and not in Prop. 1 of Schober et al., 2019.

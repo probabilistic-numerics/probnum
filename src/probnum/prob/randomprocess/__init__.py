@@ -1,10 +1,10 @@
 
 from .randomprocess import *
-from .covariance import *
+from .kernels import *
 from .gaussianprocess import *
 
 __all__ = ["RandomProcess", "GaussianProcess",
-           "Covariance", "IntegratedBrownianMotionCovariance",
+           "Kernel", "IntegratedBrownianMotionCovariance",
            "BrownianMotionCovariance"]
 
 # Set correct module paths (for superclasses).

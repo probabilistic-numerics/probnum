@@ -86,14 +86,14 @@ class Normal(Distribution):
             else:
                 errmsg = ("Cannot instantiate normal distribution with mean of "
                           + "type {} and ".format(mean.__class__.__name__)
-                          + "covariance of "
+                          + "kernels of "
                           + "type {}.".format(cov.__class__.__name__))
                 raise ValueError(errmsg)
         else:
             return super().__new__(cls)
 
     def __init__(self, mean=0., cov=1., random_state=None):
-        # TODO: Only keep Cholesky factors as covariance to avoid losing symmetry
+        # TODO: Only keep Cholesky factors as kernels to avoid losing symmetry
         super().__init__(parameters={"mean": mean, "cov": cov}, dtype=float, random_state=random_state)
 
     def mean(self):
@@ -270,7 +270,7 @@ class Normal(Distribution):
 
 def _both_are_univariate(mean, cov):
     """
-    Checks whether mean and covariance correspond to the
+    Checks whether mean and kernels correspond to the
     UNIVARIATE normal distribution.
     """
     both_are_scalars = np.isscalar(mean) and np.isscalar(cov)
@@ -282,7 +282,7 @@ def _both_are_univariate(mean, cov):
 
 def _both_are_multivariate(mean, cov):
     """
-    Checks whether mean and covariance correspond to the
+    Checks whether mean and kernels correspond to the
     MULTI- or MATRIXVARIATE normal distribution.
     """
     mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
@@ -292,7 +292,7 @@ def _both_are_multivariate(mean, cov):
 
 def _both_are_matrixvariate(mean, cov):
     """
-    Checks whether mean and covariance correspond to the
+    Checks whether mean and kernels correspond to the
     MULTI- or MATRIXVARIATE normal distribution.
     """
     mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
@@ -302,7 +302,7 @@ def _both_are_matrixvariate(mean, cov):
 
 def _both_are_symmkronidfactors(mean, cov):
     """
-    Checks whether mean OR (!) covariance correspond to the
+    Checks whether mean OR (!) kernels correspond to the
     OPERATORVARIATE normal distribution.
     """
     mean_is_opvariate = isinstance(mean, scipy.sparse.linalg.LinearOperator)
@@ -315,7 +315,7 @@ def _both_are_symmkronidfactors(mean, cov):
 
 def _both_are_operatorvariate(mean, cov):
     """
-    Checks whether mean OR (!) covariance correspond to the
+    Checks whether mean OR (!) kernels correspond to the
     OPERATORVARIATE normal distribution.
     """
     mean_is_opvariate = isinstance(mean, scipy.sparse.linalg.LinearOperator)
@@ -361,7 +361,7 @@ class _MultivariateNormal(Normal):
 
     def __init__(self, mean, cov, random_state=None):
         """
-        Checks if mean and covariance have matching shapes before
+        Checks if mean and kernels have matching shapes before
         initialising.
         """
         meandim = np.prod(mean.shape)
@@ -369,9 +369,9 @@ class _MultivariateNormal(Normal):
             raise ValueError("Covariance must be a 2D matrix "
                              "or linear operator.")
         if meandim != cov.shape[0] or meandim != cov.shape[1]:
-            raise ValueError("Shape mismatch of mean and covariance. Total "
+            raise ValueError("Shape mismatch of mean and kernels. Total "
                              "number of elements of the mean must match the "
-                             "first and second dimension of the covariance.")
+                             "first and second dimension of the kernels.")
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
     def var(self):
@@ -447,16 +447,16 @@ class _MatrixvariateNormal(Normal):
 
     def __init__(self, mean, cov, random_state=None):
         """
-        Checks if mean and covariance have matching shapes before
+        Checks if mean and kernels have matching shapes before
         initialising.
         """
         _mean_dim = np.prod(mean.shape)
         if len(cov.shape) != 2:
             raise ValueError("Covariance must be a 2D matrix.")
         if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
-            raise ValueError("Shape mismatch of mean and covariance. Total "
+            raise ValueError("Shape mismatch of mean and kernels. Total "
                              "number of elements of the mean must match the "
-                             "first and second dimension of the covariance.")
+                             "first and second dimension of the kernels.")
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
     def var(self):
@@ -519,7 +519,7 @@ class _OperatorvariateNormal(Normal):
         elif isinstance(cov, linops.SymmetricKronecker):
             _check_shapes_if_symmetric_kronecker(mean, cov)
         elif self._mean_dim != cov.shape[0] or self._mean_dim != cov.shape[1]:
-            raise ValueError("Shape mismatch of mean and covariance.")
+            raise ValueError("Shape mismatch of mean and kernels.")
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
     def var(self):
@@ -527,7 +527,7 @@ class _OperatorvariateNormal(Normal):
 
     # TODO: implement more efficient versions of (pdf, logpdf, sample) functions for linear operators without todense()
     def _params_todense(self):
-        """Returns the mean and covariance of a distribution as dense matrices."""
+        """Returns the mean and kernels of a distribution as dense matrices."""
         if isinstance(self.mean(), linops.LinearOperator):
             mean = self.mean().todense()
         else:
@@ -577,19 +577,19 @@ class _OperatorvariateNormal(Normal):
 
 def _check_shapes_if_kronecker(mean, cov):
     """
-    If mean has dimension (m x n) then covariance factors must be
+    If mean has dimension (m x n) then kernels factors must be
     (m x m) and (n x n)
     """
     m, n = mean.shape
     if m != cov.A.shape[0] or m != cov.A.shape[1] or n != cov.B.shape[0] or n != cov.B.shape[1]:
-        raise ValueError("Kronecker structured covariance must have "
+        raise ValueError("Kronecker structured kernels must have "
                          "factors with the same shape as the mean.")
 
 
 class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
     """
     Normal distribution with symmetric Kronecker structured
-    covariance with identical factors V (x)_s V.
+    kernels with identical factors V (x)_s V.
     """
 
     def __init__(self, mean, cov, random_state=None):
@@ -632,13 +632,13 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
 
 def _check_shapes_if_symmetric_kronecker(mean, cov):
     """
-    Mean has to be square. If mean has dimension (n x n) then covariance
+    Mean has to be square. If mean has dimension (n x n) then kernels
     factors must be (n x n).
     """
     m, n = mean.shape
     if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
         raise ValueError("Normal distributions with symmetric "
-                         "Kronecker structured covariance must "
+                         "Kronecker structured kernels must "
                          "have square mean and square "
-                         "covariance factors with matching "
+                         "kernels factors with matching "
                          "dimensions.")
