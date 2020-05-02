@@ -11,11 +11,11 @@ class GaussianProcess(_AbstractRandomProcess):
     """
     Parameters
     ----------
-    meanfun : callable, signature=``(x)``
-
+    meanfun : callable, signature=``(x)``, optional.
+        Mean of the Gaussian process, default is zero mean.
     covkernfun : callable or Kernel
         Covariance kernel of the GP. Not to be confused with the
-        method :meth:`covfun`.
+        method :meth:`covfun`. Default is zero covariance.
     """
     def __init__(self, meanfun=None, covkernfun=None, shape=None, dtype=None):
         """

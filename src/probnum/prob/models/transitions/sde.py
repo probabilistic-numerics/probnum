@@ -36,6 +36,7 @@ class SDE(Transition):
     """
     def __init__(self, driftfun, dispfun, difffun, jacobfun=None):
         """ """
+        # todo: add support/bounds
         self._driftfun = driftfun
         self._dispfun = dispfun
         self._difffun = difffun
