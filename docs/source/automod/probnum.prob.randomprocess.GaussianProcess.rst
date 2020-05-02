@@ -12,7 +12,6 @@ GaussianProcess
 
       ~GaussianProcess.bounds
       ~GaussianProcess.dtype
-      ~GaussianProcess.shape
 
    .. rubric:: Methods Summary
 
@@ -20,6 +19,7 @@ GaussianProcess
 
       ~GaussianProcess.__call__
       ~GaussianProcess.covfun
+      ~GaussianProcess.covkernfun
       ~GaussianProcess.meanfun
       ~GaussianProcess.sample
 
@@ -27,11 +27,11 @@ GaussianProcess
 
    .. autoattribute:: bounds
    .. autoattribute:: dtype
-   .. autoattribute:: shape
 
    .. rubric:: Methods Documentation
 
    .. automethod:: __call__
    .. automethod:: covfun
+   .. automethod:: covkernfun
    .. automethod:: meanfun
    .. automethod:: sample

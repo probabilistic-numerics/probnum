@@ -1,9 +1,10 @@
-
+"""
+"""
 
 from probnum.prob.randomprocess.kernels import kernels
 
 
-class IntegratedBrownianMotionCovariance(kernels.Kernel):
+class IntegratedBrownianMotionKernel(kernels.Kernel):
     """
     """
     def __new__(cls, ordint, diffconst):
@@ -11,9 +12,9 @@ class IntegratedBrownianMotionCovariance(kernels.Kernel):
         If q=0, return BrownianMotion object instead
         of IntegratedBrownianMotion.
         """
-        if cls is IntegratedBrownianMotionCovariance:
+        if cls is IntegratedBrownianMotionKernel:
             if ordint == 0:
-                return BrownianMotionCovariance(diffconst=diffconst)
+                return BrownianMotionKernel(diffconst=diffconst)
         else:
             return super().__new__(cls)
 
@@ -24,7 +25,7 @@ class IntegratedBrownianMotionCovariance(kernels.Kernel):
         pass
 
 
-class BrownianMotionCovariance(kernels.Kernel):
+class BrownianMotionKernel(kernels.Kernel):
     """
     """
 

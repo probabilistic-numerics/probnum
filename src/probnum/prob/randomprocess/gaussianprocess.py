@@ -3,7 +3,7 @@ Gaussian process interface.
 """
 
 from probnum.prob.randomprocess.randomprocess import _AbstractRandomProcess
-from probnum.prob.randomprocess.covariance import *
+from probnum.prob.randomprocess.kernels.kernels import Kernel
 from probnum.prob import Normal, RandomVariable
 
 
@@ -20,8 +20,8 @@ class GaussianProcess(_AbstractRandomProcess):
     def __init__(self, meanfun=None, covkernfun=None, shape=None, dtype=None):
         """
         """
-        if not issubclass(type(covkernfun), Covariance):
-            covkernfun = Covariance(covfun=covkernfun)
+        if not issubclass(type(covkernfun), Kernel):
+            covkernfun = Kernel(kernfun=covkernfun)
         self._meanfun = meanfun
         self._covfun = covkernfun
         # todo: make bounds [(-inf, inf), ..., (-inf, inf)] depending
@@ -51,7 +51,6 @@ class GaussianProcess(_AbstractRandomProcess):
         Covariance kernel (function) of the Gaussian process.
         """
         raise NotImplementedError
-
 
     def covfun(self, x):
         """

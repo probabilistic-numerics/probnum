@@ -1,30 +1,30 @@
-BrownianMotionCovariance
-========================
+Kernel
+======
 
 .. currentmodule:: probnum.prob.randomprocess
 
-.. autoclass:: BrownianMotionCovariance
+.. autoclass:: Kernel
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~BrownianMotionCovariance.params
-      ~BrownianMotionCovariance.parderiv
-      ~BrownianMotionCovariance.xderiv
-      ~BrownianMotionCovariance.xidx
-      ~BrownianMotionCovariance.yderiv
-      ~BrownianMotionCovariance.yidx
+      ~Kernel.params
+      ~Kernel.parderiv
+      ~Kernel.xderiv
+      ~Kernel.xidx
+      ~Kernel.yderiv
+      ~Kernel.yidx
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~BrownianMotionCovariance.__call__
-      ~BrownianMotionCovariance.check_xderiv
-      ~BrownianMotionCovariance.check_yderiv
-      ~BrownianMotionCovariance.covfun
+      ~Kernel.__call__
+      ~Kernel.check_xderiv
+      ~Kernel.check_yderiv
+      ~Kernel.kernfun
 
    .. rubric:: Attributes Documentation
 
@@ -40,4 +40,4 @@ BrownianMotionCovariance
    .. automethod:: __call__
    .. automethod:: check_xderiv
    .. automethod:: check_yderiv
-   .. automethod:: covfun
+   .. automethod:: kernfun

@@ -13,11 +13,11 @@ class Kernel:
 
     Parameters
     ----------
-    covfun : callable, signature=``(x, y)``
+    kernfun : callable, signature=``(x, y)``
     params : list
         Parameters of the kernels. If not empty, calls to the
         evaluation of the kernels objects are done via
-        ``self._covfun(x, y, self._params)``, i.e. in this case
+        ``self._kernfun(x, y, self._params)``, i.e. in this case
         the object expects kernels function signature of
         ``(x, y, params)``.
     parderiv : callable or Kernel
@@ -56,14 +56,14 @@ class Kernel:
     --------
 
     To initialize a Kernel object just pass a function with
-    signature ``(x, y)`` to the ``covfun`` key.
+    signature ``(x, y)`` to the ``kernfun`` key.
 
     >>> from probnum.prob.randomprocess import Kernel
-    >>> kern = Kernel(covfun=(lambda x, y: 1))
+    >>> kern = Kernel(kernfun=(lambda x, y: 1))
 
-    It can be evaluated with ``self.covfun(x, y)``
+    It can be evaluated with ``self.kernfun(x, y)``
 
-    >>> print(kern.covfun(3, 4))
+    >>> print(kern.kernfun(3, 4))
     1
 
     But it is also possible to call the object directly
@@ -72,15 +72,15 @@ class Kernel:
     1
 
     which works because ``__call__(self, x, y)``
-    calls ``self.covfun(x, y)``.
+    calls ``self.kernfun(x, y)``.
 
     One thing that this object can do that generic functions cannot
     do is know derivatives
 
-    >>> kern2 = Kernel(covfun=(lambda x, y: x**2 + y**2),
+    >>> kern2 = Kernel(kernfun=(lambda x, y: x**2 + y**2),
     ...                xderiv=(lambda x, y: 2*x),
     ...                yderiv=(lambda x, y: 2*y))
-    >>> kern2.covfun(3, 4)
+    >>> kern2.kernfun(3, 4)
     25
     >>> kern2(3, 4)
     25
@@ -91,14 +91,14 @@ class Kernel:
 
     or that know explicit parameterizations
 
-    >>> kern3 = Kernel(covfun=(lambda x, y, p: p*(x**2 + y)), params=3,
+    >>> kern3 = Kernel(kernfun=(lambda x, y, p: p*(x**2 + y)), params=3,
     ...                parderiv=(lambda x, y, p: x**2 + y))
     >>> kern3(3, 4)
     39
     >>> kern3.parderiv(3, 4)
     13
 
-    >>> kern4 = Kernel(covfun=(lambda x, y, p: p[0]*(x**2 + p[1]*y)),
+    >>> kern4 = Kernel(kernfun=(lambda x, y, p: p[0]*(x**2 + p[1]*y)),
     ...                params=[1, 2],
     ...                parderiv=(lambda x, y, p: [x**2 + p[1]*y, p[0]*y]))
     >>> kern4(3, 4)
@@ -107,7 +107,7 @@ class Kernel:
     [17, 4]
 
     The second example also shows how to implement vector-valued
-    covariances which can be used for computing full gradients.
+    kernels which can be used for computing full gradients.
 
     TODO
     ----
@@ -137,7 +137,7 @@ class Kernel:
 
     def __call__(self, x, y):
         """
-        Proxy for self.covfun(x, y)
+        Proxy for self.kernfun(x, y)
         """
         return self.kernfun(x, y)
 
@@ -162,7 +162,7 @@ class Kernel:
         """
         Return :math:`\\partial_{\\theta} k_\\theta(x, y)`.
 
-        To evaluate it, call ``self.parderiv.covfun(x, y)``
+        To evaluate it, call ``self.parderiv.kernfun(x, y)``
         or ``self.parderiv(x, y)``.
         """
         return self._parderiv
@@ -172,7 +172,7 @@ class Kernel:
         """
         Return :math:`\\partial_{x_i} k(x, y)` as a Kernel object.
 
-        To evaluate it, call ``self.xderiv.covfun(x, y)``
+        To evaluate it, call ``self.xderiv.kernfun(x, y)``
         or ``self.xderiv(x, y)``.
         """
         return self._xderiv
@@ -196,7 +196,7 @@ class Kernel:
         """
         Return :math:`\\partial_{y_j} k(x, y)` as a Kernel object.
 
-        To evaluate it, call ``self.yderiv.covfun(x, y)``.
+        To evaluate it, call ``self.yderiv.kernfun(x, y)``.
         or ``self.yderiv(x, y)``.
         """
         return self._yderiv
