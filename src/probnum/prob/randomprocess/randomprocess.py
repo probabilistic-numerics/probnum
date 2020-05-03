@@ -15,6 +15,9 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
+__all__ = ["RandomProcess"]   # the others are internal/private
+
+
 class _RandomProcess(ABC):
     """
     Interface for random processes.
@@ -71,6 +74,7 @@ class _RandomProcess(ABC):
     @property
     def randvars(self):
         """
+        Collection of random variables. Either a function or a sequence.
         """
         return self._randvars
 
@@ -220,11 +224,11 @@ class RandomProcess(_RandomProcess):
     - *Continuous:* If no ``support`` is specified, the object assumes
       to be continuous.
       If ``bounds`` is not specified either, ``bounds`` are set
-      to ``bounds=(-inf, inf)``.
+      to ``bounds=(-inf, inf)``. In any case, ``supportpts`` is ignored.
 
 
-    A continuous time RandomProcess behaves like a callable and a
-    numeric type. A discrete time RandomProcess additionally emulates
+    Any RandomProcess can be used like a function (callable).
+    A discrete time RandomProcess additionally emulates
     container types supporting ``__len__``, ``__getitem__``, etc..
 
 
@@ -350,6 +354,26 @@ class RandomProcess(_RandomProcess):
     def __init__(self, randvars, supportpts, bounds):
         """ """
         super().__init__(randvars, supportpts, bounds)
+
+    # Abstract callable type methods ###################################
+
+    def __call__(self, x):
+        """ """
+        raise NotImplementedError
+
+    # Abstract statistical functions ###################################
+
+    def meanfun(self, x):
+        """ """
+        raise NotImplementedError
+
+    def covfun(self, x):
+        """ """
+        raise NotImplementedError
+
+    def sample(self, x, size=()):
+        """ """
+        raise NotImplementedError
 
 
 class _DiscreteProcess(RandomProcess, _RandomProcess):
