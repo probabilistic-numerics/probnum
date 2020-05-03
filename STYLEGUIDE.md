@@ -95,11 +95,14 @@ Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - Indices via `idx` (either `idx1`, `idx2`, ... or `idx`, `jdx`, `kdx`)
   and not via `i, j, k`. The former is more readable (and follows PEP8);
   the latter may collide with the built-in imaginary constant `j=sqrt(-1)`.
-- A function maps from its ``support`` to its ``range``.
+- A function maps from its ``domain`` to its ``range``.
   The ``range`` of a random variable
-  is the ``support`` of its distribution. The ``range`` of a random process
-  is the ``range`` of the associated random variables. The ``support`` of a random
-  process is either {t_1, t_2, ...} or (a, b).
+  is the ``domain`` of its distribution. 
+  
+  The ``range`` of a random process
+  is the ``range`` of the associated random variables. The ``domain`` of a random
+  process is either given by ``supportpts`` {t_1, t_2, ...} (discrete-time processes)
+  or  ``bounds`` (a, b) (continuous-time processes).
 
 ## Errors and Warnings
 - Stick to the built-in python exceptions (`TypeError`, `NotImplementedError`, ...)
