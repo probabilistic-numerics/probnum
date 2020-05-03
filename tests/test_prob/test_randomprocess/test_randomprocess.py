@@ -19,6 +19,7 @@ class NiceTestCases1d(unittest.TestCase):
         self.bounds = [None, (-np.inf, np.inf), (-4, 4)]
         self.rvseq = [RandomVariable(distribution=Normal())
                       for __ in range(10)]
+        # self.rvseq = list(range(0, np.random.randint(10)))
         self.rvmap = rvmap
 
     def test_init_rvseq(self):
@@ -26,50 +27,16 @@ class NiceTestCases1d(unittest.TestCase):
         They should all raise ValueErrors
         """
         for supp in self.supports:
-            for bds in self.bounds:
-                with self.subTest(supp=supp, bds=bds):
-                    RandomProcess(self.rvseq, support=supp, bounds=bds)
+            with self.subTest(supp=supp, bds=None):
+                RandomProcess(self.rvseq, supportpts=supp)
 
     def test_init_rvmap(self):
         """
         """
         for supp in self.supports:
-            for bds in self.bounds:
-                with self.subTest(supp=supp, bds=bds):
-                    RandomProcess(self.rvmap, support=supp, bounds=bds)
+            with self.subTest(supp=supp, bds=None):
+                RandomProcess(self.rvmap, supportpts=supp)
 
-
-class AdversarialTestCases(unittest.TestCase):
-    """
-    Parameter configurations that should lead to ValueErrors.
-    """
-    def setUp(self):
-        """ """
-        def rvmap(x):
-            return RandomVariable(distribution=Normal(x, 0.1))
-
-        self.supports = [2, np.ones(1), np.eye(3), "abc", [1, 2, 3]]
-        self.bounds = [(-np.inf, 0), (1, 2, 3), [1, -1]]
-        self.rvseq = np.array([RandomVariable(distribution=Normal())
-                               for i in range(10)])
-        self.rvmap = rvmap
-
-    def test_init_rvseq(self):
-        """
-        They should all raise ValueErrors.
-        """
-        for supp in self.supports:
-            for bds in self.bounds:
-                with self.subTest(supp=supp, bds=bds):
-                    with self.assertRaises(ValueError):
-                        RandomProcess(self.rvseq, support=supp, bounds=bds)
-
-    def test_init_rvmap(self):
-        """
-        They should all raise ValueErrors.
-        """
-        for supp in self.supports:
-            for bds in self.bounds:
-                with self.subTest(supp=supp, bds=bds):
-                    with self.assertRaises(ValueError):
-                        RandomProcess(self.rvmap, support=supp, bounds=bds)
+        for bds in self.bounds:
+            with self.subTest(supp=None, bds=bds):
+                RandomProcess(self.rvmap, bounds=bds)

@@ -11,8 +11,10 @@ RandomProcess
    .. autosummary::
 
       ~RandomProcess.bounds
+      ~RandomProcess.domain
       ~RandomProcess.dtype
-      ~RandomProcess.support
+      ~RandomProcess.randvars
+      ~RandomProcess.supportpts
 
    .. rubric:: Methods Summary
 
@@ -27,8 +29,10 @@ RandomProcess
    .. rubric:: Attributes Documentation
 
    .. autoattribute:: bounds
+   .. autoattribute:: domain
    .. autoattribute:: dtype
-   .. autoattribute:: support
+   .. autoattribute:: randvars
+   .. autoattribute:: supportpts
 
    .. rubric:: Methods Documentation
 

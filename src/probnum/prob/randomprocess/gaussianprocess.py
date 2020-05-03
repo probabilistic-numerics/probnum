@@ -2,12 +2,12 @@
 Gaussian process interface.
 """
 
-from probnum.prob.randomprocess.randomprocess import _AbstractRandomProcess
+# from probnum.prob.randomprocess.randomprocess import _AbstractRandomProcess
 from probnum.prob.randomprocess.kernels.kernels import Kernel
 from probnum.prob import Normal, RandomVariable
 
 
-class GaussianProcess(_AbstractRandomProcess):
+class GaussianProcess:
     """
     Parameters
     ----------
