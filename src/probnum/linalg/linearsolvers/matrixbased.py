@@ -705,15 +705,11 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         # Transform system to linear operator
         A_preproc = A
-        if not isinstance(A, scipy.sparse.linalg.LinearOperator):
-            if isinstance(A, prob.RandomVariable):
-                def mv(x):
-                    return (A @ x).sample(size=1)
+        if isinstance(A, prob.RandomVariable):
+            def mv(x):
+                return (A @ x).sample(size=1)
 
-                A_preproc = linops.LinearOperator(matvec=mv, matmat=mv, shape=A.shape, dtype=A.dtype)
-            else:
-                warnings.warn(
-                    message="A is assumed to be noisy, but is neither a random variable nor a linear operator.")
+            A_preproc = linops.LinearOperator(matvec=mv, matmat=mv, shape=A.shape, dtype=A.dtype)
 
         super().__init__(A=A_preproc, b=b, x0=x0)
 

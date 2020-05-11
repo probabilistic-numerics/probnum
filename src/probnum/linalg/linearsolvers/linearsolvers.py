@@ -321,15 +321,18 @@ def _preprocess_linear_system(A, b, x0=None):
     # Check initial guess for x0 by computing inner product between x0 and b
     if x0 is not None:
         bx0 = np.squeeze(b.T @ x0)
+        bb = np.linalg.norm(b) ** 2
         if bx0 < 0:
             x0 = -x0
-            print("Better initialization found, using x0 = - x0.")
+            print("Better initialization found, setting x0 = - x0.")
         elif bx0 == 0:
             if np.all(b == np.zeros_like(b)):
-                print("Right-hand-side is zero. Using solution x0 = 0.")
+                print("Right-hand-side is zero. Initializing with solution x0 = 0.")
+                x0 = b
             else:
-                print("Better initialization found, using x0 = b.")
-            x0 = b
+                print("Better initialization found, setting x0 = (b'b/b'Ab) * b.")
+                bAb = np.squeeze(b.T @ A @ b)
+                x0 = bb / bAb * b
 
     # Transform linear system to correct dimensions
     b = utils.as_colvec(b)  # (n,) -> (n, 1)
@@ -392,7 +395,8 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
     # System matrix is NOT noisy
     if not isinstance(A, prob.RandomVariable) and not isinstance(A, scipy.sparse.linalg.LinearOperator) and \
             "noise" in assume_A:
-        warnings.warn("System matrix is not noisy. Use exact probabilistic linear solver instead for speedup.")
+        warnings.warn("A is assumed to be noisy, but is neither a random variable nor a linear operator. Use exact "
+                      "probabilistic linear solver instead.")
 
     # Solution-based view
     if isinstance(x0, prob.RandomVariable):
