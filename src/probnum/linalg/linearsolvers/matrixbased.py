@@ -136,16 +136,19 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         Ainv0_mean : linops.LinearOperator
             Mean of the matrix-variate prior distribution on the inverse of the system matrix :math:`H = A^{-1}`.
         """
-        # Check inner product between x0 and b; if negative choose better initialization
+        # Check inner product between x0 and b; if negative or zero choose better initialization
         bx0 = np.squeeze(self.b.T @ self.x0)
+        bb = np.linalg.norm(self.b) ** 2
         if bx0 < 0:
             self.x0 = -self.x0
             bx0 = - bx0
         elif bx0 == 0:
-            self.x0 = self.b
+            bAb = np.squeeze(self.b.T @ self.A @ self.b)
+            self.x0 = bb / bAb * self.b
+            bx0 = bb ** 2 / bAb
 
         # Construct prior mean of A and H
-        alpha = 0.5 * bx0 / np.linalg.norm(self.b) ** 2
+        alpha = 0.5 * bx0 / bb
 
         def _mv(v):
             return (self.x0 - alpha * self.b) * (self.x0 - alpha * self.b).T @ v
@@ -932,7 +935,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                                 distribution=prob.Normal(mean=self.x_mean.ravel(), cov=self.x_cov))
         return x, A, Ainv
 
-    def solve(self, callback=None, maxiter=None, ctol=None, noise_scale=None, **kwargs):
+    def solve(self, callback=None, maxiter=None, ctol=10 ** -6, noise_scale=None, **kwargs):
         """
         Solve the linear system :math:`Ax=b`.
 
@@ -1014,7 +1017,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             def _mv(x):
                 return np.zeros_like(x)
 
-            self.mean_cov = linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv)
+            # self.x_cov = linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv)
 
             # Iteration increment
             self.iter_ += 1

@@ -441,12 +441,11 @@ def _postprocess(info, A):
     machine_eps = 10 ** -16
 
     # Singular matrix
-    # TODO: get info from solver
-    if False:
-        raise scipy.linalg.LinAlgError("The system matrix A is singular.")
+    # # TODO: get info from solver
+    # if False:
+    #     raise scipy.linalg.LinAlgError("The system matrix A is singular.")
     # Ill-conditioned matrix A
-    if rel_cond is not None:
-        if 1 / rel_cond < machine_eps:
-            warnings.warn(
-                "Ill-conditioned matrix detected (estimated rcond={:.6g}). Results are likely inaccurate.".format(
-                    rel_cond), scipy.linalg.LinAlgWarning, stacklevel=3)
+    if rel_cond is not None and 1 / rel_cond < machine_eps:
+        warnings.warn(
+            "Ill-conditioned matrix detected (estimated rcond={:.6g}). Results are likely inaccurate.".format(
+                rel_cond), scipy.linalg.LinAlgWarning, stacklevel=3)
