@@ -489,7 +489,7 @@ class _MatrixvariateNormal(Normal):
                                                        size=size,
                                                        random_state=self.random_state)
         # TODO: maybe distributions need an attribute sample_shape
-        return ravelled.reshape(newshape=self.shape)
+        return ravelled.reshape(self.shape)
 
     def reshape(self, newshape):
         if np.prod(newshape) != np.prod(self.shape):

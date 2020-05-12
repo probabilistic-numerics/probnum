@@ -149,19 +149,26 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     if maxiter is None:
         maxiter = n * 10
 
-    # Iteratively solve for multiple right hand sides (with posteriors as new priors)
-    for i in range(nrhs):
-        # Select and initialize solver
-        if i > 0:
-            x = None  # Only use prior information on Ainv for multiple rhs
-        linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A)
+
+    if nrhs > 1:
+        # Iteratively solve for multiple right hand sides (with posteriors as new priors)
+        for i in range(nrhs):
+            if i > 0:
+                x = None  # Only use prior information on Ainv for multiple rhs
+            # Select and initialize solver
+            linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A)
+
+            # Solve linear system
+            x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs)
+
+        # Return Ainv @ b for multiple rhs
+        x = Ainv0 @ b
+    else:
+        # Single right hand side
+        linear_solver = _init_solver(A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A)
 
         # Solve linear system
         x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs)
-
-    # Return Ainv @ b for multiple rhs
-    if nrhs > 1:
-        x = Ainv0 @ b
 
     # Check result and issue warnings (e.g. singular or ill-conditioned matrix)
     _postprocess(info=info, A=A)
@@ -337,7 +344,7 @@ def _preprocess_linear_system(A, b, x0=None):
 
     # Transform linear system to correct dimensions and rhs to random variable
     if not isinstance(b, prob.RandomVariable):
-        b = prob.Dirac(support=utils.as_colvec(b))  # (n,) -> (n, 1)
+        b = utils.as_colvec(b)  # (n,) -> (n, 1)
     if x0 is not None:
         x0 = utils.as_colvec(x0)  # (n,) -> (n, 1)
 

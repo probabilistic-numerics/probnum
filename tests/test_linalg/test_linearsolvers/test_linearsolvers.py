@@ -392,7 +392,7 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
                 # Matrix-based solver
                 smbs = linalg.MatrixBasedSolver(A=A, b=b, x0=x0)
-                A0_mean, Ainv0_mean = smbs._matrix_prior_means_from_initial_solution_guess()
+                A0_mean, Ainv0_mean = smbs._construct_symmetric_matrix_prior_means(b=b, x0=x0)
                 A0_mean_dense = A0_mean.todense()
                 Ainv0_mean_dense = Ainv0_mean.todense()
 
@@ -444,8 +444,9 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             np.array([[.893], [3.5], [-1]])
         ]
         self.noisy_right_hand_sides = [
-            prob.RandomVariable(distribution=prob.Normal(mean=np.array([0, 1]), cov=np.array([[2, .1], [.1, 4]]))),
-            prob.RandomVariable(distribution=prob.Dirac(support=np.array([[.1], [-4], [0]])))
+            prob.RandomVariable(shape=(2, 1),
+                                distribution=prob.Normal(mean=np.array([[0.], [1.]]), cov=0.1 * np.array([[2, .1], [.1, 4]]))),
+            prob.RandomVariable(shape=(3, 1), distribution=prob.Dirac(support=np.array([[.1], [-4], [0]])))
         ]
 
     def test_solve_noisy_problem(self):
@@ -463,7 +464,7 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         for (A, E, b) in zip(self.system_matrices, self.noise, self.noisy_right_hand_sides):
             with self.subTest():
                 x, _, _, info = linalg.problinsolve(A=A + E, b=b, ctol=10 ** -6, assume_A="symposnoise")
-                #self.assertAllClose(A @ x.mean(), b, rtol=10 ** -6)
+                self.assertAllClose(A @ x.mean(), np.squeeze(b.mean()), rtol=10 ** -6)
 
     def test_multiple_rhs(self):
         """Noisy linear system with matrix right hand side."""
