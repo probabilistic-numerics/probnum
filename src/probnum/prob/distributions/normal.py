@@ -350,8 +350,12 @@ class _UnivariateNormal(Normal):
         return scipy.stats.norm.rvs(loc=self.mean(), scale=self.std(),
                                     size=size, random_state=self.random_state)
 
-    def reshape(self, shape):
-        raise NotImplementedError
+    def reshape(self, newshape):
+        if np.prod(newshape) != 1:
+            raise ValueError(f"Cannot reshape distribution with shape {self.shape} into shape {newshape}.")
+        self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
+        self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
+        self._shape = newshape
 
 
 class _MultivariateNormal(Normal):
@@ -398,7 +402,7 @@ class _MultivariateNormal(Normal):
                                                    cov=self.cov(), size=size,
                                                    random_state=self.random_state)
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         raise NotImplementedError
 
     # Arithmetic Operations ###############################
@@ -468,7 +472,7 @@ class _MatrixvariateNormal(Normal):
                                                            mean=self.mean().ravel(),
                                                            cov=self.cov())
         # TODO: this reshape is incorrect, write test for multiple matrices
-        return pdf_ravelled.reshape(shape=self.mean().shape)
+        return pdf_ravelled.reshape(newshape=self.shape)
 
     def logpdf(self, x):
         raise NotImplementedError
@@ -485,10 +489,14 @@ class _MatrixvariateNormal(Normal):
                                                        size=size,
                                                        random_state=self.random_state)
         # TODO: maybe distributions need an attribute sample_shape
-        return ravelled.reshape(shape=self.mean().shape)
+        return ravelled.reshape(newshape=self.shape)
 
-    def reshape(self, shape):
-        raise NotImplementedError
+    def reshape(self, newshape):
+        if np.prod(newshape) != np.prod(self.shape):
+            raise ValueError(f"Cannot reshape distribution with shape {self.shape} into shape {newshape}.")
+        self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
+        self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
+        self._shape = newshape
 
     # Arithmetic Operations
     # TODO: implement special rules for matrix-variate RVs and Kronecker
@@ -558,7 +566,7 @@ class _OperatorvariateNormal(Normal):
                                                                random_state=self.random_state)
         return samples_ravelled.reshape(samples_ravelled.shape[:-1] + self.mean().shape)
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         raise NotImplementedError
 
     # Arithmetic Operations ############################################

@@ -374,39 +374,42 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         When constructing prior means for A and H from a guess for the solution x0, then A_0 and H_0 should be symmetric
         positive definite, inverses of each other and x0=Hb should hold.
         """
-        np.random.seed(42)
+        for seed in range(0, 10):
+            with self.subTest():
+                np.random.seed(seed)
 
-        # Linear system
-        A, b = self.poisson_linear_system
-        b = b[:, np.newaxis]
-        x0 = np.random.randn(len(b))[:, np.newaxis]
+                # Linear system
+                A, b = self.poisson_linear_system
+                b = b[:, np.newaxis]
+                x0 = np.random.randn(len(b))[:, np.newaxis]
 
-        if x0.T @ b < 0:
-            x0_true = -x0
-        elif x0.T @ b == 0:
-            x0_true = np.zeros_like(b)
-        else:
-            x0_true = x0
+                if x0.T @ b < 0:
+                    x0_true = -x0
+                elif x0.T @ b == 0:
+                    x0_true = np.zeros_like(b)
+                else:
+                    x0_true = x0
 
-        # Matrix-based solver
-        smbs = linalg.MatrixBasedSolver(A=A, b=b, x0=x0)
-        A0_mean, Ainv0_mean = smbs._matrix_prior_means_from_initial_solution_guess()
-        A0_mean_dense = A0_mean.todense()
-        Ainv0_mean_dense = Ainv0_mean.todense()
+                # Matrix-based solver
+                smbs = linalg.MatrixBasedSolver(A=A, b=b, x0=x0)
+                A0_mean, Ainv0_mean = smbs._matrix_prior_means_from_initial_solution_guess()
+                A0_mean_dense = A0_mean.todense()
+                Ainv0_mean_dense = Ainv0_mean.todense()
 
-        # Inverse prior mean corresponding to x0
-        self.assertAllClose(Ainv0_mean @ b, x0_true)
+                # Inverse prior mean corresponding to x0
+                self.assertAllClose(Ainv0_mean @ b, x0_true)
 
-        # Inverse correspondence
-        self.assertAllClose(A0_mean @ Ainv0_mean @ np.eye(np.shape(A)[0]), np.eye(np.shape(A)[0]), atol=10 ** -12)
+                # Inverse correspondence
+                self.assertAllClose(A0_mean @ Ainv0_mean @ np.eye(np.shape(A)[0]), np.eye(np.shape(A)[0]),
+                                    atol=10 ** -8, rtol=10 ** -8)
 
-        # Symmetry
-        self.assertAllClose(Ainv0_mean_dense, Ainv0_mean_dense.T)
-        self.assertAllClose(A0_mean_dense, A0_mean_dense.T)
+                # Symmetry
+                self.assertAllClose(Ainv0_mean_dense, Ainv0_mean_dense.T)
+                self.assertAllClose(A0_mean_dense, A0_mean_dense.T)
 
-        # Positive definiteness
-        self.assertTrue(np.all(np.linalg.eigvals(Ainv0_mean_dense) > 0))
-        self.assertTrue(np.all(np.linalg.eigvals(A0_mean_dense) > 0))
+                # Positive definiteness
+                self.assertTrue(np.all(np.linalg.eigvals(Ainv0_mean_dense) > 0))
+                self.assertTrue(np.all(np.linalg.eigvals(A0_mean_dense) > 0))
 
 
 class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
@@ -418,31 +421,49 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         self.noise = [
             prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(2, 2), scalar=0),
                                                          cov=linops.SymmetricKronecker(
-                                                             A=.75 ** 2 * linops.Identity(2))))
+                                                             A=.75 ** 2 * linops.Identity(2)))),
+            prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(3, 3), scalar=0),
+                                                         cov=linops.SymmetricKronecker(
+                                                             A=.01 ** 2 * linops.Identity(3))))
         ]
 
-        # Noisy matrices A+E
-        self.noisy_system_matrices = [
-            linops.MatrixMult(np.array([[4., 1.], [1., 2.]]))
+        # System matrices A
+        self.system_matrices = [
+            linops.MatrixMult(np.array([[4., 1.], [1., 2.]])),
+            linops.MatrixMult(np.array([[4., 1., .2], [1., 2., -.01], [.2, -.01, 10]]))
         ]
 
         # Noisy linear operators
         self.noisy_linops = [
 
         ]
+
         # System right hand sides b
         self.right_hand_sides = [
-            np.array([1, -1])
+            np.array([1, -1]),
+            np.array([[.893], [3.5], [-1]])
+        ]
+        self.noisy_right_hand_sides = [
+            prob.RandomVariable(distribution=prob.Normal(mean=np.array([0, 1]), cov=np.array([[2, .1], [.1, 4]]))),
+            prob.RandomVariable(distribution=prob.Dirac(support=np.array([[.1], [-4], [0]])))
         ]
 
     def test_solve_noisy_problem(self):
         """Solve a simple noisy problem."""
-        for (A, E, b) in zip(self.noisy_system_matrices, self.noise, self.right_hand_sides):
+        for (A, E, b) in zip(self.system_matrices, self.noise, self.right_hand_sides):
             for seed in range(0, 5):
                 with self.subTest():
                     np.random.seed(seed)
                     x, _, _, info = linalg.problinsolve(A=A + E, b=b, ctol=10 ** -6, assume_A="symposnoise")
                     self.assertAllClose(A @ x.mean(), b, rtol=10 ** -6)
+
+    def test_noisy_rhs(self):
+        """Noisy right hand side given as a random variable."""
+        np.random.seed(42)
+        for (A, E, b) in zip(self.system_matrices, self.noise, self.noisy_right_hand_sides):
+            with self.subTest():
+                x, _, _, info = linalg.problinsolve(A=A + E, b=b, ctol=10 ** -6, assume_A="symposnoise")
+                #self.assertAllClose(A @ x.mean(), b, rtol=10 ** -6)
 
     def test_multiple_rhs(self):
         """Noisy linear system with matrix right hand side."""

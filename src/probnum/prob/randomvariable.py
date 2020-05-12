@@ -67,24 +67,21 @@ class RandomVariable:
         else:
             raise ValueError("The distribution parameter must be an "
                              "instance of `Distribution`.")
-        # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
 
+    # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
     def _set_shape(self, distribution, shape):
         """
-        Sets shape in accordance with distribution mean.
+        Sets shape in accordance with distribution.
         """
         self._shape = shape
         if distribution is not None:
-            if distribution.mean is not None:
-                if np.isscalar(distribution.mean()):
-                    shape_mean = ()
+            if distribution.shape is not None:
+                if shape is None or distribution.shape == shape:
+                    self._shape = distribution.shape
                 else:
-                    shape_mean = distribution.mean().shape
-                if shape is None or shape_mean == shape:
-                    self._shape = shape_mean
-                else:
-                    raise ValueError("Shape of distribution mean and "
-                                     "given shape do not match.")
+                    raise ValueError("Shape of distribution and given shape do not match.")
+            else:
+                self.distribution.reshape(newshape=shape)
 
     def _set_dtype(self, distribution, dtype):
         """
@@ -182,21 +179,22 @@ class RandomVariable:
         else:
             raise NotImplementedError("No sampling method provided.")
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         """
         Give a new shape to a random variable.
 
         Parameters
         ----------
-        shape : int or tuple of ints
+        newshape : int or tuple of ints
             New shape for the random variable. It must be compatible with the original shape.
 
         Returns
         -------
         reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
-        self._distribution.reshape(shape=shape)
-        self._shape = shape
+        self._shape = newshape
+        self._distribution.reshape(newshape=newshape)
+        return self
 
     # Binary arithmetic operations
 

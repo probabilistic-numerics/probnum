@@ -42,7 +42,7 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         ]
 
 
-class RandomVariableInstantiationTestCase(RandomVariableTestCase):
+class InstantiationTestCase(RandomVariableTestCase):
     """Test random variable instantiation."""
 
     def test_rv_dtype(self):
@@ -68,7 +68,7 @@ class RandomVariableInstantiationTestCase(RandomVariableTestCase):
     #           prob.asrandvar(A)
 
 
-class RandomVariableArithmeticTestCase(RandomVariableTestCase):
+class ArithmeticTestCase(RandomVariableTestCase):
     """Test random variable arithmetic and broadcasting."""
 
     def test_rv_addition(self):
@@ -152,10 +152,39 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
         pass
 
 
+class ShapeTestCase(RandomVariableTestCase):
+    """
+    Tests methods related to the shape of a random variable, its distribution or realizations.
+    """
+
+    def test_reshape(self):
+        """
+        Reshape a random variable and test for correct output shape.
+        """
+        np.random.seed(42)
+        for rv in self.randvars2x2:
+            for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
+                with self.subTest():
+                    self.assertEqual(rv.reshape(newshape=shape).shape, shape)
+                    self.assertEqual(rv.sample(size=1).shape, shape)
+        for rv in self.randvars2d:
+            for shape in [(2, 1), (2,), (1, 2)]:
+                with self.subTest():
+                    self.assertEqual(rv.reshape(newshape=shape).shape, shape)
+                    self.assertEqual(rv.sample(size=1).shape, shape)
+
+    def test_sample_shape(self):
+        """
+        Sample from a random variable with different sizes and check sample shapes.
+        """
+        pass
+
+
 class TestEmptyInit(unittest.TestCase):
     """
     Tests that a RandomVariable object can be set up with an empty init.
     """
+
     def test_empty_init(self):
         """No input."""
         with self.assertRaises(ValueError):
@@ -165,4 +194,3 @@ class TestEmptyInit(unittest.TestCase):
         """Instantiate a random variable without a distribution."""
         rv = prob.RandomVariable(dtype=int)
         self.assertIsInstance(rv, prob.RandomVariable)
-

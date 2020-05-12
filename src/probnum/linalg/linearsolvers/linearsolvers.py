@@ -38,9 +38,10 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     ----------
     A : array-like or LinearOperator, shape=(n,n)
         A square linear operator (or matrix). Only matrix-vector products :math:`Av` are used internally.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems are solved
-        sequentially with the posteriors over the matrices acting as priors for subsequent solves.
+    b : array_like or RandomVariable, shape=(n,) or (n, nrhs)
+        Right-hand side vector, matrix or random variable in :math:`A x = b`. For multiple right hand sides, ``nrhs``
+        problems are solved sequentially with the posteriors over the matrices acting as priors for subsequent solves.
+        If the right-hand-side is assumed to be noisy, every iteration of the solver samples a realization from ``b``.
     A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
         A square matrix, linear operator or random variable representing the prior belief over the linear operator
         :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
@@ -51,7 +52,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
         Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv0`` is given.
     assume_A : str, default="sympos"
-        Assumptions on the linear operator, which can influence solver choice or behavior. The available options are
+        Assumptions on the linear operator which can influence solver choice and behavior. The available options are
         (combinations of)
 
         ====================  =========
@@ -72,7 +73,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     callback : function, optional
         User-supplied function called after each iteration of the linear solver. It is called as
         ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
-        depending on the function supplied, this can slow down the solver.
+        depending on the function supplied, this can slow down the solver considerably.
     kwargs : optional
         Keyword arguments passed onto the solver iteration.
 
@@ -260,15 +261,15 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
     vector_types = (np.ndarray, scipy.sparse.spmatrix, prob.RandomVariable)
     if not isinstance(A, linop_types):
         raise ValueError(
-            "A must be either an array, a linear operator or a RandomVariable.")
+            "A must be either an array, a linear operator or a random variable.")
     if not isinstance(b, vector_types):
-        raise ValueError("The right hand side must be a (sparse) array.")
+        raise ValueError("The right hand side must be a (sparse) array or a random variable.")
     if A0 is not None and not isinstance(A0, prob.RandomVariable):
         raise ValueError(
-            "The prior belief over A must be a RandomVariable.")
+            "The prior belief over A must be a random variable.")
     if Ainv0 is not None and not isinstance(Ainv0, linop_types):
         raise ValueError(
-            "The inverse of A must be either an array, a linear operator or a RandomVariable of either.")
+            "The inverse of A must be either an array, a linear operator or a random variable of either.")
     if x0 is not None and not isinstance(x0, vector_types):
         raise ValueError("The initial guess for the solution must be a (sparse) array.")
 
@@ -334,8 +335,9 @@ def _preprocess_linear_system(A, b, x0=None):
                 bAb = np.squeeze(b.T @ A @ b)
                 x0 = bb / bAb * b
 
-    # Transform linear system to correct dimensions
-    b = utils.as_colvec(b)  # (n,) -> (n, 1)
+    # Transform linear system to correct dimensions and rhs to random variable
+    if not isinstance(b, prob.RandomVariable):
+        b = prob.Dirac(support=utils.as_colvec(b))  # (n,) -> (n, 1)
     if x0 is not None:
         x0 = utils.as_colvec(x0)  # (n,) -> (n, 1)
 
@@ -392,7 +394,7 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
     if isinstance(Ainv0, prob.RandomVariable):
         if isinstance(Ainv0.cov(), linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
-    # System matrix is NOT noisy
+    # System matrix is NOT stochastic
     if not isinstance(A, prob.RandomVariable) and not isinstance(A, scipy.sparse.linalg.LinearOperator) and \
             "noise" in assume_A:
         warnings.warn("A is assumed to be noisy, but is neither a random variable nor a linear operator. Use exact "

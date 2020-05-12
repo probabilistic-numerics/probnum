@@ -28,8 +28,8 @@ class ProbabilisticLinearSolver(abc.ABC):
         A square matrix or linear operator. A prior distribution can be provided as a
         :class:`~probnum.prob.RandomVariable`. If an array or linear operator is given, a prior distribution is
         chosen automatically.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
+    b : RandomVariable, shape=(n,) or (n, nrhs)
+        Right-hand side vector, matrix or RandomVariable of :math:`A x = b`.
     """
 
     def __init__(self, A, b):
@@ -103,8 +103,8 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         A square matrix or linear operator. A prior distribution can be provided as a
         :class:`~probnum.prob.RandomVariable`. If an array or linear operator is given, a prior distribution is
         chosen automatically.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
+    b : RandomVariable, shape=(n,) or (n, nrhs)
+        Right-hand side vector, matrix or RandomVariable of :math:`A x = b`.
     x0 : array-like, shape=(n,) or (n, nrhs)
         Optional. Guess for the solution of the linear system.
     """
