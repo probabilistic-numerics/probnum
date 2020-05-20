@@ -52,9 +52,9 @@ class RandomVariable:
 
     def __init__(self, shape=None, dtype=None, distribution=None):
         """Create a new random variable."""
+        self._set_distribution(distribution)
         self._set_dtype(distribution, dtype)
         self._set_shape(distribution, shape)
-        self._set_distribution(distribution)
 
     def _set_distribution(self, distribution):
         """

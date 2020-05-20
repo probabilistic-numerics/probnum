@@ -279,7 +279,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         searchdirs = []
 
         # Define callback function to obtain search directions
-        def callback_searchdirs(xk, Ak, Ainvk, sk, yk, alphak, resid):
+        def callback_searchdirs(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs):
             searchdirs.append(sk)
 
         # Solve linear system
@@ -334,7 +334,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 # Define callback function to obtain search directions
                 pls_iterates = []
 
-                def callback_iterates_PLS(xk, Ak, Ainvk, sk, yk, alphak, resid):
+                def callback_iterates_PLS(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs):
                     pls_iterates.append(xk.mean())
 
                 # Probabilistic linear solver
@@ -445,8 +445,9 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         ]
         self.noisy_right_hand_sides = [
             prob.RandomVariable(shape=(2, 1),
-                                distribution=prob.Normal(mean=np.array([[0.], [1.]]), cov=0.1 * np.array([[2, .1], [.1, 4]]))),
-            prob.RandomVariable(shape=(3, 1), distribution=prob.Dirac(support=np.array([[.1], [-4], [0]])))
+                                distribution=prob.Normal(mean=np.array([[1.], [-1]]),
+                                                         cov=0.0000001 * np.array([[2, .1], [.1, 4]]))),
+            prob.RandomVariable(shape=(3, 1), distribution=prob.Dirac(support=np.array([[.893], [3.5], [-1]])))
         ]
 
     def test_solve_noisy_problem(self):
@@ -460,7 +461,7 @@ class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_noisy_rhs(self):
         """Noisy right hand side given as a random variable."""
-        np.random.seed(42)
+        np.random.seed(0)
         for (A, E, b) in zip(self.system_matrices, self.noise, self.noisy_right_hand_sides):
             with self.subTest():
                 x, _, _, info = linalg.problinsolve(A=A + E, b=b, ctol=10 ** -6, assume_A="symposnoise")

@@ -72,8 +72,8 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         iteration terminates.
     callback : function, optional
         User-supplied function called after each iteration of the linear solver. It is called as
-        ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
-        depending on the function supplied, this can slow down the solver considerably.
+        ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the
+        iteration. Note that depending on the function supplied, this can slow down the solver considerably.
     kwargs : optional
         Keyword arguments passed onto the solver iteration.
 
@@ -149,7 +149,6 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     if maxiter is None:
         maxiter = n * 10
 
-
     if nrhs > 1:
         # Iteratively solve for multiple right hand sides (with posteriors as new priors)
         for i in range(nrhs):
@@ -204,8 +203,8 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
         iteration terminates.
     callback : function, optional
         User-supplied function called after each iteration of the linear solver. It is called as
-        ``callback(xk, sk, yk, alphak, resid)`` and can be used to return quantities from the iteration. Note that
-        depending on the function supplied, this can slow down the solver.
+        ``callback(xk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the iteration. Note
+        that depending on the function supplied, this can slow down the solver.
 
     References
     ----------
@@ -326,23 +325,7 @@ def _preprocess_linear_system(A, b, x0=None):
     x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
         Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv0`` is given.
     """
-    # Check initial guess for x0 by computing inner product between x0 and b
-    if x0 is not None:
-        bx0 = np.squeeze(b.T @ x0)
-        bb = np.linalg.norm(b) ** 2
-        if bx0 < 0:
-            x0 = -x0
-            print("Better initialization found, setting x0 = - x0.")
-        elif bx0 == 0:
-            if np.all(b == np.zeros_like(b)):
-                print("Right-hand-side is zero. Initializing with solution x0 = 0.")
-                x0 = b
-            else:
-                print("Better initialization found, setting x0 = (b'b/b'Ab) * b.")
-                bAb = np.squeeze(b.T @ A @ b)
-                x0 = bb / bAb * b
-
-    # Transform linear system to correct dimensions and rhs to random variable
+    # Transform linear system to correct dimensions
     if not isinstance(b, prob.RandomVariable):
         b = utils.as_colvec(b)  # (n,) -> (n, 1)
     if x0 is not None:

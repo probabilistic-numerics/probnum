@@ -88,6 +88,7 @@ class Distribution:
         """
         self._shape = shape
         try:
+            # Set shape based on mean
             if np.isscalar(self.mean()):
                 shape_mean = ()
             else:
@@ -97,7 +98,15 @@ class Distribution:
             else:
                 raise ValueError("Shape of distribution mean and given shape do not match.")
         except NotImplementedError:
-            pass
+            # Set shape based on a sample
+            if np.isscalar(self.sample(size=1)):
+                shape_sample = ()
+            else:
+                shape_sample = self.sample(size=1).shape
+            if shape is None or shape_sample == shape:
+                self._shape = shape_sample
+            else:
+                raise ValueError("Shape of distribution mean and given shape do not match.")
 
     @property
     def shape(self):
@@ -254,7 +263,7 @@ class Distribution:
             return self._sample(size=size)
         else:
             raise NotImplementedError(
-                'The function \'sample\' is not implemented for object of class {}'.format(type(self).__name__))
+                'The function \'sample\' is not implemented for object of class {}.'.format(type(self).__name__))
 
     def median(self):
         """
@@ -280,7 +289,7 @@ class Distribution:
             return self._parameters["mode"]
         else:
             raise NotImplementedError(
-                'The function \'mode\' is not implemented for object of class {}'.format(type(self).__name__))
+                'The function \'mode\' is not implemented for object of class {}.'.format(type(self).__name__))
 
     def mean(self):
         """
@@ -297,7 +306,7 @@ class Distribution:
             return self._parameters["mean"]
         else:
             raise NotImplementedError(
-                'The function \'mean\' is not implemented for object of class {}'.format(type(self).__name__))
+                'The function \'mean\' is not implemented for object of class {}.'.format(type(self).__name__))
 
     def cov(self):
         """

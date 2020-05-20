@@ -320,6 +320,9 @@ class _SumLinearOperator(scipy.sparse.linalg.interface._SumLinearOperator, Linea
     def inv(self):
         return self.A.inv() + self.B.inv()
 
+    def trace(self):
+        return self.A.trace() + self.B.trace()
+
 
 class _ProductLinearOperator(scipy.sparse.linalg.interface._ProductLinearOperator, LinearOperator):
     """(Operator) Product of two linear operators."""
@@ -346,6 +349,10 @@ class _ScaledLinearOperator(scipy.sparse.linalg.interface._ScaledLinearOperator,
     def inv(self):
         A, alpha = self.args
         return _ScaledLinearOperator(A.inv(), 1 / alpha)
+
+    def trace(self):
+        A, alpha = self.args
+        return alpha * A.trace()
 
 
 class _PowerLinearOperator(scipy.sparse.linalg.interface._PowerLinearOperator, LinearOperator):
@@ -401,7 +408,7 @@ class ScalarMult(LinearOperator):
 
     # Properties
     def rank(self):
-        return self.shape[0]
+        return np.minimum(self.shape[0], self.shape[1])
 
     def eigvals(self):
         return np.ones(self.shape[0]) * self.scalar
@@ -439,6 +446,31 @@ class Identity(ScalarMult):
             _shape = shape
         # Initiator of super class
         super().__init__(shape=_shape, scalar=1.)
+
+    def todense(self):
+        return np.eye(self.shape[0])
+
+    def inv(self):
+        return self
+
+    # Properties
+    def rank(self):
+        return self.shape[0]
+
+    def eigvals(self):
+        return np.ones(self.shape[0])
+
+    def cond(self, p=None):
+        return 1
+
+    def det(self):
+        return 1.
+
+    def logabsdet(self):
+        return 0.
+
+    def trace(self):
+        return self.shape[0]
 
 
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):

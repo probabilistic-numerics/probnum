@@ -206,6 +206,34 @@ class Kronecker(LinearOperator):
         """
         return Kronecker(A=self.A.inv(), B=self.B.inv(), dtype=self.dtype)
 
+    # Properties
+    def rank(self):
+        return self.A.rank() * self.B.rank()
+
+    def eigvals(self):
+        raise NotImplementedError
+
+    def cond(self, p=None):
+        return self.A.cond(p=p) * self.B.cond(p=p)
+
+    def det(self):
+        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
+            return self.A.det() ** self.A.shape[0] * self.B.det() ** self.B.shape[0]
+        else:
+            raise NotImplementedError
+
+    def logabsdet(self):
+        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
+            return self.A.shape[0] * self.A.logabsdet() + self.B.shape[0] * self.B.logabsdet()
+        else:
+            raise NotImplementedError
+
+    def trace(self):
+        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
+            return self.A.trace() * self.B.trace()
+        else:
+            raise NotImplementedError
+
 
 class SymmetricKronecker(LinearOperator):
     """
@@ -288,3 +316,12 @@ class SymmetricKronecker(LinearOperator):
         A_dense = self.A.todense()
         B_dense = self.B.todense()
         return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
+
+    def inv(self):
+        """
+        (A (x)_s A)^-1 = A^-1 (x)_s A^-1
+        """
+        if self._ABequal:
+            return SymmetricKronecker(A=self.A.inv(), dtype=self.dtype)
+        else:
+            return NotImplementedError
