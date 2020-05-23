@@ -607,12 +607,6 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
 
     def sample(self, size=()):
 
-        # Note by N.
-        # ----------
-        # TODO: I think the below code is more readable if split into smaller functions
-        #  (_draw_stdnormal(), _chol(), _scale_and_shift()) but I didn't
-        #  dare touch this function.
-
         # Draw standard normal samples
         if np.isscalar(size):
             size = [size]

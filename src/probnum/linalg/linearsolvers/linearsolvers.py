@@ -65,11 +65,9 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     maxiter : int, optional
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the dimension of :math:`A`.
     atol : float, optional
-        Absolute residual tolerance. If :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert < \\text{atol}`, the
-        iteration terminates.
+        Absolute convergence tolerance.
     rtol : float, optional
-        Relative residual tolerance. If :math:`\\lVert r_i \\rVert  < \\text{rtol} \\lVert b \\rVert`, the
-        iteration terminates.
+        Relative convergence tolerance.
     callback : function, optional
         User-supplied function called after each iteration of the linear solver. It is called as
         ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the

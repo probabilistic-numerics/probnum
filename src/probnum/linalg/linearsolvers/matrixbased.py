@@ -133,7 +133,7 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         """
         raise NotImplementedError
 
-    def _construct_symmetric_matrix_prior_means(self, x0, b):
+    def _construct_symmetric_matrix_prior_means(self, A, x0, b):
         """
         Create matrix prior means from an initial guess for the solution of the linear system.
 
@@ -142,6 +142,8 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
 
         Parameters
         ----------
+        A : array-like or LinearOperator, shape=(n,n)
+            System matrix assumed to be square.
         x0 : array-like, shape=(n,) or (n, nrhs)
             Optional. Guess for the solution of the linear system.
         b : array_like, shape=(n,) or (n, nrhs)
@@ -167,7 +169,7 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
                 x0 = b
             else:
                 print("Better initialization found, setting x0 = (b'b/b'Ab) * b.")
-                bAb = np.squeeze(b.T @ (self.A @ b))
+                bAb = np.squeeze(b.T @ (A @ b))
                 x0 = bb / bAb * b
                 bx0 = bb ** 2 / bAb
 
@@ -187,8 +189,7 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         A0_mean = linops.ScalarMult(scalar=1 / alpha, shape=(self.n, self.n)) - 1 / (
                 alpha * np.squeeze((x0 - alpha * b).T @ x0)) * linops.LinearOperator(matvec=_mv,
                                                                                      matmat=_mm,
-                                                                                     shape=(
-                                                                                         self.n, self.n))
+                                                                                     shape=(self.n, self.n))
         return A0_mean, Ainv0_mean
 
     def has_converged(self, iter, maxiter, **kwargs):
@@ -284,11 +285,12 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         self.Ainv_mean = Ainv0_mean
         self.Ainv_covfactor = Ainv0_covfactor
         if isinstance(x0, np.ndarray):
-            self.x = x0
+            self.x_mean = x0
         elif x0 is None:
-            self.x = Ainv0_mean @ self.b
+            self.x_mean = Ainv0_mean @ self.b
         else:
             raise NotImplementedError
+        self.x0 = self.x_mean
 
         # Computed search directions and observations
         self.search_dir_list = []
@@ -341,7 +343,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
             # Construct matrix priors from initial guess x0
             elif isinstance(x0, np.ndarray):
-                A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(x0=x0, b=b)
+                A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(A=self.A, x0=x0, b=b)
                 Ainv0_covfactor = Ainv0_mean
                 # Symmetric posterior correspondence
                 A0_covfactor = self.A
@@ -349,7 +351,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             elif isinstance(x0, prob.RandomVariable):
                 raise NotImplementedError
 
-        # Only prior on Ainv specified
+        # Prior on Ainv specified
         if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
             if isinstance(Ainv0, prob.RandomVariable):
                 Ainv0_mean = Ainv0.mean()
@@ -377,7 +379,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             A0_covfactor = self.A
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
 
-        # Only prior on A specified
+        # Prior on A specified
         elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
             if isinstance(A0, prob.RandomVariable):
                 A0_mean = A0.mean()
@@ -403,7 +405,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             # Symmetric posterior correspondence
             Ainv0_covfactor = Ainv0_mean
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
-        # Both matrix priors on A and H specified
+        # Both matrix priors on A and H specified via random variables
         elif isinstance(A0, prob.RandomVariable) and isinstance(Ainv0, prob.RandomVariable):
             A0_mean = A0.mean()
             A0_covfactor = A0.cov().A
@@ -548,7 +550,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         x = prob.RandomVariable(shape=(self.A_mean.shape[0],),
                                 dtype=float,
-                                distribution=prob.Normal(mean=self.x.ravel(), cov=cov_op))
+                                distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op))
         return x, A, Ainv
 
     def _mean_update(self, u, v):
@@ -563,7 +565,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
 
         def mv(x):
-            return u @ (Ws.T @ x)
+            return Ws @ (u.T @ x)
 
         return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mv)
 
@@ -599,7 +601,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         """
         # Initialization
         self.iter_ = 0
-        resid = self.A @ self.x - self.b
+        resid = self.A @ self.x_mean - self.b
 
         # Iteration with stopping criteria
         while True:
@@ -623,7 +625,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             self.sy.append(sy)
 
             # Step and residual update
-            self.x = self.x + step_size * search_dir
+            self.x_mean = self.x_mean + step_size * search_dir
             resid = resid + step_size * obs
 
             # (Symmetric) mean and covariance updates
@@ -729,32 +731,24 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
 
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
 
-        # Transform system to linear operator
-        A_preproc = A
-        if isinstance(A, prob.RandomVariable):
-            def mv(x):
-                return (A @ x).sample(size=1)
-
-            A_preproc = linops.LinearOperator(matvec=mv, matmat=mv, shape=A.shape, dtype=A.dtype)
-
         # Transform right hand side to random variable
         if not isinstance(b, prob.RandomVariable):
             _b = prob.asrandvar(b)
         else:
             _b = b
 
-        super().__init__(A=A_preproc, b=_b, x0=x0)
+        super().__init__(A=A, b=_b, x0=x0)
 
         # Get or initialize prior parameters
         A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=x0,
                                                                                             b=_b)
 
         # Matrix prior parameters
-        self.A0_mean = A0_mean
-        self.A_mean = A0_mean
+        self.A0_mean = linops.aslinop(A0_mean)
+        self.A_mean = linops.aslinop(A0_mean)
         self.A0_covfactor = A0_covfactor
-        self.Ainv0_mean = Ainv0_mean
-        self.Ainv_mean = Ainv0_mean
+        self.Ainv0_mean = linops.aslinop(Ainv0_mean)
+        self.Ainv_mean = linops.aslinop(Ainv0_mean)
         self.Ainv0_covfactor = Ainv0_covfactor
         self.b_mean = b_mean
 
@@ -766,7 +760,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         def _mv(x):
             return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
 
-        self.x_cov = linops.LinearOperator(shape=np.shape(Ainv0_covfactor), dtype=float, matvec=_mv, matmat=_mv)
+        self.x_cov = linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv)
         if isinstance(x0, np.ndarray):
             self.x_mean = x0
         elif x0 is None:
@@ -811,6 +805,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         b_mean : array-like, shape=(n,nrhs)
             Prior mean of the right hand side :math:`b`.
         """
+
         # Right hand side mean
         b_mean = b.sample(1)  # TODO: build prior model for rhs and change to b.mean()
 
@@ -822,26 +817,33 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 Ainv0_covfactor = linops.Identity(shape=self.n)
                 # Standard normal covariance
                 A0_mean = linops.Identity(shape=self.n)
-                A0_covfactor = linops.Identity(shape=self.n)
+                A0_covfactor = linops.Identity(
+                    shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
             # Construct matrix priors from initial guess x0
             elif isinstance(x0, np.ndarray):
-                A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(x0=x0, b=b_mean)
+                # Sample from linear operator for prior construction
+                if isinstance(self.A, prob.RandomVariable):
+                    _A = self.A.sample([1])[0]
+                else:
+                    _A = self.A
+                A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(A=_A, x0=x0, b=b_mean)
                 Ainv0_covfactor = Ainv0_mean
                 # Standard normal covariance
-                A0_covfactor = linops.Identity(shape=self.n)
+                A0_covfactor = linops.Identity(
+                    shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
             elif isinstance(x0, prob.RandomVariable):
                 raise NotImplementedError
 
-        # Only prior on Ainv specified
+        # Prior on Ainv specified
         if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
             if isinstance(Ainv0, prob.RandomVariable):
                 Ainv0_mean = Ainv0.mean()
                 Ainv0_covfactor = Ainv0.cov().A
             else:
                 Ainv0_mean = Ainv0
-                Ainv0_covfactor = linops.Identity(shape=self.n)  # Standard normal covariance
+                Ainv0_covfactor = Ainv0  # Symmetric posterior correspondence
             try:
                 if A0 is not None:
                     A0_mean = A0
@@ -859,17 +861,18 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                     message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
                             + "falling back to standard normal prior.")
             # Standard normal covariance
-            A0_covfactor = linops.Identity(shape=self.n)
+            A0_covfactor = linops.Identity(
+                shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
 
-        # Only prior on A specified
+        # Prior on A specified
         elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
             if isinstance(A0, prob.RandomVariable):
                 A0_mean = A0.mean()
                 A0_covfactor = A0.cov().A
             else:
                 A0_mean = A0
-                A0_covfactor = linops.Identity(shape=self.n)  # Standard normal covariance
+                A0_covfactor = A0  # Symmetric posterior correspondence
             try:
                 if Ainv0 is not None:
                     Ainv0_mean = Ainv0
@@ -885,10 +888,10 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 Ainv0_mean = linops.Identity(self.n)
                 warnings.warn(message="Prior specified only for A. " +
                                       "Automatic prior mean inversion failed, falling back to standard normal prior.")
-            # Standard normal covariance
-            Ainv0_covfactor = linops.Identity(shape=self.n)
+            # Symmetric posterior correspondence
+            Ainv0_covfactor = Ainv0_mean
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-        # Both matrix priors on A and H specified
+        # Both matrix priors on A and H specified via random variables
         elif isinstance(A0, prob.RandomVariable) and isinstance(Ainv0, prob.RandomVariable):
             A0_mean = A0.mean()
             A0_covfactor = A0.cov().A
@@ -898,7 +901,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         else:
             raise NotImplementedError
 
-    def has_converged(self, iter, maxiter, ctol=None):
+    def has_converged(self, iter, maxiter, atol=None, rtol=None):
         """
         Check convergence of a linear solver.
 
@@ -910,10 +913,14 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             Current iteration of solver.
         maxiter : int
             Maximum number of iterations
-        ctol : float
-            Tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\text{tr}(\\Sigma) \\leq \\text{ctol}`, where :math:`\\Sigma` is the covariance of the solution
-            ``x``.
+        atol : float
+            Absolute tolerance for the uncertainty about the solution estimate. Stops if
+            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
+            solution :math:`x`.
+        rtol : float
+            Relative tolerance for the uncertainty about the solution estimate. Stops if
+            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
+            covariance of the solution :math`x` and :math:`x_i` its mean.
 
         Returns
         -------
@@ -928,11 +935,13 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             return True, "maxiter"
         # uncertainty-based
         if isinstance(self.x_cov, linops.LinearOperator):
-            tracecov = self.x_cov.trace()
+            sqrttracecov = np.sqrt(self.x_cov.trace())
         else:
-            tracecov = np.trace(self.x_cov)
-        if tracecov <= ctol:
-            return True, "covariance"
+            sqrttracecov = np.sqrt(np.trace(self.x_cov))
+        if sqrttracecov <= atol:
+            return True, "covar_atol"
+        elif sqrttracecov <= rtol * np.linalg.norm(self.x_mean):
+            return True, "covar_rtol"
         else:
             return False, ""
 
@@ -946,13 +955,18 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         Delta0 = Y - self.A0_mean @ S
         SW0S = S.T @ (self.A0_covfactor @ S)
         try:
-            SW0SinvSDelta0 = scipy.linalg.solve(SW0S, S.T @ Delta0, assume_a="pos")  # solves k x k system k times: O(k^3)
+            SW0SinvSDelta0 = scipy.linalg.solve(SW0S, S.T @ Delta0,
+                                                assume_a="pos")  # solves k x k system k times: O(k^3)
             linop_rhs = Delta0.T @ (2 * self.A0_covfactor.inv() @ Delta0 - S @ SW0SinvSDelta0)
             linop_tracearg = scipy.linalg.solve(SW0S, linop_rhs, assume_a="pos")  # solves k x k system k times: O(k^3)
 
             # Optimal noise scale with respect to the evidence
-            self.noise_scale = 1 / (self.n * (self.iter_ + 1)) * linop_tracearg.trace() - 1
-            assert self.noise_scale > 0, "Noise scale must be positive."
+            noise_scale_estimate = 1 / (self.n * (self.iter_ + 1)) * linop_tracearg.trace() - 1
+            if noise_scale_estimate > 0:
+                self.noise_scale = noise_scale_estimate
+            else:
+                self.noise_scale = 0
+                warnings.warn("Noise scale estimate negative. Results may be inaccurate.")
         except scipy.linalg.LinAlgError:
             warnings.warn("Matrix S'W_0S not invertible. Noise scale estimate may be inaccurate.")
 
@@ -968,7 +982,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
 
         def matvec(x):
-            return Ws * np.squeeze(u.T @ x)
+            return Ws @ (u.T @ x)
 
         return linops.LinearOperator(shape=self.A_mean.shape, matvec=matvec, matmat=matvec)
 
@@ -1006,7 +1020,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                                 distribution=prob.Normal(mean=self.x_mean.ravel(), cov=self.x_cov))
         return x, A, Ainv
 
-    def solve(self, callback=None, maxiter=None, ctol=10 ** -6, noise_scale=None, **kwargs):
+    def solve(self, callback=None, maxiter=None, atol=10 ** -6, rtol=10 ** -6, noise_scale=None, **kwargs):
         """
         Solve the linear system :math:`Ax=b`.
 
@@ -1018,10 +1032,14 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             iteration. Note that depending on the function supplied, this can slow down the solver.
         maxiter : int
             Maximum number of iterations
-        ctol : float
-            Tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\text{tr}(\\Sigma) \\leq \\text{ctol}`, where :math:`\\Sigma` is the covariance of the estimated
-            solution ``x``.
+        atol : float
+            Absolute tolerance for the uncertainty about the solution estimate. Stops if
+            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
+            solution :math:`x`.
+        rtol : float
+            Relative tolerance for the uncertainty about the solution estimate. Stops if
+            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
+            covariance of the solution :math`x` and :math:`x_i` its mean.
         noise_scale : float
             Assumed (initial) noise scale :math:`\\varepsilon^2`.
 
@@ -1055,13 +1073,13 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Iteration with stopping criteria
         while True:
             # Check convergence
-            _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter, ctol=ctol)
+            _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter, atol=atol, rtol=rtol)
             if _has_converged:
                 break
 
             # Noisy matrix-vector product for current iteration
             if isinstance(self.A, prob.RandomVariable):
-                A_iter = self.A.sample()  # Sample new system matrix for this iteration
+                A_iter = self.A.sample([1])[0]  # Sample new system matrix for this iteration
             else:
                 A_iter = self.A
 
@@ -1077,8 +1095,12 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             obs = A_iter @ search_dir
             obs_list.append(obs)
 
+            # Compute step size
+            sy = search_dir.T @ obs
+            step_size = - (search_dir.T @ resid) / sy
+
             # Optimal noise scale with respect to log-marginal likelihood
-            if not has_custom_noise_scale:
+            if not has_custom_noise_scale and self.iter_ < self.n:
                 self._set_optimal_noise_scale(searchdirs=search_dir_list, observations=obs_list)
 
             # Inference updates of system matrix, inverse and solution
@@ -1099,26 +1121,27 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             self.Ainv_mean = self.Ainv0_mean + 1 / (1 + self.noise_scale) * Ainv_mean_update
 
             # Covariance update(s)
-            A_covfactor_update = self._covariance_update(u=u_A, Ws=Vs)
+            A_covfactor_update += self._covariance_update(u=u_A, Ws=Vs)
             self.A_covfactor1 = self.A0_covfactor - 1 / (1 + self.noise_scale) * A_covfactor_update
             self.A_covfactor2 = np.sqrt(self.noise_scale) / (1 + self.noise_scale) * A_covfactor_update
 
-            Ainv_covfactor_update = self._covariance_update(u=u_Ainv, Ws=Wy)
+            Ainv_covfactor_update += self._covariance_update(u=u_Ainv, Ws=Wy)
             self.Ainv_covfactor1 = self.Ainv0_covfactor - 1 / (1 + self.noise_scale) * Ainv_covfactor_update
             self.Ainv_covfactor2 = np.sqrt(self.noise_scale) / (1 + self.noise_scale) * Ainv_covfactor_update
 
             # Solution update
-            self.x_mean = self.Ainv_mean @ self.b_mean
+            # self.x_mean = self.Ainv_mean @ self.b_mean
+            self.x_mean = self.x_mean + step_size * search_dir
             self.x_cov = self._solution_covariance()
+
+            # Iteration increment
+            self.iter_ += 1
 
             # Callback function used to extract quantities from iteration
             if callback is not None:
                 xk, Ak, Ainvk = self._get_output_randvars()
                 callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=None, resid=None,
                          noise_scale=noise_scale)
-
-            # Iteration increment
-            self.iter_ += 1
 
         # Create output random variables
         x, A, Ainv = self._get_output_randvars()
