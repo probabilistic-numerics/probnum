@@ -468,27 +468,35 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         _S = np.squeeze(np.array(self.search_dir_list)).T
         _Y = np.squeeze(np.array(self.obs_list)).T
 
-        if self.iter_ > 5:  # only calibrate if enough iterations for a regression model have been performed
+        if self.iter_ > 2:  # only calibrate if enough iterations for a regression model have been performed
             # Rayleigh quotient
             iters = np.arange(self.iter_)
             logR = np.log(_sy) - np.log(np.einsum('ij,ij->j', _S, _S))
 
-            # Least-squares fit for y intercept
-            x_mean = np.mean(iters)
-            y_mean = np.mean(logR)
-            beta1 = np.sum((iters - x_mean) * (logR - y_mean)) / np.sum((iters - x_mean) ** 2)
-            beta0 = y_mean - beta1 * x_mean
+            # # Least-squares fit for y intercept
+            # x_mean = np.mean(iters)
+            # y_mean = np.mean(logR)
+            # beta1 = np.sum((iters - x_mean) * (logR - y_mean)) / np.sum((iters - x_mean) ** 2)
+            # beta0 = y_mean - beta1 * x_mean
 
             # Log-Rayleigh quotient regression
             mf = GPy.mappings.linear.Linear(1, 1)
+
+            # GP mean function via Weyl's result on spectra of Gram matrices: ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
+            lnmap = GPy.core.Mapping(1, 1)
+            lnmap.f = lambda n: np.log(n + 10 ** -16)
+            lnmap.update_gradients = lambda a, b: None
+            mf = GPy.mappings.Additive(GPy.mappings.Constant(1, 1, value=0),
+                                       GPy.mappings.Compound(lnmap, GPy.mappings.Linear(1, 1)))
             k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
-            m = GPy.models.GPRegression(iters[:, None], (logR - beta0)[:, None], kernel=k, mean_function=mf)
+            # m = GPy.models.GPRegression(iters[:, None], (logR - beta0)[:, None], kernel=k, mean_function=mf)
+            m = GPy.models.GPRegression(iters[:, None] + 1, logR[:, None], kernel=k, mean_function=mf)
             m.optimize(messages=False)
 
             # Predict Rayleigh quotient
             remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
-            GP_pred = m.predict(remaining_dims)
-            R_pred = np.exp(GP_pred[0].ravel() + beta0)
+            GP_pred = m.predict(remaining_dims + 1)
+            R_pred = np.exp(GP_pred[0].ravel())  # + beta0)
 
             # Set scale
             Phi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.mean(R_pred)))
