@@ -495,12 +495,12 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
             # Predict Rayleigh quotient
             remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
-            GP_pred = m.predict(remaining_dims + 1)
-            R_pred = np.exp(GP_pred[0].ravel())  # + beta0)
+            logR_pred = m.predict(remaining_dims + 1)[0].ravel()
+            #R_pred = np.exp(GP_pred[0].ravel())  # + beta0)
 
             # Set scale
-            Phi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.mean(R_pred)))
-            Psi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.mean(1 / R_pred)))
+            Phi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.exp(np.mean(logR_pred))))
+            Psi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.exp(-np.mean(logR_pred))))
 
         else:
             Phi = None
@@ -520,7 +520,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 def _I_S_fun(x):
                     return x - S @ np.linalg.solve(S.T @ S, S.T @ x)
 
-                return _I_S_fun(Phi @ _I_S_fun(x))
+                return _I_S_fun(Phi * _I_S_fun(x))
 
             I_S_Phi_I_S_op = linops.LinearOperator(shape=self.A.shape, matvec=_mv)
             _A_covfactor = self.A_covfactor + I_S_Phi_I_S_op
@@ -530,7 +530,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 def _I_Y_fun(x):
                     return x - Y @ np.linalg.solve(Y.T @ Y, Y.T @ x)
 
-                return _I_Y_fun(Psi @ _I_Y_fun(x))
+                return _I_Y_fun(Psi * _I_Y_fun(x))
 
             I_Y_Psi_I_Y_op = linops.LinearOperator(shape=self.A.shape, matvec=_mv)
             _Ainv_covfactor = self.Ainv_covfactor + I_Y_Psi_I_Y_op
@@ -652,7 +652,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A)
             self.Ainv_mean = linops.aslinop(self.Ainv_mean) + self._mean_update(u=u_Ainv, v=v_Ainv)
 
-            # Rank 1 covariance kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
+            # Rank 1 covariance Kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
             self.A_covfactor = linops.aslinop(self.A_covfactor) - self._covariance_update(u=u_A, Ws=Vs)
             self.Ainv_covfactor = linops.aslinop(self.Ainv_covfactor) - self._covariance_update(u=u_Ainv, Ws=Wy)
 
@@ -669,11 +669,15 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
 
         # Calibrate uncertainty
-        if calibrate:
-            Phi, Psi = self._calibrate_uncertainty()
+        if type(calibrate) == bool:
+            if calibrate:
+                Phi, Psi = self._calibrate_uncertainty()
+            else:
+                Phi = None
+                Psi = None
         else:
-            Phi = None
-            Psi = None
+            Phi = calibrate
+            Psi = 1 / calibrate
 
         # Create output random variables
         x, A, Ainv = self._get_output_randvars(S=np.squeeze(np.array(self.search_dir_list)).T,
