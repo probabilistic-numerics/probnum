@@ -518,7 +518,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         if Phi is not None:
             def _mv(x):
                 def _I_S_fun(x):
-                    return x - S @ np.linalg.solve(S.T @ S, S.T @ x)
+                    try:
+                        SSinvSx = np.linalg.solve(S.T @ S, S.T @ x)
+                        return x - S @ SSinvSx
+                    except np.linalg.LinAlgError:
+                        return x
 
                 return _I_S_fun(Phi * _I_S_fun(x))
 
@@ -528,7 +532,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         if Psi is not None:
             def _mv(x):
                 def _I_Y_fun(x):
-                    return x - Y @ np.linalg.solve(Y.T @ Y, Y.T @ x)
+                    try:
+                        YYinvYx = np.linalg.solve(Y.T @ Y, Y.T @ x)
+                        return x - Y @ YYinvYx
+                    except np.linalg.LinAlgError:
+                        return x
 
                 return _I_Y_fun(Psi * _I_Y_fun(x))
 
