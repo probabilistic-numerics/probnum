@@ -33,6 +33,24 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         f = np.load(file=fpath + "/rhs_poisson.npy")
         self.poisson_linear_system = A, f
 
+        # Kernel matrices
+        np.random.seed(42)
+
+        # Toy data
+        n = 100
+        x_min, x_max = (-4., 4.)
+        X = np.random.uniform(x_min, x_max, (n, 1))
+
+        # RBF kernel
+        lengthscale = 1
+        var = 1
+        X_norm = np.sum(X ** 2, axis=-1)
+        K_rbf = var * np.exp(-1 / (2 * lengthscale ** 2) * (X_norm[:, None] + X_norm[None, :] - 2 * np.dot(X, X.T)))
+        K_rbf = K_rbf + 10 ** -3 * np.eye(n)
+        x_true = np.random.normal(size=(n, ))
+        b = K_rbf @ x_true
+        self.rbf_kernel_linear_system = K_rbf, b, x_true
+
         # Probabilistic linear solvers
         self.problinsolvers = [linalg.problinsolve]  # , linalg.bayescg]
 
@@ -157,8 +175,19 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                                     msg="Solution from probabilistic linear solver does" +
                                         " not match scipy.sparse.linalg.spsolve.")
 
+    def test_residual_matches_error(self):
+        """Test whether the residual norm matches the error of the computed solution estimate."""
+        np.random.seed(0)
+        A, b, x_true = self.rbf_kernel_linear_system
+
+        for plinsolve in self.problinsolvers:
+            with self.subTest():
+                x_est, Ahat, Ainvhat, info = plinsolve(A=A, b=b)
+                self.assertAlmostEqual(info["resid_l2norm"], np.linalg.norm(A @ x_est.mean() - b),
+                                       msg="Residual in output info does not match l2-error of solution estimate.")
+
     # def test_solution_equivalence(self):
-    #     """The induced distributions on the solution should match the estimated solution distributions: E[x] = E[A^-1] b"""
+    #     """The iteratively computed solution should match the induced solution estimate: x_k = E[A^-1] b"""
     #     A, f = self.poisson_linear_system
     # 
     #     for matblinsolve in self.matblinsolvers:
@@ -169,7 +198,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     #             # E[x] = E[A^-1] b
     #             self.assertAllClose(u_solver.mean(), (Ainvhat @ f[:, None]).mean().ravel(), rtol=1e-5,
     #                                 msg="Solution from matrix-based probabilistic linear solver does not match the " +
-    #                                     "estimated inverse, i.e. u =/= Ainv @ b ")
+    #                                     "estimated inverse, i.e. x =/= Ainv @ b ")
 
     def test_posterior_distribution_parameters(self):
         """Compute the posterior parameters of the matrix-based probabilistic linear solvers directly and compare."""

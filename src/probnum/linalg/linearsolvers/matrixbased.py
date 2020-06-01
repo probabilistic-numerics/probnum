@@ -480,7 +480,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             # beta0 = y_mean - beta1 * x_mean
 
             # Log-Rayleigh quotient regression
-            mf = GPy.mappings.linear.Linear(1, 1)
+            #mf = GPy.mappings.linear.Linear(1, 1)
 
             # GP mean function via Weyl's result on spectra of Gram matrices: ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
             lnmap = GPy.core.Mapping(1, 1)
@@ -522,7 +522,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
                 return _I_S_fun(Phi * _I_S_fun(x))
 
-            I_S_Phi_I_S_op = linops.LinearOperator(shape=self.A.shape, matvec=_mv)
+            I_S_Phi_I_S_op = linops.LinearOperator(shape=(self.n, self.n), matvec=_mv)
             _A_covfactor = self.A_covfactor + I_S_Phi_I_S_op
 
         if Psi is not None:
@@ -532,17 +532,17 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
                 return _I_Y_fun(Psi * _I_Y_fun(x))
 
-            I_Y_Psi_I_Y_op = linops.LinearOperator(shape=self.A.shape, matvec=_mv)
+            I_Y_Psi_I_Y_op = linops.LinearOperator(shape=(self.n, self.n), matvec=_mv)
             _Ainv_covfactor = self.Ainv_covfactor + I_Y_Psi_I_Y_op
 
         # Create output random variables
-        A = prob.RandomVariable(shape=self.A_mean.shape,
+        A = prob.RandomVariable(shape=(self.n, self.n),
                                 dtype=float,
                                 distribution=prob.Normal(mean=self.A_mean,
                                                          cov=linops.SymmetricKronecker(
                                                              A=_A_covfactor)))
         cov_Ainv = linops.SymmetricKronecker(A=_Ainv_covfactor)
-        Ainv = prob.RandomVariable(shape=self.Ainv_mean.shape,
+        Ainv = prob.RandomVariable(shape=(self.n, self.n),
                                    dtype=float,
                                    distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
         # Induced distribution on x via Ainv
@@ -553,10 +553,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def _mv(x):
             return 0.5 * (bWb * _Ainv_covfactor @ x + Wb @ (Wb.T @ x))
 
-        cov_op = linops.LinearOperator(shape=np.shape(_Ainv_covfactor), dtype=float,
+        cov_op = linops.LinearOperator(shape=(self.n, self.n), dtype=float,
                                        matvec=_mv, matmat=_mv)
 
-        x = prob.RandomVariable(shape=(self.A_mean.shape[0],),
+        x = prob.RandomVariable(shape=(self.n,),
                                 dtype=float,
                                 distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op))
         return x, A, Ainv
@@ -567,7 +567,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def mv(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
 
-        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mv)
+        return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
 
     def _covariance_update(self, u, Ws):
         """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
@@ -575,7 +575,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def mv(x):
             return Ws @ (u.T @ x)
 
-        return linops.LinearOperator(shape=self.A_mean.shape, matvec=mv, matmat=mv)
+        return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
 
     def solve(self, callback=None, maxiter=None, atol=None, rtol=None, calibrate=True):
         """
@@ -629,7 +629,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
             # Compute step size
             sy = search_dir.T @ obs
-            step_size = - (search_dir.T @ resid) / sy
+            step_size = - np.squeeze((search_dir.T @ resid) / sy)
             self.sy.append(sy)
 
             # Step and residual update
