@@ -471,7 +471,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         if self.iter_ > 2:  # only calibrate if enough iterations for a regression model have been performed
             # Rayleigh quotient
             iters = np.arange(self.iter_)
-            logR = np.log(_sy) - np.log(np.einsum('ij,ij->j', _S, _S))
+            logR = np.log(_sy) - np.log(np.einsum('nk,nk->k', _S, _S))
 
             # # Least-squares fit for y intercept
             # x_mean = np.mean(iters)
@@ -622,6 +622,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Iteration with stopping criteria
         while True:
             # Check convergence
+            #  TODO: iterative update to tr(Cov(x)) via linearity and add to convergence criterion
             _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter,
                                                             resid=resid, atol=atol, rtol=rtol)
             if _has_converged:
