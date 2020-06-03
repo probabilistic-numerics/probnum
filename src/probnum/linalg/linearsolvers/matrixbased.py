@@ -415,6 +415,43 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         else:
             raise NotImplementedError
 
+    def _init_trace_A_Ainv_covfactor(self):
+        """
+        Initialize the (linearly transformed) trace of the covariance factor of ``Ainv``.
+
+        Computes the initial trace :math:`\\tr(A \\operatorname{Cov}[H])=\\tr(A W_0^H)`.
+
+        Returns
+        -------
+        init_trace : float
+            Initial (linearly transformed) trace.
+        """
+        if isinstance(self.Ainv_covfactor, linops.ScalarMult):
+            if isinstance(self.A, scipy.sparse.spmatrix):
+                return self.Ainv_covfactor.scalar * self.A.diagonal().sum()
+            else:
+                return self.Ainv_covfactor.scalar * self.A.trace()
+        else:
+            _identity = np.eye(self.n)
+            _trace = 0.
+            for i in range(self.n):
+                _trace += np.squeeze(
+                    (_identity[np.newaxis, i, :] @ self.A) @ (self.Ainv_covfactor @ _identity[i, :, np.newaxis]))
+            return _trace
+
+    def _compute_trace_solution_covariance(self):
+        """
+        Computes the (linearly transformed) trace of the solution covariance :math:`\\tr(A \\operatorname{Cov}[x])`
+
+        Returns
+        -------
+        trace_A_x_cov : float
+            (Linearly transformed) trace of solution covariance.
+        """
+        Wb = self.Ainv_covfactor @ self.b
+        bWb = np.squeeze(Wb.T @ self.b)
+        return 0.5 * (bWb * self._trace_A_Ainv_covfactor + np.squeeze(Wb.T @ self.A @ Wb))
+
     def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
         """
         Check convergence of a linear solver.
@@ -446,12 +483,17 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
             return True, "maxiter"
         # residual below error tolerance
-        elif np.linalg.norm(resid) <= atol:
+        resid_norm = np.linalg.norm(resid)
+        b_norm = np.linalg.norm(self.b)
+        if resid_norm <= atol:
             return True, "resid_atol"
-        elif np.linalg.norm(resid) <= rtol * np.linalg.norm(self.b):
+        elif resid_norm <= rtol * b_norm:
             return True, "resid_rtol"
         # uncertainty-based
-        # todo: based on posterior contraction
+        if self.trace_A_xcov <= atol:
+            return True, "tracecov_atol"
+        elif self.trace_A_xcov <= rtol * b_norm:
+            return True, "tracecov_rtol"
         else:
             return False, ""
 
@@ -480,7 +522,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             # beta0 = y_mean - beta1 * x_mean
 
             # Log-Rayleigh quotient regression
-            #mf = GPy.mappings.linear.Linear(1, 1)
+            # mf = GPy.mappings.linear.Linear(1, 1)
 
             # GP mean function via Weyl's result on spectra of Gram matrices: ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
             lnmap = GPy.core.Mapping(1, 1)
@@ -496,7 +538,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             # Predict Rayleigh quotient
             remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
             logR_pred = m.predict(remaining_dims + 1)[0].ravel()
-            #R_pred = np.exp(GP_pred[0].ravel())  # + beta0)
+            # R_pred = np.exp(GP_pred[0].ravel())  # + beta0)
 
             # Set scale
             Phi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.exp(np.mean(logR_pred))))
@@ -554,7 +596,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                                    dtype=float,
                                    distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
         # Induced distribution on x via Ainv
-        # Exp(x) = A^-1 b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
+        # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
         Wb = _Ainv_covfactor @ self.b
         bWb = np.squeeze(Wb.T @ self.b)
 
@@ -619,10 +661,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         self.iter_ = 0
         resid = self.A @ self.x_mean - self.b
 
+        # Initial trace of the linearly transformed covariance factor: tr(A W_0^H)
+        self._trace_A_Ainv_covfactor = self._init_trace_A_Ainv_covfactor()
+        self.trace_A_xcov = self._compute_trace_solution_covariance()
+
         # Iteration with stopping criteria
         while True:
             # Check convergence
-            #  TODO: iterative update to tr(Cov(x)) via linearity and add to convergence criterion
             _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter,
                                                             resid=resid, atol=atol, rtol=rtol)
             if _has_converged:
@@ -653,7 +698,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
             Wy = self.Ainv_covfactor @ obs
             delta_Ainv = search_dir - self.Ainv_mean @ obs
-            u_Ainv = Wy / (obs.T @ Wy)
+            yWy = np.squeeze(obs.T @ Wy)
+            u_Ainv = Wy / yWy
             v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
 
             # Rank 2 mean updates (+= uv' + vu')
@@ -664,6 +710,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             # Rank 1 covariance Kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
             self.A_covfactor = linops.aslinop(self.A_covfactor) - self._covariance_update(u=u_A, Ws=Vs)
             self.Ainv_covfactor = linops.aslinop(self.Ainv_covfactor) - self._covariance_update(u=u_Ainv, Ws=Wy)
+
+            # Update (linearly transformed) covariance trace of solution estimate: tr(A Cov(Hb))
+            self._trace_A_Ainv_covfactor += 1 / yWy * np.squeeze(Wy.T @ self.A @ Wy)
+            self.trace_A_xcov = self._compute_trace_solution_covariance()
 
             # Iteration increment
             self.iter_ += 1
@@ -699,6 +749,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             "iter": self.iter_,
             "maxiter": maxiter,
             "resid_l2norm": np.linalg.norm(resid, ord=2),
+            "A-trace_solcov": self.trace_A_xcov,
             "conv_crit": _conv_crit,
             "rel_cond": None  # TODO: matrix condition from solver (see scipy solvers)
         }
