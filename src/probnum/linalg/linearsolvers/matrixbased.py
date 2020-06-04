@@ -523,9 +523,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         elif resid_norm <= rtol * b_norm:
             return True, "resid_rtol"
         # uncertainty-based
-        if self.trace_sol_cov <= atol:
+        if np.sqrt(self.trace_sol_cov) <= atol:
             return True, "tracecov_atol"
-        elif self.trace_sol_cov <= rtol * b_norm:
+        elif np.sqrt(self.trace_sol_cov) <= rtol * b_norm:
             return True, "tracecov_rtol"
         else:
             return False, ""

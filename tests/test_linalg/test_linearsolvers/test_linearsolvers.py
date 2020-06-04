@@ -160,7 +160,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         for matblinsolve in self.matblinsolvers:
             with self.subTest():
                 x, _, _, info = matblinsolve(A=A, b=b)
-                self.assertAllClose(x.mean(), x_true, rtol=1e-4, atol=1e-4,
+                self.assertAllClose(x.mean(), x_true, rtol=1e-6, atol=1e-6,
                                     msg="Solution does not match true solution.")
 
     def test_sparse_poisson(self):
@@ -317,7 +317,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 x, Ahat, Ainvhat, info = matblinsolve(A=A, Ainv0=Ainv0, b=b)
 
-                self.assertAllClose(x.mean(), x_true, rtol=1e-4, atol=1e-4,
+                self.assertAllClose(x.mean(), x_true, rtol=1e-6, atol=1e-6,
                                     msg="Solution for matrixvariate prior does not match true solution.")
 
     def test_searchdir_conjugacy(self):
@@ -407,7 +407,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_uncertainty_calibration(self):
         """Test if the available uncertainty calibration procedures return appropriate scales."""
-        tol = 10 ** -4
+        tol = 10 ** -6
         A, b, x_true = self.rbf_kernel_linear_system
 
         for calib_method in [None, 0, "adhoc", "weightedmean", "gpkern"]:
