@@ -616,7 +616,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     VVinvVx = np.linalg.solve(V.T @ V, V.T @ x)
                     return x - V @ VVinvVx
                 except np.linalg.LinAlgError:
-                    return x
+                    return np.zeros_like(x)
 
             # For a scalar uncertainty scale projecting to the null space twice is equivalent to projecting once
             return lambda y: unc_scale * null_space_proj(y)
@@ -697,7 +697,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                                 distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op))
 
         # Compute trace of solution covariance: tr(Cov(x))
-        self.trace_sol_cov = self._compute_trace_solution_covariance(bWb=bWb, Wb=Wb)
+        self.trace_sol_cov = np.real_if_close(self._compute_trace_solution_covariance(bWb=bWb, Wb=Wb))
 
         return x, A, Ainv
 
