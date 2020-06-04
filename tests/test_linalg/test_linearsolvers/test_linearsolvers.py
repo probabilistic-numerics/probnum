@@ -47,7 +47,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         X_norm = np.sum(X ** 2, axis=-1)
         K_rbf = var * np.exp(-1 / (2 * lengthscale ** 2) * (X_norm[:, None] + X_norm[None, :] - 2 * np.dot(X, X.T)))
         K_rbf = K_rbf + 10 ** -3 * np.eye(n)
-        x_true = np.random.normal(size=(n, ))
+        x_true = np.random.normal(size=(n,))
         b = K_rbf @ x_true
         self.rbf_kernel_linear_system = K_rbf, b, x_true
 
@@ -204,83 +204,101 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         """Compute the posterior parameters of the matrix-based probabilistic linear solvers directly and compare."""
         # Initialization
         A, f = self.poisson_linear_system
-        S = []  # search directions
-        Y = []  # observations
 
         # Priors
         H0 = linops.Identity(A.shape[0])  # inverse prior mean
         A0 = linops.Identity(A.shape[0])  # prior mean
         WH0 = H0  # inverse prior Kronecker factor
         WA0 = A  # prior Kronecker factor
-        covH = linops.SymmetricKronecker(WH0, WH0)
-        covA = linops.SymmetricKronecker(WA0, WA0)
-        Ahat0 = prob.RandomVariable(distribution=prob.Normal(mean=A0, cov=covA))
-        Ainvhat0 = prob.RandomVariable(distribution=prob.Normal(mean=H0, cov=covH))
+        # covH = linops.SymmetricKronecker(WH0)
+        # covA = linops.SymmetricKronecker(WA0)
 
-        # Define callback function to obtain search directions
-        def callback_postparams(xk, Ak, Ainvk, sk, yk, alphak, resid):
-            S.append(sk)
-            Y.append(yk)
+        for calibrate in [False, 0., 2.]:
+            with self.subTest():
+                # Define callback function to obtain search directions
+                S = []  # search directions
+                Y = []  # observations
 
-        # Solve linear system
-        u_solver, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=f, A0=Ahat0, Ainv0=Ainvhat0,
-                                                            callback=callback_postparams, calibrate=False)
+                def callback_postparams(xk, Ak, Ainvk, sk, yk, alphak, resid):
+                    S.append(sk)
+                    Y.append(yk)
 
-        # Create arrays from lists
-        S = np.squeeze(np.array(S)).T
-        Y = np.squeeze(np.array(Y)).T
+                # Solve linear system
+                u_solver, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=f, Ainv0=H0,
+                                                                    callback=callback_postparams,
+                                                                    calibration=calibrate)
 
-        # E[A] and E[A^-1]
-        def posterior_mean(A0, WA0, S, Y):
-            """Compute posterior mean of the symmetric probabilistic linear solver."""
-            Delta = (Y - A0 @ S)
-            U_T = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
-            U = U_T.T
-            Ak = A0 + Delta @ U_T + U @ Delta.T - U @ S.T @ Delta @ U_T
-            return Ak
+                # Create arrays from lists
+                S = np.squeeze(np.array(S)).T
+                Y = np.squeeze(np.array(Y)).T
 
-        Ak = posterior_mean(A0.todense(), WA0, S, Y)
-        Hk = posterior_mean(H0.todense(), WH0, Y, S)
+                # E[A] and E[A^-1]
+                def posterior_mean(A0, WA0, S, Y):
+                    """Compute posterior mean of the symmetric probabilistic linear solver."""
+                    Delta = (Y - A0 @ S)
+                    U_T = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
+                    U = U_T.T
+                    Ak = A0 + Delta @ U_T + U @ Delta.T - U @ S.T @ Delta @ U_T
+                    return Ak
 
-        self.assertAllClose(Ahat.mean().todense(), Ak, rtol=1e-5,
-                            msg="The matrix estimated by the probabilistic linear solver does not match the " +
-                                "directly computed one.")
-        self.assertAllClose(Ainvhat.mean().todense(), Hk, rtol=1e-5,
-                            msg="The inverse matrix estimated by the probabilistic linear solver does not" +
-                                "match the directly computed one.")
+                Ak = posterior_mean(A0.todense(), WA0, S, Y)
+                Hk = posterior_mean(H0.todense(), WH0, Y, S)
 
-        # Cov[A] and Cov[A^-1]
-        def posterior_cov_kronfac(WA0, S):
-            """Compute the covariance symmetric Kronecker factor of the probabilistic linear solver."""
-            U_AT = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
-            covfac = WA0 @ (np.identity(np.shape(WA0)[0]) - S @ U_AT)
-            return covfac
+                self.assertAllClose(Ahat.mean().todense(), Ak, rtol=1e-5,
+                                    msg="The matrix estimated by the probabilistic linear solver does not match the " +
+                                        "directly computed one.")
+                self.assertAllClose(Ainvhat.mean().todense(), Hk, rtol=1e-5,
+                                    msg="The inverse matrix estimated by the probabilistic linear solver does not" +
+                                        "match the directly computed one.")
 
-        A_covfac = posterior_cov_kronfac(WA0, S)
-        H_covfac = posterior_cov_kronfac(WH0, Y)
+                # Cov[A] and Cov[A^-1]
+                def posterior_cov_kronfac(WA0, S, unc_scale):
+                    """Compute the covariance symmetric Kronecker factor of the probabilistic linear solver."""
+                    U_AT = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
+                    if unc_scale == 0:
+                        covfac = WA0 @ (np.identity(WA0.shape[0]) - S @ U_AT)
+                    else:
+                        id = np.eye(WA0.shape[0])
+                        projection_term = (id - S @ np.linalg.solve(S.T @ S, S.T))
+                        calib_term = unc_scale * projection_term @ projection_term
+                        covfac = WA0 @ S @ np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T) + calib_term - WA0 @ S @ U_AT
+                    return covfac
 
-        self.assertAllClose(Ahat.cov().A.todense(), A_covfac, rtol=1e-5,
-                            msg="The covariance estimated by the probabilistic linear solver does not match the " +
-                                "directly computed one.")
-        self.assertAllClose(Ainvhat.cov().A.todense(), H_covfac, rtol=1e-5,
-                            msg="The covariance estimated by the probabilistic linear solver does not" +
-                                "match the directly computed one.")
+                if calibrate is False or calibrate == 0.:
+                    unc_scale_A = 0
+                    unc_scale_Ainv = 0
+                else:
+                    unc_scale_A = calibrate
+                    unc_scale_Ainv = 1 / calibrate
 
-    # def test_posterior_covariance_posdef(self):
-    #     """Posterior covariances of the output must be positive (semi-) definite."""
-    #     # Initialization
-    #     A, f = self.poisson_linear_system
-    #     
-    #     for matblinsolve in self.matblinsolvers:
-    #         with self.subTest():
-    #             # Solve linear system
-    #             u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
-    #         
-    #             # Check positive definiteness
-    #             self.assertTrue(np.linalg.eigvals(Ahat.cov().A.todense()) >= 0,
-    #                               msg="Covariance of A not positive semi-definite.")
-    #             self.assertTrue(np.linalg.eigvals(Ainvhat.cov().A.todense()) >= 0,
-    #                               msg="Covariance of Ainv not positive semi-definite.")
+                A_covfac = posterior_cov_kronfac(WA0, S, unc_scale=unc_scale_A)
+                H_covfac = posterior_cov_kronfac(WH0, Y, unc_scale=unc_scale_Ainv)
+
+                self.assertAllClose(np.array(Ahat.cov().A.todense()), A_covfac, rtol=1e-5,
+                                    msg="The covariance estimated by the probabilistic linear solver does not match the " +
+                                        "directly computed one.")
+                self.assertAllClose(np.array(Ainvhat.cov().A.todense()), H_covfac, rtol=1e-5,
+                                    msg="The covariance estimated by the probabilistic linear solver does not" +
+                                        "match the directly computed one.")
+
+    def test_posterior_covariance_posdef(self):
+        """Posterior covariances of the output must be positive (semi-) definite."""
+        # Initialization
+        A, f = self.poisson_linear_system
+        eps = 10 ** -12
+
+        for matblinsolve in self.matblinsolvers:
+            with self.subTest():
+                # Solve linear system
+                u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
+
+                # Check positive definiteness
+                self.assertArrayLess(np.zeros(np.shape(A)[0]),
+                                     np.real_if_close(np.linalg.eigvals(Ahat.cov().A.todense())) + eps,
+                                     msg="Covariance of A not positive semi-definite.")
+                self.assertArrayLess(np.zeros(np.shape(A)[0]),
+                                     np.real_if_close(np.linalg.eigvals(Ainvhat.cov().A.todense())) + eps,
+                                     msg="Covariance of Ainv not positive semi-definite.")
 
     def test_matrixprior(self):
         """Solve random linear system with a matrix-based linear solver."""
@@ -374,6 +392,16 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAllClose(xhat_pls.mean(), xhat_cg, rtol=10 ** -12)
                 self.assertAllClose(pls_iters_arr, cg_iters_arr, rtol=10 ** -12)
 
+    def test_iterative_covariance_trace_update(self):
+        """The solver's returned value for the trace must match the actual trace of the solution covariance."""
+        A, b, x_true = self.rbf_kernel_linear_system
+
+        for plinsolve in self.matblinsolvers:
+            with self.subTest():
+                x_est, Ahat, Ainvhat, info = plinsolve(A=A, b=b)
+                self.assertAlmostEqual(info["trace_sol_cov"], x_est.cov().trace(),
+                                       msg="Iteratively computed trace not equal to output trace of solution covariance.")
+
     def test_prior_distributions(self):
         """The solver should automatically handle different types of prior information."""
         pass
@@ -422,7 +450,7 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
                 # Matrix-based solver
                 smbs = linalg.MatrixBasedSolver(A=A, b=b, x0=x0)
-                A0_mean, Ainv0_mean = smbs._construct_symmetric_matrix_prior_means(b=b, x0=x0)
+                A0_mean, Ainv0_mean = smbs._construct_symmetric_matrix_prior_means(A=A, b=b, x0=x0)
                 A0_mean_dense = A0_mean.todense()
                 Ainv0_mean_dense = Ainv0_mean.todense()
 
@@ -441,92 +469,91 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertTrue(np.all(np.linalg.eigvals(Ainv0_mean_dense) > 0))
                 self.assertTrue(np.all(np.linalg.eigvals(A0_mean_dense) > 0))
 
-
-class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
-    """Tests the probabilistic linear solver with noise functionality."""
-
-    def setUp(self):
-        """Resources for tests."""
-        # Poisson equation with Dirichlet conditions.
-        #
-        #   - Laplace(u) = f    in the interior
-        #              u = u_D  on the boundary
-        # where
-        #     u_D = 1 + x^2 + 2y^2
-        #     f = -4
-        #
-        # Linear system resulting from discretization on an elliptic grid.
-        fpath = os.path.join(os.path.dirname(__file__), '../../resources')
-        A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
-        f = np.load(file=fpath + "/rhs_poisson.npy")
-        self.poisson_linear_system = A, f
-
-        # Structured noise E
-        self.noise = [
-            # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(2, 2), scalar=0),
-            #                                              cov=linops.SymmetricKronecker(
-            #                                                  A=.75 ** 2 * linops.Identity(2)))),
-            # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(3, 3), scalar=0),
-            #                                              cov=linops.SymmetricKronecker(
-            #                                                  A=.01 ** 2 * linops.Identity(3)))),
-            prob.RandomVariable(
-                distribution=prob.Normal(mean=linops.ScalarMult(shape=self.poisson_linear_system[0].shape, scalar=0),
-                                         cov=linops.SymmetricKronecker(
-                                             A=.01 ** 2 * linops.Identity(self.poisson_linear_system[0].shape[0]))))
-        ]
-
-        # System matrices A
-        self.system_matrices = [
-            # linops.MatrixMult(np.array([[4., 1.], [1., 2.]])),
-            # linops.MatrixMult(np.array([[4., 1., .2], [1., 2., -.01], [.2, -.01, 10]])),
-            linops.MatrixMult(self.poisson_linear_system[0].toarray())
-        ]
-
-        # Noisy linear operators
-        self.noisy_linops = [
-
-        ]
-
-        # System right hand sides b
-        self.right_hand_sides = [
-            # np.array([1, -1]),
-            # np.array([[.893], [3.5], [-1]])
-            self.poisson_linear_system[1]
-        ]
-        self.noisy_right_hand_sides = [
-            prob.RandomVariable(shape=(2, 1),
-                                distribution=prob.Normal(mean=np.array([[1.], [-1]]),
-                                                         cov=0.01 * np.array([[2, .1], [.1, 4]]))),
-            prob.RandomVariable(shape=(3, 1), distribution=prob.Dirac(support=np.array([[.893], [3.5], [-1]]))),
-            prob.RandomVariable(shape=(self.poisson_linear_system[1].shape[0], 1),
-                                distribution=prob.Normal(mean=self.poisson_linear_system[1].reshape(-1, 1),
-                                                         cov=0.01 * linops.Identity(
-                                                             self.poisson_linear_system[1].shape[0]))),
-        ]
-
-    def test_solve_noisy_problem(self):
-        """Solve a simple noisy problem."""
-        for (A, E, b) in zip(self.system_matrices, self.noise, self.right_hand_sides):
-            for seed in range(0, 5):
-                with self.subTest():
-                    np.random.seed(seed)
-                    x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
-                                                        maxiter=b.shape[0] + 1)
-                    self.assertAllClose(A @ x.mean(), np.squeeze(b), rtol=10 ** -6)
-
-    def test_noisy_rhs(self):
-        """Noisy right hand side given as a random variable."""
-        np.random.seed(0)
-        for (A, E, b) in zip(self.system_matrices, self.noise, self.noisy_right_hand_sides):
-            with self.subTest():
-                x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
-                                                    maxiter=b.shape[0] + 1)
-                self.assertAllClose(A @ x.mean(), np.squeeze(b.mean()), rtol=10 ** -6)
-
-    def test_multiple_rhs(self):
-        """Noisy linear system with matrix right hand side."""
-        pass
-
-    def test_optimal_scale(self):
-        """Tests the computation of the optimal scale for the posterior covariance."""
-        pass
+# class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
+#     """Tests the probabilistic linear solver with noise functionality."""
+#
+#     def setUp(self):
+#         """Resources for tests."""
+#         # Poisson equation with Dirichlet conditions.
+#         #
+#         #   - Laplace(u) = f    in the interior
+#         #              u = u_D  on the boundary
+#         # where
+#         #     u_D = 1 + x^2 + 2y^2
+#         #     f = -4
+#         #
+#         # Linear system resulting from discretization on an elliptic grid.
+#         fpath = os.path.join(os.path.dirname(__file__), '../../resources')
+#         A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
+#         f = np.load(file=fpath + "/rhs_poisson.npy")
+#         self.poisson_linear_system = A, f
+#
+#         # Structured noise E
+#         self.noise = [
+#             # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(2, 2), scalar=0),
+#             #                                              cov=linops.SymmetricKronecker(
+#             #                                                  A=.75 ** 2 * linops.Identity(2)))),
+#             # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(3, 3), scalar=0),
+#             #                                              cov=linops.SymmetricKronecker(
+#             #                                                  A=.01 ** 2 * linops.Identity(3)))),
+#             prob.RandomVariable(
+#                 distribution=prob.Normal(mean=linops.ScalarMult(shape=self.poisson_linear_system[0].shape, scalar=0),
+#                                          cov=linops.SymmetricKronecker(
+#                                              A=.01 ** 2 * linops.Identity(self.poisson_linear_system[0].shape[0]))))
+#         ]
+#
+#         # System matrices A
+#         self.system_matrices = [
+#             # linops.MatrixMult(np.array([[4., 1.], [1., 2.]])),
+#             # linops.MatrixMult(np.array([[4., 1., .2], [1., 2., -.01], [.2, -.01, 10]])),
+#             linops.MatrixMult(self.poisson_linear_system[0].toarray())
+#         ]
+#
+#         # Noisy linear operators
+#         self.noisy_linops = [
+#
+#         ]
+#
+#         # System right hand sides b
+#         self.right_hand_sides = [
+#             # np.array([1, -1]),
+#             # np.array([[.893], [3.5], [-1]])
+#             self.poisson_linear_system[1]
+#         ]
+#         self.noisy_right_hand_sides = [
+#             prob.RandomVariable(shape=(2, 1),
+#                                 distribution=prob.Normal(mean=np.array([[1.], [-1]]),
+#                                                          cov=0.01 * np.array([[2, .1], [.1, 4]]))),
+#             prob.RandomVariable(shape=(3, 1), distribution=prob.Dirac(support=np.array([[.893], [3.5], [-1]]))),
+#             prob.RandomVariable(shape=(self.poisson_linear_system[1].shape[0], 1),
+#                                 distribution=prob.Normal(mean=self.poisson_linear_system[1].reshape(-1, 1),
+#                                                          cov=0.01 * linops.Identity(
+#                                                              self.poisson_linear_system[1].shape[0]))),
+#         ]
+#
+#     def test_solve_noisy_problem(self):
+#         """Solve a simple noisy problem."""
+#         for (A, E, b) in zip(self.system_matrices, self.noise, self.right_hand_sides):
+#             for seed in range(0, 5):
+#                 with self.subTest():
+#                     np.random.seed(seed)
+#                     x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
+#                                                         maxiter=b.shape[0] + 1)
+#                     self.assertAllClose(A @ x.mean(), np.squeeze(b), rtol=10 ** -6)
+#
+#     def test_noisy_rhs(self):
+#         """Noisy right hand side given as a random variable."""
+#         np.random.seed(0)
+#         for (A, E, b) in zip(self.system_matrices, self.noise, self.noisy_right_hand_sides):
+#             with self.subTest():
+#                 x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
+#                                                     maxiter=b.shape[0] + 1)
+#                 self.assertAllClose(A @ x.mean(), np.squeeze(b.mean()), rtol=10 ** -6)
+#
+#     def test_multiple_rhs(self):
+#         """Noisy linear system with matrix right hand side."""
+#         pass
+#
+#     def test_optimal_scale(self):
+#         """Tests the computation of the optimal scale for the posterior covariance."""
+#         pass

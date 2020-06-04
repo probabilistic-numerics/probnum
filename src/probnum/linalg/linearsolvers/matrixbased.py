@@ -276,18 +276,22 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         super().__init__(A=A, b=_b, x0=x0)
 
         # Get or construct prior parameters
-        A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=self.x0,
+        A_mean0, A_covfactor0, Ainv_mean0, Ainv_covfactor0 = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=self.x0,
                                                                                     b=self.b)
 
         # Initialize prior parameters
-        self.A_mean = A0_mean
-        self.A_covfactor = A0_covfactor
-        self.Ainv_mean = Ainv0_mean
-        self.Ainv_covfactor = Ainv0_covfactor
+        self.A_mean = A_mean0
+        self.A_mean0 = A_mean0
+        self.A_covfactor = A_covfactor0
+        self.A_covfactor0 = A_covfactor0
+        self.Ainv_mean = Ainv_mean0
+        self.Ainv_mean0 = Ainv_mean0
+        self.Ainv_covfactor = Ainv_covfactor0
+        self.Ainv_covfactor0 = Ainv_covfactor0
         if isinstance(x0, np.ndarray):
             self.x_mean = x0
         elif x0 is None:
-            self.x_mean = Ainv0_mean @ self.b
+            self.x_mean = Ainv_mean0 @ self.b
         else:
             raise NotImplementedError
         self.x0 = self.x_mean
@@ -331,8 +335,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Factor :math:`W^H` of the symmetric Kronecker product prior covariance :math:`W^H \\otimes_s W^H` of
             :math:`H`.
         """
+        self.is_calib_covclass = False
         # No matrix priors specified
         if A0 is None and Ainv0 is None:
+            self.is_calib_covclass = True
             # No prior information given
             if x0 is None:
                 Ainv0_mean = linops.Identity(shape=self.n)
@@ -357,6 +363,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 Ainv0_mean = Ainv0.mean()
                 Ainv0_covfactor = Ainv0.cov().A
             else:
+                self.is_calib_covclass = True
                 Ainv0_mean = Ainv0
                 Ainv0_covfactor = Ainv0  # Symmetric posterior correspondence
             try:
@@ -385,6 +392,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 A0_mean = A0.mean()
                 A0_covfactor = A0.cov().A
             else:
+                self.is_calib_covclass = True
                 A0_mean = A0
                 A0_covfactor = A0  # Symmetric posterior correspondence
             try:
@@ -439,7 +447,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     (_identity[np.newaxis, i, :] @ self.A) @ (self.Ainv_covfactor @ _identity[i, :, np.newaxis]))
             return _trace
 
-    def _compute_trace_solution_covariance(self):
+    def _compute_trace_solution_covariance(self, trace_Ainv_covfactor):
         """
         Computes the (linearly transformed) trace of the solution covariance :math:`\\tr(A \\operatorname{Cov}[x])`
 
@@ -448,9 +456,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         trace_A_x_cov : float
             (Linearly transformed) trace of solution covariance.
         """
-        Wb = self.Ainv_covfactor @ self.b
+        Wb = self.Ainv_covfactor @ self.b  # TODO: ensure usage of correct covfactor here, i.e. after get_output_randvars!
         bWb = np.squeeze(Wb.T @ self.b)
-        return 0.5 * (bWb * self._trace_A_Ainv_covfactor + np.squeeze(Wb.T @ self.A @ Wb))
+        return np.inf  # 0.5 * (bWb * trace_Ainv_covfactor + np.squeeze(Wb.T @ self.A @ Wb))
 
     def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
         """
@@ -490,30 +498,38 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         elif resid_norm <= rtol * b_norm:
             return True, "resid_rtol"
         # uncertainty-based
-        if self.trace_A_xcov <= atol:
+        if self.trace_sol_cov <= atol:
             return True, "tracecov_atol"
-        elif self.trace_A_xcov <= rtol * b_norm:
+        elif self.trace_sol_cov <= rtol * b_norm:
             return True, "tracecov_rtol"
         else:
             return False, ""
 
-    def _calibrate_uncertainty(self):
+    def _calibrate_uncertainty(self, S, sy, calibration_type):
         """
         Calibrate uncertainty based on the Rayleigh coefficients
 
         A regression model for the log-Rayleigh coefficient is built based on the collected observations. The degrees of
         freedom in the covariance of A and H are set according to the predicted log-Rayleigh coefficient for the
         remaining unexplored dimensions.
-        """
-        # Transform to arrays
-        _sy = np.squeeze(np.array(self.sy))
-        _S = np.squeeze(np.array(self.search_dir_list)).T
-        _Y = np.squeeze(np.array(self.obs_list)).T
 
-        if self.iter_ > 2:  # only calibrate if enough iterations for a regression model have been performed
-            # Rayleigh quotient
-            iters = np.arange(self.iter_)
-            logR = np.log(_sy) - np.log(np.einsum('nk,nk->k', _S, _S))
+        Parameters
+        ----------
+        S : np.ndarray, shape=(n, k)
+            Array of search directions
+        sy : np.ndarray
+            Array of inner products ``s_i'As_i``
+        calibration_type : str
+            Type of calibration procedure to use.
+        """
+
+        # Rayleigh quotient
+        iters = np.arange(self.iter_ + 1)
+        logR = np.log(sy) - np.log(np.einsum('nk,nk->k', S, S))
+
+        # TODO: choose calibration type based on calibration argument of solve iteration
+        # Offer different types of calibration schemes: rayleigh, scale, none, local avg
+        if self.iter_ > 1:  # only calibrate if enough iterations for a regression model have been performed
 
             # # Least-squares fit for y intercept
             # x_mean = np.mean(iters)
@@ -540,61 +556,98 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             logR_pred = m.predict(remaining_dims + 1)[0].ravel()
             # R_pred = np.exp(GP_pred[0].ravel())  # + beta0)
 
-            # Set scale
-            Phi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.exp(np.mean(logR_pred))))
-            Psi = linops.ScalarMult(shape=self.A.shape, scalar=np.asscalar(np.exp(-np.mean(logR_pred))))
+            # Set uncertainty scale (degrees of freedom in calibration covariance class)
+            Phi = np.asscalar(np.exp(np.mean(logR_pred)))
+            Psi = np.asscalar(np.exp(-np.mean(logR_pred)))
 
         else:
-            Phi = None
-            Psi = None
+            # For too few iterations take the average Rayleigh quotient
+            Phi = np.exp(np.mean(logR))
+            Psi = 1 / Phi
 
         return Phi, Psi
 
-    def _get_output_randvars(self, S=None, Y=None, Phi=None, Psi=None):
+    def _get_calibration_covariance_update_terms(self, Phi=None, Psi=None):
+        """
+        For the calibration covariance class set the calibration update terms of the covariance in the null spaces
+        of span(S) and span(Y) based on the degrees of freedom.
+        """
+        # Search directions and observations as arrays
+        S = np.hstack(self.search_dir_list)
+        Y = np.hstack(self.obs_list)
+
+        def get_null_space_map(V, unc_scale):
+            """Returns a function mapping to the null space of span(V), scaling with a single degree of freedom
+             and mapping back."""
+
+            def null_space_proj(x):
+                try:
+                    VVinvVx = np.linalg.solve(V.T @ V, V.T @ x)
+                    return x - V @ VVinvVx
+                except np.linalg.LinAlgError:
+                    return x
+
+            return lambda y: null_space_proj(unc_scale * null_space_proj(y))
+
+        # Compute calibration term in the A view as a linear operator with scaling from degrees of freedom
+        calibration_term_A = linops.LinearOperator(shape=(self.n, self.n),
+                                                   matvec=get_null_space_map(V=S, unc_scale=Phi))
+
+        # Compute calibration term in the Ainv view as a linear operator with scaling from degrees of freedom
+        calibration_term_Ainv = linops.LinearOperator(shape=(self.n, self.n),
+                                                      matvec=get_null_space_map(V=Y, unc_scale=Psi))
+
+        return calibration_term_A, calibration_term_Ainv
+
+    def _get_output_randvars(self, Y_list, sy_list, Phi=None, Psi=None):
         """Return output random variables x, A, Ainv from their means and covariances."""
 
-        _A_covfactor = self.A_covfactor
-        _Ainv_covfactor = self.Ainv_covfactor
+        if self.iter_ > 0:
+            # Observations and inner products in A-space between actions
+            Y = np.hstack(Y_list)
+            sy = np.vstack(sy_list).ravel()
 
-        # Set degrees of freedom based on uncertainty calibration in unexplored space
-        if Phi is not None:
-            def _mv(x):
-                def _I_S_fun(x):
-                    try:
-                        SSinvSx = np.linalg.solve(S.T @ S, S.T @ x)
-                        return x - S @ SSinvSx
-                    except np.linalg.LinAlgError:
-                        return x
+            # Posterior covariance factors
+            if self.is_calib_covclass and (not Phi is None) and (not Psi is None):
+                # Ensure prior covariance class only acts in span(S) like A
+                def _matvec(x):
+                    # First term of calibration covariance class: AS(S'AS)^{-1}S'A
+                    return (Y * sy ** -1) @ (Y.T @ x.ravel())
 
-                return _I_S_fun(Phi * _I_S_fun(x))
+                _A_covfactor0 = linops.LinearOperator(shape=(self.n, self.n), matvec=_matvec)
 
-            I_S_Phi_I_S_op = linops.LinearOperator(shape=(self.n, self.n), matvec=_mv)
-            _A_covfactor = self.A_covfactor + I_S_Phi_I_S_op
+                def _matvec(x):
+                    # Term in covariance class: A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}
+                    # TODO: for efficiency ensure that we dont have to compute (Y.T Y)^{-1} two times! For a scalar mean
+                    #  this is the same as in the null space projection
+                    YAinv0Y_inv_YAinv0x = np.linalg.solve(Y.T @ (self.Ainv_mean0 @ Y), Y.T @ (self.Ainv_mean0 @ x))
+                    return self.Ainv_mean0 @ (Y @ YAinv0Y_inv_YAinv0x)
 
-        if Psi is not None:
-            def _mv(x):
-                def _I_Y_fun(x):
-                    try:
-                        YYinvYx = np.linalg.solve(Y.T @ Y, Y.T @ x)
-                        return x - Y @ YYinvYx
-                    except np.linalg.LinAlgError:
-                        return x
+                _Ainv_covfactor0 = linops.LinearOperator(shape=(self.n, self.n), matvec=_matvec)
 
-                return _I_Y_fun(Psi * _I_Y_fun(x))
+                # Set degrees of freedom based on uncertainty calibration in unexplored space
+                calibration_term_A, calibration_term_Ainv = self._get_calibration_covariance_update_terms(Phi=Phi,
+                                                                                                          Psi=Psi)
 
-            I_Y_Psi_I_Y_op = linops.LinearOperator(shape=(self.n, self.n), matvec=_mv)
-            _Ainv_covfactor = self.Ainv_covfactor + I_Y_Psi_I_Y_op
+                _A_covfactor = _A_covfactor0 - self._A_covfactor_update_term + calibration_term_A
+                _Ainv_covfactor = _Ainv_covfactor0 - self._Ainv_covfactor_update_term + calibration_term_Ainv
+            else:
+                _A_covfactor = self.A_covfactor
+                _Ainv_covfactor = self.Ainv_covfactor
+        else:
+            # Converged before making any observations
+            _A_covfactor = self.A_covfactor0
+            _Ainv_covfactor = self.Ainv_covfactor0
 
         # Create output random variables
         A = prob.RandomVariable(shape=(self.n, self.n),
                                 dtype=float,
                                 distribution=prob.Normal(mean=self.A_mean,
-                                                         cov=linops.SymmetricKronecker(
-                                                             A=_A_covfactor)))
-        cov_Ainv = linops.SymmetricKronecker(A=_Ainv_covfactor)
+                                                         cov=linops.SymmetricKronecker(A=_A_covfactor)))
         Ainv = prob.RandomVariable(shape=(self.n, self.n),
                                    dtype=float,
-                                   distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
+                                   distribution=prob.Normal(mean=self.Ainv_mean,
+                                                            cov=linops.SymmetricKronecker(A=_Ainv_covfactor)))
         # Induced distribution on x via Ainv
         # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
         Wb = _Ainv_covfactor @ self.b
@@ -627,7 +680,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
 
-    def solve(self, callback=None, maxiter=None, atol=None, rtol=None, calibrate=True):
+    def solve(self, callback=None, maxiter=None, atol=None, rtol=None, calibration=None):
         """
         Solve the linear system :math:`Ax=b`.
 
@@ -643,15 +696,15 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{atol}`.
         rtol : float
             Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{rtol} \\lVert b \\rVert`.
-        calibrate : bool, default=True
-            Should the posterior covariances be calibrated based on a Rayleigh quotient regression?
+        calibration : str or float, default=False
+            If supplied calibrates the output via the given procedure or uncertainty scale.
 
         Returns
         -------
         x : RandomVariable, shape=(n,) or (n, nrhs)
             Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
         A : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator.
+            Posterior belief over the linear operator.calibrate
         Ainv : RandomVariable, shape=(n,n)
             Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
         info : dict
@@ -661,9 +714,28 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         self.iter_ = 0
         resid = self.A @ self.x_mean - self.b
 
+        # Initialize uncertainty calibration
+        Phi = None
+        Psi = None
+        if calibration is None:
+            pass
+        elif calibration is not None and not self.is_calib_covclass:
+            warnings.warn(message="Cannot use calibration without a compatible covariance class.")
+        elif isinstance(calibration, str) and self.is_calib_covclass:
+            pass
+        elif self.is_calib_covclass:
+            if calibration < 0:
+                raise ValueError("Calibration scale must be non-negative.")
+            elif calibration == 0.:
+                pass
+            else:
+                Phi = calibration
+                Psi = 1 / calibration
+
         # Initial trace of the linearly transformed covariance factor: tr(A W_0^H)
-        self._trace_A_Ainv_covfactor = self._init_trace_A_Ainv_covfactor()
-        self.trace_A_xcov = self._compute_trace_solution_covariance()
+        self._trace_Ainv_covfactor_update = 0
+        self.trace_sol_cov = self._compute_trace_solution_covariance(
+            trace_Ainv_covfactor=np.inf)  # TODO: correct initial trace
 
         # Iteration with stopping criteria
         while True:
@@ -703,53 +775,48 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
 
             # Rank 2 mean updates (+= uv' + vu')
-            # TODO: Operator form may cause stack size issues for too many iterations
             self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A)
             self.Ainv_mean = linops.aslinop(self.Ainv_mean) + self._mean_update(u=u_Ainv, v=v_Ainv)
 
             # Rank 1 covariance Kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
-            self.A_covfactor = linops.aslinop(self.A_covfactor) - self._covariance_update(u=u_A, Ws=Vs)
-            self.Ainv_covfactor = linops.aslinop(self.Ainv_covfactor) - self._covariance_update(u=u_Ainv, Ws=Wy)
+            if self.iter_ == 0:
+                self._A_covfactor_update_term = self._covariance_update(u=u_A, Ws=Vs)
+                self._Ainv_covfactor_update_term = self._covariance_update(u=u_Ainv, Ws=Wy)
+            else:
+                self._A_covfactor_update_term = self._A_covfactor_update_term + self._covariance_update(u=u_A, Ws=Vs)
+                self._Ainv_covfactor_update_term = self._Ainv_covfactor_update_term + self._covariance_update(u=u_Ainv,
+                                                                                                              Ws=Wy)
+            self.A_covfactor = linops.aslinop(self.A_covfactor0) - self._A_covfactor_update_term
+            self.Ainv_covfactor = linops.aslinop(self.Ainv_covfactor0) - self._Ainv_covfactor_update_term
 
-            # Update (linearly transformed) covariance trace of solution estimate: tr(A Cov(Hb))
-            self._trace_A_Ainv_covfactor += 1 / yWy * np.squeeze(Wy.T @ self.A @ Wy)
-            self.trace_A_xcov = self._compute_trace_solution_covariance()
+            # Calibrate uncertainty based on Rayleigh quotient
+            if isinstance(calibration, str) and self.is_calib_covclass:
+                Phi, Psi = self._calibrate_uncertainty(S=np.hstack(self.search_dir_list),
+                                                       sy=np.vstack(self.sy).ravel(),
+                                                       calibration_type=calibration)
+
+            # Update (trace of) solution covariance: tr(Cov(Hb))
+            # TODO
+            self._trace_Ainv_covfactor_update += 1 / yWy * np.squeeze(Wy.T @ Wy)
+            self.trace_sol_cov = self._compute_trace_solution_covariance(0)  # TODO
 
             # Iteration increment
             self.iter_ += 1
 
             # Callback function used to extract quantities from iteration
             if callback is not None:
-                # Phi, Psi = self._calibrate_uncertainty()
-                xk, Ak, Ainvk = self._get_output_randvars(S=np.squeeze(np.array(self.search_dir_list)).T,
-                                                          Y=np.squeeze(np.array(self.obs_list)).T,
-                                                          Phi=None,  # Phi,
-                                                          Psi=None)  # Psi)
+                xk, Ak, Ainvk = self._get_output_randvars(Y_list=self.obs_list, sy_list=self.sy, Phi=Phi, Psi=Psi)
                 callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
 
-        # Calibrate uncertainty
-        if type(calibrate) == bool:
-            if calibrate:
-                Phi, Psi = self._calibrate_uncertainty()
-            else:
-                Phi = None
-                Psi = None
-        else:
-            Phi = calibrate
-            Psi = 1 / calibrate
-
         # Create output random variables
-        x, A, Ainv = self._get_output_randvars(S=np.squeeze(np.array(self.search_dir_list)).T,
-                                               Y=np.squeeze(np.array(self.obs_list)).T,
-                                               Phi=Phi,
-                                               Psi=Psi)
+        x, A, Ainv = self._get_output_randvars(Y_list=self.obs_list, sy_list=self.sy, Phi=Phi, Psi=Psi)
 
         # Log information on solution
         info = {
             "iter": self.iter_,
             "maxiter": maxiter,
             "resid_l2norm": np.linalg.norm(resid, ord=2),
-            "A-trace_solcov": self.trace_A_xcov,
+            "trace_sol_cov": self.trace_sol_cov,
             "conv_crit": _conv_crit,
             "rel_cond": None  # TODO: matrix condition from solver (see scipy solvers)
         }
