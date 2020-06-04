@@ -178,19 +178,3 @@ class ShapeTestCase(RandomVariableTestCase):
         Sample from a random variable with different sizes and check sample shapes.
         """
         pass
-
-
-class TestEmptyInit(unittest.TestCase):
-    """
-    Tests that a RandomVariable object can be set up with an empty init.
-    """
-
-    def test_empty_init(self):
-        """No input."""
-        with self.assertRaises(ValueError):
-            prob.RandomVariable()
-
-    def test_dtype_init(self):
-        """Instantiate a random variable without a distribution."""
-        rv = prob.RandomVariable(dtype=int)
-        self.assertIsInstance(rv, prob.RandomVariable)

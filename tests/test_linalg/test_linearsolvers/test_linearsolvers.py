@@ -46,7 +46,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         var = 1
         X_norm = np.sum(X ** 2, axis=-1)
         K_rbf = var * np.exp(-1 / (2 * lengthscale ** 2) * (X_norm[:, None] + X_norm[None, :] - 2 * np.dot(X, X.T)))
-        K_rbf = K_rbf + 10 ** -3 * np.eye(n)
+        K_rbf = K_rbf + 10 ** -2 * np.eye(n)
         x_true = np.random.normal(size=(n,))
         b = K_rbf @ x_true
         self.rbf_kernel_linear_system = K_rbf, b, x_true
@@ -150,19 +150,19 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_spd_matrix(self):
         """Random spd matrix."""
-        np.random.seed(1234)
+        np.random.seed(42)
         n = 40
         A = np.random.rand(n, n)
         A = 0.5 * (A + A.T) + n * np.eye(n)
-        b = np.random.rand(n)
-        x = np.linalg.solve(A, b)
+        x_true = np.random.normal(size=(n,))
+        b = A @ x_true
 
-        for plinsolve in self.problinsolvers:
+        for matblinsolve in self.matblinsolvers:
             with self.subTest():
-                x_solver, _, _, info = plinsolve(A=A, b=b)
-                self.assertAllClose(x_solver.mean(), x, rtol=1e-4)
+                x, _, _, info = matblinsolve(A=A, b=b)
+                self.assertAllClose(x.mean(), x_true, rtol=1e-4, atol=1e-4,
+                                    msg="Solution does not match true solution.")
 
-    # TODO: run this test for a set of different linear systems
     def test_sparse_poisson(self):
         """(Sparse) linear system from Poisson PDE with boundary conditions."""
         A, f = self.poisson_linear_system
@@ -306,19 +306,19 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         n = 10
         A = np.random.rand(n, n)
         A = A.dot(A.T) + n * np.eye(n)  # Symmetrize and make diagonally dominant
-        b = np.random.rand(n, 1)
+        x_true = np.random.normal(size=(n,))
+        b = A @ x_true
 
         # Prior distributions on A
-        covA = linops.SymmetricKronecker(A=np.eye(n), B=np.eye(n))
+        covA = linops.SymmetricKronecker(A=np.eye(n))
         Ainv0 = prob.RandomVariable(distribution=prob.Normal(mean=np.eye(n), cov=covA))
 
         for matblinsolve in self.matblinsolvers:
             with self.subTest():
                 x, Ahat, Ainvhat, info = matblinsolve(A=A, Ainv0=Ainv0, b=b)
-                xnp = np.linalg.solve(A, b).ravel()
 
-                self.assertAllClose(x.mean(), xnp, rtol=1e-4,
-                                    msg="Solution does not match np.linalg.solve.")
+                self.assertAllClose(x.mean(), x_true, rtol=1e-4, atol=1e-4,
+                                    msg="Solution for matrixvariate prior does not match true solution.")
 
     def test_searchdir_conjugacy(self):
         """Search directions should remain A-conjugate up to machine precision, i.e. s_i^T A s_j = 0 for i != j."""
@@ -407,14 +407,14 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_uncertainty_calibration(self):
         """Test if the available uncertainty calibration procedures return appropriate scales."""
+        tol = 10 ** -4
         A, b, x_true = self.rbf_kernel_linear_system
 
         for calib_method in [None, 0, "adhoc", "weightedmean", "gpkern"]:
             with self.subTest():
-                x_est, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b, calibration=calib_method,
-                                                                 atol=10 ** -6, rtol=10 ** -6)
-                # self.assertAllClose(x_true, x_est.mean(), atol=10**-6, rtol=10**-6,
-                #                     msg="Estimated solution not sufficiently close to true solution.")
+                x_est, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b, calibration=calib_method)
+                self.assertLessEqual((x_true - x_est.mean()).T @ A @ (x_true - x_est.mean()), tol,
+                                     msg="Estimated solution not sufficiently close to true solution.")
 
 
 class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
