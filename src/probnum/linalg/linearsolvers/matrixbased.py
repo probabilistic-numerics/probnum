@@ -544,7 +544,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         else:
             return False, ""
 
-    def _calibrate_uncertainty(self, S, sy, calibration_type):
+    def _calibrate_uncertainty(self, S, sy, method):
         """
         Calibrate uncertainty based on the Rayleigh coefficients
 
@@ -558,8 +558,19 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Array of search directions
         sy : np.ndarray
             Array of inner products ``s_i'As_i``
-        calibration_type : str
-            Type of calibration procedure to use.
+        method : str
+            Type of calibration method to use based on the Rayleigh quotient. Available calibration procedures are
+            ====================================  ===============
+             GP regression with linear mean        ``gplinear``
+             GP regression for kernel matrices     ``gpkern``
+            ====================================  ===============
+
+        Returns
+        -------
+        phi : float
+            Uncertainty scale of the null space of span(S) for the A view
+        psi : float
+            Uncertainty scale of the null space of span(Y) for the Ainv view
         """
 
         # Rayleigh quotient
@@ -570,36 +581,44 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
             # TODO: choose calibration type based on calibration argument of solve iteration
             #   implement different types of calibration schemes: rayleigh, scale, none, local avg
+            if method == "gplinear":
+                # Least-squares fit for y intercept
+                x_mean = np.mean(iters)
+                y_mean = np.mean(logR)
+                beta1 = np.sum((iters - x_mean) * (logR - y_mean)) / np.sum((iters - x_mean) ** 2)
+                beta0 = y_mean - beta1 * x_mean
 
-            # # Least-squares fit for y intercept
-            # x_mean = np.mean(iters)
-            # y_mean = np.mean(logR)
-            # beta1 = np.sum((iters - x_mean) * (logR - y_mean)) / np.sum((iters - x_mean) ** 2)
-            # beta0 = y_mean - beta1 * x_mean
+                # Log-Rayleigh quotient regression
+                mf = GPy.mappings.linear.Linear(1, 1)
+                k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
+                m = GPy.models.GPRegression(iters[:, None] + 1, (logR - beta0)[:, None], kernel=k, mean_function=mf)
+                m.optimize(messages=False)
 
-            # Log-Rayleigh quotient regression
-            # mf = GPy.mappings.linear.Linear(1, 1)
+                # Predict Rayleigh quotient
+                remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
+                GP_pred = m.predict(remaining_dims)
+                logR_pred = GP_pred[0].ravel() + beta0
 
-            # GP mean function via Weyl's result on spectra of Gram matrices: ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
-            lnmap = GPy.core.Mapping(1, 1)
-            lnmap.f = lambda n: np.log(n + 10 ** -16)
-            lnmap.update_gradients = lambda a, b: None
-            mf = GPy.mappings.Additive(GPy.mappings.Constant(1, 1, value=0),
-                                       GPy.mappings.Compound(lnmap, GPy.mappings.Linear(1, 1)))
-            k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
-            # m = GPy.models.GPRegression(iters[:, None], (logR - beta0)[:, None], kernel=k, mean_function=mf)
-            m = GPy.models.GPRegression(iters[:, None] + 1, logR[:, None], kernel=k, mean_function=mf)
-            m.optimize(messages=False)
+            elif method == "gpkern":
+                # GP mean function via Weyl's result on spectra of Gram matrices: ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
+                lnmap = GPy.core.Mapping(1, 1)
+                lnmap.f = lambda n: np.log(n + 10 ** -16)
+                lnmap.update_gradients = lambda a, b: None
+                mf = GPy.mappings.Additive(GPy.mappings.Constant(1, 1, value=0),
+                                           GPy.mappings.Compound(lnmap, GPy.mappings.Linear(1, 1)))
+                k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
+                m = GPy.models.GPRegression(iters[:, None] + 1, logR[:, None], kernel=k, mean_function=mf)
+                m.optimize(messages=False)
 
-            # Predict Rayleigh quotient
-            remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
-            logR_pred = m.predict(remaining_dims + 1)[0].ravel()
-            # R_pred = np.exp(GP_pred[0].ravel())  # + beta0)
+                # Predict Rayleigh quotient
+                remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
+                logR_pred = m.predict(remaining_dims + 1)[0].ravel()
+            else:
+                raise ValueError("Calibration method not recognized.")
 
             # Set uncertainty scale (degrees of freedom in calibration covariance class)
             Phi = np.asscalar(np.exp(np.mean(logR_pred)))
             Psi = np.asscalar(np.exp(-np.mean(logR_pred)))
-
         else:
             # For too few iterations take the average Rayleigh quotient
             Phi = np.exp(np.mean(logR))
@@ -742,7 +761,14 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         rtol : float
             Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{rtol} \\lVert b \\rVert`.
         calibration : str or float, default=False
-            If supplied calibrates the output via the given procedure or uncertainty scale.
+            If supplied calibrates the output via the given procedure or uncertainty scale. Available calibration
+            procedures / choices are
+            ====================================  ===============
+             No calibration                          None
+             Provided scale                          float
+             GP regression with linear mean        ``gplinear``
+             GP regression for kernel matrices     ``gpkern``
+            ====================================  ===============
 
         Returns
         -------
@@ -840,7 +866,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             if isinstance(calibration, str) and self.is_calib_covclass:
                 phi, psi = self._calibrate_uncertainty(S=np.hstack(self.search_dir_list),
                                                        sy=np.vstack(self.sy).ravel(),
-                                                       calibration_type=calibration)
+                                                       method=calibration)
 
             # Update trace of solution covariance: tr(Cov(Hb))
             _trace_Ainv_covfactor_update += 1 / yWy * np.squeeze(Wy.T @ Wy)

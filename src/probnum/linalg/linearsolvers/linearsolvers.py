@@ -73,7 +73,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
         ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the
         iteration. Note that depending on the function supplied, this can slow down the solver considerably.
     kwargs : optional
-        Keyword arguments passed onto the solver iteration.
+        Optional keyword arguments passed onto the solver iteration.
 
     Returns
     -------
