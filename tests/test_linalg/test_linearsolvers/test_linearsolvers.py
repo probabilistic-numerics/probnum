@@ -399,20 +399,20 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         """The solver's returned value for the trace must match the actual trace of the solution covariance."""
         A, b, x_true = self.rbf_kernel_linear_system
 
-        for plinsolve in self.matblinsolvers:
+        for calib_method in [None, 0, 1., "adhoc", "weightedmean", "gpkern"]:
             with self.subTest():
-                x_est, Ahat, Ainvhat, info = plinsolve(A=A, b=b)
+                x_est, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b, calibration=calib_method)
                 self.assertAlmostEqual(info["trace_sol_cov"], x_est.cov().trace(),
-                                       msg="Iteratively computed trace not equal to output trace of solution covariance.")
+                                       msg="Iteratively computed trace not equal to trace of solution covariance.")
 
     def test_uncertainty_calibration(self):
         """Test if the available uncertainty calibration procedures return appropriate scales."""
         A, b, x_true = self.rbf_kernel_linear_system
 
-        for calib_method in [None, 0, "weightedmean", "gplinear", "gpkern"]:
+        for calib_method in [None, 0, "adhoc", "weightedmean", "gpkern"]:
             with self.subTest():
                 x_est, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b, calibration=calib_method,
-                                                                 atol=10**-6, rtol=10**-6)
+                                                                 atol=10 ** -6, rtol=10 ** -6)
                 # self.assertAllClose(x_true, x_est.mean(), atol=10**-6, rtol=10**-6,
                 #                     msg="Estimated solution not sufficiently close to true solution.")
 
@@ -478,7 +478,6 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 # Positive definiteness
                 self.assertTrue(np.all(np.linalg.eigvals(Ainv0_mean_dense) > 0))
                 self.assertTrue(np.all(np.linalg.eigvals(A0_mean_dense) > 0))
-
 
 # class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 #     """Tests the probabilistic linear solver with noise functionality."""

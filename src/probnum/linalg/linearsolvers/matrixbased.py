@@ -404,7 +404,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     Ainv0_mean = A0.inv()
             except AttributeError:
                 warnings.warn(message="Prior specified only for A. Inverting prior mean naively. " +
-                                      "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+                                      "This operation is computationally costly! Specify an inverse prior (mean).")
                 Ainv0_mean = np.linalg.inv(A0.mean())
             except NotImplementedError:
                 Ainv0_mean = linops.Identity(self.n)
@@ -423,30 +423,6 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         else:
             raise NotImplementedError
 
-    def _init_trace_A_Ainv_covfactor(self):
-        """
-        Initialize the (linearly transformed) trace of the covariance factor of ``Ainv``.
-
-        Computes the initial trace :math:`\\tr(A \\operatorname{Cov}[H])=\\tr(A W_0^H)`.
-
-        Returns
-        -------
-        init_trace : float
-            Initial (linearly transformed) trace.
-        """
-        if isinstance(self.Ainv_covfactor, linops.ScalarMult):
-            if isinstance(self.A, scipy.sparse.spmatrix):
-                return self.Ainv_covfactor.scalar * self.A.diagonal().sum()
-            else:
-                return self.Ainv_covfactor.scalar * self.A.trace()
-        else:
-            _identity = np.eye(self.n)
-            _trace = 0.
-            for i in range(self.n):
-                _trace += np.squeeze(
-                    (_identity[np.newaxis, i, :] @ self.A) @ (self.Ainv_covfactor @ _identity[i, :, np.newaxis]))
-            return _trace
-
     def _compute_trace_Ainv_covfactor0(self, Y, unc_scale):
         """
         Computes the trace of the prior covariance factor for the inverse view.
@@ -456,28 +432,38 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         Y : np.ndarray, shape=(n,k)
             Observations.
         unc_scale : float
-            Uncertainty scale :math:`\psi` of the inverse view.
+            Uncertainty scale :math:`\\psi` of the inverse view.
 
         Returns
         -------
         trace_Ainv_covfactor0 : float
             Trace of prior covariance factor.
         """
+        # Initialization
+        if Y is not None:
+            k = Y.shape[1]
+        else:
+            k = 0
         if unc_scale is None:
             unc_scale = 0
+
         if isinstance(self.Ainv_covfactor0, linops.ScalarMult):
             # Scalar prior mean
-            _trace = self.Ainv_covfactor0.trace()
-        elif self.is_calib_covclass and Y is not None:
-            # General prior mean with calibration covariance class
-            _trace = np.trace(np.linalg.solve(Y.T @ self.Ainv_mean0 @ Y,
-                                              Y.T @ self.Ainv_mean0 @ self.Ainv_mean0 @ Y))
+            if self.is_calib_covclass and k > 0 and (not unc_scale == 0):
+                _trace = self.Ainv_covfactor0.scalar * k
+            else:
+                _trace = self.Ainv_covfactor0.trace()
         else:
             # General prior mean
-            _trace = self.Ainv_covfactor0.trace()
+            if self.is_calib_covclass and k > 0 and (not unc_scale == 0):
+                # General prior mean with calibration covariance class
+                _trace = np.trace(np.linalg.solve(Y.T @ self.Ainv_mean0 @ Y,
+                                                  Y.T @ self.Ainv_mean0 @ self.Ainv_mean0 @ Y))
+            else:
+                _trace = self.Ainv_covfactor0.trace()
         if self.is_calib_covclass:
             # Additive term from uncertainty calibration
-            _trace += unc_scale * (self.n - self.iter_)
+            _trace += unc_scale * (self.n - k)
         return _trace
 
     def _compute_trace_solution_covariance(self, bWb, Wb):
@@ -561,8 +547,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         method : str
             Type of calibration method to use based on the Rayleigh quotient. Available calibration procedures are
             ====================================  ==================
+             Most recent Rayleigh quotient         ``adhoc``
              Running (weighted) mean               ``weightedmean``
-             GP regression with linear mean        ``gplinear``
              GP regression for kernel matrices     ``gpkern``
             ====================================  ==================
 
@@ -579,26 +565,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         logR = np.log(sy) - np.log(np.einsum('nk,nk->k', S, S))
 
         if self.iter_ > 1:  # only calibrate if enough iterations for a regression model have been performed
-            if method == "weightedmean":
+            if method == "adhoc":
+                logR_pred = logR[-1]
+            elif method == "weightedmean":
                 deprecation_rate = 0.9
                 logR_pred = logR * np.repeat(deprecation_rate, self.iter_ + 1) ** np.arange(self.iter_ + 1)
-            elif method == "gplinear":
-                # Least-squares fit for y intercept
-                x_mean = np.mean(iters)
-                y_mean = np.mean(logR)
-                beta1 = np.sum((iters - x_mean) * (logR - y_mean)) / np.sum((iters - x_mean) ** 2)
-                beta0 = y_mean - beta1 * x_mean
-
-                # Log-Rayleigh quotient regression
-                mf = GPy.mappings.linear.Linear(1, 1)
-                k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
-                m = GPy.models.GPRegression(iters[:, None] + 1, (logR - beta0)[:, None], kernel=k, mean_function=mf)
-                m.optimize(messages=False)
-
-                # Predict Rayleigh quotient
-                remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
-                GP_pred = m.predict(remaining_dims)
-                logR_pred = GP_pred[0].ravel() + beta0
             elif method == "gpkern":
                 # GP mean function via Weyl's result on spectra of Gram matrices for differentiable kernels
                 #   ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
@@ -621,13 +592,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Phi = np.asscalar(np.exp(np.mean(logR_pred)))
             Psi = np.asscalar(np.exp(-np.mean(logR_pred)))
         else:
-            # For too few iterations take the average Rayleigh quotient
-            Phi = np.exp(np.mean(logR))
+            # For too few iterations take the most recent Rayleigh quotient
+            Phi = np.exp(logR[-1])
             Psi = 1 / Phi
 
         return Phi, Psi
 
-    def _get_calibration_covariance_update_terms(self, Phi=None, Psi=None):
+    def _get_calibration_covariance_update_terms(self, phi=None, psi=None):
         """
         For the calibration covariance class set the calibration update terms of the covariance in the null spaces
         of span(S) and span(Y) based on the degrees of freedom.
@@ -646,16 +617,16 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     return x - V @ VVinvVx
                 except np.linalg.LinAlgError:
                     return x
-
-            return lambda y: null_space_proj(unc_scale * null_space_proj(y))
+            # For a scalar uncertainty scale projecting to the null space twice is equivalent to projecting once
+            return lambda y: unc_scale * null_space_proj(y)
 
         # Compute calibration term in the A view as a linear operator with scaling from degrees of freedom
         calibration_term_A = linops.LinearOperator(shape=(self.n, self.n),
-                                                   matvec=get_null_space_map(V=S, unc_scale=Phi))
+                                                   matvec=get_null_space_map(V=S, unc_scale=phi))
 
         # Compute calibration term in the Ainv view as a linear operator with scaling from degrees of freedom
         calibration_term_Ainv = linops.LinearOperator(shape=(self.n, self.n),
-                                                      matvec=get_null_space_map(V=Y, unc_scale=Psi))
+                                                      matvec=get_null_space_map(V=Y, unc_scale=psi))
 
         return calibration_term_A, calibration_term_Ainv
 
@@ -686,8 +657,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 _Ainv_covfactor0 = linops.LinearOperator(shape=(self.n, self.n), matvec=_matvec)
 
                 # Set degrees of freedom based on uncertainty calibration in unexplored space
-                calibration_term_A, calibration_term_Ainv = self._get_calibration_covariance_update_terms(Phi=phi,
-                                                                                                          Psi=psi)
+                calibration_term_A, calibration_term_Ainv = self._get_calibration_covariance_update_terms(phi=phi,
+                                                                                                          psi=psi)
 
                 _A_covfactor = _A_covfactor0 - self._A_covfactor_update_term + calibration_term_A
                 _Ainv_covfactor = _Ainv_covfactor0 - self._Ainv_covfactor_update_term + calibration_term_Ainv
@@ -767,8 +738,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             ====================================  ==================
              No calibration                          None
              Provided scale                          float
+             Most recent Rayleigh quotient         ``adhoc``
              Running (weighted) mean               ``weightedmean``
-             GP regression with linear mean        ``gplinear``
              GP regression for kernel matrices     ``gpkern``
             ====================================  =================
 
