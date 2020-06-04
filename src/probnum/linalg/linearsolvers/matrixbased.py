@@ -589,8 +589,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 raise ValueError("Calibration method not recognized.")
 
             # Set uncertainty scale (degrees of freedom in calibration covariance class)
-            Phi = np.asscalar(np.exp(np.mean(logR_pred)))
-            Psi = np.asscalar(np.exp(-np.mean(logR_pred)))
+            Phi = (np.exp(np.mean(logR_pred))).item()
+            Psi = (np.exp(-np.mean(logR_pred))).item()
         else:
             # For too few iterations take the most recent Rayleigh quotient
             Phi = np.exp(logR[-1])
@@ -697,7 +697,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                                 distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op))
 
         # Compute trace of solution covariance: tr(Cov(x))
-        self.trace_sol_cov = np.real_if_close(self._compute_trace_solution_covariance(bWb=bWb, Wb=Wb))
+        self.trace_sol_cov = np.real_if_close(self._compute_trace_solution_covariance(bWb=bWb, Wb=Wb)).item()
 
         return x, A, Ainv
 
@@ -846,7 +846,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             _trace_Ainv_covfactor_update += 1 / yWy * np.squeeze(Wy.T @ Wy)
             self.trace_Ainv_covfactor = np.real_if_close(self._compute_trace_Ainv_covfactor0(Y=np.hstack(self.obs_list),
                                                                                              unc_scale=psi)
-                                                         - _trace_Ainv_covfactor_update)
+                                                         - _trace_Ainv_covfactor_update).item()
 
             # Create output random variables
             x, A, Ainv = self._get_output_randvars(Y_list=self.obs_list, sy_list=self.sy, phi=phi, psi=psi)
