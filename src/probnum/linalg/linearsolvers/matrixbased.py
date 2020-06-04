@@ -447,18 +447,57 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     (_identity[np.newaxis, i, :] @ self.A) @ (self.Ainv_covfactor @ _identity[i, :, np.newaxis]))
             return _trace
 
-    def _compute_trace_solution_covariance(self, trace_Ainv_covfactor):
+    def _compute_trace_Ainv_covfactor0(self, Y, unc_scale):
         """
-        Computes the (linearly transformed) trace of the solution covariance :math:`\\tr(A \\operatorname{Cov}[x])`
+        Computes the trace of the prior covariance factor for the inverse view.
+
+        Parameters
+        ----------
+        Y : np.ndarray, shape=(n,k)
+            Observations.
+        unc_scale : float
+            Uncertainty scale :math:`\psi` of the inverse view.
 
         Returns
         -------
-        trace_A_x_cov : float
-            (Linearly transformed) trace of solution covariance.
+        trace_Ainv_covfactor0 : float
+            Trace of prior covariance factor.
         """
-        Wb = self.Ainv_covfactor @ self.b  # TODO: ensure usage of correct covfactor here, i.e. after get_output_randvars!
-        bWb = np.squeeze(Wb.T @ self.b)
-        return np.inf  # 0.5 * (bWb * trace_Ainv_covfactor + np.squeeze(Wb.T @ self.A @ Wb))
+        if unc_scale is None:
+            unc_scale = 0
+        if isinstance(self.Ainv_covfactor0, linops.ScalarMult):
+            # Scalar prior mean
+            _trace = self.Ainv_covfactor0.trace()
+        elif self.is_calib_covclass and Y is not None:
+            # General prior mean with calibration covariance class
+            _trace = np.trace(np.linalg.solve(Y.T @ self.Ainv_mean0 @ Y,
+                                              Y.T @ self.Ainv_mean0 @ self.Ainv_mean0 @ Y))
+        else:
+            # General prior mean
+            _trace = self.Ainv_covfactor0.trace()
+        if self.is_calib_covclass:
+            # Additive term from uncertainty calibration
+            _trace += unc_scale * (self.n - self.iter_)
+        return _trace
+
+    def _compute_trace_solution_covariance(self, bWb, Wb):
+        """
+        Computes the trace of the solution covariance :math:`\\tr(\\operatorname{Cov}[x])`
+
+        Parameters
+        ----------
+        bWb : float
+            Inner product of right hand side and the inverse covariance factor.
+        Wb : np.ndarray
+            Matrix-vector product between the inverse covariance factor and the right hand side.
+
+        Returns
+        -------
+        trace_x_cov : float
+            Trace of solution covariance.
+        """
+        # Trace of inverse covariance factor after k iterations
+        return 0.5 * (bWb * self.trace_Ainv_covfactor + np.linalg.norm(Wb, ord=2) ** 2)
 
     def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
         """
@@ -527,9 +566,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         iters = np.arange(self.iter_ + 1)
         logR = np.log(sy) - np.log(np.einsum('nk,nk->k', S, S))
 
-        # TODO: choose calibration type based on calibration argument of solve iteration
-        # Offer different types of calibration schemes: rayleigh, scale, none, local avg
         if self.iter_ > 1:  # only calibrate if enough iterations for a regression model have been performed
+
+            # TODO: choose calibration type based on calibration argument of solve iteration
+            #   implement different types of calibration schemes: rayleigh, scale, none, local avg
 
             # # Least-squares fit for y intercept
             # x_mean = np.mean(iters)
@@ -599,7 +639,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         return calibration_term_A, calibration_term_Ainv
 
-    def _get_output_randvars(self, Y_list, sy_list, Phi=None, Psi=None):
+    def _get_output_randvars(self, Y_list, sy_list, phi=None, psi=None):
         """Return output random variables x, A, Ainv from their means and covariances."""
 
         if self.iter_ > 0:
@@ -608,7 +648,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             sy = np.vstack(sy_list).ravel()
 
             # Posterior covariance factors
-            if self.is_calib_covclass and (not Phi is None) and (not Psi is None):
+            if self.is_calib_covclass and (not phi is None) and (not psi is None):
                 # Ensure prior covariance class only acts in span(S) like A
                 def _matvec(x):
                     # First term of calibration covariance class: AS(S'AS)^{-1}S'A
@@ -626,12 +666,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 _Ainv_covfactor0 = linops.LinearOperator(shape=(self.n, self.n), matvec=_matvec)
 
                 # Set degrees of freedom based on uncertainty calibration in unexplored space
-                calibration_term_A, calibration_term_Ainv = self._get_calibration_covariance_update_terms(Phi=Phi,
-                                                                                                          Psi=Psi)
+                calibration_term_A, calibration_term_Ainv = self._get_calibration_covariance_update_terms(Phi=phi,
+                                                                                                          Psi=psi)
 
                 _A_covfactor = _A_covfactor0 - self._A_covfactor_update_term + calibration_term_A
                 _Ainv_covfactor = _Ainv_covfactor0 - self._Ainv_covfactor_update_term + calibration_term_Ainv
             else:
+                # No calibration
                 _A_covfactor = self.A_covfactor
                 _Ainv_covfactor = self.Ainv_covfactor
         else:
@@ -662,6 +703,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         x = prob.RandomVariable(shape=(self.n,),
                                 dtype=float,
                                 distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op))
+
+        # Compute trace of solution covariance: tr(Cov(x))
+        self.trace_sol_cov = self._compute_trace_solution_covariance(bWb=bWb, Wb=Wb)
+
         return x, A, Ainv
 
     def _mean_update(self, u, v):
@@ -715,8 +760,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         resid = self.A @ self.x_mean - self.b
 
         # Initialize uncertainty calibration
-        Phi = None
-        Psi = None
+        phi = None
+        psi = None
         if calibration is None:
             pass
         elif calibration is not None and not self.is_calib_covclass:
@@ -729,13 +774,15 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             elif calibration == 0.:
                 pass
             else:
-                Phi = calibration
-                Psi = 1 / calibration
+                phi = calibration
+                psi = 1 / calibration
 
-        # Initial trace of the linearly transformed covariance factor: tr(A W_0^H)
-        self._trace_Ainv_covfactor_update = 0
-        self.trace_sol_cov = self._compute_trace_solution_covariance(
-            trace_Ainv_covfactor=np.inf)  # TODO: correct initial trace
+        # Trace of solution covariance
+        _trace_Ainv_covfactor_update = 0
+        self.trace_Ainv_covfactor = self._compute_trace_Ainv_covfactor0(Y=None, unc_scale=psi)
+
+        # Create output random variables
+        x, A, Ainv = self._get_output_randvars(Y_list=self.obs_list, sy_list=self.sy, phi=phi, psi=psi)
 
         # Iteration with stopping criteria
         while True:
@@ -791,25 +838,24 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
             # Calibrate uncertainty based on Rayleigh quotient
             if isinstance(calibration, str) and self.is_calib_covclass:
-                Phi, Psi = self._calibrate_uncertainty(S=np.hstack(self.search_dir_list),
+                phi, psi = self._calibrate_uncertainty(S=np.hstack(self.search_dir_list),
                                                        sy=np.vstack(self.sy).ravel(),
                                                        calibration_type=calibration)
 
-            # Update (trace of) solution covariance: tr(Cov(Hb))
-            # TODO
-            self._trace_Ainv_covfactor_update += 1 / yWy * np.squeeze(Wy.T @ Wy)
-            self.trace_sol_cov = self._compute_trace_solution_covariance(0)  # TODO
+            # Update trace of solution covariance: tr(Cov(Hb))
+            _trace_Ainv_covfactor_update += 1 / yWy * np.squeeze(Wy.T @ Wy)
+            self.trace_Ainv_covfactor = self._compute_trace_Ainv_covfactor0(Y=np.hstack(self.obs_list),
+                                                                            unc_scale=psi) - _trace_Ainv_covfactor_update
 
-            # Iteration increment
-            self.iter_ += 1
+            # Create output random variables
+            x, A, Ainv = self._get_output_randvars(Y_list=self.obs_list, sy_list=self.sy, phi=phi, psi=psi)
 
             # Callback function used to extract quantities from iteration
             if callback is not None:
-                xk, Ak, Ainvk = self._get_output_randvars(Y_list=self.obs_list, sy_list=self.sy, Phi=Phi, Psi=Psi)
-                callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
+                callback(xk=x, Ak=A, Ainvk=Ainv, sk=search_dir, yk=obs, alphak=step_size, resid=resid)
 
-        # Create output random variables
-        x, A, Ainv = self._get_output_randvars(Y_list=self.obs_list, sy_list=self.sy, Phi=Phi, Psi=Psi)
+            # Iteration increment
+            self.iter_ += 1
 
         # Log information on solution
         info = {
