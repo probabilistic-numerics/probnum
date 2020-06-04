@@ -560,10 +560,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Array of inner products ``s_i'As_i``
         method : str
             Type of calibration method to use based on the Rayleigh quotient. Available calibration procedures are
-            ====================================  ===============
+            ====================================  ==================
+             Running (weighted) mean               ``weightedmean``
              GP regression with linear mean        ``gplinear``
              GP regression for kernel matrices     ``gpkern``
-            ====================================  ===============
+            ====================================  ==================
 
         Returns
         -------
@@ -578,10 +579,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         logR = np.log(sy) - np.log(np.einsum('nk,nk->k', S, S))
 
         if self.iter_ > 1:  # only calibrate if enough iterations for a regression model have been performed
-
-            # TODO: choose calibration type based on calibration argument of solve iteration
-            #   implement different types of calibration schemes: rayleigh, scale, none, local avg
-            if method == "gplinear":
+            if method == "weightedmean":
+                deprecation_rate = 0.9
+                logR_pred = logR * np.repeat(deprecation_rate, self.iter_ + 1) ** np.arange(self.iter_ + 1)
+            elif method == "gplinear":
                 # Least-squares fit for y intercept
                 x_mean = np.mean(iters)
                 y_mean = np.mean(logR)
@@ -598,9 +599,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
                 GP_pred = m.predict(remaining_dims)
                 logR_pred = GP_pred[0].ravel() + beta0
-
             elif method == "gpkern":
-                # GP mean function via Weyl's result on spectra of Gram matrices: ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
+                # GP mean function via Weyl's result on spectra of Gram matrices for differentiable kernels
+                #   ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
                 lnmap = GPy.core.Mapping(1, 1)
                 lnmap.f = lambda n: np.log(n + 10 ** -16)
                 lnmap.update_gradients = lambda a, b: None
@@ -763,12 +764,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         calibration : str or float, default=False
             If supplied calibrates the output via the given procedure or uncertainty scale. Available calibration
             procedures / choices are
-            ====================================  ===============
+            ====================================  ==================
              No calibration                          None
              Provided scale                          float
+             Running (weighted) mean               ``weightedmean``
              GP regression with linear mean        ``gplinear``
              GP regression for kernel matrices     ``gpkern``
-            ====================================  ===============
+            ====================================  =================
 
         Returns
         -------

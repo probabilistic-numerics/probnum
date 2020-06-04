@@ -177,7 +177,6 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_residual_matches_error(self):
         """Test whether the residual norm matches the error of the computed solution estimate."""
-        np.random.seed(0)
         A, b, x_true = self.rbf_kernel_linear_system
 
         for plinsolve in self.problinsolvers:
@@ -392,6 +391,10 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAllClose(xhat_pls.mean(), xhat_cg, rtol=10 ** -12)
                 self.assertAllClose(pls_iters_arr, cg_iters_arr, rtol=10 ** -12)
 
+    def test_prior_distributions(self):
+        """The solver should automatically handle different types of prior information."""
+        pass
+
     def test_iterative_covariance_trace_update(self):
         """The solver's returned value for the trace must match the actual trace of the solution covariance."""
         A, b, x_true = self.rbf_kernel_linear_system
@@ -402,9 +405,16 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAlmostEqual(info["trace_sol_cov"], x_est.cov().trace(),
                                        msg="Iteratively computed trace not equal to output trace of solution covariance.")
 
-    def test_prior_distributions(self):
-        """The solver should automatically handle different types of prior information."""
-        pass
+    def test_uncertainty_calibration(self):
+        """Test if the available uncertainty calibration procedures return appropriate scales."""
+        A, b, x_true = self.rbf_kernel_linear_system
+
+        for calib_method in [None, 0, "weightedmean", "gplinear", "gpkern"]:
+            with self.subTest():
+                x_est, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b, calibration=calib_method,
+                                                                 atol=10**-6, rtol=10**-6)
+                # self.assertAllClose(x_true, x_est.mean(), atol=10**-6, rtol=10**-6,
+                #                     msg="Estimated solution not sufficiently close to true solution.")
 
 
 class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
@@ -468,6 +478,7 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 # Positive definiteness
                 self.assertTrue(np.all(np.linalg.eigvals(Ainv0_mean_dense) > 0))
                 self.assertTrue(np.all(np.linalg.eigvals(A0_mean_dense) > 0))
+
 
 # class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 #     """Tests the probabilistic linear solver with noise functionality."""
