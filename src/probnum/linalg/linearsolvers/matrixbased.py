@@ -500,9 +500,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         resid : array-like
             Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
         atol : float
-            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{atol}`.
+            Absolute residual tolerance. Stops if
+            :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{atol}`.
         rtol : float
-            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{rtol} \\lVert b \\rVert`.
+            Relative residual tolerance. Stops if
+            :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{rtol} \\lVert b \\rVert`.
 
         Returns
         -------
@@ -730,19 +732,22 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         maxiter : int
             Maximum number of iterations
         atol : float
-            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{atol}`.
+            Absolute residual tolerance. Stops if
+            :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{atol}`.
         rtol : float
-            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert \\leq \\text{rtol} \\lVert b \\rVert`.
+            Relative residual tolerance. Stops if
+            :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{rtol} \\lVert b \\rVert`.
         calibration : str or float, default=False
             If supplied calibrates the output via the given procedure or uncertainty scale. Available calibration
             procedures / choices are
-            ====================================  ==================
-             No calibration                          None
-             Provided scale                          float
-             Most recent Rayleigh quotient         ``adhoc``
-             Running (weighted) mean               ``weightedmean``
-             GP regression for kernel matrices     ``gpkern``
-            ====================================  =================
+
+            ====================================  ================
+             No calibration                       None
+             Provided scale                       float
+             Most recent Rayleigh quotient        ``adhoc``
+             Running (weighted) mean              ``weightedmean``
+             GP regression for kernel matrices    ``gpkern``
+            ====================================  ================
 
         Returns
         -------
@@ -764,7 +769,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         psi = None
         if calibration is None:
             pass
-        elif calibration is not None and not self.is_calib_covclass:
+        elif calibration is not None or calibration is not False and not self.is_calib_covclass:
             warnings.warn(message="Cannot use calibration without a compatible covariance class.")
         elif isinstance(calibration, str) and self.is_calib_covclass:
             pass

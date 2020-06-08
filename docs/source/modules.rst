@@ -25,28 +25,6 @@ Quadrature / Numerical Integration
 
    quad
 
-
-Optimization
-""""""""""""
-.. toctree::
-   :maxdepth: 6
-
-   optim
-
-Differential Equations
-""""""""""""""""""""""
-.. toctree::
-   :maxdepth: 6
-
-   diffeq
-
-Filters and Smoothers
-"""""""""""""""""""""
-.. toctree::
-   :maxdepth: 6
-
-   filtsmooth
-
 Other
 """""
 .. toctree::

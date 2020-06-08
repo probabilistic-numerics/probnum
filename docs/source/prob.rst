@@ -1,3 +1,2 @@
 .. automodapi:: probnum.prob
-
-.. automodapi:: probnum.prob.sampling
+   :no-inheritance-diagram:
