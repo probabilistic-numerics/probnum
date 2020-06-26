@@ -124,7 +124,8 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
 **Some objectives for writing docstrings:**
 
-* Do your best to cover "Parameters", "Returns", and "Examples" at every publicly visible docstring---in that order.
+* Make sure to include "Parameters", "Returns", and "Examples" at every publicly visible docstring---in that order.
+* Always provide the shape of any `ndarray`, `RandomVariable` or `LinearOperator`
 * Examples are tested via doctest. Bear that in mind when writing examples.
 * When in doubt, more explanation rather than less.
 * A little maths goes a long way.
