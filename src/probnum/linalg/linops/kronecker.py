@@ -116,8 +116,9 @@ class Svec(LinearOperator):
     def _matvec(self, x):
         """Assumes x = vec(X)."""
         X = np.reshape(x.copy(), (self._dim, self._dim))
-        if self.check_symmetric:
-            assert (X.T == X).all(), "Given vector does not correspond to a symmetric matrix."
+        if self.check_symmetric and not (X.T == X).all():
+            raise ValueError(
+                "The given vector does not correspond to a symmetric matrix.")
 
         X[np.triu_indices(self._dim, k=1)] *= np.sqrt(2)
         ind = np.triu_indices(self._dim, k=0)

@@ -236,12 +236,14 @@ def _create_lsearcher(lrate, lsearch):
     """
     """
     if lrate is None and lsearch is None:
-        raise ValueError("Please enter e.g. lrate=0.1 or lsearch='backtrack'")
+        raise ValueError("Please enter e.g. lrate=0.1 or lsearch='backtrack'.")
     if lrate is None:
-        assert lsearch == "backtrack", "Please enter lsearch='backtrack'"
+        if lsearch != "backtrack":
+            raise ValueError("Please enter lsearch='backtrack'.")
         lsearcher = linesearch.BacktrackingLineSearch()
     elif lsearch is None:
-        assert lrate > 0, "Please enter a positive learning rate"
+        if lrate <= 0:
+            raise ValueError("Please enter a positive learning rate.")
         lsearcher = linesearch.ConstantLearningRate(lrate)
     else:
         raise ValueError("Please enter either lrate or lsearch, not both")
