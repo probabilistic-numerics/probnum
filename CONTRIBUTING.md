@@ -13,7 +13,7 @@ a good PR are:
 - makes minimal changes to the interface and core codebase
 
 If you would like to contribute but are unsure how, then writing examples, documentation or working on
-[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start.
+[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start. See the [Advanced](https://probabilistic-numerics.github.io/probnum/development/contributing.html#Advanced) section for detailed instructions.
 
 ### Code Quality
 
@@ -28,35 +28,6 @@ made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the p
 - Make sure to observe good coding practice.
 
 For all of the above the existing ProbNum code is a good reference.
-
-#### Docstring Example
-
-```python
-def some_function(param1, param2):
-    """Short function description.
-
-    Extensive function description which explains its purpose in more detail and may reference
-    parameters or output. References [1]_ can also be included, e.g. if the method
-    implementation is based on a paper.
-
-    Parameters
-    ----------
-    param1 : int
-        The first parameter.
-    param2 : float
-        The second parameter.
-
-    Returns
-    -------
-    sum : float
-        Sum of the input parameters.
-
-    References
-    ----------
-    .. [1] Author A. et al., Some paper title, *EXAMPLE conference* 2019
-    """
-    return param1 + param2
-```
 
 ### Tests and CI
 

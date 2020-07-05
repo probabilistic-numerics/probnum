@@ -9,7 +9,7 @@ Welcome to probnum's documentation!
    intro
    modules
    notebooks/examples
-   contributing
+   development/contributing
    license
 
 

@@ -131,7 +131,7 @@ html_theme_options = {
         ("About", "intro"),
         ("Documentation", "modules"),
         ("Examples", "notebooks/examples"),
-        ("Development", "contributing")
+        ("Development", "development/contributing")
     ],
 
     # Render the next and previous page links in navbar. (Default: true)

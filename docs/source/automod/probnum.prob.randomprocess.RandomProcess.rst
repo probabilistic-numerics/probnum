@@ -12,7 +12,6 @@ RandomProcess
 
       ~RandomProcess.bounds
       ~RandomProcess.domain
-      ~RandomProcess.dtype
       ~RandomProcess.randvars
       ~RandomProcess.supportpts
 
@@ -24,13 +23,11 @@ RandomProcess
       ~RandomProcess.covfun
       ~RandomProcess.meanfun
       ~RandomProcess.sample
-      ~RandomProcess.sort
 
    .. rubric:: Attributes Documentation
 
    .. autoattribute:: bounds
    .. autoattribute:: domain
-   .. autoattribute:: dtype
    .. autoattribute:: randvars
    .. autoattribute:: supportpts
 
@@ -40,4 +37,3 @@ RandomProcess
    .. automethod:: covfun
    .. automethod:: meanfun
    .. automethod:: sample
-   .. automethod:: sort
