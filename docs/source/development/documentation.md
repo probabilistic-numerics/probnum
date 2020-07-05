@@ -1,10 +1,10 @@
 # Adding to the Documentation
 
-As a general rule all functions that are exposed to the user must have appropriate documentation in the form of docstrings.
+Documentation is an integral part of every collaborative software project. Good documentation not only encourages users of the package to try out different functionalities, but it also makes maintaining and expanding code significantly easier. If you want to improve ProbNum's documentation or learn how to write documentation for your newly implemented functionality, keep reading.
 
 ## Docstrings
 
-This package uses the [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring-guide). For probabilistic numerical methods make sure to include the appropriate citations and include examples which are checked for correctness via `doctest`. Here is a detailed example of a docstring for a PN method.
+The main form of documentation are `docstrings`, multi-line comments beneath a class or function definition with a specific syntax, which detail its functionality. This package uses the [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring-guide). As a rule, all functions which are exposed to the user _must_ have appropriate docstrings. Below is an example of a docstring for a probabilistic numerical method.
 
 ```python
 def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, atol=10 ** -6, rtol=10 ** -6,
@@ -65,6 +65,9 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     """
 
 ```
+
+For probabilistic numerical methods make sure to include the appropriate citations and include examples which are checked for correctness via `doctest`. 
+
 
 **Some objectives for writing docstrings**
 
