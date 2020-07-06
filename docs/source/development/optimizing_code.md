@@ -1,4 +1,4 @@
-# Benchmarks and Code Optimization
+# Optimizing Code
 
 When implementing new probabilistic numerical methods consider the tips below to ensure efficiency of your code.
 
@@ -12,7 +12,3 @@ When implementing new probabilistic numerical methods consider the tips below to
 ### Using Cython
 
 [Cython](https://cython.org/) allows the user to write code very similar to native Python, which is then compiled to C. This can reduce the amount of computing resources used for a specific function.
-
-## Benchmarking Probabilistic Numerical Methods
-
-In ProbNum computational cost with regard to time and memory is measured via a benchmark suite. Benchmarks are run by [airspeed velocity](https://asv.readthedocs.io/en/stable/), which also tracks performance changes over time. You can view the benchmarks for existing probabilistic numerical methods [here]()

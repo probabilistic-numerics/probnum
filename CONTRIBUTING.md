@@ -2,8 +2,6 @@
 
 Contributions to ProbNum are very welcome. Before getting started make sure to read the following guidelines.
 
-## In a Nutshell
-
 All contributions to ProbNum should be made via pull requests (PR) to the
 [development branch](https://github.com/probabilistic-numerics/probnum/tree/development) on GitHub. Some suggestions for
 a good PR are:
@@ -13,7 +11,17 @@ a good PR are:
 - makes minimal changes to the interface and core codebase
 
 If you would like to contribute but are unsure how, then writing examples, documentation or working on
-[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start. See the [detailed contribution guide](https://probabilistic-numerics.github.io/probnum/development/contributing.html#detailed-contribution-guide) for more instructions.
+[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start. See the 
+[contribution tutorials](https://probabilistic-numerics.github.io/probnum/development/contributing.html#contribution-tutorials) 
+for detailed instructions.
+
+## Getting Started
+
+Begin by forking the repository on GitHub. You can then clone the fork to a local machine and get started.
+ProbNum uses a set of packages (e.g. for documentation), which are not dependencies of the main package. In
+order to be able to build the documentation make sure to have the packages listed in `.travis.yml` installed.
+
+_Note_: Make sure your Sphinx version fulfills `sphinx >=1.7.5, <3`.
 
 ### Code Quality
 
@@ -33,7 +41,7 @@ For all of the above the existing ProbNum code is a good reference.
 
 We aim to cover as much code with tests as possible. Make sure to add tests for newly implemented code. Tests are run by
 the continuous integration tool [Travis](https://travis-ci.org/probabilistic-numerics/probnum) and coverage is reported
-by [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master). If you cloned this repository, you
+by [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master). Once you've cloned this repository, you
 can run the test suite on your machine via:
 ```bash
 cd probnum
@@ -50,11 +58,5 @@ cd probnum/docs
 make clean
 make html
 ```
-For this to execute, make sure to have the appropriate documentation packages installed. A list can be found in `.travis.yml`.
-
-
-## Detailed Contribution Guide
-
-### Setting up the Development Environment
-
+This creates a static web page under `docs/_build/html/` which you can view in your browser by opening `intro.html`.
 

@@ -66,28 +66,56 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 
 ```
 
-For probabilistic numerical methods make sure to include the appropriate citations and include examples which are checked for correctness via `doctest`. 
+#### General Rules
+* Cover `Parameters`, `Returns`, `Raises` and `Examples` at every publicly visible docstring---in that order.
+* Examples are tested via doctest. Ensure `doctest` does not fail.
+* Include appropriate references, in particular for new probabilistic numerical methods.
+* Do not use docstrings as a clutch for spaghetti code.
 
+#### Parameters
+* Hyperparameters should have default values and explanations on how to choose them.
+* Array-type inputs (`np.ndarray`, `csr_matrix`, ...) are documented as `array_like` (in accordance with `numpy`).
+* Provide shape hints via `foo : array_like, shape=(a, b)` wherever possible.
+* Callables are used as parameters if the expected signature is part of the docstring:
+  `foobar : callable, signature=``(t, **kwargs)`` `. Double apostrophes prevent warnings about `**kwargs` when 
+  building the documentation.
 
-**Some objectives for writing docstrings**
-
+#### Style
+* Stick to the imperative style of writing in the docstring header (i.e.: first line).
+  * Yes: "Compute the value". 
+  * No: "This function computes the value / Let's compute the value".
+  
+  The rest of the explanation talks about the function.
+  * Yes: "This function computes the value by computing another value".
 * Use full sentences inside docstrings when describing something.
-  Yes: "This value is irrelevant, because it is not being passed on"
-  No: "Value irrelevant, not passed on". 
-* Stick to the imperative style of writing in the "main sentence"
-  of the docstring (i.e.: first line).
-  Yes: "Compute the value". No:"This function computes the value / Let's compute the value".
-  The rest of the explanation talks "about" the function.
-  Yes: "This function computes the value by computing another value".
-* Do your best to cover "Parameters", "Returns", and "Examples" at every publicly visible docstring---in that order.
-* Examples are tested via doctest. Bear that in mind when writing examples.
+  * Yes: "This value is irrelevant, because it is not being passed on"
+  * No: "Value irrelevant, not passed on". 
 * When in doubt, more explanation rather than less. A little text inside an example can be helpful, too.
-* A little maths goes a long way.
-* References make everything easier for someone who doesn't know the details of an algorithm.
-* Parameters which are to be chosen benefit from a rule of thumb of how to choose it, perhaps even why.
-* `np.ndarray`'s are documented as `array_like` (this is whay `numpy` does).
-  Mention its shape in the docstring via `bla : array_like, shape=(a, b)` wherever possible (see example above)
-* Callables are use as parameters if the expected signature is part of the docstring:
-  `bla2 : callable, signature=``(t, **kwargs)`` `. The main effect of the double apostrophes is
-  that the `**kwargs` does not raise a warning during building the documentation.
+* A little maths can go a long way, but too much usually adds confusion.
 
+## Interface Documentation
+
+Which functions and classes actually show up in the documentation is determined by an `__all__` statement in the 
+corresponding `__init__.py` file inside a module. The order of this list is also reflected in the documentation. 
+For example, `linalg` has the following `__init__.py`:
+
+```python
+"""
+Linear Algebra.
+
+This package implements common operations and (probabilistic) numerical methods for linear algebra.
+"""
+
+from probnum.linalg.linearsolvers import *
+
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["problinsolve", "bayescg", "ProbabilisticLinearSolver", "GeneralMatrixBasedSolver",
+           "SymmetricMatrixBasedSolver", "SolutionBasedSolver"]
+
+# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+ProbabilisticLinearSolver.__module__ = "probnum.linalg"
+GeneralMatrixBasedSolver.__module__ = "probnum.linalg"
+```
+
+If you are documenting a subclass, which has a different path in the file structure than the import path due to
+`__all__` statements, you can correct the links to superclasses in the documentation via the `.__module__` attribute.
