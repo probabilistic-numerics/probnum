@@ -413,7 +413,8 @@ def _preprocess_linear_system(A, b, assume_A, A0=None, Ainv0=None, x0=None):
     if x0 is not None:
         x = utils.as_colvec(x0)  # (n,) -> (n, 1)
 
-    assert (not (Ainv0 is None and x is None)), "Neither Ainv nor x are specified."
+    if Ainv0 is None and x is None:
+        raise ValueError("Either `Ainv` or `x` needs to be specified.")
 
     return A, b, A0, Ainv0, x
 

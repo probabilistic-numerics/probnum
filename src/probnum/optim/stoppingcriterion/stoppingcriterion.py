@@ -39,7 +39,8 @@ class NormOfGradient(StoppingCriterion):
     def __init__(self, tol):
         """
         """
-        assert tol >= 0, "Please enter nonnegative atol"
+        if tol >= 0:
+            raise ValueError("Please enter nonnegative atol.")
         self._tol = tol
 
     def fulfilled(self, curriter, lastiter, **kwargs):
@@ -59,7 +60,8 @@ class NormOfGradient(StoppingCriterion):
         """
         not_fulfilling = np.inf
         output = Eval(None, None, not_fulfilling, None)
-        assert self.fulfilled(output, None) is False
+        if self.fulfilled(curriter, output) is False:
+            raise RuntimeError("Could not initialize the StoppingCriterion.")
         return output
 
 
@@ -70,7 +72,8 @@ class DiffOfFctValues(StoppingCriterion):
     def __init__(self, tol):
         """
         """
-        assert tol >= 0, "Please enter nonnegative rtol"
+        if tol >= 0:
+            raise ValueError("Please enter nonnegative rtol.")
         self._tol = tol
 
     def fulfilled(self, curriter, lastiter, **kwargs):
@@ -87,5 +90,6 @@ class DiffOfFctValues(StoppingCriterion):
         """
         """
         output = Eval(None, curriter.fx + 10 * self._tol, None, None)
-        assert self.fulfilled(curriter, output) is False
+        if self.fulfilled(curriter, output) is False:
+            raise RuntimeError("Could not initialize the StoppingCriterion")
         return output
