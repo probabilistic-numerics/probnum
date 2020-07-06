@@ -1,7 +1,7 @@
 # Implementing a Probabilistic Numerical Method
 
 Probabilistic numerical methods in ProbNum follow the dogma of having `RandomVariable`s as input and `RandomVariable`s 
-as output. Hence their signature should look like this:
+as output. Hence their signature should look something like this
 ```python
 randvar_out = probnum_method(problem, randvar_in, **kwargs)
 ```
@@ -131,7 +131,19 @@ implementation of a PN method.
 
 ## Tests
 
+While or even before you add a new PN method, write tests for its functionality. Writing tests before the 
+code forces you to think about what your numerical method should do independent of its implementation. Some basic tests to consider are listed 
+below.
+
+#### In- and Output
+- **Deterministic input**: Does your method accept parameters / problem definitions which are not random variables?
+- **Shape**: Does your PN method return consistent shapes for differently shaped inputs?
+- **Expected errors**: Are appropriate errors raised for invalid input?
+
+#### Numerical
+- **Perfect information**: Does your method converge instantly for a prior encoding the solution of the problem?
+- **Convergence criteria**: Are all convergence criteria covered by at least one test?
 
 ## Conclusion
 Once you are done, consider writing an [example notebook](https://probabilistic-numerics.github.io/probnum/development/example_notebook.html) showcasing your new 
-implementation. Congratulations you just implemented your first probabilistic numerical method in ProbNum!
+method. Congratulations you just implemented your first probabilistic numerical method in ProbNum!

@@ -43,7 +43,7 @@ cd probnum/docs
 make clean
 make html
 ```
-If the notebook compiles successfully you should see output similar to:
+If the notebook compiles successfully, you should see output similar to:
 ```bash
 ...
 copying notebooks ... [100%] notebooks/uncertainties_odefilter.ipynb            
