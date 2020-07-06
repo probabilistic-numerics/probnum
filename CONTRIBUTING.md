@@ -2,7 +2,7 @@
 
 Contributions to ProbNum are very welcome. Before getting started make sure to read the following guidelines.
 
-## Getting Started
+## In a Nutshell
 
 All contributions to ProbNum should be made via pull requests (PR) to the
 [development branch](https://github.com/probabilistic-numerics/probnum/tree/development) on GitHub. Some suggestions for
@@ -13,7 +13,7 @@ a good PR are:
 - makes minimal changes to the interface and core codebase
 
 If you would like to contribute but are unsure how, then writing examples, documentation or working on
-[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start. See the [Advanced](https://probabilistic-numerics.github.io/probnum/development/contributing.html#Advanced) section for detailed instructions.
+[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start. See the [detailed contribution guide](https://probabilistic-numerics.github.io/probnum/development/contributing.html#detailed-contribution-guide) for more instructions.
 
 ### Code Quality
 
@@ -51,4 +51,10 @@ make clean
 make html
 ```
 For this to execute, make sure to have the appropriate documentation packages installed. A list can be found in `.travis.yml`.
+
+
+## Detailed Contribution Guide
+
+### Setting up the Development Environment
+
 
