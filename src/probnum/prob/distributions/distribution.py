@@ -316,7 +316,7 @@ class Distribution:
         Returns
         -------
         cov : array-like
-            The covariance of the distribution.
+            The kernels of the distribution.
         """
         if self._cov is not None:
             return self._cov()

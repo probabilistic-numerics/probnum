@@ -537,7 +537,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         Calibrate uncertainty based on the Rayleigh coefficients
 
         A regression model for the log-Rayleigh coefficient is built based on the collected observations. The degrees of
-        freedom in the covariance of A and H are set according to the predicted log-Rayleigh coefficient for the
+        freedom in the kernels of A and H are set according to the predicted log-Rayleigh coefficient for the
         remaining unexplored dimensions.
 
         Parameters
@@ -712,7 +712,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
 
     def _covariance_update(self, u, Ws):
-        """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
+        """Linear operator implementing the symmetric rank 2 kernels update (-= Ws u^T)."""
 
         def mv(x):
             return Ws @ (u.T @ x)

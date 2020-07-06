@@ -4,6 +4,7 @@ import itertools
 import unittest
 
 import numpy as np
+import scipy.stats
 
 from tests.testing import NumpyAssertions
 from probnum import prob
@@ -15,6 +16,9 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
 
     def setUp(self):
         """Scalars, arrays, linear operators and random variables for tests."""
+        # Seed
+        np.random.seed(42)
+
         # Random variable instantiation
         self.scalars = [0, int(1), .1, np.nan, np.inf]
         self.arrays = [np.empty(2), np.zeros(4), np.array([]),
@@ -41,6 +45,14 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
                                         B=np.ones((2, 2)))))
         ]
 
+        self.scipyrvs = [
+            scipy.stats.bernoulli(0.75),
+            scipy.stats.norm(4, 2.4),
+            scipy.stats.multivariate_normal(np.random.randn(10), np.eye(10)),
+            scipy.stats.gamma(.74),
+            scipy.stats.dirichlet(alpha=np.array([.1, .1 , .2, .3]))
+        ]
+
 
 class InstantiationTestCase(RandomVariableTestCase):
     """Test random variable instantiation."""
@@ -53,19 +65,29 @@ class InstantiationTestCase(RandomVariableTestCase):
         """Create a random variable from a number."""
         for x in self.scalars:
             with self.subTest():
-                prob.asrandvar(x)
+                rv = prob.asrandvar(x)
+                self.assertIsInstance(rv, prob.RandomVariable)
 
     def test_rv_from_ndarray(self):
         """Create a random variable from an array."""
-        for arr in self.scalars:
+        for arr in self.arrays2d:
             with self.subTest():
-                prob.asrandvar(arr)
+                rv = prob.asrandvar(arr)
+                self.assertIsInstance(rv, prob.RandomVariable)
 
     # def test_rv_from_linearoperator(self):
     #     """Create a random variable from a linear operator."""
     #     for linop in linops:
     #       with self.subTest():
     #           prob.asrandvar(A)
+
+    def test_rv_from_scipy(self):
+        """Create a random variable from a scipy random variable."""
+        for scipyrv in self.scipyrvs:
+            with self.subTest():
+                rv = prob.asrandvar(scipyrv)
+                self.assertIsInstance(rv, prob.RandomVariable)
+
 
 
 class ArithmeticTestCase(RandomVariableTestCase):

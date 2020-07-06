@@ -33,6 +33,9 @@ solving ordinary and partial differential equations.
    :maxdepth: 1
    :caption: Differential Equations and Filters:
 
+   uncertainties_odefilter
+   adaptive_steps_odefilter
+
 Case Studies
 ************
 See examples of how probabilistic numerics is used in application and the problems it solves compared to classic
@@ -42,11 +45,9 @@ methods.
    :maxdepth: 1
    :caption: Coming Soon!
 
-
 Advanced
 *********
-Implement your own probabilistic numerical method using ProbNum, extend existing code or integrate your Gaussian process
-or automatic differentiation framework.
+Learn how to integrate Probnum with your Gaussian process or automatic differentiation framework of choice.
 
 .. toctree::
    :maxdepth: 1

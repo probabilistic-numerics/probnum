@@ -130,7 +130,7 @@ class RandomVariable:
             try:
                 return self._distribution.cov()
             except KeyError:
-                raise NotImplementedError("Underlying {} has no covariance.".format(type(self._distribution).__name__))
+                raise NotImplementedError("Underlying {} has no kernels.".format(type(self._distribution).__name__))
         else:
             raise NotImplementedError("No underlying distribution specified.")
 
@@ -333,7 +333,7 @@ def asrandvar(obj):
     >>> bern.random_state = 42  # Seed for reproducibility
     >>> b = asrandvar(bern)
     >>> b.sample(size=5)
-    array([0, 1, 1, 1, 0])
+    array([1, 1, 1, 0, 0])
     """
     # RandomVariable
     if isinstance(obj, RandomVariable):
@@ -345,20 +345,20 @@ def asrandvar(obj):
     elif isinstance(obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)):
         return RandomVariable(shape=obj.shape, dtype=obj.dtype, distribution=Dirac(support=obj))
     # Scipy random variable
-    # elif isinstance(obj, (scipy.stats.rv_continuous, scipy.stats.rv_discrete)):
-    elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen):
-        return _scipystats_to_rv(obj=obj)
+    elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen) \
+            or isinstance(obj, scipy.stats._multivariate.multi_rv_frozen):
+        return _scipystats_to_rv(scipydist=obj)
     else:
         raise ValueError("Argument of type {} cannot be converted to a random variable.".format(type(obj)))
 
 
-def _scipystats_to_rv(obj):
+def _scipystats_to_rv(scipydist):
     """
     Transform SciPy distributions to Probnum :class:`RandomVariable`s.
 
     Parameters
     ----------
-    obj : object
+    scipydist : scipy.stats._distn_infrastructure.rv_frozen or scipy.stats._multivariate.multi_rv_frozen
         SciPy distribution.
 
     Returns
@@ -367,25 +367,41 @@ def _scipystats_to_rv(obj):
         ProbNum random variable.
 
     """
-    # Normal distributions
-    if obj.dist.name == "norm":
-        return Normal(mean=obj.mean(), cov=obj.var(), random_state=obj.random_state)
-    elif obj.__class__.__name__ == "multivariate_normal_frozen":  # Multivariate normal
-        return Normal(mean=obj.mean, cov=obj.cov, random_state=obj.random_state)
+    # Univariate distributions (implemented in this package)
+    if isinstance(scipydist, scipy.stats._distn_infrastructure.rv_frozen):
+        # Normal distribution
+        if scipydist.dist.name == "norm":
+            return RandomVariable(dtype=float,
+                                  distribution=Normal(mean=scipydist.mean(), cov=scipydist.var(), random_state=scipydist.random_state))
+    # Multivariate distributions (implemented in this package)
+    elif isinstance(scipydist, scipy.stats._multivariate.multi_rv_frozen):
+        # Multivariate normal
+        if scipydist.__class__.__name__ == "multivariate_normal_frozen":
+            return RandomVariable(shape=scipydist.mean.shape,
+                                  dtype=scipydist.mean.dtype,
+                                  distribution=Normal(mean=scipydist.mean, cov=scipydist.cov, random_state=scipydist.random_state))
+    # Generic distributions
+    if hasattr(scipydist, "pmf"):
+        pdf = getattr(scipydist, "pmf", None)
+        logpdf = getattr(scipydist, "logpmf", None)
     else:
-        # Generic distributions
-        if hasattr(obj, "pmf"):
-            pdf = obj.pmf
-            logpdf = obj.logpmf
-        else:
-            pdf = obj.pdf
-            logpdf = obj.logpdf
-        return Distribution(parameters={},
-                            pdf=pdf,
-                            logpdf=logpdf,
-                            cdf=obj.cdf,
-                            logcdf=obj.logcdf,
-                            sample=obj.rvs,
-                            mean=obj.mean,
-                            cov=obj.var,
-                            random_state=obj.random_state)
+        pdf = getattr(scipydist, "pdf", None)
+        logpdf = getattr(scipydist, "logpdf", None)
+    rvsample = np.squeeze(scipydist.rvs(1))
+    if np.shape(rvsample) == ():
+        rvdtype = type(rvsample)
+        rvshape = ()
+    else:
+        rvdtype = rvsample.dtype
+        rvshape = rvsample.shape
+    return RandomVariable(dtype=rvdtype,
+                          shape=rvshape,
+                          distribution=Distribution(parameters={},
+                                                    pdf=pdf,
+                                                    logpdf=logpdf,
+                                                    cdf=getattr(scipydist, "cdf", None),
+                                                    logcdf=getattr(scipydist, "logcdf", None),
+                                                    sample=getattr(scipydist, "rvs", None),
+                                                    mean=getattr(scipydist, "mean", None),
+                                                    cov=getattr(scipydist, "var", None),
+                                                    random_state=getattr(scipydist, "random_state", None)))
