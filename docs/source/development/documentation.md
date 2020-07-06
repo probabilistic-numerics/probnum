@@ -77,8 +77,7 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
 * Array-type inputs (`np.ndarray`, `csr_matrix`, ...) are documented as `array_like` (in accordance with `numpy`).
 * Provide shape hints via `foo : array_like, shape=(a, b)` wherever possible.
 * Callables are used as parameters if the expected signature is part of the docstring:
-  `foobar : callable, signature=``(t, **kwargs)`` `. Double apostrophes prevent warnings about `**kwargs` when 
-  building the documentation.
+  `foobar : callable, signature=(t, \*\*kwargs)`. Backslashes remove semantic meaning from special characters.
 
 #### Style
 * Stick to the imperative style of writing in the docstring header (i.e.: first line).

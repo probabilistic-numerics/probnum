@@ -20,8 +20,8 @@ Benchmarking Code
 
 In ProbNum computational cost with regard to time and memory is measured via a benchmark suite.
 Benchmarks are run by `airspeed velocity <https://asv.readthedocs.io/en/stable/>`_ which tracks
-performance changes over time. Check out `ProbNum's benchmarks <>`_ for its probabilistic numerical methods and
-related functions!
+performance changes over time. Check out `ProbNum's benchmarks <coming soon>`_ for its probabilistic numerical methods
+and related functions!
 
 You can add a new benchmark by following `this tutorial <https://asv.readthedocs.io/en/stable/writing_benchmarks.html>`_.
 
