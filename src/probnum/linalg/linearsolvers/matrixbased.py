@@ -921,430 +921,431 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
     """
 
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
-
-        # Transform right hand side to random variable
-        if not isinstance(b, prob.RandomVariable):
-            _b = prob.asrandvar(b)
-        else:
-            _b = b
-
-        super().__init__(A=A, b=_b, x0=x0)
-
-        # Get or initialize prior parameters
-        A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=x0,
-                                                                                            b=_b)
-
-        # Matrix prior parameters
-        self.A0_mean = linops.aslinop(A0_mean)
-        self.A_mean = linops.aslinop(A0_mean)
-        self.A0_covfactor = A0_covfactor
-        self.Ainv0_mean = linops.aslinop(Ainv0_mean)
-        self.Ainv_mean = linops.aslinop(Ainv0_mean)
-        self.Ainv0_covfactor = Ainv0_covfactor
-        self.b_mean = b_mean
-
-        # Induced distribution on x via Ainv
-        # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
-        Wb = Ainv0_covfactor @ self.b_mean
-        bWb = np.squeeze(Wb.T @ self.b_mean)
-
-        def _mv(x):
-            return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
-
-        self.x_cov = linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv)
-        if isinstance(x0, np.ndarray):
-            self.x_mean = x0
-        elif x0 is None:
-            self.x_mean = Ainv0_mean @ self.b_mean
-        else:
-            raise NotImplementedError
-        self.x0 = self.x_mean
-
-    def _get_prior_params(self, A0, Ainv0, x0, b):
-        """
-        Get the parameters of the matrix priors on A and H.
-
-        Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
-
-        Parameters
-        ----------
-        A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the linear operator
-            :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
-        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the inverse
-            :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
-            given, a prior distribution is chosen automatically.
-        x0 : array-like, or RandomVariable, shape=(n,)
-            Optional. Prior belief for the solution of the linear system. Will be ignored if ``A0`` or ``Ainv0`` is
-            given.
-        b : RandomVariable, shape=(n,) or (n, nrhs)
-            Right-hand side random variable `b` in :math:`A x = b`.
-
-        Returns
-        -------
-        A0_mean : array-like or LinearOperator, shape=(n,n)
-            Prior mean of the linear operator :math:`A`.
-        A0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^A` of the symmetric Kronecker product prior covariance :math:`W^A \\otimes_s W^A` of
-            :math:`A`.
-        Ainv0_mean : array-like or LinearOperator, shape=(n,n)
-            Prior mean of the linear operator :math:`H`.
-        Ainv0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^H` of the symmetric Kronecker product prior covariance :math:`W^H \\otimes_s W^H` of
-            :math:`H`.
-        b_mean : array-like, shape=(n,nrhs)
-            Prior mean of the right hand side :math:`b`.
-        """
-
-        # Right hand side mean
-        b_mean = b.sample(1)  # TODO: build prior model for rhs and change to b.mean()
-
-        # No matrix priors specified
-        if A0 is None and Ainv0 is None:
-            # No prior information given
-            if x0 is None:
-                Ainv0_mean = linops.Identity(shape=self.n)
-                Ainv0_covfactor = linops.Identity(shape=self.n)
-                # Standard normal covariance
-                A0_mean = linops.Identity(shape=self.n)
-                A0_covfactor = linops.Identity(
-                    shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
-                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-            # Construct matrix priors from initial guess x0
-            elif isinstance(x0, np.ndarray):
-                # Sample from linear operator for prior construction
-                if isinstance(self.A, prob.RandomVariable):
-                    _A = self.A.sample([1])[0]
-                else:
-                    _A = self.A
-                A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(A=_A, x0=x0, b=b_mean)
-                Ainv0_covfactor = Ainv0_mean
-                # Standard normal covariance
-                A0_covfactor = linops.Identity(
-                    shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
-                return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-            elif isinstance(x0, prob.RandomVariable):
-                raise NotImplementedError
-
-        # Prior on Ainv specified
-        if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
-            if isinstance(Ainv0, prob.RandomVariable):
-                Ainv0_mean = Ainv0.mean()
-                Ainv0_covfactor = Ainv0.cov().A
-            else:
-                Ainv0_mean = Ainv0
-                Ainv0_covfactor = Ainv0  # Symmetric posterior correspondence
-            try:
-                if A0 is not None:
-                    A0_mean = A0
-                elif isinstance(Ainv0, prob.RandomVariable):
-                    A0_mean = Ainv0.mean().inv()
-                else:
-                    A0_mean = Ainv0.inv()
-            except AttributeError:
-                warnings.warn(message="Prior specified only for Ainv. Inverting prior mean naively. " +
-                                      "This operation is computationally costly! Specify an inverse prior (mean) instead.")
-                A0_mean = np.linalg.inv(Ainv0.mean())
-            except NotImplementedError:
-                A0_mean = linops.Identity(self.n)
-                warnings.warn(
-                    message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
-                            + "falling back to standard normal prior.")
-            # Standard normal covariance
-            A0_covfactor = linops.Identity(
-                shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
-            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-
-        # Prior on A specified
-        elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
-            if isinstance(A0, prob.RandomVariable):
-                A0_mean = A0.mean()
-                A0_covfactor = A0.cov().A
-            else:
-                A0_mean = A0
-                A0_covfactor = A0  # Symmetric posterior correspondence
-            try:
-                if Ainv0 is not None:
-                    Ainv0_mean = Ainv0
-                elif isinstance(A0, prob.RandomVariable):
-                    Ainv0_mean = A0.mean().inv()
-                else:
-                    Ainv0_mean = A0.inv()
-            except AttributeError:
-                warnings.warn(message="Prior specified only for A. Inverting prior mean naively. " +
-                                      "This operation is computationally costly! Specify an inverse prior (mean) instead.")
-                Ainv0_mean = np.linalg.inv(A0.mean())
-            except NotImplementedError:
-                Ainv0_mean = linops.Identity(self.n)
-                warnings.warn(message="Prior specified only for A. " +
-                                      "Automatic prior mean inversion failed, falling back to standard normal prior.")
-            # Symmetric posterior correspondence
-            Ainv0_covfactor = Ainv0_mean
-            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-        # Both matrix priors on A and H specified via random variables
-        elif isinstance(A0, prob.RandomVariable) and isinstance(Ainv0, prob.RandomVariable):
-            A0_mean = A0.mean()
-            A0_covfactor = A0.cov().A
-            Ainv0_mean = Ainv0.mean()
-            Ainv0_covfactor = Ainv0.cov().A
-            return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-        else:
-            raise NotImplementedError
-
-    def has_converged(self, iter, maxiter, atol=None, rtol=None):
-        """
-        Check convergence of a linear solver.
-
-        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
-
-        Parameters
-        ----------
-        iter : int
-            Current iteration of solver.
-        maxiter : int
-            Maximum number of iterations
-        atol : float
-            Absolute tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
-            solution :math:`x`.
-        rtol : float
-            Relative tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
-            covariance of the solution :math`x` and :math:`x_i` its mean.
-
-        Returns
-        -------
-        has_converged : bool
-            True if the method has converged.
-        convergence_criterion : str
-            Convergence criterion which caused termination.
-        """
-        # maximum iterations
-        if iter >= maxiter:
-            warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
-            return True, "maxiter"
-        # uncertainty-based
-        if isinstance(self.x_cov, linops.LinearOperator):
-            sqrttracecov = np.sqrt(self.x_cov.trace())
-        else:
-            sqrttracecov = np.sqrt(np.trace(self.x_cov))
-        if sqrttracecov <= atol:
-            return True, "covar_atol"
-        elif sqrttracecov <= rtol * np.linalg.norm(self.x_mean):
-            return True, "covar_rtol"
-        else:
-            return False, ""
-
-    def _set_optimal_noise_scale(self, searchdirs, observations):
-        """Computes the optimal noise scale maximizing the log-marginal likelihood (evidence)."""
-        # Construct matrices of search directions and observations
-        S = np.array(searchdirs).reshape(self.n, -1)
-        Y = np.array(observations).reshape(self.n, -1)
-
-        # Compute intermediate quantities
-        Delta0 = Y - self.A0_mean @ S
-        SW0S = S.T @ (self.A0_covfactor @ S)
-        try:
-            SW0SinvSDelta0 = scipy.linalg.solve(SW0S, S.T @ Delta0,
-                                                assume_a="pos")  # solves k x k system k times: O(k^3)
-            linop_rhs = Delta0.T @ (2 * self.A0_covfactor.inv() @ Delta0 - S @ SW0SinvSDelta0)
-            linop_tracearg = scipy.linalg.solve(SW0S, linop_rhs, assume_a="pos")  # solves k x k system k times: O(k^3)
-
-            # Optimal noise scale with respect to the evidence
-            noise_scale_estimate = 1 / (self.n * (self.iter_ + 1)) * linop_tracearg.trace() - 1
-            if noise_scale_estimate > 0:
-                self.noise_scale = noise_scale_estimate
-            else:
-                self.noise_scale = 0
-                warnings.warn("Noise scale estimate negative. Results may be inaccurate.")
-        except scipy.linalg.LinAlgError:
-            warnings.warn("Matrix S'W_0S not invertible. Noise scale estimate may be inaccurate.")
-
-    def _mean_update(self, u, v):
-        """Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu')."""
-
-        def matvec(x):
-            return u @ (v.T @ x) + v @ (u.T @ x)
-
-        return linops.LinearOperator(shape=self.A_mean.shape, matvec=matvec, matmat=matvec)
-
-    def _covariance_update(self, u, Ws):
-        """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
-
-        def matvec(x):
-            return Ws @ (u.T @ x)
-
-        return linops.LinearOperator(shape=self.A_mean.shape, matvec=matvec, matmat=matvec)
-
-    def _solution_covariance(self):
-        """Covariance of the solution estimate induced by x = Hb."""
-        W1b = self.Ainv_covfactor1 @ self.b_mean
-        bW1b = np.squeeze(W1b.T @ self.b_mean)
-        W2b = self.Ainv_covfactor2 @ self.b_mean
-        bW2b = np.squeeze(W2b.T @ self.b_mean)
-
-        def matvec(x):
-            return 0.5 * (bW1b * self.Ainv_covfactor1 @ x + W1b @ (
-                    W1b.T @ x) + bW2b * self.Ainv_covfactor2 @ x + W2b @ (W2b.T @ x))
-
-        return linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=matvec, matmat=matvec)
-
-    def _get_output_randvars(self):
-        """Return output random variables x, A, Ainv from their means and covariances."""
-
-        # Estimate of matrix A
-        cov_A = linops.SymmetricKronecker(A=self.A_covfactor1) + linops.SymmetricKronecker(A=self.A_covfactor2)
-        A = prob.RandomVariable(shape=(self.n, self.n),
-                                dtype=self.b_mean.dtype,
-                                distribution=prob.Normal(mean=self.A_mean, cov=cov_A))
-
-        # Estimate of inverse Ainv
-        cov_Ainv = linops.SymmetricKronecker(A=self.Ainv_covfactor1) + linops.SymmetricKronecker(A=self.Ainv_covfactor2)
-        Ainv = prob.RandomVariable(shape=(self.n, self.n),
-                                   dtype=self.b_mean.dtype,
-                                   distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
-
-        # Estimate of solution x
-        x = prob.RandomVariable(shape=(self.n,),
-                                dtype=self.b_mean.dtype,
-                                distribution=prob.Normal(mean=self.x_mean.ravel(), cov=self.x_cov))
-        return x, A, Ainv
-
-    def solve(self, callback=None, maxiter=None, atol=10 ** -6, rtol=10 ** -6, noise_scale=None, **kwargs):
-        """
-        Solve the linear system :math:`Ax=b`.
-
-        Parameters
-        ----------
-        callback : function, optional
-            User-supplied function called after each iteration of the linear solver. It is called as
-            ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, noise_scale)`` and can be used to return quantities from the
-            iteration. Note that depending on the function supplied, this can slow down the solver.
-        maxiter : int
-            Maximum number of iterations
-        atol : float
-            Absolute tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
-            solution :math:`x`.
-        rtol : float
-            Relative tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
-            covariance of the solution :math`x` and :math:`x_i` its mean.
-        noise_scale : float
-            Assumed (initial) noise scale :math:`\\varepsilon^2`.
-
-        Returns
-        -------
-        x : RandomVariable, shape=(n,) or (n, nrhs)
-            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
-        A : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator.
-        Ainv : RandomVariable, shape=(n,n)
-            Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
-        info : dict
-            Information on convergence of the solver.
-        """
-        # Initialization
-        self.iter_ = 0
-        has_custom_noise_scale = False
-        if noise_scale is not None:
-            has_custom_noise_scale = True
-            self.noise_scale = noise_scale
-            if noise_scale < 0:
-                raise ValueError("Noise scale must be non-negative.")
-
-        A_mean_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
-        Ainv_mean_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
-        A_covfactor_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
-        Ainv_covfactor_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
-        search_dir_list = []
-        obs_list = []
-
-        # Iteration with stopping criteria
-        while True:
-            # Check convergence
-            _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter, atol=atol, rtol=rtol)
-            if _has_converged:
-                break
-
-            # Noisy matrix-vector product for current iteration
-            if isinstance(self.A, prob.RandomVariable):
-                A_iter = self.A.sample([1])[0]  # Sample new system matrix for this iteration
-            else:
-                A_iter = self.A
-
-            # Right hand side estimate update
-            self.b_mean = ((self.iter_ + 1) * self.b_mean + self.b.sample(size=1)) / (self.iter_ + 2)
-
-            # Compute search direction via policy
-            resid = A_iter @ self.x_mean - self.b_mean
-            search_dir = - self.Ainv_mean @ resid
-            search_dir_list.append(search_dir)
-
-            # Perform action and observe
-            obs = A_iter @ search_dir
-            obs_list.append(obs)
-
-            # Compute step size
-            sy = search_dir.T @ obs
-            step_size = - (search_dir.T @ resid) / sy
-
-            # Optimal noise scale with respect to log-marginal likelihood
-            if not has_custom_noise_scale and self.iter_ < self.n:
-                self._set_optimal_noise_scale(searchdirs=search_dir_list, observations=obs_list)
-
-            # Inference updates of system matrix, inverse and solution
-            Vs = (self.A0_covfactor - A_covfactor_update) @ search_dir
-            delta_A = obs - self.A_mean @ search_dir
-            u_A = Vs / (search_dir.T @ Vs)
-            v_A = delta_A - 0.5 * (search_dir.T @ delta_A) * u_A
-
-            Wy = (self.Ainv0_covfactor - Ainv_covfactor_update) @ obs
-            delta_Ainv = search_dir - self.Ainv_mean @ obs
-            u_Ainv = Wy / (obs.T @ Wy)
-            v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
-
-            # Mean updates
-            A_mean_update += self._mean_update(u=u_A, v=v_A)
-            self.A_mean = self.A0_mean + 1 / (1 + self.noise_scale) * A_mean_update
-            Ainv_mean_update += self._mean_update(u=u_Ainv, v=v_Ainv)
-            self.Ainv_mean = self.Ainv0_mean + 1 / (1 + self.noise_scale) * Ainv_mean_update
-
-            # Covariance update(s)
-            A_covfactor_update += self._covariance_update(u=u_A, Ws=Vs)
-            self.A_covfactor1 = self.A0_covfactor - 1 / (1 + self.noise_scale) * A_covfactor_update
-            self.A_covfactor2 = np.sqrt(self.noise_scale) / (1 + self.noise_scale) * A_covfactor_update
-
-            Ainv_covfactor_update += self._covariance_update(u=u_Ainv, Ws=Wy)
-            self.Ainv_covfactor1 = self.Ainv0_covfactor - 1 / (1 + self.noise_scale) * Ainv_covfactor_update
-            self.Ainv_covfactor2 = np.sqrt(self.noise_scale) / (1 + self.noise_scale) * Ainv_covfactor_update
-
-            # Solution update
-            # self.x_mean = self.Ainv_mean @ self.b_mean
-            self.x_mean = self.x_mean + step_size * search_dir
-            self.x_cov = self._solution_covariance()
-
-            # Iteration increment
-            self.iter_ += 1
-
-            # Callback function used to extract quantities from iteration
-            if callback is not None:
-                xk, Ak, Ainvk = self._get_output_randvars()
-                callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=None, resid=None,
-                         noise_scale=noise_scale)
-
-        # Create output random variables
-        x, A, Ainv = self._get_output_randvars()
-
-        # Log information on solution
-        info = {
-            "iter": self.iter_,
-            "maxiter": maxiter,
-            "trace_cov_sol": x.cov().trace(),
-            "conv_crit": _conv_crit,
-            "rel_cond": None,  # TODO: relative matrix condition from solver (see scipy solvers)
-            "noise_scale": self.noise_scale
-        }
-
-        return x, A, Ainv, info
+        super().__init__(A=A, b=b, x0=x0)
+    #
+    #     # Transform right hand side to random variable
+    #     if not isinstance(b, prob.RandomVariable):
+    #         _b = prob.asrandvar(b)
+    #     else:
+    #         _b = b
+    #
+    #     super().__init__(A=A, b=_b, x0=x0)
+    #
+    #     # Get or initialize prior parameters
+    #     A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=x0,
+    #                                                                                         b=_b)
+    #
+    #     # Matrix prior parameters
+    #     self.A0_mean = linops.aslinop(A0_mean)
+    #     self.A_mean = linops.aslinop(A0_mean)
+    #     self.A0_covfactor = A0_covfactor
+    #     self.Ainv0_mean = linops.aslinop(Ainv0_mean)
+    #     self.Ainv_mean = linops.aslinop(Ainv0_mean)
+    #     self.Ainv0_covfactor = Ainv0_covfactor
+    #     self.b_mean = b_mean
+    #
+    #     # Induced distribution on x via Ainv
+    #     # Exp = x = A^-1 b, Cov = 1/2 (W b'Wb + Wbb'W)
+    #     Wb = Ainv0_covfactor @ self.b_mean
+    #     bWb = np.squeeze(Wb.T @ self.b_mean)
+    #
+    #     def _mv(x):
+    #         return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
+    #
+    #     self.x_cov = linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv)
+    #     if isinstance(x0, np.ndarray):
+    #         self.x_mean = x0
+    #     elif x0 is None:
+    #         self.x_mean = Ainv0_mean @ self.b_mean
+    #     else:
+    #         raise NotImplementedError
+    #     self.x0 = self.x_mean
+    #
+    # def _get_prior_params(self, A0, Ainv0, x0, b):
+    #     """
+    #     Get the parameters of the matrix priors on A and H.
+    #
+    #     Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
+    #
+    #     Parameters
+    #     ----------
+    #     A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+    #         A square matrix, linear operator or random variable representing the prior belief over the linear operator
+    #         :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
+    #     Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+    #         A square matrix, linear operator or random variable representing the prior belief over the inverse
+    #         :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+    #         given, a prior distribution is chosen automatically.
+    #     x0 : array-like, or RandomVariable, shape=(n,)
+    #         Optional. Prior belief for the solution of the linear system. Will be ignored if ``A0`` or ``Ainv0`` is
+    #         given.
+    #     b : RandomVariable, shape=(n,) or (n, nrhs)
+    #         Right-hand side random variable `b` in :math:`A x = b`.
+    #
+    #     Returns
+    #     -------
+    #     A0_mean : array-like or LinearOperator, shape=(n,n)
+    #         Prior mean of the linear operator :math:`A`.
+    #     A0_covfactor : array-like or LinearOperator, shape=(n,n)
+    #         Factor :math:`W^A` of the symmetric Kronecker product prior covariance :math:`W^A \\otimes_s W^A` of
+    #         :math:`A`.
+    #     Ainv0_mean : array-like or LinearOperator, shape=(n,n)
+    #         Prior mean of the linear operator :math:`H`.
+    #     Ainv0_covfactor : array-like or LinearOperator, shape=(n,n)
+    #         Factor :math:`W^H` of the symmetric Kronecker product prior covariance :math:`W^H \\otimes_s W^H` of
+    #         :math:`H`.
+    #     b_mean : array-like, shape=(n,nrhs)
+    #         Prior mean of the right hand side :math:`b`.
+    #     """
+    #
+    #     # Right hand side mean
+    #     b_mean = b.sample(1)  # TODO: build prior model for rhs and change to b.mean()
+    #
+    #     # No matrix priors specified
+    #     if A0 is None and Ainv0 is None:
+    #         # No prior information given
+    #         if x0 is None:
+    #             Ainv0_mean = linops.Identity(shape=self.n)
+    #             Ainv0_covfactor = linops.Identity(shape=self.n)
+    #             # Standard normal covariance
+    #             A0_mean = linops.Identity(shape=self.n)
+    #             A0_covfactor = linops.Identity(
+    #                 shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
+    #             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
+    #         # Construct matrix priors from initial guess x0
+    #         elif isinstance(x0, np.ndarray):
+    #             # Sample from linear operator for prior construction
+    #             if isinstance(self.A, prob.RandomVariable):
+    #                 _A = self.A.sample([1])[0]
+    #             else:
+    #                 _A = self.A
+    #             A0_mean, Ainv0_mean = self._construct_symmetric_matrix_prior_means(A=_A, x0=x0, b=b_mean)
+    #             Ainv0_covfactor = Ainv0_mean
+    #             # Standard normal covariance
+    #             A0_covfactor = linops.Identity(
+    #                 shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
+    #             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
+    #         elif isinstance(x0, prob.RandomVariable):
+    #             raise NotImplementedError
+    #
+    #     # Prior on Ainv specified
+    #     if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
+    #         if isinstance(Ainv0, prob.RandomVariable):
+    #             Ainv0_mean = Ainv0.mean()
+    #             Ainv0_covfactor = Ainv0.cov().A
+    #         else:
+    #             Ainv0_mean = Ainv0
+    #             Ainv0_covfactor = Ainv0  # Symmetric posterior correspondence
+    #         try:
+    #             if A0 is not None:
+    #                 A0_mean = A0
+    #             elif isinstance(Ainv0, prob.RandomVariable):
+    #                 A0_mean = Ainv0.mean().inv()
+    #             else:
+    #                 A0_mean = Ainv0.inv()
+    #         except AttributeError:
+    #             warnings.warn(message="Prior specified only for Ainv. Inverting prior mean naively. " +
+    #                                   "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+    #             A0_mean = np.linalg.inv(Ainv0.mean())
+    #         except NotImplementedError:
+    #             A0_mean = linops.Identity(self.n)
+    #             warnings.warn(
+    #                 message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
+    #                         + "falling back to standard normal prior.")
+    #         # Standard normal covariance
+    #         A0_covfactor = linops.Identity(
+    #             shape=self.n)  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
+    #         return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
+    #
+    #     # Prior on A specified
+    #     elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
+    #         if isinstance(A0, prob.RandomVariable):
+    #             A0_mean = A0.mean()
+    #             A0_covfactor = A0.cov().A
+    #         else:
+    #             A0_mean = A0
+    #             A0_covfactor = A0  # Symmetric posterior correspondence
+    #         try:
+    #             if Ainv0 is not None:
+    #                 Ainv0_mean = Ainv0
+    #             elif isinstance(A0, prob.RandomVariable):
+    #                 Ainv0_mean = A0.mean().inv()
+    #             else:
+    #                 Ainv0_mean = A0.inv()
+    #         except AttributeError:
+    #             warnings.warn(message="Prior specified only for A. Inverting prior mean naively. " +
+    #                                   "This operation is computationally costly! Specify an inverse prior (mean) instead.")
+    #             Ainv0_mean = np.linalg.inv(A0.mean())
+    #         except NotImplementedError:
+    #             Ainv0_mean = linops.Identity(self.n)
+    #             warnings.warn(message="Prior specified only for A. " +
+    #                                   "Automatic prior mean inversion failed, falling back to standard normal prior.")
+    #         # Symmetric posterior correspondence
+    #         Ainv0_covfactor = Ainv0_mean
+    #         return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
+    #     # Both matrix priors on A and H specified via random variables
+    #     elif isinstance(A0, prob.RandomVariable) and isinstance(Ainv0, prob.RandomVariable):
+    #         A0_mean = A0.mean()
+    #         A0_covfactor = A0.cov().A
+    #         Ainv0_mean = Ainv0.mean()
+    #         Ainv0_covfactor = Ainv0.cov().A
+    #         return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
+    #     else:
+    #         raise NotImplementedError
+    #
+    # def has_converged(self, iter, maxiter, atol=None, rtol=None):
+    #     """
+    #     Check convergence of a linear solver.
+    #
+    #     Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+    #
+    #     Parameters
+    #     ----------
+    #     iter : int
+    #         Current iteration of solver.
+    #     maxiter : int
+    #         Maximum number of iterations
+    #     atol : float
+    #         Absolute tolerance for the uncertainty about the solution estimate. Stops if
+    #         :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
+    #         solution :math:`x`.
+    #     rtol : float
+    #         Relative tolerance for the uncertainty about the solution estimate. Stops if
+    #         :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
+    #         covariance of the solution :math`x` and :math:`x_i` its mean.
+    #
+    #     Returns
+    #     -------
+    #     has_converged : bool
+    #         True if the method has converged.
+    #     convergence_criterion : str
+    #         Convergence criterion which caused termination.
+    #     """
+    #     # maximum iterations
+    #     if iter >= maxiter:
+    #         warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
+    #         return True, "maxiter"
+    #     # uncertainty-based
+    #     if isinstance(self.x_cov, linops.LinearOperator):
+    #         sqrttracecov = np.sqrt(self.x_cov.trace())
+    #     else:
+    #         sqrttracecov = np.sqrt(np.trace(self.x_cov))
+    #     if sqrttracecov <= atol:
+    #         return True, "covar_atol"
+    #     elif sqrttracecov <= rtol * np.linalg.norm(self.x_mean):
+    #         return True, "covar_rtol"
+    #     else:
+    #         return False, ""
+    #
+    # def _set_optimal_noise_scale(self, searchdirs, observations):
+    #     """Computes the optimal noise scale maximizing the log-marginal likelihood (evidence)."""
+    #     # Construct matrices of search directions and observations
+    #     S = np.array(searchdirs).reshape(self.n, -1)
+    #     Y = np.array(observations).reshape(self.n, -1)
+    #
+    #     # Compute intermediate quantities
+    #     Delta0 = Y - self.A0_mean @ S
+    #     SW0S = S.T @ (self.A0_covfactor @ S)
+    #     try:
+    #         SW0SinvSDelta0 = scipy.linalg.solve(SW0S, S.T @ Delta0,
+    #                                             assume_a="pos")  # solves k x k system k times: O(k^3)
+    #         linop_rhs = Delta0.T @ (2 * self.A0_covfactor.inv() @ Delta0 - S @ SW0SinvSDelta0)
+    #         linop_tracearg = scipy.linalg.solve(SW0S, linop_rhs, assume_a="pos")  # solves k x k system k times: O(k^3)
+    #
+    #         # Optimal noise scale with respect to the evidence
+    #         noise_scale_estimate = 1 / (self.n * (self.iter_ + 1)) * linop_tracearg.trace() - 1
+    #         if noise_scale_estimate > 0:
+    #             self.noise_scale = noise_scale_estimate
+    #         else:
+    #             self.noise_scale = 0
+    #             warnings.warn("Noise scale estimate negative. Results may be inaccurate.")
+    #     except scipy.linalg.LinAlgError:
+    #         warnings.warn("Matrix S'W_0S not invertible. Noise scale estimate may be inaccurate.")
+    #
+    # def _mean_update(self, u, v):
+    #     """Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu')."""
+    #
+    #     def matvec(x):
+    #         return u @ (v.T @ x) + v @ (u.T @ x)
+    #
+    #     return linops.LinearOperator(shape=self.A_mean.shape, matvec=matvec, matmat=matvec)
+    #
+    # def _covariance_update(self, u, Ws):
+    #     """Linear operator implementing the symmetric rank 2 covariance update (-= Ws u^T)."""
+    #
+    #     def matvec(x):
+    #         return Ws @ (u.T @ x)
+    #
+    #     return linops.LinearOperator(shape=self.A_mean.shape, matvec=matvec, matmat=matvec)
+    #
+    # def _solution_covariance(self):
+    #     """Covariance of the solution estimate induced by x = Hb."""
+    #     W1b = self.Ainv_covfactor1 @ self.b_mean
+    #     bW1b = np.squeeze(W1b.T @ self.b_mean)
+    #     W2b = self.Ainv_covfactor2 @ self.b_mean
+    #     bW2b = np.squeeze(W2b.T @ self.b_mean)
+    #
+    #     def matvec(x):
+    #         return 0.5 * (bW1b * self.Ainv_covfactor1 @ x + W1b @ (
+    #                 W1b.T @ x) + bW2b * self.Ainv_covfactor2 @ x + W2b @ (W2b.T @ x))
+    #
+    #     return linops.LinearOperator(shape=(self.n, self.n), dtype=float, matvec=matvec, matmat=matvec)
+    #
+    # def _get_output_randvars(self):
+    #     """Return output random variables x, A, Ainv from their means and covariances."""
+    #
+    #     # Estimate of matrix A
+    #     cov_A = linops.SymmetricKronecker(A=self.A_covfactor1) + linops.SymmetricKronecker(A=self.A_covfactor2)
+    #     A = prob.RandomVariable(shape=(self.n, self.n),
+    #                             dtype=self.b_mean.dtype,
+    #                             distribution=prob.Normal(mean=self.A_mean, cov=cov_A))
+    #
+    #     # Estimate of inverse Ainv
+    #     cov_Ainv = linops.SymmetricKronecker(A=self.Ainv_covfactor1) + linops.SymmetricKronecker(A=self.Ainv_covfactor2)
+    #     Ainv = prob.RandomVariable(shape=(self.n, self.n),
+    #                                dtype=self.b_mean.dtype,
+    #                                distribution=prob.Normal(mean=self.Ainv_mean, cov=cov_Ainv))
+    #
+    #     # Estimate of solution x
+    #     x = prob.RandomVariable(shape=(self.n,),
+    #                             dtype=self.b_mean.dtype,
+    #                             distribution=prob.Normal(mean=self.x_mean.ravel(), cov=self.x_cov))
+    #     return x, A, Ainv
+    #
+    # def solve(self, callback=None, maxiter=None, atol=10 ** -6, rtol=10 ** -6, noise_scale=None, **kwargs):
+    #     """
+    #     Solve the linear system :math:`Ax=b`.
+    #
+    #     Parameters
+    #     ----------
+    #     callback : function, optional
+    #         User-supplied function called after each iteration of the linear solver. It is called as
+    #         ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, noise_scale)`` and can be used to return quantities from the
+    #         iteration. Note that depending on the function supplied, this can slow down the solver.
+    #     maxiter : int
+    #         Maximum number of iterations
+    #     atol : float
+    #         Absolute tolerance for the uncertainty about the solution estimate. Stops if
+    #         :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
+    #         solution :math:`x`.
+    #     rtol : float
+    #         Relative tolerance for the uncertainty about the solution estimate. Stops if
+    #         :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
+    #         covariance of the solution :math`x` and :math:`x_i` its mean.
+    #     noise_scale : float
+    #         Assumed (initial) noise scale :math:`\\varepsilon^2`.
+    #
+    #     Returns
+    #     -------
+    #     x : RandomVariable, shape=(n,) or (n, nrhs)
+    #         Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+    #     A : RandomVariable, shape=(n,n)
+    #         Posterior belief over the linear operator.
+    #     Ainv : RandomVariable, shape=(n,n)
+    #         Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
+    #     info : dict
+    #         Information on convergence of the solver.
+    #     """
+    #     # Initialization
+    #     self.iter_ = 0
+    #     has_custom_noise_scale = False
+    #     if noise_scale is not None:
+    #         has_custom_noise_scale = True
+    #         self.noise_scale = noise_scale
+    #         if noise_scale < 0:
+    #             raise ValueError("Noise scale must be non-negative.")
+    #
+    #     A_mean_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
+    #     Ainv_mean_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
+    #     A_covfactor_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
+    #     Ainv_covfactor_update = linops.ScalarMult(shape=(self.n, self.n), scalar=0)
+    #     search_dir_list = []
+    #     obs_list = []
+    #
+    #     # Iteration with stopping criteria
+    #     while True:
+    #         # Check convergence
+    #         _has_converged, _conv_crit = self.has_converged(iter=self.iter_, maxiter=maxiter, atol=atol, rtol=rtol)
+    #         if _has_converged:
+    #             break
+    #
+    #         # Noisy matrix-vector product for current iteration
+    #         if isinstance(self.A, prob.RandomVariable):
+    #             A_iter = self.A.sample([1])[0]  # Sample new system matrix for this iteration
+    #         else:
+    #             A_iter = self.A
+    #
+    #         # Right hand side estimate update
+    #         self.b_mean = ((self.iter_ + 1) * self.b_mean + self.b.sample(size=1)) / (self.iter_ + 2)
+    #
+    #         # Compute search direction via policy
+    #         resid = A_iter @ self.x_mean - self.b_mean
+    #         search_dir = - self.Ainv_mean @ resid
+    #         search_dir_list.append(search_dir)
+    #
+    #         # Perform action and observe
+    #         obs = A_iter @ search_dir
+    #         obs_list.append(obs)
+    #
+    #         # Compute step size
+    #         sy = search_dir.T @ obs
+    #         step_size = - (search_dir.T @ resid) / sy
+    #
+    #         # Optimal noise scale with respect to log-marginal likelihood
+    #         if not has_custom_noise_scale and self.iter_ < self.n:
+    #             self._set_optimal_noise_scale(searchdirs=search_dir_list, observations=obs_list)
+    #
+    #         # Inference updates of system matrix, inverse and solution
+    #         Vs = (self.A0_covfactor - A_covfactor_update) @ search_dir
+    #         delta_A = obs - self.A_mean @ search_dir
+    #         u_A = Vs / (search_dir.T @ Vs)
+    #         v_A = delta_A - 0.5 * (search_dir.T @ delta_A) * u_A
+    #
+    #         Wy = (self.Ainv0_covfactor - Ainv_covfactor_update) @ obs
+    #         delta_Ainv = search_dir - self.Ainv_mean @ obs
+    #         u_Ainv = Wy / (obs.T @ Wy)
+    #         v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
+    #
+    #         # Mean updates
+    #         A_mean_update += self._mean_update(u=u_A, v=v_A)
+    #         self.A_mean = self.A0_mean + 1 / (1 + self.noise_scale) * A_mean_update
+    #         Ainv_mean_update += self._mean_update(u=u_Ainv, v=v_Ainv)
+    #         self.Ainv_mean = self.Ainv0_mean + 1 / (1 + self.noise_scale) * Ainv_mean_update
+    #
+    #         # Covariance update(s)
+    #         A_covfactor_update += self._covariance_update(u=u_A, Ws=Vs)
+    #         self.A_covfactor1 = self.A0_covfactor - 1 / (1 + self.noise_scale) * A_covfactor_update
+    #         self.A_covfactor2 = np.sqrt(self.noise_scale) / (1 + self.noise_scale) * A_covfactor_update
+    #
+    #         Ainv_covfactor_update += self._covariance_update(u=u_Ainv, Ws=Wy)
+    #         self.Ainv_covfactor1 = self.Ainv0_covfactor - 1 / (1 + self.noise_scale) * Ainv_covfactor_update
+    #         self.Ainv_covfactor2 = np.sqrt(self.noise_scale) / (1 + self.noise_scale) * Ainv_covfactor_update
+    #
+    #         # Solution update
+    #         # self.x_mean = self.Ainv_mean @ self.b_mean
+    #         self.x_mean = self.x_mean + step_size * search_dir
+    #         self.x_cov = self._solution_covariance()
+    #
+    #         # Iteration increment
+    #         self.iter_ += 1
+    #
+    #         # Callback function used to extract quantities from iteration
+    #         if callback is not None:
+    #             xk, Ak, Ainvk = self._get_output_randvars()
+    #             callback(xk=xk, Ak=Ak, Ainvk=Ainvk, sk=search_dir, yk=obs, alphak=None, resid=None,
+    #                      noise_scale=noise_scale)
+    #
+    #     # Create output random variables
+    #     x, A, Ainv = self._get_output_randvars()
+    #
+    #     # Log information on solution
+    #     info = {
+    #         "iter": self.iter_,
+    #         "maxiter": maxiter,
+    #         "trace_cov_sol": x.cov().trace(),
+    #         "conv_crit": _conv_crit,
+    #         "rel_cond": None,  # TODO: relative matrix condition from solver (see scipy solvers)
+    #         "noise_scale": self.noise_scale
+    #     }
+    #
+    #     return x, A, Ainv, info
