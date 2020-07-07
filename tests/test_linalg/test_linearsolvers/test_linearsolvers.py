@@ -479,91 +479,92 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertTrue(np.all(np.linalg.eigvals(Ainv0_mean_dense) > 0))
                 self.assertTrue(np.all(np.linalg.eigvals(A0_mean_dense) > 0))
 
-# class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
-#     """Tests the probabilistic linear solver with noise functionality."""
-#
-#     def setUp(self):
-#         """Resources for tests."""
-#         # Poisson equation with Dirichlet conditions.
-#         #
-#         #   - Laplace(u) = f    in the interior
-#         #              u = u_D  on the boundary
-#         # where
-#         #     u_D = 1 + x^2 + 2y^2
-#         #     f = -4
-#         #
-#         # Linear system resulting from discretization on an elliptic grid.
-#         fpath = os.path.join(os.path.dirname(__file__), '../../resources')
-#         A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
-#         f = np.load(file=fpath + "/rhs_poisson.npy")
-#         self.poisson_linear_system = A, f
-#
-#         # Structured noise E
-#         self.noise = [
-#             # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(2, 2), scalar=0),
-#             #                                              cov=linops.SymmetricKronecker(
-#             #                                                  A=.75 ** 2 * linops.Identity(2)))),
-#             # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(3, 3), scalar=0),
-#             #                                              cov=linops.SymmetricKronecker(
-#             #                                                  A=.01 ** 2 * linops.Identity(3)))),
-#             prob.RandomVariable(
-#                 distribution=prob.Normal(mean=linops.ScalarMult(shape=self.poisson_linear_system[0].shape, scalar=0),
-#                                          cov=linops.SymmetricKronecker(
-#                                              A=.01 ** 2 * linops.Identity(self.poisson_linear_system[0].shape[0]))))
-#         ]
-#
-#         # System matrices A
-#         self.system_matrices = [
-#             # linops.MatrixMult(np.array([[4., 1.], [1., 2.]])),
-#             # linops.MatrixMult(np.array([[4., 1., .2], [1., 2., -.01], [.2, -.01, 10]])),
-#             linops.MatrixMult(self.poisson_linear_system[0].toarray())
-#         ]
-#
-#         # Noisy linear operators
-#         self.noisy_linops = [
-#
-#         ]
-#
-#         # System right hand sides b
-#         self.right_hand_sides = [
-#             # np.array([1, -1]),
-#             # np.array([[.893], [3.5], [-1]])
-#             self.poisson_linear_system[1]
-#         ]
-#         self.noisy_right_hand_sides = [
-#             prob.RandomVariable(shape=(2, 1),
-#                                 distribution=prob.Normal(mean=np.array([[1.], [-1]]),
-#                                                          cov=0.01 * np.array([[2, .1], [.1, 4]]))),
-#             prob.RandomVariable(shape=(3, 1), distribution=prob.Dirac(support=np.array([[.893], [3.5], [-1]]))),
-#             prob.RandomVariable(shape=(self.poisson_linear_system[1].shape[0], 1),
-#                                 distribution=prob.Normal(mean=self.poisson_linear_system[1].reshape(-1, 1),
-#                                                          cov=0.01 * linops.Identity(
-#                                                              self.poisson_linear_system[1].shape[0]))),
-#         ]
-#
-#     def test_solve_noisy_problem(self):
-#         """Solve a simple noisy problem."""
-#         for (A, E, b) in zip(self.system_matrices, self.noise, self.right_hand_sides):
-#             for seed in range(0, 5):
-#                 with self.subTest():
-#                     np.random.seed(seed)
-#                     x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
-#                                                         maxiter=b.shape[0] + 1)
-#                     self.assertAllClose(A @ x.mean(), np.squeeze(b), rtol=10 ** -6)
-#
-#     def test_noisy_rhs(self):
-#         """Noisy right hand side given as a random variable."""
-#         np.random.seed(0)
-#         for (A, E, b) in zip(self.system_matrices, self.noise, self.noisy_right_hand_sides):
-#             with self.subTest():
-#                 x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
-#                                                     maxiter=b.shape[0] + 1)
-#                 self.assertAllClose(A @ x.mean(), np.squeeze(b.mean()), rtol=10 ** -6)
-#
-#     def test_multiple_rhs(self):
-#         """Noisy linear system with matrix right hand side."""
-#         pass
-#
-#     def test_optimal_scale(self):
-#         """Tests the computation of the optimal scale for the posterior covariance."""
-#         pass
+
+class NoisyLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
+    """Tests the probabilistic linear solver with noise functionality."""
+
+    def setUp(self):
+        """Resources for tests."""
+        # Poisson equation with Dirichlet conditions.
+        #
+        #   - Laplace(u) = f    in the interior
+        #              u = u_D  on the boundary
+        # where
+        #     u_D = 1 + x^2 + 2y^2
+        #     f = -4
+        #
+        # Linear system resulting from discretization on an elliptic grid.
+        fpath = os.path.join(os.path.dirname(__file__), '../../resources')
+        A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
+        f = np.load(file=fpath + "/rhs_poisson.npy")
+        self.poisson_linear_system = A, f
+
+        # Structured noise E
+        self.noise = [
+            # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(2, 2), scalar=0),
+            #                                              cov=linops.SymmetricKronecker(
+            #                                                  A=.75 ** 2 * linops.Identity(2)))),
+            # prob.RandomVariable(distribution=prob.Normal(mean=linops.ScalarMult(shape=(3, 3), scalar=0),
+            #                                              cov=linops.SymmetricKronecker(
+            #                                                  A=.01 ** 2 * linops.Identity(3)))),
+            prob.RandomVariable(
+                distribution=prob.Normal(mean=linops.ScalarMult(shape=self.poisson_linear_system[0].shape, scalar=0),
+                                         cov=linops.SymmetricKronecker(
+                                             A=.01 ** 2 * linops.Identity(self.poisson_linear_system[0].shape[0]))))
+        ]
+
+        # System matrices A
+        self.system_matrices = [
+            # linops.MatrixMult(np.array([[4., 1.], [1., 2.]])),
+            # linops.MatrixMult(np.array([[4., 1., .2], [1., 2., -.01], [.2, -.01, 10]])),
+            linops.MatrixMult(self.poisson_linear_system[0].toarray())
+        ]
+
+        # Noisy linear operators
+        self.noisy_linops = [
+
+        ]
+
+        # System right hand sides b
+        self.right_hand_sides = [
+            # np.array([1, -1]),
+            # np.array([[.893], [3.5], [-1]])
+            self.poisson_linear_system[1]
+        ]
+        self.noisy_right_hand_sides = [
+            prob.RandomVariable(shape=(2, 1),
+                                distribution=prob.Normal(mean=np.array([[1.], [-1]]),
+                                                         cov=0.01 * np.array([[2, .1], [.1, 4]]))),
+            prob.RandomVariable(shape=(3, 1), distribution=prob.Dirac(support=np.array([[.893], [3.5], [-1]]))),
+            prob.RandomVariable(shape=(self.poisson_linear_system[1].shape[0], 1),
+                                distribution=prob.Normal(mean=self.poisson_linear_system[1].reshape(-1, 1),
+                                                         cov=0.01 * linops.Identity(
+                                                             self.poisson_linear_system[1].shape[0]))),
+        ]
+
+    def test_solve_noisy_problem(self):
+        """Solve a simple noisy problem."""
+        for (A, E, b) in zip(self.system_matrices, self.noise, self.right_hand_sides):
+            for seed in range(0, 5):
+                with self.subTest():
+                    np.random.seed(seed)
+                    x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
+                                                        maxiter=b.shape[0] + 1)
+                    self.assertAllClose(A @ x.mean(), np.squeeze(b), rtol=10 ** -6)
+
+    def test_noisy_rhs(self):
+        """Noisy right hand side given as a random variable."""
+        np.random.seed(0)
+        for (A, E, b) in zip(self.system_matrices, self.noise, self.noisy_right_hand_sides):
+            with self.subTest():
+                x, _, _, info = linalg.problinsolve(A=A + E, b=b, rtol=10 ** -6, assume_A="symposnoise",
+                                                    maxiter=b.shape[0] + 1)
+                self.assertAllClose(A @ x.mean(), np.squeeze(b.mean()), rtol=10 ** -6)
+
+    def test_multiple_rhs(self):
+        """Noisy linear system with matrix right hand side."""
+        pass
+
+    def test_optimal_scale(self):
+        """Tests the computation of the optimal scale for the posterior covariance."""
+        pass
