@@ -8,7 +8,7 @@ of such methods looks like this:
 .. highlight:: python
 .. code-block:: python
 
-    randvar_out = probnum_method(randvar_in, **kwargs)
+    randvar_out, info = probnum_method(problem, randvar_in, **kwargs)
 
 """
 
@@ -17,7 +17,9 @@ from .randomprocess import *
 from .distributions import *
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["RandomVariable", "RandomProcess", "Distribution", "Dirac", "Normal", "asrandvar"]
+__all__ = ["RandomVariable", "RandomProcess", "GaussianProcess",
+           "Kernel", "IntegratedBrownianMotionKernel",
+           "BrownianMotionKernel", "Distribution", "Dirac", "Normal", "asrandvar"]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 RandomVariable.__module__ = "probnum.prob"

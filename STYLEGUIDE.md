@@ -1,7 +1,7 @@
 # Style Guide
 
 This style guide summarizes code conventions used in ProbNum. This is intended as a reference for developers. The 
-primary standard that should be applied is [PEP 8](https://www.python.org/dev/peps/pep-0008/). Use a linter (pylint, flake8) if necessary.
+primary standard that should be applied is [PEP 8](https://www.python.org/dev/peps/pep-0008/).
 
 ## Code
 

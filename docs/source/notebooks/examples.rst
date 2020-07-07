@@ -27,6 +27,10 @@ solving ordinary and partial differential equations.
 
 .. toctree::
    :maxdepth: 1
+   :caption: Optimization:
+
+.. toctree::
+   :maxdepth: 1
    :caption: Integration:
 
 .. toctree::
@@ -47,7 +51,7 @@ methods.
 
 Advanced
 *********
-Learn how to integrate Probnum with your Gaussian process or automatic differentiation framework of choice.
+Learn how to integrate ProbNum with your Gaussian process or automatic differentiation framework of choice.
 
 .. toctree::
    :maxdepth: 1
