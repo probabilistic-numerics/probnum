@@ -60,7 +60,7 @@ class NormOfGradient(StoppingCriterion):
         """
         not_fulfilling = np.inf
         output = Eval(None, None, not_fulfilling, None)
-        if self.fulfilled(curriter, output):
+        if self.fulfilled(output, curriter):
             raise RuntimeError("Could not initialize the StoppingCriterion.")
         return output
 
