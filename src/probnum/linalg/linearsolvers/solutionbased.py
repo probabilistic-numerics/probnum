@@ -68,8 +68,6 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
             return True, "resid_atol"
         elif np.linalg.norm(resid) <= rtol * np.linalg.norm(self.b):
             return True, "resid_rtol"
-        # uncertainty-based
-        # todo: based on posterior contraction
         else:
             return False, ""
 

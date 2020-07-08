@@ -106,7 +106,7 @@ class Distribution:
             if shape is None or shape_sample == shape:
                 self._shape = shape_sample
             else:
-                raise ValueError("Shape of distribution mean and given shape do not match.")
+                raise ValueError("Shape of distribution sample and given shape do not match.")
 
     @property
     def shape(self):

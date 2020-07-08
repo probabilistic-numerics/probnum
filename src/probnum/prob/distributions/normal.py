@@ -405,7 +405,7 @@ class _MultivariateNormal(Normal):
     def reshape(self, newshape):
         raise NotImplementedError
 
-    # Arithmetic Operations ###############################
+    # Arithmetic Operations
 
     def __matmul__(self, other):
         """
