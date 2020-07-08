@@ -7,7 +7,7 @@ python:
   - "3.6"
 install:
   - pip install pytest pytest-cov # testing 
-  - pip install 'sphinx>=1.7.5<3' # python documentation tool
+  - pip install 'sphinx>=1.7.5<3' --force-reinstall # python documentation tool
   - pip install sphinx_bootstrap_theme # documentation theme
   - pip install sphinx_automodapi # automated function documentation
   - pip install nbsphinx # jupyter notebook documentation support
