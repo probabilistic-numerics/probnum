@@ -1,5 +1,5 @@
 """
-Benchmarks for Distributions
+Benchmarks for distributions.
 """
 
 import numpy as np
@@ -12,6 +12,7 @@ distribution_names = [
     "univar_normal", "multivar_normal", "matrixvar_normal", "symmatrixvar_normal",
     # "operatorvar_normal"
 ]
+
 
 def get_randvar(distribution_name):
     """
@@ -64,7 +65,7 @@ class Functions:
         self.eval_point = np.random.uniform(self.randvar.shape)
         self.quantile = np.random.uniform(self.randvar.shape)
 
-    def time_distribution(self, dist, property):
+    def time_distr_functions(self, dist, property):
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
         try:
             if property == "pdf":
