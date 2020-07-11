@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/probabilistic-numerics/probnum.svg?branch=master)](https://travis-ci.org/probabilistic-numerics/probnum)
 [![Coverage Status](http://codecov.io/github/probabilistic-numerics/probnum/coverage.svg?branch=master)](http://codecov.io/github/probabilistic-numerics/probnum?branch=master)
+[![Documentation](https://img.shields.io/badge/-documentation-blue)](https://probabilistic-numerics.github.io/probnum/modules.html)
+[![Benchmarks]](https://probabilistic-numerics.github.io/probnum/benchmarks/index.html)
+[![asv](http://img.shields.io/badge/benchmarked%20by-asv-green.svg?style=flat)](http://your-url-here/)
 <br>
 
 <a href="https://probabilistic-numerics.github.io/probnum/intro.html"><img align="left" src="https://raw.githubusercontent.com/probabilistic-numerics/probnum/master/docs/source/img/pn_logo.png" alt="probabilistic numerics" width="128" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics on GitHub"/></a> 
