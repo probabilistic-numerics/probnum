@@ -10,31 +10,19 @@ from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace import *
 
 
-class ExtendedRauchTungStriebelSmoother():
-    """
-    Extended RTS smoother as a simple add-on to the filtering.
-    The rest is implemented in GaussianSmoother.
-    """
-
-    def __init__(self, dynamod, measmod, initrv, **kwargs):
-        """ """
-        extkalfilt = ExtendedKalmanFilter(dynamod, measmod, initrv, **kwargs)
-        super().__init__(extkalfilt)
-
-
-class ExtendedKalmanFilter(GaussFiltSmooth):
+class ExtendedKalman(GaussFiltSmooth):
     """
     Factory method for Kalman filters.
     """
     def __new__(cls, dynamod, measmod, initrv, **kwargs):
         """ """
-        if cls is ExtendedKalmanFilter:
+        if cls is ExtendedKalman:
             if _cont_disc(dynamod, measmod):
-                return ContDiscExtendedKalmanFilter(dynamod, measmod,
-                                                    initrv, **kwargs)
+                return _ContDiscExtendedKalman(
+                    dynamod, measmod, initrv, **kwargs)
             if _disc_disc(dynamod, measmod):
-                return DiscDiscExtendedKalmanFilter(dynamod, measmod,
-                                                    initrv, **kwargs)
+                return _DiscDiscExtendedKalman(
+                    dynamod, measmod, initrv, **kwargs)
             else:
                 errmsg = ("Cannot instantiate Extended Kalman filter with "
                           "given dynamic model and measurement model.")
@@ -44,29 +32,24 @@ class ExtendedKalmanFilter(GaussFiltSmooth):
 
 
 def _cont_disc(dynamod, measmod):
-    """ """
+    """Check whether the state space model is continuous-discrete."""
     dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
     meas_is_disc = issubclass(type(measmod), DiscreteModel)
     return dyna_is_cont and meas_is_disc
 
 
 def _disc_disc(dynamod, measmod):
-    """ """
+    """Check whether the state space model is discrete-discrete."""
     dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
     meas_is_disc = issubclass(type(measmod), DiscreteModel)
     return dyna_is_disc and meas_is_disc
 
 
-class ContDiscExtendedKalmanFilter(
-                                   ExtendedKalmanFilter):
+class _ContDiscExtendedKalman(ExtendedKalman):
     """
-    Completes implementation of ContinuousContinuousGaussianFilter.
-
-    Provides predict() and update() methods.
+    Continuous-discrete extended Kalman filtering and smoothing.
     """
     def __init__(self, dynamod, measmod, initrv, **kwargs):
-        """
-        """
         if not issubclass(type(dynamod), LinearSDEModel):
             raise ValueError("This implementation of "
                              "ContDiscExtendedKalmanFilter "
@@ -83,17 +66,16 @@ class ContDiscExtendedKalmanFilter(
     def predict(self, start, stop, randvar, **kwargs):
         """ """
         step = ((stop - start) / self.cke_nsteps)
-        return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar,
-                                                   **kwargs)
+        return self.dynamicmodel.chapmankolmogorov(
+            start, stop, step, randvar, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
         """ """
-        return _discrete_extkalman_update(time, randvar, data,
-                                          self.measurementmodel, **kwargs)
+        return _discrete_extkalman_update(
+            time, randvar, data, self.measurementmodel, **kwargs)
 
 
-class DiscDiscExtendedKalmanFilter(
-                                   ExtendedKalmanFilter):
+class _DiscDiscExtendedKalman(ExtendedKalman):
     """
     """
     def __init__(self, dynamod, measmod, initrv, **kwargs):
@@ -122,8 +104,8 @@ class DiscDiscExtendedKalmanFilter(
 
     def update(self, time, randvar, data, **kwargs):
         """ """
-        return _discrete_extkalman_update(time, randvar, data,
-                                          self.measurementmodel, **kwargs)
+        return _discrete_extkalman_update(
+            time, randvar, data, self.measurementmodel, **kwargs)
 
 
 def _discrete_extkalman_update(time, randvar, data, measmod, **kwargs):
@@ -139,5 +121,5 @@ def _discrete_extkalman_update(time, randvar, data, measmod, **kwargs):
     ccest = cpred @ jacob.T
     mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
     cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    return RandomVariable(distribution=Normal(mean, cov)), \
-        covest, ccest, meanest
+    updated_rv = RandomVariable(distribution=Normal(mean, cov))
+    return updated_rv, covest, ccest, meanest

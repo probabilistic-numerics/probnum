@@ -9,7 +9,7 @@ from probnum.prob import RandomVariable, Normal
 from probnum.filtsmooth.statespace import *
 
 
-class Kalman(GaussFiltSmooth, ABC):
+class Kalman(GaussFiltSmooth):
     """
     Kalman filtering and smoothing for continuous-discrete and
     discrete-discrete state space models.
