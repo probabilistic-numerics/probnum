@@ -31,6 +31,7 @@ from probnum.filtsmooth import *
 #         return smoothed_means, smoothed_covars, times
 #
 
+
 class GaussianIVPFilter(odesolver.ODESolver):
     """
     ODE solver that behaves like a Gaussian filter.
@@ -112,6 +113,26 @@ class GaussianIVPFilter(odesolver.ODESolver):
         means, covars = self.undo_preconditioning(means, covars)
         return np.array(means), ssqest * np.array(covars), np.array(times)
 
+    def odesmooth(self, means, covs, times, **kwargs):
+        """
+        Smoothes out the ODE-Filter output.
+
+        Be careful about the preconditioning: the GaussFiltSmooth object
+        only knows the state space with changed coordinates!
+
+        Parameters
+        ----------
+        means
+        covs
+
+        Returns
+        -------
+
+        """
+        means, covs = self.redo_preconditioning(means, covs)
+        means, covs = self.gfilt.smooth(means, covs, times, **kwargs)
+        return self.undo_preconditioning(means, covs)
+
     def undo_preconditioning(self, means, covs):
         """ """
         ipre = self.gfilt.dynamicmodel.invprecond
@@ -155,7 +176,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         rel_error = (abserrors / np.abs(projmat @ currmn)) @ weights / np.linalg.norm(weights)
         abs_error = abserrors @ weights / np.linalg.norm(weights)
         return np.maximum(rel_error, abs_error)
-
 
     def _suggest_step(self, step, errorest):
         """

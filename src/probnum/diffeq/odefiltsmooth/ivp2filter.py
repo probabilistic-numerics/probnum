@@ -10,7 +10,7 @@ from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal, Dirac
 
 
-def ivp_to_ekf0(ivp, prior, evlvar):
+def ivp2ekf0(ivp, prior, evlvar):
     """
     Computes measurement model and initial distribution
     for KF based on IVP and prior.
@@ -94,7 +94,7 @@ def _measmod_ekf0(ivp, prior, evlvar):
     return DiscreteGaussianModel(dyna, diff, jaco)
 
 
-def ivp_to_ekf1(ivp, prior, evlvar):
+def ivp2ekf1(ivp, prior, evlvar):
     """
     Computes measurement model and initial distribution
     for EKF based on IVP and prior.
@@ -128,7 +128,7 @@ def _measmod_ekf1(ivp, prior, evlvar):
     return DiscreteGaussianModel(dyna, diff, jaco)
 
 
-def ivp_to_ukf(ivp, prior, evlvar):
+def ivp2ukf(ivp, prior, evlvar):
     """
     Computes measurement model and initial distribution
     for EKF based on IVP and prior.

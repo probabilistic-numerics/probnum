@@ -224,6 +224,18 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
      [  0.97947631   0.08040988  -0.30900324   1.07108871]
      [  0.98614541   0.05465059  -0.20824105   0.94815346]]
     """
+    solver, firststep = _create_solver_object(
+        ivp, method, which_prior, tol, step,
+        firststep, precond_step, nsteps, **kwargs)
+    means, covs, times = solver.solve(
+        firststep=firststep, nsteps=nsteps, **kwargs)
+    if method in ["eks0", "eks1", "uks"]:
+        means, covs = solver.odesmooth(means, covs, times, **kwargs)
+    return means, covs, times
+
+
+def _create_solver_object(ivp, method, which_prior, tol, step, firststep, precond_step, nsteps, **kwargs):
+    """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)
     if step is not None:
@@ -238,15 +250,7 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
         stprl = _step2steprule_const(step)
         firststep = step
     gfilt = _string2filter(ivp, _prior, method, **kwargs)
-    solver = GaussianIVPFilter(ivp, gfilt, stprl)
-    means, covs, times = solver.solve(
-        firststep=firststep, nsteps=nsteps, **kwargs)
-    if method in ["eks0", "eks1", "uks"]:
-        means, covs = solver.redo_preconditioning(means, covs)
-        means, covs = gfilt.smooth(means, covs, times, **kwargs)
-        means, covs = solver.undo_preconditioning(means, covs)
-    return means, covs, times
-
+    return GaussianIVPFilter(ivp, gfilt, stprl), firststep
 
 def _check_step_tol(step, tol):
     """ """
@@ -356,11 +360,11 @@ def _string2filter(_ivp, _prior, _method, **kwargs):
     else:
         evlvar = 0.0
     if _method == "ekf0" or _method == "eks0":
-        return ivp2filter.ivp_to_ekf0(_ivp, _prior, evlvar)
+        return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
     elif _method == "ekf1" or _method == "eks1":
-        return ivp2filter.ivp_to_ekf1(_ivp, _prior, evlvar)
+        return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
     elif _method == "ukf" or _method == "uks":
-        return ivp2filter.ivp_to_ukf(_ivp, _prior, evlvar)
+        return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     else:
         raise ValueError("Type of filter not supported.")
 
