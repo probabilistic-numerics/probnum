@@ -10,7 +10,7 @@ from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace import *
 
 
-class ExtendedRauchTungStriebelSmoother(GaussianSmoother):
+class ExtendedRauchTungStriebelSmoother():
     """
     Extended RTS smoother as a simple add-on to the filtering.
     The rest is implemented in GaussianSmoother.
@@ -22,7 +22,7 @@ class ExtendedRauchTungStriebelSmoother(GaussianSmoother):
         super().__init__(extkalfilt)
 
 
-class ExtendedKalmanFilter:
+class ExtendedKalmanFilter(GaussFiltSmooth):
     """
     Factory method for Kalman filters.
     """
@@ -57,7 +57,7 @@ def _disc_disc(dynamod, measmod):
     return dyna_is_disc and meas_is_disc
 
 
-class ContDiscExtendedKalmanFilter(ContDiscGaussianFilter,
+class ContDiscExtendedKalmanFilter(
                                    ExtendedKalmanFilter):
     """
     Completes implementation of ContinuousContinuousGaussianFilter.
@@ -92,7 +92,7 @@ class ContDiscExtendedKalmanFilter(ContDiscGaussianFilter,
                                           self.measurementmodel, **kwargs)
 
 
-class DiscDiscExtendedKalmanFilter(DiscDiscGaussianFilter,
+class DiscDiscExtendedKalmanFilter(
                                    ExtendedKalmanFilter):
     """
     """

@@ -7,10 +7,12 @@ from .gaussfiltsmooth import *
 from .bayesfiltsmooth import *
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["GaussianSmoother", "GaussianFilter",
-           "KalmanFilter", "RauchTungStriebelSmoother",
-           "ExtendedKalmanFilter", "ExtendedRauchTungStriebelSmoother",
-           "UnscentedKalmanFilter", "UnscentedRauchTungStriebelSmoother",
+__all__ = ["gaussfilter",
+           "gaussfiltsmooth",
+           "GaussFiltSmooth",
+           "Kalman",
+           "ExtendedKalmanFilter",
+           "UnscentedKalmanFilter",
            "UnscentedTransform",
            "ContinuousModel", "LinearSDEModel", "LTISDEModel",
            "DiscreteModel", "DiscreteGaussianModel",
@@ -24,5 +26,4 @@ LinearSDEModel.__module__ = "probnum.filtsmooth"
 DiscreteModel.__module__ = "probnum.filtsmooth"
 DiscreteGaussianModel.__module__ = "probnum.filtsmooth"
 DiscreteGaussianLinearModel.__module__ = "probnum.filtsmooth"
-GaussianFilter.__module__ = "probnum.filtsmooth"
-GaussianSmoother.__module__ = "probnum.filtsmooth"
+GaussFiltSmooth.__module__ = "probnum.filtsmooth"

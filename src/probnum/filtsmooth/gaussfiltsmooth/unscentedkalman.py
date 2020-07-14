@@ -13,7 +13,7 @@ from probnum.filtsmooth.statespace import *
 from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import *
 
 
-class UnscentedRauchTungStriebelSmoother(GaussianSmoother):
+class UnscentedRauchTungStriebelSmoother():
     """
     ExtendedKalman smoother as a simple add-on to the filtering.
     The rest is implemented in GaussianSmoother.
@@ -63,8 +63,7 @@ def _disc_disc(dynamod, measmod):
     return dyna_is_disc and meas_is_disc
 
 
-class ContDiscUnscentedKalmanFilter(ContDiscGaussianFilter,
-                                    UnscentedKalmanFilter):
+class ContDiscUnscentedKalmanFilter(UnscentedKalmanFilter):
     """
     Completes implementation of ContinuousContinuousGaussianFilter.
 
@@ -99,7 +98,7 @@ class ContDiscUnscentedKalmanFilter(ContDiscGaussianFilter,
                                           self.measmod, self.ut, **kwargs)
 
 
-class DiscDiscUnscentedKalmanFilter(DiscDiscGaussianFilter,
+class DiscDiscUnscentedKalmanFilter(
                                     UnscentedKalmanFilter):
     """
     """
