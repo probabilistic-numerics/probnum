@@ -19,8 +19,12 @@ GaussFiltSmooth
 
    .. autosummary::
 
+      ~GaussFiltSmooth.filter
       ~GaussFiltSmooth.filter_step
+      ~GaussFiltSmooth.filtsmooth
       ~GaussFiltSmooth.predict
+      ~GaussFiltSmooth.smooth
+      ~GaussFiltSmooth.smooth_step
       ~GaussFiltSmooth.smoother_step
       ~GaussFiltSmooth.update
 
@@ -33,7 +37,11 @@ GaussFiltSmooth
 
    .. rubric:: Methods Documentation
 
+   .. automethod:: filter
    .. automethod:: filter_step
+   .. automethod:: filtsmooth
    .. automethod:: predict
+   .. automethod:: smooth
+   .. automethod:: smooth_step
    .. automethod:: smoother_step
    .. automethod:: update

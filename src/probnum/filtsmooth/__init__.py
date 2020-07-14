@@ -7,9 +7,7 @@ from .gaussfiltsmooth import *
 from .bayesfiltsmooth import *
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["gaussfilter",
-           "gaussfiltsmooth",
-           "GaussFiltSmooth",
+__all__ = ["GaussFiltSmooth",
            "Kalman",
            "ExtendedKalman",
            "UnscentedKalman",

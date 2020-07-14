@@ -9,7 +9,7 @@ from .filtsmooth_testcases import *
 
 np.random.seed(5472)
 
-VISUALISE = True  # show plots or not?
+VISUALISE = False  # show plots or not?
 if VISUALISE is True:
     import matplotlib.pyplot as plt
 
@@ -62,8 +62,8 @@ class TestUnscentedKalmanDiscDisc(CarTrackingDDTestCase):
         RMSE of smoother smaller than rmse of filter smaller
         than of measurements?
         """
-        filtms, filtcs = gaussfilter(self.obs, self.tms, self.method)
-        smooms, smoocs = gaussfiltsmooth(self.obs, self.tms, self.method)
+        filtms, filtcs = self.method.filter(self.obs, self.tms)
+        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
 
         comp = self.states[1:, :2]
         normaliser = np.sqrt(comp.size)
@@ -148,8 +148,8 @@ class TestUnscentedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         """
         RMSE of filter smaller than rmse of measurements?
         """
-        filtms, filtcs = gaussfilter(self.obs, self.tms, self.method)
-        smooms, smoocs = gaussfiltsmooth(self.obs, self.tms, self.method)
+        filtms, filtcs = self.method.filter(self.obs, self.tms)
+        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
 
         comp = self.states[1:, 0]
         normaliser = np.sqrt(comp.size)
@@ -185,8 +185,8 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
             self.dynamod, self.measmod, self.initrv, alpha, beta, kappa)
 
     def test_filtsmooth(self):
-        filtms, filtcs = gaussfilter(self.obs, self.tms, self.method)
-        smooms, smoocs = gaussfiltsmooth(self.obs, self.tms, self.method)
+        filtms, filtcs = self.method.filter(self.obs, self.tms)
+        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
 
         comp = self.states[:, 0]
         normaliser = np.sqrt(comp.size)

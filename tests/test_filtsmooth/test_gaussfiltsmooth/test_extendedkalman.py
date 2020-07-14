@@ -60,8 +60,8 @@ class TestExtendedKalmanDiscDisc(CarTrackingDDTestCase):
         RMSE of smoother smaller than rmse of filter smaller
         than of measurements?
         """
-        filtms, filtcs = gaussfilter(self.obs, self.tms, self.method)
-        smooms, smoocs = gaussfiltsmooth(self.obs, self.tms, self.method)
+        filtms, filtcs = self.method.filter(self.obs, self.tms)
+        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
 
         comp = self.states[1:, :2]
         normaliser = np.sqrt(comp.size)
@@ -144,8 +144,8 @@ class TestExtendedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         """
         RMSE of filter smaller than rmse of measurements?
         """
-        filtms, filtcs = gaussfilter(self.obs, self.tms, self.method)
-        smooms, smoocs = gaussfiltsmooth(self.obs, self.tms, self.method)
+        filtms, filtcs = self.method.filter(self.obs, self.tms)
+        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
 
         comp = self.states[1:, 0]
         normaliser = np.sqrt(comp.size)
@@ -178,8 +178,8 @@ class TestExtendedKalmanPendulum(PendulumNonlinearDDTestCase):
         self.method = ExtendedKalman(self.dynamod, self.measmod, self.initrv)
 
     def test_filtsmooth(self):
-        filtms, filtcs = gaussfilter(self.obs, self.tms, self.method)
-        smooms, smoocs = gaussfiltsmooth(self.obs, self.tms, self.method)
+        filtms, filtcs = self.method.filter(self.obs, self.tms)
+        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
 
         comp = self.states[:, 0]
         normaliser = np.sqrt(comp.size)

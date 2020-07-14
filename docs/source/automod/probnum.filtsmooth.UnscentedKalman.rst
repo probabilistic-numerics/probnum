@@ -1,32 +1,32 @@
-Kalman
-======
+UnscentedKalman
+===============
 
 .. currentmodule:: probnum.filtsmooth
 
-.. autoclass:: Kalman
+.. autoclass:: UnscentedKalman
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~Kalman.dynamicmodel
-      ~Kalman.initialdistribution
-      ~Kalman.initialrandomvariable
-      ~Kalman.measurementmodel
+      ~UnscentedKalman.dynamicmodel
+      ~UnscentedKalman.initialdistribution
+      ~UnscentedKalman.initialrandomvariable
+      ~UnscentedKalman.measurementmodel
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~Kalman.filter
-      ~Kalman.filter_step
-      ~Kalman.filtsmooth
-      ~Kalman.predict
-      ~Kalman.smooth
-      ~Kalman.smooth_step
-      ~Kalman.smoother_step
-      ~Kalman.update
+      ~UnscentedKalman.filter
+      ~UnscentedKalman.filter_step
+      ~UnscentedKalman.filtsmooth
+      ~UnscentedKalman.predict
+      ~UnscentedKalman.smooth
+      ~UnscentedKalman.smooth_step
+      ~UnscentedKalman.smoother_step
+      ~UnscentedKalman.update
 
    .. rubric:: Attributes Documentation
 
