@@ -13,34 +13,19 @@ from probnum.filtsmooth.statespace import *
 from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import *
 
 
-class UnscentedRauchTungStriebelSmoother():
-    """
-    ExtendedKalman smoother as a simple add-on to the filtering.
-    The rest is implemented in GaussianSmoother.
-    """
-
-    def __init__(self, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
-        """ """
-        unskalfilt = UnscentedKalmanFilter(dynamod, measmod, initrv,
-                                           alpha, beta, kappa, **kwargs)
-        super().__init__(unskalfilt)
-
-
-class UnscentedKalmanFilter:
+class UnscentedKalman(GaussFiltSmooth):
     """
     Factory method for Unscented Kalman filters.
     """
     def __new__(cls, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
         """ """
-        if cls is UnscentedKalmanFilter:
+        if cls is UnscentedKalman:
             if _cont_disc(dynamod, measmod):
-                return ContDiscUnscentedKalmanFilter(dynamod, measmod,
-                                                     initrv, alpha, beta,
-                                                     kappa, **kwargs)
+                return _ContDiscUnscentedKalman(
+                    dynamod, measmod, initrv, alpha, beta, kappa, **kwargs)
             if _disc_disc(dynamod, measmod):
-                return DiscDiscUnscentedKalmanFilter(dynamod, measmod,
-                                                     initrv, alpha, beta,
-                                                     kappa)
+                return _DiscDiscUnscentedKalman(
+                    dynamod, measmod, initrv, alpha, beta, kappa, **kwargs)
             else:
                 errmsg = ("Cannot instantiate Unscented Kalman filter with "
                           "given dynamic model and measurement model.")
@@ -63,21 +48,15 @@ def _disc_disc(dynamod, measmod):
     return dyna_is_disc and meas_is_disc
 
 
-class ContDiscUnscentedKalmanFilter(UnscentedKalmanFilter):
-    """
-    Completes implementation of ContinuousContinuousGaussianFilter.
+class _ContDiscUnscentedKalman(UnscentedKalman):
 
-    Provides predict() and update() methods.
-    """
     def __init__(self, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
-        """
-        """
         if not issubclass(type(dynamod), LinearSDEModel):
             raise ValueError("This implementation of "
-                             "ContDiscUnscentedKalmanFilter "
+                             "_ContDiscUnscentedKalman "
                              "requires a linear dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise ValueError("DiscDiscUnscentedKalmanFilter requires "
+            raise ValueError("_DiscDiscUnscentedKalman requires "
                              "a Gaussian measurement model.")
         if "cke_nsteps" in kwargs.keys():
             self.cke_nsteps = kwargs["cke_nsteps"]
@@ -87,37 +66,30 @@ class ContDiscUnscentedKalmanFilter(UnscentedKalmanFilter):
         self.ut = UnscentedTransform(self.dynamod.ndim, alpha, beta, kappa)
 
     def predict(self, start, stop, randvar, **kwargs):
-        """ """
         step = ((stop - start) / self.cke_nsteps)
         return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar,
                                                    **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
-        """ """
         return _discrete_unskalman_update(time, randvar, data,
                                           self.measmod, self.ut, **kwargs)
 
 
-class DiscDiscUnscentedKalmanFilter(
-                                    UnscentedKalmanFilter):
-    """
-    """
-    def __init__(self, dynamod, measmod, initrv, alpha, beta, kappa):
+class _DiscDiscUnscentedKalman(UnscentedKalman):
+    def __init__(self, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
         """
         Checks that dynamod and measmod are linear and moves on.
         """
         if not issubclass(type(dynamod), DiscreteGaussianModel):
-            raise ValueError("DiscDiscUnscentedKalmanFilter requires "
+            raise ValueError("_DiscDiscUnscentedKalman requires "
                              "a Gaussian dynamic model.")
         if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise ValueError("DiscDiscUnscentedKalmanFilter requires "
+            raise ValueError("_DiscDiscUnscentedKalman requires "
                              "a Gaussian measurement model.")
         super().__init__(dynamod, measmod, initrv)
         self.ut = UnscentedTransform(self.dynamod.ndim, alpha, beta, kappa)
 
     def predict(self, start, stop, randvar, **kwargs):
-        """
-        """
         if issubclass(type(self.dynamod), DiscreteGaussianLinearModel):
             return self._predict_linear(start, randvar, **kwargs)
         else:
