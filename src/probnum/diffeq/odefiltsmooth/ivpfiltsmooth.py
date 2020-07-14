@@ -8,28 +8,28 @@ from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.filtsmooth import *
-
-
-class GaussianIVPSmoother(odesolver.ODESolver):
-    """
-    ODE solver that behaves like a Gaussian smoother.
-
-    Builds on top of Gaussian IVP Filter.
-    """
-    def __init__(self, ivp, gaussfilt, steprl):
-        """ """
-        self.gauss_ode_filt = GaussianIVPFilter(ivp, gaussfilt, steprl)
-        self.smoother = GaussianSmoother(gaussfilt)
-
-    def solve(self, firststep, nsteps=1, **kwargs):
-        """
-        """
-        means, covars, times = self.gauss_ode_filt.solve(firststep, nsteps, **kwargs)
-        means, covars = self.gauss_ode_filt.redo_preconditioning(means, covars)
-        smoothed_means, smoothed_covars = self.smoother.smooth_filteroutput(means, covars, times, **kwargs)
-        smoothed_means, smoothed_covars = self.gauss_ode_filt.undo_preconditioning(smoothed_means, smoothed_covars)
-        return smoothed_means, smoothed_covars, times
-
+#
+#
+# class GaussianIVPSmoother(odesolver.ODESolver):
+#     """
+#     ODE solver that behaves like a Gaussian smoother.
+#
+#     Builds on top of Gaussian IVP Filter.
+#     """
+#     def __init__(self, ivp, gaussfilt, steprl):
+#         """ """
+#         self.gauss_ode_filt = GaussianIVPFilter(ivp, gaussfilt, steprl)
+#         self.smoother = GaussianSmoother(gaussfilt)
+#
+#     def solve(self, firststep, nsteps=1, **kwargs):
+#         """
+#         """
+#         means, covars, times = self.gauss_ode_filt.solve(firststep, nsteps, **kwargs)
+#         means, covars = self.gauss_ode_filt.redo_preconditioning(means, covars)
+#         smoothed_means, smoothed_covars = self.smoother.smooth_filteroutput(means, covars, times, **kwargs)
+#         smoothed_means, smoothed_covars = self.gauss_ode_filt.undo_preconditioning(smoothed_means, smoothed_covars)
+#         return smoothed_means, smoothed_covars, times
+#
 
 class GaussianIVPFilter(odesolver.ODESolver):
     """

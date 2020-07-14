@@ -68,7 +68,7 @@ def ivp_to_ekf0(ivp, prior, evlvar):
     """
     measmod = _measmod_ekf0(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
-    return ExtendedKalmanFilter(prior, measmod, initrv)
+    return ExtendedKalman(prior, measmod, initrv)
 
 
 def _measmod_ekf0(ivp, prior, evlvar):
@@ -105,7 +105,7 @@ def ivp_to_ekf1(ivp, prior, evlvar):
     """
     measmod = _measmod_ekf1(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
-    return ExtendedKalmanFilter(prior, measmod, initrv)
+    return ExtendedKalman(prior, measmod, initrv)
 
 
 def _measmod_ekf1(ivp, prior, evlvar):
@@ -139,7 +139,7 @@ def ivp_to_ukf(ivp, prior, evlvar):
     """
     measmod = _measmod_ukf(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
-    return UnscentedKalmanFilter(prior, measmod,
+    return UnscentedKalman(prior, measmod,
                                  initrv, 1.0, 1.0, 1.0)
 
 
@@ -157,48 +157,6 @@ def _measmod_ukf(ivp, prior, measvar):
         return measvar * np.eye(spatialdim)
 
     return DiscreteGaussianModel(dyna, diff)
-
-
-def _initialdistribution2(ivp, prior):
-    """
-    Perform initial Kalman update to condition the initial distribution
-    of the prior on the initial values (and all available derivatives).
-    """
-    raise RuntimeError("Put in initial value variance before proceeding")
-    x0 = ivp.initialdistribution.mean()
-    dx0 = ivp.rhs(ivp.t0, x0)
-    ddx0 = _ddx(ivp.t0, x0, ivp)
-    dddx0 = _dddx(ivp.t0, x0, ivp)
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-    precond = prior.preconditioner
-    # initcov = np.eye(*(precond @ precond.T).shape)
-    initcov = precond @ precond.T
-    if prior.ordint == 1:
-        projmat = np.hstack((h0.T, h1.T)).T
-        data = np.hstack((x0, dx0))
-    elif prior.ordint == 2:   # try only jacobian
-        h2 = prior.proj2coord(coord=2)
-        projmat = np.hstack((h0.T, h1.T, h2.T)).T
-        data = np.hstack((x0, dx0, ddx0))
-    else:   # try jacobian and hessian
-        h2 = prior.proj2coord(coord=2)
-        h3 = prior.proj2coord(coord=3)
-        projmat = np.hstack((h0.T, h1.T, h2.T, h3.T)).T
-        data = np.hstack((x0, dx0, ddx0, dddx0))
-    crosscov = initcov @ projmat.T
-    newmean = crosscov @ data
-    newcov = initcov - (crosscov @ crosscov.T)
-    # doublecross = crosscov @ crosscov.T
-    # print("crosscov^2:\n", crosscov @ crosscov.T)
-    # print("Initial kernels:\n", initcov)
-    # print("Difference:\n", initcov - doublecross)
-    # print("Outcome:\n", newcov)
-    return RandomVariable(distribution=Normal(newmean, newcov))
-
-
-
-
 
 
 def _initialdistribution(ivp, prior):
