@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 __all__ = ["DiscreteModel"]
 
 
-
 class DiscreteModel(ABC):
     """
     Abstract interface for state space model components.
