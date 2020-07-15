@@ -39,7 +39,7 @@ For all of the above the existing ProbNum code is a good reference.
 
 ### Testing
 
-We aim to cover as much code with tests as possible.
+We use [unittest](https://docs.python.org/3/library/unittest.html) for testing and aim to cover as much code with tests as possible.
 Make sure to add tests for newly implemented code.
 You can run the test suite on your machine via:
 ```bash
