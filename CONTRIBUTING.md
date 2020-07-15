@@ -11,8 +11,8 @@ a good PR are:
 - makes minimal changes to the interface and core codebase
 
 If you would like to contribute but are unsure how, then writing examples, documentation or working on
-[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start. See the 
-[contribution tutorials](https://probabilistic-numerics.github.io/probnum/development/contributing.html#contribution-tutorials) 
+[open issues](https://github.com/probabilistic-numerics/probnum/issues) are a good way to start. See the
+[contribution tutorials](https://probabilistic-numerics.github.io/probnum/development/contributing.html#contribution-tutorials)
 for detailed instructions.
 
 ## Getting Started
@@ -44,7 +44,6 @@ the continuous integration tool [Travis](https://travis-ci.org/probabilistic-num
 by [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master). Once you've cloned this repository, you
 can run the test suite on your machine via:
 ```bash
-cd probnum
 pytest
 ```
 
@@ -54,9 +53,8 @@ pytest
 [Travis](https://travis-ci.org/probabilistic-numerics/probnum). When implementing published methods give credit and
 include the appropriate citations. You can build the documentation locally via:
 ```bash
-cd probnum/docs
+cd docs
 make clean
 make html
 ```
-This creates a static web page under `docs/_build/html/` which you can view in your browser by opening `intro.html`.
-
+This creates a static web page under `./docs/_build/html/` which you can view in your browser by opening `./docs/_build/html/intro.html`.
