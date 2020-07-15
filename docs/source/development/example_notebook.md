@@ -39,9 +39,7 @@ Now that you've created your notebook, we have to add it in the right place on t
 
 In order to see the result build the documentation locally via:
 ```bash
-cd probnum/docs
-make clean
-make html
+tox -e docs
 ```
 If the notebook compiles successfully, you should see output similar to:
 ```bash
