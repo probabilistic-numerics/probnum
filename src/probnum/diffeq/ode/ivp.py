@@ -140,6 +140,7 @@ def fhn_rhs(t, x, params):
     return np.array([x1 - x1 ** 3 / 3 - x2 + a,
                      (x1 + b - c * x2) / d])
 
+
 def fhn_jac(t, x, params):
     """Jacobian for FitzHugh-Nagumo model."""
     x1, x2 = x
