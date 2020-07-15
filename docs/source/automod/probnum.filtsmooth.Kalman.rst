@@ -1,30 +1,32 @@
-GaussianFilter
-==============
+Kalman
+======
 
 .. currentmodule:: probnum.filtsmooth
 
-.. autoclass:: GaussianFilter
+.. autoclass:: Kalman
    :show-inheritance:
 
    .. rubric:: Attributes Summary
 
    .. autosummary::
 
-      ~GaussianFilter.dynamicmodel
-      ~GaussianFilter.initialdistribution
-      ~GaussianFilter.initialrandomvariable
-      ~GaussianFilter.measurementmodel
+      ~Kalman.dynamicmodel
+      ~Kalman.initialdistribution
+      ~Kalman.initialrandomvariable
+      ~Kalman.measurementmodel
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~GaussianFilter.filter
-      ~GaussianFilter.filter_set
-      ~GaussianFilter.filter_step
-      ~GaussianFilter.filter_stream
-      ~GaussianFilter.predict
-      ~GaussianFilter.update
+      ~Kalman.filter
+      ~Kalman.filter_step
+      ~Kalman.filtsmooth
+      ~Kalman.predict
+      ~Kalman.smooth
+      ~Kalman.smooth_step
+      ~Kalman.smoother_step
+      ~Kalman.update
 
    .. rubric:: Attributes Documentation
 
@@ -36,8 +38,10 @@ GaussianFilter
    .. rubric:: Methods Documentation
 
    .. automethod:: filter
-   .. automethod:: filter_set
    .. automethod:: filter_step
-   .. automethod:: filter_stream
+   .. automethod:: filtsmooth
    .. automethod:: predict
+   .. automethod:: smooth
+   .. automethod:: smooth_step
+   .. automethod:: smoother_step
    .. automethod:: update

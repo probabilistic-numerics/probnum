@@ -1,7 +1,7 @@
 
 
-from .taylor_gaussfiltsmooth import *
+from .extendedkalman import *
 from .gaussfiltsmooth import *
-from .linear_gaussfiltsmooth import *
-from .quad_gaussfiltsmooth import *
+from .kalman import *
+from .unscentedkalman import *
 from .unscentedtransform import *
