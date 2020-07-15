@@ -6,8 +6,8 @@ language: python
 python:
   - "3.6"
 install:
-  - sudo apt-get install pandoc # pandoc for jupyter notebooks
-  - sudo apt install python-pydot python-pydot-ng graphviz # graphviz for class inheritance diagrams in docs
+  - sudo apt install pandoc # pandoc for jupyter notebooks
+  - sudo apt install graphviz # graphviz for class inheritance diagrams in docs
   - pip install tox-travis
 script:
   - tox
