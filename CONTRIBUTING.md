@@ -37,24 +37,33 @@ made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the p
 
 For all of the above the existing ProbNum code is a good reference.
 
-### Tests and CI
+### Testing
 
-We aim to cover as much code with tests as possible. Make sure to add tests for newly implemented code. Tests are run by
-the continuous integration tool [Travis](https://travis-ci.org/probabilistic-numerics/probnum) and coverage is reported
-by [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master). Once you've cloned this repository, you
-can run the test suite on your machine via:
+We aim to cover as much code with tests as possible.
+Make sure to add tests for newly implemented code.
+You can run the test suite on your machine via:
 ```bash
 pytest
 ```
 
 ### Documentation
 
-[Documentation](https://probabilistic-numerics.github.io/probnum/modules.html) is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and
-[Travis](https://travis-ci.org/probabilistic-numerics/probnum). When implementing published methods give credit and
-include the appropriate citations. You can build the documentation locally via:
+[Documentation](https://probabilistic-numerics.github.io/probnum/modules.html) is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and [Travis](https://travis-ci.org/probabilistic-numerics/probnum).
+When implementing published methods give credit and include the appropriate citations.
+You can build the documentation locally via:
 ```bash
 cd docs
 make clean
 make html
 ```
 This creates a static web page under `./docs/_build/html/` which you can view in your browser by opening `./docs/_build/html/intro.html`.
+
+
+### Continuous Integration (CI)
+
+ProbNum uses [Travis CI](https://travis-ci.org/probabilistic-numerics/probnum) for continuous integration.
+For every pull request and every commit Travis builds the project and runs the test suite (through `tox`), to make sure that no breaking changes are introduced by mistake.
+Code coverage of the tests is reported through [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master).
+Travis also automatically builds and publishes the [ProbNum documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
+
+Changes to Travis can be made through the `.travis.yml` file, as well as through `tox.ini` since Travis relies on `tox` for both testing and building the documentation.
