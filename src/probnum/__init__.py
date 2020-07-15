@@ -25,7 +25,6 @@ from . import diffeq
 from . import filtsmooth
 from . import linalg
 from . import prob
-from . import optim
 from . import quad
 from . import utils
 
