@@ -78,11 +78,16 @@ To run the test suite on your machine via you have multiple options:
 When implementing published methods give credit and include the appropriate citations.
 You can build the documentation locally via:
 ```bash
+tox -e docs
+```
+This creates a static web page under `./docs/_build/html/` which you can view in your browser by opening `./docs/_build/html/intro.html`.
+
+Alternatively, you can manually call
+```bash
 cd docs
 make clean
 make html
 ```
-This creates a static web page under `./docs/_build/html/` which you can view in your browser by opening `./docs/_build/html/intro.html`.
 
 
 ### Continuous Integration (CI)
