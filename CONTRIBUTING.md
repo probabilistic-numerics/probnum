@@ -18,17 +18,17 @@ for detailed instructions.
 ## Getting Started
 
 Begin by forking the repository on GitHub. You can then clone the fork to a local machine and get started.
-
-### Developer Environment Setup
 Running tests on your machine and building the documentation locally requires additional setup.
 
-#### External Programs
+### Required External Programs
+
 Building the documentation locally requires additional packages, which can be found in `.travis.yml`.
 At the time of writing, these packages are:
 - [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
 - [graphviz](https://graphviz.org/): In Ubuntu, install via `sudo apt install graphviz`
 
-#### tox
+### tox
+
 Probnum uses [tox](https://tox.readthedocs.io/en/latest/) through [Travis CI](#continuous-integration) to run tests and to build documentation.
 Under the hood, tox builds virtual environments following the specifications in `./tox.ini` in order to run tests accross multiple python versions, while making sure that all the necessary dependencies are installed.
 Using tox unifies the *local* development process with CI, such that local test results should match the outcomes of Travis' builds more closely.
