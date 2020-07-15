@@ -11,7 +11,7 @@ from .odesolver import *
 __all__ = ["ODE", "IVP", "logistic", "fitzhughnagumo", "lotkavolterra",
            "probsolve_ivp", "GaussianIVPFilter",
            "ODEPrior", "IBM", "IOUP", "Matern",
-           "ivp_to_ekf0", "ivp_to_ekf1", "ivp_to_ukf",
+           "ivp2ekf0", "ivp2ekf1", "ivp2ukf",
            "StepRule", "ConstantSteps", "AdaptiveSteps"]
 
 # Set correct module paths (for superclasses). Corrects links and module paths in documentation.
