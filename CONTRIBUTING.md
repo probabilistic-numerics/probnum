@@ -68,9 +68,18 @@ We use [unittest](https://docs.python.org/3/library/unittest.html) for testing a
 Make sure to add tests for newly implemented code.
 To run the test suite on your machine via you have multiple options:
 
-- **Full test suite with tox:** Run the full suite accross different Python versions with `tox`
-- **Single environment with tox:** Run tests via [tox](#tox) for a single Python environment. Example for Python3.6: `tox -e py36`
-- **pytest:** Run tests with directly your local environment by calling `pytest`
+- **Full test suite with tox:** Run the full suite accross different Python versions with
+  ```
+  tox
+  ```
+- **Single environment with tox:** Run tests via [tox](#tox) for a single Python environment. Example for Python3.6:
+  ```
+  tox -e py36
+  ```
+- **pytest:** Run tests with directly your local environment by calling
+  ```
+  pytest
+  ```
 
 ### Documentation
 
