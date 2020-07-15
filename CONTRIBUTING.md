@@ -48,20 +48,6 @@ To run the full test suite make sure that you have all specified python versions
 Alternatively, you can run a single specific environment through `tox -e <env>`, e.g. `tox -e py36` to run tests with Python3.6 or `tox -e docs` to just build the documentation.
 
 
-### Code Quality
-
-Code quality is an essential component in a collaborative open-source project.
-
-- All code should be covered by tests within the [unittest](https://docs.python.org/3/library/unittest.html) framework. Every time a commit is
-made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
-- Documentation of code is essential for any collaborative project. ProbNum uses the
-[NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
-- Code should follow the [PEP8 style](https://www.python.org/dev/peps/pep-0008/) and the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
-- Keep dependencies to a minimum.
-- Make sure to observe good coding practice.
-
-For all of the above the existing ProbNum code is a good reference.
-
 ### Testing
 
 We use [unittest](https://docs.python.org/3/library/unittest.html) for testing and aim to cover as much code with tests as possible.
@@ -99,7 +85,21 @@ make html
 ```
 
 
-### Continuous Integration (CI)
+## Code Quality
+
+Code quality is an essential component in a collaborative open-source project.
+
+- All code should be covered by tests within the [unittest](https://docs.python.org/3/library/unittest.html) framework. Every time a commit is
+made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
+- Documentation of code is essential for any collaborative project. ProbNum uses the
+[NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
+- Code should follow the [PEP8 style](https://www.python.org/dev/peps/pep-0008/) and the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
+- Keep dependencies to a minimum.
+- Make sure to observe good coding practice.
+
+For all of the above the existing ProbNum code is a good reference.
+
+## Continuous Integration (CI)
 
 ProbNum uses [Travis CI](https://travis-ci.org/probabilistic-numerics/probnum) for continuous integration.
 For every pull request and every commit Travis builds the project and runs the test suite (through `tox`), to make sure that no breaking changes are introduced by mistake.
