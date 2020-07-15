@@ -30,7 +30,7 @@ def bayesquad(fun, fun0, bounds, nevals=None, type="vanilla", **kwargs):
 
         ====================  ===========
          vanilla              ``vanilla``
-         WASABI               ``wasabi``
+         WSABI                ``wsabi``
         ====================  ===========
 
     kwargs : optional
@@ -57,8 +57,8 @@ def bayesquad(fun, fun0, bounds, nevals=None, type="vanilla", **kwargs):
     bqmethod = None
     if type == "vanilla":
         bqmethod = VanillaBayesianQuadrature()
-    elif type == "wasabi":
-        bqmethod = WASABIBayesianQuadrature()
+    elif type == "wsabi":
+        bqmethod = WSABIBayesianQuadrature()
 
     # Integrate
     F, fun0, info = bqmethod.integrate(fun=fun, fun0=fun0, nevals=nevals, domain=bounds, **kwargs)
@@ -192,9 +192,9 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
         return F, self.fun0, info
 
 
-class WASABIBayesianQuadrature(BayesianQuadrature):
+class WSABIBayesianQuadrature(BayesianQuadrature):
     """
-    Weighted Adaptive Surrogate Approximations for Bayesian Inference (WASABI).
+    Warped Sequential Active Bayesian Integration (WSABI).
     """
 
     def __init__(self):
