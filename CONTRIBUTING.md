@@ -20,7 +20,7 @@ for detailed instructions.
 Begin by forking the repository on GitHub. You can then clone the fork to a local machine and get started.
 
 ### Developer Environment Setup
-Run tests on and to building the documentation locally requires additional setup.
+Running tests on your machine and building the documentation locally requires additional setup.
 
 #### External Programs
 Building the documentation locally requires additional packages, which can be found in `.travis.yml`.
