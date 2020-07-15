@@ -18,10 +18,35 @@ for detailed instructions.
 ## Getting Started
 
 Begin by forking the repository on GitHub. You can then clone the fork to a local machine and get started.
-ProbNum uses a set of packages (e.g. for documentation), which are not dependencies of the main package. In
-order to be able to build the documentation make sure to have the packages listed in `.travis.yml` installed.
 
-_Note_: Make sure your Sphinx version fulfills `sphinx >=1.7.5, <3`.
+### Developer Environment Setup
+Run tests on and to building the documentation locally requires additional setup.
+
+#### External Programs
+Building the documentation locally requires additional packages, which can be found in `.travis.yml`.
+At the time of writing, these packages are:
+- [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
+- [graphviz](https://graphviz.org/): In Ubuntu, install via `sudo apt install graphviz`
+
+#### tox
+Probnum uses [tox](https://tox.readthedocs.io/en/latest/) through [Travis CI](#continuous-integration) to run tests and to build documentation.
+Under the hood, tox builds virtual environments following the specifications in `./tox.ini` in order to run tests accross multiple python versions, while making sure that all the necessary dependencies are installed.
+Using tox unifies the *local* development process with CI, such that local test results should match the outcomes of Travis' builds more closely.
+
+Tox can be installed directly from the Python Package Index (PyPI), e.g. through
+```
+pip install -U tox
+```
+Once tox and the required [external programs](#external-programs) are installed, you can run tests and build the documentation locally by simply calling
+```
+tox
+```
+
+**Word of caution:**
+Running `tox` runs all environments as specified in `tox.ini`, thus potentially running tests accross many different python versions.
+To run the full test suite make sure that you have all specified python versions installed.
+Alternatively, you can run a single specific environment through `tox -e <env>`, e.g. `tox -e py36` to run tests with Python3.6 or `tox -e docs` to just build the documentation.
+
 
 ### Code Quality
 
