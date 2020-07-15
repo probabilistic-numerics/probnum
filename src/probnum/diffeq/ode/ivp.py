@@ -75,6 +75,7 @@ def log_jac(t, x, params):
     l0, l1 = params
     return np.array([l0 - l0/l1 * 2 * x])
 
+
 def log_hess(t, x, params):
     """Hessian for logistic model."""
     l0, l1 = params
@@ -137,7 +138,7 @@ def fhn_rhs(t, x, params):
     x1, x2 = x
     a, b, c, d = params
     return np.array([x1 - x1 ** 3 / 3 - x2 + a,
-                     (x1 - b - c * x2) / d])
+                     (x1 + b - c * x2) / d])
 
 def fhn_jac(t, x, params):
     """Jacobian for FitzHugh-Nagumo model."""
