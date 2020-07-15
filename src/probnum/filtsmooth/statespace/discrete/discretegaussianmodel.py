@@ -1,14 +1,6 @@
 """
 Discrete Gauss-Markov models of the form
 x_{i+1} = N(g(i, x_i), S(i))
-
-CONTINUE HERE!
-
-Todo
-----
-Find better names than just "Nonlinear". Bear in mind that
-they are visible in the outer scope, e.g. via
-statespace.Linear()
 """
 
 from probnum.prob import RandomVariable
