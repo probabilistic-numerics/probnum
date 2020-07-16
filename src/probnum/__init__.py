@@ -1,3 +1,35 @@
+"""
+ProbNum
+=====
+Probabilistic Numerics in Python.
+  1. Linear Algebra
+  2. Quadrature
+  3. Differential Equations
+  4. Bayesian filtering and smoothing
+and more.
+
+
+Available subpackages
+---------------------
+prob
+    Random variables, distributions and sampling.
+linalg
+    Probabilistic numerical linear algebra.
+quad
+    Bayesian quadrature / numerical integration.
+filtsmooth
+    Bayesian filtering and smoothing.
+diffeq
+    Probabilistic solvers for ordinary differential equations.
+"""
+
+from . import diffeq
+from . import filtsmooth
+from . import linalg
+from . import prob
+from . import quad
+from . import utils
+
 # -*- coding: utf-8 -*-
 from pkg_resources import get_distribution, DistributionNotFound
 

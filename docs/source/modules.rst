@@ -9,7 +9,7 @@ Random Variables and Distributions
 .. toctree::
    :maxdepth: 6
 
-   probability
+   prob
 
 Linear Algebra
 """"""""""""""
@@ -18,8 +18,8 @@ Linear Algebra
 
    linalg
 
-Integration
-"""""""""""
+Quadrature / Numerical Integration
+""""""""""""""""""""""""""""""""""
 .. toctree::
    :maxdepth: 6
 
@@ -31,6 +31,13 @@ Differential Equations
    :maxdepth: 6
 
    diffeq
+
+Filters and Smoothers
+"""""""""""""""""""""
+.. toctree::
+   :maxdepth: 6
+
+   filtsmooth
 
 Other
 """""
