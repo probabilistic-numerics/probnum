@@ -12,7 +12,6 @@ Contribution Tutorials
    example_notebook
    documentation
    probnum_method
-   optimizing_code
 
 
 Benchmarking Code
