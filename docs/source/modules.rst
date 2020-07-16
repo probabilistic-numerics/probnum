@@ -25,14 +25,6 @@ Quadrature / Numerical Integration
 
    quad
 
-
-Optimization
-""""""""""""
-.. toctree::
-   :maxdepth: 6
-
-   optim
-
 Differential Equations
 """"""""""""""""""""""
 .. toctree::
