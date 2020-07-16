@@ -20,7 +20,7 @@ for detailed instructions.
 Begin by forking the repository on GitHub. You can then clone the fork to a local machine and get started.
 Running tests on your machine and building the documentation locally requires additional setup.
 
-### Required External Programs
+### Required External Tools
 
 Building the documentation locally requires additional packages, which can be found in `.travis.yml`.
 At the time of writing, these packages are:
@@ -30,44 +30,57 @@ At the time of writing, these packages are:
 ### tox
 
 Probnum uses [tox](https://tox.readthedocs.io/en/latest/) through [Travis CI](#continuous-integration) to run tests and to build documentation.
-Under the hood, tox builds virtual environments following the specifications in `./tox.ini` in order to run tests accross multiple python versions, while making sure that all the necessary dependencies are installed.
-Using tox unifies the *local* development process with CI, such that local test results should match the outcomes of Travis' builds more closely.
+Under the hood, tox builds virtual environments following the specifications in `./tox.ini` in order to run tests across multiple python versions, while making sure that all the necessary dependencies are installed.
+Using tox unifies the *local* development process with CI, such that local test results should match the outcomes of Travis's builds more closely.
 
 Tox can be installed directly from the Python Package Index (PyPI), e.g. through
 ```
 pip install -U tox
 ```
-Once tox and the required [external programs](#external-programs) are installed, you can run tests and build the documentation locally by simply calling
+Once tox and the required [external tools](#required-external-tools) are installed, you can run tests and build the documentation locally by simply calling
 ```
 tox
 ```
 
 **Word of caution:**
-Running `tox` runs all environments as specified in `tox.ini`, thus potentially running tests accross many different python versions.
+Running `tox` runs all environments as specified in `tox.ini`, thus potentially running tests across many different python versions.
 To run the full test suite make sure that you have all specified python versions installed.
-Alternatively, you can run a single specific environment through `tox -e <env>`, e.g. `tox -e py36` to run tests with Python3.6 or `tox -e docs` to just build the documentation.
+Alternatively, you can run a single specific environment through `tox -e <env>`, e.g. `tox -e py36` to run tests with Python 3.6 or `tox -e docs` to just build the documentation.
 
+## Code Quality
 
-### Testing
+Code quality is an essential component in a collaborative open-source project.
+
+- All code should be covered by tests within the [unittest](https://docs.python.org/3/library/unittest.html) framework. Every time a commit is
+made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
+- Documentation of code is essential for any collaborative project. ProbNum uses the
+[NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
+- Code should follow the [PEP8 style](https://www.python.org/dev/peps/pep-0008/) and the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
+- Keep dependencies to a minimum.
+- Make sure to observe good coding practice.
+
+For all of the above the existing ProbNum code is a good reference.
+
+## Testing
 
 We use [unittest](https://docs.python.org/3/library/unittest.html) for testing and aim to cover as much code with tests as possible.
-Make sure to add tests for newly implemented code.
-To run the test suite on your machine via you have multiple options:
+Make sure to always add tests for newly implemented code.
+To run the test suite on your machine you have multiple options:
 
-- **Full test suite with tox:** Run the full suite accross different Python versions with
+- **Full test suite with tox:** Run the full suite across different Python versions with
   ```
   tox
   ```
-- **Single environment with tox:** Run tests via [tox](#tox) for a single Python environment. Example for Python3.6:
+- **Single environment with tox:** Run tests via [tox](https://probabilistic-numerics.github.io/probnum/development/contributing.html#tox) for a single Python environment. Example for Python 3.6:
   ```
   tox -e py36
   ```
-- **pytest:** Run tests with directly your local environment by calling
+- **pytest:** Run tests directly in your local environment by calling
   ```
   pytest
   ```
 
-### Documentation
+## Documentation
 
 [Documentation](https://probabilistic-numerics.github.io/probnum/modules.html) is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and [Travis](https://travis-ci.org/probabilistic-numerics/probnum).
 When implementing published methods give credit and include the appropriate citations.
@@ -83,21 +96,6 @@ cd docs
 make clean
 make html
 ```
-
-
-## Code Quality
-
-Code quality is an essential component in a collaborative open-source project.
-
-- All code should be covered by tests within the [unittest](https://docs.python.org/3/library/unittest.html) framework. Every time a commit is
-made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
-- Documentation of code is essential for any collaborative project. ProbNum uses the
-[NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
-- Code should follow the [PEP8 style](https://www.python.org/dev/peps/pep-0008/) and the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
-- Keep dependencies to a minimum.
-- Make sure to observe good coding practice.
-
-For all of the above the existing ProbNum code is a good reference.
 
 ## Continuous Integration (CI)
 
