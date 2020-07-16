@@ -212,7 +212,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         # covH = linops.SymmetricKronecker(WH0)
         # covA = linops.SymmetricKronecker(WA0)
 
-        for calibrate in [False, 0., 2.]:
+        for calibrate in [False, 0., 1., 2.8]:
             with self.subTest():
                 # Define callback function to obtain search directions
                 S = []  # search directions
