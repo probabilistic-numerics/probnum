@@ -5,6 +5,7 @@ import itertools
 import unittest
 from tests.testing import NumpyAssertions
 import numpy as np
+import scipy.sparse
 
 from probnum.linalg import linops
 
@@ -45,8 +46,8 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
         linops.LinearOperator(shape=(2, 2), matvec=self.mv)
 
         # Scipy linear operator
-        # scipy_linop = scipy.sparse.linalg.LinearOperator(shape=(2, 2), matvec=self.mv)
-        # linops.LinearOperator(scipy_linop)
+        scipy_linop = scipy.sparse.linalg.LinearOperator(shape=(2, 2), matvec=self.mv)
+        linops.aslinop(scipy_linop)
 
 
 class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
@@ -81,15 +82,6 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                 self.assertAllClose(A @ x[:, None], op @ x[:, None],
                                     msg="Matrix-vector multiplication with (n,1) vector failed.")
 
-    def test_broadcasting(self):
-        """Test broadcasting rules for linear operators and compare to np.array broadcasting."""
-        # for alpha, A in list(itertools.product(self.scalars, self.ops)):
-        #     with self.subTest():
-        #         self.assertAllClose((alpha * A).todense(), alpha * A.todense())
-        #         self.assertAllClose((alpha + A).todense(), alpha + A.todense())
-        #         self.assertAllClose((A - alpha).todense(), A.todense() - alpha)
-        pass
-
     class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
         """Test linear operator functions."""
 
@@ -112,59 +104,12 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                                            (np.array([[.4, 2, .8], [-.4, 0, -.9], [1, 0, 2]]),
                                             np.array([[1, 4, 0], [-3, -.4, -100], [.18, -2, 10]]))]
 
-        # # Linear map Q such that svec(x) = Qvec(x).
-        # @pytest.mark.parametrize("n", [1, 3, 5, 100])
-        # def test_svec(n):
-        #     """Test symmetric vectorization operator shape and entries."""
-        #     A = np.random.normal(size=(n, n))
-        #     A = 0.5 * (A + A.T)
-        #     svec = linops.Vec2Svec(dim=n, check_symmetric=True)
-        #     y = svec @ A
-        #
-        #     # Check shape
-        #     assert np.shape(y)[0] == int(0.5 * n * (n + 1)), "Svec(X) does not have the correct dimension."
-        #
-        #     # Check diagonal entries
-        #     diagind = np.hstack([0, np.cumsum(np.arange(2, n + 1)[::-1])])
-        #     self.assertArrayEqual(y[diagind, :].ravel(), np.diag(A), "Entries of diagonal are not correct.")
-        #
-        #     # Check off-diagonal entries
-        #     supdiagtri = np.sqrt(2) * A[np.triu_indices(n, k=1)]
-        #     self.assertArrayEqual(np.delete(y, diagind), supdiagtri,
-        #                                   "Off-diagonal entries are incorrect.")
-
         def test_vec2svec_dimension(self):
             """Check faulty dimension for Q."""
             for n in [-1, 0, 1.1, np.inf, np.nan]:
                 with self.subTest():
                     with self.assertRaises(ValueError, msg="Invalid input dimension n should raise a ValueError."):
                         linops.Svec(dim=n)
-
-        # @pytest.mark.parametrize("n", [1, 5, 100])
-        # def test_vec2svec_orthonormality(n):
-        #     """Check orthonormality of Q: Q^TQ = I"""
-        #     Q = linops.Vec2Svec(dim=n)
-        #     self.assertAllClose((Q @ Q.T).todense(),
-        #                                np.eye(N=int(0.5 * n * (n + 1))),
-        #                                msg="Vec2Svec does not have orthonormal rows.")
-        #
-        #
-        # def test_vec2svec_explicit_form():
-        #     """Check vec2svec against some explicit matrix forms."""
-        #     s2 = np.sqrt(2) / 2
-        #     Q_explicit_n2 = np.array([[1, 0, 0, 0],
-        #                               [0, s2, s2, 0],
-        #                               [0, 0, 0, 1]])
-        #
-        #     Q_explicit_n3 = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0],
-        #                               [0, s2, 0, s2, 0, 0, 0, 0, 0],
-        #                               [0, 0, s2, 0, 0, 0, s2, 0, 0],
-        #                               [0, 0, 0, 0, 1, 0, 0, 0, 0],
-        #                               [0, 0, 0, 0, 0, s2, 0, s2, 0],
-        #                               [0, 0, 0, 0, 0, 0, 0, 0, 1]])
-        #
-        #     self.assertAllClose(linops.Vec2Svec(dim=2).todense(), Q_explicit_n2)
-        #     self.assertAllClose(linops.Vec2Svec(dim=3).todense(), Q_explicit_n3)
 
         def test_symmetrize(self):
             """The Symmetrize operators should symmetrize vectors and columns of matrices."""

@@ -93,7 +93,6 @@ class Normal(Distribution):
             return super().__new__(cls)
 
     def __init__(self, mean=0., cov=1., random_state=None):
-        # TODO: Only keep Cholesky factors as kernels to avoid losing symmetry
         super().__init__(parameters={"mean": mean, "cov": cov}, dtype=float, random_state=random_state)
 
     def mean(self):
@@ -467,11 +466,9 @@ class _MatrixvariateNormal(Normal):
         return np.diag(self.cov())
 
     def pdf(self, x):
-        # TODO: need to reshape x into number of matrices given
         pdf_ravelled = scipy.stats.multivariate_normal.pdf(x.ravel(),
                                                            mean=self.mean().ravel(),
                                                            cov=self.cov())
-        # TODO: this reshape is incorrect, write test for multiple matrices
         return pdf_ravelled.reshape(newshape=self.shape)
 
     def logpdf(self, x):
@@ -488,7 +485,6 @@ class _MatrixvariateNormal(Normal):
                                                        cov=self.cov(),
                                                        size=size,
                                                        random_state=self.random_state)
-        # TODO: maybe distributions need an attribute sample_shape
         return ravelled.reshape(self.shape)
 
     def reshape(self, newshape):
@@ -507,7 +503,6 @@ class _MatrixvariateNormal(Normal):
         if isinstance(other, Dirac):
             delta = other.mean()
             raise NotImplementedError
-        # TODO: implement generic:
         return NotImplemented
 
 
@@ -533,7 +528,6 @@ class _OperatorvariateNormal(Normal):
     def var(self):
         return linops.Diagonal(Op=self.cov())
 
-    # TODO: implement more efficient versions of (pdf, logpdf, sample) functions for linear operators without todense()
     def _params_todense(self):
         """Returns the mean and kernels of a distribution as dense matrices."""
         if isinstance(self.mean(), linops.LinearOperator):
@@ -569,7 +563,7 @@ class _OperatorvariateNormal(Normal):
     def reshape(self, newshape):
         raise NotImplementedError
 
-    # Arithmetic Operations ############################################
+    # Arithmetic Operations
 
     # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
     #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
@@ -615,7 +609,7 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
                                                  random_state=self.random_state)
 
         # Cholesky decomposition
-        eps = 10 ** - 12  # TODO: damping needed to avoid negative definite covariances
+        eps = 10 ** - 12  # damping needed to avoid negative definite covariances
         cholA = scipy.linalg.cholesky(self.cov().A.todense() + eps * np.eye(self._n), lower=True)
 
         # Scale and shift
