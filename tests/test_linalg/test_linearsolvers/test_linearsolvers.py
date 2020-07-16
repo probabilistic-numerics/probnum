@@ -199,20 +199,14 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     #                                 msg="Solution from matrix-based probabilistic linear solver does not match the " +
     #                                     "estimated inverse, i.e. x =/= Ainv @ b ")
 
-    def test_posterior_distribution_parameters(self):
-        """Compute the posterior parameters of the matrix-based probabilistic linear solvers directly and compare."""
-        # Initialization
-        A, f = self.poisson_linear_system
+    def test_posterior_uncertainty_zero_in_explored_space(self):
+        """
+        Test whether the posterior uncertainty over the matrices A and Ainv is zero in the already explored spaces
+        span(S) and span(Y).
+        """
+        A, b, x_true = self.rbf_kernel_linear_system
 
-        # Priors
-        H0 = linops.Identity(A.shape[0])  # inverse prior mean
-        A0 = linops.Identity(A.shape[0])  # prior mean
-        WH0 = H0  # inverse prior Kronecker factor
-        WA0 = A  # prior Kronecker factor
-        # covH = linops.SymmetricKronecker(WH0)
-        # covA = linops.SymmetricKronecker(WA0)
-
-        for calibrate in [False, 0., 1., 2.8]:
+        for calibrate in [False, 0., 0.00000001, 2.8]:
             with self.subTest():
                 # Define callback function to obtain search directions
                 S = []  # search directions
@@ -223,7 +217,45 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     Y.append(yk)
 
                 # Solve linear system
-                u_solver, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=f, Ainv0=H0,
+                u_solver, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b,
+                                                                    assume_A="sympos",
+                                                                    callback=callback_postparams,
+                                                                    calibration=calibrate)
+                # Create arrays from lists
+                S = np.squeeze(np.array(S)).T
+                Y = np.squeeze(np.array(Y)).T
+
+                self.assertAllClose(np.array(Ahat.cov().A.todense()) @ S, np.zeros_like(S),
+                                    atol=1e-6,
+                                    msg="Uncertainty over A in explored space span(S) not zero.")
+                self.assertAllClose(np.array(Ainvhat.cov().A.todense()) @ Y, np.zeros_like(S),
+                                    atol=1e-6,
+                                    msg="Uncertainty over Ainv in explored space span(Y) not zero.")
+
+    def test_posterior_distribution_parameters(self):
+        """Compute the posterior parameters of the matrix-based probabilistic linear solvers directly and compare."""
+        # Initialization
+        A, f = self.poisson_linear_system
+
+        # Priors
+        H0 = linops.Identity(A.shape[0])  # inverse prior mean
+        A0 = linops.Identity(A.shape[0])  # prior mean
+        WH0 = H0  # inverse prior Kronecker factor
+        WA0 = A  # prior Kronecker factor
+
+        for calibrate in [False, 0., 1.0, 2.8]:
+            with self.subTest():
+                # Define callback function to obtain search directions
+                S = []  # search directions
+                Y = []  # observations
+
+                def callback_postparams(xk, Ak, Ainvk, sk, yk, alphak, resid):
+                    S.append(sk)
+                    Y.append(yk)
+
+                # Solve linear system
+                u_solver, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=f,
+                                                                    assume_A="sympos",
                                                                     callback=callback_postparams,
                                                                     calibration=calibrate)
 
@@ -251,16 +283,19 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                                         "match the directly computed one.")
 
                 # Cov[A] and Cov[A^-1]
-                def posterior_cov_kronfac(WA0, S, unc_scale):
+                def posterior_cov_kronfac(A0, WA0, S, unc_scale):
                     """Compute the covariance symmetric Kronecker factor of the probabilistic linear solver."""
                     U_AT = np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T)
                     if unc_scale == 0:
+                        # No calibration: W_k = W_0(I-SU^T)
                         covfac = WA0 @ (np.identity(WA0.shape[0]) - S @ U_AT)
                     else:
+                        # Calibration cov. class:
+                        # W_k = AS(S^T AS)^{-1}S^T A + phi (I-S(S^TS)^{-1}S^T)(I-S(S^TS)^{-1}S^T) - W_0 SU^T)
                         id = np.eye(WA0.shape[0])
                         projection_term = (id - S @ np.linalg.solve(S.T @ S, S.T))
                         calib_term = unc_scale * projection_term @ projection_term
-                        covfac = WA0 @ S @ np.linalg.solve(S.T @ (WA0 @ S), (WA0 @ S).T) + calib_term - WA0 @ S @ U_AT
+                        covfac = A0 @ S @ np.linalg.solve(S.T @ (A0 @ S), (A0 @ S).T) + calib_term - WA0 @ (S @ U_AT)
                     return covfac
 
                 if calibrate is False or calibrate == 0.:
@@ -270,8 +305,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     unc_scale_A = calibrate
                     unc_scale_Ainv = 1 / calibrate
 
-                A_covfac = posterior_cov_kronfac(WA0, S, unc_scale=unc_scale_A)
-                H_covfac = posterior_cov_kronfac(WH0, Y, unc_scale=unc_scale_Ainv)
+                A_covfac = posterior_cov_kronfac(A0=A, WA0=WA0, S=S, unc_scale=unc_scale_A)
+                H_covfac = posterior_cov_kronfac(A0=H0, WA0=WH0, S=Y, unc_scale=unc_scale_Ainv)
 
                 self.assertAllClose(np.array(Ahat.cov().A.todense()), A_covfac, rtol=1e-5,
                                     msg="The covariance estimated by the probabilistic linear solver does not match the " +
@@ -405,8 +440,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAlmostEqual(info["trace_sol_cov"], x_est.cov().trace(),
                                        msg="Iteratively computed trace not equal to trace of solution covariance.")
 
-    def test_uncertainty_calibration(self):
-        """Test if the available uncertainty calibration procedures return appropriate scales."""
+    def test_uncertainty_calibration_error(self):
+        """Test if the available uncertainty calibration procedures affect the error of the returned solution."""
         tol = 10 ** -6
         A, b, x_true = self.rbf_kernel_linear_system
 
