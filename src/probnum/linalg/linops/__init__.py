@@ -12,6 +12,6 @@ from probnum.linalg.linops.kronecker import *
 __all__ = ["LinearOperator", "Identity", "ScalarMult", "MatrixMult", "Kronecker", "SymmetricKronecker", "Vec", "Svec",
            "Symmetrize", "aslinop"]
 
-# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+# Set correct module paths. Corrects links and module paths in documentation.
 LinearOperator.__module__ = "probnum.linalg.linops"
 ScalarMult.__module__ = "probnum.linalg.linops"

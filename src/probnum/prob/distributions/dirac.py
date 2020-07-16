@@ -74,17 +74,22 @@ class Dirac(Distribution):
                              len(self.parameters["support"])))
 
     def sample(self, size=(), seed=None):
-        if size == 1:
+        ndims = len(self.shape)
+        if size == 1 or size == ():
             return self.parameters["support"]
+        elif isinstance(size, int) and ndims == 0:
+            return np.tile(A=self.parameters["support"], reps=size)
+        elif isinstance(size, int):
+            return np.tile(A=self.parameters["support"], reps=[size, *np.repeat(1, ndims)])
         else:
-            return np.full(fill_value=self.parameters["support"], shape=size)
+            return np.tile(A=self.parameters["support"], reps=tuple([*size, *np.repeat(1, ndims)]))
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         try:
-            self._parameters["support"].reshape(shape=shape)
+            # Reshape support
+            self._parameters["support"].reshape(newshape=newshape)
         except ValueError:
-            raise ValueError("Cannot reshape this Dirac distribution "
-                             "to the given shape: {}".format(str(shape)))
+            raise ValueError("Cannot reshape this Dirac distribution to the given shape: {}".format(str(newshape)))
 
     # Binary arithmetic operations
     def __add__(self, other):

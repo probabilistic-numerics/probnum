@@ -8,7 +8,7 @@ of such methods looks like this:
 .. highlight:: python
 .. code-block:: python
 
-    randvar_out = probnum_method(randvar_in, **kwargs)
+    randvar_out, info = probnum_method(problem, randvar_in, **kwargs)
 
 """
 
@@ -18,7 +18,6 @@ from .distributions import *
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandvar"]
 
-# Set correct module paths (for superclasses).
-# Corrects links and module paths in documentation.
+# Set correct module paths. Corrects links and module paths in documentation.
 RandomVariable.__module__ = "probnum.prob"
 Distribution.__module__ = "probnum.prob"

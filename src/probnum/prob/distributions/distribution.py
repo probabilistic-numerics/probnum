@@ -41,7 +41,9 @@ class Distribution:
     mean : callable
         Function returning the mean of the distribution.
     cov : callable
-        Function returning the kernels of the distribution.
+        Function returning the covariance of the distribution.
+    shape : tuple
+        Shape of samples from this distribution.
     dtype : numpy.dtype or object
         Data type of realizations of a random variable with this distribution. If ``object`` will be converted to ``numpy.dtype``.
     random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
@@ -61,7 +63,7 @@ class Distribution:
     """
 
     def __init__(self, parameters=None, pdf=None, logpdf=None, cdf=None, logcdf=None, sample=None,
-                 mean=None, cov=None, dtype=None, random_state=None):
+                 mean=None, cov=None, shape=None, dtype=None, random_state=None):
         if parameters is None:
             parameters = {}  # sentinel value to avoid anti-pattern
         self._parameters = parameters
@@ -72,6 +74,7 @@ class Distribution:
         self._sample = sample
         self._mean = mean
         self._cov = cov
+        self._set_shape(shape)
         self._dtype = dtype
         self._random_state = scipy._lib._util.check_random_state(random_state)
 
@@ -79,14 +82,45 @@ class Distribution:
         pass
         # TODO: type checking of self._parameters; check method signatures.
 
+    def _set_shape(self, shape):
+        """
+        Sets shape in accordance with distribution mean.
+        """
+        self._shape = shape
+        try:
+            # Set shape based on mean
+            if np.isscalar(self.mean()):
+                shape_mean = ()
+            else:
+                shape_mean = self.mean().shape
+            if shape is None or shape_mean == shape:
+                self._shape = shape_mean
+            else:
+                raise ValueError("Shape of distribution mean and given shape do not match.")
+        except NotImplementedError:
+            # Set shape based on a sample
+            if np.isscalar(self.sample(size=1)):
+                shape_sample = ()
+            else:
+                shape_sample = self.sample(size=1).shape
+            if shape is None or shape_sample == shape:
+                self._shape = shape_sample
+            else:
+                raise ValueError("Shape of distribution sample and given shape do not match.")
+
+    @property
+    def shape(self):
+        """Shape of samples from this distribution."""
+        return self._shape
+
     @property
     def dtype(self):
-        """`Dtype` of elements of samples from this distribution."""
+        """``Dtype`` of elements of samples from this distribution."""
         return self._dtype
 
     @dtype.setter
     def dtype(self, newtype):
-        """Set the `dtype` of the distribution."""
+        """Set the ``dtype`` of the distribution."""
         self._dtype = newtype
 
     @property
@@ -229,7 +263,7 @@ class Distribution:
             return self._sample(size=size)
         else:
             raise NotImplementedError(
-                'The function \'sample\' is not implemented for object of class {}'.format(type(self).__name__))
+                'The function \'sample\' is not implemented for object of class {}.'.format(type(self).__name__))
 
     def median(self):
         """
@@ -255,7 +289,7 @@ class Distribution:
             return self._parameters["mode"]
         else:
             raise NotImplementedError(
-                'The function \'mode\' is not implemented for object of class {}'.format(type(self).__name__))
+                'The function \'mode\' is not implemented for object of class {}.'.format(type(self).__name__))
 
     def mean(self):
         """
@@ -272,7 +306,7 @@ class Distribution:
             return self._parameters["mean"]
         else:
             raise NotImplementedError(
-                'The function \'mean\' is not implemented for object of class {}'.format(type(self).__name__))
+                'The function \'mean\' is not implemented for object of class {}.'.format(type(self).__name__))
 
     def cov(self):
         """
@@ -318,13 +352,13 @@ class Distribution:
         """
         return np.sqrt(self.var())
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         """
         Give a new shape to (realizations of) this distribution.
 
         Parameters
         ----------
-        shape : int or tuple of ints
+        newshape : int or tuple of ints
             New shape for the realizations and parameters of this distribution. It must be compatible with the original
             shape.
 

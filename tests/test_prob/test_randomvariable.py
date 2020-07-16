@@ -54,7 +54,7 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         ]
 
 
-class RandomVariableInstantiationTestCase(RandomVariableTestCase):
+class InstantiationTestCase(RandomVariableTestCase):
     """Test random variable instantiation."""
 
     def test_rv_dtype(self):
@@ -90,7 +90,7 @@ class RandomVariableInstantiationTestCase(RandomVariableTestCase):
 
 
 
-class RandomVariableArithmeticTestCase(RandomVariableTestCase):
+class ArithmeticTestCase(RandomVariableTestCase):
     """Test random variable arithmetic and broadcasting."""
 
     def test_rv_addition(self):
@@ -174,17 +174,35 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
         pass
 
 
-class TestEmptyInit(unittest.TestCase):
+class ShapeTestCase(RandomVariableTestCase):
     """
-    Tests that a RandomVariable object can be set up with an empty init.
+    Tests methods related to the shape of a random variable, its distribution or realizations.
     """
-    def test_empty_init(self):
-        """No input."""
-        with self.assertRaises(ValueError):
-            prob.RandomVariable()
 
-    def test_dtype_init(self):
-        """Instantiate a random variable without a distribution."""
-        rv = prob.RandomVariable(dtype=int)
-        self.assertIsInstance(rv, prob.RandomVariable)
+    def test_reshape(self):
+        """
+        Reshape a random variable and test for correct output shape.
+        """
+        np.random.seed(42)
+        for rv in self.randvars2x2:
+            for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
+                with self.subTest():
+                    try:
+                        self.assertEqual(rv.reshape(newshape=shape).shape, shape)
+                        self.assertEqual(rv.sample(size=1).shape, shape)
+                    except NotImplementedError:
+                        pass
+        for rv in self.randvars2d:
+            for shape in [(2, 1), (2,), (1, 2)]:
+                with self.subTest():
+                    try:
+                        self.assertEqual(rv.reshape(newshape=shape).shape, shape)
+                        self.assertEqual(rv.sample(size=1).shape, shape)
+                    except NotImplementedError:
+                        pass
 
+    def test_sample_shape(self):
+        """
+        Sample from a random variable with different sizes and check sample shapes.
+        """
+        pass

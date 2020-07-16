@@ -259,8 +259,28 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         raise NotImplementedError
 
     def trace(self):
-        """Trace of the linear operator."""
-        raise NotImplementedError
+        """
+        Trace of the linear operator.
+
+        Computes the trace of a square linear operator :math:`\\text{tr}(A) = \\sum_{i-1}^n A_ii`.
+
+        Returns
+        -------
+        trace : float
+            Trace of the linear operator.
+
+        Raises
+        ------
+        ValueError : If :meth:`trace` is called on a non-square matrix.
+        """
+        if self.shape[0] != self.shape[1]:
+            raise ValueError("The trace is only defined for square linear operators.")
+        else:
+            _identity = np.eye(self.shape[0])
+            trace = 0.
+            for i in range(self.shape[0]):
+                trace += np.squeeze(_identity[np.newaxis, i, :] @ self.matvec(_identity[i, :, np.newaxis]))
+            return trace
 
 
 class _CustomLinearOperator(scipy.sparse.linalg.interface._CustomLinearOperator, LinearOperator):
@@ -300,6 +320,9 @@ class _SumLinearOperator(scipy.sparse.linalg.interface._SumLinearOperator, Linea
     def inv(self):
         return self.A.inv() + self.B.inv()
 
+    def trace(self):
+        return self.A.trace() + self.B.trace()
+
 
 class _ProductLinearOperator(scipy.sparse.linalg.interface._ProductLinearOperator, LinearOperator):
     """(Operator) Product of two linear operators."""
@@ -326,6 +349,10 @@ class _ScaledLinearOperator(scipy.sparse.linalg.interface._ScaledLinearOperator,
     def inv(self):
         A, alpha = self.args
         return _ScaledLinearOperator(A.inv(), 1 / alpha)
+
+    def trace(self):
+        A, alpha = self.args
+        return alpha * A.trace()
 
 
 class _PowerLinearOperator(scipy.sparse.linalg.interface._PowerLinearOperator, LinearOperator):
@@ -381,7 +408,7 @@ class ScalarMult(LinearOperator):
 
     # Properties
     def rank(self):
-        return self.shape[0]
+        return np.minimum(self.shape[0], self.shape[1])
 
     def eigvals(self):
         return np.ones(self.shape[0]) * self.scalar
@@ -402,6 +429,11 @@ class ScalarMult(LinearOperator):
 class Identity(ScalarMult):
     """
     The identity operator.
+
+    Parameters
+    ----------
+    shape : int or tuple
+        Shape of the identity operator.
     """
 
     def __init__(self, shape):
@@ -414,6 +446,31 @@ class Identity(ScalarMult):
             _shape = shape
         # Initiator of super class
         super().__init__(shape=_shape, scalar=1.)
+
+    def todense(self):
+        return np.eye(self.shape[0])
+
+    def inv(self):
+        return self
+
+    # Properties
+    def rank(self):
+        return self.shape[0]
+
+    def eigvals(self):
+        return np.ones(self.shape[0])
+
+    def cond(self, p=None):
+        return 1
+
+    def det(self):
+        return 1.
+
+    def logabsdet(self):
+        return 0.
+
+    def trace(self):
+        return self.shape[0]
 
 
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
@@ -469,7 +526,10 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         return logdet
 
     def trace(self):
-        return np.trace(self.A)
+        if self.shape[0] != self.shape[1]:
+            raise ValueError("The trace is only defined for square linear operators.")
+        else:
+            return np.trace(self.A)
 
 
 def aslinop(A):
