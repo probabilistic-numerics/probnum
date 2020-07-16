@@ -13,15 +13,11 @@ of such methods looks like this:
 """
 
 from .randomvariable import *
-from .randomprocess import *
 from .distributions import *
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["RandomVariable", "RandomProcess", "GaussianProcess",
-           "Kernel", "IntegratedBrownianMotionKernel",
-           "BrownianMotionKernel", "Distribution", "Dirac", "Normal", "asrandvar"]
+__all__ = ["RandomVariable", "Distribution", "Dirac", "Normal", "asrandvar"]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 RandomVariable.__module__ = "probnum.prob"
-RandomProcess.__module__ = "probnum.prob"
 Distribution.__module__ = "probnum.prob"

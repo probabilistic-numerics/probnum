@@ -6,9 +6,9 @@ The following people contributed to the ProbNum repository:
 
 - **Jonathan Wenger**: (https://github.com/JonathanWenger)
 - **Nicholas Krämer**: (https://github.com/pnkraemer)
+- **Nathanael Bosch**: (https://github.com/nathanaelbosch)
 
-
-**Other:** Nathanael Bosch, Maren Mahsereci
+**Other:** Maren Mahsereci, Marvin Pförtner
 
 If you feel like you have made substantial contributions to ProbNum, contact the maintainers of the package. Your name 
 will then be added to the [authors](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md) file and 

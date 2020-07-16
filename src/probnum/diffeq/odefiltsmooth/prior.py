@@ -122,7 +122,7 @@ class ODEPrior(LTISDEModel):
 
         Computes the matrix :math:`P` given by
 
-        .. math:: P = I_d \\otimes diag (1, h, h^2/2, ..., h^q/q!)
+        .. math:: P = I_d \\otimes diag (1, h, h^2, ..., h^q)
 
         as well as its inverse :math:`P^{-1}`.
 
@@ -130,8 +130,8 @@ class ODEPrior(LTISDEModel):
         ----------
         step : float
             Step size :math:`h` used for preconditioning. If :math:`h`
-            is so small that :math:`h^q/q! < 10^{-15}`, it is being
-            set to :math:`h = (q! \\cdot 10^{-15})^{1/q}`.
+            is so small that :math:`h^q! < 10^{-15}`, it is being
+            set to :math:`h = (\\cdot 10^{-15})^{1/q}`.
 
         Returns
         -------
@@ -139,8 +139,6 @@ class ODEPrior(LTISDEModel):
             Preconditioner matrix :math:`P`.
         invprecond : np.ndarray, shape=(d(q+1), d(q+1))
             Inverse preconditioner matrix :math:`P^{-1}`.
-
-
         """
         smallval = step**self.ordint
         if smallval < 1e-15:
@@ -179,8 +177,6 @@ class ODEPrior(LTISDEModel):
             Inverse preconditioner matrix :math:`P^{-1}`
         """
         return self.invprecond
-
-
 
 
 class IBM(ODEPrior):

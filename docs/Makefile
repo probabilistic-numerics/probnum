@@ -11,6 +11,7 @@ SPHINXPROJ    = probnum
 SOURCEDIR     = source
 BUILDDIR      = _build
 AUTOMODAPIDIR = source/automod
+NOTEBOOKDIR   = source/notebooks
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -42,9 +43,14 @@ help:
 # Remove the automodapidir as it does not update with e.g. "make html"
 clean:
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	$(info Deleting contents of $(AUTOMODAPIDIR) directory...)
-	-rm -r $(AUTOMODAPIDIR)/*
-	-rm -r source/notebooks/.ipynb_checkpoints
+	@if [ -d "$(AUTOMODAPIDIR)" ]; then\
+		rm -r $(AUTOMODAPIDIR);\
+		echo "Deleting contents of $(AUTOMODAPIDIR) directory...";\
+	fi
+	@if [ -e "$(NOTEBOOKDIR)/.ipynb_checkpoints" ]; then\
+		rm -r $(NOTEBOOKDIR)/.ipynb_checkpoints;\
+		echo "Deleting ipython checkpoints...";\
+	fi
 
 html:
 	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html $(SPHINXOPTS)

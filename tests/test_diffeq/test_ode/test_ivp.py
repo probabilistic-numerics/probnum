@@ -7,12 +7,12 @@ import numpy as np
 from probnum.diffeq.ode import ivp
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Dirac
-
+from tests.testing import NumpyAssertions
 
 TEST_NDIM = 3
 
 
-class TestExamples(unittest.TestCase):
+class TestExamples(unittest.TestCase, NumpyAssertions):
     """
     Test cases for example IVPs: Lotka-Volterra, etc.
     """
@@ -30,6 +30,15 @@ class TestExamples(unittest.TestCase):
         lg2 = ivp.logistic(self.tspan, rv, params=(1., 1.))
         self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
 
+    def test_logistic_jacobian(self):
+        rv = RandomVariable(distribution=Dirac(0.1))
+        lg1 = ivp.logistic(self.tspan, rv)
+        random_direction = 1 + 0.1*np.random.rand(lg1.ndim)
+        random_point = 1 + np.random.rand(lg1.ndim)
+        fd_approx = 0.5*1e11*(lg1(0.1, random_point + 1e-11*random_direction) - lg1(0.1, random_point- 1e-11*random_direction))
+        self.assertAllClose(lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2)
+
+
     def test_fitzhughnagumo(self):
         """
         """
@@ -39,6 +48,14 @@ class TestExamples(unittest.TestCase):
         lg2 = ivp.fitzhughnagumo(self.tspan, rv, params=(1., 1., 1., 1.))
         self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
 
+    def test_fitzhughnagumo_jacobian(self):
+        rv = RandomVariable(distribution=Dirac(np.ones(2)))
+        lg1 = ivp.fitzhughnagumo(self.tspan, rv)
+        random_direction = 1 + 0.1*np.random.rand(lg1.ndim)
+        random_point = 1 + np.random.rand(lg1.ndim)
+        fd_approx = 0.5*1e11*(lg1(0.1, random_point + 1e-11*random_direction) - lg1(0.1, random_point- 1e-11*random_direction))
+        self.assertAllClose(lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2)
+
     def test_lotkavolterra(self):
         """
         """
@@ -47,6 +64,15 @@ class TestExamples(unittest.TestCase):
         self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
         lg2 = ivp.lotkavolterra(self.tspan, rv, params=(1., 1., 1., 1.))
         self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
+
+
+    def test_lotkavolterra_jacobian(self):
+        rv = RandomVariable(distribution=Dirac(np.ones(2)))
+        lg1 = ivp.lotkavolterra(self.tspan, rv)
+        random_direction = 1 + 0.1*np.random.rand(lg1.ndim)
+        random_point = 1 + np.random.rand(lg1.ndim)
+        fd_approx = 0.5*1e11*(lg1(0.1, random_point + 1e-11*random_direction) - lg1(0.1, random_point- 1e-11*random_direction))
+        self.assertAllClose(lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2)
 
 
 class TestIVP(unittest.TestCase):

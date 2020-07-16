@@ -1,9 +1,5 @@
 """
 
-Todo
-----
-Vectorization
-
 See BFaS; p. 84f.
 """
 
