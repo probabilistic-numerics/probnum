@@ -37,7 +37,7 @@ Now that you've created your notebook, we have to add it in the right place on t
 
 ## Checking the Result
 
-In order to see the result build the documentation locally via:
+In order to view the resulting page from the notebook, build the documentation locally via:
 ```bash
 tox -e docs
 ```
