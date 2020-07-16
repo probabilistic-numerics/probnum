@@ -68,14 +68,17 @@ Make sure to always add tests for newly implemented code.
 To run the test suite on your machine you have multiple options:
 
 - **Full test suite with tox:** Run the full suite across different Python versions with
+  
   ```
   tox
   ```
 - **Single environment with tox:** Run tests via [tox](https://probabilistic-numerics.github.io/probnum/development/contributing.html#tox) for a single Python environment. Example for Python 3.6:
+  
   ```
   tox -e py36
   ```
 - **pytest:** Run tests directly in your local environment by calling
+  
   ```
   pytest
   ```
