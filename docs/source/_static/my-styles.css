@@ -21,9 +21,6 @@ div.body {
 .wy-nav-side {
 	background: var(--dark-gray);
 }
-.wy-side-nav-search {
-	background-color: var(--main-background-color);
-}
 /* Home button */
 .wy-side-nav-search .wy-dropdown > a, .wy-side-nav-search > a {
 	color: var(--dark-gray);
