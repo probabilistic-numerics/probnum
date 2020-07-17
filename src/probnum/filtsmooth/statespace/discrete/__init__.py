@@ -11,5 +11,9 @@ from .discretemodel import *
 from .discretegaussianmodel import *
 
 
-__all__ = ["DiscreteModel", "DiscreteGaussianModel",
-           "DiscreteGaussianLinearModel", "DiscreteGaussianLTIModel"]
+__all__ = [
+    "DiscreteModel",
+    "DiscreteGaussianModel",
+    "DiscreteGaussianLinearModel",
+    "DiscreteGaussianLTIModel",
+]

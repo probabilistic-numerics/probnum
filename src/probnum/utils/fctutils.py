@@ -14,4 +14,3 @@ def assert_evaluates_to_scalar(fct, valid_input):
     """
     if not np.isscalar(fct(valid_input)):
         raise ValueError("Function does not evaluate to scalar.")
-

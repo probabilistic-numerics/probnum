@@ -36,8 +36,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         the initial values.
         """
         if not issubclass(type(gaussfilt.dynamicmodel), ODEPrior):
-            raise ValueError("Please initialise a Gaussian filter "
-                             "with an ODEPrior")
+            raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
         self.ivp = ivp
         self.gfilt = gaussfilt
         odesolver.ODESolver.__init__(self, steprl)
@@ -75,7 +74,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
             predicted = current
             new_time = tm
             zero_data = 0.0
-            current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, **kwargs)
+            current, covest, ccest, mnest = self.gfilt.update(
+                new_time, predicted, zero_data, **kwargs
+            )
             interms[-1] = current.mean().copy()
             intercs[-1] = current.cov().copy()
             errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
@@ -84,7 +85,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 means.extend(interms)
                 covars.extend(intercs)
                 ct = ct + 1
-                ssqest = (ssqest + (ssq - ssqest) / ct)
+                ssqest = ssqest + (ssq - ssqest) / ct
             else:
                 current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
             step = self._suggest_step(step, errorest)
@@ -151,7 +152,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         h0_1d = np.eye(ordint + 1)[:, 0].reshape((1, ordint + 1))
         projmat = np.kron(np.eye(spatialdim), h0_1d)
         weights = np.ones(len(abserrors))
-        rel_error = (abserrors / np.abs(projmat @ currmn)) @ weights / np.linalg.norm(weights)
+        rel_error = (
+            (abserrors / np.abs(projmat @ currmn)) @ weights / np.linalg.norm(weights)
+        )
         abs_error = abserrors @ weights / np.linalg.norm(weights)
         return np.maximum(rel_error, abs_error)
 

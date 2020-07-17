@@ -14,6 +14,7 @@ class Kalman(GaussFiltSmooth):
     Kalman filtering and smoothing for continuous-discrete and
     discrete-discrete state space models.
     """
+
     def __new__(cls, dynamod, measmod, initrv, **kwargs):
         """
         Factory method for Kalman filtering and smoothing.
@@ -28,8 +29,10 @@ class Kalman(GaussFiltSmooth):
             if _disc_disc(dynamod, measmod):
                 return _DiscDiscKalman(dynamod, measmod, initrv)
             else:
-                errmsg = ("Cannot instantiate Kalman object with given "
-                          "dynamic model and measurement model.")
+                errmsg = (
+                    "Cannot instantiate Kalman object with given "
+                    "dynamic model and measurement model."
+                )
                 raise ValueError(errmsg)
         else:
             return super().__new__(cls)
@@ -54,16 +57,19 @@ class _ContDiscKalman(Kalman):
     Provides predict() and update() methods for Kalman filtering and
     smoothing on continuous-discrete state space models.
     """
+
     def __init__(self, dynamod, measmod, initrv, **kwargs):
         """
         Checks that dynamod and measmod are linear and moves on.
         """
         if not issubclass(type(dynamod), LinearSDEModel):
-            raise ValueError("ContinuosDiscreteKalman requires "
-                             "a linear dynamic model.")
+            raise ValueError(
+                "ContinuosDiscreteKalman requires " "a linear dynamic model."
+            )
         if not issubclass(type(measmod), DiscreteGaussianLinearModel):
-            raise ValueError("DiscreteDiscreteKalman requires "
-                             "a linear measurement model.")
+            raise ValueError(
+                "DiscreteDiscreteKalman requires " "a linear measurement model."
+            )
         if "cke_nsteps" in kwargs.keys():
             self.cke_nsteps = kwargs["cke_nsteps"]
         else:
@@ -72,14 +78,14 @@ class _ContDiscKalman(Kalman):
 
     def predict(self, start, stop, randvar, **kwargs):
         """ """
-        step = ((stop - start) / self.cke_nsteps)
-        return self.dynamicmodel.chapmankolmogorov(
-            start, stop, step, randvar, **kwargs)
+        step = (stop - start) / self.cke_nsteps
+        return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
         """ """
         return _discrete_kalman_update(
-            time, randvar, data, self.measurementmodel, **kwargs)
+            time, randvar, data, self.measurementmodel, **kwargs
+        )
 
 
 class _DiscDiscKalman(Kalman):
@@ -87,14 +93,17 @@ class _DiscDiscKalman(Kalman):
     Provides predict() and update() methods for Kalman filtering and
     smoothing on discrete-discrete state space models.
     """
+
     def __init__(self, dynamod, measmod, initrv):
         """Checks that dynamod and measmod are linear and moves on."""
         if not issubclass(type(dynamod), DiscreteGaussianLinearModel):
-            raise ValueError("ContinuousDiscreteKalman requires "
-                             "a linear dynamic model.")
+            raise ValueError(
+                "ContinuousDiscreteKalman requires " "a linear dynamic model."
+            )
         if not issubclass(type(measmod), DiscreteGaussianLinearModel):
-            raise ValueError("DiscreteDiscreteKalman requires "
-                             "a linear measurement model.")
+            raise ValueError(
+                "DiscreteDiscreteKalman requires " "a linear measurement model."
+            )
         super().__init__(dynamod, measmod, initrv)
 
     def predict(self, start, stop, randvar, **kwargs):
@@ -113,7 +122,8 @@ class _DiscDiscKalman(Kalman):
     def update(self, time, randvar, data, **kwargs):
         """Update step of discrete Kalman filtering"""
         return _discrete_kalman_update(
-            time, randvar, data, self.measurementmodel, **kwargs)
+            time, randvar, data, self.measurementmodel, **kwargs
+        )
 
 
 def _discrete_kalman_update(time, randvar, data, measurementmodel, **kwargs):
@@ -128,5 +138,4 @@ def _discrete_kalman_update(time, randvar, data, measurementmodel, **kwargs):
     ccest = cpred @ measmat.T
     mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
     cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    return (RandomVariable(distribution=Normal(mean, cov)),
-            covest, ccest, meanest)
+    return (RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest)

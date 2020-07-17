@@ -10,7 +10,7 @@ provided by IOUP and change parameters
 """
 import warnings
 import numpy as np
-from scipy.special import binom   # for Matern
+from scipy.special import binom  # for Matern
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
 from probnum.prob import RandomVariable, Normal
@@ -75,7 +75,8 @@ class ODEPrior(LTISDEModel):
     s-dimensional Brownian motion with unit diffusion matrix :math:`Q`.
 
     """
-    def __init__(self, driftmat, dispmat, ordint, spatialdim, precond_step=1.):
+
+    def __init__(self, driftmat, dispmat, ordint, spatialdim, precond_step=1.0):
         """ """
         self.ordint = ordint
         self.spatialdim = spatialdim
@@ -140,16 +141,18 @@ class ODEPrior(LTISDEModel):
         invprecond : np.ndarray, shape=(d(q+1), d(q+1))
             Inverse preconditioner matrix :math:`P^{-1}`.
         """
-        smallval = step**self.ordint
+        smallval = step ** self.ordint
         if smallval < 1e-15:
-            warnmsg = "Preconditioner contains values below " \
-                      "machine precision (%.1e)" % smallval
+            warnmsg = (
+                "Preconditioner contains values below "
+                "machine precision (%.1e)" % smallval
+            )
             warnings.warn(message=warnmsg, category=RuntimeWarning)
-            step = 1e-15**(1/self.ordint)
+            step = 1e-15 ** (1 / self.ordint)
         powers = np.arange(self.ordint + 1)
-        diags = step**powers
+        diags = step ** powers
         precond = np.kron(np.eye(self.spatialdim), np.diag(diags))
-        invprecond = np.kron(np.eye(self.spatialdim), np.diag(1.0/diags))
+        invprecond = np.kron(np.eye(self.spatialdim), np.diag(1.0 / diags))
         return precond, invprecond
 
     @property
@@ -265,9 +268,15 @@ class IBM(ODEPrior):
         Computes closed form solution for the transition matrix A(h).
         """
         step = stop - start
-        ah_1d = np.array([[self._trans_ibm_element(step, row, col)
-                           for col in range(self.ordint + 1)]
-                          for row in range(self.ordint + 1)])
+        ah_1d = np.array(
+            [
+                [
+                    self._trans_ibm_element(step, row, col)
+                    for col in range(self.ordint + 1)
+                ]
+                for row in range(self.ordint + 1)
+            ]
+        )
         ah = np.kron(np.eye(self.spatialdim), ah_1d)
         return self.precond @ ah @ self.invprecond
 
@@ -283,9 +292,15 @@ class IBM(ODEPrior):
         Computes closed form solution for the diffusion matrix Q(h).
         """
         step = stop - start
-        qh_1d = np.array([[self._transdiff_ibm_element(step, row, col)
-                           for col in range(self.ordint + 1)]
-                          for row in range(self.ordint + 1)])
+        qh_1d = np.array(
+            [
+                [
+                    self._transdiff_ibm_element(step, row, col)
+                    for col in range(self.ordint + 1)
+                ]
+                for row in range(self.ordint + 1)
+            ]
+        )
         qh = np.kron(np.eye(self.spatialdim), qh_1d)
         return self.precond @ qh @ self.precond.T
 
@@ -314,8 +329,7 @@ class IOUP(ODEPrior):
     Q = I_d
     """
 
-    def __init__(self, ordint, spatialdim, driftspeed, diffconst,
-                 precond_step=1.0):
+    def __init__(self, ordint, spatialdim, driftspeed, diffconst, precond_step=1.0):
         """
         ordint : this is "q"
         spatialdim : d
@@ -349,8 +363,7 @@ class Matern(ODEPrior):
     Q = I_d
     """
 
-    def __init__(self, ordint, spatialdim, lengthscale, diffconst,
-                 precond_step=1.0):
+    def __init__(self, ordint, spatialdim, lengthscale, diffconst, precond_step=1.0):
         """
         ordint : this is "q"
         spatialdim : d
@@ -371,8 +384,8 @@ def _driftmat_matern(ordint, spatialdim, lengthscale):
     """
     driftmat = np.diag(np.ones(ordint), 1)
     nu = ordint + 0.5
-    D, lam = ordint + 1,  np.sqrt(2*nu) / lengthscale
-    driftmat[-1, :] = np.array([-binom(D, i)*lam**(D-i) for i in range(D)])
+    D, lam = ordint + 1, np.sqrt(2 * nu) / lengthscale
+    driftmat[-1, :] = np.array([-binom(D, i) * lam ** (D - i) for i in range(D)])
     return np.kron(np.eye(spatialdim), driftmat)
 
 
@@ -383,6 +396,3 @@ def _dispmat(ordint, spatialdim, diffconst):
     """
     dispvec = diffconst * np.eye(ordint + 1)[:, -1]
     return np.kron(np.eye(spatialdim), dispvec).T
-
-
-

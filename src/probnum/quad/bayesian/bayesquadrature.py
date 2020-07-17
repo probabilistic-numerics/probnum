@@ -61,7 +61,9 @@ def bayesquad(fun, fun0, bounds, nevals=None, type="vanilla", **kwargs):
         bqmethod = WSABIBayesianQuadrature()
 
     # Integrate
-    F, fun0, info = bqmethod.integrate(fun=fun, fun0=fun0, nevals=nevals, domain=bounds, **kwargs)
+    F, fun0, info = bqmethod.integrate(
+        fun=fun, fun0=fun0, nevals=nevals, domain=bounds, **kwargs
+    )
 
     return F, fun0, info
 
@@ -185,9 +187,7 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
             self.fun0 = None
 
         # Information on result
-        info = {
-            "model_fit_diagnostic": None
-        }
+        info = {"model_fit_diagnostic": None}
 
         return F, self.fun0, info
 

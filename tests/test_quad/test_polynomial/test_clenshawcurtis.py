@@ -48,14 +48,12 @@ class TestPolynomialExactness(unittest.TestCase):
             def testpoly(val):
                 return npoly.polyval2d(val[:, 0], val[:, 1], c=random_poly)
 
-            truesol = npoly.polyval2d(self.ilbds[0, 1], self.ilbds[1, 1],
-                                      c=integrated_poly) \
-                      - npoly.polyval2d(self.ilbds[0, 1], self.ilbds[1, 0],
-                                        c=integrated_poly) \
-                      - npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 1],
-                                        c=integrated_poly) \
-                      + npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 0],
-                                        c=integrated_poly)
+            truesol = (
+                npoly.polyval2d(self.ilbds[0, 1], self.ilbds[1, 1], c=integrated_poly)
+                - npoly.polyval2d(self.ilbds[0, 1], self.ilbds[1, 0], c=integrated_poly)
+                - npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 1], c=integrated_poly)
+                + npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 0], c=integrated_poly)
+            )
 
             abserror = np.abs(cc.integrate(testpoly, isvectorized=True) - truesol)
             relerror = abserror / np.abs(truesol)
@@ -70,8 +68,11 @@ class TestPolynomialExactness(unittest.TestCase):
         """
         for number in self.orders:
             cc = clenshawcurtis.ClenshawCurtis(number, self.ndim, self.ilbds)
-            bad_configs = [(number + 1, number + 2), (number + 2, number + 1),
-                           (number + 2, number + 2)]
+            bad_configs = [
+                (number + 1, number + 2),
+                (number + 2, number + 1),
+                (number + 2, number + 2),
+            ]
             for config in bad_configs:
                 random_poly = np.random.randint(1, 11, config)
                 integrated_poly = npoly.polyint(npoly.polyint(random_poly).T).T
@@ -79,14 +80,20 @@ class TestPolynomialExactness(unittest.TestCase):
                 def testpoly(val):
                     return npoly.polyval2d(val[:, 0], val[:, 1], c=random_poly)
 
-                truesol = npoly.polyval2d(self.ilbds[0, 1], self.ilbds[1, 1],
-                                          c=integrated_poly) \
-                          - npoly.polyval2d(self.ilbds[0, 1], self.ilbds[1, 0],
-                                            c=integrated_poly) \
-                          - npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 1],
-                                            c=integrated_poly) \
-                          + npoly.polyval2d(self.ilbds[0, 0], self.ilbds[1, 0],
-                                            c=integrated_poly)
+                truesol = (
+                    npoly.polyval2d(
+                        self.ilbds[0, 1], self.ilbds[1, 1], c=integrated_poly
+                    )
+                    - npoly.polyval2d(
+                        self.ilbds[0, 1], self.ilbds[1, 0], c=integrated_poly
+                    )
+                    - npoly.polyval2d(
+                        self.ilbds[0, 0], self.ilbds[1, 1], c=integrated_poly
+                    )
+                    + npoly.polyval2d(
+                        self.ilbds[0, 0], self.ilbds[1, 0], c=integrated_poly
+                    )
+                )
 
                 abserror = np.abs(cc.integrate(testpoly, isvectorized=True) - truesol)
                 relerror = abserror / np.abs(truesol)
@@ -113,17 +120,15 @@ class TestGaussian(unittest.TestCase):
         """
 
         mean = 2.5678
-        var = .01
+        var = 0.01
 
         def gaussian(x):
             """
             """
-            return np.exp(-(x - mean) ** 2 / (2 * var)) / np.sqrt(
-                2 * np.pi * var)
+            return np.exp(-((x - mean) ** 2) / (2 * var)) / np.sqrt(2 * np.pi * var)
 
         ilbds = np.array([[mean - 3 * np.sqrt(var), mean]])
-        self.cc = clenshawcurtis.ClenshawCurtis(npts_per_dim=35, ndim=1,
-                                                bounds=ilbds)
+        self.cc = clenshawcurtis.ClenshawCurtis(npts_per_dim=35, ndim=1, bounds=ilbds)
         self.gaussian = gaussian
 
     def test_integral(self):

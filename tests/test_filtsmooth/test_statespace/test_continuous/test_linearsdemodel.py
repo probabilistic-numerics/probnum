@@ -23,28 +23,31 @@ class TestLinearSDEModel(unittest.TestCase):
         self.dispmat = np.random.rand(TEST_NDIM)
         self.diffmat = self.driftmat @ self.driftmat.T + np.eye(TEST_NDIM)
         self.force = np.random.rand(TEST_NDIM)
-        self.lm = linearsdemodel.LinearSDEModel(lambda t: self.driftmat,
-                                          lambda t: self.force,
-                                          lambda t: self.dispmat,
-                                          self.diffmat)
+        self.lm = linearsdemodel.LinearSDEModel(
+            lambda t: self.driftmat,
+            lambda t: self.force,
+            lambda t: self.dispmat,
+            self.diffmat,
+        )
 
     def test_drift(self):
         """ """
         some_state = np.random.rand(TEST_NDIM)
-        diff = self.lm.drift(0., some_state) \
-               - (self.driftmat @ some_state + self.force)
+        diff = self.lm.drift(0.0, some_state) - (
+            self.driftmat @ some_state + self.force
+        )
         self.assertLess(np.linalg.norm(diff), 1e-14)
 
     def test_disp(self):
         """ """
         some_state = np.random.rand(TEST_NDIM)
-        diff = self.lm.dispersion(0., some_state) - self.dispmat
+        diff = self.lm.dispersion(0.0, some_state) - self.dispmat
         self.assertLess(np.linalg.norm(diff), 1e-14)
 
     def test_jac(self):
         """ """
         some_state = np.random.rand(TEST_NDIM)
-        diff = self.lm.jacobian(0., some_state) - self.driftmat
+        diff = self.lm.jacobian(0.0, some_state) - self.driftmat
         self.assertLess(np.linalg.norm(diff), 1e-14)
 
     def test_diff(self):
@@ -71,9 +74,13 @@ class TestLinearSDEModel(unittest.TestCase):
         rvar = RandomVariable(distribution=Normal(mean, cov))
         cke, __ = self.lm.chapmankolmogorov(0.0, 1.0, 1.0, rvar)
         diff_mean = self.driftmat @ rvar.mean() + self.force - cke.mean() + rvar.mean()
-        diff_cov = self.driftmat @ rvar.cov() + rvar.cov() @ self.driftmat.T \
-                   + self.dispmat @ self.diffmat @ self.dispmat.T \
-                   + rvar.cov() - cke.cov()
+        diff_cov = (
+            self.driftmat @ rvar.cov()
+            + rvar.cov() @ self.driftmat.T
+            + self.dispmat @ self.diffmat @ self.dispmat.T
+            + rvar.cov()
+            - cke.cov()
+        )
         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
         self.assertLess(np.linalg.norm(diff_cov), 1e-14)
 
@@ -82,7 +89,7 @@ def ibm_a(step):
     """
     Closed for for A(h) for IBM prior.
     """
-    return np.array([[1.0, step], [0., 1.]])
+    return np.array([[1.0, step], [0.0, 1.0]])
 
 
 def ibm_xi(step):
@@ -96,8 +103,7 @@ def ibm_q(step):
     """
     Closed for for Q(h) for IBM prior.
     """
-    return 1.5 ** 2 * np.array(
-        [[step ** 3 / 3, step ** 2 / 2], [step ** 2 / 2, step]])
+    return 1.5 ** 2 * np.array([[step ** 3 / 3, step ** 2 / 2], [step ** 2 / 2, step]])
 
 
 class TestLTISDEModel(unittest.TestCase):
@@ -115,26 +121,28 @@ class TestLTISDEModel(unittest.TestCase):
         self.dispmat = 1.5 * np.eye(TEST_NDIM)[:, -1].reshape((TEST_NDIM, 1))
         self.diffmat = np.eye(1)
         self.force = np.zeros(TEST_NDIM)
-        self.lti = linearsdemodel.LTISDEModel(self.driftmat, self.force, self.dispmat,
-                                    self.diffmat)
+        self.lti = linearsdemodel.LTISDEModel(
+            self.driftmat, self.force, self.dispmat, self.diffmat
+        )
 
     def test_drift(self):
         """ """
         some_state = np.random.rand(TEST_NDIM)
-        diff = self.lti.drift(0., some_state) \
-               - (self.driftmat @ some_state + self.force)
+        diff = self.lti.drift(0.0, some_state) - (
+            self.driftmat @ some_state + self.force
+        )
         self.assertLess(np.linalg.norm(diff), 1e-14)
 
     def test_disp(self):
         """ """
         some_state = np.random.rand(TEST_NDIM)
-        diff = self.lti.dispersion(0., some_state) - self.dispmat
+        diff = self.lti.dispersion(0.0, some_state) - self.dispmat
         self.assertLess(np.linalg.norm(diff), 1e-14)
 
     def test_jac(self):
         """ """
         some_state = np.random.rand(TEST_NDIM)
-        diff = self.lti.jacobian(0., some_state) - self.driftmat
+        diff = self.lti.jacobian(0.0, some_state) - self.driftmat
         self.assertLess(np.linalg.norm(diff), 1e-14)
 
     def test_diff(self):
@@ -154,8 +162,7 @@ class TestLTISDEModel(unittest.TestCase):
 
     def test_driftmatrix(self):
         """ """
-        self.assertLess(np.linalg.norm(self.lti.driftmatrix - self.driftmat),
-                        1e-14)
+        self.assertLess(np.linalg.norm(self.lti.driftmatrix - self.driftmat), 1e-14)
 
     def test_force(self):
         """ """
@@ -163,8 +170,7 @@ class TestLTISDEModel(unittest.TestCase):
 
     def test_dispmatrix(self):
         """ """
-        self.assertLess(
-            np.linalg.norm(self.lti.dispersionmatrix - self.dispmat), 1e-14)
+        self.assertLess(np.linalg.norm(self.lti.dispersionmatrix - self.dispmat), 1e-14)
 
     def test_chapmankolmogorov(self):
         """

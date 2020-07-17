@@ -61,7 +61,9 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
         """
         # maximum iterations
         if iter >= maxiter:
-            warnings.warn(message="Iteration terminated. Solver reached the maximum number of iterations.")
+            warnings.warn(
+                message="Iteration terminated. Solver reached the maximum number of iterations."
+            )
             return True, "maxiter"
         # residual below error tolerance
         elif np.linalg.norm(resid) <= atol:

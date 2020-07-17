@@ -41,7 +41,7 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
     def test_predict(self):
         """
         """
-        pred, __ = self.method.predict(0., self.delta_t, self.initrv)
+        pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         self.assertEqual(pred.mean().ndim, 1)
         self.assertEqual(pred.mean().shape[0], 4)
         self.assertEqual(pred.cov().ndim, 2)
@@ -51,8 +51,8 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
     def test_update(self):
         """
         """
-        data = self.measmod.sample(0., self.initrv.mean())
-        upd, __, __, __ = self.method.update(0., self.initrv, data)
+        data = self.measmod.sample(0.0, self.initrv.mean())
+        upd, __, __, __ = self.method.update(0.0, self.initrv, data)
         self.assertEqual(upd.mean().ndim, 1)
         self.assertEqual(upd.mean().shape[0], 4)
         self.assertEqual(upd.cov().ndim, 2)
@@ -73,14 +73,23 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         obs_rmse = np.linalg.norm(self.obs - self.states[1:, :2]) / normaliser
 
         if VISUALISE is True:
-            plt.title("Car tracking trajectory (%.2f " % smoormse
-                      + "< %.2f < %.2f?)" % (filtrmse, obs_rmse))
-            plt.plot(self.obs[:, 0], self.obs[:, 1], '.',
-                     label="Observations", alpha=0.5)
-            plt.plot(filtms[:, 0], filtms[:, 1], '-', label="Filter guess")
-            plt.plot(smooms[:, 0], smooms[:, 1], '-', label="Smoother guess")
-            plt.plot(self.states[:, 0], self.states[:, 1], '-',
-                     linewidth=6, alpha=0.25, label="Truth")
+            plt.title(
+                "Car tracking trajectory (%.2f " % smoormse
+                + "< %.2f < %.2f?)" % (filtrmse, obs_rmse)
+            )
+            plt.plot(
+                self.obs[:, 0], self.obs[:, 1], ".", label="Observations", alpha=0.5
+            )
+            plt.plot(filtms[:, 0], filtms[:, 1], "-", label="Filter guess")
+            plt.plot(smooms[:, 0], smooms[:, 1], "-", label="Smoother guess")
+            plt.plot(
+                self.states[:, 0],
+                self.states[:, 1],
+                "-",
+                linewidth=6,
+                alpha=0.25,
+                label="Truth",
+            )
             plt.legend()
             plt.show()
         self.assertLess(smoormse, filtrmse)
@@ -114,31 +123,33 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         """
         self.assertEqual(self.initrv, self.method.initialrandomvariable)
 
-
     def test_predict_shape(self):
         """
         """
-        pred, __ = self.method.predict(0., self.delta_t, self.initrv)
+        pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         self.assertEqual(np.isscalar(pred.mean()), True)
         self.assertEqual(np.isscalar(pred.cov()), True)
 
     def test_predict_value(self):
         """
         """
-        pred, __ = self.method.predict(0., self.delta_t, self.initrv)
+        pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         ah = scipy.linalg.expm(self.delta_t * self.drift)
-        qh = self.q / (2 * self.lam) \
-             * (1 - scipy.linalg.expm(2 * self.drift * self.delta_t))
-        expectedmean = np.squeeze(ah @ (self.initrv.mean()*np.ones(1)))
-        expectedcov = np.squeeze(ah @ (self.initrv.cov()*np.eye(1)) @ ah.T + qh)
+        qh = (
+            self.q
+            / (2 * self.lam)
+            * (1 - scipy.linalg.expm(2 * self.drift * self.delta_t))
+        )
+        expectedmean = np.squeeze(ah @ (self.initrv.mean() * np.ones(1)))
+        expectedcov = np.squeeze(ah @ (self.initrv.cov() * np.eye(1)) @ ah.T + qh)
         self.assertAlmostEqual(float(expectedmean), pred.mean())
         self.assertAlmostEqual(float(expectedcov), pred.cov())
 
     def test_update(self):
         """
         """
-        data = np.array([self.measmod.sample(0., self.initrv.mean()*np.ones(1))])
-        upd, __, __, __ = self.method.update(0., self.initrv, data)
+        data = np.array([self.measmod.sample(0.0, self.initrv.mean() * np.ones(1))])
+        upd, __, __, __ = self.method.update(0.0, self.initrv, data)
         self.assertEqual(np.isscalar(upd.mean()), True)
         self.assertEqual(np.isscalar(upd.cov()), True)
 
@@ -155,14 +166,14 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         obs_rmse = np.linalg.norm(self.obs - self.states[1:]) / normaliser
 
         if VISUALISE is True:
-            plt.title("Ornstein Uhlenbeck (%.2f < " % smoormse
-                      + "%.2f < %.2f?)" % (filtrmse, obs_rmse))
-            plt.plot(self.tms[1:], self.obs[:, 0], '.',
-                     label="Observations", alpha=0.5)
-            plt.plot(self.tms, filtms, '-', label="Filter guess")
-            plt.plot(self.tms, smooms, '-', label="Smoother guess")
-            plt.plot(self.tms, self.states, '-',
-                     linewidth=6, alpha=0.25, label="Truth")
+            plt.title(
+                "Ornstein Uhlenbeck (%.2f < " % smoormse
+                + "%.2f < %.2f?)" % (filtrmse, obs_rmse)
+            )
+            plt.plot(self.tms[1:], self.obs[:, 0], ".", label="Observations", alpha=0.5)
+            plt.plot(self.tms, filtms, "-", label="Filter guess")
+            plt.plot(self.tms, smooms, "-", label="Smoother guess")
+            plt.plot(self.tms, self.states, "-", linewidth=6, alpha=0.25, label="Truth")
             plt.legend()
             plt.show()
         self.assertLess(smoormse, filtrmse)

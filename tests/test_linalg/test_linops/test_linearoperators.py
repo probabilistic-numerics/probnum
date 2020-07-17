@@ -19,25 +19,26 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
         np.random.seed(42)
 
         # Scalars, arrays and operators
-        self.scalars = [0, int(1), .1, -4.2, np.nan, np.inf]
-        self.arrays = [np.random.normal(size=[5, 4]), np.array([[3, 4],
-                                                                [1, 5]])]
+        self.scalars = [0, int(1), 0.1, -4.2, np.nan, np.inf]
+        self.arrays = [np.random.normal(size=[5, 4]), np.array([[3, 4], [1, 5]])]
 
         def mv(v):
             return np.array([2 * v[0], v[0] + 3 * v[1]])
 
         self.mv = mv
-        self.ops = [linops.MatrixMult(np.array([[-1.5, 3],
-                                                [0, -230]])),
-                    linops.LinearOperator(shape=(2, 2), matvec=mv),
-                    linops.Identity(shape=4),
-                    linops.Kronecker(A=linops.MatrixMult(np.array([[2, -3.5],
-                                                                   [12, 6.5]])),
-                                     B=linops.Identity(shape=2)),
-                    linops.SymmetricKronecker(A=linops.MatrixMult(np.array([[1, -2],
-                                                                            [-2.2, 5]])),
-                                              B=linops.MatrixMult(np.array([[1, -3],
-                                                                            [0, -.5]])))]
+        self.ops = [
+            linops.MatrixMult(np.array([[-1.5, 3], [0, -230]])),
+            linops.LinearOperator(shape=(2, 2), matvec=mv),
+            linops.Identity(shape=4),
+            linops.Kronecker(
+                A=linops.MatrixMult(np.array([[2, -3.5], [12, 6.5]])),
+                B=linops.Identity(shape=2),
+            ),
+            linops.SymmetricKronecker(
+                A=linops.MatrixMult(np.array([[1, -2], [-2.2, 5]])),
+                B=linops.MatrixMult(np.array([[1, -3], [0, -0.5]])),
+            ),
+        ]
 
     def test_linop_construction(self):
         """Create linear operators via various construction methods."""
@@ -79,8 +80,11 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                 x = np.random.normal(size=op.shape[1])
 
                 self.assertAllClose(A @ x, op @ x)
-                self.assertAllClose(A @ x[:, None], op @ x[:, None],
-                                    msg="Matrix-vector multiplication with (n,1) vector failed.")
+                self.assertAllClose(
+                    A @ x[:, None],
+                    op @ x[:, None],
+                    msg="Matrix-vector multiplication with (n,1) vector failed.",
+                )
 
     class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
         """Test linear operator functions."""
@@ -98,17 +102,26 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
         """Test Kronecker-type operators."""
 
         def setUp(self):
-            self.kronecker_matrices = [(np.array([[4, 1, 4], [2, 3, 2]]), np.array([[-1, 4], [2, 1]])),
-                                       (np.array([[.4, 2, .8], [-.4, 0, -.9]]), np.array([[1, 4]]))]
-            self.symmkronecker_matrices = [(np.array([[4, 1], [2, 3]]), np.array([[-1, 4], [2, 1]])),
-                                           (np.array([[.4, 2, .8], [-.4, 0, -.9], [1, 0, 2]]),
-                                            np.array([[1, 4, 0], [-3, -.4, -100], [.18, -2, 10]]))]
+            self.kronecker_matrices = [
+                (np.array([[4, 1, 4], [2, 3, 2]]), np.array([[-1, 4], [2, 1]])),
+                (np.array([[0.4, 2, 0.8], [-0.4, 0, -0.9]]), np.array([[1, 4]])),
+            ]
+            self.symmkronecker_matrices = [
+                (np.array([[4, 1], [2, 3]]), np.array([[-1, 4], [2, 1]])),
+                (
+                    np.array([[0.4, 2, 0.8], [-0.4, 0, -0.9], [1, 0, 2]]),
+                    np.array([[1, 4, 0], [-3, -0.4, -100], [0.18, -2, 10]]),
+                ),
+            ]
 
         def test_vec2svec_dimension(self):
             """Check faulty dimension for Q."""
             for n in [-1, 0, 1.1, np.inf, np.nan]:
                 with self.subTest():
-                    with self.assertRaises(ValueError, msg="Invalid input dimension n should raise a ValueError."):
+                    with self.assertRaises(
+                        ValueError,
+                        msg="Invalid input dimension n should raise a ValueError.",
+                    ):
                         linops.Svec(dim=n)
 
         def test_symmetrize(self):
@@ -119,16 +132,24 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                     X = np.reshape(x, (n, n))
                     y = linops.Symmetrize(dim=n) @ x
 
-                    self.assertArrayEqual(y.reshape(n, n), 0.5 * (X + X.T), msg="Matrix not symmetric.")
+                    self.assertArrayEqual(
+                        y.reshape(n, n), 0.5 * (X + X.T), msg="Matrix not symmetric."
+                    )
 
                     Z = np.random.uniform(size=(9, 5))
                     W = linops.Symmetrize(dim=3) @ Z
 
-                    self.assertArrayEqual(W, np.vstack([linops.Symmetrize(dim=3) @ col for col in Z.T]).T,
-                                          msg="Matrix columns were not symmetrized.")
+                    self.assertArrayEqual(
+                        W,
+                        np.vstack([linops.Symmetrize(dim=3) @ col for col in Z.T]).T,
+                        msg="Matrix columns were not symmetrized.",
+                    )
 
-                    self.assertArrayEqual(np.shape(W), np.shape(Z),
-                                          msg="Symmetrized matrix columns do not have the right shape.")
+                    self.assertArrayEqual(
+                        np.shape(W),
+                        np.shape(Z),
+                        msg="Symmetrized matrix columns do not have the right shape.",
+                    )
 
         def test_kronecker_transpose(self):
             """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
@@ -151,11 +172,14 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
         def test_symmkronecker_todense_symmetric(self):
             """Dense matrix from symmetric Kronecker product of two symmetric matrices must be symmetric."""
             C = np.array([[5, 1], [1, 10]])
-            D = np.array([[-2, .1], [.1, 8]])
+            D = np.array([[-2, 0.1], [0.1, 8]])
             Ws = linops.SymmetricKronecker(A=C, B=C)
             Ws_dense = Ws.todense()
-            self.assertArrayEqual(Ws_dense, Ws_dense.T,
-                                  msg="Symmetric Kronecker product of symmetric matrices is not symmetric.")
+            self.assertArrayEqual(
+                Ws_dense,
+                Ws_dense.T,
+                msg="Symmetric Kronecker product of symmetric matrices is not symmetric.",
+            )
 
         def test_symmkronecker_explicit(self):
             """Test the symmetric Kronecker operator against explicit matrix representations."""
@@ -185,8 +209,7 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
 
     def test_trace_only_square(self):
         """Test that the trace can only be computed for square matrices."""
-        nonsquare_op = linops.MatrixMult(np.array([[-1.5, 3, 1],
-                                                   [0, -230, 0]]))
+        nonsquare_op = linops.MatrixMult(np.array([[-1.5, 3, 1], [0, -230, 0]]))
         with self.assertRaises(ValueError):
             nonsquare_op.trace()
 
@@ -194,4 +217,6 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
         """Check whether the trace of various linear operators is computed correctly."""
         for A in self.ops:
             with self.subTest():
-                self.assertApproxEqual(A.trace(), np.trace(a=A.todense()), significant=7)
+                self.assertApproxEqual(
+                    A.trace(), np.trace(a=A.todense()), significant=7
+                )

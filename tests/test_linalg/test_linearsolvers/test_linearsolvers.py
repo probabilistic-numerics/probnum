@@ -20,15 +20,15 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         """Resources for tests."""
 
         # Poisson equation with Dirichlet conditions.
-        # 
+        #
         #   - Laplace(u) = f    in the interior
         #              u = u_D  on the boundary
         # where
         #     u_D = 1 + x^2 + 2y^2
         #     f = -4
-        # 
+        #
         # Linear system resulting from discretization on an elliptic grid.
-        fpath = os.path.join(os.path.dirname(__file__), '../../resources')
+        fpath = os.path.join(os.path.dirname(__file__), "../../resources")
         A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
         f = np.load(file=fpath + "/rhs_poisson.npy")
         self.poisson_linear_system = A, f
@@ -38,14 +38,18 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Toy data
         n = 100
-        x_min, x_max = (-4., 4.)
+        x_min, x_max = (-4.0, 4.0)
         X = np.random.uniform(x_min, x_max, (n, 1))
 
         # RBF kernel
         lengthscale = 1
         var = 1
         X_norm = np.sum(X ** 2, axis=-1)
-        K_rbf = var * np.exp(-1 / (2 * lengthscale ** 2) * (X_norm[:, None] + X_norm[None, :] - 2 * np.dot(X, X.T)))
+        K_rbf = var * np.exp(
+            -1
+            / (2 * lengthscale ** 2)
+            * (X_norm[:, None] + X_norm[None, :] - 2 * np.dot(X, X.T))
+        )
         K_rbf = K_rbf + 10 ** -2 * np.eye(n)
         x_true = np.random.normal(size=(n,))
         b = K_rbf @ x_true
@@ -67,22 +71,33 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         x0 = np.zeros(shape=[1])
         for plinsolve in [linalg.problinsolve, linalg.bayescg]:
             with self.subTest():
-                with self.assertRaises(ValueError, msg="Invalid input formats should raise a ValueError."):
+                with self.assertRaises(
+                    ValueError, msg="Invalid input formats should raise a ValueError."
+                ):
                     # A, b dimension mismatch
                     plinsolve(A=A, b=b)
                     # A, x0 dimension mismatch
                     plinsolve(A=A, b=np.zeros(A.shape[0]), x0=x0)
                     # A not square
-                    plinsolve(A=np.zeros([3, 4]), b=np.zeros(A.shape[0]),
-                              x0=np.zeros(shape=[A.shape[1]]))
+                    plinsolve(
+                        A=np.zeros([3, 4]),
+                        b=np.zeros(A.shape[0]),
+                        x0=np.zeros(shape=[A.shape[1]]),
+                    )
                     # A inverse not square
-                    plinsolve(A=A, b=np.zeros(A.shape[0]),
-                              Ainv=np.zeros([2, 3]),
-                              x0=np.zeros(shape=[A.shape[1]]))
+                    plinsolve(
+                        A=A,
+                        b=np.zeros(A.shape[0]),
+                        Ainv=np.zeros([2, 3]),
+                        x0=np.zeros(shape=[A.shape[1]]),
+                    )
                     # A, Ainv dimension mismatch
-                    plinsolve(A=A, b=np.zeros(A.shape[0]),
-                              Ainv=np.zeros([2, 2]),
-                              x0=np.zeros(shape=[A.shape[1]]))
+                    plinsolve(
+                        A=A,
+                        b=np.zeros(A.shape[0]),
+                        Ainv=np.zeros([2, 2]),
+                        x0=np.zeros(shape=[A.shape[1]]),
+                    )
 
     def test_randvar_output(self):
         """Probabilistic linear solvers output random variables."""
@@ -95,8 +110,11 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 x, A, Ainv, _ = plinsolve(A=A, b=b)
                 for rv in [x, A, Ainv]:
-                    self.assertIsInstance(rv, prob.RandomVariable,
-                                          msg="Output of probabilistic linear solver is not a random variable.")
+                    self.assertIsInstance(
+                        rv,
+                        prob.RandomVariable,
+                        msg="Output of probabilistic linear solver is not a random variable.",
+                    )
 
     def test_symmetric_posterior_params(self):
         """Test whether posterior parameters are symmetric."""
@@ -112,12 +130,9 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 Ainv_mean = Ainv.mean().todense()
                 Ainv_cov_A = Ainv.cov().A.todense()
                 Ainv_cov_B = Ainv.cov().B.todense()
-                self.assertAllClose(Ainv_mean,
-                                    Ainv_mean.T, rtol=1e-6)
-                self.assertAllClose(Ainv_cov_A,
-                                    Ainv_cov_B, rtol=1e-6)
-                self.assertAllClose(Ainv_cov_A,
-                                    Ainv_cov_A.T, rtol=1e-6)
+                self.assertAllClose(Ainv_mean, Ainv_mean.T, rtol=1e-6)
+                self.assertAllClose(Ainv_cov_A, Ainv_cov_B, rtol=1e-6)
+                self.assertAllClose(Ainv_cov_A, Ainv_cov_A.T, rtol=1e-6)
 
     def test_zero_rhs(self):
         """Linear system with zero right hand side."""
@@ -145,7 +160,11 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         for plinsolve in self.problinsolvers:
             with self.subTest():
                 x, _, _, info = plinsolve(A=A, b=B)
-                self.assertEqual(x.shape, B.shape, msg="Shape of solution and right hand side do not match.")
+                self.assertEqual(
+                    x.shape,
+                    B.shape,
+                    msg="Shape of solution and right hand side do not match.",
+                )
                 self.assertAllClose(x.mean(), np.linalg.solve(A, B))
 
     def test_spd_matrix(self):
@@ -160,8 +179,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         for matblinsolve in self.matblinsolvers:
             with self.subTest():
                 x, _, _, info = matblinsolve(A=A, b=b)
-                self.assertAllClose(x.mean(), x_true, rtol=1e-6, atol=1e-6,
-                                    msg="Solution does not match true solution.")
+                self.assertAllClose(
+                    x.mean(),
+                    x_true,
+                    rtol=1e-6,
+                    atol=1e-6,
+                    msg="Solution does not match true solution.",
+                )
 
     def test_sparse_poisson(self):
         """(Sparse) linear system from Poisson PDE with boundary conditions."""
@@ -171,9 +195,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         for plinsolve in self.problinsolvers:
             with self.subTest():
                 u_solver, Ahat, Ainvhat, info = plinsolve(A=A, b=f)
-                self.assertAllClose(u_solver.mean(), u, rtol=1e-5,
-                                    msg="Solution from probabilistic linear solver does" +
-                                        " not match scipy.sparse.linalg.spsolve.")
+                self.assertAllClose(
+                    u_solver.mean(),
+                    u,
+                    rtol=1e-5,
+                    msg="Solution from probabilistic linear solver does"
+                    + " not match scipy.sparse.linalg.spsolve.",
+                )
 
     def test_residual_matches_error(self):
         """Test whether the residual norm matches the error of the computed solution estimate."""
@@ -182,18 +210,21 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         for plinsolve in self.problinsolvers:
             with self.subTest():
                 x_est, Ahat, Ainvhat, info = plinsolve(A=A, b=b)
-                self.assertAlmostEqual(info["resid_l2norm"], np.linalg.norm(A @ x_est.mean() - b),
-                                       msg="Residual in output info does not match l2-error of solution estimate.")
+                self.assertAlmostEqual(
+                    info["resid_l2norm"],
+                    np.linalg.norm(A @ x_est.mean() - b),
+                    msg="Residual in output info does not match l2-error of solution estimate.",
+                )
 
     # def test_solution_equivalence(self):
     #     """The iteratively computed solution should match the induced solution estimate: x_k = E[A^-1] b"""
     #     A, f = self.poisson_linear_system
-    # 
+    #
     #     for matblinsolve in self.matblinsolvers:
     #         with self.subTest():
     #             # Solve linear system
     #             u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
-    # 
+    #
     #             # E[x] = E[A^-1] b
     #             self.assertAllClose(u_solver.mean(), (Ainvhat @ f[:, None]).mean().ravel(), rtol=1e-5,
     #                                 msg="Solution from matrix-based probabilistic linear solver does not match the " +
@@ -206,7 +237,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         """
         A, b, x_true = self.rbf_kernel_linear_system
 
-        for calibrate in [False, 0., 0.00000001, 2.8]:
+        for calibrate in [False, 0.0, 0.00000001, 2.8]:
             with self.subTest():
                 # Define callback function to obtain search directions
                 S = []  # search directions
@@ -217,21 +248,29 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     Y.append(yk)
 
                 # Solve linear system
-                u_solver, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b,
-                                                                    assume_A="sympos",
-                                                                    callback=callback_postparams,
-                                                                    calibration=calibrate)
+                u_solver, Ahat, Ainvhat, info = linalg.problinsolve(
+                    A=A,
+                    b=b,
+                    assume_A="sympos",
+                    callback=callback_postparams,
+                    calibration=calibrate,
+                )
                 # Create arrays from lists
                 S = np.squeeze(np.array(S)).T
                 Y = np.squeeze(np.array(Y)).T
 
-                self.assertAllClose(np.array(Ahat.cov().A.todense()) @ S, np.zeros_like(S),
-                                    atol=1e-6,
-                                    msg="Uncertainty over A in explored space span(S) not zero.")
-                self.assertAllClose(np.array(Ainvhat.cov().A.todense()) @ Y, np.zeros_like(S),
-                                    atol=1e-6,
-                                    msg="Uncertainty over Ainv in explored space span(Y) not zero.")
-
+                self.assertAllClose(
+                    np.array(Ahat.cov().A.todense()) @ S,
+                    np.zeros_like(S),
+                    atol=1e-6,
+                    msg="Uncertainty over A in explored space span(S) not zero.",
+                )
+                self.assertAllClose(
+                    np.array(Ainvhat.cov().A.todense()) @ Y,
+                    np.zeros_like(S),
+                    atol=1e-6,
+                    msg="Uncertainty over Ainv in explored space span(Y) not zero.",
+                )
 
     def test_posterior_covariance_posdef(self):
         """Posterior covariances of the output must be positive (semi-) definite."""
@@ -245,12 +284,17 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 u_solver, Ahat, Ainvhat, info = matblinsolve(A=A, b=f)
 
                 # Check positive definiteness
-                self.assertArrayLess(np.zeros(np.shape(A)[0]),
-                                     np.real_if_close(np.linalg.eigvals(Ahat.cov().A.todense())) + eps,
-                                     msg="Covariance of A not positive semi-definite.")
-                self.assertArrayLess(np.zeros(np.shape(A)[0]),
-                                     np.real_if_close(np.linalg.eigvals(Ainvhat.cov().A.todense())) + eps,
-                                     msg="Covariance of Ainv not positive semi-definite.")
+                self.assertArrayLess(
+                    np.zeros(np.shape(A)[0]),
+                    np.real_if_close(np.linalg.eigvals(Ahat.cov().A.todense())) + eps,
+                    msg="Covariance of A not positive semi-definite.",
+                )
+                self.assertArrayLess(
+                    np.zeros(np.shape(A)[0]),
+                    np.real_if_close(np.linalg.eigvals(Ainvhat.cov().A.todense()))
+                    + eps,
+                    msg="Covariance of Ainv not positive semi-definite.",
+                )
 
     def test_matrixprior(self):
         """Solve random linear system with a matrix-based linear solver."""
@@ -270,8 +314,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 x, Ahat, Ainvhat, info = matblinsolve(A=A, Ainv0=Ainv0, b=b)
 
-                self.assertAllClose(x.mean(), x_true, rtol=1e-6, atol=1e-6,
-                                    msg="Solution for matrixvariate prior does not match true solution.")
+                self.assertAllClose(
+                    x.mean(),
+                    x_true,
+                    rtol=1e-6,
+                    atol=1e-6,
+                    msg="Solution for matrixvariate prior does not match true solution.",
+                )
 
     def test_searchdir_conjugacy(self):
         """Search directions should remain A-conjugate up to machine precision, i.e. s_i^T A s_j = 0 for i != j."""
@@ -293,8 +342,12 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 inner_prods = search_dir_arr.T @ A @ search_dir_arr
 
                 # Compare against identity matrix
-                self.assertAllClose(np.diag(np.diag(inner_prods)), inner_prods, atol=1e-7,
-                                    msg="Search directions from solver are not A-conjugate.")
+                self.assertAllClose(
+                    np.diag(np.diag(inner_prods)),
+                    inner_prods,
+                    atol=1e-7,
+                    msg="Search directions from solver are not A-conjugate.",
+                )
 
     def test_posterior_mean_CG_equivalency(self):
         """
@@ -309,7 +362,9 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         cg_iterates = []
 
         def callback_iterates_CG(xk):
-            cg_iterates.append(np.eye(np.shape(A)[0]) @ xk)  # identity hack to actually save different iterations
+            cg_iterates.append(
+                np.eye(np.shape(A)[0]) @ xk
+            )  # identity hack to actually save different iterations
 
         # Solve linear system
 
@@ -317,26 +372,42 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         x0 = b
 
         # Conjugate gradient method
-        xhat_cg, info_cg = scipy.sparse.linalg.cg(A=A, b=b, x0=x0, tol=10 ** -6, callback=callback_iterates_CG)
+        xhat_cg, info_cg = scipy.sparse.linalg.cg(
+            A=A, b=b, x0=x0, tol=10 ** -6, callback=callback_iterates_CG
+        )
         cg_iters_arr = np.array([x0] + cg_iterates)
 
         # Matrix priors (encoding weak symmetric posterior correspondence)
-        Ainv0 = prob.RandomVariable(distribution=prob.Normal(mean=linops.Identity(A.shape[1]),
-                                                             cov=linops.SymmetricKronecker(
-                                                                 A=linops.Identity(A.shape[1]))))
-        A0 = prob.RandomVariable(distribution=prob.Normal(mean=linops.Identity(A.shape[1]),
-                                                          cov=linops.SymmetricKronecker(A)))
+        Ainv0 = prob.RandomVariable(
+            distribution=prob.Normal(
+                mean=linops.Identity(A.shape[1]),
+                cov=linops.SymmetricKronecker(A=linops.Identity(A.shape[1])),
+            )
+        )
+        A0 = prob.RandomVariable(
+            distribution=prob.Normal(
+                mean=linops.Identity(A.shape[1]), cov=linops.SymmetricKronecker(A)
+            )
+        )
         for kwargs in [{"assume_A": "sympos", "rtol": 10 ** -6}]:
             with self.subTest():
                 # Define callback function to obtain search directions
                 pls_iterates = []
 
-                def callback_iterates_PLS(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs):
+                def callback_iterates_PLS(
+                    xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs
+                ):
                     pls_iterates.append(xk.mean())
 
                 # Probabilistic linear solver
-                xhat_pls, _, _, info_pls = linalg.problinsolve(A=A, b=b, Ainv0=Ainv0, A0=A0,
-                                                               callback=callback_iterates_PLS, **kwargs)
+                xhat_pls, _, _, info_pls = linalg.problinsolve(
+                    A=A,
+                    b=b,
+                    Ainv0=Ainv0,
+                    A0=A0,
+                    callback=callback_iterates_PLS,
+                    **kwargs
+                )
                 pls_iters_arr = np.array([x0] + pls_iterates)
 
                 self.assertAllClose(xhat_pls.mean(), xhat_cg, rtol=10 ** -12)
@@ -350,11 +421,16 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         """The solver's returned value for the trace must match the actual trace of the solution covariance."""
         A, b, x_true = self.rbf_kernel_linear_system
 
-        for calib_method in [None, 0, 1., "adhoc", "weightedmean", "gpkern"]:
+        for calib_method in [None, 0, 1.0, "adhoc", "weightedmean", "gpkern"]:
             with self.subTest():
-                x_est, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b, calibration=calib_method)
-                self.assertAlmostEqual(info["trace_sol_cov"], x_est.cov().trace(),
-                                       msg="Iteratively computed trace not equal to trace of solution covariance.")
+                x_est, Ahat, Ainvhat, info = linalg.problinsolve(
+                    A=A, b=b, calibration=calib_method
+                )
+                self.assertAlmostEqual(
+                    info["trace_sol_cov"],
+                    x_est.cov().trace(),
+                    msg="Iteratively computed trace not equal to trace of solution covariance.",
+                )
 
     def test_uncertainty_calibration_error(self):
         """Test if the available uncertainty calibration procedures affect the error of the returned solution."""
@@ -363,9 +439,14 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         for calib_method in [None, 0, "adhoc", "weightedmean", "gpkern"]:
             with self.subTest():
-                x_est, Ahat, Ainvhat, info = linalg.problinsolve(A=A, b=b, calibration=calib_method)
-                self.assertLessEqual((x_true - x_est.mean()).T @ A @ (x_true - x_est.mean()), tol,
-                                     msg="Estimated solution not sufficiently close to true solution.")
+                x_est, Ahat, Ainvhat, info = linalg.problinsolve(
+                    A=A, b=b, calibration=calib_method
+                )
+                self.assertLessEqual(
+                    (x_true - x_est.mean()).T @ A @ (x_true - x_est.mean()),
+                    tol,
+                    msg="Estimated solution not sufficiently close to true solution.",
+                )
 
 
 class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
@@ -383,7 +464,7 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         #     f = -4
         #
         # Linear system resulting from discretization on an elliptic grid.
-        fpath = os.path.join(os.path.dirname(__file__), '../../resources')
+        fpath = os.path.join(os.path.dirname(__file__), "../../resources")
         A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
         f = np.load(file=fpath + "/rhs_poisson.npy")
         self.poisson_linear_system = A, f
@@ -411,7 +492,9 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
                 # Matrix-based solver
                 smbs = linalg.MatrixBasedSolver(A=A, b=b, x0=x0)
-                A0_mean, Ainv0_mean = smbs._construct_symmetric_matrix_prior_means(A=A, b=b, x0=x0)
+                A0_mean, Ainv0_mean = smbs._construct_symmetric_matrix_prior_means(
+                    A=A, b=b, x0=x0
+                )
                 A0_mean_dense = A0_mean.todense()
                 Ainv0_mean_dense = Ainv0_mean.todense()
 
@@ -419,8 +502,12 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAllClose(Ainv0_mean @ b, x0_true)
 
                 # Inverse correspondence
-                self.assertAllClose(A0_mean @ Ainv0_mean @ np.eye(np.shape(A)[0]), np.eye(np.shape(A)[0]),
-                                    atol=10 ** -8, rtol=10 ** -8)
+                self.assertAllClose(
+                    A0_mean @ Ainv0_mean @ np.eye(np.shape(A)[0]),
+                    np.eye(np.shape(A)[0]),
+                    atol=10 ** -8,
+                    rtol=10 ** -8,
+                )
 
                 # Symmetry
                 self.assertAllClose(Ainv0_mean_dense, Ainv0_mean_dense.T)

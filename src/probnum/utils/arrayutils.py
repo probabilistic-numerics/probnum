@@ -4,8 +4,13 @@ import numpy as np
 import scipy.sparse
 import probnum.prob
 
-__all__ = ["atleast_1d", "atleast_2d", "as_colvec",
-           "assert_is_1d_ndarray", "assert_is_2d_ndarray"]
+__all__ = [
+    "atleast_1d",
+    "atleast_2d",
+    "as_colvec",
+    "assert_is_1d_ndarray",
+    "assert_is_2d_ndarray",
+]
 
 
 def atleast_1d(*rvs):
