@@ -94,7 +94,6 @@ You can access the documentation of the stable (release), latest (`master` branc
 [![docs: stable](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs%20(stable))](https://probnum.readthedocs.io/en/stable/)
 [![docs: stable](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs%20(latest))](https://probnum.readthedocs.io/en/latest/)
 [![docs: development](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs%20(dev)&version=development)](https://probnum.readthedocs.io/en/development/)
-<br>
 
 When implementing published methods give credit and include the appropriate citations.
 You can build the documentation locally via:
