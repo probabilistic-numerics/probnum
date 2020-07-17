@@ -128,7 +128,7 @@ html_static_path = ["_static", "img"]
 
 
 def setup(app):
-    app.add_stylesheet("my-styles.css")  # also can be a full URL
+    app.add_stylesheet("probnum-style.css")  # also can be a full URL
     # app.add_stylesheet("ANOTHER.css")
 
 

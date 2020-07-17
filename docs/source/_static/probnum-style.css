@@ -8,16 +8,12 @@
   --light-gray: #f2f2f2;
 }
 
-/*
-/* Mobile friendly width
-div.body {
-		min-width: 375px;
-		max-width: 1000px;
-}*/
-
 /* Sidebar */
 
 /* Logo area */
+.wy-nav-top {
+	background: var(--main-color);
+}
 .wy-nav-side {
 	background: var(--dark-gray);
 }
