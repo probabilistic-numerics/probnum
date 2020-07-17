@@ -6,9 +6,19 @@ from tests.testing import NumpyAssertions
 
 import numpy as np
 import scipy.sparse
+import scipy.stats
 
 from probnum import prob
 from probnum.linalg import linops
+
+
+def _random_spd_matrix(size=10):
+    """ Generates a random symmetric positive definite matrix. """
+    random_spd = np.random.rand(size, size)
+    random_spd = random_spd @ random_spd.T
+    random_spd = random_spd + np.eye(size)
+
+    return random_spd
 
 
 class NormalTestCase(unittest.TestCase, NumpyAssertions):
@@ -25,8 +35,18 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         self.constants = [-1, -2.4, 0, 200, np.pi]
         sparsemat = scipy.sparse.rand(m=m, n=n, density=0.1, random_state=1)
         self.normal_params = [
+            # Univariate
             (-1, 3),
+            # Multivariate
             (np.random.uniform(size=10), np.eye(10)),
+            (np.random.uniform(size=10), _random_spd_matrix(10)),
+            # Matrixvariate
+            (
+                np.random.uniform(size=(2, 2)),
+                linops.SymmetricKronecker(
+                    A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])
+                ).todense(),
+            ),
             (np.array([1, -5]), linops.MatrixMult(A=np.array([[2, 1], [1, -0.1]]))),
             (linops.MatrixMult(A=np.array([[0, -5]])), linops.Identity(shape=(2, 2))),
             (
@@ -179,6 +199,216 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     i
                 ),
             )
+
+    def test_indexing(self):
+        """ Indexing with Python integers yields a univariate normal distribution. """
+        for mean, cov in self.normal_params:
+            dist = prob.Normal(mean=mean, cov=cov)
+
+            if isinstance(
+                dist,
+                (
+                    prob.distributions.normal._UnivariateNormal,
+                    prob.distributions.normal._OperatorvariateNormal,  # TODO: Implement slicing on linear operators
+                ),
+            ):
+                continue
+
+            with self.subTest():
+                # Sample random index
+                idx = tuple(np.random.randint(dim_size) for dim_size in dist.shape)
+
+                # Index into distribution, a.k.a. marginalize
+                index_dist = dist[idx]
+
+                self.assertIsInstance(
+                    index_dist, prob.distributions.normal._UnivariateNormal
+                )
+
+                # Compare with expected parameter values
+                if len(dist.shape) == 1:
+                    flat_idx = idx[0]
+                else:
+                    assert len(dist.shape) == 2
+
+                    flat_idx = idx[0] * dist.shape[1] + idx[1]
+
+                self.assertEqual(index_dist.mean(), dist.mean()[idx])
+                self.assertEqual(index_dist.var(), dist.var()[flat_idx])
+                self.assertEqual(index_dist.cov(), dist.cov()[flat_idx, flat_idx])
+
+    def test_slicing(self):
+        """ Slicing into a normal distribution yields a normal distribution of the same type """
+        for mean, cov in self.normal_params:
+            dist = prob.Normal(mean=mean, cov=cov)
+
+            if isinstance(
+                dist,
+                (
+                    prob.distributions.normal._UnivariateNormal,
+                    prob.distributions.normal._OperatorvariateNormal,  # TODO: Implement slicing on linear operators
+                ),
+            ):
+                continue
+
+            def _random_slice(dim_size):
+                # TODO: Remove min_slice_length once shape (1,) and (1, 1) mean lead to multi- and matrixvariate normal, respectively
+                min_slice_length = 2
+
+                start = np.random.randint(dim_size - min_slice_length + 1)
+
+                assert start + min_slice_length <= dim_size
+
+                stop = np.random.randint(start + min_slice_length, dim_size + 1)
+
+                return slice(start, stop)
+
+            with self.subTest():
+                # Sample random slice objects for each dimension
+                slices = tuple(_random_slice(dim_size) for dim_size in dist.shape)
+
+                # Get slice from distribution, a.k.a. marginalize
+                sliced_dist = dist[slices]
+
+                self.assertIsInstance(sliced_dist, type(dist))
+
+                # Compare with expected parameter values
+                slice_mask = np.zeros_like(dist.mean(), dtype=np.bool)
+                slice_mask[slices] = True
+                slice_mask = slice_mask.ravel()
+
+                self.assertArrayEqual(sliced_dist.mean(), dist.mean()[slices])
+                self.assertArrayEqual(sliced_dist.var(), dist.var()[slice_mask])
+                self.assertArrayEqual(
+                    sliced_dist.cov(), dist.cov()[np.ix_(slice_mask, slice_mask)]
+                )
+
+    def test_array_indexing(self):
+        """ Indexing with 1-dim integer arrays yields a multivariate normal. """
+        for mean, cov in self.normal_params:
+            dist = prob.Normal(mean=mean, cov=cov)
+
+            if isinstance(
+                dist,
+                (
+                    prob.distributions.normal._UnivariateNormal,
+                    prob.distributions.normal._OperatorvariateNormal,
+                ),
+            ):
+                continue
+
+            with self.subTest():
+                # Sample random indices
+                idcs = tuple(
+                    np.random.randint(dim_shape, size=10) for dim_shape in mean.shape
+                )
+
+                # Index into distribution, a.k.a. marginalize / replicate
+                index_dist = dist[idcs]
+
+                self.assertIsInstance(
+                    index_dist, prob.distributions.normal._MultivariateNormal
+                )
+
+                # Compare with expected parameter values
+                if len(dist.shape) == 1:
+                    flat_idcs = idcs[0]
+                else:
+                    assert len(dist.shape) == 2
+
+                    flat_idcs = idcs[0] * dist.shape[1] + idcs[1]
+
+                self.assertEqual(index_dist.shape, (10,))
+
+                self.assertArrayEqual(index_dist.mean(), dist.mean()[idcs])
+                self.assertArrayEqual(index_dist.var(), dist.var()[flat_idcs])
+                self.assertArrayEqual(
+                    index_dist.cov(), dist.cov()[np.ix_(flat_idcs, flat_idcs)]
+                )
+
+    def test_array_indexing_broadcast(self):
+        """ Indexing with broadcasted integer arrays yields a matrixvariate normal """
+        for mean, cov in self.normal_params:
+            dist = prob.Normal(mean=mean, cov=cov)
+
+            if isinstance(
+                dist,
+                (
+                    prob.distributions.normal._UnivariateNormal,
+                    prob.distributions.normal._MultivariateNormal,
+                    prob.distributions.normal._OperatorvariateNormal,
+                ),
+            ):
+                continue
+
+            assert len(dist.shape) == 2
+
+            with self.subTest():
+                # Sample random indices
+                idcs = np.ix_(
+                    *tuple(
+                        np.random.randint(dim_shape, size=10)
+                        for dim_shape in dist.shape
+                    )
+                )
+
+                # Index into distribution, a.k.a. marginalize / replicate
+                index_dist = dist[idcs]
+
+                self.assertIsInstance(
+                    index_dist, prob.distributions.normal._MatrixvariateNormal
+                )
+                self.assertEqual(index_dist.shape, (10, 10))
+
+                # Compare with expected parameter values
+                flat_idcs = np.broadcast_arrays(*idcs)
+                flat_idcs = flat_idcs[0] * dist.shape[1] + flat_idcs[1]
+                flat_idcs = flat_idcs.ravel()
+
+                self.assertArrayEqual(index_dist.mean(), dist.mean()[idcs])
+                self.assertArrayEqual(index_dist.var(), dist.var()[flat_idcs])
+                self.assertArrayEqual(
+                    index_dist.cov(), dist.cov()[np.ix_(flat_idcs, flat_idcs)]
+                )
+
+    def test_masking(self):
+        """ Masking a multivariate or matrixvariate normal yields a multivariate normal. """
+        for mean, cov in self.normal_params:
+            dist = prob.Normal(mean=mean, cov=cov)
+
+            if isinstance(
+                dist,
+                (
+                    prob.distributions.normal._UnivariateNormal,
+                    prob.distributions.normal._OperatorvariateNormal,
+                ),
+            ):
+                continue
+
+            with self.subTest():
+                # Sample random indices
+                idcs = tuple(
+                    np.random.randint(dim_shape, size=10) for dim_shape in mean.shape
+                )
+
+                mask = np.zeros_like(dist.mean(), dtype=np.bool)
+                mask[idcs] = True
+
+                # Mask distribution, a.k.a. marginalize
+                index_dist = dist[mask]
+
+                self.assertIsInstance(
+                    index_dist, prob.distributions.normal._MultivariateNormal
+                )
+
+                # Compare with expected parameter values
+                flat_mask = mask.flatten()
+
+                self.assertArrayEqual(index_dist.mean(), dist.mean()[mask])
+                self.assertArrayEqual(index_dist.var(), dist.var()[flat_mask])
+                self.assertArrayEqual(
+                    index_dist.cov(), dist.cov()[np.ix_(flat_mask, flat_mask)]
+                )
 
 
 if __name__ == "__main__":

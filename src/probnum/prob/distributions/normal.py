@@ -112,6 +112,20 @@ class Normal(Distribution):
     def var(self):
         raise NotImplementedError
 
+    def __getitem__(self, key):
+        if not isinstance(key, tuple):
+            key = (key,)
+
+        # Select entries from mean
+        mean = self.mean()[key]
+
+        # Select submatrix from covariance matrix
+        cov = self.cov().reshape(self.mean().shape + self.mean().shape)
+        cov = cov[key][tuple([slice(None)] * mean.ndim) + key]
+        cov = cov.reshape(mean.size, mean.size)
+
+        return Normal(mean=mean, cov=cov, random_state=self.random_state,)
+
     # Binary arithmetic
 
     def __add__(self, other):
@@ -382,6 +396,9 @@ class _UnivariateNormal(Normal):
         self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
         self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
         self._shape = newshape
+
+    def __getitem__(self, key):
+        raise NotImplementedError
 
 
 class _MultivariateNormal(Normal):
