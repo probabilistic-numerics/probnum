@@ -1,4 +1,4 @@
-Documentation
+API Documentation
 ==========================
 
 This reference details modules, functions and classes implemented in ProbNum, describing their functionality and how to

@@ -112,7 +112,6 @@ html_logo = "img/pn_logo.png"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further. For a list of options available for each theme, see the
 # documentation. For sphinx-bootstrap specific issues, see: https://github.com/ryan-roemer/sphinx-bootstrap-theme
-#
 html_theme_options = {
     # Navigation bar title. (Default: ``project`` value)
     'navbar_title': project,
@@ -129,7 +128,7 @@ html_theme_options = {
     # an arbitrary url.
     'navbar_links': [
         ("About", "intro"),
-        ("Documentation", "modules"),
+        ("API Documentation", "modules"),
         ("Examples", "notebooks/examples"),
         ("Development", "development/contributing")
     ],
@@ -147,7 +146,7 @@ html_theme_options = {
     # Switching to -1 shows all levels.
     'globaltoc_depth': 2,
 
-    # Include hidden TOCs in Site navbar?
+    # Include hidden TOCs in site navbar?
     #
     # Note: If this is "false", you cannot have mixed ``:hidden:`` and
     # non-hidden ``toctree`` directives in the same page, or else the build
@@ -191,8 +190,9 @@ def setup(app):
 
 
 # Custom sidebar templates, maps document names to template names.
-# html_sidebars = {}
-html_sidebars = {'sidebar': ['localtoc.html', 'sourcelink.html', 'searchbox.html']}
+html_sidebars = {}
+# html_sidebars = {'modules': ['localtoc.html'],
+#                  'automod/**': ['localtoc.html', 'relations.html']}
 
 # -- Jupyter notebooks (nbsphinx) ------------------------------
 
@@ -204,6 +204,10 @@ html_sourcelink_suffix = ''
 
 # Allow errors in the build process
 nbsphinx_allow_errors = True
+
+# Whether to execute notebooks before conversion or not.
+# Possible values: 'always', 'never', 'auto' (default).
+nbsphinx_execute = "auto"
 
 # List of arguments to be passed to the kernel that executes the notebooks:
 nbsphinx_execute_arguments = [
