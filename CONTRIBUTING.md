@@ -72,11 +72,13 @@ To run the test suite on your machine you have multiple options:
   ```bash
   tox
   ```
+  
 - **Single environment with tox:** Run tests for a single Python environment. Example for Python 3.6:
   
   ```bash
   tox -e py36
   ```
+  
 - **pytest:** Run tests directly in your local environment by calling
   
   ```bash
@@ -87,10 +89,11 @@ To run the test suite on your machine you have multiple options:
 
 ProbNum's documentation is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and 
 [Travis](https://travis-ci.org/probabilistic-numerics/probnum) and hosted by [ReadTheDocs](https://readthedocs.org/projects/probnum/).
-You can access the documentation for the default version and the development branch here:
+You can access the documentation of the stable (release), latest (`master` branch) and development versions here:
 
-[![default docs](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs)](https://probnum.readthedocs.io)
-[![development docs](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Development%20Docs&version=development)](https://probnum.readthedocs.io/en/development/)
+[![docs: stable](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs%20(stable))](https://probnum.readthedocs.io/en/stable/)
+[![docs: stable](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs%20(latest))](https://probnum.readthedocs.io/en/latest/)
+[![docs: development](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs%20(dev)&version=development)](https://probnum.readthedocs.io/en/development/)
 <br>
 
 When implementing published methods give credit and include the appropriate citations.
