@@ -85,7 +85,14 @@ To run the test suite on your machine you have multiple options:
 
 ## Documentation
 
-[Documentation](../modules.html) is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and [Travis](https://travis-ci.org/probabilistic-numerics/probnum).
+ProbNum's documentation is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and 
+[Travis](https://travis-ci.org/probabilistic-numerics/probnum) and hosted by [ReadTheDocs](https://readthedocs.org/projects/probnum/).
+You can access the documentation for the default version and the development branch here:
+
+[![default docs](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs)](https://probnum.readthedocs.io)
+[![development docs](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Development%20Docs&version=development)](https://probnum.readthedocs.io/en/development/)
+<br>
+
 When implementing published methods give credit and include the appropriate citations.
 You can build the documentation locally via:
 ```bash
