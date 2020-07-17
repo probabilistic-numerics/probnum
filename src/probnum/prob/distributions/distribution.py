@@ -416,3 +416,6 @@ class Distribution:
                 self.__class__.__name__
             )
         )
+
+    def __getitem__(self, key):
+        raise NotImplementedError

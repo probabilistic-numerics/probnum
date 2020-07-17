@@ -90,6 +90,11 @@ class Dirac(Distribution):
                 A=self.parameters["support"], reps=tuple([*size, *np.repeat(1, ndims)])
             )
 
+    def __getitem__(self, key):
+        return Dirac(
+            support=self.parameters["support"][key], random_state=self.random_state,
+        )
+
     def reshape(self, newshape):
         try:
             # Reshape support
