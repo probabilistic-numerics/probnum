@@ -1,12 +1,7 @@
-Welcome to probnum's documentation!
-======================================================
+.. mdinclude:: ../../README.md
 
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Introduction
-
-   intro
+Sitemap
+====================================
 
 .. toctree::
    :maxdepth: 2

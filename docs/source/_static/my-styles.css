@@ -1,23 +1,47 @@
 /* Color variables */
 :root {
   --main-color: #107d79;
+  --main-background-color: #fcfcfc;
   --text-background-color: #e9f4f4;
   --text-highlight-color: #ff9933;
+  --dark-gray: #333;
+  --light-gray: #f2f2f2;
 }
 
-/* Mobile friendly width */
+/*
+/* Mobile friendly width
 div.body {
 		min-width: 375px;
 		max-width: 1000px;
-}
+}*/
 
-/* Inline code highlighting */
-code {
-    font-size: 90%;
-    color: var(--main-color);
-    padding: 2px 4px;
-		background-color: var(--text-background-color);
-		border-radius: 4px;
+/* Sidebar */
+
+/* Logo area */
+.wy-nav-side {
+	background: var(--dark-gray);
+}
+.wy-side-nav-search {
+	background-color: var(--main-background-color);
+}
+/* Home button */
+.wy-side-nav-search .wy-dropdown > a, .wy-side-nav-search > a {
+	color: var(--dark-gray);
+}
+/* Version number */
+.wy-side-nav-search > div.version {
+	color: var(--dark-gray);
+}
+/* Sidebar headers */
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+	color: var(--main-color);
+}
+/* Sidebar links */
+.wy-nav-content a:visited {
+	color: var(--main-color);
+}
+.wy-menu-vertical a:active {
+	background-color: var(--main-color);
 }
 
 /* Hyperlinks */
@@ -31,29 +55,32 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Alert boxes (e.g. documentation "see also")*/
+/* Code highlighting */
+
+/* Block */
+.highlight {
+	background: var(--text-background-color);
+}
+
+/* Inline */
+.rst-content code.literal, .rst-content tt.literal{
+    color: var(--main-color);
+    padding: 1px 2px;
+		background-color: var(--text-background-color);
+		border-radius: 4px;
+}
+
+
+/* Alert boxes (e.g. documentation "see also")
 .alert-info {
-		color: #333;
+		color: var(--dark-gray);
 		background-color: #e7e7e7;
 		background-image: linear-gradient(to bottom, #fbfbfb 0, #f2f2f2 100%);
 		border-color: #ccc;
 }
 
-/* Brand image on navigation bar */
-.navbar-brand {
-	float: left;
-	height: 50px;
-	padding: 8px 8px 5px 5px;
-	font-size: 18px;
-	line-height: 20px;
-}
-
-/* Dropdown menu in navigation bar */
-.dropdown-menu .caption {
-	margin: 0 0 10px 10px;
-}
-
-/* Citations in documentation */
+/* Citations in documentation
 dl.footnote > dd, dl.citation > dd {
     margin-bottom: -.5em;
 }
+*/
