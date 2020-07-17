@@ -57,19 +57,3 @@ a:hover {
 dl.footnote > dd, dl.citation > dd {
     margin-bottom: -.5em;
 }
-
-/* Docs version selector of ReadTheDocs */
-.rst-versions {
-	background: #f2f2f2;
-	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-}
-.rst-versions .rst-current-version {
-	color: var(--main-color);
-	background-color: var(--text-background-color);
-}
-.rst-versions .rst-other-versions dd a {
-	color: #333;
-}
-.rst-versions a {
- color: var(--main-color)
-}
