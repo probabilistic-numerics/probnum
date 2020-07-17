@@ -29,16 +29,16 @@ At the time of writing, these packages are:
 
 ### tox
 
-Probnum uses [tox](https://tox.readthedocs.io/en/latest/) through [Travis CI](#continuous-integration) to run tests and to build documentation.
+Probnum uses [tox](https://tox.readthedocs.io/en/latest/) in its [continuous integration (CI)](#continuous-integration) pipeline to run tests and to build documentation.
 Under the hood, tox builds virtual environments following the specifications in `./tox.ini` in order to run tests across multiple python versions, while making sure that all the necessary dependencies are installed.
 Using tox unifies the *local* development process with CI, such that local test results should match the outcomes of Travis's builds more closely.
 
 Tox can be installed directly from the Python Package Index (PyPI), e.g. through
-```
+```bash
 pip install -U tox
 ```
 Once tox and the required [external tools](#required-external-tools) are installed, you can run tests and build the documentation locally by simply calling
-```
+```bash
 tox
 ```
 
@@ -69,23 +69,23 @@ To run the test suite on your machine you have multiple options:
 
 - **Full test suite with tox:** Run the full suite across different Python versions with
   
-  ```
+  ```bash
   tox
   ```
-- **Single environment with tox:** Run tests via [tox](https://probabilistic-numerics.github.io/probnum/development/contributing.html#tox) for a single Python environment. Example for Python 3.6:
+- **Single environment with tox:** Run tests for a single Python environment. Example for Python 3.6:
   
-  ```
+  ```bash
   tox -e py36
   ```
 - **pytest:** Run tests directly in your local environment by calling
   
-  ```
+  ```bash
   pytest
   ```
 
 ## Documentation
 
-[Documentation](https://probabilistic-numerics.github.io/probnum/modules.html) is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and [Travis](https://travis-ci.org/probabilistic-numerics/probnum).
+[Documentation](../modules.html) is automatically built using [Sphinx](https://www.sphinx-doc.org/en/master/) and [Travis](https://travis-ci.org/probabilistic-numerics/probnum).
 When implementing published methods give credit and include the appropriate citations.
 You can build the documentation locally via:
 ```bash
@@ -105,6 +105,6 @@ make html
 ProbNum uses [Travis CI](https://travis-ci.org/probabilistic-numerics/probnum) for continuous integration.
 For every pull request and every commit Travis builds the project and runs the test suite (through `tox`), to make sure that no breaking changes are introduced by mistake.
 Code coverage of the tests is reported through [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master).
-Travis also automatically builds and publishes the [ProbNum documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
+Travis also automatically builds and publishes the [ProbNum documentation](../modules.html).
 
 Changes to Travis can be made through the `.travis.yml` file, as well as through `tox.ini` since Travis relies on `tox` for both testing and building the documentation.
