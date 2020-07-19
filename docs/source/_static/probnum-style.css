@@ -8,6 +8,18 @@
   --light-gray: #f2f2f2;
 }
 
+/* Font */
+body {
+	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+.rst-content .toctree-wrapper > p.caption, h1, h2, h3, h4, h5, h6, legend {
+    margin-top: 0;
+    font-weight: 700;
+    font-family: Helvetica Neue;
+}
+
+
 /* Sidebar */
 
 /* Logo area */
@@ -52,7 +64,7 @@ a:hover {
 
 /* Block */
 .highlight {
-	background: var(--text-background-color);
+	background: var(--light-gray);
 }
 
 /* Inline */
@@ -64,7 +76,14 @@ a:hover {
 }
 
 
-/* Alert boxes (e.g. documentation "see also")
+/* Alert boxes (e.g. documentation "see also") */
+html.writer-html4 .rst-content dl:not(.docutils) dl:not(.field-list) > dt, html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list) > dt {
+	border-left: 3px solid grey;
+	background: #fff0;
+	color: #555;
+}
+
+/*
 .alert-info {
 		color: var(--dark-gray);
 		background-color: #e7e7e7;
