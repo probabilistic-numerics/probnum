@@ -19,6 +19,11 @@ body {
     font-family: Helvetica Neue;
 }
 
+/* Content */
+.wy-nav-content {
+  max-width: 1000px;
+}
+
 
 /* Sidebar */
 
@@ -83,16 +88,13 @@ html.writer-html4 .rst-content dl:not(.docutils) dl:not(.field-list) > dt, html.
 	color: #555;
 }
 
-/*
-.alert-info {
-		color: var(--dark-gray);
-		background-color: #e7e7e7;
-		background-image: linear-gradient(to bottom, #fbfbfb 0, #f2f2f2 100%);
-		border-color: #ccc;
+/* Footnotes */
+html.writer-html5 .rst-content dl.footnote > dd {
+    margin: 0 0 0;
 }
 
-/* Citations in documentation
-dl.footnote > dd, dl.citation > dd {
-    margin-bottom: -.5em;
+/* API Documentation */
+.rst-content .viewcode-link {
+	color: -var(--main-color);
 }
-*/
+

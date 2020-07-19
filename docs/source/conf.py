@@ -107,7 +107,7 @@ html_theme = "sphinx_rtd_theme"
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "img/pn_logo.png"
+html_logo = "img/pn_logo_adj.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further. For a list of options available for each theme, see the
