@@ -107,14 +107,13 @@ html_theme = "sphinx_rtd_theme"
 
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
-html_logo = "img/pn_logo_adj.png"
+html_logo = "img/pn_logo_wide.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further. For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'style_nav_header_background': '#fcfcfc',
-    'navigation_depth': 4
+    'style_nav_header_background': '#fcfcfc'
 }
 
 # The name of an image file (within the static path) to use as favicon of the

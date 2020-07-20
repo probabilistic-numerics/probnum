@@ -1,4 +1,4 @@
-Random Variables and Distributions
+Probability
 ==================================
 
 .. automodapi:: probnum.prob
