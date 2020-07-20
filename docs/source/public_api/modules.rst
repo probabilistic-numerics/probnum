@@ -1,7 +1,7 @@
 ProbNum's Public API
 ==========================
 
-This reference details modules, functions and classes implemented in ProbNum, describing their functionality and how to
+This reference details subpackages, functions and classes implemented in ProbNum, describing their functionality and how to
 use them. See also the `examples <notebooks/examples.html>`__ to learn more about ProbNum.
 
 Random Variables and Distributions

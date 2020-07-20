@@ -48,7 +48,7 @@ body {
 }
 /* Sidebar links */
 .wy-nav-content a:visited {
-	color: var(--main-color);
+	color: #16b3ad;
 }
 .wy-menu-vertical a:active {
 	background-color: var(--main-color);
