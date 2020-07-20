@@ -10,13 +10,13 @@
 
 /* Font */
 body {
-	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-family: Roboto light, Helvetica, sans-serif;
 }
 
 .rst-content .toctree-wrapper > p.caption, h1, h2, h3, h4, h5, h6, legend {
     margin-top: 0;
     font-weight: 700;
-    font-family: Helvetica Neue;
+    font-family: Open sans light, Helvetica, sans-serif;
 }
 
 /* Content */
