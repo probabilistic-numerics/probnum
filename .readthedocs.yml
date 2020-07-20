@@ -2,7 +2,7 @@
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
-# Required
+# RTD configuration file version
 version: 2
 
 # Build documentation in the docs/ directory with Sphinx

@@ -1,4 +1,4 @@
-API Documentation
+ProbNum's Public API
 ==========================
 
 This reference details modules, functions and classes implemented in ProbNum, describing their functionality and how to
@@ -13,10 +13,20 @@ Random Variables and Distributions
 
 Linear Algebra
 """"""""""""""
+
+Linear Algebra Routines
+***********************
 .. toctree::
    :maxdepth: 6
 
    linalg
+
+Linear Operators
+****************
+.. toctree::
+   :maxdepth: 6
+
+   linops
 
 Quadrature / Numerical Integration
 """"""""""""""""""""""""""""""""""
@@ -45,3 +55,10 @@ Other
    :maxdepth: 6
 
    utils
+
+
+Indices
+"""""""
+
+* :ref:`genindex`
+* :ref:`modindex`

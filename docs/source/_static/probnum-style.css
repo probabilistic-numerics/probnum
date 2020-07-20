@@ -44,7 +44,7 @@ body {
 }
 /* Sidebar headers */
 .wy-menu-vertical header, .wy-menu-vertical p.caption {
-	color: var(--main-color);
+	color: #16b3ad;
 }
 /* Sidebar links */
 .wy-nav-content a:visited {
@@ -65,14 +65,17 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Code highlighting */
+/* API Documentation */
+.rst-content code, .rst-content tt {
+    color: #333;
+}
 
-/* Block */
+/* Code block */
 .highlight {
 	background: var(--light-gray);
 }
 
-/* Inline */
+/* Code inline */
 .rst-content code.literal, .rst-content tt.literal{
     color: var(--main-color);
     padding: 1px 2px;

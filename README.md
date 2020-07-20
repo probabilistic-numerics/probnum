@@ -1,6 +1,6 @@
 # Probabilistic Numerics in Python
 
-[![Build Status](https://img.shields.io/travis/probabilistic-numerics/probnum/master?logo=travis%20ci&logoColor=white&label=Travis%20CI)](https://travis-ci.org/probabilistic-numerics/probnum)
+[![Build Status](https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI)](https://travis-ci.org/probabilistic-numerics/probnum)
 [![Coverage Status](http://codecov.io/github/probabilistic-numerics/probnum/coverage.svg?branch=master)](http://codecov.io/github/probabilistic-numerics/probnum?branch=master)
 [![Documentation](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs)](https://probnum.readthedocs.io)
 
