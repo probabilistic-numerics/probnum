@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 88
+max-complexity = 18
+extend-ignore = E203, W503, B905
+select = C,E,F,W,B,T,N,B9
+# Uncomment the following once we want to check docstrings, and add "D" to the "select" above
+# docstring-convention = numpy

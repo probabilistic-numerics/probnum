@@ -13,3 +13,12 @@ jobs:
       - name: Run black through tox
         run: tox -e black
 
+  flake8-full:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Install tox
+        run: pip install tox
+      - name: Run flake8 through tox
+        run: tox -e flake8
