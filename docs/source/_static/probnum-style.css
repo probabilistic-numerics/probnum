@@ -23,6 +23,9 @@ body {
 .wy-nav-content {
   max-width: 1000px;
 }
+.wy-nav-content a:visited {
+	color: var(--main-color);
+}
 
 
 /* Sidebar */
@@ -47,11 +50,11 @@ body {
 	color: #16b3ad;
 }
 /* Sidebar links */
-.wy-nav-content a:visited {
-	color: #16b3ad;
-}
 .wy-menu-vertical a:active {
 	background-color: var(--main-color);
+}
+.wy-menu-vertical a:hover {
+	color: #16b3ad;
 }
 
 /* Hyperlinks */

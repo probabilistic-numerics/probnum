@@ -20,7 +20,12 @@
    :maxdepth: 1
    :caption: API Documentation
 
-   public_api/modules
+   public_api/prob
+   public_api/linalg
+   public_api/quad
+   public_api/diffeq
+   public_api/filtsmooth
+   public_api/utils
 
 .. toctree::
    :maxdepth: 2
@@ -34,3 +39,10 @@
 
    GitHub Repository <https://github.com/probabilistic-numerics/probnum>
    license
+
+
+Indices
+"""""""
+
+* :ref:`genindex`
+* :ref:`modindex`

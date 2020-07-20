@@ -113,7 +113,8 @@ html_logo = "img/pn_logo_adj.png"
 # further. For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'style_nav_header_background': '#fcfcfc'
+    'style_nav_header_background': '#fcfcfc',
+    'navigation_depth': 4
 }
 
 # The name of an image file (within the static path) to use as favicon of the
