@@ -5,14 +5,16 @@
    :maxdepth: 1
    :caption: Introduction
 
-   probabilistic_numerics
-   quickstart
+   introduction/probabilistic_numerics
+   introduction/quickstart
 
 .. toctree::
    :maxdepth: 2
    :caption: Tutorials and Examples
 
-   examples/examples
+   tutorials/tutorials
+   tutorials/case_studies
+   tutorials/advanced
 
 .. toctree::
    :maxdepth: 1
