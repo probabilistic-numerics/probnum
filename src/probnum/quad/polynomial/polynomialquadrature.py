@@ -37,7 +37,9 @@ class PolynomialQuadrature(Quadrature):
         utils.assert_is_1d_ndarray(weights)
         utils.assert_is_2d_ndarray(bounds)
         if len(nodes) != len(weights) or len(nodes.T) != len(bounds):
-            raise ValueError("Either nodes and weights or nodes and bounds are incompatible.")
+            raise ValueError(
+                "Either nodes and weights or nodes and bounds are incompatible."
+            )
         self.nodes = nodes
         self.weights = weights
         self.bounds = bounds

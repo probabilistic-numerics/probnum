@@ -19,14 +19,14 @@ class DiscreteModel(ABC):
     """
 
     @abstractmethod
-    def sample(self, time, state,  **kwargs):
+    def sample(self, time, state, **kwargs):
         """
         Samples x_{t} ~ p(x_{t} | x_{s})
         as a function of t and x_s (plus additional parameters).
         """
         raise NotImplementedError
 
-    def pdf(self, loc, time, state,  **kwargs):
+    def pdf(self, loc, time, state, **kwargs):
         """
         Evaluates pdf of p(x_t | x_s).
         Required for particle filtering and should be

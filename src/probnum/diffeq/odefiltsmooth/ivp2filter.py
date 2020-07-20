@@ -139,8 +139,7 @@ def ivp2ukf(ivp, prior, evlvar):
     """
     measmod = _measmod_ukf(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
-    return UnscentedKalman(prior, measmod,
-                                 initrv, 1.0, 1.0, 1.0)
+    return UnscentedKalman(prior, measmod, initrv, 1.0, 1.0, 1.0)
 
 
 def _measmod_ukf(ivp, prior, measvar):
@@ -184,12 +183,12 @@ def _initialdistribution(ivp, prior):
         projmat = np.hstack((h0.T, h1.T)).T
         data = np.hstack((x0, dx0))
         _size = 2
-    elif prior.ordint == 2:   # try only jacobian
+    elif prior.ordint == 2:  # try only jacobian
         h2 = prior.proj2coord(coord=2)
         projmat = np.hstack((h0.T, h1.T, h2.T)).T
         data = np.hstack((x0, dx0, ddx0))
         _size = 3
-    else:   # try jacobian and hessian
+    else:  # try jacobian and hessian
         h2 = prior.proj2coord(coord=2)
         h3 = prior.proj2coord(coord=3)
         projmat = np.hstack((h0.T, h1.T, h2.T, h3.T)).T
@@ -219,7 +218,7 @@ def _initialdistribution_no_precond(ivp, prior):
         projmat = np.hstack((h0.T, h1.T, h2.T)).T
         data = np.hstack((x0, dx0, ddx0))
     s = projmat @ initcov @ projmat.T
-    crosscov = initcov @ projmat.T #@ np.linalg.inv(s)
+    crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s, crosscov)).T
     return RandomVariable(distribution=Normal(newmean, newcov))

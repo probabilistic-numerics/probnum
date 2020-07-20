@@ -51,6 +51,7 @@ class ODE(ABC):
     --------
     IVP : Extends ODE for initial value problems.
     """
+
     def __init__(self, timespan, rhs, jac=None, hess=None, sol=None):
         """
         Initialises basic ODE attributes.

@@ -55,7 +55,8 @@ Code quality is an essential component in a collaborative open-source project.
 made [Travis](https://travis-ci.org/probabilistic-numerics/probnum) builds the project and runs the test suite.
 - Documentation of code is essential for any collaborative project. ProbNum uses the
 [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
-- Code should follow the [PEP8 style](https://www.python.org/dev/peps/pep-0008/) and the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
+- Code should be formatted with [*Black*](https://github.com/psf/black) and follow the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
+  For more thorough Python code style guides we refer to [PEP 8](https://www.python.org/dev/peps/pep-0008/) and to [the *Black* code style](https://github.com/psf/black/blob/master/docs/the_black_code_style.md).
 - Keep dependencies to a minimum.
 - Make sure to observe good coding practice.
 
@@ -108,3 +109,5 @@ Code coverage of the tests is reported through [codecov](https://codecov.io/gith
 Travis also automatically builds and publishes the [ProbNum documentation](https://probabilistic-numerics.github.io/probnum/modules.html).
 
 Changes to Travis can be made through the `.travis.yml` file, as well as through `tox.ini` since Travis relies on `tox` for both testing and building the documentation.
+
+ProbNum also uses [GitHub Actions](https://docs.github.com/en/actions) to verify that all pushes and pull requests are compliant with the [*Black*](https://github.com/psf/black) code style.

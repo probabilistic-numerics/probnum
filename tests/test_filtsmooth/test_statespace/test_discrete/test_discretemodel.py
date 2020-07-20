@@ -34,7 +34,7 @@ class TestDiscreteModel(unittest.TestCase):
     def test_sample(self):
         """
         """
-        self.mdm.sample(0., 0.)
+        self.mdm.sample(0.0, 0.0)
 
     def test_ndim(self):
         """
@@ -45,4 +45,4 @@ class TestDiscreteModel(unittest.TestCase):
         """
         """
         with self.assertRaises(NotImplementedError):
-            self.mdm.pdf(0., 0., 0.)
+            self.mdm.pdf(0.0, 0.0, 0.0)

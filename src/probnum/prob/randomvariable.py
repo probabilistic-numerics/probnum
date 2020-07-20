@@ -65,8 +65,9 @@ class RandomVariable:
         elif distribution is None:
             self._distribution = Distribution()
         else:
-            raise ValueError("The distribution parameter must be an "
-                             "instance of `Distribution`.")
+            raise ValueError(
+                "The distribution parameter must be an " "instance of `Distribution`."
+            )
 
     # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
     def _set_shape(self, distribution, shape):
@@ -79,7 +80,9 @@ class RandomVariable:
                 if shape is None or distribution.shape == shape:
                     self._shape = distribution.shape
                 else:
-                    raise ValueError("Shape of distribution and given shape do not match.")
+                    raise ValueError(
+                        "Shape of distribution and given shape do not match."
+                    )
             else:
                 self.distribution.reshape(newshape=shape)
 
@@ -100,14 +103,14 @@ class RandomVariable:
                 # Change distribution dtype if random variable type is different
                 distribution.dtype = dtype
         if self._dtype is None:
-            raise ValueError("No \'dtype\' set.")
+            raise ValueError("No 'dtype' set.")
 
     def __repr__(self):
         if self.dtype is None:
-            dt = 'unspecified dtype'
+            dt = "unspecified dtype"
         else:
-            dt = 'dtype=' + str(self.dtype)
-        return '<%s %s with %s>' % (str(self.shape), self.__class__.__name__, dt)
+            dt = "dtype=" + str(self.dtype)
+        return "<%s %s with %s>" % (str(self.shape), self.__class__.__name__, dt)
 
     @property
     def distribution(self):
@@ -120,7 +123,11 @@ class RandomVariable:
             try:
                 return self._distribution.mean()
             except KeyError:
-                raise NotImplementedError("Underlying {} has no mean.".format(type(self._distribution).__name__))
+                raise NotImplementedError(
+                    "Underlying {} has no mean.".format(
+                        type(self._distribution).__name__
+                    )
+                )
         else:
             raise NotImplementedError("No underlying distribution specified.")
 
@@ -130,7 +137,11 @@ class RandomVariable:
             try:
                 return self._distribution.cov()
             except KeyError:
-                raise NotImplementedError("Underlying {} has no kernels.".format(type(self._distribution).__name__))
+                raise NotImplementedError(
+                    "Underlying {} has no kernels.".format(
+                        type(self._distribution).__name__
+                    )
+                )
         else:
             raise NotImplementedError("No underlying distribution specified.")
 
@@ -222,7 +233,9 @@ class RandomVariable:
 
         """
         other_rv = asrandvar(other)
-        combined_rv = RandomVariable(distribution=op(self.distribution, other_rv.distribution))
+        combined_rv = RandomVariable(
+            distribution=op(self.distribution, other_rv.distribution)
+        )
         return combined_rv
 
     def __add__(self, other):
@@ -290,19 +303,25 @@ class RandomVariable:
 
     # Unary arithmetic operations
     def __neg__(self):
-        return RandomVariable(shape=self.shape,
-                              dtype=self.dtype,
-                              distribution=operator.neg(self.distribution))
+        return RandomVariable(
+            shape=self.shape,
+            dtype=self.dtype,
+            distribution=operator.neg(self.distribution),
+        )
 
     def __pos__(self):
-        return RandomVariable(shape=self.shape,
-                              dtype=self.dtype,
-                              distribution=operator.pos(self.distribution))
+        return RandomVariable(
+            shape=self.shape,
+            dtype=self.dtype,
+            distribution=operator.pos(self.distribution),
+        )
 
     def __abs__(self):
-        return RandomVariable(shape=self.shape,
-                              dtype=self.dtype,
-                              distribution=operator.abs(self.distribution))
+        return RandomVariable(
+            shape=self.shape,
+            dtype=self.dtype,
+            distribution=operator.abs(self.distribution),
+        )
 
 
 def asrandvar(obj):
@@ -340,16 +359,27 @@ def asrandvar(obj):
         return obj
     # Scalar
     elif np.isscalar(obj):
-        return RandomVariable(shape=(), dtype=type(obj), distribution=Dirac(support=obj))
+        return RandomVariable(
+            shape=(), dtype=type(obj), distribution=Dirac(support=obj)
+        )
     # Numpy array, sparse array or Linear Operator
-    elif isinstance(obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)):
-        return RandomVariable(shape=obj.shape, dtype=obj.dtype, distribution=Dirac(support=obj))
+    elif isinstance(
+        obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)
+    ):
+        return RandomVariable(
+            shape=obj.shape, dtype=obj.dtype, distribution=Dirac(support=obj)
+        )
     # Scipy random variable
-    elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen) \
-            or isinstance(obj, scipy.stats._multivariate.multi_rv_frozen):
+    elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen) or isinstance(
+        obj, scipy.stats._multivariate.multi_rv_frozen
+    ):
         return _scipystats_to_rv(scipydist=obj)
     else:
-        raise ValueError("Argument of type {} cannot be converted to a random variable.".format(type(obj)))
+        raise ValueError(
+            "Argument of type {} cannot be converted to a random variable.".format(
+                type(obj)
+            )
+        )
 
 
 def _scipystats_to_rv(scipydist):
@@ -371,15 +401,27 @@ def _scipystats_to_rv(scipydist):
     if isinstance(scipydist, scipy.stats._distn_infrastructure.rv_frozen):
         # Normal distribution
         if scipydist.dist.name == "norm":
-            return RandomVariable(dtype=float,
-                                  distribution=Normal(mean=scipydist.mean(), cov=scipydist.var(), random_state=scipydist.random_state))
+            return RandomVariable(
+                dtype=float,
+                distribution=Normal(
+                    mean=scipydist.mean(),
+                    cov=scipydist.var(),
+                    random_state=scipydist.random_state,
+                ),
+            )
     # Multivariate distributions (implemented in this package)
     elif isinstance(scipydist, scipy.stats._multivariate.multi_rv_frozen):
         # Multivariate normal
         if scipydist.__class__.__name__ == "multivariate_normal_frozen":
-            return RandomVariable(shape=scipydist.mean.shape,
-                                  dtype=scipydist.mean.dtype,
-                                  distribution=Normal(mean=scipydist.mean, cov=scipydist.cov, random_state=scipydist.random_state))
+            return RandomVariable(
+                shape=scipydist.mean.shape,
+                dtype=scipydist.mean.dtype,
+                distribution=Normal(
+                    mean=scipydist.mean,
+                    cov=scipydist.cov,
+                    random_state=scipydist.random_state,
+                ),
+            )
     # Generic distributions
     if hasattr(scipydist, "pmf"):
         pdf = getattr(scipydist, "pmf", None)
@@ -394,14 +436,18 @@ def _scipystats_to_rv(scipydist):
     else:
         rvdtype = rvsample.dtype
         rvshape = rvsample.shape
-    return RandomVariable(dtype=rvdtype,
-                          shape=rvshape,
-                          distribution=Distribution(parameters={},
-                                                    pdf=pdf,
-                                                    logpdf=logpdf,
-                                                    cdf=getattr(scipydist, "cdf", None),
-                                                    logcdf=getattr(scipydist, "logcdf", None),
-                                                    sample=getattr(scipydist, "rvs", None),
-                                                    mean=getattr(scipydist, "mean", None),
-                                                    cov=getattr(scipydist, "var", None),
-                                                    random_state=getattr(scipydist, "random_state", None)))
+    return RandomVariable(
+        dtype=rvdtype,
+        shape=rvshape,
+        distribution=Distribution(
+            parameters={},
+            pdf=pdf,
+            logpdf=logpdf,
+            cdf=getattr(scipydist, "cdf", None),
+            logcdf=getattr(scipydist, "logcdf", None),
+            sample=getattr(scipydist, "rvs", None),
+            mean=getattr(scipydist, "mean", None),
+            cov=getattr(scipydist, "var", None),
+            random_state=getattr(scipydist, "random_state", None),
+        ),
+    )

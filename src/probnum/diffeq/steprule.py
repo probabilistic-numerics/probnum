@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 __all__ = ["StepRule", "ConstantSteps", "AdaptiveSteps"]
 
+
 class StepRule(ABC):
     """
     (Adaptive) step size rules for ODE solvers.
@@ -73,8 +74,9 @@ class AdaptiveSteps(StepRule):
         Safety factor for proposal of distributions, 0 << safetyscale < 1
     """
 
-    def __init__(self, tol_per_step, localconvrate,
-                 limitchange=(0.1, 5.0), safetyscale=0.95):
+    def __init__(
+        self, tol_per_step, localconvrate, limitchange=(0.1, 5.0), safetyscale=0.95
+    ):
         self.tol_per_step = float(tol_per_step)
         self.safetyscale = float(safetyscale)
         self.localconvrate = float(localconvrate + 1)
@@ -84,7 +86,7 @@ class AdaptiveSteps(StepRule):
         """
         """
         small, large = self.limitchange
-        ratio = self.tol_per_step / (laststep*errorest)
+        ratio = self.tol_per_step / (laststep * errorest)
         change = self.safetyscale * ratio ** (1.0 / self.localconvrate)
         if change < small:
             step = small * laststep
@@ -96,11 +98,10 @@ class AdaptiveSteps(StepRule):
             print("Warning: Stepsize is num. zero (h=%.1e)" % step)
         return step
 
-
     def is_accepted(self, proposedstep, errorest, **kwargs):
         """
         """
-        if errorest *proposedstep < self.tol_per_step:
+        if errorest * proposedstep < self.tol_per_step:
             return True
         else:
             return False
