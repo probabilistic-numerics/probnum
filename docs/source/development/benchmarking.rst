@@ -9,10 +9,10 @@ performance changes over time.
 ProbNum's Benchmarks
 ********************
 
-Check out `ProbNum's benchmarks <>`_ (coming soon!) for its probabilistic numerical methods
+Check out ProbNum's `benchmarks <comingsoon>`_ (coming soon!) for its probabilistic numerical methods
 and related functions!
 
 
 Creating Benchmarks
-*****************
+********************
 You can add a new benchmark by following `this tutorial <https://asv.readthedocs.io/en/stable/writing_benchmarks.html>`_.
