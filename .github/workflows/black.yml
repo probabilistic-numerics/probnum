@@ -8,4 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - uses: psf/black@fcf97961061982656a1384ecc1628e217a52a88c
+      - name: Install tox
+        run: pip install tox
+      - name: Run black through tox
+        run: tox -e black
+
