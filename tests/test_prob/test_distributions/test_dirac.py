@@ -12,7 +12,7 @@ class TestDirac(unittest.TestCase):
     """General test case for the Dirac distributions."""
 
     def setUp(self):
-        self.supports = [1, np.array([1, 2]), np.array([[0]]), np.array([[6], [-.3]])]
+        self.supports = [1, np.array([1, 2]), np.array([[0]]), np.array([[6], [-0.3]])]
 
     def test_logpdf(self):
         pass
@@ -28,7 +28,9 @@ class TestDirac(unittest.TestCase):
                     elif isinstance(sample_size, tuple):
                         self.assertEqual(sample_size + np.shape(supp), np.shape(s))
                     else:
-                        self.assertEqual(tuple([sample_size, *np.shape(supp)]), np.shape(s))
+                        self.assertEqual(
+                            tuple([sample_size, *np.shape(supp)]), np.shape(s)
+                        )
 
 
 if __name__ == "__main__":

@@ -69,7 +69,7 @@ class TestContinuousModel(unittest.TestCase):
         """
         mean, cov = np.zeros(TEST_NDIM), np.eye(TEST_NDIM)
         randvar = RandomVariable(distribution=Normal(mean, cov))
-        samp = self.mcm.sample(0., 1., 0.01, randvar.mean())
+        samp = self.mcm.sample(0.0, 1.0, 0.01, randvar.mean())
         self.assertEqual(samp.ndim, 1)
         self.assertEqual(samp.shape[0], TEST_NDIM)
 
@@ -106,7 +106,7 @@ class DeterministicModel(continuousmodel.ContinuousModel):
         """
         Identity dispersion
         """
-        return 0*np.eye(len(state), 1)
+        return 0 * np.eye(len(state), 1)
 
     @property
     def diffusionmatrix(self):
@@ -135,7 +135,7 @@ class TestDeterministicModel(unittest.TestCase):
         """
         dm = DeterministicModel()
         randvar = RandomVariable(distribution=Dirac(np.ones(TEST_NDIM)))
-        self.samp = dm.sample(0., 1., 0.01, randvar.mean())
+        self.samp = dm.sample(0.0, 1.0, 0.01, randvar.mean())
 
     def test_sample_shape(self):
         """

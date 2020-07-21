@@ -122,8 +122,9 @@ def _compute_weights(npts, ndim, ilbds):
     prodweights = np.repeat(weights, npts ** (num_reps[0]))
     for i in range(1, ndim):
         weights = _compute_weights_1d(npts, ndim, ilbds[i])
-        column = np.repeat(np.tile(weights, int(npts ** i)),
-                           int(npts ** (ndim - 1 - i)))
+        column = np.repeat(
+            np.tile(weights, int(npts ** i)), int(npts ** (ndim - 1 - i))
+        )
         prodweights *= column
     return prodweights
 
@@ -160,8 +161,7 @@ def _compute_nodes(npts, ndim, ilbds):
     productmesh = np.repeat(nodes, npts ** (ndim - 1))
     for i in range(1, ndim):
         nodes = _compute_nodes_1d(npts, ilbds[i])
-        column = np.repeat(np.tile(nodes, int(npts ** i)),
-                           int(npts ** (ndim - 1 - i)))
+        column = np.repeat(np.tile(nodes, int(npts ** i)), int(npts ** (ndim - 1 - i)))
         productmesh = np.vstack((productmesh.T, column)).T
     if ndim == 1:
         return productmesh.reshape((npts, 1))

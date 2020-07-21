@@ -1,7 +1,7 @@
 # Style Guide
 
-This style guide summarizes code conventions used in ProbNum. This is intended as a reference for developers. The 
-primary standard that should be applied is [PEP 8](https://www.python.org/dev/peps/pep-0008/).
+This style guide summarizes code conventions used in ProbNum. This is intended as a reference for developers.
+ProbNum follows [the *Black* code style](https://github.com/psf/black/blob/master/docs/the_black_code_style.md), which can be viewed as a strict subset of [PEP 8](https://www.python.org/dev/peps/pep-0008/), and we recommend [*Black*](https://github.com/psf/black) for automated code formatting.
 
 ## Code
 

@@ -14,13 +14,27 @@ import scipy.sparse
 from probnum import prob
 from probnum.linalg import linops
 from probnum import utils
-from probnum.linalg.linearsolvers.matrixbased import AsymmetricMatrixBasedSolver, NoisySymmetricMatrixBasedSolver, \
-    SymmetricMatrixBasedSolver
+from probnum.linalg.linearsolvers.matrixbased import (
+    AsymmetricMatrixBasedSolver,
+    NoisySymmetricMatrixBasedSolver,
+    SymmetricMatrixBasedSolver,
+)
 from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
 
-def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=None, atol=10 ** -6, rtol=10 ** -6,
-                 callback=None, **kwargs):
+def problinsolve(
+    A,
+    b,
+    A0=None,
+    Ainv0=None,
+    x0=None,
+    assume_A="sympos",
+    maxiter=None,
+    atol=10 ** -6,
+    rtol=10 ** -6,
+    callback=None,
+    **kwargs
+):
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -132,7 +146,11 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
     for allowed_str in ["gen", "sym", "pos", "noise"]:
         _assume_A_tmp = _assume_A_tmp.replace(allowed_str, "")
     if _assume_A_tmp != "":
-        raise ValueError('Assumption \'{}\' contains unrecognized linear operator properties.'.format(assume_A))
+        raise ValueError(
+            "Assumption '{}' contains unrecognized linear operator properties.".format(
+                assume_A
+            )
+        )
 
     # Transform the linear system to an appropriate form
     A, b, x0 = _preprocess_linear_system(A=A, b=b, x0=x0)
@@ -153,19 +171,32 @@ def problinsolve(A, b, A0=None, Ainv0=None, x0=None, assume_A="sympos", maxiter=
             if i > 0:
                 x = None  # Only use prior information on Ainv for multiple rhs
             # Select and initialize solver
-            linear_solver = _init_solver(A=A, b=utils.as_colvec(b[:, i]), A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A)
+            linear_solver = _init_solver(
+                A=A,
+                b=utils.as_colvec(b[:, i]),
+                A0=A0,
+                Ainv0=Ainv0,
+                x0=x,
+                assume_A=assume_A,
+            )
 
             # Solve linear system
-            x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs)
+            x, A0, Ainv0, info = linear_solver.solve(
+                maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs
+            )
 
         # Return Ainv @ b for multiple rhs
         x = Ainv0 @ b
     else:
         # Single right hand side
-        linear_solver = _init_solver(A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A)
+        linear_solver = _init_solver(
+            A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A
+        )
 
         # Solve linear system
-        x, A0, Ainv0, info = linear_solver.solve(maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs)
+        x, A0, Ainv0, info = linear_solver.solve(
+            maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs
+        )
 
     # Check result and issue warnings (e.g. singular or ill-conditioned matrix)
     _postprocess(info=info, A=A)
@@ -225,7 +256,9 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
         maxiter = n * 10
 
     # Solve linear system
-    x, info = SolutionBasedSolver(A=A, b=b, x0=x0).solve(callback=callback, maxiter=maxiter, atol=atol, rtol=rtol)
+    x, info = SolutionBasedSolver(A=A, b=b, x0=x0).solve(
+        callback=callback, maxiter=maxiter, atol=atol, rtol=rtol
+    )
 
     # Check result and issue warnings (e.g. singular or ill-conditioned matrix)
     _postprocess(info=info, A=A)
@@ -261,32 +294,44 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
     """
     # Check types
     linop_types = (
-        np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator, prob.RandomVariable)
+        np.ndarray,
+        scipy.sparse.spmatrix,
+        scipy.sparse.linalg.LinearOperator,
+        prob.RandomVariable,
+    )
     vector_types = (np.ndarray, scipy.sparse.spmatrix, prob.RandomVariable)
     if not isinstance(A, linop_types):
         raise ValueError(
-            "A must be either an array, a linear operator or a random variable.")
+            "A must be either an array, a linear operator or a random variable."
+        )
     if not isinstance(b, vector_types):
-        raise ValueError("The right hand side must be a (sparse) array or a random variable.")
-    if A0 is not None and not isinstance(A0, prob.RandomVariable):
         raise ValueError(
-            "The prior belief over A must be a random variable.")
+            "The right hand side must be a (sparse) array or a random variable."
+        )
+    if A0 is not None and not isinstance(A0, prob.RandomVariable):
+        raise ValueError("The prior belief over A must be a random variable.")
     if Ainv0 is not None and not isinstance(Ainv0, linop_types):
         raise ValueError(
-            "The inverse of A must be either an array, a linear operator or a random variable of either.")
+            "The inverse of A must be either an array, a linear operator or a random variable of either."
+        )
     if x0 is not None and not isinstance(x0, vector_types):
         raise ValueError("The initial guess for the solution must be a (sparse) array.")
 
     # Prior distribution mismatch
-    if ((isinstance(A0, prob.RandomVariable) or isinstance(Ainv0, prob.RandomVariable)) and
-            isinstance(x0, prob.RandomVariable)):
-        raise ValueError("Cannot specify distributions on the linear operator and the solution simultaneously.")
+    if (
+        isinstance(A0, prob.RandomVariable) or isinstance(Ainv0, prob.RandomVariable)
+    ) and isinstance(x0, prob.RandomVariable):
+        raise ValueError(
+            "Cannot specify distributions on the linear operator and the solution simultaneously."
+        )
 
     # Dimension mismatch
     if A.shape[0] != b.shape[0]:
         raise ValueError("Dimension mismatch. The dimensions of A and b must match.")
     if Ainv0 is not None and A.shape != Ainv0.shape:
-        raise ValueError("Dimension mismatch. The dimensions of A and Ainv0 must match.")
+        raise ValueError(
+            "Dimension mismatch. The dimensions of A and Ainv0 must match."
+        )
     if A0 is not None and A.shape != A0.shape:
         raise ValueError("Dimension mismatch. The dimensions of A and A0 must match.")
     if x0 is not None and A.shape[1] != x0.shape[0]:
@@ -371,7 +416,8 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
     # Choose matrix based view if not clear from arguments
     if (Ainv0 is not None or A0 is not None) and isinstance(x0, prob.RandomVariable):
         warnings.warn(
-            "Cannot use prior uncertainty on both the matrix (inverse) and the solution. The latter will be ignored.")
+            "Cannot use prior uncertainty on both the matrix (inverse) and the solution. The latter will be ignored."
+        )
         x0 = x0.mean()
 
     # Extract information from priors
@@ -383,10 +429,15 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
         if isinstance(Ainv0.cov(), linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
     # System matrix is NOT stochastic
-    if not isinstance(A, prob.RandomVariable) and not isinstance(A, scipy.sparse.linalg.LinearOperator) and \
-            "noise" in assume_A:
-        warnings.warn("A is assumed to be noisy, but is neither a random variable nor a linear operator. Use exact "
-                      "probabilistic linear solver instead.")
+    if (
+        not isinstance(A, prob.RandomVariable)
+        and not isinstance(A, scipy.sparse.linalg.LinearOperator)
+        and "noise" in assume_A
+    ):
+        warnings.warn(
+            "A is assumed to be noisy, but is neither a random variable nor a linear operator. Use exact "
+            "probabilistic linear solver instead."
+        )
 
     # Solution-based view
     if isinstance(x0, prob.RandomVariable):
@@ -395,7 +446,9 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
     else:
         if "sym" in assume_A and "pos" in assume_A:
             if "noise" in assume_A:
-                return NoisySymmetricMatrixBasedSolver(A=A, b=b, x0=x0, A0=A0, Ainv0=Ainv0)
+                return NoisySymmetricMatrixBasedSolver(
+                    A=A, b=b, x0=x0, A0=A0, Ainv0=Ainv0
+                )
             else:
                 return SymmetricMatrixBasedSolver(A=A, b=b, x0=x0, A0=A0, Ainv0=Ainv0)
         elif "sym" not in assume_A and "pos" in assume_A:
@@ -442,4 +495,8 @@ def _postprocess(info, A):
     if rel_cond is not None and 1 / rel_cond < machine_eps:
         warnings.warn(
             "Ill-conditioned matrix detected (estimated rcond={:.6g}). Results are likely inaccurate.".format(
-                rel_cond), scipy.linalg.LinAlgWarning, stacklevel=3)
+                rel_cond
+            ),
+            scipy.linalg.LinAlgWarning,
+            stacklevel=3,
+        )

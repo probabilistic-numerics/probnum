@@ -27,14 +27,26 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         self.normal_params = [
             (-1, 3),
             (np.random.uniform(size=10), np.eye(10)),
-            (np.array([1, -5]), linops.MatrixMult(A=np.array([[2, 1], [1, -.1]]))),
+            (np.array([1, -5]), linops.MatrixMult(A=np.array([[2, 1], [1, -0.1]]))),
             (linops.MatrixMult(A=np.array([[0, -5]])), linops.Identity(shape=(2, 2))),
-            (np.array([[1, 2], [-3, -.4], [4, 1]]), linops.Kronecker(A=np.eye(3), B=5 * np.eye(2))),
-            (linops.MatrixMult(A=sparsemat.todense()),
-             linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n))),
-            (linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
-             linops.SymmetricKronecker(A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]]))),
-            (linops.Identity(shape=25), linops.SymmetricKronecker(A=linops.Identity(25)))
+            (
+                np.array([[1, 2], [-3, -0.4], [4, 1]]),
+                linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
+            ),
+            (
+                linops.MatrixMult(A=sparsemat.todense()),
+                linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
+            ),
+            (
+                linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
+                linops.SymmetricKronecker(
+                    A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])
+                ),
+            ),
+            (
+                linops.Identity(shape=25),
+                linops.SymmetricKronecker(A=linops.Identity(25)),
+            ),
         ]
 
     def test_correct_instantiation(self):
@@ -46,9 +58,13 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_scalarmult(self):
         """Multiply a rv with a normal distribution with a scalar."""
-        for (mean, cov), const in list(itertools.product(self.normal_params, self.constants)):
+        for (mean, cov), const in list(
+            itertools.product(self.normal_params, self.constants)
+        ):
             with self.subTest():
-                normrv = const * prob.RandomVariable(distribution=prob.Normal(mean=mean, cov=cov))
+                normrv = const * prob.RandomVariable(
+                    distribution=prob.Normal(mean=mean, cov=cov)
+                )
                 self.assertIsInstance(normrv, prob.RandomVariable)
                 if const != 0:
                     self.assertIsInstance(normrv.distribution, prob.Normal)
@@ -57,10 +73,16 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_addition_normal(self):
         """Add two random variables with a normal distribution"""
-        for (mean0, cov0), (mean1, cov1) in list(itertools.product(self.normal_params, self.normal_params)):
+        for (mean0, cov0), (mean1, cov1) in list(
+            itertools.product(self.normal_params, self.normal_params)
+        ):
             with self.subTest():
-                normrv0 = prob.RandomVariable(distribution=prob.Normal(mean=mean0, cov=cov0))
-                normrv1 = prob.RandomVariable(distribution=prob.Normal(mean=mean1, cov=cov1))
+                normrv0 = prob.RandomVariable(
+                    distribution=prob.Normal(mean=mean0, cov=cov0)
+                )
+                normrv1 = prob.RandomVariable(
+                    distribution=prob.Normal(mean=mean1, cov=cov1)
+                )
 
                 if normrv0.shape == normrv1.shape:
                     self.assertIsInstance((normrv0 + normrv1).distribution, prob.Normal)
@@ -80,9 +102,11 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_normal_dimension_mismatch(self):
         """Instantiating a normal distribution with mismatched mean and kernels should result in a ValueError."""
-        for mean, cov in [(0, [1, 2]),
-                          (np.array([1, 2]), np.array([1, 0])),
-                          (np.array([[-1, 0], [2, 1]]), np.eye(3))]:
+        for mean, cov in [
+            (0, [1, 2]),
+            (np.array([1, 2]), np.array([1, 0])),
+            (np.array([[-1, 0], [2, 1]]), np.eye(3)),
+        ]:
             with self.subTest():
                 err_msg = "Mean and kernels mismatch in normal distribution did not raise a ValueError."
                 with self.assertRaises(ValueError, msg=err_msg):
@@ -114,8 +138,11 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 dist_sample = dist.sample(size=5)
                 if not np.isscalar(dist.mean()):
                     ndims_rv = len(mean.shape)
-                    self.assertEqual(dist_sample.shape[-ndims_rv:], mean.shape,
-                                     msg="Realization shape does not match mean shape.")
+                    self.assertEqual(
+                        dist_sample.shape[-ndims_rv:],
+                        mean.shape,
+                        msg="Realization shape does not match mean shape.",
+                    )
 
     def test_sample_zero_cov(self):
         """Draw sample from distribution with zero kernels and check whether it equals the mean."""
@@ -125,7 +152,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 dist_sample = dist.sample(size=1)
                 assert_str = "Draw with kernels zero does not match mean."
                 if isinstance(dist.mean(), linops.LinearOperator):
-                    self.assertAllClose(dist_sample, dist.mean().todense(), msg=assert_str)
+                    self.assertAllClose(
+                        dist_sample, dist.mean().todense(), msg=assert_str
+                    )
                 else:
                     self.assertAllClose(dist_sample, dist.mean(), msg=assert_str)
 
@@ -136,12 +165,20 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         n = 3
         A = np.random.uniform(size=(n, n))
         A = 0.5 * (A + A.T) + n * np.eye(n)
-        dist = prob.Normal(mean=np.eye(A.shape[0]),
-                           cov=linops.SymmetricKronecker(A=A), random_state=1)
+        dist = prob.Normal(
+            mean=np.eye(A.shape[0]), cov=linops.SymmetricKronecker(A=A), random_state=1
+        )
         dist_sample = dist.sample(size=10)
         for i, B in enumerate(dist_sample):
-            self.assertAllClose(B, B.T, atol=1e-5, rtol=1e-5,
-                                msg="Sample {} from symmetric Kronecker distribution is not symmetric.".format(i))
+            self.assertAllClose(
+                B,
+                B.T,
+                atol=1e-5,
+                rtol=1e-5,
+                msg="Sample {} from symmetric Kronecker distribution is not symmetric.".format(
+                    i
+                ),
+            )
 
 
 if __name__ == "__main__":

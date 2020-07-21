@@ -55,8 +55,8 @@ class ContinuousModel(ABC):
         currstate = initstate
         for idx in range(1, len(times)):
             bmsamp = np.random.multivariate_normal(
-                np.zeros(len(self.diffusionmatrix)),
-                self.diffusionmatrix * step)
+                np.zeros(len(self.diffusionmatrix)), self.diffusionmatrix * step
+            )
             driftvl = self.drift(times[idx - 1], currstate, **kwargs)
             dispvl = self.dispersion(times[idx - 1], currstate, **kwargs)
             currstate = currstate + step * driftvl + dispvl @ bmsamp

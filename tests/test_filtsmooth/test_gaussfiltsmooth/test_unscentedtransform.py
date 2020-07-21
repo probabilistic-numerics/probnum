@@ -17,8 +17,7 @@ class TestUnscentedTransform(unittest.TestCase):
         """
         self.ndim = np.random.randint(1, 33)  # 1 < random int < 33
         alpha, beta, kappa = np.random.rand(3)
-        self.ut = unscentedtransform.UnscentedTransform(self.ndim, alpha, beta,
-                                                        kappa)
+        self.ut = unscentedtransform.UnscentedTransform(self.ndim, alpha, beta, kappa)
         self.mean = np.random.rand(self.ndim)
         cvr = np.random.rand(self.ndim, self.ndim)
         self.covar = cvr @ cvr.T
@@ -53,8 +52,9 @@ class TestUnscentedTransform(unittest.TestCase):
         """
         sigpts = self.ut.sigma_points(self.mean, self.covar)
         proppts = self.ut.propagate(None, sigpts, lambda t, x: np.sin(x))
-        mest, cest, ccest = self.ut.estimate_statistics(proppts, sigpts,
-                                                        self.covar, self.mean)
+        mest, cest, ccest = self.ut.estimate_statistics(
+            proppts, sigpts, self.covar, self.mean
+        )
         self.assertEqual(mest.ndim, 1)
         self.assertEqual(mest.shape[0], self.ndim)
         self.assertEqual(cest.ndim, 2)
@@ -72,16 +72,16 @@ class TestUnscentedTransform(unittest.TestCase):
         transmtrx = np.random.rand(ndim_meas, self.ndim)
         meascov = 0 * np.random.rand(ndim_meas, ndim_meas)
         proppts = self.ut.propagate(None, sigpts, lambda t, x: transmtrx @ x)
-        mest, cest, ccest = self.ut.estimate_statistics(proppts, sigpts,
-                                                        meascov, self.mean)
+        mest, cest, ccest = self.ut.estimate_statistics(
+            proppts, sigpts, meascov, self.mean
+        )
         diff_mean = np.linalg.norm(mest - transmtrx @ self.mean)
-        diff_covar = np.linalg.norm(
-            cest - transmtrx @ self.covar @ transmtrx.T)
+        diff_covar = np.linalg.norm(cest - transmtrx @ self.covar @ transmtrx.T)
         diff_crosscovar = np.linalg.norm(ccest - self.covar @ transmtrx.T)
-        self.assertLess(diff_mean / np.linalg.norm(transmtrx @ self.mean),
-                        1e-11)
+        self.assertLess(diff_mean / np.linalg.norm(transmtrx @ self.mean), 1e-11)
         self.assertLess(
-            diff_covar / np.linalg.norm(transmtrx @ self.covar @ transmtrx.T),
-            1e-11)
+            diff_covar / np.linalg.norm(transmtrx @ self.covar @ transmtrx.T), 1e-11
+        )
         self.assertLess(
-            diff_crosscovar / np.linalg.norm(self.covar @ transmtrx.T), 1e-11)
+            diff_crosscovar / np.linalg.norm(self.covar @ transmtrx.T), 1e-11
+        )
