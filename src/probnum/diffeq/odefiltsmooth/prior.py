@@ -391,7 +391,7 @@ def _driftmat_matern(ordint, spatialdim, lengthscale):
 
 def _dispmat(ordint, spatialdim, diffconst):
     """
-    Returns I_D \otimes L
+    Returns I_D \\otimes L
     diffconst = sigma**2
     """
     dispvec = diffconst * np.eye(ordint + 1)[:, -1]
