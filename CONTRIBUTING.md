@@ -93,13 +93,12 @@ tox -e docs
 ```
 This creates a static web page under `./docs/_build/html/` which you can view in your browser by opening `./docs/_build/html/intro.html`.
 
-Alternatively, you can manually call
+Alternatively, if you want to build the docs in your current environment you can manually execute
 ```bash
 cd docs
 make clean
 make html
 ```
-This does not create a separate virtual environment via tox.
 
 ## Continuous Integration
 
