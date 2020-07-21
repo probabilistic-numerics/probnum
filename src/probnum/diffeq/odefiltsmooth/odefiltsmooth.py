@@ -214,7 +214,8 @@ def probsolve_ivp(
 
     >>> initrv = RandomVariable(distribution=Dirac(0.15))
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> means, covs, times = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
+    >>> means, covs, times = probsolve_ivp(
+    ...     ivp, method="eks1", which_prior="ioup3", step=0.1)
     >>> print(means)
     [[  0.15         0.51         1.428        1.9176    ]
      [  0.20795795   0.65884674   2.00211064  -6.59817856]

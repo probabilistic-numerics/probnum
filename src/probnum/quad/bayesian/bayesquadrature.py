@@ -183,7 +183,7 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
         # Iteration
         for _ in range(nevals):
             # Predictive Distribution
-            fun_pred = None
+            fun_pred = None  # noqa: F841
 
             # Observation
 

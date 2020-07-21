@@ -380,7 +380,8 @@ class _UnivariateNormal(Normal):
     def reshape(self, newshape):
         if np.prod(newshape) != 1:
             raise ValueError(
-                f"Cannot reshape distribution with shape {self.shape} into shape {newshape}."
+                f"Cannot reshape distribution with shape {self.shape} into shape "
+                f"{newshape}."
             )
         self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
         self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
@@ -529,7 +530,8 @@ class _MatrixvariateNormal(Normal):
     def reshape(self, newshape):
         if np.prod(newshape) != np.prod(self.shape):
             raise ValueError(
-                f"Cannot reshape distribution with shape {self.shape} into shape {newshape}."
+                f"Cannot reshape distribution with shape {self.shape} into shape "
+                f"{newshape}."
             )
         self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
         self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
@@ -542,7 +544,7 @@ class _MatrixvariateNormal(Normal):
 
     def __matmul__(self, other):
         if isinstance(other, Dirac):
-            delta = other.mean()
+            # delta = other.mean()
             raise NotImplementedError
         return NotImplemented
 
@@ -605,8 +607,8 @@ class _OperatorvariateNormal(Normal):
 
     # Arithmetic Operations
 
-    # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-    #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
+    # TODO: implement special rules for matrix-variate RVs and Kronecker structured
+    #  covariances. (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
     def __matmul__(self, other):
         if isinstance(other, Dirac):
             othermean = other.mean()

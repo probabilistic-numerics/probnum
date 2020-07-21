@@ -1173,7 +1173,8 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 Ainv0_covfactor = Ainv0_mean
                 # Standard normal covariance
                 A0_covfactor = linops.Identity(shape=self.n)
-                # TODO: should this be a sample from A to achieve symm. posterior correspondence?
+                # TODO: should this be a sample from A to achieve symm. posterior
+                # correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
             elif isinstance(x0, prob.RandomVariable):
                 raise NotImplementedError

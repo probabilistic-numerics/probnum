@@ -130,9 +130,12 @@ def problinsolve(
 
     References
     ----------
-    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
-    .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
+           2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
+           Optimization*, 2015, 25, 234-260
+    .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View,
+           *Statistics and Computing*, 2019
 
     See Also
     --------
@@ -256,8 +259,10 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
 
     References
     ----------
-    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
-    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View, *Statistics and Computing*, 2019
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian
+           Analysis*, 2019, 14, 937-1012
+    .. [2] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View,
+           *Statistics and Computing*, 2019
 
     See Also
     --------

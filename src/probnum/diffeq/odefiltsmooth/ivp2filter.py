@@ -53,7 +53,8 @@ def ivp2ekf0(ivp, prior, evlvar):
     to be taken into account. In this case,
 
     - EKF0 thinks :math:`J_g(m) = H_1 P^{-1}`
-    - EKF1 thinks :math:`J_g(m) = H_1 P^{-1} - J_f(t, H_0  P^{-1} m(t)) (H_0 P^{-1})^\\top`
+    - EKF1 thinks
+      :math:`J_g(m) = H_1 P^{-1} - J_f(t, H_0  P^{-1} m(t)) (H_0 P^{-1})^\\top`
     - UKF again thinks: ''What is a Jacobian?''
 
     **Note:**

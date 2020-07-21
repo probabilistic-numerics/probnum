@@ -73,7 +73,8 @@ class RandomVariable:
                 "The distribution parameter must be an " "instance of `Distribution`."
             )
 
-    # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
+    # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as
+    # function
     def _set_shape(self, distribution, shape):
         """
         Sets shape in accordance with distribution.

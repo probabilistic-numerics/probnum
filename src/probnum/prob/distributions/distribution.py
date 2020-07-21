@@ -226,9 +226,8 @@ class Distribution:
             return np.log(self._pdf(x))
         else:
             raise NotImplementedError(
-                "The function 'logpdf' is not implemented for object of class {}".format(
-                    type(self).__name__
-                )
+                "The function 'logpdf' is not implemented for object of class "
+                "{}".format(type(self).__name__)
             )
 
     def cdf(self, x):
@@ -251,9 +250,8 @@ class Distribution:
             return np.exp(self._logcdf(x))
         else:
             raise NotImplementedError(
-                "The function 'cdf' is not implemented for object of class {}".format(
-                    type(self).__name__
-                )
+                "The function 'cdf' is not implemented for object of class "
+                "{}".format(type(self).__name__)
             )
 
     def logcdf(self, x):
@@ -276,9 +274,8 @@ class Distribution:
             return np.log(self._cdf(x))
         else:
             raise NotImplementedError(
-                "The function 'logcdf' is not implemented for object of class {}".format(
-                    type(self).__name__
-                )
+                "The function 'logcdf' is not implemented for object of class "
+                "{}".format(type(self).__name__)
             )
 
     def sample(self, size=()):
@@ -299,9 +296,8 @@ class Distribution:
             return self._sample(size=size)
         else:
             raise NotImplementedError(
-                "The function 'sample' is not implemented for object of class {}.".format(
-                    type(self).__name__
-                )
+                "The function 'sample' is not implemented for object of class "
+                "{}.".format(type(self).__name__)
             )
 
     def median(self):
@@ -328,9 +324,8 @@ class Distribution:
             return self._parameters["mode"]
         else:
             raise NotImplementedError(
-                "The function 'mode' is not implemented for object of class {}.".format(
-                    type(self).__name__
-                )
+                "The function 'mode' is not implemented for object of class "
+                "{}.".format(type(self).__name__)
             )
 
     def mean(self):
@@ -348,9 +343,8 @@ class Distribution:
             return self._parameters["mean"]
         else:
             raise NotImplementedError(
-                "The function 'mean' is not implemented for object of class {}.".format(
-                    type(self).__name__
-                )
+                "The function 'mean' is not implemented for object of class "
+                "{}.".format(type(self).__name__)
             )
 
     def cov(self):

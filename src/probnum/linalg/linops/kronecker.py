@@ -108,7 +108,8 @@ class Svec(LinearOperator):
 
     References
     ----------
-    .. [1] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
+    .. [1] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic
+           Publishers*, 2002
     """
 
     def __init__(self, dim, check_symmetric=False):
@@ -286,12 +287,13 @@ class SymmetricKronecker(LinearOperator):
     ----------
     .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational
            and Applied Mathematics*, 2000, 123, 85-100
-    .. [2] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
+    .. [2] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic
+           Publishers*, 2002
 
     See Also
     --------
     Kronecker : The Kronecker product of two linear operators.
-    """
+    """  # noqa: E501
 
     # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1),
     # representation symmetric n2xn2

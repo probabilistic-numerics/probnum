@@ -63,7 +63,8 @@ class ClenshawCurtis(PolynomialQuadrature):
 
     References
     ----------
-    .. [1] Holtz, M., Sparse Grid Quadrature in High Dimensions with Applications in Finance and Insurance, Springer, 2010
+    .. [1] Holtz, M., Sparse Grid Quadrature in High Dimensions with Applications in
+           Finance and Insurance, Springer, 2010
 
 
     Examples
@@ -100,7 +101,7 @@ class ClenshawCurtis(PolynomialQuadrature):
     >>> print(cc.integrate(lambda x: np.sin(x)))
     [0.45969769]
 
-    """
+    """  # noqa: E501
 
     def __init__(self, npts_per_dim, ndim, bounds):
         utils.assert_is_2d_ndarray(bounds)
@@ -117,7 +118,6 @@ def _compute_weights(npts, ndim, ilbds):
     """
     if npts ** ndim * ndim >= 1e9:
         raise MemoryError("Weights for tensor-mesh too large for memory.")
-    num_tiles = np.arange(ndim)
     num_reps = ndim - np.arange(ndim) - 1
     weights = _compute_weights_1d(npts, ndim, ilbds[0])
     prodweights = np.repeat(weights, npts ** (num_reps[0]))
@@ -137,7 +137,7 @@ def _compute_weights_1d(npts, ndim, ilbds1d):
     The :math:`i^\textrm{th}` weight is given by
 
     .. math:: w_i = \\frac{2}{n+1} \\sin\\left(\\frac{i \\pi}{n+1}\\right)\\sum_{j=1}^{(n+1)/2} \\frac{1}{2j-1}\\sin\\left(\\frac{(2j-1)i \\pi}{n+1}\\right).
-    """
+    """  # noqa: E501
     if npts % 2 == 0:
         raise ValueError("Please enter odd npts")
     nhalfpts = int((npts + 1.0) / 2.0)
@@ -171,11 +171,12 @@ def _compute_nodes(npts, ndim, ilbds):
 
 def _compute_nodes_1d(npts, ilbds1d):
     """
-    Computes Clenshaw-Curtis nodes in 1d.
+    Compute Clenshaw-Curtis nodes in 1d.
 
     The :math:`i^\\text{th}` root is
 
-    .. math:: x_i = \\frac{1}{2} \\left(1 - \\cos\\left( \\frac{i \\pi}{n+1} \\right) \\right)
+    .. math::
+       x_i = \\frac{1}{2} \\left(1 - \\cos\\left( \\frac{i \\pi}{n+1} \\right) \\right)
 
     Parameters
     ----------

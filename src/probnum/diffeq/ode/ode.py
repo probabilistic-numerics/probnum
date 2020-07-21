@@ -97,7 +97,8 @@ class ODE(ABC):
         :math:`H_f(t, x) \\in \\mathbb{R}^{3 \\times 3 \\times 3}`
         is expected be evaluated as
 
-        .. math:: H_f(t, x) = \\left[H_{f_1}(t, x), H_{f_2}(t, x), H_{f_3}(t, x) \\right]^\\top
+        .. math::
+           H_f(t, x) = \\left[H_{f_1}(t, x), H_{f_2}(t, x), H_{f_3}(t, x) \\right]^\\top
 
         since for any directions :math:`v_1, v_2` the outcome of
         :math:`H_f(t_0, x_0) \\cdot v_1 \\cdot v_2` is expected to contain
