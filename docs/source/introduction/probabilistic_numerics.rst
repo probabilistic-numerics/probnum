@@ -15,7 +15,7 @@ In a Nutshell
 
 `Probabilistic numerics (PN) <http://probabilistic-numerics.org/>`_ aims to quantify uncertainty arising from intractable or incomplete numerical computation and from stochastic input. This new paradigm which has emerged at the intersection of computer science and numerical analysis treats a *numerical problem* as one of *statistical inference* instead. [#]_ [#]_ 
 
-The probabilistic viewpoint provides a principled way to encode structural knowledge about a problem. By giving an explicit role to uncertainty from all sources, in particular from the computation itself, PN gives rise to new applications beyond the scope of classical methods. For example, it makes consistent propagation of uncertainty the entirety of a computational pipeline possible.
+The probabilistic viewpoint provides a principled way to encode structural knowledge about a problem. By giving an explicit role to uncertainty from all sources, in particular from the computation itself, PN gives rise to new applications beyond the scope of classical methods. For example, it makes consistent propagation of uncertainty through the entirety of a computational pipeline possible.
 
 Typical numerical tasks to which PN may be applied include optimization, quadrature, the solution of ordinary and partial differential equations, and the basic tasks of linear algebra, e.g. solution of linear systems and eigenvalue problems. Note that the PN approach is different from exploiting randomization in numerical methods, in fact many PN methods do not rely on sampling.
 

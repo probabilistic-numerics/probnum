@@ -112,15 +112,30 @@ For example, :code:`linalg` has the following :code:`__init__.py`:
 	This package implements common operations and (probabilistic) numerical methods for linear algebra.
 	"""
 
-	from probnum.linalg.linearsolvers import *
+	from probnum.linalg.linearsolvers import (
+		problinsolve,
+		bayescg,
+		ProbabilisticLinearSolver,
+	    MatrixBasedSolver,
+	    AsymmetricMatrixBasedSolver,
+	    SymmetricMatrixBasedSolver,
+	    SolutionBasedSolver,
+	)
 
 	# Public classes and functions. Order is reflected in documentation.
-	__all__ = ["problinsolve", "bayescg", "ProbabilisticLinearSolver", "GeneralMatrixBasedSolver",
-	           "SymmetricMatrixBasedSolver", "SolutionBasedSolver"]
+	__all__ = [
+	    "problinsolve",
+	    "bayescg",
+	    "ProbabilisticLinearSolver",
+	    "MatrixBasedSolver",
+	    "AsymmetricMatrixBasedSolver",
+	    "SymmetricMatrixBasedSolver",
+	    "SolutionBasedSolver",
+	]
 
-	# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+	# Set correct module paths. Corrects links and module paths in documentation.
 	ProbabilisticLinearSolver.__module__ = "probnum.linalg"
-	GeneralMatrixBasedSolver.__module__ = "probnum.linalg"
+	MatrixBasedSolver.__module__ = "probnum.linalg"
 
 
 If you are documenting a subclass, which has a different path in the file structure than the import path due to
