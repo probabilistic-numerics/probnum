@@ -4,7 +4,7 @@ from initial value problems + state space model to filters.
 """
 
 import numpy as np
-from probnum.filtsmooth import *
+from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal, Dirac

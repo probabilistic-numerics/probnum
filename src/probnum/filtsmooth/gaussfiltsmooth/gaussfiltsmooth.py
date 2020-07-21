@@ -1,10 +1,11 @@
 """
 Gaussian filtering.
 """
+from abc import ABC, abstractmethod
 import numpy as np
 
 from probnum.prob import RandomVariable, Normal
-from probnum.filtsmooth.bayesfiltsmooth import *
+from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 
 
 class GaussFiltSmooth(BayesFiltSmooth, ABC):

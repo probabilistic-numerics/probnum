@@ -8,7 +8,6 @@ methods return a random variable with a distribution, specifying the belief abou
 true value of the integral.
 """
 
-import numpy as np
 from probnum.quad.quadrature import Quadrature
 
 
