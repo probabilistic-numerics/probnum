@@ -274,13 +274,15 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
     References
     ----------
-    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
+           2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
+           Optimization*, 2015, 25, 234-260
 
     See Also
     --------
-    NoisySymmetricMatrixBasedSolver : Class implementing the noisy symmetric
-    probabilistic linear solver.
+    NoisySymmetricMatrixBasedSolver :
+        Class implementing the noisy symmetric probabilistic linear solver.
     """
 
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
@@ -543,10 +545,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             the current iteration.
         atol : float
             Absolute residual tolerance. Stops if
-            :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{atol}`.
+            :math:`\\min\\left(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}\\right) \\leq \\text{atol}`.
         rtol : float
             Relative residual tolerance. Stops if
-            :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{rtol} \\lVert b \\rVert`.
+            :math:`\\min\\left(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}\\right) \\leq \\text{rtol} \\lVert b \\rVert`.
 
         Returns
         -------
@@ -554,7 +556,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             True if the method has converged.
         convergence_criterion : str
             Convergence criterion which caused termination.
-        """
+        """  # noqa: E501
         # maximum iterations
         if iter >= maxiter:
             warnings.warn(
@@ -850,7 +852,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
         info : dict
             Information on convergence of the solver.
-        """
+        """  # noqa: E501
         # Initialization
         self.iter_ = 0
         resid = self.A @ self.x_mean - self.b
@@ -1046,13 +1048,15 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
 
     References
     ----------
-    .. [1] Wenger, J., de Roos, F. and Hennig, P., Probabilistic Solution of Noisy Linear Systems, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [1] Wenger, J., de Roos, F. and Hennig, P., Probabilistic Solution of Noisy
+           Linear Systems, 2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
+           Optimization*, 2015, 25, 234-260
 
     See Also
     --------
-    SymmetricMatrixBasedSolver : Class implementing the symmetric probabilistic linear
-    solver.
+    SymmetricMatrixBasedSolver :
+        Class implementing the symmetric probabilistic linear solver.
     """
 
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
