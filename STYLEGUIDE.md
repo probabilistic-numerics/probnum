@@ -36,9 +36,7 @@ For example
 - `probsolve_ivp(...)` (scipy: `solve_ivp(...)`)
 - `problinsolve(...)` (scipy: `linalg.solve(...)`)
 
-Methods with "Bayesian" in the name come with the prefix `bayes`,
-  e.g. `bayesquad`: Bayesian quadrature, `BayesFilter`: Bayesian filter,
-  `BayesSmoother`: Bayesian smoother
+Methods with "Bayesian" in the name come with the prefix `bayes`, e.g. `bayesquad`; Bayesian quadrature, `BayesFilter`; Bayesian filter, `BayesSmoother`; Bayesian smoother.
 
 ### Printable Representations
 

@@ -11,4 +11,4 @@ Learn how to integrate ProbNum with your Gaussian process or automatic different
    :maxdepth: 1
    :caption: Automatic Differentiation
 
-Coming Soon!
+Coming soon!

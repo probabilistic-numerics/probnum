@@ -107,7 +107,7 @@ html.writer-html5 .rst-content dl.footnote > dd {
 
 /* ReadTheDocs */
 .fa {
-	font: inherit;
+	font: Open Sans light, Helvetica, sans-serif;
 }
 
 .rst-versions {
@@ -115,12 +115,9 @@ html.writer-html5 .rst-content dl.footnote > dd {
 }
 
 .rst-versions .rst-current-version {
-	color: var(--pn-green);
+	color: var(--pn-brightgreen);
 }
 
 .keep-us-sustainable {
-    padding: .5em;
-    margin: 1em 0;
-    text-align: center;
     border: 1px dotted var(--pn-lightgray);
 }
