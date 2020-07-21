@@ -151,9 +151,9 @@ class TestIVP(unittest.TestCase):
     def test_initialdistribution(self):
         """
         """
-        __ = self.mockivp.initialdistribution
+        _ = self.mockivp.initialdistribution
 
     def test_timespan(self):
         """
         """
-        __, __ = self.mockivp.timespan
+        _, _ = self.mockivp.timespan

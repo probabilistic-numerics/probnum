@@ -5,8 +5,14 @@ import unittest
 
 import numpy as np
 
-from probnum.filtsmooth import *
-from probnum.prob import *
+from probnum.filtsmooth import (
+    LTISDEModel,
+    DiscreteGaussianModel,
+    DiscreteGaussianLTIModel,
+    generate_cd,
+    generate_dd,
+)
+from probnum.prob import RandomVariable, Normal
 
 __all__ = [
     "CarTrackingDDTestCase",

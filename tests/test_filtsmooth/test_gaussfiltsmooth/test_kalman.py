@@ -1,9 +1,9 @@
-""""""
+import numpy as np
 import scipy.linalg
 
-from probnum.filtsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth import Kalman
 
-from .filtsmooth_testcases import *
+from .filtsmooth_testcases import OrnsteinUhlenbeckCDTestCase, CarTrackingDDTestCase
 
 np.random.seed(5472)
 VISUALISE = False  # show plots or not?

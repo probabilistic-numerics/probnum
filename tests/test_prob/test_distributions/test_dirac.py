@@ -1,7 +1,6 @@
 """Tests for the Dirac distributions."""
 
 import unittest
-from tests.testing import NumpyAssertions
 
 import numpy as np
 

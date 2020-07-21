@@ -14,7 +14,7 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq.odefiltsmooth import *
+from probnum.diffeq.odefiltsmooth import probsolve_ivp
 from probnum.diffeq import ode
 from probnum.prob import RandomVariable, Dirac
 
