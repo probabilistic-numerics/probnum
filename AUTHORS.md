@@ -11,5 +11,4 @@ The following people contributed to the ProbNum repository:
 **Other:** Maren Mahsereci, Marvin Pförtner
 
 If you feel like you have made substantial contributions to ProbNum, contact the maintainers of the package. Your name 
-will then be added to the [authors](https://github.com/probabilistic-numerics/probnum/blob/master/AUTHORS.md) file and 
-to the [license](https://github.com/probabilistic-numerics/probnum/blob/master/LICENSE.txt).
+will then be added here.

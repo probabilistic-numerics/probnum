@@ -22,6 +22,8 @@ to correct module paths in the documentation by adding `SuperClass.__module__ = 
 
 ### Naming
 
+The package itself is written "ProbNum" except when referred to as a package import, then `probnum` should be used.
+
 #### Classes, Functions, Methods and Variables
 - `joined_lower` for functions, methods, attributes, variables
 - `joined_lower` or `ALL_CAPS` for constants
