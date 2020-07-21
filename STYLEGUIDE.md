@@ -59,8 +59,7 @@ versus its output of `str`.
 ```
 
 ### Notational Conventions
-Stick to the first few letters for abbreviations
-if they are sufficiently descriptive, e.g.:
+Stick to the first few letters for abbreviations if they are sufficiently descriptive:
 - `cov`: covariance
 - `fun`: function
 - `mat`: matrix
@@ -68,9 +67,7 @@ if they are sufficiently descriptive, e.g.:
 - `arr`: array; wherever applicable, specify `vec` or `mat`
 
 Further conventions are
-- `unit2unit`: convert between types or units; e.g. 
-`mat2arr`: convert matrix to array or `s2ms`: convert seconds to milliseconds.
-Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
+- `unit2unit`: convert between types or units, e.g. `mat2arr`: convert matrix to array or `s2ms`: convert seconds to milliseconds. Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - `proj`: projection (if required: `projmat`, `projvec`, `projlinop`, ...)
 - `precond`: preconditioner
 - `inv*`: for inverse of a matrix; e.g. `invprecond`, `invcovmat`, ...
@@ -105,9 +102,9 @@ Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - If dunder method is not implemented for a type, return `NotImplemented`
 - Warnings via `warnings.warn()`. See https://docs.python.org/2/library/warnings.html
 or https://docs.python.org/2/library/exceptions.html#exceptions.Warning.
-- recall the difference between TypeError and ValueError
-    - TypeError is thrown when an operation or function is applied to an object of an inappropriate type.
-    - ValueError is thrown when a function's argument is of an inappropriate type.
+- recall the difference between `TypeError` and `ValueError`
+    - `TypeError` is thrown when an operation or function is applied to an object of an inappropriate type.
+    - `ValueError` is thrown when a function's argument is of an inappropriate type.
 
 ## Package Structure
 
