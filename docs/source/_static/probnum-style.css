@@ -1,11 +1,13 @@
 /* Color variables */
 :root {
-  --main-color: #107d79;
-  --main-background-color: #fcfcfc;
-  --text-background-color: #e9f4f4;
-  --text-highlight-color: #ff9933;
-  --dark-gray: #333;
-  --light-gray: #f2f2f2;
+  --pn-green: #107d79;
+  --pn-lightgreen: #e9f4f4;
+  --pn-brightgreen: #16b3ad;
+  --pn-orange: #ff9933;
+  --pn-darkred: #820000;
+  --pn-darkgray: #333333;
+  --pn-lightgray: #f2f2f2;
+  --background-gray: #fcfcfc;
 }
 
 /* Font */
@@ -24,7 +26,7 @@ body {
   max-width: 1000px;
 }
 .wy-nav-content a:visited {
-	color: var(--main-color);
+	color: var(--pn-green);
 }
 
 
@@ -32,57 +34,57 @@ body {
 
 /* Logo area */
 .wy-nav-top {
-	background: var(--main-color);
+	background: var(--pn-green);
 }
 .wy-nav-side {
-	background: var(--dark-gray);
+	background: var(--pn-darkgray);
 }
 /* Home button */
 .wy-side-nav-search .wy-dropdown > a, .wy-side-nav-search > a {
-	color: var(--dark-gray);
+	color: var(--pn-darkgray);
 }
 /* Version number */
 .wy-side-nav-search > div.version {
-	color: var(--dark-gray);
+	color: var(--pn-darkgray);
 }
 /* Sidebar headers */
 .wy-menu-vertical header, .wy-menu-vertical p.caption {
-	color: #16b3ad;
+	color: var(--pn-brightgreen);
 }
 /* Sidebar links */
 .wy-menu-vertical a:active {
-	background-color: var(--main-color);
+	background-color: var(--pn-green);
 }
 .wy-menu-vertical a:hover {
-	color: #16b3ad;
+	color: var(--pn-brightgreen);
 }
 
 /* Hyperlinks */
 a {
-    color: var(--main-color);
+    color: var(--pn-green);
     text-decoration: none;
 }
 
 a:hover {
-    color: var(--main-color);
+    color: var(--pn-green);
     text-decoration: underline;
 }
 
 /* API Documentation */
 .rst-content code, .rst-content tt {
-    color: #333;
+    color: var(--pn-darkgray);
 }
 
 /* Code block */
 .highlight {
-	background: var(--light-gray);
+	background: var(--pn-lightgray);
 }
 
 /* Code inline */
 .rst-content code.literal, .rst-content tt.literal{
-    color: var(--main-color);
+    color: var(--pn-green);
     padding: 1px 2px;
-		background-color: var(--text-background-color);
+		background-color: var(--pn-lightgreen);
 		border-radius: 4px;
 }
 
@@ -101,6 +103,6 @@ html.writer-html5 .rst-content dl.footnote > dd {
 
 /* API Documentation */
 .rst-content .viewcode-link {
-	color: -var(--main-color);
+	color: -var(--pn-green);
 }
 
