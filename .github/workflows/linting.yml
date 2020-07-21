@@ -13,7 +13,7 @@ jobs:
       - name: Run black through tox
         run: tox -e black
 
-  flake8-full:
+  flake8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
