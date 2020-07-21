@@ -704,7 +704,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             sy = np.vstack(sy_list).ravel()
 
             # Posterior covariance factors
-            if self.is_calib_covclass and (not phi is None) and (not psi is None):
+            if self.is_calib_covclass and (phi is not None) and (psi is not None):
                 # Ensure prior covariance class only acts in span(S) like A
                 def _matvec(x):
                     # First term of calibration covariance class: AS(S'AS)^{-1}S'A
