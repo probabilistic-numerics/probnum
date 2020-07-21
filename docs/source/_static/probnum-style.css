@@ -74,6 +74,10 @@ a:hover {
 .rst-content code, .rst-content tt {
     color: var(--pn-darkgray);
 }
+.rst-content .viewcode-link {
+	color: -var(--pn-green);
+}
+
 
 /* Code block */
 .highlight {
@@ -101,8 +105,22 @@ html.writer-html5 .rst-content dl.footnote > dd {
     margin: 0 0 0;
 }
 
-/* API Documentation */
-.rst-content .viewcode-link {
-	color: -var(--pn-green);
+/* ReadTheDocs */
+.fa {
+	font: inherit;
 }
 
+.rst-versions {
+	font-family: Open sans light, Helvetica, sans-serif;
+}
+
+.rst-versions .rst-current-version {
+	color: var(--pn-green);
+}
+
+.keep-us-sustainable {
+    padding: .5em;
+    margin: 1em 0;
+    text-align: center;
+    border: 1px dotted var(--pn-lightgray);
+}
