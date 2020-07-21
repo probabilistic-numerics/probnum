@@ -1,7 +1,8 @@
 """
 Quadrature rules based on polynomial functions.
 
-Class of quadrature rules derived by constructing polynomial functions which are simple to integrate.
+Class of quadrature rules derived by constructing polynomial functions which are simple
+to integrate.
 """
 
 from probnum.quad.quadrature import Quadrature
@@ -60,7 +61,8 @@ class PolynomialQuadrature(Quadrature):
             vectorization is recommended wherever possible for improved
             speed of computation.
         isvectorized : bool
-            Whether integrand allows vectorised evaluation (i.e. evaluation of all nodes at once).
+            Whether integrand allows vectorised evaluation (i.e. evaluation of all nodes
+            at once).
         kwargs
             Key-word arguments being passed down to ``fun`` at each
             evaluation. For example (hyper)parameters.

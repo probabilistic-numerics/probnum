@@ -12,7 +12,8 @@ class Symmetrize(LinearOperator):
     """
     Symmetrizes a vector in its matrix representation.
 
-    Given a vector x=vec(X) representing a square matrix X, this linear operator computes y=vec(1/2(X + X^T)).
+    Given a vector x=vec(X) representing a square matrix X, this linear operator
+    computes y=vec(1/2(X + X^T)).
 
     Parameters
     ----------
@@ -35,13 +36,14 @@ class Vec(LinearOperator):
     """
     Vectorization operator.
 
-    The column- or row-wise vectorization operator stacking the columns or rows of a matrix representation of a
-    linear operator into a vector.
+    The column- or row-wise vectorization operator stacking the columns or rows of a
+    matrix representation of a linear operator into a vector.
 
     Parameters
     ----------
     order : str
-        Stacking order to apply. One of ``row`` or ``col``. Defaults to column-wise stacking.
+        Stacking order to apply. One of ``row`` or ``col``. Defaults to column-wise
+        stacking.
     dim : int
         Either number of rows or columns, depending on the vectorization ``order``.
     """
@@ -70,9 +72,10 @@ class Svec(LinearOperator):
     """
     Symmetric vectorization operator.
 
-    The column- or row-wise symmetric normalized vectorization operator :math:`\\operatorname{svec}` [1]_ stacking the
-    (normalized) lower/upper triangular components of a symmetric matrix of a linear operator into a
-    vector. It is defined by
+    The column- or row-wise symmetric normalized vectorization operator
+    :math:`\\operatorname{svec}` [1]_ stacking the (normalized) lower/upper triangular
+    components of a symmetric matrix of a linear operator into a vector. It is defined
+    by
 
     .. math::
         \\operatorname{svec}(S) = \\begin{bmatrix}
@@ -95,13 +98,13 @@ class Svec(LinearOperator):
     dim : int
         Dimension of the symmetric matrix to be reshaped.
     check_symmetric : bool, default=False
-        Check whether the given matrix or vector corresponds to a symmetric matrix argument. Note, this option can slow
-        down performance.
+        Check whether the given matrix or vector corresponds to a symmetric matrix
+        argument. Note, this option can slow down performance.
 
     Notes
     -----
-    It holds that :math:`Q\\operatorname{svec}(S) = \\operatorname{vec}(S)`, where :math:`Q` is a unique matrix with
-    orthonormal rows.
+    It holds that :math:`Q\\operatorname{svec}(S) = \\operatorname{vec}(S)`, where
+    :math:`Q` is a unique matrix with orthonormal rows.
 
     References
     ----------
@@ -130,14 +133,16 @@ class Svec(LinearOperator):
         return X[ind]
 
     def _matmat(self, X):
-        """Vectorizes X if of dimension n^2, otherwise applies Svec to each column of X."""
+        """
+        Vectorizes X if of dimension n^2, otherwise applies Svec to each column of X.
+        """
         if np.shape(X)[0] == np.shape(X)[1] == self._dim:
             return self._matvec(X.ravel())
         elif np.shape(X)[0] == self._dim * self._dim:
             return np.hstack([self._matvec(col.reshape(-1, 1)) for col in X.T])
         else:
             raise ValueError(
-                "Dimension mismatch. Argument must be either a (n x n) matrix or (n^2 x k)"
+                "Dimension mismatch. Argument must be either a (n x n) or (n^2 x k)"
             )
 
 
@@ -145,7 +150,8 @@ class Kronecker(LinearOperator):
     """
     Kronecker product of two linear operators.
 
-    The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A` and :math:`B` is given by
+    The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A`
+    and :math:`B` is given by
 
     .. math::
         A \\otimes B = \\begin{bmatrix}
@@ -154,10 +160,12 @@ class Kronecker(LinearOperator):
             A_{n_11} B &  \\dots   & A_{n_1 m_1} B
         \\end{bmatrix}
 
-    where :math:`A_{ij}v=A(v_j e_i)`, where :math:`e_i` is the :math:`i^{\\text{th}}` unit vector. The result is a new linear
-    operator mapping from :math:`\\mathbb{R}^{n_1n_2}` to :math:`\\mathbb{R}^{m_1m_2}`. By recognizing that
-    :math:`(A \\otimes B)\\operatorname{vec}(X) = AXB^{\\top}`, the Kronecker product can be understood as "translation"
-    between matrix multiplication and (row-wise) vectorization.
+    where :math:`A_{ij}v=A(v_j e_i)`, where :math:`e_i` is the :math:`i^{\\text{th}}`
+    unit vector. The result is a new linear operator mapping from
+    :math:`\\mathbb{R}^{n_1n_2}` to :math:`\\mathbb{R}^{m_1m_2}`. By recognizing that
+    :math:`(A \\otimes B)\\operatorname{vec}(X) = AXB^{\\top}`, the Kronecker product
+    can be understood as "translation" between matrix multiplication and (row-wise)
+    vectorization.
 
     Parameters
     ----------
@@ -170,8 +178,8 @@ class Kronecker(LinearOperator):
 
     References
     ----------
-    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
-            123, 85-100
+    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational
+           and Applied Mathematics*, 2000, 123, 85-100
 
     See Also
     --------
@@ -193,7 +201,8 @@ class Kronecker(LinearOperator):
 
     def _matvec(self, X):
         """
-        Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the row-wise vectorization operator.
+        Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the
+        row-wise vectorization operator.
         """
         X = X.reshape(self.A.shape[1], self.B.shape[1])
         Y = self.B.matmat(X.T)
@@ -255,25 +264,28 @@ class SymmetricKronecker(LinearOperator):
     """
     Symmetric Kronecker product of two linear operators.
 
-    The symmetric Kronecker product [1]_ :math:`A \\otimes_{s} B` of two square linear operators :math:`A` and
-    :math:`B` maps a symmetric linear operator :math:`X` to :math:`\\mathbb{R}^{\\frac{1}{2}n (n+1)}`. It is given by
+    The symmetric Kronecker product [1]_ :math:`A \\otimes_{s} B` of two square linear
+    operators :math:`A` and :math:`B` maps a symmetric linear operator :math:`X` to
+    :math:`\\mathbb{R}^{\\frac{1}{2}n (n+1)}`. It is given by
 
     .. math::
         (A \\otimes_{s} B)\\operatorname{svec}(X) = \\frac{1}{2} \\operatorname{svec}(AXB^{\\top} + BXA^{\\top})
 
-    where :math:`\\operatorname{svec}(X) = (X_{11}, \\sqrt{2} X_{12}, \\dots, X_{1n}, X_{22}, \\sqrt{2} X_{23},
-    \\dots, \\sqrt{2}X_{2n}, \\dots X_{nn})^{\\top}` is the (row-wise, normalized) symmetric stacking operator. The
-    implementation is based on the relationship :math:`Q^\\top \\operatorname{svec}(X) = \\operatorname{vec}(X)` with an
-    orthonormal matrix :math:`Q` [2]_.
+    where :math:`\\operatorname{svec}(X) = (X_{11}, \\sqrt{2} X_{12}, \\dots, X_{1n},
+    X_{22}, \\sqrt{2} X_{23}, \\dots, \\sqrt{2}X_{2n}, \\dots X_{nn})^{\\top}` is the
+    (row-wise, normalized) symmetric stacking operator. The implementation is based on
+    the relationship :math:`Q^\\top \\operatorname{svec}(X) = \\operatorname{vec}(X)`
+    with an orthonormal matrix :math:`Q` [2]_.
 
     Note
     ----
-    The symmetric Kronecker product has a symmetric matrix representation if both :math:`A` and :math:`B` are symmetric.
+    The symmetric Kronecker product has a symmetric matrix representation if both
+    :math:`A` and :math:`B` are symmetric.
 
     References
     ----------
-    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational and Applied Mathematics*, 2000,
-            123, 85-100
+    .. [1] Van Loan, C. F., The ubiquitous Kronecker product, *Journal of Computational
+           and Applied Mathematics*, 2000, 123, 85-100
     .. [2] De Klerk, E., Aspects of Semidefinite Programming, *Kluwer Academic Publishers*, 2002
 
     See Also
@@ -281,7 +293,8 @@ class SymmetricKronecker(LinearOperator):
     Kronecker : The Kronecker product of two linear operators.
     """
 
-    # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1), representation symmetric n2xn2
+    # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1),
+    # representation symmetric n2xn2
 
     def __init__(self, A, B=None, dtype=None):
         # Set parameters
@@ -303,8 +316,8 @@ class SymmetricKronecker(LinearOperator):
 
     def _matvec(self, x):
         """
-        Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where vec is the column-wise normalized
-        symmetric stacking operator.
+        Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
+        vec is the column-wise normalized symmetric stacking operator.
         """
         # vec(x)
         X = x.reshape(self._n, self._n)
@@ -326,7 +339,8 @@ class SymmetricKronecker(LinearOperator):
         Y = 0.5 * (Y1 + Y2)
         return Y.ravel()
 
-    # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker properties
+    # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker
+    # properties
 
     def todense(self):
         """Dense representation of the symmetric Kronecker product"""

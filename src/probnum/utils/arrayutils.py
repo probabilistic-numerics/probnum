@@ -98,8 +98,8 @@ def as_colvec(vec):
     """
     Transform the given vector or random variable to column format.
 
-    Given a vector (or random variable) of dimension (n,) return an array with dimensions
-    (n, 1) instead. Higher-dimensional arrays are not changed.
+    Given a vector (or random variable) of dimension (n,) return an array with
+    dimensions (n, 1) instead. Higher-dimensional arrays are not changed.
 
     Parameters
     ----------

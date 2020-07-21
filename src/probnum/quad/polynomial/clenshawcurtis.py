@@ -4,7 +4,8 @@ Clenshaw-Curtis quadrature rule.
 This module implements the Clenshaw-Curtis quadrature rule and associated functions.
 
 Formula for nodes and weights:
-    [1] Sparse Grid Quadrature in High Dimensions with Applications in Finance and Insurance
+    [1] Sparse Grid Quadrature in High Dimensions with Applications in Finance and
+        Insurance
         Holtz, M., Springer, 2010(, Chapter 3, p. 42ff)
 URL:
     https://books.google.de/books?id=XOfMm-4ZM9AC&pg=PA42&lpg=PA42&dq=filippi+formu
@@ -110,9 +111,9 @@ class ClenshawCurtis(PolynomialQuadrature):
 
 def _compute_weights(npts, ndim, ilbds):
     """
-    Computes 1D Clenshaw-Curtis weights and aligns them in
-    correspondence to the computed nodes. Since the resulting mesh is of
-    size (n**d, d), the weight array is of size (n**d,).
+    Computes 1D Clenshaw-Curtis weights and aligns them in correspondence to the
+    computed nodes. Since the resulting mesh is of size (n**d, d), the weight array is
+    of size (n**d,).
     """
     if npts ** ndim * ndim >= 1e9:
         raise MemoryError("Weights for tensor-mesh too large for memory.")
@@ -151,9 +152,8 @@ def _compute_weights_1d(npts, ndim, ilbds1d):
 
 def _compute_nodes(npts, ndim, ilbds):
     """
-    Computes 1D Clenshaw-Curtis nodes and aligns them in order to create
-    a tensor mesh: each point is aligned with each point to create a
-    mesh of size (n^d, d).
+    Computes 1D Clenshaw-Curtis nodes and aligns them in order to create a tensor mesh:
+    each point is aligned with each point to create a mesh of size (n^d, d).
     """
     if npts ** ndim * ndim >= 1e9:
         raise ValueError("Tensor-mesh too large for memory.")

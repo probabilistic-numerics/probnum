@@ -54,7 +54,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
             Number of inbetween steps for the filter. Default is 1.
         """
 
-        ####### This function surely can use some code cleanup. #######
+        # This function surely can use some code cleanup.
 
         current = self.gfilt.initialdistribution
         step = firststep
@@ -64,7 +64,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
             intermediate_step = float(step / nsteps)
             tm = times[-1]
             interms, intercs, interts = [], [], []
-            for idx in range(nsteps):
+            for _step in range(nsteps):
                 newtm = tm + intermediate_step
                 current, __ = self.gfilt.predict(tm, newtm, current, **kwargs)
                 interms.append(current.mean().copy())

@@ -1,7 +1,8 @@
 """
 Probability Distribution.
 
-This module provides a class implementing a probability distribution along with its properties.
+This module provides a class implementing a probability distribution along with its
+properties.
 """
 
 import numpy as np
@@ -45,17 +46,20 @@ class Distribution:
     shape : tuple
         Shape of samples from this distribution.
     dtype : numpy.dtype or object
-        Data type of realizations of a random variable with this distribution. If ``object`` will be converted to ``numpy.dtype``.
+        Data type of realizations of a random variable with this distribution. If
+        ``object`` will be converted to ``numpy.dtype``.
     random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
-        This parameter defines the RandomState object to use for drawing
-        realizations from this distribution.
+        This parameter defines the RandomState object to use for drawing realizations
+        from this distribution.
         If None (or np.random), the global np.random state is used.
-        If integer, it is used to seed the local :class:`~numpy.random.RandomState` instance.
+        If integer, it is used to seed the local :class:`~numpy.random.RandomState`
+        instance.
         Default is None.
 
     See Also
     --------
-    RandomVariable : Random variables are the main objects used by probabilistic numerical methods.
+    RandomVariable : Random variables are the main objects used by probabilistic
+    numerical methods.
 
     Examples
     --------
@@ -146,7 +150,8 @@ class Distribution:
         This attribute defines the RandomState object to use for drawing
         realizations from this distribution.
         If None (or np.random), the global np.random state is used.
-        If integer, it is used to seed the local :class:`~numpy.random.RandomState` instance.
+        If integer, it is used to seed the local :class:`~numpy.random.RandomState`
+        instance.
         """
         return self._random_state
 
@@ -166,7 +171,8 @@ class Distribution:
         """
         Parameters of the probability distribution.
 
-        The parameters of the distribution such as mean, variance, et cetera stored in a ``dict``.
+        The parameters of the distribution such as mean, variance, et cetera stored in a
+        ``dict``.
         """
         if self._parameters is not None:
             return self._parameters
@@ -349,8 +355,8 @@ class Distribution:
 
     def cov(self):
         """
-        Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the
-        distribution.
+        Covariance :math:`\\operatorname{Cov}(X) =
+        \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the distribution.
 
         Returns
         -------
@@ -370,7 +376,8 @@ class Distribution:
 
     def var(self):
         """
-        Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of the distribution.
+        Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of
+        the distribution.
 
         Returns
         -------
@@ -404,8 +411,8 @@ class Distribution:
         Parameters
         ----------
         newshape : int or tuple of ints
-            New shape for the realizations and parameters of this distribution. It must be compatible with the original
-            shape.
+            New shape for the realizations and parameters of this distribution. It must
+            be compatible with the original shape.
 
         Returns
         -------
