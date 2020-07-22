@@ -59,6 +59,9 @@ Building the documentation locally requires additional packages (e.g. for inheri
 
 ## Testing
 
+[![test coverage: latest](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
+[![test coverage: development](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/development?label=Coverage%3A%20dev&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/development)
+
 We use [unittest](https://docs.python.org/3/library/unittest.html) for testing and aim to cover as much code with tests as possible. Make sure to always add tests for newly implemented code. To run the test suite on your machine you have multiple options:
 
 - **Full test suite with tox:** Run the full suite across different Python versions with
@@ -81,12 +84,11 @@ We use [unittest](https://docs.python.org/3/library/unittest.html) for testing a
 
 ## Documentation
 
-ProbNum's documentation is created with [Sphinx](https://www.sphinx-doc.org/en/master/) and automatically built and hosted by [ReadTheDocs](https://readthedocs.org/projects/probnum/).
-You can access the documentation of the stable (release), latest (`master` branch) and dev (`development` branch) versions here:
-
 [![docs: stable](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs:%20stable)](https://probnum.readthedocs.io/en/stable/)
-[![docs: stable](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs:%20latest)](https://probnum.readthedocs.io/en/latest/)
+[![docs: latest](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs:%20latest)](https://probnum.readthedocs.io/en/latest/)
 [![docs: development](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs:%20dev&version=development)](https://probnum.readthedocs.io/en/development/)
+
+ProbNum's documentation is created with [Sphinx](https://www.sphinx-doc.org/en/master/) and automatically built and hosted by [ReadTheDocs](https://readthedocs.org/projects/probnum/) for stable (release), latest (`master` branch) and dev (`development` branch) versions.
 
 You can build the documentation locally via
 ```bash
@@ -102,6 +104,9 @@ make html
 ```
 
 ## Continuous Integration
+
+[![build status: latest](https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI:%20latest)](https://travis-ci.org/probabilistic-numerics/probnum)
+[![build status: development](https://img.shields.io/travis/probabilistic-numerics/probnum/development.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI:%20dev)](https://travis-ci.org/probabilistic-numerics/probnum)
 
 ProbNum uses [Travis CI](https://travis-ci.org/probabilistic-numerics/probnum) for continuous integration.
 For every pull request and every commit Travis builds the project and runs the test suite (through `tox`), to make sure that no breaking changes are introduced by mistake.
