@@ -6,11 +6,14 @@ Benchmarks are run by `airspeed velocity <https://asv.readthedocs.io/en/stable/>
 performance changes over time. 
 
 
-ProbNum's Benchmarks
-********************
+Check out ProbNum's benchmarks for its probabilistic numerical methods
+and related functions: (Coming soon!)
 
-Check out ProbNum's `benchmarks <comingsoon>`_ (coming soon!) for its probabilistic numerical methods
-and related functions!
+.. toctree::
+   :maxdepth: 1
+
+   ProbNum's Benchmarks <https://comingsoon>
+
 
 
 Creating Benchmarks
