@@ -105,8 +105,8 @@ make html
 
 ## Continuous Integration
 
-[![build status: latest](https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI:%20latest)](https://travis-ci.org/probabilistic-numerics/probnum)
-[![build status: development](https://img.shields.io/travis/probabilistic-numerics/probnum/development.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI:%20dev)](https://travis-ci.org/probabilistic-numerics/probnum)
+[![build status: latest](https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI:%20latest)](https://travis-ci.org/github/probabilistic-numerics/probnum/branches)
+[![build status: development](https://img.shields.io/travis/probabilistic-numerics/probnum/development.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI:%20dev)](https://travis-ci.org/github/probabilistic-numerics/probnum/branches)
 
 ProbNum uses [Travis CI](https://travis-ci.org/probabilistic-numerics/probnum) for continuous integration.
 For every pull request and every commit Travis builds the project and runs the test suite (through `tox`), to make sure that no breaking changes are introduced by mistake.
