@@ -5,6 +5,8 @@
 language: python
 python:
   - "3.6"
+  - "3.7"
+  - "3.8"
 install:
   - sudo apt-get install pandoc # pandoc for jupyter notebooks
   - sudo apt install graphviz # graphviz for class inheritance diagrams in docs
