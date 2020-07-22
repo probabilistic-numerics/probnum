@@ -27,7 +27,7 @@ or if you prefer to use the latest version, install directly from Github:
    pip install git+https://github.com/probabilistic-numerics/probnum.git
 
 
-To learn how to use ProbNum check out the `quickstart guide <introduction/quickstart.html>`_ and the `tutorials <tutorials/tutorials.html>`_.
+To learn how to use ProbNum check out the `quickstart guide <introduction/quickstart.html>`_ and the tutorials.
 
 .. toctree::
    :maxdepth: 1
