@@ -13,9 +13,3 @@ script:
   - tox
 after_success:
   - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecov
-deploy: # deploy documentation to github pages
-- provider: pages
-  skip_cleanup: true
-  local_dir: docs/_build/html
-  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
-  keep_history: true
