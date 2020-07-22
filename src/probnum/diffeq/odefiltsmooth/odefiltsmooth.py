@@ -253,11 +253,11 @@ def _create_solver_object(
     precond_step = precond_step / float(nsteps)
     _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
-        stprl = _step2steprule_adap(tol, _prior)
+        stprl = steprule.AdaptiveSteps(_tol, _prior.ordint + 1, **kwargs)
         if firststep is None:
             firststep = ivp.tmax - ivp.t0
     else:
-        stprl = _step2steprule_const(step)
+        stprl = steprule.ConstantSteps(stp)
         firststep = step
     gfilt = _string2filter(ivp, _prior, method, **kwargs)
     return GaussianIVPFilter(ivp, gfilt, stprl), firststep
@@ -374,16 +374,3 @@ def _string2filter(_ivp, _prior, _method, **kwargs):
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     else:
         raise ValueError("Type of filter not supported.")
-
-
-def _step2steprule_const(stp):
-    """
-    """
-    return steprule.ConstantSteps(stp)
-
-
-def _step2steprule_adap(_tol, _prior, **kwargs):
-    """
-    """
-    convrate = _prior.ordint + 1
-    return steprule.AdaptiveSteps(_tol, convrate, **kwargs)
