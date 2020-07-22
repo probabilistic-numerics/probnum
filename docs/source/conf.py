@@ -152,7 +152,7 @@ nbsphinx_allow_errors = True
 
 # Whether to execute notebooks before conversion or not.
 # Possible values: 'always', 'never', 'auto' (default).
-nbsphinx_execute = "always"
+nbsphinx_execute = "auto"
 
 # List of arguments to be passed to the kernel that executes the notebooks:
 nbsphinx_execute_arguments = [
@@ -161,8 +161,7 @@ nbsphinx_execute_arguments = [
 ]
 
 # Use a different kernel than stored in the notebook metadata
-# Install the kernel (in the current virtualenv) via 'ipython kernel install --user --name=probnum_kernel'
-nbsphinx_kernel_name = "probnum_kernel"
+# nbsphinx_kernel_name = ""
 
 # Width of input/output prompts (HTML only). Any CSS length can be specified.
 # nbsphinx_prompt_width = 1000px
