@@ -1,28 +1,18 @@
-"""
-"""
-
 from abc import ABC, abstractmethod
-
-__all__ = ["StepRule", "ConstantSteps", "AdaptiveSteps"]
 
 
 class StepRule(ABC):
-    """
-    (Adaptive) step size rules for ODE solvers.
-    """
+    """(Adaptive) step size rules for ODE solvers."""
 
     @abstractmethod
     def suggest(self, laststep, errorest, **kwargs):
-        """
-        Suggests a new step h_{n+1} given error estimate
-        e_n at step h_n.
-        """
+        """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
         raise NotImplementedError
 
     @abstractmethod
     def is_accepted(self, proposedstep, errorest, **kwargs):
-        """
-        Checks if proposed step should be accepted or not.
+        """Check if the proposed step should be accepted or not.
+
         Variable "proposedstep" not used yet, but may be
         important in the future, e.g. if we decide that
         instead of tol_per_step (see AdaptiveSteps) we want to be able to
@@ -37,13 +27,9 @@ class ConstantSteps(StepRule):
     """
 
     def __init__(self, stepsize):
-        """
-        """
         self.step = stepsize
 
     def suggest(self, laststep, errorest, **kwargs):
-        """
-        """
         return self.step
 
     def is_accepted(self, proposedstep, errorest, **kwargs):
@@ -55,8 +41,7 @@ class ConstantSteps(StepRule):
 
 class AdaptiveSteps(StepRule):
     """
-    Adaptive step size selection based on
-    tolerance per step.
+    Adaptive step size selection based on tolerance per step.
 
     By default, there is no being "too small" for a step. However, a
     Warning is printed if the suggested step is smaller than roughly
@@ -83,8 +68,6 @@ class AdaptiveSteps(StepRule):
         self.limitchange = limitchange
 
     def suggest(self, laststep, errorest, **kwargs):
-        """
-        """
         small, large = self.limitchange
         ratio = self.tol_per_step / (laststep * errorest)
         change = self.safetyscale * ratio ** (1.0 / self.localconvrate)
@@ -99,8 +82,6 @@ class AdaptiveSteps(StepRule):
         return step
 
     def is_accepted(self, proposedstep, errorest, **kwargs):
-        """
-        """
         if errorest * proposedstep < self.tol_per_step:
             return True
         else:
