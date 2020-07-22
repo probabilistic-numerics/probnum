@@ -1,5 +1,5 @@
-Filtering and Smoothing
-=======================
+probnum.filtsmooth
+==================
 
 .. automodapi:: probnum.filtsmooth
 	:no-heading:

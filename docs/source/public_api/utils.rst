@@ -1,5 +1,5 @@
-Other
-=====
+probnum.utils
+=============
 
 .. automodapi:: probnum.utils
    :no-inheritance-diagram:

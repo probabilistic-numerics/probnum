@@ -1,13 +1,12 @@
-Linear Algebra
-==================================
+probnum.linalg
+==============
 
-
-Linear Algebra Routines
-************************
+probnum.linalg
+**************
 .. automodapi:: probnum.linalg
 	:no-heading:
 
-Linear Operators
-****************
+probnum.linalg.linops
+*********************
 .. automodapi::probnum.linalg.linops
 	:no-heading:

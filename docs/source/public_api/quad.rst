@@ -1,5 +1,5 @@
-Quadrature / Numerical Integration
-==================================
+probnum.quad
+============
 
 .. automodapi:: probnum.quad
 	:no-heading:
