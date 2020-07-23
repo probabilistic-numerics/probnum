@@ -56,7 +56,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         current = self.gfilt.initialdistribution
         step = firststep
-        ssqest, ct = 0.0, 0
+        ssqest, n_steps = 0.0, 0
         times, means, covars = [self.ivp.t0], [current.mean()], [current.cov()]
         while times[-1] < self.ivp.tmax:
             intermediate_step = float(step / nsteps)
@@ -82,8 +82,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 times.extend(interts)
                 means.extend(interms)
                 covars.extend(intercs)
-                ct = ct + 1
-                ssqest = ssqest + (ssq - ssqest) / ct
+                n_steps += 1
+                ssqest = ssqest + (ssq - ssqest) / n_steps
             else:
                 current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
             step = self._suggest_step(step, errorest)
