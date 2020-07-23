@@ -15,7 +15,7 @@ This repository aims to implement methods from PN in Python 3 and to provide a c
 currently a work in progress, therefore interfaces are subject to change.
 
 ## Installation
-To get started install ProbNum using :code:`pip`.
+To get started install ProbNum using `pip`.
 ```bash
 pip install probnum
 ```
