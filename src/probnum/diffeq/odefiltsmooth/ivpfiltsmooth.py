@@ -87,8 +87,13 @@ class GaussianIVPFilter(odesolver.ODESolver):
             else:
                 current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
             step = self._suggest_step(step, errorest)
+
         means, covars = self.undo_preconditioning(means, covars)
-        return np.array(means), ssqest * np.array(covars), np.array(times)
+
+        means, covars, times = np.array(means), np.array(covars), np.array(times)
+        covars *= ssqest
+
+        return means, covars, times
 
     def odesmooth(self, means, covs, times, **kwargs):
         """
