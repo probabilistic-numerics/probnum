@@ -54,34 +54,34 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         ####### This function surely can use some code cleanup. #######
 
-        current = self.gfilt.initialdistribution
+        current_rv = self.gfilt.initialrandomvariable
         step = firststep
         ssqest, n_steps = 0.0, 0
-        times, means, covars = [self.ivp.t0], [current.mean()], [current.cov()]
+        times, means, covars = [self.ivp.t0], [current_rv.mean()], [current_rv.cov()]
         while times[-1] < self.ivp.tmax:
             intermediate_step = float(step / nsteps)
             tm = times[-1]
 
+            pred_rv = current_rv
             interms, intercs, interts = [], [], []
             for idx in range(nsteps):
                 newtm = tm + intermediate_step
-                current, __ = self.gfilt.predict(tm, newtm, current, **kwargs)
-                interms.append(current.mean().copy())
-                intercs.append(current.cov().copy())
+                pred_rv, __ = self.gfilt.predict(tm, newtm, pred_rv, **kwargs)
+                interms.append(pred_rv.mean().copy())
+                intercs.append(pred_rv.cov().copy())
                 interts.append(newtm)
                 tm = newtm
-            predicted = current
 
             new_time = tm
             zero_data = 0.0
-            current, covest, ccest, mnest = self.gfilt.update(
-                new_time, predicted, zero_data, **kwargs
+            filt_rv, covest, ccest, mnest = self.gfilt.update(
+                new_time, pred_rv, zero_data, **kwargs
             )
-            interms[-1] = current.mean().copy()
-            intercs[-1] = current.cov().copy()
-            errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
 
+            interms[-1] = filt_rv.mean().copy()
+            intercs[-1] = filt_rv.cov().copy()
 
+            errorest, ssq = self._estimate_error(filt_rv.mean(), ccest, covest, mnest)
 
             if self.steprule.is_accepted(step, errorest) is True:
                 times.extend(interts)
@@ -89,8 +89,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 covars.extend(intercs)
                 n_steps += 1
                 ssqest = ssqest + (ssq - ssqest) / n_steps
-            else:
-                current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
+                current_rv = filt_rv
 
             step = self._suggest_step(step, errorest)
 
