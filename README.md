@@ -15,14 +15,13 @@ This repository aims to implement methods from PN in Python 3 and to provide a c
 currently a work in progress, therefore interfaces are subject to change.
 
 ## Installation
-You can install this Python 3 package using `pip` (or `pip3`):
+To get started install ProbNum using :code:`pip`.
+```bash
+pip install probnum
+```
+Alternatively, you can install the package from source.
 ```bash
 pip install git+https://github.com/probabilistic-numerics/probnum.git
-```
-Alternatively you can clone this repository with
-```bash
-git clone https://github.com/probabilistic-numerics/probnum
-pip install probnum/.
 ```
 
 ## Documentation and Examples
