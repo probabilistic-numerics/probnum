@@ -31,8 +31,8 @@ def probsolve_ivp(
     tol=None,
     step=None,
     firststep=None,
-    precond_step=1.0,
     nsteps=1,
+    precond_step=None,
     **kwargs
 ):
     """
@@ -248,8 +248,8 @@ def _create_solver_object(
     """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)
-    if step is not None:
-        precond_step = step
+    if precond_step is None:
+        precond_step = step or 1.0
     precond_step = precond_step / float(nsteps)
     _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
