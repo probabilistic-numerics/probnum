@@ -60,7 +60,12 @@ class AdaptiveSteps(StepRule):
     """
 
     def __init__(
-        self, tol_per_step, localconvrate, limitchange=(0.1, 5.0), safetyscale=0.95
+        self,
+        tol_per_step,
+        localconvrate,
+        limitchange=(0.1, 5.0),
+        safetyscale=0.95,
+        **kwargs
     ):
         self.tol_per_step = float(tol_per_step)
         self.safetyscale = float(safetyscale)
