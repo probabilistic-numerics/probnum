@@ -60,22 +60,22 @@ class GaussianIVPFilter(odesolver.ODESolver):
         times, means, covars = [self.ivp.t0], [current_rv.mean()], [current_rv.cov()]
         while times[-1] < self.ivp.tmax:
             intermediate_step = float(step / nsteps)
-            tm = times[-1]
+            t = times[-1]
 
             pred_rv = current_rv
             interms, intercs, interts = [], [], []
             for idx in range(nsteps):
-                newtm = tm + intermediate_step
-                pred_rv, __ = self.gfilt.predict(tm, newtm, pred_rv, **kwargs)
+                t_new = t + intermediate_step
+                pred_rv, __ = self.gfilt.predict(t, t_new, pred_rv, **kwargs)
                 interms.append(pred_rv.mean().copy())
                 intercs.append(pred_rv.cov().copy())
-                interts.append(newtm)
-                tm = newtm
+                interts.append(t_new)
+                t = t_new
 
-            new_time = tm
+            t_new = t
             zero_data = 0.0
             filt_rv, covest, ccest, mnest = self.gfilt.update(
-                new_time, pred_rv, zero_data, **kwargs
+                t_new, pred_rv, zero_data, **kwargs
             )
 
             interms[-1] = filt_rv.mean().copy()
