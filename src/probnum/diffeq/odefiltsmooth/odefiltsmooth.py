@@ -31,7 +31,6 @@ def probsolve_ivp(
     tol=None,
     step=None,
     firststep=None,
-    nsteps=1,
     precond_step=None,
     **kwargs
 ):
@@ -140,12 +139,6 @@ def probsolve_ivp(
         overwritten with the actual step size to provide optimal
         preconditioning.
 
-    nsteps : int, optional
-        Number of intermediate steps in between ODE right-hand side
-        evaluation. Default is ``nsteps=1``. Choosing ``nsteps > 1``
-        will result in solution estimates in between points which
-        will enable for instance uncertainty estimates in these regions.
-
     Returns
     -------
     means : np.ndarray, shape=(N, d(q+1))
@@ -234,23 +227,23 @@ def probsolve_ivp(
      [  0.98614541   0.05465059  -0.20824105   0.94815346]]
     """
     solver, firststep = _create_solver_object(
-        ivp, method, which_prior, tol, step, firststep, precond_step, nsteps, **kwargs
+        ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
     )
-    means, covs, times = solver.solve(firststep=firststep, nsteps=nsteps, **kwargs)
-    if method in ["eks0", "eks1", "uks"]:
-        means, covs = solver.odesmooth(means, covs, times, **kwargs)
-    return means, covs, times
+    # means, covs, times = solver.solve(firststep=firststep, **kwargs)
+    # if method in ["eks0", "eks1", "uks"]:
+    #     means, covs = solver.odesmooth(means, covs, times, **kwargs)
+    sol = solver.solve(firststep=firststep, **kwargs)
+    return sol
 
 
 def _create_solver_object(
-    ivp, method, which_prior, tol, step, firststep, precond_step, nsteps, **kwargs
+    ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
 ):
     """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)
     if precond_step is None:
         precond_step = step or 1.0
-    precond_step = precond_step / float(nsteps)
     _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
         stprl = steprule.AdaptiveSteps(tol, _prior.ordint + 1, **kwargs)

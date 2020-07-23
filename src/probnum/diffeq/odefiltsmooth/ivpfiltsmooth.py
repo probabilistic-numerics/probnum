@@ -6,6 +6,7 @@ from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.filtsmooth import *
+from probnum.diffeq.odesolution import ODESolution
 
 
 class GaussianIVPFilter(odesolver.ODESolver):
@@ -39,7 +40,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.gfilt = gaussfilt
         odesolver.ODESolver.__init__(self, steprl)
 
-    def solve(self, firststep, nsteps=1, **kwargs):
+    def solve(self, firststep, **kwargs):
         """
         Solve IVP and calibrates uncertainty according
         to Proposition 4 in Tronarp et al.
@@ -48,50 +49,43 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ----------
         firststep : float
             First step for adaptive step size rule.
-        nsteps : int, optional
-            Number of inbetween steps for the filter. Default is 1.
         """
+        if "nsteps" in kwargs:
+            raise ValueError("`nsteps` is deprecated")
 
         ####### This function surely can use some code cleanup. #######
 
         current_rv = self.gfilt.initialrandomvariable
+        t = self.ivp.t0
+        times, means, covars = [t], [current_rv.mean()], [current_rv.cov()]
+        rvs = [current_rv]
         step = firststep
         ssqest, n_steps = 0.0, 0
-        times, means, covars = [self.ivp.t0], [current_rv.mean()], [current_rv.cov()]
-        while times[-1] < self.ivp.tmax:
-            intermediate_step = float(step / nsteps)
-            t = times[-1]
 
-            pred_rv = current_rv
-            interms, intercs, interts = [], [], []
-            for idx in range(nsteps):
-                t_new = t + intermediate_step
-                pred_rv, __ = self.gfilt.predict(t, t_new, pred_rv, **kwargs)
-                interms.append(pred_rv.mean().copy())
-                intercs.append(pred_rv.cov().copy())
-                interts.append(t_new)
-                t = t_new
+        while t < self.ivp.tmax:
 
-            t_new = t
+            t_new = t + step
+            pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
+
             zero_data = 0.0
             filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
                 t_new, pred_rv, zero_data, **kwargs
             )
-
-            interms[-1] = filt_rv.mean().copy()
-            intercs[-1] = filt_rv.cov().copy()
 
             errorest, ssq = self._estimate_error(
                 filt_rv.mean(), crosscov, meas_cov, meas_mean
             )
 
             if self.steprule.is_accepted(step, errorest) is True:
-                times.extend(interts)
-                means.extend(interms)
-                covars.extend(intercs)
+                times.append(t_new)
+                means.append(filt_rv.mean())
+                covars.append(filt_rv.cov())
+                rvs.append(filt_rv)
                 n_steps += 1
                 ssqest = ssqest + (ssq - ssqest) / n_steps
+
                 current_rv = filt_rv
+                t = t_new
 
             step = self._suggest_step(step, errorest)
 
@@ -100,7 +94,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         means, covars, times = np.array(means), np.array(covars), np.array(times)
         covars *= ssqest
 
-        return means, covars, times
+        return means, covars, times, ODESolution(times, rvs, self)
 
     def odesmooth(self, means, covs, times, **kwargs):
         """
@@ -127,6 +121,13 @@ class GaussianIVPFilter(odesolver.ODESolver):
         newmeans = np.array([ipre @ mean for mean in means])
         newcovs = np.array([ipre @ cov @ ipre.T for cov in covs])
         return newmeans, newcovs
+
+    def undo_preconditioning_rv(self, rv):
+        mean, cov = rv.mean(), rv.cov()
+        newmeans, newcovs = self.undo_preconditioning([mean], [cov])
+        newmean, newcov = newmeans[0], newcovs[0]
+        newrv = RandomVariable(distribution=Normal(newmean, newcov))
+        return newrv
 
     def redo_preconditioning(self, means, covs):
         pre = self.gfilt.dynamicmodel.precond
