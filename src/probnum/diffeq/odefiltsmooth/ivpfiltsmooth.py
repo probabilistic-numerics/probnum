@@ -74,14 +74,16 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
             t_new = t
             zero_data = 0.0
-            filt_rv, covest, ccest, mnest = self.gfilt.update(
+            filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
                 t_new, pred_rv, zero_data, **kwargs
             )
 
             interms[-1] = filt_rv.mean().copy()
             intercs[-1] = filt_rv.cov().copy()
 
-            errorest, ssq = self._estimate_error(filt_rv.mean(), ccest, covest, mnest)
+            errorest, ssq = self._estimate_error(
+                filt_rv.mean(), crosscov, meas_cov, meas_mean
+            )
 
             if self.steprule.is_accepted(step, errorest) is True:
                 times.extend(interts)
