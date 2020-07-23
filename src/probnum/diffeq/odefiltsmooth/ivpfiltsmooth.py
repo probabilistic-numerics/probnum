@@ -1,5 +1,3 @@
-"""
-"""
 import warnings
 import numpy as np
 
@@ -43,7 +41,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def solve(self, firststep, nsteps=1, **kwargs):
         """
-        Solves IVP and calibrates uncertainty according
+        Solve IVP and calibrates uncertainty according
         to Proposition 4 in Tronarp et al.
 
         Parameters
@@ -94,7 +92,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def odesmooth(self, means, covs, times, **kwargs):
         """
-        Smoothes out the ODE-Filter output.
+        Smooth out the ODE-Filter output.
 
         Be careful about the preconditioning: the GaussFiltSmooth object
         only knows the state space with changed coordinates!
@@ -113,14 +111,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return self.undo_preconditioning(means, covs)
 
     def undo_preconditioning(self, means, covs):
-        """ """
         ipre = self.gfilt.dynamicmodel.invprecond
         newmeans = np.array([ipre @ mean for mean in means])
         newcovs = np.array([ipre @ cov @ ipre.T for cov in covs])
         return newmeans, newcovs
 
     def redo_preconditioning(self, means, covs):
-        """ """
         pre = self.gfilt.dynamicmodel.precond
         newmeans = np.array([pre @ mean for mean in means])
         newcovs = np.array([pre @ cov @ pre.T for cov in covs])
