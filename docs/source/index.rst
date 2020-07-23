@@ -2,7 +2,7 @@
 Probabilistic Numerics in Python
 ===================================
 
-|Travis Status| |Coverage Status| 
+|Travis Status| |Coverage Status| |PyPI|
 
 
 `Probabilistic numerics (PN) <http://probabilistic-numerics.org/>`_ (PN) interprets classic numerical routines as 
@@ -86,6 +86,10 @@ Indices
     :target: https://travis-ci.org/probabilistic-numerics/probnum
     :alt: ProbNum's Travis CI Status
 
-.. |Coverage Status| image:: http://codecov.io/github/probabilistic-numerics/probnum/coverage.svg?branch=master
-    :target: http://codecov.io/github/probabilistic-numerics/probnum?branch=master
+.. |Coverage Status| image:: https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov&logoColor=white
+    :target: https://codecov.io/gh/probabilistic-numerics/probnum/branch/master
     :alt: ProbNum's Coverage Status
+    
+.. |PyPI| image:: https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white
+    :target: https://pypi.org/project/probnum/
+    :alt: ProbNum on PyPI
