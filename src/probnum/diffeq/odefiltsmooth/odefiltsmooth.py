@@ -313,7 +313,7 @@ def _string2ibm(ivp, which_prior, precond_step, **kwargs):
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
+def _string2ioup(ivp, which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -325,13 +325,13 @@ def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
     else:
         driftspeed = 1.0
     if _which_prior == "ioup1":
-        return prior.IOUP(1, _ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(1, ivp.ndim, driftspeed, diffconst, precond_step)
     elif _which_prior == "ioup2":
-        return prior.IOUP(2, _ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(2, ivp.ndim, driftspeed, diffconst, precond_step)
     elif _which_prior == "ioup3":
-        return prior.IOUP(3, _ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(3, ivp.ndim, driftspeed, diffconst, precond_step)
     elif _which_prior == "ioup4":
-        return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(4, ivp.ndim, driftspeed, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
