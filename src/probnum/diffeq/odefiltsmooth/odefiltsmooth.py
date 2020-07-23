@@ -324,13 +324,13 @@ def _string2ioup(ivp, which_prior, precond_step, **kwargs):
         driftspeed = kwargs["driftspeed"]
     else:
         driftspeed = 1.0
-    if _which_prior == "ioup1":
+    if which_prior == "ioup1":
         return prior.IOUP(1, ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup2":
+    elif which_prior == "ioup2":
         return prior.IOUP(2, ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup3":
+    elif which_prior == "ioup3":
         return prior.IOUP(3, ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup4":
+    elif which_prior == "ioup4":
         return prior.IOUP(4, ivp.ndim, driftspeed, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
