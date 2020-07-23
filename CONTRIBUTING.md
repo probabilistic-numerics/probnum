@@ -45,7 +45,7 @@ tox
 **Word of caution:**
 Running `tox` runs all environments as specified in `tox.ini`, thus potentially running tests across many different python versions.
 To run the full test suite make sure that you have all specified python versions installed.
-Alternatively, you can run a single specific environment through `tox -e <env>`, e.g. `tox -e py36` to run tests with Python 3.6 or `tox -e docs` to just build the documentation.
+Alternatively, you can run a single specific environment through `tox -e <env>`, e.g. `tox -e py36` to run tests with Python 3.6, `tox -e docs` to just build the documentation, or `tox -e black,flake8` to check the code formatting.
 
 ## Code Quality
 
@@ -110,4 +110,4 @@ Travis also automatically builds and publishes the [ProbNum documentation](https
 
 Changes to Travis can be made through the `.travis.yml` file, as well as through `tox.ini` since Travis relies on `tox` for both testing and building the documentation.
 
-ProbNum also uses [GitHub Actions](https://docs.github.com/en/actions) to verify that all pushes and pull requests are compliant with the [*Black*](https://github.com/psf/black) code style.
+ProbNum also uses [GitHub Actions](https://docs.github.com/en/actions) to verify that all pushes and pull requests are compliant with [PEP 8](https://www.python.org/dev/peps/pep-0008/) and with the [*Black*](https://github.com/psf/black) code style.
