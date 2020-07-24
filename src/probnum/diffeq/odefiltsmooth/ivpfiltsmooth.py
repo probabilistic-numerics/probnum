@@ -92,7 +92,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
         means, covars = self.undo_preconditioning(means, covars)
 
         means, covars, times = np.array(means), np.array(covars), np.array(times)
+
         covars *= ssqest
+        rvs = [
+            RandomVariable(distribution=Normal(rv.mean(), ssqest * rv.cov()))
+            for rv in rvs
+        ]
 
         return means, covars, times, ODESolution(times, rvs, self)
 
