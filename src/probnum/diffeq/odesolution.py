@@ -23,7 +23,7 @@ class ODESolution:
             for rv in rvs
         ]
 
-    def __call__(self, t):
+    def __call__(self, t, smoothed=True):
         """Evaluate the solution at time t
 
         Algorithm:
@@ -50,17 +50,18 @@ class ODESolution:
             )
             out_rv = predicted
 
-            next_time = self.t[prev_idx + 1]
-            next_rv = self._states[prev_idx + 1]
-            next_pred, crosscov = self.solver.gfilt.predict(
-                start=t, stop=next_time, randvar=predicted
-            )
+            if smoothed:
+                next_time = self.t[prev_idx + 1]
+                next_rv = self._states[prev_idx + 1]
+                next_pred, crosscov = self.solver.gfilt.predict(
+                    start=t, stop=next_time, randvar=predicted
+                )
 
-            smoothed = self.solver.gfilt.smooth_step(
-                predicted, next_pred, next_rv, crosscov
-            )
+                smoothed = self.solver.gfilt.smooth_step(
+                    predicted, next_pred, next_rv, crosscov
+                )
 
-            out_rv = smoothed
+                out_rv = smoothed
 
         out_rv = self.solver.undo_preconditioning_rv(out_rv)
 
