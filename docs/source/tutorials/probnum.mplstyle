@@ -3,7 +3,7 @@
 # Formats
 text.usetex : False
 # mathtext.fontset: stixsans
-figure.figsize: 9.9, 4.5
+figure.figsize: 9.9, 5.5
 figure.dpi : 200
 savefig.format      : pdf
 
