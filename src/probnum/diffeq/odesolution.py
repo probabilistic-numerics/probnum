@@ -1,11 +1,16 @@
-"""Dense solutions to ODEs"""
+"""ODESolution object, returned by `probsolve_ivp`
+
+Contains the discrete time and function outputs.
+Provides dense output by being callable.
+Can function values can also be accessed by indexing.
+"""
 import numpy as np
 
 from probnum.prob import RandomVariable, Normal
 
 
 class ODESolution:
-    """Continuous ODE Solution """
+    """Continuous ODE Solution"""
 
     def __init__(self, times, rvs, solver):
         self.solver = solver
@@ -71,9 +76,19 @@ class ODESolution:
         return RandomVariable(distribution=Normal(f_mean, f_cov))
 
     def __len__(self):
+        """Number of points in the discrete solution
+
+        Note that the length of `self.t` and `self.y` should coincide.
+        """
         return len(self.t)
 
     def __getitem__(self, idx):
+        """Access the discrete solution through indexing
+
+        Note that the stored `self._states` are still in the transformed,
+        "preconditioned" space. Therefore we need to first undo the preconditioning
+        before returning them.
+        """
         if isinstance(idx, int):
             rv = self._states[idx]
             rv = self.solver.undo_preconditioning_rv(rv)
