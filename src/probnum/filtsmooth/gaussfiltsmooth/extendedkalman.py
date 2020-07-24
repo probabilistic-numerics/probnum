@@ -99,14 +99,12 @@ class _DiscDiscExtendedKalman(ExtendedKalman):
 
     def predict(self, start, stop, randvar, **kwargs):
         """ """
-        step = stop - start
-
         mean, covar = randvar.mean(), randvar.cov()
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
-        diffmat = self.dynamod.diffusionmatrix(step, **kwargs)
-        jacob = self.dynamod.jacobian(step, mean, **kwargs)
-        mpred = self.dynamod.dynamics(step, mean, **kwargs)
+        diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
+        jacob = self.dynamod.jacobian(start, mean, **kwargs)
+        mpred = self.dynamod.dynamics(start, mean, **kwargs)
         crosscov = covar @ jacob.T
         cpred = jacob @ crosscov + diffmat
         return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
