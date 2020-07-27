@@ -1,5 +1,3 @@
-"""
-"""
 import warnings
 import numpy as np
 
@@ -43,7 +41,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def solve(self, firststep, nsteps=1, **kwargs):
         """
-        Solves IVP and calibrates uncertainty according
+        Solve IVP and calibrates uncertainty according
         to Proposition 4 in Tronarp et al.
 
         Parameters
@@ -56,45 +54,57 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         ####### This function surely can use some code cleanup. #######
 
-        current = self.gfilt.initialdistribution
+        current_rv = self.gfilt.initialrandomvariable
         step = firststep
-        ssqest, ct = 0.0, 0
-        times, means, covars = [self.ivp.t0], [current.mean()], [current.cov()]
+        ssqest, num_steps = 0.0, 0
+        times, means, covars = [self.ivp.t0], [current_rv.mean()], [current_rv.cov()]
         while times[-1] < self.ivp.tmax:
             intermediate_step = float(step / nsteps)
-            tm = times[-1]
+            t = times[-1]
+
+            pred_rv = current_rv
             interms, intercs, interts = [], [], []
             for idx in range(nsteps):
-                newtm = tm + intermediate_step
-                current, __ = self.gfilt.predict(tm, newtm, current, **kwargs)
-                interms.append(current.mean().copy())
-                intercs.append(current.cov().copy())
-                interts.append(newtm)
-                tm = newtm
-            predicted = current
-            new_time = tm
+                t_new = t + intermediate_step
+                pred_rv, __ = self.gfilt.predict(t, t_new, pred_rv, **kwargs)
+                interms.append(pred_rv.mean().copy())
+                intercs.append(pred_rv.cov().copy())
+                interts.append(t_new)
+                t = t_new
+
+            t_new = t
             zero_data = 0.0
-            current, covest, ccest, mnest = self.gfilt.update(
-                new_time, predicted, zero_data, **kwargs
+            filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
+                t_new, pred_rv, zero_data, **kwargs
             )
-            interms[-1] = current.mean().copy()
-            intercs[-1] = current.cov().copy()
-            errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
+
+            interms[-1] = filt_rv.mean().copy()
+            intercs[-1] = filt_rv.cov().copy()
+
+            errorest, ssq = self._estimate_error(
+                filt_rv.mean(), crosscov, meas_cov, meas_mean
+            )
+
             if self.steprule.is_accepted(step, errorest) is True:
                 times.extend(interts)
                 means.extend(interms)
                 covars.extend(intercs)
-                ct = ct + 1
-                ssqest = ssqest + (ssq - ssqest) / ct
-            else:
-                current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
+                num_steps += 1
+                ssqest = ssqest + (ssq - ssqest) / num_steps
+                current_rv = filt_rv
+
             step = self._suggest_step(step, errorest)
+
         means, covars = self.undo_preconditioning(means, covars)
-        return np.array(means), ssqest * np.array(covars), np.array(times)
+
+        means, covars, times = np.array(means), np.array(covars), np.array(times)
+        covars *= ssqest
+
+        return means, covars, times
 
     def odesmooth(self, means, covs, times, **kwargs):
         """
-        Smoothes out the ODE-Filter output.
+        Smooth out the ODE-Filter output.
 
         Be careful about the preconditioning: the GaussFiltSmooth object
         only knows the state space with changed coordinates!
@@ -113,14 +123,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return self.undo_preconditioning(means, covs)
 
     def undo_preconditioning(self, means, covs):
-        """ """
         ipre = self.gfilt.dynamicmodel.invprecond
         newmeans = np.array([ipre @ mean for mean in means])
         newcovs = np.array([ipre @ cov @ ipre.T for cov in covs])
         return newmeans, newcovs
 
     def redo_preconditioning(self, means, covs):
-        """ """
         pre = self.gfilt.dynamicmodel.precond
         newmeans = np.array([pre @ mean for mean in means])
         newcovs = np.array([pre @ cov @ pre.T for cov in covs])

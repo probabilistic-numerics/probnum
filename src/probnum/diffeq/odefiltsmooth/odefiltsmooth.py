@@ -31,8 +31,8 @@ def probsolve_ivp(
     tol=None,
     step=None,
     firststep=None,
-    precond_step=1.0,
     nsteps=1,
+    precond_step=None,
     **kwargs
 ):
     """
@@ -248,16 +248,16 @@ def _create_solver_object(
     """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)
-    if step is not None:
-        precond_step = step
+    if precond_step is None:
+        precond_step = step or 1.0
     precond_step = precond_step / float(nsteps)
     _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
-        stprl = _step2steprule_adap(tol, _prior)
+        stprl = steprule.AdaptiveSteps(tol, _prior.ordint + 1, **kwargs)
         if firststep is None:
             firststep = ivp.tmax - ivp.t0
     else:
-        stprl = _step2steprule_const(step)
+        stprl = steprule.ConstantSteps(step)
         firststep = step
     gfilt = _string2filter(ivp, _prior, method, **kwargs)
     return GaussianIVPFilter(ivp, gfilt, stprl), firststep
@@ -313,7 +313,7 @@ def _string2ibm(ivp, which_prior, precond_step, **kwargs):
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
+def _string2ioup(ivp, which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -324,14 +324,14 @@ def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
         driftspeed = kwargs["driftspeed"]
     else:
         driftspeed = 1.0
-    if _which_prior == "ioup1":
-        return prior.IOUP(1, _ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup2":
-        return prior.IOUP(2, _ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup3":
-        return prior.IOUP(3, _ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup4":
-        return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst, precond_step)
+    if which_prior == "ioup1":
+        return prior.IOUP(1, ivp.ndim, driftspeed, diffconst, precond_step)
+    elif which_prior == "ioup2":
+        return prior.IOUP(2, ivp.ndim, driftspeed, diffconst, precond_step)
+    elif which_prior == "ioup3":
+        return prior.IOUP(3, ivp.ndim, driftspeed, diffconst, precond_step)
+    elif which_prior == "ioup4":
+        return prior.IOUP(4, ivp.ndim, driftspeed, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -374,16 +374,3 @@ def _string2filter(_ivp, _prior, _method, **kwargs):
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     else:
         raise ValueError("Type of filter not supported.")
-
-
-def _step2steprule_const(stp):
-    """
-    """
-    return steprule.ConstantSteps(stp)
-
-
-def _step2steprule_adap(_tol, _prior, **kwargs):
-    """
-    """
-    convrate = _prior.ordint + 1
-    return steprule.AdaptiveSteps(_tol, convrate, **kwargs)
