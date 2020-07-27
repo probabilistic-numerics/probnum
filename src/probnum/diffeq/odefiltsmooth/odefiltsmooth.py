@@ -232,7 +232,7 @@ def probsolve_ivp(
     sol = solver.solve(firststep=firststep, **kwargs)
     if method in ["eks0", "eks1", "uks"]:
         sol = solver.odesmooth(sol, **kwargs)
-    state_rvs = sol.state_rvs
+    state_rvs = sol._state_rvs
     return state_rvs.mean, state_rvs.cov, sol.t
 
 

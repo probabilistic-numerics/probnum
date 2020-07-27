@@ -31,7 +31,7 @@ class ODESolution:
                     rv.mean()[0 :: self._d], rv.cov()[0 :: self._d, 0 :: self._d]
                 )
             )
-            for rv in self.state_rvs
+            for rv in self._state_rvs
         ]
         return _RandomVariableList(function_rvs)
 
@@ -43,12 +43,12 @@ class ODESolution:
                     rv.mean()[1 :: self._d], rv.cov()[1 :: self._d, 1 :: self._d]
                 )
             )
-            for rv in self.state_rvs
+            for rv in self._state_rvs
         ]
         return _RandomVariableList(function_rvs)
 
     @property
-    def state_rvs(self):
+    def _state_rvs(self):
         """Return the posterior over states after undoing the preconditioning"""
         state_rvs = _RandomVariableList(
             [self._solver.undo_preconditioning_rv(rv) for rv in self._state_posterior]
