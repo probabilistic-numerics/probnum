@@ -99,9 +99,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
             for rv in rvs
         ]
 
-        return means, covars, times, ODESolution(times, rvs, self)
+        return ODESolution(times, rvs, self)
 
-    def odesmooth(self, means, covs, times, **kwargs):
+    def odesmooth(self, sol, **kwargs):
         """
         Smooth out the ODE-Filter output.
 
@@ -117,9 +117,15 @@ class GaussianIVPFilter(odesolver.ODESolver):
         -------
 
         """
-        means, covs = self.redo_preconditioning(means, covs)
+        # means, covs = self.redo_preconditioning(means, covs)
+        times = sol.t
+        states = sol._states
+        means = np.stack([rv.mean() for rv in states])
+        covs = np.stack([rv.cov() for rv in states])
         means, covs = self.gfilt.smooth(means, covs, times, **kwargs)
-        return self.undo_preconditioning(means, covs)
+        # return self.undo_preconditioning(means, covs)
+        rvs = [RandomVariable(distribution=Normal(m, C)) for (m, C) in zip(means, covs)]
+        return ODESolution(times, rvs, sol.solver)
 
     def undo_preconditioning(self, means, covs):
         ipre = self.gfilt.dynamicmodel.invprecond
