@@ -17,7 +17,7 @@ class ODESolution:
         self.d = self.solver.ivp.ndim
 
         self._t = times
-        self._state_rvs = rvs
+        self._state_rvs = _RandomVariableList(rvs)
 
         self._y = [
             RandomVariable(
@@ -35,6 +35,14 @@ class ODESolution:
     @property
     def y(self):
         return self._y
+
+    @property
+    def state_rvs(self):
+        """Return the posterior over states after undoing the preconditioning"""
+        state_rvs = _RandomVariableList(
+            [self.solver.undo_preconditioning_rv(rv) for rv in self._state_rvs]
+        )
+        return state_rvs
 
     def __call__(self, t, smoothed=True):
         """Evaluate the solution at time t
@@ -115,3 +123,21 @@ class ODESolution:
             return f_rvs
         else:
             raise ValueError("Invalid index")
+
+
+class _RandomVariableList(list):
+    @property
+    def mean(self):
+        return np.stack([rv.mean() for rv in self])
+
+    @property
+    def cov(self):
+        return np.stack([rv.cov() for rv in self])
+
+    @property
+    def var(self):
+        return np.stack([rv.distribution.var() for rv in self])
+
+    @property
+    def std(self):
+        return np.stack([rv.distribution.std() for rv in self])

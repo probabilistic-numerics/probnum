@@ -230,11 +230,10 @@ def probsolve_ivp(
         ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
     )
     sol = solver.solve(firststep=firststep, **kwargs)
-    # means, covs, times = solver.solve(firststep=firststep, **kwargs)
     if method in ["eks0", "eks1", "uks"]:
         sol = solver.odesmooth(sol, **kwargs)
-    #     means, covs = solver.odesmooth(means, covs, times, **kwargs)
-    return sol
+    state_rvs = sol.state_rvs
+    return state_rvs.mean, state_rvs.cov, sol.t
 
 
 def _create_solver_object(

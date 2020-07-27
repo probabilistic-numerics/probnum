@@ -119,7 +119,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """
         # means, covs = self.redo_preconditioning(means, covs)
         times = sol.t
-        states = sol._states
+        states = sol._state_rvs
         means = np.stack([rv.mean() for rv in states])
         covs = np.stack([rv.cov() for rv in states])
         means, covs = self.gfilt.smooth(means, covs, times, **kwargs)
