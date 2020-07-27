@@ -13,14 +13,14 @@ measures over the output of a numerical routine, which then can be propagated al
 This repository aims to implement methods from PN in Python 3 and to provide a common interface for them. This is
 currently a work in progress, therefore interfaces are subject to change.
 
-To get started install ProbNum from the Python Package Index via
+To get started install ProbNum using :code:`pip`.
 
 .. code-block:: shell
    
    pip install probnum
 
 
-or if you prefer to use the latest version, install directly from Github:
+Alternatively, you can install the package from source.
 
 .. code-block:: shell
    

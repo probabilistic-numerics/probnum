@@ -1,7 +1,7 @@
 # Probabilistic Numerics in Python
 
 [![Build Status](https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI)](https://travis-ci.org/probabilistic-numerics/probnum)
-[![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
+[![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
 [![Documentation](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Docs)](https://probnum.readthedocs.io)
 <br>
 
@@ -14,23 +14,19 @@ measures over the output of a numerical routine, which then can be propagated al
 This repository aims to implement methods from PN in Python 3 and to provide a common interface for them. This is
 currently a work in progress, therefore interfaces are subject to change.
 
-## Installation and Documentation
-You can install this Python 3 package using `pip` (or `pip3`):
+## Installation
+To get started install ProbNum using :code:`pip`.
+```bash
+pip install probnum
+```
+Alternatively, you can install the package from source.
 ```bash
 pip install git+https://github.com/probabilistic-numerics/probnum.git
 ```
-Alternatively you can clone this repository with
-```bash
-git clone https://github.com/probabilistic-numerics/probnum
-pip install probnum/.
-```
-For tips on getting started and how to use this package please refer to the
-[documentation](https://probnum.readthedocs.io).
 
-## Examples
-Examples of how to use this repository are available in the 
-[tutorials section](https://probnum.readthedocs.io/en/latest/tutorials/tutorials.html) of the documentation. It 
-contains Jupyter notebooks illustrating the basic usage of implemented probabilistic numerics routines.
+## Documentation and Examples
+For tips on getting started and how to use this package please refer to the
+[**documentation**](https://probnum.readthedocs.io). It contains a [quickstart guide](https://probnum.readthedocs.io/en/latest/introduction/quickstart.html) and Jupyter notebooks illustrating the basic usage of implemented probabilistic numerics routines.
 
 ## Package Development
 This repository is currently under development and benefits from contribution to the code, examples or documentation.

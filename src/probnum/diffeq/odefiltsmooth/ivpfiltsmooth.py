@@ -60,7 +60,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         times, means, covars = [t], [current_rv.mean()], [current_rv.cov()]
         rvs = [current_rv]
         step = firststep
-        ssqest, n_steps = 0.0, 0
+        ssqest, num_steps = 0.0, 0
 
         while t < self.ivp.tmax:
 
@@ -81,9 +81,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 means.append(filt_rv.mean())
                 covars.append(filt_rv.cov())
                 rvs.append(filt_rv)
-                n_steps += 1
-                ssqest = ssqest + (ssq - ssqest) / n_steps
-
+                num_steps += 1
+                ssqest = ssqest + (ssq - ssqest) / num_steps
                 current_rv = filt_rv
                 t = t_new
 
