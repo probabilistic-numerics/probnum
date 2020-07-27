@@ -17,7 +17,7 @@ class ODESolution:
         self.d = self.solver.ivp.ndim
 
         self.t = times
-        self._states = rvs
+        self._state_rvs = rvs
 
         self.y = [
             RandomVariable(
@@ -44,11 +44,11 @@ class ODESolution:
 
         if t in self.t:
             idx = (self.t <= t).sum() - 1
-            out_rv = self._states[idx]
+            out_rv = self._state_rvs[idx]
         else:
             prev_idx = (self.t < t).sum() - 1
             prev_time = self.t[prev_idx]
-            prev_rv = self._states[prev_idx]
+            prev_rv = self._state_rvs[prev_idx]
 
             predicted, _ = self.solver.gfilt.predict(
                 start=prev_time, stop=t, randvar=prev_rv
@@ -57,7 +57,7 @@ class ODESolution:
 
             if smoothed:
                 next_time = self.t[prev_idx + 1]
-                next_rv = self._states[prev_idx + 1]
+                next_rv = self._state_rvs[prev_idx + 1]
                 next_pred, crosscov = self.solver.gfilt.predict(
                     start=t, stop=next_time, randvar=predicted
                 )
@@ -85,18 +85,18 @@ class ODESolution:
     def __getitem__(self, idx):
         """Access the discrete solution through indexing
 
-        Note that the stored `self._states` are still in the transformed,
+        Note that the stored `self._state_rvs` are still in the transformed,
         "preconditioned" space. Therefore we need to first undo the preconditioning
         before returning them.
         """
         if isinstance(idx, int):
-            rv = self._states[idx]
+            rv = self._state_rvs[idx]
             rv = self.solver.undo_preconditioning_rv(rv)
             f_mean = rv.mean()[0 :: self.d]
             f_cov = rv.cov()[0 :: self.d, 0 :: self.d]
             return RandomVariable(distribution=Normal(f_mean, f_cov))
         elif isinstance(idx, slice):
-            rvs = self._states[idx]
+            rvs = self._state_rvs[idx]
             rvs = [self.solver.undo_preconditioning_rv(rv) for rv in rvs]
             f_means = [rv.mean()[0 :: self.d] for rv in rvs]
             f_covs = [rv.cov()[0 :: self.d, 0 :: self.d] for rv in rvs]
