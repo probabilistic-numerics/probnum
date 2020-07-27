@@ -16,10 +16,10 @@ class ODESolution:
         self.solver = solver
         self.d = self.solver.ivp.ndim
 
-        self.t = times
+        self._t = times
         self._state_rvs = rvs
 
-        self.y = [
+        self._y = [
             RandomVariable(
                 distribution=Normal(
                     rv.mean()[0 :: self.d], rv.cov()[0 :: self.d, 0 :: self.d]
@@ -27,6 +27,14 @@ class ODESolution:
             )
             for rv in rvs
         ]
+
+    @property
+    def t(self):
+        return self._t
+
+    @property
+    def y(self):
+        return self._y
 
     def __call__(self, t, smoothed=True):
         """Evaluate the solution at time t
