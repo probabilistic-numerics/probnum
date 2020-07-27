@@ -5,6 +5,7 @@ Bayesian filtering and smoothing.
 from .statespace import *
 from .gaussfiltsmooth import *
 from .bayesfiltsmooth import *
+from .filtsmoothposterior import FiltSmoothPosterior
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "generate_cd",
     "generate_dd",
     "KalmanPosterior",
+    "FiltSmoothPosterior",
 ]
 
 # Set correct module paths (for superclasses).

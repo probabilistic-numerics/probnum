@@ -9,9 +9,10 @@ import numpy as np
 
 from probnum.prob import RandomVariable, Normal
 from probnum.prob.randomvariablelist import _RandomVariableList
+from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
-class KalmanPosterior:
+class KalmanPosterior(FiltSmoothPosterior):
     def __init__(self, locations, state_rvs, kalman_filter):
         self.kalman_filter = kalman_filter
         self._locations = locations
