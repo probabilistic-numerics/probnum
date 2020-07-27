@@ -22,6 +22,7 @@ __all__ = [
     "DiscreteGaussianLTIModel",
     "generate_cd",
     "generate_dd",
+    "KalmanPosterior",
 ]
 
 # Set correct module paths (for superclasses).
@@ -32,3 +33,4 @@ DiscreteModel.__module__ = "probnum.filtsmooth"
 DiscreteGaussianModel.__module__ = "probnum.filtsmooth"
 DiscreteGaussianLinearModel.__module__ = "probnum.filtsmooth"
 GaussFiltSmooth.__module__ = "probnum.filtsmooth"
+KalmanPosterior.__module__ = "probnum.filtsmooth"
