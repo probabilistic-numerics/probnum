@@ -8,40 +8,50 @@ import numpy as np
 
 from probnum.prob import RandomVariable, Normal
 from probnum.prob.randomvariablelist import _RandomVariableList
+from probnum.filtsmooth import KalmanPosterior
 
 
 class ODESolution:
     """Continuous ODE Solution"""
 
     def __init__(self, times, rvs, solver):
-        self.solver = solver
-        self.d = self.solver.ivp.ndim
-
-        self._t = times
-        self._state_rvs = _RandomVariableList(rvs)
-
-        self._y = [
-            RandomVariable(
-                distribution=Normal(
-                    rv.mean()[0 :: self.d], rv.cov()[0 :: self.d, 0 :: self.d]
-                )
-            )
-            for rv in rvs
-        ]
+        self._state_posterior = KalmanPosterior(times, rvs, solver.gfilt)
+        self._solver = solver
+        self._d = self._solver.ivp.ndim
 
     @property
     def t(self):
-        return self._t
+        return self._state_posterior.locations
 
     @property
     def y(self):
-        return self._y
+        function_rvs = [
+            RandomVariable(
+                distribution=Normal(
+                    rv.mean()[0 :: self._d], rv.cov()[0 :: self._d, 0 :: self._d]
+                )
+            )
+            for rv in self.state_rvs
+        ]
+        return _RandomVariableList(function_rvs)
+
+    @property
+    def dy(self):
+        function_rvs = [
+            RandomVariable(
+                distribution=Normal(
+                    rv.mean()[1 :: self._d], rv.cov()[1 :: self._d, 1 :: self._d]
+                )
+            )
+            for rv in self.state_rvs
+        ]
+        return _RandomVariableList(function_rvs)
 
     @property
     def state_rvs(self):
         """Return the posterior over states after undoing the preconditioning"""
         state_rvs = _RandomVariableList(
-            [self.solver.undo_preconditioning_rv(rv) for rv in self._state_rvs]
+            [self._solver.undo_preconditioning_rv(rv) for rv in self._state_posterior]
         )
         return state_rvs
 
@@ -49,57 +59,23 @@ class ODESolution:
         """
         Evaluate the solution at time t
 
-        Algorithm:
-        1. Find closest t_prev and t_next, with t_prev < t < t_next
-        2. Predict from t_prev to t
-        3. Predict from t to t_next
-        4. Smooth from t_next to t
-        5. Return random variable for time t
+        `KalmanPosterior.__call__` does the main algorithmic work to return the
+        posterior for a given location. All that is left to do here is to (1) undo the
+        preconditioning, and (2) to slice the state_rv in order to return only the
+        rv for the function value.
         """
 
-        d = self.solver.ivp.ndim
-        q = self.solver.gfilt.dynamod.ordint
+        out_rv = state_posterior(t, smoothed=smoothed)
+        out_rv = self._solver.undo_preconditioning_rv(out_rv)
 
-        if t in self.t:
-            idx = (self.t <= t).sum() - 1
-            out_rv = self._state_rvs[idx]
-        else:
-            prev_idx = (self.t < t).sum() - 1
-            prev_time = self.t[prev_idx]
-            prev_rv = self._state_rvs[prev_idx]
-
-            predicted, _ = self.solver.gfilt.predict(
-                start=prev_time, stop=t, randvar=prev_rv
-            )
-            out_rv = predicted
-
-            if smoothed:
-                next_time = self.t[prev_idx + 1]
-                next_rv = self._state_rvs[prev_idx + 1]
-                next_pred, crosscov = self.solver.gfilt.predict(
-                    start=t, stop=next_time, randvar=predicted
-                )
-
-                smoothed = self.solver.gfilt.smooth_step(
-                    predicted, next_pred, next_rv, crosscov
-                )
-
-                out_rv = smoothed
-
-        out_rv = self.solver.undo_preconditioning_rv(out_rv)
-
-        f_mean = out_rv.mean()[0::d]
-        f_cov = out_rv.cov()[0::d, 0::d]
+        f_mean = out_rv.mean()[0 :: self._d]
+        f_cov = out_rv.cov()[0 :: self._d, 0 :: self._d]
 
         return RandomVariable(distribution=Normal(f_mean, f_cov))
 
     def __len__(self):
-        """
-        Number of points in the discrete solution
-
-        Note that the length of `self.t` and `self.y` should coincide.
-        """
-        return len(self.t)
+        """Number of points in the discrete solution"""
+        return len(self._state_posterior)
 
     def __getitem__(self, idx):
         """
@@ -110,20 +86,20 @@ class ODESolution:
         before returning them.
         """
         if isinstance(idx, int):
-            rv = self._state_rvs[idx]
-            rv = self.solver.undo_preconditioning_rv(rv)
-            f_mean = rv.mean()[0 :: self.d]
-            f_cov = rv.cov()[0 :: self.d, 0 :: self.d]
+            rv = self._state_posterior[idx]
+            rv = self._solver.undo_preconditioning_rv(rv)
+            f_mean = rv.mean()[0 :: self._d]
+            f_cov = rv.cov()[0 :: self._d, 0 :: self._d]
             return RandomVariable(distribution=Normal(f_mean, f_cov))
         elif isinstance(idx, slice):
-            rvs = self._state_rvs[idx]
-            rvs = [self.solver.undo_preconditioning_rv(rv) for rv in rvs]
-            f_means = [rv.mean()[0 :: self.d] for rv in rvs]
-            f_covs = [rv.cov()[0 :: self.d, 0 :: self.d] for rv in rvs]
+            rvs = self._state_posterior[idx]
+            rvs = [self._solver.undo_preconditioning_rv(rv) for rv in rvs]
+            f_means = [rv.mean()[0 :: self._d] for rv in rvs]
+            f_covs = [rv.cov()[0 :: self._d, 0 :: self._d] for rv in rvs]
             f_rvs = [
                 RandomVariable(distribution=Normal(f_mean, f_cov))
                 for (f_mean, f_cov) in zip(f_means, f_covs)
             ]
-            return f_rvs
+            return _RandomVariableList(f_rvs)
         else:
             raise ValueError("Invalid index")
