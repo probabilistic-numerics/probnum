@@ -38,8 +38,11 @@ class KalmanPosterior(FiltSmoothPosterior):
         5. Return random variable for time t
         """
 
-        # d = self.solver.ivp.ndim
-        # q = self.solver.gfilt.dynamod.ordint
+        if t < self.locations[0]:
+            raise ValueError(
+                "Invalid location; Can not compute posterior for a location earlier "
+                "than the initial location"
+            )
 
         if t in self.locations:
             idx = (self.locations <= t).sum() - 1
@@ -55,7 +58,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             )
             out_rv = predicted
 
-            if smoothed:
+            if smoothed and t > self.locations[-1]:
                 next_time = self.locations[prev_idx + 1]
                 next_rv = self._state_rvs[prev_idx + 1]
                 next_pred, crosscov = self.kalman_filter.predict(
