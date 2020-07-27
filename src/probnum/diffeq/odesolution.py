@@ -45,7 +45,8 @@ class ODESolution:
         return state_rvs
 
     def __call__(self, t, smoothed=True):
-        """Evaluate the solution at time t
+        """
+        Evaluate the solution at time t
 
         Algorithm:
         1. Find closest t_prev and t_next, with t_prev < t < t_next
@@ -92,14 +93,16 @@ class ODESolution:
         return RandomVariable(distribution=Normal(f_mean, f_cov))
 
     def __len__(self):
-        """Number of points in the discrete solution
+        """
+        Number of points in the discrete solution
 
         Note that the length of `self.t` and `self.y` should coincide.
         """
         return len(self.t)
 
     def __getitem__(self, idx):
-        """Access the discrete solution through indexing
+        """
+        Access the discrete solution through indexing
 
         Note that the stored `self._state_rvs` are still in the transformed,
         "preconditioned" space. Therefore we need to first undo the preconditioning
