@@ -8,10 +8,11 @@ import numpy as np
 
 from probnum.prob import RandomVariable, Normal
 from probnum.prob.randomvariablelist import _RandomVariableList
+from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
 
 
-class ODESolution:
+class ODESolution(FiltSmoothPosterior):
     """Continuous ODE Solution"""
 
     def __init__(self, times, rvs, solver):
