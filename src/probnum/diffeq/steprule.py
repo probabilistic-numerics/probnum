@@ -11,7 +11,8 @@ class StepRule(ABC):
 
     @abstractmethod
     def is_accepted(self, proposedstep, errorest, **kwargs):
-        """Check if the proposed step should be accepted or not.
+        """
+        Check if the proposed step should be accepted or not.
 
         Variable "proposedstep" not used yet, but may be
         important in the future, e.g. if we decide that
