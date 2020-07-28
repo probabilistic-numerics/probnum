@@ -186,8 +186,8 @@ def probsolve_ivp(
     >>> from probnum.prob import RandomVariable, Dirac, Normal
     >>> initrv = RandomVariable(distribution=Dirac(0.15))
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> means, covs, times = probsolve_ivp(ivp, method="ekf0", step=0.1)
-    >>> print(means)
+    >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
+    >>> print(solution.y.mean)
     [[0.15       0.51      ]
      [0.2076198  0.642396  ]
      [0.27932997 0.79180747]
@@ -207,8 +207,8 @@ def probsolve_ivp(
 
     >>> initrv = RandomVariable(distribution=Dirac(0.15))
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> means, covs, times = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
-    >>> print(means)
+    >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
+    >>> print(solution.y.mean)
     [[  0.15         0.51         1.428        1.9176    ]
      [  0.20795795   0.65884674   2.00211064  -6.59817856]
      [  0.28228416   0.81039925   1.10201443   1.99947952]
@@ -229,11 +229,10 @@ def probsolve_ivp(
     solver, firststep = _create_solver_object(
         ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
     )
-    sol = solver.solve(firststep=firststep, **kwargs)
+    solution = solver.solve(firststep=firststep, **kwargs)
     if method in ["eks0", "eks1", "uks"]:
-        sol = solver.odesmooth(sol, **kwargs)
-    state_rvs = sol._state_rvs
-    return state_rvs.mean, state_rvs.cov, sol.t
+        solution = solver.odesmooth(solution, **kwargs)
+    return solution
 
 
 def _create_solver_object(
