@@ -79,13 +79,6 @@ class ODESolution(FiltSmoothPosterior):
         return len(self._state_posterior)
 
     def __getitem__(self, idx):
-        """
-        Access the discrete solution through indexing
-
-        Note that the stored `self._state_rvs` are still in the transformed,
-        "preconditioned" space. Therefore we need to first undo the preconditioning
-        before returning them.
-        """
         if isinstance(idx, int):
             rv = self._state_posterior[idx]
             rv = self._solver.undo_preconditioning_rv(rv)
