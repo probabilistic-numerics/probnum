@@ -116,7 +116,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         # means, covs = self.redo_preconditioning(means, covs)
         times = sol.t
         states = sol._state_posterior.state_rvs
-        means, covs = self.gfilt.smooth(states.mean, states.cov, times, **kwargs)
+        means, covs = self.gfilt.smooth(states.mean(), states.cov(), times, **kwargs)
         # return self.undo_preconditioning(means, covs)
         rvs = [RandomVariable(distribution=Normal(m, C)) for (m, C) in zip(means, covs)]
         return ODESolution(times, rvs, sol._solver)
