@@ -19,3 +19,10 @@ class _RandomVariableList(list):
     @property
     def std(self):
         return np.stack([rv.distribution.std() for rv in self])
+
+    def __getitem__(self, idx):
+        """Make sure to wrap the result into a _RandomVariableList if necessary"""
+        result = super().__getitem__(idx)
+        if isinstance(result, list):
+            result = _RandomVariableList(result)
+        return result

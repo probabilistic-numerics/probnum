@@ -69,7 +69,7 @@ class ODESolution(FiltSmoothPosterior):
         rv for the function value.
         """
 
-        out_rv = state_posterior(t, smoothed=smoothed)
+        out_rv = self._state_posterior(t, smoothed=smoothed)
         out_rv = self._solver.undo_preconditioning_rv(out_rv)
 
         f_mean = out_rv.mean()[0 :: self._d]

@@ -73,7 +73,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             )
             out_rv = predicted
 
-            if smoothed and t > self.locations[-1]:
+            if smoothed and t < self.locations[-1]:
                 next_time = self.locations[prev_idx + 1]
                 next_rv = self._state_rvs[prev_idx + 1]
                 next_pred, crosscov = self.kalman_filter.predict(
