@@ -22,10 +22,12 @@ class ODESolution(FiltSmoothPosterior):
 
     @property
     def t(self):
+        """Times of the discrete-time solution"""
         return self._state_posterior.locations
 
     @property
     def y(self):
+        """Probabilistic discrete-time solution, as a list of random variables"""
         function_rvs = [
             RandomVariable(
                 distribution=Normal(
@@ -38,6 +40,7 @@ class ODESolution(FiltSmoothPosterior):
 
     @property
     def dy(self):
+        """Derivatives of the discrete-time solution, as a list of random variables"""
         function_rvs = [
             RandomVariable(
                 distribution=Normal(
@@ -50,7 +53,7 @@ class ODESolution(FiltSmoothPosterior):
 
     @property
     def _state_rvs(self):
-        """Return the posterior over states after undoing the preconditioning"""
+        """Time-discrete posterior estimates over states, without preconditioning"""
         state_rvs = _RandomVariableList(
             [self._solver.undo_preconditioning_rv(rv) for rv in self._state_posterior]
         )
@@ -75,7 +78,7 @@ class ODESolution(FiltSmoothPosterior):
         return RandomVariable(distribution=Normal(f_mean, f_cov))
 
     def __len__(self):
-        """Number of points in the discrete solution"""
+        """Number of points in the discrete-time solution"""
         return len(self._state_posterior)
 
     def __getitem__(self, idx):

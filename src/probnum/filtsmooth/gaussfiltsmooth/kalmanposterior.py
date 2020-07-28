@@ -34,7 +34,6 @@ class KalmanPosterior(FiltSmoothPosterior):
         """
         Evaluate the time-continuous posterior at location `t`
 
-
         Algorithm:
         1. Find closest t_prev and t_next, with t_prev < t < t_next
         2. Predict from t_prev to t
