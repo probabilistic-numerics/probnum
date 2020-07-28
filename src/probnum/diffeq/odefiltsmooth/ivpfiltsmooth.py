@@ -50,9 +50,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         firststep : float
             First step for adaptive step size rule.
         """
-        if "nsteps" in kwargs:
-            raise ValueError("`nsteps` is deprecated")
-
         ####### This function surely can use some code cleanup. #######
 
         current_rv = self.gfilt.initialrandomvariable
