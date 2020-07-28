@@ -5,6 +5,7 @@ import numpy as np
 
 from probnum.prob import RandomVariable, Normal
 from probnum.filtsmooth.bayesfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
 
 class GaussFiltSmooth(BayesFiltSmooth, ABC):
@@ -35,17 +36,13 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
 
         Returns
         -------
-        ndarray, shape (N, M)
-            Means of the smoothed output
-        ndarray, shape (N, M, M)
-            Covariances of the smoothed output.
+        KalmanPosterior
+            Posterior distribution of the smoothed output
         """
         dataset, times = np.asarray(dataset), np.asarray(times)
-        filtered_means, filtered_covs = self.filter(dataset, times, **kwargs)
-        smoothed_means, smoothed_covs = self.smooth(
-            filtered_means, filtered_covs, times, **kwargs
-        )
-        return smoothed_means, smoothed_covs
+        filter_posterior = self.filter(dataset, times, **kwargs)
+        smooth_posterior = self.smooth(filter_posterior, **kwargs)
+        return smooth_posterior
 
     def filter(self, dataset, times, **kwargs):
         """
@@ -61,15 +58,12 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
 
         Returns
         -------
-        ndarray, shape (N, M)
-            Means of the filtered output
-        ndarray, shape (N, M, M)
-            Covariances of the filtered output.
+        KalmanPosterior
+            Posterior distribution of the filtered output
         """
         dataset, times = np.asarray(dataset), np.asarray(times)
         filtrv = self.initialrandomvariable
-        means = [filtrv.mean()]
-        covs = [filtrv.cov()]
+        rvs = [filtrv]
         for idx in range(1, len(times)):
             filtrv = self.filter_step(
                 start=times[idx - 1],
@@ -78,46 +72,38 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
                 data=dataset[idx - 1],
                 **kwargs
             )
-            means.append(filtrv.mean())
-            covs.append(filtrv.cov())
-        return np.array(means), np.array(covs)
+            rvs.append(filtrv)
+        return KalmanPosterior(times, rvs, self)
 
-    def smooth(self, filtmeans, filtcovs, times, **kwargs):
+    def smooth(self, filter_posterior, **kwargs):
         """
         Apply Gaussian smoothing to a set of filtered means and covariances.
 
         Parameters
         ----------
-        filtmeans : array_like, shape (N, M)
-            Means of the filter solution.
-        filtcovs : array_like, shape (N, M, M)
-            Covariances of the filter solution.
-        times : array_like, shape (N,)
-            Temporal locations of the filter solution (i.e. locations of
-            the data points---the data points are not needed anymore)
+        filter_posterior : KalmanPosterior
+            Posterior distribution obtained after filtering
         kwargs : ???
 
         Returns
         -------
-        ndarray, shape (N, M)
-            Means of the smoothed filter solution
-        ndarray, shape (N, M, M)
-            Covariances of the smoothed filter solution
-
+        KalmanPosterior
+            Posterior distribution of the smoothed output
         """
-        means, covs = np.zeros(filtmeans.shape), np.zeros(filtcovs.shape)
-        means[-1], covs[-1] = filtmeans[-1], filtcovs[-1]
-        smoothed_rv = RandomVariable(distribution=Normal(filtmeans[-1], filtcovs[-1]))
-        for idx in reversed(range(1, len(times))):
-            unsmoothed_rv = RandomVariable(
-                distribution=Normal(filtmeans[idx - 1], filtcovs[idx - 1])
-            )
+        smoothed_rv = filter_posterior[-1]
+        locations = filter_posterior.locations
+        out_rvs = [smoothed_rv]
+        for idx in reversed(range(1, len(locations))):
+            unsmoothed_rv = filter_posterior[idx - 1]
             pred_rv, ccov = self.predict(
-                times[idx - 1], times[idx], unsmoothed_rv, **kwargs
+                start=filter_posterior.locations[idx - 1],
+                stop=filter_posterior.locations[idx],
+                randvar=unsmoothed_rv,
+                **kwargs
             )
             smoothed_rv = self.smooth_step(unsmoothed_rv, pred_rv, smoothed_rv, ccov)
-            means[idx - 1], covs[idx - 1] = smoothed_rv.mean(), smoothed_rv.cov()
-        return means, covs
+            out_rvs.insert(0, smoothed_rv)
+        return KalmanPosterior(locations, out_rvs, self)
 
     def filter_step(self, start, stop, randvar, data, **kwargs):
         """

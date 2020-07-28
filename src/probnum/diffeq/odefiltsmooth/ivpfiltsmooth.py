@@ -113,13 +113,16 @@ class GaussianIVPFilter(odesolver.ODESolver):
         -------
 
         """
-        # means, covs = self.redo_preconditioning(means, covs)
-        times = sol.t
-        states = sol._state_posterior.state_rvs
-        means, covs = self.gfilt.smooth(states.mean(), states.cov(), times, **kwargs)
-        # return self.undo_preconditioning(means, covs)
-        rvs = [RandomVariable(distribution=Normal(m, C)) for (m, C) in zip(means, covs)]
-        return ODESolution(times, rvs, sol._solver)
+        ivp_filter_posterior = sol._state_posterior
+        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
+
+        smoothed_solution = ODESolution(
+            times=ivp_smoother_posterior.locations,
+            rvs=ivp_smoother_posterior.state_rvs,
+            solver=sol._solver,
+        )
+
+        return smoothed_solution
 
     def undo_preconditioning(self, means, covs):
         ipre = self.gfilt.dynamicmodel.invprecond
