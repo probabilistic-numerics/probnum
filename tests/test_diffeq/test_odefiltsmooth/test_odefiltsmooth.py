@@ -211,9 +211,7 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
     def test_filter_ivp_ioup1_kf(self):
         """
         """
-        probsolve_ivp(
-            self.ivp, tol=self.tol, which_prior="ioup1", method="ekf0", nsteps=12
-        )
+        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup1", method="ekf0")
 
     def test_filter_ivp_ioup2_ekf(self):
         """
