@@ -13,6 +13,8 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
 class KalmanPosterior(FiltSmoothPosterior):
+    """Posterior Distribution after (Extended/Unscented) Kalman Filtering/Smoothing"""
+
     def __init__(self, locations, state_rvs, kalman_filter):
         self.kalman_filter = kalman_filter
         self._locations = locations
@@ -20,22 +22,36 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     @property
     def locations(self):
+        """Locations / times of the discrete observations"""
         return self._locations
 
     @property
     def state_rvs(self):
+        """List of time-discrete posterior estimates over states"""
         return self._state_rvs
 
     def __call__(self, t, smoothed=True):
         """
-        Evaluate the posterior at location `t`
+        Evaluate the time-continuous posterior at location `t`
+
 
         Algorithm:
         1. Find closest t_prev and t_next, with t_prev < t < t_next
         2. Predict from t_prev to t
-        3. Predict from t to t_next
-        4. Smooth from t_next to t
+        3. (if `smoothed=True`) Predict from t to t_next
+        4. (if `smoothed=True`) Smooth from t_next to t
         5. Return random variable for time t
+
+        Parameters
+        ----------
+        t : float
+            Location, or time, at which to evaluate the posterior.
+        smoothed : bool, optional
+            Smooth the posterior; Opposed to just performing a prediction.
+
+        Returns
+        -------
+        rv : `RandomVariable`
         """
 
         if t < self.locations[0]:
@@ -74,9 +90,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             return out_rv
 
     def __len__(self):
-        """Number of points in the discrete solution"""
         return len(self.locations)
 
     def __getitem__(self, idx):
-        """Access the discrete solution through indexing"""
         return self.state_rvs[idx]
