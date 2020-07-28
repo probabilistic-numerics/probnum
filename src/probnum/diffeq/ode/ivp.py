@@ -19,16 +19,16 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
 
     The logistic ODE is defined through
 
-    .. math:: f(t, x) = a  x  \\left(1 - \\frac{x}{b}\\right)
+    .. math:: f(t, y) = a  y  \\left(1 - \\frac{y}{b}\\right)
 
     for some parameters :math:`(a, b)`.
     Default is :math:`(a, b)=(3.0, 1.0)`. This implementation includes
     the Jacobian :math:`J_f` of :math:`f` as well as a closed form
     solution given by
 
-    .. math:: f(t) = \\frac{b x_0 \\exp(a t)}{b + x_0 [\\exp(at) - 1]}
+    .. math:: f(t) = \\frac{b y_0 \\exp(a t)}{b + y_0 [\\exp(at) - 1]}
 
-    where :math:`x_0= x(t_0)` is the initial value.
+    where :math:`y_0= y(t_0)` is the initial value.
 
     Parameters
     ----------
@@ -50,14 +50,14 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
         configuration.
     """
 
-    def rhs(t, x):
-        return log_rhs(t, x, params)
+    def rhs(t, y):
+        return log_rhs(t, y, params)
 
-    def jac(t, x):
-        return log_jac(t, x, params)
+    def jac(t, y):
+        return log_jac(t, y, params)
 
-    def hess(t, x):
-        return log_hess(t, x, params)
+    def hess(t, y):
+        return log_hess(t, y, params)
 
     def sol(t):
         return log_sol(t, params, initrv.mean())
@@ -65,29 +65,29 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
     return IVP(timespan, initrv, rhs, jac, hess, sol)
 
 
-def log_rhs(t, x, params):
+def log_rhs(t, y, params):
     """RHS for logistic model."""
     l0, l1 = params
-    return l0 * x * (1.0 - x / l1)
+    return l0 * y * (1.0 - y / l1)
 
 
-def log_jac(t, x, params):
+def log_jac(t, y, params):
     """Jacobian for logistic model."""
     l0, l1 = params
-    return np.array([l0 - l0 / l1 * 2 * x])
+    return np.array([l0 - l0 / l1 * 2 * y])
 
 
-def log_hess(t, x, params):
+def log_hess(t, y, params):
     """Hessian for logistic model."""
     l0, l1 = params
     return np.array([[-2 * l0 / l1]])
 
 
-def log_sol(t, params, x0):
+def log_sol(t, params, y0):
     """Solution for logistic model."""
     l0, l1 = params
-    nomin = l1 * x0 * np.exp(l0 * t)
-    denom = l1 + x0 * (np.exp(l0 * t) - 1)
+    nomin = l1 * y0 * np.exp(l0 * t)
+    denom = l1 + y0 * (np.exp(l0 * t) - 1)
     return nomin / denom
 
 
@@ -97,9 +97,9 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
 
     The FitzHugh-Nagumo (FHN) model is defined through
 
-    .. math:: f(t, x) =
-        \\begin{pmatrix} x_1 - \\frac{1}{3}x_1^3 - x_2 + a \\\\
-        \\frac{1}{d} (x_1 + b - c x_2)  \\end{pmatrix}
+    .. math:: f(t, y) =
+        \\begin{pmatrix} y_1 - \\frac{1}{3}y_1^3 - y_2 + a \\\\
+        \\frac{1}{d} (y_1 + b - c y_2)  \\end{pmatrix}
 
     for some parameters :math:`(a, b, c, d)`.
     Default is :math:`(a, b)=(0.0, 0.08, 0.07, 1.25)`.
@@ -125,27 +125,27 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
         configuration.
     """
 
-    def rhs(t, x):
-        return fhn_rhs(t, x, params)
+    def rhs(t, y):
+        return fhn_rhs(t, y, params)
 
-    def jac(t, x):
-        return fhn_jac(t, x, params)
+    def jac(t, y):
+        return fhn_jac(t, y, params)
 
     return IVP(timespan, initrv, rhs, jac)
 
 
-def fhn_rhs(t, x, params):
+def fhn_rhs(t, y, params):
     """RHS for FitzHugh-Nagumo model."""
-    x1, x2 = x
+    y1, y2 = y
     a, b, c, d = params
-    return np.array([x1 - x1 ** 3 / 3 - x2 + a, (x1 + b - c * x2) / d])
+    return np.array([y1 - y1 ** 3 / 3 - y2 + a, (y1 + b - c * y2) / d])
 
 
-def fhn_jac(t, x, params):
+def fhn_jac(t, y, params):
     """Jacobian for FitzHugh-Nagumo model."""
-    x1, x2 = x
+    y1, y2 = y
     a, b, c, d = params
-    return np.array([[1 - x1 ** 2, -1], [1.0 / d, -c / d]])
+    return np.array([[1 - y1 ** 2, -1], [1.0 / d, -c / d]])
 
 
 def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
@@ -154,8 +154,8 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
 
     The Lotka-Volterra (LV) model is defined through
 
-    .. math:: f(t, x) =
-        \\begin{pmatrix} a x_1 - bx_1x_2 \\\\ -c x_2 + d x_1 x_2
+    .. math:: f(t, y) =
+        \\begin{pmatrix} a y_1 - by_1y_2 \\\\ -c y_2 + d y_1 y_2
         \\end{pmatrix}
 
     for some parameters :math:`(a, b, c, d)`.
@@ -182,27 +182,27 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
         configuration.
     """
 
-    def rhs(t, x):
-        return lv_rhs(t, x, params)
+    def rhs(t, y):
+        return lv_rhs(t, y, params)
 
-    def jac(t, x):
-        return lv_jac(t, x, params)
+    def jac(t, y):
+        return lv_jac(t, y, params)
 
     return IVP(timespan, initrv, rhs, jac)
 
 
-def lv_rhs(t, x, params):
+def lv_rhs(t, y, params):
     """RHS for Lotka-Volterra"""
     a, b, c, d = params
-    x1, x2 = x
-    return np.array([a * x1 - b * x1 * x2, -c * x2 + d * x1 * x2])
+    y1, y2 = y
+    return np.array([a * y1 - b * y1 * y2, -c * y2 + d * y1 * y2])
 
 
-def lv_jac(t, x, params):
+def lv_jac(t, y, params):
     """Jacobian for Lotka-Volterra"""
     a, b, c, d = params
-    x1, x2 = x
-    return np.array([[a - b * x2, -b * x1], [d * x2, -c + d * x1]])
+    y1, y2 = y
+    return np.array([[a - b * y2, -b * y1], [d * y2, -c + d * y1]])
 
 
 class IVP(ODE):
@@ -212,7 +212,7 @@ class IVP(ODE):
     This class descibes initial value problems based on systems of
     first order ordinary differential equations (ODEs),
 
-    .. math:: \\dot x(t) = f(t, x(t)), \\quad x(t_0) = x_0,
+    .. math:: \\dot y(t) = f(t, y(t)), \\quad y(t_0) = y_0,
         \\quad t \\in [t_0, T]
 
     It provides options for defining custom right-hand side (RHS)
@@ -237,14 +237,14 @@ class IVP(ODE):
         Implementation depends on the mean of this RandomVariable,
         so please only use RandomVariable objects with available
         means, e.g. Diracs or Normals.
-    rhs : callable, signature: ``(t, x, **kwargs)``
+    rhs : callable, signature: ``(t, y, **kwargs)``
         RHS function
         :math:`f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
         of the ODE system. As such it takes a float and an
         np.ndarray of shape (d,) and returns a np.ndarray
         of shape (d,). As of now, no vectorization is supported
         (nor needed).
-    jac : callable, signature: ``(t, x, **kwargs)``, optional
+    jac : callable, signature: ``(t, y, **kwargs)``, optional
         Jacobian of RHS function
         :math:`J_f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
         of the ODE system. As such it takes a float and an
@@ -261,7 +261,7 @@ class IVP(ODE):
     Examples
     --------
     >>> from probnum.diffeq import IVP
-    >>> rhsfun = lambda t, x, **kwargs: 2.0*x
+    >>> rhsfun = lambda t, y, **kwargs: 2.0*y
     >>> from probnum.prob import Dirac, Normal, RandomVariable
     >>> initrv = RandomVariable(distribution=Dirac(0.1))
     >>> timespan = (0, 10)
@@ -275,7 +275,7 @@ class IVP(ODE):
 
     >>> initrv = RandomVariable(distribution=Normal(0.1, 1.0))
     >>> ivp = IVP(timespan, initrv, rhsfun)
-    >>> jac = lambda t, x, **kwargs: 2.0
+    >>> jac = lambda t, y, **kwargs: 2.0
     >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)
     >>> print(ivp.rhs(0., 2.))
     4.0
