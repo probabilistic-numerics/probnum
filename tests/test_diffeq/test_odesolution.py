@@ -23,8 +23,8 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
     def test_t(self):
         self.assertArrayEqual(self.solution.t, np.sort(self.solution.t))
 
-        self.assertEqual(self.solution.t[0], self.ivp.t0)
-        self.assertEqual(self.solution.t[-1], self.ivp.tmax)
+        self.assertApproxEqual(self.solution.t[0], self.ivp.t0)
+        self.assertApproxEqual(self.solution.t[-1], self.ivp.tmax)
 
     def test_getitem(self):
         self.assertArrayEqual(self.solution[0].mean(), self.solution.y[0].mean())
