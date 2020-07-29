@@ -91,7 +91,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         return ODESolution(times, rvs, self)
 
-    def odesmooth(self, sol, **kwargs):
+    def odesmooth(self, filter_solution, **kwargs):
         """
         Smooth out the ODE-Filter output.
 
@@ -100,20 +100,19 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         Parameters
         ----------
-        means
-        covs
+        filter_solution: ODESolution
 
         Returns
         -------
-
+        smoothed_solution: ODESolution
         """
-        ivp_filter_posterior = sol._state_posterior
+        ivp_filter_posterior = filter_solution._state_posterior
         ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
 
         smoothed_solution = ODESolution(
             times=ivp_smoother_posterior.locations,
             rvs=ivp_smoother_posterior.state_rvs,
-            solver=sol._solver,
+            solver=filter_solution._solver,
         )
 
         return smoothed_solution
