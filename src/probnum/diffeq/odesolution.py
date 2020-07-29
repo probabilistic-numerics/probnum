@@ -59,9 +59,9 @@ class ODESolution(FiltSmoothPosterior):
 
     def _proj_normal_rv(self, rv, coord):
         """Projection of a normal RV, e.g. to map 'states' to 'function values'"""
-        proj_mat = self._solver.prior.proj2coord(coord)
-        new_mean = proj_mat @ rv.mean()
-        new_cov = proj_mat @ rv.cov() @ proj_mat.T
+        q = self._solver.prior.ordint
+        new_mean = rv.mean()[coord :: (q + 1)]
+        new_cov = rv.cov()[coord :: (q + 1), coord :: (q + 1)]
         return RandomVariable(distribution=Normal(new_mean, new_cov))
 
     @property
