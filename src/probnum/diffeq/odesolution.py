@@ -116,7 +116,7 @@ class ODESolution(FiltSmoothPosterior):
             rv = self._state_posterior[idx]
             rv = self._solver.undo_preconditioning_rv(rv)
             rv = self._proj_normal_rv(rv, 0)
-            return RandomVariable(distribution=Normal(f_mean, f_cov))
+            return rv
         elif isinstance(idx, slice):
             rvs = self._state_posterior[idx]
             rvs = [self._solver.undo_preconditioning_rv(rv) for rv in rvs]
