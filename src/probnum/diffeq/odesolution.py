@@ -13,7 +13,45 @@ from probnum.filtsmooth import KalmanPosterior
 
 
 class ODESolution(FiltSmoothPosterior):
-    """Continuous ODE Solution"""
+    """Solution of an ODE problem
+
+    Examples
+    --------
+    >>> from probnum.diffeq import logistic, probsolve_ivp
+    >>> from probnum.prob import RandomVariable, Dirac, Normal
+    >>> initrv = RandomVariable(distribution=Dirac(0.15))
+    >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
+    >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
+    >>> # Mean of the discrete-time solution
+    >>> print(solution.y.mean())
+    [[0.15       0.51      ]
+     [0.2076198  0.642396  ]
+     [0.27932997 0.79180747]
+     [0.3649165  0.91992313]
+     [0.46054129 0.9925726 ]
+     [0.55945475 0.98569653]
+     [0.65374523 0.90011316]
+     [0.73686744 0.76233098]
+     [0.8053776  0.60787222]
+     [0.85895587 0.4636933 ]
+     [0.89928283 0.34284592]
+     [0.92882899 0.24807715]
+     [0.95007559 0.17685497]
+     [0.96515825 0.12479825]
+     [0.97577054 0.08744746]
+     [0.9831919  0.06097975]]
+    >>> # Times of the discrete-time solution
+    >>> print(solution.t)
+    [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
+    >>> # Individual entries of the discrete-time solution can be accessed with
+    >>> print(solution[5])
+    <(2,) RandomVariable with dtype=<class 'float'>>
+    >>> print(solution[5].mean())
+    [0.55945475 0.98569653]
+    >>> # Evaluate the continuous-time solution at a new time point t=0.65
+    >>> print(solution(0.65).mean())
+    [0.69702861 0.83122207]
+    """
 
     def __init__(self, times, rvs, solver):
         self._state_posterior = KalmanPosterior(times, rvs, solver.gfilt)
@@ -27,7 +65,10 @@ class ODESolution(FiltSmoothPosterior):
 
     @property
     def y(self):
-        """Probabilistic discrete-time solution, as a list of random variables"""
+        """Probabilistic discrete-time solution, as a list of random variables
+
+        To return means and covariances use `y.mean()` and `y.cov()`.
+        """
         function_rvs = [
             RandomVariable(
                 distribution=Normal(
@@ -61,7 +102,7 @@ class ODESolution(FiltSmoothPosterior):
 
     def __call__(self, t, smoothed=True):
         """
-        Evaluate the solution at time t
+        Evaluate the time-continuous solution at time t
 
         `KalmanPosterior.__call__` does the main algorithmic work to return the
         posterior for a given location. All that is left to do here is to (1) undo the
@@ -82,6 +123,7 @@ class ODESolution(FiltSmoothPosterior):
         return len(self._state_posterior)
 
     def __getitem__(self, idx):
+        """Access the discrete-time solution through indexing and slicing"""
         if isinstance(idx, int):
             rv = self._state_posterior[idx]
             rv = self._solver.undo_preconditioning_rv(rv)
