@@ -54,7 +54,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         current_rv = self.gfilt.initialrandomvariable
         t = self.ivp.t0
-        times, means, covars = [t], [current_rv.mean()], [current_rv.cov()]
+        times = [t]
         rvs = [current_rv]
         step = firststep
         ssqest, num_steps = 0.0, 0
@@ -75,8 +75,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
             if self.steprule.is_accepted(step, errorest) is True:
                 times.append(t_new)
-                means.append(filt_rv.mean())
-                covars.append(filt_rv.cov())
                 rvs.append(filt_rv)
                 num_steps += 1
                 ssqest = ssqest + (ssq - ssqest) / num_steps
@@ -85,11 +83,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
             step = self._suggest_step(step, errorest)
 
-        means, covars = self.undo_preconditioning(means, covars)
-
-        means, covars, times = np.array(means), np.array(covars), np.array(times)
-
-        covars *= ssqest
+        times = np.array(times)
         rvs = [
             RandomVariable(distribution=Normal(rv.mean(), ssqest * rv.cov()))
             for rv in rvs
