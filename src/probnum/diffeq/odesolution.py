@@ -24,33 +24,20 @@ class ODESolution(FiltSmoothPosterior):
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> # Mean of the discrete-time solution
     >>> print(solution.y.mean())
-    [[0.15       0.51      ]
-     [0.2076198  0.642396  ]
-     [0.27932997 0.79180747]
-     [0.3649165  0.91992313]
-     [0.46054129 0.9925726 ]
-     [0.55945475 0.98569653]
-     [0.65374523 0.90011316]
-     [0.73686744 0.76233098]
-     [0.8053776  0.60787222]
-     [0.85895587 0.4636933 ]
-     [0.89928283 0.34284592]
-     [0.92882899 0.24807715]
-     [0.95007559 0.17685497]
-     [0.96515825 0.12479825]
-     [0.97577054 0.08744746]
-     [0.9831919  0.06097975]]
+    [0.15       0.2076198  0.27932997 0.3649165  0.46054129 0.55945475
+     0.65374523 0.73686744 0.8053776  0.85895587 0.89928283 0.92882899
+     0.95007559 0.96515825 0.97577054 0.9831919 ]
     >>> # Times of the discrete-time solution
     >>> print(solution.t)
     [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
     >>> # Individual entries of the discrete-time solution can be accessed with
     >>> print(solution[5])
-    <(2,) RandomVariable with dtype=<class 'float'>>
+    <() RandomVariable with dtype=<class 'float'>>
     >>> print(solution[5].mean())
-    [0.55945475 0.98569653]
+    0.5594547467636678
     >>> # Evaluate the continuous-time solution at a new time point t=0.65
     >>> print(solution(0.65).mean())
-    [0.69702861 0.83122207]
+    0.6970286118771419
     """
 
     def __init__(self, times, rvs, solver):

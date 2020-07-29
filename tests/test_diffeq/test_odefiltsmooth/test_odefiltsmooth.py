@@ -36,11 +36,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, which_prior="ibm1")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, which_prior="ibm1")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 2
@@ -51,11 +51,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, which_prior="ibm2")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, which_prior="ibm2")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 3
@@ -66,11 +66,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, which_prior="ibm3")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, which_prior="ibm3")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 4
@@ -81,11 +81,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, which_prior="ioup1")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, which_prior="ioup1")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 2
@@ -96,11 +96,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, which_prior="ioup2")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, which_prior="ioup2")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 3
@@ -111,11 +111,11 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, which_prior="ioup3")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, which_prior="ioup3")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 4
@@ -298,11 +298,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ibm1")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ibm1")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 2
@@ -313,11 +313,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ibm2")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ibm2")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 3
@@ -328,11 +328,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ibm3")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ibm3")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 4
@@ -343,11 +343,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ioup1")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ioup1")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 2
@@ -358,11 +358,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ioup2")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ioup2")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 3
@@ -373,11 +373,11 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
         """Expect error rate q+1 """
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ioup3")
-        means1 = sol.y.mean()[:, 0]
+        means1 = sol.y.mean()
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ioup3")
-        means2 = sol.y.mean()[:, 0]
+        means2 = sol.y.mean()
         sols2 = np.array([self.ivp.solution(t) for t in sol.t])
         err2 = np.amax(np.abs(sols2[:, 0] - means2))
         exp_decay = (stp2 / stp1) ** 4
