@@ -56,7 +56,13 @@ class ODESolution(FiltSmoothPosterior):
     def __init__(self, times, rvs, solver):
         self._state_posterior = KalmanPosterior(times, rvs, solver.gfilt)
         self._solver = solver
-        self._d = self._solver.ivp.ndim
+
+    def _proj_normal_rv(self, rv, coord):
+        """Projection of a normal RV, e.g. to map 'states' to 'function values'"""
+        proj_mat = self._solver.prior.proj2coord(coord)
+        new_mean = proj_mat @ rv.mean()
+        new_cov = proj_mat @ rv.cov() @ proj_mat.T
+        return RandomVariable(distribution=Normal(new_mean, new_cov))
 
     @property
     def t(self):
@@ -69,28 +75,14 @@ class ODESolution(FiltSmoothPosterior):
 
         To return means and covariances use `y.mean()` and `y.cov()`.
         """
-        function_rvs = [
-            RandomVariable(
-                distribution=Normal(
-                    rv.mean()[0 :: self._d], rv.cov()[0 :: self._d, 0 :: self._d]
-                )
-            )
-            for rv in self._state_rvs
-        ]
+        function_rvs = [self._proj_normal_rv(rv, 0) for rv in self._state_rvs]
         return _RandomVariableList(function_rvs)
 
     @property
     def dy(self):
         """Derivatives of the discrete-time solution, as a list of random variables"""
-        function_rvs = [
-            RandomVariable(
-                distribution=Normal(
-                    rv.mean()[1 :: self._d], rv.cov()[1 :: self._d, 1 :: self._d]
-                )
-            )
-            for rv in self._state_rvs
-        ]
-        return _RandomVariableList(function_rvs)
+        dy_rvs = [self._proj_normal_rv(rv, 1) for rv in self._state_rvs]
+        return _RandomVariableList(dy_rvs)
 
     @property
     def _state_rvs(self):
@@ -109,14 +101,10 @@ class ODESolution(FiltSmoothPosterior):
         preconditioning, and (2) to slice the state_rv in order to return only the
         rv for the function value.
         """
-
         out_rv = self._state_posterior(t, smoothed=smoothed)
         out_rv = self._solver.undo_preconditioning_rv(out_rv)
-
-        f_mean = out_rv.mean()[0 :: self._d]
-        f_cov = out_rv.cov()[0 :: self._d, 0 :: self._d]
-
-        return RandomVariable(distribution=Normal(f_mean, f_cov))
+        out_rv = self._proj_normal_rv(out_rv, 0)
+        return out_rv
 
     def __len__(self):
         """Number of points in the discrete-time solution"""
@@ -127,18 +115,12 @@ class ODESolution(FiltSmoothPosterior):
         if isinstance(idx, int):
             rv = self._state_posterior[idx]
             rv = self._solver.undo_preconditioning_rv(rv)
-            f_mean = rv.mean()[0 :: self._d]
-            f_cov = rv.cov()[0 :: self._d, 0 :: self._d]
+            rv = self._proj_normal_rv(rv, 0)
             return RandomVariable(distribution=Normal(f_mean, f_cov))
         elif isinstance(idx, slice):
             rvs = self._state_posterior[idx]
             rvs = [self._solver.undo_preconditioning_rv(rv) for rv in rvs]
-            f_means = [rv.mean()[0 :: self._d] for rv in rvs]
-            f_covs = [rv.cov()[0 :: self._d, 0 :: self._d] for rv in rvs]
-            f_rvs = [
-                RandomVariable(distribution=Normal(f_mean, f_cov))
-                for (f_mean, f_cov) in zip(f_means, f_covs)
-            ]
+            f_rvs = [self._proj_normal_rv(rv, 0) for rv in rvs]
             return _RandomVariableList(f_rvs)
         else:
             raise ValueError("Invalid index")
