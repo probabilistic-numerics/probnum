@@ -4,7 +4,7 @@ import numpy as np
 from probnum.prob import RandomVariable, Dirac
 from probnum.prob.randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
-from probnum.diffeq.ode import lotkavolterra
+from probnum.diffeq.ode import lotkavolterra, logistic
 
 from tests.testing import NumpyAssertions
 
@@ -24,7 +24,8 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertArrayEqual(self.solution.t, np.sort(self.solution.t))
 
         self.assertApproxEqual(self.solution.t[0], self.ivp.t0)
-        self.assertApproxEqual(self.solution.t[-1], self.ivp.tmax)
+        if self.ivp.tmax in self.solution.t:
+            self.assertApproxEqual(self.solution.t[-1], self.ivp.tmax)
 
     def test_getitem(self):
         self.assertArrayEqual(self.solution[0].mean(), self.solution.y[0].mean())
@@ -77,3 +78,31 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         t = 1.1 * tmax
         self.assertGreater(t, self.solution.t[-1])
         self.solution(t)
+
+
+class TestODESolution2(TestODESolution):
+    """Same as above, but higher-order prior to test for a different dimensionality"""
+
+    def setUp(self):
+        initrv = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        self.ivp = lotkavolterra([0.0, 0.5], initrv)
+        step = 0.1
+        self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
+
+
+class TestODESolution3(TestODESolution):
+    """Same as above, but 1d IVP to test for a different dimensionality"""
+
+    def setUp(self):
+        initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        self.ivp = logistic([0.0, 1.5], initrv)
+        step = 0.1
+        self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
+
+
+class TestODESolution3(TestODESolution):
+    """Same as above, but adaptive steps"""
+
+    def setUp(self):
+        super().setUp()
+        self.solution = probsolve_ivp(self.ivp, which_prior="ibm2", tol=0.1)
