@@ -100,7 +100,7 @@ class TestODESolution3(TestODESolution):
         self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
 
 
-class TestODESolution3(TestODESolution):
+class TestODESolution4(TestODESolution):
     """Same as above, but adaptive steps"""
 
     def setUp(self):

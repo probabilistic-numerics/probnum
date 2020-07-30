@@ -5,9 +5,6 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
-import numpy as np
-
-from probnum.prob import RandomVariable, Normal
 from probnum.prob.randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
