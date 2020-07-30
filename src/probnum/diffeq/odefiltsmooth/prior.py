@@ -268,15 +268,13 @@ class IBM(ODEPrior):
         Computes closed form solution for the transition matrix A(h).
         """
         step = stop - start
-        ah_1d = np.array(
-            [
-                [
-                    self._trans_ibm_element(step, row, col)
-                    for col in range(self.ordint + 1)
-                ]
-                for row in range(self.ordint + 1)
-            ]
-        )
+
+        ah_1d = np.diag(np.ones(self.ordint + 1), 0)
+        for i in range(self.ordint):
+            offdiagonal = (
+                step ** (i + 1) / np.math.factorial(i + 1) * np.ones(self.ordint - i)
+            )
+            ah_1d += np.diag(offdiagonal, i + 1)
         ah = np.kron(np.eye(self.spatialdim), ah_1d)
         return self.precond @ ah @ self.invprecond
 
