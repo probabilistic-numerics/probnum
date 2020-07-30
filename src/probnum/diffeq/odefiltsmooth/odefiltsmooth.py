@@ -146,11 +146,11 @@ def probsolve_ivp(
 
         Contains fields:
 
-        t : np.ndarray, shape=(N,)
+        t : :obj:`np.ndarray`, shape=(N,)
             Mesh used by the solver to compute the solution.
             It includes the initial time :math:`t_0` but not necessarily the
             final time :math:`T`.
-        y : list of RandomVariables, length=N
+        y : :obj:`list` of :obj:`RandomVariable`, length=N
             Discrete-time solution at times :math:`t_1, ..., t_N`,
             as a list of random variables.
             The means and covariances can be accessed with ``solution.y.mean()``

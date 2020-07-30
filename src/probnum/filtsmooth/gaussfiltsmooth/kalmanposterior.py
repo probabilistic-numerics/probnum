@@ -19,12 +19,14 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     @property
     def locations(self):
-        """Locations / times of the discrete observations"""
+        """:obj:`np.ndarray`: Locations / times of the discrete observations"""
         return self._locations
 
     @property
     def state_rvs(self):
-        """List of time-discrete posterior estimates over states"""
+        """
+        :obj:`list` of :obj:`RandomVariable`: Discrete-time posterior state estimates
+        """
         return self._state_rvs
 
     def __call__(self, t, smoothed=True):
@@ -43,11 +45,13 @@ class KalmanPosterior(FiltSmoothPosterior):
         t : float
             Location, or time, at which to evaluate the posterior.
         smoothed : bool, optional
-            Smooth the posterior; Opposed to just performing a prediction.
+            If ``True`` (default) perform smooth interpolation. If ``False`` perform a
+            prediction from the previous location, without smoothing.
 
         Returns
         -------
-        rv : `RandomVariable`
+        :obj:`RandomVariable`
+            Estimate of the states at time ``t``.
         """
 
         if t < self.locations[0]:
