@@ -49,19 +49,31 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertEqual(self.solution.dy[0].shape[0], self.ivp.ndim)
 
     def test_call(self):
-        # Results should coincide with the discrete solution for known t
-        self.assertArrayEqual(self.solution(0.0).mean(), self.solution[0].mean())
-        self.assertArrayEqual(self.solution(0.0).cov(), self.solution[0].cov())
+        t0 = self.ivp.t0
+        tmax = self.ivp.tmax
 
-        self.assertArrayEqual(self.solution(0.5).mean(), self.solution[-1].mean())
-        self.assertArrayEqual(self.solution(0.5).cov(), self.solution[-1].cov())
+        # Results should coincide with the discrete solution for known t
+        self.assertArrayEqual(self.solution(t0).mean(), self.solution[0].mean())
+        self.assertArrayEqual(self.solution(t0).cov(), self.solution[0].cov())
+
+        if tmax in self.solution.t:
+            self.assertArrayEqual(self.solution(tmax).mean(), self.solution[-1].mean())
+            self.assertArrayEqual(self.solution(tmax).cov(), self.solution[-1].cov())
 
         # t < t0 should raise an error
+        t = t0 - 0.5
+        self.assertLess(t, self.solution.t[0])
         with self.assertRaises(ValueError):
-            self.solution(-0.5)
+            self.solution(t)
 
         # t0 < t < tmax
-        self.solution(0.4127)
+        t = t0 + (tmax - t0) / np.pi
+        self.assertLess(self.solution.t[0], t)
+        self.assertGreater(self.solution.t[-1], t)
+        self.assertTrue(t not in self.solution.t)
+        self.solution(t)
 
         # t > tmax
-        self.solution(1.5)
+        t = 1.1 * tmax
+        self.assertGreater(t, self.solution.t[-1])
+        self.solution(t)
