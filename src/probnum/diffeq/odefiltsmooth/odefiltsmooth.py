@@ -141,25 +141,25 @@ def probsolve_ivp(
 
     Returns
     -------
-    means : np.ndarray, shape=(N, d(q+1))
-        Mean vector of the solution at times :math:`t_1, ..., t_N`.
-        The elements are ordered as
-        ``(m_1, m_1\', m_1\'\', ..., m_2, m_2\', ...)``
-        where ``m_1`` is the estimate of the first coordinate of the
-        solution, ``m_1\'`` is the estimate of the derivative of the
-        first coordinate, and so on.
-    covs : np.ndarray, shape=(N, d(q+1), d(q+1))
-        Covariance matrices of the solution at times
-        :math:`t_1, ..., t_N`. The ordering reflects the ordering of
-        the mean vector.
-    times : np.ndarray, shape=(N,)
-        Mesh used by the solver to compute the solution.
-        It includes the initial time :math:`t_0` but not necessarily the
-        final time :math:`T`.
+    solution : ODESolution
+        Solution of the ODE problem.
+
+        Contains fields:
+
+        t : np.ndarray, shape=(N,)
+            Mesh used by the solver to compute the solution.
+            It includes the initial time :math:`t_0` but not necessarily the
+            final time :math:`T`.
+        y : list of RandomVariables, length=N
+            Discrete-time solution at times :math:`t_1, ..., t_N`,
+            as a list of random variables.
+            The means and covariances can be accessed with `solution.y.mean()`
+            and `solution.y.cov()`.
 
     See Also
     --------
     GaussianIVPFilter : Solve IVPs with Gaussian filtering and smoothing
+    ODESolution : Solution of ODE problems
 
     References
     ----------
