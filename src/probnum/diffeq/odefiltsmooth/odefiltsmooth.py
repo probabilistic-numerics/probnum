@@ -153,8 +153,8 @@ def probsolve_ivp(
         y : list of RandomVariables, length=N
             Discrete-time solution at times :math:`t_1, ..., t_N`,
             as a list of random variables.
-            The means and covariances can be accessed with `solution.y.mean()`
-            and `solution.y.cov()`.
+            The means and covariances can be accessed with ``solution.y.mean()``
+            and ``solution.y.cov()``.
 
     See Also
     --------
