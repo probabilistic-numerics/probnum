@@ -40,14 +40,22 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
     def test_y(self):
         self.assertEqual(type(self.solution.y), _RandomVariableList)
 
-        self.assertEqual(len(self.solution.y[0].shape), 1)
-        self.assertEqual(self.solution.y[0].shape[0], self.ivp.ndim)
+        # This needs to change once 1-dim does not lead to UnivariateNormal anymore
+        if self.ivp.ndim == 1:
+            self.assertEqual(len(self.solution.y[0].shape), 0)
+        else:
+            self.assertEqual(len(self.solution.y[0].shape), 1)
+            self.assertEqual(self.solution.y[0].shape[0], self.ivp.ndim)
 
     def test_dy(self):
         self.assertEqual(type(self.solution.dy), _RandomVariableList)
 
-        self.assertEqual(len(self.solution.dy[0].shape), 1)
-        self.assertEqual(self.solution.dy[0].shape[0], self.ivp.ndim)
+        # This needs to change once 1-dim does not lead to UnivariateNormal anymore
+        if self.ivp.ndim == 1:
+            self.assertEqual(len(self.solution.dy[0].shape), 0)
+        else:
+            self.assertEqual(len(self.solution.dy[0].shape), 1)
+            self.assertEqual(self.solution.dy[0].shape[0], self.ivp.ndim)
 
     def test_call(self):
         t0 = self.ivp.t0
