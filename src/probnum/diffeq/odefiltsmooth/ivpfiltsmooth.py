@@ -80,6 +80,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 t = t_new
 
             step = self._suggest_step(step, errorest)
+            step = min(step, self.ivp.tmax - t)
 
         rvs = [
             RandomVariable(distribution=Normal(rv.mean(), ssqest * rv.cov()))
