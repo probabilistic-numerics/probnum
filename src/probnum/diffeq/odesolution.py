@@ -5,7 +5,7 @@ Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
 from probnum.prob import RandomVariable, Normal
-from probnum.prob.randomvariablelist import _RandomVariableList
+from probnum.prob._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
 

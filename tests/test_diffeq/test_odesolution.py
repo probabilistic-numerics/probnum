@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from probnum.prob import RandomVariable, Dirac
-from probnum.prob.randomvariablelist import _RandomVariableList
+from probnum.prob._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import lotkavolterra, logistic
 

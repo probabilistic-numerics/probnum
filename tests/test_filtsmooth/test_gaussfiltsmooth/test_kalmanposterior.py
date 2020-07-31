@@ -1,6 +1,6 @@
 import numpy as np
 
-from probnum.prob.randomvariablelist import _RandomVariableList
+from probnum.prob._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
 
 from .filtsmooth_testcases import CarTrackingDDTestCase
