@@ -314,6 +314,10 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
         stp1, stp2 = self.stps
         sol = probsolve_ivp(self.ivp, step=stp1, method="eks0", which_prior="ibm2")
         means1 = sol.y.mean()
+        assert len(means1.shape) == 1, (
+            "This should break once Normal and Univariate Normal behave differently; "
+            "Just ask Nathanael or Nicholas for help!"
+        )
         sols1 = np.array([self.ivp.solution(t) for t in sol.t])
         err1 = np.amax(np.abs(sols1[:, 0] - means1))
         sol = probsolve_ivp(self.ivp, step=stp2, method="eks0", which_prior="ibm2")

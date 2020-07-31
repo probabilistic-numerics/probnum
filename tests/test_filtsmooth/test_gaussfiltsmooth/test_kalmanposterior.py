@@ -14,6 +14,7 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.posterior = self.method.filter(self.obs, self.tms)
 
     def test_len(self):
+        self.assertTrue(len(self.posterior) > 0)
         self.assertEqual(len(self.posterior.locations), len(self.posterior))
         self.assertEqual(len(self.posterior.state_rvs), len(self.posterior))
 
@@ -48,13 +49,23 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         )
 
     def test_state_rvs(self):
-        self.assertEqual(type(self.posterior.state_rvs), _RandomVariableList)
+        self.assertTrue(isinstance(self.posterior.state_rvs, _RandomVariableList))
 
         self.assertEqual(len(self.posterior.state_rvs[0].shape), 1)
         self.assertEqual(self.posterior.state_rvs[-1].shape, self.initrv.shape)
 
-    def test_call(self):
-        # Results should coincide with the discrete posterior for known t
+    def test_call_error_if_small(self):
+        self.assertLess(-0.5, self.tms[0])
+        with self.assertRaises(ValueError):
+            self.posterior(-0.5)
+
+    def test_call_interpolation(self):
+        self.assertLess(self.tms[0], 9.88)
+        self.assertGreater(self.tms[-1], 9.88)
+        self.assertTrue(9.88 not in self.tms)
+        self.posterior(9.88)
+
+    def test_call_to_discrete(self):
         self.assertEqual(self.tms[0], 0)
         self.assertArrayEqual(self.posterior(0.0).mean(), self.posterior[0].mean())
         self.assertArrayEqual(self.posterior(0.0).cov(), self.posterior[0].cov())
@@ -63,17 +74,16 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.assertArrayEqual(self.posterior(19.8).mean(), self.posterior[-1].mean())
         self.assertArrayEqual(self.posterior(19.8).cov(), self.posterior[-1].cov())
 
-        # t < t0 should raise an error
-        self.assertLess(-0.5, self.tms[0])
-        with self.assertRaises(ValueError):
-            self.posterior(-0.5)
+        self.assertArrayEqual(
+            self.posterior(self.tms[2]).mean(), self.posterior[2].mean()
+        )
+        self.assertArrayEqual(
+            self.posterior(self.tms[5]).mean(), self.posterior[5].mean()
+        )
+        self.assertArrayEqual(
+            self.posterior(self.tms[10]).mean(), self.posterior[10].mean()
+        )
 
-        # t0 < t < tmax
-        self.assertLess(self.tms[0], 9.88)
-        self.assertGreater(self.tms[-1], 9.88)
-        self.assertTrue(9.88 not in self.tms)
-        self.posterior(9.88)
-
-        # t > tmax
+    def test_call_extrapolation(self):
         self.assertGreater(30, self.tms[-1])
-        self.posterior(30)
+        self.posterior(30, smoothed=False)

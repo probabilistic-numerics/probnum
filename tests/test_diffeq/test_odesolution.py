@@ -17,6 +17,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.solution = probsolve_ivp(self.ivp, step=step)
 
     def test_len(self):
+        self.assertTrue(len(self.solution) > 0)
         self.assertEqual(len(self.solution.t), len(self.solution))
         self.assertEqual(len(self.solution.y), len(self.solution))
 
@@ -37,7 +38,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertArrayEqual(self.solution[:].cov(), self.solution.y[:].cov())
 
     def test_y(self):
-        self.assertEqual(type(self.solution.y), _RandomVariableList)
+        self.assertTrue(isinstance(self.solution.y, _RandomVariableList))
 
         # This needs to change once 1-dim does not lead to UnivariateNormal anymore
         if self.ivp.ndim == 1:
@@ -47,7 +48,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
             self.assertEqual(self.solution.y[0].shape[0], self.ivp.ndim)
 
     def test_dy(self):
-        self.assertEqual(type(self.solution.dy), _RandomVariableList)
+        self.assertTrue(isinstance(self.solution.dy, _RandomVariableList))
 
         # This needs to change once 1-dim does not lead to UnivariateNormal anymore
         if self.ivp.ndim == 1:
@@ -56,38 +57,45 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
             self.assertEqual(len(self.solution.dy[0].shape), 1)
             self.assertEqual(self.solution.dy[0].shape[0], self.ivp.ndim)
 
-    def test_call(self):
-        t0 = self.ivp.t0
-        tmax = self.ivp.tmax
-
-        # Results should coincide with the discrete solution for known t
-        self.assertArrayEqual(self.solution(t0).mean(), self.solution[0].mean())
-        self.assertArrayEqual(self.solution(t0).cov(), self.solution[0].cov())
-
-        if tmax in self.solution.t:
-            self.assertArrayEqual(self.solution(tmax).mean(), self.solution[-1].mean())
-            self.assertArrayEqual(self.solution(tmax).cov(), self.solution[-1].cov())
-
-        # t < t0 should raise an error
-        t = t0 - 0.5
+    def test_call_error_if_small(self):
+        t = self.ivp.t0 - 0.5
         self.assertLess(t, self.solution.t[0])
         with self.assertRaises(ValueError):
             self.solution(t)
 
-        # t0 < t < tmax
-        t = t0 + (tmax - t0) / np.pi
+    def test_call_interpolation(self):
+        t = self.ivp.t0 + (self.ivp.tmax - self.ivp.t0) / np.pi
         self.assertLess(self.solution.t[0], t)
         self.assertGreater(self.solution.t[-1], t)
         self.assertTrue(t not in self.solution.t)
         self.solution(t)
 
-        # t > tmax
-        t = 1.1 * tmax
+    def test_call_correctness(self):
+        t = self.ivp.t0 + 1e-6
+        self.assertAllClose(
+            self.solution[0].mean(), self.solution(t).mean(), atol=1e-4, rtol=0
+        )
+
+    def test_call_endpoints(self):
+        self.assertArrayEqual(
+            self.solution(self.ivp.t0).mean(), self.solution[0].mean()
+        )
+        self.assertArrayEqual(self.solution(self.ivp.t0).cov(), self.solution[0].cov())
+
+        self.assertArrayEqual(
+            self.solution(self.ivp.tmax).mean(), self.solution[-1].mean()
+        )
+        self.assertArrayEqual(
+            self.solution(self.ivp.tmax).cov(), self.solution[-1].cov()
+        )
+
+    def test_call_extrapolation(self):
+        t = 1.1 * self.ivp.tmax
         self.assertGreater(t, self.solution.t[-1])
-        self.solution(t)
+        self.solution(t, smoothed=False)
 
 
-class TestODESolution2(TestODESolution):
+class TestODESolutionHigherOrderPrior(TestODESolution):
     """Same as above, but higher-order prior to test for a different dimensionality"""
 
     def setUp(self):
@@ -97,7 +105,7 @@ class TestODESolution2(TestODESolution):
         self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
 
 
-class TestODESolution3(TestODESolution):
+class TestODESolutionOneDimODE(TestODESolution):
     """Same as above, but 1d IVP to test for a different dimensionality"""
 
     def setUp(self):
@@ -107,7 +115,7 @@ class TestODESolution3(TestODESolution):
         self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
 
 
-class TestODESolution4(TestODESolution):
+class TestODESolutionAdaptive(TestODESolution):
     """Same as above, but adaptive steps"""
 
     def setUp(self):
