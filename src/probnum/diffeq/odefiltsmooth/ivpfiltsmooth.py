@@ -50,8 +50,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         firststep : float
             First step for adaptive step size rule.
         """
-        ####### This function surely can use some code cleanup. #######
-
         current_rv = self.gfilt.initialrandomvariable
         t = self.ivp.t0
         times = [t]
@@ -73,7 +71,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 filt_rv.mean(), crosscov, meas_cov, meas_mean
             )
 
-            if self.steprule.is_accepted(step, errorest) is True:
+            if self.steprule.is_accepted(step, errorest):
                 times.append(t_new)
                 rvs.append(filt_rv)
                 num_steps += 1
@@ -83,7 +81,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
             step = self._suggest_step(step, errorest)
 
-        times = np.array(times)
         rvs = [
             RandomVariable(distribution=Normal(rv.mean(), ssqest * rv.cov()))
             for rv in rvs
@@ -106,7 +103,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         -------
         smoothed_solution: ODESolution
         """
-        ivp_filter_posterior = filter_solution._state_posterior
+        ivp_filter_posterior = filter_solution._kalman_posterior
         ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
 
         smoothed_solution = ODESolution(
@@ -117,24 +114,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         return smoothed_solution
 
-    def undo_preconditioning(self, means, covs):
+    def undo_preconditioning(self, rv):
         ipre = self.gfilt.dynamicmodel.invprecond
-        newmeans = np.array([ipre @ mean for mean in means])
-        newcovs = np.array([ipre @ cov @ ipre.T for cov in covs])
-        return newmeans, newcovs
-
-    def undo_preconditioning_rv(self, rv):
-        mean, cov = rv.mean(), rv.cov()
-        newmeans, newcovs = self.undo_preconditioning([mean], [cov])
-        newmean, newcov = newmeans[0], newcovs[0]
+        newmean = ipre @ rv.mean()
+        newcov = ipre @ rv.cov() @ ipre.T
         newrv = RandomVariable(distribution=Normal(newmean, newcov))
         return newrv
-
-    def redo_preconditioning(self, means, covs):
-        pre = self.gfilt.dynamicmodel.precond
-        newmeans = np.array([pre @ mean for mean in means])
-        newcovs = np.array([pre @ cov @ pre.T for cov in covs])
-        return newmeans, newcovs
 
     def _estimate_error(self, currmn, ccest, covest, mnest):
         """

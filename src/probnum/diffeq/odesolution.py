@@ -1,4 +1,5 @@
-"""ODESolution object, returned by `probsolve_ivp`
+"""
+ODESolution object, returned by `probsolve_ivp`
 
 Contains the discrete time and function outputs.
 Provides dense output by being callable.
@@ -11,12 +12,13 @@ from probnum.filtsmooth import KalmanPosterior
 
 
 class ODESolution(FiltSmoothPosterior):
-    """Gaussian IVP filtering solution of an ODE problem
+    """
+    Gaussian IVP filtering solution of an ODE problem
 
 
     Parameters
     ----------
-    times : :obj:`np.ndarray`
+    times : `array_like`
         Times of the discrete-time solution.
     rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time solution.
@@ -56,7 +58,7 @@ class ODESolution(FiltSmoothPosterior):
     """
 
     def __init__(self, times, rvs, solver):
-        self._state_posterior = KalmanPosterior(times, rvs, solver.gfilt)
+        self._kalman_posterior = KalmanPosterior(times, rvs, solver.gfilt)
         self._solver = solver
 
     def _proj_normal_rv(self, rv, coord):
@@ -69,7 +71,7 @@ class ODESolution(FiltSmoothPosterior):
     @property
     def t(self):
         """:obj:`np.ndarray`: Times of the discrete-time solution"""
-        return self._state_posterior.locations
+        return self._kalman_posterior.locations
 
     @property
     def y(self):
@@ -97,11 +99,11 @@ class ODESolution(FiltSmoothPosterior):
         :obj:`list` of :obj:`RandomVariable`:
         Time-discrete posterior estimates over states, without preconditioning.
 
-        Note that this does not correspond to ``self._state_posterior.state_rvs``:
+        Note that this does not correspond to ``self._kalman_posterior.state_rvs``:
         Here we undo the preconditioning to make the "states" interpretable.
         """
         state_rvs = _RandomVariableList(
-            [self._solver.undo_preconditioning_rv(rv) for rv in self._state_posterior]
+            [self._solver.undo_preconditioning(rv) for rv in self._kalman_posterior]
         )
         return state_rvs
 
@@ -127,25 +129,25 @@ class ODESolution(FiltSmoothPosterior):
         :obj:`RandomVariable`
             Probabilistic estimate of the continuous-time solution at time ``t``.
         """
-        out_rv = self._state_posterior(t, smoothed=smoothed)
-        out_rv = self._solver.undo_preconditioning_rv(out_rv)
+        out_rv = self._kalman_posterior(t, smoothed=smoothed)
+        out_rv = self._solver.undo_preconditioning(out_rv)
         out_rv = self._proj_normal_rv(out_rv, 0)
         return out_rv
 
     def __len__(self):
         """Number of points in the discrete-time solution."""
-        return len(self._state_posterior)
+        return len(self._kalman_posterior)
 
     def __getitem__(self, idx):
         """Access the discrete-time solution through indexing and slicing."""
         if isinstance(idx, int):
-            rv = self._state_posterior[idx]
-            rv = self._solver.undo_preconditioning_rv(rv)
+            rv = self._kalman_posterior[idx]
+            rv = self._solver.undo_preconditioning(rv)
             rv = self._proj_normal_rv(rv, 0)
             return rv
         elif isinstance(idx, slice):
-            rvs = self._state_posterior[idx]
-            rvs = [self._solver.undo_preconditioning_rv(rv) for rv in rvs]
+            rvs = self._kalman_posterior[idx]
+            rvs = [self._solver.undo_preconditioning(rv) for rv in rvs]
             f_rvs = [self._proj_normal_rv(rv, 0) for rv in rvs]
             return _RandomVariableList(f_rvs)
         else:

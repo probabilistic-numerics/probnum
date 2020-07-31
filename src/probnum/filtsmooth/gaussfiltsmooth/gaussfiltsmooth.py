@@ -96,13 +96,14 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = filter_posterior[idx - 1]
             pred_rv, ccov = self.predict(
-                start=filter_posterior.locations[idx - 1],
-                stop=filter_posterior.locations[idx],
+                start=locations[idx - 1],
+                stop=locations[idx],
                 randvar=unsmoothed_rv,
                 **kwargs
             )
             smoothed_rv = self.smooth_step(unsmoothed_rv, pred_rv, smoothed_rv, ccov)
-            out_rvs.insert(0, smoothed_rv)
+            out_rvs.append(smoothed_rv)
+        out_rvs.reverse()
         return KalmanPosterior(locations, out_rvs, self)
 
     def filter_step(self, start, stop, randvar, data, **kwargs):

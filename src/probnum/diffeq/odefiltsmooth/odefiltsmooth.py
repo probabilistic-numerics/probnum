@@ -52,7 +52,7 @@ def probsolve_ivp(
 
 
     This function turns a prior-string into an :class:`ODEPrior`, a
-    method-string into a Filter/Smoother of class :class:`GaussFiltSmooth`, creates a
+    method-string into a filter/smoother of class :class:`GaussFiltSmooth`, creates a
     :class:`GaussianIVPFilter` object and calls the :meth:`solve()` method. For
     advanced usage we recommend to do this process manually which
     enables advanced methods of tuning the algorithm.
