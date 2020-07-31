@@ -21,10 +21,10 @@ __all__ = [
     "DiscreteGaussianModel",
     "DiscreteGaussianLinearModel",
     "DiscreteGaussianLTIModel",
+    "FiltSmoothPosterior",
+    "KalmanPosterior",
     "generate_cd",
     "generate_dd",
-    "KalmanPosterior",
-    "FiltSmoothPosterior",
 ]
 
 # Set correct module paths (for superclasses).

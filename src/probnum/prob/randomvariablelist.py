@@ -2,7 +2,17 @@ import numpy as np
 
 
 class _RandomVariableList(list):
-    """List of RandomVariables with convenient access to means, covariances, etc."""
+    """List of RandomVariables with convenient access to means, covariances, etc.
+
+    Parameters
+    ----------
+    rv_list : :obj:`list` of :obj:`RandomVariable`
+    """
+
+    def __init__(self, rv_list):
+        if not isinstance(rv_list, list):
+            raise TypeError("RandomVariableList expects a list.")
+        super().__init__(rv_list)
 
     def mean(self):
         return np.stack([rv.mean() for rv in self])
