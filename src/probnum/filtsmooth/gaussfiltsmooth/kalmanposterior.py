@@ -5,16 +5,30 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
+import numpy as np
+
 from probnum.prob._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
 class KalmanPosterior(FiltSmoothPosterior):
-    """Posterior Distribution after (Extended/Unscented) Kalman Filtering/Smoothing"""
+    """
+    Posterior Distribution after (Extended/Unscented) Kalman Filtering/Smoothing
 
-    def __init__(self, locations, state_rvs, kalman_filter):
-        self.kalman_filter = kalman_filter
-        self._locations = locations
+
+    Parameters
+    ----------
+    locations : `array_like`
+        Locations / Times of the discrete-time estimates.
+    state_rvs : :obj:`list` of :obj:`RandomVariable`
+        Estimated states (in the state-space model view) of the discrete-time estimates.
+    gauss_filter : :obj:`GaussFiltSmooth`
+        Filter/smoother used to compute the discrete-time estimates.
+    """
+
+    def __init__(self, locations, state_rvs, gauss_filter):
+        self._locations = np.asarray(locations)
+        self.gauss_filter = gauss_filter
         self._state_rvs = _RandomVariableList(state_rvs)
 
     @property
@@ -69,7 +83,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             prev_time = self.locations[prev_idx]
             prev_rv = self.state_rvs[prev_idx]
 
-            predicted, _ = self.kalman_filter.predict(
+            predicted, _ = self.gauss_filter.predict(
                 start=prev_time, stop=t, randvar=prev_rv
             )
             out_rv = predicted
@@ -77,11 +91,11 @@ class KalmanPosterior(FiltSmoothPosterior):
             if smoothed and t < self.locations[-1]:
                 next_time = self.locations[prev_idx + 1]
                 next_rv = self._state_rvs[prev_idx + 1]
-                next_pred, crosscov = self.kalman_filter.predict(
+                next_pred, crosscov = self.gauss_filter.predict(
                     start=t, stop=next_time, randvar=predicted
                 )
 
-                smoothed = self.kalman_filter.smooth_step(
+                smoothed = self.gauss_filter.smooth_step(
                     predicted, next_pred, next_rv, crosscov
                 )
 
