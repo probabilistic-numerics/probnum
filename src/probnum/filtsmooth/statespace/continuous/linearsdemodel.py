@@ -54,25 +54,25 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         self._dispmatrixfct = dispmatrixfct
         self._diffmatrix = diffmatrix
 
-    def drift(self, time, state,  **kwargs):
+    def drift(self, time, state, **kwargs):
         """
         Evaluates f(t, x(t)) = F(t) x(t) + u(t).
         """
-        driftmatrix = self._driftmatrixfct(time,  **kwargs)
-        force = self._forcefct(time,  **kwargs)
+        driftmatrix = self._driftmatrixfct(time, **kwargs)
+        force = self._forcefct(time, **kwargs)
         return driftmatrix @ state + force
 
-    def dispersion(self, time, state,  **kwargs):
+    def dispersion(self, time, state, **kwargs):
         """
         Evaluates l(t, x(t)) = L(t).
         """
-        return self._dispmatrixfct(time,  **kwargs)
+        return self._dispmatrixfct(time, **kwargs)
 
-    def jacobian(self, time, state,  **kwargs):
+    def jacobian(self, time, state, **kwargs):
         """
         maps t -> F(t)
         """
-        return self._driftmatrixfct(time,  **kwargs)
+        return self._driftmatrixfct(time, **kwargs)
 
     @property
     def diffusionmatrix(self):
@@ -86,9 +86,9 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         """
         Spatial dimension (utility attribute).
         """
-        return len(self._driftmatrixfct(0.))
+        return len(self._driftmatrixfct(0.0))
 
-    def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
+    def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
         """
         Solves differential equations for mean and
         kernels of the SDE solution (Eq. 5.50 and 5.51
@@ -97,9 +97,11 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         By default, we assume that ``randvar`` is Gaussian.
         """
         if not issubclass(type(randvar.distribution), Normal):
-            errormsg = "Closed form solution for Chapman-Kolmogorov " \
-                       "equations in linear SDE models is only " \
-                       "available for Gaussian initial conditions."
+            errormsg = (
+                "Closed form solution for Chapman-Kolmogorov "
+                "equations in linear SDE models is only "
+                "available for Gaussian initial conditions."
+            )
             raise ValueError(errormsg)
         mean, covar = randvar.mean(), randvar.cov()
         time = start
@@ -109,7 +111,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
             time = time + step
         return RandomVariable(distribution=Normal(mean, covar)), None
 
-    def _increment(self, time, mean, covar,  **kwargs):
+    def _increment(self, time, mean, covar, **kwargs):
         """
         Euler step for closed form solutions of ODE defining mean
         and kernels of the solution of the Chapman-Kolmogoro
@@ -117,10 +119,10 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         here).
         See RHS of Eq. 10.82 in Applied SDEs.
         """
-        disped = self.dispersion(time, mean,  **kwargs)
-        jacob = self.jacobian(time, mean,  **kwargs)
+        disped = self.dispersion(time, mean, **kwargs)
+        jacob = self.jacobian(time, mean, **kwargs)
         diff = self.diffusionmatrix
-        newmean = self.drift(time, mean,  **kwargs)
+        newmean = self.drift(time, mean, **kwargs)
         newcovar = covar @ jacob.T + jacob @ covar.T + disped @ diff @ disped.T
         return newmean, newcovar
 
@@ -165,10 +167,12 @@ class LTISDEModel(LinearSDEModel):
         diffmatrix : ndarray (Q)
         """
         _check_initial_state_dimensions(driftmatrix, force, dispmatrix, diffmatrix)
-        super().__init__((lambda t,  **kwargs: driftmatrix),
-                         (lambda t,  **kwargs: force),
-                         (lambda t,  **kwargs: dispmatrix),
-                         diffmatrix)
+        super().__init__(
+            (lambda t, **kwargs: driftmatrix),
+            (lambda t, **kwargs: force),
+            (lambda t, **kwargs: dispmatrix),
+            diffmatrix,
+        )
         self._driftmatrix = driftmatrix
         self._force = force
         self._dispmatrix = dispmatrix
@@ -192,7 +196,7 @@ class LTISDEModel(LinearSDEModel):
         """
         return self._dispmatrix
 
-    def chapmankolmogorov(self, start, stop, step, randvar,  **kwargs):
+    def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
         """
         Solves Chapman-Kolmogorov equation from start to stop via step.
 
@@ -279,12 +283,12 @@ def _check_initial_state_dimensions(drift, force, disp, diff):
     if force.ndim != 1:
         raise ValueError("force not of shape (n,)")
     if force.shape[0] != drift.shape[1]:
-        raise ValueError("force not of shape (n,)"
-                        "or driftmatrix not of shape (n, n)")
+        raise ValueError("force not of shape (n,)" "or driftmatrix not of shape (n, n)")
     if disp.ndim != 2:
         raise ValueError("dispersion not of shape (n, s)")
     if diff.ndim != 2 or diff.shape[0] != diff.shape[1]:
         raise ValueError("diffusion not of shape (s, s)")
     if disp.shape[1] != diff.shape[0]:
-        raise ValueError("dispersion not of shape (n, s)"
-                        "or diffusion not of shape (s, s)")
+        raise ValueError(
+            "dispersion not of shape (n, s)" "or diffusion not of shape (s, s)"
+        )

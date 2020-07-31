@@ -1,9 +1,5 @@
 """
 
-Todo
-----
-Vectorization
-
 See BFaS; p. 84f.
 """
 
@@ -83,10 +79,10 @@ class UnscentedTransform:
         sqrtcovar = np.linalg.cholesky(covar)
         sigpts[0] = mean.copy()
         for idx in range(self.ndim):
-            sigpts[idx + 1] = mean + np.sqrt(
-                self.ndim + self.scale) * sqrtcovar[:, idx]
-            sigpts[self.ndim + 1 + idx] = mean - np.sqrt(
-                self.ndim + self.scale) * sqrtcovar[:, idx]
+            sigpts[idx + 1] = mean + np.sqrt(self.ndim + self.scale) * sqrtcovar[:, idx]
+            sigpts[self.ndim + 1 + idx] = (
+                mean - np.sqrt(self.ndim + self.scale) * sqrtcovar[:, idx]
+            )
         return sigpts
 
     def propagate(self, time, sigmapts, modelfct):
@@ -122,8 +118,9 @@ class UnscentedTransform:
         """
         estmean = _estimate_mean(self.mweights, proppts)
         estcovar = _estimate_covar(self.cweights, proppts, estmean, covmat)
-        estcrosscovar = _estimate_crosscovar(self.cweights, proppts, estmean,
-                                             sigpts, mpred)
+        estcrosscovar = _estimate_crosscovar(
+            self.cweights, proppts, estmean, sigpts, mpred
+        )
         return estmean, estcovar, estcrosscovar
 
 

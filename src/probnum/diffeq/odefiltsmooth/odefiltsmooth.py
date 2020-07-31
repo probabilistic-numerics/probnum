@@ -20,12 +20,21 @@ References
 """
 
 from probnum.diffeq import steprule
-from probnum.diffeq.odefiltsmooth import prior, ivptofilter
-from probnum.diffeq.odefiltsmooth import GaussianIVPFilter, GaussianIVPSmoother
+from probnum.diffeq.odefiltsmooth import prior, ivp2filter
+from probnum.diffeq.odefiltsmooth import GaussianIVPFilter
 
 
-def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
-                  firststep=None, precond_step=1.0, nsteps=1, **kwargs):
+def probsolve_ivp(
+    ivp,
+    method="ekf0",
+    which_prior="ibm1",
+    tol=None,
+    step=None,
+    firststep=None,
+    precond_step=1.0,
+    nsteps=1,
+    **kwargs
+):
     """
     Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -224,6 +233,19 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
      [  0.97947631   0.08040988  -0.30900324   1.07108871]
      [  0.98614541   0.05465059  -0.20824105   0.94815346]]
     """
+    solver, firststep = _create_solver_object(
+        ivp, method, which_prior, tol, step, firststep, precond_step, nsteps, **kwargs
+    )
+    means, covs, times = solver.solve(firststep=firststep, nsteps=nsteps, **kwargs)
+    if method in ["eks0", "eks1", "uks"]:
+        means, covs = solver.odesmooth(means, covs, times, **kwargs)
+    return means, covs, times
+
+
+def _create_solver_object(
+    ivp, method, which_prior, tol, step, firststep, precond_step, nsteps, **kwargs
+):
+    """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)
     if step is not None:
@@ -238,11 +260,7 @@ def probsolve_ivp(ivp, method="ekf0", which_prior="ibm1", tol=None, step=None,
         stprl = _step2steprule_const(step)
         firststep = step
     gfilt = _string2filter(ivp, _prior, method, **kwargs)
-    if method in ["ekf0", "ekf1", "ukf"]:
-        solver = GaussianIVPFilter(ivp, gfilt, stprl)
-    else:
-        solver = GaussianIVPSmoother(ivp, gfilt, stprl)
-    return solver.solve(firststep=firststep, nsteps=nsteps, **kwargs)
+    return GaussianIVPFilter(ivp, gfilt, stprl), firststep
 
 
 def _check_step_tol(step, tol):
@@ -273,8 +291,7 @@ def _string2prior(ivp, which_prior, precond_step, **kwargs):
     elif which_prior in matern_family:
         return _string2matern(ivp, which_prior, precond_step, **kwargs)
     else:
-        raise RuntimeError("It should have been impossible to "
-                           "reach this point.")
+        raise RuntimeError("It should have been impossible to reach this point.")
 
 
 def _string2ibm(ivp, which_prior, precond_step, **kwargs):
@@ -293,8 +310,7 @@ def _string2ibm(ivp, which_prior, precond_step, **kwargs):
     elif which_prior == "ibm4":
         return prior.IBM(4, ivp.ndim, diffconst, precond_step)
     else:
-        raise RuntimeError("It should have been impossible to "
-                           "reach this point.")
+        raise RuntimeError("It should have been impossible to reach this point.")
 
 
 def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
@@ -317,8 +333,7 @@ def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
     elif _which_prior == "ioup4":
         return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst, precond_step)
     else:
-        raise RuntimeError("It should have been impossible to "
-                           "reach this point.")
+        raise RuntimeError("It should have been impossible to reach this point.")
 
 
 def _string2matern(ivp, which_prior, precond_step, **kwargs):
@@ -341,8 +356,7 @@ def _string2matern(ivp, which_prior, precond_step, **kwargs):
     elif which_prior == "matern92":
         return prior.Matern(4, ivp.ndim, lengthscale, diffconst, precond_step)
     else:
-        raise RuntimeError("It should have been impossible to "
-                           "reach this point.")
+        raise RuntimeError("It should have been impossible to reach this point.")
 
 
 def _string2filter(_ivp, _prior, _method, **kwargs):
@@ -353,11 +367,11 @@ def _string2filter(_ivp, _prior, _method, **kwargs):
     else:
         evlvar = 0.0
     if _method == "ekf0" or _method == "eks0":
-        return ivptofilter.ivp_to_ekf0(_ivp, _prior, evlvar)
+        return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
     elif _method == "ekf1" or _method == "eks1":
-        return ivptofilter.ivp_to_ekf1(_ivp, _prior, evlvar)
+        return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
     elif _method == "ukf" or _method == "uks":
-        return ivptofilter.ivp_to_ukf(_ivp, _prior, evlvar)
+        return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     else:
         raise ValueError("Type of filter not supported.")
 

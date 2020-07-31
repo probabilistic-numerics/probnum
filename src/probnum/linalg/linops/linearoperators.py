@@ -84,11 +84,16 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         else:
             obj = super().__new__(cls)
 
-            if (type(obj)._matvec == scipy.sparse.linalg.LinearOperator._matvec
-                    and type(obj)._matmat == scipy.sparse.linalg.LinearOperator._matmat):
-                warnings.warn("LinearOperator subclass should implement"
-                              " at least one of _matvec and _matmat.",
-                              category=RuntimeWarning, stacklevel=2)
+            if (
+                type(obj)._matvec == scipy.sparse.linalg.LinearOperator._matvec
+                and type(obj)._matmat == scipy.sparse.linalg.LinearOperator._matmat
+            ):
+                warnings.warn(
+                    "LinearOperator subclass should implement"
+                    " at least one of _matvec and _matmat.",
+                    category=RuntimeWarning,
+                    stacklevel=2,
+                )
 
             return obj
 
@@ -137,7 +142,9 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             elif len(x.shape) == 2:
                 return self.matmat(x)
             else:
-                raise ValueError('Expected 1-d or 2-d array, matrix or random variable, got %r.' % x)
+                raise ValueError(
+                    "Expected 1-d or 2-d array, matrix or random variable, got %r." % x
+                )
 
     def matvec(self, x):
         """Matrix-vector multiplication.
@@ -161,7 +168,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         M, N = self.shape
 
         if x.shape != (N,) and x.shape != (N, 1):
-            raise ValueError('Dimension mismatch.')
+            raise ValueError("Dimension mismatch.")
 
         y = self._matvec(x)
 
@@ -174,10 +181,10 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             elif x.ndim == 2:
                 y = y.reshape(M, 1)
             else:
-                raise ValueError('Invalid shape returned by user-defined matvec().')
+                raise ValueError("Invalid shape returned by user-defined matvec().")
         # TODO: can be shortened once RandomVariable implements a reshape method
         elif y.shape[0] != M:
-            raise ValueError('Invalid shape returned by user-defined matvec().')
+            raise ValueError("Invalid shape returned by user-defined matvec().")
 
         return y
 
@@ -259,20 +266,55 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         raise NotImplementedError
 
     def trace(self):
-        """Trace of the linear operator."""
-        raise NotImplementedError
+        """
+        Trace of the linear operator.
+
+        Computes the trace of a square linear operator :math:`\\text{tr}(A) = \\sum_{i-1}^n A_ii`.
+
+        Returns
+        -------
+        trace : float
+            Trace of the linear operator.
+
+        Raises
+        ------
+        ValueError : If :meth:`trace` is called on a non-square matrix.
+        """
+        if self.shape[0] != self.shape[1]:
+            raise ValueError("The trace is only defined for square linear operators.")
+        else:
+            _identity = np.eye(self.shape[0])
+            trace = 0.0
+            for i in range(self.shape[0]):
+                trace += np.squeeze(
+                    _identity[np.newaxis, i, :]
+                    @ self.matvec(_identity[i, :, np.newaxis])
+                )
+            return trace
 
 
-class _CustomLinearOperator(scipy.sparse.linalg.interface._CustomLinearOperator, LinearOperator):
+class _CustomLinearOperator(
+    scipy.sparse.linalg.interface._CustomLinearOperator, LinearOperator
+):
     """Linear operator defined in terms of user-specified operations."""
 
-    def __init__(self, shape, matvec, rmatvec=None, matmat=None,
-                 rmatmat=None, dtype=None):
-        super().__init__(shape=shape, matvec=matvec, rmatvec=rmatvec, matmat=matmat, rmatmat=rmatmat, dtype=dtype)
+    def __init__(
+        self, shape, matvec, rmatvec=None, matmat=None, rmatmat=None, dtype=None
+    ):
+        super().__init__(
+            shape=shape,
+            matvec=matvec,
+            rmatvec=rmatvec,
+            matmat=matmat,
+            rmatmat=rmatmat,
+            dtype=dtype,
+        )
 
 
 # TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4, maybe implement our own instead?
-class _TransposedLinearOperator(scipy.sparse.linalg.interface._TransposedLinearOperator, LinearOperator):
+class _TransposedLinearOperator(
+    scipy.sparse.linalg.interface._TransposedLinearOperator, LinearOperator
+):
     """Transposition of a linear operator."""
 
     def __init__(self, A):
@@ -286,7 +328,9 @@ class _TransposedLinearOperator(scipy.sparse.linalg.interface._TransposedLinearO
         return self.A.inv().T
 
 
-class _SumLinearOperator(scipy.sparse.linalg.interface._SumLinearOperator, LinearOperator):
+class _SumLinearOperator(
+    scipy.sparse.linalg.interface._SumLinearOperator, LinearOperator
+):
     """Sum of two linear operators."""
 
     def __init__(self, A, B):
@@ -300,8 +344,13 @@ class _SumLinearOperator(scipy.sparse.linalg.interface._SumLinearOperator, Linea
     def inv(self):
         return self.A.inv() + self.B.inv()
 
+    def trace(self):
+        return self.A.trace() + self.B.trace()
 
-class _ProductLinearOperator(scipy.sparse.linalg.interface._ProductLinearOperator, LinearOperator):
+
+class _ProductLinearOperator(
+    scipy.sparse.linalg.interface._ProductLinearOperator, LinearOperator
+):
     """(Operator) Product of two linear operators."""
 
     def __init__(self, A, B):
@@ -313,7 +362,9 @@ class _ProductLinearOperator(scipy.sparse.linalg.interface._ProductLinearOperato
         return self.A.todense() @ self.B.todense()
 
 
-class _ScaledLinearOperator(scipy.sparse.linalg.interface._ScaledLinearOperator, LinearOperator):
+class _ScaledLinearOperator(
+    scipy.sparse.linalg.interface._ScaledLinearOperator, LinearOperator
+):
     """Linear operator scaled with a scalar."""
 
     def __init__(self, A, alpha):
@@ -327,8 +378,14 @@ class _ScaledLinearOperator(scipy.sparse.linalg.interface._ScaledLinearOperator,
         A, alpha = self.args
         return _ScaledLinearOperator(A.inv(), 1 / alpha)
 
+    def trace(self):
+        A, alpha = self.args
+        return alpha * A.trace()
 
-class _PowerLinearOperator(scipy.sparse.linalg.interface._PowerLinearOperator, LinearOperator):
+
+class _PowerLinearOperator(
+    scipy.sparse.linalg.interface._PowerLinearOperator, LinearOperator
+):
     """Linear operator raised to a non-negative integer power."""
 
     def __init__(self, A, p):
@@ -381,7 +438,7 @@ class ScalarMult(LinearOperator):
 
     # Properties
     def rank(self):
-        return self.shape[0]
+        return np.minimum(self.shape[0], self.shape[1])
 
     def eigvals(self):
         return np.ones(self.shape[0]) * self.scalar
@@ -402,6 +459,11 @@ class ScalarMult(LinearOperator):
 class Identity(ScalarMult):
     """
     The identity operator.
+
+    Parameters
+    ----------
+    shape : int or tuple
+        Shape of the identity operator.
     """
 
     def __init__(self, shape):
@@ -413,7 +475,32 @@ class Identity(ScalarMult):
         else:
             _shape = shape
         # Initiator of super class
-        super().__init__(shape=_shape, scalar=1.)
+        super().__init__(shape=_shape, scalar=1.0)
+
+    def todense(self):
+        return np.eye(self.shape[0])
+
+    def inv(self):
+        return self
+
+    # Properties
+    def rank(self):
+        return self.shape[0]
+
+    def eigvals(self):
+        return np.ones(self.shape[0])
+
+    def cond(self, p=None):
+        return 1
+
+    def det(self):
+        return 1.0
+
+    def logabsdet(self):
+        return 0.0
+
+    def trace(self):
+        return self.shape[0]
 
 
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
@@ -469,7 +556,10 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         return logdet
 
     def trace(self):
-        return np.trace(self.A)
+        if self.shape[0] != self.shape[1]:
+            raise ValueError("The trace is only defined for square linear operators.")
+        else:
+            return np.trace(self.A)
 
 
 def aslinop(A):

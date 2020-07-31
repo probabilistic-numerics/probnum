@@ -20,41 +20,45 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         np.random.seed(42)
 
         # Random variable instantiation
-        self.scalars = [0, int(1), .1, np.nan, np.inf]
-        self.arrays = [np.empty(2), np.zeros(4), np.array([]),
-                       np.array([1, 2])]
+        self.scalars = [0, int(1), 0.1, np.nan, np.inf]
+        self.arrays = [np.empty(2), np.zeros(4), np.array([]), np.array([1, 2])]
 
         # Random variable arithmetic
-        self.arrays2d = [np.empty(2), np.zeros(2), np.array([np.inf, 1]),
-                         np.array([1, -2.5])]
-        self.matrices2d = [np.array([[1, 2], [3, 2]]),
-                           np.array([[0, 0], [1.0, -4.3]])]
-        self.linops2d = [
-            linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
+        self.arrays2d = [
+            np.empty(2),
+            np.zeros(2),
+            np.array([np.inf, 1]),
+            np.array([1, -2.5]),
+        ]
+        self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
+        self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
             prob.RandomVariable(
-                distribution=prob.Normal(mean=np.array([1, 2]),
-                                         cov=np.array(
-                                             [[2, 0], [0, 5]])))]
+                distribution=prob.Normal(
+                    mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]])
+                )
+            )
+        ]
         self.randvars2x2 = [
-            prob.RandomVariable(shape=(2, 2),
-                                distribution=prob.Normal(
-                                    mean=np.array([[-2, .3], [0, 1]]),
-                                    cov=linops.SymmetricKronecker(
-                                        A=np.eye(2),
-                                        B=np.ones((2, 2)))))
+            prob.RandomVariable(
+                shape=(2, 2),
+                distribution=prob.Normal(
+                    mean=np.array([[-2, 0.3], [0, 1]]),
+                    cov=linops.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
+                ),
+            )
         ]
 
         self.scipyrvs = [
             scipy.stats.bernoulli(0.75),
             scipy.stats.norm(4, 2.4),
             scipy.stats.multivariate_normal(np.random.randn(10), np.eye(10)),
-            scipy.stats.gamma(.74),
-            scipy.stats.dirichlet(alpha=np.array([.1, .1 , .2, .3]))
+            scipy.stats.gamma(0.74),
+            scipy.stats.dirichlet(alpha=np.array([0.1, 0.1, 0.2, 0.3])),
         ]
 
 
-class RandomVariableInstantiationTestCase(RandomVariableTestCase):
+class InstantiationTestCase(RandomVariableTestCase):
     """Test random variable instantiation."""
 
     def test_rv_dtype(self):
@@ -89,8 +93,7 @@ class RandomVariableInstantiationTestCase(RandomVariableTestCase):
                 self.assertIsInstance(rv, prob.RandomVariable)
 
 
-
-class RandomVariableArithmeticTestCase(RandomVariableTestCase):
+class ArithmeticTestCase(RandomVariableTestCase):
     """Test random variable arithmetic and broadcasting."""
 
     def test_rv_addition(self):
@@ -106,8 +109,7 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
 
     def test_rv_scalarmult(self):
         """Multiplication of random variables with scalar constants."""
-        for (alpha, rv) in list(
-                itertools.product(self.scalars, self.randvars2d)):
+        for (alpha, rv) in list(itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
                 z = alpha * rv
                 self.assertEqual(z.shape, rv.shape)
@@ -115,8 +117,7 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
 
     def test_rv_broadcasting(self):
         """Broadcasting for arrays and random variables."""
-        for alpha, rv in list(
-                itertools.product(self.scalars, self.randvars2d)):
+        for alpha, rv in list(itertools.product(self.scalars, self.randvars2d)):
             with self.subTest():
                 z = alpha + rv
                 z = rv - alpha
@@ -125,8 +126,8 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
     def test_rv_dotproduct(self):
         """Dot product of random variables with constant vectors."""
         for x, rv in list(
-                itertools.product([np.array([1, 2]), np.array([0, -1.4])],
-                                  self.randvars2d)):
+            itertools.product([np.array([1, 2]), np.array([0, -1.4])], self.randvars2d)
+        ):
             with self.subTest():
                 z1 = rv @ x
                 z2 = x @ rv
@@ -159,12 +160,22 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
                 X = np.kron(np.eye(rv.shape[0]), x)
                 truemean = rv.mean() @ x
                 truecov = X.T @ rv.cov().todense() @ X
-                self.assertIsInstance(y, prob.RandomVariable, "The variable y does not have the correct type.")
-                self.assertEqual(y.shape, (2, 1), "Shape of resulting random variable incorrect.")
-                self.assertAllClose(y.mean(), truemean,
-                                    msg="Means of random variables do not match.")
-                self.assertAllClose(y.cov().todense(), truecov,
-                                    msg="Covariances of random variables do not match.")
+                self.assertIsInstance(
+                    y,
+                    prob.RandomVariable,
+                    "The variable y does not have the correct type.",
+                )
+                self.assertEqual(
+                    y.shape, (2, 1), "Shape of resulting random variable incorrect."
+                )
+                self.assertAllClose(
+                    y.mean(), truemean, msg="Means of random variables do not match."
+                )
+                self.assertAllClose(
+                    y.cov().todense(),
+                    truecov,
+                    msg="Covariances of random variables do not match.",
+                )
 
     # Random seed
     def test_different_rv_seeds(self):
@@ -174,17 +185,35 @@ class RandomVariableArithmeticTestCase(RandomVariableTestCase):
         pass
 
 
-class TestEmptyInit(unittest.TestCase):
+class ShapeTestCase(RandomVariableTestCase):
     """
-    Tests that a RandomVariable object can be set up with an empty init.
+    Tests methods related to the shape of a random variable, its distribution or realizations.
     """
-    def test_empty_init(self):
-        """No input."""
-        with self.assertRaises(ValueError):
-            prob.RandomVariable()
 
-    def test_dtype_init(self):
-        """Instantiate a random variable without a distribution."""
-        rv = prob.RandomVariable(dtype=int)
-        self.assertIsInstance(rv, prob.RandomVariable)
+    def test_reshape(self):
+        """
+        Reshape a random variable and test for correct output shape.
+        """
+        np.random.seed(42)
+        for rv in self.randvars2x2:
+            for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
+                with self.subTest():
+                    try:
+                        self.assertEqual(rv.reshape(newshape=shape).shape, shape)
+                        self.assertEqual(rv.sample(size=1).shape, shape)
+                    except NotImplementedError:
+                        pass
+        for rv in self.randvars2d:
+            for shape in [(2, 1), (2,), (1, 2)]:
+                with self.subTest():
+                    try:
+                        self.assertEqual(rv.reshape(newshape=shape).shape, shape)
+                        self.assertEqual(rv.sample(size=1).shape, shape)
+                    except NotImplementedError:
+                        pass
 
+    def test_sample_shape(self):
+        """
+        Sample from a random variable with different sizes and check sample shapes.
+        """
+        pass

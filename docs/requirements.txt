@@ -1,0 +1,9 @@
+# Packages required for building the documentation
+sphinx >= 1.7.5, <= 2.4.4
+sphinx_rtd_theme
+sphinx_automodapi
+m2r
+
+# Packages handling notebooks
+nbsphinx
+jupyter

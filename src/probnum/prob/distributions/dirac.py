@@ -45,14 +45,15 @@ class Dirac(Distribution):
             _dtype = np.dtype(type(support))
         else:
             _dtype = support.dtype
-        super().__init__(parameters={"support": support}, dtype=_dtype,
-                         random_state=random_state)
+        super().__init__(
+            parameters={"support": support}, dtype=_dtype, random_state=random_state
+        )
 
     def cdf(self, x):
         if np.any(x < self.parameters["support"]):
-            return 0.
+            return 0.0
         else:
-            return 1.
+            return 1.0
 
     def median(self):
         return self.parameters["support"]
@@ -64,27 +65,41 @@ class Dirac(Distribution):
         return self.parameters["support"]
 
     def var(self):
-        return 0.
+        return 0.0
 
     def cov(self):
         if np.isscalar(self.parameters["support"]):
             return self.var()
         else:
-            return np.zeros((len(self.parameters["support"]),
-                             len(self.parameters["support"])))
+            return np.zeros(
+                (len(self.parameters["support"]), len(self.parameters["support"]))
+            )
 
     def sample(self, size=(), seed=None):
-        if size == 1:
+        ndims = len(self.shape)
+        if size == 1 or size == ():
             return self.parameters["support"]
+        elif isinstance(size, int) and ndims == 0:
+            return np.tile(A=self.parameters["support"], reps=size)
+        elif isinstance(size, int):
+            return np.tile(
+                A=self.parameters["support"], reps=[size, *np.repeat(1, ndims)]
+            )
         else:
-            return np.full(fill_value=self.parameters["support"], shape=size)
+            return np.tile(
+                A=self.parameters["support"], reps=tuple([*size, *np.repeat(1, ndims)])
+            )
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         try:
-            self._parameters["support"].reshape(shape=shape)
+            # Reshape support
+            self._parameters["support"].reshape(newshape=newshape)
         except ValueError:
-            raise ValueError("Cannot reshape this Dirac distribution "
-                             "to the given shape: {}".format(str(shape)))
+            raise ValueError(
+                "Cannot reshape this Dirac distribution to the given shape: {}".format(
+                    str(newshape)
+                )
+            )
 
     # Binary arithmetic operations
     def __add__(self, other):
@@ -111,23 +126,24 @@ class Dirac(Distribution):
     def __matmul__(self, other):
         if isinstance(other, Dirac):
             support_ = self.parameters["support"] @ other.parameters["support"]
-            return Dirac(support=support_,
-                         random_state=self.random_state)
+            return Dirac(support=support_, random_state=self.random_state)
         else:
             return other.__rmatmul__(other=self)
 
     def __truediv__(self, other):
         if isinstance(other, Dirac):
-            support_ = operator.truediv(self.parameters["support"],
-                                        other.parameters["support"])
+            support_ = operator.truediv(
+                self.parameters["support"], other.parameters["support"]
+            )
             return Dirac(support=support_, random_state=self.random_state)
         else:
             return other.__rtruediv__(other=self)
 
     def __pow__(self, power, modulo=None):
         if isinstance(power, Dirac):
-            support_ = pow(self.parameters["support"],
-                           power.parameters["support"], modulo)
+            support_ = pow(
+                self.parameters["support"], power.parameters["support"], modulo
+            )
             return Dirac(support=support_, random_state=self.random_state)
         else:
             return power.__rpow__(power=self, modulo=modulo)
@@ -189,8 +205,9 @@ class Dirac(Distribution):
 
     def __itruediv__(self, other):
         if isinstance(other, Dirac):
-            support_ = operator.truediv(self.parameters["support"],
-                                        other.parameters["support"])
+            support_ = operator.truediv(
+                self.parameters["support"], other.parameters["support"]
+            )
             self.parameters["support"] = support_
             return self
         else:
@@ -198,8 +215,9 @@ class Dirac(Distribution):
 
     def __ipow__(self, power, modulo=None):
         if isinstance(power, Dirac):
-            support_ = pow(self.parameters["support"],
-                           power.parameters["support"], modulo)
+            support_ = pow(
+                self.parameters["support"], power.parameters["support"], modulo
+            )
             self.parameters["support"] = support_
             return self
         else:

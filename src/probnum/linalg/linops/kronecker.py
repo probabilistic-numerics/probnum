@@ -48,7 +48,9 @@ class Vec(LinearOperator):
 
     def __init__(self, order="col", dim=None):
         if order not in ["col", "row"]:
-            raise ValueError("Not a valid stacking order. Choose one of 'col' or 'row'.")
+            raise ValueError(
+                "Not a valid stacking order. Choose one of 'col' or 'row'."
+            )
         self.mode = order
         super().__init__(dtype=float, shape=(dim, dim))
 
@@ -59,9 +61,9 @@ class Vec(LinearOperator):
     def _matmat(self, X):
         """Stacking of matrix rows or columns."""
         if self.mode == "row":
-            return X.ravel(order='C')
+            return X.ravel(order="C")
         else:
-            return X.ravel(order='F')
+            return X.ravel(order="F")
 
 
 class Svec(LinearOperator):
@@ -108,7 +110,9 @@ class Svec(LinearOperator):
 
     def __init__(self, dim, check_symmetric=False):
         if not isinstance(dim, int) or dim <= 0:
-            raise ValueError("Dimension of the input matrix S must be a positive integer.")
+            raise ValueError(
+                "Dimension of the input matrix S must be a positive integer."
+            )
         self._dim = dim
         self.check_symmetric = check_symmetric
         super().__init__(dtype=float, shape=(dim * dim, int(0.5 * dim * (dim + 1))))
@@ -118,7 +122,8 @@ class Svec(LinearOperator):
         X = np.reshape(x.copy(), (self._dim, self._dim))
         if self.check_symmetric and not (X.T == X).all():
             raise ValueError(
-                "The given vector does not correspond to a symmetric matrix.")
+                "The given vector does not correspond to a symmetric matrix."
+            )
 
         X[np.triu_indices(self._dim, k=1)] *= np.sqrt(2)
         ind = np.triu_indices(self._dim, k=0)
@@ -131,7 +136,9 @@ class Svec(LinearOperator):
         elif np.shape(X)[0] == self._dim * self._dim:
             return np.hstack([self._matvec(col.reshape(-1, 1)) for col in X.T])
         else:
-            raise ValueError("Dimension mismatch. Argument must be either a (n x n) matrix or (n^2 x k)")
+            raise ValueError(
+                "Dimension mismatch. Argument must be either a (n x n) matrix or (n^2 x k)"
+            )
 
 
 class Kronecker(LinearOperator):
@@ -176,8 +183,13 @@ class Kronecker(LinearOperator):
     def __init__(self, A, B, dtype=None):
         self.A = aslinop(A)
         self.B = aslinop(B)
-        super().__init__(dtype=dtype, shape=(self.A.shape[0] * self.B.shape[0],
-                                             self.A.shape[1] * self.B.shape[1]))
+        super().__init__(
+            dtype=dtype,
+            shape=(
+                self.A.shape[0] * self.B.shape[0],
+                self.A.shape[1] * self.B.shape[1],
+            ),
+        )
 
     def _matvec(self, X):
         """
@@ -206,6 +218,37 @@ class Kronecker(LinearOperator):
         (A (x) B)^-1 = A^-1 (x) B^-1
         """
         return Kronecker(A=self.A.inv(), B=self.B.inv(), dtype=self.dtype)
+
+    # Properties
+    def rank(self):
+        return self.A.rank() * self.B.rank()
+
+    def eigvals(self):
+        raise NotImplementedError
+
+    def cond(self, p=None):
+        return self.A.cond(p=p) * self.B.cond(p=p)
+
+    def det(self):
+        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
+            return self.A.det() ** self.A.shape[0] * self.B.det() ** self.B.shape[0]
+        else:
+            raise NotImplementedError
+
+    def logabsdet(self):
+        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
+            return (
+                self.A.shape[0] * self.A.logabsdet()
+                + self.B.shape[0] * self.B.logabsdet()
+            )
+        else:
+            raise NotImplementedError
+
+    def trace(self):
+        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
+            return self.A.trace() * self.B.trace()
+        else:
+            raise NotImplementedError
 
 
 class SymmetricKronecker(LinearOperator):
@@ -251,7 +294,9 @@ class SymmetricKronecker(LinearOperator):
             self.B = aslinop(B)
         self._n = self.A.shape[0]
         if self.A.shape != self.B.shape or self.A.shape[1] != self._n:
-            raise ValueError("Linear operators A and B must be square and have the same dimensions.")
+            raise ValueError(
+                "Linear operators A and B must be square and have the same dimensions."
+            )
 
         # Initiator of superclass
         super().__init__(dtype=dtype, shape=(self._n ** 2, self._n ** 2))
@@ -289,3 +334,12 @@ class SymmetricKronecker(LinearOperator):
         A_dense = self.A.todense()
         B_dense = self.B.todense()
         return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
+
+    def inv(self):
+        """
+        (A (x)_s A)^-1 = A^-1 (x)_s A^-1
+        """
+        if self._ABequal:
+            return SymmetricKronecker(A=self.A.inv(), dtype=self.dtype)
+        else:
+            return NotImplementedError

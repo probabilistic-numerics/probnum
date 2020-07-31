@@ -7,28 +7,7 @@ from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
-from probnum.filtsmooth import GaussianSmoother
-
-
-class GaussianIVPSmoother(odesolver.ODESolver):
-    """
-    ODE solver that behaves like a Gaussian smoother.
-
-    Builds on top of Gaussian IVP Filter.
-    """
-    def __init__(self, ivp, gaussfilt, steprl):
-        """ """
-        self.gauss_ode_filt = GaussianIVPFilter(ivp, gaussfilt, steprl)
-        self.smoother = GaussianSmoother(gaussfilt)
-
-    def solve(self, firststep, nsteps=1, **kwargs):
-        """
-        """
-        means, covars, times = self.gauss_ode_filt.solve(firststep, nsteps, **kwargs)
-        means, covars = self.gauss_ode_filt.redo_preconditioning(means, covars)
-        smoothed_means, smoothed_covars = self.smoother.smooth_filteroutput(means, covars, times, **kwargs)
-        smoothed_means, smoothed_covars = self.gauss_ode_filt.undo_preconditioning(smoothed_means, smoothed_covars)
-        return smoothed_means, smoothed_covars, times
+from probnum.filtsmooth import *
 
 
 class GaussianIVPFilter(odesolver.ODESolver):
@@ -57,8 +36,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         the initial values.
         """
         if not issubclass(type(gaussfilt.dynamicmodel), ODEPrior):
-            raise ValueError("Please initialise a Gaussian filter "
-                             "with an ODEPrior")
+            raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
         self.ivp = ivp
         self.gfilt = gaussfilt
         odesolver.ODESolver.__init__(self, steprl)
@@ -96,7 +74,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
             predicted = current
             new_time = tm
             zero_data = 0.0
-            current, covest, ccest, mnest = self.gfilt.update(new_time, predicted, zero_data, **kwargs)
+            current, covest, ccest, mnest = self.gfilt.update(
+                new_time, predicted, zero_data, **kwargs
+            )
             interms[-1] = current.mean().copy()
             intercs[-1] = current.cov().copy()
             errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
@@ -105,12 +85,32 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 means.extend(interms)
                 covars.extend(intercs)
                 ct = ct + 1
-                ssqest = (ssqest + (ssq - ssqest) / ct)
+                ssqest = ssqest + (ssq - ssqest) / ct
             else:
                 current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
             step = self._suggest_step(step, errorest)
         means, covars = self.undo_preconditioning(means, covars)
         return np.array(means), ssqest * np.array(covars), np.array(times)
+
+    def odesmooth(self, means, covs, times, **kwargs):
+        """
+        Smoothes out the ODE-Filter output.
+
+        Be careful about the preconditioning: the GaussFiltSmooth object
+        only knows the state space with changed coordinates!
+
+        Parameters
+        ----------
+        means
+        covs
+
+        Returns
+        -------
+
+        """
+        means, covs = self.redo_preconditioning(means, covs)
+        means, covs = self.gfilt.smooth(means, covs, times, **kwargs)
+        return self.undo_preconditioning(means, covs)
 
     def undo_preconditioning(self, means, covs):
         """ """
@@ -152,10 +152,11 @@ class GaussianIVPFilter(odesolver.ODESolver):
         h0_1d = np.eye(ordint + 1)[:, 0].reshape((1, ordint + 1))
         projmat = np.kron(np.eye(spatialdim), h0_1d)
         weights = np.ones(len(abserrors))
-        rel_error = (abserrors / np.abs(projmat @ currmn)) @ weights / np.linalg.norm(weights)
+        rel_error = (
+            (abserrors / np.abs(projmat @ currmn)) @ weights / np.linalg.norm(weights)
+        )
         abs_error = abserrors @ weights / np.linalg.norm(weights)
         return np.maximum(rel_error, abs_error)
-
 
     def _suggest_step(self, step, errorest):
         """

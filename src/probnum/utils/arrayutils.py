@@ -4,8 +4,13 @@ import numpy as np
 import scipy.sparse
 import probnum.prob
 
-__all__ = ["atleast_1d", "atleast_2d", "as_colvec",
-           "assert_is_1d_ndarray", "assert_is_2d_ndarray"]
+__all__ = [
+    "atleast_1d",
+    "atleast_2d",
+    "as_colvec",
+    "assert_is_1d_ndarray",
+    "assert_is_2d_ndarray",
+]
 
 
 def atleast_1d(*rvs):
@@ -89,27 +94,29 @@ def atleast_2d(*rvs):
         return res
 
 
-def as_colvec(arr):
+def as_colvec(vec):
     """
-    Transform the given array to a row vector.
+    Transform the given vector or random variable to column format.
 
-    Given a vector of dimension (n,) return an array with dimensions
+    Given a vector (or random variable) of dimension (n,) return an array with dimensions
     (n, 1) instead. Higher-dimensional arrays are not changed.
 
     Parameters
     ----------
-    arr : np.ndarray
-        Vector or array to be viewed as a column vector.
+    vec : np.ndarray or RandomVariable
+        Vector, array or random variable to be viewed as a column vector.
 
     Returns
     -------
-    arr2d : np.ndarray
+    vec2d : np.ndarray or RandomVariable
     """
-    if arr.ndim == 1:
-        return arr[:, None]
+    if isinstance(vec, probnum.prob.RandomVariable):
+        if vec.shape != (vec.shape[0], 1):
+            vec.reshape(newshape=(vec.shape[0], 1))
     else:
-        return arr
-
+        if vec.ndim == 1:
+            return vec[:, None]
+    return vec
 
 
 def assert_is_1d_ndarray(arr):
@@ -134,4 +141,3 @@ def assert_is_2d_ndarray(arr):
         raise ValueError("Please enter arr of shape (n, d)")
     elif arr.ndim != 2:
         raise ValueError("Please enter arr of shape (n, d)")
-

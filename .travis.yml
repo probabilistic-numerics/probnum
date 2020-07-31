@@ -6,31 +6,10 @@ language: python
 python:
   - "3.6"
 install:
-  - pip install 'pytest>=4.6' pytest-cov # testing 
-  - pip install 'sphinx<=2.4.4' --force-reinstall # python documentation tool
-  - pip install sphinx_bootstrap_theme # documentation theme
-  - pip install sphinx_automodapi # automated function documentation
-  - pip install nbsphinx # jupyter notebook documentation support
-  - pip install jupyter # jupyter notebooks
   - sudo apt-get install pandoc # pandoc for jupyter notebooks
-  - sudo apt install python-pydot python-pydot-ng graphviz # graphviz for class inheritance diagrams in docs
-  - pip install m2r # markdown to restructuredText conversion for sphinx
-  - pip install -r requirements.txt
-  - pip install -e . # development installation of package, alternatively: python setup.py develop
-  # ^  DEPRECATION WARNING:
-  # The automatic creation of a `requirements.txt` file is deprecated.
-  # See `Dependency Management` in the docs for other options.
+  - sudo apt install graphviz # graphviz for class inheritance diagrams in docs
+  - pip install tox-travis
 script:
-  - cd docs/
-  - make clean # remove modules from automodapi
-  - make html # build documentation
-  - cd ..
-  - pytest --cov=./ # run tests and coverage
+  - tox
 after_success:
   - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecov
-deploy: # deploy documentation to github pages
-- provider: pages
-  skip_cleanup: true
-  local_dir: docs/_build/html
-  github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
-  keep_history: true

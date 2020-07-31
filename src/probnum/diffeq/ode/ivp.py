@@ -49,6 +49,7 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
         IVP object describing the logistic IVP with the prescribed
         configuration.
     """
+
     def rhs(t, x):
         return log_rhs(t, x, params)
 
@@ -73,19 +74,20 @@ def log_rhs(t, x, params):
 def log_jac(t, x, params):
     """Jacobian for logistic model."""
     l0, l1 = params
-    return np.array([l0 - l0/l1 * 2 * x])
+    return np.array([l0 - l0 / l1 * 2 * x])
+
 
 def log_hess(t, x, params):
     """Hessian for logistic model."""
     l0, l1 = params
-    return np.array([[-2 * l0/l1]])
+    return np.array([[-2 * l0 / l1]])
 
 
 def log_sol(t, params, x0):
     """Solution for logistic model."""
     l0, l1 = params
-    nomin = l1 * x0 * np.exp(l0*t)
-    denom = l1 + x0 * (np.exp(l0*t) - 1)
+    nomin = l1 * x0 * np.exp(l0 * t)
+    denom = l1 + x0 * (np.exp(l0 * t) - 1)
     return nomin / denom
 
 
@@ -136,14 +138,14 @@ def fhn_rhs(t, x, params):
     """RHS for FitzHugh-Nagumo model."""
     x1, x2 = x
     a, b, c, d = params
-    return np.array([x1 - x1 ** 3 / 3 - x2 + a,
-                     (x1 - b - c * x2) / d])
+    return np.array([x1 - x1 ** 3 / 3 - x2 + a, (x1 + b - c * x2) / d])
+
 
 def fhn_jac(t, x, params):
     """Jacobian for FitzHugh-Nagumo model."""
     x1, x2 = x
     a, b, c, d = params
-    return np.array([[1 - x1**2, -1], [1.0 / d, - c / d]])
+    return np.array([[1 - x1 ** 2, -1], [1.0 / d, -c / d]])
 
 
 def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
@@ -193,8 +195,7 @@ def lv_rhs(t, x, params):
     """RHS for Lotka-Volterra"""
     a, b, c, d = params
     x1, x2 = x
-    return np.array([a * x1 - b * x1 * x2,
-                     -c * x2 + d * x1 * x2])
+    return np.array([a * x1 - b * x1 * x2, -c * x2 + d * x1 * x2])
 
 
 def lv_jac(t, x, params):

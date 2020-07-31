@@ -9,9 +9,19 @@ from probnum.linalg.linops.linearoperators import *
 from probnum.linalg.linops.kronecker import *
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["LinearOperator", "Identity", "ScalarMult", "MatrixMult", "Kronecker", "SymmetricKronecker", "Vec", "Svec",
-           "Symmetrize", "aslinop"]
+__all__ = [
+    "LinearOperator",
+    "Identity",
+    "ScalarMult",
+    "MatrixMult",
+    "Kronecker",
+    "SymmetricKronecker",
+    "Vec",
+    "Svec",
+    "Symmetrize",
+    "aslinop",
+]
 
-# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+# Set correct module paths. Corrects links and module paths in documentation.
 LinearOperator.__module__ = "probnum.linalg.linops"
 ScalarMult.__module__ = "probnum.linalg.linops"

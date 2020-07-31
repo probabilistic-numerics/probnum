@@ -59,7 +59,7 @@ class Normal(Distribution):
     {'mean': 0.5, 'cov': 1.0}
     """
 
-    def __new__(cls, mean=0., cov=1., random_state=None):
+    def __new__(cls, mean=0.0, cov=1.0, random_state=None):
         """
         Factory method for normal subclasses.
 
@@ -80,21 +80,28 @@ class Normal(Distribution):
             elif _both_are_matrixvariate(mean, cov):
                 return _MatrixvariateNormal(mean, cov, random_state)
             elif _both_are_symmkronidfactors(mean, cov):
-                return _SymmetricKroneckerIdenticalFactorsNormal(mean, cov, random_state)
+                return _SymmetricKroneckerIdenticalFactorsNormal(
+                    mean, cov, random_state
+                )
             elif _both_are_operatorvariate(mean, cov):
                 return _OperatorvariateNormal(mean, cov, random_state)
             else:
-                errmsg = ("Cannot instantiate normal distribution with mean of "
-                          + "type {} and ".format(mean.__class__.__name__)
-                          + "kernels of "
-                          + "type {}.".format(cov.__class__.__name__))
+                errmsg = (
+                    "Cannot instantiate normal distribution with mean of "
+                    + "type {} and ".format(mean.__class__.__name__)
+                    + "kernels of "
+                    + "type {}.".format(cov.__class__.__name__)
+                )
                 raise ValueError(errmsg)
         else:
             return super().__new__(cls)
 
-    def __init__(self, mean=0., cov=1., random_state=None):
-        # TODO: Only keep Cholesky factors as kernels to avoid losing symmetry
-        super().__init__(parameters={"mean": mean, "cov": cov}, dtype=float, random_state=random_state)
+    def __init__(self, mean=0.0, cov=1.0, random_state=None):
+        super().__init__(
+            parameters={"mean": mean, "cov": cov},
+            dtype=float,
+            random_state=random_state,
+        )
 
     def mean(self):
         return self.parameters["mean"]
@@ -112,16 +119,22 @@ class Normal(Distribution):
         Addition of Gaussian random variables.
         """
         if isinstance(other, Dirac):
-            return Normal(mean=self.mean() + other.mean(),
-                          cov=self.cov(),
-                          random_state=self.random_state)
+            return Normal(
+                mean=self.mean() + other.mean(),
+                cov=self.cov(),
+                random_state=self.random_state,
+            )
         elif isinstance(other, type(self)):
             if self.random_state is not None and other.random_state is not None:
-                warnings.warn("When adding random variables with set random states only the first is preserved.")
+                warnings.warn(
+                    "When adding random variables with set random states only the first is preserved."
+                )
             try:
-                return Normal(mean=self.mean() + other.mean(),
-                              cov=self.cov() + other.cov(),
-                              random_state=self.random_state)
+                return Normal(
+                    mean=self.mean() + other.mean(),
+                    cov=self.cov() + other.cov(),
+                    random_state=self.random_state,
+                )
             except ValueError:
                 return NotImplemented
         else:
@@ -135,11 +148,15 @@ class Normal(Distribution):
             return self + (-other)
         elif isinstance(other, type(self)):
             if self.random_state is not None and other.random_state is not None:
-                warnings.warn("When adding random variables with set random states only the first is preserved.")
+                warnings.warn(
+                    "When adding random variables with set random states only the first is preserved."
+                )
             try:
-                return Normal(mean=self.mean() - other.mean(),
-                              cov=self.cov() + other.cov(),
-                              random_state=self.random_state)
+                return Normal(
+                    mean=self.mean() - other.mean(),
+                    cov=self.cov() + other.cov(),
+                    random_state=self.random_state,
+                )
             except ValueError:
                 return NotImplemented
         else:
@@ -152,12 +169,13 @@ class Normal(Distribution):
         if isinstance(other, Dirac):
             delta = other.mean()
             if delta == 0:
-                return Dirac(support=0 * self.mean(),
-                             random_state=self.random_state)
+                return Dirac(support=0 * self.mean(), random_state=self.random_state)
             else:
-                return Normal(mean=self.mean() * delta,
-                              cov=self.cov() * delta ** 2,
-                              random_state=self.random_state)
+                return Normal(
+                    mean=self.mean() * delta,
+                    cov=self.cov() * delta ** 2,
+                    random_state=self.random_state,
+                )
         else:
             return NotImplemented
 
@@ -213,8 +231,7 @@ class Normal(Distribution):
             delta = other.mean()
             newmean = delta @ self.mean()
             newcov = delta @ (self.cov() @ delta.transpose())
-            return Normal(mean=newmean, cov=newcov,
-                          random_state=self.random_state)
+            return Normal(mean=newmean, cov=newcov, random_state=self.random_state)
         return NotImplemented
 
     def __rtruediv__(self, other):
@@ -236,34 +253,40 @@ class Normal(Distribution):
         Negation of r.v.
         """
         try:
-            return Normal(mean=-self.mean(),
-                          cov=self.cov(),
-                          random_state=self.random_state)
+            return Normal(
+                mean=-self.mean(), cov=self.cov(), random_state=self.random_state
+            )
         except Exception:
             return NotImplemented
 
     def __pos__(self):
         try:
-            return Normal(mean=operator.pos(self.mean()),
-                          cov=self.cov(),
-                          random_state=self.random_state)
+            return Normal(
+                mean=operator.pos(self.mean()),
+                cov=self.cov(),
+                random_state=self.random_state,
+            )
         except Exception:
             return NotImplemented
 
     def __abs__(self):
         try:
             # todo: add absolute moments of normal (see: https://arxiv.org/pdf/1209.4340.pdf)
-            return Distribution(parameters={},
-                                sample=lambda size: operator.abs(self.sample(size=size)),
-                                random_state=self.random_state)
+            return Distribution(
+                parameters={},
+                sample=lambda size: operator.abs(self.sample(size=size)),
+                random_state=self.random_state,
+            )
         except Exception:
             return NotImplemented
 
     def __invert__(self):
         try:
-            return Distribution(parameters={},
-                                sample=lambda size: operator.abs(self.sample(size=size)),
-                                random_state=self.random_state)
+            return Distribution(
+                parameters={},
+                sample=lambda size: operator.abs(self.sample(size=size)),
+                random_state=self.random_state,
+            )
         except Exception:
             return NotImplemented
 
@@ -328,7 +351,7 @@ class _UnivariateNormal(Normal):
     The univariate normal distribution.
     """
 
-    def __init__(self, mean=0., cov=1., random_state=None):
+    def __init__(self, mean=0.0, cov=1.0, random_state=None):
         super().__init__(mean=float(mean), cov=float(cov), random_state=random_state)
 
     def var(self):
@@ -347,11 +370,18 @@ class _UnivariateNormal(Normal):
         return scipy.stats.norm.logcdf(x, loc=self.mean(), scale=self.std())
 
     def sample(self, size=()):
-        return scipy.stats.norm.rvs(loc=self.mean(), scale=self.std(),
-                                    size=size, random_state=self.random_state)
+        return scipy.stats.norm.rvs(
+            loc=self.mean(), scale=self.std(), size=size, random_state=self.random_state
+        )
 
-    def reshape(self, shape):
-        raise NotImplementedError
+    def reshape(self, newshape):
+        if np.prod(newshape) != 1:
+            raise ValueError(
+                f"Cannot reshape distribution with shape {self.shape} into shape {newshape}."
+            )
+        self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
+        self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
+        self._shape = newshape
 
 
 class _MultivariateNormal(Normal):
@@ -366,42 +396,43 @@ class _MultivariateNormal(Normal):
         """
         meandim = np.prod(mean.shape)
         if len(cov.shape) != 2:
-            raise ValueError("Covariance must be a 2D matrix "
-                             "or linear operator.")
+            raise ValueError("Covariance must be a 2D matrix " "or linear operator.")
         if meandim != cov.shape[0] or meandim != cov.shape[1]:
-            raise ValueError("Shape mismatch of mean and kernels. Total "
-                             "number of elements of the mean must match the "
-                             "first and second dimension of the kernels.")
+            raise ValueError(
+                "Shape mismatch of mean and kernels. Total "
+                "number of elements of the mean must match the "
+                "first and second dimension of the kernels."
+            )
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
     def var(self):
         return np.diag(self.cov())
 
     def pdf(self, x):
-        return scipy.stats.multivariate_normal.pdf(x, mean=self.mean(),
-                                                   cov=self.cov())
+        return scipy.stats.multivariate_normal.pdf(x, mean=self.mean(), cov=self.cov())
 
     def logpdf(self, x):
-        return scipy.stats.multivariate_normal.logpdf(x, mean=self.mean(),
-                                                      cov=self.cov())
+        return scipy.stats.multivariate_normal.logpdf(
+            x, mean=self.mean(), cov=self.cov()
+        )
 
     def cdf(self, x):
-        return scipy.stats.multivariate_normal.cdf(x, mean=self.mean(),
-                                                   cov=self.cov())
+        return scipy.stats.multivariate_normal.cdf(x, mean=self.mean(), cov=self.cov())
 
     def logcdf(self, x):
-        return scipy.stats.multivariate_normal.logcdf(x, mean=self.mean(),
-                                                      cov=self.cov())
+        return scipy.stats.multivariate_normal.logcdf(
+            x, mean=self.mean(), cov=self.cov()
+        )
 
     def sample(self, size=()):
-        return scipy.stats.multivariate_normal.rvs(mean=self.mean(),
-                                                   cov=self.cov(), size=size,
-                                                   random_state=self.random_state)
+        return scipy.stats.multivariate_normal.rvs(
+            mean=self.mean(), cov=self.cov(), size=size, random_state=self.random_state
+        )
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         raise NotImplementedError
 
-    # Arithmetic Operations ###############################
+    # Arithmetic Operations
 
     def __matmul__(self, other):
         """
@@ -413,11 +444,13 @@ class _MultivariateNormal(Normal):
             newmean = self.mean() @ delta
             newcov = delta.T @ (self.cov() @ delta)
             if np.isscalar(newmean) and np.isscalar(newcov):
-                return _UnivariateNormal(mean=newmean, cov=newcov,
-                                         random_state=self.random_state)
+                return _UnivariateNormal(
+                    mean=newmean, cov=newcov, random_state=self.random_state
+                )
             else:
-                return _MultivariateNormal(mean=newmean, cov=newcov,
-                                           random_state=self.random_state)
+                return _MultivariateNormal(
+                    mean=newmean, cov=newcov, random_state=self.random_state
+                )
         else:
             return NotImplemented
 
@@ -431,11 +464,13 @@ class _MultivariateNormal(Normal):
             newmean = delta @ self.mean()
             newcov = delta @ (self.cov() @ delta.T)
             if np.isscalar(newmean) and np.isscalar(newcov):
-                return _UnivariateNormal(mean=newmean, cov=newcov,
-                                         random_state=self.random_state)
+                return _UnivariateNormal(
+                    mean=newmean, cov=newcov, random_state=self.random_state
+                )
             else:
-                return _MultivariateNormal(mean=newmean, cov=newcov,
-                                           random_state=self.random_state)
+                return _MultivariateNormal(
+                    mean=newmean, cov=newcov, random_state=self.random_state
+                )
         else:
             return NotImplemented
 
@@ -454,21 +489,21 @@ class _MatrixvariateNormal(Normal):
         if len(cov.shape) != 2:
             raise ValueError("Covariance must be a 2D matrix.")
         if _mean_dim != cov.shape[0] or _mean_dim != cov.shape[1]:
-            raise ValueError("Shape mismatch of mean and kernels. Total "
-                             "number of elements of the mean must match the "
-                             "first and second dimension of the kernels.")
+            raise ValueError(
+                "Shape mismatch of mean and kernels. Total "
+                "number of elements of the mean must match the "
+                "first and second dimension of the kernels."
+            )
         super().__init__(mean=mean, cov=cov, random_state=random_state)
 
     def var(self):
         return np.diag(self.cov())
 
     def pdf(self, x):
-        # TODO: need to reshape x into number of matrices given
-        pdf_ravelled = scipy.stats.multivariate_normal.pdf(x.ravel(),
-                                                           mean=self.mean().ravel(),
-                                                           cov=self.cov())
-        # TODO: this reshape is incorrect, write test for multiple matrices
-        return pdf_ravelled.reshape(shape=self.mean().shape)
+        pdf_ravelled = scipy.stats.multivariate_normal.pdf(
+            x.ravel(), mean=self.mean().ravel(), cov=self.cov()
+        )
+        return pdf_ravelled.reshape(newshape=self.shape)
 
     def logpdf(self, x):
         raise NotImplementedError
@@ -480,15 +515,22 @@ class _MatrixvariateNormal(Normal):
         raise NotImplementedError
 
     def sample(self, size=()):
-        ravelled = scipy.stats.multivariate_normal.rvs(mean=self.mean().ravel(),
-                                                       cov=self.cov(),
-                                                       size=size,
-                                                       random_state=self.random_state)
-        # TODO: maybe distributions need an attribute sample_shape
-        return ravelled.reshape(shape=self.mean().shape)
+        ravelled = scipy.stats.multivariate_normal.rvs(
+            mean=self.mean().ravel(),
+            cov=self.cov(),
+            size=size,
+            random_state=self.random_state,
+        )
+        return ravelled.reshape(self.shape)
 
-    def reshape(self, shape):
-        raise NotImplementedError
+    def reshape(self, newshape):
+        if np.prod(newshape) != np.prod(self.shape):
+            raise ValueError(
+                f"Cannot reshape distribution with shape {self.shape} into shape {newshape}."
+            )
+        self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
+        self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
+        self._shape = newshape
 
     # Arithmetic Operations
     # TODO: implement special rules for matrix-variate RVs and Kronecker
@@ -499,7 +541,6 @@ class _MatrixvariateNormal(Normal):
         if isinstance(other, Dirac):
             delta = other.mean()
             raise NotImplementedError
-        # TODO: implement generic:
         return NotImplemented
 
 
@@ -525,7 +566,6 @@ class _OperatorvariateNormal(Normal):
     def var(self):
         return linops.Diagonal(Op=self.cov())
 
-    # TODO: implement more efficient versions of (pdf, logpdf, sample) functions for linear operators without todense()
     def _params_todense(self):
         """Returns the mean and kernels of a distribution as dense matrices."""
         if isinstance(self.mean(), linops.LinearOperator):
@@ -552,16 +592,15 @@ class _OperatorvariateNormal(Normal):
 
     def sample(self, size=()):
         mean, cov = self._params_todense()
-        samples_ravelled = scipy.stats.multivariate_normal.rvs(mean=mean.ravel(),
-                                                               cov=cov,
-                                                               size=size,
-                                                               random_state=self.random_state)
+        samples_ravelled = scipy.stats.multivariate_normal.rvs(
+            mean=mean.ravel(), cov=cov, size=size, random_state=self.random_state
+        )
         return samples_ravelled.reshape(samples_ravelled.shape[:-1] + self.mean().shape)
 
-    def reshape(self, shape):
+    def reshape(self, newshape):
         raise NotImplementedError
 
-    # Arithmetic Operations ############################################
+    # Arithmetic Operations
 
     # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
     #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
@@ -569,9 +608,11 @@ class _OperatorvariateNormal(Normal):
         if isinstance(other, Dirac):
             othermean = other.mean()
             delta = linops.Kronecker(linops.Identity(othermean.shape[0]), othermean)
-            return Normal(mean=self.mean() @ othermean,
-                          cov=delta.T @ (self.cov() @ delta),
-                          random_state=self.random_state)
+            return Normal(
+                mean=self.mean() @ othermean,
+                cov=delta.T @ (self.cov() @ delta),
+                random_state=self.random_state,
+            )
         return NotImplemented
 
 
@@ -581,9 +622,16 @@ def _check_shapes_if_kronecker(mean, cov):
     (m x m) and (n x n)
     """
     m, n = mean.shape
-    if m != cov.A.shape[0] or m != cov.A.shape[1] or n != cov.B.shape[0] or n != cov.B.shape[1]:
-        raise ValueError("Kronecker structured kernels must have "
-                         "factors with the same shape as the mean.")
+    if (
+        m != cov.A.shape[0]
+        or m != cov.A.shape[1]
+        or n != cov.B.shape[0]
+        or n != cov.B.shape[1]
+    ):
+        raise ValueError(
+            "Kronecker structured kernels must have "
+            "factors with the same shape as the mean."
+        )
 
 
 class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
@@ -599,22 +647,19 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
 
     def sample(self, size=()):
 
-        # Note by N.
-        # ----------
-        # TODO: I think the below code is more readable if split into smaller functions
-        #  (_draw_stdnormal(), _chol(), _scale_and_shift()) but I didn't
-        #  dare touch this function.
-
         # Draw standard normal samples
         if np.isscalar(size):
             size = [size]
         size_sample = [self._n * self._n] + list(size)
-        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample,
-                                                 random_state=self.random_state)
+        stdnormal_samples = scipy.stats.norm.rvs(
+            size=size_sample, random_state=self.random_state
+        )
 
         # Cholesky decomposition
-        eps = 10 ** - 12  # TODO: damping needed to avoid negative definite covariances
-        cholA = scipy.linalg.cholesky(self.cov().A.todense() + eps * np.eye(self._n), lower=True)
+        eps = 10 ** -12  # damping needed to avoid negative definite covariances
+        cholA = scipy.linalg.cholesky(
+            self.cov().A.todense() + eps * np.eye(self._n), lower=True
+        )
 
         # Scale and shift
         # TODO: can we avoid todense here and just return operator samples?
@@ -624,8 +669,9 @@ class _SymmetricKroneckerIdenticalFactorsNormal(_OperatorvariateNormal):
             mean = self.mean()
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
-        samples_scaled = (linops.Symmetrize(dim=self._n) @ (
-                linops.Kronecker(A=cholA, B=cholA) @ stdnormal_samples))
+        samples_scaled = linops.Symmetrize(dim=self._n) @ (
+            linops.Kronecker(A=cholA, B=cholA) @ stdnormal_samples
+        )
 
         return mean[None, :, :] + samples_scaled.T.reshape(-1, self._n, self._n)
 
@@ -637,8 +683,10 @@ def _check_shapes_if_symmetric_kronecker(mean, cov):
     """
     m, n = mean.shape
     if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
-        raise ValueError("Normal distributions with symmetric "
-                         "Kronecker structured kernels must "
-                         "have square mean and square "
-                         "kernels factors with matching "
-                         "dimensions.")
+        raise ValueError(
+            "Normal distributions with symmetric "
+            "Kronecker structured kernels must "
+            "have square mean and square "
+            "kernels factors with matching "
+            "dimensions."
+        )

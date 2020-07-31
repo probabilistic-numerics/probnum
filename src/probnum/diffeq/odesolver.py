@@ -1,5 +1,5 @@
 """
-Abstract ODESolver class. Interface for Runge-Kutta, ODEFilter. 
+Abstract ODESolver class. Interface for Runge-Kutta, ODEFilter.
 """
 
 from abc import ABC, abstractmethod
