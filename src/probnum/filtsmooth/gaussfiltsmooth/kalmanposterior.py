@@ -5,6 +5,8 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
+from warnings import warn
+
 import numpy as np
 
 from probnum.prob._randomvariablelist import _RandomVariableList
@@ -67,7 +69,6 @@ class KalmanPosterior(FiltSmoothPosterior):
         :obj:`RandomVariable`
             Estimate of the states at time ``t``.
         """
-
         if t < self.locations[0]:
             raise ValueError(
                 "Invalid location; Can not compute posterior for a location earlier "
@@ -76,32 +77,45 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         if t in self.locations:
             idx = (self.locations <= t).sum() - 1
-            out_rv = self.state_rvs[idx]
-            return out_rv
-        else:
-            prev_idx = (self.locations < t).sum() - 1
-            prev_time = self.locations[prev_idx]
-            prev_rv = self.state_rvs[prev_idx]
+            discrete_estimate = self.state_rvs[idx]
+            return discrete_estimate
 
-            predicted, _ = self.gauss_filter.predict(
-                start=prev_time, stop=t, randvar=prev_rv
-            )
-            out_rv = predicted
+        if self.locations[0] < t < self.locations[-1]:
+            pred_rv = self._predict_to_loc(t)
+            if smoothed:
+                smoothed_rv = self._smooth_prediction(pred_rv, t)
+                return smoothed_rv
+            else:
+                return pred_rv
 
-            if smoothed and t < self.locations[-1]:
-                next_time = self.locations[prev_idx + 1]
-                next_rv = self._state_rvs[prev_idx + 1]
-                next_pred, crosscov = self.gauss_filter.predict(
-                    start=t, stop=next_time, randvar=predicted
-                )
+        elif t > self.locations[-1]:
+            if smoothed:
+                warn("`smoothed=True` is ignored for extrapolation.")
+            return self._predict_to_loc(t)
 
-                smoothed = self.gauss_filter.smooth_step(
-                    predicted, next_pred, next_rv, crosscov
-                )
+    def _predict_to_loc(self, loc):
+        """Predict states at location `loc` from the closest, previous state"""
+        prev_idx = (self.locations < loc).sum() - 1
+        prev_loc = self.locations[prev_idx]
+        prev_rv = self.state_rvs[prev_idx]
 
-                out_rv = smoothed
+        pred_rv, _ = self.gauss_filter.predict(
+            start=prev_loc, stop=loc, randvar=prev_rv
+        )
+        return pred_rv
 
-            return out_rv
+    def _smooth_prediction(self, pred_rv, loc):
+        """Smooth the predicted state at location `loc` using the next closest"""
+        next_idx = (self.locations < loc).sum()
+        next_loc = self.locations[next_idx]
+        next_rv = self._state_rvs[next_idx]
+        next_pred, crosscov = self.gauss_filter.predict(
+            start=loc, stop=next_loc, randvar=pred_rv
+        )
+        smoothed_rv = self.gauss_filter.smooth_step(
+            pred_rv, next_pred, next_rv, crosscov
+        )
+        return smoothed_rv
 
     def __len__(self):
         return len(self.locations)
