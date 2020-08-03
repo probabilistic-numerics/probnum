@@ -301,10 +301,16 @@ class IBM(ODEPrior):
         step = stop - start
         indices = np.arange(0, self.ordint + 1)
         col_idcs, row_idcs = np.meshgrid(indices, indices)
-        exponent = 2*self.ordint + 1 - row_idcs - col_idcs
-        factorial_rows = factorial(self.ordint - row_idcs)  # factorial() handles matrices but is slow(ish)
+        exponent = 2 * self.ordint + 1 - row_idcs - col_idcs
+        factorial_rows = factorial(
+            self.ordint - row_idcs
+        )  # factorial() handles matrices but is slow(ish)
         factorial_cols = factorial(self.ordint - col_idcs)
-        qh_1d = self.diffconst ** 2 * step ** exponent / (exponent * factorial_rows * factorial_cols)
+        qh_1d = (
+            self.diffconst ** 2
+            * step ** exponent
+            / (exponent * factorial_rows * factorial_cols)
+        )
         qh = np.kron(np.eye(self.spatialdim), qh_1d)
         return self.precond @ qh @ self.precond.T
 
