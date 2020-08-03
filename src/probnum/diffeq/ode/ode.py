@@ -20,7 +20,7 @@ class ODE(ABC):
     This class describes systems of irst order ordinary differential
     equations (ODEs),
 
-    .. math:: \\dot x(t) = f(t, x(t)), \\quad t \\in [t_0, T].
+    .. math:: \\dot y(t) = f(t, y(t)), \\quad t \\in [t_0, T].
 
     It provides options for defining custom right-hand side (RHS)
     functions, their Jacobians and closed form solutions.
@@ -29,14 +29,14 @@ class ODE(ABC):
     ----------
     timespan : (float, float)
         Time span of IVP.
-    rhs : callable, signature: ``(t, x, **kwargs)``
+    rhs : callable, signature: ``(t, y, **kwargs)``
         RHS function
         :math:`f : [t_0, T] \times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
         of the ODE system. As such it takes a float and an
         np.ndarray of shape (d,) and returns a np.ndarray
         of shape (d,). As of now, no vectorization is supported
         (nor needed).
-    jac : callable, signature: ``(t, x, **kwargs)``, optional
+    jac : callable, signature: ``(t, y, **kwargs)``, optional
         Jacobian of RHS function
         :math:`J_f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
         of the ODE system. As such it takes a float and an
@@ -68,45 +68,45 @@ class ODE(ABC):
         self._hess = hess
         self._sol = sol
 
-    def __call__(self, t, x, **kwargs):
+    def __call__(self, t, y, **kwargs):
         """
-        Piggybacks on self.rhs(t, x).
+        Piggybacks on self.rhs(t, y).
         """
-        return self.rhs(t, x, **kwargs)
+        return self.rhs(t, y, **kwargs)
 
-    def rhs(self, t, x, **kwargs):
+    def rhs(self, t, y, **kwargs):
         """
         Evaluates model function f.
         """
-        return self._rhs(t, x, **kwargs)
+        return self._rhs(t, y, **kwargs)
 
-    def jacobian(self, t, x, **kwargs):
+    def jacobian(self, t, y, **kwargs):
         """
         Jacobian of model function f.
         """
         if self._jac is None:
             raise NotImplementedError
         else:
-            return self._jac(t, x, **kwargs)
+            return self._jac(t, y, **kwargs)
 
-    def hessian(self, t, x, **kwargs):
+    def hessian(self, t, y, **kwargs):
         """
         Hessian of model function f.
 
         For :math:`d=3`, the Hessian
-        :math:`H_f(t, x) \\in \\mathbb{R}^{3 \\times 3 \\times 3}`
+        :math:`H_f(t, y) \\in \\mathbb{R}^{3 \\times 3 \\times 3}`
         is expected be evaluated as
 
-        .. math:: H_f(t, x) = \\left[H_{f_1}(t, x), H_{f_2}(t, x), H_{f_3}(t, x) \\right]^\\top
+        .. math:: H_f(t, y) = \\left[H_{f_1}(t, y), H_{f_2}(t, y), H_{f_3}(t, y) \\right]^\\top
 
         since for any directions :math:`v_1, v_2` the outcome of
-        :math:`H_f(t_0, x_0) \\cdot v_1 \\cdot v_2` is expected to contain
+        :math:`H_f(t_0, y_0) \\cdot v_1 \\cdot v_2` is expected to contain
         the incline of :math:`f_i` in direction :math:`(v_1, v_2)`.
         """
         if self._hess is None:
             raise NotImplementedError
         else:
-            return self._hess(t, x, **kwargs)
+            return self._hess(t, y, **kwargs)
 
     def solution(self, t, **kwargs):
         """

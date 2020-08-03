@@ -5,6 +5,7 @@ Bayesian filtering and smoothing.
 from .statespace import *
 from .gaussfiltsmooth import *
 from .bayesfiltsmooth import *
+from .filtsmoothposterior import FiltSmoothPosterior
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -20,6 +21,8 @@ __all__ = [
     "DiscreteGaussianModel",
     "DiscreteGaussianLinearModel",
     "DiscreteGaussianLTIModel",
+    "FiltSmoothPosterior",
+    "KalmanPosterior",
     "generate_cd",
     "generate_dd",
 ]
@@ -32,3 +35,4 @@ DiscreteModel.__module__ = "probnum.filtsmooth"
 DiscreteGaussianModel.__module__ = "probnum.filtsmooth"
 DiscreteGaussianLinearModel.__module__ = "probnum.filtsmooth"
 GaussFiltSmooth.__module__ = "probnum.filtsmooth"
+KalmanPosterior.__module__ = "probnum.filtsmooth"

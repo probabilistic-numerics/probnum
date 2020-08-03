@@ -5,6 +5,7 @@ from .ode import *
 from .odefiltsmooth import *
 from .steprule import *
 from .odesolver import *
+from .odesolution import ODESolution
 
 
 # Public classes and functions. Order is reflected in documentation.
@@ -26,6 +27,7 @@ __all__ = [
     "StepRule",
     "ConstantSteps",
     "AdaptiveSteps",
+    "ODESolution",
 ]
 
 # Set correct module paths (for superclasses). Corrects links and module paths in documentation.

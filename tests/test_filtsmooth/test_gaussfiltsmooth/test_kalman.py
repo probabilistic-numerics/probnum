@@ -64,8 +64,12 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         RMSE of smoother smaller than rmse of filter smaller
         than of measurements?
         """
-        filtms, filtcs = self.method.filter(self.obs, self.tms)
-        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
+        filter_posterior = self.method.filter(self.obs, self.tms)
+        filtms = filter_posterior.state_rvs.mean()
+        filtcs = filter_posterior.state_rvs.cov()
+        smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
+        smooms = smooth_posterior.state_rvs.mean()
+        smoocs = smooth_posterior.state_rvs.cov()
 
         normaliser = np.sqrt(self.states[1:, :2].size)
         filtrmse = np.linalg.norm(filtms[1:, :2] - self.states[1:, :2]) / normaliser
@@ -157,8 +161,12 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         """
         RMSE of filter smaller than rmse of measurements?
         """
-        filtms, filtcs = self.method.filter(self.obs, self.tms)
-        smooms, smoocs = self.method.filtsmooth(self.obs, self.tms)
+        filter_posterior = self.method.filter(self.obs, self.tms)
+        filtms = filter_posterior.state_rvs.mean()
+        filtcs = filter_posterior.state_rvs.cov()
+        smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
+        smooms = smooth_posterior.state_rvs.mean()
+        smoocs = smooth_posterior.state_rvs.cov()
 
         normaliser = np.sqrt(self.states[1:].size)
         filtrmse = np.linalg.norm(filtms[1:] - self.states[1:, 0]) / normaliser
