@@ -11,6 +11,7 @@ provided by IOUP and change parameters
 import warnings
 import numpy as np
 from scipy.special import binom  # for Matern
+from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
 from probnum.prob import RandomVariable, Normal
@@ -246,11 +247,20 @@ class IBM(ODEPrior):
         Closed form solution to the Chapman-Kolmogorov equations
         for the integrated Brownian motion.
 
-        .. math::`X_t `
+        It is given by
+
+        .. math:: X_{t+h} \\, | \\, X_t \\sim \\mathcal{N}(A(h)X_t, Q(h))
+
+        with matrices :math:`A(h)` and `Q(h)` defined by
+
+        .. math:: [A(h)]_{ij} = \\mathbb{I}_{i\\leq j} \\frac{h^{j-i}}{(j-i)!}
 
 
-        This is more stable than the matrix-exponential implementation
-        in :meth:`super().chapmankolmogorov` which is relevant for
+        .. math:: [Q(h)]_{ij} = \\sigma^2 \\frac{h^{2q+1-i-j}}{(2q+1-i-j)!(q-j)!(q-i)!}
+
+
+        The implementation that is used here is more stable than the matrix-exponential
+        implementation in :meth:`super().chapmankolmogorov` which is relevant for
         combinations of large order :math:`q` and small steps :math:`h`.
         In these cases even the preconditioning is subject to numerical
         instability if the transition matrices :math:`A(h)`
@@ -269,55 +279,34 @@ class IBM(ODEPrior):
     def _trans_ibm(self, start, stop):
         """
         Computes closed form solution for the transition matrix A(h).
-
-        .. math:: `[A(h)]_{ij} = \\mathbb{I}_{i\leq j} \\frac{h^{j-i}}{((j-i)!}`
-
-
-        .. math:: `[Q(h)]_{ij} = \\sigma^2 \\frac{h^{2q+1-i-j}}{((2q+1-i-j)!(q-j)!(q-i)!}`
-
-
         """
         step = stop - start
 
+        # This seems like the faster solution compared to fully vectorising.
+        # I suspect it is because np.math.factorial is much faster than scipy.special.factorial
         ah_1d = np.diag(np.ones(self.ordint + 1), 0)
         for i in range(self.ordint):
             offdiagonal = (
                 step ** (i + 1) / np.math.factorial(i + 1) * np.ones(self.ordint - i)
             )
             ah_1d += np.diag(offdiagonal, i + 1)
+
         ah = np.kron(np.eye(self.spatialdim), ah_1d)
         return self.precond @ ah @ self.invprecond
-
-    def _trans_ibm_element(self, stp, rw, cl):
-        """Closed form for A(h)_ij"""
-        if rw <= cl:
-            return stp ** (cl - rw) / np.math.factorial(cl - rw)
-        else:
-            return 0.0
 
     def _transdiff_ibm(self, start, stop):
         """
         Computes closed form solution for the diffusion matrix Q(h).
         """
         step = stop - start
-        qh_1d = np.array(
-            [
-                [
-                    self._transdiff_ibm_element(step, row, col)
-                    for col in range(self.ordint + 1)
-                ]
-                for row in range(self.ordint + 1)
-            ]
-        )
+        indices = np.arange(0, self.ordint + 1)
+        col_idcs, row_idcs = np.meshgrid(indices, indices)
+        exponent = 2*self.ordint + 1 - row_idcs - col_idcs
+        factorial_rows = factorial(self.ordint - row_idcs)  # factorial() handles matrices but is slow(ish)
+        factorial_cols = factorial(self.ordint - col_idcs)
+        qh_1d = self.diffconst ** 2 * step ** exponent / (exponent * factorial_rows * factorial_cols)
         qh = np.kron(np.eye(self.spatialdim), qh_1d)
         return self.precond @ qh @ self.precond.T
-
-    def _transdiff_ibm_element(self, stp, rw, cl):
-        """Closed form for Q(h)_ij"""
-        idx = 2 * self.ordint + 1 - rw - cl
-        fact_rw = np.math.factorial(self.ordint - rw)
-        fact_cl = np.math.factorial(self.ordint - cl)
-        return self.diffconst ** 2 * (stp ** idx) / (idx * fact_rw * fact_cl)
 
 
 def _driftmat_ibm(ordint, spatialdim):
