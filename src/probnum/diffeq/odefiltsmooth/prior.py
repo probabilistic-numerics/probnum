@@ -246,6 +246,9 @@ class IBM(ODEPrior):
         Closed form solution to the Chapman-Kolmogorov equations
         for the integrated Brownian motion.
 
+        .. math::`X_t `
+
+
         This is more stable than the matrix-exponential implementation
         in :meth:`super().chapmankolmogorov` which is relevant for
         combinations of large order :math:`q` and small steps :math:`h`.
@@ -266,6 +269,13 @@ class IBM(ODEPrior):
     def _trans_ibm(self, start, stop):
         """
         Computes closed form solution for the transition matrix A(h).
+
+        .. math:: `[A(h)]_{ij} = \\mathbb{I}_{i\leq j} \\frac{h^{j-i}}{((j-i)!}`
+
+
+        .. math:: `[Q(h)]_{ij} = \\sigma^2 \\frac{h^{2q+1-i-j}}{((2q+1-i-j)!(q-j)!(q-i)!}`
+
+
         """
         step = stop - start
 
