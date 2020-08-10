@@ -104,6 +104,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     distribution=prob.Normal(mean=mean1, cov=cov1)
                 )
 
+                if not isinstance(normrv1.distribution, type(normrv0.distribution)):
+                    continue
+
                 if normrv0.shape == normrv1.shape:
                     self.assertIsInstance((normrv0 + normrv1).distribution, prob.Normal)
                 else:

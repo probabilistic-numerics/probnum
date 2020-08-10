@@ -556,7 +556,7 @@ class _MatrixvariateNormal(Normal):
             size=size,
             random_state=self.random_state,
         )
-        return ravelled.reshape(self.shape)
+        return ravelled.reshape(ravelled.shape[:-1] + self.shape)
 
     def reshape(self, newshape):
         if np.prod(newshape) != np.prod(self.shape):
