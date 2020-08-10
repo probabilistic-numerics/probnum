@@ -1,5 +1,3 @@
-"""
-"""
 import warnings
 import numpy as np
 
@@ -8,6 +6,7 @@ from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.filtsmooth import *
+from probnum.diffeq.odesolution import ODESolution
 
 
 class GaussianIVPFilter(odesolver.ODESolver):
@@ -41,90 +40,87 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.gfilt = gaussfilt
         odesolver.ODESolver.__init__(self, steprl)
 
-    def solve(self, firststep, nsteps=1, **kwargs):
+    def solve(self, firststep, **kwargs):
         """
-        Solves IVP and calibrates uncertainty according
+        Solve IVP and calibrates uncertainty according
         to Proposition 4 in Tronarp et al.
 
         Parameters
         ----------
         firststep : float
             First step for adaptive step size rule.
-        nsteps : int, optional
-            Number of inbetween steps for the filter. Default is 1.
         """
-
-        ####### This function surely can use some code cleanup. #######
-
-        current = self.gfilt.initialdistribution
+        current_rv = self.gfilt.initialrandomvariable
+        t = self.ivp.t0
+        times = [t]
+        rvs = [current_rv]
         step = firststep
-        ssqest, ct = 0.0, 0
-        times, means, covars = [self.ivp.t0], [current.mean()], [current.cov()]
-        while times[-1] < self.ivp.tmax:
-            intermediate_step = float(step / nsteps)
-            tm = times[-1]
-            interms, intercs, interts = [], [], []
-            for idx in range(nsteps):
-                newtm = tm + intermediate_step
-                current, __ = self.gfilt.predict(tm, newtm, current, **kwargs)
-                interms.append(current.mean().copy())
-                intercs.append(current.cov().copy())
-                interts.append(newtm)
-                tm = newtm
-            predicted = current
-            new_time = tm
-            zero_data = 0.0
-            current, covest, ccest, mnest = self.gfilt.update(
-                new_time, predicted, zero_data, **kwargs
-            )
-            interms[-1] = current.mean().copy()
-            intercs[-1] = current.cov().copy()
-            errorest, ssq = self._estimate_error(current.mean(), ccest, covest, mnest)
-            if self.steprule.is_accepted(step, errorest) is True:
-                times.extend(interts)
-                means.extend(interms)
-                covars.extend(intercs)
-                ct = ct + 1
-                ssqest = ssqest + (ssq - ssqest) / ct
-            else:
-                current = RandomVariable(distribution=Normal(means[-1], covars[-1]))
-            step = self._suggest_step(step, errorest)
-        means, covars = self.undo_preconditioning(means, covars)
-        return np.array(means), ssqest * np.array(covars), np.array(times)
+        ssqest, num_steps = 0.0, 0
 
-    def odesmooth(self, means, covs, times, **kwargs):
+        while t < self.ivp.tmax:
+
+            t_new = t + step
+            pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
+
+            zero_data = 0.0
+            filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
+                t_new, pred_rv, zero_data, **kwargs
+            )
+
+            errorest, ssq = self._estimate_error(
+                filt_rv.mean(), crosscov, meas_cov, meas_mean
+            )
+
+            if self.steprule.is_accepted(step, errorest):
+                times.append(t_new)
+                rvs.append(filt_rv)
+                num_steps += 1
+                ssqest = ssqest + (ssq - ssqest) / num_steps
+                current_rv = filt_rv
+                t = t_new
+
+            step = self._suggest_step(step, errorest)
+            step = min(step, self.ivp.tmax - t)
+
+        rvs = [
+            RandomVariable(distribution=Normal(rv.mean(), ssqest * rv.cov()))
+            for rv in rvs
+        ]
+
+        return ODESolution(times, rvs, self)
+
+    def odesmooth(self, filter_solution, **kwargs):
         """
-        Smoothes out the ODE-Filter output.
+        Smooth out the ODE-Filter output.
 
         Be careful about the preconditioning: the GaussFiltSmooth object
         only knows the state space with changed coordinates!
 
         Parameters
         ----------
-        means
-        covs
+        filter_solution: ODESolution
 
         Returns
         -------
-
+        smoothed_solution: ODESolution
         """
-        means, covs = self.redo_preconditioning(means, covs)
-        means, covs = self.gfilt.smooth(means, covs, times, **kwargs)
-        return self.undo_preconditioning(means, covs)
+        ivp_filter_posterior = filter_solution._kalman_posterior
+        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
 
-    def undo_preconditioning(self, means, covs):
-        """ """
+        smoothed_solution = ODESolution(
+            times=ivp_smoother_posterior.locations,
+            rvs=ivp_smoother_posterior.state_rvs,
+            solver=filter_solution._solver,
+        )
+
+        return smoothed_solution
+
+    def undo_preconditioning(self, rv):
         ipre = self.gfilt.dynamicmodel.invprecond
-        newmeans = np.array([ipre @ mean for mean in means])
-        newcovs = np.array([ipre @ cov @ ipre.T for cov in covs])
-        return newmeans, newcovs
-
-    def redo_preconditioning(self, means, covs):
-        """ """
-        pre = self.gfilt.dynamicmodel.precond
-        newmeans = np.array([pre @ mean for mean in means])
-        newcovs = np.array([pre @ cov @ pre.T for cov in covs])
-        return newmeans, newcovs
+        newmean = ipre @ rv.mean()
+        newcov = ipre @ rv.cov() @ ipre.T
+        newrv = RandomVariable(distribution=Normal(newmean, newcov))
+        return newrv
 
     def _estimate_error(self, currmn, ccest, covest, mnest):
         """
