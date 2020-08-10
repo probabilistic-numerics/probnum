@@ -144,6 +144,16 @@ class Normal(Distribution):
 
         return Normal(mean=mean, cov=cov, random_state=self.random_state,)
 
+    def reshape(self, newshape):
+        try:
+            return Normal(mean=self.mean().reshape(newshape), cov=self.cov())
+        except ValueError:
+            raise ValueError(
+                "Cannot reshape this normal distribution to the given shape: {}".format(
+                    str(newshape)
+                )
+            )
+
     # Binary arithmetic
 
     def __add__(self, other):
@@ -406,15 +416,6 @@ class _UnivariateNormal(Normal):
             loc=self.mean(), scale=self.std(), size=size, random_state=self.random_state
         )
 
-    def reshape(self, newshape):
-        if np.prod(newshape) != 1:
-            raise ValueError(
-                f"Cannot reshape distribution with shape {self.shape} into shape {newshape}."
-            )
-        self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
-        self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
-        self._shape = newshape
-
     def __getitem__(self, key):
         raise NotImplementedError
 
@@ -463,9 +464,6 @@ class _MultivariateNormal(Normal):
         return scipy.stats.multivariate_normal.rvs(
             mean=self.mean(), cov=self.cov(), size=size, random_state=self.random_state
         )
-
-    def reshape(self, newshape):
-        raise NotImplementedError
 
     # Arithmetic Operations
 
@@ -557,15 +555,6 @@ class _MatrixvariateNormal(Normal):
             random_state=self.random_state,
         )
         return ravelled.reshape(ravelled.shape[:-1] + self.shape)
-
-    def reshape(self, newshape):
-        if np.prod(newshape) != np.prod(self.shape):
-            raise ValueError(
-                f"Cannot reshape distribution with shape {self.shape} into shape {newshape}."
-            )
-        self.parameters["mean"] = np.reshape(self.parameters["mean"], newshape=newshape)
-        self.parameters["cov"] = np.reshape(self.parameters["cov"], newshape=newshape)
-        self._shape = newshape
 
     # Arithmetic Operations
     # TODO: implement special rules for matrix-variate RVs and Kronecker

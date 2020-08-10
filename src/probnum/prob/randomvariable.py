@@ -204,7 +204,7 @@ class RandomVariable:
         reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
         self._shape = newshape
-        self._distribution.reshape(newshape=newshape)
+        self._distribution = self._distribution.reshape(newshape=newshape)
         return self
 
     # Binary arithmetic operations

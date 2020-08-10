@@ -113,7 +113,10 @@ class Dirac(Distribution):
     def reshape(self, newshape):
         try:
             # Reshape support
-            self._parameters["support"].reshape(newshape=newshape)
+            return Dirac(
+                support=self.parameters["support"].reshape(newshape),
+                random_state=self.random_state,
+            )
         except ValueError:
             raise ValueError(
                 "Cannot reshape this Dirac distribution to the given shape: {}".format(
