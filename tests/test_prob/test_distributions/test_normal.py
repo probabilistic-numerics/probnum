@@ -47,6 +47,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])
                 ).todense(),
             ),
+            # Operatorvariate
             (np.array([1, -5]), linops.MatrixMult(A=np.array([[2, 1], [1, -0.1]]))),
             (linops.MatrixMult(A=np.array([[0, -5]])), linops.Identity(shape=(2, 2))),
             (
@@ -63,6 +64,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])
                 ),
             ),
+            # Symmetric Kronecker Identical Factors
             (
                 linops.Identity(shape=25),
                 linops.SymmetricKronecker(A=linops.Identity(25)),
@@ -412,6 +414,92 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertArrayEqual(
                     index_dist.cov(), dist.cov()[np.ix_(flat_mask, flat_mask)]
                 )
+
+
+class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
+    def setUp(self):
+        self.params = (np.random.uniform(size=10), _random_spd_matrix(10))
+
+    def test_reshape(self):
+        dist = prob.Normal(*self.params)
+
+        newshape = (5, 2)
+        dist_reshape = dist.reshape(newshape)
+
+        self.assertArrayEqual(dist_reshape.mean(), dist.mean().reshape(newshape))
+        self.assertArrayEqual(dist_reshape.cov(), dist.cov())
+
+        # Test sampling
+        dist.random_state = 42
+        dist_sample = dist.sample(size=5)
+
+        dist_reshape.random_state = 42
+        dist_reshape_sample = dist_reshape.sample(size=5)
+
+        self.assertArrayEqual(
+            dist_reshape_sample, dist_sample.reshape((-1,) + newshape)
+        )
+
+    def test_transpose(self):
+        dist = prob.Normal(*self.params)
+        dist_t = dist.transpose()
+
+        self.assertArrayEqual(dist_t.mean(), dist.mean())
+        self.assertArrayEqual(dist_t.cov(), dist.cov())
+
+        # Test sampling
+        dist.random_state = 42
+        dist_sample = dist.sample(size=5)
+
+        dist_t.random_state = 42
+        dist_t_sample = dist_t.sample(size=5)
+
+        self.assertArrayEqual(dist_t_sample, dist_sample)
+
+
+class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
+    def test_reshape(self):
+        dist = prob.Normal(
+            mean=np.random.uniform(size=(4, 3)),
+            cov=linops.Kronecker(
+                A=_random_spd_matrix(4), B=_random_spd_matrix(3)
+            ).todense(),
+        )
+
+        newshape = (2, 6)
+        dist_reshape = dist.reshape(newshape)
+
+        self.assertArrayEqual(dist_reshape.mean(), dist.mean().reshape(newshape))
+        self.assertArrayEqual(dist_reshape.cov(), dist.cov())
+
+        # Test sampling
+        dist.random_state = 42
+        dist_sample = dist.sample(size=5)
+
+        dist_reshape.random_state = 42
+        dist_reshape_sample = dist_reshape.sample(size=5)
+
+        self.assertArrayEqual(
+            dist_reshape_sample, dist_sample.reshape((-1,) + newshape)
+        )
+
+    def test_transpose(self):
+        dist = prob.Normal(
+            mean=np.random.uniform(size=(2, 2)), cov=_random_spd_matrix(4),
+        )
+        dist_t = dist.transpose()
+
+        self.assertArrayEqual(dist_t.mean(), dist.mean().T)
+
+        # Test covariance
+        for ii, ij in itertools.product(range(2), range(2)):
+            for ji, jj in itertools.product(range(2), range(2)):
+                idx = (2 * ii + ij, 2 * ji + jj)
+                idx_t = (2 * ij + ii, 2 * jj + ji)
+
+                self.assertEqual(dist_t.cov()[idx_t], dist.cov()[idx])
+
+        # Sadly, sampling is not stable w.r.t. permutations of variables
 
 
 if __name__ == "__main__":
