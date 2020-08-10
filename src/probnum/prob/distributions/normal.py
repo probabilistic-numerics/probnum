@@ -114,6 +114,23 @@ class Normal(Distribution):
         raise NotImplementedError
 
     def __getitem__(self, key):
+        """
+        Marginalization in multi- and matrixvariate normal distributions, expressed by
+        means of (advanced) indexing, masking and slicing.
+
+        We support all modes of array indexing presented in
+
+        https://numpy.org/doc/1.19/reference/arrays.indexing.html.
+
+        Note that, currently, this method does not work for normal distributions other
+        than the multi- and matrixvariate versions.
+
+        Parameters
+        ----------
+        key : int or slice or ndarray or tuple of None, int, slice, or ndarray
+            Indices, slice objects and/or boolean masks specifying which entries to keep
+            while marinalizing over all other entries.
+        """
         if not isinstance(key, tuple):
             key = (key,)
 

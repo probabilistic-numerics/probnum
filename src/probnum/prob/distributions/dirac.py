@@ -91,6 +91,21 @@ class Dirac(Distribution):
             )
 
     def __getitem__(self, key):
+        """
+        Marginalization for multivariate Dirac distributions, expressed by means of
+        (advanced) indexing, masking and slicing.
+
+        This method
+        supports all modes of array indexing presented in
+
+        https://numpy.org/doc/1.19/reference/arrays.indexing.html.
+
+        Parameters
+        ----------
+        key : int or slice or ndarray or tuple of None, int, slice, or ndarray
+            Indices, slice objects and/or boolean masks specifying which entries to keep
+            while marinalizing over all other entries.
+        """
         return Dirac(
             support=self.parameters["support"][key], random_state=self.random_state,
         )

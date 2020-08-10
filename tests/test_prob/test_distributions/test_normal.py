@@ -218,7 +218,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Sample random index
                 idx = tuple(np.random.randint(dim_size) for dim_size in dist.shape)
 
-                # Index into distribution, a.k.a. marginalize
+                # Index into distribution
                 index_dist = dist[idx]
 
                 self.assertIsInstance(
@@ -267,7 +267,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Sample random slice objects for each dimension
                 slices = tuple(_random_slice(dim_size) for dim_size in dist.shape)
 
-                # Get slice from distribution, a.k.a. marginalize
+                # Get slice from distribution
                 sliced_dist = dist[slices]
 
                 self.assertIsInstance(sliced_dist, type(dist))
@@ -303,7 +303,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     np.random.randint(dim_shape, size=10) for dim_shape in mean.shape
                 )
 
-                # Index into distribution, a.k.a. marginalize / replicate
+                # Index into distribution
                 index_dist = dist[idcs]
 
                 self.assertIsInstance(
@@ -352,7 +352,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     )
                 )
 
-                # Index into distribution, a.k.a. marginalize / replicate
+                # Index into distribution
                 index_dist = dist[idcs]
 
                 self.assertIsInstance(
@@ -394,7 +394,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 mask = np.zeros_like(dist.mean(), dtype=np.bool)
                 mask[idcs] = True
 
-                # Mask distribution, a.k.a. marginalize
+                # Mask distribution
                 index_dist = dist[mask]
 
                 self.assertIsInstance(

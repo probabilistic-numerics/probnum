@@ -418,4 +418,24 @@ class Distribution:
         )
 
     def __getitem__(self, key):
-        raise NotImplementedError
+        """
+        (Advanced) indexing, masking and slicing into (realizations of) this
+        distribution.
+
+        This is essentially marginalization for multivariate distributions. This method
+        supports all modes of array indexing presented in
+
+        https://numpy.org/doc/1.19/reference/arrays.indexing.html.
+
+        However, the available modes of indexing vary with the concrete distribution.
+
+        Parameters
+        ----------
+        key : int or slice or ndarray or tuple of None, int, slice, or ndarray
+            Indices, slice objects and/or boolean masks specifying which entries to keep
+            while marinalizing over all other entries.
+        """
+        raise NotImplementedError(
+            "(Advanced) indexing and slicing is not implemented for distribution of "
+            "type: {}.".format(self.__class__.__name__)
+        )
