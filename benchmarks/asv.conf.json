@@ -7,11 +7,11 @@
     "project": "probnum",
 
     // The project's homepage
-    "project_url": "https://probabilistic-numerics.github.io/probnum/intro.html",
+    "project_url": "https://probnum.readthedocs.io/",
 
     // The URL or local path of the source code repository for the
     // project being benchmarked
-    "repo": "https://github.com/probabilistic-numerics/probnum",
+    "repo": "..",
 
     // The Python project's subdirectory in your repo.  If missing or
     // the empty string, the project is assumed to be located at the root
@@ -30,7 +30,7 @@
 
     // List of branches to benchmark. If not provided, defaults to "master"
     // (for git) or "default" (for mercurial).
-    "branches": ["diffeq"], //TODO: change to development and eventually master once interfaces are fixed
+    // "branches": ["master"],
 
     // The DVCS being used.  If not set, it will be automatically
     // determined from "repo" by looking at the protocol in the URL
