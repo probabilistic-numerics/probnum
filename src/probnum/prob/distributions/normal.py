@@ -142,17 +142,37 @@ class Normal(Distribution):
         cov = cov[key][tuple([slice(None)] * mean.ndim) + key]
         cov = cov.reshape(mean.size, mean.size)
 
-        return Normal(mean=mean, cov=cov, random_state=self.random_state,)
+        return Normal(mean=mean, cov=cov, random_state=self.random_state)
 
     def reshape(self, newshape):
         try:
-            return Normal(mean=self.mean().reshape(newshape), cov=self.cov())
+            return Normal(
+                mean=self.mean().reshape(newshape),
+                cov=self.cov(),
+                random_state=self.random_state,
+            )
         except ValueError:
             raise ValueError(
                 "Cannot reshape this normal distribution to the given shape: {}".format(
                     str(newshape)
                 )
             )
+
+    def transpose(self, *axes):
+        if len(axes) == 1 and isinstance(axes[0], tuple):
+            axes = axes[0]
+        elif (len(axes) == 1 and axes[0] is None) or len(axes) == 0:
+            axes = tuple(reversed(range(self.mean().ndim)))
+
+        mean_t = self.mean().transpose(*axes).copy()
+
+        # Transpose covariance
+        cov_axes = axes + tuple(mean_t.ndim + axis for axis in axes)
+        cov_t = self.cov().reshape(self.mean().shape + self.mean().shape)
+        cov_t = cov_t.transpose(*cov_axes).copy()
+        cov_t = cov_t.reshape(mean_t.size, mean_t.size)
+
+        return Normal(mean=mean_t, cov=cov_t, random_state=self.random_state)
 
     # Binary arithmetic
 
@@ -419,6 +439,12 @@ class _UnivariateNormal(Normal):
     def __getitem__(self, key):
         raise NotImplementedError
 
+    def reshape(self, newshape):
+        raise NotImplementedError
+
+    def transpose(self, *axes):
+        raise NotImplementedError
+
 
 class _MultivariateNormal(Normal):
     """
@@ -622,6 +648,9 @@ class _OperatorvariateNormal(Normal):
         return samples_ravelled.reshape(samples_ravelled.shape[:-1] + self.mean().shape)
 
     def reshape(self, newshape):
+        raise NotImplementedError
+
+    def transpose(self, *axes):
         raise NotImplementedError
 
     # Arithmetic Operations

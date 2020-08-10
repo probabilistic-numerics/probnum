@@ -207,6 +207,23 @@ class RandomVariable:
         self._distribution = self._distribution.reshape(newshape=newshape)
         return self
 
+    def transpose(self, *axes):
+        """
+        Transpose the random variable.
+
+        Parameters
+        ----------
+        axes : None, tuple of ints, or n ints
+            See documentation of numpy.ndarray.transpose.
+
+        Returns
+        -------
+        transposed_rv : The transposed random variable.
+        """
+        return RandomVariable(distribution=self._distribution.transpose(*axes))
+
+    T = property(transpose)
+
     # Binary arithmetic operations
 
     # The below prevents numpy from calling elementwise arithmetic

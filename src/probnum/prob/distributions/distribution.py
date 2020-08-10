@@ -417,6 +417,13 @@ class Distribution:
             )
         )
 
+    def transpose(self, *axes):
+        raise NotImplementedError(
+            "Transposition not implemented for distribution of type: {}.".format(
+                self.__class__.__name__
+            )
+        )
+
     def __getitem__(self, key):
         """
         (Advanced) indexing, masking and slicing into (realizations of) this

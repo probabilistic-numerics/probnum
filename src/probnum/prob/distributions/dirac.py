@@ -124,6 +124,12 @@ class Dirac(Distribution):
                 )
             )
 
+    def transpose(self, **axes):
+        return Dirac(
+            support=self.parameters["support"].transpose(**axes),
+            random_state=self.random_state,
+        )
+
     # Binary arithmetic operations
     def __add__(self, other):
         if isinstance(other, Dirac):
