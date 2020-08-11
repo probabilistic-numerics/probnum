@@ -165,7 +165,7 @@ class TestExtendedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         smooms = smooth_posterior.state_rvs.mean()
         smoocs = smooth_posterior.state_rvs.cov()
 
-        comp = self.states[1:, 0]
+        comp = self.states[1:]
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[1:] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[1:] - comp) / normaliser

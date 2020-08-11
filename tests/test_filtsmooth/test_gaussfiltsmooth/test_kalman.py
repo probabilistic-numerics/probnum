@@ -168,9 +168,13 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         smooms = smooth_posterior.state_rvs.mean()
         smoocs = smooth_posterior.state_rvs.cov()
 
+        self.assertEqual(filtms[1:].shape, self.states[1:].shape)
+        self.assertEqual(smooms[1:].shape, self.states[1:].shape)
+        self.assertEqual(self.obs.shape, self.states[1:].shape)
+
         normaliser = np.sqrt(self.states[1:].size)
-        filtrmse = np.linalg.norm(filtms[1:] - self.states[1:, 0]) / normaliser
-        smoormse = np.linalg.norm(smooms[1:] - self.states[1:, 0]) / normaliser
+        filtrmse = np.linalg.norm(filtms[1:] - self.states[1:]) / normaliser
+        smoormse = np.linalg.norm(smooms[1:] - self.states[1:]) / normaliser
         obs_rmse = np.linalg.norm(self.obs - self.states[1:]) / normaliser
 
         if VISUALISE is True:
