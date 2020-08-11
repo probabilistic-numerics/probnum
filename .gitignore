@@ -1,4 +1,4 @@
-## Python ##
+######## Python #########
 
 # Temporary and binary files
 *~
@@ -31,6 +31,9 @@ tags
 .installed.cfg
 *.egg-info
 
+
+######### Build, testing and benchmarks #########
+
 # Unittest and coverage
 htmlcov/*
 .coverage
@@ -53,8 +56,13 @@ MANIFEST
 # Per-project virtualenvs
 .venv*/
 
+# Benchmarks
+.benchmarks/*
+benchmarks/.asv/*
+benchmarks/probnum/*
 
-## IDEs ##
+
+######### IDEs #########
 
 # IntelliJ: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 

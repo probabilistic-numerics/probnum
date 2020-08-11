@@ -50,7 +50,7 @@ class RandomVariable:
     --------
     """
 
-    def __init__(self, shape=None, dtype=None, distribution=None):
+    def __init__(self, distribution=None, shape=None, dtype=None):
         """Create a new random variable."""
         self._set_distribution(distribution)
         self._set_dtype(distribution, dtype)

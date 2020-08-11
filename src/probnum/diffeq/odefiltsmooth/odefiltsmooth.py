@@ -31,8 +31,7 @@ def probsolve_ivp(
     tol=None,
     step=None,
     firststep=None,
-    precond_step=1.0,
-    nsteps=1,
+    precond_step=None,
     **kwargs
 ):
     """
@@ -53,8 +52,8 @@ def probsolve_ivp(
 
 
     This function turns a prior-string into an :class:`ODEPrior`, a
-    method-string into a :class:`GaussianSmoother`, creates a
-    :class:`GaussianIVPSmoother` object and calls the :meth:`solve()` method. For
+    method-string into a filter/smoother of class :class:`GaussFiltSmooth`, creates a
+    :class:`GaussianIVPFilter` object and calls the :meth:`solve()` method. For
     advanced usage we recommend to do this process manually which
     enables advanced methods of tuning the algorithm.
 
@@ -140,34 +139,27 @@ def probsolve_ivp(
         overwritten with the actual step size to provide optimal
         preconditioning.
 
-    nsteps : int, optional
-        Number of intermediate steps in between ODE right-hand side
-        evaluation. Default is ``nsteps=1``. Choosing ``nsteps > 1``
-        will result in solution estimates in between points which
-        will enable for instance uncertainty estimates in these regions.
-
     Returns
     -------
-    means : np.ndarray, shape=(N, d(q+1))
-        Mean vector of the solution at times :math:`t_1, ..., t_N`.
-        The elements are ordered as
-        ``(m_1, m_1\', m_1\'\', ..., m_2, m_2\', ...)``
-        where ``m_1`` is the estimate of the first coordinate of the
-        solution, ``m_1\'`` is the estimate of the derivative of the
-        first coordinate, and so on.
-    covs : np.ndarray, shape=(N, d(q+1), d(q+1))
-        Covariance matrices of the solution at times
-        :math:`t_1, ..., t_N`. The ordering reflects the ordering of
-        the mean vector.
-    times : np.ndarray, shape=(N,)
-        Mesh used by the solver to compute the solution.
-        It includes the initial time :math:`t_0` but not necessarily the
-        final time :math:`T`.
+    solution : ODESolution
+        Solution of the ODE problem.
+
+        Contains fields:
+
+        t : :obj:`np.ndarray`, shape=(N,)
+            Mesh used by the solver to compute the solution.
+            It includes the initial time :math:`t_0` but not necessarily the
+            final time :math:`T`.
+        y : :obj:`list` of :obj:`RandomVariable`, length=N
+            Discrete-time solution at times :math:`t_1, ..., t_N`,
+            as a list of random variables.
+            The means and covariances can be accessed with ``solution.y.mean()``
+            and ``solution.y.cov()``.
 
     See Also
     --------
-    GaussianIVPFilter : Solve IVPs with Gaussian filtering.
-    GaussianIVPSmoother : Solve IVPs with Gaussian smoothing.
+    GaussianIVPFilter : Solve IVPs with Gaussian filtering and smoothing
+    ODESolution : Solution of ODE problems
 
     References
     ----------
@@ -193,71 +185,44 @@ def probsolve_ivp(
     >>> from probnum.prob import RandomVariable, Dirac, Normal
     >>> initrv = RandomVariable(distribution=Dirac(0.15))
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> means, covs, times = probsolve_ivp(ivp, method="ekf0", step=0.1)
-    >>> print(means)
-    [[0.15       0.51      ]
-     [0.2076198  0.642396  ]
-     [0.27932997 0.79180747]
-     [0.3649165  0.91992313]
-     [0.46054129 0.9925726 ]
-     [0.55945475 0.98569653]
-     [0.65374523 0.90011316]
-     [0.73686744 0.76233098]
-     [0.8053776  0.60787222]
-     [0.85895587 0.4636933 ]
-     [0.89928283 0.34284592]
-     [0.92882899 0.24807715]
-     [0.95007559 0.17685497]
-     [0.96515825 0.12479825]
-     [0.97577054 0.08744746]
-     [0.9831919  0.06097975]]
+    >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
+    >>> print(solution.y.mean())
+    [0.15       0.2076198  0.27932997 0.3649165  0.46054129 0.55945475
+     0.65374523 0.73686744 0.8053776  0.85895587 0.89928283 0.92882899
+     0.95007559 0.96515825 0.97577054 0.9831919 ]
 
     >>> initrv = RandomVariable(distribution=Dirac(0.15))
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> means, covs, times = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
-    >>> print(means)
-    [[  0.15         0.51         1.428        1.9176    ]
-     [  0.20795795   0.65884674   2.00211064  -6.59817856]
-     [  0.28228416   0.81039925   1.10201443   1.99947952]
-     [  0.36926      0.93163093   1.15809878 -10.29411145]
-     [  0.46646494   0.99550339   0.17201064  -6.25619529]
-     [  0.5658788    0.98264107  -0.45761145  -8.49165628]
-     [  0.66048505   0.89697823  -1.1844693   -3.69769413]
-     [  0.74369892   0.76244437  -1.47053431  -1.49540782]
-     [  0.81237394   0.60969196  -1.53808527   1.57069856]
-     [  0.86592791   0.46438819  -1.35517427   2.37556924]
-     [  0.90598293   0.34071182  -1.11171014   2.83875749]
-     [  0.9349573    0.24324862  -0.84433565   2.40611949]
-     [  0.95544749   0.17027033  -0.62177491   2.00601395]
-     [  0.96968754   0.11757447  -0.44061846   1.46774923]
-     [  0.97947631   0.08040988  -0.30900324   1.07108871]
-     [  0.98614541   0.05465059  -0.20824105   0.94815346]]
+    >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
+    >>> print(solution.y.mean())
+    [0.15       0.20795795 0.28228416 0.36926    0.46646494 0.5658788
+     0.66048505 0.74369892 0.81237394 0.86592791 0.90598293 0.9349573
+     0.95544749 0.96968754 0.97947631 0.98614541]
     """
     solver, firststep = _create_solver_object(
-        ivp, method, which_prior, tol, step, firststep, precond_step, nsteps, **kwargs
+        ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
     )
-    means, covs, times = solver.solve(firststep=firststep, nsteps=nsteps, **kwargs)
+    solution = solver.solve(firststep=firststep, **kwargs)
     if method in ["eks0", "eks1", "uks"]:
-        means, covs = solver.odesmooth(means, covs, times, **kwargs)
-    return means, covs, times
+        solution = solver.odesmooth(solution, **kwargs)
+    return solution
 
 
 def _create_solver_object(
-    ivp, method, which_prior, tol, step, firststep, precond_step, nsteps, **kwargs
+    ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
 ):
     """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)
-    if step is not None:
-        precond_step = step
-    precond_step = precond_step / float(nsteps)
+    if precond_step is None:
+        precond_step = step or 1.0
     _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
-        stprl = _step2steprule_adap(tol, _prior)
+        stprl = steprule.AdaptiveSteps(tol, _prior.ordint + 1, **kwargs)
         if firststep is None:
             firststep = ivp.tmax - ivp.t0
     else:
-        stprl = _step2steprule_const(step)
+        stprl = steprule.ConstantSteps(step)
         firststep = step
     gfilt = _string2filter(ivp, _prior, method, **kwargs)
     return GaussianIVPFilter(ivp, gfilt, stprl), firststep
@@ -313,7 +278,7 @@ def _string2ibm(ivp, which_prior, precond_step, **kwargs):
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
+def _string2ioup(ivp, which_prior, precond_step, **kwargs):
     """
     """
     if "diffconst" in kwargs.keys():
@@ -324,14 +289,14 @@ def _string2ioup(_ivp, _which_prior, precond_step, **kwargs):
         driftspeed = kwargs["driftspeed"]
     else:
         driftspeed = 1.0
-    if _which_prior == "ioup1":
-        return prior.IOUP(1, _ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup2":
-        return prior.IOUP(2, _ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup3":
-        return prior.IOUP(3, _ivp.ndim, driftspeed, diffconst, precond_step)
-    elif _which_prior == "ioup4":
-        return prior.IOUP(4, _ivp.ndim, driftspeed, diffconst, precond_step)
+    if which_prior == "ioup1":
+        return prior.IOUP(1, ivp.ndim, driftspeed, diffconst, precond_step)
+    elif which_prior == "ioup2":
+        return prior.IOUP(2, ivp.ndim, driftspeed, diffconst, precond_step)
+    elif which_prior == "ioup3":
+        return prior.IOUP(3, ivp.ndim, driftspeed, diffconst, precond_step)
+    elif which_prior == "ioup4":
+        return prior.IOUP(4, ivp.ndim, driftspeed, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -374,16 +339,3 @@ def _string2filter(_ivp, _prior, _method, **kwargs):
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     else:
         raise ValueError("Type of filter not supported.")
-
-
-def _step2steprule_const(stp):
-    """
-    """
-    return steprule.ConstantSteps(stp)
-
-
-def _step2steprule_adap(_tol, _prior, **kwargs):
-    """
-    """
-    convrate = _prior.ordint + 1
-    return steprule.AdaptiveSteps(_tol, convrate, **kwargs)
