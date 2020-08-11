@@ -158,6 +158,9 @@ class Normal(Distribution):
                 )
             )
 
+    def _reshape_inplace(self, newshape):
+        self.mean.shape = newshape
+
     def transpose(self, *axes):
         if len(axes) == 1 and isinstance(axes[0], tuple):
             axes = axes[0]
@@ -442,6 +445,9 @@ class _UnivariateNormal(Normal):
     def reshape(self, newshape):
         raise NotImplementedError
 
+    def _reshape_inplace(self, newshape):
+        raise NotImplementedError
+
     def transpose(self, *axes):
         raise NotImplementedError
 
@@ -648,6 +654,9 @@ class _OperatorvariateNormal(Normal):
         return samples_ravelled.reshape(samples_ravelled.shape[:-1] + self.mean().shape)
 
     def reshape(self, newshape):
+        raise NotImplementedError
+
+    def _reshape_inplace(self, newshape):
         raise NotImplementedError
 
     def transpose(self, *axes):

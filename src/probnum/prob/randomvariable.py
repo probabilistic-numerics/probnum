@@ -150,6 +150,12 @@ class RandomVariable:
         """Shape of realizations of the random variable."""
         return self._shape
 
+    @shape.setter
+    def shape(self, newshape):
+        self._distribution.shape = newshape
+
+        self._set_shape(self._distribution, newshape)
+
     @property
     def dtype(self):
         """Data type of (elements of) a realization of this random variable."""

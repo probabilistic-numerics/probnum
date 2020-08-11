@@ -129,6 +129,15 @@ class Distribution:
         """Shape of samples from this distribution."""
         return self._shape
 
+    @shape.setter
+    def shape(self, newshape):
+        self._reshape_inplace(newshape)
+
+        self._set_shape(newshape)
+
+    def _reshape_inplace(self, newshape):
+        raise NotImplementedError
+
     @property
     def dtype(self):
         """``Dtype`` of elements of samples from this distribution."""

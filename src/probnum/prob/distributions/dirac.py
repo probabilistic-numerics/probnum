@@ -124,6 +124,9 @@ class Dirac(Distribution):
                 )
             )
 
+    def _reshape_inplace(self, newshape):
+        self.parameters["support"].shape = newshape
+
     def transpose(self, **axes):
         return Dirac(
             support=self.parameters["support"].transpose(**axes),
