@@ -12,13 +12,33 @@ from probnum import prob
 from probnum.linalg import linops
 
 
-def _random_spd_matrix(size=10):
+def _random_spd_matrix(D=10):
     """ Generates a random symmetric positive definite matrix. """
-    random_spd = np.random.rand(size, size)
-    random_spd = random_spd @ random_spd.T
-    random_spd = random_spd + np.eye(size)
 
-    return random_spd
+    # Generate random matrix from SO(D)
+    t = 2 * np.pi * np.random.rand()
+    A = np.array([[np.cos(t), np.sin(t)], [-np.sin(t), np.cos(t)]])
+
+    for d in range(2, D):
+        v = np.random.randn(d + 1, 1)
+        v /= np.sqrt(v.T.dot(v))
+        e = np.zeros((d + 1, 1))
+        e[0] += 1
+
+        x = e - v
+        x /= np.sqrt(x.T.dot(x))
+
+        D_ = np.zeros((d + 1, d + 1))
+        D_[0, 0] += 1
+        D_[1:, 1:] += A
+        A = D_ - 2 * x * (x.T.dot(D_))
+
+    Q = -A
+
+    # Generate random positive spectrum
+    lam = np.random.gamma(shape=6, scale=1.0, size=D)
+
+    return Q @ np.diag(lam) @ Q.T
 
 
 class NormalTestCase(unittest.TestCase, NumpyAssertions):
