@@ -203,9 +203,7 @@ class RandomVariable:
         -------
         reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
-        self._shape = newshape
-        self._distribution = self._distribution.reshape(newshape=newshape)
-        return self
+        return RandomVariable(distribution=self._distribution.reshape(newshape))
 
     def transpose(self, *axes):
         """
