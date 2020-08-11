@@ -296,11 +296,7 @@ def _both_are_univariate(mean, cov):
     Checks whether mean and kernels correspond to the
     UNIVARIATE normal distribution.
     """
-    both_are_scalars = np.isscalar(mean) and np.isscalar(cov)
-    mean_shape_dim1 = np.shape(mean) in [(1, 1), (1,), ()]
-    cov_shape_dim1 = np.shape(cov) in [(1, 1), (1,), ()]
-    both_in_dim1shapes = mean_shape_dim1 and cov_shape_dim1
-    return both_are_scalars or both_in_dim1shapes
+    return np.isscalar(mean) and np.isscalar(cov)
 
 
 def _both_are_multivariate(mean, cov):
