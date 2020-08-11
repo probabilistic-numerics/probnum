@@ -15,6 +15,7 @@ import scipy._lib._util
 from probnum.linalg import linops
 from probnum.prob.distributions.distribution import Distribution
 from probnum.prob.distributions.dirac import Dirac
+from probnum import utils as _utils
 
 
 class Normal(Distribution):
@@ -348,7 +349,11 @@ class _UnivariateNormal(Normal):
     """
 
     def __init__(self, mean=0.0, cov=1.0, random_state=None):
-        super().__init__(mean=float(mean), cov=float(cov), random_state=random_state)
+        super().__init__(
+            mean=_utils.as_numpy_scalar(mean),
+            cov=_utils.as_numpy_scalar(cov),
+            random_state=random_state,
+        )
 
     def var(self):
         return self.cov()
