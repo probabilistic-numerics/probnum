@@ -24,8 +24,23 @@ exclude = '''
 
 
 [tool.pylint.messages_control]
-# From black: bad-continuation and bad-whitespace
-disable = "bad-continuation, bad-whitespace"
+# From black: bad-continuation, bad-whitespace
+# Exceptions we want to have: invalid-name
+# Unclear to me: no-else-return, no-else-raise
+disable = """
+bad-continuation,
+bad-whitespace,
+
+invalid-name,
+
+no-else-return
+no-else-raise
+
+line-too-long,
+fixme,
+too-many-arguments
+missing-module-docstring
+"""
 
 [tool.pylint.format]
 max-line-length = "88"
