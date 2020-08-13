@@ -15,6 +15,7 @@ import scipy._lib._util
 from probnum.linalg import linops
 from probnum.prob.distributions.distribution import Distribution
 from probnum.prob.distributions.dirac import Dirac
+from probnum import utils as _utils
 
 
 class Normal(Distribution):
@@ -296,11 +297,7 @@ def _both_are_univariate(mean, cov):
     Checks whether mean and kernels correspond to the
     UNIVARIATE normal distribution.
     """
-    both_are_scalars = np.isscalar(mean) and np.isscalar(cov)
-    mean_shape_dim1 = np.shape(mean) in [(1, 1), (1,), ()]
-    cov_shape_dim1 = np.shape(cov) in [(1, 1), (1,), ()]
-    both_in_dim1shapes = mean_shape_dim1 and cov_shape_dim1
-    return both_are_scalars or both_in_dim1shapes
+    return np.isscalar(mean) and np.isscalar(cov)
 
 
 def _both_are_multivariate(mean, cov):
@@ -352,7 +349,11 @@ class _UnivariateNormal(Normal):
     """
 
     def __init__(self, mean=0.0, cov=1.0, random_state=None):
-        super().__init__(mean=float(mean), cov=float(cov), random_state=random_state)
+        super().__init__(
+            mean=_utils.as_numpy_scalar(mean),
+            cov=_utils.as_numpy_scalar(cov),
+            random_state=random_state,
+        )
 
     def var(self):
         return self.cov()
