@@ -21,3 +21,11 @@ exclude = '''
   | dist
 )/
 '''
+
+
+[tool.pylint.messages_control]
+# From black: bad-continuation and bad-whitespace
+disable = "bad-continuation, bad-whitespace"
+
+[tool.pylint.format]
+max-line-length = "88"
