@@ -8,6 +8,8 @@ import numpy as np
 from probnum.filtsmooth import *
 from probnum.prob import *
 
+from tests.testing import NumpyAssertions
+
 __all__ = [
     "CarTrackingDDTestCase",
     "OrnsteinUhlenbeckCDTestCase",
@@ -15,7 +17,7 @@ __all__ = [
 ]
 
 
-class CarTrackingDDTestCase(unittest.TestCase):
+class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
     """
     Car tracking: Ex. 4.3 in Bayesian Filtering and Smoothing
     """
@@ -48,7 +50,7 @@ class CarTrackingDDTestCase(unittest.TestCase):
         )
 
 
-class OrnsteinUhlenbeckCDTestCase(unittest.TestCase):
+class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
     """
     Ornstein Uhlenbeck process as a test case.
     """
@@ -79,7 +81,7 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase):
         )
 
 
-class PendulumNonlinearDDTestCase(unittest.TestCase):
+class PendulumNonlinearDDTestCase(unittest.TestCase, NumpyAssertions):
     """ """
 
     def setup_pendulum(self):
