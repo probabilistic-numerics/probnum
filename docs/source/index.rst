@@ -5,7 +5,7 @@ Probabilistic Numerics in Python
 |Travis Status| |Coverage Status| |Benchmarks| |PyPI|
 
 
-`Probabilistic numerics (PN) <http://probabilistic-numerics.org/>`_ (PN) interprets classic numerical routines as
+`Probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) interprets classic numerical routines as
 *inference procedures* by taking a probabilistic viewpoint. This allows principled treatment of *uncertainty arising
 from finite computational resources*. The vision of probabilistic numerics is to provide well-calibrated probability
 measures over the output of a numerical routine, which then can be propagated along the chain of computation.
