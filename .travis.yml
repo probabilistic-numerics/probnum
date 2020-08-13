@@ -3,14 +3,27 @@
 
 # Set the build language to Python
 language: python
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
+jobs:
+  include:
+    - name: "test py36"
+      python: 3.6
+      env: TOXENV=py36
+    - name: "test py37"
+      python: 3.7
+      env: TOXENV=py37
+    - name: "test py38"
+      python: 3.8
+      env: TOXENV=py38
+    - name: "docs"
+      python: 3.6
+      env: TOXENV=docs
+    - name: "benchmarks"
+      python: 3.6
+      env: TOXENV=benchmarks
 install:
   - sudo apt-get install pandoc # pandoc for jupyter notebooks
   - sudo apt install graphviz # graphviz for class inheritance diagrams in docs
-  - pip install tox-travis
+  - pip install tox
 script:
   - tox
 after_success:
