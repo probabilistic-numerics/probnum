@@ -49,7 +49,7 @@ class ContinuousModel(ABC):
         Returns a single element at the end of the time, not the
         entire array!
         """
-        if type(initstate) != np.ndarray:
+        if not isinstance(initstate, np.ndarray):
             raise ValueError("Init state is not array!")
         times = np.arange(start, stop, step)
         currstate = initstate
