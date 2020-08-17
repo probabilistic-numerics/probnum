@@ -48,7 +48,18 @@ arguments-differ,
 redefined-builtin,
 too-few-public-methods,
 too-many-locals,
-missing-function-docstring
+missing-function-docstring,
+wrong-import-order,
+no-self-use,
+too-many-lines,
+unused-variable,
+broad-except,
+abstract-class-instantiated,
+protected-access,
+
+too-many-instance-attributes,
+too-many-statements,
+attribute-defined-outside-init,
 """
 
 [tool.pylint.format]
