@@ -129,7 +129,7 @@ class Normal(Distribution):
         ----------
         key : int or slice or ndarray or tuple of None, int, slice, or ndarray
             Indices, slice objects and/or boolean masks specifying which entries to keep
-            while marinalizing over all other entries.
+            while marginalizing over all other entries.
         """
         if not isinstance(key, tuple):
             key = (key,)

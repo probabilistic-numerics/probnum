@@ -15,7 +15,14 @@ from probnum.linalg import linops
 def _random_spd_matrix(D=10):
     """ Generates a random symmetric positive definite matrix. """
 
-    # Generate random matrix from SO(D)
+    # Sample a rotation matrix Q in SO(D) (the special orthogonal group SO(D), or
+    # orthogonal matrices with unit determinant, drawn uniformly from the Haar measure.
+    #
+    # The algorithm used is the subgroup algorithm as originally proposed by
+    #
+    # P. Diaconis & M. Shahshahani, "The subgroup algorithm for generating uniform
+    # random variables". Probability in the Engineering and Informational Sciences 1:
+    # 15?32 (1987)
     t = 2 * np.pi * np.random.rand()
     A = np.array([[np.cos(t), np.sin(t)], [-np.sin(t), np.cos(t)]])
 
@@ -277,14 +284,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 continue
 
             def _random_slice(dim_size):
-                # TODO: Remove min_slice_length once shape (1,) and (1, 1) mean lead to multi- and matrixvariate normal, respectively
-                min_slice_length = 2
-
-                start = np.random.randint(dim_size - min_slice_length + 1)
-
-                assert start + min_slice_length <= dim_size
-
-                stop = np.random.randint(start + min_slice_length, dim_size + 1)
+                start = np.random.randint(0, dim_size)
+                stop = np.random.randint(start + 1, dim_size + 1)
 
                 return slice(start, stop)
 
@@ -352,7 +353,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_array_indexing_broadcast(self):
-        """ Indexing with broadcasted integer arrays yields a matrixvariate normal """
+        """ Indexing with broadcasted integer arrays yields a matrixvariate normal. """
         for mean, cov in self.normal_params:
             dist = prob.Normal(mean=mean, cov=cov)
 
