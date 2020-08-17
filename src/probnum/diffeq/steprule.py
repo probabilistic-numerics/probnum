@@ -88,7 +88,4 @@ class AdaptiveSteps(StepRule):
         return step
 
     def is_accepted(self, proposedstep, errorest, **kwargs):
-        if errorest * proposedstep < self.tol_per_step:
-            return True
-        else:
-            return False
+        return errorest * proposedstep < self.tol_per_step
