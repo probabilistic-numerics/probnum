@@ -394,8 +394,12 @@ def asrandvar(obj):
             shape=obj.shape, dtype=obj.dtype, distribution=Dirac(support=obj)
         )
     # Scipy random variable
-    elif isinstance(obj, scipy.stats._distn_infrastructure.rv_frozen) or isinstance(
-        obj, scipy.stats._multivariate.multi_rv_frozen
+    elif isinstance(
+        obj,
+        (
+            scipy.stats._distn_infrastructure.rv_frozen,
+            scipy.stats._multivariate.multi_rv_frozen,
+        ),
     ):
         return _scipystats_to_rv(scipydist=obj)
     else:
