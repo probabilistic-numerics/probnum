@@ -90,16 +90,48 @@ class Dirac(Distribution):
                 A=self.parameters["support"], reps=tuple([*size, *np.repeat(1, ndims)])
             )
 
+    def __getitem__(self, key):
+        """
+        Marginalization for multivariate Dirac distributions, expressed by means of
+        (advanced) indexing, masking and slicing.
+
+        This method
+        supports all modes of array indexing presented in
+
+        https://numpy.org/doc/1.19/reference/arrays.indexing.html.
+
+        Parameters
+        ----------
+        key : int or slice or ndarray or tuple of None, int, slice, or ndarray
+            Indices, slice objects and/or boolean masks specifying which entries to keep
+            while marginalizing over all other entries.
+        """
+        return Dirac(
+            support=self.parameters["support"][key], random_state=self.random_state,
+        )
+
     def reshape(self, newshape):
         try:
             # Reshape support
-            self._parameters["support"].reshape(newshape=newshape)
+            return Dirac(
+                support=self.parameters["support"].reshape(newshape),
+                random_state=self.random_state,
+            )
         except ValueError:
             raise ValueError(
                 "Cannot reshape this Dirac distribution to the given shape: {}".format(
                     str(newshape)
                 )
             )
+
+    def _reshape_inplace(self, newshape):
+        self.parameters["support"].shape = newshape
+
+    def transpose(self, **axes):
+        return Dirac(
+            support=self.parameters["support"].transpose(**axes),
+            random_state=self.random_state,
+        )
 
     # Binary arithmetic operations
     def __add__(self, other):

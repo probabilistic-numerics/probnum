@@ -7,4 +7,4 @@ def as_numpy_scalar(x):
     if not np.isscalar(x):
         raise ValueError("The given input is not a scalar")
 
-    return np.asarray(x).item()
+    return np.array([x])[0]

@@ -150,6 +150,12 @@ class RandomVariable:
         """Shape of realizations of the random variable."""
         return self._shape
 
+    @shape.setter
+    def shape(self, newshape):
+        self._distribution.shape = newshape
+
+        self._set_shape(self._distribution, newshape)
+
     @property
     def dtype(self):
         """Data type of (elements of) a realization of this random variable."""
@@ -203,9 +209,24 @@ class RandomVariable:
         -------
         reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
-        self._shape = newshape
-        self._distribution.reshape(newshape=newshape)
-        return self
+        return RandomVariable(distribution=self._distribution.reshape(newshape))
+
+    def transpose(self, *axes):
+        """
+        Transpose the random variable.
+
+        Parameters
+        ----------
+        axes : None, tuple of ints, or n ints
+            See documentation of numpy.ndarray.transpose.
+
+        Returns
+        -------
+        transposed_rv : The transposed random variable.
+        """
+        return RandomVariable(distribution=self._distribution.transpose(*axes))
+
+    T = property(transpose)
 
     # Binary arithmetic operations
 
@@ -237,6 +258,9 @@ class RandomVariable:
             distribution=op(self.distribution, other_rv.distribution)
         )
         return combined_rv
+
+    def __getitem__(self, key):
+        return RandomVariable(distribution=self.distribution[key])
 
     def __add__(self, other):
         return self._rv_from_binary_operation(other=other, op=operator.add)
