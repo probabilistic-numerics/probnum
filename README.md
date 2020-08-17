@@ -22,7 +22,7 @@ To get started install ProbNum using `pip`.
 ```bash
 pip install probnum
 ```
-Alternatively, you can install the package from source.
+Alternatively, you can install the latest version from source.
 ```bash
 pip install git+https://github.com/probabilistic-numerics/probnum.git
 ```
