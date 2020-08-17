@@ -357,11 +357,11 @@ def _string2filter(_ivp, _prior, _method, **kwargs):
         evlvar = kwargs["evlvar"]
     else:
         evlvar = 0.0
-    if _method == "ekf0" or _method == "eks0":
+    if _method in ("ekf0", "eks0"):
         return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    elif _method == "ekf1" or _method == "eks1":
+    elif _method in ("ekf1", "eks1"):
         return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    elif _method == "ukf" or _method == "uks":
+    elif _method in ("ukf", "uks"):
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     else:
         raise ValueError("Type of filter not supported.")
