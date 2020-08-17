@@ -140,26 +140,35 @@ class Normal(Distribution):
         # Select submatrix from covariance matrix
         cov = self.cov().reshape(self.mean().shape + self.mean().shape)
         cov = cov[key][tuple([slice(None)] * mean.ndim) + key]
-        cov = cov.reshape(mean.size, mean.size)
+
+        if cov.ndim > 2:
+            cov = cov.reshape(mean.size, mean.size)
 
         return Normal(mean=mean, cov=cov, random_state=self.random_state)
 
     def reshape(self, newshape):
         try:
-            return Normal(
-                mean=self.mean().reshape(newshape),
-                cov=self.cov(),
-                random_state=self.random_state,
-            )
+            reshaped_mean = self.mean().reshape(newshape)
         except ValueError:
             raise ValueError(
-                "Cannot reshape this normal distribution to the given shape: {}".format(
-                    str(newshape)
-                )
+                f"Cannot reshape this normal distribution to the given shape: "
+                f"{newshape}"
             )
+
+        reshaped_cov = self.cov()
+
+        if reshaped_mean.ndim > 0 and reshaped_cov.ndim == 0:
+            reshaped_cov = reshaped_cov.reshape(1, 1)
+
+        return Normal(
+            mean=reshaped_mean, cov=reshaped_cov, random_state=self.random_state,
+        )
 
     def _reshape_inplace(self, newshape):
         self.mean.shape = newshape
+
+        if self.mean().ndim > 0 and self.cov().ndim == 0:
+            self.cov().shape = (1, 1)
 
     def transpose(self, *axes):
         if len(axes) == 1 and isinstance(axes[0], tuple):
@@ -439,16 +448,14 @@ class _UnivariateNormal(Normal):
             loc=self.mean(), scale=self.std(), size=size, random_state=self.random_state
         )
 
-    def __getitem__(self, key):
-        raise NotImplementedError
-
-    def reshape(self, newshape):
-        raise NotImplementedError
+    def transpose(self, *axes):
+        return Normal(
+            mean=self.mean().copy(),
+            cov=self.cov().copy(),
+            random_state=self.random_state,
+        )
 
     def _reshape_inplace(self, newshape):
-        raise NotImplementedError
-
-    def transpose(self, *axes):
         raise NotImplementedError
 
 

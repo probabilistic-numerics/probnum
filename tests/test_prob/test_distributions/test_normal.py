@@ -436,6 +436,54 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
 
+class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
+    def setUp(self):
+        self.params = (np.random.uniform(), np.random.gamma(shape=6, scale=1.0))
+
+    def test_reshape_newaxis(self):
+        dist = prob.Normal(*self.params)
+
+        for ndim in range(1, 3):
+            for method in ["newaxis", "reshape"]:
+                with self.subTest():
+                    newshape = tuple([1] * ndim)
+
+                    if method == "newaxis":
+                        if ndim == 1:
+                            newdist = dist[np.newaxis]
+                        elif ndim == 2:
+                            newdist = dist[np.newaxis, np.newaxis]
+                    elif method == "reshape":
+                        newdist = dist.reshape(newshape)
+
+                    self.assertIsInstance(
+                        newdist,
+                        prob.distributions.normal._MultivariateNormal
+                        if ndim == 1
+                        else prob.distributions.normal._MatrixvariateNormal,
+                    )
+
+                    self.assertEqual(newdist.shape, newshape)
+                    self.assertEqual(np.squeeze(newdist.mean()), dist.mean())
+                    self.assertEqual(np.squeeze(newdist.cov()), dist.cov())
+
+    def test_transpose(self):
+        dist = prob.Normal(*self.params)
+        dist_t = dist.transpose()
+
+        self.assertArrayEqual(dist_t.mean(), dist.mean())
+        self.assertArrayEqual(dist_t.cov(), dist.cov())
+
+        # Test sampling
+        dist.random_state = 42
+        dist_sample = dist.sample(size=5)
+
+        dist_t.random_state = 42
+        dist_t_sample = dist_t.sample(size=5)
+
+        self.assertArrayEqual(dist_t_sample, dist_sample)
+
+
 class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         self.params = (np.random.uniform(size=10), _random_spd_matrix(10))
