@@ -33,13 +33,16 @@ bad-whitespace,
 
 invalid-name,
 
-no-else-return
-no-else-raise
+no-else-return,
+no-else-raise,
 
 line-too-long,
 fixme,
-too-many-arguments
-missing-module-docstring
+too-many-arguments,
+missing-module-docstring,
+unused-wildcard-import,
+abstract-method,
+unused-argument,
 """
 
 [tool.pylint.format]
