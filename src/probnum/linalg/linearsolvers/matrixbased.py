@@ -461,13 +461,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         if isinstance(self.Ainv_covfactor0, linops.ScalarMult):
             # Scalar prior mean
-            if self.is_calib_covclass and k > 0 and (not unc_scale == 0):
+            if self.is_calib_covclass and k > 0 and unc_scale != 0:
                 _trace = self.Ainv_covfactor0.scalar * k
             else:
                 _trace = self.Ainv_covfactor0.trace()
         else:
             # General prior mean
-            if self.is_calib_covclass and k > 0 and (not unc_scale == 0):
+            if self.is_calib_covclass and k > 0 and unc_scale != 0:
                 # General prior mean with calibration covariance class
                 _trace = np.trace(
                     np.linalg.solve(
