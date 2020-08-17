@@ -4,10 +4,15 @@ tractable through Taylor-method approximations, e.g. linearization.
 """
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
-from probnum.filtsmooth.statespace import *
+from probnum.filtsmooth.statespace import (
+    ContinuousModel,
+    DiscreteModel,
+    LinearSDEModel,
+    DiscreteGaussianModel,
+)
 
 
 class ExtendedKalman(GaussFiltSmooth):

@@ -7,10 +7,16 @@ which is based on a third degree fully symmetric rule.
 
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
 from probnum.prob import RandomVariable, Normal
-from probnum.filtsmooth.statespace import *
-from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import *
+from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import UnscentedTransform
+from probnum.filtsmooth.statespace import (
+    ContinuousModel,
+    DiscreteModel,
+    LinearSDEModel,
+    DiscreteGaussianModel,
+    DiscreteGaussianLinearModel,
+)
 
 
 class UnscentedKalman(GaussFiltSmooth):

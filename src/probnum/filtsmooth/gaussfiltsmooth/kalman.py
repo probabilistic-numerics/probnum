@@ -4,9 +4,14 @@ continuous-discrete and discrete-discrete state space models.
 """
 
 import numpy as np
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
 from probnum.prob import RandomVariable, Normal
-from probnum.filtsmooth.statespace import *
+from probnum.filtsmooth.statespace import (
+    ContinuousModel,
+    DiscreteModel,
+    LinearSDEModel,
+    DiscreteGaussianLinearModel,
+)
 
 
 class Kalman(GaussFiltSmooth):
