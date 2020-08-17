@@ -180,20 +180,14 @@ class LTISDEModel(LinearSDEModel):
 
     @property
     def driftmatrix(self):
-        """
-        """
         return self._driftmatrix
 
     @property
     def force(self):
-        """
-        """
         return self._force
 
     @property
     def dispersionmatrix(self):
-        """
-        """
         return self._dispmatrix
 
     def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):

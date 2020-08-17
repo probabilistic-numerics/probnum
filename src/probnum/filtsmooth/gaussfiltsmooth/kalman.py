@@ -77,12 +77,10 @@ class _ContDiscKalman(Kalman):
         super().__init__(dynamod, measmod, initrv)
 
     def predict(self, start, stop, randvar, **kwargs):
-        """ """
         step = (stop - start) / self.cke_nsteps
         return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
-        """ """
         return _discrete_kalman_update(
             time, randvar, data, self.measurementmodel, **kwargs
         )

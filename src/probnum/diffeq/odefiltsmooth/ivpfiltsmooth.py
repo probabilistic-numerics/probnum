@@ -172,5 +172,4 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     @property
     def prior(self):
-        """ """
         return self.gfilt.dynamicmodel

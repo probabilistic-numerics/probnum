@@ -1,6 +1,3 @@
-"""
-"""
-
 from .ode import *
 from .odefiltsmooth import *
 from .steprule import *

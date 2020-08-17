@@ -90,8 +90,6 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
 
     @property
     def ndim(self):
-        """
-        """
         return len(self.diffusionmatrix(0.0))
 
 
@@ -101,9 +99,6 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
     """
 
     def __init__(self, dynamatfct, forcefct, diffmatfct):
-        """
-        """
-
         def dynafct(t, x, **kwargs):
             return dynamatfct(t, **kwargs) @ x + forcefct(t, **kwargs)
 
@@ -121,8 +116,6 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         return self.jacobian(time, None, **kwargs)
 
     def force(self, time, **kwargs):
-        """
-        """
         return self.forcefct(time, **kwargs)
 
 
@@ -133,8 +126,6 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
     """
 
     def __init__(self, dynamat, forcevec, diffmat):
-        """
-        """
         super().__init__(
             lambda t, **kwargs: dynamat,
             lambda t, **kwargs: forcevec,
