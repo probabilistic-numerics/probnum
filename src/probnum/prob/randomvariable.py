@@ -1,8 +1,8 @@
 """
 Random Variables.
 
-This module implements random variables. Random variables are the main in- and outputs of probabilistic numerical
-methods.
+This module implements random variables. Random variables are the main in- and outputs
+of probabilistic numerical methods.
 """
 
 import operator
@@ -21,23 +21,27 @@ class RandomVariable:
     """
     Random variables are the main objects used by probabilistic numerical methods.
 
-    Every probabilistic numerical method takes a random variable encoding the prior distribution as input and outputs a
-    random variable whose distribution encodes the uncertainty arising from finite computation. The generic signature
-    of a probabilistic numerical method is:
+    Every probabilistic numerical method takes a random variable encoding the prior
+    distribution as input and outputs a random variable whose distribution encodes the
+    uncertainty arising from finite computation. The generic signature of a
+    probabilistic numerical method is:
 
     ``output_rv = probnum_method(input_rv, method_params)``
 
-    In practice, most random variables used by methods in ProbNum have Dirac or Gaussian measure.
+    In practice, most random variables used by methods in ProbNum have Dirac or Gaussian
+    measure.
 
-    Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and linear operators. This may
-    change their ``distribution`` and not necessarily all previously available methods are retained.
+    Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and
+    linear operators. This may change their ``distribution`` and not necessarily all
+    previously available methods are retained.
 
     Parameters
     ----------
     shape : tuple
         Shape of realizations of this random variable.
     dtype : numpy.dtype or object
-        Data type of realizations of this random variable. If ``object`` will be converted to ``numpy.dtype``.
+        Data type of realizations of this random variable. If ``object`` will be
+        converted to ``numpy.dtype``.
     distribution : Distribution
         Probability distribution of the random variable.
 
@@ -69,7 +73,8 @@ class RandomVariable:
                 "The distribution parameter must be an " "instance of `Distribution`."
             )
 
-    # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as function
+    # TODO: add some type checking (e.g. for shape as a tuple of ints) and extract as
+    # function
     def _set_shape(self, distribution, shape):
         """
         Sets shape in accordance with distribution.
@@ -170,10 +175,11 @@ class RandomVariable:
     def random_state(self, seed):
         """ Get or set the RandomState object of the underlying distribution.
 
-        This can be either None or an existing :class:`~numpy.random.RandomState` object.
-        If None (or np.random), use the :class:`~numpy.random.RandomState` singleton used by np.random.
-        If already a :class:`~numpy.random.RandomState` instance, use it.
-        If an int, use a new :class:`~numpy.random.RandomState` instance seeded with seed.
+        This can be either None or an existing :class:`~numpy.random.RandomState`
+        object. If None (or np.random), use the :class:`~numpy.random.RandomState`
+        singleton used by np.random. If already a :class:`~numpy.random.RandomState`
+        instance, use it. If an int, use a new :class:`~numpy.random.RandomState`
+        instance seeded with seed.
         """
         self.distribution._random_state = scipy._lib._util.check_random_state(seed)
 
@@ -203,7 +209,8 @@ class RandomVariable:
         Parameters
         ----------
         newshape : int or tuple of ints
-            New shape for the random variable. It must be compatible with the original shape.
+            New shape for the random variable. It must be compatible with the original
+            shape.
 
         Returns
         -------
@@ -305,7 +312,8 @@ class RandomVariable:
         other_rv = asrandvar(power)
         return other_rv._rv_from_binary_operation(other=self, op=operator.pow)
 
-    # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation in place
+    # Augmented arithmetic assignments (+=, -=, *=, ...) attempting to do the operation
+    # in place
     # TODO: needs setter functions for properties `shape` and `dtype` to do in place
     def __iadd__(self, other):
         return NotImplemented
@@ -352,7 +360,8 @@ def asrandvar(obj):
     """
     Return ``obj`` as a :class:`RandomVariable`.
 
-    Converts scalars, (sparse) arrays or distribution classes to a :class:`RandomVariable`.
+    Converts scalars, (sparse) arrays or distribution classes to a
+    :class:`RandomVariable`.
 
     Parameters
     ----------
@@ -424,7 +433,7 @@ def _scipystats_to_rv(scipydist):
     dist : RandomVariable
         ProbNum random variable.
 
-    """
+    """  # pylint: disable=line-too-long
     # Univariate distributions (implemented in this package)
     if isinstance(scipydist, scipy.stats._distn_infrastructure.rv_frozen):
         # Normal distribution

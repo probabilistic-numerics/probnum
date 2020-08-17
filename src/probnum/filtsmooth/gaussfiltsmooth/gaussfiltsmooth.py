@@ -16,7 +16,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
     """
 
     def __init__(self, dynamod, measmod, initrv):
-        """        Check that the initial distribution is Gaussian.        """
+        """Check that the initial distribution is Gaussian."""
         if not issubclass(type(initrv.distribution), Normal):
             raise ValueError(
                 "Gaussian filters/smoothers need initial "
@@ -121,7 +121,8 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         stop : float
             Predict TO this time point.
         randvar : RandomVariable
-            Predict based on this random variable. For instance, this can be the result of a previous call to filter_step.
+            Predict based on this random variable. For instance, this can be the result
+            of a previous call to filter_step.
         data : array_like
             Compute the update based on this data.
 

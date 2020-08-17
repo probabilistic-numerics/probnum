@@ -1,8 +1,8 @@
 """
 Solution-based probabilistic linear solvers.
 
-Implementations of solution-based linear solvers which perform inference on the solution of a linear system given linear
-observations.
+Implementations of solution-based linear solvers which perform inference on the solution
+of a linear system given linear observations.
 """
 
 import warnings
@@ -26,7 +26,8 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
 
     References
     ----------
-    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian Analysis*, 2019, 14, 937-1012
+    .. [1] Cockayne, J. et al., A Bayesian Conjugate Gradient Method, *Bayesian
+       Analysis*, 2019, 14, 937-1012
     """
 
     def __init__(self, A, b, x0=None):
@@ -37,7 +38,8 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
         """
         Check convergence of a linear solver.
 
-        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+        Evaluates a set of convergence criteria based on its input arguments to decide
+        whether the iteration has converged.
 
         Parameters
         ----------
@@ -46,11 +48,14 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
         maxiter : int
             Maximum number of iterations
         resid : array-like
-            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
+            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of
+            the current iteration.
         atol : float
-            Absolute residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{atol}`.
+            Absolute residual tolerance. Stops if
+            :math:`\\lVert r_i \\rVert < \\text{atol}`.
         rtol : float
-            Relative residual tolerance. Stops if :math:`\\lVert r_i \\rVert < \\text{rtol} \\lVert b \\rVert`.
+            Relative residual tolerance. Stops if
+            :math:`\\lVert r_i \\rVert < \\text{rtol} \\lVert b \\rVert`.
 
         Returns
         -------
@@ -62,7 +67,7 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
         # maximum iterations
         if iter >= maxiter:
             warnings.warn(
-                message="Iteration terminated. Solver reached the maximum number of iterations."
+                "Iteration terminated. Solver reached the maximum number of iterations."
             )
             return True, "maxiter"
         # residual below error tolerance

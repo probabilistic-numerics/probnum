@@ -1,8 +1,9 @@
 """
 (Finite-dimensional) Linear Operators.
 
-This package implements a variety of finite dimensional linear operators. These have the advantage of only implementing
-a matrix-vector product instead of representing the full linear operator as a matrix in memory.
+This package implements a variety of finite dimensional linear operators. These have the
+advantage of only implementing a matrix-vector product instead of representing the full
+linear operator as a matrix in memory.
 """
 
 from probnum.linalg.linops.linearoperators import *

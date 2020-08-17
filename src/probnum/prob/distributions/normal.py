@@ -201,7 +201,8 @@ class Normal(Distribution):
         elif isinstance(other, type(self)):
             if self.random_state is not None and other.random_state is not None:
                 warnings.warn(
-                    "When adding random variables with set random states only the first is preserved."
+                    "When adding random variables with set random states "
+                    "only the first is preserved."
                 )
             try:
                 return Normal(
@@ -223,7 +224,8 @@ class Normal(Distribution):
         elif isinstance(other, type(self)):
             if self.random_state is not None and other.random_state is not None:
                 warnings.warn(
-                    "When adding random variables with set random states only the first is preserved."
+                    "When adding random variables with set random states "
+                    "only the first is preserved."
                 )
             try:
                 return Normal(
@@ -345,7 +347,8 @@ class Normal(Distribution):
 
     def __abs__(self):
         try:
-            # todo: add absolute moments of normal (see: https://arxiv.org/pdf/1209.4340.pdf)
+            # todo: add absolute moments of normal
+            # (see: https://arxiv.org/pdf/1209.4340.pdf)
             return Distribution(
                 parameters={},
                 sample=lambda size: operator.abs(self.sample(size=size)),
@@ -671,8 +674,9 @@ class _OperatorvariateNormal(Normal):
 
     # Arithmetic Operations
 
-    # TODO: implement special rules for matrix-variate RVs and Kronecker structured covariances
-    #  (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
+    # TODO: implement special rules for matrix-variate RVs and
+    # Kronecker structured covariances
+    # (see e.g. p.64 Thm. 2.3.10 of Gupta: Matrix-variate Distributions)
     def __matmul__(self, other):
         if isinstance(other, Dirac):
             othermean = other.mean()

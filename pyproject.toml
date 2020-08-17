@@ -36,7 +36,6 @@ invalid-name,
 no-else-return,
 no-else-raise,
 
-line-too-long,
 fixme,
 too-many-arguments,
 missing-module-docstring,

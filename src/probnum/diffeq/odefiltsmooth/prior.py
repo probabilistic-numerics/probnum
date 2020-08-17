@@ -283,7 +283,8 @@ class IBM(ODEPrior):
         step = stop - start
 
         # This seems like the faster solution compared to fully vectorising.
-        # I suspect it is because np.math.factorial is much faster than scipy.special.factorial
+        # I suspect it is because np.math.factorial is much faster than
+        # scipy.special.factorial
         ah_1d = np.diag(np.ones(self.ordint + 1), 0)
         for i in range(self.ordint):
             offdiagonal = (

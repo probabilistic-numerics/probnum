@@ -102,7 +102,7 @@ class ODE(ABC):
         since for any directions :math:`v_1, v_2` the outcome of
         :math:`H_f(t_0, y_0) \\cdot v_1 \\cdot v_2` is expected to contain
         the incline of :math:`f_i` in direction :math:`(v_1, v_2)`.
-        """
+        """  # pylint: disable=line-too-long
         if self._hess is None:
             raise NotImplementedError
         else:

@@ -1,10 +1,11 @@
 """
 Bayesian Quadrature.
 
-This module provides routines to integrate functions through Bayesian quadrature, meaning a model over the integrand
-is constructed in order to actively select evaluation points of the integrand to estimate the value of the integral.
-Bayesian quadrature methods return a random variable with a distribution, specifying the belief about the true value of
-the integral.
+This module provides routines to integrate functions through Bayesian quadrature,
+meaning a model over the integrand is constructed in order to actively select evaluation
+points of the integrand to estimate the value of the integral. Bayesian quadrature
+methods return a random variable with a distribution, specifying the belief about the
+true value of the integral.
 """
 
 from probnum.quad.quadrature import Quadrature
@@ -40,7 +41,8 @@ def bayesquad(fun, fun0, bounds, nevals=None, type="vanilla", **kwargs):
     F : RandomVariable
         The integral of ``func`` from ``a`` to ``b``.
     fun0 : RandomProcess
-        Stochastic process modelling the function to be integrated after ``neval`` observations.
+        Stochastic process modelling the function to be integrated after ``neval``
+        observations.
     info : dict
         Information on the performance of the method.
 
@@ -97,7 +99,8 @@ def nbayesquad(fun, fun0, domain, nevals=None, type=None, **kwargs):
     F : RandomVariable
         The integral of ``func`` on the domain.
     fun0 : RandomProcess
-        Stochastic process modelling the function to be integrated after ``neval`` observations.
+        Stochastic process modelling the function to be integrated after ``neval``
+        observations.
     info : dict
         Information on the performance of the method.
 
@@ -115,7 +118,8 @@ class BayesianQuadrature(Quadrature):
     """
     An abstract base class for Bayesian quadrature methods.
 
-    This class is designed to be subclassed by implementations of Bayesian quadrature with an :meth:`integrate` method.
+    This class is designed to be subclassed by implementations of Bayesian quadrature
+    with an :meth:`integrate` method.
     """
 
     def integrate(self, fun, fun0, domain, nevals, **kwargs):

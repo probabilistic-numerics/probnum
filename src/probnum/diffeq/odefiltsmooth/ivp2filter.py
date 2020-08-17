@@ -66,7 +66,7 @@ def ivp2ekf0(ivp, prior, evlvar):
 
     evlvar : float,
         measurement variance; in the literature, this is "R"
-    """
+    """  # pylint: disable=line-too-long
     measmod = _measmod_ekf0(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
     return ExtendedKalman(prior, measmod, initrv)
