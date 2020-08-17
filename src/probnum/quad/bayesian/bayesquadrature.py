@@ -119,9 +119,6 @@ class BayesianQuadrature(Quadrature):
     This class is designed to be subclassed by implementations of Bayesian quadrature with an :meth:`integrate` method.
     """
 
-    def __init__(self):
-        super().__init__()
-
     def integrate(self, fun, fun0, domain, nevals, **kwargs):
         """
         Integrate the function ``fun``.
@@ -149,9 +146,6 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
     """
     Vanilla Bayesian quadrature in 1D.
     """
-
-    def __init__(self):
-        super().__init__()
 
     def integrate(self, fun, fun0, domain, nevals, **kwargs):
         """
@@ -196,9 +190,6 @@ class WSABIBayesianQuadrature(BayesianQuadrature):
     """
     Warped Sequential Active Bayesian Integration (WSABI).
     """
-
-    def __init__(self):
-        super().__init__()
 
     def integrate(self, fun, fun0, domain, nevals, **kwargs):
         """
