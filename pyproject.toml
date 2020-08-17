@@ -43,6 +43,12 @@ missing-module-docstring,
 unused-wildcard-import,
 abstract-method,
 unused-argument,
+too-many-branches,
+arguments-differ,
+redefined-builtin,
+too-few-public-methods,
+too-many-locals,
+missing-function-docstring
 """
 
 [tool.pylint.format]
