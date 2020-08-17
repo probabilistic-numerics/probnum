@@ -488,6 +488,19 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         self.params = (np.random.uniform(size=10), _random_spd_matrix(10))
 
+    def test_newaxis(self):
+        dist = prob.Normal(*self.params)
+
+        matrix_dist = dist[:, np.newaxis]
+
+        self.assertIsInstance(
+            matrix_dist, prob.distributions.normal._MatrixvariateNormal
+        )
+
+        self.assertEqual(matrix_dist.shape, (10, 1))
+        self.assertArrayEqual(np.squeeze(matrix_dist.mean()), dist.mean())
+        self.assertArrayEqual(matrix_dist.cov(), dist.cov())
+
     def test_reshape(self):
         dist = prob.Normal(*self.params)
 
