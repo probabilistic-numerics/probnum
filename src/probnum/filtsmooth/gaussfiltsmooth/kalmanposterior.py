@@ -88,10 +88,10 @@ class KalmanPosterior(FiltSmoothPosterior):
             else:
                 return pred_rv
 
-        elif t > self.locations[-1]:
-            if smoothed:
-                warn("`smoothed=True` is ignored for extrapolation.")
-            return self._predict_to_loc(t)
+        # else: t > self.locations[-1]:
+        if smoothed:
+            warn("`smoothed=True` is ignored for extrapolation.")
+        return self._predict_to_loc(t)
 
     def _predict_to_loc(self, loc):
         """Predict states at location `loc` from the closest, previous state"""
