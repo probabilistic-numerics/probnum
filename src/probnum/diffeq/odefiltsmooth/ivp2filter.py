@@ -22,12 +22,12 @@ def ivp2ekf0(ivp, prior, evlvar):
     onto the initial values.
 
     - If preconditioning is set to ``False``, it conditions
-      the initial distribution :math:`\mathcal{N}(0, I)`
+      the initial distribution :math:`\\mathcal{N}(0, I)`
       on the initial values :math:`(x_0, f(t_0, x_0), ...)` using
       as many available deri    vatives as possible.
 
     - If preconditioning is set to ``True``, it conditions
-      the initial distribution :math:`\mathcal{N}(0, P P^\\top)`
+      the initial distribution :math:`\\mathcal{N}(0, P P^\\top)`
       on the initial values :math:`(x_0, f(t_0, x_0), ...)` using
       as many available derivatives as possible.
       Note that the projection matrices :math:`H_0` and :math:`H_1`
@@ -36,7 +36,7 @@ def ivp2ekf0(ivp, prior, evlvar):
 
     **Measurement model:**
 
-    Returns a measurement model :math:`\mathcal{N}(g(m), R)`
+    Returns a measurement model :math:`\\mathcal{N}(g(m), R)`
     involving computing the discrepancy
 
     .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t)).
@@ -161,7 +161,7 @@ def _measmod_ukf(ivp, prior, measvar):
 
 def _initialdistribution(ivp, prior):
     """
-    Conditions initialdistribution :math:`\mathcal{N}(0, P P^\\top)`
+    Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)`
     on the initial values :math:`(x_0, f(t_0, x_0), ...)` using
     as many available derivatives as possible.
 
