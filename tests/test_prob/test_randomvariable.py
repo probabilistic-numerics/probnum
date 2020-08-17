@@ -199,16 +199,20 @@ class ShapeTestCase(RandomVariableTestCase):
             for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
                 with self.subTest():
                     try:
-                        self.assertEqual(rv.reshape(newshape=shape).shape, shape)
-                        self.assertEqual(rv.sample(size=1).shape, shape)
+                        reshaped_rv = rv.reshape(newshape=shape)
+
+                        self.assertEqual(reshaped_rv.shape, shape)
+                        self.assertEqual(reshaped_rv.sample(size=1).shape, shape)
                     except NotImplementedError:
                         pass
         for rv in self.randvars2d:
             for shape in [(2, 1), (2,), (1, 2)]:
                 with self.subTest():
                     try:
-                        self.assertEqual(rv.reshape(newshape=shape).shape, shape)
-                        self.assertEqual(rv.sample(size=1).shape, shape)
+                        reshaped_rv = rv.reshape(newshape=shape)
+
+                        self.assertEqual(reshaped_rv.shape, shape)
+                        self.assertEqual(reshaped_rv.sample(size=1).shape, shape)
                     except NotImplementedError:
                         pass
 

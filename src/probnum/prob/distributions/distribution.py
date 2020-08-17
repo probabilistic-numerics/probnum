@@ -129,6 +129,15 @@ class Distribution:
         """Shape of samples from this distribution."""
         return self._shape
 
+    @shape.setter
+    def shape(self, newshape):
+        self._reshape_inplace(newshape)
+
+        self._set_shape(newshape)
+
+    def _reshape_inplace(self, newshape):
+        raise NotImplementedError
+
     @property
     def dtype(self):
         """``Dtype`` of elements of samples from this distribution."""
@@ -415,4 +424,34 @@ class Distribution:
             "Reshaping not implemented for distribution of type: {}.".format(
                 self.__class__.__name__
             )
+        )
+
+    def transpose(self, *axes):
+        raise NotImplementedError(
+            "Transposition not implemented for distribution of type: {}.".format(
+                self.__class__.__name__
+            )
+        )
+
+    def __getitem__(self, key):
+        """
+        (Advanced) indexing, masking and slicing into (realizations of) this
+        distribution.
+
+        This is essentially marginalization for multivariate distributions. This method
+        supports all modes of array indexing presented in
+
+        https://numpy.org/doc/1.19/reference/arrays.indexing.html.
+
+        However, the available modes of indexing vary with the concrete distribution.
+
+        Parameters
+        ----------
+        key : int or slice or ndarray or tuple of None, int, slice, or ndarray
+            Indices, slice objects and/or boolean masks specifying which entries to keep
+            while marinalizing over all other entries.
+        """
+        raise NotImplementedError(
+            "(Advanced) indexing and slicing is not implemented for distribution of "
+            "type: {}.".format(self.__class__.__name__)
         )
