@@ -7,7 +7,6 @@ Bayesian quadrature methods return a random variable with a distribution, specif
 the integral.
 """
 
-import numpy as np
 from probnum.quad.quadrature import Quadrature
 
 

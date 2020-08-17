@@ -8,8 +8,6 @@ import warnings
 import abc
 
 import numpy as np
-import scipy.sparse
-import scipy.sparse.linalg
 import GPy
 
 from probnum import prob
