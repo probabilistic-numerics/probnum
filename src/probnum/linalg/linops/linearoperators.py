@@ -405,6 +405,7 @@ class Diagonal(LinearOperator):
     # TODO: should this be an operator itself or a function of a LinearOperator?
     #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient versions than n products e_i A e_i
     def __init__(self, Op):
+        # pylint: disable=super-init-not-called
         raise NotImplementedError
 
 
