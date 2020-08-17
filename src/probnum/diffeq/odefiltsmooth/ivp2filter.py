@@ -4,6 +4,7 @@ from initial value problems + state space model to filters.
 """
 
 import numpy as np
+
 from probnum.filtsmooth import *
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 from probnum.prob import RandomVariable
@@ -14,7 +15,7 @@ def ivp2ekf0(ivp, prior, evlvar):
     """
     Computes measurement model and initial distribution
     for KF based on IVP and prior.
-    
+
     **Initialdistribution:**
 
     Conditions the initial distribution of the Gaussian filter
@@ -51,7 +52,7 @@ def ivp2ekf0(ivp, prior, evlvar):
     model, :math:`H_0` and :math:`H_1`
     become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}` which has
     to be taken into account. In this case,
-    
+
     - EKF0 thinks :math:`J_g(m) = H_1 P^{-1}`
     - EKF1 thinks :math:`J_g(m) = H_1 P^{-1} - J_f(t, H_0  P^{-1} m(t)) (H_0 P^{-1})^\\top`
     - UKF again thinks: ''What is a Jacobian?''

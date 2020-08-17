@@ -42,7 +42,7 @@ class ODEPrior(LTISDEModel):
     matrix that maps to filtering iteration to the Nordsieck vector,
 
     .. math:: P = \\text{diag }(1, h, h^2, ..., h^q).
-    
+
     Here, :math:`h` is some expected average step size. Note that we
     ignored the factorials in this matrix. Our setting makes it easy to
     recover "no preconditioning" by choosing :math:`h=1`.
