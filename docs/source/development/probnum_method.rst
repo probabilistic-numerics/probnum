@@ -1,15 +1,16 @@
 Implementing a Probabilistic Numerical Method
 =============================================
 
-Probabilistic numerical methods in ProbNum follow the dogma of having random variables as input and random variables as output. Hence their signature should be similar to
+Probabilistic numerical methods in ProbNum follow the dogma of having random variables as input and random variables as
+output. Hence their signature should be similar to
 
 .. code-block:: python
 
 	randvar_out = probnum_method(problem, randvar_in, **kwargs)
 
 
-where :code:`problem` defines the numerical problem to solve, :code:`randvar_in` is the input random variable encoding prior 
-information and :code:`**kwargs` are keyword arguments that influence the behaviour 
+where :code:`problem` defines the numerical problem to solve, :code:`randvar_in` is the input random variable encoding
+prior information and :code:`**kwargs` are keyword arguments that influence the behaviour
 of the solver (e.g. control termination). If your method has a classic analogue in NumPy or SciPy, make sure the 
 signatures match as closely as possible. This enables PN methods to be used as drop-in replacements for classic 
 numerical routines.
@@ -143,8 +144,8 @@ Testing
 ********
 
 While or even before you add a new PN method, write tests for its functionality. Writing tests before the 
-code forces you to think about what your numerical method should do independent of its implementation. Some basic tests to consider are listed 
-below.
+code forces you to think about what your numerical method should do independent of its implementation. Some basic tests
+to consider are listed below.
 
 In- and Output
 """""""""""""""
@@ -159,5 +160,5 @@ Numerical
 
 Conclusion
 ***********
-Once you are done, consider writing an `example notebook <https://probnum.readthedocs.io/tutorials/tutorials.html>`_ showcasing your new 
-method. Congratulations you just implemented your first probabilistic numerical method in ProbNum!
+Once you are done, consider writing an `example notebook <https://probnum.readthedocs.io/tutorials/tutorials.html>`_
+showcasing your new method. Congratulations you just implemented your first probabilistic numerical method in ProbNum!
