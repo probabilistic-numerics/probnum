@@ -1,12 +1,19 @@
 Adding to the Documentation
 ============================
 
-Documentation is an integral part of every collaborative software project. Good documentation not only encourages users of the package to try out different functionalities, but it also makes maintaining and expanding code significantly easier. If you want to improve ProbNum's documentation or learn how to write documentation for your newly implemented functionality, keep reading.
+Documentation is an integral part of every collaborative software project. Good documentation not only encourages users
+of the package to try out different functionalities, but it also makes maintaining and expanding code significantly
+easier. If you want to improve ProbNum's documentation or learn how to write documentation for your newly implemented
+functionality, keep reading.
 
 Docstrings
 ***********
 
-The main form of documentation are `docstrings`, multi-line comments beneath a class or function definition with a specific syntax, which detail its functionality. This package uses the `NumPy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring-guide>`_. As a rule, all functions which are exposed to the user *must* have appropriate docstrings. Below is an example of a docstring for a probabilistic numerical method.
+The main form of documentation are `docstrings`, multi-line comments beneath a class or function definition with a
+specific syntax, which detail its functionality. This package uses the
+`NumPy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html#numpydoc-docstring-guide>`_. As a rule,
+all functions which are exposed to the user *must* have appropriate docstrings. Below is an example of a docstring for a
+probabilistic numerical method.
 
 .. code-block:: python
 
