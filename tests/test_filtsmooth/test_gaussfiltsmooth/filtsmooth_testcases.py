@@ -5,9 +5,14 @@ import unittest
 
 import numpy as np
 
-from probnum.filtsmooth import *
-from probnum.prob import *
-
+from probnum.filtsmooth import (
+    DiscreteGaussianLTIModel,
+    generate_dd,
+    LTISDEModel,
+    generate_cd,
+    DiscreteGaussianModel,
+)
+from probnum.prob import RandomVariable, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [

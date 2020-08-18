@@ -1,8 +1,13 @@
+import numpy as np
 import scipy.linalg
 
-from probnum.filtsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth import ExtendedKalman
 
-from .filtsmooth_testcases import *
+from .filtsmooth_testcases import (
+    CarTrackingDDTestCase,
+    OrnsteinUhlenbeckCDTestCase,
+    PendulumNonlinearDDTestCase,
+)
 
 np.random.seed(5472)
 
