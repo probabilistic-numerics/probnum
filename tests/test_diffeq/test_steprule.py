@@ -1,8 +1,10 @@
-from probnum.diffeq import steprule
-import unittest
 import numpy as np
+import unittest
 
-random_state = np.random.RandomState(seed=1234)
+from probnum.diffeq import steprule
+
+
+random_state = np.random.mtrand.RandomState(seed=1234)
 
 
 class TestConstantStep(unittest.TestCase):

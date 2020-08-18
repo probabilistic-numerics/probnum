@@ -62,3 +62,6 @@ attribute-defined-outside-init,
 
 [tool.pylint.format]
 max-line-length = "88"
+
+[tool.pylint.master]
+extension-pkg-whitelist = "numpy"
