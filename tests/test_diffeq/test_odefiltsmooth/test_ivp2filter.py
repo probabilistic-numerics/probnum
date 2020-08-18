@@ -12,7 +12,7 @@ import unittest
 
 from probnum.diffeq import ivp2filter, lotkavolterra, IBM
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
-from probnum.prob import RandomVariable, Normal, Dirac
+from probnum.prob import RandomVariable, Dirac
 from tests.testing import NumpyAssertions
 
 
