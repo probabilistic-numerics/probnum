@@ -65,9 +65,13 @@ max-line-length = "88"
 
 [tool.pylint.master]
 extension-pkg-whitelist = "numpy"
-# load-plugins="pylint.extensions.docparams,pylint.extensions.docstyle"
+# pylint.extensions.docstyle,
+# pylint.extensions.check_elif,
+# pylint.extensions.docparams,
 load-plugins = """
-pylint.extensions.mccabe
+pylint.extensions.mccabe,
+pylint.extensions.redefined_variable_type,
+pylint.extensions.overlapping_exceptions,
 """
 
 [tool.pylint.design]
