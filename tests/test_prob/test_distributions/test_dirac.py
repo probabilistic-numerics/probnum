@@ -1,7 +1,7 @@
 """Tests for the Dirac distributions."""
+import unittest
 
 import numpy as np
-import unittest
 
 from probnum import prob
 

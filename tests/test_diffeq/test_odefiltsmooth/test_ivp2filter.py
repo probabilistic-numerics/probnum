@@ -6,13 +6,13 @@ Covers:
     * Does the measurement model do what we think it does
     * Are the initial values initialised truthfully (y0, f(y0), Jf(y0)f(y0), ...)
 """
-
-import numpy as np
 import unittest
 
-from probnum.diffeq import ivp2filter, lotkavolterra, IBM
+import numpy as np
+
+from probnum.diffeq import IBM, ivp2filter, lotkavolterra
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
-from probnum.prob import RandomVariable, Dirac
+from probnum.prob import Dirac, RandomVariable
 from tests.testing import NumpyAssertions
 
 

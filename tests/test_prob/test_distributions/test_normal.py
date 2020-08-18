@@ -1,8 +1,6 @@
 """Tests for the normal distribution."""
-
-import unittest
 import itertools
-from tests.testing import NumpyAssertions
+import unittest
 
 import numpy as np
 import scipy.sparse
@@ -10,6 +8,7 @@ import scipy.stats
 
 from probnum import prob
 from probnum.linalg import linops
+from tests.testing import NumpyAssertions
 
 
 def _random_spd_matrix(D=10):

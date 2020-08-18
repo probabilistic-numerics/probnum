@@ -1,16 +1,15 @@
 """Tests for linear solvers."""
-
-import unittest
-from tests.testing import NumpyAssertions
 import os
+import unittest
 
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 
-from probnum import prob
-from probnum import linalg
+from probnum import linalg, prob
 from probnum.linalg import linops
+
+from tests.testing import NumpyAssertions
 
 
 class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):

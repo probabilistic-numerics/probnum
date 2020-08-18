@@ -1,8 +1,8 @@
-import numpy as np
 import unittest
 
-from probnum.diffeq import steprule
+import numpy as np
 
+from probnum.diffeq import steprule
 
 random_state = np.random.mtrand.RandomState(seed=1234)
 

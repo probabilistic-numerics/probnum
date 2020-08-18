@@ -1,13 +1,12 @@
 """Tests for linear operators."""
-
 import itertools
-
 import unittest
-from tests.testing import NumpyAssertions
+
 import numpy as np
 import scipy.sparse
 
 from probnum.linalg import linops
+from tests.testing import NumpyAssertions
 
 
 class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):

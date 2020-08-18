@@ -1,10 +1,10 @@
 import numpy as np
 
-from probnum.prob._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
+from probnum.prob._randomvariablelist import _RandomVariableList
+from tests.testing import NumpyAssertions
 
 from .filtsmooth_testcases import CarTrackingDDTestCase
-from tests.testing import NumpyAssertions
 
 
 class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
