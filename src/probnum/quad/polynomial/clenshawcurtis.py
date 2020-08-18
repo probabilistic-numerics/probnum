@@ -117,7 +117,7 @@ def _compute_weights(npts, ndim, ilbds):
     """
     if npts ** ndim * ndim >= 1e9:
         raise MemoryError("Weights for tensor-mesh too large for memory.")
-    num_tiles = np.arange(ndim)
+    # num_tiles = np.arange(ndim)
     num_reps = ndim - np.arange(ndim) - 1
     weights = _compute_weights_1d(npts, ndim, ilbds[0])
     prodweights = np.repeat(weights, npts ** (num_reps[0]))

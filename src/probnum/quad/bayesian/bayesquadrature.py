@@ -174,9 +174,9 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
         F = None
 
         # Iteration
-        for i in range(nevals):
+        for _ in range(nevals):
             # Predictive Distribution
-            fun_pred = None
+            # fun_pred = None
 
             # Observation
 

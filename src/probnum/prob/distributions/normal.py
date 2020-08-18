@@ -605,7 +605,7 @@ class _MatrixvariateNormal(Normal):
 
     def __matmul__(self, other):
         if isinstance(other, Dirac):
-            delta = other.mean()
+            # delta = other.mean()
             raise NotImplementedError
         return NotImplemented
 

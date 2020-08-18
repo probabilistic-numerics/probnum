@@ -567,7 +567,7 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         return np.linalg.det(self.A)
 
     def logabsdet(self):
-        sign, logdet = np.linalg.slogdet(self.A)
+        _sign, logdet = np.linalg.slogdet(self.A)
         return logdet
 
     def trace(self):
