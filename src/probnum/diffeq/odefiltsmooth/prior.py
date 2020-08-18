@@ -78,7 +78,6 @@ class ODEPrior(LTISDEModel):
     """
 
     def __init__(self, driftmat, dispmat, ordint, spatialdim, precond_step=1.0):
-        """ """
         self.ordint = ordint
         self.spatialdim = spatialdim
         self.precond, self.invprecond = self.precond2nordsieck(precond_step)

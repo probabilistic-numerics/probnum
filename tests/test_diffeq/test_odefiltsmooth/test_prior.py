@@ -52,17 +52,10 @@ QH_21_PRE = (
 
 
 class TestIBM(unittest.TestCase, NumpyAssertions):
-    """
-    """
-
     def setUp(self):
-        """
-        """
         self.ibm = prior.IBM(2, 2, DIFFCONST)
 
     def test_chapmankolmogorov(self):
-        """
-        """
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
         initrv = RandomVariable(distribution=Normal(mean, cov))
         cke, __ = self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
@@ -73,19 +66,12 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 
 
 class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
-    """
-    """
-
     def setUp(self):
-        """
-        """
         self.ibm = prior.IBM(
             ordint=2, spatialdim=1, diffconst=DIFFCONST, precond_step=STEP
         )
 
     def test_chapmankolmogorov(self):
-        """
-        """
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
         initrv = RandomVariable(distribution=Normal(mean, cov))
         cke, __ = self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
@@ -97,18 +83,11 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
 
 
 class TestIOUP(unittest.TestCase, NumpyAssertions):
-    """
-    """
-
     def setUp(self):
-        """
-        """
         driftspeed = np.random.rand()
         self.ibm = prior.IOUP(2, 2, driftspeed, DIFFCONST)
 
     def test_chapmankolmogorov(self):
-        """
-        """
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
         initrv = RandomVariable(distribution=Normal(mean, cov))
         self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
@@ -131,8 +110,6 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
     """
 
     def setUp(self):
-        """
-        """
         lenscale, diffconst = np.random.rand(), np.random.rand()
         self.mat0 = prior.Matern(0, 1, lenscale, diffconst)
         self.mat1 = prior.Matern(1, 1, lenscale, diffconst)
@@ -163,14 +140,10 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(self.mat2.driftmatrix[-1, :], expected)
 
     def test_larger_shape(self):
-        """
-        """
         mat2d = prior.Matern(2, 2, 1.0, 1.0)
         self.assertEqual(mat2d.ndim, 2 * (2 + 1))
 
     def test_chapmankolmogorov(self):
-        """
-        """
         mean, cov = np.ones(self.mat1.ndim), np.eye(self.mat1.ndim)
         initrv = RandomVariable(distribution=Normal(mean, cov))
         self.mat1.chapmankolmogorov(0.0, STEP, STEP, initrv)

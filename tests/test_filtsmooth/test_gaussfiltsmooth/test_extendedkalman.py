@@ -1,6 +1,3 @@
-"""
-"""
-
 import scipy.linalg
 
 from probnum.filtsmooth.gaussfiltsmooth import *
@@ -20,19 +17,13 @@ class TestExtendedKalmanDiscDisc(CarTrackingDDTestCase):
     """
 
     def setUp(self):
-        """
-        """
         super().setup_cartracking()
         self.method = ExtendedKalman(self.dynmod, self.measmod, self.initrv)
 
     def test_dynamicmodel(self):
-        """
-        """
         self.assertEqual(self.dynmod, self.method.dynamicmodel)
 
     def test_measurementmodel(self):
-        """
-        """
         self.assertEqual(self.measmod, self.method.measurementmodel)
 
     def test_initialdistribution(self):
@@ -105,35 +96,24 @@ class TestExtendedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
     """
 
     def setUp(self):
-        """ """
         super().setup_ornsteinuhlenbeck()
         self.method = ExtendedKalman(self.dynmod, self.measmod, self.initrv)
 
     def test_dynamicmodel(self):
-        """
-        """
         self.assertEqual(self.dynmod, self.method.dynamicmodel)
 
     def test_measurementmodel(self):
-        """
-        """
         self.assertEqual(self.measmod, self.method.measurementmodel)
 
     def test_initialdistribution(self):
-        """
-        """
         self.assertEqual(self.initrv, self.method.initialrandomvariable)
 
     def test_predict_shape(self):
-        """
-        """
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         self.assertEqual(pred.mean().shape, (1,))
         self.assertEqual(pred.cov().shape, (1, 1))
 
     def test_predict_value(self):
-        """
-        """
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         ah = scipy.linalg.expm(self.delta_t * self.drift)
         qh = (
@@ -147,8 +127,6 @@ class TestExtendedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         self.assertApproxEqual(expectedcov, pred.cov())
 
     def test_update(self):
-        """
-        """
         data = self.measmod.sample(0.0, self.initrv.mean() * np.ones(1))
         upd, __, __, __ = self.method.update(0.0, self.initrv, data)
         self.assertEqual(upd.mean().shape, (1,))

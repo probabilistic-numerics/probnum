@@ -25,7 +25,7 @@ class UnscentedKalman(GaussFiltSmooth):
     """
 
     def __new__(cls, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
-        """ """
+
         if cls is UnscentedKalman:
             if _cont_disc(dynamod, measmod):
                 return _ContDiscUnscentedKalman(

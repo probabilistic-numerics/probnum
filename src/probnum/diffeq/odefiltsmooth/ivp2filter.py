@@ -144,8 +144,7 @@ def ivp2ukf(ivp, prior, evlvar):
 
 
 def _measmod_ukf(ivp, prior, measvar):
-    """
-    """
+
     spatialdim = prior.spatialdim
     h0 = prior.proj2coord(coord=0)
     h1 = prior.proj2coord(coord=1)
@@ -204,7 +203,7 @@ def _initialdistribution(ivp, prior):
 
 
 def _initialdistribution_no_precond(ivp, prior):
-    """ """
+
     x0 = ivp.initialdistribution.mean()
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)

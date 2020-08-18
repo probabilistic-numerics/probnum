@@ -1,6 +1,3 @@
-"""
-
-"""
 from probnum.diffeq import steprule
 import unittest
 import numpy as np
@@ -15,20 +12,14 @@ class TestConstantStep(unittest.TestCase):
     """
 
     def setUp(self):
-        """
-        """
         self.step = random_state.rand()
         self.sr = steprule.ConstantSteps(self.step)
 
     def test_suggest(self):
-        """
-        """
         stp = self.sr.suggest(self.step, np.nan)
         self.assertEqual(stp, self.step)
 
     def test_is_accepted(self):
-        """
-        """
         isacc = self.sr.is_accepted(np.inf, np.nan)
         self.assertEqual(isacc, True)
 
@@ -47,15 +38,11 @@ class TestAdaptiveStep(unittest.TestCase):
         self.asr = steprule.AdaptiveSteps(self.tol, 3)
 
     def test_is_accepted(self):
-        """
-        """
         suggstep = random_state.rand()
         errorest = suggstep ** 3 / 3
         self.assertEqual(self.asr.is_accepted(suggstep, errorest), False)
 
     def test_propose(self):
-        """
-        """
         step = 0.25 * random_state.rand()
         errorest = step
         sugg = self.asr.suggest(step, errorest)

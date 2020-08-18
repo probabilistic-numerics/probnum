@@ -284,8 +284,6 @@ class IVP(ODE):
     """
 
     def __init__(self, timespan, initrv, rhs, jac=None, hess=None, sol=None):
-        """
-        """
         self.initrv = initrv
         super().__init__(timespan=timespan, rhs=rhs, jac=jac, hess=hess, sol=sol)
 

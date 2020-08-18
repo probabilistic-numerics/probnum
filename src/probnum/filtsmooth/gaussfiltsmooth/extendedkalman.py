@@ -21,7 +21,7 @@ class ExtendedKalman(GaussFiltSmooth):
     """
 
     def __new__(cls, dynamod, measmod, initrv, **kwargs):
-        """ """
+
         if cls is ExtendedKalman:
             if _cont_disc(dynamod, measmod):
                 return _ContDiscExtendedKalman(dynamod, measmod, initrv, **kwargs)

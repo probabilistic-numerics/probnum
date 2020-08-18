@@ -123,8 +123,7 @@ class TestGaussian(unittest.TestCase):
         var = 0.01
 
         def gaussian(x):
-            """
-            """
+
             return np.exp(-((x - mean) ** 2) / (2 * var)) / np.sqrt(2 * np.pi * var)
 
         ilbds = np.array([[mean - 3 * np.sqrt(var), mean]])
