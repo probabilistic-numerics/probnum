@@ -243,6 +243,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 S = []  # search directions
                 Y = []  # observations
 
+                # pylint: disable=cell-var-from-loop
                 def callback_postparams(xk, Ak, Ainvk, sk, yk, alphak, resid):
                     S.append(sk)
                     Y.append(yk)
@@ -394,6 +395,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 # Define callback function to obtain search directions
                 pls_iterates = []
 
+                # pylint: disable=cell-var-from-loop
                 def callback_iterates_PLS(
                     xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs
                 ):
