@@ -24,9 +24,7 @@ exclude = '''
 
 
 [tool.pylint.messages_control]
-# From black: bad-continuation, bad-whitespace
-# Exceptions we want to have: invalid-name
-# Unclear to me: no-else-return, no-else-raise
+# Exceptions suggested from Black: bad-continuation, bad-whitespace
 disable = """
 bad-continuation,
 bad-whitespace,
@@ -39,12 +37,14 @@ no-else-raise,
 missing-module-docstring,
 missing-function-docstring,
 """
+# Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 
 [tool.pylint.format]
 max-line-length = "88"
 
 [tool.pylint.master]
 extension-pkg-whitelist = "numpy"
+# Extensions that might be of interest in the future:
 # pylint.extensions.docstyle,
 # pylint.extensions.check_elif,
 # pylint.extensions.docparams,
