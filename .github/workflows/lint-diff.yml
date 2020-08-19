@@ -1,0 +1,19 @@
+name: Lint on PR into master
+
+on:
+  pull_request:
+    branch: master
+
+
+jobs:
+  pylint-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Install pylint
+        run: pip install pylint
+      - name: Show the diff
+        run: cd $GITHUB_WORKSPACE && git diff --name-only --diff-filter=d @{u}...HEAD
+      - name: Run pylint on the diff
+        run: git diff --name-only --diff-filter=d HEAD^ | grep -E '\.py$' | tr '\n' ' ' | xargs pylint
