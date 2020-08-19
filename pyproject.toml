@@ -36,28 +36,8 @@ invalid-name,
 no-else-return,
 no-else-raise,
 
-fixme,
-too-many-arguments,
 missing-module-docstring,
 missing-function-docstring,
-abstract-method,
-unused-argument,
-too-many-branches,
-arguments-differ,
-redefined-builtin,
-too-few-public-methods,
-too-many-locals,
-no-self-use,
-too-many-lines,
-broad-except,
-abstract-class-instantiated,
-protected-access,
-duplicate-code,
-too-complex,
-
-too-many-instance-attributes,
-too-many-statements,
-attribute-defined-outside-init,
 """
 
 [tool.pylint.format]
