@@ -22,6 +22,7 @@ filtsmooth
 diffeq
     Probabilistic solvers for ordinary differential equations.
 """
+# pylint: disable=wrong-import-order
 
 from . import diffeq
 from . import filtsmooth

@@ -67,8 +67,7 @@ class Quadrature(abc.ABC):
     """
 
     def __init__(self):
-        """
-        """
+        pass
 
     def integrate(self, fun, **kwargs):
         """

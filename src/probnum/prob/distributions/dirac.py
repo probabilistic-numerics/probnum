@@ -77,7 +77,7 @@ class Dirac(Distribution):
 
     def sample(self, size=(), seed=None):
         ndims = len(self.shape)
-        if size == 1 or size == ():
+        if size == 1 or size == ():  # pylint: disable=consider-using-in
             return self.parameters["support"]
         elif isinstance(size, int) and ndims == 0:
             return np.tile(A=self.parameters["support"], reps=size)

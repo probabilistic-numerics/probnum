@@ -4,8 +4,8 @@ Clenshaw-Curtis quadrature rule.
 This module implements the Clenshaw-Curtis quadrature rule and associated functions.
 
 Formula for nodes and weights:
-    [1] Sparse Grid Quadrature in High Dimensions with Applications in Finance and Insurance
-        Holtz, M., Springer, 2010(, Chapter 3, p. 42ff)
+    [1] Sparse Grid Quadrature in High Dimensions with Applications in Finance and
+        Insurance Holtz, M., Springer, 2010(, Chapter 3, p. 42ff)
 URL:
     https://books.google.de/books?id=XOfMm-4ZM9AC&pg=PA42&lpg=PA42&dq=filippi+formu
     la+clenshaw+curtis&source=bl&ots=gkhNu9F1fp&sig=ACfU3U3zdH-OHx0PqqB_KAXb1mM5iXI
@@ -62,7 +62,8 @@ class ClenshawCurtis(PolynomialQuadrature):
 
     References
     ----------
-    .. [1] Holtz, M., Sparse Grid Quadrature in High Dimensions with Applications in Finance and Insurance, Springer, 2010
+    .. [1] Holtz, M., Sparse Grid Quadrature in High Dimensions with Applications in
+       Finance and Insurance, Springer, 2010
 
 
     Examples
@@ -99,7 +100,7 @@ class ClenshawCurtis(PolynomialQuadrature):
     >>> print(cc.integrate(lambda x: np.sin(x)))
     [0.45969769]
 
-    """
+    """  # pylint: disable=line-too-long
 
     def __init__(self, npts_per_dim, ndim, bounds):
         utils.assert_is_2d_ndarray(bounds)
@@ -116,7 +117,7 @@ def _compute_weights(npts, ndim, ilbds):
     """
     if npts ** ndim * ndim >= 1e9:
         raise MemoryError("Weights for tensor-mesh too large for memory.")
-    num_tiles = np.arange(ndim)
+    # num_tiles = np.arange(ndim)
     num_reps = ndim - np.arange(ndim) - 1
     weights = _compute_weights_1d(npts, ndim, ilbds[0])
     prodweights = np.repeat(weights, npts ** (num_reps[0]))
@@ -136,7 +137,7 @@ def _compute_weights_1d(npts, ndim, ilbds1d):
     The :math:`i^\textrm{th}` weight is given by
 
     .. math:: w_i = \\frac{2}{n+1} \\sin\\left(\\frac{i \\pi}{n+1}\\right)\\sum_{j=1}^{(n+1)/2} \\frac{1}{2j-1}\\sin\\left(\\frac{(2j-1)i \\pi}{n+1}\\right).
-    """
+    """  # pylint: disable=line-too-long
     if npts % 2 == 0:
         raise ValueError("Please enter odd npts")
     nhalfpts = int((npts + 1.0) / 2.0)
@@ -193,7 +194,7 @@ def _compute_nodes_1d(npts, ilbds1d):
     -------
     np.ndarray, shape (npts,)
         1d CC nodes in ilbds1d
-    """
+    """  # pylint: disable=line-too-long
     if npts % 2 == 0:
         raise ValueError("Please enter odd npts")
     ind = np.arange(1, npts + 1)

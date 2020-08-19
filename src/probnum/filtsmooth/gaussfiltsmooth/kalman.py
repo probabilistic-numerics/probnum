@@ -4,9 +4,14 @@ continuous-discrete and discrete-discrete state space models.
 """
 
 import numpy as np
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
 from probnum.prob import RandomVariable, Normal
-from probnum.filtsmooth.statespace import *
+from probnum.filtsmooth.statespace import (
+    ContinuousModel,
+    DiscreteModel,
+    LinearSDEModel,
+    DiscreteGaussianLinearModel,
+)
 
 
 class Kalman(GaussFiltSmooth):
@@ -77,12 +82,10 @@ class _ContDiscKalman(Kalman):
         super().__init__(dynamod, measmod, initrv)
 
     def predict(self, start, stop, randvar, **kwargs):
-        """ """
         step = (stop - start) / self.cke_nsteps
         return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
-        """ """
         return _discrete_kalman_update(
             time, randvar, data, self.measurementmodel, **kwargs
         )

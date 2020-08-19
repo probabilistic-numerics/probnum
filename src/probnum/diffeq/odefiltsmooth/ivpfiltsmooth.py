@@ -5,7 +5,6 @@ from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
-from probnum.filtsmooth import *
 from probnum.diffeq.odesolution import ODESolution
 
 
@@ -172,5 +171,4 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     @property
     def prior(self):
-        """ """
         return self.gfilt.dynamicmodel

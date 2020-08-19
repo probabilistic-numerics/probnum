@@ -1,6 +1,3 @@
-"""
-"""
-
 from .ode import *
 from .odefiltsmooth import *
 from .steprule import *
@@ -30,7 +27,8 @@ __all__ = [
     "ODESolution",
 ]
 
-# Set correct module paths (for superclasses). Corrects links and module paths in documentation.
+# Set correct module paths (for superclasses).
+# Corrects links and module paths in documentation.
 ODE.__module__ = "probnum.diffeq"
 ODESolver.__module__ = "probnum.diffeq"
 StepRule.__module__ = "probnum.diffeq"

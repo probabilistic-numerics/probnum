@@ -6,13 +6,14 @@ Covers:
     * Does the measurement model do what we think it does
     * Are the initial values initialised truthfully (y0, f(y0), Jf(y0)f(y0), ...)
 """
+import unittest
 
 import numpy as np
-import unittest
-from probnum.diffeq import ivp2filter, lotkavolterra, IBM
+
+from probnum.diffeq import IBM, ivp2filter, lotkavolterra
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
-from probnum.prob import RandomVariable, Normal, Dirac
-from tests.testing import *
+from probnum.prob import Dirac, RandomVariable
+from tests.testing import NumpyAssertions
 
 
 class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):

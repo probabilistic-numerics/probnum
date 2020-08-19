@@ -1,6 +1,3 @@
-"""
-"""
-
 from abc import ABC, abstractmethod
 
 
@@ -37,6 +34,4 @@ class DiscreteModel(ABC):
     @property
     @abstractmethod
     def ndim(self):
-        """
-        """
         raise NotImplementedError

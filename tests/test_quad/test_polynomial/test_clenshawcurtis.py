@@ -45,6 +45,7 @@ class TestPolynomialExactness(unittest.TestCase):
             random_poly = np.random.randint(1, 11, (number + 1, number + 1))
             integrated_poly = npoly.polyint(npoly.polyint(random_poly).T).T
 
+            # pylint: disable=cell-var-from-loop
             def testpoly(val):
                 return npoly.polyval2d(val[:, 0], val[:, 1], c=random_poly)
 
@@ -77,6 +78,7 @@ class TestPolynomialExactness(unittest.TestCase):
                 random_poly = np.random.randint(1, 11, config)
                 integrated_poly = npoly.polyint(npoly.polyint(random_poly).T).T
 
+                # pylint: disable=cell-var-from-loop
                 def testpoly(val):
                     return npoly.polyval2d(val[:, 0], val[:, 1], c=random_poly)
 
@@ -123,8 +125,7 @@ class TestGaussian(unittest.TestCase):
         var = 0.01
 
         def gaussian(x):
-            """
-            """
+
             return np.exp(-((x - mean) ** 2) / (2 * var)) / np.sqrt(2 * np.pi * var)
 
         ilbds = np.array([[mean - 3 * np.sqrt(var), mean]])

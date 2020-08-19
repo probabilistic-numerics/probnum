@@ -1,16 +1,15 @@
 """Tests for linear solvers."""
-
-import unittest
-from tests.testing import NumpyAssertions
 import os
+import unittest
 
 import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 
-from probnum import prob
-from probnum import linalg
+from probnum import linalg, prob
 from probnum.linalg import linops
+
+from tests.testing import NumpyAssertions
 
 
 class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
@@ -243,6 +242,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 S = []  # search directions
                 Y = []  # observations
 
+                # pylint: disable=cell-var-from-loop
                 def callback_postparams(xk, Ak, Ainvk, sk, yk, alphak, resid):
                     S.append(sk)
                     Y.append(yk)
@@ -394,6 +394,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 # Define callback function to obtain search directions
                 pls_iterates = []
 
+                # pylint: disable=cell-var-from-loop
                 def callback_iterates_PLS(
                     xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs
                 ):

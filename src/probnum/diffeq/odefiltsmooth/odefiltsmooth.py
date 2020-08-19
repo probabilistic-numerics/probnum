@@ -255,7 +255,7 @@ def _create_solver_object(
 
 
 def _check_step_tol(step, tol):
-    """ """
+
     both_none = tol is None and step is None
     both_not_none = tol is not None and step is not None
     if both_none or both_not_none:
@@ -264,14 +264,13 @@ def _check_step_tol(step, tol):
 
 
 def _check_method(method):
-    """ """
+
     if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
         raise ValueError("Method not supported.")
 
 
 def _string2prior(ivp, which_prior, precond_step, **kwargs):
-    """
-    """
+
     ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
     ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
     matern_family = ["matern32", "matern52", "matern72", "matern92"]
@@ -286,8 +285,7 @@ def _string2prior(ivp, which_prior, precond_step, **kwargs):
 
 
 def _string2ibm(ivp, which_prior, precond_step, **kwargs):
-    """
-    """
+
     if "diffconst" in kwargs.keys():
         diffconst = kwargs["diffconst"]
     else:
@@ -305,8 +303,7 @@ def _string2ibm(ivp, which_prior, precond_step, **kwargs):
 
 
 def _string2ioup(ivp, which_prior, precond_step, **kwargs):
-    """
-    """
+
     if "diffconst" in kwargs.keys():
         diffconst = kwargs["diffconst"]
     else:
@@ -328,8 +325,7 @@ def _string2ioup(ivp, which_prior, precond_step, **kwargs):
 
 
 def _string2matern(ivp, which_prior, precond_step, **kwargs):
-    """
-    """
+
     if "diffconst" in kwargs.keys():
         diffconst = kwargs["diffconst"]
     else:
@@ -351,17 +347,16 @@ def _string2matern(ivp, which_prior, precond_step, **kwargs):
 
 
 def _string2filter(_ivp, _prior, _method, **kwargs):
-    """
-    """
+
     if "evlvar" in kwargs.keys():
         evlvar = kwargs["evlvar"]
     else:
         evlvar = 0.0
-    if _method == "ekf0" or _method == "eks0":
+    if _method in ("ekf0", "eks0"):
         return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    elif _method == "ekf1" or _method == "eks1":
+    elif _method in ("ekf1", "eks1"):
         return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    elif _method == "ukf" or _method == "uks":
+    elif _method in ("ukf", "uks"):
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     else:
         raise ValueError("Type of filter not supported.")

@@ -1,15 +1,13 @@
 """
 Matrix-based probabilistic linear solvers.
 
-Implementations of matrix-based linear solvers which perform inference on the matrix or its inverse given linear
-observations.
+Implementations of matrix-based linear solvers which perform inference on the matrix or
+its inverse given linear observations.
 """
 import warnings
 import abc
 
 import numpy as np
-import scipy.sparse
-import scipy.sparse.linalg
 import GPy
 
 from probnum import prob
@@ -20,15 +18,16 @@ class ProbabilisticLinearSolver(abc.ABC):
     """
     An abstract base class for probabilistic linear solvers.
 
-    This class is designed to be subclassed with new (probabilistic) linear solvers, which implement a ``.solve()``
-    method. Objects of this type are instantiated in wrapper functions such as :meth:``problinsolve``.
+    This class is designed to be subclassed with new (probabilistic) linear solvers,
+    which implement a ``.solve()`` method. Objects of this type are instantiated in
+    wrapper functions such as :meth:``problinsolve``.
 
     Parameters
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
         A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~probnum.prob.RandomVariable`. If an array or linear operator is given, a prior distribution is
-        chosen automatically.
+        :class:`~probnum.prob.RandomVariable`. If an array or linear operator is given,
+        a prior distribution is chosen automatically.
     b : RandomVariable, shape=(n,) or (n, nrhs)
         Right-hand side vector, matrix or RandomVariable of :math:`A x = b`.
     """
@@ -42,7 +41,8 @@ class ProbabilisticLinearSolver(abc.ABC):
         """
         Check convergence of a linear solver.
 
-        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+        Evaluates a set of convergence criteria based on its input arguments to decide
+        whether the iteration has converged.
 
         Parameters
         ----------
@@ -61,7 +61,7 @@ class ProbabilisticLinearSolver(abc.ABC):
         # maximum iterations
         if iter >= maxiter:
             warnings.warn(
-                message="Iteration terminated. Solver reached the maximum number of iterations."
+                "Iteration terminated. Solver reached the maximum number of iterations."
             )
             return True, "maxiter"
         else:
@@ -74,17 +74,19 @@ class ProbabilisticLinearSolver(abc.ABC):
         Parameters
         ----------
         callback : function, optional
-            User-supplied function called after each iteration of the linear solver. It is called as
-            ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)`` and can be used to return quantities from the
-            iteration. Note that depending on the function supplied, this can slow down the solver.
+            User-supplied function called after each iteration of the linear solver. It
+            is called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)``
+            and can be used to return quantities from the iteration. Note that depending
+            on the function supplied, this can slow down the solver.
         kwargs
-            Key-word arguments adjusting the behaviour of the ``solve`` iteration. These are usually convergence
-            criteria.
+            Key-word arguments adjusting the behaviour of the ``solve`` iteration. These
+            are usually convergence criteria.
 
         Returns
         -------
         x : RandomVariable, shape=(n,) or (n, nrhs)
-            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+            Approximate solution :math:`x` to the linear system. Shape of the return
+            matches the shape of ``b``.
         A : RandomVariable, shape=(n,n)
             Posterior belief over the linear operator.
         Ainv : RandomVariable, shape=(n,n)
@@ -104,7 +106,8 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
         A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~probnum.prob.RandomVariable`. If an array or linear operator is given, a prior distribution is
+        :class:`~probnum.prob.RandomVariable`. If an array or linear operator is given,
+        a prior distribution is
         chosen automatically.
     b : RandomVariable, shape=(n,) or (n, nrhs)
         Right-hand side vector, matrix or RandomVariable of :math:`A x = b`.
@@ -121,15 +124,17 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         Parameters
         ----------
         A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the linear operator
-            :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
-        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the inverse
-            :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+            A square matrix, linear operator or random variable representing the prior
+            belief over the linear operator :math:`A`. If an array or linear operator is
             given, a prior distribution is chosen automatically.
+        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+            A square matrix, linear operator or random variable representing the prior
+            belief over the inverse :math:`H=A^{-1}`. This can be viewed as taking the
+            form of a pre-conditioner. If an array or linear operator is given, a prior
+            distribution is chosen automatically.
         x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-            Optional. Prior belief for the solution of the linear system. Will be ignored if ``A0`` or ``Ainv0`` is
-            given.
+            Optional. Prior belief for the solution of the linear system. Will be
+            ignored if ``A0`` or ``Ainv0`` is given.
         b : array_like, shape=(n,) or (n, nrhs)
             Right-hand side vector or matrix in :math:`A x = b`.
         """
@@ -137,10 +142,12 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
 
     def _construct_symmetric_matrix_prior_means(self, A, x0, b):
         """
-        Create matrix prior means from an initial guess for the solution of the linear system.
+        Create matrix prior means from an initial guess for the solution of the linear
+        system.
 
-        Constructs a matrix-variate prior mean for H from ``x0`` and ``b`` such that :math:`H_0b = x_0`, :math:`H_0`
-        symmetric positive definite and :math:`A_0 = H_0^{-1}`.
+        Constructs a matrix-variate prior mean for H from ``x0`` and ``b`` such that
+        :math:`H_0b = x_0`, :math:`H_0` symmetric positive definite and
+        :math:`A_0 = H_0^{-1}`.
 
         Parameters
         ----------
@@ -154,11 +161,14 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         Returns
         -------
         A0_mean : linops.LinearOperator
-            Mean of the matrix-variate prior distribution on the system matrix :math:`A`.
+            Mean of the matrix-variate prior distribution on the system matrix
+            :math:`A`.
         Ainv0_mean : linops.LinearOperator
-            Mean of the matrix-variate prior distribution on the inverse of the system matrix :math:`H = A^{-1}`.
+            Mean of the matrix-variate prior distribution on the inverse of the system
+            matrix :math:`H = A^{-1}`.
         """
-        # Check inner product between x0 and b; if negative or zero, choose better initialization
+        # Check inner product between x0 and b; if negative or zero, choose better
+        # initialization
         bx0 = np.squeeze(b.T @ x0)
         bb = np.linalg.norm(b) ** 2
         if bx0 < 0:
@@ -228,7 +238,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
     """
     Symmetric matrix-based probabilistic linear solver.
 
-    Implements the solve iteration of the symmetric matrix-based probabilistic linear solver described in [1]_ and [2]_.
+    Implements the solve iteration of the symmetric matrix-based probabilistic linear
+    solver described in [1]_ and [2]_.
 
     Parameters
     ----------
@@ -237,14 +248,17 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
     A0 : array-like or LinearOperator or RandomVariable, shape=(n, n), optional
-        A square matrix, linear operator or random variable representing the prior belief over the linear operator
-        :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
-    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-        A square matrix, linear operator or random variable representing the prior belief over the inverse
-        :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+        A square matrix, linear operator or random variable representing the prior
+        belief over the linear operator :math:`A`. If an array or linear operator is
         given, a prior distribution is chosen automatically.
+    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+        A square matrix, linear operator or random variable representing the prior
+        belief over the inverse :math:`H=A^{-1}`. This can be viewed as taking the form
+        of a pre-conditioner. If an array or linear operator is given, a prior
+        distribution is chosen automatically.
     x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-        Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv0`` is given.
+        Optional. Prior belief for the solution of the linear system. Will be ignored if
+        ``Ainv0`` is given.
 
     Returns
     -------
@@ -259,12 +273,15 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
     References
     ----------
-    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
+       2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
+       Optimization*, 2015, 25, 234-260
 
     See Also
     --------
-    NoisySymmetricMatrixBasedSolver : Class implementing the noisy symmetric probabilistic linear solver.
+    NoisySymmetricMatrixBasedSolver :
+        Class implementing the noisy symmetric probabilistic linear solver.
     """
 
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
@@ -313,15 +330,17 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         Parameters
         ----------
         A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the linear operator
-            :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
-        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the inverse
-            :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
-            given, a prior distribution is chosen automatically.
+            A square matrix, linear operator or random variable representing the prior
+            belief over the linear operator :math:`A`. If an array or linear operator is
+            given, a prior distribution is chosen automatically. Ainv0 : array-like or
+            LinearOperator or RandomVariable, shape=(n,n), optional A square matrix,
+            linear operator or random variable representing the prior belief over the
+            inverse :math:`H=A^{-1}`. This can be viewed as taking the form of a
+            pre-conditioner. If an array or linear operator is given, a prior
+            distribution is chosen automatically.
         x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-            Optional. Prior belief for the solution of the linear system. Will be ignored if ``A0`` or ``Ainv0`` is
-            given.
+            Optional. Prior belief for the solution of the linear system. Will be
+            ignored if ``A0`` or ``Ainv0`` is given.
         b : array_like, shape=(n,) or (n, nrhs)
             Right-hand side vector or matrix in :math:`A x = b`.
 
@@ -330,13 +349,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         A0_mean : array-like or LinearOperator, shape=(n,n)
             Prior mean of the linear operator :math:`A`.
         A0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^A` of the symmetric Kronecker product prior covariance :math:`W^A \\otimes_s W^A` of
-            :math:`A`.
+            Factor :math:`W^A` of the symmetric Kronecker product prior covariance
+            :math:`W^A \\otimes_s W^A` of :math:`A`.
         Ainv0_mean : array-like or LinearOperator, shape=(n,n)
             Prior mean of the linear operator :math:`H`.
         Ainv0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^H` of the symmetric Kronecker product prior covariance :math:`W^H \\otimes_s W^H` of
-            :math:`H`.
+            Factor :math:`W^H` of the symmetric Kronecker product prior covariance
+            :math:`W^H \\otimes_s W^H` of :math:`H`.
         """
         self.is_calib_covclass = False
         # No matrix priors specified
@@ -380,15 +399,16 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     A0_mean = Ainv0.inv()
             except AttributeError:
                 warnings.warn(
-                    message="Prior specified only for Ainv. Inverting prior mean naively. "
-                    + "This operation is computationally costly! Specify an inverse prior (mean) instead."
+                    "Prior specified only for Ainv. Inverting prior mean naively. "
+                    "This operation is computationally costly! Specify an inverse "
+                    "prior (mean) instead."
                 )
                 A0_mean = np.linalg.inv(Ainv0.mean())
             except NotImplementedError:
                 A0_mean = linops.Identity(self.n)
                 warnings.warn(
-                    message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
-                    + "falling back to standard normal prior."
+                    "Prior specified only for Ainv. Automatic prior mean inversion "
+                    "not implemented, falling back to standard normal prior."
                 )
             # Symmetric posterior correspondence
             A0_covfactor = self.A
@@ -412,15 +432,16 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     Ainv0_mean = A0.inv()
             except AttributeError:
                 warnings.warn(
-                    message="Prior specified only for A. Inverting prior mean naively. "
-                    + "This operation is computationally costly! Specify an inverse prior (mean)."
+                    "Prior specified only for A. Inverting prior mean naively. "
+                    "This operation is computationally costly! "
+                    "Specify an inverse prior (mean)."
                 )
                 Ainv0_mean = np.linalg.inv(A0.mean())
             except NotImplementedError:
                 Ainv0_mean = linops.Identity(self.n)
                 warnings.warn(
-                    message="Prior specified only for A. "
-                    + "Automatic prior mean inversion failed, falling back to standard normal prior."
+                    "Prior specified only for A. Automatic prior mean inversion "
+                    "failed, falling back to standard normal prior."
                 )
             # Symmetric posterior correspondence
             Ainv0_covfactor = Ainv0_mean
@@ -463,13 +484,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         if isinstance(self.Ainv_covfactor0, linops.ScalarMult):
             # Scalar prior mean
-            if self.is_calib_covclass and k > 0 and (not unc_scale == 0):
+            if self.is_calib_covclass and k > 0 and unc_scale != 0:
                 _trace = self.Ainv_covfactor0.scalar * k
             else:
                 _trace = self.Ainv_covfactor0.trace()
         else:
             # General prior mean
-            if self.is_calib_covclass and k > 0 and (not unc_scale == 0):
+            if self.is_calib_covclass and k > 0 and unc_scale != 0:
                 # General prior mean with calibration covariance class
                 _trace = np.trace(
                     np.linalg.solve(
@@ -486,14 +507,16 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
     def _compute_trace_solution_covariance(self, bWb, Wb):
         """
-        Computes the trace of the solution covariance :math:`\\tr(\\operatorname{Cov}[x])`
+        Computes the trace of the solution covariance
+        :math:`\\tr(\\operatorname{Cov}[x])`
 
         Parameters
         ----------
         bWb : float
             Inner product of right hand side and the inverse covariance factor.
         Wb : np.ndarray
-            Matrix-vector product between the inverse covariance factor and the right hand side.
+            Matrix-vector product between the inverse covariance factor and the right
+            hand side.
 
         Returns
         -------
@@ -507,7 +530,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         """
         Check convergence of a linear solver.
 
-        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+        Evaluates a set of convergence criteria based on its input arguments to decide
+        whether the iteration has converged.
 
         Parameters
         ----------
@@ -516,7 +540,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         maxiter : int
             Maximum number of iterations
         resid : array-like
-            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of the current iteration.
+            Residual vector :math:`\\lVert r_i \\rVert = \\lVert Ax_i - b \\rVert` of
+            the current iteration.
         atol : float
             Absolute residual tolerance. Stops if
             :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{atol}`.
@@ -530,11 +555,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             True if the method has converged.
         convergence_criterion : str
             Convergence criterion which caused termination.
-        """
+        """  # pylint: disable=line-too-long
         # maximum iterations
         if iter >= maxiter:
             warnings.warn(
-                message="Iteration terminated. Solver reached the maximum number of iterations."
+                "Iteration terminated. Solver reached the maximum number of iterations."
             )
             return True, "maxiter"
         # residual below error tolerance
@@ -556,9 +581,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         """
         Calibrate uncertainty based on the Rayleigh coefficients
 
-        A regression model for the log-Rayleigh coefficient is built based on the collected observations. The degrees of
-        freedom in the kernels of A and H are set according to the predicted log-Rayleigh coefficient for the
-        remaining unexplored dimensions.
+        A regression model for the log-Rayleigh coefficient is built based on the
+        collected observations. The degrees of freedom in the kernels of A and H are set
+        according to the predicted log-Rayleigh coefficient for the remaining unexplored
+        dimensions.
 
         Parameters
         ----------
@@ -567,7 +593,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         sy : np.ndarray
             Array of inner products ``s_i'As_i``
         method : str
-            Type of calibration method to use based on the Rayleigh quotient. Available calibration procedures are
+            Type of calibration method to use based on the Rayleigh quotient. Available
+            calibration procedures are
             ====================================  ==================
              Most recent Rayleigh quotient         ``adhoc``
              Running (weighted) mean               ``weightedmean``
@@ -586,9 +613,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         iters = np.arange(self.iter_ + 1)
         logR = np.log(sy) - np.log(np.einsum("nk,nk->k", S, S))
 
-        if (
-            self.iter_ > 1
-        ):  # only calibrate if enough iterations for a regression model have been performed
+        # only calibrate if enough iterations for a regression model have been performed
+        if self.iter_ > 1:
             if method == "adhoc":
                 logR_pred = logR[-1]
             elif method == "weightedmean":
@@ -597,8 +623,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     deprecation_rate, self.iter_ + 1
                 ) ** np.arange(self.iter_ + 1)
             elif method == "gpkern":
-                # GP mean function via Weyl's result on spectra of Gram matrices for differentiable kernels
-                #   ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
+                # GP mean function via Weyl's result on spectra of Gram matrices for
+                # differentiable kernels
+                # ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
                 lnmap = GPy.core.Mapping(1, 1)
                 lnmap.f = lambda n: np.log(n + 10 ** -16)
                 lnmap.update_gradients = lambda a, b: None
@@ -630,16 +657,19 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
     def _get_calibration_covariance_update_terms(self, phi=None, psi=None):
         """
-        For the calibration covariance class set the calibration update terms of the covariance in the null spaces
-        of span(S) and span(Y) based on the degrees of freedom.
+        For the calibration covariance class set the calibration update terms of the
+        covariance in the null spaces of span(S) and span(Y) based on the degrees of
+        freedom.
         """
         # Search directions and observations as arrays
         S = np.hstack(self.search_dir_list)
         Y = np.hstack(self.obs_list)
 
         def get_null_space_map(V, unc_scale):
-            """Returns a function mapping to the null space of span(V), scaling with a single degree of freedom
-             and mapping back."""
+            """
+            Returns a function mapping to the null space of span(V), scaling with a
+            single degree of freedom and mapping back.
+            """
 
             def null_space_proj(x):
                 try:
@@ -648,15 +678,18 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 except np.linalg.LinAlgError:
                     return np.zeros_like(x)
 
-            # For a scalar uncertainty scale projecting to the null space twice is equivalent to projecting once
+            # For a scalar uncertainty scale projecting to the null space twice is
+            # equivalent to projecting once
             return lambda y: unc_scale * null_space_proj(y)
 
-        # Compute calibration term in the A view as a linear operator with scaling from degrees of freedom
+        # Compute calibration term in the A view as a linear operator with scaling from
+        # degrees of freedom
         calibration_term_A = linops.LinearOperator(
             shape=(self.n, self.n), matvec=get_null_space_map(V=S, unc_scale=phi)
         )
 
-        # Compute calibration term in the Ainv view as a linear operator with scaling from degrees of freedom
+        # Compute calibration term in the Ainv view as a linear operator with scaling
+        # from degrees of freedom
         calibration_term_Ainv = linops.LinearOperator(
             shape=(self.n, self.n), matvec=get_null_space_map(V=Y, unc_scale=psi)
         )
@@ -664,7 +697,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return calibration_term_A, calibration_term_Ainv
 
     def _get_output_randvars(self, Y_list, sy_list, phi=None, psi=None):
-        """Return output random variables x, A, Ainv from their means and covariances."""
+        """
+        Return output random variables x, A, Ainv from their means and covariances.
+        """
 
         if self.iter_ > 0:
             # Observations and inner products in A-space between actions
@@ -684,8 +719,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
                 def _matvec(x):
                     # Term in covariance class: A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}
-                    # TODO: for efficiency ensure that we dont have to compute (Y.T Y)^{-1} two times! For a scalar mean
-                    #  this is the same as in the null space projection
+                    # TODO: for efficiency ensure that we dont have to compute
+                    # (Y.T Y)^{-1} two times! For a scalar mean this is the same as in
+                    # the null space projection
                     YAinv0Y_inv_YAinv0x = np.linalg.solve(
                         Y.T @ (self.Ainv_mean0 @ Y), Y.T @ (self.Ainv_mean0 @ x)
                     )
@@ -695,7 +731,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     shape=(self.n, self.n), matvec=_matvec
                 )
 
-                # Set degrees of freedom based on uncertainty calibration in unexplored space
+                # Set degrees of freedom based on uncertainty calibration in unexplored
+                # space
                 (
                     calibration_term_A,
                     calibration_term_Ainv,
@@ -759,7 +796,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return x, A, Ainv
 
     def _mean_update(self, u, v):
-        """Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu')."""
+        """
+        Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu').
+        """
 
         def mv(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
@@ -767,7 +806,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
 
     def _covariance_update(self, u, Ws):
-        """Linear operator implementing the symmetric rank 2 kernels update (-= Ws u^T)."""
+        """
+        Linear operator implementing the symmetric rank 2 kernels update (-= Ws u^T).
+        """
 
         def mv(x):
             return Ws @ (u.T @ x)
@@ -783,9 +824,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         Parameters
         ----------
         callback : function, optional
-            User-supplied function called after each iteration of the linear solver. It is called as
-            ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be used to return quantities from the
-            iteration. Note that depending on the function supplied, this can slow down the solver.
+            User-supplied function called after each iteration of the linear solver. It
+            is called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid)`` and can be
+            used to return quantities from the iteration. Note that depending on the
+            function supplied, this can slow down the solver.
         maxiter : int
             Maximum number of iterations
         atol : float
@@ -795,8 +837,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Relative residual tolerance. Stops if
             :math:`\\min(\\lVert r_i \\rVert, \\sqrt{\\operatorname{tr}(\\operatorname{Cov}(x))}) \\leq \\text{rtol} \\lVert b \\rVert`.
         calibration : str or float, default=False
-            If supplied calibrates the output via the given procedure or uncertainty scale. Available calibration
-            procedures / choices are
+            If supplied calibrates the output via the given procedure or uncertainty
+            scale. Available calibration procedures / choices are
 
             ====================================  ================
              No calibration                       None
@@ -809,14 +851,15 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         Returns
         -------
         x : RandomVariable, shape=(n,) or (n, nrhs)
-            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+            Approximate solution :math:`x` to the linear system. Shape of the return
+            matches the shape of ``b``.
         A : RandomVariable, shape=(n,n)
             Posterior belief over the linear operator.calibrate
         Ainv : RandomVariable, shape=(n,n)
             Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
         info : dict
             Information on convergence of the solver.
-        """
+        """  # pylint: disable=line-too-long
         # Initialization
         self.iter_ = 0
         resid = self.A @ self.x_mean - self.b
@@ -976,8 +1019,9 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
     """
     Solver iteration of the noisy symmetric probabilistic linear solver.
 
-    Implements the solve iteration of the symmetric matrix-based probabilistic linear solver taking into account noisy
-    matrix-vector products :math:`y_k = (A + E_k)s_k` as described in [1]_ and [2]_.
+    Implements the solve iteration of the symmetric matrix-based probabilistic linear
+    solver taking into account noisy matrix-vector products :math:`y_k = (A + E_k)s_k`
+    as described in [1]_ and [2]_.
 
     Parameters
     ----------
@@ -986,14 +1030,17 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
     b : array_like, shape=(n,) or (n, nrhs)
         Right-hand side vector or matrix in :math:`A x = b`.
     A0 : array-like or LinearOperator or RandomVariable, shape=(n, n), optional
-        A square matrix, linear operator or random variable representing the prior belief over the linear operator
-        :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
-    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-        A square matrix, linear operator or random variable representing the prior belief over the inverse
-        :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+        A square matrix, linear operator or random variable representing the prior
+        belief over the linear operator :math:`A`. If an array or linear operator is
         given, a prior distribution is chosen automatically.
+    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+        A square matrix, linear operator or random variable representing the prior
+        belief over the inverse :math:`H=A^{-1}`. This can be viewed as taking the form
+        of a pre-conditioner. If an array or linear operator is given, a prior
+        distribution is chosen automatically.
     x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-        Optional. Prior belief for the solution of the linear system. Will be ignored if ``Ainv0`` is given.
+        Optional. Prior belief for the solution of the linear system. Will be ignored if
+        ``Ainv0`` is given.
 
     Returns
     -------
@@ -1008,12 +1055,15 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
 
     References
     ----------
-    .. [1] Wenger, J., de Roos, F. and Hennig, P., Probabilistic Solution of Noisy Linear Systems, 2020
-    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on Optimization*, 2015, 25, 234-260
+    .. [1] Wenger, J., de Roos, F. and Hennig, P., Probabilistic Solution of Noisy
+       Linear Systems, 2020
+    .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
+       Optimization*, 2015, 25, 234-260
 
     See Also
     --------
-    SymmetricMatrixBasedSolver : Class implementing the symmetric probabilistic linear solver.
+    SymmetricMatrixBasedSolver :
+        Class implementing the symmetric probabilistic linear solver.
     """
 
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
@@ -1072,15 +1122,17 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         Parameters
         ----------
         A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the linear operator
-            :math:`A`. If an array or linear operator is given, a prior distribution is chosen automatically.
-        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-            A square matrix, linear operator or random variable representing the prior belief over the inverse
-            :math:`H=A^{-1}`. This can be viewed as taking the form of a pre-conditioner. If an array or linear operator is
+            A square matrix, linear operator or random variable representing the prior
+            belief over the linear operator :math:`A`. If an array or linear operator is
             given, a prior distribution is chosen automatically.
+        Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+            A square matrix, linear operator or random variable representing the prior
+            belief over the inverse :math:`H=A^{-1}`. This can be viewed as taking the
+            form of a pre-conditioner. If an array or linear operator is given, a prior
+            distribution is chosen automatically.
         x0 : array-like, or RandomVariable, shape=(n,)
-            Optional. Prior belief for the solution of the linear system. Will be ignored if ``A0`` or ``Ainv0`` is
-            given.
+            Optional. Prior belief for the solution of the linear system. Will be
+            ignored if ``A0`` or ``Ainv0`` is given.
         b : RandomVariable, shape=(n,) or (n, nrhs)
             Right-hand side random variable `b` in :math:`A x = b`.
 
@@ -1089,13 +1141,13 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         A0_mean : array-like or LinearOperator, shape=(n,n)
             Prior mean of the linear operator :math:`A`.
         A0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^A` of the symmetric Kronecker product prior covariance :math:`W^A \\otimes_s W^A` of
-            :math:`A`.
+            Factor :math:`W^A` of the symmetric Kronecker product prior covariance
+            :math:`W^A \\otimes_s W^A` of :math:`A`.
         Ainv0_mean : array-like or LinearOperator, shape=(n,n)
             Prior mean of the linear operator :math:`H`.
         Ainv0_covfactor : array-like or LinearOperator, shape=(n,n)
-            Factor :math:`W^H` of the symmetric Kronecker product prior covariance :math:`W^H \\otimes_s W^H` of
-            :math:`H`.
+            Factor :math:`W^H` of the symmetric Kronecker product prior covariance
+            :math:`W^H \\otimes_s W^H` of :math:`H`.
         b_mean : array-like, shape=(n,nrhs)
             Prior mean of the right hand side :math:`b`.
         """
@@ -1111,9 +1163,9 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 Ainv0_covfactor = linops.Identity(shape=self.n)
                 # Standard normal covariance
                 A0_mean = linops.Identity(shape=self.n)
-                A0_covfactor = linops.Identity(
-                    shape=self.n
-                )  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
+                A0_covfactor = linops.Identity(shape=self.n)
+                # TODO: should this be a sample from A to achieve symm. posterior
+                # correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
             # Construct matrix priors from initial guess x0
             elif isinstance(x0, np.ndarray):
@@ -1127,9 +1179,9 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 )
                 Ainv0_covfactor = Ainv0_mean
                 # Standard normal covariance
-                A0_covfactor = linops.Identity(
-                    shape=self.n
-                )  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
+                A0_covfactor = linops.Identity(shape=self.n)
+                # TODO: should this be a sample from A to achieve symm. posterior
+                # correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
             elif isinstance(x0, prob.RandomVariable):
                 raise NotImplementedError
@@ -1151,20 +1203,21 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                     A0_mean = Ainv0.inv()
             except AttributeError:
                 warnings.warn(
-                    message="Prior specified only for Ainv. Inverting prior mean naively. "
-                    + "This operation is computationally costly! Specify an inverse prior (mean) instead."
+                    "Prior specified only for Ainv. Inverting prior mean naively. "
+                    "This operation is computationally costly! Specify an inverse "
+                    "prior (mean) instead."
                 )
                 A0_mean = np.linalg.inv(Ainv0.mean())
             except NotImplementedError:
                 A0_mean = linops.Identity(self.n)
                 warnings.warn(
-                    message="Prior specified only for Ainv. Automatic prior mean inversion not implemented, "
-                    + "falling back to standard normal prior."
+                    "Prior specified only for Ainv. Automatic prior mean inversion "
+                    "not implemented, falling back to standard normal prior."
                 )
             # Standard normal covariance
-            A0_covfactor = linops.Identity(
-                shape=self.n
-            )  # TODO: should this be a sample from A to achieve symm. posterior correspondence?
+            A0_covfactor = linops.Identity(shape=self.n)
+            # TODO: should this be a sample from A to achieve symm. posterior
+            # correspondence?
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
 
         # Prior on A specified
@@ -1184,15 +1237,16 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                     Ainv0_mean = A0.inv()
             except AttributeError:
                 warnings.warn(
-                    message="Prior specified only for A. Inverting prior mean naively. "
-                    + "This operation is computationally costly! Specify an inverse prior (mean) instead."
+                    "Prior specified only for A. Inverting prior mean naively. "
+                    "This operation is computationally costly! Specify an inverse "
+                    "prior (mean) instead."
                 )
                 Ainv0_mean = np.linalg.inv(A0.mean())
             except NotImplementedError:
                 Ainv0_mean = linops.Identity(self.n)
                 warnings.warn(
-                    message="Prior specified only for A. "
-                    + "Automatic prior mean inversion failed, falling back to standard normal prior."
+                    "Prior specified only for A. Automatic prior mean inversion "
+                    "failed, falling back to standard normal prior."
                 )
             # Symmetric posterior correspondence
             Ainv0_covfactor = Ainv0_mean
@@ -1213,7 +1267,8 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         """
         Check convergence of a linear solver.
 
-        Evaluates a set of convergence criteria based on its input arguments to decide whether the iteration has converged.
+        Evaluates a set of convergence criteria based on its input arguments to decide
+        whether the iteration has converged.
 
         Parameters
         ----------
@@ -1223,12 +1278,13 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             Maximum number of iterations
         atol : float
             Absolute tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
-            solution :math:`x`.
+            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where
+            :math:`\\Sigma` is the covariance of the solution :math:`x`.
         rtol : float
             Relative tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
-            covariance of the solution :math`x` and :math:`x_i` its mean.
+            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`,
+            where :math:`\\Sigma` is the covariance of the solution :math`x` and
+            :math:`x_i` its mean.
 
         Returns
         -------
@@ -1240,7 +1296,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         # maximum iterations
         if iter >= maxiter:
             warnings.warn(
-                message="Iteration terminated. Solver reached the maximum number of iterations."
+                "Iteration terminated. Solver reached the maximum number of iterations."
             )
             return True, "maxiter"
         # uncertainty-based
@@ -1270,26 +1326,29 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         Parameters
         ----------
         callback : function, optional
-            User-supplied function called after each iteration of the linear solver. It is called as
-            ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, noise_scale)`` and can be used to return quantities from the
-            iteration. Note that depending on the function supplied, this can slow down the solver.
+            User-supplied function called after each iteration of the linear solver. It
+            is called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, noise_scale)``
+            and can be used to return quantities from the iteration. Note that depending
+            on the function supplied, this can slow down the solver.
         maxiter : int
             Maximum number of iterations
         atol : float
             Absolute tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where :math:`\\Sigma` is the covariance of the
-            solution :math:`x`.
+            :math:`\\sqrt{\\text{tr}(\\Sigma)}  \\leq \\text{atol}`, where
+            :math:`\\Sigma` is the covariance of the solution :math:`x`.
         rtol : float
             Relative tolerance for the uncertainty about the solution estimate. Stops if
-            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`, where :math:`\\Sigma` is the
-            covariance of the solution :math`x` and :math:`x_i` its mean.
+            :math:`\\sqrt{\\text{tr}(\\Sigma)} \\leq \\text{rtol} \\lVert x_i \\rVert`,
+            where :math:`\\Sigma` is the covariance of the solution :math`x` and
+            :math:`x_i` its mean.
         noise_scale : float
             Assumed (initial) noise scale :math:`\\varepsilon^2`.
 
         Returns
         -------
         x : RandomVariable, shape=(n,) or (n, nrhs)
-            Approximate solution :math:`x` to the linear system. Shape of the return matches the shape of ``b``.
+            Approximate solution :math:`x` to the linear system. Shape of the return
+            matches the shape of ``b``.
         A : RandomVariable, shape=(n,n)
             Posterior belief over the linear operator.
         Ainv : RandomVariable, shape=(n,n)

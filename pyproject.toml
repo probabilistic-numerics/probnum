@@ -21,3 +21,35 @@ exclude = '''
   | dist
 )/
 '''
+
+
+[tool.pylint.messages_control]
+# Exceptions suggested from Black: bad-continuation, bad-whitespace
+disable = """
+bad-continuation,
+bad-whitespace,
+
+invalid-name,
+
+no-else-return,
+no-else-raise,
+"""
+# Many more `disable`s are defined in `./tox.ini` on a per-module basis!
+
+[tool.pylint.format]
+max-line-length = "88"
+
+[tool.pylint.master]
+extension-pkg-whitelist = "numpy"
+# Extensions that might be of interest in the future:
+# pylint.extensions.docstyle,
+# pylint.extensions.check_elif,
+# pylint.extensions.docparams,
+load-plugins = """
+pylint.extensions.mccabe,
+pylint.extensions.redefined_variable_type,
+pylint.extensions.overlapping_exceptions,
+"""
+
+[tool.pylint.design]
+max-complexity = "14"

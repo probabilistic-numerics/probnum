@@ -1,12 +1,14 @@
 """
 Finite dimensional linear operators.
 
-This module defines classes and methods that implement finite dimensional linear operators. It can be used to do linear
-algebra with (structured) matrices without explicitly representing them in memory. This often allows for the definition
-of a more efficient matrix-vector product. Linear operators can be applied, added, multiplied, transposed, and more as
-one would expect from matrix algebra.
+This module defines classes and methods that implement finite dimensional linear
+operators. It can be used to do linear algebra with (structured) matrices without
+explicitly representing them in memory. This often allows for the definition of a more
+efficient matrix-vector product. Linear operators can be applied, added, multiplied,
+transposed, and more as one would expect from matrix algebra.
 
-Several algorithms in the :mod:`probnum.linalg` library are able to operate on :class:`LinearOperator` instances.
+Several algorithms in the :mod:`probnum.linalg` library are able to operate on
+:class:`LinearOperator` instances.
 """
 import warnings
 
@@ -19,25 +21,28 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     """
     Finite dimensional linear operators.
 
-    This class provides a way to define finite dimensional linear operators without explicitly constructing a matrix
-    representation. Instead it suffices to define a matrix-vector product and a shape attribute. This avoids unnecessary
-    memory usage and can often be more convenient to derive.
+    This class provides a way to define finite dimensional linear operators without
+    explicitly constructing a matrix representation. Instead it suffices to define a
+    matrix-vector product and a shape attribute. This avoids unnecessary memory usage
+    and can often be more convenient to derive.
 
-    LinearOperator instances can be multiplied, added and exponentiated. This happens lazily: the result of these
-    operations is a new, composite LinearOperator, that defers linear operations to the original operators and combines
-    the results.
+    LinearOperator instances can be multiplied, added and exponentiated. This happens
+    lazily: the result of these operations is a new, composite LinearOperator, that
+    defers linear operations to the original operators and combines the results.
 
-    To construct a concrete LinearOperator, either pass appropriate callables to the constructor of this class, or
-    subclass it.
+    To construct a concrete LinearOperator, either pass appropriate callables to the
+    constructor of this class, or subclass it.
 
-    A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and the
-    attributes/properties ``shape`` (pair of integers) and ``dtype`` (may be ``None``). It may call the ``__init__`` on
-    this class to have these attributes validated. Implementing ``_matvec`` automatically implements ``_matmat`` (using
-    a naive algorithm) and vice-versa.
+    A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and
+    the attributes/properties ``shape`` (pair of integers) and ``dtype`` (may be
+    ``None``). It may call the ``__init__`` on this class to have these attributes
+    validated. Implementing ``_matvec`` automatically implements ``_matmat`` (using a
+    naive algorithm) and vice-versa.
 
-    Optionally, a subclass may implement ``_rmatvec`` or ``_adjoint`` to implement the Hermitian adjoint (conjugate
-    transpose). As with ``_matvec`` and ``_matmat``, implementing either ``_rmatvec`` or ``_adjoint`` implements the
-    other automatically. Implementing ``_adjoint`` is preferable; ``_rmatvec`` is mostly there for backwards
+    Optionally, a subclass may implement ``_rmatvec`` or ``_adjoint`` to implement the
+    Hermitian adjoint (conjugate transpose). As with ``_matvec`` and ``_matmat``,
+    implementing either ``_rmatvec`` or ``_adjoint`` implements the other automatically.
+    Implementing ``_adjoint`` is preferable; ``_rmatvec`` is mostly there for backwards
     compatibility.
 
     This class inherits from :class:`scipy.sparse.linalg.LinearOperator`.
@@ -49,7 +54,8 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     matvec : callable f(v)
         Returns :math:`A v`.
     rmatvec : callable f(v)
-        Returns :math:`A^H v`, where :math:`A^H` is the conjugate transpose of :math:`A`.
+        Returns :math:`A^H v`, where :math:`A^H` is the conjugate transpose of
+        :math:`A`.
     matmat : callable f(V)
         Returns :math:`AV`, where :math:`V` is a dense matrix with dimensions (N, K).
     dtype : dtype
@@ -97,7 +103,8 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
             return obj
 
-    # Overload arithmetic operators to give access to newly implemented functions (e.g. todense())
+    # Overload arithmetic operators to give access to newly implemented functions (e.g.
+    # todense())
     def __rmul__(self, x):
         if np.isscalar(x):
             return _ScaledLinearOperator(self, x)
@@ -122,10 +129,12 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     # The below methods are overloaded to allow dot products with random variables
     def dot(self, x):
         """Matrix-matrix or matrix-vector multiplication.
+
         Parameters
         ----------
         x : array_like
             1-d or 2-d array, representing a vector or matrix.
+
         Returns
         -------
         Ax : array
@@ -206,7 +215,8 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         """
         Dense matrix representation of the linear operator.
 
-        This method can be computationally very costly depending on the shape of the linear operator. Use with caution.
+        This method can be computationally very costly depending on the shape of the
+        linear operator. Use with caution.
 
         Returns
         -------
@@ -232,8 +242,9 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         """
         Compute the condition number of the linear operator.
 
-        The condition number of the linear operator with respect to the ``p`` norm. It measures how much the solution
-        :math:`x` of the linear system :math:`Ax=b` changes with respect to small changes in :math:`b`.
+        The condition number of the linear operator with respect to the ``p`` norm. It
+        measures how much the solution :math:`x` of the linear system :math:`Ax=b`
+        changes with respect to small changes in :math:`b`.
 
         Parameters
         ----------
@@ -269,7 +280,8 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         """
         Trace of the linear operator.
 
-        Computes the trace of a square linear operator :math:`\\text{tr}(A) = \\sum_{i-1}^n A_ii`.
+        Computes the trace of a square linear operator :math:`\\text{tr}(A) =
+        \\sum_{i-1}^n A_ii`.
 
         Returns
         -------
@@ -311,7 +323,8 @@ class _CustomLinearOperator(
         )
 
 
-# TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4, maybe implement our own instead?
+# TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4,
+# maybe implement our own instead?
 class _TransposedLinearOperator(
     scipy.sparse.linalg.interface._TransposedLinearOperator, LinearOperator
 ):
@@ -403,8 +416,10 @@ class Diagonal(LinearOperator):
     """
 
     # TODO: should this be an operator itself or a function of a LinearOperator?
-    #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient versions than n products e_i A e_i
+    #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient
+    # versions than n products e_i A e_i
     def __init__(self, Op):
+        # pylint: disable=super-init-not-called
         raise NotImplementedError
 
 
@@ -552,7 +567,7 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         return np.linalg.det(self.A)
 
     def logabsdet(self):
-        sign, logdet = np.linalg.slogdet(self.A)
+        _sign, logdet = np.linalg.slogdet(self.A)
         return logdet
 
     def trace(self):
@@ -569,8 +584,8 @@ def aslinop(A):
     Parameters
     ----------
     A : array-like or LinearOperator or RandomVariable or object
-        Argument to be represented as a linear operator. When `A` is an object it needs to have the attributes `.shape`
-        and `.matvec`.
+        Argument to be represented as a linear operator. When `A` is an object it needs
+        to have the attributes `.shape` and `.matvec`.
 
     Notes
     -----

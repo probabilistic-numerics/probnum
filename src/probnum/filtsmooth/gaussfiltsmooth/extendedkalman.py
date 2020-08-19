@@ -4,10 +4,15 @@ tractable through Taylor-method approximations, e.g. linearization.
 """
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
-from probnum.filtsmooth.statespace import *
+from probnum.filtsmooth.statespace import (
+    ContinuousModel,
+    DiscreteModel,
+    LinearSDEModel,
+    DiscreteGaussianModel,
+)
 
 
 class ExtendedKalman(GaussFiltSmooth):
@@ -16,7 +21,7 @@ class ExtendedKalman(GaussFiltSmooth):
     """
 
     def __new__(cls, dynamod, measmod, initrv, **kwargs):
-        """ """
+
         if cls is ExtendedKalman:
             if _cont_disc(dynamod, measmod):
                 return _ContDiscExtendedKalman(dynamod, measmod, initrv, **kwargs)
@@ -68,21 +73,16 @@ class _ContDiscExtendedKalman(ExtendedKalman):
         super().__init__(dynamod, measmod, initrv)
 
     def predict(self, start, stop, randvar, **kwargs):
-        """ """
         step = (stop - start) / self.cke_nsteps
         return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
-        """ """
         return _discrete_extkalman_update(
             time, randvar, data, self.measurementmodel, **kwargs
         )
 
 
 class _DiscDiscExtendedKalman(ExtendedKalman):
-    """
-    """
-
     def __init__(self, dynamod, measmod, initrv, **kwargs):
         """
         Checks that dynamod and measmod are linear and moves on.
@@ -98,7 +98,6 @@ class _DiscDiscExtendedKalman(ExtendedKalman):
         super().__init__(dynamod, measmod, initrv)
 
     def predict(self, start, stop, randvar, **kwargs):
-        """ """
         mean, covar = randvar.mean(), randvar.cov()
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
@@ -110,15 +109,12 @@ class _DiscDiscExtendedKalman(ExtendedKalman):
         return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
     def update(self, time, randvar, data, **kwargs):
-        """ """
         return _discrete_extkalman_update(
             time, randvar, data, self.measurementmodel, **kwargs
         )
 
 
 def _discrete_extkalman_update(time, randvar, data, measmod, **kwargs):
-    """
-    """
     mpred, cpred = randvar.mean(), randvar.cov()
     if np.isscalar(mpred) and np.isscalar(cpred):
         mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)

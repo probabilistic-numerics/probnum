@@ -5,9 +5,14 @@ import unittest
 
 import numpy as np
 
-from probnum.filtsmooth import *
-from probnum.prob import *
-
+from probnum.filtsmooth import (
+    DiscreteGaussianLTIModel,
+    generate_dd,
+    LTISDEModel,
+    generate_cd,
+    DiscreteGaussianModel,
+)
+from probnum.prob import RandomVariable, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [
@@ -36,7 +41,6 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
     cov = 0.5 * var * np.eye(4)
 
     def setup_cartracking(self):
-        """ """
         self.dynmod = DiscreteGaussianLTIModel(
             dynamat=self.dynamat, forcevec=np.zeros(4), diffmat=self.dynadiff
         )
@@ -63,8 +67,6 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
     diff = q * np.eye(1)
 
     def setup_ornsteinuhlenbeck(self):
-        """
-        """
         self.dynmod = LTISDEModel(
             driftmatrix=self.drift,
             force=self.force,
@@ -82,11 +84,7 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
 
 
 class PendulumNonlinearDDTestCase(unittest.TestCase, NumpyAssertions):
-    """ """
-
     def setup_pendulum(self):
-        """
-        """
         delta_t = 0.0075
         var = 0.32 ** 2
         g = 9.81

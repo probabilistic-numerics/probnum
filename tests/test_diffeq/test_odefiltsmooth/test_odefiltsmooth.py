@@ -14,7 +14,7 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq.odefiltsmooth import *
+from probnum.diffeq.odefiltsmooth import probsolve_ivp
 from probnum.diffeq import ode
 from probnum.prob import RandomVariable, Dirac
 
@@ -130,7 +130,6 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
     """
 
     def setUp(self):
-        """ """
         initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.step = 0.5
@@ -141,7 +140,6 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
         self.ms, self.cs = state_rvs.mean(), state_rvs.cov()
 
     def test_t0(self):
-        """ """
         exp_mean = np.array(
             [self.ivp.initrv.mean(), self.ivp.rhs(0, self.ivp.initrv.mean())]
         )
@@ -207,13 +205,9 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
         self.step = 0.1
 
     def test_filter_ivp_ioup1_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup1", method="ekf0")
 
     def test_filter_ivp_ioup2_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup2", method="ekf1")
 
     def test_filter_ivp_ioup3_ukf(self):
@@ -226,8 +220,6 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
         )
 
     def test_filter_ivp_h_ioup1_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="ioup1", method="ekf1")
 
     def test_filter_ivp_h_ioup2_ukf(self):
@@ -240,18 +232,12 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
         )
 
     def test_filter_ivp_h_ioup3_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="ioup3", method="ekf0")
 
     def test_filter_ivp_mat32_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern32", method="ekf0")
 
     def test_filter_ivp_mat52_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern52", method="ekf1")
 
     def test_filter_ivp_mat72_ukf(self):
@@ -264,8 +250,6 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
         )
 
     def test_filter_ivp_h_mat32_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="ekf1")
 
     def test_filter_ivp_h_mat52_ukf(self):
@@ -278,8 +262,6 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
         )
 
     def test_filter_ivp_h_mat72_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="ekf0")
 
 
@@ -429,13 +411,9 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
         self.step = 0.1
 
     def test_filter_ivp_ioup1_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup1", method="eks0")
 
     def test_filter_ivp_ioup2_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup2", method="eks1")
 
     def test_filter_ivp_ioup3_ukf(self):
@@ -448,8 +426,6 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
         )
 
     def test_filter_ivp_h_ioup1_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="ioup1", method="eks1")
 
     def test_filter_ivp_h_ioup2_ukf(self):
@@ -462,18 +438,12 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
         )
 
     def test_filter_ivp_h_ioup3_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="ioup3", method="eks0")
 
     def test_filter_ivp_mat32_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern32", method="eks0")
 
     def test_filter_ivp_mat52_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern52", method="eks1")
 
     def test_filter_ivp_mat72_ukf(self):
@@ -486,8 +456,6 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
         )
 
     def test_filter_ivp_h_mat32_ekf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="eks1")
 
     def test_filter_ivp_h_mat52_ukf(self):
@@ -500,6 +468,4 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
         )
 
     def test_filter_ivp_h_mat72_kf(self):
-        """
-        """
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="eks0")

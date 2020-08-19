@@ -6,9 +6,9 @@ import unittest
 import numpy as np
 import scipy.stats
 
-from tests.testing import NumpyAssertions
 from probnum import prob
 from probnum.linalg import linops
+from tests.testing import NumpyAssertions
 
 
 class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):

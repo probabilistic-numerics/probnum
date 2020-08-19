@@ -14,8 +14,6 @@ class TestQuadrature(unittest.TestCase):
     """
 
     def setUp(self):
-        """
-        """
         npts = 10000
         ndim = 1
         nodes = np.random.rand(npts, ndim)
@@ -24,9 +22,6 @@ class TestQuadrature(unittest.TestCase):
         self.quad = polynomialquadrature.PolynomialQuadrature(nodes, weights, bounds)
 
     def test_compute(self):
-        """
-        """
-
         def testfct(x):
             return 10 * x ** 3 - x  # true integral: 2.5*x**4 - 0.5*x**2 + const
 
@@ -37,8 +32,6 @@ class TestQuadrature(unittest.TestCase):
         self.assertLess(np.abs(res_vec - res_seq), 1e-10)
 
     def test_wrong_inputs(self):
-        """
-        """
         npts = 10
         ndim = 1
         good_nodes = np.random.rand(npts, ndim)

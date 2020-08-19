@@ -42,7 +42,7 @@ class ODEPrior(LTISDEModel):
     matrix that maps to filtering iteration to the Nordsieck vector,
 
     .. math:: P = \\text{diag }(1, h, h^2, ..., h^q).
-    
+
     Here, :math:`h` is some expected average step size. Note that we
     ignored the factorials in this matrix. Our setting makes it easy to
     recover "no preconditioning" by choosing :math:`h=1`.
@@ -78,7 +78,6 @@ class ODEPrior(LTISDEModel):
     """
 
     def __init__(self, driftmat, dispmat, ordint, spatialdim, precond_step=1.0):
-        """ """
         self.ordint = ordint
         self.spatialdim = spatialdim
         self.precond, self.invprecond = self.precond2nordsieck(precond_step)
@@ -283,7 +282,8 @@ class IBM(ODEPrior):
         step = stop - start
 
         # This seems like the faster solution compared to fully vectorising.
-        # I suspect it is because np.math.factorial is much faster than scipy.special.factorial
+        # I suspect it is because np.math.factorial is much faster than
+        # scipy.special.factorial
         ah_1d = np.diag(np.ones(self.ordint + 1), 0)
         for i in range(self.ordint):
             offdiagonal = (
@@ -394,7 +394,7 @@ def _driftmat_matern(ordint, spatialdim, lengthscale):
 
 def _dispmat(ordint, spatialdim, diffconst):
     """
-    Returns I_D \otimes L
+    Returns I_D \\otimes L
     diffconst = sigma**2
     """
     dispvec = diffconst * np.eye(ordint + 1)[:, -1]

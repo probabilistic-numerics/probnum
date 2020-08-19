@@ -25,15 +25,15 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
 
     Parameters
     ----------
-    driftmatrixfct : callable, signature=(t, \*\*kwargs)
+    driftmatrixfct : callable, signature=(t, \\**kwargs)
         This is F = F(t). The evaluations of this function are called
         the drift(matrix) of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcfct : callable, signature=(t, \*\*kwargs)
+    forcfct : callable, signature=(t, \\**kwargs)
         This is u = u(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatrixfct : callable, signature=(t, \*\*kwargs)
+    dispmatrixfct : callable, signature=(t, \\**kwargs)
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
@@ -180,20 +180,14 @@ class LTISDEModel(LinearSDEModel):
 
     @property
     def driftmatrix(self):
-        """
-        """
         return self._driftmatrix
 
     @property
     def force(self):
-        """
-        """
         return self._force
 
     @property
     def dispersionmatrix(self):
-        """
-        """
         return self._dispmatrix
 
     def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):

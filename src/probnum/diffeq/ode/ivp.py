@@ -4,6 +4,7 @@ module is "ivp" because in the future,
 there might be more ode-based problems,
 such as bvp.
 """
+# pylint: disable=unused-variable
 
 import numpy as np
 
@@ -284,8 +285,7 @@ class IVP(ODE):
     """
 
     def __init__(self, timespan, initrv, rhs, jac=None, hess=None, sol=None):
-        """
-        """
+
         self.initrv = initrv
         super().__init__(timespan=timespan, rhs=rhs, jac=jac, hess=hess, sol=sol)
 

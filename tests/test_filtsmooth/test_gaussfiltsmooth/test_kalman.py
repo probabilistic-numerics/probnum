@@ -1,9 +1,9 @@
-""""""
+import numpy as np
 import scipy.linalg
 
-from probnum.filtsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth import Kalman
 
-from .filtsmooth_testcases import *
+from .filtsmooth_testcases import CarTrackingDDTestCase, OrnsteinUhlenbeckCDTestCase
 
 np.random.seed(5472)
 VISUALISE = False  # show plots or not?
@@ -18,29 +18,19 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
     """
 
     def setUp(self):
-        """
-        """
         super().setup_cartracking()
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)
 
     def test_dynamicmodel(self):
-        """
-        """
         self.assertEqual(self.dynmod, self.method.dynamicmodel)
 
     def test_measurementmodel(self):
-        """
-        """
         self.assertEqual(self.measmod, self.method.measurementmodel)
 
     def test_initialdistribution(self):
-        """
-        """
         self.assertEqual(self.initrv, self.method.initialrandomvariable)
 
     def test_predict(self):
-        """
-        """
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         self.assertEqual(pred.mean().ndim, 1)
         self.assertEqual(pred.mean().shape[0], 4)
@@ -49,8 +39,6 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         self.assertEqual(pred.cov().shape[1], 4)
 
     def test_update(self):
-        """
-        """
         data = self.measmod.sample(0.0, self.initrv.mean())
         upd, __, __, __ = self.method.update(0.0, self.initrv, data)
         self.assertEqual(upd.mean().ndim, 1)
@@ -108,35 +96,24 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
     """
 
     def setUp(self):
-        """ """
         super().setup_ornsteinuhlenbeck()
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)
 
     def test_dynamicmodel(self):
-        """
-        """
         self.assertEqual(self.dynmod, self.method.dynamicmodel)
 
     def test_measurementmodel(self):
-        """
-        """
         self.assertEqual(self.measmod, self.method.measurementmodel)
 
     def test_initialdistribution(self):
-        """
-        """
         self.assertEqual(self.initrv, self.method.initialrandomvariable)
 
     def test_predict_shape(self):
-        """
-        """
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         self.assertEqual(pred.mean().shape, (1,))
         self.assertEqual(pred.cov().shape, (1, 1))
 
     def test_predict_value(self):
-        """
-        """
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
         ah = scipy.linalg.expm(self.delta_t * self.drift)
         qh = (
@@ -150,8 +127,6 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         self.assertApproxEqual(expectedcov, pred.cov())
 
     def test_update(self):
-        """
-        """
         data = np.array([self.measmod.sample(0.0, self.initrv.mean() * np.ones(1))])
         upd, __, __, __ = self.method.update(0.0, self.initrv, data)
         self.assertEqual(upd.mean().shape, (1,))

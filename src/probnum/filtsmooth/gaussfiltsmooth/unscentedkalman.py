@@ -7,10 +7,16 @@ which is based on a third degree fully symmetric rule.
 
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import *
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
 from probnum.prob import RandomVariable, Normal
-from probnum.filtsmooth.statespace import *
-from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import *
+from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import UnscentedTransform
+from probnum.filtsmooth.statespace import (
+    ContinuousModel,
+    DiscreteModel,
+    LinearSDEModel,
+    DiscreteGaussianModel,
+    DiscreteGaussianLinearModel,
+)
 
 
 class UnscentedKalman(GaussFiltSmooth):
@@ -19,7 +25,7 @@ class UnscentedKalman(GaussFiltSmooth):
     """
 
     def __new__(cls, dynamod, measmod, initrv, alpha, beta, kappa, **kwargs):
-        """ """
+
         if cls is UnscentedKalman:
             if _cont_disc(dynamod, measmod):
                 return _ContDiscUnscentedKalman(
@@ -40,14 +46,12 @@ class UnscentedKalman(GaussFiltSmooth):
 
 
 def _cont_disc(dynamod, measmod):
-    """ """
     dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
     meas_is_disc = issubclass(type(measmod), DiscreteModel)
     return dyna_is_cont and meas_is_disc
 
 
 def _disc_disc(dynamod, measmod):
-    """ """
     dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
     meas_is_disc = issubclass(type(measmod), DiscreteModel)
     return dyna_is_disc and meas_is_disc
@@ -135,15 +139,12 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
 
     def update(self, time, randvar, data, **kwargs):
-        """ """
         return _discrete_unskalman_update(
             time, randvar, data, self.measmod, self.ut, **kwargs
         )
 
 
 def _discrete_unskalman_update(time, randvar, data, measmod, ut, **kwargs):
-    """
-    """
     if issubclass(type(measmod), DiscreteGaussianLinearModel):
         return _update_discrete_linear(time, randvar, data, measmod, **kwargs)
     else:
@@ -151,8 +152,6 @@ def _discrete_unskalman_update(time, randvar, data, measmod, ut, **kwargs):
 
 
 def _update_discrete_linear(time, randvar, data, measmod, **kwargs):
-    """
-    """
     mpred, cpred = randvar.mean(), randvar.cov()
     if np.isscalar(mpred) and np.isscalar(cpred):
         mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
@@ -167,8 +166,6 @@ def _update_discrete_linear(time, randvar, data, measmod, **kwargs):
 
 
 def _update_discrete_nonlinear(time, randvar, data, measmod, ut, **kwargs):
-    """
-    """
     mpred, cpred = randvar.mean(), randvar.cov()
     if np.isscalar(mpred) and np.isscalar(cpred):
         mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
