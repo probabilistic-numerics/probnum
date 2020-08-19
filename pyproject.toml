@@ -33,9 +33,6 @@ invalid-name,
 
 no-else-return,
 no-else-raise,
-
-missing-module-docstring,
-missing-function-docstring,
 """
 # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 
