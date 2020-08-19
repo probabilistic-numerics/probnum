@@ -14,7 +14,7 @@ jobs:
     - name: "Tests (Python 3.8)"
       python: 3.8
       env: TOXENV=py38
-    - name: "Docs"
+    - name: "Documentation"
       python: 3.6
       env: TOXENV=docs
     - name: "Benchmarks"
