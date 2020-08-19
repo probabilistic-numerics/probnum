@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal, Dirac
+from probnum.prob import Normal, Dirac
 from probnum.filtsmooth.statespace.continuous import continuousmodel
 
 VISUALISE = False
@@ -61,8 +60,8 @@ class TestContinuousModel(unittest.TestCase):
 
     def test_sample(self):
         mean, cov = np.zeros(TEST_NDIM), np.eye(TEST_NDIM)
-        randvar = RandomVariable(distribution=Normal(mean, cov))
-        samp = self.mcm.sample(0.0, 1.0, 0.01, randvar.mean())
+        randvar = Normal(mean, cov)
+        samp = self.mcm.sample(0.0, 1.0, 0.01, randvar.mean)
         self.assertEqual(samp.ndim, 1)
         self.assertEqual(samp.shape[0], TEST_NDIM)
 
@@ -123,8 +122,8 @@ class TestDeterministicModel(unittest.TestCase):
 
     def setUp(self):
         dm = DeterministicModel()
-        randvar = RandomVariable(distribution=Dirac(np.ones(TEST_NDIM)))
-        self.samp = dm.sample(0.0, 1.0, 0.01, randvar.mean())
+        randvar = Dirac(np.ones(TEST_NDIM))
+        self.samp = dm.sample(0.0, 1.0, 0.01, randvar.mean)
 
     def test_sample_shape(self):
         self.assertEqual(self.samp.ndim, 1)

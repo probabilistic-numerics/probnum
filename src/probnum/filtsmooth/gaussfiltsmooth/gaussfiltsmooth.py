@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from probnum.prob import RandomVariable, Normal
+from probnum.prob import Normal
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
@@ -17,7 +17,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
 
     def __init__(self, dynamod, measmod, initrv):
         """Check that the initial distribution is Gaussian."""
-        if not issubclass(type(initrv.distribution), Normal):
+        if not issubclass(type(initrv), Normal):
             raise ValueError(
                 "Gaussian filters/smoothers need initial "
                 "random variables with Normal distribution."
@@ -157,9 +157,9 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
             returned by predict().
         """
         crosscov = np.asarray(crosscov)
-        initmean, initcov = unsmoothed_rv.mean(), unsmoothed_rv.cov()
-        predmean, predcov = pred_rv.mean(), pred_rv.cov()
-        currmean, currcov = smoothed_rv.mean(), smoothed_rv.cov()
+        initmean, initcov = unsmoothed_rv.mean, unsmoothed_rv.cov
+        predmean, predcov = pred_rv.mean, pred_rv.cov
+        currmean, currcov = smoothed_rv.mean, smoothed_rv.cov
         if np.isscalar(predmean) and np.isscalar(predcov):
             predmean = predmean * np.ones(1)
             predcov = predcov * np.eye(1)
@@ -167,7 +167,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         firstsolve = crosscov @ np.linalg.solve(predcov, currcov - predcov)
         secondsolve = crosscov @ np.linalg.solve(predcov, firstsolve.T)
         newcov = initcov + secondsolve.T
-        return RandomVariable(distribution=Normal(newmean, newcov))
+        return Normal(newmean, newcov)
 
     @abstractmethod
     def predict(self, start, stop, randvar, **kwargs):

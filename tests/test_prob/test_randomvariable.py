@@ -33,20 +33,13 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
         self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
-            prob.RandomVariable(
-                distribution=prob.Normal(
-                    mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]])
-                )
-            )
+            prob.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
         ]
         self.randvars2x2 = [
-            prob.RandomVariable(
-                shape=(2, 2),
-                distribution=prob.Normal(
-                    mean=np.array([[-2, 0.3], [0, 1]]),
-                    cov=linops.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
-                ),
-            )
+            prob.Normal(
+                mean=np.array([[-2, 0.3], [0, 1]]),
+                cov=linops.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
+            ),
         ]
 
         self.scipyrvs = [
@@ -158,8 +151,8 @@ class ArithmeticTestCase(RandomVariableTestCase):
                 x = np.array([[1], [-4]])
                 y = rv @ x
                 X = np.kron(np.eye(rv.shape[0]), x)
-                truemean = rv.mean() @ x
-                truecov = X.T @ rv.cov().todense() @ X
+                truemean = rv.mean @ x
+                truecov = X.T @ rv.cov.todense() @ X
                 self.assertIsInstance(
                     y,
                     prob.RandomVariable,
@@ -169,10 +162,10 @@ class ArithmeticTestCase(RandomVariableTestCase):
                     y.shape, (2, 1), "Shape of resulting random variable incorrect."
                 )
                 self.assertAllClose(
-                    y.mean(), truemean, msg="Means of random variables do not match."
+                    y.mean, truemean, msg="Means of random variables do not match."
                 )
                 self.assertAllClose(
-                    y.cov().todense(),
+                    y.cov.todense(),
                     truecov,
                     msg="Covariances of random variables do not match.",
                 )

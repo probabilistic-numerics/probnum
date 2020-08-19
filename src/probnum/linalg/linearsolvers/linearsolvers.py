@@ -453,15 +453,15 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
             "Cannot use prior uncertainty on both the matrix (inverse) and the "
             "solution. The latter will be ignored."
         )
-        x0 = x0.mean()
+        x0 = x0.mean
 
     # Extract information from priors
     # System matrix is symmetric
     if isinstance(A0, prob.RandomVariable):
-        if isinstance(A0.cov(), linops.SymmetricKronecker) and "sym" not in assume_A:
+        if isinstance(A0.cov, linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
     if isinstance(Ainv0, prob.RandomVariable):
-        if isinstance(Ainv0.cov(), linops.SymmetricKronecker) and "sym" not in assume_A:
+        if isinstance(Ainv0.cov, linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
     # System matrix is NOT stochastic
     if (

@@ -8,7 +8,7 @@ from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
     GaussFiltSmooth,
     linear_discrete_update,
 )
-from probnum.prob import RandomVariable, Normal
+from probnum.prob import Normal
 from probnum.filtsmooth.statespace import LinearSDEModel, DiscreteGaussianLinearModel
 
 from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc
@@ -97,7 +97,7 @@ class _DiscDiscKalman(Kalman):
 
     def predict(self, start, stop, randvar, **kwargs):
         """Prediction step for discrete-discrete Kalman filtering."""
-        mean, covar = randvar.mean(), randvar.cov()
+        mean, covar = randvar.mean, randvar.cov
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
         dynamat = self.dynamicmodel.dynamicsmatrix(start, **kwargs)
@@ -106,7 +106,7 @@ class _DiscDiscKalman(Kalman):
         mpred = dynamat @ mean + forcevec
         ccpred = covar @ dynamat.T
         cpred = dynamat @ ccpred + diffmat
-        return RandomVariable(distribution=Normal(mpred, cpred)), ccpred
+        return Normal(mpred, cpred), ccpred
 
     def update(self, time, randvar, data, **kwargs):
         """Update step of discrete Kalman filtering"""
@@ -117,7 +117,7 @@ class _DiscDiscKalman(Kalman):
 
 def _discrete_kalman_update(time, randvar, data, measurementmodel, **kwargs):
     """Discrete Kalman update."""
-    mpred, cpred = randvar.mean(), randvar.cov()
+    mpred, cpred = randvar.mean, randvar.cov
     if np.isscalar(mpred) and np.isscalar(cpred):
         mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
     measmat = measurementmodel.dynamicsmatrix(time, **kwargs)

@@ -2,8 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
+from probnum.prob import Normal
 from probnum.filtsmooth.statespace.continuous import linearsdemodel
 
 TEST_NDIM = 2
@@ -62,15 +61,15 @@ class TestLinearSDEModel(unittest.TestCase):
         is according to iteration.
         """
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
-        rvar = RandomVariable(distribution=Normal(mean, cov))
+        rvar = Normal(mean, cov)
         cke, __ = self.lm.chapmankolmogorov(0.0, 1.0, 1.0, rvar)
-        diff_mean = self.driftmat @ rvar.mean() + self.force - cke.mean() + rvar.mean()
+        diff_mean = self.driftmat @ rvar.mean + self.force - cke.mean + rvar.mean
         diff_cov = (
-            self.driftmat @ rvar.cov()
-            + rvar.cov() @ self.driftmat.T
+            self.driftmat @ rvar.cov
+            + rvar.cov @ self.driftmat.T
             + self.dispmat @ self.diffmat @ self.dispmat.T
-            + rvar.cov()
-            - cke.cov()
+            + rvar.cov
+            - cke.cov
         )
         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
         self.assertLess(np.linalg.norm(diff_cov), 1e-14)
@@ -159,11 +158,11 @@ class TestLTISDEModel(unittest.TestCase):
         is according to closed form of IBM kernels..
         """
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
-        rvar = RandomVariable(distribution=Normal(mean, cov))
+        rvar = Normal(mean, cov)
         delta = 0.1
         cke, __ = self.lti.chapmankolmogorov(0.0, 1.0, delta, rvar)
         ah, xih, qh = ibm_a(1.0), ibm_xi(1.0), ibm_q(1.0)
-        diff_mean = np.linalg.norm(ah @ rvar.mean() + xih - cke.mean())
-        diff_cov = np.linalg.norm(ah @ rvar.cov() @ ah.T + qh - cke.cov())
+        diff_mean = np.linalg.norm(ah @ rvar.mean + xih - cke.mean)
+        diff_cov = np.linalg.norm(ah @ rvar.cov @ ah.T + qh - cke.cov)
         self.assertLess(diff_mean, 1e-14)
         self.assertLess(diff_cov, 1e-14)

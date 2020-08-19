@@ -16,7 +16,7 @@ import numpy as np
 
 from probnum.diffeq.odefiltsmooth import probsolve_ivp
 from probnum.diffeq import ode
-from probnum.prob import RandomVariable, Dirac
+from probnum.prob import Dirac
 
 from tests.testing import NumpyAssertions
 
@@ -28,7 +28,7 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        initrv = Dirac(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
 
@@ -130,7 +130,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
     """
 
     def setUp(self):
-        initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        initrv = Dirac(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.step = 0.5
         sol = probsolve_ivp(
@@ -141,7 +141,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
 
     def test_t0(self):
         exp_mean = np.array(
-            [self.ivp.initrv.mean(), self.ivp.rhs(0, self.ivp.initrv.mean())]
+            [self.ivp.initrv.mean, self.ivp.rhs(0, self.ivp.initrv.mean)]
         )
 
         self.assertAllClose(self.ms[0], exp_mean[:, 0], rtol=1e-14)
@@ -154,7 +154,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
         GaussianIVPFilter.solve()
         and not in Prop. 1 of Schober et al., 2019.
         """
-        y0 = self.ivp.initrv.mean()
+        y0 = self.ivp.initrv.mean
         z0 = self.ivp.rhs(0, y0)
         z1 = self.ivp.rhs(0, y0 + self.step * z0)
         exp_mean = np.array([y0 + 0.5 * self.step * (z0 + z1), z1])
@@ -170,7 +170,7 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        initrv = Dirac(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2
 
@@ -199,7 +199,7 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and Lotka-Volterra IVP"""
-        initrv = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        initrv = Dirac(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-1
         self.step = 0.1
@@ -272,7 +272,7 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = RandomVariable(distribution=Dirac(0.1 * np.ones(1)))
+        initrv = Dirac(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
 
@@ -376,7 +376,7 @@ class TestAdaptivityOnLotkaVolterraSmoother(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        initrv = Dirac(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2
 
@@ -405,7 +405,7 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and Lotka-Volterra IVP"""
-        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        initdist = Dirac(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initdist)
         self.tol = 1e-1
         self.step = 0.1

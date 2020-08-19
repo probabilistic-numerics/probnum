@@ -5,7 +5,7 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
-from probnum.prob import RandomVariable, Normal
+from probnum.prob import Normal
 from probnum.prob._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
@@ -35,8 +35,8 @@ class ODESolution(FiltSmoothPosterior):
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum.prob import RandomVariable, Dirac, Normal
-    >>> initrv = RandomVariable(distribution=Dirac(0.15))
+    >>> from probnum.prob import Dirac, Normal
+    >>> initrv = Dirac(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> # Mean of the discrete-time solution
@@ -62,11 +62,11 @@ class ODESolution(FiltSmoothPosterior):
     [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
     >>> # Individual entries of the discrete-time solution can be accessed with
     >>> print(solution[5])
-    <(1,) RandomVariable with dtype=<class 'float'>>
-    >>> print(solution[5].mean())
+    <(1,) Normal with dtype=float64>
+    >>> print(solution[5].mean)
     [0.55945475]
     >>> # Evaluate the continuous-time solution at a new time point t=0.65
-    >>> print(solution(0.65).mean())
+    >>> print(solution(0.65).mean)
     [0.69702861]
     """
 
@@ -87,9 +87,9 @@ class ODESolution(FiltSmoothPosterior):
     def _proj_normal_rv(self, rv, coord):
         """Projection of a normal RV, e.g. to map 'states' to 'function values'."""
         q = self._solver.prior.ordint
-        new_mean = rv.mean()[coord :: (q + 1)]
-        new_cov = rv.cov()[coord :: (q + 1), coord :: (q + 1)]
-        return RandomVariable(distribution=Normal(new_mean, new_cov))
+        new_mean = rv.mean[coord :: (q + 1)]
+        new_cov = rv.cov[coord :: (q + 1), coord :: (q + 1)]
+        return Normal(new_mean, new_cov)
 
     @property
     def t(self):
@@ -106,7 +106,7 @@ class ODESolution(FiltSmoothPosterior):
 
         Probabilistic discrete-time solution at times :math:`t_1, ..., t_N`,
         as a list of random variables.
-        To return means and covariances use ``y.mean()`` and ``y.cov()``.
+        To return means and covariances use ``y.mean`` and ``y.cov``.
         """
         if self._y:  # hotfix
             return self._y

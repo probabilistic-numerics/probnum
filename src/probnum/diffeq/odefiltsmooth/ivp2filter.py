@@ -7,8 +7,7 @@ import numpy as np
 
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal, Dirac
+from probnum.prob import Normal, Dirac
 
 
 def ivp2ekf0(ivp, prior, evlvar):
@@ -167,10 +166,10 @@ def _initialdistribution(ivp, prior):
     Note that the projection matrices :math:`H_0` and :math:`H_1`
     become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
     """
-    if not issubclass(type(ivp.initrv.distribution), Normal):
-        if not issubclass(type(ivp.initrv.distribution), Dirac):
+    if not issubclass(type(ivp.initrv), Normal):
+        if not issubclass(type(ivp.initrv), Dirac):
             raise RuntimeError("Initial distribution not Normal nor Dirac")
-    x0 = ivp.initialdistribution.mean()
+    x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)
     dddx0 = _dddx(ivp.t0, x0, ivp)
@@ -194,17 +193,17 @@ def _initialdistribution(ivp, prior):
         projmat = np.hstack((h0.T, h1.T, h2.T, h3.T)).T
         data = np.hstack((x0, dx0, ddx0, dddx0))
         _size = 4
-    largecov = np.kron(np.eye(_size), ivp.initialdistribution.cov())
+    largecov = np.kron(np.eye(_size), ivp.initialdistribution.cov)
     s = projmat @ initcov @ projmat.T + largecov
     crosscov = initcov @ projmat.T
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s.T, crosscov.T)).T
-    return RandomVariable(distribution=Normal(newmean, newcov))
+    return Normal(newmean, newcov)
 
 
 def _initialdistribution_no_precond(ivp, prior):
-
-    x0 = ivp.initialdistribution.mean()
+    """ """
+    x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)
     h0 = prior.proj2coord(coord=0)
@@ -221,7 +220,7 @@ def _initialdistribution_no_precond(ivp, prior):
     crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s, crosscov)).T
-    return RandomVariable(distribution=Normal(newmean, newcov))
+    return Normal(newmean, newcov)
 
 
 def _ddx(t, x, ivp):

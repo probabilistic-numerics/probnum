@@ -50,9 +50,9 @@ def get_randvar(distribution_name):
     elif distribution_name == "symmatrixvar_normal":
         distribution = prob.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
     elif distribution_name == "operatorvar_normal":
-        distribution = prob.Normal(mean=mean_2d_linop)
+        distribution = prob.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
 
-    return prob.RandomVariable(distribution=distribution)
+    return distribution
 
 
 class Functions:
@@ -72,13 +72,13 @@ class Functions:
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
         try:
             if property == "pdf":
-                self.randvar.distribution.pdf(x=self.eval_point)
+                self.randvar.pdf(x=self.eval_point)
             elif property == "logpdf":
-                self.randvar.distribution.pdf(x=self.eval_point)
+                self.randvar.pdf(x=self.eval_point)
             elif property == "cdf":
-                self.randvar.distribution.pdf(x=self.quantile)
+                self.randvar.pdf(x=self.quantile)
             elif property == "logcdf":
-                self.randvar.distribution.pdf(x=self.quantile)
+                self.randvar.pdf(x=self.quantile)
         except NotImplementedError:
             pass
 

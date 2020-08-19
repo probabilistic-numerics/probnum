@@ -27,26 +27,16 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.assertApproxEqual(self.posterior.locations[-1], self.tms[-1])
 
     def test_getitem(self):
-        self.assertArrayEqual(
-            self.posterior[0].mean(), self.posterior.state_rvs[0].mean()
-        )
-        self.assertArrayEqual(
-            self.posterior[0].cov(), self.posterior.state_rvs[0].cov()
-        )
+        self.assertArrayEqual(self.posterior[0].mean, self.posterior.state_rvs[0].mean)
+        self.assertArrayEqual(self.posterior[0].cov, self.posterior.state_rvs[0].cov)
 
         self.assertArrayEqual(
-            self.posterior[-1].mean(), self.posterior.state_rvs[-1].mean()
+            self.posterior[-1].mean, self.posterior.state_rvs[-1].mean
         )
-        self.assertArrayEqual(
-            self.posterior[-1].cov(), self.posterior.state_rvs[-1].cov()
-        )
+        self.assertArrayEqual(self.posterior[-1].cov, self.posterior.state_rvs[-1].cov)
 
-        self.assertArrayEqual(
-            self.posterior[:].mean(), self.posterior.state_rvs[:].mean()
-        )
-        self.assertArrayEqual(
-            self.posterior[:].cov(), self.posterior.state_rvs[:].cov()
-        )
+        self.assertArrayEqual(self.posterior[:].mean, self.posterior.state_rvs[:].mean)
+        self.assertArrayEqual(self.posterior[:].cov, self.posterior.state_rvs[:].cov)
 
     def test_state_rvs(self):
         self.assertTrue(isinstance(self.posterior.state_rvs, _RandomVariableList))
@@ -67,21 +57,17 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
 
     def test_call_to_discrete(self):
         self.assertEqual(self.tms[0], 0)
-        self.assertArrayEqual(self.posterior(0.0).mean(), self.posterior[0].mean())
-        self.assertArrayEqual(self.posterior(0.0).cov(), self.posterior[0].cov())
+        self.assertArrayEqual(self.posterior(0.0).mean, self.posterior[0].mean)
+        self.assertArrayEqual(self.posterior(0.0).cov, self.posterior[0].cov)
 
         self.assertEqual(self.tms[-1], 19.8)
-        self.assertArrayEqual(self.posterior(19.8).mean(), self.posterior[-1].mean())
-        self.assertArrayEqual(self.posterior(19.8).cov(), self.posterior[-1].cov())
+        self.assertArrayEqual(self.posterior(19.8).mean, self.posterior[-1].mean)
+        self.assertArrayEqual(self.posterior(19.8).cov, self.posterior[-1].cov)
 
+        self.assertArrayEqual(self.posterior(self.tms[2]).mean, self.posterior[2].mean)
+        self.assertArrayEqual(self.posterior(self.tms[5]).mean, self.posterior[5].mean)
         self.assertArrayEqual(
-            self.posterior(self.tms[2]).mean(), self.posterior[2].mean()
-        )
-        self.assertArrayEqual(
-            self.posterior(self.tms[5]).mean(), self.posterior[5].mean()
-        )
-        self.assertArrayEqual(
-            self.posterior(self.tms[10]).mean(), self.posterior[10].mean()
+            self.posterior(self.tms[10]).mean, self.posterior[10].mean
         )
 
     def test_call_extrapolation(self):

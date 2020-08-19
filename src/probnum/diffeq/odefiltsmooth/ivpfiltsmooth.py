@@ -1,7 +1,6 @@
 import numpy as np
 
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
+from probnum.prob import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.diffeq.odesolution import ODESolution
@@ -74,12 +73,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def _rescale(self, rvs):
         """Rescales covariances according to estimate sigma squared value."""
-        rvs = [
-            RandomVariable(
-                distribution=Normal(rv.mean(), self.sigma_squared_global * rv.cov())
-            )
-            for rv in rvs
-        ]
+        rvs = [Normal(rv.mean(), self.sigma_squared_global * rv.cov()) for rv in rvs]
         return rvs
 
     def _odesmooth(self, ode_solution, **kwargs):
@@ -110,9 +104,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def undo_preconditioning(self, rv):
         ipre = self.gfilt.dynamicmodel.invprecond
-        newmean = ipre @ rv.mean()
-        newcov = ipre @ rv.cov() @ ipre.T
-        newrv = RandomVariable(distribution=Normal(newmean, newcov))
+        newmean = ipre @ rv.mean
+        newcov = ipre @ rv.cov @ ipre.T
+        newrv = Normal(newmean, newcov)
         return newrv
 
     def _estimate_error(self, currmn, ccest, covest, mnest):

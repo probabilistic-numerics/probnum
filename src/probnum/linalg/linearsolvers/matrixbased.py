@@ -384,8 +384,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Prior on Ainv specified
         if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
             if isinstance(Ainv0, prob.RandomVariable):
-                Ainv0_mean = Ainv0.mean()
-                Ainv0_covfactor = Ainv0.cov().A
+                Ainv0_mean = Ainv0.mean
+                Ainv0_covfactor = Ainv0.cov.A
             else:
                 self.is_calib_covclass = True
                 Ainv0_mean = Ainv0
@@ -394,7 +394,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 if A0 is not None:
                     A0_mean = A0
                 elif isinstance(Ainv0, prob.RandomVariable):
-                    A0_mean = Ainv0.mean().inv()
+                    A0_mean = Ainv0.mean.inv()
                 else:
                     A0_mean = Ainv0.inv()
             except AttributeError:
@@ -403,7 +403,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     "This operation is computationally costly! Specify an inverse "
                     "prior (mean) instead."
                 )
-                A0_mean = np.linalg.inv(Ainv0.mean())
+                A0_mean = np.linalg.inv(Ainv0.mean)
             except NotImplementedError:
                 A0_mean = linops.Identity(self.n)
                 warnings.warn(
@@ -417,8 +417,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Prior on A specified
         elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
             if isinstance(A0, prob.RandomVariable):
-                A0_mean = A0.mean()
-                A0_covfactor = A0.cov().A
+                A0_mean = A0.mean
+                A0_covfactor = A0.cov.A
             else:
                 self.is_calib_covclass = True
                 A0_mean = A0
@@ -427,7 +427,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 if Ainv0 is not None:
                     Ainv0_mean = Ainv0
                 elif isinstance(A0, prob.RandomVariable):
-                    Ainv0_mean = A0.mean().inv()
+                    Ainv0_mean = A0.mean.inv()
                 else:
                     Ainv0_mean = A0.inv()
             except AttributeError:
@@ -436,7 +436,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     "This operation is computationally costly! "
                     "Specify an inverse prior (mean)."
                 )
-                Ainv0_mean = np.linalg.inv(A0.mean())
+                Ainv0_mean = np.linalg.inv(A0.mean)
             except NotImplementedError:
                 Ainv0_mean = linops.Identity(self.n)
                 warnings.warn(
@@ -450,10 +450,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         elif isinstance(A0, prob.RandomVariable) and isinstance(
             Ainv0, prob.RandomVariable
         ):
-            A0_mean = A0.mean()
-            A0_covfactor = A0.cov().A
-            Ainv0_mean = Ainv0.mean()
-            Ainv0_covfactor = Ainv0.cov().A
+            A0_mean = A0.mean
+            A0_covfactor = A0.cov.A
+            Ainv0_mean = Ainv0.mean
+            Ainv0_covfactor = Ainv0.cov.A
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
         else:
             raise NotImplementedError
@@ -756,19 +756,12 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             _Ainv_covfactor = self.Ainv_covfactor0
 
         # Create output random variables
-        A = prob.RandomVariable(
-            shape=(self.n, self.n),
-            dtype=float,
-            distribution=prob.Normal(
-                mean=self.A_mean, cov=linops.SymmetricKronecker(A=_A_covfactor)
-            ),
+        A = prob.random_variable.Normal(
+            mean=self.A_mean, cov=linops.SymmetricKronecker(A=_A_covfactor)
         )
-        Ainv = prob.RandomVariable(
-            shape=(self.n, self.n),
-            dtype=float,
-            distribution=prob.Normal(
-                mean=self.Ainv_mean, cov=linops.SymmetricKronecker(A=_Ainv_covfactor)
-            ),
+
+        Ainv = prob.random_variable.Normal(
+            mean=self.Ainv_mean, cov=linops.SymmetricKronecker(A=_Ainv_covfactor)
         )
         # Induced distribution on x via Ainv
         # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
@@ -782,11 +775,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv
         )
 
-        x = prob.RandomVariable(
-            shape=(self.n,),
-            dtype=float,
-            distribution=prob.Normal(mean=self.x_mean.ravel(), cov=cov_op),
-        )
+        x = prob.random_variable.Normal(mean=self.x_mean.ravel(), cov=cov_op)
 
         # Compute trace of solution covariance: tr(Cov(x))
         self.trace_sol_cov = np.real_if_close(
@@ -1153,7 +1142,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         """
 
         # Right hand side mean
-        b_mean = b.sample(1)  # TODO: build prior model for rhs and change to b.mean()
+        b_mean = b.sample(1)  # TODO: build prior model for rhs and change to b.mean
 
         # No matrix priors specified
         if A0 is None and Ainv0 is None:
@@ -1189,8 +1178,8 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Prior on Ainv specified
         if not isinstance(A0, prob.RandomVariable) and Ainv0 is not None:
             if isinstance(Ainv0, prob.RandomVariable):
-                Ainv0_mean = Ainv0.mean()
-                Ainv0_covfactor = Ainv0.cov().A
+                Ainv0_mean = Ainv0.mean
+                Ainv0_covfactor = Ainv0.cov.A
             else:
                 Ainv0_mean = Ainv0
                 Ainv0_covfactor = Ainv0  # Symmetric posterior correspondence
@@ -1198,7 +1187,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 if A0 is not None:
                     A0_mean = A0
                 elif isinstance(Ainv0, prob.RandomVariable):
-                    A0_mean = Ainv0.mean().inv()
+                    A0_mean = Ainv0.mean.inv()
                 else:
                     A0_mean = Ainv0.inv()
             except AttributeError:
@@ -1207,7 +1196,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                     "This operation is computationally costly! Specify an inverse "
                     "prior (mean) instead."
                 )
-                A0_mean = np.linalg.inv(Ainv0.mean())
+                A0_mean = np.linalg.inv(Ainv0.mean)
             except NotImplementedError:
                 A0_mean = linops.Identity(self.n)
                 warnings.warn(
@@ -1223,8 +1212,8 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Prior on A specified
         elif A0 is not None and not isinstance(Ainv0, prob.RandomVariable):
             if isinstance(A0, prob.RandomVariable):
-                A0_mean = A0.mean()
-                A0_covfactor = A0.cov().A
+                A0_mean = A0.mean
+                A0_covfactor = A0.cov.A
             else:
                 A0_mean = A0
                 A0_covfactor = A0  # Symmetric posterior correspondence
@@ -1232,7 +1221,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 if Ainv0 is not None:
                     Ainv0_mean = Ainv0
                 elif isinstance(A0, prob.RandomVariable):
-                    Ainv0_mean = A0.mean().inv()
+                    Ainv0_mean = A0.mean.inv()
                 else:
                     Ainv0_mean = A0.inv()
             except AttributeError:
@@ -1241,7 +1230,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                     "This operation is computationally costly! Specify an inverse "
                     "prior (mean) instead."
                 )
-                Ainv0_mean = np.linalg.inv(A0.mean())
+                Ainv0_mean = np.linalg.inv(A0.mean)
             except NotImplementedError:
                 Ainv0_mean = linops.Identity(self.n)
                 warnings.warn(
@@ -1255,10 +1244,10 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         elif isinstance(A0, prob.RandomVariable) and isinstance(
             Ainv0, prob.RandomVariable
         ):
-            A0_mean = A0.mean()
-            A0_covfactor = A0.cov().A
-            Ainv0_mean = Ainv0.mean()
-            Ainv0_covfactor = Ainv0.cov().A
+            A0_mean = A0.mean
+            A0_covfactor = A0.cov.A
+            Ainv0_mean = Ainv0.mean
+            Ainv0_covfactor = Ainv0.cov.A
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
         else:
             raise NotImplementedError

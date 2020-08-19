@@ -8,8 +8,7 @@ from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
     GaussFiltSmooth,
     linear_discrete_update,
 )
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
+from probnum.prob import Normal
 from probnum.filtsmooth.statespace import LinearSDEModel, DiscreteGaussianModel
 
 from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc
@@ -84,7 +83,7 @@ class _DiscDiscExtendedKalman(ExtendedKalman):
         super().__init__(dynamod, measmod, initrv)
 
     def predict(self, start, stop, randvar, **kwargs):
-        mean, covar = randvar.mean(), randvar.cov()
+        mean, covar = randvar.mean, randvar.cov
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
         diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
@@ -92,7 +91,7 @@ class _DiscDiscExtendedKalman(ExtendedKalman):
         mpred = self.dynamod.dynamics(start, mean, **kwargs)
         crosscov = covar @ jacob.T
         cpred = jacob @ crosscov + diffmat
-        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
+        return Normal(mpred, cpred), crosscov
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_extkalman_update(
@@ -101,7 +100,7 @@ class _DiscDiscExtendedKalman(ExtendedKalman):
 
 
 def _discrete_extkalman_update(time, randvar, data, measmod, **kwargs):
-    mpred, cpred = randvar.mean(), randvar.cov()
+    mpred, cpred = randvar.mean, randvar.cov
     if np.isscalar(mpred) and np.isscalar(cpred):
         mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
     jacob = measmod.jacobian(time, mpred, **kwargs)

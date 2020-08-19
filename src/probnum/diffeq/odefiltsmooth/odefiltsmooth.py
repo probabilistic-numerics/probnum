@@ -153,8 +153,8 @@ def probsolve_ivp(
         y : :obj:`list` of :obj:`RandomVariable`, length=N
             Discrete-time solution at times :math:`t_1, ..., t_N`,
             as a list of random variables.
-            The means and covariances can be accessed with ``solution.y.mean()``
-            and ``solution.y.cov()``.
+            The means and covariances can be accessed with ``solution.y.mean``
+            and ``solution.y.cov``.
 
     See Also
     --------
@@ -182,8 +182,8 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum.prob import RandomVariable, Dirac, Normal
-    >>> initrv = RandomVariable(distribution=Dirac(0.15))
+    >>> from probnum.prob import Dirac, Normal
+    >>> initrv = Dirac(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> print(solution.y.mean())
@@ -204,7 +204,7 @@ def probsolve_ivp(
      [0.97577054]
      [0.9831919 ]]
 
-    >>> initrv = RandomVariable(distribution=Dirac(0.15))
+    >>> initrv = Dirac(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
     >>> print(solution.y.mean())
