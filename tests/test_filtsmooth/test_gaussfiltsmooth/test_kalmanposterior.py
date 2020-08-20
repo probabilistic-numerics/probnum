@@ -35,8 +35,12 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         )
         self.assertArrayEqual(self.posterior[-1].cov, self.posterior.state_rvs[-1].cov)
 
-        self.assertArrayEqual(self.posterior[:].mean, self.posterior.state_rvs[:].mean)
-        self.assertArrayEqual(self.posterior[:].cov, self.posterior.state_rvs[:].cov)
+        self.assertArrayEqual(
+            self.posterior[:].mean(), self.posterior.state_rvs[:].mean()
+        )
+        self.assertArrayEqual(
+            self.posterior[:].cov(), self.posterior.state_rvs[:].cov()
+        )
 
     def test_state_rvs(self):
         self.assertTrue(isinstance(self.posterior.state_rvs, _RandomVariableList))
