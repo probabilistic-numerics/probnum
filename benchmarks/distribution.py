@@ -4,7 +4,7 @@ Benchmarks for distributions.
 
 import numpy as np
 
-import probnum.prob as prob
+from probnum.prob import random_variable as rvars
 import probnum.linalg.linops as linops
 
 # Module level variables
@@ -42,15 +42,15 @@ def get_randvar(distribution_name):
 
     # Random variable for a given distribution
     if distribution_name == "univar_normal":
-        distribution = prob.Normal(mean=mean_0d, cov=cov_0d)
+        distribution = rvars.Normal(mean=mean_0d, cov=cov_0d)
     elif distribution_name == "multivar_normal":
-        distribution = prob.Normal(mean=mean_1d, cov=cov_1d)
+        distribution = rvars.Normal(mean=mean_1d, cov=cov_1d)
     elif distribution_name == "matrixvar_normal":
-        distribution = prob.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
+        distribution = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
     elif distribution_name == "symmatrixvar_normal":
-        distribution = prob.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
+        distribution = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
     elif distribution_name == "operatorvar_normal":
-        distribution = prob.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
+        distribution = rvars.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
 
     return distribution
 
