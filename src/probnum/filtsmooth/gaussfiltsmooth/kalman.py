@@ -8,7 +8,7 @@ from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
     GaussFiltSmooth,
     linear_discrete_update,
 )
-from probnum.prob import Normal
+from probnum.prob.random_variable import Normal
 from probnum.filtsmooth.statespace import LinearSDEModel, DiscreteGaussianLinearModel
 
 from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc

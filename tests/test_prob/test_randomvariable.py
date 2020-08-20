@@ -7,6 +7,7 @@ import numpy as np
 import scipy.stats
 
 from probnum import prob
+from probnum.prob.random_variable import Normal
 from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
@@ -33,10 +34,10 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
         self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
-            prob.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
+            Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
         ]
         self.randvars2x2 = [
-            prob.Normal(
+            Normal(
                 mean=np.array([[-2, 0.3], [0, 1]]),
                 cov=linops.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
             ),

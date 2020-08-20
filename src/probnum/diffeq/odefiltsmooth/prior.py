@@ -14,7 +14,7 @@ from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
-from probnum.prob import Normal
+from probnum.prob.random_variable import Normal
 
 
 class ODEPrior(LTISDEModel):

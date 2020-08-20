@@ -5,7 +5,7 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
-from probnum.prob import Normal
+from probnum.prob.random_variable import Normal
 from probnum.prob._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
@@ -35,7 +35,7 @@ class ODESolution(FiltSmoothPosterior):
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum.prob import Dirac, Normal
+    >>> from probnum.prob.random_variable import Dirac, Normal
     >>> initrv = Dirac(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)

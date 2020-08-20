@@ -12,7 +12,7 @@ from probnum.filtsmooth import (
     generate_cd,
     DiscreteGaussianModel,
 )
-from probnum.prob import Normal
+from probnum.prob.random_variable import Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [

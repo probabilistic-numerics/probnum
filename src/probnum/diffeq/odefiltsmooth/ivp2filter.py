@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
-from probnum.prob import Normal, Dirac
+from probnum.prob.random_variable import Normal, Dirac
 
 
 def ivp2ekf0(ivp, prior, evlvar):

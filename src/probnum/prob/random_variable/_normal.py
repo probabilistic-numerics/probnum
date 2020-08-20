@@ -47,7 +47,7 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
 
     Examples
     --------
-    >>> from probnum.prob import Normal
+    >>> from probnum.prob.random_variable import Normal
     >>> N = Normal(mean=0.5, cov=1.0)
     >>> N.parameters
     {'mean': 0.5, 'cov': 1.0}

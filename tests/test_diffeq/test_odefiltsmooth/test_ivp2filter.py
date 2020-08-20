@@ -12,7 +12,7 @@ import numpy as np
 
 from probnum.diffeq import IBM, ivp2filter, lotkavolterra
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
-from probnum.prob import Dirac
+from probnum.prob.random_variable import Dirac
 from tests.testing import NumpyAssertions
 
 

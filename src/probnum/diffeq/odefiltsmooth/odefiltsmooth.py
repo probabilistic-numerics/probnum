@@ -182,7 +182,7 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum.prob import Dirac, Normal
+    >>> from probnum.prob.random_variable import Dirac, Normal
     >>> initrv = Dirac(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)

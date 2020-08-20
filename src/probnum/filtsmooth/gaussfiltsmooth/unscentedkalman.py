@@ -11,7 +11,7 @@ from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
     GaussFiltSmooth,
     linear_discrete_update,
 )
-from probnum.prob import Normal
+from probnum.prob.random_variable import Normal
 from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import UnscentedTransform
 from probnum.filtsmooth.statespace import (
     ContinuousModel,
