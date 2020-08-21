@@ -59,6 +59,9 @@ class Dirac(_random_variable.RandomVariable[_ValueType]):
             sample=self._sample,
             in_support=lambda x: np.all(x == support),
             cdf=lambda x: 0.0 if np.any(x < self._support) else 0.0,
+            mode=lambda: self._support,
+            median=lambda: self._support,
+            mean=lambda: self._support,
             cov=lambda: np.zeros_like(  # pylint: disable=unexpected-keyword-arg
                 self._support,
                 shape=(
@@ -68,11 +71,6 @@ class Dirac(_random_variable.RandomVariable[_ValueType]):
                 ),
             ),
             var=lambda: np.zeros_like(self._support),
-            properties={
-                "mode": self._support,  # TODO: Is this correct? Diracs don't have a pdf
-                "median": self._support,
-                "mean": self._support,
-            },
         )
 
     @property

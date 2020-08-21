@@ -91,8 +91,6 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
         self.__transpose = None
 
         # Method selection
-        properties = {}
-
         univariate = len(mean.shape) == 0
         dense = isinstance(mean, np.ndarray) and isinstance(cov, np.ndarray)
         operator = isinstance(mean, linops.LinearOperator) or isinstance(
@@ -109,8 +107,8 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             logcdf = self._univariate_logcdf
             quantile = None  # TODO
 
-            properties["median"] = self._mean
-            properties["var"] = self._cov
+            median = lambda: self._mean
+            var = lambda: self._cov
             entropy = self._univariate_entropy
 
             self.__getitem = self._numpy_getitem
@@ -125,6 +123,9 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             cdf = self._dense_cdf
             logcdf = self._dense_logcdf
             quantile = None
+
+            median = None
+            var = None
             entropy = self._dense_entropy
 
             self.__getitem = self._numpy_getitem
@@ -162,7 +163,10 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             cdf = None
             logcdf = None
             quantile = None
-            entropy = None
+
+            median = None
+            var = None
+            entropy = None  # TODO
 
             if isinstance(cov, linops.SymmetricKronecker) and cov._ABequal:
                 sample = self._symmetric_kronecker_identical_factors_sample
@@ -172,10 +176,6 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
                 f"{mean.__class__.__name__} and kernels of type "
                 f"{cov.__class__.__name__}."
             )
-
-        properties["mode"] = self._mean
-        properties["mean"] = self._mean
-        properties["cov"] = self._cov
 
         super().__init__(
             shape=mean.shape,
@@ -189,8 +189,12 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             cdf=cdf,
             logcdf=logcdf,
             quantile=quantile,
+            mode=lambda: self._mean,
+            median=median,
+            mean=lambda: self._mean,
+            cov=lambda: self._cov,
+            var=var,
             entropy=entropy,
-            properties=properties,
         )
 
     def __getitem__(self, key):

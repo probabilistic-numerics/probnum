@@ -86,7 +86,6 @@ class RandomVariable(Generic[ValueType]):
         var: Optional[Callable[[], ValueType]] = None,
         std: Optional[Callable[[], ValueType]] = None,
         entropy: Optional[Callable[[], float]] = None,
-        properties: Optional[Dict[str, Any]] = None,
     ):
         """Create a new random variable."""
         self._shape = RandomVariable._check_shape(shape)
@@ -107,16 +106,13 @@ class RandomVariable(Generic[ValueType]):
         self.__quantile = quantile
 
         # Properties of the random variable
-        if properties is None:
-            properties = {}
-
-        self.__mode = RandomVariable._get_property_fn("mode", mode, properties)
-        self.__median = RandomVariable._get_property_fn("median", median, properties)
-        self.__mean = RandomVariable._get_property_fn("mean", mean, properties)
-        self.__cov = RandomVariable._get_property_fn("cov", cov, properties)
-        self.__var = RandomVariable._get_property_fn("var", var, properties)
-        self.__std = RandomVariable._get_property_fn("std", std, properties)
-        self.__entropy = RandomVariable._get_property_fn("entropy", entropy, properties)
+        self.__mode = mode
+        self.__median = median
+        self.__mean = mean
+        self.__cov = cov
+        self.__var = var
+        self.__std = std
+        self.__entropy = entropy
 
         # Further processing
         if self._shape is None or self._dtype is None:
@@ -144,23 +140,6 @@ class RandomVariable(Generic[ValueType]):
             raise TypeError(
                 f"The given shape {shape} is not an int or a tuple of ints."
             )
-
-    @staticmethod
-    def _get_property_fn(
-        name: str,
-        argument: Optional[Union[ValueType, np.floating]],
-        properties_dict: Optional[Dict[str, Union[ValueType, np.floating]]],
-    ) -> Callable[[], Union[ValueType, np.floating]]:
-        if name in properties_dict and properties_dict[name] is not None:
-            if argument is not None:
-                raise ValueError(
-                    f"The property '{name}' was specified both directly in a "
-                    f"constructor argument and via the 'properties' dictionary."
-                )
-
-            return lambda: properties_dict[name]
-
-        return argument
 
     def _infer_shape_and_dtype(self):
         # Infer shape and dtype based on a sample
