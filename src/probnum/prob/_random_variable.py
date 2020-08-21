@@ -21,14 +21,14 @@ import scipy._lib._util
 from probnum import utils as _utils
 
 
-ValueType = TypeVar("ValueType")
 RandomStateType = Union[  # see scipy._lib._util.check_random_state
     None, int, np.random.RandomState, np.random.Generator
 ]
 
+_ValueType = TypeVar("ValueType")
 
 # pylint: disable=too-many-instance-attributes,too-many-public-methods
-class RandomVariable(Generic[ValueType]):
+class RandomVariable(Generic[_ValueType]):
     """
     Random variables are the main objects used by probabilistic numerical methods.
 
@@ -72,19 +72,19 @@ class RandomVariable(Generic[ValueType]):
         dtype: np.dtype,
         random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[int], ValueType]] = None,
-        in_support: Optional[Callable[[ValueType], bool]] = None,
-        pdf: Optional[Callable[[ValueType], float]] = None,
-        logpdf: Optional[Callable[[ValueType], float]] = None,
-        cdf: Optional[Callable[[ValueType], float]] = None,
-        logcdf: Optional[Callable[[ValueType], float]] = None,
-        quantile: Optional[Callable[[float], ValueType]] = None,
-        mode: Optional[Callable[[], ValueType]] = None,
-        median: Optional[Callable[[], ValueType]] = None,
-        mean: Optional[Callable[[], ValueType]] = None,
-        cov: Optional[Callable[[], ValueType]] = None,
-        var: Optional[Callable[[], ValueType]] = None,
-        std: Optional[Callable[[], ValueType]] = None,
+        sample: Optional[Callable[[int], _ValueType]] = None,
+        in_support: Optional[Callable[[_ValueType], bool]] = None,
+        pdf: Optional[Callable[[_ValueType], float]] = None,
+        logpdf: Optional[Callable[[_ValueType], float]] = None,
+        cdf: Optional[Callable[[_ValueType], float]] = None,
+        logcdf: Optional[Callable[[_ValueType], float]] = None,
+        quantile: Optional[Callable[[float], _ValueType]] = None,
+        mode: Optional[Callable[[], _ValueType]] = None,
+        median: Optional[Callable[[], _ValueType]] = None,
+        mean: Optional[Callable[[], _ValueType]] = None,
+        cov: Optional[Callable[[], _ValueType]] = None,
+        var: Optional[Callable[[], _ValueType]] = None,
+        std: Optional[Callable[[], _ValueType]] = None,
         entropy: Optional[Callable[[], float]] = None,
     ):
         """Create a new random variable."""
@@ -365,7 +365,7 @@ class RandomVariable(Generic[ValueType]):
 
         return entropy
 
-    def in_support(self, x: ValueType) -> bool:
+    def in_support(self, x: _ValueType) -> bool:
         if self.__in_support is None:
             raise NotImplementedError
 
@@ -488,7 +488,7 @@ class RandomVariable(Generic[ValueType]):
                 f"{type(self).__name__}."
             )
 
-    def quantile(self, p: Union[float, np.floating]) -> ValueType:
+    def quantile(self, p: Union[float, np.floating]) -> _ValueType:
         if self.__quantile is None:
             raise NotImplementedError
 
