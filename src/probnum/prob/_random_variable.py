@@ -20,7 +20,8 @@ import scipy._lib._util
 
 from probnum import utils as _utils
 
-
+ShapeArgType = Union[int, Tuple[int, ...]]  # TODO
+FloatArgType = Union[float, np.float_, np.float64]  # TODO
 RandomStateType = Union[  # see scipy._lib._util.check_random_state
     None, int, np.random.RandomState, np.random.Generator
 ]
@@ -72,20 +73,20 @@ class RandomVariable(Generic[_ValueType]):
         dtype: np.dtype,
         random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[int], _ValueType]] = None,
+        sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
-        pdf: Optional[Callable[[_ValueType], float]] = None,
-        logpdf: Optional[Callable[[_ValueType], float]] = None,
-        cdf: Optional[Callable[[_ValueType], float]] = None,
-        logcdf: Optional[Callable[[_ValueType], float]] = None,
-        quantile: Optional[Callable[[float], _ValueType]] = None,
+        pdf: Optional[Callable[[_ValueType], np.float64]] = None,
+        logpdf: Optional[Callable[[_ValueType], np.float64]] = None,
+        cdf: Optional[Callable[[_ValueType], np.float64]] = None,
+        logcdf: Optional[Callable[[_ValueType], np.float64]] = None,
+        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
         mean: Optional[Callable[[], _ValueType]] = None,
         cov: Optional[Callable[[], _ValueType]] = None,
         var: Optional[Callable[[], _ValueType]] = None,
         std: Optional[Callable[[], _ValueType]] = None,
-        entropy: Optional[Callable[[], float]] = None,
+        entropy: Optional[Callable[[], np.float64]] = None,
     ):
         """Create a new random variable."""
         self._shape = RandomVariable._check_shape(shape)
@@ -115,9 +116,7 @@ class RandomVariable(Generic[_ValueType]):
         self.__entropy = entropy
 
     @staticmethod
-    def _check_shape(
-        shape: Optional[Union[int, Tuple[int, ...]]]
-    ) -> Optional[Tuple[int, ...]]:
+    def _check_shape(shape: Any) -> Optional[Tuple[int, ...]]:
         if shape is None:
             return None
         elif isinstance(shape, tuple) and all(
