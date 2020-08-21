@@ -116,69 +116,69 @@ hints <https://docs.python.org/3/library/typing.html>`_.
 
 .. code-block:: python
 
-	from typing import Tuple
-	from probnum import prob
+    from typing import Tuple
+    from probnum import prob
+    
 
-	class PnMethod:
-	    """
-	    Probabilistic numerical method
+    class PnMethod:
+        """
+        Probabilistic numerical method
 
-	    Parameters
-	    ----------
-	    problem : Problem, shape=(n,n)
-	        Arguments defining the numerical problem to be solved.
-	    rv_in : RandomVariable, shape=(n,)
-	        Input random variable encoding prior information about the problem.
-	    """
+        Parameters
+        ----------
+        problem : Problem, shape=(n,n)
+            Arguments defining the numerical problem to be solved.
+        rv_in : RandomVariable, shape=(n,)
+            Input random variable encoding prior information about the problem.
+        """
 
-	    def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
-	        raise NotImplementedError
-	    
-	    def solve(self, **kwargs) -> Tuple[prob.RandomVariable, dict]:
-	        raise NotImplementedError
+        def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
+            raise NotImplementedError
 
-
-	class VanillaPnMethod(PnMethod):
-
-	    def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
-	        raise NotImplementedError
-
-	    def solve(self) -> Tuple[prob.RandomVariable, dict]:
-	        """
-	        Solve the numerical problem in a basic way.
-	        
-	        Returns
-	        -------
-	        rv_out : RandomVariable
-	            Posterior distribution over the solution of `problem`.
-	        info : dict
-	            Information on the convergence of the iteration.
-	        """
-	        raise NotImplementedError
+        def solve(self, **kwargs) -> Tuple[prob.RandomVariable, dict]:
+            raise NotImplementedError
 
 
-	class AdvancedPnMethod(PnMethod):
+    class VanillaPnMethod(PnMethod):
+        def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
+            raise NotImplementedError
 
-	    def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
-	        raise NotImplementedError
+        def solve(self) -> Tuple[prob.RandomVariable, dict]:
+            """
+            Solve the numerical problem in a basic way.
 
-	    def solve(self, maxiter: int) -> Tuple[prob.RandomVariable, dict]:
-	        """
-	        Solve the numerical problem in an advanced way.
-	        
-	        Parameters
-	        ----------
-	        maxiter : int
-	            Maximum number of iterations of the solve loop.
+            Returns
+            -------
+            rv_out : RandomVariable
+                Posterior distribution over the solution of `problem`.
+            info : dict
+                Information on the convergence of the iteration.
+            """
+            raise NotImplementedError
 
-	        Returns
-	        -------
-	        rv_out : RandomVariable
-	            Posterior distribution over the solution of `problem`.
-	        info : dict
-	            Information on the convergence of the iteration.
-	        """
-	        raise NotImplementedError
+
+    class AdvancedPnMethod(PnMethod):
+        def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
+            raise NotImplementedError
+
+        def solve(self, maxiter: int) -> Tuple[prob.RandomVariable, dict]:
+            """
+            Solve the numerical problem in an advanced way.
+
+            Parameters
+            ----------
+            maxiter : int
+                Maximum number of iterations of the solve loop.
+
+            Returns
+            -------
+            rv_out : RandomVariable
+                Posterior distribution over the solution of `problem`.
+            info : dict
+                Information on the convergence of the iteration.
+            """
+            raise NotImplementedError
+
 
 
 Before you add a new method interface or class, look through the codebase whether you can simply subclass an existing 
