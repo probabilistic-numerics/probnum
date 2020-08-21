@@ -68,8 +68,8 @@ class RandomVariable(Generic[ValueType]):
     # pylint: disable=too-many-arguments,too-many-locals
     def __init__(
         self,
-        shape: Optional[Union[int, Tuple[int, ...]]] = None,
-        dtype: Optional[np.dtype] = None,
+        shape: Union[int, Tuple[int, ...]],
+        dtype: np.dtype,
         random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[int], ValueType]] = None,
@@ -114,16 +114,6 @@ class RandomVariable(Generic[ValueType]):
         self.__std = std
         self.__entropy = entropy
 
-        # Further processing
-        if self._shape is None or self._dtype is None:
-            inferred_shape, inferred_dtype = self._infer_shape_and_dtype()
-
-            if self._shape is None:
-                self._shape = inferred_shape
-
-            if self._dtype is None:
-                self._dtype = inferred_dtype
-
     @staticmethod
     def _check_shape(
         shape: Optional[Union[int, Tuple[int, ...]]]
@@ -141,41 +131,8 @@ class RandomVariable(Generic[ValueType]):
                 f"The given shape {shape} is not an int or a tuple of ints."
             )
 
-    def _infer_shape_and_dtype(self):
-        # Infer shape and dtype based on a sample
-        try:
-            sample = self.sample()
-
-            if np.isscalar(sample):
-                shape = ()
-            else:
-                shape = sample.shape
-
-            return shape, sample.dtype
-        except NotImplementedError:
-            pass
-
-        # Infer shape and dtype based on mean
-        try:
-            if np.isscalar(self.mean):
-                shape = ()
-            else:
-                shape = self.mean.shape
-
-            return shape, self.mean.dtype
-        except NotImplementedError:
-            pass
-
-        raise NotImplementedError(
-            "The shape of the random variable could not be inferred automatically"
-        )
-
-    def __repr__(self):
-        if self.dtype is None:
-            dt = "unspecified dtype"
-        else:
-            dt = "dtype=" + str(self.dtype)
-        return "<%s %s with %s>" % (str(self.shape), self.__class__.__name__, dt)
+    def __repr__(self) -> str:
+        return f"<{self.shape} {self.__class__.__name__} with dtype={self.dtype}>"
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -864,9 +821,12 @@ def _scipystats_to_rv(
 
         return _wrapper
 
+    # Infer shape and dtype
+    sample = _wrap_np_scalar(scipyrv.rvs)()
+
     return RandomVariable(
-        shape=None,  # will be inferred automatically
-        dtype=None,  # will be inferred automatically
+        shape=sample.shape,
+        dtype=sample.dtype,
         random_state=getattr(scipyrv, "random_state", None),
         sample=_wrap_np_scalar(getattr(scipyrv, "rvs", None)),
         in_support=None,  # TODO for univariate
