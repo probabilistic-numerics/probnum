@@ -7,6 +7,7 @@ be provided and is updated with information collected by the solvers to return a
 posterior distribution.
 """
 
+from typing import Optional, Union, Callable, Dict, Tuple
 import warnings
 
 import numpy as np
@@ -23,19 +24,27 @@ from probnum.linalg.linearsolvers.matrixbased import (
 from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
 
+SquareLinOp = Union[
+    np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "prob.RandomVariable"
+]
+RandomVecMat = Union[
+    np.ndarray, "prob.RandomVariable"
+]
+
+
 def problinsolve(
-    A,
-    b,
-    A0=None,
-    Ainv0=None,
-    x0=None,
-    assume_A="sympos",
-    maxiter=None,
-    atol=10 ** -6,
-    rtol=10 ** -6,
-    callback=None,
+    A: SquareLinOp,
+    b: RandomVecMat,
+    A0: Optional[SquareLinOp] =None,
+    Ainv0: Optional[SquareLinOp] =None,
+    x0: Optional[RandomVecMat]=None,
+    assume_A: str ="sympos",
+    maxiter: Optional[int] = None,
+    atol: float = 10 ** -6,
+    rtol: float = 10 ** -6,
+    callback: Optional[Callable]=None,
     **kwargs
-):
+) -> Tuple["prob.RandomVariable", "prob.RandomVariable", "prob.RandomVariable", Dict]:
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -53,28 +62,28 @@ def problinsolve(
 
     Parameters
     ----------
-    A : array-like or LinearOperator, shape=(n,n)
+    A :
         A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
         used internally.
-    b : array_like or RandomVariable, shape=(n,) or (n, nrhs)
+    b :
         Right-hand side vector, matrix or random variable in :math:`A x = b`. For
         multiple right hand sides, ``nrhs`` problems are solved sequentially with the
         posteriors over the matrices acting as priors for subsequent solves.
         If the right-hand-side is assumed to be noisy, every iteration of the solver
         samples a realization from ``b``.
-    A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+    A0 :
         A square matrix, linear operator or random variable representing the prior
         belief over the linear operator :math:`A`. If an array or linear operator is
         given, a prior distribution is chosen automatically.
-    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+    Ainv0 :
         A square matrix, linear operator or random variable representing the prior
         belief over the inverse :math:`H=A^{-1}`. This can be viewed as taking the form
         of a pre-conditioner. If an array or linear operator is given, a prior
         distribution is chosen automatically.
-    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-        Optional. Prior belief for the solution of the linear system. Will be ignored if
+    x0 :
+        Prior belief for the solution of the linear system. Will be ignored if
         ``Ainv0`` is given.
-    assume_A : str, default="sympos"
+    assume_A :
         Assumptions on the linear operator which can influence solver choice and
         behavior. The available options are (combinations of)
 
@@ -85,14 +94,14 @@ def problinsolve(
          (additive) noise     ``noise``
         ====================  =========
 
-    maxiter : int, optional
+    maxiter :
         Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the
         dimension of :math:`A`.
-    atol : float, optional
+    atol :
         Absolute convergence tolerance.
-    rtol : float, optional
+    rtol :
         Relative convergence tolerance.
-    callback : function, optional
+    callback :
         User-supplied function called after each iteration of the linear solver. It is
         called as ``callback(xk, Ak, Ainvk, sk, yk, alphak, resid, **kwargs)`` and can
         be used to return quantities from the iteration. Note that depending on the
@@ -102,14 +111,14 @@ def problinsolve(
 
     Returns
     -------
-    x : RandomVariable, shape=(n,) or (n, nrhs)
+    x :
         Approximate solution :math:`x` to the linear system. Shape of the return matches
         the shape of ``b``.
-    A : RandomVariable, shape=(n,n)
+    A :
         Posterior belief over the linear operator.
-    Ainv : RandomVariable, shape=(n,n)
+    Ainv :
         Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
-    info : dict
+    info :
         Information on convergence of the solver.
 
     Raises

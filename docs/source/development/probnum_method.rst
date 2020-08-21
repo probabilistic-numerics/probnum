@@ -6,67 +6,111 @@ output. Hence their signature should be similar to
 
 .. code-block:: python
 
-	randvar_out = probnum_method(problem, randvar_in, **kwargs)
+	rv_out = probnum_method(problem, rv_in, **kwargs)
 
 
-where :code:`problem` defines the numerical problem to solve, :code:`randvar_in` is the input random variable encoding
-prior information and :code:`**kwargs` are keyword arguments that influence the behaviour
-of the solver (e.g. control termination). If your method has a classic analogue in NumPy or SciPy, make sure the 
-signatures match as closely as possible. This enables PN methods to be used as drop-in replacements for classic 
-numerical routines.
+where :code:`problem` defines the numerical problem to solve, :code:`rv_in` is the input random variable encoding
+prior information and :code:`**kwargs` are keyword arguments that influence the behaviour of the solver (e.g. control
+termination).
 
-Interface and Implementation
-****************************
+Example Implementation of a PN Method
+**************************************
 
-Each method in ProbNum has an interface called by the user defined through a function similar to the one below.
+Consider the problem of finding the scalar root :math:`x` of an equation :math:`f(x)=0`. Suppose we have developed an
+iterative PN method for this problem, which computes a belief over the location of the root. In each iteration :math:`i`
+we evaluate :math:`f` at a location :math:`x_i` to update our belief about the solution :math:`x`. This choice of where
+to evaluate is given by the *policy* of the algorithm. Once the algorithm determines (e.g. based on its belief) that the
+estimated root is close to the true root, it terminates. We will now mock-up this hypothetical PN method to demonstrate
+how PN methods are implemented in ProbNum.
+
+Interface
+"""""""""
+Each method in ProbNum has a user interface defined by a function similar to the one below. If your method has a classic
+analogue in NumPy or SciPy, make sure the signatures match as closely as possible. This enables PN methods to be used as
+drop-in replacements for classic numerical routines.
 
 .. code-block:: python
 
-	def my_probnum_method(problem, randvar_in, type="vanilla", **kwargs):
-	    """
-	    Solve a numerical problem using a probabilistic numerical method.
+    from typing import Callable, Dict, Optional
 
-	    This probabilistic numerical method solves the problem xyz, by ...
-
-	    Parameters
-	    ----------
-	    problem : Problem, shape=(n,n)
-	        Arguments defining the numerical problem to be solved.
-	    randvar_in : RandomVariable, shape=(n,)
-	        Input random variable encoding prior information about the problem.
-	    type : str
-	        Variant of probabilistic numerical method to use. The available options are
-
-	        ====================  ===========
-	         vanilla              ``vanilla``
-	         advanced              ``adv``
-	        ====================  ===========
-
-	    Returns
-	    -------
-	    randvar_out : RandomVariable, shape=(n,)
-	        Output random variable with posterior distribution over the quantity to be estimated.
-
-	    Raises
-	    ------
-	    ValueError
-	        Input shapes do not match.
-	    """
-	    # Choose method
-	    if type == "vanilla":
-	        pnmethod = VanillaPnMethod(problem, randvar_in)
-	    elif type == "wasabi":
-	        pnmethod = AdvancedPnMethod(problem, randvar_in)
-
-	    # Solve problem
-	    randvar_out, info = pnmethod.solve(**kwargs)
-
-	    # Return output with information (e.g. on convergence)
-	    return randvar_out, info
+    from probnum import RandomVariable
 
 
-This interface is separate from the actual implementation(s) of the PN method. Often there are different variations of a
-given numerical routine depending on the arguments supplied. These are implemented in a class hierarchy usually in the same module
+    def bayes_root_scalar(
+        f: Callable[[float], float],
+        rv_in: RandomVariable,
+        method: str = "vanilla",
+        maxiter: Optional[int] = None,
+        atol: float = 10 ** -6,
+        rtol: float = 10 ** -6,
+    ) -> Tuple[RandomVariable, Dict]:
+        """
+        Find a root of a scalar function.
+
+        Iteratively computes a probabilistic belief over the root of ``f``.
+
+        Parameters
+        ----------
+        f :
+            Argument(s) defining the numerical problem to be solved. These could be a function, a matrix, vectors, etc.
+        rv_in :
+            Input random variable encoding prior information about the problem.
+        method :
+            Variant of probabilistic numerical method to use. The available options are
+
+            ====================  ===========
+             vanilla              ``vanilla``
+             advanced              ``adv``
+            ====================  ===========
+
+        maxiter :
+            Maximum number of iterations.
+        atol :
+            Absolute convergence tolerance.
+        rtol :
+            Relative convergence tolerance.
+
+        Returns
+        -------
+        rv_out :
+            Output random variable with posterior distribution over the quantity to be estimated.
+
+        Raises
+        ------
+        ValueError
+            Input shapes do not match.
+        """
+        # Instantiate a variant of the PN method based on the problem and arguments
+        if type == "vanilla":
+            pnmethod = PnMethod(
+                problem=problem,
+                rv_in=rv_in,
+                policy=deterministic_policy,
+                stopping_criteria=[residual_stopping_criterion,],
+            )
+        elif type == "adv":
+            pnmethod = PnMethod(
+                problem=problem,
+                rv_in=rv_in,
+                policy=max_uncertainty_policy,
+                stopping_criteria=probabilistic_stopping_criterion,
+            )
+
+        # Solve problem
+        rv_out, info = pnmethod.solve(**kwargs)
+
+        # Return output with information (e.g. on convergence)
+        return rv_out, info
+
+
+This interface is separate from the actual implementation(s) of the PN method.
+
+Implementation
+""""""""""""""
+
+
+Often there are different variations of a given numerical routine depending on the arguments supplied. These are
+implemented in a class hierarchy usually in the same module
 as the interface. In order to decrease pesky type bugs and increase maintainability these implementations must have `type
 hints <https://docs.python.org/3/library/typing.html>`_.
 
@@ -83,11 +127,11 @@ hints <https://docs.python.org/3/library/typing.html>`_.
 	    ----------
 	    problem : Problem, shape=(n,n)
 	        Arguments defining the numerical problem to be solved.
-	    randvar_in : RandomVariable, shape=(n,)
+	    rv_in : RandomVariable, shape=(n,)
 	        Input random variable encoding prior information about the problem.
 	    """
 
-	    def __init__(self, problem: Problem, randvar_in: prob.RandomVariable):
+	    def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
 	        raise NotImplementedError
 	    
 	    def solve(self, **kwargs) -> Tuple[prob.RandomVariable, dict]:
@@ -96,7 +140,7 @@ hints <https://docs.python.org/3/library/typing.html>`_.
 
 	class VanillaPnMethod(PnMethod):
 
-	    def __init__(self, problem: Problem, randvar_in: prob.RandomVariable):
+	    def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
 	        raise NotImplementedError
 
 	    def solve(self) -> Tuple[prob.RandomVariable, dict]:
@@ -105,7 +149,7 @@ hints <https://docs.python.org/3/library/typing.html>`_.
 	        
 	        Returns
 	        -------
-	        randvar_out : RandomVariable
+	        rv_out : RandomVariable
 	            Posterior distribution over the solution of `problem`.
 	        info : dict
 	            Information on the convergence of the iteration.
@@ -115,7 +159,7 @@ hints <https://docs.python.org/3/library/typing.html>`_.
 
 	class AdvancedPnMethod(PnMethod):
 
-	    def __init__(self, problem: Problem, randvar_in: prob.RandomVariable):
+	    def __init__(self, problem: Problem, rv_in: prob.RandomVariable):
 	        raise NotImplementedError
 
 	    def solve(self, maxiter: int) -> Tuple[prob.RandomVariable, dict]:
@@ -129,7 +173,7 @@ hints <https://docs.python.org/3/library/typing.html>`_.
 
 	        Returns
 	        -------
-	        randvar_out : RandomVariable
+	        rv_out : RandomVariable
 	            Posterior distribution over the solution of `problem`.
 	        info : dict
 	            Information on the convergence of the iteration.

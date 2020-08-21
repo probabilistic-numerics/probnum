@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath("../../../probnum/src"))
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "1.6.1"
+needs_sphinx = "3.0"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -35,6 +35,7 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.napoleon",
     "sphinx_automodapi.automodapi",
+    "sphinx_autodoc_typehints",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
@@ -43,11 +44,14 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "nbsphinx",
-    "m2r",
+    "m2r2",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
+
+# Settings for napoleon
+napoleon_use_param = True
 
 # Remove possible duplicate methods when using 'automodapi'
 # autodoc_default_flags = ['no-members']
@@ -57,6 +61,10 @@ numpydoc_show_class_members = True
 automodapi_toctreedirnm = "automod"
 automodapi_writereprocessed = False
 automodsumm_inherited_members = True
+
+# Settings for autodoc_typehints
+typehints_fully_qualified = False
+typehints_document_rtype = True
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:
@@ -68,7 +76,7 @@ master_doc = "index"
 # General information about the project.
 project = "probnum"
 copyright = str(datetime.utcnow().year)
-author = "Jonathan Wenger"
+author = "ProbNum Authors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

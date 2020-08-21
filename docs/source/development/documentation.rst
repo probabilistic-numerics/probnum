@@ -1,5 +1,5 @@
-Adding to the Documentation
-============================
+Adding to the API Documentation
+================================
 
 Documentation is an integral part of every collaborative software project. Good documentation not only encourages users
 of the package to try out different functionalities, but it also makes maintaining and expanding code significantly
