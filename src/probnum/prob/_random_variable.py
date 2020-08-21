@@ -310,8 +310,8 @@ class RandomVariable(Generic[ValueType]):
         if self.__median is None:
             try:
                 median = self.quantile(0.5)
-            except NotImplementedError:
-                raise NotImplementedError
+            except NotImplementedError as exc:
+                raise NotImplementedError from exc
         else:
             median = self.__median()
 
@@ -381,8 +381,8 @@ class RandomVariable(Generic[ValueType]):
         if self.__var is None:
             try:
                 var = np.diag(self.cov).reshape(self._shape).copy()
-            except NotImplementedError:
-                raise NotImplementedError
+            except NotImplementedError as exc:
+                raise NotImplementedError from exc
         else:
             var = self.__var()
 
@@ -405,8 +405,8 @@ class RandomVariable(Generic[ValueType]):
         if self.__std is None:
             try:
                 std = np.sqrt(self.var)
-            except NotImplementedError:
-                raise NotImplementedError
+            except NotImplementedError as exc:
+                raise NotImplementedError from exc
         else:
             std = self.__std()
 

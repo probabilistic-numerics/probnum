@@ -246,11 +246,11 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
     def _numpy_reshape(self, newshape):
         try:
             reshaped_mean = self._mean.reshape(newshape)
-        except ValueError:
+        except ValueError as exc:
             raise ValueError(
                 f"Cannot reshape this normal random variable to the given shape: "
                 f"{newshape}"
-            )
+            ) from exc
 
         reshaped_cov = self._cov
 
