@@ -127,7 +127,7 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         self.assertApproxEqual(expectedcov, pred.cov)
 
     def test_update(self):
-        data = np.array([self.measmod.sample(0.0, self.initrv.mean * np.ones(1))])
+        data = self.measmod.sample(0.0, self.initrv.mean * np.ones(1))
         upd, __, __, __ = self.method.update(0.0, self.initrv, data)
         self.assertEqual(upd.mean.shape, (1,))
         self.assertEqual(upd.cov.shape, (1, 1))

@@ -74,11 +74,11 @@ class Functions:
             if property == "pdf":
                 self.randvar.pdf(x=self.eval_point)
             elif property == "logpdf":
-                self.randvar.pdf(x=self.eval_point)
+                self.randvar.logpdf(x=self.eval_point)
             elif property == "cdf":
-                self.randvar.pdf(x=self.quantile)
+                self.randvar.cdf(x=self.quantile)
             elif property == "logcdf":
-                self.randvar.pdf(x=self.quantile)
+                self.randvar.logcdf(x=self.quantile)
         except NotImplementedError:
             pass
 
