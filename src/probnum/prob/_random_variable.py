@@ -141,7 +141,9 @@ class RandomVariable(Generic[ValueType]):
         elif isinstance(shape, int):
             return (shape,)
         else:
-            raise TypeError("The given shape is not an int or a tuple of ints.")
+            raise TypeError(
+                f"The given shape {shape} is not an int or a tuple of ints."
+            )
 
     @staticmethod
     def _get_property_fn(

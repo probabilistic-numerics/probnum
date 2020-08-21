@@ -1,5 +1,5 @@
 """
-Benchmarks for distributions.
+Benchmarks for random variables.
 """
 
 import numpy as np
@@ -8,7 +8,7 @@ from probnum.prob import random_variable as rvars
 import probnum.linalg.linops as linops
 
 # Module level variables
-distribution_names = [
+rv_names = [
     "univar_normal",
     "multivar_normal",
     "matrixvar_normal",
@@ -17,7 +17,7 @@ distribution_names = [
 ]
 
 
-def get_randvar(distribution_name):
+def get_randvar(rv_name):
     """
     Return a random variable for a given distribution name
     """
@@ -40,19 +40,18 @@ def get_randvar(distribution_name):
     cov_2d_kron = linops.Kronecker(A=spd_mat, B=spd_mat)
     cov_2d_symkron = linops.SymmetricKronecker(A=spd_mat)
 
-    # Random variable for a given distribution
-    if distribution_name == "univar_normal":
-        distribution = rvars.Normal(mean=mean_0d, cov=cov_0d)
-    elif distribution_name == "multivar_normal":
-        distribution = rvars.Normal(mean=mean_1d, cov=cov_1d)
-    elif distribution_name == "matrixvar_normal":
-        distribution = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
-    elif distribution_name == "symmatrixvar_normal":
-        distribution = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
-    elif distribution_name == "operatorvar_normal":
-        distribution = rvars.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
+    if rv_name == "univar_normal":
+        randvar = rvars.Normal(mean=mean_0d, cov=cov_0d)
+    elif rv_name == "multivar_normal":
+        randvar = rvars.Normal(mean=mean_1d, cov=cov_1d)
+    elif rv_name == "matrixvar_normal":
+        randvar = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
+    elif rv_name == "symmatrixvar_normal":
+        randvar = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
+    elif rv_name == "operatorvar_normal":
+        randvar = rvars.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
 
-    return distribution
+    return randvar
 
 
 class Functions:
@@ -60,15 +59,15 @@ class Functions:
     Benchmark various functions of distributions.
     """
 
-    param_names = ["dist", "property"]
-    params = [distribution_names, ["pdf", "logpdf", "cdf", "logcdf"]]
+    param_names = ["rv_name", "property"]
+    params = [rv_names, ["pdf", "logpdf", "cdf", "logcdf"]]
 
-    def setup(self, dist, property):
-        self.randvar = get_randvar(distribution_name=dist)
+    def setup(self, rv_name, property):
+        self.randvar = get_randvar(rv_name=rv_name)
         self.eval_point = np.random.uniform(self.randvar.shape)
         self.quantile = np.random.uniform(self.randvar.shape)
 
-    def time_distr_functions(self, dist, property):
+    def time_distr_functions(self, rv_name, property):
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
         try:
             if property == "pdf":
@@ -88,18 +87,18 @@ class Sampling:
     Benchmark sampling routines for various distributions.
     """
 
-    param_names = ["dist"]
-    params = [distribution_names]
+    param_names = ["rv_name"]
+    params = [rv_names]
 
-    def setup(self, dist):
+    def setup(self, rv_name):
         np.random.seed(42)
         self.n_samples = 1000
-        self.randvar = get_randvar(distribution_name=dist)
+        self.randvar = get_randvar(rv_name=rv_name)
 
-    def time_sample(self, dist):
+    def time_sample(self, rv_name):
         """Times sampling from this distribution."""
         self.randvar.sample(self.n_samples)
 
-    def peakmem_sample(self, dist):
+    def peakmem_sample(self, rv_name):
         """Peak memory of sampling process."""
         self.randvar.sample(self.n_samples)

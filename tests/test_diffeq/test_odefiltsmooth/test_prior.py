@@ -56,7 +56,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 
     def test_chapmankolmogorov(self):
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
-        initrv = distribution = Normal(mean, cov)
+        initrv = Normal(mean, cov)
         cke, __ = self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
         self.assertAllClose(AH_22_IBM @ initrv.mean, cke.mean, 1e-14)
         self.assertAllClose(
