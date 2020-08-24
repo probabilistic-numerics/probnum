@@ -11,7 +11,7 @@ from .filtsmooth_testcases import (
 
 np.random.seed(5472)
 
-VISUALISE = True  # show plots or not?
+VISUALISE = False  # show plots or not?
 if VISUALISE is True:
     import matplotlib.pyplot as plt
 
