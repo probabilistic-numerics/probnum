@@ -163,8 +163,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         if np.isscalar(predmean) and np.isscalar(predcov):
             predmean = predmean * np.ones(1)
             predcov = predcov * np.eye(1)
-        res = currmean - predmean
-        newmean = initmean + crosscov @ np.linalg.solve(predcov, res)
+        newmean = initmean + crosscov @ np.linalg.solve(predcov, currmean - predmean)
         firstsolve = crosscov @ np.linalg.solve(predcov, currcov - predcov)
         secondsolve = crosscov @ np.linalg.solve(predcov, firstsolve.T)
         newcov = initcov + secondsolve.T
