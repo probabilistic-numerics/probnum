@@ -110,10 +110,3 @@ def _discrete_extkalman_update(time, randvar, data, measmod, **kwargs):
     meascov = measmod.diffusionmatrix(time, **kwargs)
     meanest = measmod.dynamics(time, mpred, **kwargs)
     return linear_discrete_update(meanest, cpred, data, meascov, jacob, mpred)
-    #
-    # covest = jacob @ cpred @ jacob.T + meascov
-    # ccest = cpred @ jacob.T
-    # mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
-    # cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    # updated_rv = RandomVariable(distribution=Normal(mean, cov))
-    # return updated_rv, covest, ccest, meanest
