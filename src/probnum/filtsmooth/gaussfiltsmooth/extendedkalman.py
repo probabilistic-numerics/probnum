@@ -4,7 +4,7 @@ tractable through Taylor-method approximations, e.g. linearization.
 """
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth, linear_discrete_update
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace import (
@@ -109,9 +109,11 @@ def _discrete_extkalman_update(time, randvar, data, measmod, **kwargs):
     jacob = measmod.jacobian(time, mpred, **kwargs)
     meascov = measmod.diffusionmatrix(time, **kwargs)
     meanest = measmod.dynamics(time, mpred, **kwargs)
-    covest = jacob @ cpred @ jacob.T + meascov
-    ccest = cpred @ jacob.T
-    mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
-    cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    updated_rv = RandomVariable(distribution=Normal(mean, cov))
-    return updated_rv, covest, ccest, meanest
+    return linear_discrete_update(meanest, cpred, data, meascov, jacob, mpred)
+    #
+    # covest = jacob @ cpred @ jacob.T + meascov
+    # ccest = cpred @ jacob.T
+    # mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
+    # cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
+    # updated_rv = RandomVariable(distribution=Normal(mean, cov))
+    # return updated_rv, covest, ccest, meanest

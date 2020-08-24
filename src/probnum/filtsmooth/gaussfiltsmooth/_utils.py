@@ -9,6 +9,7 @@ from probnum.filtsmooth.statespace import (
     DiscreteGaussianLinearModel,
 )
 
+
 def is_cont_disc(dynamod, measmod):
     """Checks whether the state space model is continuous-discrete."""
     dyna_is_cont = issubclass(type(dynamod), ContinuousModel)

@@ -7,7 +7,7 @@ which is based on a third degree fully symmetric rule.
 
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth, linear_discrete_update
 from probnum.prob import RandomVariable, Normal
 from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import UnscentedTransform
 from probnum.filtsmooth.statespace import (
@@ -158,11 +158,7 @@ def _update_discrete_linear(time, randvar, data, measmod, **kwargs):
     measmat = measmod.dynamicsmatrix(time, **kwargs)
     meascov = measmod.diffusionmatrix(time, **kwargs)
     meanest = measmat @ mpred
-    covest = measmat @ cpred @ measmat.T + meascov
-    ccest = cpred @ measmat.T
-    mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
-    cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
+    return linear_discrete_update(meanest, cpred, data, meascov, measmat, mpred)
 
 
 def _update_discrete_nonlinear(time, randvar, data, measmod, ut, **kwargs):
