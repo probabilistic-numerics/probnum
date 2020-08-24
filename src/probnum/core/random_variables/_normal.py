@@ -68,6 +68,31 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
         if np.isscalar(cov):
             cov = _utils.as_numpy_scalar(cov)
 
+        # Data type normalization
+        is_mean_floating = mean.dtype is not None and np.issubdtype(
+            mean.dtype, np.floating
+        )
+        is_cov_floating = cov.dtype is not None and np.issubdtype(
+            cov.dtype, np.floating
+        )
+
+        if is_mean_floating and is_cov_floating:
+            dtype = np.promote_types(mean.dtype, cov.dtype)
+        elif is_mean_floating:
+            dtype = mean.dtype
+        elif is_cov_floating:
+            dtype = cov.dtype
+        else:
+            dtype = np.float_
+
+        # TODO: Implement casting for linear operators
+        if not isinstance(mean, linops.LinearOperator):
+            mean = mean.astype(dtype, order="C", casting="safe", subok=True, copy=False)
+
+        # TODO: Implement casting for linear operators
+        if not isinstance(cov, linops.LinearOperator):
+            cov = cov.astype(dtype, order="C", casting="safe", subok=True, copy=False)
+
         # Shape checking
         if len(mean.shape) not in [0, 1, 2]:
             raise ValueError(

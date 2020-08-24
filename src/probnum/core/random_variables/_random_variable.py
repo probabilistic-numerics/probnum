@@ -75,10 +75,10 @@ class RandomVariable(Generic[_ValueType]):
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
-        pdf: Optional[Callable[[_ValueType], np.float64]] = None,
-        logpdf: Optional[Callable[[_ValueType], np.float64]] = None,
-        cdf: Optional[Callable[[_ValueType], np.float64]] = None,
-        logcdf: Optional[Callable[[_ValueType], np.float64]] = None,
+        pdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        logpdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        cdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
         quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
@@ -86,7 +86,7 @@ class RandomVariable(Generic[_ValueType]):
         cov: Optional[Callable[[], _ValueType]] = None,
         var: Optional[Callable[[], _ValueType]] = None,
         std: Optional[Callable[[], _ValueType]] = None,
-        entropy: Optional[Callable[[], np.float64]] = None,
+        entropy: Optional[Callable[[], np.float_]] = None,
     ):
         """Create a new random variable."""
         self._shape = RandomVariable._check_shape(shape)
@@ -704,10 +704,10 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
-        pmf: Optional[Callable[[_ValueType], np.float64]] = None,
-        logpmf: Optional[Callable[[_ValueType], np.float64]] = None,
-        cdf: Optional[Callable[[_ValueType], np.float64]] = None,
-        logcdf: Optional[Callable[[_ValueType], np.float64]] = None,
+        pmf: Optional[Callable[[_ValueType], np.float_]] = None,
+        logpmf: Optional[Callable[[_ValueType], np.float_]] = None,
+        cdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
         quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
         mode: Optional[Callable[[], _ValueType]] = None,
         median: Optional[Callable[[], _ValueType]] = None,
@@ -715,7 +715,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         cov: Optional[Callable[[], _ValueType]] = None,
         var: Optional[Callable[[], _ValueType]] = None,
         std: Optional[Callable[[], _ValueType]] = None,
-        entropy: Optional[Callable[[], np.float64]] = None,
+        entropy: Optional[Callable[[], np.float_]] = None,
     ):
         # Probability mass function
         self.__pmf = pmf
