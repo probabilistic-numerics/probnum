@@ -9,7 +9,9 @@ from probnum.prob import RandomVariable, Dirac
 def load_lotkavolterra():
     """Load LV system as a basic IVP."""
     initrv = RandomVariable(distribution=Dirac(np.array([20, 20])))
-    return lotkavolterra(timespan=[0, 0.55], initrv=initrv, params=(0.5, 0.05, 0.5, 0.05))
+    return lotkavolterra(
+        timespan=[0, 0.55], initrv=initrv, params=(0.5, 0.05, 0.5, 0.05)
+    )
 
 
 class IVPSolve:
@@ -24,13 +26,36 @@ class IVPSolve:
 
     def time_solve(self, method, precond):
         if precond == "with":
-            probsolve_ivp(self.ivp, method=method, which_prior="ibm4", step=self.stepsize, precond_step=self.stepsize)
+            probsolve_ivp(
+                self.ivp,
+                method=method,
+                which_prior="ibm4",
+                step=self.stepsize,
+                precond_step=self.stepsize,
+            )
         else:
-            probsolve_ivp(self.ivp, method=method, which_prior="ibm4", step=self.stepsize, precond_step=1.0)
+            probsolve_ivp(
+                self.ivp,
+                method=method,
+                which_prior="ibm4",
+                step=self.stepsize,
+                precond_step=1.0,
+            )
 
     def peakmem_solve(self, method, precond):
         if precond == "with":
-            probsolve_ivp(self.ivp, method=method, which_prior="ibm4", step=self.stepsize, precond_step=self.stepsize)
+            probsolve_ivp(
+                self.ivp,
+                method=method,
+                which_prior="ibm4",
+                step=self.stepsize,
+                precond_step=self.stepsize,
+            )
         else:
-            probsolve_ivp(self.ivp, method=method, which_prior="ibm4", step=self.stepsize, precond_step=1.0)
-            
+            probsolve_ivp(
+                self.ivp,
+                method=method,
+                which_prior="ibm4",
+                step=self.stepsize,
+                precond_step=1.0,
+            )
