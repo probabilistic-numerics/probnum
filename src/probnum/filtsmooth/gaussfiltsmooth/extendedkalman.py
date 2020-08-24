@@ -14,6 +14,8 @@ from probnum.filtsmooth.statespace import (
     DiscreteGaussianModel,
 )
 
+from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc
+
 
 class ExtendedKalman(GaussFiltSmooth):
     """
@@ -23,9 +25,9 @@ class ExtendedKalman(GaussFiltSmooth):
     def __new__(cls, dynamod, measmod, initrv, **kwargs):
 
         if cls is ExtendedKalman:
-            if _cont_disc(dynamod, measmod):
+            if is_cont_disc(dynamod, measmod):
                 return _ContDiscExtendedKalman(dynamod, measmod, initrv, **kwargs)
-            if _disc_disc(dynamod, measmod):
+            if is_disc_disc(dynamod, measmod):
                 return _DiscDiscExtendedKalman(dynamod, measmod, initrv, **kwargs)
             else:
                 errmsg = (
@@ -36,19 +38,19 @@ class ExtendedKalman(GaussFiltSmooth):
         else:
             return super().__new__(cls)
 
-
-def _cont_disc(dynamod, measmod):
-    """Check whether the state space model is continuous-discrete."""
-    dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
-    meas_is_disc = issubclass(type(measmod), DiscreteModel)
-    return dyna_is_cont and meas_is_disc
-
-
-def _disc_disc(dynamod, measmod):
-    """Check whether the state space model is discrete-discrete."""
-    dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
-    meas_is_disc = issubclass(type(measmod), DiscreteModel)
-    return dyna_is_disc and meas_is_disc
+#
+# def _cont_disc(dynamod, measmod):
+#     """Check whether the state space model is continuous-discrete."""
+#     dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
+#     meas_is_disc = issubclass(type(measmod), DiscreteModel)
+#     return dyna_is_cont and meas_is_disc
+#
+#
+# def _disc_disc(dynamod, measmod):
+#     """Check whether the state space model is discrete-discrete."""
+#     dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
+#     meas_is_disc = issubclass(type(measmod), DiscreteModel)
+#     return dyna_is_disc and meas_is_disc
 
 
 class _ContDiscExtendedKalman(ExtendedKalman):

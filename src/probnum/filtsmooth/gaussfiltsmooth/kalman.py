@@ -13,6 +13,8 @@ from probnum.filtsmooth.statespace import (
     DiscreteGaussianLinearModel,
 )
 
+from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc
+
 
 class Kalman(GaussFiltSmooth):
     """
@@ -29,9 +31,9 @@ class Kalman(GaussFiltSmooth):
         discrete-discrete Kalman object is created.
         """
         if cls is Kalman:
-            if _cont_disc(dynamod, measmod):
+            if is_cont_disc(dynamod, measmod):
                 return _ContDiscKalman(dynamod, measmod, initrv, **kwargs)
-            if _disc_disc(dynamod, measmod):
+            if is_disc_disc(dynamod, measmod):
                 return _DiscDiscKalman(dynamod, measmod, initrv)
             else:
                 errmsg = (
@@ -42,19 +44,19 @@ class Kalman(GaussFiltSmooth):
         else:
             return super().__new__(cls)
 
-
-def _cont_disc(dynamod, measmod):
-    """Checks whether the state space model is continuous-discrete."""
-    dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
-    meas_is_disc = issubclass(type(measmod), DiscreteModel)
-    return dyna_is_cont and meas_is_disc
-
-
-def _disc_disc(dynamod, measmod):
-    """Checks whether the state space model is discrete-discrete."""
-    dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
-    meas_is_disc = issubclass(type(measmod), DiscreteModel)
-    return dyna_is_disc and meas_is_disc
+#
+# def _cont_disc(dynamod, measmod):
+#     """Checks whether the state space model is continuous-discrete."""
+#     dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
+#     meas_is_disc = issubclass(type(measmod), DiscreteModel)
+#     return dyna_is_cont and meas_is_disc
+#
+#
+# def _disc_disc(dynamod, measmod):
+#     """Checks whether the state space model is discrete-discrete."""
+#     dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
+#     meas_is_disc = issubclass(type(measmod), DiscreteModel)
+#     return dyna_is_disc and meas_is_disc
 
 
 class _ContDiscKalman(Kalman):
