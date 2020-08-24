@@ -119,9 +119,7 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
         # Method selection
         univariate = len(mean.shape) == 0
         dense = isinstance(mean, np.ndarray) and isinstance(cov, np.ndarray)
-        operator = isinstance(mean, linops.LinearOperator) or isinstance(
-            cov, linops.LinearOperator
-        )
+        operator = isinstance(cov, linops.LinearOperator)
 
         if univariate:
             # Univariate Gaussian
@@ -563,12 +561,7 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
         else:
             mean = self._mean
 
-        if isinstance(self._cov, linops.LinearOperator):
-            cov = self._cov.todense()
-        else:
-            cov = self._cov
-
-        return mean, cov
+        return mean, self._cov.todense()
 
     def _operatorvariate_sample(self, size=()) -> np.ndarray:
         mean, cov = self._operatorvariate_params_todense()
