@@ -153,7 +153,7 @@ class ODEPrior(LTISDEModel):
             )
             warnings.warn(message=warnmsg, category=RuntimeWarning)
             step = 1e-15 ** (1 / self.ordint)
-        powers = np.arange(self.ordint + 1) - self.ordint
+        powers = np.arange(start=-self.ordint, stop=1)
         diags = step ** powers
         precond = np.kron(np.eye(self.spatialdim), np.diag(diags))
         invprecond = np.kron(np.eye(self.spatialdim), np.diag(1.0 / diags))
