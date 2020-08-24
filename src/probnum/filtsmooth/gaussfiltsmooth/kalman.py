@@ -10,8 +10,6 @@ from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
 )
 from probnum.prob import RandomVariable, Normal
 from probnum.filtsmooth.statespace import (
-    ContinuousModel,
-    DiscreteModel,
     LinearSDEModel,
     DiscreteGaussianLinearModel,
 )

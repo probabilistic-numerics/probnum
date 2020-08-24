@@ -5,8 +5,6 @@ Utility functions for Gaussian filtering and smoothing.
 from probnum.filtsmooth.statespace import (
     ContinuousModel,
     DiscreteModel,
-    LinearSDEModel,
-    DiscreteGaussianLinearModel,
 )
 
 

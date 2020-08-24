@@ -11,8 +11,6 @@ from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
 from probnum.filtsmooth.statespace import (
-    ContinuousModel,
-    DiscreteModel,
     LinearSDEModel,
     DiscreteGaussianModel,
 )
