@@ -4,7 +4,7 @@ Benchmarks for random variables.
 
 import numpy as np
 
-from probnum.prob import random_variable as rvars
+from probnum.core import random_variable as rvs
 import probnum.linalg.linops as linops
 
 # Module level variables
@@ -41,15 +41,15 @@ def get_randvar(rv_name):
     cov_2d_symkron = linops.SymmetricKronecker(A=spd_mat)
 
     if rv_name == "univar_normal":
-        randvar = rvars.Normal(mean=mean_0d, cov=cov_0d)
+        randvar = rvs.Normal(mean=mean_0d, cov=cov_0d)
     elif rv_name == "multivar_normal":
-        randvar = rvars.Normal(mean=mean_1d, cov=cov_1d)
+        randvar = rvs.Normal(mean=mean_1d, cov=cov_1d)
     elif rv_name == "matrixvar_normal":
-        randvar = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
+        randvar = rvs.Normal(mean=mean_2d_mat, cov=cov_2d_kron)
     elif rv_name == "symmatrixvar_normal":
-        randvar = rvars.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
+        randvar = rvs.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
     elif rv_name == "operatorvar_normal":
-        randvar = rvars.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
+        randvar = rvs.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
 
     return randvar
 

@@ -12,12 +12,9 @@ of probabilistic numerical methods. A generic signature of such methods looks li
 
 """
 
-from ._random_variable import RandomVariable, asrandvar
+from . import random_variables
 
-from . import random_variable
+from .random_variables import RandomVariable, asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["RandomVariable", "asrandvar"]
-
-# Set correct module paths. Corrects links and module paths in documentation.
-RandomVariable.__module__ = "probnum.prob"
+__all__ = ["random_variables", "RandomVariable", "asrandvar"]

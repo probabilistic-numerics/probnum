@@ -6,8 +6,8 @@ import unittest
 import numpy as np
 import scipy.stats
 
-from probnum import prob
-from probnum.prob.random_variable import Normal
+import probnum
+from probnum import random_variables as rvs
 from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
@@ -34,10 +34,10 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
         self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
-            Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
+            rvs.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
         ]
         self.randvars2x2 = [
-            Normal(
+            rvs.Normal(
                 mean=np.array([[-2, 0.3], [0, 1]]),
                 cov=linops.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
             ),
@@ -63,28 +63,28 @@ class InstantiationTestCase(RandomVariableTestCase):
         """Create a random variable from a number."""
         for x in self.scalars:
             with self.subTest():
-                rv = prob.asrandvar(x)
-                self.assertIsInstance(rv, prob.RandomVariable)
+                rv = probnum.asrandvar(x)
+                self.assertIsInstance(rv, probnum.RandomVariable)
 
     def test_rv_from_ndarray(self):
         """Create a random variable from an array."""
         for arr in self.arrays2d:
             with self.subTest():
-                rv = prob.asrandvar(arr)
-                self.assertIsInstance(rv, prob.RandomVariable)
+                rv = probnum.asrandvar(arr)
+                self.assertIsInstance(rv, probnum.RandomVariable)
 
     # def test_rv_from_linearoperator(self):
     #     """Create a random variable from a linear operator."""
     #     for linop in linops:
     #       with self.subTest():
-    #           prob.asrandvar(A)
+    #           probnum.asrandvar(A)
 
     def test_rv_from_scipy(self):
         """Create a random variable from a scipy random variable."""
         for scipyrv in self.scipyrvs:
             with self.subTest():
-                rv = prob.asrandvar(scipyrv)
-                self.assertIsInstance(rv, prob.RandomVariable)
+                rv = probnum.asrandvar(scipyrv)
+                self.assertIsInstance(rv, probnum.RandomVariable)
 
 
 class ArithmeticTestCase(RandomVariableTestCase):
@@ -98,8 +98,8 @@ class ArithmeticTestCase(RandomVariableTestCase):
                 z2 = rv + x
                 self.assertEqual(z1.shape, rv.shape)
                 self.assertEqual(z2.shape, rv.shape)
-                self.assertIsInstance(z1, prob.RandomVariable)
-                self.assertIsInstance(z2, prob.RandomVariable)
+                self.assertIsInstance(z1, probnum.RandomVariable)
+                self.assertIsInstance(z2, probnum.RandomVariable)
 
     def test_rv_scalarmult(self):
         """Multiplication of random variables with scalar constants."""
@@ -107,7 +107,7 @@ class ArithmeticTestCase(RandomVariableTestCase):
             with self.subTest():
                 z = alpha * rv
                 self.assertEqual(z.shape, rv.shape)
-                self.assertIsInstance(z, prob.RandomVariable)
+                self.assertIsInstance(z, probnum.RandomVariable)
 
     def test_rv_broadcasting(self):
         """Broadcasting for arrays and random variables."""
@@ -125,8 +125,8 @@ class ArithmeticTestCase(RandomVariableTestCase):
             with self.subTest():
                 z1 = rv @ x
                 z2 = x @ rv
-                self.assertIsInstance(z1, prob.RandomVariable)
-                self.assertIsInstance(z2, prob.RandomVariable)
+                self.assertIsInstance(z1, probnum.RandomVariable)
+                self.assertIsInstance(z2, probnum.RandomVariable)
                 self.assertEqual(z1.shape, ())
                 self.assertEqual(z2.shape, ())
 
@@ -136,7 +136,7 @@ class ArithmeticTestCase(RandomVariableTestCase):
             with self.subTest():
                 y2 = A @ rv
                 self.assertEqual(y2.shape[0], A.shape[0])
-                self.assertIsInstance(y2, prob.RandomVariable)
+                self.assertIsInstance(y2, probnum.RandomVariable)
 
     def test_rv_linop_matmul(self):
         """Linear operator applied to a random variable."""
@@ -156,7 +156,7 @@ class ArithmeticTestCase(RandomVariableTestCase):
                 truecov = X.T @ rv.cov.todense() @ X
                 self.assertIsInstance(
                     y,
-                    prob.RandomVariable,
+                    probnum.RandomVariable,
                     "The variable y does not have the correct type.",
                 )
                 self.assertEqual(

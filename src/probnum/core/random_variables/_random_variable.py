@@ -69,7 +69,7 @@ class RandomVariable(Generic[_ValueType]):
     # pylint: disable=too-many-arguments,too-many-locals
     def __init__(
         self,
-        shape: Union[int, Tuple[int, ...]],
+        shape: ShapeArgType,
         dtype: np.dtype,
         random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
@@ -564,7 +564,7 @@ class RandomVariable(Generic[_ValueType]):
             return self + asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import add
+        from ._arithmetic import add
 
         return add(self, other)
 
@@ -579,7 +579,7 @@ class RandomVariable(Generic[_ValueType]):
             return self - asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import sub
+        from ._arithmetic import sub
 
         return sub(self, other)
 
@@ -594,7 +594,7 @@ class RandomVariable(Generic[_ValueType]):
             return self * asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import mul
+        from ._arithmetic import mul
 
         return mul(self, other)
 
@@ -609,7 +609,7 @@ class RandomVariable(Generic[_ValueType]):
             return self @ asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import matmul
+        from ._arithmetic import matmul
 
         return matmul(self, other)
 
@@ -624,7 +624,7 @@ class RandomVariable(Generic[_ValueType]):
             return self / asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import truediv
+        from ._arithmetic import truediv
 
         return truediv(self, other)
 
@@ -639,7 +639,7 @@ class RandomVariable(Generic[_ValueType]):
             return self // asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import floordiv
+        from ._arithmetic import floordiv
 
         return floordiv(self, other)
 
@@ -654,7 +654,7 @@ class RandomVariable(Generic[_ValueType]):
             return self % asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import mod
+        from ._arithmetic import mod
 
         return mod(self, other)
 
@@ -669,7 +669,7 @@ class RandomVariable(Generic[_ValueType]):
             return divmod(self, asrandvar(other))
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import divmod_
+        from ._arithmetic import divmod_
 
         return divmod_(self, other)
 
@@ -684,7 +684,7 @@ class RandomVariable(Generic[_ValueType]):
             return self ** asrandvar(other)
 
         # pylint: disable=import-outside-toplevel
-        from .random_variable._arithmetic import pow_
+        from ._arithmetic import pow_
 
         return pow_(self, other)
 
@@ -719,7 +719,7 @@ def asrandvar(obj) -> RandomVariable:
     Examples
     --------
     >>> from scipy.stats import bernoulli
-    >>> from probnum.prob import asrandvar
+    >>> from probnum import asrandvar
     >>> bern = bernoulli(p=0.5)
     >>> bern.random_state = 42  # Seed for reproducibility
     >>> b = asrandvar(bern)
@@ -728,19 +728,19 @@ def asrandvar(obj) -> RandomVariable:
     """
 
     # pylint: disable=import-outside-toplevel
-    from probnum.prob.random_variable import Dirac
+    from probnum.core import random_variables as rvs
 
     # RandomVariable
     if isinstance(obj, RandomVariable):
         return obj
     # Scalar
     elif np.isscalar(obj):
-        return Dirac(support=obj)
+        return rvs.Dirac(support=obj)
     # Numpy array, sparse array or Linear Operator
     elif isinstance(
         obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)
     ):
-        return Dirac(support=obj)
+        return rvs.Dirac(support=obj)
     # Scipy random variable
     elif isinstance(
         obj,
@@ -778,13 +778,13 @@ def _scipystats_to_rv(
     """
 
     # pylint: disable=import-outside-toplevel
-    from probnum.prob.random_variable import Normal
+    from probnum.core import random_variables as rvs
 
     # Univariate distributions (implemented in this package)
     if isinstance(scipyrv, scipy.stats._distn_infrastructure.rv_frozen):
         # Normal distribution
         if scipyrv.dist.name == "norm":
-            return Normal(
+            return rvs.Normal(
                 mean=scipyrv.mean(),
                 cov=scipyrv.var(),
                 random_state=scipyrv.random_state,
@@ -793,7 +793,7 @@ def _scipystats_to_rv(
     elif isinstance(scipyrv, scipy.stats._multivariate.multi_rv_frozen):
         # Multivariate normal
         if scipyrv.__class__.__name__ == "multivariate_normal_frozen":
-            return Normal(
+            return rvs.Normal(
                 mean=scipyrv.mean, cov=scipyrv.cov, random_state=scipyrv.random_state,
             )
     # Generic distributions

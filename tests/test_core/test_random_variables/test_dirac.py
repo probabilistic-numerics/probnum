@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from probnum.prob import random_variable as rv
+from probnum import random_variables as rvs
 from probnum import utils as _utils
 
 
@@ -21,7 +21,7 @@ class TestDirac(unittest.TestCase):
         for supp in self.supports:
             for sample_size in [1, (), 10, (4,), (3, 2)]:
                 with self.subTest():
-                    s = rv.Dirac(support=supp).sample(size=sample_size)
+                    s = rvs.Dirac(support=supp).sample(size=sample_size)
                     if sample_size == ():
                         self.assertEqual(np.shape(supp), np.shape(s))
                     elif isinstance(sample_size, tuple):

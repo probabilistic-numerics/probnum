@@ -3,9 +3,10 @@ from typing import Optional, Union
 import numpy as np
 import scipy.stats
 
-from probnum import prob, utils as _utils
+from probnum import utils as _utils
 from probnum.linalg import linops
-from probnum.prob import _random_variable
+
+from . import _random_variable
 
 
 _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
@@ -47,8 +48,8 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
 
     Examples
     --------
-    >>> from probnum.prob.random_variable import Normal
-    >>> N = Normal(mean=0.5, cov=1.0)
+    >>> from probnum import random_variables as rvs
+    >>> N = rvs.Normal(mean=0.5, cov=1.0)
     >>> N.parameters
     {'mean': 0.5, 'cov': 1.0}
     """
@@ -332,7 +333,7 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             ),
         )
 
-    def _add_dirac(self, dirac_rv: "probnum.prob.random_variable.Dirac") -> "Normal":
+    def _add_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
         return Normal(
             mean=self._mean + dirac_rv.support,
             cov=self._cov,
@@ -356,7 +357,7 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             ),
         )
 
-    def _sub_dirac(self, dirac_rv: "probnum.prob.random_variable.Dirac") -> "Normal":
+    def _sub_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
         return Normal(
             mean=self._mean - dirac_rv.support,
             cov=self._cov,
@@ -365,7 +366,7 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             ),
         )
 
-    def _rsub_dirac(self, dirac_rv: "probnum.prob.random_variable.Dirac") -> "Normal":
+    def _rsub_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
         return Normal(
             mean=dirac_rv.support - self._mean,
             cov=self._cov,
@@ -374,7 +375,7 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             ),
         )
 
-    def _matmul_dirac(self, dirac_rv: "probnum.prob.random_variable.Dirac") -> "Normal":
+    def _matmul_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
         if self.ndim == 1 or (self.ndim == 2 and self.shape[0] == 1):
             return Normal(
                 mean=self._mean @ dirac_rv.support,
@@ -401,9 +402,7 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
                 "matrix-variate Gaussians."
             )
 
-    def _rmatmul_dirac(
-        self, dirac_rv: "probnum.prob.random_variable.Dirac"
-    ) -> "Normal":
+    def _rmatmul_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
         if self.ndim != 1 or (self.ndim == 2 and self.shape[1] == 1):
             raise TypeError(
                 "Currently, matrix multiplication is only supported for vector-variate "
@@ -419,16 +418,16 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
         )
 
     def _mul_dirac(
-        self, dirac_rv: "probnum.prob.random_variable.Dirac"
-    ) -> Union["Normal", "probnum.prob.random_variable.Dirac"]:
+        self, dirac_rv: "probnum.random_variables.Dirac"
+    ) -> Union["Normal", "probnum.random_variables.Dirac"]:
         if dirac_rv.size == 1:
             return self._scale(dirac_rv.support, dirac_rv.random_state)
 
         return NotImplemented
 
     def _truediv_dirac(
-        self, dirac_rv: "probnum.prob.random_variable.Dirac"
-    ) -> Union["Normal", "probnum.prob.random_variable.Dirac"]:
+        self, dirac_rv: "probnum.random_variables.Dirac"
+    ) -> Union["Normal", "probnum.random_variables.Dirac"]:
         if dirac_rv.size == 1:
             if dirac_rv.support == 0:
                 raise ZeroDivisionError
@@ -448,7 +447,9 @@ class Normal(_random_variable.RandomVariable[np.ndarray]):
             )
 
         if scalar == 0:
-            return prob.random_variable.Dirac(
+            from probnum.core import random_variables as rvs
+
+            return rvs.Dirac(
                 support=np.zeros_like(self._mean), random_state=derived_random_seed,
             )
         else:

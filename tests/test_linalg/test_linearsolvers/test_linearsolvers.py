@@ -6,7 +6,9 @@ import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 
-from probnum import linalg, prob
+import probnum
+from probnum import linalg
+from probnum import random_variables as rvs
 from probnum.linalg import linops
 
 from tests.testing import NumpyAssertions
@@ -111,7 +113,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 for rv in [x, A, Ainv]:
                     self.assertIsInstance(
                         rv,
-                        prob.RandomVariable,
+                        probnum.RandomVariable,
                         msg="Output of probabilistic linear solver is not a random variable.",
                     )
 
@@ -307,7 +309,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Prior distributions on A
         covA = linops.SymmetricKronecker(A=np.eye(n))
-        Ainv0 = prob.random_variable.Normal(mean=np.eye(n), cov=covA)
+        Ainv0 = rvs.Normal(mean=np.eye(n), cov=covA)
 
         for matblinsolve in self.matblinsolvers:
             with self.subTest():
@@ -377,11 +379,11 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         cg_iters_arr = np.array([x0] + cg_iterates)
 
         # Matrix priors (encoding weak symmetric posterior correspondence)
-        Ainv0 = prob.random_variable.Normal(
+        Ainv0 = rvs.Normal(
             mean=linops.Identity(A.shape[1]),
             cov=linops.SymmetricKronecker(A=linops.Identity(A.shape[1])),
         )
-        A0 = prob.random_variable.Normal(
+        A0 = rvs.Normal(
             mean=linops.Identity(A.shape[1]), cov=linops.SymmetricKronecker(A)
         )
         for kwargs in [{"assume_A": "sympos", "rtol": 10 ** -6}]:

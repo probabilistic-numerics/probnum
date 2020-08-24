@@ -3,7 +3,8 @@ from typing import Callable, Optional, TypeVar
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.prob import _random_variable
+
+from . import _random_variable
 
 
 _ValueType = TypeVar("ValueType")
@@ -33,9 +34,9 @@ class Dirac(_random_variable.RandomVariable[_ValueType]):
 
     Examples
     --------
-    >>> from probnum.prob import random_variable as rv
-    >>> rv1 = rv.Dirac(support=0.)
-    >>> rv2 = rv.Dirac(support=1.)
+    >>> from probnum import random_variables as rvs
+    >>> rv1 = rvs.Dirac(support=0.)
+    >>> rv2 = rvs.Dirac(support=1.)
     >>> rv = rv1 + rv2
     >>> rv.sample(size=5)
     array([1., 1., 1., 1., 1.])

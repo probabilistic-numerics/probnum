@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from probnum.diffeq.ode import ivp
-from probnum.prob.random_variable import Dirac
+from probnum.core.random_variables import Dirac
 from tests.testing import NumpyAssertions
 
 TEST_NDIM = 3

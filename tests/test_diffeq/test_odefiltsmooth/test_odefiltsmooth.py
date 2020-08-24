@@ -16,7 +16,7 @@ import numpy as np
 
 from probnum.diffeq.odefiltsmooth import probsolve_ivp
 from probnum.diffeq import ode
-from probnum.prob.random_variable import Dirac
+from probnum.core.random_variables import Dirac
 
 from tests.testing import NumpyAssertions
 

@@ -3,7 +3,7 @@ Discrete Gauss-Markov models of the form
 x_{i+1} = N(g(i, x_i), S(i))
 """
 
-from probnum.prob.random_variable import Normal
+from probnum.core.random_variables import Normal
 from probnum.filtsmooth.statespace.discrete import discretemodel
 
 

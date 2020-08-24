@@ -6,8 +6,8 @@ import numpy as np
 import scipy.sparse
 import scipy.stats
 
-from probnum import prob
-from probnum.prob.random_variable import Normal
+import probnum
+from probnum import random_variables as rvs
 from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
@@ -102,8 +102,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         """Test whether different variants of the normal distribution are instances of Normal."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                dist = Normal(mean=mean, cov=cov)
-                self.assertIsInstance(dist, Normal)
+                dist = rvs.Normal(mean=mean, cov=cov)
+                self.assertIsInstance(dist, rvs.Normal)
 
     def test_scalarmult(self):
         """Multiply a rv with a normal distribution with a scalar."""
@@ -111,14 +111,14 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             itertools.product(self.normal_params, self.constants)
         ):
             with self.subTest():
-                normrv = const * prob.random_variable.Normal(mean=mean, cov=cov)
+                normrv = const * rvs.Normal(mean=mean, cov=cov)
 
-                self.assertIsInstance(normrv, prob.RandomVariable)
+                self.assertIsInstance(normrv, probnum.RandomVariable)
 
                 if const != 0:
-                    self.assertIsInstance(normrv, prob.random_variable.Normal)
+                    self.assertIsInstance(normrv, rvs.Normal)
                 else:
-                    self.assertIsInstance(normrv, prob.random_variable.Dirac)
+                    self.assertIsInstance(normrv, rvs.Dirac)
 
     def test_addition_normal(self):
         """Add two random variables with a normal distribution"""
@@ -126,8 +126,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             itertools.product(self.normal_params, self.normal_params)
         ):
             with self.subTest():
-                normrv0 = Normal(mean=mean0, cov=cov0)
-                normrv1 = Normal(mean=mean1, cov=cov1)
+                normrv0 = rvs.Normal(mean=mean0, cov=cov0)
+                normrv1 = rvs.Normal(mean=mean1, cov=cov1)
 
                 if normrv0.shape == normrv1.shape:
                     try:
@@ -136,9 +136,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     except TypeError:
                         continue
 
-                    self.assertIsInstance(
-                        normrv0 + normrv1, prob.random_variable.Normal
-                    )
+                    self.assertIsInstance(normrv0 + normrv1, rvs.Normal)
                 else:
                     with self.assertRaises(ValueError):
                         normrv_added = normrv0 + normrv1
@@ -151,7 +149,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
 
         A = linops.LinearOperator(shape=(2, 2), matvec=mv)
         V = linops.Kronecker(A, A)
-        Normal(mean=A, cov=V)
+        rvs.Normal(mean=A, cov=V)
 
     def test_normal_dimension_mismatch(self):
         """Instantiating a normal distribution with mismatched mean and kernels should result in a ValueError."""
@@ -163,19 +161,19 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 err_msg = "Mean and kernels mismatch in normal distribution did not raise a ValueError."
                 with self.assertRaises(ValueError, msg=err_msg):
-                    assert Normal(mean=mean, cov=cov)
+                    assert rvs.Normal(mean=mean, cov=cov)
 
     def test_normal_instantiation(self):
         """Instantiation of a normal distribution with mixed mean and cov type."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                Normal(mean=mean, cov=cov)
+                rvs.Normal(mean=mean, cov=cov)
 
     def test_normal_pdf(self):
         """Evaluate pdf at random input."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                dist = Normal(mean=mean, cov=cov)
+                dist = rvs.Normal(mean=mean, cov=cov)
                 pass
 
     def test_normal_cdf(self):
@@ -187,7 +185,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         for mean, cov in self.normal_params:
             with self.subTest():
                 # TODO: check dimension of each realization in rv_sample
-                rv = Normal(mean=mean, cov=cov, random_state=1)
+                rv = rvs.Normal(mean=mean, cov=cov, random_state=1)
                 rv_sample = rv.sample(size=5)
                 if not np.isscalar(rv.mean):
                     self.assertEqual(
@@ -200,7 +198,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         """Draw sample from distribution with zero kernels and check whether it equals the mean."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                rv = Normal(mean=mean, cov=0 * cov, random_state=1)
+                rv = rvs.Normal(mean=mean, cov=0 * cov, random_state=1)
                 rv_sample = rv.sample(size=1)
                 assert_str = "Draw with kernels zero does not match mean."
                 if isinstance(rv.mean, linops.LinearOperator):
@@ -215,7 +213,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         n = 3
         A = np.random.uniform(size=(n, n))
         A = 0.5 * (A + A.T) + n * np.eye(n)
-        rv = Normal(
+        rv = rvs.Normal(
             mean=np.eye(A.shape[0]), cov=linops.SymmetricKronecker(A=A), random_state=1
         )
         rv = rv.sample(size=10)
@@ -233,7 +231,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_indexing(self):
         """ Indexing with Python integers yields a univariate normal distribution. """
         for mean, cov in self.normal_params:
-            rv = Normal(mean=mean, cov=cov)
+            rv = rvs.Normal(mean=mean, cov=cov)
 
             if isinstance(rv.mean, linops.LinearOperator) or isinstance(
                 rv.cov, linops.LinearOperator
@@ -248,7 +246,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Index into distribution
                 indexed_rv = rv[idx]
 
-                self.assertIsInstance(indexed_rv, Normal)
+                self.assertIsInstance(indexed_rv, rvs.Normal)
 
                 # Compare with expected parameter values
                 if rv.ndim == 0:
@@ -268,7 +266,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_slicing(self):
         """ Slicing into a normal distribution yields a normal distribution of the same type """
         for mean, cov in self.normal_params:
-            rv = Normal(mean=mean, cov=cov)
+            rv = rvs.Normal(mean=mean, cov=cov)
 
             if isinstance(rv.mean, linops.LinearOperator) or isinstance(
                 rv.cov, linops.LinearOperator
@@ -307,7 +305,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_array_indexing(self):
         """ Indexing with 1-dim integer arrays yields a multivariate normal. """
         for mean, cov in self.normal_params:
-            rv = Normal(mean=mean, cov=cov)
+            rv = rvs.Normal(mean=mean, cov=cov)
 
             if rv.ndim == 0 or (
                 isinstance(rv.mean, linops.LinearOperator)
@@ -324,7 +322,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Index into distribution
                 indexed_rv = rv[idcs]
 
-                self.assertIsInstance(indexed_rv, prob.random_variable.Normal)
+                self.assertIsInstance(indexed_rv, rvs.Normal)
 
                 # Compare with expected parameter values
                 if len(rv.shape) == 1:
@@ -345,7 +343,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_array_indexing_broadcast(self):
         """ Indexing with broadcasted integer arrays yields a matrixvariate normal. """
         for mean, cov in self.normal_params:
-            rv = Normal(mean=mean, cov=cov)
+            rv = rvs.Normal(mean=mean, cov=cov)
 
             if rv.ndim != 2 or (
                 isinstance(rv.mean, linops.LinearOperator)
@@ -367,7 +365,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Index into distribution
                 indexed_rv = rv[idcs]
 
-                self.assertIsInstance(indexed_rv, prob.random_variable.Normal)
+                self.assertIsInstance(indexed_rv, rvs.Normal)
                 self.assertEqual(indexed_rv.shape, (10, 10))
 
                 # Compare with expected parameter values
@@ -384,7 +382,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_masking(self):
         """ Masking a multivariate or matrixvariate normal yields a multivariate normal. """
         for mean, cov in self.normal_params:
-            rv = Normal(mean=mean, cov=cov)
+            rv = rvs.Normal(mean=mean, cov=cov)
 
             if isinstance(rv.mean, linops.LinearOperator) or isinstance(
                 rv.cov, linops.LinearOperator
@@ -403,7 +401,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Mask distribution
                 masked_rv = rv[mask]
 
-                self.assertIsInstance(masked_rv, prob.random_variable.Normal)
+                self.assertIsInstance(masked_rv, rvs.Normal)
 
                 # Compare with expected parameter values
                 flat_mask = mask.flatten()
@@ -424,7 +422,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         self.params = (np.random.uniform(), np.random.gamma(shape=6, scale=1.0))
 
     def test_reshape_newaxis(self):
-        dist = Normal(*self.params)
+        dist = rvs.Normal(*self.params)
 
         for ndim in range(1, 3):
             for method in ["newaxis", "reshape"]:
@@ -444,7 +442,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertEqual(np.squeeze(newdist.cov), dist.cov)
 
     def test_transpose(self):
-        dist = Normal(*self.params)
+        dist = rvs.Normal(*self.params)
         dist_t = dist.transpose()
 
         self.assertArrayEqual(dist_t.mean, dist.mean)
@@ -465,7 +463,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         self.params = (np.random.uniform(size=10), _random_spd_matrix(10))
 
     def test_newaxis(self):
-        vector_rv = Normal(*self.params)
+        vector_rv = rvs.Normal(*self.params)
 
         matrix_rv = vector_rv[:, np.newaxis]
 
@@ -474,7 +472,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         self.assertArrayEqual(matrix_rv.cov, vector_rv.cov)
 
     def test_reshape(self):
-        rv = Normal(*self.params)
+        rv = rvs.Normal(*self.params)
 
         newshape = (5, 2)
         reshaped_rv = rv.reshape(newshape)
@@ -494,7 +492,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         )
 
     def test_transpose(self):
-        rv = Normal(*self.params)
+        rv = rvs.Normal(*self.params)
         transposed_rv = rv.transpose()
 
         self.assertArrayEqual(transposed_rv.mean, rv.mean)
@@ -512,7 +510,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
 class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_reshape(self):
-        rv = Normal(
+        rv = rvs.Normal(
             mean=np.random.uniform(size=(4, 3)),
             cov=linops.Kronecker(
                 A=_random_spd_matrix(4), B=_random_spd_matrix(3)
@@ -537,7 +535,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         )
 
     def test_transpose(self):
-        rv = Normal(mean=np.random.uniform(size=(2, 2)), cov=_random_spd_matrix(4))
+        rv = rvs.Normal(mean=np.random.uniform(size=(2, 2)), cov=_random_spd_matrix(4))
         transposed_rv = rv.transpose()
 
         self.assertArrayEqual(transposed_rv.mean, rv.mean.T)

@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
-from probnum.prob.random_variable import Normal, Dirac
+from probnum.core import random_variables as rvs
 
 
 def ivp2ekf0(ivp, prior, evlvar):
@@ -166,8 +166,8 @@ def _initialdistribution(ivp, prior):
     Note that the projection matrices :math:`H_0` and :math:`H_1`
     become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
     """
-    if not issubclass(type(ivp.initrv), Normal):
-        if not issubclass(type(ivp.initrv), Dirac):
+    if not issubclass(type(ivp.initrv), rvs.Normal):
+        if not issubclass(type(ivp.initrv), rvs.Dirac):
             raise RuntimeError("Initial distribution not Normal nor Dirac")
     x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
@@ -198,7 +198,7 @@ def _initialdistribution(ivp, prior):
     crosscov = initcov @ projmat.T
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s.T, crosscov.T)).T
-    return Normal(newmean, newcov)
+    return rvs.Normal(newmean, newcov)
 
 
 def _initialdistribution_no_precond(ivp, prior):
@@ -219,7 +219,7 @@ def _initialdistribution_no_precond(ivp, prior):
     crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s, crosscov)).T
-    return Normal(newmean, newcov)
+    return rvs.Normal(newmean, newcov)
 
 
 def _ddx(t, x, ivp):

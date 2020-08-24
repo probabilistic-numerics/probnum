@@ -27,9 +27,11 @@ diffeq
 from . import diffeq
 from . import filtsmooth
 from . import linalg
-from . import prob
 from . import quad
 from . import utils
+
+from .core import *
+
 
 # -*- coding: utf-8 -*-
 from pkg_resources import get_distribution, DistributionNotFound

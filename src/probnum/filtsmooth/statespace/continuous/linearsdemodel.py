@@ -10,7 +10,7 @@ is a Gauss-Markov process.
 import numpy as np
 import scipy.linalg
 from probnum.filtsmooth.statespace.continuous import continuousmodel
-from probnum.prob.random_variable import Normal
+from probnum.core.random_variables import Normal
 
 __all__ = ["LinearSDEModel", "LTISDEModel"]
 
