@@ -44,20 +44,6 @@ class Kalman(GaussFiltSmooth):
         else:
             return super().__new__(cls)
 
-#
-# def _cont_disc(dynamod, measmod):
-#     """Checks whether the state space model is continuous-discrete."""
-#     dyna_is_cont = issubclass(type(dynamod), ContinuousModel)
-#     meas_is_disc = issubclass(type(measmod), DiscreteModel)
-#     return dyna_is_cont and meas_is_disc
-#
-#
-# def _disc_disc(dynamod, measmod):
-#     """Checks whether the state space model is discrete-discrete."""
-#     dyna_is_disc = issubclass(type(dynamod), DiscreteModel)
-#     meas_is_disc = issubclass(type(measmod), DiscreteModel)
-#     return dyna_is_disc and meas_is_disc
-
 
 class _ContDiscKalman(Kalman):
     """
@@ -71,11 +57,11 @@ class _ContDiscKalman(Kalman):
         """
         if not issubclass(type(dynamod), LinearSDEModel):
             raise ValueError(
-                "ContinuosDiscreteKalman requires " "a linear dynamic model."
+                "ContinuousDiscreteKalman requires a linear dynamic model."
             )
         if not issubclass(type(measmod), DiscreteGaussianLinearModel):
             raise ValueError(
-                "DiscreteDiscreteKalman requires " "a linear measurement model."
+                "ContinuousDiscreteKalman requires a linear measurement model."
             )
         if "cke_nsteps" in kwargs.keys():
             self.cke_nsteps = kwargs["cke_nsteps"]
