@@ -4,7 +4,10 @@ continuous-discrete and discrete-discrete state space models.
 """
 
 import numpy as np
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth, linear_discrete_update
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
+    GaussFiltSmooth,
+    linear_discrete_update,
+)
 from probnum.prob import RandomVariable, Normal
 from probnum.filtsmooth.statespace import (
     ContinuousModel,
@@ -126,4 +129,3 @@ def _discrete_kalman_update(time, randvar, data, measurementmodel, **kwargs):
     meascov = measurementmodel.diffusionmatrix(time, **kwargs)
     meanest = measmat @ mpred
     return linear_discrete_update(meanest, cpred, data, meascov, measmat, mpred)
-
