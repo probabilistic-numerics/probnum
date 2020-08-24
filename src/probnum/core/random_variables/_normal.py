@@ -12,7 +12,7 @@ from . import _random_variable
 _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
 
-class Normal(_random_variable.RandomVariable[np.ndarray]):
+class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
     """
     The normal distribution.
 

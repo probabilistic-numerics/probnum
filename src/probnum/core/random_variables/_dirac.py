@@ -10,7 +10,7 @@ from . import _random_variable
 _ValueType = TypeVar("ValueType")
 
 
-class Dirac(_random_variable.RandomVariable[_ValueType]):
+class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     """
     The Dirac delta distribution.
 
@@ -53,12 +53,13 @@ class Dirac(_random_variable.RandomVariable[_ValueType]):
         self._support = support
 
         super().__init__(
-            shape=support.shape,
-            dtype=support.dtype,
+            shape=self._support.shape,
+            dtype=self._support.dtype,
             random_state=random_state,
-            parameters={"support": support},
+            parameters={"support": self._support},
             sample=self._sample,
-            in_support=lambda x: np.all(x == support),
+            in_support=lambda x: np.all(x == self._support),
+            pmf=lambda x: 1.0 if np.all(x == self._support) else 0.0,
             cdf=lambda x: 0.0 if np.any(x < self._support) else 0.0,
             mode=lambda: self._support,
             median=lambda: self._support,
