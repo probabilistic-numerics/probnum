@@ -26,9 +26,6 @@ exclude = '''
 [tool.pylint.messages_control]
 # Exceptions suggested from Black: bad-continuation, bad-whitespace
 disable = """
-bad-continuation,
-bad-whitespace,
-
 invalid-name,
 
 no-else-return,
