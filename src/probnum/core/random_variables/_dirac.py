@@ -3,6 +3,8 @@ from typing import Callable, Optional, TypeVar
 import numpy as np
 
 from probnum import utils as _utils
+from probnum._lib.argtypes import RandomStateArgType, ShapeArgType
+from probnum.typing import ShapeType
 
 from . import _random_variable
 
@@ -43,9 +45,7 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     """
 
     def __init__(
-        self,
-        support: _ValueType,
-        random_state: Optional[_random_variable.RandomStateType] = None,
+        self, support: _ValueType, random_state: RandomStateArgType = None,
     ):
         if np.isscalar(support):
             support = _utils.as_numpy_scalar(support)
@@ -59,8 +59,8 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
             parameters={"support": self._support},
             sample=self._sample,
             in_support=lambda x: np.all(x == self._support),
-            pmf=lambda x: 1.0 if np.all(x == self._support) else 0.0,
-            cdf=lambda x: 0.0 if np.any(x < self._support) else 0.0,
+            pmf=lambda x: np.float_(1.0 if np.all(x == self._support) else 0.0),
+            cdf=lambda x: np.float_(0.0 if np.any(x < self._support) else 0.0),
             mode=lambda: self._support,
             median=lambda: self._support,
             mean=lambda: self._support,
@@ -76,10 +76,10 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
         )
 
     @property
-    def support(self):
+    def support(self) -> _ValueType:
         return self._support
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> "Dirac":
         """
         Marginalization for multivariate Dirac distributions, expressed by means of
         (advanced) indexing, masking and slicing.
@@ -96,21 +96,20 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
         """
         return Dirac(support=self._support[key], random_state=self.random_state)
 
-    def reshape(self, newshape):
+    def reshape(self, newshape: ShapeType) -> "Dirac":
         return Dirac(
             support=self._support.reshape(newshape),
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def transpose(self, *axes):
+    def transpose(self, *axes: int) -> "Dirac":
         return Dirac(
             support=self._support.transpose(*axes),
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def _sample(self, size=()):
-        if isinstance(size, int):
-            size = (size,)
+    def _sample(self, size: ShapeArgType = ()) -> _ValueType:
+        size = _utils.as_shape(size)
 
         if size == ():
             return self._support.copy()
@@ -143,7 +142,7 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     def _binary_operator_factory(
         operator: Callable[[_ValueType, _ValueType], _ValueType]
     ) -> Callable[["Dirac", "Dirac"], "Dirac"]:
-        def _dirac_operator(dirac_rv1: Dirac, dirac_rv2: Dirac) -> Dirac:
+        def _dirac_binary_operator(dirac_rv1: Dirac, dirac_rv2: Dirac) -> Dirac:
             return Dirac(
                 support=operator(dirac_rv1, dirac_rv2),
                 random_state=_utils.derive_random_seed(
@@ -151,4 +150,4 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
                 ),
             )
 
-        return _dirac_operator
+        return _dirac_binary_operator

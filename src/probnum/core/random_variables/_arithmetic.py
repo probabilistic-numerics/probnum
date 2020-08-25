@@ -1,4 +1,5 @@
 import operator
+from typing import Any, Callable, Dict, Tuple, Union
 
 from ._random_variable import RandomVariable as _RandomVariable
 from probnum.core.random_variables import Dirac as _Dirac, Normal as _Normal
@@ -41,7 +42,14 @@ def pow_(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
 
 
 # Operator registry
-def _apply(op_registry, rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+_OperatorRegistryType = Dict[
+    Tuple[type, type], Callable[[_RandomVariable, _RandomVariable], _RandomVariable]
+]
+
+
+def _apply(
+    op_registry: _OperatorRegistryType, rv1: _RandomVariable, rv2: _RandomVariable
+) -> Union[_RandomVariable, type(NotImplemented)]:
     key = (type(rv1), type(rv2))
 
     if key not in op_registry:
@@ -52,18 +60,18 @@ def _apply(op_registry, rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVa
     return res
 
 
-_add_fns = {}
-_sub_fns = {}
-_mul_fns = {}
-_matmul_fns = {}
-_truediv_fns = {}
-_floordiv_fns = {}
-_mod_fns = {}
-_divmod_fns = {}
-_pow_fns = {}
+_add_fns: _OperatorRegistryType = {}
+_sub_fns: _OperatorRegistryType = {}
+_mul_fns: _OperatorRegistryType = {}
+_matmul_fns: _OperatorRegistryType = {}
+_truediv_fns: _OperatorRegistryType = {}
+_floordiv_fns: _OperatorRegistryType = {}
+_mod_fns: _OperatorRegistryType = {}
+_divmod_fns: _OperatorRegistryType = {}
+_pow_fns: _OperatorRegistryType = {}
 
 
-def _swap_operands(fn):
+def _swap_operands(fn: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return lambda op1, op2: fn(op2, op1)
 
 

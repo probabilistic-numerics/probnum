@@ -1,10 +1,12 @@
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import scipy.stats
 
 from probnum import utils as _utils
+from probnum._lib.argtypes import RandomStateArgType, ShapeArgType
 from probnum.linalg import linops
+from probnum.typing import ShapeType
 
 from . import _random_variable
 
@@ -12,7 +14,7 @@ from . import _random_variable
 _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
 
-class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
+class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     """
     The normal distribution.
 
@@ -59,7 +61,7 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
         self,
         mean: Union[float, np.floating, np.ndarray, linops.LinearOperator],
         cov: Union[float, np.floating, np.ndarray, linops.LinearOperator],
-        random_state: Optional[_random_variable.RandomStateType] = None,
+        random_state: RandomStateArgType = None,
     ):
         # Type normalization
         if np.isscalar(mean):
@@ -221,7 +223,7 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
             entropy=entropy,
         )
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> "Normal":
         """
         Marginalization in multi- and matrixvariate normal distributions, expressed by
         means of (advanced) indexing, masking and slicing.
@@ -245,7 +247,7 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
 
         return self.__getitem(key)
 
-    def _numpy_getitem(self, key):
+    def _numpy_getitem(self, key) -> "Normal":
         if not isinstance(key, tuple):
             key = (key,)
 
@@ -265,13 +267,15 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def reshape(self, newshape):
+    def reshape(self, newshape: ShapeArgType) -> "Normal":
         if self.__reshape is None:
             raise NotImplementedError
 
+        newshape = _utils.as_shape(newshape)
+
         return self.__reshape(newshape)
 
-    def _numpy_reshape(self, newshape):
+    def _numpy_reshape(self, newshape: ShapeType) -> "Normal":
         try:
             reshaped_mean = self._mean.reshape(newshape)
         except ValueError as exc:
@@ -291,13 +295,13 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def transpose(self, *axes):
+    def transpose(self, *axes: int) -> "Normal":
         if self.__transpose is None:
             raise NotImplementedError
 
         return self.__transpose(*axes)
 
-    def _numpy_transpose(self, *axes):
+    def _numpy_transpose(self, *axes: int) -> "Normal":
         if len(axes) == 1 and isinstance(axes[0], tuple):
             axes = axes[0]
         elif (len(axes) == 1 and axes[0] is None) or len(axes) == 0:
@@ -335,9 +339,8 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def __abs__(self):  # pylint: disable=useless-super-delegation
-        # TODO: Add absolute moments of normal (https://arxiv.org/pdf/1209.4340.pdf)
-        return super().__abs__()
+    # TODO: Overwrite __abs__ and add absolute moments of normal
+    # TODO: (https://arxiv.org/pdf/1209.4340.pdf)
 
     # Binary arithmetic operations
 
@@ -483,9 +486,9 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
             )
 
     # Univariate Gaussians
-    def _univariate_sample(self, size=()) -> np.generic:
+    def _univariate_sample(self, size: ShapeArgType = ()) -> np.floating:
         sample = scipy.stats.norm.rvs(
-            loc=self.mean, scale=self.std, size=size, random_state=self.random_state
+            loc=self._mean, scale=self._cov, size=size, random_state=self.random_state
         )
 
         if np.isscalar(sample):
@@ -493,29 +496,43 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
         else:
             sample = sample.astype(self.dtype)
 
+        assert sample.shape == _utils.as_shape(size)
+
         return sample
 
     @staticmethod
-    def _univariate_in_support(x) -> bool:
+    def _univariate_in_support(x: _ValueType) -> bool:
         return np.isfinite(x)
 
-    def _univariate_pdf(self, x) -> float:
-        return scipy.stats.norm.pdf(x, loc=self.mean, scale=self.std)
+    def _univariate_pdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.norm.pdf(x, loc=self._mean, scale=self._cov), dtype=np.float_,
+        )
 
-    def _univariate_logpdf(self, x) -> float:
-        return scipy.stats.norm.logpdf(x, loc=self.mean, scale=self.std)
+    def _univariate_logpdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.norm.logpdf(x, loc=self._mean, scale=self._cov),
+            dtype=np.float_,
+        )
 
-    def _univariate_cdf(self, x) -> float:
-        return scipy.stats.norm.cdf(x, loc=self.mean, scale=self.std)
+    def _univariate_cdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.norm.cdf(x, loc=self._mean, scale=self._cov), dtype=np.float_,
+        )
 
-    def _univariate_logcdf(self, x) -> float:
-        return scipy.stats.norm.logcdf(x, loc=self.mean, scale=self.std)
+    def _univariate_logcdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.norm.logcdf(x, loc=self._mean, scale=self._cov),
+            dtype=np.float_,
+        )
 
-    def _univariate_entropy(self) -> float:
-        return scipy.stats.norm.entropy(loc=self.mean, scale=self.std)
+    def _univariate_entropy(self: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.norm.entropy(loc=self._mean, scale=self._cov), dtype=np.float_,
+        )
 
     # Multi- and matrixvariate Gaussians with dense covariance
-    def _dense_sample(self, size=()) -> np.ndarray:
+    def _dense_sample(self, size: ShapeArgType = ()) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self._mean.ravel(),
             cov=self._cov,
@@ -526,36 +543,47 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
         return sample.reshape(sample.shape[:-1] + self.shape)
 
     @staticmethod
-    def _dense_in_support(x) -> bool:
+    def _dense_in_support(x: _ValueType) -> bool:
         return np.all(np.isfinite(x))
 
-    def _dense_pdf(self, x) -> float:
-        return scipy.stats.multivariate_normal.pdf(
-            x.ravel(), mean=self._mean.ravel(), cov=self._cov
+    def _dense_pdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.multivariate_normal.pdf(
+                x.ravel(), mean=self._mean.ravel(), cov=self._cov
+            ),
+            dtype=np.float_,
         )
 
-    def _dense_logpdf(self, x) -> float:
-        return scipy.stats.multivariate_normal.logpdf(
-            x.ravel(), mean=self._mean.ravel(), cov=self._cov
+    def _dense_logpdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.multivariate_normal.logpdf(
+                x.ravel(), mean=self._mean.ravel(), cov=self._cov
+            )
         )
 
-    def _dense_cdf(self, x) -> float:
-        return scipy.stats.multivariate_normal.cdf(
-            x.ravel(), mean=self._mean.ravel(), cov=self._cov
+    def _dense_cdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.multivariate_normal.cdf(
+                x.ravel(), mean=self._mean.ravel(), cov=self._cov
+            )
         )
 
-    def _dense_logcdf(self, x) -> float:
-        return scipy.stats.multivariate_normal.logcdf(
-            x.ravel(), mean=self._mean.ravel(), cov=self._cov
+    def _dense_logcdf(self, x: _ValueType) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.multivariate_normal.logcdf(
+                x.ravel(), mean=self._mean.ravel(), cov=self._cov
+            )
         )
 
-    def _dense_entropy(self) -> float:
-        return scipy.stats.multivariate_normal.entropy(
-            mean=self._mean.ravel(), cov=self._cov,
+    def _dense_entropy(self) -> np.float_:
+        return _utils.as_numpy_scalar(
+            scipy.stats.multivariate_normal.entropy(
+                mean=self._mean.ravel(), cov=self._cov,
+            )
         )
 
     # Operatorvariate Gaussians
-    def _operatorvariate_params_todense(self):
+    def _operatorvariate_params_todense(self) -> Tuple[np.ndarray, np.ndarray]:
         if isinstance(self._mean, linops.LinearOperator):
             mean = self._mean.todense()
         else:
@@ -563,7 +591,7 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
 
         return mean, self._cov.todense()
 
-    def _operatorvariate_sample(self, size=()) -> np.ndarray:
+    def _operatorvariate_sample(self, size: ShapeArgType = ()) -> np.ndarray:
         mean, cov = self._operatorvariate_params_todense()
 
         sample = scipy.stats.multivariate_normal.rvs(
@@ -574,14 +602,15 @@ class Normal(_random_variable.ContinuousRandomVariable[np.ndarray]):
 
     # Operatorvariate Gaussian with symmetric Kronecker covariance from identical
     # factors
-    def _symmetric_kronecker_identical_factors_sample(self, size=()):
+    def _symmetric_kronecker_identical_factors_sample(
+        self, size: ShapeArgType = ()
+    ) -> np.ndarray:
         assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
 
         n = self._mean.shape[1]
 
         # Draw standard normal samples
-        if np.isscalar(size):
-            size = (size,)
+        size = _utils.as_shape(size)
 
         size_sample = (n * n,) + size
 

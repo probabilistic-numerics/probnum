@@ -7,24 +7,25 @@ of probabilistic numerical methods.
 
 from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
+import numpy as np
+import scipy.sparse
+import scipy.stats
+
+from probnum import utils as _utils
+from probnum._lib.argtypes import (
+    DTypeArgType,
+    FloatArgType,
+    RandomStateArgType,
+    ShapeArgType,
+)
+from probnum.typing import RandomStateType, ShapeType
+
 try:
     # functools.cached_property is only available in Python >=3.8
     from functools import cached_property
 except ImportError:
     from cached_property import cached_property
 
-import numpy as np
-import scipy.stats
-import scipy.sparse
-import scipy._lib._util
-
-from probnum import utils as _utils
-
-ShapeArgType = Union[int, Tuple[int, ...]]  # TODO
-FloatArgType = Union[float, np.float_, np.float64]  # TODO
-RandomStateType = Union[  # see scipy._lib._util.check_random_state
-    None, int, np.random.RandomState, np.random.Generator
-]
 
 _ValueType = TypeVar("ValueType")
 
@@ -70,8 +71,8 @@ class RandomVariable(Generic[_ValueType]):
     def __init__(
         self,
         shape: ShapeArgType,
-        dtype: np.dtype,
-        random_state: Optional[RandomStateType] = None,
+        dtype: DTypeArgType,
+        random_state: RandomStateArgType = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
@@ -89,10 +90,10 @@ class RandomVariable(Generic[_ValueType]):
         entropy: Optional[Callable[[], np.float_]] = None,
     ):
         """Create a new random variable."""
-        self._shape = RandomVariable._check_shape(shape)
-        self._dtype = dtype
+        self._shape = _utils.as_shape(shape)
+        self._dtype = np.dtype(dtype)
 
-        self._random_state = scipy._lib._util.check_random_state(random_state)
+        self._random_state = _utils.as_random_state(random_state)
 
         # Probability distribution of the random variable
         self._parameters = parameters.copy() if parameters is not None else {}
@@ -115,26 +116,11 @@ class RandomVariable(Generic[_ValueType]):
         self.__std = std
         self.__entropy = entropy
 
-    @staticmethod
-    def _check_shape(shape: Any) -> Optional[Tuple[int, ...]]:
-        if shape is None:
-            return None
-        elif isinstance(shape, tuple) and all(
-            isinstance(entry, int) for entry in shape
-        ):
-            return shape
-        elif isinstance(shape, int):
-            return (shape,)
-        else:
-            raise TypeError(
-                f"The given shape {shape} is not an int or a tuple of ints."
-            )
-
     def __repr__(self) -> str:
         return f"<{self.shape} {self.__class__.__name__} with dtype={self.dtype}>"
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> ShapeType:
         """Shape of realizations of the random variable."""
         return self._shape
 
@@ -152,7 +138,7 @@ class RandomVariable(Generic[_ValueType]):
         return self._dtype
 
     @property
-    def random_state(self) -> Union[np.random.RandomState, np.random.Generator]:
+    def random_state(self) -> RandomStateType:
         """Random state of the random variable.
 
         This attribute defines the RandomState object to use for drawing
@@ -164,7 +150,7 @@ class RandomVariable(Generic[_ValueType]):
         return self._random_state
 
     @random_state.setter
-    def random_state(self, seed: RandomStateType):
+    def random_state(self, seed: RandomStateArgType):
         """ Get or set the RandomState object of the underlying distribution.
 
         This can be either None or an existing RandomState object.
@@ -172,10 +158,10 @@ class RandomVariable(Generic[_ValueType]):
         If already a RandomState instance, use it.
         If an int, use a new RandomState instance seeded with seed.
         """
-        self._random_state = scipy._lib._util.check_random_state(seed)
+        self._random_state = _utils.as_random_state(seed)
 
     @property
-    def parameters(self):
+    def parameters(self) -> Dict[str, Any]:
         """
         Parameters of the probability distribution.
 
@@ -206,7 +192,7 @@ class RandomVariable(Generic[_ValueType]):
                 )
 
     @cached_property
-    def mode(self):
+    def mode(self) -> _ValueType:
         """
         Mode of the random variable.
 
@@ -227,7 +213,7 @@ class RandomVariable(Generic[_ValueType]):
         return mode
 
     @cached_property
-    def median(self):
+    def median(self) -> _ValueType:
         """
         Median of the random variable.
 
@@ -257,7 +243,7 @@ class RandomVariable(Generic[_ValueType]):
         return median
 
     @cached_property
-    def mean(self):
+    def mean(self) -> _ValueType:
         """
         Mean :math:`\\mathbb{E}(X)` of the distribution.
 
@@ -278,7 +264,7 @@ class RandomVariable(Generic[_ValueType]):
         return mean
 
     @cached_property
-    def cov(self):
+    def cov(self) -> _ValueType:
         """
         Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)`
         of the random variable.
@@ -303,7 +289,7 @@ class RandomVariable(Generic[_ValueType]):
         return cov
 
     @cached_property
-    def var(self):
+    def var(self) -> _ValueType:
         """
         Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of
         the distribution.
@@ -328,7 +314,7 @@ class RandomVariable(Generic[_ValueType]):
         return var
 
     @cached_property
-    def std(self):
+    def std(self) -> _ValueType:
         """
         Standard deviation of the distribution.
 
@@ -352,7 +338,7 @@ class RandomVariable(Generic[_ValueType]):
         return std
 
     @cached_property
-    def entropy(self):
+    def entropy(self) -> np.float_:
         if self.__entropy is None:
             raise NotImplementedError
 
@@ -370,7 +356,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return self.__in_support(x)
 
-    def sample(self, size=()):
+    def sample(self, size=()) -> _ValueType:
         """
         Draw realizations from a random variable.
 
@@ -387,9 +373,9 @@ class RandomVariable(Generic[_ValueType]):
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        return self.__sample(size=size)
+        return self.__sample(size=_utils.as_shape(size))
 
-    def pdf(self, x):
+    def pdf(self, x) -> np.float_:
         """
         Probability density or mass function.
 
@@ -414,7 +400,7 @@ class RandomVariable(Generic[_ValueType]):
             )
         )
 
-    def logpdf(self, x):
+    def logpdf(self, x) -> np.float_:
         """
         Natural logarithm of the probability density function.
 
@@ -438,7 +424,7 @@ class RandomVariable(Generic[_ValueType]):
                 f"{type(self).__name__}."
             )
 
-    def cdf(self, x):
+    def cdf(self, x) -> np.float_:
         """
         Cumulative distribution function.
 
@@ -463,7 +449,7 @@ class RandomVariable(Generic[_ValueType]):
                 )
             )
 
-    def logcdf(self, x):
+    def logcdf(self, x) -> np.float_:
         """
         Log-cumulative distribution function.
 
@@ -487,13 +473,13 @@ class RandomVariable(Generic[_ValueType]):
                 f"{type(self).__name__}."
             )
 
-    def quantile(self, p: Union[float, np.floating]) -> _ValueType:
+    def quantile(self, p: FloatArgType) -> _ValueType:
         if self.__quantile is None:
             raise NotImplementedError
 
         return self.__quantile(p)
 
-    def reshape(self, newshape):
+    def reshape(self, newshape: ShapeArgType) -> "RandomVariable":
         """
         Give a new shape to a random variable.
 
@@ -512,7 +498,7 @@ class RandomVariable(Generic[_ValueType]):
             f"{self.__class__.__name__}."
         )
 
-    def transpose(self, *axes):
+    def transpose(self, *axes: int) -> "RandomVariable":
         """
         Transpose the random variable.
 
@@ -699,7 +685,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     def __init__(
         self,
         shape: ShapeArgType,
-        dtype: np.dtype,
+        dtype: DTypeArgType,
         random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
@@ -742,7 +728,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             entropy=entropy,
         )
 
-    def pmf(self, x):
+    def pmf(self, x: _ValueType) -> np.float_:
         if self.__pmf is not None:
             return self.__pmf(x)
         elif self.__logpmf is not None:
@@ -750,7 +736,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         else:
             raise NotImplementedError
 
-    def logpmf(self, x):
+    def logpmf(self, x) -> np.float_:
         if self.__logpmf is not None:
             return self.__logpmf(x)
         elif self.__pmf is not None:
@@ -829,7 +815,7 @@ def _scipystats_to_rv(
         scipy.stats._distn_infrastructure.rv_frozen,
         scipy.stats._multivariate.multi_rv_frozen,
     ]
-):
+) -> RandomVariable:
     """
     Transform SciPy distributions to Probnum :class:`RandomVariable`s.
 

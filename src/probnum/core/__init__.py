@@ -14,7 +14,18 @@ of probabilistic numerical methods. A generic signature of such methods looks li
 
 from . import random_variables
 
-from .random_variables import RandomVariable, asrandvar
+from .random_variables import (
+    asrandvar,
+    RandomVariable,
+    DiscreteRandomVariable,
+    ContinuousRandomVariable,
+)
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["random_variables", "RandomVariable", "asrandvar"]
+__all__ = [
+    "random_variables",
+    "asrandvar",
+    "RandomVariable",
+    "DiscreteRandomVariable",
+    "ContinuousRandomVariable",
+]
