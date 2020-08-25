@@ -76,8 +76,6 @@ class RandomVariable(Generic[_ValueType]):
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
-        pdf: Optional[Callable[[_ValueType], np.float_]] = None,
-        logpdf: Optional[Callable[[_ValueType], np.float_]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
         quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
@@ -101,8 +99,6 @@ class RandomVariable(Generic[_ValueType]):
         self.__sample = sample
 
         self.__in_support = in_support
-        self.__pdf = pdf
-        self.__logpdf = logpdf
         self.__cdf = cdf
         self.__logcdf = logcdf
         self.__quantile = quantile
@@ -374,55 +370,6 @@ class RandomVariable(Generic[_ValueType]):
             raise NotImplementedError("No sampling method provided.")
 
         return self.__sample(size=_utils.as_shape(size))
-
-    def pdf(self, x) -> np.float_:
-        """
-        Probability density or mass function.
-
-        Parameters
-        ----------
-        x : array-like
-            Evaluation points of the probability density / mass function.
-
-        Returns
-        -------
-        p : array-like
-            Value of the probability density / mass function at the given points.
-
-        """
-        if self.__pdf is not None:
-            return self.__pdf(x)
-        if self.__logpdf is not None:
-            return np.exp(self.__logpdf(x))
-        raise NotImplementedError(
-            "The function 'pdf' is not implemented for object of class {}".format(
-                type(self).__name__
-            )
-        )
-
-    def logpdf(self, x) -> np.float_:
-        """
-        Natural logarithm of the probability density function.
-
-        Parameters
-        ----------
-        x : array-like
-            Evaluation points of the log-probability density/mass function.
-
-        Returns
-        -------
-        logp : array-like
-            Value of the log-probability density / mass function at the given points.
-        """
-        if self.__logpdf is not None:
-            return self.__logpdf(x)
-        elif self.__pdf is not None:
-            return np.log(self.__pdf(x))
-        else:
-            raise NotImplementedError(
-                f"The function 'logpdf' is not implemented for object of class "
-                f"{type(self).__name__}."
-            )
 
     def cdf(self, x) -> np.float_:
         """
@@ -714,8 +661,6 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             parameters=parameters,
             sample=sample,
             in_support=in_support,
-            pdf=pmf,
-            logpdf=logpmf,
             cdf=cdf,
             logcdf=logcdf,
             quantile=quantile,
@@ -746,7 +691,98 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
 
 class ContinuousRandomVariable(RandomVariable[_ValueType]):
-    pass
+    def __init__(
+        self,
+        shape: ShapeArgType,
+        dtype: DTypeArgType,
+        random_state: Optional[RandomStateType] = None,
+        parameters: Optional[Dict[str, Any]] = None,
+        sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
+        in_support: Optional[Callable[[_ValueType], bool]] = None,
+        pdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        logpdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        cdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
+        quantile: Optional[Callable[[FloatArgType], _ValueType]] = None,
+        mode: Optional[Callable[[], _ValueType]] = None,
+        median: Optional[Callable[[], _ValueType]] = None,
+        mean: Optional[Callable[[], _ValueType]] = None,
+        cov: Optional[Callable[[], _ValueType]] = None,
+        var: Optional[Callable[[], _ValueType]] = None,
+        std: Optional[Callable[[], _ValueType]] = None,
+        entropy: Optional[Callable[[], np.float_]] = None,
+    ):
+        # Probability density function
+        self.__pdf = pdf
+        self.__logpdf = logpdf
+
+        super().__init__(
+            shape=shape,
+            dtype=dtype,
+            random_state=random_state,
+            parameters=parameters,
+            sample=sample,
+            in_support=in_support,
+            cdf=cdf,
+            logcdf=logcdf,
+            quantile=quantile,
+            mode=mode,
+            median=median,
+            mean=mean,
+            cov=cov,
+            var=var,
+            std=std,
+            entropy=entropy,
+        )
+
+    def pdf(self, x) -> np.float_:
+        """
+        Probability density or mass function.
+
+        Parameters
+        ----------
+        x : array-like
+            Evaluation points of the probability density / mass function.
+
+        Returns
+        -------
+        p : array-like
+            Value of the probability density / mass function at the given points.
+
+        """
+        if self.__pdf is not None:
+            return self.__pdf(x)
+        if self.__logpdf is not None:
+            return np.exp(self.__logpdf(x))
+        raise NotImplementedError(
+            "The function 'pdf' is not implemented for object of class {}".format(
+                type(self).__name__
+            )
+        )
+
+    def logpdf(self, x) -> np.float_:
+        """
+        Natural logarithm of the probability density function.
+
+        Parameters
+        ----------
+        x : array-like
+            Evaluation points of the log-probability density/mass function.
+
+        Returns
+        -------
+        logp : array-like
+            Value of the log-probability density / mass function at the given points.
+        """
+        if self.__logpdf is not None:
+            return self.__logpdf(x)
+        elif self.__pdf is not None:
+            return np.log(self.__pdf(x))
+        else:
+            raise NotImplementedError(
+                f"The function 'logpdf' is not implemented for object of class "
+                f"{type(self).__name__}."
+            )
 
 
 def asrandvar(obj) -> RandomVariable:
