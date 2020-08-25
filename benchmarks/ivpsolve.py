@@ -17,19 +17,19 @@ def load_lotkavolterra():
 class IVPSolve:
     """Benchmark ODE-filter and ODE-smoother on small steps with high-order priors"""
 
-    param_names = ["method", "precond"]
-    params = [["eks0", "ekf0"], ["with", "without"]]
+    param_names = ["method", "precond", "prior"]
+    params = [["eks0", "ekf0"], ["with", "without"], ["ibm4", "ioup4", "matern92"]]
 
-    def setup(self, method, precond):
+    def setup(self, method, precond, prior):
         self.ivp = load_lotkavolterra()
-        self.stepsize = 1e-3
+        self.stepsize = 1e-2
 
-    def time_solve(self, method, precond):
+    def time_solve(self, method, precond, prior):
         if precond == "with":
             probsolve_ivp(
                 self.ivp,
                 method=method,
-                which_prior="ibm4",
+                which_prior=prior,
                 step=self.stepsize,
                 precond_step=self.stepsize,
             )
@@ -37,17 +37,17 @@ class IVPSolve:
             probsolve_ivp(
                 self.ivp,
                 method=method,
-                which_prior="ibm4",
+                which_prior=prior,
                 step=self.stepsize,
                 precond_step=1.0,
             )
 
-    def peakmem_solve(self, method, precond):
+    def peakmem_solve(self, method, precond, prior):
         if precond == "with":
             probsolve_ivp(
                 self.ivp,
                 method=method,
-                which_prior="ibm4",
+                which_prior=prior,
                 step=self.stepsize,
                 precond_step=self.stepsize,
             )
@@ -55,7 +55,7 @@ class IVPSolve:
             probsolve_ivp(
                 self.ivp,
                 method=method,
-                which_prior="ibm4",
+                which_prior=prior,
                 step=self.stepsize,
                 precond_step=1.0,
             )
