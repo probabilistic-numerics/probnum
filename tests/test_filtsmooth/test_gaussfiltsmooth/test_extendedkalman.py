@@ -67,7 +67,7 @@ class TestExtendedKalmanDiscDisc(CarTrackingDDTestCase):
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[1:, :2] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[1:, :2] - comp) / normaliser
-        obs_rmse = np.linalg.norm(self.obs - comp) / normaliser
+        obs_rmse = np.linalg.norm(self.obs[:, :2] - comp) / normaliser
 
         if VISUALISE is True:
             plt.title(
@@ -190,7 +190,7 @@ class TestExtendedKalmanPendulum(PendulumNonlinearDDTestCase):
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[:, 0] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[:, 0] - comp) / normaliser
-        obs_rmse = np.sqrt(self.r[0, 0])
+        obs_rmse = np.linalg.norm(self.obs[:, 0] - comp[1:]) / normaliser
 
         if VISUALISE is True:
             fig, (ax1, ax2) = plt.subplots(1, 2)
