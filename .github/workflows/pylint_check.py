@@ -72,3 +72,8 @@ except AssertionError:
     message is wrong please feel free to ping @nathanaelbosch.
     """
     )
+
+
+print(
+    "The pylint exceptions in `./tox.ini` and `./pyproject.toml` seem to be correctly synchronized."
+)
