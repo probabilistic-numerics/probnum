@@ -4,14 +4,13 @@
 # Formats
 text.usetex : True
 text.latex.preamble : \usepackage[cm]{sfmath} \usepackage{amsmath, amssymb} \usepackage{bm}\renewcommand{\familydefault}{\sfdefault}
-figure.figsize: 9.9, 5.5
 figure.dpi : 150
-savefig.format      : pdf
+savefig.format : pdf
 
-# default python colors, but PN orange and PN green are swapped in for orange and green 
+# Default python colors, but PN orange and PN green are swapped in for orange and green
 # (and the first three colors are swapped around so the PN colors are on the top)
-axes.prop_cycle : cycler('color', ['FF9933', '107D79', '1F77B4', 'D62728', '9467BD', '8C564B', 'E377C2', '7F7F7F', 'BCBD22', '17BECF'])
- 
+axes.prop_cycle : cycler('color', ['107D79', 'FF9933', '1F77B4', 'D62728', '9467BD', '8C564B', 'E377C2', '7F7F7F', 'BCBD22', '17BECF'])
+
 # Linestyles, Markers, etc.
 lines.linewidth : 2.0
 lines.markersize : 6.0
@@ -24,8 +23,8 @@ axes.edgecolor : black
 axes.linewidth : 1.5
 axes.spines.right : False
 axes.spines.top : False
-axes.titlesize      : 18   # fontsize of the axes title
-axes.labelsize      : 18  # fontsize of the x any y labels
+axes.titlesize  : 18  # fontsize of the axes title
+axes.labelsize  : 18  # fontsize of the x any y labels
 
 xtick.major.size : 6
 xtick.minor.size : 6
@@ -42,8 +41,8 @@ xtick.minor.width : 1.5
 ytick.major.width : 1.5
 ytick.minor.width : 1.5
 
-xtick.labelsize : 18
-ytick.labelsize : 18
+xtick.labelsize : 16
+ytick.labelsize : 16
 
 # Fonts
 font.size: 16
@@ -51,8 +50,8 @@ font.size: 16
 # Others
 grid.linestyle: -
 grid.linewidth: 1
-legend.framealpha : 1.
-legend.frameon: True
-legend.fancybox: False
+# legend.framealpha : 1.
+# legend.frameon: True
+# legend.fancybox: False
 legend.edgecolor: black
-legend.fontsize : 18
+legend.fontsize : 16
