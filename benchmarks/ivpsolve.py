@@ -25,37 +25,21 @@ class IVPSolve:
         self.stepsize = 1e-2
 
     def time_solve(self, method, precond, prior):
-        if precond == "with":
-            probsolve_ivp(
-                self.ivp,
-                method=method,
-                which_prior=prior,
-                step=self.stepsize,
-                precond_step=self.stepsize,
-            )
-        else:
-            probsolve_ivp(
-                self.ivp,
-                method=method,
-                which_prior=prior,
-                step=self.stepsize,
-                precond_step=1.0,
-            )
+        precond_step = self.stepsize if precond == "with" else 1.0
+        probsolve_ivp(
+            self.ivp,
+            method=method,
+            which_prior=prior,
+            step=self.stepsize,
+            precond_step=precond_step,
+        )
 
     def peakmem_solve(self, method, precond, prior):
-        if precond == "with":
-            probsolve_ivp(
-                self.ivp,
-                method=method,
-                which_prior=prior,
-                step=self.stepsize,
-                precond_step=self.stepsize,
-            )
-        else:
-            probsolve_ivp(
-                self.ivp,
-                method=method,
-                which_prior=prior,
-                step=self.stepsize,
-                precond_step=1.0,
-            )
+        precond_step = self.stepsize if precond == "with" else 1.0
+        probsolve_ivp(
+            self.ivp,
+            method=method,
+            which_prior=prior,
+            step=self.stepsize,
+            precond_step=precond_step,
+        )
