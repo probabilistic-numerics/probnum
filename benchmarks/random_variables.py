@@ -4,7 +4,7 @@ Benchmarks for random variables.
 
 import numpy as np
 
-from probnum.core import random_variable as rvs
+from probnum import random_variables as rvs
 import probnum.linalg.linops as linops
 
 # Module level variables

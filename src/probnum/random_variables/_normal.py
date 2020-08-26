@@ -477,7 +477,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             )
 
         if scalar == 0:
-            from probnum.core import random_variables as rvs
+            from probnum import random_variables as rvs
 
             return rvs.Dirac(
                 support=np.zeros_like(self._mean), random_state=derived_random_seed,

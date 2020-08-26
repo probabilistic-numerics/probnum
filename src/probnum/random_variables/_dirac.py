@@ -148,7 +148,7 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     ) -> Callable[["Dirac", "Dirac"], "Dirac"]:
         def _dirac_binary_operator(dirac_rv1: Dirac, dirac_rv2: Dirac) -> Dirac:
             return Dirac(
-                support=operator(dirac_rv1, dirac_rv2),
+                support=operator(dirac_rv1.support, dirac_rv2.support),
                 random_state=_utils.derive_random_seed(
                     dirac_rv1.random_state, dirac_rv2.random_state,
                 ),

@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum.core.random_variables import Normal
+from probnum.random_variables import Normal
 from probnum.filtsmooth.statespace.continuous import linearsdemodel
 
 TEST_NDIM = 2

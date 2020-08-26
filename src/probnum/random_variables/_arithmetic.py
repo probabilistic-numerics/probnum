@@ -2,7 +2,7 @@ import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
 from ._random_variable import RandomVariable as _RandomVariable
-from probnum.core.random_variables import Dirac as _Dirac, Normal as _Normal
+from probnum.random_variables import Dirac as _Dirac, Normal as _Normal
 
 
 def add(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:

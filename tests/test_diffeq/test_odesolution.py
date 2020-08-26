@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 
-from probnum.core.random_variables import Dirac
-from probnum.core._randomvariablelist import _RandomVariableList
+from probnum.random_variables import Dirac
+from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import lotkavolterra, logistic
 

@@ -818,7 +818,7 @@ def asrandvar(obj) -> RandomVariable:
     """
 
     # pylint: disable=import-outside-toplevel
-    from probnum.core import random_variables as rvs
+    from probnum import random_variables as rvs
 
     # RandomVariable
     if isinstance(obj, RandomVariable):
@@ -868,7 +868,7 @@ def _scipystats_to_rv(
     """
 
     # pylint: disable=import-outside-toplevel
-    from probnum.core import random_variables as rvs
+    from probnum import random_variables as rvs
 
     # Univariate distributions (implemented in this package)
     if isinstance(scipyrv, scipy.stats._distn_infrastructure.rv_frozen):

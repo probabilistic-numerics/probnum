@@ -28,10 +28,10 @@ from . import diffeq
 from . import filtsmooth
 from . import linalg
 from . import quad
+from . import random_variables
 from . import utils
 
-from .core import *
-
+from .random_variables import asrandvar, RandomVariable
 
 # -*- coding: utf-8 -*-
 from pkg_resources import get_distribution, DistributionNotFound

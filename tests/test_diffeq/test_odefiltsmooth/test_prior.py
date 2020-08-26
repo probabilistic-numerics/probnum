@@ -10,7 +10,7 @@ import unittest
 
 import numpy as np
 
-from probnum.core.random_variables import Normal
+from probnum.random_variables import Normal
 from probnum.diffeq.odefiltsmooth import prior
 from tests.testing import NumpyAssertions
 

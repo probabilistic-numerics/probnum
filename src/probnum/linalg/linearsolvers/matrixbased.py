@@ -11,7 +11,7 @@ import numpy as np
 import GPy
 
 import probnum
-from probnum.core import random_variables as rvs
+from probnum import random_variables as rvs
 from probnum.linalg import linops
 
 

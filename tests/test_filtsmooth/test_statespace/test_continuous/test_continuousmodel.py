@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum.core.random_variables import Normal, Dirac
+from probnum.random_variables import Normal, Dirac
 from probnum.filtsmooth.statespace.continuous import continuousmodel
 
 VISUALISE = False

@@ -1,6 +1,6 @@
 import numpy as np
 
-from probnum.core.random_variables import Normal
+from probnum.random_variables import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.diffeq.odesolution import ODESolution

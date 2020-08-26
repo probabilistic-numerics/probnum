@@ -5,8 +5,8 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
-from probnum.core.random_variables import Normal
-from probnum.core._randomvariablelist import _RandomVariableList
+from probnum.random_variables import Normal
+from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
 
