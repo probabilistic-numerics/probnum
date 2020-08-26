@@ -54,6 +54,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         )
         return filt_rv, errorest
 
+
     def postprocess(self, times, rvs):
         """Rescale covariances with sigma square estimate"""
         rvs = [
