@@ -21,7 +21,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def __init__(self, ivp, gaussfilt):
         """
-        steprule : stepsize rule
         gaussfilt : gaussianfilter.GaussianFilter object,
             e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
 
@@ -47,6 +46,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ----------
         firststep : float
             First step for adaptive step size rule.
+        steprule : StepRule
+            Step-size selection rule, e.g. constant steps or adaptive steps.
         """
         current_rv = self.gfilt.initialrandomvariable
         t = self.ivp.t0
