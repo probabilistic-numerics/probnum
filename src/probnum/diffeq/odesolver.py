@@ -10,6 +10,7 @@ class ODESolver(ABC):
     Interface for ODESolver.
     """
 
+    # solve() will be made non-abstract soon
     @abstractmethod
     def solve(self, ivp, minstep, maxstep, **kwargs):
         """
@@ -18,3 +19,9 @@ class ODESolver(ABC):
         at runtime.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def step(self, start, stop, current, **kwargs):
+        """Every ODE solver needs a step() method that returns a new random variable and an error estimate"""
+        raise NotImplementedError
+
