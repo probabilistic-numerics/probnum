@@ -1,6 +1,6 @@
-===================================
-Probabilistic Numerics in Python
-===================================
+=========================================
+ProbNum: Probabilistic Numerics in Python
+=========================================
 
 |Travis Status| |Coverage Status| |Benchmarks| |PyPI|
 

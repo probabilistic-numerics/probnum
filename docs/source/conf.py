@@ -132,8 +132,8 @@ html_static_path = ["_static", "img"]
 
 
 def setup(app):
-    app.add_stylesheet("probnum-style.css")  # also can be a full URL
-    # app.add_stylesheet("ANOTHER.css")
+    app.add_css_file("probnum-style.css")  # also can be a full URL
+    # app.add_css_file("ANOTHER.css")
 
 
 # Custom sidebar templates, maps document names to template names.
