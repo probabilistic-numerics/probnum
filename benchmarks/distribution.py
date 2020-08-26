@@ -67,11 +67,11 @@ class Functions:
         # pylint: disable=missing-function-docstring,attribute-defined-outside-init
         # pylint: disable=unused-argument
         self.randvar = get_randvar(distribution_name=dist)
-        self.eval_point = np.random.uniform(self.randvar.shape)
-        self.quantile = np.random.uniform(self.randvar.shape)
+        self.eval_point = np.random.uniform(size=self.randvar.shape)
+        self.quantile = np.random.uniform(size=self.randvar.shape)
 
     def time_distr_functions(self, dist, method):
-        """Times evaluation of the pdf, logpdf, cdf and logcdf."""
+        """Time evaluation of the pdf, logpdf, cdf and logcdf."""
         # pylint: disable=unused-argument
         try:
             if method == "pdf":
@@ -101,7 +101,7 @@ class Sampling:
         self.randvar = get_randvar(distribution_name=dist)
 
     def time_sample(self, dist):
-        """Times sampling from this distribution."""
+        """Time sampling from this distribution."""
         # pylint: disable=unused-argument
         self.randvar.sample(self.n_samples)
 

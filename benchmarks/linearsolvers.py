@@ -22,25 +22,25 @@ def load_poisson_linear_system():
     Linear system resulting from discretization on an elliptic grid.
     """
     fpath = os.path.join(os.path.dirname(__file__), "../tests/resources")
-    A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
-    f = np.load(file=fpath + "/rhs_poisson.npy")
+    A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")  # pylint: disable=invalid-name
+    f = np.load(file=fpath + "/rhs_poisson.npy")  # pylint: disable=invalid-name
     return A, f
 
 
 class LinSolve:
-    """
-    Benchmark solving a linear system.
-    """
+    """Benchmark solving a linear system."""
 
     param_names = ["system"]
     params = [["sparse", "dense"]]  # , "large-scale"]
 
     def setup(self, system):
+        # pylint: disable=missing-function-docstring,attribute-defined-outside-init
+
         # Seed
         np.random.seed(42)
 
         if system == "sparse":
-            self.A, self.b = load_poisson_linear_system()
+            self.A, self.b = load_poisson_linear_system()  # pylint: disable=invalid-name
         elif system == "dense":
             self.A = np.array(
                 [
@@ -57,33 +57,44 @@ class LinSolve:
             self.b = None
 
     def time_solve(self, system):
-        # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        """Time solving a linear system"""
+        # pylint: disable=unused-argument
+        problinsolve(A=self.A, b=self.b)
 
     def mem_solve(self, system):
-        # Solve linear system
+        """Time solving a linear system"""
+        # pylint: disable=unused-argument
+
+        # I would remove the self.xhat, ... bit but I don't know what mem_solve really needs... (NK)
         self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
 
     def peakmem_solve(self, system):
-        # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        """Time solving a linear system"""
+        # pylint: disable=unused-argument
+        problinsolve(A=self.A, b=self.b)
 
 
 class PosteriorDist:
+    """Benchmark sampling from the posterior distribution."""
+
     param_names = ["output"]
     params = [["solution", "matrix", "matrix_inverse"]]
 
     def setup(self, output):
+        # pylint: disable=missing-function-docstring,attribute-defined-outside-init
+        # pylint: disable=unused-argument
+
         # Sparse system
-        self.A, self.b = load_poisson_linear_system()
+        self.A, self.b = load_poisson_linear_system()  # pylint: disable=invalid-name
 
         # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)   # pylint: disable=invalid-name
 
         # Benchmark parameters
         self.n_samples = 10
 
     def time_sample(self, output):
+        """Time sampling from the posterior distribution"""
         if output == "solution":
             self.xhat.sample(self.n_samples)
         elif output == "matrix":
