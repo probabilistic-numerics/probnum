@@ -1,5 +1,8 @@
-# ProbNum: Probabilistic Numerics in Python
+<div align="center">
+<img src="https://raw.githubusercontent.com/probabilistic-numerics/probnum/master/docs/source/img/pn_logo.png" alt="probabilistic numerics" width="128" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics on GitHub"/>
+</div>
 
+# ProbNum: Probabilistic Numerics in Python
 
 [![Build Status](https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI)](https://travis-ci.org/probabilistic-numerics/probnum)
 [![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
@@ -7,10 +10,6 @@
 [![Benchmarks](http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat&logo=swift&logoColor=white)](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/)
 [![PyPI](https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
 <br>
-
-# <a href="https://probnum.readthedocs.io"><img align="left" src="https://raw.githubusercontent.com/probabilistic-numerics/probnum/master/docs/source/img/pn_logo.png" alt="probabilistic numerics" width="64" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics on GitHub"/></a> ProbNum
-ProbNum implements probabilistic numerical methods
-
 [Probabilistic Numerics](https://doi.org/10.1098/rspa.2015.0142) (PN) interprets classic numerical routines as
 _inference procedures_ by taking a probabilistic viewpoint. This allows principled treatment of _uncertainty arising
 from finite computational resources_. The vision of probabilistic numerics is to provide well-calibrated probability
