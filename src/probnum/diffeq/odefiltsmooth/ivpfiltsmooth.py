@@ -19,9 +19,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
     further considerations to, e.g., BVPs.
     """
 
-    def __init__(self, ivp, gaussfilt, steprl):
+    def __init__(self, ivp, gaussfilt):
         """
-        steprule : stepsize rule
         gaussfilt : gaussianfilter.GaussianFilter object,
             e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
 
@@ -37,9 +36,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
             raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
         self.ivp = ivp
         self.gfilt = gaussfilt
-        odesolver.ODESolver.__init__(self, steprl)
 
-    def solve(self, firststep, **kwargs):
+    def solve(self, firststep, steprule, **kwargs):
         """
         Solve IVP and calibrates uncertainty according
         to Proposition 4 in Tronarp et al.
@@ -48,6 +46,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ----------
         firststep : float
             First step for adaptive step size rule.
+        steprule : StepRule
+            Step-size selection rule, e.g. constant steps or adaptive steps.
         """
         current_rv = self.gfilt.initialrandomvariable
         t = self.ivp.t0
@@ -70,7 +70,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 filt_rv.mean(), crosscov, meas_cov, meas_mean
             )
 
-            if self.steprule.is_accepted(step, errorest):
+            if steprule.is_accepted(step, errorest):
                 times.append(t_new)
                 rvs.append(filt_rv)
                 num_steps += 1
@@ -78,7 +78,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
                 current_rv = filt_rv
                 t = t_new
 
-            step = self._suggest_step(step, errorest)
+            step = self._suggest_step(step, errorest, steprule)
             step = min(step, self.ivp.tmax - t)
 
         rvs = [
@@ -153,7 +153,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         abs_error = abserrors @ weights / np.linalg.norm(weights)
         return np.maximum(rel_error, abs_error)
 
-    def _suggest_step(self, step, errorest):
+    def _suggest_step(self, step, errorest, steprule):
         """
         Suggests step according to steprule and warns if
         step is extremely small.
@@ -163,7 +163,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         RuntimeWarning
             If suggested step is smaller than :math:`10^{-15}`.
         """
-        step = self.steprule.suggest(step, errorest)
+        step = steprule.suggest(step, errorest)
         if step < 1e-15:
             warnmsg = "Stepsize is num. zero (%.1e)" % step
             warnings.warn(message=warnmsg, category=RuntimeWarning)

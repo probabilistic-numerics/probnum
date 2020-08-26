@@ -225,16 +225,17 @@ def probsolve_ivp(
      [0.97947631]
      [0.98614541]]
     """
-    solver, firststep = _create_solver_object(
+    gfilt, firststep, stprl = _create_solver_inputs(
         ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
     )
-    solution = solver.solve(firststep=firststep, **kwargs)
+    solver = GaussianIVPFilter(ivp, gfilt)
+    solution = solver.solve(firststep=firststep, steprule=stprl, **kwargs)
     if method in ["eks0", "eks1", "uks"]:
         solution = solver.odesmooth(solution, **kwargs)
     return solution
 
 
-def _create_solver_object(
+def _create_solver_inputs(
     ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
 ):
     """Create the solver object that is used."""
@@ -251,7 +252,7 @@ def _create_solver_object(
         stprl = steprule.ConstantSteps(step)
         firststep = step
     gfilt = _string2filter(ivp, _prior, method, **kwargs)
-    return GaussianIVPFilter(ivp, gfilt, stprl), firststep
+    return gfilt, firststep, stprl
 
 
 def _check_step_tol(step, tol):
