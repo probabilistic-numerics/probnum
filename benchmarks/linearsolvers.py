@@ -9,6 +9,7 @@ import scipy.sparse
 from probnum.linalg import problinsolve
 from benchmarks.benchmark_utils import RANDOM_5x5_SPD_MATRIX
 
+
 def load_poisson_linear_system():
     """
     Poisson equation with Dirichlet conditions.
@@ -22,7 +23,9 @@ def load_poisson_linear_system():
     Linear system resulting from discretization on an elliptic grid.
     """
     fpath = os.path.join(os.path.dirname(__file__), "../tests/resources")
-    A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")  # pylint: disable=invalid-name
+    A = scipy.sparse.load_npz(
+        file=fpath + "/matrix_poisson.npz"
+    )  # pylint: disable=invalid-name
     f = np.load(file=fpath + "/rhs_poisson.npy")  # pylint: disable=invalid-name
     return A, f
 
@@ -40,7 +43,10 @@ class LinSolve:
         np.random.seed(42)
 
         if system == "sparse":
-            self.A, self.b = load_poisson_linear_system()  # pylint: disable=invalid-name
+            (
+                self.A,
+                self.b,
+            ) = load_poisson_linear_system()  # pylint: disable=invalid-name
         elif system == "dense":
             self.A = RANDOM_5x5_SPD_MATRIX
             self.b = np.random.normal(size=self.A.shape[0])
@@ -78,7 +84,9 @@ class PosteriorDist:
         self.A, self.b = load_poisson_linear_system()  # pylint: disable=invalid-name
 
         # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b )   # pylint: disable=invalid-name
+        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(
+            A=self.A, b=self.b
+        )  # pylint: disable=invalid-name
 
         # Benchmark parameters
         self.n_samples = 10
