@@ -1,5 +1,5 @@
 # Packages required for building the documentation
-sphinx
+sphinx>=3.0
 sphinx_rtd_theme
 sphinx_automodapi
 sphinx_autodoc_typehints
