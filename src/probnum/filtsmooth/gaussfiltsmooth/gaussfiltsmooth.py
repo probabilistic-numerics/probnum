@@ -163,8 +163,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         if np.isscalar(predmean) and np.isscalar(predcov):
             predmean = predmean * np.ones(1)
             predcov = predcov * np.eye(1)
-        res = currmean - predmean
-        newmean = initmean + crosscov @ np.linalg.solve(predcov, res)
+        newmean = initmean + crosscov @ np.linalg.solve(predcov, currmean - predmean)
         firstsolve = crosscov @ np.linalg.solve(predcov, currcov - predcov)
         secondsolve = crosscov @ np.linalg.solve(predcov, firstsolve.T)
         newcov = initcov + secondsolve.T
@@ -177,3 +176,12 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
     @abstractmethod
     def update(self, time, randvar, data, **kwargs):
         raise NotImplementedError
+
+
+def linear_discrete_update(meanest, cpred, data, meascov, measmat, mpred):
+    """Kalman update, potentially after linearization."""
+    covest = measmat @ cpred @ measmat.T + meascov
+    ccest = cpred @ measmat.T
+    mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
+    cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
+    return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
