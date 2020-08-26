@@ -22,11 +22,12 @@ def load_poisson_linear_system():
 
     Linear system resulting from discretization on an elliptic grid.
     """
+    # pylint: disable=invalid-name
     fpath = os.path.join(os.path.dirname(__file__), "../tests/resources")
     A = scipy.sparse.load_npz(
         file=fpath + "/matrix_poisson.npz"
-    )  # pylint: disable=invalid-name
-    f = np.load(file=fpath + "/rhs_poisson.npy")  # pylint: disable=invalid-name
+    )
+    f = np.load(file=fpath + "/rhs_poisson.npy")
     return A, f
 
 
