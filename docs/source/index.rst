@@ -40,7 +40,7 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    :maxdepth: 1
    :caption: Tutorials and Examples
 
-   tutorials/probability
+   tutorials/basic_concepts
    tutorials/linear_algebra
    tutorials/differential_equations
 

@@ -1,5 +1,5 @@
-Probability
-===========
+Basic Concepts
+==============
 
 Random variables are the main objects in ProbNum. They represent uncertainty about a numerical quantity in their distribution. A probabilistic numerical method takes random variables as inputs and also outputs random variables. 
 
@@ -10,6 +10,7 @@ See the notebooks below to learn more about how to use and manipulate probabilis
    :maxdepth: 2
 
    random_variables
+   pn_method_example
 
 
 If you want to try out these tutorials for yourself you can

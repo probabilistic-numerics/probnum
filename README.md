@@ -19,8 +19,6 @@ allows principled treatment of _uncertainty arising from finite computational re
 numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be 
 propagated along the chain of computation.
 
-> This package is currently a work in progress therefore interfaces are subject to change.
-
 ## Installation
 To get started install ProbNum using `pip`.
 ```bash
@@ -30,6 +28,8 @@ Alternatively, you can install the latest version from source.
 ```bash
 pip install git+https://github.com/probabilistic-numerics/probnum.git
 ```
+
+> Note: This package is currently work in progress, therefore interfaces are subject to change.
 
 ## Documentation and Examples
 For tips on getting started and how to use this package please refer to the
