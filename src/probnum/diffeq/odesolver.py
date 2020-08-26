@@ -96,10 +96,10 @@ class ODESolver(ABC):
         """
         Optional callback. Can be overwritten.
         Do this as soon as it is clear that the current guess is accepted, but before storing it.
-        No return. For example: tune hyperparameters.
+        No return. For example: tune hyperparameters (sigma).
         """
         pass
 
     def interpolate(self, t, **kwargs):
         """Evaluate the ODE solution object at time t by interpolating between nearby solutions."""
-        raise NotImplementedError  # filling this interface is out of scope for this PR
+        raise NotImplementedError  # filling this interface is out of scope for this PR---just a teaser ;)
