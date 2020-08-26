@@ -5,11 +5,10 @@
 [![Documentation](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Documentation)](https://probnum.readthedocs.io)
 [![Benchmarks](http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat&logo=swift&logoColor=white)](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/)
 [![PyPI](https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
-
 ---
 
-_ProbNum implements probabilistic numerical methods in Python._ Such methods interpret numerical routines for linear
-algebra, optimization, quadrature, and the solution of differential equations as _probabilistic inference_.
+**ProbNum implements probabilistic numerical methods in Python.** Such methods interpret numerical routines for linear
+algebra, optimization, quadrature and the solution of differential equations as _probabilistic inference_.
 
 ---
 
