@@ -7,8 +7,13 @@
 [![PyPI](https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
 <br>
 
-**ProbNum implements probabilistic numerical methods in Python.** Such methods interpret numerical problems from 
-optimization, quadrature, ordinary and partial differential equations, and linear algebra as _statistical inference tasks_.
+---
+
+**ProbNum implements probabilistic numerical methods in Python.** Such methods interpret numerical routines for linear
+algebra, optimization, quadrature, and the solution of differential equations as _inference procedures_ by taking a 
+probabilistic viewpoint.
+
+---
 
 [Probabilistic Numerics](https://doi.org/10.1098/rspa.2015.0142) (PN) interprets classic numerical routines as
 _inference procedures_ by taking a probabilistic viewpoint. This allows principled treatment of _uncertainty arising
