@@ -7,7 +7,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum.linalg import problinsolve
-
+from benchmarks.benchmark_utils import RANDOM_5x5_SPD_MATRIX
 
 def load_poisson_linear_system():
     """
@@ -42,15 +42,7 @@ class LinSolve:
         if system == "sparse":
             self.A, self.b = load_poisson_linear_system()  # pylint: disable=invalid-name
         elif system == "dense":
-            self.A = np.array(
-                [
-                    [2.3, -2.3, 3.5, 4.2, 1.8],
-                    [-2.3, 3.0, -3.5, -4.8, -1.9],
-                    [3.5, -3.5, 6.9, 5.8, 0.8],
-                    [4.2, -4.8, 5.8, 10.1, 6.3],
-                    [1.8, -1.9, 0.8, 6.3, 12.1],
-                ]
-            )
+            self.A = RANDOM_5x5_SPD_MATRIX
             self.b = np.random.normal(size=self.A.shape[0])
         elif system == "large-scale":
             self.A = None
@@ -64,9 +56,7 @@ class LinSolve:
     def mem_solve(self, system):
         """Time solving a linear system"""
         # pylint: disable=unused-argument
-
-        # I would remove the self.xhat, ... bit but I don't know what mem_solve really needs... (NK)
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        problinsolve(A=self.A, b=self.b)
 
     def peakmem_solve(self, system):
         """Time solving a linear system"""
@@ -88,7 +78,7 @@ class PosteriorDist:
         self.A, self.b = load_poisson_linear_system()  # pylint: disable=invalid-name
 
         # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)   # pylint: disable=invalid-name
+        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b )   # pylint: disable=invalid-name
 
         # Benchmark parameters
         self.n_samples = 10

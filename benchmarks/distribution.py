@@ -7,6 +7,8 @@ import numpy as np
 import probnum.prob as prob
 import probnum.linalg.linops as linops
 
+from benchmarks.benchmark_utils import RANDOM_5x5_SPD_MATRIX
+
 # Module level variables
 DISTRIBUTION_NAMES = [
     "univar_normal",
@@ -22,15 +24,7 @@ def get_randvar(distribution_name):
     Return a random variable for a given distribution name
     """
     # Distribution Means and Covariances
-    spd_mat = np.array(
-        [
-            [2.3, -2.3, 3.5, 4.2, 1.8],
-            [-2.3, 3.0, -3.5, -4.8, -1.9],
-            [3.5, -3.5, 6.9, 5.8, 0.8],
-            [4.2, -4.8, 5.8, 10.1, 6.3],
-            [1.8, -1.9, 0.8, 6.3, 12.1],
-        ]
-    )
+    spd_mat = RANDOM_5x5_SPD_MATRIX
     mean_0d = np.random.rand()
     mean_1d = np.random.rand(5)
     mean_2d_mat = spd_mat
