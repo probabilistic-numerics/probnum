@@ -3,7 +3,11 @@ from typing import Callable, Optional, TypeVar
 import numpy as np
 
 from probnum import utils as _utils
-from probnum._lib.argtypes import RandomStateArgType, ShapeArgType
+from probnum._lib.argtypes import (
+    ArrayLikeGetitemArgType,
+    RandomStateArgType,
+    ShapeArgType,
+)
 from probnum.typing import ShapeType
 
 from . import _random_variable
@@ -79,7 +83,7 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     def support(self) -> _ValueType:
         return self._support
 
-    def __getitem__(self, key) -> "Dirac":
+    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Dirac":
         """
         Marginalization for multivariate Dirac distributions, expressed by means of
         (advanced) indexing, masking and slicing.

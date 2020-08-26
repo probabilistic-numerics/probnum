@@ -10,4 +10,14 @@ FloatArgType = Union[float, numbers.Real, np.floating]
 ShapeArgType = Union[IntArgType, Iterable[IntArgType]]
 DTypeArgType = Union[np.dtype, str]
 
+ArrayLikeGetitemArgType = Union[
+    int,
+    slice,
+    np.ndarray,
+    np.newaxis,
+    None,
+    type(Ellipsis),
+    Tuple[Union[int, slice, np.ndarray, np.newaxis, None, type(Ellipsis)], ...],
+]
+
 RandomStateArgType = Union[None, int, np.random.RandomState, np.random.Generator]

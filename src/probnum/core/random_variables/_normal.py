@@ -4,7 +4,11 @@ import numpy as np
 import scipy.stats
 
 from probnum import utils as _utils
-from probnum._lib.argtypes import RandomStateArgType, ShapeArgType
+from probnum._lib.argtypes import (
+    ArrayLikeGetitemArgType,
+    RandomStateArgType,
+    ShapeArgType,
+)
 from probnum.linalg import linops
 from probnum.typing import ShapeType
 
@@ -223,7 +227,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             entropy=entropy,
         )
 
-    def __getitem__(self, key) -> "Normal":
+    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Normal":
         """
         Marginalization in multi- and matrixvariate normal distributions, expressed by
         means of (advanced) indexing, masking and slicing.
@@ -486,7 +490,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             )
 
     # Univariate Gaussians
-    def _univariate_sample(self, size: ShapeArgType = ()) -> np.floating:
+    def _univariate_sample(self, size: ShapeType = ()) -> np.floating:
         sample = scipy.stats.norm.rvs(
             loc=self._mean, scale=self._cov, size=size, random_state=self.random_state
         )
@@ -496,7 +500,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         else:
             sample = sample.astype(self.dtype)
 
-        assert sample.shape == _utils.as_shape(size)
+        assert sample.shape == size
 
         return sample
 
@@ -532,7 +536,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Multi- and matrixvariate Gaussians with dense covariance
-    def _dense_sample(self, size: ShapeArgType = ()) -> np.ndarray:
+    def _dense_sample(self, size: ShapeType = ()) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self._mean.ravel(),
             cov=self._cov,
@@ -591,7 +595,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         return mean, self._cov.todense()
 
-    def _operatorvariate_sample(self, size: ShapeArgType = ()) -> np.ndarray:
+    def _operatorvariate_sample(self, size: ShapeType = ()) -> np.ndarray:
         mean, cov = self._operatorvariate_params_todense()
 
         sample = scipy.stats.multivariate_normal.rvs(
@@ -603,15 +607,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # Operatorvariate Gaussian with symmetric Kronecker covariance from identical
     # factors
     def _symmetric_kronecker_identical_factors_sample(
-        self, size: ShapeArgType = ()
+        self, size: ShapeType = ()
     ) -> np.ndarray:
         assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
 
         n = self._mean.shape[1]
 
         # Draw standard normal samples
-        size = _utils.as_shape(size)
-
         size_sample = (n * n,) + size
 
         stdnormal_samples = scipy.stats.norm.rvs(

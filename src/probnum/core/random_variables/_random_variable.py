@@ -74,7 +74,7 @@ class RandomVariable(Generic[_ValueType]):
         dtype: DTypeArgType,
         random_state: RandomStateArgType = None,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
+        sample: Optional[Callable[[ShapeType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
@@ -352,7 +352,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return self.__in_support(x)
 
-    def sample(self, size=()) -> _ValueType:
+    def sample(self, size: ShapeArgType = ()) -> _ValueType:
         """
         Draw realizations from a random variable.
 
@@ -371,7 +371,7 @@ class RandomVariable(Generic[_ValueType]):
 
         return self.__sample(size=_utils.as_shape(size))
 
-    def cdf(self, x) -> np.float_:
+    def cdf(self, x: _ValueType) -> np.float_:
         """
         Cumulative distribution function.
 
@@ -396,7 +396,7 @@ class RandomVariable(Generic[_ValueType]):
                 )
             )
 
-    def logcdf(self, x) -> np.float_:
+    def logcdf(self, x: _ValueType) -> np.float_:
         """
         Log-cumulative distribution function.
 
@@ -681,7 +681,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         else:
             raise NotImplementedError
 
-    def logpmf(self, x) -> np.float_:
+    def logpmf(self, x: _ValueType) -> np.float_:
         if self.__logpmf is not None:
             return self.__logpmf(x)
         elif self.__pmf is not None:
@@ -735,7 +735,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
             entropy=entropy,
         )
 
-    def pdf(self, x) -> np.float_:
+    def pdf(self, x: _ValueType) -> np.float_:
         """
         Probability density or mass function.
 
@@ -760,7 +760,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
             )
         )
 
-    def logpdf(self, x) -> np.float_:
+    def logpdf(self, x: _ValueType) -> np.float_:
         """
         Natural logarithm of the probability density function.
 
