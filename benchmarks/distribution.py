@@ -8,7 +8,7 @@ import probnum.prob as prob
 import probnum.linalg.linops as linops
 
 # Module level variables
-distribution_names = [
+DISTRIBUTION_NAMES = [
     "univar_normal",
     "multivar_normal",
     "matrixvar_normal",
@@ -60,25 +60,28 @@ class Functions:
     Benchmark various functions of distributions.
     """
 
-    param_names = ["dist", "property"]
-    params = [distribution_names, ["pdf", "logpdf", "cdf", "logcdf"]]
+    param_names = ["dist", "method"]
+    params = [DISTRIBUTION_NAMES, ["pdf", "logpdf", "cdf", "logcdf"]]
 
-    def setup(self, dist, property):
+    def setup(self, dist, method):
+        # pylint: disable=missing-function-docstring,attribute-defined-outside-init
+        # pylint: disable=unused-argument
         self.randvar = get_randvar(distribution_name=dist)
         self.eval_point = np.random.uniform(self.randvar.shape)
         self.quantile = np.random.uniform(self.randvar.shape)
 
-    def time_distr_functions(self, dist, property):
+    def time_distr_functions(self, dist, method):
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
+        # pylint: disable=unused-argument
         try:
-            if property == "pdf":
+            if method == "pdf":
                 self.randvar.distribution.pdf(x=self.eval_point)
-            elif property == "logpdf":
-                self.randvar.distribution.pdf(x=self.eval_point)
-            elif property == "cdf":
-                self.randvar.distribution.pdf(x=self.quantile)
-            elif property == "logcdf":
-                self.randvar.distribution.pdf(x=self.quantile)
+            elif method == "logpdf":
+                self.randvar.distribution.logpdf(x=self.eval_point)
+            elif method == "cdf":
+                self.randvar.distribution.cdf(x=self.quantile)
+            elif method == "logcdf":
+                self.randvar.distribution.logcdf(x=self.quantile)
         except NotImplementedError:
             pass
 
@@ -89,17 +92,20 @@ class Sampling:
     """
 
     param_names = ["dist"]
-    params = [distribution_names]
+    params = [DISTRIBUTION_NAMES]
 
     def setup(self, dist):
+        # pylint: disable=missing-function-docstring,attribute-defined-outside-init
         np.random.seed(42)
         self.n_samples = 1000
         self.randvar = get_randvar(distribution_name=dist)
 
     def time_sample(self, dist):
         """Times sampling from this distribution."""
+        # pylint: disable=unused-argument
         self.randvar.sample(self.n_samples)
 
     def peakmem_sample(self, dist):
         """Peak memory of sampling process."""
+        # pylint: disable=unused-argument
         self.randvar.sample(self.n_samples)
