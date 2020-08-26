@@ -21,3 +21,11 @@ jobs:
         run: pip install tox
       - name: Run pylint through tox
         run: tox -e pylint
+
+  pylint-tox-config-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Check if ./tox.ini and ./pyproject.toml are correctly synchronized
+        run: python .github/workflows/pylint_check.py
