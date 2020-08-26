@@ -24,9 +24,7 @@ def load_poisson_linear_system():
     """
     # pylint: disable=invalid-name
     fpath = os.path.join(os.path.dirname(__file__), "../tests/resources")
-    A = scipy.sparse.load_npz(
-        file=fpath + "/matrix_poisson.npz"
-    )
+    A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
     f = np.load(file=fpath + "/rhs_poisson.npy")
     return A, f
 
