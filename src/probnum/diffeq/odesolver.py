@@ -39,7 +39,9 @@ class ODESolver(ABC):
 
             if steprule.is_accepted(stepsize, errorest):
                 self.num_steps += 1
-                self.pre_accepted_callback(time=t_new, current_guess=proposed_rv, current_error=errorest)
+                self.pre_accepted_callback(
+                    time=t_new, current_guess=proposed_rv, current_error=errorest
+                )
                 t = t_new
                 current_rv = proposed_rv
                 times.append(t)
