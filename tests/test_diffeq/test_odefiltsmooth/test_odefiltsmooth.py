@@ -478,7 +478,7 @@ class TestPreconditioning(unittest.TestCase):
     """
 
     def setUp(self):
-        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        initdist = Dirac(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 1e-4], initdist)
         self.step = 1e-5
         self.prior = "ibm3"

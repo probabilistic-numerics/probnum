@@ -184,4 +184,4 @@ def linear_discrete_update(meanest, cpred, data, meascov, measmat, mpred):
     ccest = cpred @ measmat.T
     mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
     cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
+    return Normal(mean, cov), covest, ccest, meanest
