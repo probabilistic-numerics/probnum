@@ -228,10 +228,9 @@ def probsolve_ivp(
     gfilt, firststep, stprl = _create_solver_inputs(
         ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
     )
-    solver = GaussianIVPFilter(ivp, gfilt)
+    with_smoothing = method[-2] == "s"
+    solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
     solution = solver.solve(firststep=firststep, steprule=stprl, **kwargs)
-    if method in ["eks0", "eks1", "uks"]:
-        solution = solver.odesmooth(solution, **kwargs)
     return solution
 
 
