@@ -1,17 +1,17 @@
-=========================================
-ProbNum: Probabilistic Numerics in Python
-=========================================
+=======
+ProbNum
+=======
 
 |Travis Status| |Coverage Status| |Benchmarks| |PyPI|
 
+**ProbNum implements probabilistic numerical methods in Python.** Such methods interpret numerical routines for linear
+algebra, optimization, quadrature and the solution of differential equations as *probabilistic inference*.
 
-`Probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) interprets classic numerical routines as
-*inference procedures* by taking a probabilistic viewpoint. This allows principled treatment of *uncertainty arising
-from finite computational resources*. The vision of probabilistic numerics is to provide well-calibrated probability
-measures over the output of a numerical routine, which then can be propagated along the chain of computation.
-
-This repository aims to implement methods from PN in Python 3 and to provide a common interface for them. This is
-currently a work in progress, therefore interfaces are subject to change.
+`Probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) aims to quantify uncertainty arising from
+intractable or incomplete numerical computation and from stochastic input using the tools of probability theory. This
+allows principled treatment of *uncertainty arising from finite computational resources*. The vision of probabilistic
+numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be
+propagated along the chain of computation.
 
 To get started install ProbNum using :code:`pip`.
 

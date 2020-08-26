@@ -5,6 +5,7 @@
 [![Documentation](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Documentation)](https://probnum.readthedocs.io)
 [![Benchmarks](http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat&logo=swift&logoColor=white)](https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/)
 [![PyPI](https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white)](https://pypi.org/project/probnum/)
+
 ---
 
 **ProbNum implements probabilistic numerical methods in Python.** Such methods interpret numerical routines for linear
@@ -18,8 +19,7 @@ allows principled treatment of _uncertainty arising from finite computational re
 numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be 
 propagated along the chain of computation.
 
-This repository aims to implement methods from PN in Python 3 and to provide a common interface for them. This is
-currently a work in progress, therefore interfaces are subject to change.
+> This package is currently a work in progress therefore interfaces are subject to change.
 
 ## Installation
 To get started install ProbNum using `pip`.
