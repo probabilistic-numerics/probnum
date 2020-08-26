@@ -37,6 +37,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.ivp = ivp
         self.gfilt = gaussfilt
 
+        self.ssqest = 0.0
+        self.num_steps = 0
+
     def solve(self, firststep, steprule, **kwargs):
         """
         Solve IVP and calibrates uncertainty according
@@ -54,30 +57,33 @@ class GaussianIVPFilter(odesolver.ODESolver):
         times = [t]
         rvs = [current_rv]
         stepsize = firststep
-        ssqest, num_steps = 0.0, 0
 
         while t < self.ivp.tmax:
 
             t_new = t + stepsize
-            errorest, filt_rv, ssq = self.step(t, t_new, current_rv, kwargs)
+            errorest, filt_rv = self.step(t, t_new, current_rv, kwargs)
 
             if steprule.is_accepted(stepsize, errorest):
-                times.append(t_new)
-                rvs.append(filt_rv)
-                num_steps += 1
-                ssqest = ssqest + (ssq - ssqest) / num_steps
-                current_rv = filt_rv
+                self.num_steps += 1
+                self.pre_accepted_callback(time=t_new, current_guess=filt_rv, current_error=errorest)
                 t = t_new
+                current_rv = filt_rv
+                times.append(t)
+                rvs.append(current_rv)
 
-            stepsize = self._suggest_step(stepsize, errorest, steprule)
-            stepsize = min(stepsize, self.ivp.tmax - t)
+            suggested_stepsize = self._suggest_step(stepsize, errorest, steprule)
+            stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
         rvs = [
-            RandomVariable(distribution=Normal(rv.mean(), ssqest * rv.cov()))
+            RandomVariable(distribution=Normal(rv.mean(), self.ssqest * rv.cov()))
             for rv in rvs
         ]
 
         return ODESolution(times, rvs, self)
+
+    def pre_accepted_callback(self, time, current_guess, current_error):
+        """Do this as soon as it is clear that the current guess is accepted, but before storing it. No return."""
+        self.ssqest = self.ssqest + (self.ssq - self.ssqest) / self.num_steps
 
     def step(self, t, t_new, current_rv, kwargs):
         pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
@@ -85,10 +91,10 @@ class GaussianIVPFilter(odesolver.ODESolver):
         filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
             t_new, pred_rv, zero_data, **kwargs
         )
-        errorest, ssq = self._estimate_error(
+        errorest, self.ssq = self._estimate_error(
             filt_rv.mean(), crosscov, meas_cov, meas_mean
         )
-        return errorest, filt_rv, ssq
+        return errorest, filt_rv
 
     def odesmooth(self, filter_solution, **kwargs):
         """

@@ -25,3 +25,6 @@ class ODESolver(ABC):
         """Every ODE solver needs a step() method that returns a new random variable and an error estimate"""
         raise NotImplementedError
 
+    def pre_accepted_callback(self, time, current_guess, current_error):
+        """Do this as soon as it is clear that the current guess is accepted, but before storing it. No return."""
+        pass
