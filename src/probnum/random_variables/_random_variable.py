@@ -203,7 +203,7 @@ class RandomVariable(Generic[_ValueType]):
                     f"`{cls.__name__}` must return a scalar value that can be "
                     f"converted to a `np.float_`, which is possible for {value} "
                     f"of type {type(value)}."
-                )
+                ) from err
 
         assert isinstance(value, np.float_)
 
