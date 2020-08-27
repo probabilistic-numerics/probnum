@@ -56,7 +56,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return filt_rv, errorest
 
     def postprocess(self, times, rvs):
-        """Rescale covariances with sigma square estimate"""
+        """Rescale covariances with sigma square estimate and (if specified), smooth the estimate."""
         rvs = [
             RandomVariable(distribution=Normal(rv.mean(), self.sigma_squared_global * rv.cov()))
             for rv in rvs
