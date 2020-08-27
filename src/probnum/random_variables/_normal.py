@@ -1,3 +1,5 @@
+""" This module implements normally distributed or Gaussian random variables. """
+
 from typing import Callable, Optional, Union
 
 import numpy as np

@@ -1,3 +1,5 @@
+""" This module implements Dirac-distributed random variables. """
+
 from typing import Callable, TypeVar
 
 import numpy as np
