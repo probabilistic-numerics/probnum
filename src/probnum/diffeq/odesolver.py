@@ -99,7 +99,3 @@ class ODESolver(ABC):
         No return. For example: tune hyperparameters (sigma).
         """
         pass
-
-    def interpolate(self, t, **kwargs):
-        """Evaluate the ODE solution object at time t by interpolating between nearby solutions."""
-        raise NotImplementedError  # filling this interface is out of scope for this PR---just a teaser ;)
