@@ -71,14 +71,21 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (
                 np.random.uniform(size=(2, 2)),
                 linops.SymmetricKronecker(
-                    A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])
+                    A=np.array([[1.0, 2.0], [2.0, 1.0]]),
+                    B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
                 ).todense(),
             ),
             # Operatorvariate
-            (np.array([1.0, -5.0]), linops.MatrixMult(A=np.array([[2, 1], [1, -0.1]]))),
-            (linops.MatrixMult(A=np.array([[0, -5]])), linops.Identity(shape=(2, 2))),
             (
-                np.array([[1, 2], [-3, -0.4], [4, 1]]),
+                np.array([1.0, -5.0]),
+                linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
+            ),
+            (
+                linops.MatrixMult(A=np.array([[0.0, -5.0]])),
+                linops.Identity(shape=(2, 2)),
+            ),
+            (
+                np.array([[1.0, 2.0], [-3.0, -0.4], [4.0, 1.0]]),
                 linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
             ),
             (
@@ -88,7 +95,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (
                 linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
                 linops.SymmetricKronecker(
-                    A=np.array([[1, 2], [2, 1]]), B=np.array([[5, -1], [-1, 10]])
+                    A=np.array([[1.0, 2.0], [2.0, 1.0]]),
+                    B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
                 ),
             ),
             # Symmetric Kronecker Identical Factors
