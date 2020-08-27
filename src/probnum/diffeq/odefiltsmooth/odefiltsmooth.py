@@ -21,7 +21,7 @@ References
 
 from probnum.diffeq import steprule
 from probnum.diffeq.odefiltsmooth import prior, ivp2filter
-from probnum.diffeq.odefiltsmooth import GaussianIVPFilter
+from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 
 def probsolve_ivp(

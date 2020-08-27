@@ -1,4 +1,4 @@
-from typing import Callable, Optional, TypeVar
+from typing import Callable, TypeVar
 
 import numpy as np
 
@@ -49,7 +49,9 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     """
 
     def __init__(
-        self, support: _ValueType, random_state: RandomStateArgType = None,
+        self,
+        support: _ValueType,
+        random_state: RandomStateArgType = None,
     ):
         if np.isscalar(support):
             support = _utils.as_numpy_scalar(support)
@@ -150,7 +152,8 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
             return Dirac(
                 support=operator(dirac_rv1.support, dirac_rv2.support),
                 random_state=_utils.derive_random_seed(
-                    dirac_rv1.random_state, dirac_rv2.random_state,
+                    dirac_rv1.random_state,
+                    dirac_rv2.random_state,
                 ),
             )
 

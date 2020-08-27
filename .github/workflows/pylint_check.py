@@ -4,8 +4,10 @@ TOXINI_FILE = Path("tox.ini")
 PYPROJECTTOML_FILE = Path("pyproject.toml")
 GLOBAL_DISABLES = {
     "invalid-name",
+    "bad-continuation",
     "no-else-raise",
     "no-else-return",
+    "no-member",
 }
 
 

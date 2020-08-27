@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 import scipy.stats
@@ -199,6 +199,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 if cov._ABequal:
                     sample = self._symmetric_kronecker_identical_factors_sample
 
+                    # pylint: disable=redefined-variable-type
                     self._compute_cov_cholesky = (
                         self._symmetric_kronecker_identical_factors_cov_cholesky
                     )
@@ -495,10 +496,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             )
 
         if scalar == 0:
+            # pylint: disable=import-outside-toplevel,cyclic-import
             from probnum import random_variables as rvs
 
             return rvs.Dirac(
-                support=np.zeros_like(self._mean), random_state=derived_random_seed,
+                support=np.zeros_like(self._mean),
+                random_state=derived_random_seed,
             )
         else:
             return Normal(
@@ -533,7 +536,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def _univariate_pdf(self, x: _ValueType) -> np.float_:
         return _utils.as_numpy_scalar(
-            scipy.stats.norm.pdf(x, loc=self._mean, scale=self._cov), dtype=np.float_,
+            scipy.stats.norm.pdf(x, loc=self._mean, scale=self._cov),
+            dtype=np.float_,
         )
 
     def _univariate_logpdf(self, x: _ValueType) -> np.float_:
@@ -544,7 +548,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def _univariate_cdf(self, x: _ValueType) -> np.float_:
         return _utils.as_numpy_scalar(
-            scipy.stats.norm.cdf(x, loc=self._mean, scale=self._cov), dtype=np.float_,
+            scipy.stats.norm.cdf(x, loc=self._mean, scale=self._cov),
+            dtype=np.float_,
         )
 
     def _univariate_logcdf(self, x: _ValueType) -> np.float_:
@@ -558,7 +563,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def _univariate_entropy(self: _ValueType) -> np.float_:
         return _utils.as_numpy_scalar(
-            scipy.stats.norm.entropy(loc=self._mean, scale=self._cov), dtype=np.float_,
+            scipy.stats.norm.entropy(loc=self._mean, scale=self._cov),
+            dtype=np.float_,
         )
 
     # Multi- and matrixvariate Gaussians
@@ -632,7 +638,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _dense_entropy(self) -> np.float_:
         return _utils.as_numpy_scalar(
             scipy.stats.multivariate_normal.entropy(
-                mean=self._dense_mean.ravel(), cov=self._dense_cov,
+                mean=self._dense_mean.ravel(),
+                cov=self._dense_cov,
             )
         )
 
@@ -653,7 +660,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     # Matrixvariate Gaussian with symmetric Kronecker covariance from identical
     # factors
-    def _symmetric_kronecker_identical_factors_cov_cholesky(self,) -> linops.Kronecker:
+    def _symmetric_kronecker_identical_factors_cov_cholesky(self) -> linops.Kronecker:
         assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
 
         A = self._cov.A.todense()

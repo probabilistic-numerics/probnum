@@ -3,12 +3,12 @@ Benchmarks for probabilistic ivp solvers
 """
 import numpy as np
 from probnum.diffeq import lotkavolterra, probsolve_ivp
-from probnum.prob import RandomVariable, Dirac
+from probnum.random_variables import Dirac
 
 
 def load_lotkavolterra():
     """Load LV system as a basic IVP."""
-    initrv = RandomVariable(distribution=Dirac(np.array([20, 20])))
+    initrv = Dirac(np.array([20, 20]))
     return lotkavolterra(
         timespan=[0, 0.55], initrv=initrv, params=(0.5, 0.05, 0.5, 0.05)
     )

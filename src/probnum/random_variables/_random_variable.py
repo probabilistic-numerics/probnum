@@ -29,7 +29,7 @@ except ImportError:
 
 _ValueType = TypeVar("ValueType")
 
-# pylint: disable=too-many-instance-attributes,too-many-public-methods
+
 class RandomVariable(Generic[_ValueType]):
     """
     Random variables are the main objects used by probabilistic numerical methods.
@@ -67,7 +67,8 @@ class RandomVariable(Generic[_ValueType]):
     --------
     """
 
-    # pylint: disable=too-many-arguments,too-many-locals
+    # pylint: disable=too-many-instance-attributes,too-many-public-methods
+
     def __init__(
         self,
         shape: ShapeArgType,
@@ -87,6 +88,7 @@ class RandomVariable(Generic[_ValueType]):
         std: Optional[Callable[[], _ValueType]] = None,
         entropy: Optional[Callable[[], np.float_]] = None,
     ):
+        # pylint: disable=too-many-arguments,too-many-locals
         """Create a new random variable."""
         self._shape = _utils.as_shape(shape)
         self._dtype = np.dtype(dtype)
@@ -147,7 +149,7 @@ class RandomVariable(Generic[_ValueType]):
 
     @random_state.setter
     def random_state(self, seed: RandomStateArgType):
-        """ Get or set the RandomState object of the underlying distribution.
+        """Get or set the RandomState object of the underlying distribution.
 
         This can be either None or an existing RandomState object.
         If None (or np.random), use the RandomState singleton used by np.random.
@@ -203,7 +205,10 @@ class RandomVariable(Generic[_ValueType]):
         mode = self.__mode()
 
         RandomVariable._check_property_value(
-            "mode", mode, shape=self._shape, dtype=self._dtype,
+            "mode",
+            mode,
+            shape=self._shape,
+            dtype=self._dtype,
         )
 
         return mode
@@ -233,7 +238,10 @@ class RandomVariable(Generic[_ValueType]):
             median = self.__median()
 
         RandomVariable._check_property_value(
-            "median", median, shape=(), dtype=self._dtype,
+            "median",
+            median,
+            shape=(),
+            dtype=self._dtype,
         )
 
         return median
@@ -254,7 +262,10 @@ class RandomVariable(Generic[_ValueType]):
         mean = self.__mean()
 
         RandomVariable._check_property_value(
-            "mean", mean, shape=self._shape, dtype=self._dtype,
+            "mean",
+            mean,
+            shape=self._shape,
+            dtype=self._dtype,
         )
 
         return mean
@@ -304,7 +315,10 @@ class RandomVariable(Generic[_ValueType]):
             var = self.__var()
 
         RandomVariable._check_property_value(
-            "variance", var, shape=self._shape, dtype=self._dtype,
+            "variance",
+            var,
+            shape=self._shape,
+            dtype=self._dtype,
         )
 
         return var
@@ -328,7 +342,10 @@ class RandomVariable(Generic[_ValueType]):
             std = self.__std()
 
         RandomVariable._check_property_value(
-            "standard deviation", std, shape=self._shape, dtype=self._dtype,
+            "standard deviation",
+            std,
+            shape=self._shape,
+            dtype=self._dtype,
         )
 
         return std
@@ -341,7 +358,10 @@ class RandomVariable(Generic[_ValueType]):
         entropy = self.__entropy()
 
         RandomVariable._check_property_value(
-            "entropy", entropy, shape=(), dtype=np.floating,
+            "entropy",
+            entropy,
+            shape=(),
+            dtype=np.floating,
         )
 
         return entropy
@@ -496,7 +516,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self + asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import add
 
         return add(self, other)
@@ -511,7 +531,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self - asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import sub
 
         return sub(self, other)
@@ -526,7 +546,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self * asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import mul
 
         return mul(self, other)
@@ -541,7 +561,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self @ asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import matmul
 
         return matmul(self, other)
@@ -556,7 +576,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self / asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import truediv
 
         return truediv(self, other)
@@ -571,7 +591,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self // asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import floordiv
 
         return floordiv(self, other)
@@ -586,7 +606,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self % asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import mod
 
         return mod(self, other)
@@ -601,7 +621,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return divmod(self, asrandvar(other))
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import divmod_
 
         return divmod_(self, other)
@@ -616,7 +636,7 @@ class RandomVariable(Generic[_ValueType]):
         if not isinstance(other, RandomVariable):
             return self ** asrandvar(other)
 
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import pow_
 
         return pow_(self, other)
@@ -817,7 +837,7 @@ def asrandvar(obj) -> RandomVariable:
     array([1, 1, 1, 0, 0])
     """
 
-    # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel,cyclic-import
     from probnum import random_variables as rvs
 
     # RandomVariable
@@ -867,7 +887,7 @@ def _scipystats_to_rv(
 
     """
 
-    # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel,cyclic-import
     from probnum import random_variables as rvs
 
     # Univariate distributions (implemented in this package)
@@ -884,7 +904,9 @@ def _scipystats_to_rv(
         # Multivariate normal
         if scipyrv.__class__.__name__ == "multivariate_normal_frozen":
             return rvs.Normal(
-                mean=scipyrv.mean, cov=scipyrv.cov, random_state=scipyrv.random_state,
+                mean=scipyrv.mean,
+                cov=scipyrv.cov,
+                random_state=scipyrv.random_state,
             )
 
     # Generic distributions
