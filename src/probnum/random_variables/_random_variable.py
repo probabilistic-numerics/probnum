@@ -211,6 +211,10 @@ class RandomVariable(Generic[_ValueType]):
             dtype=self._dtype,
         )
 
+        # Make immutable
+        if isinstance(mode, np.ndarray):
+            mode.setflags(write=False)
+
         return mode
 
     @cached_property
@@ -244,6 +248,10 @@ class RandomVariable(Generic[_ValueType]):
             dtype=self._dtype,
         )
 
+        # Make immutable
+        if isinstance(median, np.ndarray):
+            median.setflags(write=False)
+
         return median
 
     @cached_property
@@ -267,6 +275,10 @@ class RandomVariable(Generic[_ValueType]):
             shape=self._shape,
             dtype=self._dtype,
         )
+
+        # Make immutable
+        if isinstance(mean, np.ndarray):
+            mean.setflags(write=False)
 
         return mean
 
@@ -292,6 +304,10 @@ class RandomVariable(Generic[_ValueType]):
             shape=(self.size, self.size) if self.ndim > 0 else (),
             dtype=self._dtype,
         )
+
+        # Make immutable
+        if isinstance(cov, np.ndarray):
+            cov.setflags(write=False)
 
         return cov
 
@@ -321,6 +337,10 @@ class RandomVariable(Generic[_ValueType]):
             dtype=self._dtype,
         )
 
+        # Make immutable
+        if isinstance(var, np.ndarray):
+            var.setflags(write=False)
+
         return var
 
     @cached_property
@@ -347,6 +367,10 @@ class RandomVariable(Generic[_ValueType]):
             shape=self._shape,
             dtype=self._dtype,
         )
+
+        # Make immutable
+        if isinstance(std, np.ndarray):
+            std.setflags(write=False)
 
         return std
 
