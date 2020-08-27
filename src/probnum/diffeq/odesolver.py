@@ -55,8 +55,7 @@ class ODESolver(ABC):
 
     def _suggest_step(self, step, errorest, steprule):
         """
-        Suggests step according to steprule and warns if
-        step is extremely small.
+        Suggests step according to steprule and warns if step is extremely small.
 
         Raises
         ------
