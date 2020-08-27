@@ -27,22 +27,20 @@ from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 SquareLinOp = Union[
     np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "prob.RandomVariable"
 ]
-RandomVecMat = Union[
-    np.ndarray, "prob.RandomVariable"
-]
+RandomVecMat = Union[np.ndarray, "prob.RandomVariable"]
 
 
 def problinsolve(
     A: SquareLinOp,
     b: RandomVecMat,
-    A0: Optional[SquareLinOp] =None,
-    Ainv0: Optional[SquareLinOp] =None,
-    x0: Optional[RandomVecMat]=None,
-    assume_A: str ="sympos",
+    A0: Optional[SquareLinOp] = None,
+    Ainv0: Optional[SquareLinOp] = None,
+    x0: Optional[RandomVecMat] = None,
+    assume_A: str = "sympos",
     maxiter: Optional[int] = None,
     atol: float = 10 ** -6,
     rtol: float = 10 ** -6,
-    callback: Optional[Callable]=None,
+    callback: Optional[Callable] = None,
     **kwargs
 ) -> Tuple["prob.RandomVariable", "prob.RandomVariable", "prob.RandomVariable", Dict]:
     """
