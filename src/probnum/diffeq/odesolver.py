@@ -24,8 +24,8 @@ class ODESolver(ABC):
         Parameters
         ----------
         firststep : float
-            First step for adaptive step size rule.
-        steprule : StepRule
+            First step for adaptive step-size rule.
+        steprule : :class:`StepRule`
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
         t, current_rv = self.initialise()
