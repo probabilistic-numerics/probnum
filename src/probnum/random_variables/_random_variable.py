@@ -114,6 +114,9 @@ class RandomVariable(Generic[_ValueType]):
         self.__std = std
         self.__entropy = entropy
 
+        self._median_dtype = np.promote_types(self._dtype, np.float_)
+        self._moments_dtype = np.promote_types(self._dtype, np.float_)
+
     def __repr__(self) -> str:
         return f"<{self.shape} {self.__class__.__name__} with dtype={self.dtype}>"
 
@@ -261,8 +264,8 @@ class RandomVariable(Generic[_ValueType]):
         RandomVariable._check_property_value(
             "median",
             median,
-            shape=(),
-            dtype=self._dtype,
+            shape=self._shape,
+            dtype=self._median_dtype,
         )
 
         # Make immutable
@@ -290,7 +293,7 @@ class RandomVariable(Generic[_ValueType]):
             "mean",
             mean,
             shape=self._shape,
-            dtype=self._dtype,
+            dtype=self._moments_dtype,
         )
 
         # Make immutable
@@ -319,7 +322,7 @@ class RandomVariable(Generic[_ValueType]):
             "covariance",
             cov,
             shape=(self.size, self.size) if self.ndim > 0 else (),
-            dtype=self._dtype,
+            dtype=self._moments_dtype,
         )
 
         # Make immutable
@@ -351,7 +354,7 @@ class RandomVariable(Generic[_ValueType]):
             "variance",
             var,
             shape=self._shape,
-            dtype=self._dtype,
+            dtype=self._moments_dtype,
         )
 
         # Make immutable
@@ -382,7 +385,7 @@ class RandomVariable(Generic[_ValueType]):
             "standard deviation",
             std,
             shape=self._shape,
-            dtype=self._dtype,
+            dtype=self._moments_dtype,
         )
 
         # Make immutable
