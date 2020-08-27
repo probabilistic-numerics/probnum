@@ -189,6 +189,23 @@ class RandomVariable(Generic[_ValueType]):
                     f"dtype. Expected {dtype.name} but got {value.dtype.name}."
                 )
 
+    @classmethod
+    def _ensure_numpy_float(cls, name: str, value: Any) -> np.float_:
+        if not isinstance(value, np.float_):
+            try:
+                value = _utils.as_numpy_scalar(value, dtype=np.float_)
+            except TypeError as err:
+                raise TypeError(
+                    f"The function `{name}` specified via the constructor of "
+                    f"`{cls.__name__}` must return a scalar value that can be "
+                    f"converted to a `np.float_`, which is possible for {value} "
+                    f"of type {type(value)}."
+                )
+
+        assert isinstance(value, np.float_)
+
+        return value
+
     @cached_property
     def mode(self) -> _ValueType:
         """
@@ -381,12 +398,7 @@ class RandomVariable(Generic[_ValueType]):
 
         entropy = self.__entropy()
 
-        RandomVariable._check_property_value(
-            "entropy",
-            entropy,
-            shape=(),
-            dtype=np.floating,
-        )
+        entropy = RandomVariable._ensure_numpy_float("entropy", entropy)
 
         return entropy
 
@@ -394,7 +406,15 @@ class RandomVariable(Generic[_ValueType]):
         if self.__in_support is None:
             raise NotImplementedError
 
-        return self.__in_support(x)
+        in_support = self.__in_support(x)
+
+        if not isinstance(in_support, bool):
+            raise ValueError(
+                f"The function `in_support` must return a `bool`, but its return value "
+                f"is of type `{type(x)}`."
+            )
+
+        return in_support
 
     def sample(self, size: ShapeArgType = ()) -> _ValueType:
         """
@@ -430,14 +450,17 @@ class RandomVariable(Generic[_ValueType]):
             Value of the cumulative density function at the given points.
         """
         if self.__cdf is not None:
-            return self.__cdf(x)
+            return RandomVariable._ensure_numpy_float("cdf", self.__cdf(x))
         elif self.__logcdf is not None:
-            return np.exp(self.__logcdf(x))
+            cdf = np.exp(self.logcdf(x))
+
+            assert isinstance(cdf, np.float_)
+
+            return cdf
         else:
             raise NotImplementedError(
-                "The function 'cdf' is not implemented for object of class {}".format(
-                    type(self).__name__
-                )
+                f"Neither the `cdf` nor the `logcdf` of the random variable object "
+                f"with type `{type(self).__name__}` is implemented."
             )
 
     def logcdf(self, x: _ValueType) -> np.float_:
@@ -455,13 +478,17 @@ class RandomVariable(Generic[_ValueType]):
             Value of the log-cumulative density function at the given points.
         """
         if self.__logcdf is not None:
-            return self.__logcdf(x)
+            return RandomVariable._ensure_numpy_float("logcdf", self.__logcdf(x))
         elif self.__cdf is not None:
-            return np.log(self.__cdf(x))
+            logcdf = np.log(self.__cdf(x))
+
+            assert isinstance(logcdf, np.float_)
+
+            return logcdf
         else:
             raise NotImplementedError(
-                f"The function 'logcdf' is not implemented for object of class "
-                f"{type(self).__name__}."
+                f"Neither the `logcdf` nor the `cdf` of the random variable object "
+                f"with type `{type(self).__name__}` is implemented."
             )
 
     def quantile(self, p: FloatArgType) -> _ValueType:
@@ -719,19 +746,35 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
     def pmf(self, x: _ValueType) -> np.float_:
         if self.__pmf is not None:
-            return self.__pmf(x)
+            return DiscreteRandomVariable._ensure_numpy_float("pmf", self.__pmf(x))
         elif self.__logpmf is not None:
-            return np.exp(self.__logpmf(x))
+            pmf = np.exp(self.__logpmf(x))
+
+            assert isinstance(pmf, np.float_)
+
+            return pmf
         else:
-            raise NotImplementedError
+            raise NotImplementedError(
+                f"Neither the `pmf` nor the `logpmf` of the discrete random variable "
+                f"object with type `{type(self).__name__}` is implemented."
+            )
 
     def logpmf(self, x: _ValueType) -> np.float_:
         if self.__logpmf is not None:
-            return self.__logpmf(x)
+            return DiscreteRandomVariable._ensure_numpy_float(
+                "logpmf", self.__logpmf(x)
+            )
         elif self.__pmf is not None:
-            return np.log(self.__pmf(x))
+            logpmf = np.log(self.__pmf(x))
+
+            assert isinstance(logpmf, np.float_)
+
+            return logpmf
         else:
-            raise NotImplementedError
+            raise NotImplementedError(
+                f"Neither the `logpmf` nor the `pmf` of the discrete random variable "
+                f"object with type `{type(self).__name__}` is implemented."
+            )
 
 
 class ContinuousRandomVariable(RandomVariable[_ValueType]):
@@ -795,13 +838,16 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
         """
         if self.__pdf is not None:
-            return self.__pdf(x)
+            return ContinuousRandomVariable._ensure_numpy_float("pdf", self.__pdf(x))
         if self.__logpdf is not None:
-            return np.exp(self.__logpdf(x))
+            pdf = np.exp(self.__logpdf(x))
+
+            assert isinstance(pdf, np.float_)
+
+            return pdf
         raise NotImplementedError(
-            "The function 'pdf' is not implemented for object of class {}".format(
-                type(self).__name__
-            )
+            f"Neither the `pdf` nor the `logpdf` of the continuous random variable "
+            f"object with type `{type(self).__name__}` is implemented."
         )
 
     def logpdf(self, x: _ValueType) -> np.float_:
@@ -819,13 +865,19 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
             Value of the log-probability density / mass function at the given points.
         """
         if self.__logpdf is not None:
-            return self.__logpdf(x)
+            return ContinuousRandomVariable._ensure_numpy_float(
+                "logpdf", self.__logpdf(x)
+            )
         elif self.__pdf is not None:
-            return np.log(self.__pdf(x))
+            logpdf = np.log(self.__pdf(x))
+
+            assert isinstance(logpdf, np.float_)
+
+            return logpdf
         else:
             raise NotImplementedError(
-                f"The function 'logpdf' is not implemented for object of class "
-                f"{type(self).__name__}."
+                f"Neither the `logpdf` nor the `pdf` of the continuous random variable "
+                f"object with type `{type(self).__name__}` is implemented."
             )
 
 
