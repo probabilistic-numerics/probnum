@@ -118,7 +118,7 @@ hints <https://docs.python.org/3/library/typing.html>`_.
 
     from typing import Tuple
     from probnum import prob
-    
+
 
     class PnMethod:
         """
