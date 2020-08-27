@@ -1004,7 +1004,7 @@ def _scipystats_to_rv(
             )
 
     # Generic distributions
-    def _wrap_np_scalar(fn):
+    def _return_numpy(fn, dtype=None):
         if fn is None:
             return None
 
@@ -1012,9 +1012,9 @@ def _scipystats_to_rv(
             res = fn(*args, **kwargs)
 
             if np.isscalar(res):
-                return _utils.as_numpy_scalar(res)
+                return _utils.as_numpy_scalar(res, dtype=dtype)
 
-            return res
+            return np.asarray(res, dtype=dtype)
 
         return _wrapper
 
@@ -1023,14 +1023,14 @@ def _scipystats_to_rv(
     ) or hasattr(scipyrv, "pmf"):
         rv_subclass = DiscreteRandomVariable
         rv_subclass_kwargs = {
-            "pmf": _wrap_np_scalar(getattr(scipyrv, "pmf", None)),
-            "logpmf": _wrap_np_scalar(getattr(scipyrv, "logpmf", None)),
+            "pmf": _return_numpy(getattr(scipyrv, "pmf", None), dtype=np.float_),
+            "logpmf": _return_numpy(getattr(scipyrv, "logpmf", None), dtype=np.float_),
         }
     else:
         rv_subclass = ContinuousRandomVariable
         rv_subclass_kwargs = {
-            "pdf": _wrap_np_scalar(getattr(scipyrv, "pdf", None)),
-            "logpdf": _wrap_np_scalar(getattr(scipyrv, "logpdf", None)),
+            "pdf": _return_numpy(getattr(scipyrv, "pdf", None), dtype=np.float_),
+            "logpdf": _return_numpy(getattr(scipyrv, "logpdf", None), dtype=np.float_),
         }
 
     if isinstance(scipyrv, scipy.stats._distn_infrastructure.rv_frozen):
@@ -1044,23 +1044,29 @@ def _scipystats_to_rv(
         in_support = None
 
     # Infer shape and dtype
-    sample = _wrap_np_scalar(scipyrv.rvs)()
+    sample = _return_numpy(scipyrv.rvs)()
+
+    shape = sample.shape
+    dtype = sample.dtype
+
+    median_dtype = np.promote_types(dtype, np.float_)
+    moments_dtype = np.promote_types(dtype, np.float_)
 
     return rv_subclass(
-        shape=sample.shape,
-        dtype=sample.dtype,
+        shape=shape,
+        dtype=dtype,
         random_state=getattr(scipyrv, "random_state", None),
-        sample=_wrap_np_scalar(getattr(scipyrv, "rvs", None)),
+        sample=_return_numpy(getattr(scipyrv, "rvs", None), dtype=dtype),
         in_support=in_support,
-        cdf=_wrap_np_scalar(getattr(scipyrv, "cdf", None)),
-        logcdf=_wrap_np_scalar(getattr(scipyrv, "logcdf", None)),
-        quantile=_wrap_np_scalar(getattr(scipyrv, "ppf", None)),
+        cdf=_return_numpy(getattr(scipyrv, "cdf", None), dtype=np.float_),
+        logcdf=_return_numpy(getattr(scipyrv, "logcdf", None), dtype=np.float_),
+        quantile=_return_numpy(getattr(scipyrv, "ppf", None), dtype=dtype),
         mode=None,  # not offered by scipy.stats
-        median=_wrap_np_scalar(getattr(scipyrv, "median", None)),
-        mean=_wrap_np_scalar(getattr(scipyrv, "mean", None)),
-        cov=_wrap_np_scalar(getattr(scipyrv, "cov", None)),
-        var=_wrap_np_scalar(getattr(scipyrv, "var", None)),
-        std=_wrap_np_scalar(getattr(scipyrv, "std", None)),
-        entropy=_wrap_np_scalar(getattr(scipyrv, "entropy", None)),
+        median=_return_numpy(getattr(scipyrv, "median", None), dtype=median_dtype),
+        mean=_return_numpy(getattr(scipyrv, "mean", None), dtype=moments_dtype),
+        cov=_return_numpy(getattr(scipyrv, "cov", None), dtype=moments_dtype),
+        var=_return_numpy(getattr(scipyrv, "var", None), dtype=moments_dtype),
+        std=_return_numpy(getattr(scipyrv, "std", None), dtype=moments_dtype),
+        entropy=_return_numpy(getattr(scipyrv, "entropy", None), dtype=np.float_),
         **rv_subclass_kwargs,
     )
