@@ -1,5 +1,5 @@
-import numpy as np
 import unittest
+import numpy as np
 from probnum.diffeq import logistic, ODESolver, ConstantSteps
 from probnum.prob import RandomVariable, Dirac
 
