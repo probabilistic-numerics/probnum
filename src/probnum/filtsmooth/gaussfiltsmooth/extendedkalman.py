@@ -10,10 +10,7 @@ from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
 )
 from probnum.prob import RandomVariable
 from probnum.prob.distributions import Normal
-from probnum.filtsmooth.statespace import (
-    LinearSDEModel,
-    DiscreteGaussianModel,
-)
+from probnum.filtsmooth.statespace import LinearSDEModel, DiscreteGaussianModel
 
 from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc
 

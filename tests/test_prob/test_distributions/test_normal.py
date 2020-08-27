@@ -566,7 +566,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_transpose(self):
         dist = prob.Normal(
-            mean=np.random.uniform(size=(2, 2)), cov=_random_spd_matrix(4),
+            mean=np.random.uniform(size=(2, 2)), cov=_random_spd_matrix(4)
         )
         dist_t = dist.transpose()
 
