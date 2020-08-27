@@ -34,13 +34,14 @@ class GaussianIVPFilter(odesolver.ODESolver):
         if not issubclass(type(gaussfilt.dynamicmodel), ODEPrior):
             raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
         self.gfilt = gaussfilt
-        self.ssqest = 0.0
+        self.sigma_squared_global = 0.0
+        self.sigma_squared_current = 0.0
         self.with_smoothing = with_smoothing
         super().__init__(ivp)
 
     def pre_accepted_callback(self, time, current_guess, current_error):
         """Update the sigma-squared (ssq) estimate."""
-        self.ssqest = self.ssqest + (self.ssq - self.ssqest) / self.num_steps
+        self.sigma_squared_global = self.sigma_squared_global + (self.sigma_squared_current - self.sigma_squared_global) / self.num_steps
 
     def step(self, t, t_new, current_rv, **kwargs):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
@@ -49,7 +50,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
             t_new, pred_rv, zero_data, **kwargs
         )
-        errorest, self.ssq = self._estimate_error(
+        errorest, self.sigma_squared_current = self._estimate_error(
             filt_rv.mean(), crosscov, meas_cov, meas_mean
         )
         return filt_rv, errorest
@@ -57,7 +58,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
     def postprocess(self, times, rvs):
         """Rescale covariances with sigma square estimate"""
         rvs = [
-            RandomVariable(distribution=Normal(rv.mean(), self.ssqest * rv.cov()))
+            RandomVariable(distribution=Normal(rv.mean(), self.sigma_squared_global * rv.cov()))
             for rv in rvs
         ]
         odesol = super().postprocess(times, rvs)
