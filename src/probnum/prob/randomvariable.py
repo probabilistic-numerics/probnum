@@ -173,7 +173,7 @@ class RandomVariable:
 
     @random_state.setter
     def random_state(self, seed):
-        """ Get or set the RandomState object of the underlying distribution.
+        """Get or set the RandomState object of the underlying distribution.
 
         This can be either None or an existing :class:`~numpy.random.RandomState`
         object. If None (or np.random), use the :class:`~numpy.random.RandomState`

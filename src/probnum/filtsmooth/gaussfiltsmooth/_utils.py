@@ -2,10 +2,7 @@
 Utility functions for Gaussian filtering and smoothing.
 """
 
-from probnum.filtsmooth.statespace import (
-    ContinuousModel,
-    DiscreteModel,
-)
+from probnum.filtsmooth.statespace import ContinuousModel, DiscreteModel
 
 
 def is_cont_disc(dynamod, measmod):
