@@ -469,3 +469,23 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
 
     def test_filter_ivp_h_mat72_kf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="eks0")
+
+
+class TestPreconditioning(unittest.TestCase):
+    """
+    Solver with high order and small stepsize should work up to a point where
+    step**order is below machine precision.
+    """
+
+    def setUp(self):
+        initdist = RandomVariable(distribution=Dirac(20 * np.ones(2)))
+        self.ivp = ode.lotkavolterra([0.0, 1e-4], initdist)
+        self.step = 1e-5
+        self.prior = "ibm3"
+
+    def test_small_step_feasible(self):
+        """
+        With the 'old' preconditioner, this is impossible because step**(2*order + 1) is too small.
+        With the 'new' preconditioner, the smallest value that appears in the solver code is step**order
+        """
+        probsolve_ivp(self.ivp, step=self.step, which_prior=self.prior, method="eks0")

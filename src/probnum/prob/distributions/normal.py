@@ -161,7 +161,7 @@ class Normal(Distribution):
             reshaped_cov = reshaped_cov.reshape(1, 1)
 
         return Normal(
-            mean=reshaped_mean, cov=reshaped_cov, random_state=self.random_state,
+            mean=reshaped_mean, cov=reshaped_cov, random_state=self.random_state
         )
 
     def _reshape_inplace(self, newshape):
@@ -381,8 +381,8 @@ def _both_are_multivariate(mean, cov):
     Checks whether mean and kernels correspond to the
     MULTI- or MATRIXVARIATE normal distribution.
     """
-    mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
-    cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix,))
+    mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix))
+    cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix))
     return mean_is_multivar and cov_is_multivar and len(mean.shape) == 1
 
 
@@ -391,8 +391,8 @@ def _both_are_matrixvariate(mean, cov):
     Checks whether mean and kernels correspond to the
     MULTI- or MATRIXVARIATE normal distribution.
     """
-    mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix,))
-    cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix,))
+    mean_is_multivar = isinstance(mean, (np.ndarray, scipy.sparse.spmatrix))
+    cov_is_multivar = isinstance(cov, (np.ndarray, scipy.sparse.spmatrix))
     return mean_is_multivar and cov_is_multivar and len(mean.shape) > 1
 
 
