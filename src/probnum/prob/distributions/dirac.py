@@ -107,7 +107,7 @@ class Dirac(Distribution):
             while marginalizing over all other entries.
         """
         return Dirac(
-            support=self.parameters["support"][key], random_state=self.random_state,
+            support=self.parameters["support"][key], random_state=self.random_state
         )
 
     def reshape(self, newshape):

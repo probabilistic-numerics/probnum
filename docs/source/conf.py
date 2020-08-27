@@ -197,7 +197,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "probnum.tex", "ProbNum's Documentation", [author], "manual"),
+    (master_doc, "probnum.tex", "ProbNum's Documentation", [author], "manual")
 ]
 
 # -- Options for manual page output ---------------------------------------
@@ -220,7 +220,7 @@ texinfo_documents = [
         "probnum",
         "Probabilistic Numerics in Python.",
         "Miscellaneous",
-    ),
+    )
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.
