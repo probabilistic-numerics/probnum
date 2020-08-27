@@ -581,140 +581,113 @@ class RandomVariable(Generic[_ValueType]):
     RandomVariable with the correct shape is returned.
     """
 
-    def __add__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self + asrandvar(other)
-
+    def __add__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import add
 
         return add(self, other)
 
-    def __radd__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) + self
+    def __radd__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import add
 
-        return NotImplemented
+        return add(other, self)
 
-    def __sub__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self - asrandvar(other)
-
+    def __sub__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import sub
 
         return sub(self, other)
 
-    def __rsub__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) - self
+    def __rsub__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import sub
 
-        return NotImplemented
+        return sub(other, self)
 
-    def __mul__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self * asrandvar(other)
-
+    def __mul__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import mul
 
         return mul(self, other)
 
-    def __rmul__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) * self
+    def __rmul__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import mul
 
-        return NotImplemented
+        return mul(other, self)
 
-    def __matmul__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self @ asrandvar(other)
-
+    def __matmul__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import matmul
 
         return matmul(self, other)
 
-    def __rmatmul__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) @ self
+    def __rmatmul__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import matmul
 
-        return NotImplemented
+        return matmul(other, self)
 
-    def __truediv__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self / asrandvar(other)
-
+    def __truediv__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import truediv
 
         return truediv(self, other)
 
-    def __rtruediv__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) / self
+    def __rtruediv__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import truediv
 
-        return NotImplemented
+        return truediv(other, self)
 
-    def __floordiv__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self // asrandvar(other)
-
+    def __floordiv__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import floordiv
 
         return floordiv(self, other)
 
-    def __rfloordiv__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) // self
+    def __rfloordiv__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import floordiv
 
-        return NotImplemented
+        return floordiv(other, self)
 
-    def __mod__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self % asrandvar(other)
-
+    def __mod__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import mod
 
         return mod(self, other)
 
-    def __rmod__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) % self
+    def __rmod__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import mod
 
-        return NotImplemented
+        return mod(other, self)
 
-    def __divmod__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return divmod(self, asrandvar(other))
-
+    def __divmod__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import divmod_
 
         return divmod_(self, other)
 
-    def __rdivmod__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return divmod(asrandvar(other), self)
+    def __rdivmod__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import divmod_
 
-        return NotImplemented
+        return divmod_(other, self)
 
-    def __pow__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return self ** asrandvar(other)
-
+    def __pow__(self, other: Any) -> "RandomVariable":
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ._arithmetic import pow_
 
         return pow_(self, other)
 
-    def __rpow__(self, other) -> "RandomVariable":
-        if not isinstance(other, RandomVariable):
-            return asrandvar(other) ** self
+    def __rpow__(self, other: Any) -> "RandomVariable":
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from ._arithmetic import pow_
 
-        return NotImplemented
+        return pow_(other, self)
 
 
 class DiscreteRandomVariable(RandomVariable[_ValueType]):

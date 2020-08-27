@@ -4,44 +4,44 @@ variables. """
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
-from ._random_variable import RandomVariable as _RandomVariable
+from ._random_variable import RandomVariable as _RandomVariable, asrandvar
 from ._dirac import Dirac as _Dirac
 from ._normal import Normal as _Normal
 
 
-def add(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def add(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_add_fns, rv1, rv2)
 
 
-def sub(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def sub(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_sub_fns, rv1, rv2)
 
 
-def mul(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def mul(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_mul_fns, rv1, rv2)
 
 
-def matmul(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def matmul(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_matmul_fns, rv1, rv2)
 
 
-def truediv(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def truediv(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_truediv_fns, rv1, rv2)
 
 
-def floordiv(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def floordiv(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_floordiv_fns, rv1, rv2)
 
 
-def mod(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def mod(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_mod_fns, rv1, rv2)
 
 
-def divmod_(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def divmod_(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_divmod_fns, rv1, rv2)
 
 
-def pow_(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+def pow_(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_pow_fns, rv1, rv2)
 
 
@@ -52,8 +52,15 @@ _OperatorRegistryType = Dict[
 
 
 def _apply(
-    op_registry: _OperatorRegistryType, rv1: _RandomVariable, rv2: _RandomVariable
-) -> Union[_RandomVariable, type(NotImplemented)]:
+    op_registry: _OperatorRegistryType,
+    rv1: Any,
+    rv2: Any,
+) -> Union[_RandomVariable]:
+    # Convert arguments to random variables
+    rv1 = asrandvar(rv1)
+    rv2 = asrandvar(rv2)
+
+    # Search fitting method
     key = (type(rv1), type(rv2))
 
     if key not in op_registry:
