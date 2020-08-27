@@ -41,7 +41,10 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def pre_accepted_callback(self, time, current_guess, current_error):
         """Update the sigma-squared (ssq) estimate."""
-        self.sigma_squared_global = self.sigma_squared_global + (self.sigma_squared_current - self.sigma_squared_global) / self.num_steps
+        self.sigma_squared_global = (
+            self.sigma_squared_global
+            + (self.sigma_squared_current - self.sigma_squared_global) / self.num_steps
+        )
 
     def step(self, t, t_new, current_rv, **kwargs):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
@@ -58,7 +61,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
     def postprocess(self, times, rvs):
         """Rescale covariances with sigma square estimate and (if specified), smooth the estimate."""
         rvs = [
-            RandomVariable(distribution=Normal(rv.mean(), self.sigma_squared_global * rv.cov()))
+            RandomVariable(
+                distribution=Normal(rv.mean(), self.sigma_squared_global * rv.cov())
+            )
             for rv in rvs
         ]
         odesol = super().postprocess(times, rvs)
