@@ -253,13 +253,7 @@ class RandomVariable(Generic[_ValueType]):
                 "The median is only defined for scalar random variables."
             )
 
-        if self.__median is None:
-            try:
-                median = self.quantile(0.5)
-            except NotImplementedError as exc:
-                raise NotImplementedError from exc
-        else:
-            median = self.__median()
+        median = self.__median()
 
         RandomVariable._check_property_value(
             "median",
@@ -495,10 +489,31 @@ class RandomVariable(Generic[_ValueType]):
             )
 
     def quantile(self, p: FloatArgType) -> _ValueType:
+        if self._shape != ():
+            raise NotImplementedError(
+                "The quantile function is only defined for scalar random variables."
+            )
+
         if self.__quantile is None:
             raise NotImplementedError
 
-        return self.__quantile(p)
+        quantile = self.__quantile(p)
+
+        if quantile.shape != self._shape:
+            raise ValueError(
+                f"The quantile function should return values of the same shape as the "
+                f"random variable, i.e. {self._shape}, but it returned a value with "
+                f"{quantile.shape}."
+            )
+
+        if quantile.dtype != self._dtype:
+            raise ValueError(
+                f"The quantile function should return values of the same dtype as the "
+                f"random variable, i.e. `{self._dtype.name}`, but it returned a value "
+                f"with dtype `{quantile.dtype.name}`."
+            )
+
+        return quantile
 
     def reshape(self, newshape: ShapeArgType) -> "RandomVariable":
         """
