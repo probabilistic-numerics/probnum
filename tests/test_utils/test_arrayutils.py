@@ -26,7 +26,7 @@ class TestAssertIsArray(unittest.TestCase):
         self.assertEqual(1, 1)
 
     def test_assert_is_2d_ndarray_fail(self):
-        arr_wrong1 = np.random.rand(4,)
+        arr_wrong1 = np.random.rand(4)
         with self.assertRaises(ValueError):
             arrayutils.assert_is_2d_ndarray(arr_wrong1)
 
