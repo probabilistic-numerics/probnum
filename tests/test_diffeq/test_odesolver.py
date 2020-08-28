@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum.diffeq import logistic, ODESolver, ConstantSteps
-from probnum.prob import RandomVariable, Dirac
+from probnum.random_variables import Dirac
 
 
 class MockODESolver(ODESolver):
@@ -14,10 +14,10 @@ class MockODESolver(ODESolver):
 
     def step(self, start, stop, current):
         h = stop - start
-        x = current.mean()
+        x = current.mean
         xnew = x + h * self.ivp(start, x)
         return (
-            RandomVariable(Dirac(xnew)),
+            Dirac(xnew),
             np.nan,
         )  # return nan as error estimate to ensure that it is not used
 
@@ -29,7 +29,7 @@ class ODESolverTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        y0 = RandomVariable(distribution=Dirac(0.3))
+        y0 = Dirac(0.3)
         ivp = logistic([0, 4], initrv=y0)
         self.solver = MockODESolver(ivp)
         self.step = 0.2
@@ -42,7 +42,7 @@ class ODESolverTestCase(unittest.TestCase):
 
         # quick check that the result is sensible
         self.assertAlmostEqual(odesol.t[-1], self.solver.ivp.tmax)
-        self.assertAlmostEqual(odesol.y[-1].mean(), 1.0, places=2)
+        self.assertAlmostEqual(odesol.y[-1].mean, 1.0, places=2)
 
 
 if __name__ == "__main__":

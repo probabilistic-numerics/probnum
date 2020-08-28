@@ -49,7 +49,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
             t_new, pred_rv, zero_data, **kwargs
         )
         errorest, self.sigma_squared_current = self._estimate_error(
-            filt_rv.mean(), crosscov, meas_cov, meas_mean
+            filt_rv.mean, crosscov, meas_cov, meas_mean
         )
         return filt_rv, errorest
 
@@ -73,7 +73,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def _rescale(self, rvs):
         """Rescales covariances according to estimate sigma squared value."""
-        rvs = [Normal(rv.mean(), self.sigma_squared_global * rv.cov()) for rv in rvs]
+        rvs = [Normal(rv.mean, self.sigma_squared_global * rv.cov) for rv in rvs]
         return rvs
 
     def _odesmooth(self, ode_solution, **kwargs):

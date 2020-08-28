@@ -4,7 +4,6 @@ import unittest
 import numpy as np
 
 from probnum import random_variables as rvs
-from probnum import utils as _utils
 
 
 class TestDirac(unittest.TestCase):
