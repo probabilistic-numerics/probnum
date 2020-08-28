@@ -16,16 +16,29 @@ from ._random_variable import (
     ContinuousRandomVariable,
 )
 
+from ._dirac import Dirac
+from ._normal import Normal
+
 from ._scipy_stats import (
     WrappedSciPyRandomVariable,
     WrappedSciPyDiscreteRandomVariable,
     WrappedSciPyContinuousRandomVariable,
 )
 
-from ._dirac import Dirac
-from ._normal import Normal
-
 from ._utils import asrandvar
+
+# Public classes and functions. Order is reflected in documentation.
+__all__ = [
+    "asrandvar",
+    "RandomVariable",
+    "DiscreteRandomVariable",
+    "ContinuousRandomVariable",
+    "Dirac",
+    "Normal",
+    "WrappedSciPyRandomVariable",
+    "WrappedSciPyDiscreteRandomVariable",
+    "WrappedSciPyContinuousRandomVariable",
+]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 RandomVariable.__module__ = "probnum.random_variables"
