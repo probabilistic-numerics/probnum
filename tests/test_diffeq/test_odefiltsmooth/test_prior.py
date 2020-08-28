@@ -111,6 +111,7 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(cke_super.mean(), cke.mean(), 1e-14)
         self.assertAllClose(cke_super.cov(), cke.cov(), 1e-14)
 
+
 class TestIOUP(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         driftspeed = np.random.rand()
