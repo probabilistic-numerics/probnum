@@ -71,7 +71,17 @@ class ODESolution(FiltSmoothPosterior):
     """
 
     def __init__(self, times, rvs, solver):
-        self._kalman_posterior = KalmanPosterior(times, rvs, solver.gfilt)
+
+        # try-except is a hotfix for now:
+        # future PR is to move KalmanPosterior-info out of here, into GaussianIVPFilter
+        try:
+            self._kalman_posterior = KalmanPosterior(times, rvs, solver.gfilt)
+            self._t = None
+            self._y = None
+        except AttributeError:
+            self._kalman_posterior = None
+            self._t = times
+            self._y = _RandomVariableList(rvs)
         self._solver = solver
 
     def _proj_normal_rv(self, rv, coord):
@@ -84,7 +94,10 @@ class ODESolution(FiltSmoothPosterior):
     @property
     def t(self):
         """:obj:`np.ndarray`: Times of the discrete-time solution"""
-        return self._kalman_posterior.locations
+        if self._t:  # hotfix
+            return self._t
+        else:
+            return self._kalman_posterior.locations
 
     @property
     def y(self):
@@ -95,8 +108,11 @@ class ODESolution(FiltSmoothPosterior):
         as a list of random variables.
         To return means and covariances use ``y.mean()`` and ``y.cov()``.
         """
-        function_rvs = [self._proj_normal_rv(rv, 0) for rv in self._state_rvs]
-        return _RandomVariableList(function_rvs)
+        if self._y:  # hotfix
+            return self._y
+        else:
+            function_rvs = [self._proj_normal_rv(rv, 0) for rv in self._state_rvs]
+            return _RandomVariableList(function_rvs)
 
     @property
     def dy(self):
