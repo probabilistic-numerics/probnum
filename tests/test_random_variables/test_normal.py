@@ -64,6 +64,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         self.normal_params = [
             # Univariate
             (-1.0, 3.0),
+            (1, 3),
             # Multivariate
             (np.random.uniform(size=10), np.eye(10)),
             (np.random.uniform(size=10), _random_spd_matrix(10)),
