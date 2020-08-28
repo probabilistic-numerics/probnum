@@ -39,12 +39,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.with_smoothing = with_smoothing
         super().__init__(ivp)
 
-    def method_callback(self, time, current_guess, current_error):
-        """Update the sigma-squared (ssq) estimate."""
-        self.sigma_squared_global = (
-            self.sigma_squared_global
-            + (self.sigma_squared_current - self.sigma_squared_global) / self.num_steps
-        )
+    def initialise(self):
+        return self.ivp.t0, self.gfilt.initialrandomvariable
 
     def step(self, t, t_new, current_rv, **kwargs):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
@@ -58,18 +54,33 @@ class GaussianIVPFilter(odesolver.ODESolver):
         )
         return filt_rv, errorest
 
+    def method_callback(self, time, current_guess, current_error):
+        """Update the sigma-squared (ssq) estimate."""
+        self.sigma_squared_global = (
+            self.sigma_squared_global
+            + (self.sigma_squared_current - self.sigma_squared_global) / self.num_steps
+        )
+
     def postprocess(self, times, rvs):
-        """Rescale covariances with sigma square estimate and (if specified), smooth the estimate."""
+        """
+        Rescale covariances with sigma square estimate,
+        (if specified) smooth the estimate, return ODESolution.
+        """
+        rvs = self._rescale(rvs)
+        odesol = super().postprocess(times, rvs)
+        if self.with_smoothing is True:
+            odesol = self._odesmooth(ode_solution=odesol)
+        return odesol
+
+    def _rescale(self, rvs):
+        """Rescales covariances according to estimate sigma squared value."""
         rvs = [
             RandomVariable(
                 distribution=Normal(rv.mean(), self.sigma_squared_global * rv.cov())
             )
             for rv in rvs
         ]
-        odesol = super().postprocess(times, rvs)
-        if self.with_smoothing is True:
-            odesol = self._odesmooth(ode_solution=odesol)
-        return odesol
+        return rvs
 
     def _odesmooth(self, ode_solution, **kwargs):
         """
@@ -135,9 +146,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         )
         abs_error = abserrors @ weights / np.linalg.norm(weights)
         return np.maximum(rel_error, abs_error)
-
-    def initialise(self):
-        return self.ivp.t0, self.gfilt.initialrandomvariable
 
     @property
     def prior(self):
