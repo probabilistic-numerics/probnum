@@ -6,14 +6,15 @@ import numpy as np
 import scipy.stats
 
 from probnum import utils as _utils
-from probnum._lib.argtypes import (
+from probnum.linalg import linops
+from probnum.typing import (
+    ShapeType,
+    # Argument Types
     ArrayLikeGetitemArgType,
     FloatArgType,
     RandomStateArgType,
     ShapeArgType,
 )
-from probnum.linalg import linops
-from probnum.typing import ShapeType
 
 from . import _random_variable
 

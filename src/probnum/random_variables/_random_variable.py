@@ -10,13 +10,15 @@ from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar
 import numpy as np
 
 from probnum import utils as _utils
-from probnum._lib.argtypes import (
+from probnum.typing import (
+    RandomStateType,
+    ShapeType,
+    # Argument Types
     DTypeArgType,
     FloatArgType,
     RandomStateArgType,
     ShapeArgType,
 )
-from probnum.typing import RandomStateType, ShapeType
 
 try:
     # functools.cached_property is only available in Python >=3.8

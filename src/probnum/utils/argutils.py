@@ -3,8 +3,20 @@ import numbers
 import numpy as np
 import scipy._lib._util
 
-from probnum.typing import ShapeType, RandomStateType
-from probnum._lib.argtypes import ShapeArgType, RandomStateArgType
+from probnum.typing import (
+    DTypeArgType,
+    RandomStateArgType,
+    RandomStateType,
+    ScalarArgType,
+    ShapeArgType,
+    ShapeType,
+)
+
+__all__ = ["as_shape", "as_random_state", "as_numpy_scalar"]
+
+
+def as_random_state(x: RandomStateArgType) -> RandomStateType:
+    return scipy._lib._util.check_random_state(x)
 
 
 def as_shape(x: ShapeArgType) -> ShapeType:
@@ -26,5 +38,11 @@ def as_shape(x: ShapeArgType) -> ShapeType:
         return tuple(int(item) for item in x)
 
 
-def as_random_state(x: RandomStateArgType) -> RandomStateType:
-    return scipy._lib._util.check_random_state(x)
+def as_numpy_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:
+    is_scalar = np.isscalar(x)
+    is_scalar_array = isinstance(x, np.ndarray) and x.ndim == 0
+
+    if not (is_scalar or is_scalar_array):
+        raise ValueError("The given input is not a scalar.")
+
+    return np.asarray(x, dtype=dtype)[()]
