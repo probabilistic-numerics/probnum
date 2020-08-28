@@ -4,7 +4,8 @@ variables. """
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
-from ._random_variable import RandomVariable as _RandomVariable, asrandvar
+from ._utils import asrandvar as _asrandvar
+from ._random_variable import RandomVariable as _RandomVariable
 from ._dirac import Dirac as _Dirac
 from ._normal import Normal as _Normal
 
@@ -57,8 +58,8 @@ def _apply(
     rv2: Any,
 ) -> Union[_RandomVariable]:
     # Convert arguments to random variables
-    rv1 = asrandvar(rv1)
-    rv2 = asrandvar(rv2)
+    rv1 = _asrandvar(rv1)
+    rv2 = _asrandvar(rv2)
 
     # Search fitting method
     key = (type(rv1), type(rv2))

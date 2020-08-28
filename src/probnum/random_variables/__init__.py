@@ -11,11 +11,32 @@ like this:
 """
 
 from ._random_variable import (
-    asrandvar,
     RandomVariable,
     DiscreteRandomVariable,
     ContinuousRandomVariable,
 )
 
+from ._scipy_stats import (
+    WrappedSciPyRandomVariable,
+    WrappedSciPyDiscreteRandomVariable,
+    WrappedSciPyContinuousRandomVariable,
+)
+
 from ._dirac import Dirac
 from ._normal import Normal
+
+from ._utils import asrandvar
+
+# Set correct module paths. Corrects links and module paths in documentation.
+RandomVariable.__module__ = "probnum.random_variables"
+DiscreteRandomVariable.__module__ = "probnum.random_variables"
+ContinuousRandomVariable.__module__ = "probnum.random_variables"
+
+WrappedSciPyRandomVariable.__module__ = "probnum.random_variables"
+WrappedSciPyDiscreteRandomVariable.__module__ = "probnum.random_variables"
+WrappedSciPyContinuousRandomVariable.__module__ = "probnum.random_variables"
+
+Dirac.__module__ = "probnum.random_variables"
+Normal.__module__ = "probnum.random_variables"
+
+asrandvar.__module__ = "probnum.random_variables"
