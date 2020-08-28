@@ -440,31 +440,19 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return np.isfinite(x)
 
     def _univariate_pdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.norm.pdf(x, loc=self._mean, scale=self._cov),
-            dtype=np.float_,
-        )
+        return scipy.stats.norm.pdf(x, loc=self._mean, scale=self._cov)
 
     def _univariate_logpdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.norm.logpdf(x, loc=self._mean, scale=self._cov),
-            dtype=np.float_,
-        )
+        return scipy.stats.norm.logpdf(x, loc=self._mean, scale=self._cov)
 
     def _univariate_cdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.norm.cdf(x, loc=self._mean, scale=self._cov),
-            dtype=np.float_,
-        )
+        return scipy.stats.norm.cdf(x, loc=self._mean, scale=self._cov)
 
     def _univariate_logcdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.norm.logcdf(x, loc=self._mean, scale=self._cov),
-            dtype=np.float_,
-        )
+        return scipy.stats.norm.logcdf(x, loc=self._mean, scale=self._cov)
 
     def _univariate_quantile(self, p: FloatArgType) -> np.floating:
-        return _utils.as_numpy_scalar(scipy.stats.norm.ppf(p), dtype=self.dtype)
+        return scipy.stats.norm.ppf(p)
 
     def _univariate_entropy(self: _ValueType) -> np.float_:
         return _utils.as_numpy_scalar(
@@ -504,40 +492,31 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return np.all(np.isfinite(Normal._arg_todense(x)))
 
     def _dense_pdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.multivariate_normal.pdf(
-                Normal._arg_todense(x).ravel(),
-                mean=self._dense_mean.ravel(),
-                cov=self._dense_cov,
-            ),
-            dtype=np.float_,
+        return scipy.stats.multivariate_normal.pdf(
+            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
+            mean=self._dense_mean.ravel(),
+            cov=self._dense_cov,
         )
 
     def _dense_logpdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.multivariate_normal.logpdf(
-                Normal._arg_todense(x).ravel(),
-                mean=self._dense_mean.ravel(),
-                cov=self._dense_cov,
-            )
+        return scipy.stats.multivariate_normal.logpdf(
+            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
+            mean=self._dense_mean.ravel(),
+            cov=self._dense_cov,
         )
 
     def _dense_cdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.multivariate_normal.cdf(
-                Normal._arg_todense(x).ravel(),
-                mean=self._dense_mean.ravel(),
-                cov=self._dense_cov,
-            )
+        return scipy.stats.multivariate_normal.cdf(
+            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
+            mean=self._dense_mean.ravel(),
+            cov=self._dense_cov,
         )
 
     def _dense_logcdf(self, x: _ValueType) -> np.float_:
-        return _utils.as_numpy_scalar(
-            scipy.stats.multivariate_normal.logcdf(
-                Normal._arg_todense(x).ravel(),
-                mean=self._dense_mean.ravel(),
-                cov=self._dense_cov,
-            )
+        return scipy.stats.multivariate_normal.logcdf(
+            Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
+            mean=self._dense_mean.ravel(),
+            cov=self._dense_cov,
         )
 
     def _dense_entropy(self) -> np.float_:
@@ -545,7 +524,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             scipy.stats.multivariate_normal.entropy(
                 mean=self._dense_mean.ravel(),
                 cov=self._dense_cov,
-            )
+            ),
+            dtype=np.float_,
         )
 
     # Matrixvariate Gaussian with Kronecker covariance

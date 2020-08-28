@@ -61,6 +61,10 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
 
         self._support = support
 
+        support_floating = self._support.astype(
+            np.promote_types(self._support.dtype, np.float_)
+        )
+
         super().__init__(
             shape=self._support.shape,
             dtype=self._support.dtype,
@@ -71,17 +75,17 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
             pmf=lambda x: np.float_(1.0 if np.all(x == self._support) else 0.0),
             cdf=lambda x: np.float_(0.0 if np.any(x < self._support) else 0.0),
             mode=lambda: self._support,
-            median=lambda: self._support,
-            mean=lambda: self._support,
+            median=lambda: support_floating,
+            mean=lambda: support_floating,
             cov=lambda: np.zeros_like(  # pylint: disable=unexpected-keyword-arg
-                self._support,
+                support_floating,
                 shape=(
                     (self._support.size, self._support.size)
                     if self._support.ndim > 0
                     else ()
                 ),
             ),
-            var=lambda: np.zeros_like(self._support),
+            var=lambda: np.zeros_like(support_floating),
         )
 
     @property

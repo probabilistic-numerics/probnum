@@ -5,7 +5,7 @@ This module implements random variables. Random variables are the main in- and o
 of probabilistic numerical methods.
 """
 
-from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar
+from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 
@@ -361,7 +361,9 @@ class RandomVariable(Generic[_ValueType]):
 
         entropy = self.__entropy()
 
-        entropy = RandomVariable._ensure_numpy_float("entropy", entropy)
+        entropy = RandomVariable._ensure_numpy_float(
+            "entropy", entropy, force_scalar=True
+        )
 
         return entropy
 
@@ -694,19 +696,38 @@ class RandomVariable(Generic[_ValueType]):
                 )
 
     @classmethod
-    def _ensure_numpy_float(cls, name: str, value: Any) -> np.float_:
-        if not isinstance(value, np.float_):
+    def _ensure_numpy_float(
+        cls, name: str, value: Any, force_scalar: bool = False
+    ) -> Union[np.float_, np.ndarray]:
+        if np.isscalar(value):
+            if not isinstance(value, np.float_):
+                try:
+                    value = _utils.as_numpy_scalar(value, dtype=np.float_)
+                except TypeError as err:
+                    raise TypeError(
+                        f"The function `{name}` specified via the constructor of "
+                        f"`{cls.__name__}` must return a scalar value that can be "
+                        f"converted to a `np.float_`, which is not possible for "
+                        f"{value} of type {type(value)}."
+                    ) from err
+        elif not force_scalar:
             try:
-                value = _utils.as_numpy_scalar(value, dtype=np.float_)
+                value = np.asarray(value, dtype=np.float_)
             except TypeError as err:
                 raise TypeError(
                     f"The function `{name}` specified via the constructor of "
-                    f"`{cls.__name__}` must return a scalar value that can be "
-                    f"converted to a `np.float_`, which is possible for {value} "
-                    f"of type {type(value)}."
+                    f"`{cls.__name__}` must return a value that can be converted "
+                    f"to a `np.ndarray` of type `np.float_`, which is not possible "
+                    f"for {value} of type {type(value)}."
                 ) from err
+        else:
+            raise TypeError(
+                f"The function `{name}` specified via the constructor of "
+                f"`{cls.__name__}` must return a scalar value, but {value} of type "
+                f"{type(value)} is not scalar."
+            )
 
-        assert isinstance(value, np.float_)
+        assert isinstance(value, (np.float_, np.ndarray))
 
         return value
 
