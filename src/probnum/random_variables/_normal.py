@@ -589,15 +589,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             size=size_sample, random_state=self.random_state
         )
 
-        # Cholesky decomposition
-        eps = 10 ** -12  # damping needed to avoid negative definite covariances
-        cholA = scipy.linalg.cholesky(
-            self._cov.A.todense() + eps * np.eye(n), lower=True
-        )
-
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
         samples_scaled = linops.Symmetrize(dim=n) @ (
-            linops.Kronecker(A=cholA, B=cholA) @ stdnormal_samples
+            self.cov_cholesky @ stdnormal_samples
         )
 
         # TODO: can we avoid todense here and just return operator samples?
