@@ -1,4 +1,3 @@
-import warnings
 import numpy as np
 
 from probnum.prob import RandomVariable
@@ -19,7 +18,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
     further considerations to, e.g., BVPs.
     """
 
-    def __init__(self, ivp, gaussfilt):
+    def __init__(self, ivp, gaussfilt, with_smoothing):
         """
         gaussfilt : gaussianfilter.GaussianFilter object,
             e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
@@ -34,61 +33,56 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """
         if not issubclass(type(gaussfilt.dynamicmodel), ODEPrior):
             raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
-        self.ivp = ivp
         self.gfilt = gaussfilt
+        self.sigma_squared_global = 0.0
+        self.sigma_squared_current = 0.0
+        self.with_smoothing = with_smoothing
+        super().__init__(ivp)
 
-    def solve(self, firststep, steprule, **kwargs):
+    def initialise(self):
+        return self.ivp.t0, self.gfilt.initialrandomvariable
+
+    def step(self, t, t_new, current_rv, **kwargs):
+        """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
+        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
+        zero_data = 0.0
+        filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
+            t_new, pred_rv, zero_data, **kwargs
+        )
+        errorest, self.sigma_squared_current = self._estimate_error(
+            filt_rv.mean(), crosscov, meas_cov, meas_mean
+        )
+        return filt_rv, errorest
+
+    def method_callback(self, time, current_guess, current_error):
+        """Update the sigma-squared (ssq) estimate."""
+        self.sigma_squared_global = (
+            self.sigma_squared_global
+            + (self.sigma_squared_current - self.sigma_squared_global) / self.num_steps
+        )
+
+    def postprocess(self, times, rvs):
         """
-        Solve IVP and calibrates uncertainty according
-        to Proposition 4 in Tronarp et al.
-
-        Parameters
-        ----------
-        firststep : float
-            First step for adaptive step size rule.
-        steprule : StepRule
-            Step-size selection rule, e.g. constant steps or adaptive steps.
+        Rescale covariances with sigma square estimate,
+        (if specified) smooth the estimate, return ODESolution.
         """
-        current_rv = self.gfilt.initialrandomvariable
-        t = self.ivp.t0
-        times = [t]
-        rvs = [current_rv]
-        step = firststep
-        ssqest, num_steps = 0.0, 0
+        rvs = self._rescale(rvs)
+        odesol = super().postprocess(times, rvs)
+        if self.with_smoothing is True:
+            odesol = self._odesmooth(ode_solution=odesol)
+        return odesol
 
-        while t < self.ivp.tmax:
-
-            t_new = t + step
-            pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
-
-            zero_data = 0.0
-            filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
-                t_new, pred_rv, zero_data, **kwargs
-            )
-
-            errorest, ssq = self._estimate_error(
-                filt_rv.mean(), crosscov, meas_cov, meas_mean
-            )
-
-            if steprule.is_accepted(step, errorest):
-                times.append(t_new)
-                rvs.append(filt_rv)
-                num_steps += 1
-                ssqest = ssqest + (ssq - ssqest) / num_steps
-                current_rv = filt_rv
-                t = t_new
-
-            step = self._suggest_step(step, errorest, steprule)
-            step = min(step, self.ivp.tmax - t)
-
+    def _rescale(self, rvs):
+        """Rescales covariances according to estimate sigma squared value."""
         rvs = [
-            RandomVariable(distribution=Normal(rv.mean(), ssqest * rv.cov()))
+            RandomVariable(
+                distribution=Normal(rv.mean(), self.sigma_squared_global * rv.cov())
+            )
             for rv in rvs
         ]
+        return rvs
 
-        return ODESolution(times, rvs, self)
-
-    def odesmooth(self, filter_solution, **kwargs):
+    def _odesmooth(self, ode_solution, **kwargs):
         """
         Smooth out the ODE-Filter output.
 
@@ -103,13 +97,13 @@ class GaussianIVPFilter(odesolver.ODESolver):
         -------
         smoothed_solution: ODESolution
         """
-        ivp_filter_posterior = filter_solution._kalman_posterior
+        ivp_filter_posterior = ode_solution._kalman_posterior
         ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
 
         smoothed_solution = ODESolution(
             times=ivp_smoother_posterior.locations,
             rvs=ivp_smoother_posterior.state_rvs,
-            solver=filter_solution._solver,
+            solver=ode_solution._solver,
         )
 
         return smoothed_solution
@@ -152,22 +146,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         )
         abs_error = abserrors @ weights / np.linalg.norm(weights)
         return np.maximum(rel_error, abs_error)
-
-    def _suggest_step(self, step, errorest, steprule):
-        """
-        Suggests step according to steprule and warns if
-        step is extremely small.
-
-        Raises
-        ------
-        RuntimeWarning
-            If suggested step is smaller than :math:`10^{-15}`.
-        """
-        step = steprule.suggest(step, errorest)
-        if step < 1e-15:
-            warnmsg = "Stepsize is num. zero (%.1e)" % step
-            warnings.warn(message=warnmsg, category=RuntimeWarning)
-        return step
 
     @property
     def prior(self):
