@@ -3,6 +3,7 @@
 from typing import Callable, Optional, Union
 
 import numpy as np
+import scipy.linalg
 import scipy.stats
 
 from probnum import utils as _utils
@@ -464,8 +465,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _dense_cov_cholesky(self) -> np.ndarray:
         eps = 10 ** -12  # damping needed to avoid negative definite covariances
 
-        return np.linalg.cholesky(
-            self._dense_cov + eps * np.eye(self._dense_cov.shape[0], dtype=self.dtype)
+        return scipy.linalg.cholesky(
+            self._dense_cov + eps * np.eye(self._dense_cov.shape[0], dtype=self.dtype),
+            lower=True,
         )
 
     def _dense_sample(self, size: ShapeType = ()) -> np.ndarray:
@@ -538,8 +540,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         eps = 10 ** -12  # damping needed to avoid negative definite covariances
 
         return linops.Kronecker(
-            A=np.linalg.cholesky(A + eps * np.eye(A.shape[0])),
-            B=np.linalg.cholesky(B + eps * np.eye(B.shape[0])),
+            A=scipy.linalg.cholesky(A + eps * np.eye(A.shape[0]), lower=True),
+            B=scipy.linalg.cholesky(B + eps * np.eye(B.shape[0]), lower=True),
             dtype=self.dtype,
         )
 
@@ -551,7 +553,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         A = self._cov.A.todense()
 
         eps = 10 ** -12  # damping needed to avoid negative definite covariances
-        A_cholesky = np.linalg.cholesky(A + eps * np.eye(A.shape[0], dtype=self.dtype))
+        A_cholesky = scipy.linalg.cholesky(
+            A + eps * np.eye(A.shape[0], dtype=self.dtype), lower=True
+        )
 
         return linops.SymmetricKronecker(A=A_cholesky, dtype=self.dtype)
 

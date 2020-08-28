@@ -13,7 +13,7 @@ rv_names = [
     "multivar_normal",
     "matrixvar_normal",
     "symmatrixvar_normal",
-    # "operatorvar_normal"
+    "operatorvar_normal",
 ]
 
 
@@ -59,15 +59,15 @@ class Functions:
     Benchmark various functions of distributions.
     """
 
-    param_names = ["rv_name", "property"]
+    param_names = ["randvar", "property"]
     params = [rv_names, ["pdf", "logpdf", "cdf", "logcdf"]]
 
-    def setup(self, rv_name, property):
-        self.randvar = get_randvar(rv_name=rv_name)
-        self.eval_point = np.random.uniform(self.randvar.shape)
-        self.quantile = np.random.uniform(self.randvar.shape)
+    def setup(self, randvar, property):
+        self.randvar = get_randvar(rv_name=randvar)
+        self.eval_point = np.random.uniform(size=self.randvar.shape)
+        self.quantile = np.random.uniform(size=self.randvar.shape)
 
-    def time_distr_functions(self, rv_name, property):
+    def time_distr_functions(self, randvar, property):
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
         try:
             if property == "pdf":
@@ -87,18 +87,18 @@ class Sampling:
     Benchmark sampling routines for various distributions.
     """
 
-    param_names = ["rv_name"]
+    param_names = ["randvar"]
     params = [rv_names]
 
-    def setup(self, rv_name):
+    def setup(self, randvar):
         np.random.seed(42)
         self.n_samples = 1000
-        self.randvar = get_randvar(rv_name=rv_name)
+        self.randvar = get_randvar(rv_name=randvar)
 
-    def time_sample(self, rv_name):
+    def time_sample(self, randvar):
         """Times sampling from this distribution."""
         self.randvar.sample(self.n_samples)
 
-    def peakmem_sample(self, rv_name):
+    def peakmem_sample(self, randvar):
         """Peak memory of sampling process."""
         self.randvar.sample(self.n_samples)
