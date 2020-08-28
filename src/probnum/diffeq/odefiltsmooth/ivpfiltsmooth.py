@@ -39,7 +39,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.with_smoothing = with_smoothing
         super().__init__(ivp)
 
-    def pre_accepted_callback(self, time, current_guess, current_error):
+    def method_callback(self, time, current_guess, current_error):
         """Update the sigma-squared (ssq) estimate."""
         self.sigma_squared_global = (
             self.sigma_squared_global

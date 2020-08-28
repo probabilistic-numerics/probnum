@@ -39,13 +39,13 @@ class ODESolver(ABC):
 
             if steprule.is_accepted(stepsize, errorest):
                 self.num_steps += 1
-                self.pre_accepted_callback(
-                    time=t_new, current_guess=proposed_rv, current_error=errorest
-                )
                 t = t_new
                 current_rv = proposed_rv
                 times.append(t)
                 rvs.append(current_rv)
+                self.method_callback(
+                    time=t_new, current_guess=proposed_rv, current_error=errorest
+                )
 
             suggested_stepsize = self._suggest_step(stepsize, errorest, steprule)
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
@@ -91,7 +91,7 @@ class ODESolver(ABC):
         """
         return ODESolution(times, rvs, self)
 
-    def pre_accepted_callback(self, time, current_guess, current_error):
+    def method_callback(self, time, current_guess, current_error):
         """
         Optional callback. Can be overwritten.
         Do this as soon as it is clear that the current guess is accepted, but before storing it.
