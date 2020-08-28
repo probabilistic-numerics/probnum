@@ -4,6 +4,11 @@ variables. """
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
+import numpy as np
+
+from probnum import utils as _utils
+from probnum.linalg import linops as _linops
+
 from ._utils import asrandvar as _asrandvar
 from ._random_variable import RandomVariable as _RandomVariable
 from ._dirac import Dirac as _Dirac
@@ -46,10 +51,26 @@ def pow_(rv1: Any, rv2: Any) -> _RandomVariable:
     return _apply(_pow_fns, rv1, rv2)
 
 
+########################################################################################
 # Operator registry
+########################################################################################
+
 _OperatorRegistryType = Dict[
     Tuple[type, type], Callable[[_RandomVariable, _RandomVariable], _RandomVariable]
 ]
+
+
+_add_fns: _OperatorRegistryType = {}
+_sub_fns: _OperatorRegistryType = {}
+_mul_fns: _OperatorRegistryType = {}
+_matmul_fns: _OperatorRegistryType = {}
+_truediv_fns: _OperatorRegistryType = {}
+_floordiv_fns: _OperatorRegistryType = {}
+_mod_fns: _OperatorRegistryType = {}
+_divmod_fns: _OperatorRegistryType = {}
+_pow_fns: _OperatorRegistryType = {}
+
+# Helper Functions
 
 
 def _apply(
@@ -72,22 +93,14 @@ def _apply(
     return res
 
 
-_add_fns: _OperatorRegistryType = {}
-_sub_fns: _OperatorRegistryType = {}
-_mul_fns: _OperatorRegistryType = {}
-_matmul_fns: _OperatorRegistryType = {}
-_truediv_fns: _OperatorRegistryType = {}
-_floordiv_fns: _OperatorRegistryType = {}
-_mod_fns: _OperatorRegistryType = {}
-_divmod_fns: _OperatorRegistryType = {}
-_pow_fns: _OperatorRegistryType = {}
-
-
 def _swap_operands(fn: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return lambda op1, op2: fn(op2, op1)
 
 
-# Dirac
+########################################################################################
+# Dirac - Dirac Arithmetic
+########################################################################################
+
 _add_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.add)
 _sub_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.sub)
 _mul_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.mul)
@@ -98,19 +111,149 @@ _mod_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.mod)
 _divmod_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(divmod)
 _pow_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.pow)
 
-# Normal
+########################################################################################
+# Normal - Normal Arithmetic
+########################################################################################
+
 _add_fns[(_Normal, _Normal)] = _Normal._add_normal
-_add_fns[(_Normal, _Dirac)] = _Normal._add_dirac
-_add_fns[(_Dirac, _Normal)] = _swap_operands(_Normal._add_dirac)
-
 _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
-_sub_fns[(_Normal, _Dirac)] = _Normal._sub_dirac
-_sub_fns[(_Dirac, _Normal)] = _swap_operands(_Normal._rsub_dirac)
 
-_mul_fns[(_Normal, _Dirac)] = _Normal._mul_dirac
-_mul_fns[(_Dirac, _Normal)] = _swap_operands(_Normal._mul_dirac)
+########################################################################################
+# Normal - Dirac Arithmetic
+########################################################################################
 
-_matmul_fns[(_Normal, _Dirac)] = _Normal._matmul_dirac
-_matmul_fns[(_Dirac, _Normal)] = _swap_operands(_Normal._rmatmul_dirac)
 
-_truediv_fns[(_Normal, _Dirac)] = _Normal._truediv_dirac
+def _add_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
+    return _Normal(
+        mean=norm_rv.mean + dirac_rv.support,
+        cov=norm_rv.cov,
+        random_state=_utils.derive_random_seed(
+            norm_rv.random_state, dirac_rv.random_state
+        ),
+    )
+
+
+_add_fns[(_Normal, _Dirac)] = _add_normal_dirac
+_add_fns[(_Dirac, _Normal)] = _swap_operands(_add_normal_dirac)
+
+
+def _sub_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
+    return _Normal(
+        mean=norm_rv.mean - dirac_rv.support,
+        cov=norm_rv.cov,
+        random_state=_utils.derive_random_seed(
+            norm_rv.random_state, dirac_rv.random_state
+        ),
+    )
+
+
+_sub_fns[(_Normal, _Dirac)] = _sub_normal_dirac
+
+
+def _sub_dirac_normal(dirac_rv: _Dirac, norm_rv: _Normal) -> _Normal:
+    return _Normal(
+        mean=dirac_rv.support - norm_rv.mean,
+        cov=norm_rv.cov,
+        random_state=_utils.derive_random_seed(
+            dirac_rv.random_state, norm_rv.random_state
+        ),
+    )
+
+
+_sub_fns[(_Dirac, _Normal)] = _sub_dirac_normal
+
+
+def _mul_normal_dirac(
+    norm_rv: _Normal, dirac_rv: _Dirac
+) -> Union[_Normal, _Dirac, type(NotImplemented)]:
+    if dirac_rv.size == 1:
+        if dirac_rv.support == 0:
+            return _Dirac(
+                support=np.zeros_like(norm_rv.mean),
+                random_state=_utils.derive_random_seed(
+                    norm_rv.random_state, dirac_rv.random_state
+                ),
+            )
+        else:
+            return _Normal(
+                mean=dirac_rv.support * norm_rv.mean,
+                cov=(dirac_rv.support ** 2) * norm_rv.cov,
+                random_state=_utils.derive_random_seed(
+                    norm_rv.random_state, dirac_rv.random_state
+                ),
+            )
+
+    return NotImplemented
+
+
+_mul_fns[(_Normal, _Dirac)] = _mul_normal_dirac
+_mul_fns[(_Dirac, _Normal)] = _swap_operands(_mul_normal_dirac)
+
+
+def _matmul_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
+    if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
+        return _Normal(
+            mean=norm_rv.mean @ dirac_rv.support,
+            cov=dirac_rv.support.T @ (norm_rv.cov @ dirac_rv.support),
+            random_state=_utils.derive_random_seed(
+                norm_rv.random_state, dirac_rv.random_state
+            ),
+        )
+    elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
+        cov_update = _linops.Kronecker(
+            _linops.Identity(dirac_rv.shape[0]), dirac_rv.support
+        )
+
+        return _Normal(
+            mean=norm_rv.mean @ dirac_rv.support,
+            cov=cov_update.T @ (norm_rv.cov @ cov_update),
+            random_state=_utils.derive_random_seed(
+                norm_rv.random_state, dirac_rv.random_state
+            ),
+        )
+    else:
+        raise TypeError(
+            "Currently, matrix multiplication is only supported for vector- and "
+            "matrix-variate Gaussians."
+        )
+
+
+_matmul_fns[(_Normal, _Dirac)] = _matmul_normal_dirac
+
+
+def _matmul_dirac_normal(dirac_rv: _Dirac, norm_rv: _Normal) -> _Normal:
+    if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
+        return _Normal(
+            mean=dirac_rv.support @ norm_rv.mean,
+            cov=dirac_rv.support @ (norm_rv.cov @ dirac_rv.support.T),
+            random_state=_utils.derive_random_seed(
+                dirac_rv.random_state, norm_rv.random_state
+            ),
+        )
+    else:
+        raise TypeError(
+            "Currently, matrix multiplication is only supported for vector-variate "
+            "Gaussians."
+        )
+
+
+_matmul_fns[(_Dirac, _Normal)] = _matmul_dirac_normal
+
+
+def _truediv_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
+    if dirac_rv.size == 1:
+        if dirac_rv.support == 0:
+            raise ZeroDivisionError
+
+        return _Normal(
+            mean=norm_rv.mean / dirac_rv.support,
+            cov=norm_rv.cov / (dirac_rv.support ** 2),
+            random_state=_utils.derive_random_seed(
+                norm_rv.random_state, dirac_rv.random_state
+            ),
+        )
+
+    return NotImplemented
+
+
+_truediv_fns[(_Normal, _Dirac)] = _truediv_normal_dirac

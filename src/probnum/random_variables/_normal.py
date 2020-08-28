@@ -400,15 +400,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             ),
         )
 
-    def _add_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
-        return Normal(
-            mean=self._mean + dirac_rv.support,
-            cov=self._cov,
-            random_state=_utils.derive_random_seed(
-                self.random_state, dirac_rv.random_state
-            ),
-        )
-
     def _sub_normal(self, other: "Normal") -> "Normal":
         if other.shape != self.shape:
             raise ValueError(
@@ -423,110 +414,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 self.random_state, other.random_state
             ),
         )
-
-    def _sub_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
-        return Normal(
-            mean=self._mean - dirac_rv.support,
-            cov=self._cov,
-            random_state=_utils.derive_random_seed(
-                self.random_state, dirac_rv.random_state
-            ),
-        )
-
-    def _rsub_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
-        return Normal(
-            mean=dirac_rv.support - self._mean,
-            cov=self._cov,
-            random_state=_utils.derive_random_seed(
-                dirac_rv.random_state, self.random_state
-            ),
-        )
-
-    def _matmul_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
-        if self.ndim == 1 or (self.ndim == 2 and self.shape[0] == 1):
-            return Normal(
-                mean=self._mean @ dirac_rv.support,
-                cov=dirac_rv.support.T @ (self._cov @ dirac_rv.support),
-                random_state=_utils.derive_random_seed(
-                    self.random_state, dirac_rv.random_state
-                ),
-            )
-        elif self.ndim == 2 and self.shape[0] > 1:
-            cov_update = linops.Kronecker(
-                linops.Identity(dirac_rv.shape[0]), dirac_rv.support
-            )
-
-            return Normal(
-                mean=self._mean @ dirac_rv.support,
-                cov=cov_update.T @ (self._cov @ cov_update),
-                random_state=_utils.derive_random_seed(
-                    self.random_state, dirac_rv.random_state
-                ),
-            )
-        else:
-            raise TypeError(
-                "Currently, matrix multiplication is only supported for vector- and "
-                "matrix-variate Gaussians."
-            )
-
-    def _rmatmul_dirac(self, dirac_rv: "probnum.random_variables.Dirac") -> "Normal":
-        if self.ndim != 1 or (self.ndim == 2 and self.shape[1] == 1):
-            raise TypeError(
-                "Currently, matrix multiplication is only supported for vector-variate "
-                "Gaussians."
-            )
-
-        return Normal(
-            mean=dirac_rv.support @ self._mean,
-            cov=dirac_rv.support @ (self._cov @ dirac_rv.support.T),
-            random_state=_utils.derive_random_seed(
-                dirac_rv.random_state, self.random_state
-            ),
-        )
-
-    def _mul_dirac(
-        self, dirac_rv: "probnum.random_variables.Dirac"
-    ) -> Union["Normal", "probnum.random_variables.Dirac"]:
-        if dirac_rv.size == 1:
-            return self._scale(dirac_rv.support, dirac_rv.random_state)
-
-        return NotImplemented
-
-    def _truediv_dirac(
-        self, dirac_rv: "probnum.random_variables.Dirac"
-    ) -> Union["Normal", "probnum.random_variables.Dirac"]:
-        if dirac_rv.size == 1:
-            if dirac_rv.support == 0:
-                raise ZeroDivisionError
-
-            return self._scale(1.0 / dirac_rv.support, dirac_rv.random_state)
-
-        return NotImplemented
-
-    def _scale(self, scalar, other_random_state=None):
-        assert scalar.size == 1
-
-        if other_random_state is None:
-            derived_random_seed = _utils.derive_random_seed(self.random_state)
-        else:
-            derived_random_seed = _utils.derive_random_seed(
-                self.random_state, other_random_state
-            )
-
-        if scalar == 0:
-            # pylint: disable=import-outside-toplevel,cyclic-import
-            from probnum import random_variables as rvs
-
-            return rvs.Dirac(
-                support=np.zeros_like(self._mean),
-                random_state=derived_random_seed,
-            )
-        else:
-            return Normal(
-                mean=scalar * self._mean,
-                cov=(scalar ** 2) * self._cov,
-                random_state=derived_random_seed,
-            )
 
     # Univariate Gaussians
     def _univariate_cov_cholesky(self) -> np.floating:
