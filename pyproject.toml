@@ -27,6 +27,7 @@ exclude = '''
 # Exceptions suggested from Black: bad-continuation, bad-whitespace
 disable = """
 invalid-name,
+fixme,
 
 bad-continuation,
 
@@ -54,7 +55,6 @@ too-many-lines,
 redefined-builtin,
 abstract-method,
 too-many-branches,
-fixme,
 line-too-long,
 missing-class-docstring,
 unnecessary-pass,
