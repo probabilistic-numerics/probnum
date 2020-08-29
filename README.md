@@ -8,8 +8,9 @@
 
 ---
 
-**ProbNum implements probabilistic numerical methods in Python.** Such methods interpret numerical routines for linear
-algebra, optimization, quadrature and the solution of differential equations as _probabilistic inference_.
+**ProbNum implements probabilistic numerical methods in Python.** Such methods solve numerical problems from linear
+algebra, optimization, quadrature and differential equations using _probabilistic inference_. This approach captures 
+uncertainty arising from _finite computational resources_ and _stochastic input_. 
 
 ---
 

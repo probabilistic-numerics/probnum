@@ -40,9 +40,10 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    :maxdepth: 1
    :caption: Tutorials and Examples
 
-   tutorials/basic_concepts
+   tutorials/pn_methods
+   tutorials/probability
    tutorials/linear_algebra
-   tutorials/differential_equations
+   tutorials/ordinary_differential_equations
 
 .. toctree::
    :maxdepth: 1

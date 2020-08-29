@@ -14,5 +14,5 @@ See the notebooks below to learn more about linear algebra in ProbNum.
    galerkin_method
 
 
-If you want to try out these tutorials for yourself you can
+If you want to try out these tutorials for yourself, you can
 download the notebooks from the `GitHub repository <https://github.com/probabilistic-numerics/probnum/tree/master/docs/source/tutorials>`_.
