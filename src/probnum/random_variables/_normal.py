@@ -26,6 +26,9 @@ except ImportError:
     from cached_property import cached_property
 
 
+COV_CHOLESKY_DAMPING = 10 ** -12
+
+
 _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
 
@@ -463,10 +466,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     # Multi- and matrixvariate Gaussians
     def _dense_cov_cholesky(self) -> np.ndarray:
-        eps = 10 ** -12  # damping needed to avoid negative definite covariances
+        dense_cov = self._dense_cov
 
         return scipy.linalg.cholesky(
-            self._dense_cov + eps * np.eye(self._dense_cov.shape[0], dtype=self.dtype),
+            dense_cov + COV_CHOLESKY_DAMPING * np.eye(self.size, dtype=self.dtype),
             lower=True,
         )
 
@@ -537,27 +540,34 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         A = self._cov.A.todense()
         B = self._cov.B.todense()
 
-        eps = 10 ** -12  # damping needed to avoid negative definite covariances
-
         return linops.Kronecker(
-            A=scipy.linalg.cholesky(A + eps * np.eye(A.shape[0]), lower=True),
-            B=scipy.linalg.cholesky(B + eps * np.eye(B.shape[0]), lower=True),
+            A=scipy.linalg.cholesky(
+                A + COV_CHOLESKY_DAMPING * np.eye(A.shape[0], dtype=self.dtype),
+                lower=True,
+            ),
+            B=scipy.linalg.cholesky(
+                B + COV_CHOLESKY_DAMPING * np.eye(B.shape[0], dtype=self.dtype),
+                lower=True,
+            ),
             dtype=self.dtype,
         )
 
     # Matrixvariate Gaussian with symmetric Kronecker covariance from identical
     # factors
-    def _symmetric_kronecker_identical_factors_cov_cholesky(self) -> linops.Kronecker:
+    def _symmetric_kronecker_identical_factors_cov_cholesky(
+        self,
+    ) -> linops.SymmetricKronecker:
         assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
 
         A = self._cov.A.todense()
 
-        eps = 10 ** -12  # damping needed to avoid negative definite covariances
-        A_cholesky = scipy.linalg.cholesky(
-            A + eps * np.eye(A.shape[0], dtype=self.dtype), lower=True
+        return linops.SymmetricKronecker(
+            A=scipy.linalg.cholesky(
+                A + COV_CHOLESKY_DAMPING * np.eye(A.shape[0], dtype=self.dtype),
+                lower=True,
+            ),
+            dtype=self.dtype,
         )
-
-        return linops.SymmetricKronecker(A=A_cholesky, dtype=self.dtype)
 
     def _symmetric_kronecker_identical_factors_sample(
         self, size: ShapeType = ()
