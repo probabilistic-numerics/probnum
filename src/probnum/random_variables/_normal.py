@@ -181,7 +181,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             quantile = None
 
             median = None
-            var = None
+            var = self._dense_var
             entropy = self._dense_entropy
 
             if cov_cholesky is None:
@@ -523,6 +523,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             mean=self._dense_mean.ravel(),
             cov=self._dense_cov,
         )
+
+    def _dense_var(self) -> np.ndarray:
+        return np.diag(self._dense_cov).reshape(self.shape)
 
     def _dense_entropy(self) -> np.float_:
         return _utils.as_numpy_scalar(
