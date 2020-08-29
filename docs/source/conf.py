@@ -34,16 +34,17 @@ needs_sphinx = "3.0"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
     "sphinx.ext.napoleon",
-    "sphinx_automodapi.automodapi",
-    "sphinx_autodoc_typehints",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
+    "sphinx_rtd_theme",
+    "sphinx_automodapi.automodapi",
+    "sphinx_autodoc_typehints",
+    "sphinx_gallery.load_style",
     "nbsphinx",
     "m2r2",
 ]
@@ -162,7 +163,7 @@ nbsphinx_execute = "auto"
 # List of arguments to be passed to the kernel that executes the notebooks:
 nbsphinx_execute_arguments = [
     "--InlineBackend.figure_formats={'svg', 'pdf'}",  # e.g. for matplotlib plots
-    "--InlineBackend.rc={'figure.dpi': 96}",
+    "--InlineBackend.rc={'figure.dpi': 150}",
 ]
 
 # Use a different kernel than stored in the notebook metadata

@@ -7,7 +7,7 @@ distribution. A probabilistic numerical method takes random variables as inputs 
 See the notebooks below to learn more about how to use and manipulate probabilistic quantities in ProbNum.
 
 
-.. toctree::
+.. nbgallery::
    :maxdepth: 2
 
    random_variables

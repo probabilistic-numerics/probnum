@@ -6,10 +6,10 @@ Linear algebra is fundamental to much of scientific computation. ProbNum enables
 See the notebooks below to learn more about linear algebra in ProbNum.
 
 
-.. toctree::
+.. nbgallery::
    :maxdepth: 2
 
-   linear_operators   
+   linear_operators
    linear_systems
    galerkin_method
 

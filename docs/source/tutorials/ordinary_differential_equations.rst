@@ -8,7 +8,7 @@ the uncertainty introduced by discretization.
 See the notebooks below to learn more about how to use ProbNum's functionality for ordinary differential equations.
 
 
-.. toctree::
+.. nbgallery::
    :maxdepth: 2
 
    uncertainties_odefilter

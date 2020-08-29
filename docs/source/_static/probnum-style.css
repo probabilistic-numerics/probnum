@@ -105,6 +105,17 @@ html.writer-html5 .rst-content dl.footnote > dd {
     margin: 0 0 0;
 }
 
+/* Sphinx Gallery */
+div.sphx-glr-thumbcontainer {
+    background: var(--pn-lightgray);
+    border: solid var(--pn-lightgray) 1px;
+    border-radius: 10px;
+}
+div.sphx-glr-thumbcontainer:hover {
+    box-shadow: 0 0 10px #107d7930;
+    border: solid var(--pn-green) 1px;
+}
+
 /* ReadTheDocs */
 .fa {
 	font: Open Sans light, Helvetica, sans-serif;
