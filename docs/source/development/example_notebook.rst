@@ -40,7 +40,7 @@ Adding the Notebook to the Website
 ***********************************
 
 Now that you've created your notebook, we have to add it in the right place on the website. Check the existing
-topics in :code:`./docs/source/tutorials/<some_topic>.rst` and add your notebook name to the appropriate `nbgallery`.
+topics in :code:`./docs/source/tutorials/<some_topic>.rst` and add your notebook name to the appropriate :code:`nbgallery`.
 
 .. code-block:: rst
 
@@ -98,6 +98,6 @@ If the notebook compiles successfully, you should see output similar to:
 
 You can now view your results locally by opening the website in :code:`./docs/_build/html`. Make sure you fix any error
 messages popping up in the build before making a pull request to the :code:`master` branch. Once your pull request
-has been merged, Travis will automatically build the documentation including your new example notebook.
+has been merged, ReadTheDocs will automatically build the documentation including your new example notebook.
 
 
