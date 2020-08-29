@@ -166,13 +166,6 @@ nbsphinx_execute_arguments = [
     "--InlineBackend.rc={'figure.dpi': 150}",
 ]
 
-# Use a different kernel than stored in the notebook metadata
-# nbsphinx_kernel_name = ""
-
-# Width of input/output prompts (HTML only). Any CSS length can be specified.
-# nbsphinx_prompt_width = 1000px
-
-
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
