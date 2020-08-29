@@ -40,17 +40,25 @@ Adding the Notebook to the Website
 ***********************************
 
 Now that you've created your notebook, we have to add it in the right place on the website. Check the existing
-categories in :code:`./docs/source/tutorials/tutorials.rst` and add your notebook name under the appropriate header. If
-you want to add a new category, use the following restructuredText snippet to add a new table of contents linking to
-your notebook:
+topics in :code:`./docs/source/tutorials/<some_topic>.rst` and add your notebook name to the appropriate `nbgallery`.
 
 .. code-block:: rst
 
-	.. toctree::
-	   :maxdepth: 2
-	   :caption: My Example Category:
+	.. nbgallery::
 
 	   my_example_notebook
+
+This creates a gallery item on the corresponding topic page in the documentation under tutorials. You can set the
+preview image for your example notebook by choosing a cell that produces an output plot and adding a tag to the
+metadata of the corresponding Jupyter notebook cell.
+
+.. code-block:: json
+
+    {
+        "tags": [
+            "nbsphinx-thumbnail"
+        ],
+    }
 
 
 Viewing the Result
