@@ -73,7 +73,7 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
             sample=self._sample,
             in_support=lambda x: np.all(x == self._support),
             pmf=lambda x: np.float_(1.0 if np.all(x == self._support) else 0.0),
-            cdf=lambda x: np.float_(0.0 if np.any(x < self._support) else 0.0),
+            cdf=lambda x: np.float_(1.0 if np.all(x >= self._support) else 0.0),
             mode=lambda: self._support,
             median=lambda: support_floating,
             mean=lambda: support_floating,
