@@ -9,7 +9,7 @@ from warnings import warn
 
 import numpy as np
 
-from probnum.prob._randomvariablelist import _RandomVariableList
+from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 

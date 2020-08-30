@@ -14,7 +14,7 @@ from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
-from probnum.prob import RandomVariable, Normal
+from probnum.random_variables import Normal
 
 
 class ODEPrior(LTISDEModel):
@@ -271,13 +271,13 @@ class IBM(ODEPrior):
 
         "step" variable is obsolent here and is ignored.
         """
-        mean, covar = randvar.mean(), randvar.cov()
+        mean, covar = randvar.mean, randvar.cov
         ah = self._trans_ibm(start, stop)
         qh = self._transdiff_ibm(start, stop)
         mpred = ah @ mean
         crosscov = covar @ ah.T
         cpred = ah @ crosscov + qh
-        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
+        return Normal(mpred, cpred), crosscov
 
     def _trans_ibm(self, start, stop):
         """

@@ -27,9 +27,14 @@ exclude = '''
 # Exceptions suggested from Black: bad-continuation, bad-whitespace
 disable = """
 invalid-name,
+fixme,
+
+bad-continuation,
 
 no-else-return,
 no-else-raise,
+
+no-member,
 
 abstract-class-instantiated,
 too-many-locals,
@@ -50,9 +55,6 @@ too-many-lines,
 redefined-builtin,
 abstract-method,
 too-many-branches,
-fixme,
-broad-except,
-raise-missing-from,
 line-too-long,
 missing-class-docstring,
 unnecessary-pass,

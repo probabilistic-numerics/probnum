@@ -2,7 +2,7 @@
 
 import numpy as np
 import scipy.sparse
-import probnum.prob
+import probnum
 
 __all__ = [
     "atleast_1d",
@@ -44,7 +44,7 @@ def atleast_1d(*rvs):
             result = rv
         elif isinstance(rv, np.ndarray):
             result = np.atleast_1d(rv)
-        elif isinstance(rv, probnum.prob.RandomVariable):
+        elif isinstance(rv, probnum.RandomVariable):
             raise NotImplementedError
         else:
             result = rv
@@ -83,7 +83,7 @@ def atleast_2d(*rvs):
             result = rv
         elif isinstance(rv, np.ndarray):
             result = np.atleast_2d(rv)
-        elif isinstance(rv, probnum.prob.RandomVariable):
+        elif isinstance(rv, probnum.RandomVariable):
             raise NotImplementedError
         else:
             result = rv
@@ -110,7 +110,7 @@ def as_colvec(vec):
     -------
     vec2d : np.ndarray or RandomVariable
     """
-    if isinstance(vec, probnum.prob.RandomVariable):
+    if isinstance(vec, probnum.RandomVariable):
         if vec.shape != (vec.shape[0], 1):
             vec.reshape(newshape=(vec.shape[0], 1))
     else:
