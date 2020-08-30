@@ -17,6 +17,7 @@ from probnum.typing import (
     DTypeArgType,
     FloatArgType,
     RandomStateArgType,
+    ArrayLikeGetitemArgType,
     ShapeArgType,
 )
 
@@ -494,6 +495,20 @@ class RandomVariable(Generic[_ValueType]):
 
         return quantile
 
+    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "RandomVariable":
+        return RandomVariable(
+            shape=np.empty(shape=self.shape)[key].shape,
+            dtype=self.dtype,
+            random_state=_utils.derive_random_seed(self.random_state),
+            sample=lambda size: self.sample(size)[key],
+            mode=lambda: self.mode[key],
+            mean=lambda: self.mean[key],
+            var=lambda: self.var[key],
+            std=lambda: self.std[key],
+            entropy=lambda: self.entropy,
+            as_value_type=self.__as_value_type,
+        )
+
     def reshape(self, newshape: ShapeArgType) -> "RandomVariable":
         """
         Give a new shape to a random variable.
@@ -508,9 +523,21 @@ class RandomVariable(Generic[_ValueType]):
         -------
         reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
-        raise NotImplementedError(
-            f"Reshaping not implemented for random variables of type: "
-            f"{self.__class__.__name__}."
+        newshape = _utils.as_shape(newshape)
+
+        return RandomVariable(
+            shape=newshape,
+            dtype=self.dtype,
+            random_state=_utils.derive_random_seed(self.random_state),
+            sample=lambda size: self.sample(size).reshape(size + newshape),
+            mode=lambda: self.mode.reshape(newshape),
+            median=lambda: self.median.reshape(newshape),
+            mean=lambda: self.mean.reshape(newshape),
+            cov=lambda: self.cov,
+            var=lambda: self.var.reshape(newshape),
+            std=lambda: self.std.reshape(newshape),
+            entropy=lambda: self.entropy,
+            as_value_type=self.__as_value_type,
         )
 
     def transpose(self, *axes: int) -> "RandomVariable":
@@ -526,9 +553,19 @@ class RandomVariable(Generic[_ValueType]):
         -------
         transposed_rv : The transposed random variable.
         """
-        raise NotImplementedError(
-            f"Transposition not implemented for random variables of type: "
-            f"{self.__class__.__name__}."
+        return RandomVariable(
+            shape=np.empty(shape=self.shape).transpose(*axes).shape,
+            dtype=self.dtype,
+            random_state=_utils.derive_random_seed(self.random_state),
+            sample=lambda size: self.sample(size).transpose(*axes),
+            mode=lambda: self.mode.transpose(*axes),
+            median=lambda: self.median.transpose(*axes),
+            mean=lambda: self.mean.transpose(*axes),
+            cov=lambda: self.cov,
+            var=lambda: self.var.transpose(*axes),
+            std=lambda: self.std.transpose(*axes),
+            entropy=lambda: self.entropy,
+            as_value_type=self.__as_value_type,
         )
 
     T = property(transpose)
