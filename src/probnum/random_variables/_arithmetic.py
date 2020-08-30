@@ -55,9 +55,10 @@ def pow_(rv1: Any, rv2: Any) -> _RandomVariable:
 # Operator registry
 ########################################################################################
 
-_OperatorRegistryType = Dict[
-    Tuple[type, type], Callable[[_RandomVariable, _RandomVariable], _RandomVariable]
+_RandomVariableBinaryOperator = Callable[
+    [_RandomVariable, _RandomVariable], Union[_RandomVariable, type(NotImplemented)]
 ]
+_OperatorRegistryType = Dict[Tuple[type, type], _RandomVariableBinaryOperator]
 
 
 _add_fns: _OperatorRegistryType = {}
@@ -70,31 +71,109 @@ _mod_fns: _OperatorRegistryType = {}
 _divmod_fns: _OperatorRegistryType = {}
 _pow_fns: _OperatorRegistryType = {}
 
-# Helper Functions
-
 
 def _apply(
     op_registry: _OperatorRegistryType,
     rv1: Any,
     rv2: Any,
-) -> Union[_RandomVariable]:
+) -> Union[_RandomVariable, type(NotImplemented)]:
     # Convert arguments to random variables
     rv1 = _asrandvar(rv1)
     rv2 = _asrandvar(rv2)
 
-    # Search fitting method
+    # Search specific operatir
     key = (type(rv1), type(rv2))
 
-    if key not in op_registry:
-        return NotImplemented
+    if key in op_registry:
+        res = op_registry[key](rv1, rv2)
+    else:
+        res = NotImplemented
 
-    res = op_registry[key](rv1, rv2)
+    if res is NotImplemented:
+        res = op_registry[(_RandomVariable, _RandomVariable)](rv1, rv2)
 
     return res
 
 
+####################
+# Helper Functions #
+####################
+
+
 def _swap_operands(fn: Callable[[Any, Any], Any]) -> Callable[[Any, Any], Any]:
     return lambda op1, op2: fn(op2, op1)
+
+
+########################################################################################
+# Generic Random Variable Arithmetic (Fallbacks)
+########################################################################################
+
+
+def _default_rv_binary_op_factory(op_fn) -> _RandomVariableBinaryOperator:
+    def _rv_binary_op(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+        shape, dtype, sample = _make_rv_binary_op_result_shape_dtype_sample_fn(
+            op_fn, rv1, rv2
+        )
+
+        return _RandomVariable(
+            shape=shape,
+            dtype=dtype,
+            random_state=_utils.derive_random_seed(rv1.random_state, rv2.random_state),
+            sample=sample,
+        )
+
+    return _rv_binary_op
+
+
+def _make_rv_binary_op_result_shape_dtype_sample_fn(op_fn, rv1, rv2):
+    sample_fn = lambda size: op_fn(rv1.sample(size), rv2.sample(size))
+
+    # Infer shape and dtype
+    infer_sample = sample_fn(())
+
+    shape = infer_sample.shape
+    dtype = infer_sample.dtype
+
+    return shape, dtype, sample_fn
+
+
+def _generic_rv_add(rv1: _RandomVariable, rv2: _RandomVariable) -> _RandomVariable:
+    shape, dtype, sample = _make_rv_binary_op_result_shape_dtype_sample_fn(
+        operator.add, rv1, rv2
+    )
+
+    return _RandomVariable(
+        shape=shape,
+        dtype=dtype,
+        random_state=_utils.derive_random_seed(rv1.random_state, rv2.random_state),
+        sample=sample,
+        mean=lambda: rv1.mean + rv2.mean,
+    )
+
+
+_add_fns[(_RandomVariable, _RandomVariable)] = _generic_rv_add
+_sub_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
+    operator.sub
+)
+_mul_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
+    operator.mul
+)
+_matmul_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
+    operator.matmul
+)
+_truediv_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
+    operator.truediv
+)
+_floordiv_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
+    operator.floordiv
+)
+_mod_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
+    operator.mod
+)
+_divmod_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(divmod)
+_pow_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
+    operator.pow
+)
 
 
 ########################################################################################
@@ -117,6 +196,7 @@ _pow_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.pow)
 
 _add_fns[(_Normal, _Normal)] = _Normal._add_normal
 _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
+
 
 ########################################################################################
 # Normal - Dirac Arithmetic
