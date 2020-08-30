@@ -536,10 +536,36 @@ class RandomVariable(Generic[_ValueType]):
     # Unary arithmetic operations
 
     def __neg__(self) -> "RandomVariable":
-        return NotImplemented
+        return RandomVariable(
+            shape=self.shape,
+            dtype=self.dtype,
+            random_state=_utils.derive_random_seed(self.random_state),
+            sample=lambda size: -self.sample(size=size),
+            in_support=lambda x: self.in_support(-x),
+            mode=lambda: -self.mode,
+            median=lambda: -self.median,
+            mean=lambda: -self.mean,
+            cov=lambda: self.cov,
+            var=lambda: self.var,
+            std=lambda: self.std,
+            as_value_type=self.__as_value_type,
+        )
 
     def __pos__(self) -> "RandomVariable":
-        return NotImplemented
+        return RandomVariable(
+            shape=self.shape,
+            dtype=self.dtype,
+            random_state=_utils.derive_random_seed(self.random_state),
+            sample=lambda size: +self.sample(size=size),
+            in_support=lambda x: self.in_support(+x),
+            mode=lambda: +self.mode,
+            median=lambda: +self.median,
+            mean=lambda: +self.mean,
+            cov=lambda: self.cov,
+            var=lambda: self.var,
+            std=lambda: self.std,
+            as_value_type=self.__as_value_type,
+        )
 
     def __abs__(self) -> "RandomVariable":
         return RandomVariable(
