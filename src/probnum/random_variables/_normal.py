@@ -185,7 +185,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             entropy = self._dense_entropy
 
             if cov_cholesky is None:
-                self._compute_cov_cholesky = self._dense_cov_cholesky
+                self._compute_cov_cholesky = self.dense_cov_cholesky
             else:
                 if not isinstance(cov_cholesky, type(self._cov)):
                     raise ValueError(
@@ -275,14 +275,14 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return self._compute_cov_cholesky()
 
     @cached_property
-    def _dense_mean(self) -> _ValueType:
+    def dense_mean(self) -> Union[np.floating, np.ndarray]:
         if isinstance(self._mean, linops.LinearOperator):
             return self._mean.todense()
         else:
             return self._mean
 
     @cached_property
-    def _dense_cov(self) -> _ValueType:
+    def dense_cov(self) -> Union[np.floating, np.ndarray]:
         if isinstance(self._cov, linops.LinearOperator):
             return self._cov.todense()
         else:
@@ -311,10 +311,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             key = (key,)
 
         # Select entries from mean
-        mean = self._dense_mean[key]
+        mean = self.dense_mean[key]
 
         # Select submatrix from covariance matrix
-        cov = self._dense_cov.reshape(self.shape + self.shape)
+        cov = self.dense_cov.reshape(self.shape + self.shape)
         cov = cov[key][tuple([slice(None)] * mean.ndim) + key]
 
         if mean.ndim > 0:
@@ -328,14 +328,14 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def reshape(self, newshape: ShapeArgType) -> "Normal":
         try:
-            reshaped_mean = self._dense_mean.reshape(newshape)
+            reshaped_mean = self.dense_mean.reshape(newshape)
         except ValueError as exc:
             raise ValueError(
                 f"Cannot reshape this normal random variable to the given shape: "
                 f"{newshape}"
             ) from exc
 
-        reshaped_cov = self._dense_cov
+        reshaped_cov = self.dense_cov
 
         if reshaped_mean.ndim > 0 and reshaped_cov.ndim == 0:
             reshaped_cov = reshaped_cov.reshape(1, 1)
@@ -352,11 +352,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         elif (len(axes) == 1 and axes[0] is None) or len(axes) == 0:
             axes = tuple(reversed(range(self.ndim)))
 
-        mean_t = self._dense_mean.transpose(*axes).copy()
+        mean_t = self.dense_mean.transpose(*axes).copy()
 
         # Transpose covariance
         cov_axes = axes + tuple(mean_t.ndim + axis for axis in axes)
-        cov_t = self._dense_cov.reshape(self.shape + self.shape)
+        cov_t = self.dense_cov.reshape(self.shape + self.shape)
         cov_t = cov_t.transpose(*cov_axes).copy()
 
         if mean_t.ndim > 0:
@@ -465,8 +465,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Multi- and matrixvariate Gaussians
-    def _dense_cov_cholesky(self) -> np.ndarray:
-        dense_cov = self._dense_cov
+    def dense_cov_cholesky(self) -> np.ndarray:
+        dense_cov = self.dense_cov
 
         return scipy.linalg.cholesky(
             dense_cov + COV_CHOLESKY_DAMPING * np.eye(self.size, dtype=self.dtype),
@@ -475,8 +475,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def _dense_sample(self, size: ShapeType = ()) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
-            mean=self._dense_mean.ravel(),
-            cov=self._dense_cov,
+            mean=self.dense_mean.ravel(),
+            cov=self.dense_cov,
             size=size,
             random_state=self.random_state,
         )
@@ -499,39 +499,39 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _dense_pdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.pdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self._dense_mean.ravel(),
-            cov=self._dense_cov,
+            mean=self.dense_mean.ravel(),
+            cov=self.dense_cov,
         )
 
     def _dense_logpdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.logpdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self._dense_mean.ravel(),
-            cov=self._dense_cov,
+            mean=self.dense_mean.ravel(),
+            cov=self.dense_cov,
         )
 
     def _dense_cdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.cdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self._dense_mean.ravel(),
-            cov=self._dense_cov,
+            mean=self.dense_mean.ravel(),
+            cov=self.dense_cov,
         )
 
     def _dense_logcdf(self, x: _ValueType) -> np.float_:
         return scipy.stats.multivariate_normal.logcdf(
             Normal._arg_todense(x).reshape(x.shape[: -self.ndim] + (-1,)),
-            mean=self._dense_mean.ravel(),
-            cov=self._dense_cov,
+            mean=self.dense_mean.ravel(),
+            cov=self.dense_cov,
         )
 
     def _dense_var(self) -> np.ndarray:
-        return np.diag(self._dense_cov).reshape(self.shape)
+        return np.diag(self.dense_cov).reshape(self.shape)
 
     def _dense_entropy(self) -> np.float_:
         return _utils.as_numpy_scalar(
             scipy.stats.multivariate_normal.entropy(
-                mean=self._dense_mean.ravel(),
-                cov=self._dense_cov,
+                mean=self.dense_mean.ravel(),
+                cov=self.dense_cov,
             ),
             dtype=np.float_,
         )
@@ -592,4 +592,4 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
         # TODO: can we avoid todense here and just return operator samples?
-        return self._dense_mean[None, :, :] + samples_scaled.T.reshape(-1, n, n)
+        return self.dense_mean[None, :, :] + samples_scaled.T.reshape(-1, n, n)

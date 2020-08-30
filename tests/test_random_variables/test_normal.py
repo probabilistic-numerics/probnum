@@ -262,9 +262,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     flat_idx = (idx[0] * rv.shape[1] + idx[1],)
 
                 self.assertEqual(indexed_rv.shape, ())
-                self.assertEqual(indexed_rv.mean, rv._dense_mean[idx])
+                self.assertEqual(indexed_rv.mean, rv.dense_mean[idx])
                 self.assertEqual(indexed_rv.var, rv.var[idx])
-                self.assertEqual(indexed_rv.cov, rv._dense_cov[flat_idx + flat_idx])
+                self.assertEqual(indexed_rv.cov, rv.dense_cov[flat_idx + flat_idx])
 
     def test_slicing(self):
         """ Slicing into a normal distribution yields a normal distribution of the same type """
@@ -285,16 +285,16 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 sliced_rv = rv[slices]
 
                 # Compare with expected parameter values
-                slice_mask = np.zeros_like(rv._dense_mean, dtype=np.bool)
+                slice_mask = np.zeros_like(rv.dense_mean, dtype=np.bool)
                 slice_mask[slices] = True
                 slice_mask = slice_mask.ravel()
 
-                self.assertArrayEqual(sliced_rv.mean, rv._dense_mean[slices])
+                self.assertArrayEqual(sliced_rv.mean, rv.dense_mean[slices])
                 self.assertArrayEqual(sliced_rv.var, rv.var[slices])
 
                 if rv.ndim > 0:
                     self.assertArrayEqual(
-                        sliced_rv.cov, rv._dense_cov[np.ix_(slice_mask, slice_mask)]
+                        sliced_rv.cov, rv.dense_cov[np.ix_(slice_mask, slice_mask)]
                     )
                 else:
                     self.assertArrayEqual(sliced_rv.cov, rv.cov)
@@ -328,10 +328,10 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
 
                 self.assertEqual(indexed_rv.shape, (10,))
 
-                self.assertArrayEqual(indexed_rv.mean, rv._dense_mean[idcs])
+                self.assertArrayEqual(indexed_rv.mean, rv.dense_mean[idcs])
                 self.assertArrayEqual(indexed_rv.var, rv.var[idcs])
                 self.assertArrayEqual(
-                    indexed_rv.cov, rv._dense_cov[np.ix_(flat_idcs, flat_idcs)]
+                    indexed_rv.cov, rv.dense_cov[np.ix_(flat_idcs, flat_idcs)]
                 )
 
     def test_array_indexing_broadcast(self):
@@ -361,10 +361,10 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 flat_idcs = flat_idcs[0] * rv.shape[1] + flat_idcs[1]
                 flat_idcs = flat_idcs.ravel()
 
-                self.assertArrayEqual(indexed_rv.mean, rv._dense_mean[idcs])
+                self.assertArrayEqual(indexed_rv.mean, rv.dense_mean[idcs])
                 self.assertArrayEqual(indexed_rv.var, rv.var[idcs])
                 self.assertArrayEqual(
-                    indexed_rv.cov, rv._dense_cov[np.ix_(flat_idcs, flat_idcs)]
+                    indexed_rv.cov, rv.dense_cov[np.ix_(flat_idcs, flat_idcs)]
                 )
 
     def test_masking(self):
@@ -378,7 +378,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     np.random.randint(dim_shape, size=10) for dim_shape in rv.shape
                 )
 
-                mask = np.zeros_like(rv._dense_mean, dtype=np.bool)
+                mask = np.zeros_like(rv.dense_mean, dtype=np.bool)
                 mask[idcs] = True
 
                 # Mask distribution
@@ -389,14 +389,14 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Compare with expected parameter values
                 flat_mask = mask.flatten()
 
-                self.assertArrayEqual(masked_rv.mean, rv._dense_mean[mask])
+                self.assertArrayEqual(masked_rv.mean, rv.dense_mean[mask])
                 self.assertArrayEqual(masked_rv.var, rv.var[mask])
 
                 if rv.ndim == 0:
                     self.assertArrayEqual(masked_rv.cov, rv.cov)
                 else:
                     self.assertArrayEqual(
-                        masked_rv.cov, rv._dense_cov[np.ix_(flat_mask, flat_mask)]
+                        masked_rv.cov, rv.dense_cov[np.ix_(flat_mask, flat_mask)]
                     )
 
 
