@@ -85,4 +85,4 @@ class BayesFiltSmooth(ABC):
         """
         Convenience function for accessing ``self.initdist``.
         """
-        return self.initrv.distribution
+        return self.initrv

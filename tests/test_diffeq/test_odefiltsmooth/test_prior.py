@@ -10,8 +10,7 @@ import unittest
 
 import numpy as np
 
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
+from probnum.random_variables import Normal
 from probnum.diffeq.odefiltsmooth import prior
 from tests.testing import NumpyAssertions
 
@@ -57,11 +56,11 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 
     def test_chapmankolmogorov(self):
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
-        initrv = RandomVariable(distribution=Normal(mean, cov))
+        initrv = Normal(mean, cov)
         cke, __ = self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
-        self.assertAllClose(AH_22_IBM @ initrv.mean(), cke.mean(), 1e-14)
+        self.assertAllClose(AH_22_IBM @ initrv.mean, cke.mean, 1e-14)
         self.assertAllClose(
-            AH_22_IBM @ initrv.cov() @ AH_22_IBM.T + QH_22_IBM, cke.cov(), 1e-14
+            AH_22_IBM @ initrv.cov @ AH_22_IBM.T + QH_22_IBM, cke.cov, 1e-14
         )
 
 
@@ -73,12 +72,12 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
 
     def test_chapmankolmogorov(self):
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
-        initrv = RandomVariable(distribution=Normal(mean, cov))
+        initrv = Normal(mean, cov)
         cke, __ = self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
 
-        self.assertAllClose(AH_21_PRE @ initrv.mean(), cke.mean(), 1e-14)
+        self.assertAllClose(AH_21_PRE @ initrv.mean, cke.mean, 1e-14)
         self.assertAllClose(
-            AH_21_PRE @ initrv.cov() @ AH_21_PRE.T + QH_21_PRE, cke.cov(), 1e-14
+            AH_21_PRE @ initrv.cov @ AH_21_PRE.T + QH_21_PRE, cke.cov, 1e-14
         )
 
 
@@ -89,7 +88,7 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
 
     def test_chapmankolmogorov(self):
         mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
-        initrv = RandomVariable(distribution=Normal(mean, cov))
+        initrv = Normal(mean, cov)
         self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
 
     def test_asymptotically_ibm(self):
@@ -145,5 +144,5 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
 
     def test_chapmankolmogorov(self):
         mean, cov = np.ones(self.mat1.ndim), np.eye(self.mat1.ndim)
-        initrv = RandomVariable(distribution=Normal(mean, cov))
+        initrv = Normal(mean, cov)
         self.mat1.chapmankolmogorov(0.0, STEP, STEP, initrv)

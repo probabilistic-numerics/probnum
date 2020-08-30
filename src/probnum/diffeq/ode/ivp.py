@@ -61,7 +61,7 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
         return log_hess(t, y, params)
 
     def sol(t):
-        return log_sol(t, params, initrv.mean())
+        return log_sol(t, params, initrv.mean)
 
     return IVP(timespan, initrv, rhs, jac, hess, sol)
 
@@ -263,8 +263,8 @@ class IVP(ODE):
     --------
     >>> from probnum.diffeq import IVP
     >>> rhsfun = lambda t, y, **kwargs: 2.0*y
-    >>> from probnum.prob import Dirac, Normal, RandomVariable
-    >>> initrv = RandomVariable(distribution=Dirac(0.1))
+    >>> from probnum import random_variables as rvs
+    >>> initrv = rvs.Dirac(0.1)
     >>> timespan = (0, 10)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> print(ivp.rhs(0., 2.))
@@ -274,7 +274,7 @@ class IVP(ODE):
     >>> print(ivp.t0)
     0
 
-    >>> initrv = RandomVariable(distribution=Normal(0.1, 1.0))
+    >>> initrv = rvs.Normal(0.1, 1.0)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> jac = lambda t, y, **kwargs: 2.0
     >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)
@@ -310,7 +310,7 @@ class IVP(ODE):
 
         Depends on the mean of the initial random variable.
         """
-        if np.isscalar(self.initrv.mean()):
+        if np.isscalar(self.initrv.mean):
             return 1
         else:
-            return len(self.initrv.mean())
+            return len(self.initrv.mean)
