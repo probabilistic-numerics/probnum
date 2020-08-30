@@ -427,7 +427,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self, size: ShapeType = ()
     ) -> Union[np.floating, np.ndarray]:
         sample = scipy.stats.norm.rvs(
-            loc=self._mean, scale=self._cov, size=size, random_state=self.random_state
+            loc=self._mean, scale=self.std, size=size, random_state=self.random_state
         )
 
         if np.isscalar(sample):
@@ -444,23 +444,23 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return np.isfinite(x)
 
     def _univariate_pdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.pdf(x, loc=self._mean, scale=self._cov)
+        return scipy.stats.norm.pdf(x, loc=self._mean, scale=self.std)
 
     def _univariate_logpdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.logpdf(x, loc=self._mean, scale=self._cov)
+        return scipy.stats.norm.logpdf(x, loc=self._mean, scale=self.std)
 
     def _univariate_cdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.cdf(x, loc=self._mean, scale=self._cov)
+        return scipy.stats.norm.cdf(x, loc=self._mean, scale=self.std)
 
     def _univariate_logcdf(self, x: _ValueType) -> np.float_:
-        return scipy.stats.norm.logcdf(x, loc=self._mean, scale=self._cov)
+        return scipy.stats.norm.logcdf(x, loc=self._mean, scale=self.std)
 
     def _univariate_quantile(self, p: FloatArgType) -> np.floating:
-        return scipy.stats.norm.ppf(p)
+        return scipy.stats.norm.ppf(p, loc=self._mean, scale=self.std)
 
     def _univariate_entropy(self: _ValueType) -> np.float_:
         return _utils.as_numpy_scalar(
-            scipy.stats.norm.entropy(loc=self._mean, scale=self._cov),
+            scipy.stats.norm.entropy(loc=self._mean, scale=self.std),
             dtype=np.float_,
         )
 
