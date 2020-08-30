@@ -49,20 +49,37 @@ class RandomVariable(Generic[_ValueType]):
     linear operators. This may change their ``distribution`` and not necessarily all
     previously available methods are retained.
 
+    The internals of :class:`RandomVariable` objects are assumed to be constant over
+    their whole lifecycle. This is due to the caches used to make certain computations
+    more efficient. As a consequence, altering the internal state of a
+    :class:`RandomVariable` (e.g. its mean, cov, sampling function, etc.) will result in
+    undefined behavior. In particular, this should be kept in mind when subclassing
+    :class:`RandomVariable` or any of its descendants.
+
     Parameters
     ----------
-    shape : tuple
+    shape :
         Shape of realizations of this random variable.
-    dtype : numpy.dtype or object
+    dtype :
         Data type of realizations of this random variable. If ``object`` will be
         converted to ``numpy.dtype``.
-    distribution : Distribution
-        Probability distribution of the random variable.
+    as_value_type :
+        Function which can be used to transform user-supplied arguments, interpreted as
+        realizations of this random variable, to an easy-to-process, normalized format.
+        Will be called internally to transform the argument of functions like
+        ``in_support``, ``cdf`` and ``logcdf``, ``pmf`` and ``logpmf`` (in
+        :class:`DiscreteRandomVariable`), ``pdf`` and ``logpdf`` (in
+        :class:`ContinuousRandomVariable`), and potentially by similar functions in
+        subclasses.
+
+        For instance, this method is useful if (``log``)``cdf`` and (``log``)``pdf``
+        both only work on :class:`np.float_` arguments, but we still want the user to be
+        able to pass Python :class:`float`. Then ``as_value_type`` should be set to
+        something like ``lambda x: np.float64(x)``.
 
     See Also
     --------
     asrandvar : Transform into a :class:`RandomVariable`.
-    Distribution : A class representing probability distributions.
 
     Examples
     --------
@@ -92,13 +109,17 @@ class RandomVariable(Generic[_ValueType]):
     ):
         # pylint: disable=too-many-arguments,too-many-locals
         """Create a new random variable."""
-        self._shape = _utils.as_shape(shape)
-        self._dtype = np.dtype(dtype)
+        self.__shape = _utils.as_shape(shape)
+
+        # Data Types
+        self.__dtype = np.dtype(dtype)
+        self.__median_dtype = RandomVariable.infer_median_dtype(self.__dtype)
+        self.__moment_dtype = RandomVariable.infer_moment_dtype(self.__dtype)
 
         self._random_state = _utils.as_random_state(random_state)
 
         # Probability distribution of the random variable
-        self._parameters = parameters.copy() if parameters is not None else {}
+        self.__parameters = parameters.copy() if parameters is not None else {}
 
         self.__sample = sample
 
@@ -117,9 +138,6 @@ class RandomVariable(Generic[_ValueType]):
         self.__entropy = entropy
 
         # Utilities
-        self._median_dtype = np.promote_types(self._dtype, np.float_)
-        self._moments_dtype = np.promote_types(self._dtype, np.float_)
-
         self.__as_value_type = as_value_type
 
     def __repr__(self) -> str:
@@ -128,20 +146,43 @@ class RandomVariable(Generic[_ValueType]):
     @property
     def shape(self) -> ShapeType:
         """Shape of realizations of the random variable."""
-        return self._shape
+        return self.__shape
 
     @cached_property
     def ndim(self) -> int:
-        return len(self._shape)
+        return len(self.__shape)
 
     @cached_property
     def size(self) -> int:
-        return int(np.prod(self._shape))
+        return int(np.prod(self.__shape))
 
     @property
     def dtype(self) -> np.dtype:
         """Data type of (elements of) a realization of this random variable."""
-        return self._dtype
+        return self.__dtype
+
+    @property
+    def median_dtype(self) -> np.dtype:
+        """The dtype of the :attr:`median`. It will be set to the dtype arising from
+        the multiplication of values with dtypes :attr:`dtype` and :class:`np.float_`.
+        This is motivated by the fact that, even for discrete random variables, e.g.
+        integer-valued random variables, the :attr:`median` might lie in between two
+        values in which case these values are averaged. For example, a uniform random
+        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
+        """
+        return self.__median_dtype
+
+    @property
+    def moment_dtype(self) -> np.dtype:
+        """The dtype of any (function of a) moment of the random variable, e.g. its
+        :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. It will be set to the
+        dtype arising from the multiplication of values with dtypes :attr:`dtype`
+        and :class:`np.float_`. This is motivated by the mathematical definition of a
+        moment as a sum or an integral over products of probabilities and values of the
+        random variable, which are represented as using the dtypes :class:`np.float_`
+        and :attr:`dtype`, respectively.
+        """
+        return self.__moment_dtype
 
     @property
     def random_state(self) -> RandomStateType:
@@ -174,7 +215,7 @@ class RandomVariable(Generic[_ValueType]):
         The parameters of the distribution such as mean, variance, et cetera stored in a
         ``dict``.
         """
-        return self._parameters.copy()
+        return self.__parameters.copy()
 
     @cached_property
     def mode(self) -> _ValueType:
@@ -194,8 +235,8 @@ class RandomVariable(Generic[_ValueType]):
         RandomVariable._check_property_value(
             "mode",
             mode,
-            shape=self._shape,
-            dtype=self._dtype,
+            shape=self.__shape,
+            dtype=self.__dtype,
         )
 
         # Make immutable
@@ -209,13 +250,15 @@ class RandomVariable(Generic[_ValueType]):
         """
         Median of the random variable.
 
+        To learn about the dtype of the median, see :attr:`median_dtype`.
+
         Returns
         -------
         median : float
             The median of the distribution.
         """
 
-        if self._shape != ():
+        if self.__shape != ():
             raise NotImplementedError(
                 "The median is only defined for scalar random variables."
             )
@@ -225,8 +268,8 @@ class RandomVariable(Generic[_ValueType]):
         RandomVariable._check_property_value(
             "median",
             median,
-            shape=self._shape,
-            dtype=self._median_dtype,
+            shape=self.__shape,
+            dtype=self.__median_dtype,
         )
 
         # Make immutable
@@ -239,6 +282,8 @@ class RandomVariable(Generic[_ValueType]):
     def mean(self) -> _ValueType:
         """
         Mean :math:`\\mathbb{E}(X)` of the distribution.
+
+        To learn about the dtype of the mean, see :attr:`moment_dtype`.
 
         Returns
         -------
@@ -253,8 +298,8 @@ class RandomVariable(Generic[_ValueType]):
         RandomVariable._check_property_value(
             "mean",
             mean,
-            shape=self._shape,
-            dtype=self._moments_dtype,
+            shape=self.__shape,
+            dtype=self.__moment_dtype,
         )
 
         # Make immutable
@@ -268,6 +313,8 @@ class RandomVariable(Generic[_ValueType]):
         """
         Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)`
         of the random variable.
+
+        To learn about the dtype of the covariance, see :attr:`moment_dtype`.
 
         Returns
         -------
@@ -283,7 +330,7 @@ class RandomVariable(Generic[_ValueType]):
             "covariance",
             cov,
             shape=(self.size, self.size) if self.ndim > 0 else (),
-            dtype=self._moments_dtype,
+            dtype=self.__moment_dtype,
         )
 
         # Make immutable
@@ -298,6 +345,8 @@ class RandomVariable(Generic[_ValueType]):
         Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of
         the distribution.
 
+        To learn about the dtype of the variance, see :attr:`moment_dtype`.
+
         Returns
         -------
         var : array-like
@@ -305,7 +354,7 @@ class RandomVariable(Generic[_ValueType]):
         """
         if self.__var is None:
             try:
-                var = np.diag(self.cov).reshape(self._shape).copy()
+                var = np.diag(self.cov).reshape(self.__shape).copy()
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
@@ -314,8 +363,8 @@ class RandomVariable(Generic[_ValueType]):
         RandomVariable._check_property_value(
             "variance",
             var,
-            shape=self._shape,
-            dtype=self._moments_dtype,
+            shape=self.__shape,
+            dtype=self.__moment_dtype,
         )
 
         # Make immutable
@@ -328,6 +377,8 @@ class RandomVariable(Generic[_ValueType]):
     def std(self) -> _ValueType:
         """
         Standard deviation of the distribution.
+
+        To learn about the dtype of the standard deviation, see :attr:`moment_dtype`.
 
         Returns
         -------
@@ -345,8 +396,8 @@ class RandomVariable(Generic[_ValueType]):
         RandomVariable._check_property_value(
             "standard deviation",
             std,
-            shape=self._shape,
-            dtype=self._moments_dtype,
+            shape=self.__shape,
+            dtype=self.__moment_dtype,
         )
 
         # Make immutable
@@ -409,6 +460,9 @@ class RandomVariable(Generic[_ValueType]):
         ----------
         x : array-like
             Evaluation points of the cumulative distribution function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The cdf evaluation will be broadcast over all additional dimensions.
 
         Returns
         -------
@@ -439,6 +493,9 @@ class RandomVariable(Generic[_ValueType]):
         ----------
         x : array-like
             Evaluation points of the cumulative distribution function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The logcdf evaluation will be broadcast over all additional dimensions.
 
         Returns
         -------
@@ -462,7 +519,20 @@ class RandomVariable(Generic[_ValueType]):
             )
 
     def quantile(self, p: FloatArgType) -> _ValueType:
-        if self._shape != ():
+        """Quantile function.
+
+        The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
+        variable :math:`X` is defined as
+        :math:`Q(p) = \\inf\\{ x \\in \\mathbb{R} \\colon p \\le F_X(x) \\}`, where
+        :math:`F_X \\colon \\mathbb{R} \\to [0, 1]` is the :meth:`cdf` of the random
+        variable. From the definition it follows that the quantile function always
+        returns values of the same dtype as the random variable. For instance, for a
+        discrete distribution over the integers, the returned quantiles will also be
+        integers. This means that, in general, :math:`Q(0.5)` is not equal to the
+        :attr:`median` as it is defined in this class. See
+        https://en.wikipedia.org/wiki/Quantile_function for more details and examples.
+        """
+        if self.__shape != ():
             raise NotImplementedError(
                 "The quantile function is only defined for scalar random variables."
             )
@@ -479,17 +549,17 @@ class RandomVariable(Generic[_ValueType]):
 
         quantile = self.__quantile(p)
 
-        if quantile.shape != self._shape:
+        if quantile.shape != self.__shape:
             raise ValueError(
                 f"The quantile function should return values of the same shape as the "
-                f"random variable, i.e. {self._shape}, but it returned a value with "
+                f"random variable, i.e. {self.__shape}, but it returned a value with "
                 f"{quantile.shape}."
             )
 
-        if quantile.dtype != self._dtype:
+        if quantile.dtype != self.__dtype:
             raise ValueError(
                 f"The quantile function should return values of the same dtype as the "
-                f"random variable, i.e. `{self._dtype.name}`, but it returned a value "
+                f"random variable, i.e. `{self.__dtype.name}`, but it returned a value "
                 f"with dtype `{quantile.dtype.name}`."
             )
 
@@ -731,6 +801,14 @@ class RandomVariable(Generic[_ValueType]):
 
         return pow_(other, self)
 
+    @staticmethod
+    def infer_median_dtype(value_dtype: DTypeArgType) -> np.dtype:
+        return RandomVariable.infer_moment_dtype(value_dtype)
+
+    @staticmethod
+    def infer_moment_dtype(value_dtype: DTypeArgType) -> np.dtype:
+        return np.promote_types(value_dtype, np.float_)
+
     def _as_value_type(self, x: Any) -> _ValueType:
         if self.__as_value_type is not None:
             return self.__as_value_type(x)
@@ -922,10 +1000,16 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         """
         Probability density or mass function.
 
+        Following the predominant convention in mathematics, we express pdfs with
+        respect to the Lebesgue measure unless stated otherwise.
+
         Parameters
         ----------
         x : array-like
             Evaluation points of the probability density / mass function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The pdf evaluation will be broadcast over all additional dimensions.
 
         Returns
         -------
@@ -956,6 +1040,9 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         ----------
         x : array-like
             Evaluation points of the log-probability density/mass function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The logpdf evaluation will be broadcast over all additional dimensions.
 
         Returns
         -------
