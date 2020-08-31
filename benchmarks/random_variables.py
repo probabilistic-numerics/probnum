@@ -53,24 +53,28 @@ class Functions:
     Benchmark various functions of distributions.
     """
 
-    param_names = ["randvar", "property"]
+    param_names = ["randvar", "method"]
     params = [RV_NAMES, ["pdf", "logpdf", "cdf", "logcdf"]]
 
-    def setup(self, randvar, property):
+    def setup(self, randvar, method):
+        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
+
         self.randvar = get_randvar(rv_name=randvar)
         self.eval_point = np.random.uniform(size=self.randvar.shape)
         self.quantile = np.random.uniform(size=self.randvar.shape)
 
-    def time_distr_functions(self, randvar, property):
+    def time_distr_functions(self, randvar, method):
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
+        # pylint: disable=unused-argument
+
         try:
-            if property == "pdf":
+            if method == "pdf":
                 self.randvar.pdf(x=self.eval_point)
-            elif property == "logpdf":
+            elif method == "logpdf":
                 self.randvar.logpdf(x=self.eval_point)
-            elif property == "cdf":
+            elif method == "cdf":
                 self.randvar.cdf(x=self.quantile)
-            elif property == "logcdf":
+            elif method == "logcdf":
                 self.randvar.logcdf(x=self.quantile)
         except NotImplementedError:
             pass
@@ -85,14 +89,19 @@ class Sampling:
     params = [RV_NAMES]
 
     def setup(self, randvar):
+        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
         np.random.seed(42)
         self.n_samples = 1000
         self.randvar = get_randvar(rv_name=randvar)
 
     def time_sample(self, randvar):
         """Times sampling from this distribution."""
+        # pylint: disable=unused-argument
+
         self.randvar.sample(self.n_samples)
 
     def peakmem_sample(self, randvar):
         """Peak memory of sampling process."""
+        # pylint: disable=unused-argument
+
         self.randvar.sample(self.n_samples)
