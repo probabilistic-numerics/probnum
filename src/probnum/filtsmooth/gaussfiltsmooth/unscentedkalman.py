@@ -7,8 +7,11 @@ which is based on a third degree fully symmetric rule.
 
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import GaussFiltSmooth
-from probnum.prob import RandomVariable, Normal
+from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
+    GaussFiltSmooth,
+    linear_discrete_update,
+)
+from probnum.random_variables import Normal
 from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import UnscentedTransform
 from probnum.filtsmooth.statespace import (
     ContinuousModel,
@@ -112,7 +115,7 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         """
         Basic Kalman update because model is linear.
         """
-        mean, covar = randvar.mean(), randvar.cov()
+        mean, covar = randvar.mean, randvar.cov
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
         dynamat = self.dynamod.dynamicsmatrix(start, **kwargs)
@@ -121,13 +124,13 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         mpred = dynamat @ mean + forcevec
         crosscov = covar @ dynamat.T
         cpred = dynamat @ crosscov + diffmat
-        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
+        return Normal(mpred, cpred), crosscov
 
     def _predict_nonlinear(self, start, randvar, **kwargs):
         """
         Executes unscented transform!
         """
-        mean, covar = randvar.mean(), randvar.cov()
+        mean, covar = randvar.mean, randvar.cov
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
         sigmapts = self.ut.sigma_points(mean, covar)
@@ -136,7 +139,7 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         mpred, cpred, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, diffmat, mean
         )
-        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
+        return Normal(mpred, cpred), crosscov
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_unskalman_update(
@@ -152,21 +155,17 @@ def _discrete_unskalman_update(time, randvar, data, measmod, ut, **kwargs):
 
 
 def _update_discrete_linear(time, randvar, data, measmod, **kwargs):
-    mpred, cpred = randvar.mean(), randvar.cov()
+    mpred, cpred = randvar.mean, randvar.cov
     if np.isscalar(mpred) and np.isscalar(cpred):
         mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
     measmat = measmod.dynamicsmatrix(time, **kwargs)
     meascov = measmod.diffusionmatrix(time, **kwargs)
     meanest = measmat @ mpred
-    covest = measmat @ cpred @ measmat.T + meascov
-    ccest = cpred @ measmat.T
-    mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
-    cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
+    return linear_discrete_update(meanest, cpred, data, meascov, measmat, mpred)
 
 
 def _update_discrete_nonlinear(time, randvar, data, measmod, ut, **kwargs):
-    mpred, cpred = randvar.mean(), randvar.cov()
+    mpred, cpred = randvar.mean, randvar.cov
     if np.isscalar(mpred) and np.isscalar(cpred):
         mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
     sigmapts = ut.sigma_points(mpred, cpred)
@@ -175,4 +174,4 @@ def _update_discrete_nonlinear(time, randvar, data, measmod, ut, **kwargs):
     meanest, covest, ccest = ut.estimate_statistics(proppts, sigmapts, meascov, mpred)
     mean = mpred + ccest @ np.linalg.solve(covest, data - meanest)
     cov = cpred - ccest @ np.linalg.solve(covest.T, ccest.T)
-    return RandomVariable(distribution=Normal(mean, cov)), covest, ccest, meanest
+    return Normal(mean, cov), covest, ccest, meanest

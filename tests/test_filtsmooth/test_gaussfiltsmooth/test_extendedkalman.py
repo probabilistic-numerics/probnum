@@ -36,20 +36,20 @@ class TestExtendedKalmanDiscDisc(CarTrackingDDTestCase):
 
     def test_predict(self):
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
-        self.assertEqual(pred.mean().ndim, 1)
-        self.assertEqual(pred.mean().shape[0], 4)
-        self.assertEqual(pred.cov().ndim, 2)
-        self.assertEqual(pred.cov().shape[0], 4)
-        self.assertEqual(pred.cov().shape[1], 4)
+        self.assertEqual(pred.mean.ndim, 1)
+        self.assertEqual(pred.mean.shape[0], 4)
+        self.assertEqual(pred.cov.ndim, 2)
+        self.assertEqual(pred.cov.shape[0], 4)
+        self.assertEqual(pred.cov.shape[1], 4)
 
     def test_update(self):
-        data = self.measmod.sample(0.0, self.initrv.mean())
+        data = self.measmod.sample(0.0, self.initrv.mean)
         upd, __, __, __ = self.method.update(0.0, self.initrv, data)
-        self.assertEqual(upd.mean().ndim, 1)
-        self.assertEqual(upd.mean().shape[0], 4)
-        self.assertEqual(upd.cov().ndim, 2)
-        self.assertEqual(upd.cov().shape[0], 4)
-        self.assertEqual(upd.cov().shape[1], 4)
+        self.assertEqual(upd.mean.ndim, 1)
+        self.assertEqual(upd.mean.shape[0], 4)
+        self.assertEqual(upd.cov.ndim, 2)
+        self.assertEqual(upd.cov.shape[0], 4)
+        self.assertEqual(upd.cov.shape[1], 4)
 
     def test_filtsmooth(self):
         """
@@ -67,7 +67,7 @@ class TestExtendedKalmanDiscDisc(CarTrackingDDTestCase):
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[1:, :2] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[1:, :2] - comp) / normaliser
-        obs_rmse = np.linalg.norm(self.obs - comp) / normaliser
+        obs_rmse = np.linalg.norm(self.obs[:, :2] - comp) / normaliser
 
         if VISUALISE is True:
             plt.title(
@@ -115,8 +115,8 @@ class TestExtendedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
 
     def test_predict_shape(self):
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
-        self.assertEqual(pred.mean().shape, (1,))
-        self.assertEqual(pred.cov().shape, (1, 1))
+        self.assertEqual(pred.mean.shape, (1,))
+        self.assertEqual(pred.cov.shape, (1, 1))
 
     def test_predict_value(self):
         pred, __ = self.method.predict(0.0, self.delta_t, self.initrv)
@@ -126,16 +126,16 @@ class TestExtendedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
             / (2 * self.lam)
             * (1 - scipy.linalg.expm(2 * self.drift * self.delta_t))
         )
-        expectedmean = np.squeeze(ah @ (self.initrv.mean() * np.ones(1)))
-        expectedcov = np.squeeze(ah @ (self.initrv.cov() * np.eye(1)) @ ah.T + qh)
-        self.assertApproxEqual(expectedmean, pred.mean())
-        self.assertApproxEqual(expectedcov, pred.cov())
+        expectedmean = np.squeeze(ah @ (self.initrv.mean * np.ones(1)))
+        expectedcov = np.squeeze(ah @ (self.initrv.cov * np.eye(1)) @ ah.T + qh)
+        self.assertApproxEqual(expectedmean, pred.mean)
+        self.assertApproxEqual(expectedcov, pred.cov)
 
     def test_update(self):
-        data = self.measmod.sample(0.0, self.initrv.mean() * np.ones(1))
+        data = self.measmod.sample(0.0, self.initrv.mean * np.ones(1))
         upd, __, __, __ = self.method.update(0.0, self.initrv, data)
-        self.assertEqual(upd.mean().shape, (1,))
-        self.assertEqual(upd.cov().shape, (1, 1))
+        self.assertEqual(upd.mean.shape, (1,))
+        self.assertEqual(upd.cov.shape, (1, 1))
 
     def test_smoother(self):
         """
@@ -190,7 +190,7 @@ class TestExtendedKalmanPendulum(PendulumNonlinearDDTestCase):
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[:, 0] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[:, 0] - comp) / normaliser
-        obs_rmse = np.sqrt(self.r[0, 0])
+        obs_rmse = np.linalg.norm(self.obs[:, 0] - comp[1:]) / normaliser
 
         if VISUALISE is True:
             fig, (ax1, ax2) = plt.subplots(1, 2)

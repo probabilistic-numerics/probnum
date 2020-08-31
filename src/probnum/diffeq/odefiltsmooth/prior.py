@@ -14,7 +14,7 @@ from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
-from probnum.prob import RandomVariable, Normal
+from probnum.random_variables import Normal
 
 
 class ODEPrior(LTISDEModel):
@@ -41,7 +41,7 @@ class ODEPrior(LTISDEModel):
     By default, we choose :math:`P` to be the
     matrix that maps to filtering iteration to the Nordsieck vector,
 
-    .. math:: P = \\text{diag }(1, h, h^2, ..., h^q).
+    .. math:: P = \\text{diag }(h^{-q}, h^{-q+1}, ..., 1).
 
     Here, :math:`h` is some expected average step size. Note that we
     ignored the factorials in this matrix. Our setting makes it easy to
@@ -69,6 +69,10 @@ class ODEPrior(LTISDEModel):
     Without preconditioning they can be numerically singular for small
     steps and higher order methods which especially makes smoothing
     algorithms unstable.
+
+    Another advantage of this preconditioning is that the smallest value
+    that appears inside the algorithm is :math:`h^{q}` (with
+    preconditioning) instead of :math:`h^{2q+1}` (without preconditioning).
 
     The matrices :math:`F, u, L` are the usual matrices for
     IBM(:math:`q`), IOUP(:math:`q`) or Matern(:math:`q+1/2`) processes.
@@ -149,7 +153,7 @@ class ODEPrior(LTISDEModel):
             )
             warnings.warn(message=warnmsg, category=RuntimeWarning)
             step = 1e-15 ** (1 / self.ordint)
-        powers = np.arange(self.ordint + 1)
+        powers = np.arange(start=-self.ordint, stop=1)
         diags = step ** powers
         precond = np.kron(np.eye(self.spatialdim), np.diag(diags))
         invprecond = np.kron(np.eye(self.spatialdim), np.diag(1.0 / diags))
@@ -267,13 +271,13 @@ class IBM(ODEPrior):
 
         "step" variable is obsolent here and is ignored.
         """
-        mean, covar = randvar.mean(), randvar.cov()
+        mean, covar = randvar.mean, randvar.cov
         ah = self._trans_ibm(start, stop)
         qh = self._transdiff_ibm(start, stop)
         mpred = ah @ mean
         crosscov = covar @ ah.T
         cpred = ah @ crosscov + qh
-        return RandomVariable(distribution=Normal(mpred, cpred)), crosscov
+        return Normal(mpred, cpred), crosscov
 
     def _trans_ibm(self, start, stop):
         """

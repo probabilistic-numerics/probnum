@@ -3,8 +3,7 @@ Discrete Gauss-Markov models of the form
 x_{i+1} = N(g(i, x_i), S(i))
 """
 
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Normal
+from probnum.random_variables import Normal
 from probnum.filtsmooth.statespace.discrete import discretemodel
 
 
@@ -76,7 +75,7 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         """
         dynavl = self.dynamics(time, state, **kwargs)
         diffvl = self.diffusionmatrix(time, **kwargs)
-        rv = RandomVariable(distribution=Normal(dynavl, diffvl))
+        rv = Normal(dynavl, diffvl)
         return rv.sample()
 
     def pdf(self, loc, time, state, **kwargs):

@@ -51,7 +51,7 @@ class BayesFiltSmooth(ABC):
         )
         raise NotImplementedError(errormsg)
 
-    def update(self, start, stop, randvar, data, **kwargs):
+    def update(self, time, randvar, data, **kwargs):
         """
         Update step of the Bayesian filter.
 
@@ -85,4 +85,4 @@ class BayesFiltSmooth(ABC):
         """
         Convenience function for accessing ``self.initdist``.
         """
-        return self.initrv.distribution
+        return self.initrv
