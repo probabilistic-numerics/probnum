@@ -55,9 +55,9 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         self.prior = prior.IBM(2, 2, DIFFCONST)
 
     def test_chapmankolmogorov(self):
-        mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
+        mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
         initrv = Normal(mean, cov)
-        cke, __ = self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
         self.assertAllClose(AH_22_IBM @ initrv.mean, cke.mean, 1e-14)
         self.assertAllClose(
             AH_22_IBM @ initrv.cov @ AH_22_IBM.T + QH_22_IBM, cke.cov, 1e-14
@@ -70,14 +70,14 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         """
         # pylint: disable=bad-super-call
         mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
-        initrv = RandomVariable(distribution=Normal(mean, cov))
+        initrv = Normal(mean, cov)
         cke_super, __ = super(type(self.prior), self.prior).chapmankolmogorov(
             0.0, STEP, STEP, initrv
         )
         cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
 
-        self.assertAllClose(cke_super.mean(), cke.mean(), 1e-14)
-        self.assertAllClose(cke_super.cov(), cke.cov(), 1e-14)
+        self.assertAllClose(cke_super.mean, cke.mean, 1e-14)
+        self.assertAllClose(cke_super.cov, cke.cov, 1e-14)
 
 
 class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
@@ -87,9 +87,9 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
         )
 
     def test_chapmankolmogorov(self):
-        mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
+        mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
         initrv = Normal(mean, cov)
-        cke, __ = self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
 
         self.assertAllClose(AH_21_PRE @ initrv.mean, cke.mean, 1e-14)
         self.assertAllClose(
@@ -104,14 +104,14 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
         # pylint: disable=bad-super-call
 
         mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
-        initrv = RandomVariable(distribution=Normal(mean, cov))
+        initrv = Normal(mean, cov)
         cke_super, __ = super(type(self.prior), self.prior).chapmankolmogorov(
             0.0, STEP, STEP, initrv
         )
         cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
 
-        self.assertAllClose(cke_super.mean(), cke.mean(), 1e-14)
-        self.assertAllClose(cke_super.cov(), cke.cov(), 1e-14)
+        self.assertAllClose(cke_super.mean, cke.mean, 1e-14)
+        self.assertAllClose(cke_super.cov, cke.cov, 1e-14)
 
 
 class TestIOUP(unittest.TestCase, NumpyAssertions):
