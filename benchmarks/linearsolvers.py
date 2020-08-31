@@ -36,7 +36,7 @@ class LinSolve:
     params = [["sparse", "dense"]]  # , "large-scale"]
 
     def setup(self, system):
-        # pylint: disable=missing-function-docstring,attribute-defined-outside-init
+        # pylint: disable=missing-function-docstring,attribute-defined-outside-init,invalid-name
 
         # Seed
         np.random.seed(42)
@@ -45,7 +45,7 @@ class LinSolve:
             (
                 self.A,
                 self.b,
-            ) = load_poisson_linear_system()  # pylint: disable=invalid-name
+            ) = load_poisson_linear_system()
         elif system == "dense":
             self.A = RANDOM_5x5_SPD_MATRIX
             self.b = np.random.normal(size=self.A.shape[0])
@@ -77,15 +77,15 @@ class PosteriorDist:
 
     def setup(self, output):
         # pylint: disable=missing-function-docstring,attribute-defined-outside-init
-        # pylint: disable=unused-argument
+        # pylint: disable=unused-argument, invalid-name
 
         # Sparse system
-        self.A, self.b = load_poisson_linear_system()  # pylint: disable=invalid-name
+        self.A, self.b = load_poisson_linear_system()
 
         # Solve linear system
         self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(
             A=self.A, b=self.b
-        )  # pylint: disable=invalid-name
+        )
 
         # Benchmark parameters
         self.n_samples = 10
