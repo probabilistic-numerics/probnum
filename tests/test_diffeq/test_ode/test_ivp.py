@@ -1,8 +1,7 @@
 import unittest
 import numpy as np
 from probnum.diffeq.ode import ivp
-from probnum.prob import RandomVariable
-from probnum.prob.distributions import Dirac
+from probnum.random_variables import Dirac
 from tests.testing import NumpyAssertions
 
 TEST_NDIM = 3
@@ -20,14 +19,14 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
         """
         Test the logistic ODE convenience function.
         """
-        rv = RandomVariable(distribution=Dirac(0.1))
+        rv = Dirac(0.1)
         lg1 = ivp.logistic(self.tspan, rv)
         self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
         lg2 = ivp.logistic(self.tspan, rv, params=(1.0, 1.0))
         self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
 
     def test_logistic_jacobian(self):
-        rv = RandomVariable(distribution=Dirac(0.1))
+        rv = Dirac(0.1)
         lg1 = ivp.logistic(self.tspan, rv)
         random_direction = 1 + 0.1 * np.random.rand(lg1.ndim)
         random_point = 1 + np.random.rand(lg1.ndim)
@@ -44,14 +43,14 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
         )
 
     def test_fitzhughnagumo(self):
-        rv = RandomVariable(distribution=Dirac(np.ones(2)))
+        rv = Dirac(np.ones(2))
         lg1 = ivp.fitzhughnagumo(self.tspan, rv)
         self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
         lg2 = ivp.fitzhughnagumo(self.tspan, rv, params=(1.0, 1.0, 1.0, 1.0))
         self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
 
     def test_fitzhughnagumo_jacobian(self):
-        rv = RandomVariable(distribution=Dirac(np.ones(2)))
+        rv = Dirac(np.ones(2))
         lg1 = ivp.fitzhughnagumo(self.tspan, rv)
         random_direction = 1 + 0.1 * np.random.rand(lg1.ndim)
         random_point = 1 + np.random.rand(lg1.ndim)
@@ -68,14 +67,13 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
         )
 
     def test_lotkavolterra(self):
-        rv = RandomVariable(distribution=Dirac(np.ones(2)))
+        rv = Dirac(np.ones(2))
         lg1 = ivp.lotkavolterra(self.tspan, rv)
-        self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
         lg2 = ivp.lotkavolterra(self.tspan, rv, params=(1.0, 1.0, 1.0, 1.0))
         self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
 
     def test_lotkavolterra_jacobian(self):
-        rv = RandomVariable(distribution=Dirac(np.ones(2)))
+        rv = Dirac(np.ones(2))
         lg1 = ivp.lotkavolterra(self.tspan, rv)
         random_direction = 1 + 0.1 * np.random.rand(lg1.ndim)
         random_point = 1 + np.random.rand(lg1.ndim)
@@ -104,7 +102,7 @@ class TestIVP(unittest.TestCase):
             return np.exp(-t) * np.ones(TEST_NDIM)
 
         some_center = np.random.rand(TEST_NDIM)
-        rv = RandomVariable(distribution=Dirac(some_center))
+        rv = Dirac(some_center)
         self.mockivp = ivp.IVP(
             (0.0, np.random.rand()), rv, rhs=rhs_, jac=jac_, sol=sol_
         )
