@@ -7,7 +7,7 @@ import numpy as np
 from probnum import random_variables as rvs
 import probnum.linalg.linops as linops
 
-from benchmarks.benchmark_utils import RANDOM_5x5_SPD_MATRIX
+from benchmarks.benchmark_utils import SPD_MATRIX_5x5
 
 # Module level variables
 RV_NAMES = [
@@ -27,12 +27,12 @@ def get_randvar(rv_name):
 
     mean_0d = np.random.rand()
     mean_1d = np.random.rand(5)
-    mean_2d_mat = RANDOM_5x5_SPD_MATRIX
-    mean_2d_linop = linops.MatrixMult(RANDOM_5x5_SPD_MATRIX)
+    mean_2d_mat = SPD_MATRIX_5x5
+    mean_2d_linop = linops.MatrixMult(SPD_MATRIX_5x5)
     cov_0d = np.random.rand() + 10 ** -12
-    cov_1d = RANDOM_5x5_SPD_MATRIX
-    cov_2d_kron = linops.Kronecker(A=RANDOM_5x5_SPD_MATRIX, B=RANDOM_5x5_SPD_MATRIX)
-    cov_2d_symkron = linops.SymmetricKronecker(A=RANDOM_5x5_SPD_MATRIX)
+    cov_1d = SPD_MATRIX_5x5
+    cov_2d_kron = linops.Kronecker(A=SPD_MATRIX_5x5, B=SPD_MATRIX_5x5)
+    cov_2d_symkron = linops.SymmetricKronecker(A=SPD_MATRIX_5x5)
 
     if rv_name == "univar_normal":
         randvar = rvs.Normal(mean=mean_0d, cov=cov_0d)

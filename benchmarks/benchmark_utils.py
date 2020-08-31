@@ -3,7 +3,7 @@
 import numpy as np
 
 
-RANDOM_5x5_SPD_MATRIX = np.array(
+SPD_MATRIX_5x5 = np.array(
     [
         [2.3, -2.3, 3.5, 4.2, 1.8],
         [-2.3, 3.0, -3.5, -4.8, -1.9],

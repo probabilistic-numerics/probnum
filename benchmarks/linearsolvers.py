@@ -7,7 +7,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum.linalg import problinsolve
-from benchmarks.benchmark_utils import RANDOM_5x5_SPD_MATRIX
+from benchmarks.benchmark_utils import SPD_MATRIX_5x5
 
 
 def load_poisson_linear_system():
@@ -47,7 +47,7 @@ class LinSolve:
                 self.b,
             ) = load_poisson_linear_system()
         elif system == "dense":
-            self.A = RANDOM_5x5_SPD_MATRIX
+            self.A = SPD_MATRIX_5x5
             self.b = np.random.normal(size=self.A.shape[0])
         elif system == "large-scale":
             self.A = None
