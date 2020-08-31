@@ -1,10 +1,10 @@
 Linear Algebra
 ===============
 
-Linear algebra is fundamental to much of scientific computation. ProbNum enables implicit representation of linear maps and probabilistic routines to solve linear systems.
+Linear algebra is fundamental to arguably most of scientific computation. ProbNum defines (finite-dimensional) linear
+operators in a memory-efficient manner and implements probabilistic numerical methods to solve linear systems.
 
 See the notebooks below to learn more about linear algebra in ProbNum.
-
 
 .. nbgallery::
    :maxdepth: 2
@@ -14,5 +14,5 @@ See the notebooks below to learn more about linear algebra in ProbNum.
    galerkin_method
 
 
-If you want to try out these tutorials for yourself, you can
-download the notebooks from the `GitHub repository <https://github.com/probabilistic-numerics/probnum/tree/master/docs/source/tutorials>`_.
+If you want to try out these tutorials for yourself, you can download the notebooks from the
+`GitHub repository <https://github.com/probabilistic-numerics/probnum/tree/master/docs/source/tutorials>`_.
