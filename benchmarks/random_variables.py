@@ -20,9 +20,7 @@ RV_NAMES = [
 
 
 def get_randvar(rv_name):
-    """
-    Return a random variable for a given distribution name
-    """
+    """Return a random variable for a given distribution name."""
     # Distribution Means and Covariances
 
     mean_0d = np.random.rand()
@@ -49,9 +47,7 @@ def get_randvar(rv_name):
 
 
 class Functions:
-    """
-    Benchmark various functions of distributions.
-    """
+    """Benchmark various functions of random variables."""
 
     param_names = ["randvar", "method"]
     params = [RV_NAMES, ["pdf", "logpdf", "cdf", "logcdf"]]
@@ -81,9 +77,7 @@ class Functions:
 
 
 class Sampling:
-    """
-    Benchmark sampling routines for various distributions.
-    """
+    """Benchmark sampling routines for various distributions."""
 
     param_names = ["randvar"]
     params = [RV_NAMES]
