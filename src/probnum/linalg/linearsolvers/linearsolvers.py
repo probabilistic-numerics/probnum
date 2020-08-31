@@ -25,9 +25,9 @@ from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
 
 SquareLinOp = Union[
-    np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "prob.RandomVariable"
+    np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "probnum.RandomVariable"
 ]
-RandomVecMat = Union[np.ndarray, "prob.RandomVariable"]
+RandomVecMat = Union[np.ndarray, "probnum.RandomVariable"]
 
 
 def problinsolve(
@@ -42,7 +42,7 @@ def problinsolve(
     rtol: float = 10 ** -6,
     callback: Optional[Callable] = None,
     **kwargs
-) -> Tuple["prob.RandomVariable", "prob.RandomVariable", "prob.RandomVariable", Dict]:
+) -> Tuple["probnum.RandomVariable", "probnum.RandomVariable", "probnum.RandomVariable", Dict]:
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
