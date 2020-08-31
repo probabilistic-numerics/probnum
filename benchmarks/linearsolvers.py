@@ -36,7 +36,7 @@ class LinSolve:
     params = [["sparse", "dense"]]  # , "large-scale"]
 
     def setup(self, system):
-        # pylint: disable=missing-function-docstring,attribute-defined-outside-init,invalid-name
+        # pylint: disable=attribute-defined-outside-init,invalid-name
 
         # Seed
         np.random.seed(42)
@@ -76,7 +76,7 @@ class PosteriorDist:
     params = [["solution", "matrix", "matrix_inverse"]]
 
     def setup(self, output):
-        # pylint: disable=missing-function-docstring,attribute-defined-outside-init
+        # pylint: disable=attribute-defined-outside-init
         # pylint: disable=unused-argument, invalid-name
 
         # Sparse system

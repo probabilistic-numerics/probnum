@@ -21,7 +21,7 @@ class IVPSolve:
     params = [["eks0", "ekf0"], ["with", "without"], ["ibm4", "ioup4", "matern92"]]
 
     def setup(self, method, precond, prior):
-        # pylint: disable=missing-function-docstring,attribute-defined-outside-init,invalid-name,unused-argument
+        # pylint: disable=attribute-defined-outside-init,invalid-name,unused-argument
         self.ivp = load_lotkavolterra()
         self.stepsize = 1e-2
 
