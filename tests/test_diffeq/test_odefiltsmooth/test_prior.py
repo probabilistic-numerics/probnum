@@ -69,11 +69,10 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         The result of chapmankolmogorov() should be identical to the matrix fraction decomposition technique
         implemented in LinearSDE, just faster.
         """
+        # pylint: disable=bad-super-call
         mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
         initrv = RandomVariable(distribution=Normal(mean, cov))
-        cke_super, __ = super(
-            type(self.prior), self.prior
-        ).chapmankolmogorov(  # pylint: disable=bad-super-call
+        cke_super, __ = super(type(self.prior), self.prior).chapmankolmogorov(
             0.0, STEP, STEP, initrv
         )
         cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
@@ -103,11 +102,11 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
         The result of chapmankolmogorov() should be identical to the matrix fraction decomposition technique
         implemented in LinearSDE, just faster.
         """
+        # pylint: disable=bad-super-call
+
         mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
         initrv = RandomVariable(distribution=Normal(mean, cov))
-        cke_super, __ = super(
-            type(self.prior), self.prior
-        ).chapmankolmogorov(  # pylint: disable=bad-super-call
+        cke_super, __ = super(type(self.prior), self.prior).chapmankolmogorov(
             0.0, STEP, STEP, initrv
         )
         cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
