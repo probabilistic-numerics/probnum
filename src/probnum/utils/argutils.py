@@ -3,7 +3,7 @@ import numbers
 import numpy as np
 import scipy._lib._util
 
-from probnum.typing import (
+from probnum.types import (
     DTypeArgType,
     RandomStateArgType,
     RandomStateType,
