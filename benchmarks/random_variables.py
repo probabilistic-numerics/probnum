@@ -7,8 +7,10 @@ import numpy as np
 from probnum import random_variables as rvs
 import probnum.linalg.linops as linops
 
+from benchmarks.benchmark_utils import SPD_MATRIX_5x5
+
 # Module level variables
-rv_names = [
+RV_NAMES = [
     "univar_normal",
     "multivar_normal",
     "matrixvar_normal",
@@ -18,27 +20,17 @@ rv_names = [
 
 
 def get_randvar(rv_name):
-    """
-    Return a random variable for a given distribution name
-    """
+    """Return a random variable for a given distribution name."""
     # Distribution Means and Covariances
-    spd_mat = np.array(
-        [
-            [2.3, -2.3, 3.5, 4.2, 1.8],
-            [-2.3, 3.0, -3.5, -4.8, -1.9],
-            [3.5, -3.5, 6.9, 5.8, 0.8],
-            [4.2, -4.8, 5.8, 10.1, 6.3],
-            [1.8, -1.9, 0.8, 6.3, 12.1],
-        ]
-    )
+
     mean_0d = np.random.rand()
     mean_1d = np.random.rand(5)
-    mean_2d_mat = spd_mat
-    mean_2d_linop = linops.MatrixMult(spd_mat)
+    mean_2d_mat = SPD_MATRIX_5x5
+    mean_2d_linop = linops.MatrixMult(SPD_MATRIX_5x5)
     cov_0d = np.random.rand() + 10 ** -12
-    cov_1d = spd_mat
-    cov_2d_kron = linops.Kronecker(A=spd_mat, B=spd_mat)
-    cov_2d_symkron = linops.SymmetricKronecker(A=spd_mat)
+    cov_1d = SPD_MATRIX_5x5
+    cov_2d_kron = linops.Kronecker(A=SPD_MATRIX_5x5, B=SPD_MATRIX_5x5)
+    cov_2d_symkron = linops.SymmetricKronecker(A=SPD_MATRIX_5x5)
 
     if rv_name == "univar_normal":
         randvar = rvs.Normal(mean=mean_0d, cov=cov_0d)
@@ -55,50 +47,55 @@ def get_randvar(rv_name):
 
 
 class Functions:
-    """
-    Benchmark various functions of distributions.
-    """
+    """Benchmark various functions of random variables."""
 
-    param_names = ["randvar", "property"]
-    params = [rv_names, ["pdf", "logpdf", "cdf", "logcdf"]]
+    param_names = ["randvar", "method"]
+    params = [RV_NAMES, ["pdf", "logpdf", "cdf", "logcdf"]]
 
-    def setup(self, randvar, property):
+    def setup(self, randvar, method):
+        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
+
         self.randvar = get_randvar(rv_name=randvar)
         self.eval_point = np.random.uniform(size=self.randvar.shape)
         self.quantile = np.random.uniform(size=self.randvar.shape)
 
-    def time_distr_functions(self, randvar, property):
+    def time_distr_functions(self, randvar, method):
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
+        # pylint: disable=unused-argument
+
         try:
-            if property == "pdf":
+            if method == "pdf":
                 self.randvar.pdf(x=self.eval_point)
-            elif property == "logpdf":
+            elif method == "logpdf":
                 self.randvar.logpdf(x=self.eval_point)
-            elif property == "cdf":
+            elif method == "cdf":
                 self.randvar.cdf(x=self.quantile)
-            elif property == "logcdf":
+            elif method == "logcdf":
                 self.randvar.logcdf(x=self.quantile)
         except NotImplementedError:
             pass
 
 
 class Sampling:
-    """
-    Benchmark sampling routines for various distributions.
-    """
+    """Benchmark sampling routines for various distributions."""
 
     param_names = ["randvar"]
-    params = [rv_names]
+    params = [RV_NAMES]
 
     def setup(self, randvar):
+        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
         np.random.seed(42)
         self.n_samples = 1000
         self.randvar = get_randvar(rv_name=randvar)
 
     def time_sample(self, randvar):
         """Times sampling from this distribution."""
+        # pylint: disable=unused-argument
+
         self.randvar.sample(self.n_samples)
 
     def peakmem_sample(self, randvar):
         """Peak memory of sampling process."""
+        # pylint: disable=unused-argument
+
         self.randvar.sample(self.n_samples)
