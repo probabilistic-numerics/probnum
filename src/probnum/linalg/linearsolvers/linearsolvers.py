@@ -42,7 +42,9 @@ def problinsolve(
     rtol: float = 10 ** -6,
     callback: Optional[Callable] = None,
     **kwargs
-) -> Tuple["probnum.RandomVariable", "probnum.RandomVariable", "probnum.RandomVariable", Dict]:
+) -> Tuple[
+    "probnum.RandomVariable", "probnum.RandomVariable", "probnum.RandomVariable", Dict
+]:
     """
     Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
