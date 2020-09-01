@@ -105,6 +105,16 @@ html.writer-html5 .rst-content dl.footnote > dd {
     margin: 0 0 0;
 }
 
+/* Block quotes */
+.rst-content blockquote {
+    margin-left: 0px;
+    line-height: 24px;
+    margin-bottom: 0px;
+    border-left: 5px solid #eeee;
+    padding-left: 18px
+}
+
+
 /* Sphinx Gallery */
 div.sphx-glr-thumbcontainer {
     background: var(--pn-lightgray);
