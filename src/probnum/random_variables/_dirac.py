@@ -5,7 +5,7 @@ from typing import Callable, TypeVar
 import numpy as np
 
 from probnum import utils as _utils
-from probnum._typing import (
+from probnum.types import (
     ShapeType,
     # Argument Types
     ArrayLikeGetitemArgType,

@@ -8,7 +8,7 @@ import scipy.stats
 
 from probnum import utils as _utils
 from probnum.linalg import linops
-from probnum._typing import (
+from probnum.types import (
     ShapeType,
     # Argument Types
     ArrayLikeGetitemArgType,
