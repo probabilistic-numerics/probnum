@@ -7,6 +7,7 @@ import numpy as np
 import scipy.sparse
 
 from probnum.linalg import problinsolve
+from benchmarks.benchmark_utils import SPD_MATRIX_5x5
 
 
 def load_poisson_linear_system():
@@ -21,6 +22,7 @@ def load_poisson_linear_system():
 
     Linear system resulting from discretization on an elliptic grid.
     """
+    # pylint: disable=invalid-name
     fpath = os.path.join(os.path.dirname(__file__), "../tests/resources")
     A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
     f = np.load(file=fpath + "/rhs_poisson.npy")
@@ -28,52 +30,55 @@ def load_poisson_linear_system():
 
 
 class LinSolve:
-    """
-    Benchmark solving a linear system.
-    """
+    """Benchmark solving a linear system."""
 
     param_names = ["system"]
     params = [["sparse", "dense"]]  # , "large-scale"]
 
     def setup(self, system):
+        # pylint: disable=attribute-defined-outside-init,invalid-name
+
         # Seed
         np.random.seed(42)
 
         if system == "sparse":
-            self.A, self.b = load_poisson_linear_system()
+            (
+                self.A,
+                self.b,
+            ) = load_poisson_linear_system()
         elif system == "dense":
-            self.A = np.array(
-                [
-                    [2.3, -2.3, 3.5, 4.2, 1.8],
-                    [-2.3, 3.0, -3.5, -4.8, -1.9],
-                    [3.5, -3.5, 6.9, 5.8, 0.8],
-                    [4.2, -4.8, 5.8, 10.1, 6.3],
-                    [1.8, -1.9, 0.8, 6.3, 12.1],
-                ]
-            )
+            self.A = SPD_MATRIX_5x5
             self.b = np.random.normal(size=self.A.shape[0])
         elif system == "large-scale":
             self.A = None
             self.b = None
 
     def time_solve(self, system):
-        # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        """Time solving a linear system"""
+        # pylint: disable=unused-argument
+        problinsolve(A=self.A, b=self.b)
 
     def mem_solve(self, system):
-        # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        """Time solving a linear system"""
+        # pylint: disable=unused-argument
+        problinsolve(A=self.A, b=self.b)
 
     def peakmem_solve(self, system):
-        # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        """Time solving a linear system"""
+        # pylint: disable=unused-argument
+        problinsolve(A=self.A, b=self.b)
 
 
 class PosteriorDist:
+    """Benchmark sampling from the posterior distribution."""
+
     param_names = ["output"]
     params = [["solution", "matrix", "matrix_inverse"]]
 
     def setup(self, output):
+        # pylint: disable=attribute-defined-outside-init
+        # pylint: disable=unused-argument, invalid-name
+
         # Sparse system
         self.A, self.b = load_poisson_linear_system()
 
@@ -84,6 +89,7 @@ class PosteriorDist:
         self.n_samples = 10
 
     def time_sample(self, output):
+        """Time sampling from the posterior distribution"""
         if output == "solution":
             self.xhat.sample(self.n_samples)
         elif output == "matrix":
