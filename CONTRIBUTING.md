@@ -38,11 +38,11 @@ For all of the above the existing ProbNum code is a good initial reference point
 ### Using Tox
 
 Probnum uses [tox](https://tox.readthedocs.io/en/latest/) in its [continuous integration (CI)](#continuous-integration) 
-pipeline to run tests and to build documentation. Under the hood, tox builds virtual environments following the 
-specifications in `./tox.ini` in order to run tests across multiple python versions, while making sure that all the 
-necessary dependencies are installed. Using tox unifies the *local* development process with CI, such that local test 
-results should match the outcomes of Travis's builds more closely. This ensures that your pull request can be merged 
-seamlessly into ProbNum's codebase.
+pipeline to run tests, build documentation, check code formatting and code quality. Under the hood, tox builds virtual 
+environments following the specifications in `./tox.ini` in order to run tests across multiple python versions, while 
+making sure that all the necessary dependencies are installed. Using tox unifies the *local* development process with CI, 
+such that local test results should match the outcomes of Travis's builds more closely. This ensures that your pull 
+request can be merged seamlessly into ProbNum's codebase.
 
 Install tox from the Python Package Index (PyPI) via
 ```bash
@@ -66,6 +66,23 @@ Building the documentation locally requires additional packages (e.g. for inheri
 `.travis.yml`. These packages are currently:
 - [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
 - [graphviz](https://graphviz.org/): In Ubuntu, install via `sudo apt install graphviz`
+
+### Advanced Developer Setup
+
+For regular contributors to ProbNum we provide a configuration file `
+.pre-commit-config.yaml ` for useful pre-commit hooks. These allow the automatic
+identification of simple issues in a commit, e.g. inconsistent code formatting. They are executed automatically whenever
+`git commit` is executed. This way one can avoid common problems in a pull request which prevent an automatic merge into 
+the `master` branch on GitHub. To set up ProbNum's pre-commit hooks simply install [`pre-commit`](https://pre-commit.com/) 
+by executing
+```bash
+pip install pre-commit
+```
+and install the configuration script via 
+```
+pre-commit install
+```
+in the `probnum` folder.
 
 ## Testing
 
