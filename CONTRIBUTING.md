@@ -73,7 +73,7 @@ For regular contributors to ProbNum we provide a configuration file `
 .pre-commit-config.yaml ` with useful pre-commit hooks. These allow the automatic
 identification of simple issues in a commit, e.g. inconsistent code formatting. They are executed automatically whenever
 `git commit` is executed. This way one can avoid common problems in a pull request which prevent an automatic merge into 
-the `master` branch on GitHub. To set up ProbNum's pre-commit hooks simply install [`pre-commit`](https://pre-commit.com/) 
+the `master` branch on GitHub. To set up ProbNum's pre-commit hooks simply install [pre-commit](https://pre-commit.com/) 
 by executing
 ```bash
 pip install pre-commit
