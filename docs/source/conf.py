@@ -21,6 +21,8 @@ from datetime import datetime
 import os
 import sys
 
+from pkg_resources import get_distribution
+
 sys.path.insert(0, os.path.abspath("../../../probnum/src"))
 
 # -- General configuration ------------------------------------------------
@@ -75,7 +77,7 @@ author = "Jonathan Wenger"
 # built documents.
 
 # The full version, including alpha/beta/rc tags.
-release = "0.0.1"
+release = get_distribution(project).version
 # The short X.Y version.
 version = ".".join(release.split(".")[:2])
 
