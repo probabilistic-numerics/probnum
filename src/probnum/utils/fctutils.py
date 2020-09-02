@@ -1,6 +1,4 @@
-"""
-Utility functions for functions, methods and the like.
-"""
+"""Utility functions for functions, methods and the like."""
 
 import numpy as np
 

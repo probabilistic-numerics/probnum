@@ -1,3 +1,5 @@
+"""Utility functions related to random states and random number generators."""
+
 from typing import Union
 
 import numpy as np
