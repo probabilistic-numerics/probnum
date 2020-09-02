@@ -125,7 +125,7 @@ def assert_is_1d_ndarray(arr):
     """
     if not isinstance(arr, np.ndarray):
         raise ValueError("Please enter arr of shape (d,)")
-    elif len(arr.shape) != 1:
+    if len(arr.shape) != 1:
         raise ValueError("Please enter arr of shape (d,)")
 
 
@@ -137,5 +137,5 @@ def assert_is_2d_ndarray(arr):
     """
     if not isinstance(arr, np.ndarray):
         raise ValueError("Please enter arr of shape (n, d)")
-    elif arr.ndim != 2:
+    if arr.ndim != 2:
         raise ValueError("Please enter arr of shape (n, d)")
