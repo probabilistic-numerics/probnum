@@ -7,6 +7,8 @@ import numpy as np
 
 def derive_random_seed(*args: Union[np.random.RandomState, np.random.Generator]) -> int:
     """Turn a random state or a generator into a random seed."""
+    # pylint: disable=no-member
+
     def _sample(rng: Union[np.random.RandomState, np.random.Generator]) -> int:
         if isinstance(rng, np.random.RandomState):
             return rng.randint(0, 2 ** 32, size=None, dtype=int)
