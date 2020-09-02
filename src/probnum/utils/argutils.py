@@ -22,27 +22,26 @@ def as_random_state(seed: RandomStateArgType) -> RandomStateType:
     Transform a variable or RandomStateArgType into
     the random state format that is used internally.
     """
-    return scipy._lib._util.check_random_state(seed=seed)
+    return scipy._lib._util.check_random_state(seed=seed)  # pylint: disable=protected-access
 
 
 def as_shape(shape: ShapeArgType) -> ShapeType:
     """Transform a variable of ShapeArgType into a ShapeType (which is used internally)."""
     if isinstance(shape, (int, numbers.Integral, np.integer)):
         return (int(shape),)
-    elif isinstance(shape, tuple) and all(isinstance(item, int) for item in shape):
+    if isinstance(shape, tuple) and all(isinstance(item, int) for item in shape):
         return shape
-    else:
-        try:
-            _ = iter(shape)
-        except TypeError as err:
-            raise TypeError(
-                f"The given shape {shape} must be an integer or an iterable of integers."
-            ) from err
+    try:
+        _ = iter(shape)
+    except TypeError as err:
+        raise TypeError(
+            f"The given shape {shape} must be an integer or an iterable of integers."
+        ) from err
 
-        if not all(isinstance(item, (int, numbers.Integral, np.integer)) for item in shape):
-            raise TypeError(f"The given shape {shape} must only contain integer values.")
+    if not all(isinstance(item, (int, numbers.Integral, np.integer)) for item in shape):
+        raise TypeError(f"The given shape {shape} must only contain integer values.")
 
-        return tuple(int(item) for item in shape)
+    return tuple(int(item) for item in shape)
 
 
 def as_numpy_scalar(scalar: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:
