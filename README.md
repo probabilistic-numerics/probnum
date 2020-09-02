@@ -14,11 +14,10 @@ uncertainty arising from _finite computational resources_ and _stochastic input_
 
 ---
 
-[Probabilistic Numerics](https://doi.org/10.1098/rspa.2015.0142) (PN) aims to quantify uncertainty arising from 
-intractable or incomplete numerical computation and from stochastic input using the tools of probability theory. This 
-allows principled treatment of _uncertainty arising from finite computational resources_. The vision of probabilistic 
-numerics is to provide well-calibrated probability measures over the output of a numerical routine, which then can be 
-propagated along the chain of computation.
+[Probabilistic Numerics](http://probabilistic-numerics.org/) (PN) aims to quantify uncertainty arising from 
+intractable or incomplete numerical computation and from stochastic input using the tools of probability theory. The 
+vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical 
+routine, which then can be propagated along the chain of computation.
 
 ## Installation
 To get started install ProbNum using `pip`.
