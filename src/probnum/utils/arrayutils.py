@@ -51,8 +51,7 @@ def atleast_1d(*rvs):
         res.append(result)
     if len(res) == 1:
         return res[0]
-    else:
-        return res
+    return res
 
 
 def atleast_2d(*rvs):
@@ -90,8 +89,7 @@ def atleast_2d(*rvs):
         res.append(result)
     if len(res) == 1:
         return res[0]
-    else:
-        return res
+    return res
 
 
 def as_colvec(vec):
