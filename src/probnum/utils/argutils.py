@@ -22,7 +22,8 @@ def as_random_state(seed: RandomStateArgType) -> RandomStateType:
     Transform a variable or RandomStateArgType into
     the random state format that is used internally.
     """
-    return scipy._lib._util.check_random_state(seed=seed)  # pylint: disable=protected-access
+    # pylint: disable=protected-access
+    return scipy._lib._util.check_random_state(seed=seed)
 
 
 def as_shape(shape: ShapeArgType) -> ShapeType:
