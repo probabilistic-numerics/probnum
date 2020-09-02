@@ -16,10 +16,15 @@ __all__ = ["as_shape", "as_random_state", "as_numpy_scalar"]
 
 
 def as_random_state(x: RandomStateArgType) -> RandomStateType:
+    """
+    Transform a variable or RandomStateArgType into
+    the random state format that is used internally.
+    """
     return scipy._lib._util.check_random_state(x)
 
 
 def as_shape(x: ShapeArgType) -> ShapeType:
+    """Transform a variable of ShapeArgType into a ShapeType (which is used internally)."""
     if isinstance(x, (int, numbers.Integral, np.integer)):
         return (int(x),)
     elif isinstance(x, tuple) and all(isinstance(item, int) for item in x):
@@ -39,6 +44,7 @@ def as_shape(x: ShapeArgType) -> ShapeType:
 
 
 def as_numpy_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:
+    """Transform a variable of ScalarArgType into a NumPy scalar (which is preferred internally)."""
     is_scalar = np.isscalar(x)
     is_scalar_array = isinstance(x, np.ndarray) and x.ndim == 0
 
