@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-def atleast_1d(*rvs):
+def atleast_1d(*randvars):
     """
     Convert arrays or random variables to arrays or random variables
     with at least one dimension.
@@ -39,22 +39,22 @@ def atleast_1d(*rvs):
 
     """
     res = []
-    for rv in rvs:
-        if isinstance(rv, scipy.sparse.spmatrix):
-            result = rv
-        elif isinstance(rv, np.ndarray):
-            result = np.atleast_1d(rv)
-        elif isinstance(rv, probnum.RandomVariable):
+    for randvar in randvars:
+        if isinstance(randvar, scipy.sparse.spmatrix):
+            result = randvar
+        elif isinstance(randvar, np.ndarray):
+            result = np.atleast_1d(randvar)
+        elif isinstance(randvar, probnum.RandomVariable):
             raise NotImplementedError
         else:
-            result = rv
+            result = randvar
         res.append(result)
     if len(res) == 1:
         return res[0]
     return res
 
 
-def atleast_2d(*rvs):
+def atleast_2d(*randvars):
     """
     View inputs as arrays with at least two dimensions.
 
@@ -77,15 +77,15 @@ def atleast_2d(*rvs):
     atleast_1d
     """
     res = []
-    for rv in rvs:
-        if isinstance(rv, scipy.sparse.spmatrix):
-            result = rv
-        elif isinstance(rv, np.ndarray):
-            result = np.atleast_2d(rv)
-        elif isinstance(rv, probnum.RandomVariable):
+    for randvar in randvars:
+        if isinstance(randvar, scipy.sparse.spmatrix):
+            result = randvar
+        elif isinstance(randvar, np.ndarray):
+            result = np.atleast_2d(randvar)
+        elif isinstance(randvar, probnum.RandomVariable):
             raise NotImplementedError
         else:
-            result = rv
+            result = randvar
         res.append(result)
     if len(res) == 1:
         return res[0]
