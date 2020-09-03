@@ -211,23 +211,17 @@ class Kronecker(LinearOperator):
         return self.A.matmat(Y.T).ravel()
 
     def _rmatvec(self, X):
-        """
-        Based on (A (x) B)^T = A^T (x) B^T.
-        """
+        # (A (x) B)^T = A^T (x) B^T.
         X = X.reshape(self.A.shape[0], self.B.shape[0])
         Y = self.B.H.matmat(X.T)
         return self.A.H.matmat(Y.T).ravel()
 
     def transpose(self):
-        """
-        (A (x) B)^T = A^T (x) B^T
-        """
+        # (A (x) B)^T = A^T (x) B^T
         return Kronecker(A=self.A.transpose(), B=self.B.transpose(), dtype=self.dtype)
 
     def inv(self):
-        """
-        (A (x) B)^-1 = A^-1 (x) B^-1
-        """
+        #  (A (x) B)^-1 = A^-1 (x) B^-1
         return Kronecker(A=self.A.inv(), B=self.B.inv(), dtype=self.dtype)
 
     # Properties
@@ -241,16 +235,18 @@ class Kronecker(LinearOperator):
         return self.A.cond(p=p) * self.B.cond(p=p)
 
     def det(self):
+        # If A (m x m) and B (n x n), then det(A (x) B) = det(A)^n * det(B) * m
         if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
-            return self.A.det() ** self.A.shape[0] * self.B.det() ** self.B.shape[0]
+            return self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
         else:
             raise NotImplementedError
 
     def logabsdet(self):
+        # If A (m x m) and B (n x n), then det(A (x) B) = det(A)^n * det(B) * m
         if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
             return (
-                self.A.shape[0] * self.A.logabsdet()
-                + self.B.shape[0] * self.B.logabsdet()
+                self.B.shape[0] * self.A.logabsdet()
+                + self.A.shape[0] * self.B.logabsdet()
             )
         else:
             raise NotImplementedError

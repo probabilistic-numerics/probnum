@@ -31,7 +31,7 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
             linops.Identity(shape=4),
             linops.Kronecker(
                 A=linops.MatrixMult(np.array([[2, -3.5], [12, 6.5]])),
-                B=linops.Identity(shape=2),
+                B=linops.Identity(shape=3),
             ),
             linops.SymmetricKronecker(
                 A=linops.MatrixMult(np.array([[1, -2], [-2.2, 5]])),
@@ -85,29 +85,76 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                     msg="Matrix-vector multiplication with (n,1) vector failed.",
                 )
 
-    class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
-        """Test linear operator functions."""
-
-        def test_transpose(self):
-            """
-            Test whether a transposed linear operators dense representation is equal to
-            its dense representation transposed.
-            """
-            for op in self.ops:
-                with self.subTest():
-                    A = op.todense()
-                    Atrans = op.T.todense()
-                    self.assertAllClose(Atrans, A.T.todense())
-
-        def test_adjoint(self):
-            pass
-
-        def test_todense(self):
-            pass
-
 
 class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
     """Test functions of linear operators."""
+
+    def test_transpose_dense(self):
+        """
+        Test whether a transposed linear operators dense representation is equal to
+        its dense representation transposed.
+        """
+        for op in self.ops:
+            with self.subTest():
+                A = op.todense()
+                Atrans = op.T.todense()
+                self.assertAllClose(Atrans, A.T)
+
+    def test_inv_dense(self):
+        """
+        Test whether the inverse in its dense representation matches the inverse of the
+        dense representation.
+        """
+        for op in self.ops:
+            with self.subTest():
+                try:
+                    A = op.todense()
+                    Ainvop = op.inv()
+                    self.assertAllClose(Ainvop.todense(), np.linalg.inv(A))
+                except (NotImplementedError, AttributeError):
+                    pass
+
+    def test_cond_dense(self):
+        """
+        Test whether the condition number of the linear operator matches the
+        condition number of the dense representation.
+        """
+        for A in self.ops:
+            with self.subTest():
+                try:
+                    self.assertApproxEqual(
+                        A.cond(), np.linalg.cond(A.todense()), significant=7
+                    )
+                except NotImplementedError:
+                    pass
+
+    def test_det_dense(self):
+        """
+        Test whether the determinant of the linear operator matches the
+        determinant of the dense representation.
+        """
+        for A in self.ops:
+            with self.subTest():
+                try:
+                    self.assertApproxEqual(
+                        A.det(), np.linalg.det(A.todense()), significant=7
+                    )
+                except NotImplementedError:
+                    pass
+
+    def test_logabsdet_dense(self):
+        """
+        Test whether the log-determinant of the linear operator matches the
+        log-determinant of the dense representation.
+        """
+        for A in self.ops:
+            with self.subTest():
+                try:
+                    self.assertApproxEqual(
+                        A.logabsdet(), np.linalg.slogdet(A.todense())[1], significant=7
+                    )
+                except NotImplementedError:
+                    pass
 
     def test_trace_only_square(self):
         """Test that the trace can only be computed for square matrices."""
@@ -115,10 +162,16 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
         with self.assertRaises(ValueError):
             nonsquare_op.trace()
 
-    def test_trace_computation(self):
-        """Check whether the trace of various linear operators is computed correctly."""
+    def test_trace_dense(self):
+        """Check whether the trace matches the trace of the dense representation."""
         for A in self.ops:
             with self.subTest():
                 self.assertApproxEqual(
-                    A.trace(), np.trace(a=A.todense()), significant=7
+                    A.trace(), np.trace(A.todense()).item(), significant=7
                 )
+
+    def test_adjoint(self):
+        pass
+
+    def test_todense(self):
+        pass
