@@ -349,9 +349,7 @@ class SymmetricKronecker(LinearOperator):
         return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
 
     def inv(self):
-        """
-        (A (x)_s A)^-1 = A^-1 (x)_s A^-1
-        """
+        # (A (x)_s A)^-1 = A^-1 (x)_s A^-1
         if self._ABequal:
             return SymmetricKronecker(A=self.A.inv(), dtype=self.dtype)
         else:
