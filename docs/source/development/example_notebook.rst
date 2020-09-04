@@ -2,7 +2,7 @@ Adding an Example Notebook
 ===========================
 
 Functionality of ProbNum is explained in detail in the form of Jupyter notebooks in the
-`tutorials section <https://probnum.readthedocs.io/en/latest/development/developer_guides.html>`_ of the documentation.
+`tutorials section <../development/developer_guides.html>`_ of the documentation.
 If you want to add an example showcasing the functionality of ProbNum, follow the instructions below.
 
 Creating the Notebook
