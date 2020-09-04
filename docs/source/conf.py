@@ -145,6 +145,11 @@ html_sidebars = {}
 graphviz_output_format = "svg"
 inheritance_graph_attrs = dict(size='""')  # resize graphs correctly
 
+# Sphinx gallery configuration
+sphinx_gallery_conf = {
+    "default_thumb_file": "img/pn_logo_wide.png"  # default thumbnail image
+}
+
 # -- Jupyter notebooks (nbsphinx) ------------------------------
 
 # Work-around until https://github.com/sphinx-doc/sphinx/issues/4229 is solved:
