@@ -146,4 +146,5 @@ For example, :code:`linalg` has the following :code:`__init__.py`:
 
 
 If you are documenting a subclass, which has a different path in the file structure than the import path due to
-:code:`__all__` statements, you can correct the links to superclasses in the documentation via the :code:`.__module__` attribute.
+:code:`__all__` statements, you can correct the links to superclasses in the documentation via the :code:`.__module__`
+attribute.

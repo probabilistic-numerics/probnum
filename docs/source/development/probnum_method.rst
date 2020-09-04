@@ -204,5 +204,5 @@ Numerical
 
 Conclusion
 ***********
-Once you are done, consider writing an `example notebook <https://probnum.readthedocs.io/tutorials/tutorials.html>`_
+Once you are done, consider writing an `example notebook <../development/example_notebook.rst>`_
 showcasing your new method. Congratulations you just implemented your first probabilistic numerical method in ProbNum!
