@@ -126,6 +126,12 @@ div.sphx-glr-thumbcontainer:hover {
     border: solid var(--pn-green) 1px;
 }
 
+/* Plot Animations */
+.anim-state label {
+    margin-right: 8px;
+    display: inline;
+}
+
 /* ReadTheDocs */
 .fa {
 	font: Open Sans light, Helvetica, sans-serif;
