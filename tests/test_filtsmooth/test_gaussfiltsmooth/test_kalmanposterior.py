@@ -77,3 +77,22 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
     def test_call_extrapolation(self):
         self.assertGreater(30, self.tms[-1])
         self.posterior(30, smoothed=False)
+
+    def test_sampling_all_locations_one_sample(self):
+        with self.assertRaises(NotImplementedError):
+            self.posterior.sample()
+
+    def test_sampling_all_locations_multiple_samples(self):
+        with self.assertRaises(NotImplementedError):
+            self.posterior.sample(size=5)
+
+    def test_sampling_two_locations_one_sample(self):
+        locs = self.posterior.locations[[2, 3]]
+        with self.assertRaises(NotImplementedError):
+            self.posterior.sample(locations=locs)
+
+    def test_sampling_two_locations_multiple_samples(self):
+        locs = self.posterior.locations[[2, 3]]
+        with self.assertRaises(NotImplementedError):
+            self.posterior.sample(locations=locs, size=5)
+
