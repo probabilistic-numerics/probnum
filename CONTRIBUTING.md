@@ -109,6 +109,7 @@ multiple options:
   ```bash
   pytest
   ```
+
 Code coverage of the tests is reported via [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master). 
 
 ## Documentation
