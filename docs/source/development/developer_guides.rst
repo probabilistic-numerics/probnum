@@ -10,4 +10,4 @@ how to contribute to the codebase via a pull request.
    example_notebook
    documentation
    probnum_method
-   writing_tests
+   unit_testing
