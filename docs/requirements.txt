@@ -1,8 +1,10 @@
 # Packages required for building the documentation
-sphinx >= 1.7.5, <= 2.4.4
-sphinx_rtd_theme
-sphinx_automodapi
-m2r
+sphinx>=3.0
+sphinx-rtd-theme
+sphinx-automodapi
+sphinx-autodoc-typehints
+sphinx-gallery
+m2r2
 
 # Packages handling notebooks
 nbsphinx

@@ -1,13 +1,10 @@
 """
-This package implements random variables. Random variables are the primary in- and
-outputs of probabilistic numerical methods. A generic signature of such methods looks
-like this:
+Random variables are the main objects in ProbNum.
 
-.. highlight:: python
-.. code-block:: python
-
-    randvar_out, info = probnum_method(problem, randvar_in, **kwargs)
-
+Random variables generalize multidimensional arrays by also representing uncertainty
+about the (numerical) quantity in question. Despite their name, they do not have to
+represent stochastic objects. Random variables are the primary in- and outputs of
+probabilistic numerical methods.
 """
 
 from ._random_variable import (

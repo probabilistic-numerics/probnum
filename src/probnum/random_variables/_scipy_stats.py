@@ -20,6 +20,15 @@ class _SciPyRandomVariableMixin:
 class WrappedSciPyRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.RandomVariable[_ValueType]
 ):
+    """
+    Wrapper for SciPy random variable objects.
+
+    Parameters
+    ----------
+    scipy_rv
+        SciPy random variable.
+    """
+
     def __init__(
         self,
         scipy_rv: Union[
@@ -35,6 +44,15 @@ class WrappedSciPyRandomVariable(
 class WrappedSciPyDiscreteRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.DiscreteRandomVariable[_ValueType]
 ):
+    """
+    Wrapper for discrete SciPy random variable objects.
+
+    Parameters
+    ----------
+    scipy_rv
+        Discrete SciPy random variable.
+    """
+
     def __init__(
         self,
         scipy_rv: Union[
@@ -66,6 +84,15 @@ class WrappedSciPyDiscreteRandomVariable(
 class WrappedSciPyContinuousRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.ContinuousRandomVariable[_ValueType]
 ):
+    """
+    Wrapper for continuous SciPy random variable objects.
+
+    Parameters
+    ----------
+    scipy_rv
+        Continuous SciPy random variable.
+    """
+
     def __init__(
         self,
         scipy_rv: Union[
@@ -105,12 +132,12 @@ def wrap_scipy_rv(
 
     Parameters
     ----------
-    scipyrv :
+    scipy_rv :
         SciPy distribution.
 
     Returns
     -------
-    dist : RandomVariable
+    rv : RandomVariable
         ProbNum random variable.
 
     """

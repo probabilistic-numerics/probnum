@@ -1,8 +1,5 @@
 """
 Random Variables.
-
-This module implements random variables. Random variables are the main in- and outputs
-of probabilistic numerical methods.
 """
 
 from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
@@ -46,15 +43,8 @@ class RandomVariable(Generic[_ValueType]):
     measure.
 
     Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and
-    linear operators. This may change their ``distribution`` and not necessarily all
-    previously available methods are retained.
-
-    The internals of :class:`RandomVariable` objects are assumed to be constant over
-    their whole lifecycle. This is due to the caches used to make certain computations
-    more efficient. As a consequence, altering the internal state of a
-    :class:`RandomVariable` (e.g. its mean, cov, sampling function, etc.) will result in
-    undefined behavior. In particular, this should be kept in mind when subclassing
-    :class:`RandomVariable` or any of its descendants.
+    linear operators. This may change their distribution and therefore not necessarily
+    all previously available methods are retained.
 
     Parameters
     ----------
@@ -63,6 +53,39 @@ class RandomVariable(Generic[_ValueType]):
     dtype :
         Data type of realizations of this random variable. If ``object`` will be
         converted to ``numpy.dtype``.
+    random_state :
+        Random state of the random variable. If None (or np.random), the global
+        np.random state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
+    parameters :
+
+    sample :
+
+    in_support :
+
+    pmf :
+
+    logpmf :
+
+    cdf :
+
+    logcdf :
+
+    quantile :
+
+    mode :
+
+    mean :
+
+    cov :
+
+    var :
+
+    std :
+
+    entropy :
+        Information-theoretic entropy :math:`H(X)` of the random variable.
+
     as_value_type :
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.
@@ -72,7 +95,7 @@ class RandomVariable(Generic[_ValueType]):
         :class:`ContinuousRandomVariable`), and potentially by similar functions in
         subclasses.
 
-        For instance, this method is useful if (``log``)``cdf`` and (``log``)``pdf``
+        For instance, this method is useful if (``log``) ``cdf`` and (``log``) ``pdf``
         both only work on :class:`np.float_` arguments, but we still want the user to be
         able to pass Python :class:`float`. Then ``as_value_type`` should be set to
         something like ``lambda x: np.float64(x)``.
@@ -80,6 +103,15 @@ class RandomVariable(Generic[_ValueType]):
     See Also
     --------
     asrandvar : Transform into a :class:`RandomVariable`.
+
+    Notes
+    -----
+    The internals of :class:`RandomVariable` objects are assumed to be constant over
+    their whole lifecycle. This is due to the caches used to make certain computations
+    more efficient. As a consequence, altering the internal state of a
+    :class:`RandomVariable` (e.g. its mean, cov, sampling function, etc.) will result in
+    undefined behavior. In particular, this should be kept in mind when subclassing
+    :class:`RandomVariable` or any of its descendants.
 
     Examples
     --------
@@ -408,6 +440,13 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def entropy(self) -> np.float_:
+        """
+        Information-theoretic entropy :math:`H(X)` of the random variable.
+
+        Returns
+        -------
+
+        """
         if self.__entropy is None:
             raise NotImplementedError
 
@@ -420,6 +459,13 @@ class RandomVariable(Generic[_ValueType]):
         return entropy
 
     def in_support(self, x: _ValueType) -> bool:
+        """
+        Check whether the argument is contained in the support of the random variable.
+
+        Parameters
+        ----------
+        x
+        """
         if self.__in_support is None:
             raise NotImplementedError
 
@@ -439,12 +485,12 @@ class RandomVariable(Generic[_ValueType]):
 
         Parameters
         ----------
-        size : tuple
+        size :
             Size of the drawn sample of realizations.
 
         Returns
         -------
-        sample : array-like
+        sample :
             Sample of realizations with the given ``size`` and the inherent ``shape``.
         """
         if self.__sample is None:
@@ -458,7 +504,7 @@ class RandomVariable(Generic[_ValueType]):
 
         Parameters
         ----------
-        x : array-like
+        x :
             Evaluation points of the cumulative distribution function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
@@ -466,7 +512,7 @@ class RandomVariable(Generic[_ValueType]):
 
         Returns
         -------
-        q : array-like
+        q :
             Value of the cumulative density function at the given points.
         """
         if self.__cdf is not None:
@@ -491,7 +537,7 @@ class RandomVariable(Generic[_ValueType]):
 
         Parameters
         ----------
-        x : array-like
+        x :
             Evaluation points of the cumulative distribution function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
@@ -499,7 +545,7 @@ class RandomVariable(Generic[_ValueType]):
 
         Returns
         -------
-        q : array-like
+        q :
             Value of the log-cumulative density function at the given points.
         """
         if self.__logcdf is not None:
@@ -874,6 +920,56 @@ class RandomVariable(Generic[_ValueType]):
 
 
 class DiscreteRandomVariable(RandomVariable[_ValueType]):
+    """
+    Random variables with countable range.
+
+    Discrete random variables map to a countable set. Typical examples are the natural
+    numbers or integers.
+
+    Parameters
+    ----------
+    shape :
+        Shape of realizations of this random variable.
+    dtype :
+        Data type of realizations of this random variable. If ``object`` will be
+        converted to ``numpy.dtype``.
+    random_state :
+
+    parameters :
+
+    sample :
+
+    in_support :
+
+    pmf :
+
+    logpmf :
+
+    cdf :
+
+    logcdf :
+
+    quantile :
+
+    mode :
+
+    mean :
+
+    cov :
+
+    var :
+
+    std :
+
+    entropy :
+
+
+    See Also
+    --------
+    ContinuousRandomVariable : A random variable with uncountably infinite range.
+
+    """
+
     def __init__(
         self,
         shape: ShapeArgType,
@@ -952,6 +1048,13 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
 
 class ContinuousRandomVariable(RandomVariable[_ValueType]):
+    """
+    Random variables with uncountably infinite range.
+
+    Continuous random variables map to a uncountably infinite set. Typically this is a
+    subset of a real vector space.
+    """
+
     def __init__(
         self,
         shape: ShapeArgType,
