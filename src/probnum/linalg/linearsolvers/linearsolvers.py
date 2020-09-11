@@ -23,7 +23,7 @@ from probnum.linalg.linearsolvers.matrixbased import (
 )
 from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
-
+# Type aliases
 SquareLinOp = Union[
     np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "probnum.RandomVariable"
 ]
