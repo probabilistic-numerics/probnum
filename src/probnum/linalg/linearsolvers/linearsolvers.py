@@ -64,9 +64,9 @@ def problinsolve(
     ----------
     A :
         *shape=(n, n)* -- A square linear operator (or matrix). Only matrix-vector
-        products :math:`Av` are used internally.
+        products :math:`v \\mapsto Av` are used internally.
     b :
-        *(shape=(n, ) or (n, nrhs))* -- Right-hand side vector, matrix or random
+        *shape=(n, ) or (n, nrhs)* -- Right-hand side vector, matrix or random
         variable in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems
         are solved sequentially with the posteriors over the matrices acting as priors
         for subsequent solves. If the right-hand-side is assumed to be noisy, every
@@ -81,8 +81,8 @@ def problinsolve(
         viewed as taking the form of a pre-conditioner. If an array or linear operator
         is given, a prior distribution is chosen automatically.
     x0 :
-        *(shape=(n, ) or (n, nrhs))* -- Prior belief for the solution of the linear
-        system. Will be ignored if``Ainv0`` is given.
+        *shape=(n, ) or (n, nrhs)* -- Prior belief for the solution of the linear
+        system. Will be ignored if ``Ainv0`` is given.
     assume_A :
         Assumptions on the linear operator which can influence solver choice and
         behavior. The available options are (combinations of)
