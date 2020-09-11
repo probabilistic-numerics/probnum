@@ -1,11 +1,15 @@
-# Packages required for building the documentation
+# Sphinx builds the documentation
 sphinx>=3.0
+
+# Sphinx extensions
 sphinx-rtd-theme
 sphinx-automodapi
 sphinx-autodoc-typehints
 sphinx-gallery
+
+# Markdown conversion
 m2r2
 
-# Packages handling notebooks
+# Jupyter notebooks
 nbsphinx
 jupyter
