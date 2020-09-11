@@ -34,7 +34,7 @@ _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
 class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     """
-    The normal distribution.
+    Random variable with a normal distribution.
 
     The Gaussian distribution is ubiquitous in probability theory, since
     it is the final and stable or equilibrium distribution to which
@@ -46,25 +46,18 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     Parameters
     ----------
-    mean : float or array-like or LinearOperator
-        Mean of the normal distribution.
-
-    cov : float or array-like or LinearOperator
-        (Co-)variance of the normal distribution.
-
-    random_state : None or int or :class:`~numpy.random.RandomState` instance, optional
-        This parameter defines the RandomState object to
-        use for drawing realizations from this
-        distribution. Think of it like a random seed.
-        If None (or np.random), the global
-        np.random state is used. If integer, it is used to
-        seed the local
+    mean :
+        Mean of the random variable.
+    cov :
+        (Co-)variance of the random variable.
+    random_state :
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
-        Default is None.
 
     See Also
     --------
-    Distribution : Class representing general probability distributions.
+    RandomVariable : Class representing random variables.
 
     Examples
     --------

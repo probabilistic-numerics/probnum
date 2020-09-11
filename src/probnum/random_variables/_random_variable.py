@@ -30,8 +30,9 @@ _ValueType = TypeVar("ValueType")
 
 class RandomVariable(Generic[_ValueType]):
     """
-    Random variables are the main objects used by probabilistic numerical methods.
+    Random variable objects represent uncertainty about a value.
 
+    Random variables are the main objects used by probabilistic numerical methods.
     Every probabilistic numerical method takes a random variable encoding the prior
     distribution as input and outputs a random variable whose distribution encodes the
     uncertainty arising from finite computation. The generic signature of a
@@ -55,7 +56,7 @@ class RandomVariable(Generic[_ValueType]):
         converted to ``numpy.dtype``.
     random_state :
         Random state of the random variable. If None (or np.random), the global
-        np.random state is used. If integer, it is used to seed the local
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
     parameters :
 
@@ -921,7 +922,7 @@ class RandomVariable(Generic[_ValueType]):
 
 class DiscreteRandomVariable(RandomVariable[_ValueType]):
     """
-    Random variables with countable range.
+    Random variable with countable range.
 
     Discrete random variables map to a countable set. Typical examples are the natural
     numbers or integers.
@@ -1049,9 +1050,9 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
 class ContinuousRandomVariable(RandomVariable[_ValueType]):
     """
-    Random variables with uncountably infinite range.
+    Random variable with uncountably infinite range.
 
-    Continuous random variables map to a uncountably infinite set. Typically this is a
+    Continuous random variables map to a uncountably infinite set. Typically, this is a
     subset of a real vector space.
     """
 

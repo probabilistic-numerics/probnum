@@ -1,15 +1,5 @@
-"""
-Finite dimensional linear operators.
+"""Finite-dimensional linear operators."""
 
-This module defines classes and methods that implement finite dimensional linear
-operators. It can be used to do linear algebra with (structured) matrices without
-explicitly representing them in memory. This often allows for the definition of a more
-efficient matrix-vector product. Linear operators can be applied, added, multiplied,
-transposed, and more as one would expect from matrix algebra.
-
-Several algorithms in the :mod:`probnum.linalg` library are able to operate on
-:class:`LinearOperator` instances.
-"""
 import warnings
 
 import numpy as np
@@ -19,19 +9,20 @@ import scipy.sparse.linalg.interface
 
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
     """
-    Finite dimensional linear operators.
+    Finite-dimensional linear operators.
 
-    This class provides a way to define finite dimensional linear operators without
+    This class provides a way to define finite-dimensional linear operators without
     explicitly constructing a matrix representation. Instead it suffices to define a
     matrix-vector product and a shape attribute. This avoids unnecessary memory usage
     and can often be more convenient to derive.
 
-    LinearOperator instances can be multiplied, added and exponentiated. This happens
-    lazily: the result of these operations is a new, composite LinearOperator, that
-    defers linear operations to the original operators and combines the results.
+    :class:`LinearOperator` instances can be multiplied, added and exponentiated. This
+    happens lazily: the result of these operations is a new, composite
+    :class:`LinearOperator`, that defers linear operations to the original operators and
+    combines the results.
 
-    To construct a concrete LinearOperator, either pass appropriate callables to the
-    constructor of this class, or subclass it.
+    To construct a concrete class:`LinearOperator`, either pass appropriate callables to
+    the constructor of this class, or subclass it.
 
     A subclass must implement either one of the methods ``_matvec`` and ``_matmat``, and
     the attributes/properties ``shape`` (pair of integers) and ``dtype`` (may be

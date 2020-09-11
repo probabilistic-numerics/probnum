@@ -1,3 +1,7 @@
+"""
+API and argument types.
+"""
+
 import numbers
 from typing import Iterable, Tuple, Union
 
