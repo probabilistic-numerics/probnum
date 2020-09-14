@@ -1,7 +1,15 @@
 # Style Guide
 
-This style guide summarizes code conventions used in ProbNum. This is intended as a reference for developers.
-ProbNum follows [the *Black* code style](https://github.com/psf/black/blob/master/docs/the_black_code_style.md), which can be viewed as a strict subset of [PEP 8](https://www.python.org/dev/peps/pep-0008/), and we recommend [*Black*](https://github.com/psf/black) for automated code formatting.
+This style guide summarizes code conventions used in ProbNum. This is intended as a reference for developers. 
+
+ProbNum uses
+[*Black*'s formatting ruleset](https://github.com/psf/black/blob/master/docs/the_black_code_style.md), which 
+can be viewed as a strict subset of [PEP 8](https://www.python.org/dev/peps/pep-0008/), and we recommend 
+[*Black*](https://github.com/psf/black) for automated code formatting. 
+
+With respect to code style, the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) 
+should be applied with some notable additions and exceptions (i.e. docstrings, ...). We summarize and expand on this 
+style guide below.
 
 ## Code
 
