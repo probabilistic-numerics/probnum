@@ -4,6 +4,18 @@ sphinx_rtd_theme
 sphinx_automodapi
 m2r
 
-# Packages handling notebooks
+# Sphinx dependencies
+Pygments>=2.6.1
+
+# Sphinx extensions
+sphinx-rtd-theme
+sphinx-automodapi
+sphinx-autodoc-typehints
+sphinx-gallery
+
+# Markdown conversion
+m2r2
+
+# Jupyter notebooks
 nbsphinx
 jupyter
