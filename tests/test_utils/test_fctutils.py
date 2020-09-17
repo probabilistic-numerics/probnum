@@ -6,6 +6,8 @@ from probnum.utils import fctutils
 
 
 class TestAssertsEvaluatesToScalar(unittest.TestCase):
+    """Test case for utility functions dealing with functions."""
+
     def test_assert_evaluates_to_scalar_pass(self):
         def fct(x):
             return np.linalg.norm(x)

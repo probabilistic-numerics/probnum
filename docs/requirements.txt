@@ -6,6 +6,18 @@ sphinx-autodoc-typehints
 sphinx-gallery
 m2r2
 
-# Packages handling notebooks
+# Sphinx dependencies
+Pygments>=2.6.1
+
+# Sphinx extensions
+sphinx-rtd-theme
+sphinx-automodapi
+sphinx-autodoc-typehints
+sphinx-gallery
+
+# Markdown conversion
+m2r2
+
+# Jupyter notebooks
 nbsphinx
 jupyter
