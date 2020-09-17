@@ -1,4 +1,4 @@
-# Package Development
+# Developer Introduction
 
 Contributions to ProbNum are very welcome. Before getting started make sure to read the following guidelines.
 
@@ -112,6 +112,7 @@ multiple options:
   ```bash
   pytest
   ```
+
 Code coverage of the tests is reported via [codecov](https://codecov.io/github/probabilistic-numerics/probnum?branch=master).
 
 ## Documentation
