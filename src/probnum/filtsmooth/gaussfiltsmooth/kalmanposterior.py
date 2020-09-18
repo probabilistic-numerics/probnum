@@ -12,7 +12,7 @@ import numpy as np
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 import probnum.random_variables as rvs
-
+from probnum import utils
 
 class KalmanPosterior(FiltSmoothPosterior):
     """
@@ -127,7 +127,8 @@ class KalmanPosterior(FiltSmoothPosterior):
         return self.state_rvs[idx]
 
     def sample(self, locations=None, size=()):
-        errormsg = "Sampling not implemented."
+
+        size = utils.as_shape(size)
 
         if locations is None:
             locations = self.locations
@@ -139,16 +140,18 @@ class KalmanPosterior(FiltSmoothPosterior):
             return self._single_sample_path(
                 locations=locations, random_vars=random_vars
             )
-        if np.isscalar(size):
-            return np.array(
-                [
-                    self._single_sample_path(
-                        locations=locations, random_vars=random_vars
-                    )
-                    for _ in range(size)
-                ]
-            )
-        raise NotImplementedError(errormsg)
+
+        return np.array([self.sample(locations=locations, size=size[1:]) for _ in range(size[0])])
+        # if np.isscalar(size):
+        #     return np.array(
+        #         [
+        #             self._single_sample_path(
+        #                 locations=locations, random_vars=random_vars
+        #             )
+        #             for _ in range(size)
+        #         ]
+        #     )
+        # raise NotImplementedError(errormsg)
 
     def _single_sample_path(self, locations, random_vars):
         curr_sample = rvs.asrandvar(random_vars[-1].sample())

@@ -79,116 +79,77 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.assertGreater(30, self.tms[-1])
         self.posterior(30)
 
-    def test_sampling_all_locations_one_sample(self):
-        sample = self.posterior.sample()
 
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(len(sample), len(self.posterior))
+class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
+    def setUp(self):
+        super().setup_cartracking()
+        self.method = Kalman(self.dynmod, self.measmod, self.initrv)
+        self.posterior = self.method.filter(self.obs, self.tms)
 
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = chi_squared_statistic(
-                sample, self.posterior[:].mean, self.posterior[:].cov
-            )
-            self.assertLess(chi_squared, 10.0)
-            self.assertLess(0.1, chi_squared)
+    def test_output_shape(self):
+        loc_inputs = [
+            None,
+            self.posterior.locations[[2, 3]],
+            np.arange(0.0, 0.5, 0.025),
+        ]
+        dim = (self.method.dynamod.ndim,)
+        single_sample_shapes = [
+            (len(self.posterior),) + dim,
+            (2,) + dim,
+            (len(loc_inputs[-1]),) + dim,
+        ]
+
+        for size in [(), (5,), (2, 3, 4)]:
+            for loc, loc_shape in zip(loc_inputs, single_sample_shapes):
+                with self.subTest(size=size, loc=loc):
+                    sample = self.posterior.sample(locations=loc, size=size)
+                    if size == ():
+                        self.assertEqual(sample.shape, loc_shape)
+                    else:
+                        self.assertEqual(sample.shape, size + loc_shape)
 
     def test_sampling_all_locations_multiple_samples(self):
         five_samples = self.posterior.sample(size=5)
 
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(five_samples.shape[0], 5)
-            self.assertEqual(five_samples.shape[1], len(self.posterior))
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = np.array(
-                [
-                    chi_squared_statistic(
-                        sample, self.posterior[:].mean, self.posterior[:].cov
-                    )
-                    for sample in five_samples
-                ]
-            ).mean()
-            self.assertLess(chi_squared, 10.0)
-            self.assertLess(0.1, chi_squared)
-
-        with self.subTest(msg="non-integers rejected"):
-            with self.assertRaises(NotImplementedError):
-                self.posterior.sample(size=(2, 3))
-
-    def test_sampling_two_locations_one_sample(self):
-        locs = self.posterior.locations[[2, 3]]
-        sample = self.posterior.sample(locations=locs)
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(len(sample), 2)
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = chi_squared_statistic(
-                sample, self.posterior[:].mean[[2, 3]], self.posterior[:].cov[[2, 3]]
-            )
-            self.assertLess(chi_squared, 10.0)
-            self.assertLess(0.1, chi_squared)
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.posterior[:].mean, self.posterior[:].cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
 
     def test_sampling_two_locations_multiple_samples(self):
         locs = self.posterior.locations[[2, 3]]
         five_samples = self.posterior.sample(locations=locs, size=5)
 
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(five_samples.shape[0], 5)
-            self.assertEqual(five_samples.shape[1], 2)
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = np.array(
-                [
-                    chi_squared_statistic(
-                        sample,
-                        self.posterior[:].mean[[2, 3]],
-                        self.posterior[:].cov[[2, 3]],
-                    )
-                    for sample in five_samples
-                ]
-            ).mean()
-            self.assertLess(chi_squared, 10.0)
-            self.assertLess(0.1, chi_squared)
-
-        with self.subTest(msg="non-integers rejected"):
-            with self.assertRaises(NotImplementedError):
-                self.posterior.sample(locations=locs, size=(2, 3))
-
-    def test_sampling_many_locations_one_sample(self):
-        locs = np.arange(0.0, 0.5, 0.025)
-        sample = self.posterior.sample(locations=locs)
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(len(sample), len(locs))
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = chi_squared_statistic(
-                sample, self.posterior(locs).mean, self.posterior(locs).cov
-            )
-            self.assertLess(chi_squared, 10.0)
-            self.assertLess(0.1, chi_squared)
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample,
+                    self.posterior[:].mean[[2, 3]],
+                    self.posterior[:].cov[[2, 3]],
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
 
     def test_sampling_many_locations_multiple_samples(self):
         locs = np.arange(0.0, 0.5, 0.025)
         five_samples = self.posterior.sample(locations=locs, size=5)
 
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(five_samples.shape[0], 5)
-            self.assertEqual(five_samples.shape[1], len(locs))
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = np.array(
-                [
-                    chi_squared_statistic(
-                        sample, self.posterior(locs).mean, self.posterior(locs).cov
-                    )
-                    for sample in five_samples
-                ]
-            ).mean()
-            self.assertLess(chi_squared, 10.0)
-            self.assertLess(0.1, chi_squared)
-
-        with self.subTest(msg="non-integers rejected"):
-            with self.assertRaises(NotImplementedError):
-                self.posterior.sample(locations=locs, size=(2, 3))
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.posterior(locs).mean, self.posterior(locs).cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)

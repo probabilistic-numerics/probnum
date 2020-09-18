@@ -53,8 +53,10 @@ class FiltSmoothPosterior(ABC):
         Returns
         -------
         numpy.ndarray
-            Drawn samples. For instance, if size has shape (S,) and locations have shape (L,),
-            the output is of shape (S, L).
+            Drawn samples. If size has shape (A1, ..., Z1), locations have shape (L,),
+            and the state space model has shape (A2, ..., Z2), the output has
+            shape (A1, ..., Z1, L, A2, ..., Z2).
+            For example: size=4, len(locations)=4, dim=3 gives shape (4, 4, 3).
 
         """
         raise NotImplementedError("Sampling not implemented.")
