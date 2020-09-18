@@ -78,8 +78,6 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.assertGreater(30, self.tms[-1])
         self.posterior(30)
 
-    # From here on: work in progress
-
     def test_sampling_all_locations_one_sample(self):
         sample = self.posterior.sample()
 
@@ -108,6 +106,8 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         with self.subTest(msg="non-integers rejected"):
             with self.assertRaises(NotImplementedError):
                 self.posterior.sample(size=(2, 3))
+
+    # Update the tests below if more sampling functionality is added
 
     def test_sampling_two_locations_one_sample(self):
         locs = self.posterior.locations[[2, 3]]
