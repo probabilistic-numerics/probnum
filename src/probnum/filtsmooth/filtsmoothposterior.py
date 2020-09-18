@@ -33,15 +33,28 @@ class FiltSmoothPosterior(ABC):
         """Return the corresponding index/slice of the discrete-time solution"""
         raise NotImplementedError
 
-    def sample(self, locations=None, size=None):
+    def sample(self, locations=None, size=()):
         """
         Draw samples from the filtering/smoothing posterior.
 
+        If nothing is specified, a single sample is drawn (supported on self.locations).
+        If locations are specified, the samples are drawn on those locations.
+        If size is specified, more than a single sample is drawn.
 
-        If location is None, it returns N joint samples from the list of RVs;
-        if location is one of the locations of the posterior,
-        if not (i.e. if it is a scalar), it returns a sample from the specified location.
+        Parameters
+        ----------
+        locations : array_like, optional
+            Locations on which the samples are wanted. Default is none, which implies that
+            self.location is used.
+        size : int or tuple of ints, optional
+            Indicates how many samples are drawn. Default is an empty tuple, in which case
+            a single sample is returned.
 
-        If size is empty, it is a single sample. If not, multiple samples at once.
+        Returns
+        -------
+        numpy.ndarray
+            Drawn samples. For instance, if size has shape (S,) and locations have shape (L,),
+            the output is of shape (S, L).
+
         """
         raise NotImplementedError("Sampling not implemented.")
