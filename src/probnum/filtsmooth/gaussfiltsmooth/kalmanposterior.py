@@ -68,7 +68,7 @@ class KalmanPosterior(FiltSmoothPosterior):
         :obj:`RandomVariable`
             Estimate of the states at time ``t``.
         """
-        if np.isscalar(t) is False:
+        if not np.isscalar(t):
             # recursive evaluation (t can now be any array, not just length 1!)
             return _RandomVariableList([self.__call__(t_pt) for t_pt in np.asarray(t)])
 
@@ -133,9 +133,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             locations = self.locations
             random_vars = self.state_rvs
         else:
-            random_vars = _RandomVariableList(
-                [self.__call__(location) for location in locations]
-            )
+            random_vars = self.__call__(locations)
 
         if size == ():
             return self._single_sample_path(
