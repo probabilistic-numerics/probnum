@@ -140,6 +140,12 @@ class KalmanPosterior(FiltSmoothPosterior):
         # now: a single sample from all the locations
         # This is suuuuuper hacky
 
+        if size == ():
+            return self._single_sample_path()
+        return np.array([self._single_sample_path() for _ in range(size)])
+
+
+    def _single_sample_path(self):
         curr_sample = rvs.asrandvar(self.state_rvs[-1].sample())
         sample_path = [curr_sample]
         for idx in reversed(range(1, len(self.locations))):
