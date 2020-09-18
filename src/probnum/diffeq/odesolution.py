@@ -75,7 +75,7 @@ class ODESolution(FiltSmoothPosterior):
         # try-except is a hotfix for now:
         # future PR is to move KalmanPosterior-info out of here, into GaussianIVPFilter
         try:
-            self._kalman_posterior = KalmanPosterior(times, rvs, solver.gfilt)
+            self._kalman_posterior = KalmanPosterior(times, rvs, solver.gfilt, solver.with_smoothing)
             self._t = None
             self._y = None
         except AttributeError:
@@ -158,7 +158,7 @@ class ODESolution(FiltSmoothPosterior):
         :obj:`RandomVariable`
             Probabilistic estimate of the continuous-time solution at time ``t``.
         """
-        out_rv = self._kalman_posterior(t, smoothed=smoothed)
+        out_rv = self._kalman_posterior(t)
         out_rv = self._solver.undo_preconditioning(out_rv)
         out_rv = self._proj_normal_rv(out_rv, 0)
         return out_rv

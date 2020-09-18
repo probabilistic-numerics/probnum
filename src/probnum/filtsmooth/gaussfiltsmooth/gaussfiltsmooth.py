@@ -75,7 +75,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
                 **kwargs
             )
             rvs.append(filtrv)
-        return KalmanPosterior(times, rvs, self)
+        return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
     def smooth(self, filter_posterior, **kwargs):
         """
@@ -106,7 +106,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
             smoothed_rv = self.smooth_step(unsmoothed_rv, pred_rv, smoothed_rv, ccov)
             out_rvs.append(smoothed_rv)
         out_rvs.reverse()
-        return KalmanPosterior(locations, out_rvs, self)
+        return KalmanPosterior(locations, out_rvs, self, with_smoothing=True)
 
     def filter_step(self, start, stop, randvar, data, **kwargs):
         """

@@ -28,10 +28,12 @@ class KalmanPosterior(FiltSmoothPosterior):
         Filter/smoother used to compute the discrete-time estimates.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter):
+    def __init__(self, locations, state_rvs, gauss_filter, with_smoothing):
         self._locations = np.asarray(locations)
         self.gauss_filter = gauss_filter
         self._state_rvs = _RandomVariableList(state_rvs)
+        self._with_smoothing = with_smoothing
+
 
     @property
     def locations(self):
@@ -45,24 +47,21 @@ class KalmanPosterior(FiltSmoothPosterior):
         """
         return self._state_rvs
 
-    def __call__(self, t, smoothed=True):
+    def __call__(self, t):
         """
         Evaluate the time-continuous posterior at location `t`
 
         Algorithm:
         1. Find closest t_prev and t_next, with t_prev < t < t_next
         2. Predict from t_prev to t
-        3. (if `smoothed=True`) Predict from t to t_next
-        4. (if `smoothed=True`) Smooth from t_next to t
+        3. (if `self._with_smoothing=True`) Predict from t to t_next
+        4. (if `self._with_smoothing=True`) Smooth from t_next to t
         5. Return random variable for time t
 
         Parameters
         ----------
         t : float
             Location, or time, at which to evaluate the posterior.
-        smoothed : bool, optional
-            If ``True`` (default) perform smooth interpolation. If ``False`` perform a
-            prediction from the previous location, without smoothing.
 
         Returns
         -------
@@ -82,14 +81,14 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         if self.locations[0] < t < self.locations[-1]:
             pred_rv = self._predict_to_loc(t)
-            if smoothed:
+            if self._with_smoothing:
                 smoothed_rv = self._smooth_prediction(pred_rv, t)
                 return smoothed_rv
             else:
                 return pred_rv
 
         # else: t > self.locations[-1]:
-        if smoothed:
+        if self._with_smoothing:
             warn("`smoothed=True` is ignored for extrapolation.")
         return self._predict_to_loc(t)
 
