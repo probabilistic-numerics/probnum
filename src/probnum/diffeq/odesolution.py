@@ -160,9 +160,15 @@ class ODESolution(FiltSmoothPosterior):
             Probabilistic estimate of the continuous-time solution at time ``t``.
         """
         out_rv = self._kalman_posterior(t)
-        out_rv = self._solver.undo_preconditioning(out_rv)
-        out_rv = self._proj_normal_rv(out_rv, 0)
-        return out_rv
+        if np.isscalar(t):
+            out_rv = self._solver.undo_preconditioning(out_rv)
+            return self._proj_normal_rv(out_rv, 0)
+        out_rvs = _RandomVariableList(
+            [self._solver.undo_preconditioning(out_rv_) for out_rv_ in out_rv]
+        )
+        return _RandomVariableList(
+            [self._proj_normal_rv(out_rv_, 0) for out_rv_ in out_rvs]
+        )
 
     def __len__(self):
         """Number of points in the discrete-time solution."""

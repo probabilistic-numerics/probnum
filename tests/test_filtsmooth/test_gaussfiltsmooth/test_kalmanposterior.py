@@ -49,6 +49,11 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         with self.assertRaises(ValueError):
             self.posterior(-0.5)
 
+    def test_call_vectorisation(self):
+        locs = np.arange(0, 1, 20)
+        evals = self.posterior(locs)
+        self.assertEqual(len(evals), len(locs))
+
     def test_call_interpolation(self):
         self.assertLess(self.tms[0], 9.88)
         self.assertGreater(self.tms[-1], 9.88)
@@ -110,14 +115,80 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
             with self.assertRaises(NotImplementedError):
                 self.posterior.sample(size=(2, 3))
 
-    # Update the tests below if more sampling functionality is added
-
     def test_sampling_two_locations_one_sample(self):
         locs = self.posterior.locations[[2, 3]]
-        with self.assertRaises(NotImplementedError):
-            self.posterior.sample(locations=locs)
+        sample = self.posterior.sample(locations=locs)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(len(sample), 2)
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = chi_squared_statistic(
+                sample, self.posterior[:].mean[[2, 3]], self.posterior[:].cov[[2, 3]]
+            )
+            self.assertLess(chi_squared, 10.0)
+            self.assertLess(0.1, chi_squared)
 
     def test_sampling_two_locations_multiple_samples(self):
         locs = self.posterior.locations[[2, 3]]
-        with self.assertRaises(NotImplementedError):
-            self.posterior.sample(locations=locs, size=5)
+        five_samples = self.posterior.sample(locations=locs, size=5)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(five_samples.shape[0], 5)
+            self.assertEqual(five_samples.shape[1], 2)
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = np.array(
+                [
+                    chi_squared_statistic(
+                        sample,
+                        self.posterior[:].mean[[2, 3]],
+                        self.posterior[:].cov[[2, 3]],
+                    )
+                    for sample in five_samples
+                ]
+            ).mean()
+            self.assertLess(chi_squared, 10.0)
+            self.assertLess(0.1, chi_squared)
+
+        with self.subTest(msg="non-integers rejected"):
+            with self.assertRaises(NotImplementedError):
+                self.posterior.sample(locations=locs, size=(2, 3))
+
+    def test_sampling_many_locations_one_sample(self):
+        locs = np.arange(0.0, 0.5, 0.025)
+        sample = self.posterior.sample(locations=locs)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(len(sample), len(locs))
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = chi_squared_statistic(
+                sample, self.posterior(locs).mean, self.posterior(locs).cov
+            )
+            self.assertLess(chi_squared, 10.0)
+            self.assertLess(0.1, chi_squared)
+
+    def test_sampling_many_locations_multiple_samples(self):
+        locs = np.arange(0.0, 0.5, 0.025)
+        five_samples = self.posterior.sample(locations=locs, size=5)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(five_samples.shape[0], 5)
+            self.assertEqual(five_samples.shape[1], len(locs))
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = np.array(
+                [
+                    chi_squared_statistic(
+                        sample, self.posterior(locs).mean, self.posterior(locs).cov
+                    )
+                    for sample in five_samples
+                ]
+            ).mean()
+            self.assertLess(chi_squared, 10.0)
+            self.assertLess(0.1, chi_squared)
+
+        with self.subTest(msg="non-integers rejected"):
+            with self.assertRaises(NotImplementedError):
+                self.posterior.sample(locations=locs, size=(2, 3))

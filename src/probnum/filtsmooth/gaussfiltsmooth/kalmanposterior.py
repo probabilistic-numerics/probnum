@@ -68,6 +68,10 @@ class KalmanPosterior(FiltSmoothPosterior):
         :obj:`RandomVariable`
             Estimate of the states at time ``t``.
         """
+        if np.isscalar(t) is False:
+            # recursive evaluation (t can now be any array, not just length 1!)
+            return _RandomVariableList([self.__call__(t_pt) for t_pt in np.asarray(t)])
+
         if t < self.locations[0]:
             raise ValueError(
                 "Invalid location; Can not compute posterior for a location earlier "
@@ -134,18 +138,33 @@ class KalmanPosterior(FiltSmoothPosterior):
         If size is empty, it is a single sample. If not, multiple samples at once.
         """
         errormsg = "Sampling not implemented."
-        if locations is not None:
-            raise NotImplementedError(errormsg)
+
+        if locations is None:
+            locations = self.locations
+            random_vars = self.state_rvs
+        else:
+            random_vars = _RandomVariableList(
+                [self.__call__(location) for location in locations]
+            )
 
         if size == ():
-            return self._single_sample_path()
+            return self._single_sample_path(
+                locations=locations, random_vars=random_vars
+            )
         if np.isscalar(size):
-            return np.array([self._single_sample_path() for _ in range(size)])
+            return np.array(
+                [
+                    self._single_sample_path(
+                        locations=locations, random_vars=random_vars
+                    )
+                    for _ in range(size)
+                ]
+            )
         raise NotImplementedError(errormsg)
 
-    def _single_sample_path(self):
-        curr_sample = rvs.asrandvar(self.state_rvs[-1].sample())
+    def _single_sample_path(self, locations, random_vars):
+        curr_sample = rvs.asrandvar(random_vars[-1].sample())
         rv_list = self.gauss_filter.smooth_list(
-            self.state_rvs, self.locations, final_rv=curr_sample
+            random_vars, locations, final_rv=curr_sample
         )
         return rv_list.mean

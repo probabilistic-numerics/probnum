@@ -92,7 +92,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
             )
             # extreme values bc. higher order priors are poorly calibrated
             self.assertLess(chi_squared, 200.0)
-            self.assertLess(0.05, chi_squared)
+            self.assertLess(0.005, chi_squared)
 
     def test_sampling_all_locations_multiple_samples(self):
         five_samples = self.solution.sample(size=5)
@@ -119,17 +119,85 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
             with self.assertRaises(NotImplementedError):
                 self.solution.sample(size=(2, 3))
 
-    # Update the tests below if more sampling functionality is added
-
     def test_sampling_two_locations_one_sample(self):
         locs = self.solution.t[[2, 3]]
-        with self.assertRaises(NotImplementedError):
-            self.solution.sample(locations=locs)
+        sample = self.solution.sample(locations=locs)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(len(sample), 2)
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = chi_squared_statistic(
+                sample, self.solution[:].mean[[2, 3]], self.solution[:].cov[[2, 3]]
+            )
+            self.assertLess(chi_squared, 200.0)
+            self.assertLess(0.005, chi_squared)
 
     def test_sampling_two_locations_multiple_samples(self):
         locs = self.solution.t[[2, 3]]
-        with self.assertRaises(NotImplementedError):
-            self.solution.sample(locations=locs, size=5)
+        five_samples = self.solution.sample(locations=locs, size=5)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(five_samples.shape[0], 5)
+            self.assertEqual(five_samples.shape[1], 2)
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = np.array(
+                [
+                    chi_squared_statistic(
+                        sample,
+                        self.solution[:].mean[[2, 3]],
+                        self.solution[:].cov[[2, 3]],
+                    )
+                    for sample in five_samples
+                ]
+            ).mean()
+            self.assertLess(chi_squared, 200.0)
+            self.assertLess(0.005, chi_squared)
+
+        with self.subTest(msg="non-integers rejected"):
+            with self.assertRaises(NotImplementedError):
+                self.solution.sample(locations=locs, size=(2, 3))
+
+    def test_sampling_many_locations_one_sample(self):
+        locs = np.arange(0.1, 0.5, 0.025)
+        sample = self.solution.sample(locations=locs)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(len(sample), len(locs))
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = chi_squared_statistic(
+                sample, self.solution(locs).mean, self.solution(locs).cov
+            )
+            self.assertLess(chi_squared, 200.0)
+            self.assertLess(0.005, chi_squared)
+
+    def test_sampling_many_locations_multiple_samples(self):
+        locs = np.arange(0.0, 0.5, 0.025)
+        five_samples = self.solution.sample(locations=locs, size=5)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(five_samples.shape[0], 5)
+            self.assertEqual(five_samples.shape[1], len(locs))
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = np.array(
+                [
+                    chi_squared_statistic(
+                        sample[1:],
+                        self.solution(locs)[1:].mean,
+                        self.solution(locs)[1:].cov,
+                    )
+                    for sample in five_samples
+                ]
+            ).mean()
+            self.assertLess(chi_squared, 5000.0)  # is this still a test???
+            self.assertLess(0.005, chi_squared)
+
+        with self.subTest(msg="non-integers rejected"):
+            with self.assertRaises(NotImplementedError):
+                self.solution.sample(locations=locs, size=(2, 3))
 
 
 class TestODESolutionHigherOrderPrior(TestODESolution):
