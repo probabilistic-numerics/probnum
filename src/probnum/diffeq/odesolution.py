@@ -13,6 +13,7 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
 from probnum import utils
 
+
 class ODESolution(FiltSmoothPosterior):
     """
     Gaussian IVP filtering solution of an ODE problem

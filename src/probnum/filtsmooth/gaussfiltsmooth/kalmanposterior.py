@@ -14,6 +14,7 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 import probnum.random_variables as rvs
 from probnum import utils
 
+
 class KalmanPosterior(FiltSmoothPosterior):
     """
     Posterior Distribution after (Extended/Unscented) Kalman Filtering/Smoothing
@@ -141,7 +142,9 @@ class KalmanPosterior(FiltSmoothPosterior):
                 locations=locations, random_vars=random_vars
             )
 
-        return np.array([self.sample(locations=locations, size=size[1:]) for _ in range(size[0])])
+        return np.array(
+            [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
+        )
         # if np.isscalar(size):
         #     return np.array(
         #         [

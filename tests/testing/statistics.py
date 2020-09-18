@@ -41,4 +41,4 @@ def _dot_along_last_axis(a, b):
 
     Extracted, because otherwise I keep having to look up einsum...
     """
-    return np.einsum('...j, ...j->...', a, b)
+    return np.einsum("...j, ...j->...", a, b)
