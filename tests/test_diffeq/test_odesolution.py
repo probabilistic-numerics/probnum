@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from probnum.random_variables import Dirac
+from probnum.random_variables import Dirac, Normal
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import lotkavolterra, logistic
@@ -80,125 +80,6 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertGreater(t, self.solution.t[-1])
         self.solution(t)
 
-    def test_sampling_all_locations_one_sample(self):
-        sample = self.solution.sample()
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(len(sample), len(self.solution))
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = chi_squared_statistic(
-                sample[1:], self.solution[1:].mean, self.solution[1:].cov
-            )
-            # extreme values bc. higher order priors are poorly calibrated
-            self.assertLess(chi_squared, 200.0)
-            self.assertLess(0.005, chi_squared)
-
-    def test_sampling_all_locations_multiple_samples(self):
-        five_samples = self.solution.sample(size=5)
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(five_samples.shape[0], 5)
-            self.assertEqual(five_samples.shape[1], len(self.solution))
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = np.array(
-                [
-                    chi_squared_statistic(
-                        sample[1:], self.solution[1:].mean, self.solution[1:].cov
-                    )
-                    for sample in five_samples
-                ]
-            ).mean()
-
-            # extreme values bc. higher order priors are poorly calibrated
-            self.assertLess(chi_squared, 200.0)
-            self.assertLess(0.005, chi_squared)
-
-        with self.subTest(msg="non-integers rejected"):
-            with self.assertRaises(NotImplementedError):
-                self.solution.sample(size=(2, 3))
-
-    def test_sampling_two_locations_one_sample(self):
-        locs = self.solution.t[[2, 3]]
-        sample = self.solution.sample(t=locs)
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(len(sample), 2)
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = chi_squared_statistic(
-                sample, self.solution[:].mean[[2, 3]], self.solution[:].cov[[2, 3]]
-            )
-            self.assertLess(chi_squared, 200.0)
-            self.assertLess(0.005, chi_squared)
-
-    def test_sampling_two_locations_multiple_samples(self):
-        locs = self.solution.t[[2, 3]]
-        five_samples = self.solution.sample(t=locs, size=5)
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(five_samples.shape[0], 5)
-            self.assertEqual(five_samples.shape[1], 2)
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = np.array(
-                [
-                    chi_squared_statistic(
-                        sample,
-                        self.solution[:].mean[[2, 3]],
-                        self.solution[:].cov[[2, 3]],
-                    )
-                    for sample in five_samples
-                ]
-            ).mean()
-            self.assertLess(chi_squared, 200.0)
-            self.assertLess(0.005, chi_squared)
-
-        with self.subTest(msg="non-integers rejected"):
-            with self.assertRaises(NotImplementedError):
-                self.solution.sample(t=locs, size=(2, 3))
-
-    def test_sampling_many_locations_one_sample(self):
-        locs = np.arange(0.1, 0.5, 0.025)
-        sample = self.solution.sample(locs)
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(len(sample), len(locs))
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = chi_squared_statistic(
-                sample, self.solution(locs).mean, self.solution(locs).cov
-            )
-            self.assertLess(chi_squared, 200.0)
-            self.assertLess(0.005, chi_squared)
-
-    def test_sampling_many_locations_multiple_samples(self):
-        locs = np.arange(0.0, 0.5, 0.025)
-        five_samples = self.solution.sample(t=locs, size=5)
-
-        with self.subTest(msg="Test output shape"):
-            self.assertEqual(five_samples.shape[0], 5)
-            self.assertEqual(five_samples.shape[1], len(locs))
-
-        with self.subTest(msg="Chi squared test"):
-            chi_squared = np.array(
-                [
-                    chi_squared_statistic(
-                        sample[1:],
-                        self.solution(locs)[1:].mean,
-                        self.solution(locs)[1:].cov,
-                    )
-                    for sample in five_samples
-                ]
-            ).mean()
-            self.assertLess(chi_squared, 5000.0)  # is this still a test???
-            self.assertLess(0.005, chi_squared)
-
-        with self.subTest(msg="non-integers rejected"):
-            with self.assertRaises(NotImplementedError):
-                self.solution.sample(t=locs, size=(2, 3))
-
 
 class TestODESolutionHigherOrderPrior(TestODESolution):
     """Same as above, but higher-order prior to test for a different dimensionality"""
@@ -226,3 +107,79 @@ class TestODESolutionAdaptive(TestODESolution):
     def setUp(self):
         super().setUp()
         self.solution = probsolve_ivp(self.ivp, which_prior="ibm2", tol=0.1)
+
+
+class TestODESolutionSampling(unittest.TestCase):
+    def setUp(self):
+        initrv = Normal(20 * np.ones(2), 0.1 * np.eye(2))
+        self.ivp = lotkavolterra([0.0, 0.5], initrv)
+        step = 0.1
+        self.solution = probsolve_ivp(self.ivp, step=step)
+
+    def test_output_shape(self):
+        loc_inputs = [
+            None,
+            self.solution.t[[2, 3]],
+            np.arange(0.0, 0.5, 0.025),
+        ]
+        dim = (self.ivp.ndim,)
+        single_sample_shapes = [
+            (len(self.solution),) + dim,
+            (2,) + dim,
+            (len(loc_inputs[-1]),) + dim,
+        ]
+
+        for size in [(), (5,), (2, 3, 4)]:
+            for loc, loc_shape in zip(loc_inputs, single_sample_shapes):
+                with self.subTest(size=size, loc=loc):
+                    sample = self.solution.sample(t=loc, size=size)
+                    if size == ():
+                        self.assertEqual(sample.shape, loc_shape)
+                    else:
+                        self.assertEqual(sample.shape, size + loc_shape)
+
+    def test_sampling_all_locations_multiple_samples(self):
+        five_samples = self.solution.sample(size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.solution[:].mean, self.solution[:].cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
+
+    def test_sampling_two_locations_multiple_samples(self):
+        locs = self.solution.t[[2, 3]]
+        five_samples = self.solution.sample(t=locs, size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample,
+                    self.solution[:].mean[[2, 3]],
+                    self.solution[:].cov[[2, 3]],
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
+
+    def test_sampling_many_locations_multiple_samples(self):
+        locs = np.arange(0.0, 0.5, 0.025)
+        five_samples = self.solution.sample(t=locs, size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.solution(locs).mean, self.solution(locs).cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)

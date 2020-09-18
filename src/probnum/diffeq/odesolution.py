@@ -11,7 +11,7 @@ from probnum.random_variables import Normal, asrandvar
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
-
+from probnum import utils
 
 class ODESolution(FiltSmoothPosterior):
     """
@@ -190,17 +190,16 @@ class ODESolution(FiltSmoothPosterior):
             raise ValueError("Invalid index")
 
     def sample(self, t=None, size=()):
+        # this has its own recursion because of the tedious undoing of preconditioning....
+
+        size = utils.as_shape(size)
+
+        # implement only single samples, rest via recursion
+        if size != ():
+            return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
+
         samples = self._kalman_posterior.sample(locations=t, size=size)
-        if samples.ndim == 2:
-            return self._undo_preconditioning_and_project_samples(samples)
-        if samples.ndim == 3:
-            return np.array(
-                [
-                    self._undo_preconditioning_and_project_samples(sample)
-                    for sample in samples
-                ]
-            )
-        raise NotImplementedError
+        return self._undo_preconditioning_and_project_samples(samples)
 
     def _undo_preconditioning_and_project_samples(self, samples):
         return np.array(
