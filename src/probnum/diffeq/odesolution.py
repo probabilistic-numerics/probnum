@@ -189,8 +189,8 @@ class ODESolution(FiltSmoothPosterior):
         else:
             raise ValueError("Invalid index")
 
-    def sample(self, locations=None, size=()):
-        samples = self._kalman_posterior.sample(locations=locations, size=size)
+    def sample(self, t=None, size=()):
+        samples = self._kalman_posterior.sample(locations=t, size=size)
         if samples.ndim == 2:
             return self._undo_preconditioning_and_project_samples(samples)
         if samples.ndim == 3:

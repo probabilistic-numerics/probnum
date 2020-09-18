@@ -121,7 +121,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
     def test_sampling_two_locations_one_sample(self):
         locs = self.solution.t[[2, 3]]
-        sample = self.solution.sample(locations=locs)
+        sample = self.solution.sample(t=locs)
 
         with self.subTest(msg="Test output shape"):
             self.assertEqual(len(sample), 2)
@@ -135,7 +135,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
     def test_sampling_two_locations_multiple_samples(self):
         locs = self.solution.t[[2, 3]]
-        five_samples = self.solution.sample(locations=locs, size=5)
+        five_samples = self.solution.sample(t=locs, size=5)
 
         with self.subTest(msg="Test output shape"):
             self.assertEqual(five_samples.shape[0], 5)
@@ -157,11 +157,11 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
         with self.subTest(msg="non-integers rejected"):
             with self.assertRaises(NotImplementedError):
-                self.solution.sample(locations=locs, size=(2, 3))
+                self.solution.sample(t=locs, size=(2, 3))
 
     def test_sampling_many_locations_one_sample(self):
         locs = np.arange(0.1, 0.5, 0.025)
-        sample = self.solution.sample(locations=locs)
+        sample = self.solution.sample(locs)
 
         with self.subTest(msg="Test output shape"):
             self.assertEqual(len(sample), len(locs))
@@ -175,7 +175,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
     def test_sampling_many_locations_multiple_samples(self):
         locs = np.arange(0.0, 0.5, 0.025)
-        five_samples = self.solution.sample(locations=locs, size=5)
+        five_samples = self.solution.sample(t=locs, size=5)
 
         with self.subTest(msg="Test output shape"):
             self.assertEqual(five_samples.shape[0], 5)
@@ -197,7 +197,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
         with self.subTest(msg="non-integers rejected"):
             with self.assertRaises(NotImplementedError):
-                self.solution.sample(locations=locs, size=(2, 3))
+                self.solution.sample(t=locs, size=(2, 3))
 
 
 class TestODESolutionHigherOrderPrior(TestODESolution):
