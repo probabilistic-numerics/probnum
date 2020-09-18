@@ -15,15 +15,19 @@ class _RandomVariableList(list):
             raise TypeError("RandomVariableList expects a list.")
         super().__init__(rv_list)
 
+    @property
     def mean(self):
         return np.stack([rv.mean for rv in self])
 
+    @property
     def cov(self):
         return np.stack([rv.cov for rv in self])
 
+    @property
     def var(self):
         return np.stack([rv.var for rv in self])
 
+    @property
     def std(self):
         return np.stack([rv.std for rv in self])
 

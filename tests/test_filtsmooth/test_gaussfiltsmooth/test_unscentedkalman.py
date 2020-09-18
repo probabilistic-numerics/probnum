@@ -60,11 +60,11 @@ class TestUnscentedKalmanDiscDisc(CarTrackingDDTestCase):
         than of measurements?
         """
         filter_posterior = self.method.filter(self.obs, self.tms)
-        filtms = filter_posterior.state_rvs.mean()
-        filtcs = filter_posterior.state_rvs.cov()
+        filtms = filter_posterior.state_rvs.mean
+        filtcs = filter_posterior.state_rvs.cov
         smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
-        smooms = smooth_posterior.state_rvs.mean()
-        smoocs = smooth_posterior.state_rvs.cov()
+        smooms = smooth_posterior.state_rvs.mean
+        smoocs = smooth_posterior.state_rvs.cov
 
         comp = self.states[1:, :2]
         normaliser = np.sqrt(comp.size)
@@ -148,11 +148,11 @@ class TestUnscentedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         RMSE of filter smaller than rmse of measurements?
         """
         filter_posterior = self.method.filter(self.obs, self.tms)
-        filtms = filter_posterior.state_rvs.mean()
-        filtcs = filter_posterior.state_rvs.cov()
+        filtms = filter_posterior.state_rvs.mean
+        filtcs = filter_posterior.state_rvs.cov
         smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
-        smooms = smooth_posterior.state_rvs.mean()
-        smoocs = smooth_posterior.state_rvs.cov()
+        smooms = smooth_posterior.state_rvs.mean
+        smoocs = smooth_posterior.state_rvs.cov
 
         comp = self.states[1:]
 
@@ -194,11 +194,11 @@ class TestUnscentedKalmanPendulum(PendulumNonlinearDDTestCase):
 
     def test_filtsmooth(self):
         filter_posterior = self.method.filter(self.obs, self.tms)
-        filtms = filter_posterior.state_rvs.mean()
-        filtcs = filter_posterior.state_rvs.cov()
+        filtms = filter_posterior.state_rvs.mean
+        filtcs = filter_posterior.state_rvs.cov
         smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
-        smooms = smooth_posterior.state_rvs.mean()
-        smoocs = smooth_posterior.state_rvs.cov()
+        smooms = smooth_posterior.state_rvs.mean
+        smoocs = smooth_posterior.state_rvs.cov
 
         comp = self.states[:, 0]
         normaliser = np.sqrt(comp.size)

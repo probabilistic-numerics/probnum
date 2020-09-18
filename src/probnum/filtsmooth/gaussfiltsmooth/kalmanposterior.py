@@ -157,6 +157,6 @@ class KalmanPosterior(FiltSmoothPosterior):
             sample_path.append(curr_sample)
         sample_path.reverse()
         rv_list = _RandomVariableList(sample_path)
-        sample_path = rv_list.mean()
+        sample_path = rv_list.mean
         return sample_path
 

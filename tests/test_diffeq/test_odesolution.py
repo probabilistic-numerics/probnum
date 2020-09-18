@@ -34,8 +34,8 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertArrayEqual(self.solution[-1].mean, self.solution.y[-1].mean)
         self.assertArrayEqual(self.solution[-1].cov, self.solution.y[-1].cov)
 
-        self.assertArrayEqual(self.solution[:].mean(), self.solution.y[:].mean())
-        self.assertArrayEqual(self.solution[:].cov(), self.solution.y[:].cov())
+        self.assertArrayEqual(self.solution[:].mean, self.solution.y[:].mean)
+        self.assertArrayEqual(self.solution[:].cov, self.solution.y[:].cov)
 
     def test_y(self):
         self.assertTrue(isinstance(self.solution.y, _RandomVariableList))

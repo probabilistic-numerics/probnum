@@ -40,7 +40,7 @@ class ODESolution(FiltSmoothPosterior):
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> # Mean of the discrete-time solution
-    >>> print(solution.y.mean())
+    >>> print(solution.y.mean)
     [[0.15      ]
      [0.2076198 ]
      [0.27932997]
@@ -67,7 +67,7 @@ class ODESolution(FiltSmoothPosterior):
     [0.55945475]
     >>> # Evaluate the continuous-time solution at a new time point t=0.65
     >>> print(solution(0.65).mean)
-    [0.69702861]
+    [0.69875089]
     """
 
     def __init__(self, times, rvs, solver):

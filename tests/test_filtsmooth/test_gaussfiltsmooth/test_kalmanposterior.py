@@ -36,10 +36,10 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.assertArrayEqual(self.posterior[-1].cov, self.posterior.state_rvs[-1].cov)
 
         self.assertArrayEqual(
-            self.posterior[:].mean(), self.posterior.state_rvs[:].mean()
+            self.posterior[:].mean, self.posterior.state_rvs[:].mean
         )
         self.assertArrayEqual(
-            self.posterior[:].cov(), self.posterior.state_rvs[:].cov()
+            self.posterior[:].cov, self.posterior.state_rvs[:].cov
         )
 
     def test_state_rvs(self):
@@ -86,7 +86,7 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
 
         with self.subTest(msg="Chi squared test"):
             chi_squared = chi_squared_statistic(
-                sample, self.posterior[:].mean(), self.posterior[:].cov()
+                sample, self.posterior[:].mean, self.posterior[:].cov
             )
             self.assertLess(chi_squared, 10.0)
             self.assertLess(0.1, chi_squared)
@@ -102,7 +102,7 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
             chi_squared = np.array(
                 [
                     chi_squared_statistic(
-                        sample, self.posterior[:].mean(), self.posterior[:].cov()
+                        sample, self.posterior[:].mean, self.posterior[:].cov
                     )
                     for sample in five_samples
                 ]

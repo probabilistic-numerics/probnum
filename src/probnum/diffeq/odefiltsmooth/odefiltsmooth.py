@@ -186,7 +186,7 @@ def probsolve_ivp(
     >>> initrv = rvs.Dirac(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
-    >>> print(solution.y.mean())
+    >>> print(solution.y.mean)
     [[0.15      ]
      [0.2076198 ]
      [0.27932997]
@@ -207,7 +207,7 @@ def probsolve_ivp(
     >>> initrv = rvs.Dirac(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
-    >>> print(solution.y.mean())
+    >>> print(solution.y.mean)
     [[0.15      ]
      [0.20795795]
      [0.28228416]
