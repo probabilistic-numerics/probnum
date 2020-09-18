@@ -133,17 +133,15 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         If size is empty, it is a single sample. If not, multiple samples at once.
         """
-
-        if locations is not None or size != ():
-            raise NotImplementedError("Sampling not implemented.")
-
-        # now: a single sample from all the locations
-        # This is suuuuuper hacky
+        errormsg = "Sampling not implemented."
+        if locations is not None:
+            raise NotImplementedError(errormsg)
 
         if size == ():
             return self._single_sample_path()
-        return np.array([self._single_sample_path() for _ in range(size)])
-
+        if np.isscalar(size):
+            return np.array([self._single_sample_path() for _ in range(size)])
+        raise NotImplementedError(errormsg)
 
     def _single_sample_path(self):
         curr_sample = rvs.asrandvar(self.state_rvs[-1].sample())

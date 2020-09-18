@@ -88,17 +88,26 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
 
         with self.subTest(msg="Chi squared test"):
             # test that noise in that sample is proportional to the covariance
-            centered_value = np.abs(sample - self.posterior[:].mean())
-            centered_2 = np.linalg.solve(self.posterior[:].cov(), centered_value)
-            chi_squared = np.trace(centered_value @ centered_2.T) / len(sample)
+            chi_squared = chi_squared_statistic(sample, self.posterior[:].mean(), self.posterior[:].cov())
             self.assertLess(chi_squared, 10.0)
             self.assertLess(0.1, chi_squared)
 
-
-
     def test_sampling_all_locations_multiple_samples(self):
-        with self.assertRaises(NotImplementedError):
-            self.posterior.sample(size=5)
+        five_samples = self.posterior.sample(size=5)
+        
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(five_samples.shape[0], 5)
+            self.assertEqual(five_samples.shape[1], len(self.posterior))
+
+        with self.subTest(msg="Chi squared test"):
+            # test that noise in that sample is proportional to the covariance
+            chi_squared = np.array([chi_squared_statistic(sample, self.posterior[:].mean(), self.posterior[:].cov()) for sample in five_samples]).mean()
+            self.assertLess(chi_squared, 10.0)
+            self.assertLess(0.1, chi_squared)
+
+        with self.subTest(msg="non-integers rejected"):
+            with self.assertRaises(NotImplementedError):
+                self.posterior.sample(size=(2, 3))
 
     def test_sampling_two_locations_one_sample(self):
         locs = self.posterior.locations[[2, 3]]
@@ -109,4 +118,10 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         locs = self.posterior.locations[[2, 3]]
         with self.assertRaises(NotImplementedError):
             self.posterior.sample(locations=locs, size=5)
+
+
+def chi_squared_statistic(realisations, means, covs):
+    centered_realisations = realisations - means
+    centered_2 = np.linalg.solve(covs, centered_realisations)
+    return np.trace(centered_realisations @ centered_2.T) / len(centered_2)
 
