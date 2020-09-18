@@ -78,13 +78,23 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.assertGreater(30, self.tms[-1])
         self.posterior(30)
 
-
     # From here on: work in progress
 
-
     def test_sampling_all_locations_one_sample(self):
-        with self.assertRaises(NotImplementedError):
-            self.posterior.sample()
+        sample = self.posterior.sample()
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(len(sample), len(self.posterior))
+
+        with self.subTest(msg="Chi squared test"):
+            # test that noise in that sample is proportional to the covariance
+            centered_value = np.abs(sample - self.posterior[:].mean())
+            centered_2 = np.linalg.solve(self.posterior[:].cov(), centered_value)
+            chi_squared = np.trace(centered_value @ centered_2.T) / len(sample)
+            self.assertLess(chi_squared, 10.0)
+            self.assertLess(0.1, chi_squared)
+
+
 
     def test_sampling_all_locations_multiple_samples(self):
         with self.assertRaises(NotImplementedError):

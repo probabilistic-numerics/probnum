@@ -11,7 +11,7 @@ import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
-
+import probnum.random_variables as rvs
 
 class KalmanPosterior(FiltSmoothPosterior):
     """
@@ -122,7 +122,7 @@ class KalmanPosterior(FiltSmoothPosterior):
     def __getitem__(self, idx):
         return self.state_rvs[idx]
 
-    def sample(self, locations=None, size=None):
+    def sample(self, locations=None, size=()):
         """
         Draw samples from the filtering/smoothing posterior.
 
@@ -133,4 +133,26 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         If size is empty, it is a single sample. If not, multiple samples at once.
         """
-        raise NotImplementedError("Sampling not implemented.")
+
+        if locations is not None or size != ():
+            raise NotImplementedError("Sampling not implemented.")
+
+        # now: a single sample from all the locations
+        # This is suuuuuper hacky
+
+        curr_sample = rvs.asrandvar(self.state_rvs[-1].sample())
+        sample_path = [curr_sample]
+        for idx in reversed(range(1, len(self.locations))):
+            unsmoothed_rv = self.state_rvs[idx - 1]
+            pred_rv, ccov = self.gauss_filter.predict(
+                start=self.locations[idx - 1],
+                stop=self.locations[idx],
+                randvar=unsmoothed_rv,
+            )
+            curr_sample = self.gauss_filter.smooth_step(unsmoothed_rv, pred_rv, curr_sample, ccov)
+            sample_path.append(curr_sample)
+        sample_path.reverse()
+        rv_list = _RandomVariableList(sample_path)
+        sample_path = rv_list.mean()
+        return sample_path
+
