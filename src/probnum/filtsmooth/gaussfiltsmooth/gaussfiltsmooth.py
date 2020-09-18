@@ -94,7 +94,9 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
             Posterior distribution of the smoothed output
         """
         rv_list = self.smooth_list(filter_posterior, filter_posterior.locations)
-        return KalmanPosterior(filter_posterior.locations, rv_list, self, with_smoothing=True)
+        return KalmanPosterior(
+            filter_posterior.locations, rv_list, self, with_smoothing=True
+        )
 
     def smooth_list(self, rv_list, locations, final_rv=None):
         """

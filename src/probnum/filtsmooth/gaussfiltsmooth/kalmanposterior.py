@@ -35,7 +35,6 @@ class KalmanPosterior(FiltSmoothPosterior):
         self._state_rvs = _RandomVariableList(state_rvs)
         self._with_smoothing = with_smoothing
 
-
     @property
     def locations(self):
         """:obj:`np.ndarray`: Locations / times of the discrete observations"""
@@ -146,6 +145,7 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     def _single_sample_path(self):
         curr_sample = rvs.asrandvar(self.state_rvs[-1].sample())
-        rv_list = self.gauss_filter.smooth_list(self.state_rvs, self.locations, final_rv=curr_sample)
+        rv_list = self.gauss_filter.smooth_list(
+            self.state_rvs, self.locations, final_rv=curr_sample
+        )
         return rv_list.mean
-

@@ -90,8 +90,9 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
             chi_squared = chi_squared_statistic(
                 sample[1:], self.solution[1:].mean, self.solution[1:].cov
             )
-            self.assertLess(chi_squared, 100.0)
-            self.assertLess(0.01, chi_squared)
+            # extreme values bc. higher order priors are poorly calibrated
+            self.assertLess(chi_squared, 200.0)
+            self.assertLess(0.05, chi_squared)
 
     def test_sampling_all_locations_multiple_samples(self):
         five_samples = self.solution.sample(size=5)
@@ -109,8 +110,10 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
                     for sample in five_samples
                 ]
             ).mean()
-            self.assertLess(chi_squared, 100.0)
-            self.assertLess(0.01, chi_squared)
+
+            # extreme values bc. higher order priors are poorly calibrated
+            self.assertLess(chi_squared, 200.0)
+            self.assertLess(0.005, chi_squared)
 
         with self.subTest(msg="non-integers rejected"):
             with self.assertRaises(NotImplementedError):
