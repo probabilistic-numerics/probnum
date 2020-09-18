@@ -181,3 +181,6 @@ class ODESolution(FiltSmoothPosterior):
             return _RandomVariableList(f_rvs)
         else:
             raise ValueError("Invalid index")
+
+    def sample(self, locations=None, size=()):
+        raise NotImplementedError

@@ -2,7 +2,7 @@ import numpy as np
 
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
 from probnum._randomvariablelist import _RandomVariableList
-from tests.testing import NumpyAssertions
+from tests.testing import NumpyAssertions, chi_squared_statistic
 
 from .filtsmooth_testcases import CarTrackingDDTestCase
 
@@ -127,7 +127,3 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
             self.posterior.sample(locations=locs, size=5)
 
 
-def chi_squared_statistic(realisations, means, covs):
-    centered_realisations = realisations - means
-    centered_2 = np.linalg.solve(covs, centered_realisations)
-    return np.trace(centered_realisations @ centered_2.T) / len(centered_2)
