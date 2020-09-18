@@ -78,7 +78,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
     def test_call_extrapolation(self):
         t = 1.1 * self.ivp.tmax
         self.assertGreater(t, self.solution.t[-1])
-        self.solution(t, smoothed=False)
+        self.solution(t)
 
     def test_sampling_all_locations_one_sample(self):
         sample = self.solution.sample()

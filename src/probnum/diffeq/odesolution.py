@@ -140,7 +140,7 @@ class ODESolution(FiltSmoothPosterior):
         )
         return state_rvs
 
-    def __call__(self, t, smoothed=True):
+    def __call__(self, t):
         """
         Evaluate the time-continuous solution at time t.
 
@@ -153,9 +153,6 @@ class ODESolution(FiltSmoothPosterior):
         ----------
         t : float
             Location / time at which to evaluate the continuous ODE solution.
-        smoothed : bool, optional
-            If ``True`` (default) perform smooth interpolation. If ``False`` perform a
-            prediction from the previous location, without smoothing.
 
         Returns
         -------
