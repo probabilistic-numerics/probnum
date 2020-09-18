@@ -85,21 +85,28 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
             self.assertEqual(len(sample), len(self.posterior))
 
         with self.subTest(msg="Chi squared test"):
-            # test that noise in that sample is proportional to the covariance
-            chi_squared = chi_squared_statistic(sample, self.posterior[:].mean(), self.posterior[:].cov())
+            chi_squared = chi_squared_statistic(
+                sample, self.posterior[:].mean(), self.posterior[:].cov()
+            )
             self.assertLess(chi_squared, 10.0)
             self.assertLess(0.1, chi_squared)
 
     def test_sampling_all_locations_multiple_samples(self):
         five_samples = self.posterior.sample(size=5)
-        
+
         with self.subTest(msg="Test output shape"):
             self.assertEqual(five_samples.shape[0], 5)
             self.assertEqual(five_samples.shape[1], len(self.posterior))
 
         with self.subTest(msg="Chi squared test"):
-            # test that noise in that sample is proportional to the covariance
-            chi_squared = np.array([chi_squared_statistic(sample, self.posterior[:].mean(), self.posterior[:].cov()) for sample in five_samples]).mean()
+            chi_squared = np.array(
+                [
+                    chi_squared_statistic(
+                        sample, self.posterior[:].mean(), self.posterior[:].cov()
+                    )
+                    for sample in five_samples
+                ]
+            ).mean()
             self.assertLess(chi_squared, 10.0)
             self.assertLess(0.1, chi_squared)
 
@@ -124,4 +131,3 @@ def chi_squared_statistic(realisations, means, covs):
     centered_realisations = realisations - means
     centered_2 = np.linalg.solve(covs, centered_realisations)
     return np.trace(centered_realisations @ centered_2.T) / len(centered_2)
-
