@@ -13,6 +13,7 @@ from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 import probnum.random_variables as rvs
 
+
 class KalmanPosterior(FiltSmoothPosterior):
     """
     Posterior Distribution after (Extended/Unscented) Kalman Filtering/Smoothing
@@ -145,18 +146,6 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     def _single_sample_path(self):
         curr_sample = rvs.asrandvar(self.state_rvs[-1].sample())
-        sample_path = [curr_sample]
-        for idx in reversed(range(1, len(self.locations))):
-            unsmoothed_rv = self.state_rvs[idx - 1]
-            pred_rv, ccov = self.gauss_filter.predict(
-                start=self.locations[idx - 1],
-                stop=self.locations[idx],
-                randvar=unsmoothed_rv,
-            )
-            curr_sample = self.gauss_filter.smooth_step(unsmoothed_rv, pred_rv, curr_sample, ccov)
-            sample_path.append(curr_sample)
-        sample_path.reverse()
-        rv_list = _RandomVariableList(sample_path)
-        sample_path = rv_list.mean
-        return sample_path
+        rv_list = self.gauss_filter.smooth_list(self.state_rvs, self.locations, final_rv=curr_sample)
+        return rv_list.mean
 
