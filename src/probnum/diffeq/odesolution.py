@@ -5,7 +5,9 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
-from probnum.random_variables import Normal
+import numpy as np
+
+from probnum.random_variables import Normal, asrandvar
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
@@ -75,7 +77,9 @@ class ODESolution(FiltSmoothPosterior):
         # try-except is a hotfix for now:
         # future PR is to move KalmanPosterior-info out of here, into GaussianIVPFilter
         try:
-            self._kalman_posterior = KalmanPosterior(times, rvs, solver.gfilt, solver.with_smoothing)
+            self._kalman_posterior = KalmanPosterior(
+                times, rvs, solver.gfilt, solver.with_smoothing
+            )
             self._t = None
             self._y = None
         except AttributeError:
@@ -183,4 +187,24 @@ class ODESolution(FiltSmoothPosterior):
             raise ValueError("Invalid index")
 
     def sample(self, locations=None, size=()):
+        samples = self._kalman_posterior.sample(locations=locations, size=size)
+        if samples.ndim == 2:
+            return self._undo_preconditioning_and_project_samples(samples)
+        if samples.ndim == 3:
+            return np.array(
+                [
+                    self._undo_preconditioning_and_project_samples(sample)
+                    for sample in samples
+                ]
+            )
         raise NotImplementedError
+
+    def _undo_preconditioning_and_project_samples(self, samples):
+        return np.array(
+            [
+                self._proj_normal_rv(
+                    self._solver.undo_preconditioning(asrandvar(sample)), 0
+                ).mean
+                for sample in samples
+            ]
+        )

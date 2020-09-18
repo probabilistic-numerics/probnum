@@ -6,7 +6,7 @@ from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import lotkavolterra, logistic
 
-from tests.testing import NumpyAssertions
+from tests.testing import NumpyAssertions, chi_squared_statistic
 
 
 class TestODESolution(unittest.TestCase, NumpyAssertions):
@@ -79,6 +79,54 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         t = 1.1 * self.ivp.tmax
         self.assertGreater(t, self.solution.t[-1])
         self.solution(t, smoothed=False)
+
+    def test_sampling_all_locations_one_sample(self):
+        sample = self.solution.sample()
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(len(sample), len(self.solution))
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = chi_squared_statistic(
+                sample[1:], self.solution[1:].mean, self.solution[1:].cov
+            )
+            self.assertLess(chi_squared, 100.0)
+            self.assertLess(0.01, chi_squared)
+
+    def test_sampling_all_locations_multiple_samples(self):
+        five_samples = self.solution.sample(size=5)
+
+        with self.subTest(msg="Test output shape"):
+            self.assertEqual(five_samples.shape[0], 5)
+            self.assertEqual(five_samples.shape[1], len(self.solution))
+
+        with self.subTest(msg="Chi squared test"):
+            chi_squared = np.array(
+                [
+                    chi_squared_statistic(
+                        sample[1:], self.solution[1:].mean, self.solution[1:].cov
+                    )
+                    for sample in five_samples
+                ]
+            ).mean()
+            self.assertLess(chi_squared, 100.0)
+            self.assertLess(0.01, chi_squared)
+
+        with self.subTest(msg="non-integers rejected"):
+            with self.assertRaises(NotImplementedError):
+                self.solution.sample(size=(2, 3))
+
+    # Update the tests below if more sampling functionality is added
+
+    def test_sampling_two_locations_one_sample(self):
+        locs = self.solution.t[[2, 3]]
+        with self.assertRaises(NotImplementedError):
+            self.solution.sample(locations=locs)
+
+    def test_sampling_two_locations_multiple_samples(self):
+        locs = self.solution.t[[2, 3]]
+        with self.assertRaises(NotImplementedError):
+            self.solution.sample(locations=locs, size=5)
 
 
 class TestODESolutionHigherOrderPrior(TestODESolution):
