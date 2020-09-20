@@ -32,7 +32,7 @@ The following people contributed to the ProbNum repository.
 
 ---
 
-**Code Contributors:** Contributors who made substantial additions to ProbNum's codebase or infrastructure.
+**Code Contributors:** Developers who made substantial additions to ProbNum's codebase or infrastructure.
 
 
 <div>
