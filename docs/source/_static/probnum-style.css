@@ -115,7 +115,7 @@ html.writer-html5 .rst-content dl.footnote > dd {
 }
 
 
-/* Sphinx Gallery */
+/* Sphinx gallery */
 div.sphx-glr-thumbcontainer {
     background: var(--pn-lightgray);
     border: solid var(--pn-lightgray) 1px;
@@ -126,10 +126,23 @@ div.sphx-glr-thumbcontainer:hover {
     border: solid var(--pn-green) 1px;
 }
 
-/* Plot Animations */
+/* Plot animations */
 .anim-state label {
     margin-right: 8px;
     display: inline;
+}
+
+/* Author attribution */
+.rst-content .section ul li, .rst-content .toctree-wrapper ul li, .wy-plain-list-disc li, .authorlist, article ul li {
+    list-style: none;
+    margin-left: 16px;
+    margin-bottom: 0px !important;
+    float: left;
+}
+
+.avatar {
+  vertical-align: middle;
+  border-radius: 10%;
 }
 
 /* ReadTheDocs */
