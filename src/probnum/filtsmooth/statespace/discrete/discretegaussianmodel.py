@@ -33,76 +33,31 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
 
     def __init__(self, dynafct, diffmatfct, jacfct=None):
         """
-        dynafct and jacfct have sign. (t, x, *)
+        dynafct and jacfct have signature (t, x, *)
         diffmatfct has sign. (t, *)
         """
         self._dynafct = dynafct
         self._diffmatfct = diffmatfct
         self._jacfct = jacfct
 
-    def transition_array(self, arr, start, stop=None, *args):
-        newmean = self._dynafct(time, state, **kwargs)
-        return Normal(
-            newmean, self.diffusionmatrix(time=start)
-        )
+    def transition_realization(self, real, start, stop=None):
+        newmean = self._dynafct(start, real)
+        newcov = self._diffmatfct(start)
+        return Normal(newmean, newcov)
 
-    def transition_rv(self, rv, start=None, stop=None, *args):
+    def transition_rv(self, rv, start, stop=None, *args):
         raise NotImplementedError
 
     @property
     def dimension(self):
         return len(self.diffusionmatrix(0.0))
 
-    # def dynamics(self, time, state, **kwargs):
-    #     """
-    #     Evaluate g(t_i, x_i).
-    #     """
-    #     dynas = self._dynafct(time, state, **kwargs)
-    #     return dynas
-    #
-    # def jacobian(self, time, state, **kwargs):
-    #     """
-    #     Evaluate Jacobian, d_x g(t_i, x_i),
-    #     of g(t_i, x_i) w.r.t. x_i.
-    #     """
-    #     if self._jacfct is None:
-    #         raise NotImplementedError("Jacobian not provided")
-    #     else:
-    #         return self._jacfct(time, state, **kwargs)
-    #
-    # def diffusionmatrix(self, time, **kwargs):
-    #     """
-    #     Evaluate S(t_i)
-    #     """
-    #     return self._diffmatfct(time, **kwargs)
-    #
-    # def sample(self, time, state, **kwargs):
-    #     """
-    #     Samples x_{t} ~ p(x_{t} | x_{s})
-    #     as a function of t and x_s (plus additional parameters).
-    #
-    #     In a discrete system, i.e. t = s + 1, s \\in \\mathbb{N}
-    #
-    #     In an ODE solver setting, one of the additional parameters
-    #     would be the step size.
-    #     """
-    #     dynavl = self.dynamics(time, state, **kwargs)
-    #     diffvl = self.diffusionmatrix(time, **kwargs)
-    #     rv = Normal(dynavl, diffvl)
-    #     return rv.sample()
-    #
-    # def pdf(self, loc, time, state, **kwargs):
-    #     """
-    #     Evaluates "future" pdf p(x_t | x_s) at loc.
-    #     """
-    #     dynavl = self.dynamics(time, state, **kwargs)
-    #     diffvl = self.diffusionmatrix(time, **kwargs)
-    #     normaldist = Normal(dynavl, diffvl)
-    #     return normaldist.pdf(loc)
-    #
-    # @property
-    # def ndim(self):
-    #     return len(self.diffusionmatrix(0.0))
+    def diffusionmatrix(self, time, **kwargs):
+        """
+        Convenient access to dynamics matrix
+        (alternative to "jacobian").
+        """
+        return self._diffmatfct(time, **kwargs)
 
 
 class DiscreteGaussianLinearModel(DiscreteGaussianModel):
@@ -118,14 +73,14 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
             return dynamatfct(t, **kwargs)
 
         super().__init__(dynafct, diffmatfct, jacfct)
-        self.forcefct = forcefct
+        self._forcefct = forcefct
 
-    def transition_rv(self, rv, start=None, stop=None, *args):
+    def transition_rv(self, rv, start, stop=None, *args):
         if not isinstance(rv, Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
         dynamat = self.dynamicsmatrix(time=start)
         diffmat = self.diffusionmatrix(time=start)
-        force = self.force(time=start)
+        force = self.forcevector(time=start)
         return Normal(
             mean=dynamat @ rv.mean + force, cov=dynamat @ rv.cov @ dynamat.T + diffmat
         )
@@ -135,10 +90,10 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         Convenient access to dynamics matrix
         (alternative to "jacobian").
         """
-        return self.jacobian(time, None, **kwargs)
+        return self._jacfct(time, None, **kwargs)
 
-    def force(self, time, **kwargs):
-        return self.forcefct(time, **kwargs)
+    def forcevector(self, time, **kwargs):
+        return self._forcefct(time, **kwargs)
 
 
 class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
@@ -153,3 +108,9 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
             lambda t, **kwargs: forcevec,
             lambda t, **kwargs: diffmat,
         )
+
+    def transition_realization(self, real, start=None, stop=None):
+        return super().transition_realization(real=real, start=None, stop=None)
+
+    def transition_rv(self, rv, start=None, stop=None, *args):
+        return super().transition_rv(rv=rv, start=None, stop=None)

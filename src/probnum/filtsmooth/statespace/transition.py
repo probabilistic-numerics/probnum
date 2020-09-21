@@ -11,15 +11,12 @@ class Transition(abc.ABC):
     Interface for Markov transition rules in discrete or continuous time.
     """
 
-    def __call__(self, arr_or_rv, *args):
+    def __call__(self, arr_or_rv, start=None, stop=None):
         """Depending on the input, either call self.transition_realization() or self.transition_rv()"""
         if isinstance(arr_or_rv, RandomVariable):
-            return self.transition_rv(rv=arr_or_rv, *args)
-        return self.transition_realization(real=arr_or_rv, *args)
+            return self.transition_rv(rv=arr_or_rv, start=start, stop=stop)
+        return self.transition_realization(real=arr_or_rv, start=start, stop=stop)
 
-    def sample(self, arr_or_rv, size=(), *args):
-        """Sample from the transition."""
-        return self.__call__(arr_or_rv, *args).sample(size=size)
 
     @abc.abstractmethod
     def transition_realization(self, real, start, stop, *args):
