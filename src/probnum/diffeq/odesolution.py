@@ -5,10 +5,13 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
+import numpy as np
+
 from probnum.random_variables import Normal
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.filtsmooth import KalmanPosterior
+from probnum import utils
 
 
 class ODESolution(FiltSmoothPosterior):
@@ -40,7 +43,7 @@ class ODESolution(FiltSmoothPosterior):
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> # Mean of the discrete-time solution
-    >>> print(solution.y.mean())
+    >>> print(solution.y.mean)
     [[0.15      ]
      [0.2076198 ]
      [0.27932997]
@@ -67,7 +70,7 @@ class ODESolution(FiltSmoothPosterior):
     [0.55945475]
     >>> # Evaluate the continuous-time solution at a new time point t=0.65
     >>> print(solution(0.65).mean)
-    [0.69702861]
+    [0.69875089]
     """
 
     def __init__(self, times, rvs, solver):
@@ -75,7 +78,9 @@ class ODESolution(FiltSmoothPosterior):
         # try-except is a hotfix for now:
         # future PR is to move KalmanPosterior-info out of here, into GaussianIVPFilter
         try:
-            self._kalman_posterior = KalmanPosterior(times, rvs, solver.gfilt)
+            self._kalman_posterior = KalmanPosterior(
+                times, rvs, solver.gfilt, solver.with_smoothing
+            )
             self._t = None
             self._y = None
         except AttributeError:
@@ -136,7 +141,7 @@ class ODESolution(FiltSmoothPosterior):
         )
         return state_rvs
 
-    def __call__(self, t, smoothed=True):
+    def __call__(self, t):
         """
         Evaluate the time-continuous solution at time t.
 
@@ -149,19 +154,17 @@ class ODESolution(FiltSmoothPosterior):
         ----------
         t : float
             Location / time at which to evaluate the continuous ODE solution.
-        smoothed : bool, optional
-            If ``True`` (default) perform smooth interpolation. If ``False`` perform a
-            prediction from the previous location, without smoothing.
 
         Returns
         -------
         :obj:`RandomVariable`
             Probabilistic estimate of the continuous-time solution at time ``t``.
         """
-        out_rv = self._kalman_posterior(t, smoothed=smoothed)
-        out_rv = self._solver.undo_preconditioning(out_rv)
-        out_rv = self._proj_normal_rv(out_rv, 0)
-        return out_rv
+        out_rv = self._kalman_posterior(t)
+        if np.isscalar(t):
+            out_rv = self._solver.undo_preconditioning(out_rv)
+            return self._proj_normal_rv(out_rv, 0)
+        return _RandomVariableList(self._project_rv_list(out_rv))
 
     def __len__(self):
         """Number of points in the discrete-time solution."""
@@ -181,3 +184,20 @@ class ODESolution(FiltSmoothPosterior):
             return _RandomVariableList(f_rvs)
         else:
             raise ValueError("Invalid index")
+
+    def sample(self, t=None, size=()):
+        # this has its own recursion because of the tedious undoing of preconditioning....
+
+        size = utils.as_shape(size)
+
+        # implement only single samples, rest via recursion
+        if size != ():
+            return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
+
+        samples = self._kalman_posterior.sample(locations=t, size=size)
+        return np.array(self._project_rv_list(samples))
+
+    def _project_rv_list(self, rv_list):
+        """Undo preconditioning and project to first coordinate."""
+        projmat = self._solver.prior.proj2coord(coord=0)  # precond-aware projection
+        return [projmat @ rv for rv in rv_list]

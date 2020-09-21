@@ -2,7 +2,7 @@ import numpy as np
 
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
 from probnum._randomvariablelist import _RandomVariableList
-from tests.testing import NumpyAssertions
+from tests.testing import NumpyAssertions, chi_squared_statistic
 
 from .filtsmooth_testcases import CarTrackingDDTestCase
 
@@ -35,12 +35,8 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         )
         self.assertArrayEqual(self.posterior[-1].cov, self.posterior.state_rvs[-1].cov)
 
-        self.assertArrayEqual(
-            self.posterior[:].mean(), self.posterior.state_rvs[:].mean()
-        )
-        self.assertArrayEqual(
-            self.posterior[:].cov(), self.posterior.state_rvs[:].cov()
-        )
+        self.assertArrayEqual(self.posterior[:].mean, self.posterior.state_rvs[:].mean)
+        self.assertArrayEqual(self.posterior[:].cov, self.posterior.state_rvs[:].cov)
 
     def test_state_rvs(self):
         self.assertTrue(isinstance(self.posterior.state_rvs, _RandomVariableList))
@@ -52,6 +48,11 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
         self.assertLess(-0.5, self.tms[0])
         with self.assertRaises(ValueError):
             self.posterior(-0.5)
+
+    def test_call_vectorisation(self):
+        locs = np.arange(0, 1, 20)
+        evals = self.posterior(locs)
+        self.assertEqual(len(evals), len(locs))
 
     def test_call_interpolation(self):
         self.assertLess(self.tms[0], 9.88)
@@ -76,4 +77,79 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
 
     def test_call_extrapolation(self):
         self.assertGreater(30, self.tms[-1])
-        self.posterior(30, smoothed=False)
+        self.posterior(30)
+
+
+class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
+    def setUp(self):
+        super().setup_cartracking()
+        self.method = Kalman(self.dynmod, self.measmod, self.initrv)
+        self.posterior = self.method.filter(self.obs, self.tms)
+
+    def test_output_shape(self):
+        loc_inputs = [
+            None,
+            self.posterior.locations[[2, 3]],
+            np.arange(0.0, 0.5, 0.025),
+        ]
+        dim = (self.method.dynamod.ndim,)
+        single_sample_shapes = [
+            (len(self.posterior), self.method.dynamod.ndim),
+            (2, self.method.dynamod.ndim),
+            (len(loc_inputs[-1]), self.method.dynamod.ndim),
+        ]
+
+        for size in [(), (5,), (2, 3, 4)]:
+            for loc, loc_shape in zip(loc_inputs, single_sample_shapes):
+                with self.subTest(size=size, loc=loc):
+                    sample = self.posterior.sample(locations=loc, size=size)
+                    if size == ():
+                        self.assertEqual(sample.shape, loc_shape)
+                    else:
+                        self.assertEqual(sample.shape, size + loc_shape)
+
+    def test_sampling_all_locations_multiple_samples(self):
+        five_samples = self.posterior.sample(size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.posterior[:].mean, self.posterior[:].cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
+
+    def test_sampling_two_locations_multiple_samples(self):
+        locs = self.posterior.locations[[2, 3]]
+        five_samples = self.posterior.sample(locations=locs, size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample,
+                    self.posterior[:].mean[[2, 3]],
+                    self.posterior[:].cov[[2, 3]],
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
+
+    def test_sampling_many_locations_multiple_samples(self):
+        locs = np.arange(0.0, 0.5, 0.025)
+        five_samples = self.posterior.sample(locations=locs, size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.posterior(locs).mean, self.posterior(locs).cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
