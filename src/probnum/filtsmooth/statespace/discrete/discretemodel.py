@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from probnum.filtsmooth import MarkovTransition
 
 __all__ = ["DiscreteModel"]
 

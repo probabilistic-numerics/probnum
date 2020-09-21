@@ -14,6 +14,7 @@ __all__ = [
     "ExtendedKalman",
     "UnscentedKalman",
     "UnscentedTransform",
+    "MarkovTransition",
     "ContinuousModel",
     "LinearSDEModel",
     "LTISDEModel",
