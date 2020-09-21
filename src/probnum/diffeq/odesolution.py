@@ -164,12 +164,7 @@ class ODESolution(FiltSmoothPosterior):
         if np.isscalar(t):
             out_rv = self._solver.undo_preconditioning(out_rv)
             return self._proj_normal_rv(out_rv, 0)
-        out_rvs = _RandomVariableList(
-            [self._solver.undo_preconditioning(out_rv_) for out_rv_ in out_rv]
-        )
-        return _RandomVariableList(
-            [self._proj_normal_rv(out_rv_, 0) for out_rv_ in out_rvs]
-        )
+        return _RandomVariableList(self._project_rv_list(out_rv))
 
     def __len__(self):
         """Number of points in the discrete-time solution."""
@@ -200,14 +195,9 @@ class ODESolution(FiltSmoothPosterior):
             return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
 
         samples = self._kalman_posterior.sample(locations=t, size=size)
-        return self._undo_preconditioning_and_project_samples(samples)
+        return np.array(self._project_rv_list(samples))
 
-    def _undo_preconditioning_and_project_samples(self, samples):
-        return np.array(
-            [
-                self._proj_normal_rv(
-                    self._solver.undo_preconditioning(asrandvar(sample)), 0
-                ).mean
-                for sample in samples
-            ]
-        )
+    def _project_rv_list(self, rv_list):
+        """Undo preconditioning and project to first coordinate."""
+        projmat = self._solver.prior.proj2coord(coord=0)  # precond-aware projection
+        return [projmat @ rv for rv in rv_list]
