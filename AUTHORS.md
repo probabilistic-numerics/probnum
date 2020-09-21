@@ -57,7 +57,7 @@ The following people contributed to the ProbNum repository.
 
 ---
 
-**Feedback and Other:** People who give valuable feedback and input on the creative direction or perform code reviews.
+**Feedback and Other:** People who give valuable feedback and input on the scientific direction or perform code reviews.
 
 <div>
 	<a href="https://github.com/philipphennig">
