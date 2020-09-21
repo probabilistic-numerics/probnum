@@ -1,4 +1,5 @@
 import numpy as np
+import probnum.random_variables as pnrvs
 
 
 class _RandomVariableList(list):
@@ -13,6 +14,10 @@ class _RandomVariableList(list):
     def __init__(self, rv_list):
         if not isinstance(rv_list, list):
             raise TypeError("RandomVariableList expects a list.")
+
+        # First element as a proxy for checking all elements
+        if not isinstance(rv_list[0], pnrvs.RandomVariable):
+            raise TypeError("RandomVariableList expects RandomVariable elements")
         super().__init__(rv_list)
 
     @property
