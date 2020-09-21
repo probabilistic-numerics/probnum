@@ -122,11 +122,10 @@ class TestODESolutionSampling(unittest.TestCase):
             self.solution.t[[2, 3]],
             np.arange(0.0, 0.5, 0.025),
         ]
-        dim = (self.ivp.ndim,)
         single_sample_shapes = [
-            (len(self.solution),) + dim,
-            (2,) + dim,
-            (len(loc_inputs[-1]),) + dim,
+            (len(self.solution), self.ivp.ndim),
+            (2, self.ivp.ndim),
+            (len(loc_inputs[-1]), self.ivp.ndim),
         ]
 
         for size in [(), (5,), (2, 3, 4)]:

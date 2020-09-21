@@ -94,9 +94,9 @@ class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
         ]
         dim = (self.method.dynamod.ndim,)
         single_sample_shapes = [
-            (len(self.posterior),) + dim,
-            (2,) + dim,
-            (len(loc_inputs[-1]),) + dim,
+            (len(self.posterior), self.method.dynamod.ndim),
+            (2, self.method.dynamod.ndim),
+            (len(loc_inputs[-1]), self.method.dynamod.ndim),
         ]
 
         for size in [(), (5,), (2, 3, 4)]:
