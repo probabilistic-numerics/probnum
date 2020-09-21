@@ -40,29 +40,6 @@ class ContinuousModel(Transition):
     B(t) : Brownian motion with const. diffusion matrix Q.
     """
 
-    def sample(self, start, stop, step, initstate, **kwargs):
-        """
-        Samples from ``initstate`` at ``start`` to ``stop`` with
-        stepsize ``step``.
-
-        Start, stop and step lead to a np.arange-like
-        interface.
-        Returns a single element at the end of the time, not the
-        entire array!
-        """
-        if not isinstance(initstate, np.ndarray):
-            raise ValueError("Init state is not array!")
-        times = np.arange(start, stop, step)
-        currstate = initstate
-        for idx in range(1, len(times)):
-            bmsamp = np.random.multivariate_normal(
-                np.zeros(len(self.diffusionmatrix)), self.diffusionmatrix * step
-            )
-            driftvl = self.drift(times[idx - 1], currstate, **kwargs)
-            dispvl = self.dispersion(times[idx - 1], currstate, **kwargs)
-            currstate = currstate + step * driftvl + dispvl @ bmsamp
-        return currstate
-
     @abstractmethod
     def drift(self, time, state, **kwargs):
         """
@@ -94,19 +71,19 @@ class ContinuousModel(Transition):
 
     @property
     @abstractmethod
-    def ndim(self):
+    def dimension(self):
         """
         Spatial dimension (utility attribute).
         """
         raise NotImplementedError
-
-    def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
-        """
-        If available, this returns the closed form solution to the
-        Chapman-Kolmogorov equations (CKEs).
-
-        Solutions to the CKEs are important in filtering.
-
-        Available for instance for linear SDEs.
-        """
-        raise NotImplementedError("Chap.-Kolg. not implemented.")
+    #
+    # def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
+    #     """
+    #     If available, this returns the closed form solution to the
+    #     Chapman-Kolmogorov equations (CKEs).
+    #
+    #     Solutions to the CKEs are important in filtering.
+    #
+    #     Available for instance for linear SDEs.
+    #     """
+    #     raise NotImplementedError("Chap.-Kolg. not implemented.")
