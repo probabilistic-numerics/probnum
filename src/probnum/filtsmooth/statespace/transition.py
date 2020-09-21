@@ -3,26 +3,26 @@
 import abc
 from probnum.random_variables import RandomVariable
 
-__all__ = ["MarkovTransition"]
+__all__ = ["Transition"]
 
 
-class MarkovTransition(abc.ABC):
+class Transition(abc.ABC):
     """
     Interface for Markov transition rules in discrete or continuous time.
     """
 
     def __call__(self, arr_or_rv, *args):
-        """Depending on the input, either call self.transition_array() or self.transition_rv()"""
+        """Depending on the input, either call self.transition_realization() or self.transition_rv()"""
         if isinstance(arr_or_rv, RandomVariable):
-            return self.transition_rv(arr_or_rv, *args)
-        return self.transition_array(arr_or_rv, *args)
+            return self.transition_rv(rv=arr_or_rv, *args)
+        return self.transition_realization(real=arr_or_rv, *args)
 
     def sample(self, arr_or_rv, size=(), *args):
         """Sample from the transition."""
         return self.__call__(arr_or_rv, *args).sample(size=size)
 
     @abc.abstractmethod
-    def transition_array(self, arr, start, stop, *args):
+    def transition_realization(self, real, start, stop, *args):
         raise NotImplementedError
 
     @abc.abstractmethod

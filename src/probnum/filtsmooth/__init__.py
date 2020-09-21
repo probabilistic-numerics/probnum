@@ -14,7 +14,7 @@ __all__ = [
     "ExtendedKalman",
     "UnscentedKalman",
     "UnscentedTransform",
-    "MarkovTransition",
+    "Transition",
     "ContinuousModel",
     "LinearSDEModel",
     "LTISDEModel",
@@ -30,7 +30,7 @@ __all__ = [
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
-MarkovTransition.__module__ = "probnum.filtsmooth"
+Transition.__module__ = "probnum.filtsmooth"
 ContinuousModel.__module__ = "probnum.filtsmooth"
 LinearSDEModel.__module__ = "probnum.filtsmooth"
 DiscreteModel.__module__ = "probnum.filtsmooth"

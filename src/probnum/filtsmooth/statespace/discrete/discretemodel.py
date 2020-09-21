@@ -1,11 +1,11 @@
 import abc
 
-from probnum.filtsmooth.statespace.transition import MarkovTransition
+from probnum.filtsmooth.statespace.transition import Transition
 
 __all__ = ["DiscreteModel"]
 
 
-class DiscreteModel(MarkovTransition):
+class DiscreteModel(Transition):
     """
     Abstract interface for state space model components.
     x(t_{i+1}) ~ p(x(t_{i+1}) | x(t_{i})).
@@ -17,7 +17,7 @@ class DiscreteModel(MarkovTransition):
     """
 
     @abc.abstractmethod
-    def transition_array(self, arr, start, stop, *args):
+    def transition_realization(self, real, start, stop, *args):
         raise NotImplementedError
 
     @abc.abstractmethod

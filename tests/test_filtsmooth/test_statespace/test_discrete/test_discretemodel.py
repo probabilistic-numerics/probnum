@@ -7,14 +7,15 @@ TEST_NDIM = 2
 
 
 class MockDiscreteModel(discretemodel.DiscreteModel):
+
     def sample(self, time, state, **kwargs):
         return state
 
     def transition_rv(self, rv, *args):
         return rv
 
-    def transition_array(self, arr, *args):
-        return rvs.asrandvar(arr)
+    def transition_realization(self, real, *args):
+        return rvs.asrandvar(real)
 
     @property
     def dimension(self):

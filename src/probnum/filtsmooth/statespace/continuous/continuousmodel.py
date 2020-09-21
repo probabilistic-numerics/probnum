@@ -22,12 +22,12 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from probnum.filtsmooth.statespace.transition import MarkovTransition
+from probnum.filtsmooth.statespace.transition import Transition
 
 __all__ = ["ContinuousModel"]
 
 
-class ContinuousModel(MarkovTransition):
+class ContinuousModel(Transition):
     """
     Interface for time-continuous
     Markov models of the form
