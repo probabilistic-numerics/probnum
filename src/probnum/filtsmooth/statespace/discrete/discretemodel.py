@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
-from probnum.filtsmooth import MarkovTransition
+
+from probnum.filtsmooth.statespace.transition import MarkovTransition
 
 __all__ = ["DiscreteModel"]
 
 
-class DiscreteModel(ABC):
+class DiscreteModel(MarkovTransition):
     """
     Abstract interface for state space model components.
     x(t_{i+1}) ~ p(x(t_{i+1}) | x(t_{i})).

@@ -3,12 +3,14 @@
 import abc
 
 
+__all__ = ["MarkovTransition"]
+
+
 class MarkovTransition(abc.ABC):
     """
     Interface for Markov transition rules in discrete or continuous time.
     """
 
-    @abc.abstractmethod
     def __call__(self, arr_or_rv):
         """Depending on the input, either call self.forward() or self.condition()"""
         raise NotImplementedError
@@ -25,7 +27,7 @@ class MarkovTransition(abc.ABC):
     def sample(self, locations, size):
         raise NotImplementedError
 
-    @abc.abstractmethod
     @property
+    @abc.abstractmethod
     def dimension(self):
         raise NotImplementedError
