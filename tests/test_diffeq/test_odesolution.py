@@ -1,12 +1,12 @@
 import unittest
 import numpy as np
 
-from probnum.random_variables import Dirac
+from probnum.random_variables import Dirac, Normal
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import lotkavolterra, logistic
 
-from tests.testing import NumpyAssertions
+from tests.testing import NumpyAssertions, chi_squared_statistic
 
 
 class TestODESolution(unittest.TestCase, NumpyAssertions):
@@ -34,8 +34,8 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertArrayEqual(self.solution[-1].mean, self.solution.y[-1].mean)
         self.assertArrayEqual(self.solution[-1].cov, self.solution.y[-1].cov)
 
-        self.assertArrayEqual(self.solution[:].mean(), self.solution.y[:].mean())
-        self.assertArrayEqual(self.solution[:].cov(), self.solution.y[:].cov())
+        self.assertArrayEqual(self.solution[:].mean, self.solution.y[:].mean)
+        self.assertArrayEqual(self.solution[:].cov, self.solution.y[:].cov)
 
     def test_y(self):
         self.assertTrue(isinstance(self.solution.y, _RandomVariableList))
@@ -78,7 +78,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
     def test_call_extrapolation(self):
         t = 1.1 * self.ivp.tmax
         self.assertGreater(t, self.solution.t[-1])
-        self.solution(t, smoothed=False)
+        self.solution(t)
 
 
 class TestODESolutionHigherOrderPrior(TestODESolution):
@@ -107,3 +107,78 @@ class TestODESolutionAdaptive(TestODESolution):
     def setUp(self):
         super().setUp()
         self.solution = probsolve_ivp(self.ivp, which_prior="ibm2", tol=0.1)
+
+
+class TestODESolutionSampling(unittest.TestCase):
+    def setUp(self):
+        initrv = Normal(20 * np.ones(2), 0.1 * np.eye(2))
+        self.ivp = lotkavolterra([0.0, 0.5], initrv)
+        step = 0.1
+        self.solution = probsolve_ivp(self.ivp, step=step)
+
+    def test_output_shape(self):
+        loc_inputs = [
+            None,
+            self.solution.t[[2, 3]],
+            np.arange(0.0, 0.5, 0.025),
+        ]
+        single_sample_shapes = [
+            (len(self.solution), self.ivp.ndim),
+            (2, self.ivp.ndim),
+            (len(loc_inputs[-1]), self.ivp.ndim),
+        ]
+
+        for size in [(), (5,), (2, 3, 4)]:
+            for loc, loc_shape in zip(loc_inputs, single_sample_shapes):
+                with self.subTest(size=size, loc=loc):
+                    sample = self.solution.sample(t=loc, size=size)
+                    if size == ():
+                        self.assertEqual(sample.shape, loc_shape)
+                    else:
+                        self.assertEqual(sample.shape, size + loc_shape)
+
+    def test_sampling_all_locations_multiple_samples(self):
+        five_samples = self.solution.sample(size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.solution[:].mean, self.solution[:].cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
+
+    def test_sampling_two_locations_multiple_samples(self):
+        locs = self.solution.t[[2, 3]]
+        five_samples = self.solution.sample(t=locs, size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample,
+                    self.solution[:].mean[[2, 3]],
+                    self.solution[:].cov[[2, 3]],
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
+
+    def test_sampling_many_locations_multiple_samples(self):
+        locs = np.arange(0.0, 0.5, 0.025)
+        five_samples = self.solution.sample(t=locs, size=5)
+
+        chi_squared = np.array(
+            [
+                chi_squared_statistic(
+                    sample, self.solution(locs).mean, self.solution(locs).cov
+                )
+                for sample in five_samples
+            ]
+        ).mean()
+        self.assertLess(chi_squared, 10.0)
+        self.assertLess(0.1, chi_squared)
