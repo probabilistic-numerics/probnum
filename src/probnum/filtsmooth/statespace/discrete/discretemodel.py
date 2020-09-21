@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+import abc
 
 from probnum.filtsmooth.statespace.transition import MarkovTransition
 
@@ -16,23 +16,37 @@ class DiscreteModel(MarkovTransition):
     this object accordingly.
     """
 
-    @abstractmethod
-    def sample(self, time, state, **kwargs):
-        """
-        Samples x_{t} ~ p(x_{t} | x_{s})
-        as a function of t and x_s (plus additional parameters).
-        """
+    @abc.abstractmethod
+    def transition_array(self, arr, start, stop, *args):
         raise NotImplementedError
 
-    def pdf(self, loc, time, state, **kwargs):
-        """
-        Evaluates pdf of p(x_t | x_s).
-        Required for particle filtering and should be
-        possible to implement for every reasonable model.
-        """
-        raise NotImplementedError("PDF not implemented.")
+    @abc.abstractmethod
+    def transition_rv(self, rv, start, stop, *args):
+        raise NotImplementedError
 
     @property
-    @abstractmethod
-    def ndim(self):
+    @abc.abstractmethod
+    def dimension(self):
         raise NotImplementedError
+    #
+    #
+    # @abstractmethod
+    # def sample(self, time, state, **kwargs):
+    #     """
+    #     Samples x_{t} ~ p(x_{t} | x_{s})
+    #     as a function of t and x_s (plus additional parameters).
+    #     """
+    #     raise NotImplementedError
+    #
+    # def pdf(self, loc, time, state, **kwargs):
+    #     """
+    #     Evaluates pdf of p(x_t | x_s).
+    #     Required for particle filtering and should be
+    #     possible to implement for every reasonable model.
+    #     """
+    #     raise NotImplementedError("PDF not implemented.")
+    #
+    # @property
+    # @abstractmethod
+    # def ndim(self):
+    #     raise NotImplementedError
