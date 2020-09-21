@@ -145,16 +145,6 @@ class KalmanPosterior(FiltSmoothPosterior):
         return np.array(
             [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
         )
-        # if np.isscalar(size):
-        #     return np.array(
-        #         [
-        #             self._single_sample_path(
-        #                 locations=locations, random_vars=random_vars
-        #             )
-        #             for _ in range(size)
-        #         ]
-        #     )
-        # raise NotImplementedError(errormsg)
 
     def _single_sample_path(self, locations, random_vars):
         curr_sample = rvs.asrandvar(random_vars[-1].sample())
