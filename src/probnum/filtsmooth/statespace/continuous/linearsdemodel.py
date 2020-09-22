@@ -208,8 +208,6 @@ class LTISDEModel(LinearSDEModel):
         disc_dynamics, disc_force, disc_diffusion = self._discretise(
             step=(stop - start)
         )
-        if np.isnan(disc_force):  # current capture
-            return Normal(disc_dynamics @ real, disc_diffusion)
         return Normal(disc_dynamics @ real + disc_force, disc_diffusion)
 
     def transition_rv(self, rv, start, stop, **kwargs):
@@ -224,15 +222,32 @@ class LTISDEModel(LinearSDEModel):
             step=(stop - start)
         )
         old_mean, old_cov = rv.mean, rv.cov
-        if np.isnan(disc_force):  # current capture
-            new_mean = disc_dynamics @ old_mean
-        else:
-            new_mean = disc_dynamics @ old_mean + disc_force
+        new_mean = disc_dynamics @ old_mean + disc_force
         new_cov = disc_dynamics @ old_cov @ disc_dynamics.T + disc_diffusion
         return Normal(mean=new_mean, cov=new_cov)
 
     def _discretise(self, step):
-        """Returns A(h), xi(h), Q(h)"""
+        """
+        Returns discretised model (i.e. mild solution to SDE)
+        using matrix fraction decomposition. That is, matrices A(h)
+        and Q(h) and vector s(h) such that the transition is
+
+        .. math::`x | x_\\text{old} \\sim \\mathcal{N}(A(h) x_\\text{old} + s(h), Q(h))`
+        """
+        blockmat, proj = self._form_driftmatrix_extended_state()
+        expm = scipy.linalg.expm(step * blockmat)
+        ah = proj @ expm @ proj.T
+        sh = proj @ expm @ np.flip(proj).T @ self.force
+        qh = proj @ expm @ np.flip(proj).T @ ah.T
+        return ah, sh, qh
+
+    def _form_driftmatrix_extended_state(self):
+        """
+        Forms the driftmatrix for state space model (x, u),
+        i.e. F = (F, I; 0; 0).
+
+        Returns blockmatrix and projection to $F$
+        """
         drift = self.driftmatrix
         disp = self.dispersionmatrix
         diff = self.diffusionmatrix
@@ -240,13 +255,7 @@ class LTISDEModel(LinearSDEModel):
         secondrowblock = np.hstack((0 * drift.T, -1.0 * drift.T))
         blockmat = np.hstack((firstrowblock.T, secondrowblock.T)).T
         proj = np.eye(*firstrowblock.shape)
-        initstate = np.flip(proj).T
-        transformed_sol = scipy.linalg.expm(step * blockmat) @ initstate
-        trans = scipy.linalg.expm(step * drift)
-        transdiff = proj @ transformed_sol @ trans.T
-
-        # nan as a place holder for xi(h) which is not implemented
-        return trans, np.nan, transdiff
+        return blockmat, proj
 
 
 def _check_initial_state_dimensions(drift, force, disp, diff):
