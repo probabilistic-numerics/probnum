@@ -60,10 +60,10 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         """
         return self._diffmatfct(time, **kwargs)
 
-    def dynamics(self, time, state):
+    def dynamics(self, time, state, **kwargs):
         return self._dynafct(time, state)
 
-    def jacobian(self, time, state):
+    def jacobian(self, time, state, **kwargs):
         return self._jacfct(time, state)
 
 
