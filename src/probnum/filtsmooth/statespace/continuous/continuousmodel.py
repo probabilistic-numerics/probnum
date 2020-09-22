@@ -5,8 +5,6 @@ dx(t) = f(t, x(t)) dt + l(t, x(t)) dB(t).
 
 import abc
 
-import numpy as np
-
 from probnum.filtsmooth.statespace.transition import Transition
 
 __all__ = ["ContinuousModel"]
@@ -24,8 +22,8 @@ class ContinuousModel(Transition):
 
     Todo
     ----
-    This should be initializable similarly to :math:`DiscreteGaussianModel`
-    (where :meth:`transition_realization` and :meth:`transition_rv` simply raise Errors).
+    This should be initializable similarly to :class:`DiscreteGaussianModel`
+    (where :meth:`transition_realization` and :meth:`transition_rv` simply raise ``NotImplementedError``).
     """
 
     @abc.abstractmethod
@@ -43,29 +41,16 @@ class ContinuousModel(Transition):
 
     @abc.abstractmethod
     def drift(self, time, state, **kwargs):
-        """
-        Evaluates f = f(t, x(t)).
-        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def dispersion(self, time, state, **kwargs):
-        """
-        Evaluates l = l(t, x(t)).
-        """
         raise NotImplementedError
 
     def jacobian(self, time, state, **kwargs):
-        """
-        Jacobian of drift w.r.t. state: d_x f(t, x(t))
-        """
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def diffusionmatrix(self):
-        """
-        Evaluates Q.
-        In 1D, this is \\sigma^2.
-        """
         raise NotImplementedError
