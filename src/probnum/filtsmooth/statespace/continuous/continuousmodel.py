@@ -1,21 +1,6 @@
 """
 Continuous Markov models implicitly defined through SDEs,
 dx(t) = f(t, x(t)) dt + l(t, x(t)) dB(t).
-Possible input for StateSpace.dynmod or StateSpace.measmod.
-
-Note
-----
-ContinuousModel only implements
-StateSpaceComponent.sample(). It passes on the
-responsibility of implementing chapmankolmogorov() to its
-subclasses and creates further abstract methods drift(),
-dispersion() as well as a hook for jacobian().
-
-When implementing continuous models we think of
-Gauss-Markov models (see linearsde.py)
-but do our very best to not enforce Gaussianity.
-In the future, this might be more general than Gauss-
-Markov models.
 """
 
 import abc
@@ -29,15 +14,18 @@ __all__ = ["ContinuousModel"]
 
 class ContinuousModel(Transition):
     """
-    Interface for time-continuous
-    Markov models of the form
-    dx = f(t, x) dt + l(t, x) dBt.
+    Markov transition rules or continuous time.
 
-    In the language of dynamic models:
-    x(t) : state process
-    f(t, x(t)) : drift function
-    l(t, x(t)) : dispersion matrix.
-    B(t) : Brownian motion with const. diffusion matrix Q.
+    This is described by a stochastic differential equation (SDE),
+
+    .. math:: d x_t = f(t, x_t) d t + d w_t
+
+    driven by a Wiener process :math:`w`.
+
+    Todo
+    ----
+    This should be initializable similarly to :math:`DiscreteGaussianModel`
+    (where :meth:`transition_realization` and :meth:`transition_rv` simply raise Errors).
     """
 
     @abc.abstractmethod
