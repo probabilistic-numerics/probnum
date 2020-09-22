@@ -1,7 +1,11 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
+from typing import Union, Dict
+
 from probnum.random_variables import RandomVariable
+from probnum.typing import FloatArgType
+
 
 __all__ = ["Transition"]
 
@@ -32,7 +36,9 @@ class Transition(abc.ABC):
         Discretely indexed transitions (transformations)
     """
 
-    def __call__(self, arr_or_rv, start=None, stop=None, **kwargs):
+    def __call__(
+        self, arr_or_rv, start: FloatArgType = None, stop: FloatArgType = None, **kwargs
+    ) -> (RandomVariable, Dict):
         """
         Apply the transition.
 
@@ -41,8 +47,9 @@ class Transition(abc.ABC):
         """
         if isinstance(arr_or_rv, RandomVariable):
             return self.transition_rv(rv=arr_or_rv, start=start, stop=stop, **kwargs)
-        return self.transition_realization(real=arr_or_rv, start=start, stop=stop, **kwargs)
-
+        return self.transition_realization(
+            real=arr_or_rv, start=start, stop=stop, **kwargs
+        )
 
     @abc.abstractmethod
     def transition_realization(self, real, start, stop, **kwargs):
