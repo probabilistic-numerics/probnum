@@ -7,13 +7,20 @@ __all__ = ["DiscreteModel"]
 
 class DiscreteModel(Transition):
     """
-    Abstract interface for state space model components.
-    x(t_{i+1}) ~ p(x(t_{i+1}) | x(t_{i})).
+    Transition models for discretely indexed processes.
 
-    Nothing happens here except passing responsibilities
-    of implementation down the subclasses.
-    In the future, this might change so please subclass
-    this object accordingly.
+    Transformations of the form
+
+    .. math:: x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t) .
+
+    As such, compatible with Bayesian filtering and smoothing algorithms.
+
+    See Also
+    --------
+    :class:`ContinuousModel`
+        Transition models for continuously indexed processes.
+    :class:`BayesFiltSmooth`
+        Bayesian filtering and smoothing algorithms.
     """
 
     @abc.abstractmethod

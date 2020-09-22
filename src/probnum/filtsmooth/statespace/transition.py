@@ -51,7 +51,7 @@ class Transition(abc.ABC):
 
         For random variable :math:`x_t`, it returns the random variable defined by
 
-        .. math::`x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t = r)`.
+        .. math:: x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t = r) .
 
         This is different to :meth:`transition_rv` which computes the parametrization
         of :math:`x_{t + \\Delta t}` based on the parametrization of :math:`x_t`.
@@ -89,7 +89,7 @@ class Transition(abc.ABC):
 
         For random variable :math:`x_t`, it returns the random variable defined by
 
-        .. math::`x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t)`.
+        .. math:: x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t) .
 
         This returns a random variable where the parametrization depends on the paramtrization of :math:`x_t`.
         This is different to :meth:`transition_rv` which computes the parametrization
@@ -98,7 +98,7 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        real : array_like
+        rv : array_like
             Realization of the random variable.
         start : float
             Starting point :math:`t`.
@@ -117,8 +117,8 @@ class Transition(abc.ABC):
 
         See Also
         --------
-        :meth:`transition_rv`
-            Apply transition to a random variable.
+        :meth:`transition_realization`
+            Apply transition to a realization of a random variable.
         """
         raise NotImplementedError
 
