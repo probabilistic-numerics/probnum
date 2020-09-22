@@ -55,7 +55,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         self.prior = prior.IBM(2, 2, DIFFCONST)
 
     def test_chapmankolmogorov(self):
-        mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
+        mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
         cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
         self.assertAllClose(AH_22_IBM @ initrv.mean, cke.mean, 1e-14)
@@ -69,12 +69,12 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         implemented in LinearSDE, just faster.
         """
         # pylint: disable=bad-super-call
-        mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
+        mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
-        cke_super, __ = super(type(self.prior), self.prior).chapmankolmogorov(
-            0.0, STEP, STEP, initrv
+        cke_super, __ = super(type(self.prior), self.prior).transition_rv(initrv,
+            0.0, STEP, step=STEP
         )
-        cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        cke, __ = self.prior.transition_rv(initrv, 0.0, STEP, step=STEP)
 
         self.assertAllClose(cke_super.mean, cke.mean, 1e-14)
         self.assertAllClose(cke_super.cov, cke.cov, 1e-14)
@@ -86,10 +86,10 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
             ordint=2, spatialdim=1, diffconst=DIFFCONST, precond_step=STEP
         )
 
-    def test_chapmankolmogorov(self):
-        mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
+    def test_transition_rv(self):
+        mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
-        cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        cke, __ = self.prior.transition_rv(initrv, 0.0, STEP, step=STEP)
 
         self.assertAllClose(AH_21_PRE @ initrv.mean, cke.mean, 1e-14)
         self.assertAllClose(
@@ -103,12 +103,12 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
         """
         # pylint: disable=bad-super-call
 
-        mean, cov = np.ones(self.prior.ndim), np.eye(self.prior.ndim)
+        mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
-        cke_super, __ = super(type(self.prior), self.prior).chapmankolmogorov(
-            0.0, STEP, STEP, initrv
+        cke_super, __ = super(type(self.prior), self.prior).transition_rv(initrv,
+            0.0, STEP, step=STEP
         )
-        cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        cke, __ = self.prior.transition_rv(initrv, 0.0, STEP, step=STEP)
 
         self.assertAllClose(cke_super.mean, cke.mean, 1e-14)
         self.assertAllClose(cke_super.cov, cke.cov, 1e-14)
@@ -119,10 +119,10 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         driftspeed = np.random.rand()
         self.ibm = prior.IOUP(2, 2, driftspeed, DIFFCONST)
 
-    def test_chapmankolmogorov(self):
-        mean, cov = np.ones(self.ibm.ndim), np.eye(self.ibm.ndim)
+    def test_transition_rv(self):
+        mean, cov = np.ones(self.ibm.dimension), np.eye(self.ibm.dimension)
         initrv = Normal(mean, cov)
-        self.ibm.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        self.ibm.transition_rv(initrv, start=0.0, stop=STEP, step=STEP)
 
     def test_asymptotically_ibm(self):
         """
@@ -152,14 +152,14 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         Closed form solution for n=0.
         This is OUP.
         """
-        xi = np.sqrt(2 * (self.mat0.ndim - 0.5)) / self.mat0.lengthscale
+        xi = np.sqrt(2 * (self.mat0.dimension - 0.5)) / self.mat0.lengthscale
         self.assertAlmostEqual(self.mat0.driftmatrix[0, 0], -xi)
 
     def test_n1(self):
         """
         Closed form solution for n=1.
         """
-        xi = np.sqrt(2 * (self.mat1.ndim - 0.5)) / self.mat1.lengthscale
+        xi = np.sqrt(2 * (self.mat1.dimension - 0.5)) / self.mat1.lengthscale
         expected = np.array([-(xi ** 2), -2 * xi])
         self.assertAllClose(self.mat1.driftmatrix[-1, :], expected)
 
@@ -167,15 +167,15 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         """
         Closed form solution for n=2.
         """
-        xi = np.sqrt(2 * (self.mat2.ndim - 0.5)) / self.mat2.lengthscale
+        xi = np.sqrt(2 * (self.mat2.dimension - 0.5)) / self.mat2.lengthscale
         expected = np.array([-(xi ** 3), -3 * xi ** 2, -3 * xi])
         self.assertAllClose(self.mat2.driftmatrix[-1, :], expected)
 
     def test_larger_shape(self):
         mat2d = prior.Matern(2, 2, 1.0, 1.0)
-        self.assertEqual(mat2d.ndim, 2 * (2 + 1))
+        self.assertEqual(mat2d.dimension, 2 * (2 + 1))
 
-    def test_chapmankolmogorov(self):
-        mean, cov = np.ones(self.mat1.ndim), np.eye(self.mat1.ndim)
+    def test_transition_rv(self):
+        mean, cov = np.ones(self.mat1.dimension), np.eye(self.mat1.dimension)
         initrv = Normal(mean, cov)
-        self.mat1.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        self.mat1.transition_rv(initrv, start=0.0, stop=STEP, step=STEP)
