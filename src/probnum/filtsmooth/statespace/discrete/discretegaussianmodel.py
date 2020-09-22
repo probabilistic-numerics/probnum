@@ -63,6 +63,9 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
     def dynamics(self, time, state):
         return self._dynafct(time, state)
 
+    def jacobian(self, time, state):
+        return self._jacfct(time, state)
+
 
 
 class DiscreteGaussianLinearModel(DiscreteGaussianModel):
