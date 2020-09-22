@@ -106,7 +106,7 @@ class _DiscDiscKalman(Kalman):
         mpred = dynamat @ mean + forcevec
         ccpred = covar @ dynamat.T
         cpred = dynamat @ ccpred + diffmat
-        return Normal(mpred, cpred)
+        return Normal(mpred, cpred), {"crosscov": ccpred}
 
     def update(self, time, randvar, data, **kwargs):
         """Update step of discrete Kalman filtering"""

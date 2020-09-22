@@ -77,7 +77,7 @@ class _ContDiscUnscentedKalman(UnscentedKalman):
         else:
             self.cke_nsteps = 1
         super().__init__(dynamod, measmod, initrv)
-        self.ut = UnscentedTransform(self.dynamod.ndim, alpha, beta, kappa)
+        self.ut = UnscentedTransform(self.dynamod.dimension, alpha, beta, kappa)
 
     def predict(self, start, stop, randvar, **kwargs):
         step = (stop - start) / self.cke_nsteps
@@ -103,7 +103,7 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
                 "_DiscDiscUnscentedKalman requires " "a Gaussian measurement model."
             )
         super().__init__(dynamod, measmod, initrv)
-        self.ut = UnscentedTransform(self.dynamod.ndim, alpha, beta, kappa)
+        self.ut = UnscentedTransform(self.dynamod.dimension, alpha, beta, kappa)
 
     def predict(self, start, stop, randvar, **kwargs):
         if issubclass(type(self.dynamod), DiscreteGaussianLinearModel):

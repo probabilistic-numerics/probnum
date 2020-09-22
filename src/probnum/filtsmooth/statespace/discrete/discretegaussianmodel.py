@@ -48,6 +48,7 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
     def transition_rv(self, rv, start, stop=None, *args):
         raise NotImplementedError
 
+
     @property
     def dimension(self):
         return len(self.diffusionmatrix(0.0))
@@ -58,6 +59,10 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         (alternative to "jacobian").
         """
         return self._diffmatfct(time, **kwargs)
+
+    def dynamics(self, time, state):
+        return self._dynafct(time, state)
+
 
 
 class DiscreteGaussianLinearModel(DiscreteGaussianModel):

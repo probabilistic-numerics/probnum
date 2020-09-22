@@ -45,7 +45,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         """
         dataset, times = np.asarray(dataset), np.asarray(times)
         filter_posterior = self.filter(dataset, times, **kwargs)
-        smooth_posterior = self.smooth(filter_posterior, **kwargs)
+        smooth_posterior = self.smooth(filter_posterior)
         return smooth_posterior
 
     def filter(self, dataset, times, **kwargs):
@@ -69,13 +69,11 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         filtrv = self.initialrandomvariable
         rvs = [filtrv]
         for idx in range(1, len(times)):
-            filtrv = self.filter_step(
+            filtrv  = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 randvar=filtrv,
-                data=dataset[idx - 1],
-                **kwargs
-            )
+                data=dataset[idx - 1])
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
@@ -128,12 +126,15 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         out_rvs = [curr_rv]
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
-            pred_rv, ccov = self.predict(
+            pred_rv, info = self.predict(
                 start=locations[idx - 1],
                 stop=locations[idx],
-                randvar=unsmoothed_rv,
+                randvar=unsmoothed_rv
             )
-            curr_rv = self.smooth_step(unsmoothed_rv, pred_rv, curr_rv, ccov)
+            if "crosscov" in info.keys():
+                curr_rv = self.smooth_step(unsmoothed_rv, pred_rv, curr_rv, info["crosscov"])
+            else:
+                raise TypeError("Cross-covariance required for smoothing.")
             out_rvs.append(curr_rv)
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
@@ -162,7 +163,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
             Resulting filter estimate after the single step.
         """
         data = np.asarray(data)
-        predrv, _ = self.predict(start, stop, randvar, **kwargs)
+        predrv, _ = self.predict(start, stop, randvar)
         filtrv, _, _, _ = self.update(stop, predrv, data)
         return filtrv
 
