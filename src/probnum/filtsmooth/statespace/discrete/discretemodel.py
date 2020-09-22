@@ -24,11 +24,11 @@ class DiscreteModel(Transition):
     """
 
     @abc.abstractmethod
-    def transition_realization(self, real, start, stop, *args):
+    def transition_realization(self, real, start, stop, **kwargs):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def transition_rv(self, rv, start, stop, *args):
+    def transition_rv(self, rv, start, stop, **kwargs):
         raise NotImplementedError
 
     @property

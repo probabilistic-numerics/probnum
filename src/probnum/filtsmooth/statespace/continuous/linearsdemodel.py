@@ -17,10 +17,12 @@ __all__ = ["LinearSDEModel", "LTISDEModel"]
 
 class LinearSDEModel(continuousmodel.ContinuousModel):
     """
-    Linear time-continuous Markov models given by the solution of the
-    stochastic differential equation
-    :math:`dx = [F(t) x(t) + u(t)] dt + L(t) dB(t)`.
+    Linear, continuous-time Markov models given by the solution of the
+    linear stochastic differential equation (SDE),
 
+    .. math:: d x_t = G(t) x_t d t + d w_t.
+
+    Note: for Gaussian initial conditions, this solution is a Gaussian process.
 
     Parameters
     ----------
@@ -223,7 +225,7 @@ class LTISDEModel(LinearSDEModel):
         )
         old_mean, old_cov = rv.mean, rv.cov
         new_mean = disc_dynamics @ old_mean + disc_force
-        new_crosscov =  old_cov @ disc_dynamics.T
+        new_crosscov = old_cov @ disc_dynamics.T
         new_cov = disc_dynamics @ new_crosscov + disc_diffusion
         return Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 

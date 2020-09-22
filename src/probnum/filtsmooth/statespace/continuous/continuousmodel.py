@@ -24,6 +24,7 @@ class ContinuousModel(Transition):
     ----
     This should be initializable similarly to :class:`DiscreteGaussianModel`
     (where :meth:`transition_realization` and :meth:`transition_rv` simply raise ``NotImplementedError``).
+    This would change a bit of code, though.
     """
 
     @abc.abstractmethod
