@@ -3,8 +3,10 @@
 import abc
 from typing import Union, Dict
 
+import numpy as np
+
 from probnum.random_variables import RandomVariable
-from probnum.typing import FloatArgType
+from probnum.type import FloatArgType
 
 
 __all__ = ["Transition"]
@@ -37,8 +39,12 @@ class Transition(abc.ABC):
     """
 
     def __call__(
-        self, arr_or_rv, start: FloatArgType = None, stop: FloatArgType = None, **kwargs
-    ) -> (RandomVariable, Dict):
+        self,
+        arr_or_rv: Union[np.ndarray, "RandomVariable"],
+        start: float = None,
+        stop: float = None,
+        **kwargs
+    ) -> ("RandomVariable", Dict):
         """
         Apply the transition.
 
@@ -52,7 +58,9 @@ class Transition(abc.ABC):
         )
 
     @abc.abstractmethod
-    def transition_realization(self, real, start, stop, **kwargs):
+    def transition_realization(
+        self, real: np.ndarray, start: float, stop: float, **kwargs
+    ) -> ("RandomVariable", Dict):
         """
         Apply transition to a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
 
@@ -65,11 +73,11 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        real : array_like
+        real :
             Realization of the random variable.
-        start : float
+        start :
             Starting point :math:`t`.
-        stop : float
+        stop :
             End point :math:`t + \\Delta t`.
 
         Returns
@@ -90,7 +98,9 @@ class Transition(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(
+        self, rv: "RandomVariable", start: float, stop: float, **kwargs
+    ) -> ("RandomVariable", Dict):
         """
         Apply transition to a random variable from time :math:`t` to time :math:`t+\\Delta t`.
 
@@ -105,11 +115,11 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        rv : array_like
+        rv :
             Realization of the random variable.
-        start : float
+        start :
             Starting point :math:`t`.
-        stop : float
+        stop :
             End point :math:`t + \\Delta t`.
 
         Returns
@@ -131,6 +141,6 @@ class Transition(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def dimension(self):
+    def dimension(self) -> int:
         """Dimension of the transition model."""
         raise NotImplementedError
