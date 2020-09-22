@@ -81,22 +81,3 @@ class ContinuousModel(Transition):
         In 1D, this is \\sigma^2.
         """
         raise NotImplementedError
-
-    @property
-    @abc.abstractmethod
-    def dimension(self):
-        """
-        Spatial dimension (utility attribute).
-        """
-        raise NotImplementedError
-    #
-    # def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
-    #     """
-    #     If available, this returns the closed form solution to the
-    #     Chapman-Kolmogorov equations (CKEs).
-    #
-    #     Solutions to the CKEs are important in filtering.
-    #
-    #     Available for instance for linear SDEs.
-    #     """
-    #     raise NotImplementedError("Chap.-Kolg. not implemented.")

@@ -28,25 +28,3 @@ class DiscreteModel(Transition):
     @abc.abstractmethod
     def dimension(self):
         raise NotImplementedError
-    #
-    #
-    # @abstractmethod
-    # def sample(self, time, state, **kwargs):
-    #     """
-    #     Samples x_{t} ~ p(x_{t} | x_{s})
-    #     as a function of t and x_s (plus additional parameters).
-    #     """
-    #     raise NotImplementedError
-    #
-    # def pdf(self, loc, time, state, **kwargs):
-    #     """
-    #     Evaluates pdf of p(x_t | x_s).
-    #     Required for particle filtering and should be
-    #     possible to implement for every reasonable model.
-    #     """
-    #     raise NotImplementedError("PDF not implemented.")
-    #
-    # @property
-    # @abstractmethod
-    # def ndim(self):
-    #     raise NotImplementedError

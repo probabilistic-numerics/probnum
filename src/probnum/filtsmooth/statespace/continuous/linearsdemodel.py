@@ -87,7 +87,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
             meanincr, covarincr = self._increment(time, mean, covar, **kwargs)
             mean, covar = mean + step * meanincr, covar + step * covarincr
             time = time + step
-        return Normal(mean, covar)
+        return Normal(mean, covar), {}
 
     def _increment(self, time, mean, covar, **kwargs):
         """
@@ -208,7 +208,7 @@ class LTISDEModel(LinearSDEModel):
         disc_dynamics, disc_force, disc_diffusion = self._discretise(
             step=(stop - start)
         )
-        return Normal(disc_dynamics @ real + disc_force, disc_diffusion)
+        return Normal(disc_dynamics @ real + disc_force, disc_diffusion), {}
 
     def transition_rv(self, rv, start, stop, **kwargs):
         if not isinstance(rv, Normal):
@@ -223,8 +223,9 @@ class LTISDEModel(LinearSDEModel):
         )
         old_mean, old_cov = rv.mean, rv.cov
         new_mean = disc_dynamics @ old_mean + disc_force
-        new_cov = disc_dynamics @ old_cov @ disc_dynamics.T + disc_diffusion
-        return Normal(mean=new_mean, cov=new_cov)
+        new_crosscov =  old_cov @ disc_dynamics.T
+        new_cov = disc_dynamics @ new_crosscov + disc_diffusion
+        return Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
     def _discretise(self, step):
         """
@@ -233,6 +234,8 @@ class LTISDEModel(LinearSDEModel):
         and Q(h) and vector s(h) such that the transition is
 
         .. math::`x | x_\\text{old} \\sim \\mathcal{N}(A(h) x_\\text{old} + s(h), Q(h))`
+
+        which is the transition of the mild solution to the LTI SDE.
         """
         blockmat, proj = self._form_driftmatrix_extended_state()
         expm = scipy.linalg.expm(step * blockmat)

@@ -43,7 +43,7 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
     def transition_realization(self, real, start, stop=None):
         newmean = self._dynafct(start, real)
         newcov = self._diffmatfct(start)
-        return Normal(newmean, newcov)
+        return Normal(newmean, newcov), {}
 
     def transition_rv(self, rv, start, stop=None, *args):
         raise NotImplementedError
@@ -81,9 +81,11 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         dynamat = self.dynamicsmatrix(time=start)
         diffmat = self.diffusionmatrix(time=start)
         force = self.forcevector(time=start)
-        return Normal(
-            mean=dynamat @ rv.mean + force, cov=dynamat @ rv.cov @ dynamat.T + diffmat
-        )
+
+        new_mean = dynamat @ rv.mean + force
+        new_crosscov = rv.cov @ dynamat.T
+        new_cov = dynamat @ new_crosscov + diffmat
+        return Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
     def dynamicsmatrix(self, time, **kwargs):
         """
@@ -110,7 +112,7 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
         )
 
     def transition_realization(self, real, start=None, stop=None):
-        return super().transition_realization(real=real, start=None, stop=None)
+        return super().transition_realization(real=real, start=None, stop=None)  # no more 'start' necessary
 
     def transition_rv(self, rv, start=None, stop=None, *args):
-        return super().transition_rv(rv=rv, start=None, stop=None)
+        return super().transition_rv(rv=rv, start=None, stop=None)  # no more 'start' necessary

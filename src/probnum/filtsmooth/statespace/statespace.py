@@ -31,14 +31,14 @@ def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
     obs : np.ndarray; shape (len(times)-1, measmod.ndim)
         Observations according to measurement model.
     """
-    states = np.zeros((len(times), dynmod.ndim))
-    obs = np.zeros((len(times) - 1, measmod.ndim))
+    states = np.zeros((len(times), dynmod.dimension))
+    obs = np.zeros((len(times) - 1, measmod.dimension))
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
         step = (stop - start) / _nsteps
-        states[idx] = dynmod.sample(start, stop, step, states[idx - 1])
-        obs[idx - 1] = measmod.sample(stop, states[idx])
+        states[idx] = dynmod.transition_realization(real=states[idx-1], start=start, stop=stop, step=step).sample()
+        obs[idx - 1] = measmod.transition_realization(real=states[idx], start=stop).sample()
     return states, obs
 
 
@@ -65,11 +65,11 @@ def generate_dd(dynmod, measmod, initrv, times):
     obs : np.ndarray; shape (len(times)-1, measmod.ndim)
         Observations according to measurement model.
     """
-    states = np.zeros((len(times), dynmod.ndim))
-    obs = np.zeros((len(times) - 1, measmod.ndim))
+    states = np.zeros((len(times), dynmod.dimension))
+    obs = np.zeros((len(times) - 1, measmod.dimension))
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
-        states[idx] = dynmod.sample(start, states[idx - 1])
-        obs[idx - 1] = measmod.sample(stop, states[idx])
+        states[idx] = dynmod.transition_realization(real=states[idx-1], start=start, stop=stop).sample()
+        obs[idx - 1] = measmod.transition_realization(real=states[idx], start=stop).sample()
     return states, obs
