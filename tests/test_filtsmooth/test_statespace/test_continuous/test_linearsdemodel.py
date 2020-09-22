@@ -48,21 +48,12 @@ class TestLinearSDEModel(unittest.TestCase):
         self.assertLess(np.linalg.norm(diffusion - self.diffmat), 1e-14)
 
     def test_ndim(self):
-        self.assertEqual(self.lm.ndim, TEST_NDIM)
+        self.assertEqual(self.lm.dimension, TEST_NDIM)
 
-    def test_sample(self):
-        samp = self.lm.sample(0.0, 1.0, 0.1, (np.ones(TEST_NDIM)))
-        self.assertEqual(samp.ndim, 1)
-        self.assertEqual(samp.shape[0], TEST_NDIM)
-
-    def test_chapmankolmogorov(self):
-        """
-        Test if CK-solution for a single step
-        is according to iteration.
-        """
+    def test_transition_rv(self):
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
         rvar = Normal(mean, cov)
-        cke, __ = self.lm.chapmankolmogorov(0.0, 1.0, 1.0, rvar)
+        cke = self.lm.transition_rv(rv=rvar, start=0.0, stop=1.0, step=1.0)
         diff_mean = self.driftmat @ rvar.mean + self.force - cke.mean + rvar.mean
         diff_cov = (
             self.driftmat @ rvar.cov
@@ -73,6 +64,20 @@ class TestLinearSDEModel(unittest.TestCase):
         )
         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
         self.assertLess(np.linalg.norm(diff_cov), 1e-14)
+
+    def test_transition_realization(self):
+        real = np.random.rand(TEST_NDIM)
+        cke = self.lm.transition_realization(real=real, start=0.0, stop=1.0, step=1.0)
+        diff_mean = self.driftmat @ real + self.force - cke.mean + real
+        diff_cov = (
+            self.dispmat @ self.diffmat @ self.dispmat.T
+            - cke.cov
+        )
+        self.assertLess(np.linalg.norm(diff_mean), 1e-14)
+        self.assertLess(np.linalg.norm(diff_cov), 1e-14)
+
+
+
 
 
 def ibm_a(step):
@@ -136,12 +141,8 @@ class TestLTISDEModel(unittest.TestCase):
         self.assertLess(np.linalg.norm(diffusion - self.diffmat), 1e-14)
 
     def test_ndim(self):
-        self.assertEqual(self.lti.ndim, TEST_NDIM)
+        self.assertEqual(self.lti.dimension, TEST_NDIM)
 
-    def test_sample(self):
-        samp = self.lti.sample(0.0, 1.0, 0.1, (np.ones(TEST_NDIM)))
-        self.assertEqual(samp.ndim, 1)
-        self.assertEqual(samp.shape[0], TEST_NDIM)
 
     def test_driftmatrix(self):
         self.assertLess(np.linalg.norm(self.lti.driftmatrix - self.driftmat), 1e-14)
@@ -151,18 +152,38 @@ class TestLTISDEModel(unittest.TestCase):
 
     def test_dispmatrix(self):
         self.assertLess(np.linalg.norm(self.lti.dispersionmatrix - self.dispmat), 1e-14)
+    #
+    # def test_chapmankolmogorov(self):
+    #     """
+    #     Test if CK-solution for a single step
+    #     is according to closed form of IBM kernels..
+    #     """
+    #     mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
+    #     rvar = Normal(mean, cov)
+    #     delta = 0.1
+    #     cke, __ = self.lti.chapmankolmogorov(0.0, 1.0, delta, rvar)
+    #     ah, xih, qh = ibm_a(1.0), ibm_xi(1.0), ibm_q(1.0)
+    #     diff_mean = np.linalg.norm(ah @ rvar.mean + xih - cke.mean)
+    #     diff_cov = np.linalg.norm(ah @ rvar.cov @ ah.T + qh - cke.cov)
+    #     self.assertLess(diff_mean, 1e-14)
+    #     self.assertLess(diff_cov, 1e-14)
 
-    def test_chapmankolmogorov(self):
-        """
-        Test if CK-solution for a single step
-        is according to closed form of IBM kernels..
-        """
+
+    def test_transition_rv(self):
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
         rvar = Normal(mean, cov)
-        delta = 0.1
-        cke, __ = self.lti.chapmankolmogorov(0.0, 1.0, delta, rvar)
+        cke = self.lti.transition_rv(rv=rvar, start=0.0, stop=1.0)
         ah, xih, qh = ibm_a(1.0), ibm_xi(1.0), ibm_q(1.0)
         diff_mean = np.linalg.norm(ah @ rvar.mean + xih - cke.mean)
         diff_cov = np.linalg.norm(ah @ rvar.cov @ ah.T + qh - cke.cov)
+        self.assertLess(diff_mean, 1e-14)
+        self.assertLess(diff_cov, 1e-14)
+
+    def test_transition_realization(self):
+        mean = np.ones(TEST_NDIM)
+        cke = self.lti.transition_realization(real=mean, start=0.0, stop=1.0)
+        ah, xih, qh = ibm_a(1.0), ibm_xi(1.0), ibm_q(1.0)
+        diff_mean = np.linalg.norm(ah @ mean + xih - cke.mean)
+        diff_cov = np.linalg.norm(qh - cke.cov)
         self.assertLess(diff_mean, 1e-14)
         self.assertLess(diff_cov, 1e-14)

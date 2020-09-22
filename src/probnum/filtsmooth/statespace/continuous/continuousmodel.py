@@ -18,7 +18,7 @@ In the future, this might be more general than Gauss-
 Markov models.
 """
 
-from abc import ABC, abstractmethod
+import abc
 
 import numpy as np
 
@@ -40,14 +40,27 @@ class ContinuousModel(Transition):
     B(t) : Brownian motion with const. diffusion matrix Q.
     """
 
-    @abstractmethod
+    @abc.abstractmethod
+    def transition_realization(self, real, start, stop, *args):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def transition_rv(self, rv, start, stop, *args):
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def dimension(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def drift(self, time, state, **kwargs):
         """
         Evaluates f = f(t, x(t)).
         """
         raise NotImplementedError
 
-    @abstractmethod
+    @abc.abstractmethod
     def dispersion(self, time, state, **kwargs):
         """
         Evaluates l = l(t, x(t)).
@@ -61,7 +74,7 @@ class ContinuousModel(Transition):
         raise NotImplementedError
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def diffusionmatrix(self):
         """
         Evaluates Q.
@@ -70,7 +83,7 @@ class ContinuousModel(Transition):
         raise NotImplementedError
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def dimension(self):
         """
         Spatial dimension (utility attribute).
