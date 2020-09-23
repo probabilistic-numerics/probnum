@@ -49,7 +49,7 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         newcov = self._diffmatfct(start)
         return Normal(newmean, newcov), {}
 
-    def transition_rv(self, rv, start, stop=None, *args):
+    def transition_rv(self, rv, start, stop=None, **kwargs):
         raise NotImplementedError
 
     @property
@@ -153,7 +153,7 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         super().__init__(dynafct, diffmatfct, jacfct)
         self._forcefct = forcefct
 
-    def transition_rv(self, rv, start, stop=None, *args):
+    def transition_rv(self, rv, start, stop=None, **kwargs):
         if not isinstance(rv, Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
         dynamat = self.dynamicsmatrix(time=start)
@@ -250,7 +250,7 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
             real=real, start=None, stop=None
         )  # no more 'start' necessary
 
-    def transition_rv(self, rv, start=None, stop=None, *args):
+    def transition_rv(self, rv, start=None, stop=None, **kwargs):
         return super().transition_rv(
             rv=rv, start=None, stop=None
         )  # no more 'start' necessary

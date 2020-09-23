@@ -6,7 +6,6 @@ from typing import Union, Dict
 import numpy as np
 
 from probnum.random_variables import RandomVariable
-from probnum.type import FloatArgType
 
 
 __all__ = ["Transition"]

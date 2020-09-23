@@ -3,14 +3,9 @@ import unittest
 import numpy as np
 import probnum.random_variables as rvs
 
-from probnum.random_variables import Normal, Dirac
 from probnum.filtsmooth.statespace.continuous import continuousmodel
 
-VISUALISE = False
 TEST_NDIM = 10
-
-if VISUALISE is True:
-    import matplotlib.pyplot as plt
 
 
 class MockContinuousModel(continuousmodel.ContinuousModel):
