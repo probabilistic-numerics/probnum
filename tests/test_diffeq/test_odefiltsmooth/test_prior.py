@@ -54,10 +54,10 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         self.prior = prior.IBM(2, 2, DIFFCONST)
 
-    def test_chapmankolmogorov(self):
+    def test_transition_rv(self):
         mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
-        cke, __ = self.prior.chapmankolmogorov(0.0, STEP, STEP, initrv)
+        cke, __ = self.prior.transition_rv(initrv, 0.0, STEP, step=STEP)
         self.assertAllClose(AH_22_IBM @ initrv.mean, cke.mean, 1e-14)
         self.assertAllClose(
             AH_22_IBM @ initrv.cov @ AH_22_IBM.T + QH_22_IBM, cke.cov, 1e-14

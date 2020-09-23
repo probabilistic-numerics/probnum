@@ -245,45 +245,49 @@ class IBM(ODEPrior):
         dispmat = _dispmat(ordint, spatialdim, diffconst)
         super().__init__(driftmat, dispmat, ordint, spatialdim, precond_step)
 
-    def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
-        """
-        Closed form solution to the Chapman-Kolmogorov equations
-        for the integrated Brownian motion.
+    # def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
+    #     """
+    #     Closed form solution to the Chapman-Kolmogorov equations
+    #     for the integrated Brownian motion.
+    # 
+    #     It is given by
+    # 
+    #     .. math:: X_{t+h} \\, | \\, X_t \\sim \\mathcal{N}(A(h)X_t, Q(h))
+    # 
+    #     with matrices :math:`A(h)` and `Q(h)` defined by
+    # 
+    #     .. math:: [A(h)]_{ij} = \\mathbb{I}_{i\\leq j} \\frac{h^{j-i}}{(j-i)!}
+    # 
+    # 
+    #     .. math:: [Q(h)]_{ij} = \\sigma^2 \\frac{h^{2q+1-i-j}}{(2q+1-i-j)!(q-j)!(q-i)!}
+    # 
+    # 
+    #     The implementation that is used here is more stable than the matrix-exponential
+    #     implementation in :meth:`super().chapmankolmogorov` which is relevant for
+    #     combinations of large order :math:`q` and small steps :math:`h`.
+    #     In these cases even the preconditioning is subject to numerical
+    #     instability if the transition matrices :math:`A(h)`
+    #     and :math:`Q(h)` are computed with matrix exponentials.
+    # 
+    #     "step" variable is obsolent here and is ignored.
+    #     """
+    #     mean, covar = randvar.mean, randvar.cov
+    #     ah = self._trans_ibm(start, stop)
+    #     qh = self._transdiff_ibm(start, stop)
+    #     mpred = ah @ mean
+    #     crosscov = covar @ ah.T
+    #     cpred = ah @ crosscov + qh
+    #     return Normal(mpred, cpred), crosscov
 
-        It is given by
+    def _discretise(self, step):
+        ah = self._trans_ibm(step)
+        qh = self._transdiff_ibm(step)
+        return ah, np.zeros(len(ah)), qh
 
-        .. math:: X_{t+h} \\, | \\, X_t \\sim \\mathcal{N}(A(h)X_t, Q(h))
-
-        with matrices :math:`A(h)` and `Q(h)` defined by
-
-        .. math:: [A(h)]_{ij} = \\mathbb{I}_{i\\leq j} \\frac{h^{j-i}}{(j-i)!}
-
-
-        .. math:: [Q(h)]_{ij} = \\sigma^2 \\frac{h^{2q+1-i-j}}{(2q+1-i-j)!(q-j)!(q-i)!}
-
-
-        The implementation that is used here is more stable than the matrix-exponential
-        implementation in :meth:`super().chapmankolmogorov` which is relevant for
-        combinations of large order :math:`q` and small steps :math:`h`.
-        In these cases even the preconditioning is subject to numerical
-        instability if the transition matrices :math:`A(h)`
-        and :math:`Q(h)` are computed with matrix exponentials.
-
-        "step" variable is obsolent here and is ignored.
-        """
-        mean, covar = randvar.mean, randvar.cov
-        ah = self._trans_ibm(start, stop)
-        qh = self._transdiff_ibm(start, stop)
-        mpred = ah @ mean
-        crosscov = covar @ ah.T
-        cpred = ah @ crosscov + qh
-        return Normal(mpred, cpred), crosscov
-
-    def _trans_ibm(self, start, stop):
+    def _trans_ibm(self, step):
         """
         Computes closed form solution for the transition matrix A(h).
         """
-        step = stop - start
 
         # This seems like the faster solution compared to fully vectorising.
         # I suspect it is because np.math.factorial is much faster than
@@ -298,11 +302,10 @@ class IBM(ODEPrior):
         ah = np.kron(np.eye(self.spatialdim), ah_1d)
         return self.precond @ ah @ self.invprecond
 
-    def _transdiff_ibm(self, start, stop):
+    def _transdiff_ibm(self, step):
         """
         Computes closed form solution for the diffusion matrix Q(h).
         """
-        step = stop - start
         indices = np.arange(0, self.ordint + 1)
         col_idcs, row_idcs = np.meshgrid(indices, indices)
         exponent = 2 * self.ordint + 1 - row_idcs - col_idcs
