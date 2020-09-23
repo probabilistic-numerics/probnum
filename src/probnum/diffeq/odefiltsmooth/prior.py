@@ -245,40 +245,6 @@ class IBM(ODEPrior):
         dispmat = _dispmat(ordint, spatialdim, diffconst)
         super().__init__(driftmat, dispmat, ordint, spatialdim, precond_step)
 
-    # def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
-    #     """
-    #     Closed form solution to the Chapman-Kolmogorov equations
-    #     for the integrated Brownian motion.
-    # 
-    #     It is given by
-    # 
-    #     .. math:: X_{t+h} \\, | \\, X_t \\sim \\mathcal{N}(A(h)X_t, Q(h))
-    # 
-    #     with matrices :math:`A(h)` and `Q(h)` defined by
-    # 
-    #     .. math:: [A(h)]_{ij} = \\mathbb{I}_{i\\leq j} \\frac{h^{j-i}}{(j-i)!}
-    # 
-    # 
-    #     .. math:: [Q(h)]_{ij} = \\sigma^2 \\frac{h^{2q+1-i-j}}{(2q+1-i-j)!(q-j)!(q-i)!}
-    # 
-    # 
-    #     The implementation that is used here is more stable than the matrix-exponential
-    #     implementation in :meth:`super().chapmankolmogorov` which is relevant for
-    #     combinations of large order :math:`q` and small steps :math:`h`.
-    #     In these cases even the preconditioning is subject to numerical
-    #     instability if the transition matrices :math:`A(h)`
-    #     and :math:`Q(h)` are computed with matrix exponentials.
-    # 
-    #     "step" variable is obsolent here and is ignored.
-    #     """
-    #     mean, covar = randvar.mean, randvar.cov
-    #     ah = self._trans_ibm(start, stop)
-    #     qh = self._transdiff_ibm(start, stop)
-    #     mpred = ah @ mean
-    #     crosscov = covar @ ah.T
-    #     cpred = ah @ crosscov + qh
-    #     return Normal(mpred, cpred), crosscov
-
     def _discretise(self, step):
         ah = self._trans_ibm(step)
         qh = self._transdiff_ibm(step)
