@@ -120,6 +120,7 @@ div.sphx-glr-thumbcontainer {
     background: var(--pn-lightgray);
     border: solid var(--pn-lightgray) 1px;
     border-radius: 10px;
+    margin-bottom: 15px;
 }
 div.sphx-glr-thumbcontainer:hover {
     box-shadow: 0 0 10px #107d7930;
@@ -133,11 +134,11 @@ div.sphx-glr-thumbcontainer:hover {
 }
 
 /* Author attribution */
-.rst-content .section ul li, .rst-content .toctree-wrapper ul li, .wy-plain-list-disc li, .authorlist, article ul li {
+.rst-content .section .authorlist ul li{
+    float: left;
     list-style: none;
     margin-left: 16px;
-    margin-bottom: 0px !important;
-    float: left;
+    margin-bottom: 0px;
 }
 
 .avatar {

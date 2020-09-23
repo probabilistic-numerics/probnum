@@ -4,9 +4,9 @@ The following people contributed to the ProbNum repository.
 
 **Maintainers:** Main developers responsible for ProbNum and the management of the development process.
 
-<div>
+<div class="authorlist">
 	<center>
-		<ul class="authorlist">
+		<ul>
 			<li>
 				<a href="https://github.com/jonathanwenger">
 					<img class="avatar" alt="jonathanwenger" src="https://github.com/jonathanwenger.png?v=3&s=96" width="64" height="64" />
@@ -35,9 +35,9 @@ The following people contributed to the ProbNum repository.
 **Code Contributors:** Developers who made substantial additions to ProbNum's codebase or infrastructure.
 
 
-<div>
+<div class="authorlist">
 	<center>
-		<ul class="authorlist">
+		<ul>
 			<li>
 				<a href="https://github.com/marvinpfoertner">
 					<img class="avatar" alt="marvinpfoertner" src="https://github.com/marvinpfoertner.png?v=3&s=96" width="64" height="64" />
