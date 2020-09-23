@@ -14,7 +14,6 @@ from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
-from probnum.random_variables import Normal
 
 
 class ODEPrior(LTISDEModel):
@@ -245,12 +244,12 @@ class IBM(ODEPrior):
         dispmat = _dispmat(ordint, spatialdim, diffconst)
         super().__init__(driftmat, dispmat, ordint, spatialdim, precond_step)
 
-    def _discretise(self, step):
+    def _discretise(self, step: float) -> (np.ndarray, np.ndarray, np.ndarray):
         ah = self._trans_ibm(step)
         qh = self._transdiff_ibm(step)
         return ah, np.zeros(len(ah)), qh
 
-    def _trans_ibm(self, step):
+    def _trans_ibm(self, step: float) -> (np.ndarray, np.ndarray, np.ndarray):
         """
         Computes closed form solution for the transition matrix A(h).
         """
@@ -268,7 +267,7 @@ class IBM(ODEPrior):
         ah = np.kron(np.eye(self.spatialdim), ah_1d)
         return self.precond @ ah @ self.invprecond
 
-    def _transdiff_ibm(self, step):
+    def _transdiff_ibm(self, step: float) -> (np.ndarray, np.ndarray, np.ndarray):
         """
         Computes closed form solution for the diffusion matrix Q(h).
         """
