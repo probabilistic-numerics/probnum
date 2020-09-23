@@ -69,7 +69,9 @@ class _ContDiscKalman(Kalman):
 
     def predict(self, start, stop, randvar, **kwargs):
         step = (stop - start) / self.cke_nsteps
-        return self.dynamicmodel.transition_rv(rv=randvar, start=start, stop=stop, step=step)
+        return self.dynamicmodel.transition_rv(
+            rv=randvar, start=start, stop=stop, step=step
+        )
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_kalman_update(

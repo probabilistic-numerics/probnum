@@ -79,7 +79,9 @@ class UnscentedTransform:
         sqrtcovar = np.linalg.cholesky(covar)
         sigpts[0] = mean.copy()
         for idx in range(self.dimension):
-            sigpts[idx + 1] = mean + np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
+            sigpts[idx + 1] = (
+                mean + np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
+            )
             sigpts[self.dimension + 1 + idx] = (
                 mean - np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
             )

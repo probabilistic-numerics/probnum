@@ -19,11 +19,14 @@ class TestDiscreteGaussianModel(unittest.TestCase):
     def test_transition_rv(self):
         with self.assertRaises(NotImplementedError):
             self.nl.transition_rv(
-                rvs.Normal(np.ones(self.nl.dimension), np.eye(self.nl.dimension)), start=None
+                rvs.Normal(np.ones(self.nl.dimension), np.eye(self.nl.dimension)),
+                start=None,
             )
 
     def test_transition_realization(self):
-        out_rv, _ = self.nl.transition_realization(np.ones(self.nl.dimension), start=None)
+        out_rv, _ = self.nl.transition_realization(
+            np.ones(self.nl.dimension), start=None
+        )
         self.assertIsInstance(out_rv, rvs.RandomVariable)
 
     def test_dimension(self):
@@ -51,7 +54,8 @@ class TestLinear(TestDiscreteGaussianModel):
 
     def test_transition_rv(self):
         out_rv, _ = self.nl.transition_rv(
-            rvs.Normal(np.ones(self.nl.dimension), np.eye(self.nl.dimension)), start=None
+            rvs.Normal(np.ones(self.nl.dimension), np.eye(self.nl.dimension)),
+            start=None,
         )
         self.assertIsInstance(out_rv, rvs.RandomVariable)
 

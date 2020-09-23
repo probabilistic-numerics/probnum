@@ -7,7 +7,6 @@ TEST_NDIM = 2
 
 
 class MockDiscreteModel(discretemodel.DiscreteModel):
-
     def transition_rv(self, rv, **kwargs):
         return rv
 

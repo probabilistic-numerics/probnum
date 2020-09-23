@@ -231,7 +231,12 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
     def __init__(self, dynamat, forcevec, diffmat):
         if dynamat.ndim != 2 or forcevec.ndim != 1 or diffmat.ndim != 2:
             raise TypeError
-        if not dynamat.shape[0] == forcevec.shape[0] == diffmat.shape[0] == diffmat.shape[1]:
+        if (
+            not dynamat.shape[0]
+            == forcevec.shape[0]
+            == diffmat.shape[0]
+            == diffmat.shape[1]
+        ):
             raise TypeError
 
         super().__init__(

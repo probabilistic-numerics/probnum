@@ -69,11 +69,12 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         filtrv = self.initialrandomvariable
         rvs = [filtrv]
         for idx in range(1, len(times)):
-            filtrv  = self.filter_step(
+            filtrv = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 randvar=filtrv,
-                data=dataset[idx - 1])
+                data=dataset[idx - 1],
+            )
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
@@ -127,12 +128,12 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
             pred_rv, info = self.predict(
-                start=locations[idx - 1],
-                stop=locations[idx],
-                randvar=unsmoothed_rv
+                start=locations[idx - 1], stop=locations[idx], randvar=unsmoothed_rv
             )
             if "crosscov" in info.keys():
-                curr_rv = self.smooth_step(unsmoothed_rv, pred_rv, curr_rv, info["crosscov"])
+                curr_rv = self.smooth_step(
+                    unsmoothed_rv, pred_rv, curr_rv, info["crosscov"]
+                )
             else:
                 raise TypeError("Cross-covariance required for smoothing.")
             out_rvs.append(curr_rv)

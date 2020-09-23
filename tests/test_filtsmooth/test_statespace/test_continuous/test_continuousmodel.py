@@ -30,7 +30,6 @@ class MockContinuousModel(continuousmodel.ContinuousModel):
     def transition_realization(self, real, **kwargs):
         return rvs.asrandvar(real)
 
-
     def drift(self, time, state, **kwargs):
         """
         Identity drift
@@ -65,7 +64,6 @@ class TestContinuousModel(unittest.TestCase):
 
     def setUp(self):
         self.mcm = MockContinuousModel()
-
 
     def test_call_rv(self):
         out = self.mcm(rvs.Dirac(0.1))

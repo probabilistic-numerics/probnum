@@ -81,7 +81,9 @@ class _ContDiscUnscentedKalman(UnscentedKalman):
 
     def predict(self, start, stop, randvar, **kwargs):
         step = (stop - start) / self.cke_nsteps
-        return self.dynamicmodel.transition_rv(rv=randvar, start=start, stop=stop, step=step, **kwargs)
+        return self.dynamicmodel.transition_rv(
+            rv=randvar, start=start, stop=stop, step=step, **kwargs
+        )
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_unskalman_update(
@@ -124,7 +126,7 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         mpred = dynamat @ mean + forcevec
         crosscov = covar @ dynamat.T
         cpred = dynamat @ crosscov + diffmat
-        return Normal(mpred, cpred), {'crosscov': crosscov}
+        return Normal(mpred, cpred), {"crosscov": crosscov}
 
     def _predict_nonlinear(self, start, randvar, **kwargs):
         """
@@ -139,7 +141,7 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         mpred, cpred, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, diffmat, mean
         )
-        return Normal(mpred, cpred), {'crosscov': crosscov}
+        return Normal(mpred, cpred), {"crosscov": crosscov}
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_unskalman_update(

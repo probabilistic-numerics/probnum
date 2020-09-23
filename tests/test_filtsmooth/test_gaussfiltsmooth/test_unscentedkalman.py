@@ -138,7 +138,9 @@ class TestUnscentedKalmanContDisc(OrnsteinUhlenbeckCDTestCase):
         self.assertApproxEqual(expectedcov, pred.cov)
 
     def test_update(self):
-        data = self.measmod.transition_realization(self.initrv.mean * np.ones(1), 0.0)[0].sample()
+        data = self.measmod.transition_realization(self.initrv.mean * np.ones(1), 0.0)[
+            0
+        ].sample()
         upd, __, __, __ = self.method.update(0.0, self.initrv, data)
         self.assertEqual(upd.mean.shape, (1,))
         self.assertEqual(upd.cov.shape, (1, 1))

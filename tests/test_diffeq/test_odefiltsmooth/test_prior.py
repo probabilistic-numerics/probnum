@@ -71,8 +71,8 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         # pylint: disable=bad-super-call
         mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
-        cke_super, __ = super(type(self.prior), self.prior).transition_rv(initrv,
-            0.0, STEP, step=STEP
+        cke_super, __ = super(type(self.prior), self.prior).transition_rv(
+            initrv, 0.0, STEP, step=STEP
         )
         cke, __ = self.prior.transition_rv(initrv, 0.0, STEP, step=STEP)
 
@@ -105,8 +105,8 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
 
         mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
-        cke_super, __ = super(type(self.prior), self.prior).transition_rv(initrv,
-            0.0, STEP, step=STEP
+        cke_super, __ = super(type(self.prior), self.prior).transition_rv(
+            initrv, 0.0, STEP, step=STEP
         )
         cke, __ = self.prior.transition_rv(initrv, 0.0, STEP, step=STEP)
 

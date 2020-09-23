@@ -80,7 +80,14 @@ class ODEPrior(LTISDEModel):
 
     """
 
-    def __init__(self, driftmat, dispmat, ordint, spatialdim, precond_step=1.0):
+    def __init__(
+        self,
+        driftmat: np.ndarray,
+        dispmat: np.ndarray,
+        ordint: int,
+        spatialdim: int,
+        precond_step: float = 1.0,
+    ):
         self.ordint = ordint
         self.spatialdim = spatialdim
         self.precond, self.invprecond = self.precond2nordsieck(precond_step)
@@ -90,7 +97,7 @@ class ODEPrior(LTISDEModel):
         diffmat = np.eye(spatialdim)
         super().__init__(driftmat, forcevec, dispmat, diffmat)
 
-    def proj2coord(self, coord):
+    def proj2coord(self, coord: int) -> np.ndarray:
         """
         Projection matrix to :math:`i`-th coordinates.
 
@@ -120,7 +127,7 @@ class ODEPrior(LTISDEModel):
         projmat1d_with_precond = projmat @ self.invprecond
         return projmat1d_with_precond
 
-    def precond2nordsieck(self, step):
+    def precond2nordsieck(self, step: float) -> (np.ndarray, np.ndarray):
         """
         Computes preconditioner inspired by Nordsieck.
 
@@ -159,7 +166,7 @@ class ODEPrior(LTISDEModel):
         return precond, invprecond
 
     @property
-    def preconditioner(self):
+    def preconditioner(self) -> np.ndarray:
         """
         Convenience property to return the readily-computed
         preconditioner without having to remember abbreviations.
@@ -172,7 +179,7 @@ class ODEPrior(LTISDEModel):
         return self.precond
 
     @property
-    def inverse_preconditioner(self):
+    def inverse_preconditioner(self) -> np.ndarray:
         """
         Convenience property to return the readily-computed
         inverse preconditioner without having to remember abbreviations.
@@ -219,21 +226,23 @@ class IBM(ODEPrior):
 
     Parameters
     ----------
-    ordint : int
+    ordint :
         Order of integration :math:`q`. The higher :math:`q`, the higher
         the order of the ODE filter.
-    spatialdim : int
+    spatialdim :
         Spatial dimension :math:`d` of the ordinary differential
         equation that is to be modelled.
-    diffconst : float
+    diffconst :
         Diffusion constant :math:`sigma` of the stochastic process.
-    precond_step : float, optional
+    precond_step :
         Expected step size :math:`h` used in the ODE filter.
         This quantity is used for preconditioning, see :class:`ODEPrior`
         for a clear explanation. Default is :math:`h=1`.
     """
 
-    def __init__(self, ordint, spatialdim, diffconst, precond_step=1.0):
+    def __init__(
+        self, ordint: int, spatialdim: int, diffconst: float, precond_step: float = 1.0
+    ):
         """
         ordint : this is "q"
         spatialdim : d
@@ -287,7 +296,7 @@ class IBM(ODEPrior):
         return self.precond @ qh @ self.precond.T
 
 
-def _driftmat_ibm(ordint, spatialdim):
+def _driftmat_ibm(ordint: int, spatialdim: int) -> np.ndarray:
     """
     Returns I_d \\otimes F
     """
@@ -304,7 +313,14 @@ class IOUP(ODEPrior):
     Q = I_d
     """
 
-    def __init__(self, ordint, spatialdim, driftspeed, diffconst, precond_step=1.0):
+    def __init__(
+        self,
+        ordint: int,
+        spatialdim: int,
+        driftspeed: float,
+        diffconst: float,
+        precond_step: float = 1.0,
+    ):
         """
         ordint : this is "q"
         spatialdim : d
@@ -319,10 +335,8 @@ class IOUP(ODEPrior):
         super().__init__(driftmat, dispvec, ordint, spatialdim, precond_step)
 
 
-def _driftmat_ioup(ordint, spatialdim, driftspeed):
-    """
-    Returns I_d \\otimes F
-    """
+def _driftmat_ioup(ordint: int, spatialdim: int, driftspeed: float) -> np.ndarray:
+    """Return :math:`I_d \\otimes F`."""
     driftmat = np.diag(np.ones(ordint), 1)
     driftmat[-1, -1] = -driftspeed
     return np.kron(np.eye(spatialdim), driftmat)
@@ -338,7 +352,14 @@ class Matern(ODEPrior):
     Q = I_d
     """
 
-    def __init__(self, ordint, spatialdim, lengthscale, diffconst, precond_step=1.0):
+    def __init__(
+        self,
+        ordint: int,
+        spatialdim: int,
+        lengthscale: float,
+        diffconst: float,
+        precond_step: float = 1.0,
+    ):
         """
         ordint : this is "q"
         spatialdim : d
@@ -353,7 +374,7 @@ class Matern(ODEPrior):
         super().__init__(driftmat, dispvec, ordint, spatialdim, precond_step)
 
 
-def _driftmat_matern(ordint, spatialdim, lengthscale):
+def _driftmat_matern(ordint: int, spatialdim: int, lengthscale: float) -> np.ndarray:
     """
     Returns I_d \\otimes F
     """
@@ -364,7 +385,7 @@ def _driftmat_matern(ordint, spatialdim, lengthscale):
     return np.kron(np.eye(spatialdim), driftmat)
 
 
-def _dispmat(ordint, spatialdim, diffconst):
+def _dispmat(ordint: int, spatialdim: int, diffconst: float) -> np.ndarray:
     """
     Returns I_D \\otimes L
     diffconst = sigma**2

@@ -67,17 +67,13 @@ class TestLinearSDEModel(unittest.TestCase):
 
     def test_transition_realization(self):
         real = np.random.rand(TEST_NDIM)
-        cke, _ = self.lm.transition_realization(real=real, start=0.0, stop=1.0, step=1.0)
-        diff_mean = self.driftmat @ real + self.force - cke.mean + real
-        diff_cov = (
-            self.dispmat @ self.diffmat @ self.dispmat.T
-            - cke.cov
+        cke, _ = self.lm.transition_realization(
+            real=real, start=0.0, stop=1.0, step=1.0
         )
+        diff_mean = self.driftmat @ real + self.force - cke.mean + real
+        diff_cov = self.dispmat @ self.diffmat @ self.dispmat.T - cke.cov
         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
         self.assertLess(np.linalg.norm(diff_cov), 1e-14)
-
-
-
 
 
 def ibm_a(step):
@@ -151,7 +147,6 @@ class TestLTISDEModel(unittest.TestCase):
 
     def test_dispmatrix(self):
         self.assertLess(np.linalg.norm(self.lti.dispersionmatrix - self.dispmat), 1e-14)
-
 
     def test_transition_rv(self):
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)

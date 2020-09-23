@@ -37,7 +37,9 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
 
     def test_ekf0_measmod(self):
         filtsmooth_object = ivp2filter.ivp2ekf0(self.ivp, self.prior, self.evlvar)
-        random_time, random_eval = np.random.rand(), np.random.rand(self.prior.dimension)
+        random_time, random_eval = np.random.rand(), np.random.rand(
+            self.prior.dimension
+        )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected_measmodel_output = e1 @ random_eval - self.ivp.rhs(
             random_time, e0 @ random_eval
@@ -74,7 +76,9 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
 
     def test_ekf1_measmod(self):
         filtsmooth_object = ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
-        random_time, random_eval = np.random.rand(), np.random.rand(self.prior.dimension)
+        random_time, random_eval = np.random.rand(), np.random.rand(
+            self.prior.dimension
+        )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected_measmodel_output = e1 @ random_eval - self.ivp.rhs(
             random_time, e0 @ random_eval
@@ -111,7 +115,9 @@ class TestIvpUkf(Ivp2FilterTestCase):
 
     def test_ukf_measmod(self):
         filtsmooth_object = ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
-        random_time, random_eval = np.random.rand(), np.random.rand(self.prior.dimension)
+        random_time, random_eval = np.random.rand(), np.random.rand(
+            self.prior.dimension
+        )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected_measmodel_output = e1 @ random_eval - self.ivp.rhs(
             random_time, e0 @ random_eval
