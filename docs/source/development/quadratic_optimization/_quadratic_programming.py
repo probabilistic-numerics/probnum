@@ -141,6 +141,7 @@ class ProbabilisticQuadraticOptimizer:
         self.fun_params = self.fun_params_prior
         self.policy = policy
         self.make_observation = observation
+        # TODO naming of observation
         self.belief_update = belief_update
         self.stopping_criteria = stopping_criteria
         self.iteration = 0
@@ -213,22 +214,20 @@ class ProbabilisticQuadraticOptimizer:
 
             self.iteration += 1
 
-        x_opt, fun_opt, info = self._postprocess()
-
-        return x_opt, fun_opt, self.fun_params, info
-
-    def _postprocess(self) -> Union[np.ndarray, pn.RandomVariable, Dict]:
-        """
-        Postprocess the optimization result.
-
-        Computes the belief over the optimum and optimal function value and constructs
-        an information dict on convergence.
-        """
         # Belief over optimal function value and optimum
-        x_opt = -self.fun_params.mean[1] / self.fun_params.mean[0]
-        fun_opt = np.array([0.5 * x_opt ** 2, x_opt, 1]).T @ self.fun_params
+        x_opt, fun_opt = self._postprocess()
 
         # Information on convergence
         info = {"iter": self.iteration, "conv_crit": conv_crit}
 
-        return x_opt, fun_opt, info
+        return x_opt, fun_opt, self.fun_params, info
+
+    def _postprocess(self) -> Tuple[float, pn.RandomVariable]:
+        """
+        Postprocess the optimization result.
+
+        Computes the belief over the optimum and optimal function value.
+        """
+        x_opt = -self.fun_params.mean[1] / self.fun_params.mean[0]
+        fun_opt = np.array([0.5 * x_opt ** 2, x_opt, 1]).T @ self.fun_params
+        return x_opt, fun_opt
