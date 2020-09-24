@@ -102,9 +102,9 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         disped = self.dispersion(time, mean, **kwargs)
         jacob = self.jacobian(time, mean, **kwargs)
         diff = self.diffusionmatrix
-        newmean = self.drift(time, mean, **kwargs)
-        newcovar = covar @ jacob.T + jacob @ covar.T + disped @ diff @ disped.T
-        return newmean, newcovar
+        meanincr = self.drift(time, mean, **kwargs)
+        covincr = covar @ jacob.T + jacob @ covar.T + disped @ diff @ disped.T
+        return meanincr, covincr
 
     def drift(self, time, state, **kwargs):
         """
