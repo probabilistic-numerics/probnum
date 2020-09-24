@@ -242,7 +242,7 @@ class IBM(ODEPrior):
 
     def __init__(
         self, ordint: int, spatialdim: int, diffconst: float, precond_step: float = 1.0
-    ):
+    ) -> None:
         """
         ordint : this is "q"
         spatialdim : d
@@ -254,11 +254,12 @@ class IBM(ODEPrior):
         super().__init__(driftmat, dispmat, ordint, spatialdim, precond_step)
 
     def _discretise(self, step: float) -> (np.ndarray, np.ndarray, np.ndarray):
-        ah = self._trans_ibm(step)
-        qh = self._transdiff_ibm(step)
-        return ah, np.zeros(len(ah)), qh
+        dynamicsmatrix = self._trans_ibm(step)
+        empty_force = np.zeros(len(dynamicsmatrix))
+        diffusionmatrix = self._transdiff_ibm(step)
+        return dynamicsmatrix, empty_force, diffusionmatrix
 
-    def _trans_ibm(self, step: float) -> (np.ndarray, np.ndarray, np.ndarray):
+    def _trans_ibm(self, step: float) -> np.ndarray:
         """
         Computes closed form solution for the transition matrix A(h).
         """
@@ -276,7 +277,7 @@ class IBM(ODEPrior):
         ah = np.kron(np.eye(self.spatialdim), ah_1d)
         return self.precond @ ah @ self.invprecond
 
-    def _transdiff_ibm(self, step: float) -> (np.ndarray, np.ndarray, np.ndarray):
+    def _transdiff_ibm(self, step: float) -> np.ndarray:
         """
         Computes closed form solution for the diffusion matrix Q(h).
         """
