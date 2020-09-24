@@ -229,16 +229,30 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
     """
 
     def __init__(self, dynamat, forcevec, diffmat):
-        if dynamat.ndim != 2 or forcevec.ndim != 1 or diffmat.ndim != 2:
-            raise TypeError
+        if dynamat.ndim != 2:
+            raise TypeError(
+                f"dynamat.ndim=2 expected. dynamat.ndim={dynamat.ndim} received."
+            )
+        if forcevec.ndim != 1:
+            raise TypeError(
+                f"forcevec.ndim=1 expected. forcevec.ndim={dynamat.ndim} received."
+            )
+        if diffmat.ndim != 2:
+            raise TypeError(
+                f"diffmat.ndim=2 expected. diffmat.ndim={dynamat.ndim} received."
+            )
         if (
             not dynamat.shape[0]
             == forcevec.shape[0]
             == diffmat.shape[0]
             == diffmat.shape[1]
         ):
-            raise TypeError
-
+            raise TypeError(
+                f"Dimension of dynamat, forcevec and diffmat do not align. "
+                f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N). "
+                f"Received: dynamat.shape={dynamat.shape}, forcevec.shape={forcevec.shape}, "
+                f"diffmat.shape={diffmat.shape}."
+            )
         super().__init__(
             lambda t, **kwargs: dynamat,
             lambda t, **kwargs: forcevec,
