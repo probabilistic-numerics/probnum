@@ -34,29 +34,9 @@ class UnscentedTransform:
         """
         self.scale = _compute_scale(dimension, spread, special_scale)
         self.dimension = dimension
-        self.mweights, self.cweights = self.unscented_weights(spread, priorpar)
-
-    def unscented_weights(self, alp, bet):
-        """
-        See BFaS; p. 84.
-
-        Parameters
-        ----------
-        alp: float
-            Spread of sigma points around mean (alpha)
-        bet: float
-            Prior information parameter (beta)
-
-        Returns
-        -------
-        np.ndarray, shape (2 * dimension + 1,)
-            constant mean weights.
-        np.ndarray, shape (2 * dimension + 1,)
-            constant kernels weights.
-        """
-        mweights = _meanweights(self.dimension, self.scale)
-        cweights = _covarweights(self.dimension, alp, bet, self.scale)
-        return mweights, cweights
+        self.mweights, self.cweights = _unscented_weights(
+            spread, priorpar, self.dimension, self.scale
+        )
 
     def sigma_points(self, mean, covar):
         """
@@ -126,7 +106,7 @@ class UnscentedTransform:
         return estmean, estcovar, estcrosscovar
 
 
-def _compute_scale(dimension, alp, kap):
+def _compute_scale(dimension, spread, special_scale):
     """
     See BFaS; p. 83
 
@@ -134,9 +114,9 @@ def _compute_scale(dimension, alp, kap):
     ----------
     dimension: int
         Spatial dimensionality of state space model
-    alp: float
+    spread: float
         Spread of sigma points around mean (1; alpha)
-    kap: float
+    special_scale: float
         Spread of sigma points around mean (2; kappa)
 
     Returns
@@ -144,7 +124,34 @@ def _compute_scale(dimension, alp, kap):
     float
         Scaling parameter for unscented transform
     """
-    return alp ** 2 * (dimension + kap) - dimension
+    return spread ** 2 * (dimension + special_scale) - dimension
+
+
+def _unscented_weights(spread, priorpar, dimension, scale):
+    """
+    See BFaS; p. 84.
+
+    Parameters
+    ----------
+    spread: float
+        Spread of sigma points around mean (alpha)
+    priorpar: float
+        Prior information parameter (beta)
+    dimension : int
+        Dimension of the state space
+    scale : float
+        Scaling parameter for unscented transform
+
+    Returns
+    -------
+    np.ndarray, shape (2 * dimension + 1,)
+        constant mean weights.
+    np.ndarray, shape (2 * dimension + 1,)
+        constant kernels weights.
+    """
+    mweights = _meanweights(dimension, scale)
+    cweights = _covarweights(dimension, spread, priorpar, scale)
+    return mweights, cweights
 
 
 def _meanweights(dimension, lam):
