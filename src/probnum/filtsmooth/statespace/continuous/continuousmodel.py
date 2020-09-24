@@ -12,9 +12,9 @@ __all__ = ["ContinuousModel"]
 
 class ContinuousModel(Transition):
     """
-    Markov transition rules or continuous time.
+    Markov transition rules in continuous time.
 
-    This is described by a stochastic differential equation (SDE),
+    Such a rule is described by a stochastic differential equation (SDE),
 
     .. math:: d x_t = f(t, x_t) d t + d w_t
 
@@ -24,7 +24,7 @@ class ContinuousModel(Transition):
     ----
     This should be initializable similarly to :class:`DiscreteGaussianModel`
     (where :meth:`transition_realization` and :meth:`transition_rv` simply raise ``NotImplementedError``).
-    This would change a bit of code, though.
+    This would change a bit of code, though. See Issue #219.
     """
 
     @abc.abstractmethod
