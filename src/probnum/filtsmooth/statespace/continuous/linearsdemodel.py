@@ -206,7 +206,7 @@ class LTISDEModel(LinearSDEModel):
 
     def transition_realization(self, real, start, stop, **kwargs):
         if not isinstance(real, np.ndarray):
-            raise TypeError
+            raise TypeError(f"Numpy array expected, {type(real)} received.")
         disc_dynamics, disc_force, disc_diffusion = self._discretise(
             step=(stop - start)
         )
