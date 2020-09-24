@@ -130,12 +130,11 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
             pred_rv, info = self.predict(
                 start=locations[idx - 1], stop=locations[idx], randvar=unsmoothed_rv
             )
-            if "crosscov" in info.keys():
-                curr_rv = self.smooth_step(
-                    unsmoothed_rv, pred_rv, curr_rv, info["crosscov"]
-                )
-            else:
+            if "crosscov" not in info.keys():
                 raise TypeError("Cross-covariance required for smoothing.")
+            curr_rv = self.smooth_step(
+                unsmoothed_rv, pred_rv, curr_rv, info["crosscov"]
+            )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
