@@ -3,10 +3,14 @@ from probnum.type import FloatArgType, IntArgType, RandomStateType
 
 import numpy as np
 import probnum as pn
-from ._stopping_criterion import QuadOptStoppingCriterion
-from ._policy import QuadOptPolicy
-from ._observation import QuadOptObservation
-from ._belief_update import QuadOptBeliefUpdate
+from ._policy import QuadOptPolicy, DeterministicPolicy, StochasticPolicy
+from ._observation import QuadOptObservation, FunctionEvaluation
+from ._belief_update import QuadOptBeliefUpdate, GaussianBeliefUpdate
+from ._stopping_criterion import (
+    QuadOptStoppingCriterion,
+    ParameterUncertainty,
+    MaximumIterations,
+)
 
 
 def probsolve_qp(
@@ -82,22 +86,28 @@ def probsolve_qp(
         # Exact 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=deterministic_policy,
+            policy=DeterministicPolicy(),
+            observation=FunctionEvaluation(fun=fun),
+            belief_update=GaussianBeliefUpdate(noise_cov=np.zeros(3)),
             stopping_criteria=[
-                partial(residual_stopping_criterion, tol=tol),
-                partial(max_iterations, maxiter=maxiter),
+                ParameterUncertainty(abstol=tol, reltol=tol),
+                MaximumIterations(maxiter=maxiter),
             ],
         )
     elif method == "noise":
         # Noisy 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=thompson_sampling,
+            policy=StochasticPolicy(),
+            observation=FunctionEvaluation(fun=fun),
+            belief_update=GaussianBeliefUpdate(noise_cov=noise_cov),
             stopping_criteria=[
-                partial(probabilistic_stopping_criterion, tol=tol),
-                partial(max_iterations, maxiter=maxiter),
+                ParameterUncertainty(abstol=tol, reltol=tol),
+                MaximumIterations(maxiter=maxiter),
             ],
         )
+    else:
+        raise ValueError(f'Unknown PN method variant "{method}".')
 
     # Run optimization iteration
     x_opt0, fun_opt0, fun_params0, info = probquadopt.optimize(
@@ -116,14 +126,6 @@ class ProbabilisticQuadraticOptimizer:
 
     Parameters
     ----------
-    fun_params_prior :
-
-    policy :
-
-    observe :
-
-    stopping_criteria :
-
 
     """
 
@@ -135,11 +137,98 @@ class ProbabilisticQuadraticOptimizer:
         belief_update: QuadOptBeliefUpdate,
         stopping_criteria: Iterable[QuadOptStoppingCriterion],
     ):
-        raise NotImplementedError
+        self.fun_params_prior = fun_params_prior
+        self.fun_params = self.fun_params_prior
+        self.policy = policy
+        self.make_observation = observation
+        self.belief_update = belief_update
+        self.stopping_criteria = stopping_criteria
+        self.iteration = 0
+
+    def has_converged(
+        self, fun: Callable[[FloatArgType], FloatArgType]
+    ) -> Tuple[bool, Union[str, None]]:
+        """
+        Check whether the quadratic optimizer has converged.
+        """
+        for stopping_criterion in self.stopping_criteria:
+            _has_converged, convergence_criterion = stopping_criterion(
+                fun, self.fun_params, self.iteration
+            )
+            if _has_converged:
+                return _has_converged, convergence_criterion
+
+    def optim_iterator(
+        self,
+        fun: Callable[[FloatArgType], FloatArgType],
+    ):
+        """
+        Generator implementing the optimization iteration.
+
+        This function allows stepping through the optimization
+        process one step at a time.
+        """
+        # Compute action via policy
+        action = self.policy(fun)
+
+        # Make an observation
+        observation = self.make_observation(action)
+
+        # Belief update
+        self.fun_params = self.belief_update(self.fun_params, action, observation)
+
+        yield self.fun_params
 
     def optimize(
         self,
-        fun: Callable,
+        fun: Callable[[FloatArgType], FloatArgType],
         callback: Callable,
     ) -> Tuple[float, pn.RandomVariable, pn.RandomVariable, Dict]:
-        raise NotImplementedError
+        """
+        Optimize the quadratic objective function.
+
+        Parameters
+        ----------
+        fun :
+            Quadratic objective function to optimize.
+        callback :
+            Callback function returning intermediate quantities of the
+            optimization loop. Note that depending on the function
+            supplied, this can slow down the solver considerably.
+        """
+        # Setup
+        _has_converged = False
+
+        while True:
+            # Evaluate stopping criteria
+            _has_converged, conv_crit = self.has_converged(fun=fun)
+            if _has_converged:
+                break
+
+            # Perform one iteration of the optimizer
+            next(self.optim_iterator(fun=fun))
+
+            # Callback function
+            # TODO
+
+            self.iteration += 1
+
+        x_opt, fun_opt, info = self._postprocess()
+
+        return x_opt, fun_opt, self.fun_params, info
+
+    def _postprocess(self) -> Union[np.ndarray, pn.RandomVariable, Dict]:
+        """
+        Postprocess the optimization result.
+
+        Computes the belief over the optimum and optimal function value and constructs
+        an information dict on convergence.
+        """
+        # Belief over optimal function value and optimum
+        x_opt = -self.fun_params.mean[1] / self.fun_params.mean[0]
+        fun_opt = np.array([0.5 * x_opt ** 2, x_opt, 1]).T @ self.fun_params
+
+        # Information on convergence
+        info = {"iter": self.iteration, "conv_crit": conv_crit}
+
+        return x_opt, fun_opt, info
