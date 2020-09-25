@@ -78,7 +78,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
-    def smooth(self, filter_posterior):
+    def smooth(self, filter_posterior, **kwargs):
         """
         Apply Gaussian smoothing to a set of filtered means and covariances.
 
@@ -92,12 +92,12 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
-        rv_list = self.smooth_list(filter_posterior, filter_posterior.locations)
+        rv_list = self.smooth_list(filter_posterior, filter_posterior.locations, **kwargs)
         return KalmanPosterior(
             filter_posterior.locations, rv_list, self, with_smoothing=True
         )
 
-    def smooth_list(self, rv_list, locations, final_rv=None):
+    def smooth_list(self, rv_list, locations, final_rv=None, **kwargs):
         """
         Apply smoothing to a list of RVs with desired final random variable.
 
@@ -128,7 +128,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
             pred_rv, info = self.predict(
-                start=locations[idx - 1], stop=locations[idx], randvar=unsmoothed_rv
+                start=locations[idx - 1], stop=locations[idx], randvar=unsmoothed_rv, **kwargs
             )
             if "crosscov" not in info.keys():
                 raise TypeError("Cross-covariance required for smoothing.")
