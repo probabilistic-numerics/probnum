@@ -37,12 +37,12 @@ def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
         step = (stop - start) / _nsteps
-        states[idx] = dynmod.transition_realization(
+        next_state_rv, _ = dynmod.transition_realization(
             real=states[idx - 1], start=start, stop=stop, step=step
-        )[0].sample()
-        obs[idx - 1] = measmod.transition_realization(real=states[idx], start=stop)[
-            0
-        ].sample()
+        )
+        states[idx] = next_state_rv.sample()
+        next_obs_rv, _ = measmod.transition_realization(real=states[idx], start=stop)
+        obs[idx - 1] = next_obs_rv.sample()
     return states, obs
 
 
@@ -74,10 +74,10 @@ def generate_dd(dynmod, measmod, initrv, times):
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
-        states[idx] = dynmod.transition_realization(
+        next_state_rv, _ = dynmod.transition_realization(
             real=states[idx - 1], start=start, stop=stop
-        )[0].sample()
-        obs[idx - 1] = measmod.transition_realization(real=states[idx], start=stop)[
-            0
-        ].sample()
+        )
+        states[idx] = next_state_rv.sample()
+        next_obs_rv, _ = measmod.transition_realization(real=states[idx], start=stop)
+        obs[idx - 1] = next_obs_rv.sample()
     return states, obs
