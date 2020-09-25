@@ -150,7 +150,7 @@ class ProbabilisticQuadraticOptimizer:
         self, fun: Callable[[FloatArgType], FloatArgType]
     ) -> Tuple[bool, Union[str, None]]:
         """
-        Check whether the quadratic optimizer has converged.
+        Check whether the optimizer has converged.
         """
         for stopping_criterion in self.stopping_criteria:
             _has_converged, convergence_criterion = stopping_criterion(
@@ -162,7 +162,7 @@ class ProbabilisticQuadraticOptimizer:
     def optim_iterator(
         self,
         fun: Callable[[FloatArgType], FloatArgType],
-    ):
+    ) -> Tuple[float, float, pn.RandomVariable]:
         """
         Generator implementing the optimization iteration.
 
@@ -178,12 +178,12 @@ class ProbabilisticQuadraticOptimizer:
         # Belief update
         self.fun_params = self.belief_update(self.fun_params, action, observation)
 
-        yield self.fun_params
+        yield action, observation, self.fun_params
 
     def optimize(
         self,
         fun: Callable[[FloatArgType], FloatArgType],
-        callback: Callable,
+        callback: Callable[[float, float, pn.RandomVariable], None],
     ) -> Tuple[float, pn.RandomVariable, pn.RandomVariable, Dict]:
         """
         Optimize the quadratic objective function.
@@ -207,26 +207,24 @@ class ProbabilisticQuadraticOptimizer:
                 break
 
             # Perform one iteration of the optimizer
-            next(self.optim_iterator(fun=fun))
+            action, observation, _ = next(self.optim_iterator(fun=fun))
 
             # Callback function
-            # TODO
+            callback(action, observation, self.fun_params)
 
             self.iteration += 1
 
         # Belief over optimal function value and optimum
-        x_opt, fun_opt = self._postprocess()
+        x_opt, fun_opt = self.belief_optimum()
 
         # Information on convergence
         info = {"iter": self.iteration, "conv_crit": conv_crit}
 
         return x_opt, fun_opt, self.fun_params, info
 
-    def _postprocess(self) -> Tuple[float, pn.RandomVariable]:
+    def belief_optimum(self) -> Tuple[float, pn.RandomVariable]:
         """
-        Postprocess the optimization result.
-
-        Computes the belief over the optimum and optimal function value.
+        Compute the belief over the optimum and optimal function value.
         """
         x_opt = -self.fun_params.mean[1] / self.fun_params.mean[0]
         fun_opt = np.array([0.5 * x_opt ** 2, x_opt, 1]).T @ self.fun_params
