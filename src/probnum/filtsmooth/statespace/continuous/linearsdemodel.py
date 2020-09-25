@@ -56,14 +56,18 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         self._diffmatrix = diffmatrix
 
     def transition_realization(self, real, start, stop, **kwargs):
-        step = kwargs["step"]
+        if "euler_step" not in kwargs.keys():
+            raise TypeError("LinearSDE.transition_* requires a euler_step")
+        euler_step = kwargs["euler_step"]
         rv = Normal(real, 0 * np.eye(len(real)))
         return self._solve_chapmankolmogorov_equations(
-            start=start, stop=stop, step=step, randvar=rv
+            start=start, stop=stop, euler_step=euler_step, randvar=rv
         )
 
     def transition_rv(self, rv, start, stop, **kwargs):
-        step = kwargs["step"]
+        if "euler_step" not in kwargs.keys():
+            raise TypeError("LinearSDE.transition_* requires an euler_step")
+        euler_step = kwargs["euler_step"]
         if not issubclass(type(rv), Normal):
             errormsg = (
                 "Closed form solution for Chapman-Kolmogorov "
@@ -72,10 +76,10 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
             )
             raise ValueError(errormsg)
         return self._solve_chapmankolmogorov_equations(
-            start=start, stop=stop, step=step, randvar=rv
+            start=start, stop=stop, euler_step=euler_step, randvar=rv
         )
 
-    def _solve_chapmankolmogorov_equations(self, start, stop, step, randvar, **kwargs):
+    def _solve_chapmankolmogorov_equations(self, start, stop, euler_step, randvar, **kwargs):
         """
         Solves differential equations for mean and
         kernels of the SDE solution (Eq. 5.50 and 5.51
@@ -87,8 +91,8 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         time = start
         while time < stop:
             meanincr, covarincr = self._increment(time, mean, covar, **kwargs)
-            mean, covar = mean + step * meanincr, covar + step * covarincr
-            time = time + step
+            mean, covar = mean + euler_step * meanincr, covar + euler_step * covarincr
+            time = time + euler_step
         return Normal(mean, covar), {}
 
     def _increment(self, time, mean, covar, **kwargs):

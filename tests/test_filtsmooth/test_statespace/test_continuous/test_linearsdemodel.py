@@ -53,7 +53,7 @@ class TestLinearSDEModel(unittest.TestCase):
     def test_transition_rv(self):
         mean, cov = np.ones(TEST_NDIM), np.eye(TEST_NDIM)
         rvar = Normal(mean, cov)
-        cke, _ = self.lm.transition_rv(rv=rvar, start=0.0, stop=1.0, step=1.0)
+        cke, _ = self.lm.transition_rv(rv=rvar, start=0.0, stop=1.0, euler_step=1.0)
         diff_mean = self.driftmat @ rvar.mean + self.force - cke.mean + rvar.mean
         diff_cov = (
             self.driftmat @ rvar.cov
@@ -68,7 +68,7 @@ class TestLinearSDEModel(unittest.TestCase):
     def test_transition_realization(self):
         real = np.random.rand(TEST_NDIM)
         cke, _ = self.lm.transition_realization(
-            real=real, start=0.0, stop=1.0, step=1.0
+            real=real, start=0.0, stop=1.0, euler_step=1.0
         )
         diff_mean = self.driftmat @ real + self.force - cke.mean + real
         diff_cov = self.dispmat @ self.diffmat @ self.dispmat.T - cke.cov
