@@ -92,7 +92,9 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
-        rv_list = self.smooth_list(filter_posterior, filter_posterior.locations, **kwargs)
+        rv_list = self.smooth_list(
+            filter_posterior, filter_posterior.locations, **kwargs
+        )
         return KalmanPosterior(
             filter_posterior.locations, rv_list, self, with_smoothing=True
         )
@@ -128,7 +130,10 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
             pred_rv, info = self.predict(
-                start=locations[idx - 1], stop=locations[idx], randvar=unsmoothed_rv, **kwargs
+                start=locations[idx - 1],
+                stop=locations[idx],
+                randvar=unsmoothed_rv,
+                **kwargs
             )
             if "crosscov" not in info.keys():
                 raise TypeError("Cross-covariance required for smoothing.")

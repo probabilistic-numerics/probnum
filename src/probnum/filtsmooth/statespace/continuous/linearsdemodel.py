@@ -79,7 +79,9 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
             start=start, stop=stop, euler_step=euler_step, randvar=rv
         )
 
-    def _solve_chapmankolmogorov_equations(self, start, stop, euler_step, randvar, **kwargs):
+    def _solve_chapmankolmogorov_equations(
+        self, start, stop, euler_step, randvar, **kwargs
+    ):
         """
         Solves differential equations for mean and
         kernels of the SDE solution (Eq. 5.50 and 5.51
