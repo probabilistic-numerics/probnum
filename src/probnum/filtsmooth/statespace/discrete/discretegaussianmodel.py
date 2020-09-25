@@ -249,7 +249,7 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
         ):
             raise TypeError(
                 f"Dimension of dynamat, forcevec and diffmat do not align. "
-                f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N). "
+                f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
                 f"Received: dynamat.shape={dynamat.shape}, forcevec.shape={forcevec.shape}, "
                 f"diffmat.shape={diffmat.shape}."
             )
