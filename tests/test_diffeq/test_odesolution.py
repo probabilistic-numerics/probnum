@@ -41,13 +41,13 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertTrue(isinstance(self.solution.y, _RandomVariableList))
 
         self.assertEqual(len(self.solution.y[0].shape), 1)
-        self.assertEqual(self.solution.y[0].shape[0], self.ivp.ndim)
+        self.assertEqual(self.solution.y[0].shape[0], self.ivp.dimension)
 
     def test_dy(self):
         self.assertTrue(isinstance(self.solution.dy, _RandomVariableList))
 
         self.assertEqual(len(self.solution.dy[0].shape), 1)
-        self.assertEqual(self.solution.dy[0].shape[0], self.ivp.ndim)
+        self.assertEqual(self.solution.dy[0].shape[0], self.ivp.dimension)
 
     def test_call_error_if_small(self):
         t = self.ivp.t0 - 0.5
@@ -123,9 +123,9 @@ class TestODESolutionSampling(unittest.TestCase):
             np.arange(0.0, 0.5, 0.025),
         ]
         single_sample_shapes = [
-            (len(self.solution), self.ivp.ndim),
-            (2, self.ivp.ndim),
-            (len(loc_inputs[-1]), self.ivp.ndim),
+            (len(self.solution), self.ivp.dimension),
+            (2, self.ivp.dimension),
+            (len(loc_inputs[-1]), self.ivp.dimension),
         ]
 
         for size in [(), (5,), (2, 3, 4)]:

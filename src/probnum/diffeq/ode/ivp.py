@@ -304,7 +304,7 @@ class IVP(ODE):
         return self.initrv
 
     @property
-    def ndim(self):
+    def dimension(self):
         """
         Spatial dimension of the IVP problem.
 
