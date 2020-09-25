@@ -26,9 +26,9 @@ def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
 
     Returns
     -------
-    states : np.ndarray; shape (len(times), dynmod.ndim)
+    states : np.ndarray; shape (len(times), dynmod.dimension)
         True states according to dynamic model.
-    obs : np.ndarray; shape (len(times)-1, measmod.ndim)
+    obs : np.ndarray; shape (len(times)-1, measmod.dimension)
         Observations according to measurement model.
     """
     states = np.zeros((len(times), dynmod.dimension))
@@ -64,9 +64,9 @@ def generate_dd(dynmod, measmod, initrv, times):
 
     Returns
     -------
-    states : np.ndarray; shape (len(times), dynmod.ndim)
+    states : np.ndarray; shape (len(times), dynmod.dimension)
         True states according to dynamic model.
-    obs : np.ndarray; shape (len(times)-1, measmod.ndim)
+    obs : np.ndarray; shape (len(times)-1, measmod.dimension)
         Observations according to measurement model.
     """
     states = np.zeros((len(times), dynmod.dimension))
