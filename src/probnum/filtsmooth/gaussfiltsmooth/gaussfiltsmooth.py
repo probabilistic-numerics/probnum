@@ -45,7 +45,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         """
         dataset, times = np.asarray(dataset), np.asarray(times)
         filter_posterior = self.filter(dataset, times, **kwargs)
-        smooth_posterior = self.smooth(filter_posterior)
+        smooth_posterior = self.smooth(filter_posterior, **kwargs)
         return smooth_posterior
 
     def filter(self, dataset, times, **kwargs):
