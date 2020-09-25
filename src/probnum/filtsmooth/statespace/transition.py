@@ -70,6 +70,8 @@ class Transition(abc.ABC):
         This is different to :meth:`transition_rv` which computes the parametrization
         of :math:`x_{t + \\Delta t}` based on the parametrization of :math:`x_t`.
 
+        Nb: Think of transition as a verb, i.e. this method "transitions" a realization of a random variable.
+
         Parameters
         ----------
         real :
@@ -110,6 +112,8 @@ class Transition(abc.ABC):
         This returns a random variable where the parametrization depends on the paramtrization of :math:`x_t`.
         This is different to :meth:`transition_rv` which computes the parametrization
         of :math:`x_{t + \\Delta t}` based on a realization of :math:`x_t`.
+
+        Nb: Think of transition as a verb, i.e. this method "transitions" a random variable.
 
 
         Parameters
