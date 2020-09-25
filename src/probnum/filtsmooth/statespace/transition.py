@@ -45,7 +45,7 @@ class Transition(abc.ABC):
         **kwargs
     ) -> ("RandomVariable", Dict):
         """
-        Apply the transition.
+        Transition a random variable or a realization of one.
 
         The input is either interpreted as a random variable or as a realization.
         Accordingly, the respective methods are called: :meth:`transition_realization` or :meth:`transition_rv`.
@@ -61,7 +61,7 @@ class Transition(abc.ABC):
         self, real: np.ndarray, start: float, stop: float, **kwargs
     ) -> ("RandomVariable", Dict):
         """
-        Apply transition to a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
+        Transition a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
 
         For random variable :math:`x_t`, it returns the random variable defined by
 
@@ -103,7 +103,7 @@ class Transition(abc.ABC):
         self, rv: "RandomVariable", start: float, stop: float, **kwargs
     ) -> ("RandomVariable", Dict):
         """
-        Apply transition to a random variable from time :math:`t` to time :math:`t+\\Delta t`.
+        Transition a random variable from time :math:`t` to time :math:`t+\\Delta t`.
 
         For random variable :math:`x_t`, it returns the random variable defined by
 
