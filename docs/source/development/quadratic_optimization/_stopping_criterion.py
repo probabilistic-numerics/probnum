@@ -128,3 +128,51 @@ class MaximumIterations(QuadOptStoppingCriterion):
             return True, "maxiter"
         else:
             return False, None
+
+
+class Residual(QuadOptStoppingCriterion):
+    """
+    StoppingCriterion based on the residual.
+
+    Stop iterating whenever :math:`\\lVert f(x_*) \\rVert \\leq \\min(\\text{abstol}`.
+
+    Parameters
+    ----------
+    abstol :
+        Absolut residual tolerance.
+    reltol :
+        Relative residual tolerance.
+    """
+
+    def __init__(self, abstol: FloatArgType, reltol: FloatArgType):
+        self.abstol = abstol
+        self.reltol = reltol
+        super().__init__(stopping_criterion=self._residual_stopping_criterion)
+
+    def _residual_stopping_criterion(
+        self,
+        fun: Callable[[FloatArgType], FloatArgType],
+        fun_params0: pn.RandomVariable,
+        current_iter: IntArgType,
+    ) -> Tuple[bool, Union[str, None]]:
+        """
+        Termination based on the residual.
+
+        Parameters
+        ----------
+        fun :
+            One-dimensional objective function.
+        fun_params0 :
+            Belief over the parameters of the quadratic objective.
+        current_iter :
+            Current iteration of the PN method.
+        """
+        a, b, _ = fun_params0.mean
+        x_opt_estimate = -b / a
+        residual = fun(x_opt_estimate)
+        if residual < self.abstol:
+            return True, "residual_abstol"
+        elif residual < fun(1.0) ** 2 * self.reltol:
+            return True, "residual_reltol"
+        else:
+            return False, None

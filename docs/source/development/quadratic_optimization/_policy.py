@@ -33,7 +33,6 @@ class QuadOptPolicy:
         self,
         fun: Callable[[FloatArgType], FloatArgType],
         fun_params0: pn.RandomVariable,
-        random_state: Optional[RandomStateType] = None,
     ) -> float:
         """
         Return action from policy.
@@ -44,28 +43,31 @@ class QuadOptPolicy:
             One-dimensional objective function.
         fun_params0 :
             Belief over the parameters of the quadratic objective.
-        random_state :
-            Random state of the policy. If None (or np.random), the global np.random state
-            is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
         """
-        return self._policy(fun, fun_params0, random_state)
+        return self._policy(fun, fun_params0)
 
 
 class StochasticPolicy(QuadOptPolicy):
     """
     Policy exploring around the estimate of the minimum based on the certainty about the
     parameters.
+
+    Parameters
+    ----------
+    random_state :
+        Random state of the policy. If None (or np.random), the global np.random state
+        is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
     """
 
-    def __init__(self):
+    def __init__(self, random_state):
+        self.random_state = random_state
         super().__init__(policy=self._stochastic_policy)
 
     def _stochastic_policy(
         self,
         fun: Callable[[FloatArgType], FloatArgType],
         fun_params0: pn.RandomVariable,
-        random_state: Optional[RandomStateType] = None,
     ) -> float:
         """
         Policy exploring around the estimate of the minimum based on the certainty about the
@@ -77,16 +79,12 @@ class StochasticPolicy(QuadOptPolicy):
             One-dimensional objective function.
         fun_params0 :
             Belief over the parameters of the quadratic objective.
-        random_state :
-            Random state of the policy. If None (or np.random), the global np.random state
-            is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
         """
         a0, b0, c0 = fun_params0
         return (
             -b0.mean / a0.mean
             + rvs.Normal(
-                0, np.trace(fun_params0.cov), random_state=random_state
+                0, np.trace(fun_params0.cov), random_state=self.random_state
             ).sample()
         )
 
@@ -110,7 +108,6 @@ class DeterministicPolicy(QuadOptPolicy):
         self,
         fun: Callable[[FloatArgType], FloatArgType],
         fun_params0: pn.RandomVariable,
-        random_state: Optional[RandomStateType] = None,
     ) -> float:
         """
         Policy returning the nonzero integers in sequence.
@@ -121,9 +118,5 @@ class DeterministicPolicy(QuadOptPolicy):
             One-dimensional objective function.
         fun_params0 :
             Belief over the parameters of the quadratic objective.
-        random_state :
-            Random state of the policy. If None (or np.random), the global np.random state
-            is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
         """
         return next(self._nonzero_integer_gen)
