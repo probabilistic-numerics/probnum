@@ -8,7 +8,7 @@ import probnum as pn
 import probnum.linalg.linops as linops
 import probnum.random_variables as rvs
 from probnum.type import FloatArgType, IntArgType, RandomStateType
-from .policies import stochastic_policy, deterministic_policy
+from .policies import stochastic_policy, explore_exploit_policy
 from .observation_operators import function_evaluation
 from .belief_updates import gaussian_belief_update
 from .stopping_criteria import parameter_uncertainty, maximum_iterations
@@ -80,7 +80,8 @@ def probsolve_qp(
 
     Examples
     --------
-    >>> x_opt, fun_opt, fun_params_opt, info = probsolve_qp(lambda x: 2.0 * x ** 2 - 0.75 * x + 0.2)
+    >>> f = lambda x: 2.0 * x ** 2 - 0.75 * x + 0.2
+    >>> x_opt, fun_opt, fun_params_opt, info = probsolve_qp(f)
     >>> print(info["iter"])
     3
     """
@@ -100,7 +101,7 @@ def probsolve_qp(
         # Exact 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=deterministic_policy,
+            policy=partial(stochastic_policy, random_state=random_state),
             observation_operator=function_evaluation,
             belief_update=partial(gaussian_belief_update, noise_cov=np.zeros(3)),
             stopping_criteria=[
@@ -112,7 +113,7 @@ def probsolve_qp(
         # Noisy 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=partial(stochastic_policy, random_state=random_state),
+            policy=partial(explore_exploit_policy, random_state=random_state),
             observation_operator=function_evaluation,
             belief_update=partial(gaussian_belief_update, noise_cov=noise_cov),
             stopping_criteria=[
@@ -212,8 +213,47 @@ class ProbabilisticQuadraticOptimizer:
 
     Examples
     --------
-    >>> from quadopt_example.policies import deterministic_policy
+    >>> from functools import partial
+    >>> import numpy as np
+    >>> import probnum.random_variables as rvs
+    >>> from quadopt_example.policies import stochastic_policy
+    >>> from quadopt_example.observation_operators import function_evaluation
+    >>> from quadopt_example.belief_updates import gaussian_belief_update
+    >>> from quadopt_example.stopping_criteria import maximum_iterations
     >>>
+    >>> # Custom stopping criterion based on residual
+    >>> def residual(
+    >>>     fun,
+    >>>     fun_params0,
+    >>>     current_iter,
+    >>>     abstol=10 ** -6,
+    >>>     reltol=10 ** -6,
+    >>> ):
+    >>>     a, b, c = fun_params0.mean
+    >>>     resid = np.abs(fun(1.0) - (0.5 * a + b + c))
+    >>>     if resid < abstol:
+    >>>         return True, "residual_abstol"
+    >>>     elif resid < np.abs(fun(1.0)) * reltol:
+    >>>         return True, "residual_reltol"
+    >>>     else:
+    >>>         return False, None
+    >>>
+    >>> # Compose custom PN method
+    >>> quadopt = ProbabilisticQuadraticOptimizer(
+    >>>     fun_params_prior=rvs.Normal(np.zeros(3), np.eye(3)),
+    >>>     policy=stochastic_policy,
+    >>>     observation_operator=function_evaluation,
+    >>>     belief_update=partial(gaussian_belief_update, noise_cov=np.zeros(3)),
+    >>>     stopping_criteria=[residual, partial(maximum_iterations, maxiter=10)],
+    >>> )
+    >>> # Objective function
+    >>> f = lambda x: 2.0 * x ** 2 - 0.75 * x + 0.2
+    >>>
+    >>> quadopt.optimize(f)
+    (0.1875000000000002,
+     <() Normal with dtype=float64>,
+     <(3,) Normal with dtype=float64>,
+     {'iter': 3, 'conv_crit': 'residual_abstol'})
     """
 
     def __init__(
