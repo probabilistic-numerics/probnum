@@ -1,8 +1,9 @@
 from typing import Callable
-from probnum.type import FloatArgType
 
 import numpy as np
+
 from probnum import utils as _utils
+from probnum.type import FloatArgType
 
 
 class QuadOptObservation:

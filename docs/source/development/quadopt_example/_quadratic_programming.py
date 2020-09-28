@@ -1,14 +1,16 @@
-from typing import Optional, Union, Callable, Dict, Tuple, Iterable
-from probnum.type import FloatArgType, IntArgType, RandomStateType
 import collections.abc
+from typing import Optional, Union, Callable, Dict, Tuple, Iterable
 
 import numpy as np
+
 import probnum as pn
 import probnum.linalg.linops as linops
-from ._policy import QuadOptPolicy, DeterministicPolicy, StochasticPolicy
-from ._observation import QuadOptObservation, FunctionEvaluation
-from ._belief_update import QuadOptBeliefUpdate, GaussianBeliefUpdate
-from ._stopping_criterion import (
+import probnum.random_variables as rvs
+from probnum.type import FloatArgType, IntArgType, RandomStateType
+from .policies import QuadOptPolicy, DeterministicPolicy, StochasticPolicy
+from .observation_operators import QuadOptObservation, FunctionEvaluation
+from .belief_updates import QuadOptBeliefUpdate, GaussianBeliefUpdate
+from .stopping_criteria import (
     QuadOptStoppingCriterion,
     ParameterUncertainty,
     MaximumIterations,
@@ -81,7 +83,7 @@ def probsolve_qp(
 
     Examples
     --------
-    >>> x, fun_opt, _, info = probsolve_qp(lambda x: 2.0 * x ** 2 - 0.75 * x + 0.2)
+    >>> x_opt, fun_opt, fun_params_opt, info = probsolve_qp(lambda x: 2.0 * x ** 2 - 0.75 * x + 0.2)
     >>> print(info["iter"])
     3
     """
@@ -93,6 +95,9 @@ def probsolve_qp(
             method = "noise"
         else:
             method = "exact"
+
+    # Initialize prior
+    fun_params0 = _initialize_prior(fun_params0=fun_params0)
 
     if method == "exact":
         # Exact 1D quadratic optimization
@@ -128,6 +133,33 @@ def probsolve_qp(
 
     # Return output with information (e.g. on convergence)
     return x_opt0, fun_opt0, fun_params0, info
+
+
+def _initialize_prior(
+    fun_params0: Union[pn.RandomVariable, np.ndarray, None]
+) -> pn.RandomVariable:
+    """
+    Initialize the prior distribution over the parameters.
+
+    Sets up a prior distribution if no prior or only a point estimate for the parameters
+    of the latent quadratic function is given.
+
+    Parameters
+    ----------
+    fun_params0
+        Random variable encoding the prior distribution over the parameters.
+    """
+    if isinstance(fun_params0, pn.RandomVariable):
+        return fun_params0
+    elif isinstance(fun_params0, np.ndarray):
+        return rvs.Normal(mean=fun_params0, cov=np.eye(3))
+    elif fun_params0 is None:
+        return rvs.Normal(mean=np.ones(3), cov=np.eye(3))
+    else:
+        raise ValueError(
+            "Could not initialize a prior distribution from the given prior "
+            + f"information '{fun_params0}'."
+        )
 
 
 class ProbabilisticQuadraticOptimizer:
@@ -191,6 +223,8 @@ class ProbabilisticQuadraticOptimizer:
         ----------
         fun :
             Quadratic objective function to optimize.
+        iteration :
+            Number of iterations of the solver performed up to this point.
         """
         for stopping_criterion in self.stopping_criteria:
             _has_converged, convergence_criterion = stopping_criterion(
@@ -224,16 +258,17 @@ class ProbabilisticQuadraticOptimizer:
         fun_params :
             Belief over the parameters of the objective function.
         """
-        # Compute action via policy
-        action = self.policy(fun)
+        while True:
+            # Compute action via policy
+            action = self.policy(fun, self.fun_params)
 
-        # Make an observation
-        observation = self.observe(action)
+            # Make an observation
+            observation = self.observe(action)
 
-        # Belief update
-        self.fun_params = self.belief_update(self.fun_params, action, observation)
+            # Belief update
+            self.fun_params = self.belief_update(self.fun_params, action, observation)
 
-        yield action, observation, self.fun_params
+            yield action, observation, self.fun_params
 
     def optimize(
         self,
@@ -269,7 +304,7 @@ class ProbabilisticQuadraticOptimizer:
         optimization_iterator = self.optim_iterator(fun=fun)
 
         # Evaluate stopping criteria
-        _has_converged, conv_crit = self.has_converged(fun=fun)
+        _has_converged, conv_crit = self.has_converged(fun=fun, iteration=iteration)
 
         while not _has_converged:
 
@@ -283,7 +318,7 @@ class ProbabilisticQuadraticOptimizer:
             iteration += 1
 
             # Evaluate stopping criteria
-            _has_converged, conv_crit = self.has_converged(fun=fun)
+            _has_converged, conv_crit = self.has_converged(fun=fun, iteration=iteration)
 
         # Belief over optimal function value and optimum
         x_opt, fun_opt = self.belief_optimum()

@@ -1,10 +1,11 @@
 from typing import Union, Callable
-from probnum.type import FloatArgType
 
 import numpy as np
+
 import probnum as pn
 import probnum.random_variables as rvs
 import probnum.linalg.linops as linops
+from probnum.type import FloatArgType
 
 
 class QuadOptBeliefUpdate:

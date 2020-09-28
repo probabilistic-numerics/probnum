@@ -1,9 +1,10 @@
 from typing import Callable, Optional
-from probnum.type import FloatArgType, RandomStateType
 
 import numpy as np
+
 import probnum as pn
 import probnum.random_variables as rvs
+from probnum.type import FloatArgType, RandomStateType
 
 
 class QuadOptPolicy:

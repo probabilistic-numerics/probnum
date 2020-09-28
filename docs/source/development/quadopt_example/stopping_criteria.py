@@ -1,8 +1,9 @@
 from typing import Callable, Tuple, Union
-from probnum.type import FloatArgType, IntArgType
 
 import numpy as np
+
 import probnum as pn
+from probnum.type import FloatArgType, IntArgType
 
 
 class QuadOptStoppingCriterion:
