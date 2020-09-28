@@ -1,5 +1,6 @@
 import collections.abc
 from typing import Optional, Union, Callable, Dict, Tuple, Iterable
+from functools import partial
 
 import numpy as np
 
@@ -7,14 +8,10 @@ import probnum as pn
 import probnum.linalg.linops as linops
 import probnum.random_variables as rvs
 from probnum.type import FloatArgType, IntArgType, RandomStateType
-from .policies import QuadOptPolicy, DeterministicPolicy, StochasticPolicy
-from .observation_operators import QuadOptObservation, FunctionEvaluation
-from .belief_updates import QuadOptBeliefUpdate, GaussianBeliefUpdate
-from .stopping_criteria import (
-    QuadOptStoppingCriterion,
-    ParameterUncertainty,
-    MaximumIterations,
-)
+from .policies import stochastic_policy, deterministic_policy
+from .observation_operators import function_evaluation
+from .belief_updates import gaussian_belief_update
+from .stopping_criteria import parameter_uncertainty, maximum_iterations
 
 
 def probsolve_qp(
@@ -103,24 +100,24 @@ def probsolve_qp(
         # Exact 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=DeterministicPolicy(),
-            observe=FunctionEvaluation(fun=fun),
-            belief_update=GaussianBeliefUpdate(noise_cov=np.zeros(3)),
+            policy=deterministic_policy,
+            observation_operator=function_evaluation,
+            belief_update=partial(gaussian_belief_update, noise_cov=np.zeros(3)),
             stopping_criteria=[
-                ParameterUncertainty(abstol=tol, reltol=tol),
-                MaximumIterations(maxiter=maxiter),
+                partial(parameter_uncertainty, abstol=tol, reltol=tol),
+                partial(maximum_iterations, maxiter=maxiter),
             ],
         )
     elif method == "noise":
         # Noisy 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
-            policy=StochasticPolicy(random_state=random_state),
-            observe=FunctionEvaluation(fun=fun),
-            belief_update=GaussianBeliefUpdate(noise_cov=noise_cov),
+            policy=partial(stochastic_policy, random_state=random_state),
+            observation_operator=function_evaluation,
+            belief_update=partial(gaussian_belief_update, noise_cov=noise_cov),
             stopping_criteria=[
-                ParameterUncertainty(abstol=tol, reltol=tol),
-                MaximumIterations(maxiter=maxiter),
+                partial(parameter_uncertainty, abstol=tol, reltol=tol),
+                partial(maximum_iterations, maxiter=maxiter),
             ],
         )
     else:
@@ -162,6 +159,32 @@ def _initialize_prior(
         )
 
 
+# Type aliases for quadratic optimization
+QuadOptObservationOperatorType = Callable[
+    [Callable[[FloatArgType], FloatArgType], FloatArgType], FloatArgType
+]
+QuadOptPolicyType = Callable[
+    [
+        Callable[[FloatArgType], FloatArgType],
+        pn.RandomVariable,
+        Optional[RandomStateType],
+    ],
+    FloatArgType,
+]
+QuadOptBeliefUpdateType = Callable[
+    [
+        pn.RandomVariable,
+        FloatArgType,
+        FloatArgType,
+    ],
+    pn.RandomVariable,
+]
+QuadOptStoppingCriterionType = Callable[
+    [Callable[[FloatArgType], FloatArgType], pn.RandomVariable, IntArgType],
+    Tuple[bool, Union[str, None]],
+]
+
+
 class ProbabilisticQuadraticOptimizer:
     """
     Probabilistic Quadratic Optimization in 1D
@@ -175,7 +198,7 @@ class ProbabilisticQuadraticOptimizer:
         Prior belief over the parameters of the latent quadratic function.
     policy :
         Callable returning a new action to probe the problem.
-    observe :
+    observation_operator :
         Callable implementing the observation process of the problem.
     belief_update :
         Belief update function updating the belief over the parameters of the quadratic given
@@ -189,23 +212,24 @@ class ProbabilisticQuadraticOptimizer:
 
     Examples
     --------
-    >>> TODO
+    >>> from quadopt_example.policies import deterministic_policy
+    >>>
     """
 
     def __init__(
         self,
         fun_params_prior: pn.RandomVariable,
-        policy: QuadOptPolicy,
-        observe: QuadOptObservation,
-        belief_update: QuadOptBeliefUpdate,
+        policy: QuadOptPolicyType,
+        observation_operator: QuadOptObservationOperatorType,
+        belief_update: QuadOptBeliefUpdateType,
         stopping_criteria: Union[
-            QuadOptStoppingCriterion, Iterable[QuadOptStoppingCriterion]
+            QuadOptStoppingCriterionType, Iterable[QuadOptStoppingCriterionType]
         ],
     ):
         # Optimizer components
         self.fun_params = fun_params_prior
         self.policy = policy
-        self.observe = observe
+        self.observation_operator = observation_operator
         self.belief_update = belief_update
 
         if not isinstance(stopping_criteria, collections.abc.Iterable):
@@ -263,7 +287,7 @@ class ProbabilisticQuadraticOptimizer:
             action = self.policy(fun, self.fun_params)
 
             # Make an observation
-            observation = self.observe(action)
+            observation = self.observation_operator(fun, action)
 
             # Belief update
             self.fun_params = self.belief_update(self.fun_params, action, observation)

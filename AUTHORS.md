@@ -32,22 +32,28 @@ The following people contributed to the ProbNum repository.
 
 ---
 
-**Code Contributors:** Developers who made substantial additions to ProbNum's codebase or infrastructure.
+**Code Contributors:** Developers who made substantial additions to ProbNum's codebase or infrastructure. Ordered alphabetically.
 
 
 <div class="authorlist">
 	<center>
 		<ul>
 			<li>
-				<a href="https://github.com/marvinpfoertner">
-					<img class="avatar" alt="marvinpfoertner" src="https://github.com/marvinpfoertner.png?v=3&s=96" width="64" height="64" />
-					<p>Marvin Pförtner</p>
-				</a>
-			</li>
-			<li>
 				<a href="https://github.com/coldfix">
 					<img class="avatar" alt="coldfix" src="https://github.com/coldfix.png?v=3&s=96" width="64" height="64" />
 					<p>Thomas Gläßle</p>
+				</a>
+			</li>
+			<li>
+				<a href="https://github.com/ralfrost">
+					<img class="avatar" alt="ralfrost" src="https://github.com/ralfrost.png?v=3&s=96" width="64" height="64" />
+					<p>Aljoscha Nikischin</p>
+				</a>
+			</li>
+			<li>
+				<a href="https://github.com/marvinpfoertner">
+					<img class="avatar" alt="marvinpfoertner" src="https://github.com/marvinpfoertner.png?v=3&s=96" width="64" height="64" />
+					<p>Marvin Pförtner</p>
 				</a>
 			</li>
 		</ul>
@@ -57,7 +63,7 @@ The following people contributed to the ProbNum repository.
 
 ---
 
-**Feedback and Other:** People who give valuable feedback and input on the scientific direction or perform code reviews.
+**Feedback and Other:** People who give valuable feedback and input on the scientific direction or perform code reviews. Ordered alphabetically.
 
 <div>
 	<a href="https://github.com/philipphennig">
@@ -68,11 +74,7 @@ The following people contributed to the ProbNum repository.
 		<img class="avatar" alt="mmahsereci" src="https://github.com/mmahsereci.png?v=3&s=96" width="28" height="28" />
 		Maren Mahsereci
 	</a>
-	<a href="https://github.com/ralfrost">
-		<img class="avatar" alt="ralfrost" src="https://github.com/ralfrost.png?v=3&s=96" width="28" height="28" />
-		Aljoscha Nikischin
-	</a>
-		<a href="https://github.com/mmahsereci">
+	<a href="https://github.com/mmahsereci">
 		<img class="avatar" alt="ltatzel" src="https://github.com/ltatzel.png?v=3&s=96" width="28" height="28" />
 		Lukas Tatzel
 	</a>

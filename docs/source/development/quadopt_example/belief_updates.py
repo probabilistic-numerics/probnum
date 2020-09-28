@@ -1,4 +1,9 @@
-from typing import Union, Callable
+"""
+Update the belief over the parameters with observations in a 1D quadratic optimization
+problem.
+"""
+
+from typing import Union
 
 import numpy as np
 
@@ -8,100 +13,42 @@ import probnum.linalg.linops as linops
 from probnum.type import FloatArgType
 
 
-class QuadOptBeliefUpdate:
+def gaussian_belief_update(
+    fun_params0: pn.RandomVariable,
+    action: FloatArgType,
+    observation: FloatArgType,
+    noise_cov: Union[np.ndarray, linops.LinearOperator],
+) -> pn.RandomVariable:
     """
-    Update the belief over the parameters with observations.
+    Update the belief over the parameters with an observation.
 
     Parameters
     ----------
-    belief_update :
-        Belief update over the parameters of the latent quadratic function given an
-        action-observation pair.
-    """
-
-    def __init__(
-        self,
-        belief_update: Callable[
-            [
-                pn.RandomVariable,
-                FloatArgType,
-                FloatArgType,
-            ],
-            pn.RandomVariable,
-        ],
-    ):
-        self._belief_update = belief_update
-
-    def __call__(
-        self,
-        fun_params0: pn.RandomVariable,
-        action: FloatArgType,
-        observation: FloatArgType,
-    ) -> pn.RandomVariable:
-        """
-        Update the belief over the parameters with an observation.
-
-        Parameters
-        ----------
-        fun_params0 :
-            Belief over the parameters of the quadratic objective.
-        action :
-            Action of the probabilistic quadratic optimizer.
-        observation :
-            Observation of the problem corresponding to the given `action`.
-        """
-        return self._belief_update(fun_params0, action, observation)
-
-
-class GaussianBeliefUpdate(QuadOptBeliefUpdate):
-    """
-    Update the belief over the parameters with observations assuming a Gaussian noise
-    model for the observations.
-
-    Parameters
-    ----------
+    fun_params0 :
+        Belief over the parameters of the quadratic objective.
+    action :
+        Action of the probabilistic quadratic optimizer.
+    observation :
+        Observation of the problem corresponding to the given `action`.
     noise_cov :
         *shape=(3, 3)* -- Covariance of the noise on the parameters of the quadratic
         objective given by the assumed observation model.
     """
+    # Feature vector
+    x = np.asarray(action).reshape(1, -1)
+    Phi = np.vstack((0.5 * x ** 2, x, np.ones_like(x)))
 
-    def __init__(self, noise_cov: Union[np.ndarray, linops.LinearOperator]):
-        self.noise_cov = noise_cov
-        super().__init__(belief_update=self._gaussian_belief_update)
+    # Mean and covariance
+    mu = fun_params0.mean
+    Sigma = fun_params0.cov
 
-    def _gaussian_belief_update(
-        self,
-        fun_params0: pn.RandomVariable,
-        action: FloatArgType,
-        observation: FloatArgType,
-    ) -> pn.RandomVariable:
-        """
-        Update the belief over the parameters with an observation.
+    # Gram matrix
+    gram = Phi.T @ (Sigma + noise_cov) @ Phi
 
-        Parameters
-        ----------
-        fun_params0 :
-            Belief over the parameters of the quadratic objective.
-        action :
-            Action of the probabilistic quadratic optimizer.
-        observation :
-            Observation of the problem corresponding to the given `action`.
-        """
-        # Feature vector
-        x = np.asarray(action).reshape(1, -1)
-        Phi = np.vstack((0.5 * x ** 2, x, np.ones_like(x)))
+    # Posterior Mean
+    m = mu + Sigma @ Phi @ np.linalg.solve(gram, observation - Phi.T @ mu)
 
-        # Mean and covariance
-        mu = fun_params0.mean
-        Sigma = fun_params0.cov
+    # Posterior Covariance
+    S = Sigma - Sigma @ Phi @ np.linalg.solve(gram, Phi.T @ Sigma)
 
-        # Gram matrix
-        gram = Phi.T @ (Sigma + self.noise_cov) @ Phi
-
-        # Posterior Mean
-        m = mu + Sigma @ Phi @ np.linalg.solve(gram, observation - Phi.T @ mu)
-
-        # Posterior Covariance
-        S = Sigma - Sigma @ Phi @ np.linalg.solve(gram, Phi.T @ Sigma)
-
-        return rvs.Normal(mean=m, cov=S)
+    return rvs.Normal(mean=m, cov=S)
