@@ -7,7 +7,8 @@ import numpy as np
 import probnum as pn
 import probnum.linalg.linops as linops
 import probnum.random_variables as rvs
-from probnum.type import FloatArgType, IntArgType, RandomStateType
+from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+import probnum.utils as _utils
 from .policies import stochastic_policy, explore_exploit_policy
 from .observation_operators import function_evaluation
 from .belief_updates import gaussian_belief_update
@@ -17,14 +18,14 @@ from .stopping_criteria import parameter_uncertainty, maximum_iterations
 def probsolve_qp(
     fun: Callable[[FloatArgType], FloatArgType],
     fun_params0: Optional[Union[np.ndarray, pn.RandomVariable]] = None,
-    method: Optional[str] = None,
-    tol: FloatArgType = 10 ** -6,
-    maxiter: IntArgType = 10 ** 5,
+    assume_fun: Optional[str] = None,
+    tol: FloatArgType = 10 ** -5,
+    maxiter: IntArgType = 10 ** 4,
     noise_cov: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
     callback: Optional[
         Callable[[FloatArgType, FloatArgType, pn.RandomVariable], None]
     ] = None,
-    random_state: Optional[RandomStateType] = None,
+    random_state: RandomStateArgType = None,
 ) -> Tuple[float, pn.RandomVariable, pn.RandomVariable, Dict]:
     """
     Probabilistic 1D Quadratic Optimization.
@@ -39,7 +40,7 @@ def probsolve_qp(
     fun_params0 :
         *(shape=(3, ) or (3, 1))* -- Prior on the parameters of the
         objective function or initial guess for the parameters.
-    method :
+    assume_fun :
         Type of probabilistic numerical method to use. The available
         options are
 
@@ -70,7 +71,7 @@ def probsolve_qp(
     Returns
     -------
     x_opt :
-        Estimated minimum of ``fun``.
+        Estimated minimum of the objective function.
     fun_opt :
         Belief over the optimal value of the objective function.
     fun_params :
@@ -87,17 +88,20 @@ def probsolve_qp(
     """
 
     # Choose a variant of the PN method
-    if method is None:
+    if assume_fun is None:
         # Infer PN variant to use based on the problem
         if noise_cov is not None or fun(1.0) != fun(1.0):
-            method = "noise"
+            assume_fun = "noise"
         else:
-            method = "exact"
+            assume_fun = "exact"
 
-    # Initialize prior
-    fun_params0 = _initialize_prior(fun_params0=fun_params0)
+    # Select appropriate prior based on the problem
+    fun_params0 = _choose_prior(fun_params0=fun_params0)
 
-    if method == "exact":
+    # Create a local instance of the random number generator if none is provided
+    random_state = _utils.as_random_state(random_state)
+
+    if assume_fun == "exact":
         # Exact 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
@@ -109,7 +113,7 @@ def probsolve_qp(
                 partial(maximum_iterations, maxiter=maxiter),
             ],
         )
-    elif method == "noise":
+    elif assume_fun == "noise":
         # Noisy 1D quadratic optimization
         probquadopt = ProbabilisticQuadraticOptimizer(
             fun_params_prior=fun_params0,
@@ -122,7 +126,7 @@ def probsolve_qp(
             ],
         )
     else:
-        raise ValueError(f'Unknown PN method variant "{method}".')
+        raise ValueError(f'Unknown assumption on function evaluations: "{assume_fun}".')
 
     # Run optimization iteration
     x_opt0, fun_opt0, fun_params0, info = probquadopt.optimize(
@@ -130,10 +134,11 @@ def probsolve_qp(
     )
 
     # Return output with information (e.g. on convergence)
+    info["assume_fun"] = assume_fun
     return x_opt0, fun_opt0, fun_params0, info
 
 
-def _initialize_prior(
+def _choose_prior(
     fun_params0: Union[pn.RandomVariable, np.ndarray, None]
 ) -> pn.RandomVariable:
     """
@@ -168,7 +173,6 @@ QuadOptPolicyType = Callable[
     [
         Callable[[FloatArgType], FloatArgType],
         pn.RandomVariable,
-        Optional[RandomStateType],
     ],
     FloatArgType,
 ]
@@ -221,6 +225,8 @@ class ProbabilisticQuadraticOptimizer:
     >>> from quadopt_example.belief_updates import gaussian_belief_update
     >>> from quadopt_example.stopping_criteria import maximum_iterations
     >>>
+    >>> np.random.seed(42)
+    >>>
     >>> # Custom stopping criterion based on residual
     >>> def residual(
     >>>     fun,
@@ -250,7 +256,7 @@ class ProbabilisticQuadraticOptimizer:
     >>> f = lambda x: 2.0 * x ** 2 - 0.75 * x + 0.2
     >>>
     >>> quadopt.optimize(f)
-    (0.1875000000000002,
+    (0.2000000000000014,
      <() Normal with dtype=float64>,
      <(3,) Normal with dtype=float64>,
      {'iter': 3, 'conv_crit': 'residual_abstol'})
