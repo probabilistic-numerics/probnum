@@ -166,15 +166,15 @@ def _choose_prior(
 
 
 # Type aliases for quadratic optimization
-QuadOptObservationOperatorType = Callable[
-    [Callable[[FloatArgType], FloatArgType], FloatArgType], FloatArgType
-]
 QuadOptPolicyType = Callable[
     [
         Callable[[FloatArgType], FloatArgType],
         pn.RandomVariable,
     ],
     FloatArgType,
+]
+QuadOptObservationOperatorType = Callable[
+    [Callable[[FloatArgType], FloatArgType], FloatArgType], FloatArgType
 ]
 QuadOptBeliefUpdateType = Callable[
     [
