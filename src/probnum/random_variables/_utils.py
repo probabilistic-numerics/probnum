@@ -21,7 +21,7 @@ def asrandvar(obj) -> _random_variable.RandomVariable:
     Returns
     -------
     rv : RandomVariable
-        The object `obj` as a :class:`RandomVariable`.
+        The object ``obj`` as a :class:`RandomVariable`.
 
     See Also
     --------
