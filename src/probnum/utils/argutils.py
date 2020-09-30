@@ -1,3 +1,5 @@
+"""Utility functions for argument types."""
+
 import numbers
 
 import numpy as np

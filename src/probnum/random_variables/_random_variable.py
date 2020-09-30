@@ -59,19 +59,19 @@ class RandomVariable(Generic[_ValueType]):
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
     parameters :
-
+        Parameters of the distribution of the random variable.
     sample :
-
+        Callable implementing sampling from the random variable.
     in_support :
-
+        Callable checking whether an argument is in the support of the random variable.
     pmf :
-
+        The probability mass function of the random variable.
     logpmf :
-
+        The log-transformed probability mass function of the random variable.
     cdf :
-
+        The cumulative distribution function of the random variable.
     logcdf :
-
+        The log-transformed cumulative distribution function of the random variable.
     quantile :
 
     mode :

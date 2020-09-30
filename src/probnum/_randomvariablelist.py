@@ -10,21 +10,21 @@ class _RandomVariableList(list):
     rv_list : :obj:`list` of :obj:`RandomVariable`
     """
 
-    def __init__(self, rv_list):
+    def __init__(self, rv_list: list):
         if not isinstance(rv_list, list):
             raise TypeError("RandomVariableList expects a list.")
         super().__init__(rv_list)
 
-    def mean(self):
+    def mean(self) -> np.ndarray:
         return np.stack([rv.mean for rv in self])
 
-    def cov(self):
+    def cov(self) -> np.ndarray:
         return np.stack([rv.cov for rv in self])
 
-    def var(self):
+    def var(self) -> np.ndarray:
         return np.stack([rv.var for rv in self])
 
-    def std(self):
+    def std(self) -> np.ndarray:
         return np.stack([rv.std for rv in self])
 
     def __getitem__(self, idx):
