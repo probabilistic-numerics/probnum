@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import scipy.sparse
 
@@ -6,7 +8,7 @@ from . import _dirac
 from . import _scipy_stats
 
 
-def asrandvar(obj) -> _random_variable.RandomVariable:
+def asrandvar(obj: Any) -> _random_variable.RandomVariable:
     """
     Return ``obj`` as a :class:`RandomVariable`.
 
@@ -15,12 +17,12 @@ def asrandvar(obj) -> _random_variable.RandomVariable:
 
     Parameters
     ----------
-    obj : object
+    obj :
         Argument to be represented as a :class:`RandomVariable`.
 
     Returns
     -------
-    rv : RandomVariable
+    rv :
         The object ``obj`` as a :class:`RandomVariable`.
 
     See Also
