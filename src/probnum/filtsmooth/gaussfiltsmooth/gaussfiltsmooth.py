@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from probnum._randomvariablelist import _RandomVariableList
+
 from probnum.random_variables import Normal
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
@@ -75,9 +77,9 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
                 **kwargs
             )
             rvs.append(filtrv)
-        return KalmanPosterior(times, rvs, self)
+        return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
-    def smooth(self, filter_posterior, **kwargs):
+    def smooth(self, filter_posterior):
         """
         Apply Gaussian smoothing to a set of filtered means and covariances.
 
@@ -85,28 +87,56 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         ----------
         filter_posterior : KalmanPosterior
             Posterior distribution obtained after filtering
-        kwargs : ???
 
         Returns
         -------
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
-        smoothed_rv = filter_posterior[-1]
-        locations = filter_posterior.locations
-        out_rvs = [smoothed_rv]
+        rv_list = self.smooth_list(filter_posterior, filter_posterior.locations)
+        return KalmanPosterior(
+            filter_posterior.locations, rv_list, self, with_smoothing=True
+        )
+
+    def smooth_list(self, rv_list, locations, final_rv=None):
+        """
+        Apply smoothing to a list of RVs with desired final random variable.
+
+        Specification of a final RV is useful to compute joint samples from a KalmanPosterior object,
+        because in this case, the final RV is a Dirac (over a sample from the final Normal RV)
+        and not a Normal RV.
+
+        Parameters
+        ----------
+        rv_list : _RandomVariableList or array_like
+            List of random variables to be smoothed.
+        locations : array_like
+            Locations of the random variables in rv_list.
+        final_rv : RandomVariable, optional.
+            RandomVariable at the final point. Default is None, in which case standard smoothing is applied.
+            If a random variable is specified, the smoothing iteration is based on this one, which is used
+            for sampling (in which case the final random variable is a Dirac that represents a sample)
+
+        Returns
+        -------
+        _RandomVariableList
+            List of smoothed random variables.
+        """
+        if final_rv is None:
+            final_rv = rv_list[-1]
+        curr_rv = final_rv
+        out_rvs = [curr_rv]
         for idx in reversed(range(1, len(locations))):
-            unsmoothed_rv = filter_posterior[idx - 1]
+            unsmoothed_rv = rv_list[idx - 1]
             pred_rv, ccov = self.predict(
                 start=locations[idx - 1],
                 stop=locations[idx],
                 randvar=unsmoothed_rv,
-                **kwargs
             )
-            smoothed_rv = self.smooth_step(unsmoothed_rv, pred_rv, smoothed_rv, ccov)
-            out_rvs.append(smoothed_rv)
+            curr_rv = self.smooth_step(unsmoothed_rv, pred_rv, curr_rv, ccov)
+            out_rvs.append(curr_rv)
         out_rvs.reverse()
-        return KalmanPosterior(locations, out_rvs, self)
+        return _RandomVariableList(out_rvs)
 
     def filter_step(self, start, stop, randvar, data, **kwargs):
         """

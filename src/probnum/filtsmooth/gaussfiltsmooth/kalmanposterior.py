@@ -11,6 +11,8 @@ import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
+import probnum.random_variables as rvs
+from probnum import utils
 
 
 class KalmanPosterior(FiltSmoothPosterior):
@@ -28,10 +30,11 @@ class KalmanPosterior(FiltSmoothPosterior):
         Filter/smoother used to compute the discrete-time estimates.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter):
+    def __init__(self, locations, state_rvs, gauss_filter, with_smoothing):
         self._locations = np.asarray(locations)
         self.gauss_filter = gauss_filter
         self._state_rvs = _RandomVariableList(state_rvs)
+        self._with_smoothing = with_smoothing
 
     @property
     def locations(self):
@@ -45,30 +48,31 @@ class KalmanPosterior(FiltSmoothPosterior):
         """
         return self._state_rvs
 
-    def __call__(self, t, smoothed=True):
+    def __call__(self, t):
         """
         Evaluate the time-continuous posterior at location `t`
 
         Algorithm:
         1. Find closest t_prev and t_next, with t_prev < t < t_next
         2. Predict from t_prev to t
-        3. (if `smoothed=True`) Predict from t to t_next
-        4. (if `smoothed=True`) Smooth from t_next to t
+        3. (if `self._with_smoothing=True`) Predict from t to t_next
+        4. (if `self._with_smoothing=True`) Smooth from t_next to t
         5. Return random variable for time t
 
         Parameters
         ----------
         t : float
             Location, or time, at which to evaluate the posterior.
-        smoothed : bool, optional
-            If ``True`` (default) perform smooth interpolation. If ``False`` perform a
-            prediction from the previous location, without smoothing.
 
         Returns
         -------
         :obj:`RandomVariable`
             Estimate of the states at time ``t``.
         """
+        if not np.isscalar(t):
+            # recursive evaluation (t can now be any array, not just length 1!)
+            return _RandomVariableList([self.__call__(t_pt) for t_pt in np.asarray(t)])
+
         if t < self.locations[0]:
             raise ValueError(
                 "Invalid location; Can not compute posterior for a location earlier "
@@ -82,14 +86,14 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         if self.locations[0] < t < self.locations[-1]:
             pred_rv = self._predict_to_loc(t)
-            if smoothed:
+            if self._with_smoothing:
                 smoothed_rv = self._smooth_prediction(pred_rv, t)
                 return smoothed_rv
             else:
                 return pred_rv
 
         # else: t > self.locations[-1]:
-        if smoothed:
+        if self._with_smoothing:
             warn("`smoothed=True` is ignored for extrapolation.")
         return self._predict_to_loc(t)
 
@@ -122,3 +126,29 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     def __getitem__(self, idx):
         return self.state_rvs[idx]
+
+    def sample(self, locations=None, size=()):
+
+        size = utils.as_shape(size)
+
+        if locations is None:
+            locations = self.locations
+            random_vars = self.state_rvs
+        else:
+            random_vars = self.__call__(locations)
+
+        if size == ():
+            return self._single_sample_path(
+                locations=locations, random_vars=random_vars
+            )
+
+        return np.array(
+            [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
+        )
+
+    def _single_sample_path(self, locations, random_vars):
+        curr_sample = rvs.asrandvar(random_vars[-1].sample())
+        rv_list = self.gauss_filter.smooth_list(
+            random_vars, locations, final_rv=curr_sample
+        )
+        return rv_list.mean

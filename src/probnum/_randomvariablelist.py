@@ -1,4 +1,5 @@
 import numpy as np
+import probnum.random_variables as pnrvs
 
 
 class _RandomVariableList(list):
@@ -13,18 +14,26 @@ class _RandomVariableList(list):
     def __init__(self, rv_list: list):
         if not isinstance(rv_list, list):
             raise TypeError("RandomVariableList expects a list.")
+
+        # First element as a proxy for checking all elements
+        if not isinstance(rv_list[0], pnrvs.RandomVariable):
+            raise TypeError("RandomVariableList expects RandomVariable elements")
         super().__init__(rv_list)
 
-    def mean(self) -> np.ndarray:
+    @property
+    def mean(self):
         return np.stack([rv.mean for rv in self])
 
-    def cov(self) -> np.ndarray:
+    @property
+    def cov(self):
         return np.stack([rv.cov for rv in self])
 
-    def var(self) -> np.ndarray:
+    @property
+    def var(self):
         return np.stack([rv.var for rv in self])
 
-    def std(self) -> np.ndarray:
+    @property
+    def std(self):
         return np.stack([rv.std for rv in self])
 
     def __getitem__(self, idx):

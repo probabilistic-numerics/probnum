@@ -53,11 +53,11 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         than of measurements?
         """
         filter_posterior = self.method.filter(self.obs, self.tms)
-        filtms = filter_posterior.state_rvs.mean()
-        filtcs = filter_posterior.state_rvs.cov()
+        filtms = filter_posterior.state_rvs.mean
+        filtcs = filter_posterior.state_rvs.cov
         smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
-        smooms = smooth_posterior.state_rvs.mean()
-        smoocs = smooth_posterior.state_rvs.cov()
+        smooms = smooth_posterior.state_rvs.mean
+        smoocs = smooth_posterior.state_rvs.cov
 
         normaliser = np.sqrt(self.states[1:, :2].size)
         filtrmse = np.linalg.norm(filtms[1:, :2] - self.states[1:, :2]) / normaliser
@@ -137,11 +137,11 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         RMSE of filter smaller than rmse of measurements?
         """
         filter_posterior = self.method.filter(self.obs, self.tms)
-        filtms = filter_posterior.state_rvs.mean()
-        filtcs = filter_posterior.state_rvs.cov()
+        filtms = filter_posterior.state_rvs.mean
+        filtcs = filter_posterior.state_rvs.cov
         smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
-        smooms = smooth_posterior.state_rvs.mean()
-        smoocs = smooth_posterior.state_rvs.cov()
+        smooms = smooth_posterior.state_rvs.mean
+        smoocs = smooth_posterior.state_rvs.cov
 
         self.assertEqual(filtms[1:].shape, self.states[1:].shape)
         self.assertEqual(smooms[1:].shape, self.states[1:].shape)
