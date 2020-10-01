@@ -3,14 +3,8 @@ import numbers
 import numpy as np
 import scipy._lib._util
 
-from probnum.type import (
-    DTypeArgType,
-    RandomStateArgType,
-    RandomStateType,
-    ScalarArgType,
-    ShapeArgType,
-    ShapeType,
-)
+from probnum.type import (DTypeArgType, RandomStateArgType, RandomStateType,
+                          ScalarArgType, ShapeArgType, ShapeType)
 
 __all__ = ["as_shape", "as_random_state", "as_numpy_scalar"]
 

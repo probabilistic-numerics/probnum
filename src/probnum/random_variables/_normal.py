@@ -8,14 +8,9 @@ import scipy.stats
 
 from probnum import utils as _utils
 from probnum.linalg import linops
-from probnum.type import (
-    ShapeType,
-    # Argument Types
-    ArrayLikeGetitemArgType,
-    FloatArgType,
-    RandomStateArgType,
-    ShapeArgType,
-)
+from probnum.type import (ArrayLikeGetitemArgType,  # Argument Types
+                          FloatArgType, RandomStateArgType, ShapeArgType,
+                          ShapeType)
 
 from . import _random_variable
 

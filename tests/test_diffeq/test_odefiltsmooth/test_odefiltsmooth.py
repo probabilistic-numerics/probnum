@@ -14,10 +14,9 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq.odefiltsmooth import probsolve_ivp
 from probnum.diffeq import ode
+from probnum.diffeq.odefiltsmooth import probsolve_ivp
 from probnum.random_variables import Dirac
-
 from tests.testing import NumpyAssertions
 
 

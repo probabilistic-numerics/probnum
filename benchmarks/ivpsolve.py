@@ -2,6 +2,7 @@
 Benchmarks for probabilistic ivp solvers
 """
 import numpy as np
+
 from probnum.diffeq import lotkavolterra, probsolve_ivp
 from probnum.random_variables import Dirac
 

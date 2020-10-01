@@ -10,7 +10,6 @@ import probnum
 from probnum import linalg
 from probnum import random_variables as rvs
 from probnum.linalg import linops
-
 from tests.testing import NumpyAssertions
 
 

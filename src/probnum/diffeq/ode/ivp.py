@@ -10,7 +10,6 @@ import numpy as np
 
 from probnum.diffeq.ode.ode import ODE
 
-
 __all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "IVP"]
 
 

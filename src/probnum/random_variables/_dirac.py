@@ -5,16 +5,10 @@ from typing import Callable, TypeVar
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.type import (
-    ShapeType,
-    # Argument Types
-    ArrayLikeGetitemArgType,
-    RandomStateArgType,
-    ShapeArgType,
-)
+from probnum.type import (ArrayLikeGetitemArgType,  # Argument Types
+                          RandomStateArgType, ShapeArgType, ShapeType)
 
 from . import _random_variable
-
 
 _ValueType = TypeVar("ValueType")
 

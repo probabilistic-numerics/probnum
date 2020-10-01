@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from probnum.random_variables import Normal, Dirac
 from probnum.filtsmooth.statespace.continuous import continuousmodel
+from probnum.random_variables import Dirac, Normal
 
 VISUALISE = False
 TEST_NDIM = 10

@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from tests.testing import NumpyAssertions
 from probnum.utils import randomutils
+from tests.testing import NumpyAssertions
 
 
 class RandomUtilsTestCase(unittest.TestCase, NumpyAssertions):

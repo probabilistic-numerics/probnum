@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq import logistic, ODESolver, ConstantSteps
+from probnum.diffeq import ConstantSteps, ODESolver, logistic
 from probnum.random_variables import Dirac
 
 

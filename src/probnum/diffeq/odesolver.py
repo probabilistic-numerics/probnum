@@ -2,8 +2,8 @@
 Abstract ODESolver class. Interface for Runge-Kutta, ODEFilter.
 """
 
-from abc import ABC, abstractmethod
 import warnings
+from abc import ABC, abstractmethod
 
 from probnum.diffeq.odesolution import ODESolution
 

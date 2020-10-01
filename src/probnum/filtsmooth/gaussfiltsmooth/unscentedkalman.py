@@ -8,18 +8,14 @@ which is based on a third degree fully symmetric rule.
 import numpy as np
 
 from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
-    GaussFiltSmooth,
-    linear_discrete_update,
-)
+    GaussFiltSmooth, linear_discrete_update)
+from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import \
+    UnscentedTransform
+from probnum.filtsmooth.statespace import (ContinuousModel,
+                                           DiscreteGaussianLinearModel,
+                                           DiscreteGaussianModel,
+                                           DiscreteModel, LinearSDEModel)
 from probnum.random_variables import Normal
-from probnum.filtsmooth.gaussfiltsmooth.unscentedtransform import UnscentedTransform
-from probnum.filtsmooth.statespace import (
-    ContinuousModel,
-    DiscreteModel,
-    LinearSDEModel,
-    DiscreteGaussianModel,
-    DiscreteGaussianLinearModel,
-)
 
 
 class UnscentedKalman(GaussFiltSmooth):

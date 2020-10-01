@@ -10,10 +10,9 @@ import unittest
 
 import numpy as np
 
-from probnum.random_variables import Normal
 from probnum.diffeq.odefiltsmooth import prior
+from probnum.random_variables import Normal
 from tests.testing import NumpyAssertions
-
 
 STEP = np.random.rand()
 DIFFCONST = np.random.rand()
