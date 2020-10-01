@@ -5,12 +5,12 @@ continuous-discrete and discrete-discrete state space models.
 
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth._utils import (is_cont_disc,
-                                                       is_disc_disc)
+from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc
 from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
-    GaussFiltSmooth, linear_discrete_update)
-from probnum.filtsmooth.statespace import (DiscreteGaussianLinearModel,
-                                           LinearSDEModel)
+    GaussFiltSmooth,
+    linear_discrete_update,
+)
+from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
 from probnum.random_variables import Normal
 
 

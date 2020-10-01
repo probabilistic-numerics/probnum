@@ -16,8 +16,10 @@ import probnum
 from probnum import utils
 from probnum.linalg import linops
 from probnum.linalg.linearsolvers.matrixbased import (
-    AsymmetricMatrixBasedSolver, NoisySymmetricMatrixBasedSolver,
-    SymmetricMatrixBasedSolver)
+    AsymmetricMatrixBasedSolver,
+    NoisySymmetricMatrixBasedSolver,
+    SymmetricMatrixBasedSolver,
+)
 from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
 

@@ -5,15 +5,20 @@ This module implements random variables. Random variables are the main in- and o
 of probabilistic numerical methods.
 """
 
-from typing import (Any, Callable, Dict, Generic, Optional, Tuple, TypeVar,
-                    Union)
+from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.type import (ArrayLikeGetitemArgType,  # Argument Types
-                          DTypeArgType, FloatArgType, RandomStateArgType,
-                          RandomStateType, ShapeArgType, ShapeType)
+from probnum.type import ArrayLikeGetitemArgType  # Argument Types
+from probnum.type import (
+    DTypeArgType,
+    FloatArgType,
+    RandomStateArgType,
+    RandomStateType,
+    ShapeArgType,
+    ShapeType,
+)
 
 try:
     # functools.cached_property is only available in Python >=3.8

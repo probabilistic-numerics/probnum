@@ -12,11 +12,16 @@ like this:
 
 from ._dirac import Dirac
 from ._normal import Normal
-from ._random_variable import (ContinuousRandomVariable,
-                               DiscreteRandomVariable, RandomVariable)
-from ._scipy_stats import (WrappedSciPyContinuousRandomVariable,
-                           WrappedSciPyDiscreteRandomVariable,
-                           WrappedSciPyRandomVariable)
+from ._random_variable import (
+    ContinuousRandomVariable,
+    DiscreteRandomVariable,
+    RandomVariable,
+)
+from ._scipy_stats import (
+    WrappedSciPyContinuousRandomVariable,
+    WrappedSciPyDiscreteRandomVariable,
+    WrappedSciPyRandomVariable,
+)
 from ._utils import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.

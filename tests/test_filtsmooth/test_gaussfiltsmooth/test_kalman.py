@@ -3,8 +3,7 @@ import scipy.linalg
 
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
 
-from .filtsmooth_testcases import (CarTrackingDDTestCase,
-                                   OrnsteinUhlenbeckCDTestCase)
+from .filtsmooth_testcases import CarTrackingDDTestCase, OrnsteinUhlenbeckCDTestCase
 
 np.random.seed(5472)
 VISUALISE = False  # show plots or not?
