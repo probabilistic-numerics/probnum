@@ -32,16 +32,11 @@ class RandomVariable(Generic[_ValueType]):
     """
     Random variable objects represent uncertainty about a value.
 
-    Random variables are the main objects used by probabilistic numerical methods.
-    Every probabilistic numerical method takes a random variable encoding the prior
-    distribution as input and outputs a random variable whose distribution encodes the
-    uncertainty arising from finite computation. The generic signature of a
-    probabilistic numerical method is:
 
-    ``output_rv = probnum_method(input_rv, method_params)``
-
-    In practice, most random variables used by methods in ProbNum have Dirac or Gaussian
-    measure.
+    Random variables generalize multidimensional arrays by also encoding uncertainty
+    about the (numerical) quantity in question. Despite their name, they do not
+    necessarily represent stochastic objects. Random variables are also the primary in-
+    and outputs of probabilistic numerical methods.
 
     Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and
     linear operators. This may change their distribution and therefore not necessarily
@@ -63,7 +58,8 @@ class RandomVariable(Generic[_ValueType]):
     sample :
         Callable implementing sampling from the random variable.
     in_support :
-        Callable checking whether an argument is in the support of the random variable.
+        Callable checking whether the random variable takes value ``x`` with non-zero
+        probability.
     pmf :
         The probability mass function of the random variable.
     logpmf :
@@ -73,20 +69,20 @@ class RandomVariable(Generic[_ValueType]):
     logcdf :
         The log-transformed cumulative distribution function of the random variable.
     quantile :
-
+        Quantile function of the random variable.
     mode :
-
+        Mode of the random variable. Value of the random variable at which :meth:`pdf`
+        or :meth:`pmf` take their maximal value.
     mean :
-
+        Expected value of the random variable.
     cov :
-
+        Covariance of the random variable.
     var :
-
+        (Element-wise) variance of the random variable.
     std :
-
+        (Element-wise) standard deviation of the random variable.
     entropy :
         Information-theoretic entropy :math:`H(X)` of the random variable.
-
     as_value_type :
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.
@@ -461,7 +457,8 @@ class RandomVariable(Generic[_ValueType]):
 
     def in_support(self, x: _ValueType) -> bool:
         """
-        Check whether the argument is contained in the support of the random variable.
+        Check whether the random variable takes value ``x`` with non-zero
+        probability.
 
         Parameters
         ----------
