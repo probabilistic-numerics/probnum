@@ -23,7 +23,6 @@ jobs:
 install:
   - sudo apt-get install pandoc # pandoc for jupyter notebooks
   - sudo apt install graphviz # graphviz for class inheritance diagrams in docs
-  - pip install isort # isort for sorting imports
   - pip install tox
 script:
   - tox
