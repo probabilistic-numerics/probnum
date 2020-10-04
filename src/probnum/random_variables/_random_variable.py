@@ -10,8 +10,8 @@ from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.type import ArrayLikeGetitemArgType  # Argument Types
 from probnum.type import (
+    ArrayLikeGetitemArgType,
     DTypeArgType,
     FloatArgType,
     RandomStateArgType,

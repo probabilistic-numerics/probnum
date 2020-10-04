@@ -5,8 +5,12 @@ from typing import Callable, TypeVar
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.type import ArrayLikeGetitemArgType  # Argument Types
-from probnum.type import RandomStateArgType, ShapeArgType, ShapeType
+from probnum.type import (
+    ArrayLikeGetitemArgType,
+    RandomStateArgType,
+    ShapeArgType,
+    ShapeType,
+)
 
 from . import _random_variable
 
