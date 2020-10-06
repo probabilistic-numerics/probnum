@@ -30,8 +30,7 @@ _ValueType = TypeVar("ValueType")
 
 class RandomVariable(Generic[_ValueType]):
     """
-    Random variable objects represent uncertainty about a value.
-
+    Random variables represent uncertainty about a value.
 
     Random variables generalize multidimensional arrays by also encoding uncertainty
     about the (numerical) quantity in question. Despite their name, they do not
@@ -60,10 +59,6 @@ class RandomVariable(Generic[_ValueType]):
     in_support :
         Callable checking whether the random variable takes value ``x`` with non-zero
         probability.
-    pmf :
-        The probability mass function of the random variable.
-    logpmf :
-        The log-transformed probability mass function of the random variable.
     cdf :
         The cumulative distribution function of the random variable.
     logcdf :
@@ -71,8 +66,8 @@ class RandomVariable(Generic[_ValueType]):
     quantile :
         Quantile function of the random variable.
     mode :
-        Mode of the random variable. Value of the random variable at which :meth:`pdf`
-        or :meth:`pmf` take their maximal value.
+        Mode of the random variable. Value of the random variable at which :meth:`.pdf`
+        or :meth:`.pmf` take their maximal value.
     mean :
         Expected value of the random variable.
     cov :
@@ -87,15 +82,15 @@ class RandomVariable(Generic[_ValueType]):
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.
         Will be called internally to transform the argument of functions like
-        ``in_support``, ``cdf`` and ``logcdf``, ``pmf`` and ``logpmf`` (in
-        :class:`DiscreteRandomVariable`), ``pdf`` and ``logpdf`` (in
-        :class:`ContinuousRandomVariable`), and potentially by similar functions in
-        subclasses.
+        :meth:`.in_support`, :meth:`.cdf` and :meth:`.logcdf`, :meth:`.pmf` and
+        :meth:`.logpmf` (in :class:`DiscreteRandomVariable`), :meth:`.pdf` and
+        :meth:`.logpdf` (in :class:`ContinuousRandomVariable`), and potentially by
+        similar functions in subclasses.
 
-        For instance, this method is useful if (``log``) ``cdf`` and (``log``) ``pdf``
-        both only work on :class:`np.float_` arguments, but we still want the user to be
-        able to pass Python :class:`float`. Then ``as_value_type`` should be set to
-        something like ``lambda x: np.float64(x)``.
+        For instance, this method is useful if (``log``) :meth:`.cdf` and (``log``)
+        :meth:`.pdf` both only work on :class:`np.float_` arguments, but we still want
+        the user to be able to pass Python :class:`float`. Then :meth:`.as_value_type`
+        should be set to something like ``lambda x: np.float64(x)``.
 
     See Also
     --------
@@ -109,9 +104,6 @@ class RandomVariable(Generic[_ValueType]):
     :class:`RandomVariable` (e.g. its mean, cov, sampling function, etc.) will result in
     undefined behavior. In particular, this should be kept in mind when subclassing
     :class:`RandomVariable` or any of its descendants.
-
-    Examples
-    --------
     """
 
     # pylint: disable=too-many-instance-attributes,too-many-public-methods
@@ -932,39 +924,87 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         Data type of realizations of this random variable. If ``object`` will be
         converted to ``numpy.dtype``.
     random_state :
-
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
     parameters :
-
+        Parameters of the distribution of the random variable.
     sample :
-
+        Callable implementing sampling from the random variable.
     in_support :
-
+        Callable checking whether the random variable takes value ``x`` with non-zero
+        probability.
     pmf :
-
+        The probability mass function of the random variable.
     logpmf :
-
+        The log-transformed probability mass function of the random variable.
     cdf :
-
+        The cumulative distribution function of the random variable.
     logcdf :
-
+        The log-transformed cumulative distribution function of the random variable.
     quantile :
-
+        Quantile function of the random variable.
     mode :
-
+        Mode of the random variable. Value of the random variable at which :meth:`.pdf`
+        or :meth:`.pmf` take their maximal value.
     mean :
-
+        Expected value of the random variable.
     cov :
-
+        Covariance of the random variable.
     var :
-
+        (Element-wise) variance of the random variable.
     std :
-
+        (Element-wise) standard deviation of the random variable.
     entropy :
-
+        Information-theoretic entropy :math:`H(X)` of the random variable.
 
     See Also
     --------
     ContinuousRandomVariable : A random variable with uncountably infinite range.
+
+    Examples
+    --------
+    >>> # Create a custom categorical random variable
+    >>> import numpy as np
+    >>>
+    >>> # Distribution parameters
+    >>> support = np.array([-1, 0, 1], dtype=int)
+    >>> p = np.array([0.2, 0.5, 0.3])
+    >>> parameters_categorical = {
+    ...     "support" : support,
+    ...     "p" : p}
+    >>>
+    >>> # Sampling function
+    >>> def sample_categorical(size=()):
+    ...     return np.random.choice(a=support, size=size, p=p)
+    >>>
+    >>> # Probability mass function
+    >>> def pmf_categorical(x):
+    ...     idx = np.where(x == support)[0]
+    ...     if len(idx) > 0:
+    ...         return p[idx]
+    ...     else:
+    ...         return 0.0
+    >>>
+    >>> # Create custom random variable
+    >>> x = DiscreteRandomVariable(
+    ...       shape=(),
+    ...       dtype=np.dtype(np.int64),
+    ...       parameters=parameters_categorical,
+    ...       sample=sample_categorical,
+    ...       pmf=pmf_categorical,
+    ...       mean=lambda : 0,
+    ...       median=lambda : 0
+    ...       )
+    >>>
+    >>> # Sample from new random variable
+    >>> np.random.seed(42)
+    >>> x.sample(3)
+    array([0, 1, 1])
+    >>> x.pmf(2)
+    0.0
+    >>> x.mean
+    0
 
     """
 
@@ -1051,6 +1091,91 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
     Continuous random variables map to a uncountably infinite set. Typically, this is a
     subset of a real vector space.
+
+    Parameters
+    ----------
+    shape :
+        Shape of realizations of this random variable.
+    dtype :
+        Data type of realizations of this random variable. If ``object`` will be
+        converted to ``numpy.dtype``.
+    random_state :
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
+    parameters :
+        Parameters of the distribution of the random variable.
+    sample :
+        Callable implementing sampling from the random variable.
+    in_support :
+        Callable checking whether the random variable takes value ``x`` with non-zero
+        probability.
+    pdf :
+        The probability density function of the random variable.
+    logpdf :
+        The log-transformed probability density function of the random variable.
+    cdf :
+        The cumulative distribution function of the random variable.
+    logcdf :
+        The log-transformed cumulative distribution function of the random variable.
+    quantile :
+        Quantile function of the random variable.
+    mode :
+        Mode of the random variable. Value of the random variable at which :meth:`.pdf`
+        or :meth:`.pmf` take their maximal value.
+    mean :
+        Expected value of the random variable.
+    cov :
+        Covariance of the random variable.
+    var :
+        (Element-wise) variance of the random variable.
+    std :
+        (Element-wise) standard deviation of the random variable.
+    entropy :
+        Information-theoretic entropy :math:`H(X)` of the random variable.
+
+    Examples
+    --------
+    >>> # Create a custom uniformly distributed random variable
+    >>> import numpy as np
+    >>>
+    >>> # Distribution parameters
+    >>> a = 0.0
+    >>> b = 1.0
+    >>> parameters_uniform = {"bounds" : [a, b]}
+    >>>
+    >>> # Sampling function
+    >>> def sample_uniform(size=()):
+    ...     return np.random.uniform(size=size)
+    >>>
+    >>> # Probability density function
+    >>> def pdf_uniform(x):
+    ...     if a <= x < b:
+    ...         return 1.0
+    ...     else:
+    ...         return 0.0
+    >>>
+    >>> # Create custom random variable
+    >>> u = ContinuousRandomVariable(
+    ...       shape=(),
+    ...       dtype=np.dtype(np.float64),
+    ...       parameters=parameters_uniform,
+    ...       sample=sample_uniform,
+    ...       pdf=pdf_uniform,
+    ...       mean=lambda : 0.5 * (a + b),
+    ...       median=lambda : 0.5 * (a + b),
+    ...       var=lambda : np.float64(1 / 12 * (b - a) ** 2),
+    ...       entropy=lambda : np.log(b - a)
+    ...       )
+    >>>
+    >>> # Sample from new random variable
+    >>> np.random.seed(42)
+    >>> u.sample(3)
+    array([0.37454012, 0.95071431, 0.73199394])
+    >>> u.pdf(0.5)
+    1.0
+    >>> u.var
+    0.08333333333333333
     """
 
     def __init__(
