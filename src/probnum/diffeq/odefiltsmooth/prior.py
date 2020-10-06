@@ -14,7 +14,6 @@ from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
 from probnum.filtsmooth.statespace.continuous import LTISDEModel
-from probnum.random_variables import Normal
 
 
 class ODEPrior(LTISDEModel):
@@ -81,7 +80,14 @@ class ODEPrior(LTISDEModel):
 
     """
 
-    def __init__(self, driftmat, dispmat, ordint, spatialdim, precond_step=1.0):
+    def __init__(
+        self,
+        driftmat: np.ndarray,
+        dispmat: np.ndarray,
+        ordint: int,
+        spatialdim: int,
+        precond_step: float = 1.0,
+    ):
         self.ordint = ordint
         self.spatialdim = spatialdim
         self.precond, self.invprecond = self.precond2nordsieck(precond_step)
@@ -91,7 +97,7 @@ class ODEPrior(LTISDEModel):
         diffmat = np.eye(spatialdim)
         super().__init__(driftmat, forcevec, dispmat, diffmat)
 
-    def proj2coord(self, coord):
+    def proj2coord(self, coord: int) -> np.ndarray:
         """
         Projection matrix to :math:`i`-th coordinates.
 
@@ -121,7 +127,7 @@ class ODEPrior(LTISDEModel):
         projmat1d_with_precond = projmat @ self.invprecond
         return projmat1d_with_precond
 
-    def precond2nordsieck(self, step):
+    def precond2nordsieck(self, step: float) -> (np.ndarray, np.ndarray):
         """
         Computes preconditioner inspired by Nordsieck.
 
@@ -160,7 +166,7 @@ class ODEPrior(LTISDEModel):
         return precond, invprecond
 
     @property
-    def preconditioner(self):
+    def preconditioner(self) -> np.ndarray:
         """
         Convenience property to return the readily-computed
         preconditioner without having to remember abbreviations.
@@ -173,7 +179,7 @@ class ODEPrior(LTISDEModel):
         return self.precond
 
     @property
-    def inverse_preconditioner(self):
+    def inverse_preconditioner(self) -> np.ndarray:
         """
         Convenience property to return the readily-computed
         inverse preconditioner without having to remember abbreviations.
@@ -220,21 +226,23 @@ class IBM(ODEPrior):
 
     Parameters
     ----------
-    ordint : int
+    ordint :
         Order of integration :math:`q`. The higher :math:`q`, the higher
         the order of the ODE filter.
-    spatialdim : int
+    spatialdim :
         Spatial dimension :math:`d` of the ordinary differential
         equation that is to be modelled.
-    diffconst : float
+    diffconst :
         Diffusion constant :math:`sigma` of the stochastic process.
-    precond_step : float, optional
+    precond_step :
         Expected step size :math:`h` used in the ODE filter.
         This quantity is used for preconditioning, see :class:`ODEPrior`
         for a clear explanation. Default is :math:`h=1`.
     """
 
-    def __init__(self, ordint, spatialdim, diffconst, precond_step=1.0):
+    def __init__(
+        self, ordint: int, spatialdim: int, diffconst: float, precond_step: float = 1.0
+    ) -> None:
         """
         ordint : this is "q"
         spatialdim : d
@@ -245,45 +253,16 @@ class IBM(ODEPrior):
         dispmat = _dispmat(ordint, spatialdim, diffconst)
         super().__init__(driftmat, dispmat, ordint, spatialdim, precond_step)
 
-    def chapmankolmogorov(self, start, stop, step, randvar, *args, **kwargs):
-        """
-        Closed form solution to the Chapman-Kolmogorov equations
-        for the integrated Brownian motion.
+    def _discretise(self, step: float) -> (np.ndarray, np.ndarray, np.ndarray):
+        dynamicsmatrix = self._trans_ibm(step)
+        empty_force = np.zeros(len(dynamicsmatrix))
+        diffusionmatrix = self._transdiff_ibm(step)
+        return dynamicsmatrix, empty_force, diffusionmatrix
 
-        It is given by
-
-        .. math:: X_{t+h} \\, | \\, X_t \\sim \\mathcal{N}(A(h)X_t, Q(h))
-
-        with matrices :math:`A(h)` and `Q(h)` defined by
-
-        .. math:: [A(h)]_{ij} = \\mathbb{I}_{i\\leq j} \\frac{h^{j-i}}{(j-i)!}
-
-
-        .. math:: [Q(h)]_{ij} = \\sigma^2 \\frac{h^{2q+1-i-j}}{(2q+1-i-j)!(q-j)!(q-i)!}
-
-
-        The implementation that is used here is more stable than the matrix-exponential
-        implementation in :meth:`super().chapmankolmogorov` which is relevant for
-        combinations of large order :math:`q` and small steps :math:`h`.
-        In these cases even the preconditioning is subject to numerical
-        instability if the transition matrices :math:`A(h)`
-        and :math:`Q(h)` are computed with matrix exponentials.
-
-        "step" variable is obsolent here and is ignored.
-        """
-        mean, covar = randvar.mean, randvar.cov
-        ah = self._trans_ibm(start, stop)
-        qh = self._transdiff_ibm(start, stop)
-        mpred = ah @ mean
-        crosscov = covar @ ah.T
-        cpred = ah @ crosscov + qh
-        return Normal(mpred, cpred), crosscov
-
-    def _trans_ibm(self, start, stop):
+    def _trans_ibm(self, step: float) -> np.ndarray:
         """
         Computes closed form solution for the transition matrix A(h).
         """
-        step = stop - start
 
         # This seems like the faster solution compared to fully vectorising.
         # I suspect it is because np.math.factorial is much faster than
@@ -298,11 +277,10 @@ class IBM(ODEPrior):
         ah = np.kron(np.eye(self.spatialdim), ah_1d)
         return self.precond @ ah @ self.invprecond
 
-    def _transdiff_ibm(self, start, stop):
+    def _transdiff_ibm(self, step: float) -> np.ndarray:
         """
         Computes closed form solution for the diffusion matrix Q(h).
         """
-        step = stop - start
         indices = np.arange(0, self.ordint + 1)
         col_idcs, row_idcs = np.meshgrid(indices, indices)
         exponent = 2 * self.ordint + 1 - row_idcs - col_idcs
@@ -319,7 +297,7 @@ class IBM(ODEPrior):
         return self.precond @ qh @ self.precond.T
 
 
-def _driftmat_ibm(ordint, spatialdim):
+def _driftmat_ibm(ordint: int, spatialdim: int) -> np.ndarray:
     """
     Returns I_d \\otimes F
     """
@@ -336,7 +314,14 @@ class IOUP(ODEPrior):
     Q = I_d
     """
 
-    def __init__(self, ordint, spatialdim, driftspeed, diffconst, precond_step=1.0):
+    def __init__(
+        self,
+        ordint: int,
+        spatialdim: int,
+        driftspeed: float,
+        diffconst: float,
+        precond_step: float = 1.0,
+    ):
         """
         ordint : this is "q"
         spatialdim : d
@@ -351,10 +336,8 @@ class IOUP(ODEPrior):
         super().__init__(driftmat, dispvec, ordint, spatialdim, precond_step)
 
 
-def _driftmat_ioup(ordint, spatialdim, driftspeed):
-    """
-    Returns I_d \\otimes F
-    """
+def _driftmat_ioup(ordint: int, spatialdim: int, driftspeed: float) -> np.ndarray:
+    """Return :math:`I_d \\otimes F`."""
     driftmat = np.diag(np.ones(ordint), 1)
     driftmat[-1, -1] = -driftspeed
     return np.kron(np.eye(spatialdim), driftmat)
@@ -370,7 +353,14 @@ class Matern(ODEPrior):
     Q = I_d
     """
 
-    def __init__(self, ordint, spatialdim, lengthscale, diffconst, precond_step=1.0):
+    def __init__(
+        self,
+        ordint: int,
+        spatialdim: int,
+        lengthscale: float,
+        diffconst: float,
+        precond_step: float = 1.0,
+    ):
         """
         ordint : this is "q"
         spatialdim : d
@@ -385,7 +375,7 @@ class Matern(ODEPrior):
         super().__init__(driftmat, dispvec, ordint, spatialdim, precond_step)
 
 
-def _driftmat_matern(ordint, spatialdim, lengthscale):
+def _driftmat_matern(ordint: int, spatialdim: int, lengthscale: float) -> np.ndarray:
     """
     Returns I_d \\otimes F
     """
@@ -396,7 +386,7 @@ def _driftmat_matern(ordint, spatialdim, lengthscale):
     return np.kron(np.eye(spatialdim), driftmat)
 
 
-def _dispmat(ordint, spatialdim, diffconst):
+def _dispmat(ordint: int, spatialdim: int, diffconst: float) -> np.ndarray:
     """
     Returns I_D \\otimes L
     diffconst = sigma**2

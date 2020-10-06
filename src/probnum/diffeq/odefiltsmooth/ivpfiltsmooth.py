@@ -131,7 +131,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         Returns maximum of absolute and relative error.
         This way, both are guaranteed to be satisfied.
         """
-        ordint, spatialdim = self.gfilt.dynamicmodel.ordint, self.ivp.ndim
+        ordint, spatialdim = self.gfilt.dynamicmodel.ordint, self.ivp.dimension
         h0_1d = np.eye(ordint + 1)[:, 0].reshape((1, ordint + 1))
         projmat = np.kron(np.eye(spatialdim), h0_1d)
         weights = np.ones(len(abserrors))

@@ -137,7 +137,7 @@ class ODE(ABC):
 
     @property
     @abstractmethod
-    def ndim(self):
+    def dimension(self):
         """
         Abstract, in order to force subclassing.
         """
