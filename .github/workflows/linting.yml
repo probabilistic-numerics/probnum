@@ -12,6 +12,15 @@ jobs:
         run: pip install tox
       - name: Run black through tox
         run: tox -e black
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Install tox
+        run: pip install tox
+      - name: Run isort through tox
+        run: tox -e isort
   pylint:
     runs-on: ubuntu-latest
     steps:

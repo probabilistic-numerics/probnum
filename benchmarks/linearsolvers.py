@@ -3,11 +3,12 @@ Benchmarks for linear solvers.
 """
 
 import os
+
 import numpy as np
 import scipy.sparse
 
-from probnum.linalg import problinsolve
 from benchmarks.benchmark_utils import SPD_MATRIX_5x5
+from probnum.linalg import problinsolve
 
 
 def load_poisson_linear_system():

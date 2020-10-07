@@ -11,8 +11,8 @@ Several algorithms in the :mod:`probnum.linalg` library are able to operate on
 :class:`LinearOperator` instances.
 """
 
-from probnum.linalg.linops.linearoperators import *
 from probnum.linalg.linops.kronecker import *
+from probnum.linalg.linops.linearoperators import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

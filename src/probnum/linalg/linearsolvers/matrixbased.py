@@ -4,11 +4,11 @@ Matrix-based probabilistic linear solvers.
 Implementations of matrix-based linear solvers which perform inference on the matrix or
 its inverse given linear observations.
 """
-import warnings
 import abc
+import warnings
 
-import numpy as np
 import GPy
+import numpy as np
 
 import probnum
 from probnum import random_variables as rvs

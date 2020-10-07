@@ -1,9 +1,8 @@
 from .ode import *
 from .odefiltsmooth import *
-from .steprule import *
-from .odesolver import *
 from .odesolution import ODESolution
-
+from .odesolver import *
+from .steprule import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

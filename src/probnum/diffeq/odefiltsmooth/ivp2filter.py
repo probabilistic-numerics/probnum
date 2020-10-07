@@ -5,9 +5,9 @@ from initial value problems + state space model to filters.
 
 import numpy as np
 
+from probnum import random_variables as rvs
 from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
-from probnum import random_variables as rvs
 
 
 def ivp2ekf0(ivp, prior, evlvar):

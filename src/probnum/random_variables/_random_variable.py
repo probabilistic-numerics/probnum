@@ -8,14 +8,13 @@ import numpy as np
 
 from probnum import utils as _utils
 from probnum.type import (
-    RandomStateType,
-    ShapeType,
-    # Argument Types
+    ArrayLikeGetitemArgType,
     DTypeArgType,
     FloatArgType,
     RandomStateArgType,
-    ArrayLikeGetitemArgType,
+    RandomStateType,
     ShapeArgType,
+    ShapeType,
 )
 
 try:

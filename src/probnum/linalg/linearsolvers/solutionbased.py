@@ -6,6 +6,7 @@ of a linear system given linear observations.
 """
 
 import warnings
+
 import numpy as np
 
 from probnum.linalg.linearsolvers.matrixbased import ProbabilisticLinearSolver

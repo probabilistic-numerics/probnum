@@ -2,7 +2,6 @@
 
 import numpy as np
 
-
 SPD_MATRIX_5x5 = np.array(
     [
         [2.3, -2.3, 3.5, 4.2, 1.8],

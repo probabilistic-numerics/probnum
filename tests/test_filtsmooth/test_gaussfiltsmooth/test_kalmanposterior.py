@@ -1,7 +1,7 @@
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth import Kalman
 from probnum._randomvariablelist import _RandomVariableList
+from probnum.filtsmooth.gaussfiltsmooth import Kalman
 from tests.testing import NumpyAssertions, chi_squared_statistic
 
 from .filtsmooth_testcases import CarTrackingDDTestCase

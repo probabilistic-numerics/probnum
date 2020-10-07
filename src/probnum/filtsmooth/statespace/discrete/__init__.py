@@ -7,9 +7,8 @@ Note
 Local import, because with a global import this does not seem
 to work.
 """
-from .discretemodel import *
 from .discretegaussianmodel import *
-
+from .discretemodel import *
 
 __all__ = [
     "DiscreteModel",

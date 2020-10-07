@@ -1,11 +1,11 @@
 import unittest
+
 import numpy as np
 
-from probnum.random_variables import Dirac, Normal
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
-from probnum.diffeq.ode import lotkavolterra, logistic
-
+from probnum.diffeq.ode import logistic, lotkavolterra
+from probnum.random_variables import Dirac, Normal
 from tests.testing import NumpyAssertions, chi_squared_statistic
 
 

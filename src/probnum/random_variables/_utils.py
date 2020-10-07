@@ -3,9 +3,7 @@ from typing import Any
 import numpy as np
 import scipy.sparse
 
-from . import _random_variable
-from . import _dirac
-from . import _scipy_stats
+from . import _dirac, _random_variable, _scipy_stats
 
 
 def asrandvar(obj: Any) -> _random_variable.RandomVariable:

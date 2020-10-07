@@ -5,7 +5,6 @@ See BFaS; p. 84f.
 
 import numpy as np
 
-
 __all__ = ["UnscentedTransform"]
 
 

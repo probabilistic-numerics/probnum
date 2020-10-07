@@ -2,10 +2,10 @@
 Bayesian filtering and smoothing.
 """
 
-from .statespace import *
-from .gaussfiltsmooth import *
 from .bayesfiltsmooth import *
 from .filtsmoothposterior import FiltSmoothPosterior
+from .gaussfiltsmooth import *
+from .statespace import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

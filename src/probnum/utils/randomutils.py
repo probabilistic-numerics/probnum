@@ -1,7 +1,7 @@
 """Utility functions for random objects."""
 
-from typing import Union
 import copy
+from typing import Union
 
 import numpy as np
 

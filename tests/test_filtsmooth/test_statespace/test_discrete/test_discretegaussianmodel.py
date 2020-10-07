@@ -2,8 +2,8 @@ import unittest
 
 import numpy as np
 
-from probnum.filtsmooth.statespace.discrete import discretegaussianmodel
 import probnum.random_variables as rvs
+from probnum.filtsmooth.statespace.discrete import discretegaussianmodel
 
 TEST_NDIM = 4
 

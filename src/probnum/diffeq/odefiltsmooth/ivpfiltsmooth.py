@@ -1,9 +1,9 @@
 import numpy as np
 
-from probnum.random_variables import Normal
 from probnum.diffeq import odesolver
 from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.diffeq.odesolution import ODESolution
+from probnum.random_variables import Normal
 
 
 class GaussianIVPFilter(odesolver.ODESolver):

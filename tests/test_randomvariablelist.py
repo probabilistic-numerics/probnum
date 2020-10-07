@@ -1,5 +1,7 @@
 import unittest
+
 import numpy as np
+
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.random_variables import Dirac
 

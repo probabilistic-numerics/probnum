@@ -21,10 +21,10 @@ diffeq
     Probabilistic solvers for ordinary differential equations.
 """
 
-from pkg_resources import get_distribution, DistributionNotFound
-from . import diffeq, filtsmooth, linalg, quad, random_variables, utils
-from .random_variables import asrandvar, RandomVariable
+from pkg_resources import DistributionNotFound, get_distribution
 
+from . import diffeq, filtsmooth, linalg, quad, random_variables, utils
+from .random_variables import RandomVariable, asrandvar
 
 try:
     # Change here if project is renamed and does not equal the package name
