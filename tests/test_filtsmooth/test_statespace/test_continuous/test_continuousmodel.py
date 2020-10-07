@@ -4,7 +4,6 @@ import numpy as np
 
 import probnum.random_variables as rvs
 from probnum.filtsmooth.statespace.continuous import continuousmodel
-from probnum.random_variables import Dirac, Normal
 
 TEST_NDIM = 10
 
