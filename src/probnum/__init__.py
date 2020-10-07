@@ -22,8 +22,6 @@ filtsmooth
 diffeq
     Probabilistic solvers for ordinary differential equations.
 """
-# pylint: disable=wrong-import-order
-
 # -*- coding: utf-8 -*-
 from pkg_resources import DistributionNotFound, get_distribution
 
