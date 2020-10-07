@@ -27,4 +27,4 @@ install:
 script:
   - tox
 after_success:
-  - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecova
+  - bash <(curl -s https://codecov.io/bash) # upload test coverage to codecov
