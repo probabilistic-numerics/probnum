@@ -1,15 +1,11 @@
 import unittest
 
 import numpy as np
+import probnum.random_variables as rvs
 
-from probnum.random_variables import Normal, Dirac
 from probnum.filtsmooth.statespace.continuous import continuousmodel
 
-VISUALISE = False
 TEST_NDIM = 10
-
-if VISUALISE is True:
-    import matplotlib.pyplot as plt
 
 
 class MockContinuousModel(continuousmodel.ContinuousModel):
@@ -22,6 +18,12 @@ class MockContinuousModel(continuousmodel.ContinuousModel):
     where B(t) is standard 1d-Brownian motion with diffusion
     equal to 1.
     """
+
+    def transition_rv(self, rv, **kwargs):
+        return rv
+
+    def transition_realization(self, real, **kwargs):
+        return rvs.asrandvar(real)
 
     def drift(self, time, state, **kwargs):
         """
@@ -43,7 +45,7 @@ class MockContinuousModel(continuousmodel.ContinuousModel):
         return np.eye(1)
 
     @property
-    def ndim(self):
+    def dimension(self):
         """
         Unit diffusion
         """
@@ -58,77 +60,13 @@ class TestContinuousModel(unittest.TestCase):
     def setUp(self):
         self.mcm = MockContinuousModel()
 
-    def test_sample(self):
-        mean, cov = np.zeros(TEST_NDIM), np.eye(TEST_NDIM)
-        randvar = Normal(mean, cov)
-        samp = self.mcm.sample(0.0, 1.0, 0.01, randvar.mean)
-        self.assertEqual(samp.ndim, 1)
-        self.assertEqual(samp.shape[0], TEST_NDIM)
+    def test_call_rv(self):
+        out = self.mcm(rvs.Dirac(0.1))
+        self.assertIsInstance(out, rvs.RandomVariable)
 
-        if VISUALISE is True:
-            plt.title("100 Samples of a Mock Object")
-            plt.plot(samp)
-            plt.show()
+    def test_call_arr(self):
+        out = self.mcm(np.random.rand(4))
+        self.assertIsInstance(out, rvs.RandomVariable)
 
-    def test_ndim(self):
-        self.assertEqual(self.mcm.ndim, TEST_NDIM)
-
-
-class DeterministicModel(continuousmodel.ContinuousModel):
-    """
-    Deterministic Model: The (S)DE is
-    dx(t) = x(t)dt + 0*dB(t),
-    where B(t) is standard Brownian motion with diffusion
-    equal to 1.
-
-    Its solution and any sample---provided that the
-    intiial distribution is a Dirac---should coincide
-    with exponential function.
-    """
-
-    def drift(self, time, state, **kwargs):
-        """
-        Identity drift
-        """
-        return state
-
-    def dispersion(self, time, state, **kwargs):
-        """
-        Identity dispersion
-        """
-        return 0 * np.eye(len(state), 1)
-
-    @property
-    def diffusionmatrix(self):
-        """
-        Unit diffusion
-        """
-        return np.eye(1)
-
-    @property
-    def ndim(self):
-        """
-        Unit diffusion
-        """
-        return TEST_NDIM
-
-
-class TestDeterministicModel(unittest.TestCase):
-    """
-    Dirac initial distribution, l(t, x(t)) == 0
-    and f(t, x(t)) = x(t) should yield exponential
-    function as a sample.
-    """
-
-    def setUp(self):
-        dm = DeterministicModel()
-        randvar = Dirac(np.ones(TEST_NDIM))
-        self.samp = dm.sample(0.0, 1.0, 0.01, randvar.mean)
-
-    def test_sample_shape(self):
-        self.assertEqual(self.samp.ndim, 1)
-        self.assertEqual(self.samp.shape[0], TEST_NDIM)
-
-    def test_sample_vals(self):
-        diff = np.abs(np.exp(1) - self.samp[0])
-        self.assertLess(diff, 1e-1)
+    def test_dimension(self):
+        self.assertEqual(self.mcm.dimension, TEST_NDIM)
