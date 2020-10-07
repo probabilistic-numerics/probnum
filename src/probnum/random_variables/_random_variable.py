@@ -58,7 +58,7 @@ class RandomVariable(Generic[_ValueType]):
         Callable implementing sampling from the random variable.
     in_support :
         Callable checking whether the random variable takes value ``x`` with non-zero
-        probability.
+        probability, i.e. if ``x`` is in the support of its distribution.
     cdf :
         The cumulative distribution function of the random variable.
     logcdf :
@@ -171,10 +171,15 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def ndim(self) -> int:
+        """Number of dimensions of realizations of the random variable."""
         return len(self.__shape)
 
     @cached_property
     def size(self) -> int:
+        """
+        Size of realizations of the random variable, defined as the product of
+        :meth:`shape`.
+        """
         return int(np.prod(self.__shape))
 
     @property
@@ -219,7 +224,8 @@ class RandomVariable(Generic[_ValueType]):
 
     @random_state.setter
     def random_state(self, seed: RandomStateArgType):
-        """Get or set the RandomState object of the underlying distribution.
+        """
+        Get or set the RandomState object of the underlying distribution.
 
         This can be either None or an existing RandomState object.
         If None (or np.random), use the RandomState singleton used by np.random.
@@ -231,10 +237,10 @@ class RandomVariable(Generic[_ValueType]):
     @property
     def parameters(self) -> Dict[str, Any]:
         """
-        Parameters of the probability distribution.
+        Parameters of the associated probability distribution.
 
-        The parameters of the distribution such as mean, variance, et cetera stored in a
-        ``dict``.
+        The parameters of the probability distribution of the random variable,
+        e.g. mean, variance, scale, rate, etc. stored in a ``dict``.
         """
         return self.__parameters.copy()
 
@@ -245,8 +251,8 @@ class RandomVariable(Generic[_ValueType]):
 
         Returns
         -------
-        mode : float
-            The mode of the random variable.
+        |
+            Mode of the random variable.
         """
         if self.__mode is None:
             raise NotImplementedError
@@ -275,8 +281,7 @@ class RandomVariable(Generic[_ValueType]):
 
         Returns
         -------
-        median : float
-            The median of the distribution.
+            Median of the random variable.
         """
 
         if self.__shape != ():
@@ -302,14 +307,14 @@ class RandomVariable(Generic[_ValueType]):
     @cached_property
     def mean(self) -> _ValueType:
         """
-        Mean :math:`\\mathbb{E}(X)` of the distribution.
+        Mean :math:`\\mathbb{E}(X)` of the random variable.
 
         To learn about the dtype of the mean, see :attr:`moment_dtype`.
 
         Returns
         -------
-        mean : array-like
-            The mean of the distribution.
+        mean :
+            Mean of the random variable.
         """
         if self.__mean is None:
             raise NotImplementedError
@@ -339,8 +344,8 @@ class RandomVariable(Generic[_ValueType]):
 
         Returns
         -------
-        cov : array-like
-            The kernels of the random variable.
+        cov :
+            Covariance of the random variable.
         """  # pylint: disable=line-too-long
         if self.__cov is None:
             raise NotImplementedError
@@ -364,14 +369,14 @@ class RandomVariable(Generic[_ValueType]):
     def var(self) -> _ValueType:
         """
         Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of
-        the distribution.
+        the random variable.
 
         To learn about the dtype of the variance, see :attr:`moment_dtype`.
 
         Returns
         -------
-        var : array-like
-            The variance of the distribution.
+        var :
+            The variance of the random variable.
         """
         if self.__var is None:
             try:
@@ -397,14 +402,14 @@ class RandomVariable(Generic[_ValueType]):
     @cached_property
     def std(self) -> _ValueType:
         """
-        Standard deviation of the distribution.
+        Standard deviation of the random variable.
 
         To learn about the dtype of the standard deviation, see :attr:`moment_dtype`.
 
         Returns
         -------
-        std : array-like
-            The standard deviation of the distribution.
+        std :
+            The standard deviation of the random variable.
         """
         if self.__std is None:
             try:
@@ -434,7 +439,8 @@ class RandomVariable(Generic[_ValueType]):
 
         Returns
         -------
-
+        entropy :
+            Entropy of the random variable.
         """
         if self.__entropy is None:
             raise NotImplementedError
@@ -450,11 +456,12 @@ class RandomVariable(Generic[_ValueType]):
     def in_support(self, x: _ValueType) -> bool:
         """
         Check whether the random variable takes value ``x`` with non-zero
-        probability.
+        probability, i.e. if ``x`` is in the support of its distribution.
 
         Parameters
         ----------
-        x
+        x :
+            Input value.
         """
         if self.__in_support is None:
             raise NotImplementedError
@@ -555,7 +562,8 @@ class RandomVariable(Generic[_ValueType]):
             )
 
     def quantile(self, p: FloatArgType) -> _ValueType:
-        """Quantile function.
+        """
+        Quantile function.
 
         The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
         variable :math:`X` is defined as
@@ -621,7 +629,7 @@ class RandomVariable(Generic[_ValueType]):
 
         Parameters
         ----------
-        newshape : int or tuple of ints
+        newshape :
             New shape for the random variable. It must be compatible with the original
             shape.
 
@@ -652,7 +660,7 @@ class RandomVariable(Generic[_ValueType]):
 
         Parameters
         ----------
-        axes : None, tuple of ints, or n ints
+        axes :
             See documentation of numpy.ndarray.transpose.
 
         Returns
@@ -933,7 +941,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         Callable implementing sampling from the random variable.
     in_support :
         Callable checking whether the random variable takes value ``x`` with non-zero
-        probability.
+        probability, i.e. if ``x`` is in the support of its distribution.
     pmf :
         The probability mass function of the random variable.
     logpmf :
@@ -961,14 +969,18 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.
         Will be called internally to transform the argument of functions like
-        :meth:`.in_support`, :meth:`.cdf` and :meth:`.logcdf`, :meth:`.pmf` and
-        :meth:`.logpmf` (in :class:`DiscreteRandomVariable`), :meth:`.pdf` and
-        :meth:`.logpdf` (in :class:`ContinuousRandomVariable`), and potentially by
-        similar functions in subclasses.
+        :meth:`~DiscreteRandomVariable.in_support`, :meth:`~DiscreteRandomVariable.cdf`
+        and :meth:`~DiscreteRandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
+        and :meth:`~DiscreteRandomVariable.logpmf` (in :class:`DiscreteRandomVariable`),
+        :meth:`~DiscreteRandomVariable.pdf` and
+        :meth:`~DiscreteRandomVariable.logpdf` (in :class:`ContinuousRandomVariable`),
+        and potentially by similar functions in subclasses.
 
-        For instance, this method is useful if (``log``) :meth:`.cdf` and (``log``)
-        :meth:`.pdf` both only work on :class:`np.float_` arguments, but we still want
-        the user to be able to pass Python :class:`float`. Then :meth:`.as_value_type`
+        For instance, this method is useful if (``log``)
+        :meth:`~DiscreteRandomVariable.cdf` and (``log``)
+        :meth:`~DiscreteRandomVariable.pdf` both only work on :class:`np.float_`
+        arguments, but we still want the user to be able to pass Python
+        :class:`float`. Then :meth:`~DiscreteRandomVariable.as_value_type`
         should be set to something like ``lambda x: np.float64(x)``.
 
     See Also
@@ -1123,7 +1135,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         Callable implementing sampling from the random variable.
     in_support :
         Callable checking whether the random variable takes value ``x`` with non-zero
-        probability.
+        probability, i.e. if ``x`` is in the support of its distribution.
     pdf :
         The probability density function of the random variable.
     logpdf :
@@ -1260,7 +1272,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
         Parameters
         ----------
-        x : array-like
+        x :
             Evaluation points of the probability density / mass function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
@@ -1293,7 +1305,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
         Parameters
         ----------
-        x : array-like
+        x :
             Evaluation points of the log-probability density/mass function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
