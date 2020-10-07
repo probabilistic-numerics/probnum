@@ -1,6 +1,7 @@
 """Tests for Kronecker-type linear operators."""
 
 import unittest
+
 import numpy as np
 
 from probnum.linalg import linops

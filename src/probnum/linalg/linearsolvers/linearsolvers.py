@@ -13,8 +13,8 @@ import numpy as np
 import scipy.sparse
 
 import probnum
-from probnum.linalg import linops
 from probnum import utils
+from probnum.linalg import linops
 from probnum.linalg.linearsolvers.matrixbased import (
     AsymmetricMatrixBasedSolver,
     NoisySymmetricMatrixBasedSolver,

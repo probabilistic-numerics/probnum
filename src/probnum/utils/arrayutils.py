@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy.sparse
+
 import probnum
 
 __all__ = [

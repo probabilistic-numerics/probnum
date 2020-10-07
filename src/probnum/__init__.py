@@ -22,19 +22,11 @@ filtsmooth
 diffeq
     Probabilistic solvers for ordinary differential equations.
 """
-# pylint: disable=wrong-import-order
-
-from . import diffeq
-from . import filtsmooth
-from . import linalg
-from . import quad
-from . import random_variables
-from . import utils
-
-from .random_variables import asrandvar, RandomVariable
-
 # -*- coding: utf-8 -*-
-from pkg_resources import get_distribution, DistributionNotFound
+from pkg_resources import DistributionNotFound, get_distribution
+
+from . import diffeq, filtsmooth, linalg, quad, random_variables, utils
+from .random_variables import RandomVariable, asrandvar
 
 try:
     # Change here if project is renamed and does not equal the package name

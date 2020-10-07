@@ -10,21 +10,18 @@ like this:
 
 """
 
-from ._random_variable import (
-    RandomVariable,
-    DiscreteRandomVariable,
-    ContinuousRandomVariable,
-)
-
 from ._dirac import Dirac
 from ._normal import Normal
-
-from ._scipy_stats import (
-    WrappedSciPyRandomVariable,
-    WrappedSciPyDiscreteRandomVariable,
-    WrappedSciPyContinuousRandomVariable,
+from ._random_variable import (
+    ContinuousRandomVariable,
+    DiscreteRandomVariable,
+    RandomVariable,
 )
-
+from ._scipy_stats import (
+    WrappedSciPyContinuousRandomVariable,
+    WrappedSciPyDiscreteRandomVariable,
+    WrappedSciPyRandomVariable,
+)
 from ._utils import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.

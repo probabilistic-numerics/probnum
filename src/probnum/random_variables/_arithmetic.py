@@ -9,10 +9,10 @@ import numpy as np
 from probnum import utils as _utils
 from probnum.linalg import linops as _linops
 
-from ._utils import asrandvar as _asrandvar
-from ._random_variable import RandomVariable as _RandomVariable
 from ._dirac import Dirac as _Dirac
 from ._normal import Normal as _Normal
+from ._random_variable import RandomVariable as _RandomVariable
+from ._utils import asrandvar as _asrandvar
 
 
 def add(rv1: Any, rv2: Any) -> _RandomVariable:

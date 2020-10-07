@@ -3,9 +3,8 @@ Discrete Gauss-Markov models of the form
 x_{i+1} = N(g(i, x_i), S(i))
 """
 
-from probnum.random_variables import Normal
 from probnum.filtsmooth.statespace.discrete import discretemodel
-
+from probnum.random_variables import Normal
 
 __all__ = [
     "DiscreteGaussianModel",

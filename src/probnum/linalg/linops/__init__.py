@@ -6,8 +6,8 @@ advantage of only implementing a matrix-vector product instead of representing t
 linear operator as a matrix in memory.
 """
 
-from probnum.linalg.linops.linearoperators import *
 from probnum.linalg.linops.kronecker import *
+from probnum.linalg.linops.linearoperators import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

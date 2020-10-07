@@ -20,8 +20,8 @@ functions are really hard to read (they are efficient, though).
 
 import numpy as np
 
-from probnum.quad.polynomial.polynomialquadrature import PolynomialQuadrature
 from probnum import utils
+from probnum.quad.polynomial.polynomialquadrature import PolynomialQuadrature
 
 
 class ClenshawCurtis(PolynomialQuadrature):

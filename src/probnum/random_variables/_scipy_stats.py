@@ -4,9 +4,8 @@ import numpy as np
 import scipy.stats
 
 from probnum import utils as _utils
-from . import _random_variable
-from . import _normal
 
+from . import _normal, _random_variable
 
 _ValueType = Union[np.generic, np.ndarray]
 
