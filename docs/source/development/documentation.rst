@@ -53,7 +53,8 @@ probabilistic numerical method.
 
 	    References
 	    ----------
-	    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning, 2020
+    .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
+       *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
 
 	    ...
 
