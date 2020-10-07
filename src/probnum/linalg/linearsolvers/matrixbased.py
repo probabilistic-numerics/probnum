@@ -8,11 +8,11 @@ import abc
 import warnings
 
 import GPy
+import probnum.linear_operators as linear_operators
 import numpy as np
 
 import probnum
 from probnum import random_variables as rvs
-from probnum.linalg import linops
 
 
 class ProbabilisticLinearSolver(abc.ABC):
@@ -195,14 +195,18 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         def _mm(M):
             return (x0 - alpha * b) @ (x0 - alpha * b).T @ M
 
-        Ainv0_mean = linops.ScalarMult(
+        Ainv0_mean = linear_operators.ScalarMult(
             scalar=alpha, shape=(self.n, self.n)
-        ) + 2 / bx0 * linops.LinearOperator(
+        ) + 2 / bx0 * linear_operators.LinearOperator(
             matvec=_mv, matmat=_mm, shape=(self.n, self.n)
         )
-        A0_mean = linops.ScalarMult(scalar=1 / alpha, shape=(self.n, self.n)) - 1 / (
+        A0_mean = linear_operators.ScalarMult(
+            scalar=1 / alpha, shape=(self.n, self.n)
+        ) - 1 / (
             alpha * np.squeeze((x0 - alpha * b).T @ x0)
-        ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=(self.n, self.n))
+        ) * linear_operators.LinearOperator(
+            matvec=_mv, matmat=_mm, shape=(self.n, self.n)
+        )
         return A0_mean, Ainv0_mean
 
     def has_converged(self, iter, maxiter, **kwargs):
@@ -364,10 +368,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             self.is_calib_covclass = True
             # No prior information given
             if x0 is None:
-                Ainv0_mean = linops.Identity(shape=self.n)
-                Ainv0_covfactor = linops.Identity(shape=self.n)
+                Ainv0_mean = linear_operators.Identity(shape=self.n)
+                Ainv0_covfactor = linear_operators.Identity(shape=self.n)
                 # Symmetric posterior correspondence
-                A0_mean = linops.Identity(shape=self.n)
+                A0_mean = linear_operators.Identity(shape=self.n)
                 A0_covfactor = self.A
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
             # Construct matrix priors from initial guess x0
@@ -406,7 +410,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 )
                 A0_mean = np.linalg.inv(Ainv0.mean)
             except NotImplementedError:
-                A0_mean = linops.Identity(self.n)
+                A0_mean = linear_operators.Identity(self.n)
                 warnings.warn(
                     "Prior specified only for Ainv. Automatic prior mean inversion "
                     "not implemented, falling back to standard normal prior."
@@ -439,7 +443,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 )
                 Ainv0_mean = np.linalg.inv(A0.mean)
             except NotImplementedError:
-                Ainv0_mean = linops.Identity(self.n)
+                Ainv0_mean = linear_operators.Identity(self.n)
                 warnings.warn(
                     "Prior specified only for A. Automatic prior mean inversion "
                     "failed, falling back to standard normal prior."
@@ -483,7 +487,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         if unc_scale is None:
             unc_scale = 0
 
-        if isinstance(self.Ainv_covfactor0, linops.ScalarMult):
+        if isinstance(self.Ainv_covfactor0, linear_operators.ScalarMult):
             # Scalar prior mean
             if self.is_calib_covclass and k > 0 and unc_scale != 0:
                 _trace = self.Ainv_covfactor0.scalar * k
@@ -685,13 +689,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
         # Compute calibration term in the A view as a linear operator with scaling from
         # degrees of freedom
-        calibration_term_A = linops.LinearOperator(
+        calibration_term_A = linear_operators.LinearOperator(
             shape=(self.n, self.n), matvec=get_null_space_map(V=S, unc_scale=phi)
         )
 
         # Compute calibration term in the Ainv view as a linear operator with scaling
         # from degrees of freedom
-        calibration_term_Ainv = linops.LinearOperator(
+        calibration_term_Ainv = linear_operators.LinearOperator(
             shape=(self.n, self.n), matvec=get_null_space_map(V=Y, unc_scale=psi)
         )
 
@@ -714,7 +718,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     # First term of calibration covariance class: AS(S'AS)^{-1}S'A
                     return (Y * sy ** -1) @ (Y.T @ x.ravel())
 
-                _A_covfactor0 = linops.LinearOperator(
+                _A_covfactor0 = linear_operators.LinearOperator(
                     shape=(self.n, self.n), matvec=_matvec
                 )
 
@@ -728,7 +732,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     )
                     return self.Ainv_mean0 @ (Y @ YAinv0Y_inv_YAinv0x)
 
-                _Ainv_covfactor0 = linops.LinearOperator(
+                _Ainv_covfactor0 = linear_operators.LinearOperator(
                     shape=(self.n, self.n), matvec=_matvec
                 )
 
@@ -757,10 +761,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             _Ainv_covfactor = self.Ainv_covfactor0
 
         # Create output random variables
-        A = rvs.Normal(mean=self.A_mean, cov=linops.SymmetricKronecker(A=_A_covfactor))
+        A = rvs.Normal(
+            mean=self.A_mean, cov=linear_operators.SymmetricKronecker(A=_A_covfactor)
+        )
 
         Ainv = rvs.Normal(
-            mean=self.Ainv_mean, cov=linops.SymmetricKronecker(A=_Ainv_covfactor)
+            mean=self.Ainv_mean,
+            cov=linear_operators.SymmetricKronecker(A=_Ainv_covfactor),
         )
         # Induced distribution on x via Ainv
         # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
@@ -770,7 +777,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def _mv(x):
             return 0.5 * (bWb * _Ainv_covfactor @ x + Wb @ (Wb.T @ x))
 
-        cov_op = linops.LinearOperator(
+        cov_op = linear_operators.LinearOperator(
             shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv
         )
 
@@ -791,7 +798,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def mv(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
 
-        return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
+        return linear_operators.LinearOperator(
+            shape=(self.n, self.n), matvec=mv, matmat=mv
+        )
 
     def _covariance_update(self, u, Ws):
         """
@@ -801,7 +810,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         def mv(x):
             return Ws @ (u.T @ x)
 
-        return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
+        return linear_operators.LinearOperator(
+            shape=(self.n, self.n), matvec=mv, matmat=mv
+        )
 
     def solve(
         self, callback=None, maxiter=None, atol=None, rtol=None, calibration=None
@@ -926,10 +937,12 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             v_Ainv = delta_Ainv - 0.5 * (obs.T @ delta_Ainv) * u_Ainv
 
             # Rank 2 mean updates (+= uv' + vu')
-            self.A_mean = linops.aslinop(self.A_mean) + self._mean_update(u=u_A, v=v_A)
-            self.Ainv_mean = linops.aslinop(self.Ainv_mean) + self._mean_update(
-                u=u_Ainv, v=v_Ainv
+            self.A_mean = linear_operators.aslinop(self.A_mean) + self._mean_update(
+                u=u_A, v=v_A
             )
+            self.Ainv_mean = linear_operators.aslinop(
+                self.Ainv_mean
+            ) + self._mean_update(u=u_Ainv, v=v_Ainv)
 
             # Rank 1 covariance Kronecker factor update (-= u_A(Vs)' and -= u_Ainv(Wy)')
             if self.iter_ == 0:
@@ -947,10 +960,12 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     + self._covariance_update(u=u_Ainv, Ws=Wy)
                 )
             self.A_covfactor = (
-                linops.aslinop(self.A_covfactor0) - self._A_covfactor_update_term
+                linear_operators.aslinop(self.A_covfactor0)
+                - self._A_covfactor_update_term
             )
             self.Ainv_covfactor = (
-                linops.aslinop(self.Ainv_covfactor0) - self._Ainv_covfactor_update_term
+                linear_operators.aslinop(self.Ainv_covfactor0)
+                - self._Ainv_covfactor_update_term
             )
 
             # Calibrate uncertainty based on Rayleigh quotient
@@ -1074,11 +1089,11 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         ) = self._get_prior_params(A0=A0, Ainv0=Ainv0, x0=x0, b=_b)
 
         # Matrix prior parameters
-        self.A0_mean = linops.aslinop(A0_mean)
-        self.A_mean = linops.aslinop(A0_mean)
+        self.A0_mean = linear_operators.aslinop(A0_mean)
+        self.A_mean = linear_operators.aslinop(A0_mean)
         self.A0_covfactor = A0_covfactor
-        self.Ainv0_mean = linops.aslinop(Ainv0_mean)
-        self.Ainv_mean = linops.aslinop(Ainv0_mean)
+        self.Ainv0_mean = linear_operators.aslinop(Ainv0_mean)
+        self.Ainv_mean = linear_operators.aslinop(Ainv0_mean)
         self.Ainv0_covfactor = Ainv0_covfactor
         self.b_mean = b_mean
 
@@ -1090,7 +1105,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         def _mv(x):
             return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
 
-        self.x_cov = linops.LinearOperator(
+        self.x_cov = linear_operators.LinearOperator(
             shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv
         )
         if isinstance(x0, np.ndarray):
@@ -1147,11 +1162,11 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         if A0 is None and Ainv0 is None:
             # No prior information given
             if x0 is None:
-                Ainv0_mean = linops.Identity(shape=self.n)
-                Ainv0_covfactor = linops.Identity(shape=self.n)
+                Ainv0_mean = linear_operators.Identity(shape=self.n)
+                Ainv0_covfactor = linear_operators.Identity(shape=self.n)
                 # Standard normal covariance
-                A0_mean = linops.Identity(shape=self.n)
-                A0_covfactor = linops.Identity(shape=self.n)
+                A0_mean = linear_operators.Identity(shape=self.n)
+                A0_covfactor = linear_operators.Identity(shape=self.n)
                 # TODO: should this be a sample from A to achieve symm. posterior
                 # correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
@@ -1167,7 +1182,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 )
                 Ainv0_covfactor = Ainv0_mean
                 # Standard normal covariance
-                A0_covfactor = linops.Identity(shape=self.n)
+                A0_covfactor = linear_operators.Identity(shape=self.n)
                 # TODO: should this be a sample from A to achieve symm. posterior
                 # correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
@@ -1197,13 +1212,13 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 )
                 A0_mean = np.linalg.inv(Ainv0.mean)
             except NotImplementedError:
-                A0_mean = linops.Identity(self.n)
+                A0_mean = linear_operators.Identity(self.n)
                 warnings.warn(
                     "Prior specified only for Ainv. Automatic prior mean inversion "
                     "not implemented, falling back to standard normal prior."
                 )
             # Standard normal covariance
-            A0_covfactor = linops.Identity(shape=self.n)
+            A0_covfactor = linear_operators.Identity(shape=self.n)
             # TODO: should this be a sample from A to achieve symm. posterior
             # correspondence?
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
@@ -1231,7 +1246,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 )
                 Ainv0_mean = np.linalg.inv(A0.mean)
             except NotImplementedError:
-                Ainv0_mean = linops.Identity(self.n)
+                Ainv0_mean = linear_operators.Identity(self.n)
                 warnings.warn(
                     "Prior specified only for A. Automatic prior mean inversion "
                     "failed, falling back to standard normal prior."
@@ -1288,7 +1303,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             )
             return True, "maxiter"
         # uncertainty-based
-        if isinstance(self.x_cov, linops.LinearOperator):
+        if isinstance(self.x_cov, linear_operators.LinearOperator):
             sqrttracecov = np.sqrt(self.x_cov.trace())
         else:
             sqrttracecov = np.sqrt(np.trace(self.x_cov))

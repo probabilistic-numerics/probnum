@@ -6,8 +6,8 @@ advantage of only implementing a matrix-vector product instead of representing t
 linear operator as a matrix in memory.
 """
 
-from probnum.linalg.linops.kronecker import *
-from probnum.linalg.linops.linearoperators import *
+from ._kronecker import *
+from ._linear_operator import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -17,12 +17,10 @@ __all__ = [
     "MatrixMult",
     "Kronecker",
     "SymmetricKronecker",
-    "Vec",
-    "Svec",
     "Symmetrize",
     "aslinop",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-LinearOperator.__module__ = "probnum.linalg.linops"
-ScalarMult.__module__ = "probnum.linalg.linops"
+LinearOperator.__module__ = "probnum.linear_operators"
+ScalarMult.__module__ = "probnum.linear_operators"

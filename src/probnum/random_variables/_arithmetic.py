@@ -4,10 +4,10 @@ variables. """
 import operator
 from typing import Any, Callable, Dict, Tuple, Union
 
+import probnum.linear_operators as _linear_operators
 import numpy as np
 
 from probnum import utils as _utils
-from probnum.linalg import linops as _linops
 
 from ._dirac import Dirac as _Dirac
 from ._normal import Normal as _Normal
@@ -280,8 +280,8 @@ def _matmul_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
             ),
         )
     elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
-        cov_update = _linops.Kronecker(
-            _linops.Identity(dirac_rv.shape[0]), dirac_rv.support
+        cov_update = _linear_operators.Kronecker(
+            _linear_operators.Identity(dirac_rv.shape[0]), dirac_rv.support
         )
 
         return _Normal(

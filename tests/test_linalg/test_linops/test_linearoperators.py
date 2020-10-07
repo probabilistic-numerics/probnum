@@ -2,10 +2,10 @@
 import itertools
 import unittest
 
+import probnum.linear_operators as linear_operators
 import numpy as np
 import scipy.sparse
 
-from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
 
@@ -26,16 +26,16 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
 
         self.mv = mv
         self.ops = [
-            linops.MatrixMult(np.array([[-1.5, 3], [0, -230]])),
-            linops.LinearOperator(shape=(2, 2), matvec=mv),
-            linops.Identity(shape=4),
-            linops.Kronecker(
-                A=linops.MatrixMult(np.array([[2, -3.5], [12, 6.5]])),
-                B=linops.Identity(shape=3),
+            linear_operators.MatrixMult(np.array([[-1.5, 3], [0, -230]])),
+            linear_operators.LinearOperator(shape=(2, 2), matvec=mv),
+            linear_operators.Identity(shape=4),
+            linear_operators.Kronecker(
+                A=linear_operators.MatrixMult(np.array([[2, -3.5], [12, 6.5]])),
+                B=linear_operators.Identity(shape=3),
             ),
-            linops.SymmetricKronecker(
-                A=linops.MatrixMult(np.array([[1, -2], [-2.2, 5]])),
-                B=linops.MatrixMult(np.array([[1, -3], [0, -0.5]])),
+            linear_operators.SymmetricKronecker(
+                A=linear_operators.MatrixMult(np.array([[1, -2], [-2.2, 5]])),
+                B=linear_operators.MatrixMult(np.array([[1, -3], [0, -0.5]])),
             ),
         ]
 
@@ -43,11 +43,11 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
         """Create linear operators via various construction methods."""
 
         # Custom linear operator
-        linops.LinearOperator(shape=(2, 2), matvec=self.mv)
+        linear_operators.LinearOperator(shape=(2, 2), matvec=self.mv)
 
         # Scipy linear operator
         scipy_linop = scipy.sparse.linalg.LinearOperator(shape=(2, 2), matvec=self.mv)
-        linops.aslinop(scipy_linop)
+        linear_operators.aslinop(scipy_linop)
 
 
 class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
@@ -57,7 +57,7 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
         """Matrix linear operator multiplication with scalars."""
         for A, alpha in list(itertools.product(self.arrays, self.scalars)):
             with self.subTest():
-                Aop = linops.MatrixMult(A)
+                Aop = linear_operators.MatrixMult(A)
 
                 self.assertAllClose((alpha * Aop).todense(), alpha * A)
 
@@ -65,8 +65,8 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
         """Linear operator addition"""
         for A, B in list(zip(self.arrays, self.arrays)):
             with self.subTest():
-                Aop = linops.MatrixMult(A)
-                Bop = linops.MatrixMult(B)
+                Aop = linear_operators.MatrixMult(A)
+                Bop = linear_operators.MatrixMult(B)
 
                 self.assertAllClose((Aop + Bop).todense(), A + B)
 
@@ -158,7 +158,9 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
 
     def test_trace_only_square(self):
         """Test that the trace can only be computed for square matrices."""
-        nonsquare_op = linops.MatrixMult(np.array([[-1.5, 3, 1], [0, -230, 0]]))
+        nonsquare_op = linear_operators.MatrixMult(
+            np.array([[-1.5, 3, 1], [0, -230, 0]])
+        )
         with self.assertRaises(ValueError):
             nonsquare_op.trace()
 

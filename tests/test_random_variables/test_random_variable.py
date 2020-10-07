@@ -3,12 +3,12 @@
 import itertools
 import unittest
 
+import probnum.linear_operators as linear_operators
 import numpy as np
 import scipy.stats
 
 import probnum
 from probnum import random_variables as rvs
-from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
 
@@ -32,14 +32,14 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
             np.array([1, -2.5]),
         ]
         self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
-        self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
+        self.linops2d = [linear_operators.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
             rvs.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
         ]
         self.randvars2x2 = [
             rvs.Normal(
                 mean=np.array([[-2, 0.3], [0, 1]]),
-                cov=linops.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
+                cov=linear_operators.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
             ),
         ]
 
@@ -75,7 +75,7 @@ class InstantiationTestCase(RandomVariableTestCase):
 
     # def test_rv_from_linearoperator(self):
     #     """Create a random variable from a linear operator."""
-    #     for linop in linops:
+    #     for linop in linear_operators:
     #       with self.subTest():
     #           probnum.asrandvar(A)
 

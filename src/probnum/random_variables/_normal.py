@@ -2,12 +2,12 @@
 
 from typing import Callable, Optional, Union
 
+import probnum.linear_operators as linear_operators
 import numpy as np
 import scipy.linalg
 import scipy.stats
 
 from probnum import utils as _utils
-from probnum.linalg import linops
 from probnum.type import (
     ArrayLikeGetitemArgType,
     FloatArgType,
@@ -28,7 +28,7 @@ except ImportError:
 COV_CHOLESKY_DAMPING = 10 ** -12
 
 
-_ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
+_ValueType = Union[np.floating, np.ndarray, linear_operators.LinearOperator]
 
 
 class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
@@ -76,9 +76,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     def __init__(
         self,
-        mean: Union[float, np.floating, np.ndarray, linops.LinearOperator],
-        cov: Union[float, np.floating, np.ndarray, linops.LinearOperator],
-        cov_cholesky: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
+        mean: Union[float, np.floating, np.ndarray, linear_operators.LinearOperator],
+        cov: Union[float, np.floating, np.ndarray, linear_operators.LinearOperator],
+        cov_cholesky: Optional[
+            Union[np.ndarray, linear_operators.LinearOperator]
+        ] = None,
         random_state: RandomStateArgType = None,
     ):
         # Type normalization
@@ -105,7 +107,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         else:
             dtype = np.dtype(np.float_)
 
-        if not isinstance(mean, linops.LinearOperator):
+        if not isinstance(mean, linear_operators.LinearOperator):
             mean = mean.astype(dtype, order="C", casting="safe", subok=True, copy=False)
         else:
             # TODO: Implement casting for linear operators
@@ -116,7 +118,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     f"but a linear operator does not implement type casting."
                 )
 
-        if not isinstance(cov, linops.LinearOperator):
+        if not isinstance(cov, linear_operators.LinearOperator):
             cov = cov.astype(dtype, order="C", casting="safe", subok=True, copy=False)
         else:
             # TODO: Implement casting for linear operators
@@ -152,7 +154,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         # Method selection
         univariate = len(mean.shape) == 0
         dense = isinstance(mean, np.ndarray) and isinstance(cov, np.ndarray)
-        cov_operator = isinstance(cov, linops.LinearOperator)
+        cov_operator = isinstance(cov, linear_operators.LinearOperator)
 
         if univariate:
             # Univariate Gaussian
@@ -202,12 +204,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
                 if cov_cholesky.dtype != self._cov.dtype:
                     # TODO: Implement casting for linear operators
-                    if not isinstance(cov_cholesky, linops.LinearOperator):
+                    if not isinstance(cov_cholesky, linear_operators.LinearOperator):
                         cov_cholesky = cov_cholesky.astype(self._cov.dtype)
 
                 self._compute_cov_cholesky = lambda: cov_cholesky
 
-            if isinstance(cov, linops.SymmetricKronecker):
+            if isinstance(cov, linear_operators.SymmetricKronecker):
                 m, n = mean.shape
 
                 if m != n or n != cov.A.shape[0] or n != cov.B.shape[1]:
@@ -224,7 +226,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     self._compute_cov_cholesky = (
                         self._symmetric_kronecker_identical_factors_cov_cholesky
                     )
-            elif isinstance(cov, linops.Kronecker):
+            elif isinstance(cov, linear_operators.Kronecker):
                 m, n = mean.shape
 
                 if (
@@ -275,14 +277,14 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     @cached_property
     def dense_mean(self) -> Union[np.floating, np.ndarray]:
-        if isinstance(self._mean, linops.LinearOperator):
+        if isinstance(self._mean, linear_operators.LinearOperator):
             return self._mean.todense()
         else:
             return self._mean
 
     @cached_property
     def dense_cov(self) -> Union[np.floating, np.ndarray]:
-        if isinstance(self._cov, linops.LinearOperator):
+        if isinstance(self._cov, linear_operators.LinearOperator):
             return self._cov.todense()
         else:
             return self._cov
@@ -483,8 +485,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return sample.reshape(sample.shape[:-1] + self.shape)
 
     @staticmethod
-    def _arg_todense(x: Union[np.ndarray, linops.LinearOperator]) -> np.ndarray:
-        if isinstance(x, linops.LinearOperator):
+    def _arg_todense(
+        x: Union[np.ndarray, linear_operators.LinearOperator]
+    ) -> np.ndarray:
+        if isinstance(x, linear_operators.LinearOperator):
             return x.todense()
         elif isinstance(x, np.ndarray):
             return x
@@ -536,13 +540,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Matrixvariate Gaussian with Kronecker covariance
-    def _kronecker_cov_cholesky(self) -> linops.Kronecker:
-        assert isinstance(self._cov, linops.Kronecker)
+    def _kronecker_cov_cholesky(self) -> linear_operators.Kronecker:
+        assert isinstance(self._cov, linear_operators.Kronecker)
 
         A = self._cov.A.todense()
         B = self._cov.B.todense()
 
-        return linops.Kronecker(
+        return linear_operators.Kronecker(
             A=scipy.linalg.cholesky(
                 A + COV_CHOLESKY_DAMPING * np.eye(A.shape[0], dtype=self.dtype),
                 lower=True,
@@ -558,12 +562,15 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # factors
     def _symmetric_kronecker_identical_factors_cov_cholesky(
         self,
-    ) -> linops.SymmetricKronecker:
-        assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
+    ) -> linear_operators.SymmetricKronecker:
+        assert (
+            isinstance(self._cov, linear_operators.SymmetricKronecker)
+            and self._cov._ABequal
+        )
 
         A = self._cov.A.todense()
 
-        return linops.SymmetricKronecker(
+        return linear_operators.SymmetricKronecker(
             A=scipy.linalg.cholesky(
                 A + COV_CHOLESKY_DAMPING * np.eye(A.shape[0], dtype=self.dtype),
                 lower=True,
@@ -574,7 +581,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     def _symmetric_kronecker_identical_factors_sample(
         self, size: ShapeType = ()
     ) -> np.ndarray:
-        assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
+        assert (
+            isinstance(self._cov, linear_operators.SymmetricKronecker)
+            and self._cov._ABequal
+        )
 
         n = self._mean.shape[1]
 
@@ -586,7 +596,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
-        samples_scaled = linops.Symmetrize(dim=n) @ (
+        samples_scaled = linear_operators.Symmetrize(dim=n) @ (
             self.cov_cholesky @ stdnormal_samples
         )
 
