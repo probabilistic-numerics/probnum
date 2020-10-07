@@ -21,7 +21,7 @@ import os
 import sys
 from datetime import datetime
 
-from pkg_resources import get_distribution, DistributionNotFound
+from pkg_resources import DistributionNotFound, get_distribution
 
 sys.path.insert(0, os.path.abspath("../../../probnum/src"))
 

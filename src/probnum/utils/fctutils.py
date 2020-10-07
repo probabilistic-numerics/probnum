@@ -1,7 +1,7 @@
 """
 Utility functions for functions, methods and the like.
 """
-from typing import Callable, Any
+from typing import Any, Callable
 
 import numpy as np
 
