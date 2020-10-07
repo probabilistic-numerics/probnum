@@ -4,6 +4,7 @@ Operators of Kronecker-type or related.
 This module implements operators of Kronecker-type or linked to Kronecker-type products.
 """
 import numpy as np
+
 from probnum.linear_operators._linear_operator import LinearOperator, aslinop
 
 

@@ -2,9 +2,9 @@
 Benchmarks for random variables.
 """
 
-import probnum.linear_operators as linear_operators
 import numpy as np
 
+import probnum.linear_operators as linear_operators
 from benchmarks.benchmark_utils import SPD_MATRIX_5x5
 from probnum import random_variables as rvs
 

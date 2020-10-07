@@ -2,9 +2,9 @@
 
 import unittest
 
-import probnum.linear_operators as linear_operators
 import numpy as np
 
+import probnum.linear_operators as linear_operators
 from tests.testing import NumpyAssertions
 
 

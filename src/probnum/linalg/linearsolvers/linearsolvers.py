@@ -9,11 +9,11 @@ posterior distribution.
 
 import warnings
 
-import probnum.linear_operators as linear_operators
 import numpy as np
 import scipy.sparse
 
 import probnum
+import probnum.linear_operators as linear_operators
 from probnum import utils
 from probnum.linalg.linearsolvers.matrixbased import (
     AsymmetricMatrixBasedSolver,
