@@ -4,8 +4,8 @@ Benchmarks for random variables.
 
 import numpy as np
 
-import probnum.linear_operators as linear_operators
 from benchmarks.benchmark_utils import SPD_MATRIX_5x5
+from probnum import linear_operators
 from probnum import random_variables as rvs
 
 # Module level variables

@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-import probnum.linear_operators as linear_operators
+from probnum import linear_operators
 from tests.testing import NumpyAssertions
 
 

@@ -11,7 +11,7 @@ import GPy
 import numpy as np
 
 import probnum
-import probnum.linear_operators as linear_operators
+from probnum import linear_operators
 from probnum import random_variables as rvs
 
 

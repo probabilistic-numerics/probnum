@@ -6,7 +6,7 @@ import numpy as np
 import scipy.linalg
 import scipy.stats
 
-import probnum.linear_operators as linear_operators
+from probnum import linear_operators
 from probnum import utils as _utils
 from probnum.type import (
     ArrayLikeGetitemArgType,
