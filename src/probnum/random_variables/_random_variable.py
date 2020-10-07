@@ -957,6 +957,19 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         (Element-wise) standard deviation of the random variable.
     entropy :
         Information-theoretic entropy :math:`H(X)` of the random variable.
+    as_value_type :
+        Function which can be used to transform user-supplied arguments, interpreted as
+        realizations of this random variable, to an easy-to-process, normalized format.
+        Will be called internally to transform the argument of functions like
+        :meth:`.in_support`, :meth:`.cdf` and :meth:`.logcdf`, :meth:`.pmf` and
+        :meth:`.logpmf` (in :class:`DiscreteRandomVariable`), :meth:`.pdf` and
+        :meth:`.logpdf` (in :class:`ContinuousRandomVariable`), and potentially by
+        similar functions in subclasses.
+
+        For instance, this method is useful if (``log``) :meth:`.cdf` and (``log``)
+        :meth:`.pdf` both only work on :class:`np.float_` arguments, but we still want
+        the user to be able to pass Python :class:`float`. Then :meth:`.as_value_type`
+        should be set to something like ``lambda x: np.float64(x)``.
 
     See Also
     --------
@@ -968,7 +981,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     >>> import numpy as np
     >>>
     >>> # Distribution parameters
-    >>> support = np.array([-1, 0, 1], dtype=int)
+    >>> support = np.array([-1, 0, 1], dtype=np.int64)
     >>> p = np.array([0.2, 0.5, 0.3])
     >>> parameters_categorical = {
     ...     "support" : support,
@@ -993,8 +1006,8 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     ...       parameters=parameters_categorical,
     ...       sample=sample_categorical,
     ...       pmf=pmf_categorical,
-    ...       mean=lambda : 0,
-    ...       median=lambda : 0
+    ...       mean=lambda : np.float64(0),
+    ...       median=lambda : np.float64(0),
     ...       )
     >>>
     >>> # Sample from new random variable
@@ -1004,8 +1017,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     >>> x.pmf(2)
     0.0
     >>> x.mean
-    0
-
+    0.0
     """
 
     def __init__(
@@ -1028,6 +1040,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         var: Optional[Callable[[], _ValueType]] = None,
         std: Optional[Callable[[], _ValueType]] = None,
         entropy: Optional[Callable[[], np.float_]] = None,
+        as_value_type: Optional[Callable[[Any], _ValueType]] = None,
     ):
         # Probability mass function
         self.__pmf = pmf
@@ -1050,6 +1063,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             var=var,
             std=std,
             entropy=entropy,
+            as_value_type=as_value_type,
         )
 
     def pmf(self, x: _ValueType) -> np.float_:
@@ -1133,6 +1147,19 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         (Element-wise) standard deviation of the random variable.
     entropy :
         Information-theoretic entropy :math:`H(X)` of the random variable.
+    as_value_type :
+        Function which can be used to transform user-supplied arguments, interpreted as
+        realizations of this random variable, to an easy-to-process, normalized format.
+        Will be called internally to transform the argument of functions like
+        :meth:`.in_support`, :meth:`.cdf` and :meth:`.logcdf`, :meth:`.pmf` and
+        :meth:`.logpmf` (in :class:`DiscreteRandomVariable`), :meth:`.pdf` and
+        :meth:`.logpdf` (in :class:`ContinuousRandomVariable`), and potentially by
+        similar functions in subclasses.
+
+        For instance, this method is useful if (``log``) :meth:`.cdf` and (``log``)
+        :meth:`.pdf` both only work on :class:`np.float_` arguments, but we still want
+        the user to be able to pass Python :class:`float`. Then :meth:`.as_value_type`
+        should be set to something like ``lambda x: np.float64(x)``.
 
     Examples
     --------
@@ -1162,10 +1189,10 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     ...       parameters=parameters_uniform,
     ...       sample=sample_uniform,
     ...       pdf=pdf_uniform,
-    ...       mean=lambda : 0.5 * (a + b),
-    ...       median=lambda : 0.5 * (a + b),
+    ...       mean=lambda : np.float64(0.5 * (a + b)),
+    ...       median=lambda : np.float64(0.5 * (a + b)),
     ...       var=lambda : np.float64(1 / 12 * (b - a) ** 2),
-    ...       entropy=lambda : np.log(b - a)
+    ...       entropy=lambda : np.log(b - a),
     ...       )
     >>>
     >>> # Sample from new random variable
@@ -1198,6 +1225,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         var: Optional[Callable[[], _ValueType]] = None,
         std: Optional[Callable[[], _ValueType]] = None,
         entropy: Optional[Callable[[], np.float_]] = None,
+        as_value_type: Optional[Callable[[Any], _ValueType]] = None,
     ):
         # Probability density function
         self.__pdf = pdf
@@ -1220,6 +1248,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
             var=var,
             std=std,
             entropy=entropy,
+            as_value_type=as_value_type,
         )
 
     def pdf(self, x: _ValueType) -> np.float_:
