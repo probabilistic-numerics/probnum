@@ -30,8 +30,8 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
     def test_logistic_jacobian(self):
         rv = Dirac(0.1)
         lg1 = ivp.logistic(self.tspan, rv)
-        random_direction = 1 + 0.1 * np.random.rand(lg1.ndim)
-        random_point = 1 + np.random.rand(lg1.ndim)
+        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
+        random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
             * 1e11
@@ -54,8 +54,8 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
     def test_fitzhughnagumo_jacobian(self):
         rv = Dirac(np.ones(2))
         lg1 = ivp.fitzhughnagumo(self.tspan, rv)
-        random_direction = 1 + 0.1 * np.random.rand(lg1.ndim)
-        random_point = 1 + np.random.rand(lg1.ndim)
+        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
+        random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
             * 1e11
@@ -77,8 +77,8 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
     def test_lotkavolterra_jacobian(self):
         rv = Dirac(np.ones(2))
         lg1 = ivp.lotkavolterra(self.tspan, rv)
-        random_direction = 1 + 0.1 * np.random.rand(lg1.ndim)
-        random_point = 1 + np.random.rand(lg1.ndim)
+        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
+        random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
             * 1e11

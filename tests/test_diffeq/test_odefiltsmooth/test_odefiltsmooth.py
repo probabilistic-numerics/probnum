@@ -132,9 +132,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
         initrv = Dirac(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.step = 0.5
-        sol = probsolve_ivp(
-            self.ivp, step=self.step, initrv=initrv, diffconst=1.0, which_prior="ibm1"
-        )
+        sol = probsolve_ivp(self.ivp, step=self.step, diffconst=1.0, which_prior="ibm1")
         state_rvs = sol._state_rvs
         self.ms, self.cs = state_rvs.mean, state_rvs.cov
 

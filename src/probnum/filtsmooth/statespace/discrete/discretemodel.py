@@ -1,36 +1,37 @@
-from abc import ABC, abstractmethod
+import abc
+
+from probnum.filtsmooth.statespace.transition import Transition
 
 __all__ = ["DiscreteModel"]
 
 
-class DiscreteModel(ABC):
+class DiscreteModel(Transition):
     """
-    Abstract interface for state space model components.
-    x(t_{i+1}) ~ p(x(t_{i+1}) | x(t_{i})).
+    Transition models for discretely indexed processes.
 
-    Nothing happens here except passing responsibilities
-    of implementation down the subclasses.
-    In the future, this might change so please subclass
-    this object accordingly.
+    Transformations of the form
+
+    .. math:: x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t) .
+
+    As such, compatible with Bayesian filtering and smoothing algorithms.
+
+    See Also
+    --------
+    :class:`ContinuousModel`
+        Transition models for continuously indexed processes.
+    :class:`BayesFiltSmooth`
+        Bayesian filtering and smoothing algorithms.
     """
 
-    @abstractmethod
-    def sample(self, time, state, **kwargs):
-        """
-        Samples x_{t} ~ p(x_{t} | x_{s})
-        as a function of t and x_s (plus additional parameters).
-        """
+    @abc.abstractmethod
+    def transition_realization(self, real, start, stop, **kwargs):
         raise NotImplementedError
 
-    def pdf(self, loc, time, state, **kwargs):
-        """
-        Evaluates pdf of p(x_t | x_s).
-        Required for particle filtering and should be
-        possible to implement for every reasonable model.
-        """
-        raise NotImplementedError("PDF not implemented.")
+    @abc.abstractmethod
+    def transition_rv(self, rv, start, stop, **kwargs):
+        raise NotImplementedError
 
     @property
-    @abstractmethod
-    def ndim(self):
+    @abc.abstractmethod
+    def dimension(self):
         raise NotImplementedError

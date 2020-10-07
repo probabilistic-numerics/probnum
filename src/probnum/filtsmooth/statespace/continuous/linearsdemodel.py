@@ -18,10 +18,12 @@ __all__ = ["LinearSDEModel", "LTISDEModel"]
 
 class LinearSDEModel(continuousmodel.ContinuousModel):
     """
-    Linear time-continuous Markov models given by the solution of the
-    stochastic differential equation
-    :math:`dx = [F(t) x(t) + u(t)] dt + L(t) dB(t)`.
+    Linear, continuous-time Markov models given by the solution of the
+    linear stochastic differential equation (SDE),
 
+    .. math:: d x_t = G(t) x_t d t + d w_t.
+
+    Note: for Gaussian initial conditions, this solution is a Gaussian process.
 
     Parameters
     ----------
@@ -54,6 +56,63 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         self._dispmatrixfct = dispmatrixfct
         self._diffmatrix = diffmatrix
 
+    def transition_realization(self, real, start, stop, **kwargs):
+        if "euler_step" not in kwargs.keys():
+            raise TypeError("LinearSDE.transition_* requires a euler_step")
+        euler_step = kwargs["euler_step"]
+        rv = Normal(real, 0 * np.eye(len(real)))
+        return self._solve_chapmankolmogorov_equations(
+            start=start, stop=stop, euler_step=euler_step, randvar=rv
+        )
+
+    def transition_rv(self, rv, start, stop, **kwargs):
+        if "euler_step" not in kwargs.keys():
+            raise TypeError("LinearSDE.transition_* requires an euler_step")
+        euler_step = kwargs["euler_step"]
+        if not issubclass(type(rv), Normal):
+            errormsg = (
+                "Closed form solution for Chapman-Kolmogorov "
+                "equations in linear SDE models is only "
+                "available for Gaussian initial conditions."
+            )
+            raise ValueError(errormsg)
+        return self._solve_chapmankolmogorov_equations(
+            start=start, stop=stop, euler_step=euler_step, randvar=rv
+        )
+
+    def _solve_chapmankolmogorov_equations(
+        self, start, stop, euler_step, randvar, **kwargs
+    ):
+        """
+        Solves differential equations for mean and
+        kernels of the SDE solution (Eq. 5.50 and 5.51
+        or Eq. 10.73 in Applied SDEs).
+
+        By default, we assume that ``randvar`` is Gaussian.
+        """
+        mean, covar = randvar.mean, randvar.cov
+        time = start
+        while time < stop:
+            meanincr, covarincr = self._increment(time, mean, covar, **kwargs)
+            mean, covar = mean + euler_step * meanincr, covar + euler_step * covarincr
+            time = time + euler_step
+        return Normal(mean, covar), {}
+
+    def _increment(self, time, mean, covar, **kwargs):
+        """
+        Euler step for closed form solutions of ODE defining mean
+        and kernels of the solution of the Chapman-Kolmogoro
+        equations (via Fokker-Planck equations, but that is not crucial
+        here).
+        See RHS of Eq. 10.82 in Applied SDEs.
+        """
+        disped = self.dispersion(time, mean, **kwargs)
+        jacob = self.jacobian(time, mean, **kwargs)
+        diff = self.diffusionmatrix
+        meanincr = self.drift(time, mean, **kwargs)
+        covincr = covar @ jacob.T + jacob @ covar.T + disped @ diff @ disped.T
+        return meanincr, covincr
+
     def drift(self, time, state, **kwargs):
         """
         Evaluates f(t, x(t)) = F(t) x(t) + u(t).
@@ -82,49 +141,11 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
         return self._diffmatrix
 
     @property
-    def ndim(self):
+    def dimension(self):
         """
         Spatial dimension (utility attribute).
         """
         return len(self._driftmatrixfct(0.0))
-
-    def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
-        """
-        Solves differential equations for mean and
-        kernels of the SDE solution (Eq. 5.50 and 5.51
-        or Eq. 10.73 in Applied SDEs).
-
-        By default, we assume that ``randvar`` is Gaussian.
-        """
-        if not issubclass(type(randvar), Normal):
-            errormsg = (
-                "Closed form solution for Chapman-Kolmogorov "
-                "equations in linear SDE models is only "
-                "available for Gaussian initial conditions."
-            )
-            raise ValueError(errormsg)
-        mean, covar = randvar.mean, randvar.cov
-        time = start
-        while time < stop:
-            meanincr, covarincr = self._increment(time, mean, covar, **kwargs)
-            mean, covar = mean + step * meanincr, covar + step * covarincr
-            time = time + step
-        return Normal(mean, covar), None
-
-    def _increment(self, time, mean, covar, **kwargs):
-        """
-        Euler step for closed form solutions of ODE defining mean
-        and kernels of the solution of the Chapman-Kolmogoro
-        equations (via Fokker-Planck equations, but that is not crucial
-        here).
-        See RHS of Eq. 10.82 in Applied SDEs.
-        """
-        disped = self.dispersion(time, mean, **kwargs)
-        jacob = self.jacobian(time, mean, **kwargs)
-        diff = self.diffusionmatrix
-        newmean = self.drift(time, mean, **kwargs)
-        newcovar = covar @ jacob.T + jacob @ covar.T + disped @ diff @ disped.T
-        return newmean, newcovar
 
 
 class LTISDEModel(LinearSDEModel):
@@ -190,56 +211,54 @@ class LTISDEModel(LinearSDEModel):
     def dispersionmatrix(self):
         return self._dispmatrix
 
-    def chapmankolmogorov(self, start, stop, step, randvar, **kwargs):
+    def transition_realization(self, real, start, stop, **kwargs):
+        if not isinstance(real, np.ndarray):
+            raise TypeError(f"Numpy array expected, {type(real)} received.")
+        disc_dynamics, disc_force, disc_diffusion = self._discretise(
+            step=(stop - start)
+        )
+        return Normal(disc_dynamics @ real + disc_force, disc_diffusion), {}
+
+    def transition_rv(self, rv, start, stop, **kwargs):
+        if not isinstance(rv, Normal):
+            errormsg = (
+                "Closed form solution for Chapman-Kolmogorov "
+                "equations in LTI SDE models is only "
+                "available for Gaussian initial conditions."
+            )
+            raise TypeError(errormsg)
+        disc_dynamics, disc_force, disc_diffusion = self._discretise(
+            step=(stop - start)
+        )
+        old_mean, old_cov = rv.mean, rv.cov
+        new_mean = disc_dynamics @ old_mean + disc_force
+        new_crosscov = old_cov @ disc_dynamics.T
+        new_cov = disc_dynamics @ new_crosscov + disc_diffusion
+        return Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
+
+    def _discretise(self, step):
         """
-        Solves Chapman-Kolmogorov equation from start to stop via step.
+        Returns discretised model (i.e. mild solution to SDE)
+        using matrix fraction decomposition. That is, matrices A(h)
+        and Q(h) and vector s(h) such that the transition is
 
-        For LTISDEs, there is a closed form solutions to the ODE for
-        mean and kernels (see super().chapmankolmogorov(...)). We
-        exploit this for [(stop - start)/step] steps.
+        .. math::`x | x_\\text{old} \\sim \\mathcal{N}(A(h) x_\\text{old} + s(h), Q(h))`
 
-        References
-        ----------
-        Eq. (8) in
-        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.390.380&rep=rep1&type=pdf
-        and Eq. 6.41 and Eq. 6.42
-        in Applied SDEs.
+        which is the transition of the mild solution to the LTI SDE.
         """
-        mean, cov = randvar.mean, randvar.cov
-        if np.isscalar(mean) and np.isscalar(cov):
-            mean, cov = mean * np.ones(1), cov * np.eye(1)
-        increment = stop - start
-        newmean = self._predict_mean(increment, mean, **kwargs)
-        newcov, crosscov = self._predict_covar(increment, cov, **kwargs)
-        return Normal(newmean, newcov), crosscov
+        blockmat, proj = self._form_driftmatrix_extended_state()
+        expm = scipy.linalg.expm(step * blockmat)
+        ah = proj @ expm @ proj.T
+        sh = proj @ expm @ np.flip(proj).T @ self.force
+        qh = proj @ expm @ np.flip(proj).T @ ah.T
+        return ah, sh, qh
 
-    def _predict_mean(self, h, mean, **kwargs):
+    def _form_driftmatrix_extended_state(self):
         """
-        Predicts mean via closed-form solution to Chapman-Kolmogorov
-        equation for Gauss-Markov processes according to Eq. (8) in
-        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.390.380&rep=rep1&type=pdf
+        Forms the driftmatrix for state space model (x, u),
+        i.e. F = (F, I; 0; 0).
 
-        This function involves a lot of concatenation of matrices,
-        hence readibility is hard to guarantee. If you know better how
-        to make this readable, feedback is welcome!
-        """
-        drift = self.driftmatrix
-        force = self.force
-        extended_state = np.hstack((mean, force))
-        firstrowblock = np.hstack((drift, np.eye(*drift.shape)))
-        blockmat = np.hstack((firstrowblock.T, 0.0 * firstrowblock.T)).T
-        proj = np.eye(*firstrowblock.shape)
-        return proj @ scipy.linalg.expm(h * blockmat) @ extended_state
-
-    def _predict_covar(self, increment, cov, **kwargs):
-        """
-        Predicts kernels via closed-form solution to Chapman-Kolmogorov
-        equation for Gauss-Markov processes according to Eq. 6.41 and
-        Eq. 6.42 in Applied SDEs.
-
-        This function involves a lot of concatenation of matrices,
-        hence readibility is hard to guarantee. If you know better how
-        to make this readable, feedback is welcome!
+        Returns blockmatrix and projection to $F$
         """
         drift = self.driftmatrix
         disp = self.dispersionmatrix
@@ -248,13 +267,7 @@ class LTISDEModel(LinearSDEModel):
         secondrowblock = np.hstack((0 * drift.T, -1.0 * drift.T))
         blockmat = np.hstack((firstrowblock.T, secondrowblock.T)).T
         proj = np.eye(*firstrowblock.shape)
-        initstate = np.flip(proj).T
-        transformed_sol = scipy.linalg.expm(increment * blockmat) @ initstate
-        trans = scipy.linalg.expm(increment * drift)
-        transdiff = proj @ transformed_sol @ trans.T
-        crosscov = cov @ trans.T
-        newcov = trans @ crosscov + transdiff
-        return newcov, crosscov
+        return blockmat, proj
 
 
 def _check_initial_state_dimensions(drift, force, disp, diff):

@@ -13,9 +13,9 @@ class UnscentedTransform:
     Used for unscented Kalman filter.
     """
 
-    def __init__(self, ndim, spread=1e-4, priorpar=2.0, special_scale=0.0):
+    def __init__(self, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0):
         """
-        ndim : int
+        dimension : int
             Spatial dimensionality
         spread : float
             Spread of the sigma points around mean
@@ -31,31 +31,11 @@ class UnscentedTransform:
         P. 7 ("Unscented transform:") of
         https://www.pdx.edu/biomedical-signal-processing-lab/sites/www.pdx.edu.biomedical-signal-processing-lab/files/ukf.wan_.chapt7_.pdf
         """
-        self.scale = _compute_scale(ndim, spread, special_scale)
-        self.ndim = ndim
-        self.mweights, self.cweights = self.unscented_weights(spread, priorpar)
-
-    def unscented_weights(self, alp, bet):
-        """
-        See BFaS; p. 84.
-
-        Parameters
-        ----------
-        alp: float
-            Spread of sigma points around mean (alpha)
-        bet: float
-            Prior information parameter (beta)
-
-        Returns
-        -------
-        np.ndarray, shape (2 * ndim + 1,)
-            constant mean weights.
-        np.ndarray, shape (2 * ndim + 1,)
-            constant kernels weights.
-        """
-        mweights = _meanweights(self.ndim, self.scale)
-        cweights = _covarweights(self.ndim, alp, bet, self.scale)
-        return mweights, cweights
+        self.scale = _compute_scale(dimension, spread, special_scale)
+        self.dimension = dimension
+        self.mweights, self.cweights = _unscented_weights(
+            spread, priorpar, self.dimension, self.scale
+        )
 
     def sigma_points(self, mean, covar):
         """
@@ -72,15 +52,17 @@ class UnscentedTransform:
         -------
         np.ndarray, shape (2 * d + 1, d)
         """
-        if len(mean) != self.ndim:
+        if len(mean) != self.dimension:
             raise ValueError("Dimensionality does not match UT")
-        sigpts = np.zeros((2 * self.ndim + 1, self.ndim))
+        sigpts = np.zeros((2 * self.dimension + 1, self.dimension))
         sqrtcovar = np.linalg.cholesky(covar)
         sigpts[0] = mean.copy()
-        for idx in range(self.ndim):
-            sigpts[idx + 1] = mean + np.sqrt(self.ndim + self.scale) * sqrtcovar[:, idx]
-            sigpts[self.ndim + 1 + idx] = (
-                mean - np.sqrt(self.ndim + self.scale) * sqrtcovar[:, idx]
+        for idx in range(self.dimension):
+            sigpts[idx + 1] = (
+                mean + np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
+            )
+            sigpts[self.dimension + 1 + idx] = (
+                mean - np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
             )
         return sigpts
 
@@ -123,17 +105,17 @@ class UnscentedTransform:
         return estmean, estcovar, estcrosscovar
 
 
-def _compute_scale(ndim, alp, kap):
+def _compute_scale(dimension, spread, special_scale):
     """
     See BFaS; p. 83
 
     Parameters
     ----------
-    ndim: int
+    dimension: int
         Spatial dimensionality of state space model
-    alp: float
+    spread: float
         Spread of sigma points around mean (1; alpha)
-    kap: float
+    special_scale: float
         Spread of sigma points around mean (2; kappa)
 
     Returns
@@ -141,33 +123,60 @@ def _compute_scale(ndim, alp, kap):
     float
         Scaling parameter for unscented transform
     """
-    return alp ** 2 * (ndim + kap) - ndim
+    return spread ** 2 * (dimension + special_scale) - dimension
 
 
-def _meanweights(ndim, lam):
+def _unscented_weights(spread, priorpar, dimension, scale):
+    """
+    See BFaS; p. 84.
+
+    Parameters
+    ----------
+    spread: float
+        Spread of sigma points around mean (alpha)
+    priorpar: float
+        Prior information parameter (beta)
+    dimension : int
+        Dimension of the state space
+    scale : float
+        Scaling parameter for unscented transform
+
+    Returns
+    -------
+    np.ndarray, shape (2 * dimension + 1,)
+        constant mean weights.
+    np.ndarray, shape (2 * dimension + 1,)
+        constant kernels weights.
+    """
+    mweights = _meanweights(dimension, scale)
+    cweights = _covarweights(dimension, spread, priorpar, scale)
+    return mweights, cweights
+
+
+def _meanweights(dimension, lam):
     """
     Parameters
     ----------
-    ndim: int
+    dimension: int
         Spatial dimensionality of state space model
     lam: float
         Scaling parameter for unscented transform (lambda)
 
     Returns
     -------
-    np.ndarray, shape (2*ndim+1,)
+    np.ndarray, shape (2*dimension+1,)
         Constant mean weights.
     """
-    mw0 = np.ones(1) * lam / (ndim + lam)
-    mw = np.ones(2 * ndim) / (2.0 * (ndim + lam))
+    mw0 = np.ones(1) * lam / (dimension + lam)
+    mw = np.ones(2 * dimension) / (2.0 * (dimension + lam))
     return np.hstack((mw0, mw))
 
 
-def _covarweights(ndim, alp, bet, lam):
+def _covarweights(dimension, alp, bet, lam):
     """
     Parameters
     ----------
-    ndim: int
+    dimension: int
         Spatial dimensionality of state space model
     alp: float
         Spread of sigma points around mean (alpha)
@@ -178,11 +187,11 @@ def _covarweights(ndim, alp, bet, lam):
 
     Returns
     -------
-    np.ndarray, shape (2 * ndim + 1,)
+    np.ndarray, shape (2 * dimension + 1,)
         the constant kernels weights.
     """
-    cw0 = np.ones(1) * lam / (ndim + lam) + (1 - alp ** 2 + bet)
-    cw = np.ones(2 * ndim) / (2.0 * (ndim + lam))
+    cw0 = np.ones(1) * lam / (dimension + lam) + (1 - alp ** 2 + bet)
+    cw = np.ones(2 * dimension) / (2.0 * (dimension + lam))
     return np.hstack((cw0, cw))
 
 
@@ -192,14 +201,14 @@ def _estimate_mean(mweights, proppts):
 
     Arguments
     ---------
-    mweights: np.ndarray, shape (2*ndim + 1,)
+    mweights: np.ndarray, shape (2*dimension + 1,)
         Constant mean weights for unscented transform.
-    proppts: np.ndarray, shape (2*ndim + 1, ndim)
+    proppts: np.ndarray, shape (2*dimension + 1, dimension)
         Propagated sigma points
 
     Returns
     -------
-    np.ndarray, shape (ndim,)
+    np.ndarray, shape (dimension,)
         Estimated mean.
     """
     return mweights @ proppts
@@ -211,18 +220,18 @@ def _estimate_covar(cweights, proppts, mean, covmat):
 
     Arguments
     ---------
-    cweights: np.ndarray, shape (2*ndim + 1,)
+    cweights: np.ndarray, shape (2*dimension + 1,)
         Constant kernels weights for unscented transform.
-    proppts: np.ndarray, shape (2*ndim + 1, ndim)
+    proppts: np.ndarray, shape (2*dimension + 1, dimension)
         Propagated sigma points
-    mean: np.ndarray, shape (ndim,)
+    mean: np.ndarray, shape (dimension,)
         Result of _estimate_mean(...)
-    covmat: np.ndarray, shape (ndim, ndim)
+    covmat: np.ndarray, shape (dimension, dimension)
         Covariance of measurement model at current time.
 
     Returns
     -------
-    np.ndarray, shape (ndim, ndim)
+    np.ndarray, shape (dimension, dimension)
         Estimated kernels.
     """
     cent = proppts - mean
@@ -236,20 +245,20 @@ def _estimate_crosscovar(cweights, proppts, mean, sigpts, mpred):
 
     Arguments
     ---------
-    cweights: np.ndarray, shape (2*ndim + 1,)
+    cweights: np.ndarray, shape (2*dimension + 1,)
         Constant kernels weights for unscented transform.
-    sigpts: np.ndarray, shape (2*ndim + 1, ndim)
+    sigpts: np.ndarray, shape (2*dimension + 1, dimension)
         Sigma points
-    mpred: np.ndarray, shape (ndim,)
+    mpred: np.ndarray, shape (dimension,)
         Predicted mean
-    proppts: np.ndarray, shape (2*ndim + 1, ndim)
+    proppts: np.ndarray, shape (2*dimension + 1, dimension)
         Propagated sigma points
-    mean: np.ndarray, shape (ndim,)
+    mean: np.ndarray, shape (dimension,)
         Result of _estimate_mean(...)
 
     Returns
     -------
-    np.ndarray, shape (ndim,)
+    np.ndarray, shape (dimension,)
         Estimated kernels.
     """
     cent_prop = proppts - mean

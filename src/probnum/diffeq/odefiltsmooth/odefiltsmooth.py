@@ -291,13 +291,13 @@ def _string2ibm(ivp, which_prior, precond_step, **kwargs):
     else:
         diffconst = 1.0
     if which_prior == "ibm1":
-        return prior.IBM(1, ivp.ndim, diffconst, precond_step)
+        return prior.IBM(1, ivp.dimension, diffconst, precond_step)
     elif which_prior == "ibm2":
-        return prior.IBM(2, ivp.ndim, diffconst, precond_step)
+        return prior.IBM(2, ivp.dimension, diffconst, precond_step)
     elif which_prior == "ibm3":
-        return prior.IBM(3, ivp.ndim, diffconst, precond_step)
+        return prior.IBM(3, ivp.dimension, diffconst, precond_step)
     elif which_prior == "ibm4":
-        return prior.IBM(4, ivp.ndim, diffconst, precond_step)
+        return prior.IBM(4, ivp.dimension, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -313,13 +313,13 @@ def _string2ioup(ivp, which_prior, precond_step, **kwargs):
     else:
         driftspeed = 1.0
     if which_prior == "ioup1":
-        return prior.IOUP(1, ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(1, ivp.dimension, driftspeed, diffconst, precond_step)
     elif which_prior == "ioup2":
-        return prior.IOUP(2, ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(2, ivp.dimension, driftspeed, diffconst, precond_step)
     elif which_prior == "ioup3":
-        return prior.IOUP(3, ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(3, ivp.dimension, driftspeed, diffconst, precond_step)
     elif which_prior == "ioup4":
-        return prior.IOUP(4, ivp.ndim, driftspeed, diffconst, precond_step)
+        return prior.IOUP(4, ivp.dimension, driftspeed, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -335,13 +335,13 @@ def _string2matern(ivp, which_prior, precond_step, **kwargs):
     else:
         lengthscale = 1.0
     if which_prior == "matern32":
-        return prior.Matern(1, ivp.ndim, lengthscale, diffconst, precond_step)
+        return prior.Matern(1, ivp.dimension, lengthscale, diffconst, precond_step)
     elif which_prior == "matern52":
-        return prior.Matern(2, ivp.ndim, lengthscale, diffconst, precond_step)
+        return prior.Matern(2, ivp.dimension, lengthscale, diffconst, precond_step)
     elif which_prior == "matern72":
-        return prior.Matern(3, ivp.ndim, lengthscale, diffconst, precond_step)
+        return prior.Matern(3, ivp.dimension, lengthscale, diffconst, precond_step)
     elif which_prior == "matern92":
-        return prior.Matern(4, ivp.ndim, lengthscale, diffconst, precond_step)
+        return prior.Matern(4, ivp.dimension, lengthscale, diffconst, precond_step)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
