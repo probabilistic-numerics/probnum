@@ -1,5 +1,7 @@
 import unittest
+
 import numpy as np
+
 import probnum.random_variables as rvs
 from probnum.filtsmooth.statespace.discrete import discretemodel
 

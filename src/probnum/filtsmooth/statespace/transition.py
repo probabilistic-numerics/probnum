@@ -1,12 +1,11 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
-from typing import Union, Dict
+from typing import Dict, Union
 
 import numpy as np
 
 from probnum.random_variables import RandomVariable
-
 
 __all__ = ["Transition"]
 
