@@ -69,7 +69,9 @@ class _ContDiscKalman(Kalman):
 
     def predict(self, start, stop, randvar, **kwargs):
         step = (stop - start) / self.cke_nsteps
-        return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar, **kwargs)
+        return self.dynamicmodel.transition_rv(
+            rv=randvar, start=start, stop=stop, step=step
+        )
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_kalman_update(
@@ -101,12 +103,12 @@ class _DiscDiscKalman(Kalman):
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
         dynamat = self.dynamicmodel.dynamicsmatrix(start, **kwargs)
-        forcevec = self.dynamicmodel.force(start, **kwargs)
+        forcevec = self.dynamicmodel.forcevector(start, **kwargs)
         diffmat = self.dynamicmodel.diffusionmatrix(start, **kwargs)
         mpred = dynamat @ mean + forcevec
         ccpred = covar @ dynamat.T
         cpred = dynamat @ ccpred + diffmat
-        return Normal(mpred, cpred), ccpred
+        return Normal(mpred, cpred), {"crosscov": ccpred}
 
     def update(self, time, randvar, data, **kwargs):
         """Update step of discrete Kalman filtering"""

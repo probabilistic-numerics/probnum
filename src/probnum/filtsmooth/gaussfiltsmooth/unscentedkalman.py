@@ -77,11 +77,13 @@ class _ContDiscUnscentedKalman(UnscentedKalman):
         else:
             self.cke_nsteps = 1
         super().__init__(dynamod, measmod, initrv)
-        self.ut = UnscentedTransform(self.dynamod.ndim, alpha, beta, kappa)
+        self.ut = UnscentedTransform(self.dynamod.dimension, alpha, beta, kappa)
 
     def predict(self, start, stop, randvar, **kwargs):
         step = (stop - start) / self.cke_nsteps
-        return self.dynamicmodel.chapmankolmogorov(start, stop, step, randvar, **kwargs)
+        return self.dynamicmodel.transition_rv(
+            rv=randvar, start=start, stop=stop, step=step, **kwargs
+        )
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_unskalman_update(
@@ -103,7 +105,7 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
                 "_DiscDiscUnscentedKalman requires " "a Gaussian measurement model."
             )
         super().__init__(dynamod, measmod, initrv)
-        self.ut = UnscentedTransform(self.dynamod.ndim, alpha, beta, kappa)
+        self.ut = UnscentedTransform(self.dynamod.dimension, alpha, beta, kappa)
 
     def predict(self, start, stop, randvar, **kwargs):
         if issubclass(type(self.dynamod), DiscreteGaussianLinearModel):
@@ -119,12 +121,12 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         if np.isscalar(mean) and np.isscalar(covar):
             mean, covar = mean * np.ones(1), covar * np.eye(1)
         dynamat = self.dynamod.dynamicsmatrix(start, **kwargs)
-        forcevec = self.dynamod.force(start, **kwargs)
+        forcevec = self.dynamod.forcevector(start, **kwargs)
         diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
         mpred = dynamat @ mean + forcevec
         crosscov = covar @ dynamat.T
         cpred = dynamat @ crosscov + diffmat
-        return Normal(mpred, cpred), crosscov
+        return Normal(mpred, cpred), {"crosscov": crosscov}
 
     def _predict_nonlinear(self, start, randvar, **kwargs):
         """
@@ -139,7 +141,7 @@ class _DiscDiscUnscentedKalman(UnscentedKalman):
         mpred, cpred, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, diffmat, mean
         )
-        return Normal(mpred, cpred), crosscov
+        return Normal(mpred, cpred), {"crosscov": crosscov}
 
     def update(self, time, randvar, data, **kwargs):
         return _discrete_unskalman_update(
