@@ -255,9 +255,6 @@ class RandomVariable(Generic[_ValueType]):
     def mode(self) -> _ValueType:
         """
         Mode of the random variable.
-
-        Returns
-        -------
         """
         if self.__mode is None:
             raise NotImplementedError
@@ -283,10 +280,6 @@ class RandomVariable(Generic[_ValueType]):
         Median of the random variable.
 
         To learn about the dtype of the median, see :attr:`median_dtype`.
-
-        Returns
-        -------
-            Median of the random variable.
         """
 
         if self.__shape != ():
@@ -315,11 +308,6 @@ class RandomVariable(Generic[_ValueType]):
         Mean :math:`\\mathbb{E}(X)` of the random variable.
 
         To learn about the dtype of the mean, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        mean :
-            Mean of the random variable.
         """
         if self.__mean is None:
             raise NotImplementedError
@@ -346,11 +334,6 @@ class RandomVariable(Generic[_ValueType]):
         of the random variable.
 
         To learn about the dtype of the covariance, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        cov :
-            Covariance of the random variable.
         """  # pylint: disable=line-too-long
         if self.__cov is None:
             raise NotImplementedError
@@ -377,11 +360,6 @@ class RandomVariable(Generic[_ValueType]):
         the random variable.
 
         To learn about the dtype of the variance, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        var :
-            The variance of the random variable.
         """
         if self.__var is None:
             try:
@@ -410,11 +388,6 @@ class RandomVariable(Generic[_ValueType]):
         Standard deviation of the random variable.
 
         To learn about the dtype of the standard deviation, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        std :
-            The standard deviation of the random variable.
         """
         if self.__std is None:
             try:
@@ -441,11 +414,6 @@ class RandomVariable(Generic[_ValueType]):
     def entropy(self) -> np.float_:
         """
         Information-theoretic entropy :math:`H(X)` of the random variable.
-
-        Returns
-        -------
-        entropy :
-            Entropy of the random variable.
         """
         if self.__entropy is None:
             raise NotImplementedError
@@ -489,11 +457,6 @@ class RandomVariable(Generic[_ValueType]):
         ----------
         size :
             Size of the drawn sample of realizations.
-
-        Returns
-        -------
-        sample :
-            Sample of realizations with the given ``size`` and the inherent ``shape``.
         """
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
@@ -511,11 +474,6 @@ class RandomVariable(Generic[_ValueType]):
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The cdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        q :
-            Value of the cumulative density function at the given points.
         """
         if self.__cdf is not None:
             return RandomVariable._ensure_numpy_float(
@@ -544,11 +502,6 @@ class RandomVariable(Generic[_ValueType]):
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The logcdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        q :
-            Value of the log-cumulative density function at the given points.
         """
         if self.__logcdf is not None:
             return RandomVariable._ensure_numpy_float(
@@ -637,10 +590,6 @@ class RandomVariable(Generic[_ValueType]):
         newshape :
             New shape for the random variable. It must be compatible with the original
             shape.
-
-        Returns
-        -------
-        reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
         newshape = _utils.as_shape(newshape)
 
@@ -667,10 +616,6 @@ class RandomVariable(Generic[_ValueType]):
         ----------
         axes :
             See documentation of numpy.ndarray.transpose.
-
-        Returns
-        -------
-        transposed_rv : The transposed random variable.
         """
         return RandomVariable(
             shape=np.empty(shape=self.shape).transpose(*axes).shape,
@@ -852,10 +797,41 @@ class RandomVariable(Generic[_ValueType]):
 
     @staticmethod
     def infer_median_dtype(value_dtype: DTypeArgType) -> np.dtype:
+        """
+        Infer the dtype of the median.
+
+        Set the dtype to the dtype arising from
+        the multiplication of values with dtypes :attr:`dtype` and :class:`np.float_`.
+        This is motivated by the fact that, even for discrete random variables, e.g.
+        integer-valued random variables, the :attr:`median` might lie in between two
+        values in which case these values are averaged. For example, a uniform random
+        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
+
+        Parameters
+        ----------
+        value_dtype :
+            Dtype of a value.
+        """
         return RandomVariable.infer_moment_dtype(value_dtype)
 
     @staticmethod
     def infer_moment_dtype(value_dtype: DTypeArgType) -> np.dtype:
+        """
+        Infer the dtype of any moment.
+
+        Infers the dtype of any (function of a) moment of the random variable, e.g. its
+        :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. Returns the
+        dtype arising from the multiplication of values with dtypes :attr:`dtype`
+        and :class:`np.float_`. This is motivated by the mathematical definition of a
+        moment as a sum or an integral over products of probabilities and values of the
+        random variable, which are represented as using the dtypes :class:`np.float_`
+        and :attr:`dtype`, respectively.
+
+        Parameters
+        ----------
+        value_dtype :
+            Dtype of a value.
+        """
         return np.promote_types(value_dtype, np.float_)
 
     def _as_value_type(self, x: Any) -> _ValueType:
@@ -1082,6 +1058,20 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         )
 
     def pmf(self, x: _ValueType) -> np.float_:
+        """
+        Probability mass function.
+
+        Following the predominant convention in mathematics, we express pdfs with
+        respect to the Lebesgue measure unless stated otherwise.
+
+        Parameters
+        ----------
+        x :
+            Evaluation points of the probability mass function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The pmf evaluation will be broadcast over all additional dimensions.
+        """
         if self.__pmf is not None:
             return DiscreteRandomVariable._ensure_numpy_float("pmf", self.__pmf(x))
         elif self.__logpmf is not None:
@@ -1097,6 +1087,17 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             )
 
     def logpmf(self, x: _ValueType) -> np.float_:
+        """
+        Natural logarithm of the probability mass function.
+
+        Parameters
+        ----------
+        x :
+            Evaluation points of the log-probability mass function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The logpmf evaluation will be broadcast over all additional dimensions.
+        """
         if self.__logpmf is not None:
             return DiscreteRandomVariable._ensure_numpy_float(
                 "logpmf", self.__logpmf(self._as_value_type(x))
@@ -1276,7 +1277,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
     def pdf(self, x: _ValueType) -> np.float_:
         """
-        Probability density or mass function.
+        Probability density function.
 
         Following the predominant convention in mathematics, we express pdfs with
         respect to the Lebesgue measure unless stated otherwise.
@@ -1284,16 +1285,10 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         Parameters
         ----------
         x :
-            Evaluation points of the probability density / mass function.
+            Evaluation points of the probability density function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The pdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        p : array-like
-            Value of the probability density / mass function at the given points.
-
         """
         if self.__pdf is not None:
             return ContinuousRandomVariable._ensure_numpy_float(
@@ -1317,15 +1312,10 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         Parameters
         ----------
         x :
-            Evaluation points of the log-probability density/mass function.
+            Evaluation points of the log-probability density function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The logpdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        logp : array-like
-            Value of the log-probability density / mass function at the given points.
         """
         if self.__logpdf is not None:
             return ContinuousRandomVariable._ensure_numpy_float(

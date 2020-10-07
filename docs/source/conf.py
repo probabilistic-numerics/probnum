@@ -66,8 +66,8 @@ automodsumm_inherited_members = True
 
 # Settings for autodoc_typehints
 typehints_fully_qualified = False
-always_document_param_types = False
-typehints_document_rtype = False
+always_document_param_types = True
+typehints_document_rtype = True
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffixes as a list of strings:
