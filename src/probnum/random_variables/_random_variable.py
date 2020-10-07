@@ -66,8 +66,9 @@ class RandomVariable(Generic[_ValueType]):
     quantile :
         Quantile function of the random variable.
     mode :
-        Mode of the random variable. Value of the random variable at which :meth:`.pdf`
-        or :meth:`.pmf` take their maximal value.
+        Mode of the random variable. Value of the random variable at which its
+        probability density function or probability mass function takes its maximal
+        value.
     mean :
         Expected value of the random variable.
     cov :
@@ -82,19 +83,25 @@ class RandomVariable(Generic[_ValueType]):
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.
         Will be called internally to transform the argument of functions like
-        :meth:`.in_support`, :meth:`.cdf` and :meth:`.logcdf`, :meth:`.pmf` and
-        :meth:`.logpmf` (in :class:`DiscreteRandomVariable`), :meth:`.pdf` and
-        :meth:`.logpdf` (in :class:`ContinuousRandomVariable`), and potentially by
-        similar functions in subclasses.
+        :meth:`~RandomVariable.in_support`, :meth:`~RandomVariable.cdf`
+        and :meth:`~RandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
+        and :meth:`~DiscreteRandomVariable.logpmf` (in :class:`DiscreteRandomVariable`),
+        :meth:`~ContinuousRandomVariable.pdf` and
+        :meth:`~ContinuousRandomVariable.logpdf` (in :class:`ContinuousRandomVariable`),
+        and potentially by similar functions in subclasses.
 
-        For instance, this method is useful if (``log``) :meth:`.cdf` and (``log``)
-        :meth:`.pdf` both only work on :class:`np.float_` arguments, but we still want
-        the user to be able to pass Python :class:`float`. Then :meth:`.as_value_type`
+        For instance, this method is useful if (``log``)
+        :meth:`~ContinousRandomVariable.cdf` and (``log``)
+        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
+        arguments, but we still want the user to be able to pass Python
+        :class:`float`. Then :meth:`~RandomVariable.as_value_type`
         should be set to something like ``lambda x: np.float64(x)``.
 
     See Also
     --------
     asrandvar : Transform into a :class:`RandomVariable`.
+    DiscreteRandomVariable : A random variable with countable range.
+    ContinuousRandomVariable : A random variable with uncountably infinite range.
 
     Notes
     -----
@@ -251,8 +258,6 @@ class RandomVariable(Generic[_ValueType]):
 
         Returns
         -------
-        |
-            Mode of the random variable.
         """
         if self.__mode is None:
             raise NotImplementedError
@@ -953,8 +958,8 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     quantile :
         Quantile function of the random variable.
     mode :
-        Mode of the random variable. Value of the random variable at which :meth:`.pdf`
-        or :meth:`.pmf` take their maximal value.
+        Mode of the random variable. Value of the random variable at which
+        :meth:`~DiscreteRandomVariable.pmf` takes its maximal value.
     mean :
         Expected value of the random variable.
     cov :
@@ -971,14 +976,12 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         Will be called internally to transform the argument of functions like
         :meth:`~DiscreteRandomVariable.in_support`, :meth:`~DiscreteRandomVariable.cdf`
         and :meth:`~DiscreteRandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
-        and :meth:`~DiscreteRandomVariable.logpmf` (in :class:`DiscreteRandomVariable`),
-        :meth:`~DiscreteRandomVariable.pdf` and
-        :meth:`~DiscreteRandomVariable.logpdf` (in :class:`ContinuousRandomVariable`),
-        and potentially by similar functions in subclasses.
+        and :meth:`~DiscreteRandomVariable.logpmf`, and potentially by similar
+        functions in subclasses.
 
         For instance, this method is useful if (``log``)
         :meth:`~DiscreteRandomVariable.cdf` and (``log``)
-        :meth:`~DiscreteRandomVariable.pdf` both only work on :class:`np.float_`
+        :meth:`~DiscreteRandomVariable.pmf` both only work on :class:`np.float_`
         arguments, but we still want the user to be able to pass Python
         :class:`float`. Then :meth:`~DiscreteRandomVariable.as_value_type`
         should be set to something like ``lambda x: np.float64(x)``.
@@ -1147,8 +1150,8 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     quantile :
         Quantile function of the random variable.
     mode :
-        Mode of the random variable. Value of the random variable at which :meth:`.pdf`
-        or :meth:`.pmf` take their maximal value.
+        Mode of the random variable. Value of the random variable at which
+        :meth:`~ContinuousRandomVariable.pdf` takes its maximal value.
     mean :
         Expected value of the random variable.
     cov :
@@ -1163,15 +1166,23 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.
         Will be called internally to transform the argument of functions like
-        :meth:`.in_support`, :meth:`.cdf` and :meth:`.logcdf`, :meth:`.pmf` and
-        :meth:`.logpmf` (in :class:`DiscreteRandomVariable`), :meth:`.pdf` and
-        :meth:`.logpdf` (in :class:`ContinuousRandomVariable`), and potentially by
-        similar functions in subclasses.
+        :meth:`~ContinuousRandomVariable.in_support`,
+        :meth:`~ContinuousRandomVariable.cdf`
+        and :meth:`~ContinuousRandomVariable.logcdf`,
+        :meth:`~ContinuousRandomVariable.pdf` and
+        :meth:`~ContinuousRandomVariable.logpdf`, and potentially by similar
+        functions in subclasses.
 
-        For instance, this method is useful if (``log``) :meth:`.cdf` and (``log``)
-        :meth:`.pdf` both only work on :class:`np.float_` arguments, but we still want
-        the user to be able to pass Python :class:`float`. Then :meth:`.as_value_type`
+        For instance, this method is useful if (``log``)
+        :meth:`~ContinuousRandomVariable.cdf` and (``log``)
+        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
+        arguments, but we still want the user to be able to pass Python
+        :class:`float`. Then :meth:`~ContinuousRandomVariable.as_value_type`
         should be set to something like ``lambda x: np.float64(x)``.
+
+    See Also
+    --------
+    DiscreteRandomVariable : A random variable with countable range.
 
     Examples
     --------
