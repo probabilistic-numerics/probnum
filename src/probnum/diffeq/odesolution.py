@@ -7,11 +7,11 @@ Can function values can also be accessed by indexing.
 """
 import numpy as np
 
-from probnum.random_variables import Normal
-from probnum._randomvariablelist import _RandomVariableList
-from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
-from probnum.filtsmooth import KalmanPosterior
 from probnum import utils
+from probnum._randomvariablelist import _RandomVariableList
+from probnum.filtsmooth import KalmanPosterior
+from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
+from probnum.random_variables import Normal
 
 
 class ODESolution(FiltSmoothPosterior):

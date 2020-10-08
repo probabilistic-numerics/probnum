@@ -5,8 +5,8 @@ Class of quadrature rules derived by constructing polynomial functions which are
 to integrate.
 """
 
-from probnum.quad.quadrature import Quadrature
 from probnum import utils
+from probnum.quad.quadrature import Quadrature
 
 
 class PolynomialQuadrature(Quadrature):

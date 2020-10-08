@@ -7,10 +7,10 @@ import numpy as np
 
 from probnum.filtsmooth import (
     DiscreteGaussianLTIModel,
-    generate_dd,
+    DiscreteGaussianModel,
     LTISDEModel,
     generate_cd,
-    DiscreteGaussianModel,
+    generate_dd,
 )
 from probnum.random_variables import Normal
 from tests.testing import NumpyAssertions

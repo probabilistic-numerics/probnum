@@ -6,15 +6,13 @@ import numpy as np
 
 from probnum import utils as _utils
 from probnum.type import (
-    ShapeType,
-    # Argument Types
     ArrayLikeGetitemArgType,
     RandomStateArgType,
     ShapeArgType,
+    ShapeType,
 )
 
 from . import _random_variable
-
 
 _ValueType = TypeVar("ValueType")
 

@@ -4,7 +4,6 @@ Utility functions for functions, methods and the like.
 
 import numpy as np
 
-
 __all__ = ["assert_evaluates_to_scalar"]
 
 

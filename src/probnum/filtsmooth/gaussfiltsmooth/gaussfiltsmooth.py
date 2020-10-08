@@ -6,10 +6,9 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
-
-from probnum.random_variables import Normal
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
+from probnum.random_variables import Normal
 
 
 class GaussFiltSmooth(BayesFiltSmooth, ABC):

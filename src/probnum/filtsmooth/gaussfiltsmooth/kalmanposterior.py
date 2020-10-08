@@ -9,10 +9,10 @@ from warnings import warn
 
 import numpy as np
 
-from probnum._randomvariablelist import _RandomVariableList
-from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 import probnum.random_variables as rvs
 from probnum import utils
+from probnum._randomvariablelist import _RandomVariableList
+from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
 class KalmanPosterior(FiltSmoothPosterior):
