@@ -48,12 +48,12 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    :maxdepth: 1
    :caption: API Documentation
 
-   public_api/probnum
    public_api/diffeq
    public_api/filtsmooth
    public_api/linalg
    public_api/linops
    public_api/quad
+   public_api/random_variables
    public_api/utils
 
 .. toctree::
