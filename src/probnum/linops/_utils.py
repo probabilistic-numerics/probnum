@@ -26,6 +26,7 @@ def aslinop(A) -> _linear_operator.LinearOperator:
 
     Examples
     --------
+    >>> import numpy as np
     >>> from probnum.linops import aslinop
     >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
     >>> aslinop(M)
