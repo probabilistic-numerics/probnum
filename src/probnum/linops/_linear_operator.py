@@ -70,7 +70,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.linalg.linops import LinearOperator
+    >>> from probnum.linops import LinearOperator
     >>> def mv(v):
     ...     return np.array([2 * v[0] - v[1], 3 * v[1]])
     ...
@@ -599,7 +599,7 @@ def aslinop(A):
 
     Examples
     --------
-    >>> from probnum.linalg.linops import aslinop
+    >>> from probnum.linops import aslinop
     >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
     >>> aslinop(M)
     <2x3 MatrixMult with dtype=int32>
