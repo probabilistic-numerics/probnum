@@ -2,11 +2,10 @@
 import itertools
 import unittest
 
-import linops
 import numpy as np
 import scipy.sparse
 
-from probnum import linops
+import probnum.linops as linops
 from tests.testing import NumpyAssertions
 
 
