@@ -45,8 +45,6 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     Implementing ``_adjoint`` is preferable; ``_rmatvec`` is mostly there for backwards
     compatibility.
 
-    This class inherits from :class:`scipy.sparse.linalg.LinearOperator`.
-
     Parameters
     ----------
     shape : tuple
@@ -575,39 +573,3 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
             raise ValueError("The trace is only defined for square linear operators.")
         else:
             return np.trace(self.A)
-
-
-def aslinop(A):
-    """
-    Return `A` as a :class:`LinearOperator`.
-
-    Parameters
-    ----------
-    A : array-like or LinearOperator or RandomVariable or object
-        Argument to be represented as a linear operator. When `A` is an object it needs
-        to have the attributes `.shape` and `.matvec`.
-
-    Notes
-    -----
-    If `A` has no `.dtype` attribute, the data type is determined by calling
-    :func:`LinearOperator.matvec()` - set the `.dtype` attribute to prevent this
-    call upon the linear operator creation.
-
-    See Also
-    --------
-    LinearOperator : Class representing linear operators.
-
-    Examples
-    --------
-    >>> from probnum.linops import aslinop
-    >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
-    >>> aslinop(M)
-    <2x3 MatrixMult with dtype=int32>
-    """
-    if isinstance(A, scipy.sparse.linalg.LinearOperator):
-        return A
-    elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
-        return MatrixMult(A=A)
-    else:
-        op = scipy.sparse.linalg.aslinearoperator(A)
-        return LinearOperator(op)

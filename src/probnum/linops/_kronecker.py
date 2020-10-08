@@ -5,10 +5,10 @@ This module implements operators of Kronecker-type or linked to Kronecker-type p
 """
 import numpy as np
 
-from probnum.linops._linear_operator import LinearOperator, aslinop
+from . import _linear_operator, _utils
 
 
-class Symmetrize(LinearOperator):
+class Symmetrize(_linear_operator.LinearOperator):
     """
     Symmetrizes a vector in its matrix representation.
 
@@ -32,7 +32,7 @@ class Symmetrize(LinearOperator):
         return Y.reshape(-1, 1)
 
 
-class Vec(LinearOperator):
+class Vec(_linear_operator.LinearOperator):
     """
     Vectorization operator.
 
@@ -68,7 +68,7 @@ class Vec(LinearOperator):
             return X.ravel(order="F")
 
 
-class Svec(LinearOperator):
+class Svec(_linear_operator.LinearOperator):
     """
     Symmetric vectorization operator.
 
@@ -148,7 +148,7 @@ class Svec(LinearOperator):
             )
 
 
-class Kronecker(LinearOperator):
+class Kronecker(_linear_operator.LinearOperator):
     """
     Kronecker product of two linear operators.
 
@@ -191,8 +191,8 @@ class Kronecker(LinearOperator):
 
     # todo: extend this to list of operators
     def __init__(self, A, B, dtype=None):
-        self.A = aslinop(A)
-        self.B = aslinop(B)
+        self.A = _utils.aslinop(A)
+        self.B = _utils.aslinop(B)
         super().__init__(
             dtype=dtype,
             shape=(
@@ -258,7 +258,7 @@ class Kronecker(LinearOperator):
             raise NotImplementedError
 
 
-class SymmetricKronecker(LinearOperator):
+class SymmetricKronecker(_linear_operator.LinearOperator):
     """
     Symmetric Kronecker product of two linear operators.
 
@@ -297,13 +297,13 @@ class SymmetricKronecker(LinearOperator):
 
     def __init__(self, A, B=None, dtype=None):
         # Set parameters
-        self.A = aslinop(A)
+        self.A = _utils.aslinop(A)
         self._ABequal = False
         if B is None:
             self.B = self.A
             self._ABequal = True
         else:
-            self.B = aslinop(B)
+            self.B = _utils.aslinop(B)
         self._n = self.A.shape[0]
         if self.A.shape != self.B.shape or self.A.shape[1] != self._n:
             raise ValueError(
