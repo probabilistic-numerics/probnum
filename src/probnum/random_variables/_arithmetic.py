@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Tuple, Union
 
 import numpy as np
 
-import probnum.linear_operators as _linear_operators
+import probnum.linops as _linear_operators
 from probnum import utils as _utils
 
 from ._dirac import Dirac as _Dirac

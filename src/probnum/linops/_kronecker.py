@@ -5,7 +5,7 @@ This module implements operators of Kronecker-type or linked to Kronecker-type p
 """
 import numpy as np
 
-from probnum.linear_operators._linear_operator import LinearOperator, aslinop
+from probnum.linops._linear_operator import LinearOperator, aslinop
 
 
 class Symmetrize(LinearOperator):

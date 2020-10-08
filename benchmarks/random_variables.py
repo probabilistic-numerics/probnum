@@ -5,7 +5,7 @@ Benchmarks for random variables.
 import numpy as np
 
 from benchmarks.benchmark_utils import SPD_MATRIX_5x5
-from probnum import linear_operators
+from probnum import linops
 from probnum import random_variables as rvs
 
 # Module level variables
@@ -25,11 +25,11 @@ def get_randvar(rv_name):
     mean_0d = np.random.rand()
     mean_1d = np.random.rand(5)
     mean_2d_mat = SPD_MATRIX_5x5
-    mean_2d_linop = linear_operators.MatrixMult(SPD_MATRIX_5x5)
+    mean_2d_linop = linops.MatrixMult(SPD_MATRIX_5x5)
     cov_0d = np.random.rand() + 10 ** -12
     cov_1d = SPD_MATRIX_5x5
-    cov_2d_kron = linear_operators.Kronecker(A=SPD_MATRIX_5x5, B=SPD_MATRIX_5x5)
-    cov_2d_symkron = linear_operators.SymmetricKronecker(A=SPD_MATRIX_5x5)
+    cov_2d_kron = linops.Kronecker(A=SPD_MATRIX_5x5, B=SPD_MATRIX_5x5)
+    cov_2d_symkron = linops.SymmetricKronecker(A=SPD_MATRIX_5x5)
 
     if rv_name == "univar_normal":
         randvar = rvs.Normal(mean=mean_0d, cov=cov_0d)

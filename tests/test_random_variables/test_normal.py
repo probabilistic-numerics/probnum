@@ -7,7 +7,7 @@ import scipy.sparse
 import scipy.stats
 
 import probnum
-from probnum import linear_operators
+from probnum import linops
 from probnum import random_variables as rvs
 from tests.testing import NumpyAssertions
 
@@ -71,7 +71,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             # Matrixvariate
             (
                 np.random.uniform(size=(2, 2)),
-                linear_operators.SymmetricKronecker(
+                linops.SymmetricKronecker(
                     A=np.array([[1.0, 2.0], [2.0, 1.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
                 ).todense(),
@@ -79,33 +79,31 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             # Operatorvariate
             (
                 np.array([1.0, -5.0]),
-                linear_operators.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
+                linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
             ),
             (
-                linear_operators.MatrixMult(A=np.array([[0.0, -5.0]])),
-                linear_operators.Identity(shape=(2, 2)),
+                linops.MatrixMult(A=np.array([[0.0, -5.0]])),
+                linops.Identity(shape=(2, 2)),
             ),
             (
                 np.array([[1.0, 2.0], [-3.0, -0.4], [4.0, 1.0]]),
-                linear_operators.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
+                linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
             ),
             (
-                linear_operators.MatrixMult(A=sparsemat.todense()),
-                linear_operators.Kronecker(
-                    0.1 * linear_operators.Identity(m), linear_operators.Identity(n)
-                ),
+                linops.MatrixMult(A=sparsemat.todense()),
+                linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
             ),
             (
-                linear_operators.MatrixMult(A=np.random.uniform(size=(2, 2))),
-                linear_operators.SymmetricKronecker(
+                linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
+                linops.SymmetricKronecker(
                     A=np.array([[1.0, 2.0], [2.0, 1.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
                 ),
             ),
             # Symmetric Kronecker Identical Factors
             (
-                linear_operators.Identity(shape=25),
-                linear_operators.SymmetricKronecker(A=linear_operators.Identity(25)),
+                linops.Identity(shape=25),
+                linops.SymmetricKronecker(A=linops.Identity(25)),
             ),
         ]
 
@@ -158,8 +156,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         def mv(v):
             return np.array([2 * v[0], 3 * v[1]])
 
-        A = linear_operators.LinearOperator(shape=(2, 2), matvec=mv)
-        V = linear_operators.Kronecker(A, A)
+        A = linops.LinearOperator(shape=(2, 2), matvec=mv)
+        V = linops.Kronecker(A, A)
         rvs.Normal(mean=A, cov=V)
 
     def test_normal_dimension_mismatch(self):
@@ -212,7 +210,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 rv = rvs.Normal(mean=mean, cov=0 * cov, random_state=1)
                 rv_sample = rv.sample(size=1)
                 assert_str = "Draw with kernels zero does not match mean."
-                if isinstance(rv.mean, linear_operators.LinearOperator):
+                if isinstance(rv.mean, linops.LinearOperator):
                     self.assertAllClose(rv_sample, rv.mean.todense(), msg=assert_str)
                 else:
                     self.assertAllClose(rv_sample, rv.mean, msg=assert_str)
@@ -226,7 +224,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         A = 0.5 * (A + A.T) + n * np.eye(n)
         rv = rvs.Normal(
             mean=np.eye(A.shape[0]),
-            cov=linear_operators.SymmetricKronecker(A=A),
+            cov=linops.SymmetricKronecker(A=A),
             random_state=1,
         )
         rv = rv.sample(size=10)
@@ -499,7 +497,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_reshape(self):
         rv = rvs.Normal(
             mean=np.random.uniform(size=(4, 3)),
-            cov=linear_operators.Kronecker(
+            cov=linops.Kronecker(
                 A=_random_spd_matrix(4), B=_random_spd_matrix(3)
             ).todense(),
         )

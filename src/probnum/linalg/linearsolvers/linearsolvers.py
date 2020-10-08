@@ -13,7 +13,7 @@ import numpy as np
 import scipy.sparse
 
 import probnum
-from probnum import linear_operators, utils
+from probnum import linops, utils
 from probnum.linalg.linearsolvers.matrixbased import (
     AsymmetricMatrixBasedSolver,
     NoisySymmetricMatrixBasedSolver,
@@ -458,16 +458,10 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
     # Extract information from priors
     # System matrix is symmetric
     if isinstance(A0, probnum.RandomVariable):
-        if (
-            isinstance(A0.cov, linear_operators.SymmetricKronecker)
-            and "sym" not in assume_A
-        ):
+        if isinstance(A0.cov, linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
     if isinstance(Ainv0, probnum.RandomVariable):
-        if (
-            isinstance(Ainv0.cov, linear_operators.SymmetricKronecker)
-            and "sym" not in assume_A
-        ):
+        if isinstance(Ainv0.cov, linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
     # System matrix is NOT stochastic
     if (

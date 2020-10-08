@@ -22,5 +22,5 @@ __all__ = [
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-LinearOperator.__module__ = "probnum.linear_operators"
-ScalarMult.__module__ = "probnum.linear_operators"
+LinearOperator.__module__ = "probnum.linops"
+ScalarMult.__module__ = "probnum.linops"

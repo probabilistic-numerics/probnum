@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from probnum import linear_operators
+from probnum import linops
 from tests.testing import NumpyAssertions
 
 
@@ -32,7 +32,7 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
                     ValueError,
                     msg="Invalid input dimension n should raise a ValueError.",
                 ):
-                    linear_operators.Svec(dim=n)
+                    linops.Svec(dim=n)
 
     def test_symmetrize(self):
         """The Symmetrize operators should symmetrize vectors and columns of matrices."""
@@ -40,20 +40,18 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 x = np.random.uniform(size=n * n)
                 X = np.reshape(x, (n, n))
-                y = linear_operators.Symmetrize(dim=n) @ x
+                y = linops.Symmetrize(dim=n) @ x
 
                 self.assertArrayEqual(
                     y.reshape(n, n), 0.5 * (X + X.T), msg="Matrix not symmetric."
                 )
 
                 Z = np.random.uniform(size=(9, 5))
-                W = linear_operators.Symmetrize(dim=3) @ Z
+                W = linops.Symmetrize(dim=3) @ Z
 
                 self.assertArrayEqual(
                     W,
-                    np.vstack(
-                        [linear_operators.Symmetrize(dim=3) @ col for col in Z.T]
-                    ).T,
+                    np.vstack([linops.Symmetrize(dim=3) @ col for col in Z.T]).T,
                     msg="Matrix columns were not symmetrized.",
                 )
 
@@ -67,8 +65,8 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
         """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
         for A, B in self.kronecker_matrices:
             with self.subTest():
-                W = linear_operators.Kronecker(A=A, B=B)
-                V = linear_operators.Kronecker(A=A.T, B=B.T)
+                W = linops.Kronecker(A=A, B=B)
+                V = linops.Kronecker(A=A.T, B=B.T)
 
                 self.assertAllClose(W.T.todense(), V.todense())
 
@@ -76,7 +74,7 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
         """Test the Kronecker operator against explicit matrix representations."""
         for A, B in self.kronecker_matrices:
             with self.subTest():
-                W = linear_operators.Kronecker(A=A, B=B)
+                W = linops.Kronecker(A=A, B=B)
                 AkronB = np.kron(A, B)
 
                 self.assertAllClose(W.todense(), AkronB)
@@ -85,7 +83,7 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
         """Dense matrix from symmetric Kronecker product of two symmetric matrices must be symmetric."""
         C = np.array([[5, 1], [1, 10]])
         D = np.array([[-2, 0.1], [0.1, 8]])
-        Ws = linear_operators.SymmetricKronecker(A=C, B=C)
+        Ws = linops.SymmetricKronecker(A=C, B=C)
         Ws_dense = Ws.todense()
         self.assertArrayEqual(
             Ws_dense,
@@ -101,8 +99,8 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
         """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
         for A, B in self.symmkronecker_matrices:
             with self.subTest():
-                W = linear_operators.SymmetricKronecker(A=A, B=B)
-                V = linear_operators.SymmetricKronecker(A=A.T, B=B.T)
+                W = linops.SymmetricKronecker(A=A, B=B)
+                V = linops.SymmetricKronecker(A=A.T, B=B.T)
 
                 self.assertAllClose(W.T.todense(), V.todense())
 
@@ -110,7 +108,7 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
         """Symmetric Kronecker products fulfill A (x)_s B = B (x)_s A"""
         for A, B in self.symmkronecker_matrices:
             with self.subTest():
-                W = linear_operators.SymmetricKronecker(A=A, B=B)
-                V = linear_operators.SymmetricKronecker(A=B, B=A)
+                W = linops.SymmetricKronecker(A=A, B=B)
+                V = linops.SymmetricKronecker(A=B, B=A)
 
                 self.assertAllClose(W.todense(), V.todense())

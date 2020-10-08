@@ -53,7 +53,6 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    public_api/quad
    public_api/diffeq
    public_api/filtsmooth
-   public_api/utils
 
 .. toctree::
    :maxdepth: 1
