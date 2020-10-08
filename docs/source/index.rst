@@ -49,10 +49,12 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    :caption: API Documentation
 
    public_api/probnum
-   public_api/linalg
-   public_api/quad
    public_api/diffeq
    public_api/filtsmooth
+   public_api/linalg
+   public_api/linops
+   public_api/quad
+   public_api/utils
 
 .. toctree::
    :maxdepth: 1
