@@ -7,9 +7,8 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 import probnum
-from probnum import linalg
+from probnum import linalg, linops
 from probnum import random_variables as rvs
-from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
 
@@ -383,7 +382,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             cov=linops.SymmetricKronecker(A=linops.Identity(A.shape[1])),
         )
         A0 = rvs.Normal(
-            mean=linops.Identity(A.shape[1]), cov=linops.SymmetricKronecker(A)
+            mean=linops.Identity(A.shape[1]),
+            cov=linops.SymmetricKronecker(A),
         )
         for kwargs in [{"assume_A": "sympos", "rtol": 10 ** -6}]:
             with self.subTest():

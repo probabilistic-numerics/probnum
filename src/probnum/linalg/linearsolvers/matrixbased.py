@@ -11,8 +11,8 @@ import GPy
 import numpy as np
 
 import probnum
+from probnum import linops
 from probnum import random_variables as rvs
-from probnum.linalg import linops
 
 
 class ProbabilisticLinearSolver(abc.ABC):
@@ -760,7 +760,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         A = rvs.Normal(mean=self.A_mean, cov=linops.SymmetricKronecker(A=_A_covfactor))
 
         Ainv = rvs.Normal(
-            mean=self.Ainv_mean, cov=linops.SymmetricKronecker(A=_Ainv_covfactor)
+            mean=self.Ainv_mean,
+            cov=linops.SymmetricKronecker(A=_Ainv_covfactor),
         )
         # Induced distribution on x via Ainv
         # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
