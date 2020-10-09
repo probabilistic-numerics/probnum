@@ -70,6 +70,24 @@ Building the documentation locally requires additional packages (e.g. for inheri
 - [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
 - [graphviz](https://graphviz.org/): In Ubuntu, install via `sudo apt install graphviz`
 
+### Advanced Developer Setup
+
+For regular contributors to ProbNum we provide a configuration file `
+.pre-commit-config.yaml ` with useful pre-commit hooks. These allow the automatic
+identification of simple issues in a commit, e.g. inconsistent code formatting. They are
+executed automatically whenever `git commit` is executed. This way one can avoid common
+problems in a pull request which prevent an automatic merge into the `master` branch on
+GitHub. To set up ProbNum's pre-commit hooks simply install [pre-commit](https://pre-commit.com/) by executing
+```bash
+pip install pre-commit
+```
+and install the configuration script via
+```bash
+pre-commit install
+```
+in the `probnum` folder.
+
+
 ## Testing
 
 [![test coverage: latest](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
