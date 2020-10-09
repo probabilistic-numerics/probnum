@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from probnum.linalg import linops
+from probnum import linops
 from tests.testing import NumpyAssertions
 
 

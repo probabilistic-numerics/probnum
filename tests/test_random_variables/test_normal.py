@@ -7,8 +7,8 @@ import scipy.sparse
 import scipy.stats
 
 import probnum
+from probnum import linops
 from probnum import random_variables as rvs
-from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
 
@@ -223,7 +223,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         A = np.random.uniform(size=(n, n))
         A = 0.5 * (A + A.T) + n * np.eye(n)
         rv = rvs.Normal(
-            mean=np.eye(A.shape[0]), cov=linops.SymmetricKronecker(A=A), random_state=1
+            mean=np.eye(A.shape[0]),
+            cov=linops.SymmetricKronecker(A=A),
+            random_state=1,
         )
         rv = rv.sample(size=10)
         for i, B in enumerate(rv):
