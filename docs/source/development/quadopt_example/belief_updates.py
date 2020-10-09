@@ -8,8 +8,8 @@ from typing import Union
 import numpy as np
 
 import probnum as pn
-import probnum.random_variables as rvs
 import probnum.linalg.linops as linops
+import probnum.random_variables as rvs
 from probnum.type import FloatArgType
 
 

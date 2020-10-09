@@ -7,8 +7,8 @@ be provided and is updated with information collected by the solvers to return a
 posterior distribution.
 """
 
-from typing import Optional, Union, Callable, Dict, Tuple
 import warnings
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse

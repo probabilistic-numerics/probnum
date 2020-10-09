@@ -2,7 +2,7 @@
 Example Implementation of 1D (noisy) quadratic optimization.
 """
 
-from ._quadratic_programming import probsolve_qp, ProbabilisticQuadraticOptimizer
+from ._quadratic_programming import ProbabilisticQuadraticOptimizer, probsolve_qp
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

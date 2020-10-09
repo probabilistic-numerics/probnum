@@ -1,18 +1,19 @@
 import collections.abc
-from typing import Optional, Union, Callable, Dict, Tuple, Iterable
 from functools import partial
+from typing import Callable, Dict, Iterable, Optional, Tuple, Union
 
 import numpy as np
 
 import probnum as pn
 import probnum.linalg.linops as linops
 import probnum.random_variables as rvs
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 import probnum.utils as _utils
-from .policies import stochastic_policy, explore_exploit_policy
-from .observation_operators import function_evaluation
+from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+
 from .belief_updates import gaussian_belief_update
-from .stopping_criteria import parameter_uncertainty, maximum_iterations
+from .observation_operators import function_evaluation
+from .policies import explore_exploit_policy, stochastic_policy
+from .stopping_criteria import maximum_iterations, parameter_uncertainty
 
 
 def probsolve_qp(
