@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 import scipy.sparse
 
-import probnum.linops as linops
+from probnum import linops
 from tests.testing import NumpyAssertions
 
 
