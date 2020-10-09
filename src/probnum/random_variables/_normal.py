@@ -6,8 +6,8 @@ import numpy as np
 import scipy.linalg
 import scipy.stats
 
+from probnum import linops
 from probnum import utils as _utils
-from probnum.linalg import linops
 from probnum.type import (
     ArrayLikeGetitemArgType,
     FloatArgType,
