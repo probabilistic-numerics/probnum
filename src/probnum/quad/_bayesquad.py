@@ -10,22 +10,36 @@ variable, specifying the belief about the true value of the integral.
 from .bq_methods import BayesianQuadrature, WarpedBayesianQuadrature
 
 
-def bayesquad(fun, fun0, domain, measure, nevals=None, method="vanilla"):
-    """N-dimensional Bayesian quadrature.
+def bayesquad(fun, fun0, domain, nevals=None, measure=None, method="vanilla"):
+    """Bayesian quadrature (BQ) infers integrals of the form
+
+    .. math:: F = \\int_a^b f(x) d \\mu(x),
+
+    of a function :math: `f:\\mathbb{R}^n \\mapsto \\mathbb{R}` integrated between bounds
+    :math: `a` and :math: `b` against a measure :math: `\\mu: \\mathbb{R}^n \\mapsto \\mathbb{R}`.
+
+    Bayesian quadrature methods return a probability distribution over the solution :math: `F` with
+    uncertainty arising from finite computation (here a finite number of function evaluations).
+    They start out with a random process encoding the prior belief about the function :math: `f`
+    to be integrated. Conditioned on either existing or acquired function evaluations according to a
+    policy, they update the belief on :math: `f`, which is translated into a posterior measure over
+    the integral :math: `F`.
 
     Parameters
     ----------
-    fun :
+    fun : function
         Function to be integrated.
-    fun0 :
+    fun0 : RandomProcess or function, optional
         Stochastic process modelling the function to be integrated.
-    domain :
-        Domain of integration.
+    domain : Tuple
+        Domain of integration. Contains lower and upper bound as int or ndarray, shape=(dim,)
     measure :
         Measure to integrate against.
     nevals :
         Number of function evaluations.
-    method :
+    measure: IntegrationMeasure, optional
+        Integration measure, defaults to the Lebesgue measure.
+    method : str, optional
         Type of Bayesian quadrature to use. The available options are
 
         ====================  ===========

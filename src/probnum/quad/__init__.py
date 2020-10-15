@@ -3,6 +3,7 @@
 from ._bayesquad import *
 from .bq_methods import *
 
+
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "bayesquad",
