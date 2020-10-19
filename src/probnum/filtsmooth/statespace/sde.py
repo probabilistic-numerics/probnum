@@ -121,7 +121,7 @@ class LinearSDE(SDE):
         """
         Spatial dimension (utility attribute).
         """
-        return len(self._driftmatrixfct(0.0))
+        return len(self._driftmatrixfun(0.0))
 
 
 class LTISDE(LinearSDE):

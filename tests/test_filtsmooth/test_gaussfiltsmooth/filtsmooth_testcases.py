@@ -5,13 +5,7 @@ import unittest
 
 import numpy as np
 
-from probnum.filtsmooth import (
-    DiscreteGaussianLTIModel,
-    DiscreteGaussianModel,
-    LTISDEModel,
-    generate_cd,
-    generate_dd,
-)
+import probnum.filtsmooth as pnfs
 from probnum.random_variables import Normal
 from tests.testing import NumpyAssertions
 
@@ -41,15 +35,15 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
     cov = 0.5 * var * np.eye(4)
 
     def setup_cartracking(self):
-        self.dynmod = DiscreteGaussianLTIModel(
+        self.dynmod = pnfs.statespace.DiscreteGaussianLTIModel(
             dynamat=self.dynamat, forcevec=np.zeros(4), diffmat=self.dynadiff
         )
-        self.measmod = DiscreteGaussianLTIModel(
+        self.measmod = pnfs.statespace.DiscreteGaussianLTIModel(
             dynamat=self.measmat, forcevec=np.zeros(2), diffmat=self.measdiff
         )
         self.initrv = Normal(self.mean, self.cov)
         self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = generate_dd(
+        self.states, self.obs = pnfs.statespace.generate_dd(
             self.dynmod, self.measmod, self.initrv, self.tms
         )
 
@@ -63,22 +57,21 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
     lam, q, r = 0.21, 0.5, 0.1
     drift = -lam * np.eye(1)
     force = np.zeros(1)
-    disp = np.eye(1)
-    diff = q * np.eye(1)
+    disp = np.sqrt(q) * np.eye(1)
+    diff = np.eye(1)
 
     def setup_ornsteinuhlenbeck(self):
-        self.dynmod = LTISDEModel(
+        self.dynmod = pnfs.statespace.LTISDE(
             driftmatrix=self.drift,
-            force=self.force,
+            forcevec=self.force,
             dispmatrix=self.disp,
-            diffmatrix=self.diff,
         )
-        self.measmod = DiscreteGaussianLTIModel(
+        self.measmod = pnfs.statespace.DiscreteGaussianLTIModel(
             dynamat=np.eye(1), forcevec=np.zeros(1), diffmat=self.r * np.eye(1)
         )
         self.initrv = Normal(10 * np.ones(1), np.eye(1))
         self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = generate_cd(
+        self.states, self.obs = pnfs.statespace.generate_cd(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
 
@@ -117,11 +110,11 @@ class PendulumNonlinearDDTestCase(unittest.TestCase, NumpyAssertions):
         self.r = var * np.eye(1)
         initmean = np.ones(2)
         initcov = var * np.eye(2)
-        self.dynamod = DiscreteGaussianModel(f, lambda t: q, df)
-        self.measmod = DiscreteGaussianModel(h, lambda t: self.r, dh)
+        self.dynamod = pnfs.statespace.DiscreteGaussianModel(f, lambda t: q, df)
+        self.measmod = pnfs.statespace.DiscreteGaussianModel(h, lambda t: self.r, dh)
         self.initrv = Normal(initmean, initcov)
         self.tms = np.arange(0, 4, delta_t)
         self.q = q
-        self.states, self.obs = generate_dd(
+        self.states, self.obs = pnfs.statespace.generate_dd(
             self.dynamod, self.measmod, self.initrv, self.tms
         )

@@ -11,15 +11,15 @@ class ContinuousEKF(statespace.Transition):
     """Continuous extended Kalman filter transition."""
 
     def __init__(self, cont_model):
-        if not isinstance(cont_model, statespace.ContinuousModel):
-            raise TypeError
+        if not isinstance(cont_model, statespace.SDE):
+            raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
         self.cont_model = cont_model
 
     def transition_realization(self, real, start, stop, **kwargs):
         return self.cont_model.transition_realization(real, start, stop, **kwargs)
 
     def transition_rv(self, rv, start, stop, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError("TODO")
 
     @property
     def dimension(self):

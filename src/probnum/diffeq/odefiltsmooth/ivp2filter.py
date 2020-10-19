@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum import random_variables as rvs
 from probnum.filtsmooth import *
-from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
+from probnum.filtsmooth.statespace import *
 
 
 def ivp2ekf0(ivp, prior, evlvar):

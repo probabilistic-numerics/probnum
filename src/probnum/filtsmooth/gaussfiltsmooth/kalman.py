@@ -106,10 +106,10 @@ class Kalman(BayesFiltSmooth, ABC):
         return filtrv
 
     def predict(self, start, stop, randvar, **kwargs):
-        return self.dynamic_model.transition_rv(randvar, start, stop, **kwargs)
+        return self.dynamod.transition_rv(randvar, start, stop=stop, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
-        meas_rv, info = self.measurement_model.transition_rv(randvar, time)
+        meas_rv, info = self.measmod.transition_rv(randvar, time)
         crosscov = info["crosscov"]
         new_mean = randvar.mean + crosscov @ np.linalg.solve(
             meas_rv.cov, data - meas_rv.mean
@@ -199,11 +199,11 @@ class Kalman(BayesFiltSmooth, ABC):
             Cross-covariance between unsmoothed_rv and pred_rv as
             returned by predict().
         """
-        predicted_rv, info = self.measurement_model.transition_rv(
-            unsmoothed_rv, start, stop, **kwargs
+        predicted_rv, info = self.dynamod.transition_rv(
+            unsmoothed_rv, start, stop=stop, **kwargs
         )
         crosscov = info["crosscov"]
-        smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T)
+        smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T
         new_mean = unsmoothed_rv.mean + smoothing_gain @ (
             smoothed_rv.mean - predicted_rv.mean
         )
