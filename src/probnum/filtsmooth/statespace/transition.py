@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum.random_variables import RandomVariable
 
-__all__ = ["Transition"]
+__all__ = ["Transition", "generate_cd", "generate_dd"]
 
 
 class Transition(abc.ABC):
