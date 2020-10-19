@@ -12,6 +12,7 @@ __all__ = [
     "fitzhughnagumo",
     "lotkavolterra",
     "probsolve_ivp",
+    "ODESolver",
     "GaussianIVPFilter",
     "ODEPrior",
     "IBM",
