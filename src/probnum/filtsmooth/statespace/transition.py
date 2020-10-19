@@ -148,7 +148,6 @@ class Transition(abc.ABC):
         raise NotImplementedError
 
 
-
 def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
     """
     Samples true states and observations at pre-determined

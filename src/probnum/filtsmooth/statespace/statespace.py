@@ -6,4 +6,3 @@ or discrete-discrete (_dd) models
 """
 
 import numpy as np
-

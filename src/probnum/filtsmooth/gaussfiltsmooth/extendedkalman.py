@@ -9,6 +9,7 @@ from probnum.random_variables import Normal
 
 class ContinuousEKF(statespace.Transition):
     """Continuous extended Kalman filter transition."""
+
     def __init__(self, cont_model):
         if not isinstance(cont_model, statespace.ContinuousModel):
             raise TypeError
@@ -27,6 +28,7 @@ class ContinuousEKF(statespace.Transition):
 
 class DiscreteEKF(statespace.Transition):
     """Discrete extended Kalman filter transition."""
+
     def __init__(self, disc_model):
         self.disc_model = disc_model
 
@@ -49,4 +51,3 @@ class DiscreteEKF(statespace.Transition):
     def from_ode(self, ode, integrator):
         """Will replace `ivp2ekf` soon... """
         raise NotImplementedError
-

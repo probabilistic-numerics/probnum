@@ -13,6 +13,7 @@ from probnum.random_variables import Normal
 
 class ContinuousUKF(statespace.Transition):
     """Continuous unscented Kalman filter transition."""
+
     def __init__(self, cont_model):
         if not isinstance(cont_model, statespace.ContinuousModel):
             raise TypeError
@@ -31,6 +32,7 @@ class ContinuousUKF(statespace.Transition):
 
 class DiscreteUKF(statespace.Transition):
     """Discrete extended Kalman filter transition."""
+
     def __init__(self, disc_model, alpha, beta, kappa):
         self.disc_model = disc_model
         self.ut = ut.UnscentedTransform(self.disc_model.dimension, alpha, beta, kappa)
@@ -42,7 +44,9 @@ class DiscreteUKF(statespace.Transition):
         sigmapts = ut.sigma_points(rv.mean, rv.cov)
         proppts = ut.propagate(start, sigmapts, self.disc_model.dynamics)
         meascov = self.disc_model.diffusionmatrix(start, **kwargs)
-        mean, cov, crosscov = ut.estimate_statistics(proppts, sigmapts, meascov, rv.mean)
+        mean, cov, crosscov = ut.estimate_statistics(
+            proppts, sigmapts, meascov, rv.mean
+        )
         return Normal(mean, cov), {"crosscov": crosscov}
 
     @property

@@ -222,7 +222,9 @@ class LTISDEModel(LinearSDE):
         """
         if np.linalg.norm(self._forcevec) > 0:
             raise NotImplementedError("MFD does not work for force>0 (yet).")
-        ah, qh, _ = matrix_fraction_decomposition(self.driftmatrix, self.dispersionmatrix, step)
+        ah, qh, _ = matrix_fraction_decomposition(
+            self.driftmatrix, self.dispersionmatrix, step
+        )
         sh = np.zeros(len(ah))
         return ah, sh, qh
 
