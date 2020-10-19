@@ -14,7 +14,11 @@ class Integrator(sde.LTISDE):
     They have special structure as $d \otimes q+1$.
     """
 
-    def proj2coord(self, coord: int) -> np.ndarray:
+    def proj2coord(self, state_or_rv, coord):
+        """Project a state or a random variable to its respective coordinate"""
+        raise NotImplementedError
+
+    def proj2coord_matrix(self, coord: int) -> np.ndarray:
         """
         Projection matrix to :math:`i`-th coordinates.
 
@@ -38,17 +42,23 @@ class Integrator(sde.LTISDE):
         np.ndarray, shape=(d, d*(q+1))
             Projection matrix :math:`H_i`.
         """
-        projvec1d = np.eye(self.ordint + 1)[:, coord]
-        projmat1d = projvec1d.reshape((1, self.ordint + 1))
-        projmat = np.kron(np.eye(self.spatialdim), projmat1d)
-        projmat1d_with_precond = projmat @ self.invprecond
-        return projmat1d_with_precond
+        raise NotImplementedError
 
 
 class GeneralMatern(Integrator):
-    """With matrices W_0, ..., W_q."""
+    """
+    With matrices W_0, ..., W_q.
 
-    pass
+    Parameters
+    ----------
+    weight_matrices :
+        Weight matrices W_0, ..., W_q. Shape (q+1, d, d)
+    diffusion_matrix :
+        Diffusion matrix sqrt(gamma). Shape (d, d).
+    """
+
+    def __init__(self, weight_matrices, diffusion_matrix):
+        raise NotImplementedError
 
 
 class TensorMatern(GeneralMatern):
