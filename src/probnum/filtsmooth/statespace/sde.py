@@ -124,7 +124,7 @@ class LinearSDE(SDE):
         return len(self._driftmatrixfct(0.0))
 
 
-class LTISDEModel(LinearSDE):
+class LTISDE(LinearSDE):
     """
     Linear time-invariant continuous Markov models of the
     form

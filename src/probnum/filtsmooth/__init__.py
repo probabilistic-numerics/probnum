@@ -9,16 +9,16 @@ from .statespace import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
-    "GaussFiltSmooth",
     "Kalman",
-    "ExtendedKalman",
-    "UnscentedKalman",
+    "ContinuousEKF",
+    "ContinuousUKF",
+    "DiscreteEKF",
+    "DiscreteUKF",
     "UnscentedTransform",
     "Transition",
-    "ContinuousModel",
-    "LinearSDEModel",
-    "LTISDEModel",
-    "DiscreteModel",
+    "SDE",
+    "LinearSDE",
+    "LTISDE",
     "DiscreteGaussianModel",
     "DiscreteGaussianLinearModel",
     "DiscreteGaussianLTIModel",
@@ -31,10 +31,8 @@ __all__ = [
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
 Transition.__module__ = "probnum.filtsmooth"
-ContinuousModel.__module__ = "probnum.filtsmooth"
-LinearSDEModel.__module__ = "probnum.filtsmooth"
-DiscreteModel.__module__ = "probnum.filtsmooth"
+SDE.__module__ = "probnum.filtsmooth"
+LinearSDE.__module__ = "probnum.filtsmooth"
 DiscreteGaussianModel.__module__ = "probnum.filtsmooth"
 DiscreteGaussianLinearModel.__module__ = "probnum.filtsmooth"
-GaussFiltSmooth.__module__ = "probnum.filtsmooth"
 KalmanPosterior.__module__ = "probnum.filtsmooth"

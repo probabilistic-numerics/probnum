@@ -6,7 +6,7 @@ from initial value problems + state space model to filters.
 import numpy as np
 
 from probnum import random_variables as rvs
-from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
+from probnum.filtsmooth import *
 from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
 
 
