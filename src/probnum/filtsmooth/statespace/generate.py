@@ -66,7 +66,7 @@ def generate_dd(dynmod, measmod, initrv, times):
         Observations according to measurement model.
     """
     states = np.zeros((len(times), dynmod.dimension))
-    obs = np.zeros((len(times) - 1, measmod.dimension))
+    obs = np.zeros((len(times) - 1, len(measmod.diffusionmatrix(0.))))
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]

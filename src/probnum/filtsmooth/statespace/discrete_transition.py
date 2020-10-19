@@ -33,10 +33,11 @@ class DiscreteGaussianModel(transition.Transition):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynafct, diffmatfct, jacfct=None):
+    def __init__(self, dynafct, diffmatfct, jacfct=None, dimension=None):
         self._dynafct = dynafct
         self._diffmatfct = diffmatfct
         self._jacfct = jacfct
+        self._dimension = dimension
 
     def transition_realization(self, real, start, stop=None):
         newmean = self._dynafct(start, real)
@@ -48,7 +49,10 @@ class DiscreteGaussianModel(transition.Transition):
 
     @property
     def dimension(self):
-        return len(self.diffusionmatrix(0.0))
+        if self._dimension is not None:
+            return self._dimension
+        else:
+            raise NotImplementedError
 
     def diffusionmatrix(self, time, **kwargs):
         """
@@ -191,6 +195,10 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
             Evaluation of the force :math:`v=v(t)`.
         """
         return self._forcefct(time, **kwargs)
+
+    @property
+    def dimension(self):
+        return len(self.dynamicsmatrix(0.0).T)
 
 
 class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
