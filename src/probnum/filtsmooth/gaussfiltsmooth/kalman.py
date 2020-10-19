@@ -77,6 +77,46 @@ class Kalman(BayesFiltSmooth, ABC):
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
+    def filter_step(self, start, stop, randvar, data, **kwargs):
+        """
+        A single filter step.
+
+        Consists of a prediction step (t -> t+1) and an update step (at t+1).
+
+        Parameters
+        ----------
+        start : float
+            Predict FROM this time point.
+        stop : float
+            Predict TO this time point.
+        randvar : RandomVariable
+            Predict based on this random variable. For instance, this can be the result
+            of a previous call to filter_step.
+        data : array_like
+            Compute the update based on this data.
+
+        Returns
+        -------
+        RandomVariable
+            Resulting filter estimate after the single step.
+        """
+        data = np.asarray(data)
+        predrv, _ = self.predict(start, stop, randvar)
+        filtrv, _, _, _ = self.update(stop, predrv, data)
+        return filtrv
+
+    def predict(self, start, stop, randvar, **kwargs):
+        return self.dynamic_model.transition_rv(randvar, start, stop, **kwargs)
+
+    def update(self, time, randvar, data, **kwargs):
+        meas_rv, info = self.measurement_model.transition_rv(randvar, time)
+        crosscov = info["crosscov"]
+        new_mean = randvar.mean + crosscov @ np.linalg.solve(
+            meas_rv.cov, data - meas_rv.mean
+        )
+        new_cov = randvar.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
+        return Normal(new_mean, new_cov), meas_rv.cov, crosscov, meas_rv.mean
+
     def smooth(self, filter_posterior, **kwargs):
         """
         Apply Gaussian smoothing to a set of filtered means and covariances.
@@ -128,50 +168,18 @@ class Kalman(BayesFiltSmooth, ABC):
         out_rvs = [curr_rv]
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
-            pred_rv, info = self.predict(
+            curr_rv = self.smooth_step(
+                unsmoothed_rv,
+                curr_rv,
                 start=locations[idx - 1],
                 stop=locations[idx],
-                randvar=unsmoothed_rv,
                 **kwargs
-            )
-            if "crosscov" not in info.keys():
-                raise TypeError("Cross-covariance required for smoothing.")
-            curr_rv = self.smooth_step(
-                unsmoothed_rv, pred_rv, curr_rv, info["crosscov"]
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
 
-    def filter_step(self, start, stop, randvar, data, **kwargs):
-        """
-        A single filter step.
-
-        Consists of a prediction step (t -> t+1) and an update step (at t+1).
-
-        Parameters
-        ----------
-        start : float
-            Predict FROM this time point.
-        stop : float
-            Predict TO this time point.
-        randvar : RandomVariable
-            Predict based on this random variable. For instance, this can be the result
-            of a previous call to filter_step.
-        data : array_like
-            Compute the update based on this data.
-
-        Returns
-        -------
-        RandomVariable
-            Resulting filter estimate after the single step.
-        """
-        data = np.asarray(data)
-        predrv, _ = self.predict(start, stop, randvar)
-        filtrv, _, _, _ = self.update(stop, predrv, data)
-        return filtrv
-
-    def smooth_step(self, unsmoothed_rv, pred_rv, smoothed_rv, crosscov):
+    def smooth_step(self, unsmoothed_rv, smoothed_rv, start, stop, **kwargs):
         """
         A single smoother step.
 
@@ -191,36 +199,16 @@ class Kalman(BayesFiltSmooth, ABC):
             Cross-covariance between unsmoothed_rv and pred_rv as
             returned by predict().
         """
-        crosscov = np.asarray(crosscov)
-        initmean, initcov = unsmoothed_rv.mean, unsmoothed_rv.cov
-        predmean, predcov = pred_rv.mean, pred_rv.cov
-        currmean, currcov = smoothed_rv.mean, smoothed_rv.cov
-        if np.isscalar(predmean) and np.isscalar(predcov):
-            predmean = predmean * np.ones(1)
-            predcov = predcov * np.eye(1)
-        newmean = initmean + crosscov @ np.linalg.solve(predcov, currmean - predmean)
-        firstsolve = crosscov @ np.linalg.solve(predcov, currcov - predcov)
-        secondsolve = crosscov @ np.linalg.solve(predcov, firstsolve.T)
-        newcov = initcov + secondsolve.T
-        return Normal(newmean, newcov)
-
-    def predict(self, start, stop, randvar, **kwargs):
-        return self.dynamic_model.transition_rv(randvar, start, stop, **kwargs)
-
-    def update(self, time, randvar, data, **kwargs):
-        meas_rv, info = self.measurement_model.transition_rv(randvar, time)
+        predicted_rv, info = self.measurement_model.transition_rv(
+            unsmoothed_rv, start, stop, **kwargs
+        )
         crosscov = info["crosscov"]
-        new_mean = randvar.mean + crosscov @ np.linalg.solve(meas_rv.cov, data - meas_rv.mean)
-        new_cov = randvar.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
-        return Normal(new_mean, new_cov), meas_rv.cov, crosscov, meas_rv.mean
-
-
-
-
-
-
-
-
-
-
-
+        smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T)
+        new_mean = unsmoothed_rv.mean + smoothing_gain @ (
+            smoothed_rv.mean - predicted_rv.mean
+        )
+        new_cov = (
+            unsmoothed_rv.cov
+            + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
+        )
+        return Normal(new_mean, new_cov)
