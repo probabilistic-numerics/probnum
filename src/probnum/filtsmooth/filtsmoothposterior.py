@@ -1,13 +1,14 @@
-"""Abstract Base Class for posteriors over states after applying filtering/smoothing"""
+"""Abstract Base Class for posteriors over states after applying
+filtering/smoothing."""
 from abc import ABC, abstractmethod
 
 
 class FiltSmoothPosterior(ABC):
-    """Posterior Distribution over States after Filtering/Smoothing"""
+    """Posterior Distribution over States after Filtering/Smoothing."""
 
     @abstractmethod
     def __call__(self, location):
-        """Evaluate the time-continuous posterior for a given location
+        """Evaluate the time-continuous posterior for a given location.
 
         Parameters
         ----------
@@ -22,7 +23,7 @@ class FiltSmoothPosterior(ABC):
 
     @abstractmethod
     def __len__(self):
-        """Length of the discrete-time solution
+        """Length of the discrete-time solution.
 
         Corresponds to the number of filtering/smoothing steps
         """
@@ -30,12 +31,12 @@ class FiltSmoothPosterior(ABC):
 
     @abstractmethod
     def __getitem__(self, idx):
-        """Return the corresponding index/slice of the discrete-time solution"""
+        """Return the corresponding index/slice of the discrete-time
+        solution."""
         raise NotImplementedError
 
     def sample(self, locations=None, size=()):
-        """
-        Draw samples from the filtering/smoothing posterior.
+        """Draw samples from the filtering/smoothing posterior.
 
         If nothing is specified, a single sample is drawn (supported on self.locations).
         If locations are specified, the samples are drawn on those locations.
@@ -57,6 +58,5 @@ class FiltSmoothPosterior(ABC):
             and the state space model has shape (A2, ..., Z2), the output has
             shape (A1, ..., Z1, L, A2, ..., Z2).
             For example: size=4, len(locations)=4, dim=3 gives shape (4, 4, 3).
-
         """
         raise NotImplementedError("Sampling not implemented.")

@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from probnum.filtsmooth.statespace.continuous import linearsdemodel
+import probnum.filtsmooth.statespace as pnfss
 from probnum.random_variables import Normal
 
 TEST_NDIM = 2
@@ -17,13 +17,11 @@ class TestLinearSDEModel(unittest.TestCase):
     def setUp(self):
         self.driftmat = np.random.rand(TEST_NDIM, TEST_NDIM)
         self.dispmat = np.random.rand(TEST_NDIM)
-        self.diffmat = self.driftmat @ self.driftmat.T + np.eye(TEST_NDIM)
         self.force = np.random.rand(TEST_NDIM)
-        self.lm = linearsdemodel.LinearSDEModel(
+        self.lm = pnfss.LinearSDE(
             lambda t: self.driftmat,
             lambda t: self.force,
             lambda t: self.dispmat,
-            self.diffmat,
         )
 
     def test_drift(self):
@@ -43,9 +41,6 @@ class TestLinearSDEModel(unittest.TestCase):
         diff = self.lm.jacobian(0.0, some_state) - self.driftmat
         self.assertLess(np.linalg.norm(diff), 1e-14)
 
-    def test_diff(self):
-        diffusion = self.lm.diffusionmatrix
-        self.assertLess(np.linalg.norm(diffusion - self.diffmat), 1e-14)
 
     def test_ndim(self):
         self.assertEqual(self.lm.dimension, TEST_NDIM)
@@ -58,7 +53,7 @@ class TestLinearSDEModel(unittest.TestCase):
         diff_cov = (
             self.driftmat @ rvar.cov
             + rvar.cov @ self.driftmat.T
-            + self.dispmat @ self.diffmat @ self.dispmat.T
+            + self.dispmat  @ self.dispmat.T
             + rvar.cov
             - cke.cov
         )
@@ -71,7 +66,7 @@ class TestLinearSDEModel(unittest.TestCase):
             real=real, start=0.0, stop=1.0, euler_step=1.0
         )
         diff_mean = self.driftmat @ real + self.force - cke.mean + real
-        diff_cov = self.dispmat @ self.diffmat @ self.dispmat.T - cke.cov
+        diff_cov = self.dispmat  @ self.dispmat.T - cke.cov
         self.assertLess(np.linalg.norm(diff_mean), 1e-14)
         self.assertLess(np.linalg.norm(diff_cov), 1e-14)
 
@@ -109,10 +104,9 @@ class TestLTISDEModel(unittest.TestCase):
     def setUp(self):
         self.driftmat = np.diag(np.ones(TEST_NDIM - 1), 1)
         self.dispmat = 1.5 * np.eye(TEST_NDIM)[:, -1].reshape((TEST_NDIM, 1))
-        self.diffmat = np.eye(1)
         self.force = np.zeros(TEST_NDIM)
-        self.lti = linearsdemodel.LTISDEModel(
-            self.driftmat, self.force, self.dispmat, self.diffmat
+        self.lti = pnfss.LTISDE(
+            self.driftmat, self.force, self.dispmat
         )
 
     def test_drift(self):
@@ -131,10 +125,6 @@ class TestLTISDEModel(unittest.TestCase):
         some_state = np.random.rand(TEST_NDIM)
         diff = self.lti.jacobian(0.0, some_state) - self.driftmat
         self.assertLess(np.linalg.norm(diff), 1e-14)
-
-    def test_diff(self):
-        diffusion = self.lti.diffusionmatrix
-        self.assertLess(np.linalg.norm(diffusion - self.diffmat), 1e-14)
 
     def test_ndim(self):
         self.assertEqual(self.lti.dimension, TEST_NDIM)

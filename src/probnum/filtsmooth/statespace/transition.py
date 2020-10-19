@@ -142,9 +142,13 @@ class Transition(abc.ABC):
         raise NotImplementedError
 
     @property
-    @abc.abstractmethod
     def dimension(self) -> int:
-        """Dimension of the transition model."""
+        """Dimension of the transition model.
+
+        Not all transition models have a unique dimension.
+        Some turn a state (x, y) into a scalar z and it
+        is not clear whether the dimension should be 2 or 1.
+        """
         raise NotImplementedError
 
 
@@ -171,8 +175,8 @@ def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
     obs : np.ndarray; shape (len(times)-1, measmod.dimension)
         Observations according to measurement model.
     """
-    states = np.zeros((len(times), dynmod.dimension))
-    obs = np.zeros((len(times) - 1, measmod.dimension))
+    states = np.zeros((len(times), len(initrv.mean)))
+    obs = np.zeros((len(times) - 1, len(measmod.transition_realization(initrv.mean, times[0])[0].sample())))
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
@@ -210,7 +214,7 @@ def generate_dd(dynmod, measmod, initrv, times):
         Observations according to measurement model.
     """
     states = np.zeros((len(times), dynmod.dimension))
-    obs = np.zeros((len(times) - 1, measmod.dimension))
+    obs = np.zeros((len(times) - 1, len(measmod.transition_realization(initrv.mean, times[0])[0].sample())))
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]

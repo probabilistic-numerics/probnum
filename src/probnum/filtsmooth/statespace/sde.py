@@ -229,6 +229,11 @@ class LTISDE(LinearSDE):
         return ah, sh, qh
 
 
+
+
+
+
+
 def _check_initial_state_dimensions(drift, force, disp):
     """
     Checks that the matrices all align and are of proper shape.

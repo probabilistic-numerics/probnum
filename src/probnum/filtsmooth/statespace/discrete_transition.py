@@ -33,11 +33,10 @@ class DiscreteGaussianModel(transition.Transition):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynafct, diffmatfct, jacfct=None, dimension=None):
+    def __init__(self, dynafct, diffmatfct, jacfct=None):
         self._dynafct = dynafct
         self._diffmatfct = diffmatfct
         self._jacfct = jacfct
-        self._dimension = dimension
 
     def transition_realization(self, real, start, stop=None):
         newmean = self._dynafct(start, real)
@@ -46,13 +45,6 @@ class DiscreteGaussianModel(transition.Transition):
 
     def transition_rv(self, rv, start, stop=None, **kwargs):
         raise NotImplementedError
-
-    @property
-    def dimension(self):
-        if self._dimension is not None:
-            return self._dimension
-        else:
-            raise NotImplementedError
 
     def diffusionmatrix(self, time, **kwargs):
         """

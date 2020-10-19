@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum.filtsmooth.statespace.discrete import discretegaussianmodel
+import probnum.filtsmooth.statespace as pnfss
 
 TEST_NDIM = 4
 
@@ -12,7 +12,7 @@ class TestDiscreteGaussianModel(unittest.TestCase):
     def setUp(self):
         dynamat = np.random.rand(TEST_NDIM, TEST_NDIM)
         diffmat = dynamat @ dynamat.T + np.eye(TEST_NDIM)
-        self.nl = discretegaussianmodel.DiscreteGaussianModel(
+        self.nl = pnfss.DiscreteGaussianModel(
             lambda t, x: dynamat @ x, lambda t: diffmat
         )
 
@@ -37,7 +37,7 @@ class TestLinear(TestDiscreteGaussianModel):
     def setUp(self):
         dynamat = np.random.rand(TEST_NDIM, TEST_NDIM)
         diffmat = dynamat @ dynamat.T + np.eye(TEST_NDIM)
-        self.nl = discretegaussianmodel.DiscreteGaussianLinearModel(
+        self.nl = pnfss.DiscreteGaussianLinearModel(
             lambda t: dynamat, lambda t: np.random.rand(TEST_NDIM), lambda t: diffmat
         )
 
@@ -64,6 +64,6 @@ class TestLTI(TestLinear):
     def setUp(self):
         dynamat = np.random.rand(TEST_NDIM, TEST_NDIM)
         diffmat = dynamat @ dynamat.T + np.eye(TEST_NDIM)
-        self.nl = discretegaussianmodel.DiscreteGaussianLTIModel(
+        self.nl = pnfss.DiscreteGaussianLTIModel(
             dynamat, dynamat[0], diffmat
         )

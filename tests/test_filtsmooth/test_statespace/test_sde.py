@@ -3,12 +3,12 @@ import unittest
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum.filtsmooth.statespace.continuous import continuousmodel
+import probnum.filtsmooth.statespace as pnfss
 
 TEST_NDIM = 10
 
 
-class MockContinuousModel(continuousmodel.ContinuousModel):
+class MockContinuousModel(pnfss.SDE):
     """
     Minimal implementation required to make a cont.
     model work.
@@ -18,6 +18,8 @@ class MockContinuousModel(continuousmodel.ContinuousModel):
     where B(t) is standard 1d-Brownian motion with diffusion
     equal to 1.
     """
+    def __init__(self):
+        pass
 
     def transition_rv(self, rv, **kwargs):
         return rv

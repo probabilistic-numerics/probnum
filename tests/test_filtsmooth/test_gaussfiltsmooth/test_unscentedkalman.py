@@ -10,7 +10,7 @@ from .filtsmooth_testcases import PendulumNonlinearDDTestCase
 np.random.seed(5472)
 
 
-class TestExtendedKalmanPendulum(
+class TestUnscentedKalmanPendulum(
     PendulumNonlinearDDTestCase, unittest.TestCase, NumpyAssertions
 ):
     """

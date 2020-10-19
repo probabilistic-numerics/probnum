@@ -109,7 +109,7 @@ class Kalman(BayesFiltSmooth, ABC):
         return self.dynamod.transition_rv(randvar, start, stop=stop, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
-        meas_rv, info = self.measmod.transition_rv(randvar, time)
+        meas_rv, info = self.measmod.transition_rv(randvar, time, **kwargs)
         crosscov = info["crosscov"]
         new_mean = randvar.mean + crosscov @ np.linalg.solve(
             meas_rv.cov, data - meas_rv.mean
