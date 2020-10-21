@@ -5,12 +5,12 @@ import numpy as np
 import scipy.linalg
 
 import probnum.random_variables as pnrv
-from probnum.filtsmooth.statespace import transition
+import probnum.filtsmooth.statespace as pnfss
 
 
-class SDE(transition.Transition):
+class SDE(pnfss.transition.Transition):
     """
-    Stochastic differential equations.
+    Stochastic differential equation.
 
     .. math:: d x_t = g(t, x_t) d t + l(t, x_t) d w_t.
 
@@ -44,12 +44,11 @@ class SDE(transition.Transition):
 
 class LinearSDE(SDE):
     """
-    Linear, continuous-time Markov models given by the solution of the
-    linear stochastic differential equation (SDE),
+    Linear stochastic differential equation (SDE),
 
     .. math:: d x_t = [G(t) x_t + v(t)] d t + L(t) x_t d w_t.
 
-    Note: for Gaussian initial conditions, this solution is a Gaussian process.
+    For Gaussian initial conditions, this solution is a Gaussian process.
 
     Parameters
     ----------
@@ -84,7 +83,7 @@ class LinearSDE(SDE):
 
     def transition_realization(self, real, start, stop, **kwargs):
         if "euler_step" not in kwargs.keys():
-            raise TypeError("LinearSDE.transition_* requires a euler_step")
+            raise TypeError("LinearSDE.transition_* requires an euler_step")
         rv = pnrv.Normal(real, 0 * np.eye(len(real)))
         return linear_sde_statistics(
             rv,
@@ -93,7 +92,7 @@ class LinearSDE(SDE):
             kwargs["euler_step"],
             self._driftfun,
             self._driftmatrixfun,
-            self._dispfun,
+            self._dispmatrixfun,
         )
 
     def transition_rv(self, rv, start, stop, **kwargs):
@@ -105,7 +104,7 @@ class LinearSDE(SDE):
                 "equations in linear SDE models is only "
                 "available for Gaussian initial conditions."
             )
-            raise ValueError(errormsg)
+            raise TypeError(errormsg)
         return linear_sde_statistics(
             rv,
             start,
@@ -113,7 +112,7 @@ class LinearSDE(SDE):
             kwargs["euler_step"],
             self._driftfun,
             self._driftmatrixfun,
-            self._dispfun,
+            self._dispmatrixfun,
         )
 
     @property
@@ -178,8 +177,8 @@ class LTISDE(LinearSDE):
         return self._driftmatrix
 
     @property
-    def force(self):
-        return self._force
+    def forcevec(self):
+        return self._forcevec
 
     @property
     def dispersionmatrix(self):
@@ -188,10 +187,8 @@ class LTISDE(LinearSDE):
     def transition_realization(self, real, start, stop, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
-        disc_dynamics, disc_force, disc_diffusion = self._discretise(
-            step=(stop - start)
-        )
-        return pnrv.Normal(disc_dynamics @ real + disc_force, disc_diffusion), {}
+        discretised_model = self.discretise(step=stop - start)
+        return discretised_model.transition_realization(real, start, stop)
 
     def transition_rv(self, rv, start, stop, **kwargs):
         if not isinstance(rv, pnrv.Normal):
@@ -201,22 +198,18 @@ class LTISDE(LinearSDE):
                 "available for Gaussian initial conditions."
             )
             raise TypeError(errormsg)
-        disc_dynamics, disc_force, disc_diffusion = self._discretise(
-            step=(stop - start)
-        )
-        old_mean, old_cov = rv.mean, rv.cov
-        new_mean = disc_dynamics @ old_mean + disc_force
-        new_crosscov = old_cov @ disc_dynamics.T
-        new_cov = disc_dynamics @ new_crosscov + disc_diffusion
-        return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
+        discretised_model = self.discretise(step=stop - start)
+        return discretised_model.transition_rv(rv, start, stop)
 
-    def _discretise(self, step):
+    def discretise(self, step):
         """
         Returns discretised model (i.e. mild solution to SDE)
-        using matrix fraction decomposition. That is, matrices A(h)
-        and Q(h) and vector s(h) such that the transition is
+        using matrix fraction decomposition.
 
-        .. math::`x | x_\\text{old} \\sim \\mathcal{N}(A(h) x_\\text{old} + s(h), Q(h))`
+        That is, matrices A(h) and Q(h) and vector s(h) such
+        that the transition is
+
+        .. math:: x | x_\\text{old} \\sim \\mathcal{N}(A(h) x_\\text{old} + s(h), Q(h)) ,
 
         which is the transition of the mild solution to the LTI SDE.
         """
@@ -226,12 +219,7 @@ class LTISDE(LinearSDE):
             self.driftmatrix, self.dispersionmatrix, step
         )
         sh = np.zeros(len(ah))
-        return ah, sh, qh
-
-
-
-
-
+        return pnfss.discrete_transition.DiscreteGaussianLTIModel(ah, sh, qh)
 
 
 def _check_initial_state_dimensions(drift, force, disp):
@@ -259,28 +247,33 @@ def _check_initial_state_dimensions(drift, force, disp):
         raise ValueError("dispersion not of shape (n, s)")
 
 
-def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispfun):
+def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun):
     """Computes mean and covariance of SDE solution."""
+    if step <= 0.0:
+        raise ValueError("Step-size must be positive.")
     mean, cov = rv.mean, rv.cov
     time = start
     while time < stop:
         meanincr, covincr = _evaluate_increments(
-            time, mean, cov, driftfun, jacobfun, dispfun
+            time, mean, cov, driftfun, jacobfun, dispmatfun
         )
-        mean, covar = mean + step * meanincr, cov + step * covincr
+        mean, cov = mean + step * meanincr, cov + step * covincr
         time = time + step
     return pnrv.Normal(mean, cov), {}
 
 
-def _evaluate_increments(time, mean, cov, driftfun, jacobfun, dispfun):
+def _evaluate_increments(time, mean, cov, driftfun, jacobfun, dispmatfun):
     """
     Euler step for closed form solutions of ODE defining mean
     and kernels of the solution of the Chapman-Kolmogoro
     equations (via Fokker-Planck equations, but that is not crucial
     here).
+
+    Maybe make this into a different solver (euler sucks).
+
     See RHS of Eq. 10.82 in Applied SDEs.
     """
-    dispersion_matrix = dispfun(time)
+    dispersion_matrix = dispmatfun(time)
     jacobian = jacobfun(time)
     mean_increment = driftfun(time, mean)
     cov_increment = (
