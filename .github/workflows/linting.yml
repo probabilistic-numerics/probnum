@@ -8,6 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
       - name: Install tox
         run: pip install tox
       - name: Run black through tox
@@ -17,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
       - name: Install tox
         run: pip install tox
       - name: Run isort through tox
@@ -36,5 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
       - name: Check if ./tox.ini and ./pyproject.toml are correctly synchronized
         run: python .github/workflows/pylint_check.py
