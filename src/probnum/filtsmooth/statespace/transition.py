@@ -175,8 +175,8 @@ def generate_cd(dynmod, measmod, initrv, times, _nsteps=5):
     obs : np.ndarray; shape (len(times)-1, measmod.dimension)
         Observations according to measurement model.
     """
-    states = np.zeros((len(times), len(initrv.mean)))
-    obs = np.zeros((len(times) - 1, len(measmod.transition_realization(initrv.mean, times[0])[0].sample())))
+    states = np.zeros((len(times), _read_dimension(dynmod, initrv)))
+    obs = np.zeros((len(times) - 1, _read_dimension(measmod, initrv)))
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
@@ -213,8 +213,8 @@ def generate_dd(dynmod, measmod, initrv, times):
     obs : np.ndarray; shape (len(times)-1, measmod.dimension)
         Observations according to measurement model.
     """
-    states = np.zeros((len(times), dynmod.dimension))
-    obs = np.zeros((len(times) - 1, len(measmod.transition_realization(initrv.mean, times[0])[0].sample())))
+    states = np.zeros((len(times), _read_dimension(dynmod, initrv)))
+    obs = np.zeros((len(times) - 1, _read_dimension(measmod, initrv)))
     states[0] = initrv.sample()
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
@@ -225,3 +225,8 @@ def generate_dd(dynmod, measmod, initrv, times):
         next_obs_rv, _ = measmod.transition_realization(real=states[idx], start=stop)
         obs[idx - 1] = next_obs_rv.sample()
     return states, obs
+
+
+def _read_dimension(transition, initrv):
+    """Extracts dimension of a transition without calling .dimension(), which is not implemented everywhere."""
+    return len(transition.transition_realization(initrv.mean, 0.)[0].sample())
