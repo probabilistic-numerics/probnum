@@ -111,8 +111,8 @@ class PendulumNonlinearDDTestCase:
         self.r = var * np.eye(1)
         initmean = np.ones(2)
         initcov = var * np.eye(2)
-        self.dynamod = pnfs.statespace.DiscreteGaussianModel(f, lambda t: q, df, dimension=2)
-        self.measmod = pnfs.statespace.DiscreteGaussianModel(h, lambda t: self.r, dh, dimension=2)
+        self.dynamod = pnfs.statespace.DiscreteGaussianModel(f, lambda t: q, df)
+        self.measmod = pnfs.statespace.DiscreteGaussianModel(h, lambda t: self.r, dh)
         self.initrv = Normal(initmean, initcov)
         self.tms = np.arange(0, 4, delta_t)
         self.q = q
