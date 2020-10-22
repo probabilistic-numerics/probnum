@@ -1,17 +1,18 @@
 """Integrators, e.g. Integrated Brownian motion, integrated Matern, etc.."""
 
-from probnum.statespace import sde
 import numpy as np
 
+from probnum.filtsmooth.statespace import sde
 
-class Integrator(sde.LTISDE):
+
+class Integrator:
     """
-    Integrators are LTI SDEs where each state is a derivative of another state.
+    Integrators are specific SDEs, where each state is a derivative of another state.
 
     This class has access to things like projection matrices, etc. and is used as a prior
-    for ODE solvers.
-
-    They have special structure as $d \otimes q+1$.
+    for ODE solvers. The property of being an integrator is something that every SDE can have.
+    To this end, subclass from Integrators additionally to subclassing from
+    e.g. sde.LTISDE and Bob's your uncle.
     """
 
     def proj2coord(self, state_or_rv, coord):
@@ -45,7 +46,7 @@ class Integrator(sde.LTISDE):
         raise NotImplementedError
 
 
-class GeneralMatern(Integrator):
+class GeneralMatern(sde.LTISDE, Integrator):
     """
     With matrices W_0, ..., W_q.
 
@@ -73,7 +74,7 @@ class Matern(TensorMatern):
     pass
 
 
-class GeneralIOUP(Integrator):
+class GeneralIOUP(sde.LTISDE, Integrator):
     """With matrix W."""
 
     pass
@@ -91,13 +92,13 @@ class IOUP(TensorMatern):
     pass
 
 
-class GeneralIBM(Integrator):
+class GeneralIBM(sde.LTISDE, Integrator):
     """Multidimensional IBM"""
 
     pass
 
 
-class TensorIBM(Integrator):
+class TensorIBM(GeneralIBM):
     """Multidimensional IBM with tensor product structure."""
 
     pass
