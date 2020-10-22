@@ -17,9 +17,9 @@ __all__ = [
     "SDE",
     "LinearSDE",
     "LTISDE",
-    "DiscreteGaussianModel",
-    "DiscreteGaussianLinearModel",
-    "DiscreteGaussianLTIModel",
+    "DiscreteGaussian",
+    "DiscreteLinearGaussian",
+    "DiscreteLTIGaussian",
     "FiltSmoothPosterior",
     "KalmanPosterior",
     "generate_cd",
@@ -28,9 +28,9 @@ __all__ = [
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
-Transition.__module__ = "probnum.filtsmooth"
-SDE.__module__ = "probnum.filtsmooth"
-LinearSDE.__module__ = "probnum.filtsmooth"
-DiscreteGaussianModel.__module__ = "probnum.filtsmooth"
-DiscreteGaussianLinearModel.__module__ = "probnum.filtsmooth"
+Transition.__module__ = "probnum.filtsmooth.statespace"
+SDE.__module__ = "probnum.filtsmooth.statespace"
+LinearSDE.__module__ = "probnum.filtsmooth.statespace"
+DiscreteGaussian.__module__ = "probnum.filtsmooth.statespace"
+DiscreteLinearGaussian.__module__ = "probnum.filtsmooth.statespace"
 KalmanPosterior.__module__ = "probnum.filtsmooth"
