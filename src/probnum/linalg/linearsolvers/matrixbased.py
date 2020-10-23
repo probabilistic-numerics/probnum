@@ -859,10 +859,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         if calibration is None:
             pass
         elif (
-            calibration is not None
-            or calibration is not False
-            and not self.is_calib_covclass
-        ):
+            calibration is not None or calibration is not False
+        ) and not self.is_calib_covclass:
             warnings.warn(
                 message="Cannot use calibration without a compatible covariance class."
             )
