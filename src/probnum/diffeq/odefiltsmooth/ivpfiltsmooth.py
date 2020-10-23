@@ -120,7 +120,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         research, not a question of implementation as of now.
         """
         # remove numerical issues w.r.t. symmetry and positive definiteness
-        std_like = np.linalg.cholesky(0.5*(covest + covest.T) + 1e-3*np.eye(len(covest)))
+        std_like = np.linalg.cholesky(
+            0.5 * (covest + covest.T) + 1e-3 * np.eye(len(covest))
+        )
         whitened_res = np.linalg.solve(std_like, mnest)
         ssq = whitened_res @ whitened_res / mnest.size
         abserrors = np.abs(whitened_res)

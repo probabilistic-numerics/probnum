@@ -14,13 +14,13 @@ from probnum.random_variables import Normal
 class ContinuousUKFComponent(statespace.Transition):
     """Continuous unscented Kalman filter transition."""
 
-    def __init__(self, non_linear_sde, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0):
+    def __init__(
+        self, non_linear_sde, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
+    ):
         if not isinstance(non_linear_sde, statespace.SDE):
             raise TypeError("cont_model must be an SDE.")
         self.non_linear_sde = non_linear_sde
-        self.ut = ut.UnscentedTransform(
-            dimension, spread, priorpar, special_scale
-        )
+        self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
         raise NotImplementedError("Implementation incomplete.")
 
     def transition_realization(self, real, start, stop, **kwargs):
@@ -37,11 +37,11 @@ class ContinuousUKFComponent(statespace.Transition):
 class DiscreteUKFComponent(statespace.Transition):
     """Discrete extended Kalman filter transition."""
 
-    def __init__(self, disc_model, dimension, spread=1., priorpar=2.0, special_scale=0.0):
+    def __init__(
+        self, disc_model, dimension, spread=1.0, priorpar=2.0, special_scale=0.0
+    ):
         self.disc_model = disc_model
-        self.ut = ut.UnscentedTransform(
-            dimension, spread, priorpar, special_scale
-        )
+        self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
 
     def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)

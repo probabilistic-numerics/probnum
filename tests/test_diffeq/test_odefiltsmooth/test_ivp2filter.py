@@ -41,12 +41,8 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
-        expected = e1 @ random_eval - self.ivp.rhs(
-            random_time, e0 @ random_eval
-        )
-        received, _ = kalman.measmod.transition_realization(random_eval,
-            random_time
-        )
+        expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
+        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
 
         self.assertAllClose(expected, received.mean)
 
@@ -81,12 +77,8 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
-        expected = e1 @ random_eval - self.ivp.rhs(
-            random_time, e0 @ random_eval
-        )
-        received, _ = kalman.measmod.transition_realization(random_eval,
-            random_time
-        )
+        expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
+        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
 
         self.assertAllClose(expected, received.mean)
 
@@ -121,12 +113,8 @@ class TestIvpUkf(Ivp2FilterTestCase):
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
-        expected = e1 @ random_eval - self.ivp.rhs(
-            random_time, e0 @ random_eval
-        )
-        received, _ = kalman.measmod.transition_realization(random_eval,
-            random_time
-        )
+        expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
+        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
 
         self.assertAllClose(expected, received.mean)
 
