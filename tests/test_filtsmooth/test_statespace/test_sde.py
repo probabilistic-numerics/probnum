@@ -178,8 +178,8 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
 class TestLinearSDEStatistics(unittest.TestCase, NumpyAssertions):
     """Test against Matrix Fraction decomposition"""
 
-    start = 0.1 + 0.1 * np.random.rand()
-    stop = start + 0.1 + 0.1 * np.random.rand()
+    start = 0.01 + 0.01 * np.random.rand()
+    stop = start + 0.01 + 0.01 * np.random.rand()
     some_rv = pnrv.Normal(
         np.random.rand(TEST_NDIM), np.diag(1 + np.random.rand(TEST_NDIM))
     )
