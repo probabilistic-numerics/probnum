@@ -18,7 +18,9 @@ class ContinuousUKF(statespace.Transition):
         if not isinstance(cont_model, statespace.SDE):
             raise TypeError("cont_model must be an SDE.")
         self.cont_model = cont_model
-        self.ut = ut.UnscentedTransform(self.cont_model.dimension, spread, priorpar, special_scale)
+        self.ut = ut.UnscentedTransform(
+            self.cont_model.dimension, spread, priorpar, special_scale
+        )
 
     def transition_realization(self, real, start, stop, **kwargs):
         return self.cont_model.transition_realization(real, start, stop, **kwargs)
@@ -36,7 +38,9 @@ class DiscreteUKF(statespace.Transition):
 
     def __init__(self, disc_model, spread=1e-4, priorpar=2.0, special_scale=0.0):
         self.disc_model = disc_model
-        self.ut = ut.UnscentedTransform(self.disc_model.dimension, spread, priorpar, special_scale)
+        self.ut = ut.UnscentedTransform(
+            self.disc_model.dimension, spread, priorpar, special_scale
+        )
 
     def transition_realization(self, real, start, stop, **kwargs):
         return self.disc_model.transition_realization(real, start, stop, **kwargs)

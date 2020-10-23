@@ -229,4 +229,4 @@ def generate_dd(dynmod, measmod, initrv, times):
 
 def _read_dimension(transition, initrv):
     """Extracts dimension of a transition without calling .dimension(), which is not implemented everywhere."""
-    return len(transition.transition_realization(initrv.mean, 0.)[0].sample())
+    return len(transition.transition_realization(initrv.mean, 0.0)[0].sample())
