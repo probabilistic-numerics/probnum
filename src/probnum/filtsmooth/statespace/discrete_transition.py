@@ -1,34 +1,27 @@
-"""
-Discrete Gauss-Markov models of the form
-x_{i+1} = N(g(i, x_i), S(i))
-"""
+"""Discrete transitions."""
 
-from probnum.filtsmooth.statespace.discrete import discretemodel
-from probnum.random_variables import Normal
+import numpy as np
 
-__all__ = [
-    "DiscreteGaussianModel",
-    "DiscreteGaussianLinearModel",
-    "DiscreteGaussianLTIModel",
-]
+import probnum.filtsmooth.statespace.transition as trans
+import probnum.random_variables as pnrv
 
 
-class DiscreteGaussianModel(discretemodel.DiscreteModel):
+class DiscreteGaussian(trans.Transition):
     """
-    Discrete Gaussian transition models of the form
+    Random variable transitions with additive Gaussian noise
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(g(t_i, x_i), S(t_i))
 
     for some (potentially non-linear) dynamics :math:`g` and diffusion matrix :math:`S`.
-
+    This is used for, but not restricted to time-series.
 
     Parameters
     ----------
-    dynafct : callable
+    transfun : callable
         Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
-    diffmatfct : callable
+    covfun : callable
         Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
-    jacfct : callable, optional.
+    jacfun : callable, optional.
         Jacobian of the dynamics function :math:`g`, :math:`Jg=Jg(t, x)`.
         Signature: ``jacfct(t, x)``.
 
@@ -38,38 +31,18 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynafct, diffmatfct, jacfct=None):
-        self._dynafct = dynafct
-        self._diffmatfct = diffmatfct
-        self._jacfct = jacfct
+    def __init__(self, dynamicsfun, diffmatfun, jacobfun=None):
+        self._dynamicsfun = dynamicsfun
+        self._diffmatfun = diffmatfun
+        self._jacobfun = jacobfun
 
     def transition_realization(self, real, start, stop=None):
-        newmean = self._dynafct(start, real)
-        newcov = self._diffmatfct(start)
-        return Normal(newmean, newcov), {}
+        newmean = self._dynamicsfun(start, real)
+        newcov = self._diffmatfun(start)
+        return pnrv.Normal(newmean, newcov), {}
 
     def transition_rv(self, rv, start, stop=None, **kwargs):
         raise NotImplementedError
-
-    @property
-    def dimension(self):
-        return len(self.diffusionmatrix(0.0))
-
-    def diffusionmatrix(self, time, **kwargs):
-        """
-        Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
-
-        Parameters
-        ----------
-        time : float
-            Time :math:`t`.
-
-        Returns
-        -------
-        :class:`np.ndarray`
-            Diffusion matrix :math:`S=S(t)`.
-        """
-        return self._diffmatfct(time, **kwargs)
 
     def dynamics(self, time, state, **kwargs):
         """
@@ -88,7 +61,23 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         :class:`np.ndarray`
             Evaluation of :math:`g=g(t, x)`.
         """
-        return self._dynafct(time, state)
+        return self._dynamicsfun(time, state)
+
+    def diffusionmatrix(self, time, **kwargs):
+        """
+        Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
+
+        Parameters
+        ----------
+        time : float
+            Time :math:`t`.
+
+        Returns
+        -------
+        :class:`np.ndarray`
+            Diffusion matrix :math:`S=S(t)`.
+        """
+        return self._diffmatfun(time, **kwargs)
 
     def jacobian(self, time, state, **kwargs):
         """
@@ -112,12 +101,28 @@ class DiscreteGaussianModel(discretemodel.DiscreteModel):
         :class:`np.ndarray`
             Evaluation of the Jacobian :math:`J g=Jg(t, x)`.
         """
-        if self._jacfct is None:
+        if self._jacobfun is None:
             raise NotImplementedError
-        return self._jacfct(time, state)
+        return self._jacobfun(time, state)
+
+    @classmethod
+    def from_ode(cls, ode, integrator, covmat, order=1):
+        """
+        Create a transition density from an ODE model.
 
 
-class DiscreteGaussianLinearModel(DiscreteGaussianModel):
+        Parameters
+        ----------
+        ode
+        integrator
+        covmat
+        order
+            Zeroth or first order linearisation. Either 0 or 1.
+        """
+        raise NotImplementedError("Future work.")
+
+
+class DiscreteLinearGaussian(DiscreteGaussian):
     """
     Discrete, linear Gaussian transition models of the form
 
@@ -153,7 +158,7 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         self._forcefct = forcefct
 
     def transition_rv(self, rv, start, stop=None, **kwargs):
-        if not isinstance(rv, Normal):
+        if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
         dynamat = self.dynamicsmatrix(time=start)
         diffmat = self.diffusionmatrix(time=start)
@@ -162,7 +167,7 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         new_mean = dynamat @ rv.mean + force
         new_crosscov = rv.cov @ dynamat.T
         new_cov = dynamat @ new_crosscov + diffmat
-        return Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
+        return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
     def dynamicsmatrix(self, time, **kwargs):
         """
@@ -179,7 +184,7 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         :class:`np.ndarray`
             Evaluation of the dynamics matrix :math:`G=G(t)`.
         """
-        return self._jacfct(time, None, **kwargs)
+        return self._jacobfun(time, None, **kwargs)
 
     def forcevector(self, time, **kwargs):
         """
@@ -197,8 +202,12 @@ class DiscreteGaussianLinearModel(DiscreteGaussianModel):
         """
         return self._forcefct(time, **kwargs)
 
+    @property
+    def dimension(self):
+        return len(self.dynamicsmatrix(0.0).T)
 
-class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
+
+class DiscreteLTIGaussian(DiscreteLinearGaussian):
     """
     Discrete, linear, time-invariant Gaussian transition models of the form
 
@@ -241,10 +250,9 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
                 f"diffmat.ndim=2 expected. diffmat.ndim={dynamat.ndim} received."
             )
         if (
-            not dynamat.shape[0]
-            == forcevec.shape[0]
-            == diffmat.shape[0]
-            == diffmat.shape[1]
+            dynamat.shape[0] != forcevec.shape[0]
+            or forcevec.shape[0] != diffmat.shape[0]
+            or diffmat.shape[0] != diffmat.shape[1]
         ):
             raise TypeError(
                 f"Dimension of dynamat, forcevec and diffmat do not align. "
@@ -257,13 +265,3 @@ class DiscreteGaussianLTIModel(DiscreteGaussianLinearModel):
             lambda t, **kwargs: forcevec,
             lambda t, **kwargs: diffmat,
         )
-
-    def transition_realization(self, real, start=None, stop=None):
-        return super().transition_realization(
-            real=real, start=None, stop=None
-        )  # no more 'start' necessary
-
-    def transition_rv(self, rv, start=None, stop=None, **kwargs):
-        return super().transition_rv(
-            rv=rv, start=None, stop=None
-        )  # no more 'start' necessary
