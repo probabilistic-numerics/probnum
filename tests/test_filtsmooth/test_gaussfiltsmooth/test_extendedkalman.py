@@ -1,7 +1,6 @@
 import unittest
 
 import probnum.filtsmooth as pnfs
-from tests.testing import NumpyAssertions
 
 from . import filtsmooth_testcases as cases
 
@@ -30,9 +29,7 @@ class TestDiscreteEKFComponent(unittest.TestCase):
             self.linearised_model.transition_rv(self.initrv, 0.0)
 
 
-class TestPendulumEKF(
-    cases.PendulumNonlinearDDTestCase, unittest.TestCase, NumpyAssertions
-):
+class TestPendulumEKF(cases.PendulumNonlinearDDTestCase, unittest.TestCase):
 
     visualise = False
 

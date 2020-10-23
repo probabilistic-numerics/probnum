@@ -10,7 +10,6 @@ import probnum.filtsmooth as pnfs
 from probnum.random_variables import Normal
 from tests.testing import NumpyAssertions
 
-import abc
 
 __all__ = [
     "CarTrackingDDTestCase",
@@ -129,7 +128,7 @@ def pendulum():
     return dynamod, measmod, initrv, {"dt": delta_t}
 
 
-class PendulumNonlinearDDTestCase(abc.ABC):
+class PendulumNonlinearDDTestCase(NumpyAssertions):
     """Compare RMSEs of filter and smoother on the pendulum problem."""
 
     def setup_pendulum(self):
