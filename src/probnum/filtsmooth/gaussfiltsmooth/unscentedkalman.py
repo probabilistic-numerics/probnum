@@ -43,8 +43,8 @@ class DiscreteUKFComponent(statespace.Transition):
             dimension, spread, priorpar, special_scale
         )
 
-    def transition_realization(self, real, start, stop, **kwargs):
-        return self.disc_model.transition_realization(real, start, stop, **kwargs)
+    def transition_realization(self, real, start, **kwargs):
+        return self.disc_model.transition_realization(real, start, **kwargs)
 
     def transition_rv(self, rv, start, **kwargs):
         sigmapts = self.ut.sigma_points(rv.mean, rv.cov)

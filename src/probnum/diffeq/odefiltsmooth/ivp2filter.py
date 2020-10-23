@@ -6,8 +6,9 @@ from initial value problems + state space model to filters.
 import numpy as np
 
 from probnum import random_variables as rvs
-from probnum.filtsmooth import *
-from probnum.filtsmooth.statespace import *
+
+import probnum.filtsmooth as pnfs
+import probnum.random_variables as pnrv
 
 
 def ivp2ekf0(ivp, prior, evlvar):
@@ -67,8 +68,9 @@ def ivp2ekf0(ivp, prior, evlvar):
         measurement variance; in the literature, this is "R"
     """  # pylint: disable=line-too-long
     measmod = _measmod_ekf0(ivp, prior, evlvar)
+    ekf_mod = pnfs.DiscreteEKFComponent(measmod)
     initrv = _initialdistribution(ivp, prior)
-    return ExtendedKalman(prior, measmod, initrv)
+    return pnfs.Kalman(prior, ekf_mod, initrv)
 
 
 def _measmod_ekf0(ivp, prior, evlvar):
@@ -91,7 +93,7 @@ def _measmod_ekf0(ivp, prior, evlvar):
     def jaco(t, x, **kwargs):
         return h1
 
-    return DiscreteGaussianModel(dyna, diff, jaco)
+    return pnfs.DiscreteGaussian(dyna, diff, jaco)
 
 
 def ivp2ekf1(ivp, prior, evlvar):
@@ -105,7 +107,9 @@ def ivp2ekf1(ivp, prior, evlvar):
     """
     measmod = _measmod_ekf1(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
-    return ExtendedKalman(prior, measmod, initrv)
+    ekf_mod = pnfs.DiscreteEKFComponent(measmod)
+    initrv = _initialdistribution(ivp, prior)
+    return pnfs.Kalman(prior, ekf_mod, initrv)
 
 
 def _measmod_ekf1(ivp, prior, evlvar):
@@ -125,7 +129,7 @@ def _measmod_ekf1(ivp, prior, evlvar):
     def jaco(t, x, **kwargs):
         return h1 - ivp.jacobian(t, h0 @ x) @ h0
 
-    return DiscreteGaussianModel(dyna, diff, jaco)
+    return pnfs.DiscreteGaussian(dyna, diff, jaco)
 
 
 def ivp2ukf(ivp, prior, evlvar):
@@ -138,8 +142,9 @@ def ivp2ukf(ivp, prior, evlvar):
     evlvar : float, (this is "R")
     """
     measmod = _measmod_ukf(ivp, prior, evlvar)
+    ekf_mod = pnfs.DiscreteUKFComponent(measmod, dimension=ivp.dimension)
     initrv = _initialdistribution(ivp, prior)
-    return UnscentedKalman(prior, measmod, initrv, 1.0, 1.0, 1.0)
+    return pnfs.Kalman(prior, ekf_mod, initrv)
 
 
 def _measmod_ukf(ivp, prior, measvar):
@@ -154,7 +159,7 @@ def _measmod_ukf(ivp, prior, measvar):
     def diff(t, **kwargs):
         return measvar * np.eye(spatialdim)
 
-    return DiscreteGaussianModel(dyna, diff)
+    return pnfs.DiscreteGaussian(dyna, diff)
 
 
 def _initialdistribution(ivp, prior):
@@ -198,7 +203,7 @@ def _initialdistribution(ivp, prior):
     crosscov = initcov @ projmat.T
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s.T, crosscov.T)).T
-    return rvs.Normal(newmean, newcov)
+    return pnrv.Normal(newmean, newcov)
 
 
 def _initialdistribution_no_precond(ivp, prior):

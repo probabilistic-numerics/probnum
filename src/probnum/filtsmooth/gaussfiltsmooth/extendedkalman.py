@@ -33,8 +33,8 @@ class DiscreteEKFComponent(statespace.Transition):
     def __init__(self, disc_model):
         self.disc_model = disc_model
 
-    def transition_realization(self, real, start, stop, **kwargs):
-        return self.disc_model.transition_realization(real, start, stop, **kwargs)
+    def transition_realization(self, real, start, **kwargs):
+        return self.disc_model.transition_realization(real, start, **kwargs)
 
     def transition_rv(self, rv, start, **kwargs):
         diffmat = self.disc_model.diffusionmatrix(start)
