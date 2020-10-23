@@ -8,9 +8,9 @@ from .statespace import *
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "Kalman",
-    "ContinuousEKF",
+    "ContinuousEKFComponent",
     "ContinuousUKF",
-    "DiscreteEKF",
+    "DiscreteEKFComponent",
     "DiscreteUKF",
     "UnscentedTransform",
     "Transition",
