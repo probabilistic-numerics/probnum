@@ -9,9 +9,9 @@ from .statespace import *
 __all__ = [
     "Kalman",
     "ContinuousEKFComponent",
-    "ContinuousUKF",
+    "ContinuousUKFComponent",
     "DiscreteEKFComponent",
-    "DiscreteUKF",
+    "DiscreteUKFComponent",
     "UnscentedTransform",
     "Transition",
     "SDE",

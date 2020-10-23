@@ -1,26 +1,27 @@
 import unittest
 
-import numpy as np
-
 import probnum.filtsmooth as pnfs
-from tests.testing import NumpyAssertions
 
-from .filtsmooth_testcases import PendulumNonlinearDDTestCase
-
-np.random.seed(5472)
+from . import filtsmooth_testcases as cases
+import functools
 
 
-class TestUnscentedKalmanPendulum(
-    PendulumNonlinearDDTestCase, unittest.TestCase, NumpyAssertions
-):
-    """
-    We test on the pendulum example 5.1 in BFaS.
-    """
+class TestContinuousUKFComponent(unittest.TestCase):
+    """Implementation incomplete, hence check that an error is raised."""
 
-    visualise = False  # show plots or not?
+    def test_notimplementederror(self):
+        sde = pnfs.statespace.SDE(None, None, None)  # content is irrelevant.
+        dummy_for_dimension = 1
+        with self.assertRaises(NotImplementedError):
+            pnfs.ContinuousUKFComponent(sde, dimension=dummy_for_dimension)
 
+
+class TestDiscreteUKFComponent(cases.LinearisedDiscreteTransitionTestCase):
     def setUp(self):
-        super().setup_pendulum()
-        self.ekf_meas = pnfs.DiscreteUKF(self.measmod)
-        self.ekf_dyna = pnfs.DiscreteUKF(self.dynamod)
-        self.method = pnfs.Kalman(self.ekf_dyna, self.ekf_meas, self.initrv)
+        self.linearising_component_pendulum = functools.partial(
+            pnfs.DiscreteUKFComponent, dimension=2
+        )
+        self.linearising_component_car = functools.partial(
+            pnfs.DiscreteUKFComponent, dimension=4
+        )
+        self.visualise = False

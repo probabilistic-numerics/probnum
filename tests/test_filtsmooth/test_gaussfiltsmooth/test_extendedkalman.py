@@ -16,5 +16,6 @@ class TestContinuousEKFComponent(unittest.TestCase):
 
 class TestDiscreteEKFComponent(cases.LinearisedDiscreteTransitionTestCase):
     def setUp(self):
-        self.linearising_component = pnfs.DiscreteEKFComponent
+        self.linearising_component_pendulum = pnfs.DiscreteEKFComponent
+        self.linearising_component_car = pnfs.DiscreteEKFComponent
         self.visualise = False

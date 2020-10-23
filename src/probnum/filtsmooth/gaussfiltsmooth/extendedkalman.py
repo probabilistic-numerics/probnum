@@ -17,7 +17,7 @@ class ContinuousEKFComponent(statespace.Transition):
         raise NotImplementedError("Implementation incomplete.")
 
     def transition_realization(self, real, start, stop, **kwargs):
-        return self.cont_model.transition_realization(real, start, stop, **kwargs)
+        raise NotImplementedError("TODO")
 
     def transition_rv(self, rv, start, stop, **kwargs):
         raise NotImplementedError("TODO")

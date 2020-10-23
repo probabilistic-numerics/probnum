@@ -11,35 +11,36 @@ from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform as ut
 from probnum.random_variables import Normal
 
 
-class ContinuousUKF(statespace.Transition):
+class ContinuousUKFComponent(statespace.Transition):
     """Continuous unscented Kalman filter transition."""
 
-    def __init__(self, cont_model, spread=1e-4, priorpar=2.0, special_scale=0.0):
-        if not isinstance(cont_model, statespace.SDE):
+    def __init__(self, non_linear_sde, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0):
+        if not isinstance(non_linear_sde, statespace.SDE):
             raise TypeError("cont_model must be an SDE.")
-        self.cont_model = cont_model
+        self.non_linear_sde = non_linear_sde
         self.ut = ut.UnscentedTransform(
-            self.cont_model.dimension, spread, priorpar, special_scale
+            dimension, spread, priorpar, special_scale
         )
+        raise NotImplementedError("Implementation incomplete.")
 
     def transition_realization(self, real, start, stop, **kwargs):
-        return self.cont_model.transition_realization(real, start, stop, **kwargs)
+        raise NotImplementedError("TODO")
 
     def transition_rv(self, rv, start, stop, **kwargs):
-        raise NotImplementedError  # Todo
+        raise NotImplementedError("TODO")
 
     @property
     def dimension(self):
         raise NotImplementedError
 
 
-class DiscreteUKF(statespace.Transition):
+class DiscreteUKFComponent(statespace.Transition):
     """Discrete extended Kalman filter transition."""
 
-    def __init__(self, disc_model, spread=1e-4, priorpar=2.0, special_scale=0.0):
+    def __init__(self, disc_model, dimension, spread=1., priorpar=2.0, special_scale=0.0):
         self.disc_model = disc_model
         self.ut = ut.UnscentedTransform(
-            self.disc_model.dimension, spread, priorpar, special_scale
+            dimension, spread, priorpar, special_scale
         )
 
     def transition_realization(self, real, start, stop, **kwargs):

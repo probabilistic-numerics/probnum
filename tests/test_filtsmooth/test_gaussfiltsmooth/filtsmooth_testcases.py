@@ -14,7 +14,7 @@ from tests.testing import NumpyAssertions
 __all__ = [
     "CarTrackingDDTestCase",
     "OrnsteinUhlenbeckCDTestCase",
-    "PendulumNonlinearDDTestCase",
+    "LinearisedDiscreteTransitionTestCase",
 ]
 
 
@@ -128,10 +128,6 @@ def pendulum():
     return dynamod, measmod, initrv, {"dt": delta_t}
 
 
-class PendulumNonlinearDDTestCase(NumpyAssertions):
-    """Compare RMSEs of filter and smoother on the pendulum problem."""
-
-
 class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     """
     Test approximate Gaussian filtering and smoothing
@@ -142,13 +138,14 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     """
 
     # overwrite by implementation
-    linearising_component = None
+    linearising_component_car = None
+    linearising_component_pendulum = None
     visualise = False
 
     def test_transition_rv(self):
         """transition_rv() not possible for original model but for the linearised model"""
         nonlinear_model, _, initrv, _ = pendulum()
-        linearised_model = self.linearising_component(nonlinear_model)
+        linearised_model = self.linearising_component_pendulum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
@@ -159,7 +156,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_exactness_linear_model(self):
         """Applied to a linear model, the results should be unchanged."""
         linear_model, _, initrv, _ = car_tracking()
-        linearised_model = self.linearising_component(linear_model)
+        linearised_model = self.linearising_component_car(linear_model)
 
         with self.subTest("Different objects"):
             self.assertNotIsInstance(linear_model, type(linearised_model))
@@ -168,10 +165,11 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         expected, info2 = linearised_model.transition_rv(initrv, 0.0)
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
+        rtol, atol = 1e-10, 1e-10
         with self.subTest("Same outputs"):
-            self.assertAllClose(received.mean, expected.mean)
-            self.assertAllClose(received.cov, expected.cov)
-            self.assertAllClose(crosscov1, crosscov2)
+            self.assertAllClose(received.mean, expected.mean, rtol=rtol, atol=atol)
+            self.assertAllClose(received.cov, expected.cov, rtol=rtol, atol=atol)
+            self.assertAllClose(crosscov1, crosscov2, rtol=rtol, atol=atol)
 
     def test_filtsmooth_pendulum(self):
 
@@ -184,8 +182,8 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         )
 
         # Linearise problem
-        self.ekf_meas = self.linearising_component(self.measmod)
-        self.ekf_dyna = self.linearising_component(self.dynamod)
+        self.ekf_meas = self.linearising_component_pendulum(self.measmod)
+        self.ekf_dyna = self.linearising_component_pendulum(self.dynamod)
         self.method = pnfs.Kalman(self.ekf_dyna, self.ekf_meas, self.initrv)
 
         # Compute filter/smoother solution
