@@ -14,10 +14,10 @@ import numpy as np
 from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
-from probnum.filtsmooth.statespace import *
+from probnum.filtsmooth.statespace.continuous import LTISDEModel
 
 
-class ODEPrior(LTISDE):
+class ODEPrior(LTISDEModel):
     """
     Prior dynamic model for ODE filtering and smoothing.
 
@@ -95,7 +95,8 @@ class ODEPrior(LTISDE):
         driftmat = self.precond @ driftmat @ self.invprecond
         dispmat = self.precond @ dispmat
         forcevec = np.zeros(len(driftmat))
-        super().__init__(driftmat, forcevec, dispmat)
+        diffmat = np.eye(spatialdim)
+        super().__init__(driftmat, forcevec, dispmat, diffmat)
 
     def proj2coord(self, coord: int) -> np.ndarray:
         """
