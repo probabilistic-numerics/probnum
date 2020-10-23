@@ -10,18 +10,18 @@ import unittest
 
 import numpy as np
 
-import probnum.diffeq as pnd
-import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
+from probnum.diffeq import IBM, ivp2filter, lotkavolterra
+from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
+from probnum.random_variables import Dirac
 from tests.testing import NumpyAssertions
 
 
 class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         """We need a Prior object and an IVP object (with derivatives) to run the tests."""
-        y0 = pnrv.Dirac(np.array([20.0, 15.0]))
-        self.ivp = pnd.lotkavolterra([0.4124, 1.15124], y0)
-        self.prior = pnd.IBM(ordint=2, spatialdim=2, diffconst=1.7685)
+        y0 = Dirac(np.array([20.0, 15.0]))
+        self.ivp = lotkavolterra([0.4124, 1.15124], y0)
+        self.prior = IBM(ordint=2, spatialdim=2, diffconst=1.7685)
         self.evlvar = 0.0005123121
 
 
@@ -32,22 +32,25 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
     """
 
     def test_ivp2ekf0_output(self):
-        filtsmooth_object = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(filtsmooth_object.measmod, pnfs.DiscreteEKFComponent)
+        filtsmooth_object = ivp2filter.ivp2ekf0(self.ivp, self.prior, self.evlvar)
+        self.assertEqual(issubclass(type(filtsmooth_object), ExtendedKalman), True)
 
     def test_ekf0_measmod(self):
-        kalman = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = ivp2filter.ivp2ekf0(self.ivp, self.prior, self.evlvar)
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
-        expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
-
-        self.assertAllClose(expected, received.mean)
+        expected_measmodel_output = e1 @ random_eval - self.ivp.rhs(
+            random_time, e0 @ random_eval
+        )
+        measmodel_output = filtsmooth_object.measurementmodel.dynamics(
+            random_time, random_eval
+        )
+        self.assertAllClose(expected_measmodel_output, measmodel_output)
 
     def test_ekf0_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = ivp2filter.ivp2ekf0(self.ivp, self.prior, self.evlvar)
         expected_initval = np.array(
             [
                 self.ivp.initrv.mean,
@@ -68,22 +71,25 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
     """
 
     def test_ivp2ekf1_output(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(filtsmooth_object.measmod, pnfs.DiscreteEKFComponent)
+        filtsmooth_object = ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
+        self.assertEqual(issubclass(type(filtsmooth_object), ExtendedKalman), True)
 
     def test_ekf1_measmod(self):
-        kalman = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
-        expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
-
-        self.assertAllClose(expected, received.mean)
+        expected_measmodel_output = e1 @ random_eval - self.ivp.rhs(
+            random_time, e0 @ random_eval
+        )
+        measmodel_output = filtsmooth_object.measurementmodel.dynamics(
+            random_time, random_eval
+        )
+        self.assertAllClose(expected_measmodel_output, measmodel_output)
 
     def test_ekf1_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
         expected_initval = np.array(
             [
                 self.ivp.initrv.mean,
@@ -104,22 +110,25 @@ class TestIvpUkf(Ivp2FilterTestCase):
     """
 
     def test_ivp2ukf_output(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(filtsmooth_object.measmod, pnfs.DiscreteUKFComponent)
+        filtsmooth_object = ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
+        self.assertEqual(issubclass(type(filtsmooth_object), UnscentedKalman), True)
 
     def test_ukf_measmod(self):
-        kalman = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
-        expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
-
-        self.assertAllClose(expected, received.mean)
+        expected_measmodel_output = e1 @ random_eval - self.ivp.rhs(
+            random_time, e0 @ random_eval
+        )
+        measmodel_output = filtsmooth_object.measurementmodel.dynamics(
+            random_time, random_eval
+        )
+        self.assertAllClose(expected_measmodel_output, measmodel_output)
 
     def test_ukf_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
         expected_initval = np.array(
             [
                 self.ivp.initrv.mean,

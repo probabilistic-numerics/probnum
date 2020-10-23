@@ -1,4 +1,6 @@
-"""Bayesian filtering and smoothing."""
+"""
+Bayesian filtering and smoothing.
+"""
 
 from .bayesfiltsmooth import *
 from .filtsmoothposterior import FiltSmoothPosterior
@@ -7,19 +9,19 @@ from .statespace import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
+    "GaussFiltSmooth",
     "Kalman",
-    "ContinuousEKFComponent",
-    "ContinuousUKFComponent",
-    "DiscreteEKFComponent",
-    "DiscreteUKFComponent",
+    "ExtendedKalman",
+    "UnscentedKalman",
     "UnscentedTransform",
     "Transition",
-    "SDE",
-    "LinearSDE",
-    "LTISDE",
-    "DiscreteGaussian",
-    "DiscreteLinearGaussian",
-    "DiscreteLTIGaussian",
+    "ContinuousModel",
+    "LinearSDEModel",
+    "LTISDEModel",
+    "DiscreteModel",
+    "DiscreteGaussianModel",
+    "DiscreteGaussianLinearModel",
+    "DiscreteGaussianLTIModel",
     "FiltSmoothPosterior",
     "KalmanPosterior",
     "generate_cd",
@@ -28,9 +30,11 @@ __all__ = [
 
 # Set correct module paths (for superclasses).
 # Corrects links and module paths in documentation.
-Transition.__module__ = "probnum.filtsmooth.statespace"
-SDE.__module__ = "probnum.filtsmooth.statespace"
-LinearSDE.__module__ = "probnum.filtsmooth.statespace"
-DiscreteGaussian.__module__ = "probnum.filtsmooth.statespace"
-DiscreteLinearGaussian.__module__ = "probnum.filtsmooth.statespace"
+Transition.__module__ = "probnum.filtsmooth"
+ContinuousModel.__module__ = "probnum.filtsmooth"
+LinearSDEModel.__module__ = "probnum.filtsmooth"
+DiscreteModel.__module__ = "probnum.filtsmooth"
+DiscreteGaussianModel.__module__ = "probnum.filtsmooth"
+DiscreteGaussianLinearModel.__module__ = "probnum.filtsmooth"
+GaussFiltSmooth.__module__ = "probnum.filtsmooth"
 KalmanPosterior.__module__ = "probnum.filtsmooth"

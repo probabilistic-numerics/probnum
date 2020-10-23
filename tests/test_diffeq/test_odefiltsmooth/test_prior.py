@@ -131,6 +131,7 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         ibm = prior.IBM(2, 3, diffconst=1.2345)
         self.assertAllClose(ioup_speed0.driftmatrix, ibm.driftmatrix)
         self.assertAllClose(ioup_speed0.dispersionmatrix, ibm.dispersionmatrix)
+        self.assertAllClose(ioup_speed0.diffusionmatrix, ibm.diffusionmatrix)
 
 
 class TestMatern(unittest.TestCase, NumpyAssertions):
