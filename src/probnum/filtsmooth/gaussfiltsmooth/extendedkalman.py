@@ -7,13 +7,14 @@ from probnum.filtsmooth import statespace
 from probnum.random_variables import Normal
 
 
-class ContinuousEKF(statespace.Transition):
+class ContinuousEKFComponent(statespace.Transition):
     """Continuous extended Kalman filter transition."""
 
-    def __init__(self, cont_model):
-        if not isinstance(cont_model, statespace.SDE):
+    def __init__(self, non_linear_sde):
+        if not isinstance(non_linear_sde, statespace.SDE):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
-        self.cont_model = cont_model
+        self.cont_model = non_linear_sde
+        raise NotImplementedError("Implementation incomplete.")
 
     def transition_realization(self, real, start, stop, **kwargs):
         return self.cont_model.transition_realization(real, start, stop, **kwargs)
@@ -26,7 +27,7 @@ class ContinuousEKF(statespace.Transition):
         raise NotImplementedError
 
 
-class DiscreteEKF(statespace.Transition):
+class DiscreteEKFComponent(statespace.Transition):
     """Discrete extended Kalman filter transition."""
 
     def __init__(self, disc_model):

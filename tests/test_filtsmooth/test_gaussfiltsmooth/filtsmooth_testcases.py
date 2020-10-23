@@ -10,6 +10,8 @@ import probnum.filtsmooth as pnfs
 from probnum.random_variables import Normal
 from tests.testing import NumpyAssertions
 
+import abc
+
 __all__ = [
     "CarTrackingDDTestCase",
     "OrnsteinUhlenbeckCDTestCase",
@@ -17,11 +19,7 @@ __all__ = [
 ]
 
 
-class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
-    """
-    Car tracking: Ex. 4.3 in Bayesian Filtering and Smoothing
-    """
-
+def car_tracking():
     delta_t = 0.2
     var = 0.5
     dynamat = np.eye(4) + delta_t * np.diag(np.ones(2), 2)
@@ -35,18 +33,47 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
     mean = np.zeros(4)
     cov = 0.5 * var * np.eye(4)
 
+    dynmod = pnfs.statespace.DiscreteGaussianLTIModel(
+        dynamat=dynamat, forcevec=np.zeros(4), diffmat=dynadiff
+    )
+    measmod = pnfs.statespace.DiscreteGaussianLTIModel(
+        dynamat=measmat, forcevec=np.zeros(2), diffmat=measdiff
+    )
+    initrv = Normal(mean, cov)
+    return dynmod, measmod, initrv, {"dt": delta_t}
+
+
+class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
+    """
+    Car tracking: Ex. 4.3 in Bayesian Filtering and Smoothing
+    """
+
     def setup_cartracking(self):
-        self.dynmod = pnfs.statespace.DiscreteGaussianLTIModel(
-            dynamat=self.dynamat, forcevec=np.zeros(4), diffmat=self.dynadiff
-        )
-        self.measmod = pnfs.statespace.DiscreteGaussianLTIModel(
-            dynamat=self.measmat, forcevec=np.zeros(2), diffmat=self.measdiff
-        )
-        self.initrv = Normal(self.mean, self.cov)
-        self.tms = np.arange(0, 20, self.delta_t)
+        self.dynmod, self.measmod.self.initrv, info = car_tracking()
+        delta_t = info["dt"]
+        self.tms = np.arange(0, 20, delta_t)
         self.states, self.obs = pnfs.statespace.generate_dd(
             self.dynmod, self.measmod, self.initrv, self.tms
         )
+
+
+def ornstein_uhlenbeck():
+    delta_t = 0.2
+    lam, q, r = 0.21, 0.5, 0.1
+    drift = -lam * np.eye(1)
+    force = np.zeros(1)
+    disp = np.sqrt(q) * np.eye(1)
+    diff = np.eye(1)
+    dynmod = pnfs.statespace.LTISDE(
+        driftmatrix=drift,
+        forcevec=force,
+        dispmatrix=disp,
+    )
+    measmod = pnfs.statespace.DiscreteLTIGaussian(
+        dynamat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
+    )
+    initrv = Normal(10 * np.ones(1), np.eye(1))
+    return dynmod, measmod, initrv, {"dt": delta_t}
 
 
 class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
@@ -54,68 +81,63 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
     Ornstein Uhlenbeck process as a test case.
     """
 
-    delta_t = 0.2
-    lam, q, r = 0.21, 0.5, 0.1
-    drift = -lam * np.eye(1)
-    force = np.zeros(1)
-    disp = np.sqrt(q) * np.eye(1)
-    diff = np.eye(1)
-
     def setup_ornsteinuhlenbeck(self):
-        self.dynmod = pnfs.statespace.LTISDE(
-            driftmatrix=self.drift,
-            forcevec=self.force,
-            dispmatrix=self.disp,
-        )
-        self.measmod = pnfs.statespace.DiscreteGaussianLTIModel(
-            dynamat=np.eye(1), forcevec=np.zeros(1), diffmat=self.r * np.eye(1)
-        )
-        self.initrv = Normal(10 * np.ones(1), np.eye(1))
-        self.tms = np.arange(0, 20, self.delta_t)
+        self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
+        delta_t = info["dt"]
+        self.tms = np.arange(0, 20, delta_t)
         self.states, self.obs = pnfs.statespace.generate_cd(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
 
 
-class PendulumNonlinearDDTestCase:
+def pendulum():
+    delta_t = 0.0075
+    var = 0.32 ** 2
+    g = 9.81
+
+    def f(t, x):
+        x1, x2 = x
+        y1 = x1 + x2 * delta_t
+        y2 = x2 - g * np.sin(x1) * delta_t
+        return np.array([y1, y2])
+
+    def df(t, x):
+        x1, x2 = x
+        y1 = [1, delta_t]
+        y2 = [-g * np.cos(x1) * delta_t, 1]
+        return np.array([y1, y2])
+
+    def h(t, x):
+        x1, x2 = x
+        return np.array([np.sin(x1)])
+
+    def dh(t, x):
+        x1, x2 = x
+        return np.array([[np.cos(x1), 0.0]])
+
+    q = 1.0 * (
+        np.diag(np.array([delta_t ** 3 / 3, delta_t]))
+        + np.diag(np.array([delta_t ** 2 / 2]), 1)
+        + np.diag(np.array([delta_t ** 2 / 2]), -1)
+    )
+    r = var * np.eye(1)
+    initmean = np.ones(2)
+    initcov = var * np.eye(2)
+    dynamod = pnfs.statespace.DiscreteGaussian(f, lambda t: q, df)
+    measmod = pnfs.statespace.DiscreteGaussian(h, lambda t: r, dh)
+    initrv = Normal(initmean, initcov)
+    return dynamod, measmod, initrv, {"dt": delta_t}
+
+
+class PendulumNonlinearDDTestCase(abc.ABC):
+    """Compare RMSEs of filter and smoother on the pendulum problem."""
+
     def setup_pendulum(self):
-        delta_t = 0.0075
-        var = 0.32 ** 2
-        g = 9.81
+        self.method = None
 
-        def f(t, x):
-            x1, x2 = x
-            y1 = x1 + x2 * delta_t
-            y2 = x2 - g * np.sin(x1) * delta_t
-            return np.array([y1, y2])
-
-        def df(t, x):
-            x1, x2 = x
-            y1 = [1, delta_t]
-            y2 = [-g * np.cos(x1) * delta_t, 1]
-            return np.array([y1, y2])
-
-        def h(t, x):
-            x1, x2 = x
-            return np.array([np.sin(x1)])
-
-        def dh(t, x):
-            x1, x2 = x
-            return np.array([[np.cos(x1), 0.0]])
-
-        q = 1.0 * (
-            np.diag(np.array([delta_t ** 3 / 3, delta_t]))
-            + np.diag(np.array([delta_t ** 2 / 2]), 1)
-            + np.diag(np.array([delta_t ** 2 / 2]), -1)
-        )
-        self.r = var * np.eye(1)
-        initmean = np.ones(2)
-        initcov = var * np.eye(2)
-        self.dynamod = pnfs.statespace.DiscreteGaussianModel(f, lambda t: q, df)
-        self.measmod = pnfs.statespace.DiscreteGaussianModel(h, lambda t: self.r, dh)
-        self.initrv = Normal(initmean, initcov)
+        self.dynamod, self.measmod, self.initrv, info = pendulum()
+        delta_t = info["dt"]
         self.tms = np.arange(0, 4, delta_t)
-        self.q = q
         self.states, self.obs = pnfs.statespace.generate_dd(
             self.dynamod, self.measmod, self.initrv, self.tms
         )
