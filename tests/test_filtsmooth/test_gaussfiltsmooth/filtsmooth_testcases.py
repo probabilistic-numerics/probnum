@@ -10,7 +10,6 @@ import probnum.filtsmooth as pnfs
 from probnum.random_variables import Normal
 from tests.testing import NumpyAssertions
 
-
 __all__ = [
     "CarTrackingDDTestCase",
     "OrnsteinUhlenbeckCDTestCase",
@@ -48,9 +47,9 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
     """
 
     def setup_cartracking(self):
-        self.dynmod, self.measmod.self.initrv, info = car_tracking()
-        delta_t = info["dt"]
-        self.tms = np.arange(0, 20, delta_t)
+        self.dynmod, self.measmod, self.initrv, info = car_tracking()
+        self.delta_t = info["dt"]
+        self.tms = np.arange(0, 20, self.delta_t)
         self.states, self.obs = pnfs.statespace.generate_dd(
             self.dynmod, self.measmod, self.initrv, self.tms
         )
@@ -62,7 +61,6 @@ def ornstein_uhlenbeck():
     drift = -lam * np.eye(1)
     force = np.zeros(1)
     disp = np.sqrt(q) * np.eye(1)
-    diff = np.eye(1)
     dynmod = pnfs.statespace.LTISDE(
         driftmatrix=drift,
         forcevec=force,
@@ -82,8 +80,8 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
 
     def setup_ornsteinuhlenbeck(self):
         self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
-        delta_t = info["dt"]
-        self.tms = np.arange(0, 20, delta_t)
+        self.delta_t = info["dt"]
+        self.tms = np.arange(0, 20, self.delta_t)
         self.states, self.obs = pnfs.statespace.generate_cd(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )

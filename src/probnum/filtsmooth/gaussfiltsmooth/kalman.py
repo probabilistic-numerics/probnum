@@ -13,7 +13,7 @@ from probnum.random_variables import Normal
 
 class Kalman(BayesFiltSmooth, ABC):
     """
-    Interface for Gaussian filtering and smoothing.
+    Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
     """
 
     def __init__(self, dynamic_model, measurement_model, initrv):
