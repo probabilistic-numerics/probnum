@@ -217,7 +217,7 @@ class LTISDE(LinearSDE):
             self.driftmatrix, self.dispersionmatrix, step
         )
         sh = np.zeros(len(ah))
-        return pnfss.discrete_transition.DiscreteGaussianLTIModel(ah, sh, qh)
+        return pnfss.discrete_transition.DiscreteLTIGaussian(ah, sh, qh)
 
 
 def _check_initial_state_dimensions(drift, force, disp):

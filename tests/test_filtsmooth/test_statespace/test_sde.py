@@ -150,7 +150,7 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
     def test_discretise(self):
         discrete = self.sde.discretise(step=self.stop - self.start)
         self.assertIsInstance(
-            discrete, pnfss.discrete_transition.DiscreteGaussianLTIModel
+            discrete, pnfss.discrete_transition.DiscreteLTIGaussian
         )
 
     def test_transition_rv(self):
