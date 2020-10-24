@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.linalg
 
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
 

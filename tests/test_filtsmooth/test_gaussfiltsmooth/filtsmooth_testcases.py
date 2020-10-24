@@ -136,8 +136,6 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     """
 
     # overwrite by implementation
-    linearising_component_car = None
-    linearising_component_pendulum = None
     visualise = False
 
     def test_transition_rv(self):
