@@ -2,11 +2,11 @@
 import numpy as np
 import scipy.linalg
 
-import probnum.filtsmooth.statespace as pnfss
+from probnum.filtsmooth.statespace import transition, discrete_transition
 import probnum.random_variables as pnrv
 
 
-class SDE(pnfss.transition.Transition):
+class SDE(transition.Transition):
     """
     Stochastic differential equation.
 
@@ -217,7 +217,7 @@ class LTISDE(LinearSDE):
             self.driftmatrix, self.dispersionmatrix, step
         )
         sh = np.zeros(len(ah))
-        return pnfss.discrete_transition.DiscreteLTIGaussian(ah, sh, qh)
+        return discrete_transition.DiscreteLTIGaussian(ah, sh, qh)
 
 
 def _check_initial_state_dimensions(drift, force, disp):

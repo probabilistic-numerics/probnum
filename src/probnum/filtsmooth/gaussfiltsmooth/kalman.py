@@ -1,7 +1,6 @@
 """
 Gaussian filtering.
 """
-from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -11,7 +10,7 @@ from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
 
 
-class Kalman(BayesFiltSmooth, ABC):
+class Kalman(BayesFiltSmooth):
     """
     Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
     """

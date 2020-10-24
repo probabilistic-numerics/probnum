@@ -60,7 +60,7 @@ class DiscreteUKFComponent(statespace.Transition):
     def dimension(self):
         return self.ut.dimension
 
-    @staticmethod
-    def from_ode(self, ode, integrator):
+    @classmethod
+    def from_ode(cls, ode, integrator):
         """Will replace `ivp2ekf` soon... """
         raise NotImplementedError

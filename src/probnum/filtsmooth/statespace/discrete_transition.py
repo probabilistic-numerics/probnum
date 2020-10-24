@@ -1,6 +1,5 @@
 """Discrete transitions."""
 
-import numpy as np
 
 import probnum.filtsmooth.statespace.transition as trans
 import probnum.random_variables as pnrv
