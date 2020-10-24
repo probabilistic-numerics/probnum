@@ -11,10 +11,9 @@ import numpy as np
 from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
-from probnum.filtsmooth.statespace import *
+import probnum.filtsmooth.statespace as pnfss
 
-
-class ODEPrior(LTISDE):
+class ODEPrior(pnfss.LTISDE):
     """
     Prior dynamic model for ODE filtering and smoothing.
 
