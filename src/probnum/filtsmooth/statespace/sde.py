@@ -2,8 +2,8 @@
 import numpy as np
 import scipy.linalg
 
-from probnum.filtsmooth.statespace import transition, discrete_transition
 import probnum.random_variables as pnrv
+from probnum.filtsmooth.statespace import discrete_transition, transition
 
 
 class SDE(transition.Transition):

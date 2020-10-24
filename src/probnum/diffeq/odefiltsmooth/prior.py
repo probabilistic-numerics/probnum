@@ -13,6 +13,7 @@ from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
 import probnum.filtsmooth.statespace as pnfss
 
+
 class ODEPrior(pnfss.LTISDE):
     """
     Prior dynamic model for ODE filtering and smoothing.
