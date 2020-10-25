@@ -1,6 +1,10 @@
 """
 Adapter methods:
 from initial value problems + state space model to filters.
+
+Soon the be replaced by initialisation methods.
+The adapter is taken care of elsewhere.
+
 """
 
 import numpy as np
