@@ -93,10 +93,9 @@ def ivp2ukf(ivp, prior, evlvar):
 
     evlvar : float, (this is "R")
     """
-    measmod = _measmod_ukf(ivp, prior, evlvar)
-    ekf_mod = pnfs.DiscreteUKFComponent(measmod, dimension=prior.dimension)
+    ukf_mod = pnfs.DiscreteUKFComponent.from_ode(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
-    return pnfs.Kalman(prior, ekf_mod, initrv)
+    return pnfs.Kalman(prior, ukf_mod, initrv)
 
 
 def _measmod_ukf(ivp, prior, measvar):

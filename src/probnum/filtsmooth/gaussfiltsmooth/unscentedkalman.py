@@ -5,6 +5,7 @@ Examples include the unscented Kalman filter / RTS smoother
 which is based on a third degree fully symmetric rule.
 """
 
+import numpy as np
 
 from probnum.filtsmooth import statespace
 from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform as ut
@@ -61,6 +62,17 @@ class DiscreteUKFComponent(statespace.Transition):
         return self.ut.dimension
 
     @classmethod
-    def from_ode(cls, ode, integrator):
-        """Will replace `ivp2ekf` soon... """
-        raise NotImplementedError
+    def from_ode(cls, ode, prior, evlvar):
+
+        spatialdim = prior.spatialdim
+        h0 = prior.proj2coord(coord=0)
+        h1 = prior.proj2coord(coord=1)
+
+        def dyna(t, x, **kwargs):
+            return h1 @ x - ode.rhs(t, h0 @ x)
+
+        def diff(t, **kwargs):
+            return evlvar * np.eye(spatialdim)
+
+        disc_model = statespace.DiscreteGaussian(dyna, diff)
+        return cls(disc_model, dimension=prior.dimension)
