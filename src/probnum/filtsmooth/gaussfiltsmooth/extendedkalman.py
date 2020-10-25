@@ -2,6 +2,7 @@
 Gaussian filtering and smoothing based on making intractable quantities
 tractable through Taylor-method approximations, e.g. linearization.
 """
+import numpy as np
 
 from probnum.filtsmooth import statespace
 from probnum.random_variables import Normal
@@ -49,6 +50,29 @@ class DiscreteEKFComponent(statespace.Transition):
         raise NotImplementedError
 
     @classmethod
-    def from_ode(cls, ode, integrator):
-        """Will replace `ivp2ekf` soon... """
-        raise NotImplementedError
+    def from_ode(cls, ode, prior, evlvar, ek0_or_ek1=0):
+        spatialdim = prior.spatialdim
+        h0 = prior.proj2coord(coord=0)
+        h1 = prior.proj2coord(coord=1)
+
+        def dyna(t, x, **kwargs):
+            return h1 @ x - ode.rhs(t, h0 @ x)
+
+        def diff(t, **kwargs):
+            return evlvar * np.eye(spatialdim)
+
+        def jaco_ek1(t, x, **kwargs):
+            return h1 - ode.jacobian(t, h0 @ x) @ h0
+
+        def jaco_ek0(t, x, **kwargs):
+            return h1
+
+        if ek0_or_ek1 == 0:
+            jaco = jaco_ek0
+        elif ek0_or_ek1 == 1:
+            jaco = jaco_ek1
+        else:
+            raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
+
+        discrete_model = statespace.DiscreteGaussian(dyna, diff, jaco)
+        return cls(discrete_model)

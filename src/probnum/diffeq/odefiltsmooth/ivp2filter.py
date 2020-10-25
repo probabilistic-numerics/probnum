@@ -65,33 +65,9 @@ def ivp2ekf0(ivp, prior, evlvar):
     evlvar : float,
         measurement variance; in the literature, this is "R"
     """  # pylint: disable=line-too-long
-    measmod = _measmod_ekf0(ivp, prior, evlvar)
-    ekf_mod = pnfs.DiscreteEKFComponent(measmod)
+    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(ivp, prior, evlvar, ek0_or_ek1=0)
     initrv = _initialdistribution(ivp, prior)
     return pnfs.Kalman(prior, ekf_mod, initrv)
-
-
-def _measmod_ekf0(ivp, prior, evlvar):
-    """
-    Zero-th order Taylor approximation as linearisation.
-
-    We call it Kalman filter for convenience;
-    it is no Kalman filter in reality.
-    """
-    spatialdim = prior.spatialdim
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-
-    def dyna(t, x, **kwargs):
-        return h1 @ x - ivp.rhs(t, h0 @ x)
-
-    def diff(t, **kwargs):
-        return evlvar * np.eye(spatialdim)
-
-    def jaco(t, x, **kwargs):
-        return h1
-
-    return pnfs.DiscreteGaussian(dyna, diff, jaco)
 
 
 def ivp2ekf1(ivp, prior, evlvar):
@@ -103,31 +79,9 @@ def ivp2ekf1(ivp, prior, evlvar):
 
     evlvar : float, (this is "R")
     """
-    measmod = _measmod_ekf1(ivp, prior, evlvar)
-    initrv = _initialdistribution(ivp, prior)
-    ekf_mod = pnfs.DiscreteEKFComponent(measmod)
+    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(ivp, prior, evlvar, ek0_or_ek1=1)
     initrv = _initialdistribution(ivp, prior)
     return pnfs.Kalman(prior, ekf_mod, initrv)
-
-
-def _measmod_ekf1(ivp, prior, evlvar):
-    """
-    Computes H and R
-    """
-    spatialdim = prior.spatialdim
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-
-    def dyna(t, x, **kwargs):
-        return h1 @ x - ivp.rhs(t, h0 @ x)
-
-    def diff(t, **kwargs):
-        return evlvar * np.eye(spatialdim)
-
-    def jaco(t, x, **kwargs):
-        return h1 - ivp.jacobian(t, h0 @ x) @ h0
-
-    return pnfs.DiscreteGaussian(dyna, diff, jaco)
 
 
 def ivp2ukf(ivp, prior, evlvar):
