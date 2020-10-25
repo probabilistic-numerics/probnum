@@ -10,9 +10,9 @@ class SDE(transition.Transition):
     """
     Stochastic differential equation.
 
-    .. math:: d x_t = g(t, x_t) d t + l(t, x_t) d w_t.
+    .. math:: d x_t = g(t, x_t) d t + l(t, x_t) d w_t,
 
-    By default, driven by a Wiener process with unit diffusion.
+    driven by a Wiener process with unit diffusion.
     """
 
     def __init__(self, driftfun, dispersionfun, jacobfun):
@@ -201,7 +201,7 @@ class LTISDE(LinearSDE):
 
     def discretise(self, step):
         """
-        Returns discretised model (i.e. mild solution to SDE)
+        Returns a discrete transition model (i.e. mild solution to SDE)
         using matrix fraction decomposition.
 
         That is, matrices A(h) and Q(h) and vector s(h) such
