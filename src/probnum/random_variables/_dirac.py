@@ -34,7 +34,7 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     support
         Constant value taken by the random variable. Also the (atomic) support of the
         Dirac measure.
-    random_state :
+    random_state
         Random state of the random variable. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
