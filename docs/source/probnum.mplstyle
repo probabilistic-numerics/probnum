@@ -1,58 +1,81 @@
-# https://matplotlib.org/3.2.1/tutorials/introductory/customizing.html
+#### MATPLOTLIBRC FORMAT
 
+## This is ProbNum's matplotlib configuration file.
+##
+## Blank lines, or lines starting with a comment
+## symbol, are ignored, as are trailing comments.  Other lines must
+## have the format
+##     key : val ## optional comment
 
-# Formats
-text.usetex : True
-text.latex.preamble : \usepackage[cm]{sfmath} \usepackage{amsmath, amssymb} \usepackage{bm}\renewcommand{\familydefault}{\sfdefault}
-figure.figsize: 9.9, 5.5
-figure.dpi : 150
-savefig.format      : pdf
-
-# default python colors, but PN orange and PN green are swapped in for orange and green 
-# (and the first three colors are swapped around so the PN colors are on the top)
-axes.prop_cycle : cycler('color', ['FF9933', '107D79', '1F77B4', 'D62728', '9467BD', '8C564B', 'E377C2', '7F7F7F', 'BCBD22', '17BECF'])
- 
-# Linestyles, Markers, etc.
-lines.linewidth : 2.0
-lines.markersize : 6.0
-lines.dash_capstyle : round
+#### LINES
+## See http://matplotlib.org/api/artist_api.html#module-matplotlib.lines for more
+## information on line properties.
+lines.linewidth       : 2.0
+lines.markersize      : 6.0
+lines.dash_capstyle   : round
 lines.markeredgecolor : black
 lines.markeredgewidth : 0.75
 
-# Axes
-axes.edgecolor : black
-axes.linewidth : 1.5
-axes.spines.right : False
-axes.spines.top : False
-axes.titlesize      : 18   # fontsize of the axes title
-axes.labelsize      : 18  # fontsize of the x any y labels
+#### FONT
+## font properties used by text.Text.  See
+## http://matplotlib.org/api/font_manager_api.html for more
+## information on font properties.  
+font.family          : sans-serif
+font.size            : 16.0
 
-xtick.major.size : 6
-xtick.minor.size : 6
-ytick.major.size : 6
-ytick.minor.size : 6
+#### TEXT
+## text properties used by text.Text.  See
+## http://matplotlib.org/api/artist_api.html#module-matplotlib.text for more
+## information on text properties
+#text.color          : black
 
-xtick.major.pad : 5
-xtick.minor.pad : 5
-ytick.major.pad : 5
-ytick.minor.pad : 5
+#### LaTeX 
+## See http://wiki.scipy.org/Cookbook/Matplotlib/UsingTex
+text.usetex         : True
+text.latex.preamble : \usepackage[cm]{sfmath} \usepackage{amsmath, amssymb} \usepackage{bm} \renewcommand{\familydefault}{\sfdefault}
 
-xtick.major.width : 1.5
-xtick.minor.width : 1.5
-ytick.major.width : 1.5
-ytick.minor.width : 1.5
+#### AXES
+## default face and edge color, default tick sizes,
+## default fontsizes for ticklabels, and so on.  See
+## http://matplotlib.org/api/axes_api.html#module-matplotlib.axes
+axes.edgecolor       : black   ## axes edge color
+axes.linewidth       : 1.25    ## edge linewidth
+axes.titlesize       : 18      ## fontsize of the axes title
+axes.labelsize       : 16      ## fontsize of the x any y labels
+axes.labelcolor      : black
+axes.prop_cycle : cycler('color', ['107D79', 'FF9933', '1F77B4', 'D62728', '9467BD', '8C564B', 'E377C2', '7F7F7F', 'BCBD22', '17BECF'])   ## custom PN colors swapped in
 
-xtick.labelsize : 18
-ytick.labelsize : 18
+#### TICKS
+## See http://matplotlib.org/api/axis_api.html#matplotlib.axis.Tick
+xtick.major.size      : 6      ## major tick size in points
+xtick.minor.size      : 4      ## minor tick size in points
+xtick.major.width     : 1.25   ## major tick width in points
+xtick.minor.width     : 1.0    ## minor tick width in points
+xtick.labelsize       : 14     ## fontsize of the tick labels
 
-# Fonts
-font.size: 16
+ytick.major.size      : 6      ## major tick size in points
+ytick.minor.size      : 4      ## minor tick size in points
+ytick.major.width     : 1.25   ## major tick width in points
+ytick.minor.width     : 1.0    ## minor tick width in points
+ytick.labelsize       : 14     ## fontsize of the tick labels
 
-# Others
-grid.linestyle: -
-grid.linewidth: 1
-legend.framealpha : 1.
-legend.frameon: True
-legend.fancybox: False
-legend.edgecolor: black
-legend.fontsize : 18
+#### GRIDS
+#grid.color       :   b0b0b0    ## grid color
+#grid.linestyle   :   -         ## solid
+#grid.linewidth   :   1.0       ## in points
+#grid.alpha       :   1.0       ## transparency, between 0.0 and 1.0
+
+#### LEGEND
+legend.fontsize      : 14
+legend.framealpha    : 0.8       ## legend patch transparency
+legend.edgecolor     : black     ## background patch boundary color
+legend.fancybox      : False     ## if True, use a rounded box for the
+
+#### FIGURE
+## See http://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure
+figure.figsize       : 8, 4.5     ## figure size in inches
+figure.dpi           : 150        ## figure dots per inch
+
+#### SAVING FIGURES
+savefig.dpi          : figure   ## figure dots per inch or 'figure'
+savefig.format       : pdf      ## png, ps, pdf, svg
