@@ -127,7 +127,15 @@ class KalmanPosterior(FiltSmoothPosterior):
     def __getitem__(self, idx):
         return self.state_rvs[idx]
 
-    def sample(self, locations=None, size=()):
+    sample_paths = bla.sample(size)
+    bla2 = sample_paths(locations)
+
+    def sample(self, size: ShapeArgType = ()):
+        return lambda locations: self._sample_at_locations(
+            locations=locations, size=size
+        )
+
+    def _sample_at_locations(self, locations=None, size=()):
 
         size = utils.as_shape(size)
 

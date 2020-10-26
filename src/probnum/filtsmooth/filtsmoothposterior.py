@@ -1,8 +1,12 @@
 """Abstract Base Class for posteriors over states after applying filtering/smoothing"""
 from abc import ABC, abstractmethod
 
+from probnum.type import ShapeArgType
 
-class FiltSmoothPosterior(ABC):
+from ..random_processes import RandomProcess
+
+
+class FiltSmoothPosterior(RandomProcess, ABC):
     """Posterior Distribution over States after Filtering/Smoothing"""
 
     @abstractmethod
@@ -30,10 +34,10 @@ class FiltSmoothPosterior(ABC):
 
     @abstractmethod
     def __getitem__(self, idx):
-        """Return the corresponding index/slice of the discrete-time solution"""
+        """Return the corresponding index/slice of the discrete-time solution."""
         raise NotImplementedError
 
-    def sample(self, locations=None, size=()):
+    def _sample_at_locations(self, locations, size: ShapeArgType = ()):
         """
         Draw samples from the filtering/smoothing posterior.
 
