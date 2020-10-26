@@ -112,7 +112,8 @@ class NumpyAssertions:
         Raises
         ------
         AssertionError
-            If the spacing between ``actual`` and ``desired`` for one or more elements is larger than ``nulp``.
+            If the spacing between ``actual`` and ``desired`` for one or more elements
+            is larger than ``nulp``.
 
         Notes
         -----
@@ -141,7 +142,8 @@ class NumpyAssertions:
         Returns
         -------
         ret : ndarray
-            Array containing number of representable floating point numbers between items in ``actual`` and ``desired``.
+            Array containing number of representable floating point numbers between
+            items in ``actual`` and ``desired``.
 
         Raises
         ------
