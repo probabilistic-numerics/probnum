@@ -29,7 +29,6 @@ body {
 	color: var(--pn-green);
 }
 
-
 /* Sidebar */
 
 /* Logo area */
@@ -78,7 +77,6 @@ a:hover {
 	color: -var(--pn-green);
 }
 
-
 /* Code block */
 .highlight {
 	background: var(--pn-lightgray);
@@ -92,7 +90,6 @@ a:hover {
 		border-radius: 4px;
 }
 
-
 /* Alert boxes (e.g. documentation "see also") */
 html.writer-html4 .rst-content dl:not(.docutils) dl:not(.field-list) > dt, html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list) > dt {
 	border-left: 3px solid grey;
@@ -103,6 +100,46 @@ html.writer-html4 .rst-content dl:not(.docutils) dl:not(.field-list) > dt, html.
 /* Footnotes */
 html.writer-html5 .rst-content dl.footnote > dd {
     margin: 0 0 0;
+}
+
+/* Block quotes */
+.rst-content blockquote {
+    margin-left: 0px;
+    line-height: 24px;
+    margin-bottom: 0px;
+    border-left: 5px solid #f2f2f2;
+    padding-left: 18px
+}
+
+/* Sphinx gallery */
+div.sphx-glr-thumbcontainer {
+    background: var(--pn-lightgray);
+    border: solid var(--pn-lightgray) 1px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+div.sphx-glr-thumbcontainer:hover {
+    box-shadow: 0 0 10px #107d7930;
+    border: solid var(--pn-green) 1px;
+}
+
+/* Plot animations */
+.anim-state label {
+    margin-right: 8px;
+    display: inline;
+}
+
+/* Author attribution */
+.rst-content .section .authorlist ul li{
+    float: left;
+    list-style: none;
+    margin-left: 16px;
+    margin-bottom: 0px;
+}
+
+.avatar {
+  vertical-align: middle;
+  border-radius: 10%;
 }
 
 /* ReadTheDocs */

@@ -4,8 +4,8 @@ Benchmarks for random variables.
 
 import numpy as np
 
-import probnum.linalg.linops as linops
 from benchmarks.benchmark_utils import SPD_MATRIX_5x5
+from probnum import linops
 from probnum import random_variables as rvs
 
 # Module level variables

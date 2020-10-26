@@ -7,9 +7,8 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 import probnum
-from probnum import linalg
+from probnum import linalg, linops
 from probnum import random_variables as rvs
-from probnum.linalg import linops
 from tests.testing import NumpyAssertions
 
 
@@ -236,8 +235,11 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         span(S) and span(Y).
         """
         A, b, x_true = self.rbf_kernel_linear_system
+        n = A.shape[0]
 
-        for calibrate in [False, 0.0, 0.00000001, 2.8]:
+        for calibrate in [False, 0.0]:  # , 10 ** -6, 2.8]:
+            # TODO (probnum#100) expand this test to the prior covariance class
+            # admitting calibration
             with self.subTest():
                 # Define callback function to obtain search directions
                 S = []  # search directions
@@ -261,13 +263,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 Y = np.squeeze(np.array(Y)).T
 
                 self.assertAllClose(
-                    np.array(Ahat.cov.A.todense()) @ S,
+                    Ahat.cov.A @ S,
                     np.zeros_like(S),
                     atol=1e-6,
                     msg="Uncertainty over A in explored space span(S) not zero.",
                 )
                 self.assertAllClose(
-                    np.array(Ainvhat.cov.A.todense()) @ Y,
+                    Ainvhat.cov.A @ Y,
                     np.zeros_like(S),
                     atol=1e-6,
                     msg="Uncertainty over Ainv in explored space span(Y) not zero.",
@@ -383,7 +385,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             cov=linops.SymmetricKronecker(A=linops.Identity(A.shape[1])),
         )
         A0 = rvs.Normal(
-            mean=linops.Identity(A.shape[1]), cov=linops.SymmetricKronecker(A)
+            mean=linops.Identity(A.shape[1]),
+            cov=linops.SymmetricKronecker(A),
         )
         for kwargs in [{"assume_A": "sympos", "rtol": 10 ** -6}]:
             with self.subTest():

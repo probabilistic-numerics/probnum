@@ -1,11 +1,11 @@
-# Packages required for building the documentation
+# Sphinx builds the documentation
 sphinx>=3.0
 
 # Sphinx dependencies
 Pygments>=2.6.1
 
 # Sphinx extensions
-sphinx-rtd-theme
+sphinx-rtd-theme>=0.5.0
 sphinx-automodapi
 sphinx-autodoc-typehints
 sphinx-gallery
@@ -14,5 +14,5 @@ sphinx-gallery
 m2r2
 
 # Jupyter notebooks
-nbsphinx
+nbsphinx>=0.6.1
 jupyter

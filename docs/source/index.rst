@@ -1,17 +1,21 @@
-===================================
-Probabilistic Numerics in Python
-===================================
+=======
+ProbNum
+=======
 
 |Travis Status| |Coverage Status| |Benchmarks| |PyPI|
 
+----
 
-`Probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) interprets classic numerical routines as
-*inference procedures* by taking a probabilistic viewpoint. This allows principled treatment of *uncertainty arising
-from finite computational resources*. The vision of probabilistic numerics is to provide well-calibrated probability
-measures over the output of a numerical routine, which then can be propagated along the chain of computation.
+**ProbNum implements probabilistic numerical methods in Python.** Such methods solve numerical problems from linear
+algebra, optimization, quadrature and differential equations using *probabilistic inference*. This approach captures
+uncertainty arising from *finite computational resources* and *stochastic input*.
 
-This repository aims to implement methods from PN in Python 3 and to provide a common interface for them. This is
-currently a work in progress, therefore interfaces are subject to change.
+----
+
+`Probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN) aims to quantify uncertainty arising from
+intractable or incomplete numerical computation and from stochastic input using the tools of probability theory. The
+vision of probabilistic numerics is to provide well-calibrated probability measures over the output of a numerical
+routine, which then can be propagated along the chain of computation.
 
 To get started install ProbNum using :code:`pip`.
 
@@ -40,19 +44,21 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    :maxdepth: 1
    :caption: Tutorials and Examples
 
+   tutorials/pn_methods
    tutorials/probability
    tutorials/linear_algebra
-   tutorials/differential_equations
+   tutorials/ordinary_differential_equations
 
 .. toctree::
    :maxdepth: 1
    :caption: API Documentation
 
-   public_api/probnum
-   public_api/linalg
-   public_api/quad
    public_api/diffeq
    public_api/filtsmooth
+   public_api/linalg
+   public_api/linops
+   public_api/quad
+   public_api/random_variables
    public_api/utils
 
 .. toctree::
@@ -97,3 +103,5 @@ Indices
 .. |PyPI| image:: https://img.shields.io/pypi/v/probnum?label=PyPI&logo=pypi&logoColor=white
     :target: https://pypi.org/project/probnum/
     :alt: ProbNum on PyPI
+
+.. |GitHub| image:: https://logodix.com/logo/64439.png
