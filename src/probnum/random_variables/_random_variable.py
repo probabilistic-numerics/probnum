@@ -175,7 +175,10 @@ class RandomVariable(Generic[_ValueType]):
         self.__as_value_type = as_value_type
 
     def __repr__(self) -> str:
-        return f"<{self.shape} {self.__class__.__name__} with dtype={self.dtype}>"
+        return (
+            f"<{self.__class__.__name__} with shape={self.shape}, dtype"
+            f"={self.dtype}>"
+        )
 
     @property
     def shape(self) -> ShapeType:
