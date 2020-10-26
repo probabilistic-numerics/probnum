@@ -110,6 +110,13 @@ class RandomVariable(Generic[_ValueType]):
     :class:`RandomVariable` (e.g. its mean, cov, sampling function, etc.) will result in
     undefined behavior. In particular, this should be kept in mind when subclassing
     :class:`RandomVariable` or any of its descendants.
+
+    Sampling from random variables with fixed seed is not stable with respect to the
+    order of operations (e.g. slicing, masking, etc.). This means sampling from a
+    random variable and then slicing the resulting array does not necessarily
+    return the same result as slicing the random variable and sampling from the
+    result. However the random seed ensures that each sequence of operations will
+    always result in the same output.
     """
 
     # pylint: disable=too-many-instance-attributes,too-many-public-methods
