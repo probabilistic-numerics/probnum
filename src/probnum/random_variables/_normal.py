@@ -1,4 +1,4 @@
-"""Normally distributed, i.e. Gaussian random variables."""
+"""Normally distributed / Gaussian random variables."""
 
 from typing import Callable, Optional, Union
 
@@ -26,7 +26,6 @@ except ImportError:
 
 
 COV_CHOLESKY_DAMPING = 10 ** -12
-
 
 _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 

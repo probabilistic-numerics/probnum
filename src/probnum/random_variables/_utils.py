@@ -16,12 +16,7 @@ def asrandvar(obj: Any) -> _random_variable.RandomVariable:
     Parameters
     ----------
     obj :
-        Argument to be represented as a :class:`RandomVariable`.
-
-    Returns
-    -------
-    rv :
-        ProbNum :class:`RandomVariable`.
+        Object to be represented as a :class:`RandomVariable`.
 
     See Also
     --------

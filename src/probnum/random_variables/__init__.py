@@ -1,12 +1,3 @@
-"""
-Random variables are the main objects in ProbNum.
-
-Random variables generalize multidimensional arrays by also representing uncertainty
-about the (numerical) quantity in question. Despite their name, they do not have to
-represent stochastic objects. Random variables are the primary in- and outputs of
-probabilistic numerical methods.
-"""
-
 from ._dirac import Dirac
 from ._normal import Normal
 from ._random_variable import (
