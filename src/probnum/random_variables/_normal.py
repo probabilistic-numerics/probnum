@@ -34,13 +34,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     """
     Random variable with a normal distribution.
 
-    Gaussian random variables are ubiquitous in probability theory, since it is the
-    final and stable or equilibrium distribution to which other distributions
-    gravitate under a wide variety of smooth operations, e.g., convolutions and
-    stochastic transformations. One example of this is the central limit theorem.
-    Gaussian random variables are also attractive from a numerical point of
-    view as they maintain their distribution family through many transformations (
-    e.g. they are stable).
+    Gaussian random variables are ubiquitous in probability theory, since the
+    Gaussian is the final and stable or equilibrium distribution to which other
+    distributions gravitate under a wide variety of smooth operations, e.g.,
+    convolutions and stochastic transformations. One example of this is the central
+    limit theorem. Gaussian random variables are also attractive from a numerical
+    point of view as they maintain their distribution family through many
+    transformations (e.g. they are stable).
 
     Parameters
     ----------
