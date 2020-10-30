@@ -106,7 +106,7 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Dirac":
         """
-        Marginalization for multivariate Dirac distributions, expressed by means of
+        Marginalization for multivariate Dirac random variables, expressed as
         (advanced) indexing, masking and slicing.
 
         This method supports all modes of array indexing presented in

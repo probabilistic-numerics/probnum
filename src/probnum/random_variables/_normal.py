@@ -34,13 +34,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     """
     Random variable with a normal distribution.
 
-    The Gaussian distribution is ubiquitous in probability theory, since
-    it is the final and stable or equilibrium distribution to which
-    other distributions gravitate under a wide variety of smooth
-    operations, e.g., convolutions and stochastic transformations.
-    One example of this is the central limit theorem. The Gaussian
-    distribution is also attractive from a numerical point of view as it
-    is maintained through many transformations (e.g. it is stable).
+    Gaussian random variables are ubiquitous in probability theory, since it is the
+    final and stable or equilibrium distribution to which other distributions
+    gravitate under a wide variety of smooth operations, e.g., convolutions and
+    stochastic transformations. One example of this is the central limit theorem.
+    Gaussian random variables are also attractive from a numerical point of
+    view as they maintain their distribution family through many transformations (
+    e.g. they are stable).
 
     Parameters
     ----------
@@ -60,9 +60,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     Examples
     --------
     >>> from probnum import random_variables as rvs
-    >>> N = rvs.Normal(mean=0.5, cov=1.0)
-    >>> N.parameters
-    {'mean': 0.5, 'cov': 1.0}
+    >>> x = rvs.Normal(mean=0.5, cov=1.0, random_state=42)
+    >>> x.sample(size=(2, 2))
+    array([[0.99671415, 0.3617357 ],
+           [1.14768854, 2.02302986]])
     """
 
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
@@ -101,7 +102,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             mean = mean.astype(dtype, order="C", casting="safe", subok=True, copy=False)
         else:
             # TODO: Implement casting for linear operators
-
             if mean.dtype != dtype:
                 raise ValueError(
                     f"The mean must have type `{dtype.name}` not `{mean.dtype.name}`, "
@@ -112,7 +112,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             cov = cov.astype(dtype, order="C", casting="safe", subok=True, copy=False)
         else:
             # TODO: Implement casting for linear operators
-
             if cov.dtype != dtype:
                 raise ValueError(
                     f"The covariance must have type `{dtype.name}` not "
@@ -290,15 +289,15 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Normal":
         """
-        Marginalization in multi- and matrixvariate normal distributions, expressed by
-        means of (advanced) indexing, masking and slicing.
+        Marginalization in multi- and matrixvariate normal random variables,
+        expressed as (advanced) indexing, masking and slicing.
 
         We support all modes of array indexing presented in
 
         https://numpy.org/doc/1.19/reference/arrays.indexing.html.
 
-        Note that, currently, this method does not work for normal distributions other
-        than the multi- and matrixvariate versions.
+        Note that, currently, this method only works for multi- and matrixvariate
+        normal distributions.
 
         Parameters
         ----------
