@@ -1,4 +1,4 @@
-""" This module implements normally distributed or Gaussian random variables. """
+"""Normally distributed, i.e. Gaussian random variables."""
 
 from typing import Callable, Optional, Union
 

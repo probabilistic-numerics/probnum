@@ -127,23 +127,17 @@ def wrap_scipy_rv(
     ]
 ) -> _random_variable.RandomVariable:
     """
-    Transform SciPy distributions to Probnum :class:`RandomVariable`s.
+    Transform SciPy distributions to ProbNum :class:`RandomVariable`s.
 
     Parameters
     ----------
     scipy_rv :
-        SciPy distribution.
-
-    Returns
-    -------
-    rv : RandomVariable
-        ProbNum random variable.
-
+        SciPy random variable.
     """
 
     # pylint: disable=too-many-return-statements
 
-    # Random variables with concrete implementations in probnum
+    # Random variables with concrete implementations in ProbNum
     if isinstance(scipy_rv, scipy.stats._distn_infrastructure.rv_frozen):
         # Univariate distributions
         if scipy_rv.dist.name == "norm":
@@ -197,6 +191,14 @@ def _rv_init_kwargs_from_scipy_rv(
         scipy.stats._multivariate.multi_rv_frozen,
     ],
 ) -> Dict[str, Any]:
+    """
+    Create dictionary of random variable properties from a Scipy random variable.
+
+    Parameters
+    ----------
+    scipy_rv
+        SciPy random variable.
+    """
     # Infer shape and dtype
     sample = _return_numpy(scipy_rv.rvs)()
 
