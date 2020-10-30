@@ -193,8 +193,8 @@ class RandomVariable(Generic[_ValueType]):
     @cached_property
     def size(self) -> int:
         """
-        Size of realizations of the random variable, defined as the product of
-        :meth:`shape`.
+        Size of realizations of the random variable, defined as the product over all
+        components of :meth:`shape`.
         """
         return int(np.prod(self.__shape))
 
