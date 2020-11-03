@@ -1,4 +1,6 @@
-"""(Almost surely) constant random variables."""
+"""
+(Almost surely) constant random variables.
+"""
 
 from typing import Callable, TypeVar
 
@@ -19,15 +21,15 @@ _ValueType = TypeVar("ValueType")
 
 class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     """
-    Random variable (almost surely) taking a constant value.
+    Random variable representing a constant value.
 
     Discrete random variable which (with probability one) takes a constant value. The
-    law of this random variable is given by the Dirac delta measure which equals one in
-    its (atomic) support and zero everywhere else, hence the name.
+    law / image measure of this random variable is given by the Dirac delta measure
+    which equals one in its (atomic) support and zero everywhere else, hence the name.
 
     This class has the useful property that arithmetic operations between a
-    :class:`Dirac` random variable and an arbitrary :class:`RandomVariable` act in the
-    same way as the same arithmetic operation with a constant.
+    :class:`Dirac` random variable and an arbitrary :class:`RandomVariable` represent
+    the same arithmetic operation with a constant.
 
     Parameters
     ----------
