@@ -19,12 +19,7 @@ def as_colvec(
     Parameters
     ----------
     vec
-        Vector, array or random variable to be viewed as a column vector.
-
-    Returns
-    -------
-    vec2d
-        Column vector or random variable.
+        Vector, array or random variable to be transformed into a column vector.
     """
     if isinstance(vec, probnum.RandomVariable):
         if vec.shape != (vec.shape[0], 1):
@@ -39,8 +34,6 @@ def assert_is_1d_ndarray(arr: np.ndarray) -> None:
     """
     Checks whether ``arr`` is an (d,) np.ndarray.
 
-    Used in classic optimization and mcmc, for instance.
-
     Parameters
     ----------
     arr
@@ -49,6 +42,7 @@ def assert_is_1d_ndarray(arr: np.ndarray) -> None:
     Raises
     ------
     ValueError
+        If the given object has a non-admissable shape.
     """
     if not isinstance(arr, np.ndarray):
         raise ValueError("Please enter arr of shape (d,)")
@@ -60,8 +54,6 @@ def assert_is_2d_ndarray(arr: np.ndarray) -> None:
     """
     Checks whether ``arr`` is an (n, d) np.ndarray.
 
-    Used in classic optimization and mcmc, for instance.
-
     Parameters
     ----------
     arr
@@ -70,6 +62,7 @@ def assert_is_2d_ndarray(arr: np.ndarray) -> None:
     Raises
     ------
     ValueError
+        If the given object has a non-admissable shape.
     """
     if not isinstance(arr, np.ndarray):
         raise ValueError("Please enter arr of shape (n, d)")

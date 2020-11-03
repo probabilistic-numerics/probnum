@@ -18,11 +18,6 @@ def derive_random_seed(*rngs: Union[np.random.RandomState, np.random.Generator])
     ----------
     rngs
         Random number generators.
-
-    Returns
-    -------
-    seed
-        Random seed derived from the given generators.
     """
 
     def _sample(rng: Union[np.random.RandomState, np.random.Generator]) -> int:
