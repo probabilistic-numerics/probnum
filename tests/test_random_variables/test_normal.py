@@ -127,7 +127,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 if const != 0:
                     self.assertIsInstance(normrv, rvs.Normal)
                 else:
-                    self.assertIsInstance(normrv, rvs.Dirac)
+                    self.assertIsInstance(normrv, rvs.Constant)
 
     def test_addition_normal(self):
         """Add two random variables with a normal distribution"""

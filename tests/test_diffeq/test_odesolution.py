@@ -5,13 +5,13 @@ import numpy as np
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import logistic, lotkavolterra
-from probnum.random_variables import Dirac, Normal
+from probnum.random_variables import Constant, Normal
 from tests.testing import NumpyAssertions, chi_squared_statistic
 
 
 class TestODESolution(unittest.TestCase, NumpyAssertions):
     def setUp(self):
-        initrv = Dirac(20 * np.ones(2))
+        initrv = Constant(20 * np.ones(2))
         self.ivp = lotkavolterra([0.0, 0.5], initrv)
         step = 0.1
         self.solution = probsolve_ivp(self.ivp, step=step)
@@ -85,7 +85,7 @@ class TestODESolutionHigherOrderPrior(TestODESolution):
     """Same as above, but higher-order prior to test for a different dimensionality"""
 
     def setUp(self):
-        initrv = Dirac(20 * np.ones(2))
+        initrv = Constant(20 * np.ones(2))
         self.ivp = lotkavolterra([0.0, 0.5], initrv)
         step = 0.1
         self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
@@ -95,7 +95,7 @@ class TestODESolutionOneDimODE(TestODESolution):
     """Same as above, but 1d IVP to test for a different dimensionality"""
 
     def setUp(self):
-        initrv = Dirac(0.1 * np.ones(1))
+        initrv = Constant(0.1 * np.ones(1))
         self.ivp = logistic([0.0, 1.5], initrv)
         step = 0.1
         self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)

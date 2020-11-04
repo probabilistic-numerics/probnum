@@ -167,7 +167,7 @@ def _initialdistribution(ivp, prior):
     become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
     """
     if not issubclass(type(ivp.initrv), rvs.Normal):
-        if not issubclass(type(ivp.initrv), rvs.Dirac):
+        if not issubclass(type(ivp.initrv), rvs.Constant):
             raise RuntimeError("Initial distribution not Normal nor Dirac")
     x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
