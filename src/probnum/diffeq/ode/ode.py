@@ -17,7 +17,7 @@ class ODE(ABC):
     Ordinary differential equations.
 
     Extended by the types of ODEs, e.g. IVPs, BVPs.
-    This class describes systems of irst order ordinary differential
+    This class describes systems of first order ordinary differential
     equations (ODEs),
 
     .. math:: \\dot y(t) = f(t, y(t)), \\quad t \\in [t_0, T].
@@ -31,7 +31,7 @@ class ODE(ABC):
         Time span of IVP.
     rhs : callable, signature: ``(t, y, **kwargs)``
         RHS function
-        :math:`f : [t_0, T] \times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
+        :math:`f : [t_0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
         of the ODE system. As such it takes a float and an
         np.ndarray of shape (d,) and returns a np.ndarray
         of shape (d,). As of now, no vectorization is supported
