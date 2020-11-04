@@ -65,7 +65,7 @@ class ODESolution(FiltSmoothPosterior):
     [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
     >>> # Individual entries of the discrete-time solution can be accessed with
     >>> print(solution[5])
-    <(1,) Normal with dtype=float64>
+    <Normal with shape=(1,), dtype=float64>
     >>> print(solution[5].mean)
     [0.55945475]
     >>> # Evaluate the continuous-time solution at a new time point t=0.65

@@ -138,7 +138,7 @@ def problinsolve(
     References
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
-       2020
+       *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
        Optimization*, 2015, 25, 234-260
     .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View,

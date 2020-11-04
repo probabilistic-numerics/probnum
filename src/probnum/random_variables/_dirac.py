@@ -1,4 +1,6 @@
-""" This module implements Dirac-distributed random variables. """
+"""
+(Almost surely) constant random variables.
+"""
 
 from typing import Callable, TypeVar
 
@@ -19,25 +21,36 @@ _ValueType = TypeVar("ValueType")
 
 class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     """
-    The Dirac delta distribution.
+    Random variable representing a constant value.
 
-    This distribution models a point mass and can be useful to represent
-    numbers as random variables with Dirac measure. It has the useful
-    property that arithmetic operations between a :class:`Dirac` random
-    variable and an arbitrary :class:`RandomVariable` acts in the same
-    way as the arithmetic operation with a constant.
+    Discrete random variable which (with probability one) takes a constant value. The
+    law / image measure of this random variable is given by the Dirac delta measure
+    which equals one in its (atomic) support and zero everywhere else, hence the name.
 
-    Note, that a Dirac measure does not admit a probability density
-    function but can be viewed as a distribution (generalized function).
+    This class has the useful property that arithmetic operations between a
+    :class:`Dirac` random variable and an arbitrary :class:`RandomVariable` represent
+    the same arithmetic operation with a constant.
 
     Parameters
     ----------
-    support : scalar or array-like or LinearOperator
-        The support of the dirac delta function.
+    support
+        Constant value taken by the random variable. Also the (atomic) support of the
+        Dirac measure.
+    random_state
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
-    RandomVariable : Class representing general random variables.
+    RandomVariable : Class representing random variables.
+
+    Notes
+    -----
+    The Dirac measure formalizes the concept of a Dirac delta function as encountered in
+    physics, where it is used to model a point mass. Another way to formalize this idea
+    is to define the Dirac delta as a linear operator as is done in functional analysis.
+    While related, this is not the view taken here.
 
     Examples
     --------
@@ -88,12 +101,14 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     @property
     def support(self) -> _ValueType:
+        """
+        Constant value taken by the random variable.
+        """
         return self._support
 
     def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Dirac":
         """
-        Marginalization for multivariate Dirac distributions, expressed by means of
-        (advanced) indexing, masking and slicing.
+        (Advanced) indexing, masking and slicing.
 
         This method supports all modes of array indexing presented in
 
