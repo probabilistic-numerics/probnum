@@ -263,7 +263,7 @@ class IVP(ODE):
     >>> from probnum.diffeq import IVP
     >>> rhsfun = lambda t, y, **kwargs: 2.0*y
     >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Dirac(0.1)
+    >>> initrv = rvs.Constant(0.1)
     >>> timespan = (0, 10)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> print(ivp.rhs(0., 2.))

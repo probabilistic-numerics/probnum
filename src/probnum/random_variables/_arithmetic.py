@@ -10,7 +10,7 @@ import numpy as np
 import probnum.linops as _linear_operators
 from probnum import utils as _utils
 
-from ._dirac import Dirac as _Dirac
+from ._constant import Constant as _Constant
 from ._normal import Normal as _Normal
 from ._random_variable import RandomVariable as _RandomVariable
 from ._utils import asrandvar as _asrandvar
@@ -181,15 +181,21 @@ _pow_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
 # Dirac - Dirac Arithmetic
 ########################################################################################
 
-_add_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.add)
-_sub_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.sub)
-_mul_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.mul)
-_matmul_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.matmul)
-_truediv_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.truediv)
-_floordiv_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.floordiv)
-_mod_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.mod)
-_divmod_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(divmod)
-_pow_fns[(_Dirac, _Dirac)] = _Dirac._binary_operator_factory(operator.pow)
+_add_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.add)
+_sub_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.sub)
+_mul_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.mul)
+_matmul_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+    operator.matmul
+)
+_truediv_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+    operator.truediv
+)
+_floordiv_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(
+    operator.floordiv
+)
+_mod_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.mod)
+_divmod_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(divmod)
+_pow_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.pow)
 
 ########################################################################################
 # Normal - Normal Arithmetic
@@ -204,92 +210,92 @@ _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
 ########################################################################################
 
 
-def _add_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
+def _add_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
     return _Normal(
-        mean=norm_rv.mean + dirac_rv.support,
+        mean=norm_rv.mean + constant_rv.support,
         cov=norm_rv.cov,
         random_state=_utils.derive_random_seed(
-            norm_rv.random_state, dirac_rv.random_state
+            norm_rv.random_state, constant_rv.random_state
         ),
     )
 
 
-_add_fns[(_Normal, _Dirac)] = _add_normal_dirac
-_add_fns[(_Dirac, _Normal)] = _swap_operands(_add_normal_dirac)
+_add_fns[(_Normal, _Constant)] = _add_normal_constant
+_add_fns[(_Constant, _Normal)] = _swap_operands(_add_normal_constant)
 
 
-def _sub_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
+def _sub_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
     return _Normal(
-        mean=norm_rv.mean - dirac_rv.support,
+        mean=norm_rv.mean - constant_rv.support,
         cov=norm_rv.cov,
         random_state=_utils.derive_random_seed(
-            norm_rv.random_state, dirac_rv.random_state
+            norm_rv.random_state, constant_rv.random_state
         ),
     )
 
 
-_sub_fns[(_Normal, _Dirac)] = _sub_normal_dirac
+_sub_fns[(_Normal, _Constant)] = _sub_normal_constant
 
 
-def _sub_dirac_normal(dirac_rv: _Dirac, norm_rv: _Normal) -> _Normal:
+def _sub_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
     return _Normal(
-        mean=dirac_rv.support - norm_rv.mean,
+        mean=constant_rv.support - norm_rv.mean,
         cov=norm_rv.cov,
         random_state=_utils.derive_random_seed(
-            dirac_rv.random_state, norm_rv.random_state
+            constant_rv.random_state, norm_rv.random_state
         ),
     )
 
 
-_sub_fns[(_Dirac, _Normal)] = _sub_dirac_normal
+_sub_fns[(_Constant, _Normal)] = _sub_constant_normal
 
 
-def _mul_normal_dirac(
-    norm_rv: _Normal, dirac_rv: _Dirac
-) -> Union[_Normal, _Dirac, type(NotImplemented)]:
-    if dirac_rv.size == 1:
-        if dirac_rv.support == 0:
-            return _Dirac(
+def _mul_normal_constant(
+    norm_rv: _Normal, constant_rv: _Constant
+) -> Union[_Normal, _Constant, type(NotImplemented)]:
+    if constant_rv.size == 1:
+        if constant_rv.support == 0:
+            return _Constant(
                 support=np.zeros_like(norm_rv.mean),
                 random_state=_utils.derive_random_seed(
-                    norm_rv.random_state, dirac_rv.random_state
+                    norm_rv.random_state, constant_rv.random_state
                 ),
             )
         else:
             return _Normal(
-                mean=dirac_rv.support * norm_rv.mean,
-                cov=(dirac_rv.support ** 2) * norm_rv.cov,
+                mean=constant_rv.support * norm_rv.mean,
+                cov=(constant_rv.support ** 2) * norm_rv.cov,
                 random_state=_utils.derive_random_seed(
-                    norm_rv.random_state, dirac_rv.random_state
+                    norm_rv.random_state, constant_rv.random_state
                 ),
             )
 
     return NotImplemented
 
 
-_mul_fns[(_Normal, _Dirac)] = _mul_normal_dirac
-_mul_fns[(_Dirac, _Normal)] = _swap_operands(_mul_normal_dirac)
+_mul_fns[(_Normal, _Constant)] = _mul_normal_constant
+_mul_fns[(_Constant, _Normal)] = _swap_operands(_mul_normal_constant)
 
 
-def _matmul_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
+def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
         return _Normal(
-            mean=norm_rv.mean @ dirac_rv.support,
-            cov=dirac_rv.support.T @ (norm_rv.cov @ dirac_rv.support),
+            mean=norm_rv.mean @ constant_rv.support,
+            cov=constant_rv.support.T @ (norm_rv.cov @ constant_rv.support),
             random_state=_utils.derive_random_seed(
-                norm_rv.random_state, dirac_rv.random_state
+                norm_rv.random_state, constant_rv.random_state
             ),
         )
     elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
         cov_update = _linear_operators.Kronecker(
-            _linear_operators.Identity(dirac_rv.shape[0]), dirac_rv.support
+            _linear_operators.Identity(constant_rv.shape[0]), constant_rv.support
         )
 
         return _Normal(
-            mean=norm_rv.mean @ dirac_rv.support,
+            mean=norm_rv.mean @ constant_rv.support,
             cov=cov_update.T @ (norm_rv.cov @ cov_update),
             random_state=_utils.derive_random_seed(
-                norm_rv.random_state, dirac_rv.random_state
+                norm_rv.random_state, constant_rv.random_state
             ),
         )
     else:
@@ -299,16 +305,16 @@ def _matmul_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
         )
 
 
-_matmul_fns[(_Normal, _Dirac)] = _matmul_normal_dirac
+_matmul_fns[(_Normal, _Constant)] = _matmul_normal_constant
 
 
-def _matmul_dirac_normal(dirac_rv: _Dirac, norm_rv: _Normal) -> _Normal:
+def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
         return _Normal(
-            mean=dirac_rv.support @ norm_rv.mean,
-            cov=dirac_rv.support @ (norm_rv.cov @ dirac_rv.support.T),
+            mean=constant_rv.support @ norm_rv.mean,
+            cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
             random_state=_utils.derive_random_seed(
-                dirac_rv.random_state, norm_rv.random_state
+                constant_rv.random_state, norm_rv.random_state
             ),
         )
     else:
@@ -318,23 +324,23 @@ def _matmul_dirac_normal(dirac_rv: _Dirac, norm_rv: _Normal) -> _Normal:
         )
 
 
-_matmul_fns[(_Dirac, _Normal)] = _matmul_dirac_normal
+_matmul_fns[(_Constant, _Normal)] = _matmul_constant_normal
 
 
-def _truediv_normal_dirac(norm_rv: _Normal, dirac_rv: _Dirac) -> _Normal:
-    if dirac_rv.size == 1:
-        if dirac_rv.support == 0:
+def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
+    if constant_rv.size == 1:
+        if constant_rv.support == 0:
             raise ZeroDivisionError
 
         return _Normal(
-            mean=norm_rv.mean / dirac_rv.support,
-            cov=norm_rv.cov / (dirac_rv.support ** 2),
+            mean=norm_rv.mean / constant_rv.support,
+            cov=norm_rv.cov / (constant_rv.support ** 2),
             random_state=_utils.derive_random_seed(
-                norm_rv.random_state, dirac_rv.random_state
+                norm_rv.random_state, constant_rv.random_state
             ),
         )
 
     return NotImplemented
 
 
-_truediv_fns[(_Normal, _Dirac)] = _truediv_normal_dirac
+_truediv_fns[(_Normal, _Constant)] = _truediv_normal_constant

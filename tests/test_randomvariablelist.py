@@ -3,19 +3,19 @@ import unittest
 import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.random_variables import Dirac
+from probnum.random_variables import Constant
 
 
 class TestRandomVariableList(unittest.TestCase):
     def setUp(self):
-        self.rv_list = _RandomVariableList([Dirac(0.1), Dirac(0.2)])
+        self.rv_list = _RandomVariableList([Constant(0.1), Constant(0.2)])
 
     def test_inputs(self):
         """Inputs rejected or accepted according to expected types."""
-        numpy_array = np.ones(3) * Dirac(0.1)
-        dirac_list = [Dirac(0.1), Dirac(0.4)]
+        numpy_array = np.ones(3) * Constant(0.1)
+        constant_list = [Constant(0.1), Constant(0.4)]
         number_list = [0.5, 0.41]
-        inputs = [numpy_array, dirac_list, number_list]
+        inputs = [numpy_array, constant_list, number_list]
         inputs_acceptable = [False, True, False]
 
         for inputs, is_acceptable in zip(inputs, inputs_acceptable):
@@ -45,7 +45,7 @@ class TestRandomVariableList(unittest.TestCase):
 
     def test_getitem(self):
         item = self.rv_list[0]
-        self.assertIsInstance(item, Dirac)
+        self.assertIsInstance(item, Constant)
 
 
 if __name__ == "__main__":

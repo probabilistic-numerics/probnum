@@ -25,7 +25,7 @@ class TestDiscreteModel(unittest.TestCase):
         self.mdm = MockDiscreteModel()
 
     def test_call_rv(self):
-        out = self.mdm(rvs.Dirac(0.1))
+        out = self.mdm(rvs.Constant(0.1))
         self.assertIsInstance(out, rvs.RandomVariable)
 
     def test_call_arr(self):

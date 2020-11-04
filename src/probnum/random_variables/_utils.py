@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 import scipy.sparse
 
-from . import _dirac, _random_variable, _scipy_stats
+from . import _constant, _random_variable, _scipy_stats
 
 
 def asrandvar(obj: Any) -> _random_variable.RandomVariable:
@@ -38,12 +38,12 @@ def asrandvar(obj: Any) -> _random_variable.RandomVariable:
         return obj
     # Scalar
     elif np.isscalar(obj):
-        return _dirac.Dirac(support=obj)
+        return _constant.Constant(support=obj)
     # Numpy array, sparse array or Linear Operator
     elif isinstance(
         obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)
     ):
-        return _dirac.Dirac(support=obj)
+        return _constant.Constant(support=obj)
     # Scipy random variable
     elif isinstance(
         obj,
