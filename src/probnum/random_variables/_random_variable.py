@@ -112,10 +112,10 @@ class RandomVariable(Generic[_ValueType]):
     :class:`RandomVariable` or any of its descendants.
 
     Sampling from random variables with fixed seed is not stable with respect to the
-    order of operations (e.g. slicing, masking, etc.). This means sampling from a
+    order of operations (such as slicing, masking, etc.). This means sampling from a
     random variable and then slicing the resulting array does not necessarily
     return the same result as slicing the random variable and sampling from the
-    result. However the random seed ensures that each sequence of operations will
+    result. However, the random seed ensures that each sequence of operations will
     always result in the same output.
     """
 
@@ -241,7 +241,7 @@ class RandomVariable(Generic[_ValueType]):
     @random_state.setter
     def random_state(self, seed: RandomStateArgType):
         """
-        Get or set the RandomState object of the underlying distribution.
+        Get or set the RandomState object of the random variable.
 
         This can be either None or an existing RandomState object.
         If None (or np.random), use the RandomState singleton used by np.random.
