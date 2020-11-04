@@ -1,3 +1,5 @@
+"""Bayesian Quadrature."""
+
 import abc
 
 
@@ -7,9 +9,17 @@ class BayesianQuadrature(abc.ABC):
 
     This class is designed to be subclassed by implementations of Bayesian quadrature
     with an :meth:`integrate` method.
+
+    Parameters
+    ----------
+    fun0
+        Stochastic process modelling function to be integrated.
     """
 
-    def integrate(self, fun, fun0, domain, nevals, **kwargs):
+    def __init__(self, fun0):
+        self.fun0 = fun0
+
+    def integrate(self, fun, domain, nevals, **kwargs):
         """
         Integrate the function ``fun``.
 
@@ -17,8 +27,6 @@ class BayesianQuadrature(abc.ABC):
         ----------
         fun : function
             Function to be integrated.
-        fun0 : RandomProcess
-            Stochastic process modelling function to be integrated.
         domain : ndarray, shape=()
             Domain to integrate over.
         nevals : int
@@ -37,7 +45,7 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
     Vanilla Bayesian quadrature in 1D.
     """
 
-    def integrate(self, fun, fun0, domain, nevals, **kwargs):
+    def integrate(self, fun, domain, nevals, **kwargs):
         """
         Integrate the function ``fun``.
 
@@ -81,7 +89,7 @@ class WSABIBayesianQuadrature(BayesianQuadrature):
     Warped Sequential Active Bayesian Integration (WSABI).
     """
 
-    def integrate(self, fun, fun0, domain, nevals, **kwargs):
+    def integrate(self, fun, domain, nevals, **kwargs):
         """
         Integrate the function ``fun``.
 
@@ -89,8 +97,6 @@ class WSABIBayesianQuadrature(BayesianQuadrature):
         ----------
         fun : function
             Function to be integrated.
-        fun0 : RandomProcess
-            Stochastic process modelling function to be integrated.
         domain : ndarray, shape=()
             Domain to integrate over.
         nevals : int

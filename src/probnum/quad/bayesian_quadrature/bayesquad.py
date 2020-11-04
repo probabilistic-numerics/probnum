@@ -11,7 +11,7 @@ true value of the integral.
 from ._bayesian_quadrature import VanillaBayesianQuadrature, WSABIBayesianQuadrature
 
 
-def bayesquad(fun, fun0, domain, nevals=None, type="vanilla", **kwargs):
+def bayesquad(fun, fun0, domain, nevals=None, method="vanilla", **kwargs):
     """
     N-dimensional Bayesian quadrature.
 
@@ -25,7 +25,7 @@ def bayesquad(fun, fun0, domain, nevals=None, type="vanilla", **kwargs):
         Domain of integration.
     nevals : int
         Number of function evaluations.
-    type : str
+    method : str
         Type of Bayesian quadrature to use. The available options are
 
         ====================  ===========
@@ -52,14 +52,12 @@ def bayesquad(fun, fun0, domain, nevals=None, type="vanilla", **kwargs):
 
     # Choose Method
     bqmethod = None
-    if type == "vanilla":
-        bqmethod = VanillaBayesianQuadrature()
-    elif type == "wsabi":
-        bqmethod = WSABIBayesianQuadrature()
+    if method == "vanilla":
+        bqmethod = VanillaBayesianQuadrature(fun0=fun0)
+    elif method == "wsabi":
+        bqmethod = WSABIBayesianQuadrature(fun0=fun0)
 
     # Integrate
-    F, fun0, info = bqmethod.integrate(
-        fun=fun, fun0=fun0, nevals=nevals, domain=domain, **kwargs
-    )
+    F, fun0, info = bqmethod.integrate(fun=fun, nevals=nevals, domain=domain, **kwargs)
 
     return F, fun0, info
