@@ -2,55 +2,56 @@
 Random Processes.
 """
 
-from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Generic, TypeVar
 
 from probnum.type import ShapeArgType
 
 from ..random_variables import RandomVariable
 
+_DomainType = TypeVar("DomainType")
+_ValueType = TypeVar("ValueType")
 
-class RandomProcess(ABC):
+
+class RandomProcess(Generic[_DomainType, _ValueType]):
     """Random process."""
 
-    @abstractmethod
-    def __call__(self, location) -> RandomVariable:
+    def __call__(self, input) -> RandomVariable:
         """
         Evaluate the random process at a set of inputs.
 
         Parameters
         ----------
-        location
+        input
         """
         raise NotImplementedError
 
-    def mean(self, location: DomainType) -> ValueType:
+    def mean(self, input: _DomainType) -> _ValueType:
         raise NotImplementedError
 
-    def std(self, location: DomainType) -> ValueType:
+    def std(self, input: _DomainType) -> _ValueType:
         raise NotImplementedError
 
-    def var(self, location: DomainType) -> ValueType:
+    def var(self, input: _DomainType) -> _ValueType:
         raise NotImplementedError
 
-    def cov(self, location1: DomainType, location2: DomainType) -> ValueType:
+    def cov(self, input1: _DomainType, input2: _DomainType) -> _ValueType:
         raise NotImplementedError
 
-    def sample(self, size: ShapeArgType = (), location: DomainType):
+    def sample(self, input: _DomainType, size: ShapeArgType = ()):
         """
         Sample paths from the random process.
 
         Parameters
         ----------
-        location
-            Evaluation location of the sample paths of the process.
+        input
+            Evaluation input of the sample paths of the process.
         size
             Size of the sample.
         """
-        if location is None:
-            return lambda loc: self.sample(location=loc, size=size)
+        if input is None:
+            return lambda loc: self.sample(input=loc, size=size)
         else:
-            return self._sample_at_locations(location=location, size=size)
+            return self._sample_at_inputs(input=input, size=size)
 
-    def _sample_at_locations(self, location: DomainType, size: ShapeArgType = ()):
+    def _sample_at_inputs(self, input: _DomainType, size: ShapeArgType = ()):
         raise NotImplementedError

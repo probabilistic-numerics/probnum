@@ -178,7 +178,7 @@ _pow_fns[(_RandomVariable, _RandomVariable)] = _default_rv_binary_op_factory(
 
 
 ########################################################################################
-# Dirac - Dirac Arithmetic
+# Constant - Constant Arithmetic
 ########################################################################################
 
 _add_fns[(_Constant, _Constant)] = _Constant._binary_operator_factory(operator.add)
@@ -206,7 +206,7 @@ _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
 
 
 ########################################################################################
-# Normal - Dirac Arithmetic
+# Normal - Constant Arithmetic
 ########################################################################################
 
 

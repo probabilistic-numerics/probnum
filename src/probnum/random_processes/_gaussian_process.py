@@ -1,48 +1,50 @@
 """Gaussian processes."""
 
 from functools import lru_cache
-from typing import Callable
+from typing import Callable, Union
+
+import numpy as np
 
 from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
 from probnum.type import ShapeArgType
 
 from ..random_variables import Normal, RandomVariable
-from ._random_process import RandomProcess
+from . import _random_process
+
+_DomainType = Union[np.floating, np.ndarray]
+_ValueType = Union[np.floating, np.ndarray]
 
 
-class GaussianProcess(RandomProcess):
+class GaussianProcess(_random_process.RandomProcess[_DomainType, _ValueType]):
     def __init__(self, meanfun, covfun):
         self._meanfun = meanfun
         self._covfun = covfun
 
-    def __call__(self, location) -> RandomVariable:
+    def __call__(self, input) -> RandomVariable:
         """
         Evaluate the random process at a set of inputs.
 
         Parameters
         ----------
-        location
+        input
 
         Returns
         -------
 
         """
-        return Normal(mean=self.meanfun(location), cov=self.covfun(location))
+        return Normal(mean=self._meanfun(input), cov=self._covfun(input))
 
-    @property
-    def mean(self) -> Callable:
-        return self._meanfun
+    def mean(self, input: _DomainType) -> _ValueType:
+        return self._meanfun(input)
 
-    @property
-    def std(self) -> Callable:
+    def std(self, input: _DomainType) -> _ValueType:
         raise NotImplementedError
 
-    def var(self) -> Callable:  # varfun(pt)
+    def var(self, input: _DomainType) -> _ValueType:
         raise NotImplementedError
 
-    @property
-    def cov_function(self) -> Callable:  # covfun(pt1, pt2)
-        return self._covfun
+    def cov(self, input1: _DomainType, input2: _DomainType) -> _ValueType:
+        return self._covfun(input1, input2)
 
     def sample_function(self, size: ShapeArgType = ()) -> Callable:
         """
@@ -57,7 +59,9 @@ class GaussianProcess(RandomProcess):
         raise NotImplementedError
 
 
-class GaussMarkovProcess(GaussianProcess):
+class GaussMarkovProcess(_random_process.RandomProcess[np.floating, _ValueType]):
+    """"""
+
     def __init__(self, linear_transition, initrv, t0=0.0):
         if not isinstance(linear_transition, LinearSDEModel):
             raise ValueError
@@ -68,17 +72,15 @@ class GaussMarkovProcess(GaussianProcess):
         self.initrv = initrv
         super().__init__(meanfun=self._sde_meanfun, covfun=self._covfun)
 
-    def _sde_meanfun(self, location):
-        return self._transition_rv(location).mean
+    def _sde_meanfun(self, input):
+        return self._transition_rv(input).mean
 
-    def _sde_covfun(self, location1, location2):
+    def _sde_covfun(self, input1, input2):
         raise NotImplementedError
 
     @lru_cache
-    def _transition_rv(self, location):
-        return self.transition.transition_rv(
-            rv=self.initrv, start=self.t0, stop=location
-        )
+    def _transition_rv(self, input):
+        return self.transition.transition_rv(rv=self.initrv, start=self.t0, stop=input)
 
     @property
     def varfun(self):
