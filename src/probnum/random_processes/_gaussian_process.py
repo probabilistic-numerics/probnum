@@ -16,6 +16,20 @@ _ValueType = Union[np.floating, np.ndarray]
 
 
 class GaussianProcess(_random_process.RandomProcess[_DomainType, _ValueType]):
+    """
+    Gaussian Process.
+
+    Parameters
+    ----------
+
+    See Also
+    --------
+    RandomProcess : Class representing random processes.
+
+    Examples
+    --------
+    """
+
     def __init__(self, meanfun, covfun):
         self._meanfun = meanfun
         self._covfun = covfun
@@ -60,7 +74,22 @@ class GaussianProcess(_random_process.RandomProcess[_DomainType, _ValueType]):
 
 
 class GaussMarkovProcess(_random_process.RandomProcess[np.floating, _ValueType]):
-    """"""
+    """
+    Gauss-Markov Process.
+
+
+
+
+    Parameters
+    ----------
+
+    See Also
+    --------
+    RandomProcess : Class representing random processes.
+
+    Examples
+    --------
+    """
 
     def __init__(self, linear_transition, initrv, t0=0.0):
         if not isinstance(linear_transition, LinearSDEModel):

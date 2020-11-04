@@ -95,7 +95,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
 
         smoothed_solution = ODESolution(
-            times=ivp_smoother_posterior.locations,
+            times=ivp_smoother_posterior.inputs,
             rvs=ivp_smoother_posterior.state_rvs,
             solver=ode_solution._solver,
         )

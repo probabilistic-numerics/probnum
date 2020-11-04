@@ -13,6 +13,7 @@ import probnum.random_variables as rvs
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
+from probnum.type import ShapeArgType
 
 
 class KalmanPosterior(FiltSmoothPosterior):
@@ -127,9 +128,6 @@ class KalmanPosterior(FiltSmoothPosterior):
     def __getitem__(self, idx):
         return self.state_rvs[idx]
 
-    sample_paths = bla.sample(size)
-    bla2 = sample_paths(locations)
-
     def sample(self, size: ShapeArgType = ()):
         return lambda locations: self._sample_at_locations(
             locations=locations, size=size
@@ -151,7 +149,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             )
 
         return np.array(
-            [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
+            [self.sample(input=locations, size=size[1:]) for _ in range(size[0])]
         )
 
     def _single_sample_path(self, locations, random_vars):

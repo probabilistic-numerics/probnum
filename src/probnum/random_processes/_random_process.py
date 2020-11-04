@@ -13,7 +13,23 @@ _ValueType = TypeVar("ValueType")
 
 
 class RandomProcess(Generic[_DomainType, _ValueType]):
-    """Random process."""
+    """
+    Random process.
+
+    Parameters
+    ----------
+
+    See Also
+    --------
+    asrandproc : Convert an object to a random process.
+
+    Examples
+    --------
+    """
+
+    def __init__(self):
+        """"""
+        pass
 
     def __call__(self, input) -> RandomVariable:
         """
