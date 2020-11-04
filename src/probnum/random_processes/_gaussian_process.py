@@ -25,17 +25,24 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     Parameters
     ----------
+    mean :
+        Mean function.
+    cov :
+        Covariance function or kernel.
+    input_shape :
+        Shape of the input of the Gaussian process.
 
     See Also
     --------
     RandomProcess : Class representing random processes.
+    GaussMarkovProcess : Gaussian processes with the Markov property.
 
     Examples
     --------
     >>> import numpy as np
     >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
     >>> kernel = lambda x, y : (x @ y) ** 2  # polynomial kernel
-    >>> gp = GaussianProcess(mean=mean, kernel=kernel, input_shape=())
+    >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=())
     >>> gp.sample(input=np.linspace(0, 1, 5))
     <Normal with shape=(5,), dtype=float64>
     """
@@ -74,7 +81,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         ).sample(size=size)
 
 
-class GaussMarkovProcess(GaussianProcess[np.floating, _OutputType]):
+class GaussMarkovProcess(GaussianProcess):
     """
     Gaussian processes with the Markov property.
 
@@ -94,7 +101,7 @@ class GaussMarkovProcess(GaussianProcess[np.floating, _OutputType]):
 
     See Also
     --------
-    RandomProcess : Class representing random processes.
+    GaussianProcess : Class representing Gaussian processes.
 
     Examples
     --------
@@ -114,11 +121,11 @@ class GaussMarkovProcess(GaussianProcess[np.floating, _OutputType]):
     def _sde_meanfun(self, input):
         return self._transition_rv(input).mean
 
-    def _sde_covfun(self, input1, input2):
+    def _sde_covfun(self, input0, input1):
         raise NotImplementedError
 
     def _transition_rv(self, input):
         return self.transition.transition_rv(rv=self.initrv, start=self.t0, stop=input)
 
-    def var(self):
-        return lambda loc: self._transition_rv(loc).cov
+    def var(self, input):
+        return lambda loc: self._transition_rv(input).cov
