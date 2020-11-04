@@ -6,16 +6,16 @@ import numpy as np
 
 from probnum import utils as _utils
 from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
-from probnum.type import ShapeArgType
+from probnum.type import FloatArgType, ShapeArgType
 
 from ..random_variables import Normal, RandomVariable
 from . import _random_process
 
-_DomainType = Union[np.floating, np.ndarray]
-_ValueType = Union[np.floating, np.ndarray]
+_InputType = Union[np.floating, np.ndarray]
+_OutputType = Union[np.floating, np.ndarray]
 
 
-class GaussianProcess(_random_process.RandomProcess[_DomainType, _ValueType]):
+class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     """
     Gaussian processes.
 
@@ -33,8 +33,8 @@ class GaussianProcess(_random_process.RandomProcess[_DomainType, _ValueType]):
     Examples
     --------
     >>> import numpy as np
-    >>> mean = lambda x : np.zeros_like(x)
-    >>> kernel = lambda x, y : (x @ y) ** 2
+    >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
+    >>> kernel = lambda x, y : (x @ y) ** 2  # polynomial kernel
     >>> gp = GaussianProcess(mean=mean, kernel=kernel, input_shape=())
     >>> gp.sample(input=np.linspace(0, 1, 5))
     <Normal with shape=(5,), dtype=float64>
@@ -42,8 +42,8 @@ class GaussianProcess(_random_process.RandomProcess[_DomainType, _ValueType]):
 
     def __init__(
         self,
-        mean: Optional[Callable[[_DomainType], _ValueType]],
-        cov: Optional[Callable[[_DomainType], _ValueType]],
+        mean: Optional[Callable[[_InputType], _OutputType]],
+        cov: Optional[Callable[[_InputType], _OutputType]],
         input_shape: ShapeArgType,
     ):
         # Type normalization
@@ -59,40 +59,38 @@ class GaussianProcess(_random_process.RandomProcess[_DomainType, _ValueType]):
         # Call to super class
         super().__init__(
             input_shape=_input_shape,
-            value_shape=_value_shape,
+            output_shape=_value_shape,
             dtype=np.dtype(np.float_),
             mean=mean,
             cov=cov,
         )
 
-    def __call__(self, input: _DomainType) -> Normal:
-        return Normal(mean=self.mean(input), cov=self.cov(input1=input, input2=input))
+    def __call__(self, input: _InputType) -> Normal:
+        return Normal(mean=self.mean(input), cov=self.cov(input0=input, input1=input))
 
-    def mean(self, input: _DomainType) -> _ValueType:
-        return self.mean(input)
-
-    def std(self, input: _DomainType) -> _ValueType:
-        raise NotImplementedError
-
-    def var(self, input: _DomainType) -> _ValueType:
-        raise NotImplementedError
-
-    def cov(self, input1: _DomainType, input2: _DomainType) -> _ValueType:
-        return self.cov(input1, input2)
-
-    def _sample_at_input(self, input: _DomainType, size: ShapeArgType = ()):
+    def _sample_at_input(self, input: _InputType, size: ShapeArgType = ()):
         return Normal(
-            mean=self.mean(input), cov=self.cov(input1=input, input2=input)
+            mean=self.mean(input), cov=self.cov(input0=input, input1=input)
         ).sample(size=size)
 
 
-class GaussMarkovProcess(_random_process.RandomProcess[np.floating, _ValueType]):
+class GaussMarkovProcess(GaussianProcess[np.floating, _OutputType]):
     """
-    Gauss-Markov Processes.
+    Gaussian processes with the Markov property.
 
+    A Gauss-Markov process is a Gaussian process with the additional property that
+    conditioned on the present state of the system its future and past states are
+    independent. This is known as the Markov property or as the process being
+    memoryless.
 
     Parameters
     ----------
+    linear_transition
+        Linear transition model describing a state change of the system.
+    initrv
+        Initial random variable describing the initial state.
+    t0
+        Initial starting index / time of the process.
 
     See Also
     --------
@@ -102,15 +100,16 @@ class GaussMarkovProcess(_random_process.RandomProcess[np.floating, _ValueType])
     --------
     """
 
-    def __init__(self, linear_transition, initrv, t0=0.0):
-        if not isinstance(linear_transition, LinearSDEModel):
-            raise ValueError
-        elif not isinstance(linear_transition, DiscreteGaussianLinearModel):
-            raise ValueError
+    def __init__(
+        self,
+        linear_transition: Union[LinearSDEModel, DiscreteGaussianLinearModel],
+        initrv: RandomVariable[_OutputType],
+        t0: FloatArgType = 0.0,
+    ):
         self.transition = linear_transition
         self.t0 = t0
         self.initrv = initrv
-        super().__init__(mean=self._sde_meanfun, cov=self._covfun)
+        super().__init__(input_shape=(), mean=self._sde_meanfun, cov=self._sde_covfun)
 
     def _sde_meanfun(self, input):
         return self._transition_rv(input).mean
@@ -121,6 +120,5 @@ class GaussMarkovProcess(_random_process.RandomProcess[np.floating, _ValueType])
     def _transition_rv(self, input):
         return self.transition.transition_rv(rv=self.initrv, start=self.t0, stop=input)
 
-    @property
-    def varfun(self):
+    def var(self):
         return lambda loc: self._transition_rv(loc).cov

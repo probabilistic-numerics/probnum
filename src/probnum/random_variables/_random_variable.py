@@ -470,7 +470,7 @@ class RandomVariable(Generic[_ValueType]):
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        return self.__sample(size=_utils.as_shape(size))
+        return self.__sample(_utils.as_shape(size))
 
     def cdf(self, x: _ValueType) -> np.float_:
         """
