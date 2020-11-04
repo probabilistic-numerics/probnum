@@ -5,6 +5,7 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
+from typing import Union
 from warnings import warn
 
 import numpy as np
@@ -128,28 +129,32 @@ class KalmanPosterior(FiltSmoothPosterior):
     def __getitem__(self, idx):
         return self.state_rvs[idx]
 
-    def sample(self, size: ShapeArgType = ()):
-        return lambda locations: self._sample_at_locations(
-            locations=locations, size=size
-        )
+    def sample(
+        self, input: Union[np.floating, np.ndarray] = None, size: ShapeArgType = ()
+    ):
+        if input is None:
+            # TODO: this behaviour is not yet consistent with RandomProcess
+            # Once tests and associated functions have been refactored the sample
+            # function should be removed to use behaviour of RandomProcess instead
+            return self.sample(input=self.locations, size=size)
+        else:
+            return self._sample_at_input(input=input, size=size)
 
-    def _sample_at_locations(self, locations=None, size=()):
+    def _sample_at_input(self, input=None, size=()):
 
         size = utils.as_shape(size)
 
-        if locations is None:
-            locations = self.locations
+        if input is None:
+            input = self.locations
             random_vars = self.state_rvs
         else:
-            random_vars = self.__call__(locations)
+            random_vars = self.__call__(input)
 
         if size == ():
-            return self._single_sample_path(
-                locations=locations, random_vars=random_vars
-            )
+            return self._single_sample_path(locations=input, random_vars=random_vars)
 
         return np.array(
-            [self.sample(input=locations, size=size[1:]) for _ in range(size[0])]
+            [self.sample(input=input, size=size[1:]) for _ in range(size[0])]
         )
 
     def _single_sample_path(self, locations, random_vars):

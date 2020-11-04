@@ -1,21 +1,26 @@
 """Abstract Base Class for posteriors over states after applying filtering/smoothing"""
 from abc import ABC, abstractmethod
+from typing import Union
 
+import numpy as np
+
+import probnum.random_processes._random_process as _random_process
 from probnum.type import ShapeArgType
 
-from ..random_processes import RandomProcess
+_DomainType = np.floating
+_ValueType = Union[np.floating, np.ndarray]
 
 
-class FiltSmoothPosterior(RandomProcess, ABC):
+class FiltSmoothPosterior(_random_process.RandomProcess[_DomainType, _ValueType], ABC):
     """Posterior Distribution over States after Filtering/Smoothing"""
 
     @abstractmethod
-    def __call__(self, location):
+    def __call__(self, input):
         """Evaluate the time-continuous posterior for a given location
 
         Parameters
         ----------
-        location : float
+        input : float
             Location, or time, at which to evaluate the posterior.
 
         Returns
@@ -37,17 +42,17 @@ class FiltSmoothPosterior(RandomProcess, ABC):
         """Return the corresponding index/slice of the discrete-time solution."""
         raise NotImplementedError
 
-    def _sample_at_locations(self, locations, size: ShapeArgType = ()):
+    def _sample_at_input(self, input: _DomainType, size: ShapeArgType = ()):
         """
         Draw samples from the filtering/smoothing posterior.
 
-        If nothing is specified, a single sample is drawn (supported on self.locations).
+        If nothing is specified, a single sample is drawn (supported on self.inputs).
         If locations are specified, the samples are drawn on those locations.
         If size is specified, more than a single sample is drawn.
 
         Parameters
         ----------
-        locations : array_like, optional
+        inputs : array_like, optional
             Locations on which the samples are wanted. Default is none, which implies that
             self.location is used.
         size : int or tuple of ints, optional
