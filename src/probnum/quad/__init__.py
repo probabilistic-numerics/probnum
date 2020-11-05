@@ -8,7 +8,8 @@ Bayesian quadrature methods integrate a function by iteratively building a proba
 model and using its predictions to adaptively choose points to evaluate the integrand.
 """
 
-from probnum.quad.bayesian_quadrature import *
+from ._bayesquad import *
+from .bq_methods import *
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

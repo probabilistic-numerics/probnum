@@ -66,7 +66,7 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
         """
 
         # Initialization
-        F = None
+        integral = None
 
         # Iteration
         for _ in range(nevals):
@@ -81,7 +81,7 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
         # Information on result
         info = {"model_fit_diagnostic": None}
 
-        return F, self.fun0, info
+        return integral, self.fun0, info
 
 
 class WSABIBayesianQuadrature(BayesianQuadrature):

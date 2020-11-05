@@ -8,7 +8,10 @@ methods return a random variable with a distribution, specifying the belief abou
 true value of the integral.
 """
 
-from ._bayesian_quadrature import VanillaBayesianQuadrature, WSABIBayesianQuadrature
+from .bq_methods._bayesian_quadrature import (
+    VanillaBayesianQuadrature,
+    WSABIBayesianQuadrature,
+)
 
 
 def bayesquad(fun, fun0, domain, nevals=None, method="vanilla", **kwargs):
@@ -38,7 +41,7 @@ def bayesquad(fun, fun0, domain, nevals=None, method="vanilla", **kwargs):
 
     Returns
     -------
-    F : RandomVariable
+    integral : RandomVariable
         The integral of ``func`` on the domain.
     fun0 : RandomProcess
         Stochastic process modelling the function to be integrated after ``neval``
@@ -58,6 +61,8 @@ def bayesquad(fun, fun0, domain, nevals=None, method="vanilla", **kwargs):
         bqmethod = WSABIBayesianQuadrature(fun0=fun0)
 
     # Integrate
-    F, fun0, info = bqmethod.integrate(fun=fun, nevals=nevals, domain=domain, **kwargs)
+    integral, fun0, info = bqmethod.integrate(
+        fun=fun, nevals=nevals, domain=domain, **kwargs
+    )
 
-    return F, fun0, info
+    return integral, fun0, info
