@@ -16,7 +16,7 @@ import numpy as np
 
 from probnum.diffeq import ode
 from probnum.diffeq.odefiltsmooth import probsolve_ivp
-from probnum.random_variables import Dirac
+from probnum.random_variables import Constant
 from tests.testing import NumpyAssertions
 
 
@@ -27,7 +27,7 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = Dirac(0.1 * np.ones(1))
+        initrv = Constant(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
 
@@ -129,7 +129,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
     """
 
     def setUp(self):
-        initrv = Dirac(0.1 * np.ones(1))
+        initrv = Constant(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.step = 0.5
         sol = probsolve_ivp(self.ivp, step=self.step, diffconst=1.0, which_prior="ibm1")
@@ -167,7 +167,7 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = Dirac(20 * np.ones(2))
+        initrv = Constant(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2
 
@@ -196,7 +196,7 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and Lotka-Volterra IVP"""
-        initrv = Dirac(20 * np.ones(2))
+        initrv = Constant(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-1
         self.step = 0.1
@@ -269,7 +269,7 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = Dirac(0.1 * np.ones(1))
+        initrv = Constant(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
 
@@ -373,7 +373,7 @@ class TestAdaptivityOnLotkaVolterraSmoother(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and solve a scalar ode"""
-        initrv = Dirac(20 * np.ones(2))
+        initrv = Constant(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2
 
@@ -402,7 +402,7 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
 
     def setUp(self):
         """Setup odesolver and Lotka-Volterra IVP"""
-        initdist = Dirac(20 * np.ones(2))
+        initdist = Constant(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initdist)
         self.tol = 1e-1
         self.step = 0.1
@@ -475,7 +475,7 @@ class TestPreconditioning(unittest.TestCase):
     """
 
     def setUp(self):
-        initdist = Dirac(20 * np.ones(2))
+        initdist = Constant(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 1e-4], initdist)
         self.step = 1e-5
         self.prior = "ibm3"

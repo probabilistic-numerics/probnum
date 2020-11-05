@@ -61,7 +61,7 @@ class TestContinuousModel(unittest.TestCase):
         self.mcm = MockContinuousModel()
 
     def test_call_rv(self):
-        out = self.mcm(rvs.Dirac(0.1))
+        out = self.mcm(rvs.Constant(0.1))
         self.assertIsInstance(out, rvs.RandomVariable)
 
     def test_call_arr(self):

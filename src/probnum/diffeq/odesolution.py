@@ -39,7 +39,7 @@ class ODESolution(FiltSmoothPosterior):
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
     >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Dirac(0.15)
+    >>> initrv = rvs.Constant(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> # Mean of the discrete-time solution
@@ -65,7 +65,7 @@ class ODESolution(FiltSmoothPosterior):
     [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
     >>> # Individual entries of the discrete-time solution can be accessed with
     >>> print(solution[5])
-    <(1,) Normal with dtype=float64>
+    <Normal with shape=(1,), dtype=float64>
     >>> print(solution[5].mean)
     [0.55945475]
     >>> # Evaluate the continuous-time solution at a new time point t=0.65
@@ -102,7 +102,7 @@ class ODESolution(FiltSmoothPosterior):
         if self._t:  # hotfix
             return self._t
         else:
-            return self._kalman_posterior.locations
+            return self._kalman_posterior.inputs
 
     @property
     def y(self):

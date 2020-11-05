@@ -1,85 +1,131 @@
 """Gaussian processes."""
 
-from functools import lru_cache
-from typing import Callable
+from typing import Callable, Optional, Union
 
+import numpy as np
+
+from probnum import utils as _utils
 from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
-from probnum.type import ShapeArgType
+from probnum.type import FloatArgType, ShapeArgType
 
 from ..random_variables import Normal, RandomVariable
-from ._random_process import RandomProcess
+from . import _random_process
+
+_InputType = Union[np.floating, np.ndarray]
+_OutputType = Union[np.floating, np.ndarray]
 
 
-class GaussianProcess(RandomProcess):
-    def __init__(self, meanfun, covfun):
-        self._meanfun = meanfun
-        self._covfun = covfun
+class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
+    """
+    Gaussian processes.
 
-    def __call__(self, location) -> RandomVariable:
-        """
-        Evaluate the random process at a set of inputs.
+    A Gaussian process is a continuous stochastic process which if evaluated at a
+    finite set of inputs returns a multivariate normal random variable. Gaussian
+    processes are fully characterized by their mean and covariance function.
 
-        Parameters
-        ----------
-        location
+    Parameters
+    ----------
+    mean :
+        Mean function.
+    cov :
+        Covariance function or kernel.
+    input_shape :
+        Shape of the input of the Gaussian process.
 
-        Returns
-        -------
+    See Also
+    --------
+    RandomProcess : Class representing random processes.
+    GaussMarkovProcess : Gaussian processes with the Markov property.
 
-        """
-        return Normal(mean=self.meanfun(location), cov=self.covfun(location))
+    Examples
+    --------
+    >>> import numpy as np
+    >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
+    >>> kernel = lambda x, y : (x @ y) ** 2  # polynomial kernel
+    >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=())
+    >>> gp.sample(input=np.linspace(0, 1, 5))
+    <Normal with shape=(5,), dtype=float64>
+    """
 
-    @property
-    def mean(self) -> Callable:
-        return self._meanfun
+    def __init__(
+        self,
+        mean: Optional[Callable[[_InputType], _OutputType]],
+        cov: Optional[Callable[[_InputType], _OutputType]],
+        input_shape: ShapeArgType,
+    ):
+        # Type normalization
+        # TODO
 
-    @property
-    def std(self) -> Callable:
-        raise NotImplementedError
+        # Data type normalization
+        # TODO
 
-    def var(self) -> Callable:  # varfun(pt)
-        raise NotImplementedError
+        # Shape checking
+        _input_shape = _utils.as_shape(input_shape)
+        _value_shape = mean(np.zeros_like(input_shape)).shape
 
-    @property
-    def cov_function(self) -> Callable:  # covfun(pt1, pt2)
-        return self._covfun
+        # Call to super class
+        super().__init__(
+            input_shape=_input_shape,
+            output_shape=_value_shape,
+            dtype=np.dtype(np.float_),
+            mean=mean,
+            cov=cov,
+        )
 
-    def sample_function(self, size: ShapeArgType = ()) -> Callable:
-        """
-        Sample an instance from the random process.
+    def __call__(self, input: _InputType) -> Normal:
+        return Normal(mean=self.mean(input), cov=self.cov(input0=input, input1=input))
 
-        Parameters
-        ----------
-        size
-            Size of the sample.
-        """
-        # return lambda loc: self.__call__(loc).sample(size=size)
-        raise NotImplementedError
+    def _sample_at_input(self, input: _InputType, size: ShapeArgType = ()):
+        return Normal(
+            mean=self.mean(input), cov=self.cov(input0=input, input1=input)
+        ).sample(size=size)
 
 
 class GaussMarkovProcess(GaussianProcess):
-    def __init__(self, linear_transition, initrv, t0=0.0):
-        if not isinstance(linear_transition, LinearSDEModel):
-            raise ValueError
-        elif not isinstance(linear_transition, DiscreteGaussianLinearModel):
-            raise ValueError
+    """
+    Gaussian processes with the Markov property.
+
+    A Gauss-Markov process is a Gaussian process with the additional property that
+    conditioned on the present state of the system its future and past states are
+    independent. This is known as the Markov property or as the process being
+    memoryless.
+
+    Parameters
+    ----------
+    linear_transition
+        Linear transition model describing a state change of the system.
+    initrv
+        Initial random variable describing the initial state.
+    t0
+        Initial starting index / time of the process.
+
+    See Also
+    --------
+    GaussianProcess : Class representing Gaussian processes.
+
+    Examples
+    --------
+    """
+
+    def __init__(
+        self,
+        linear_transition: Union[LinearSDEModel, DiscreteGaussianLinearModel],
+        initrv: RandomVariable[_OutputType],
+        t0: FloatArgType = 0.0,
+    ):
         self.transition = linear_transition
         self.t0 = t0
         self.initrv = initrv
-        super().__init__(meanfun=self._sde_meanfun, covfun=self._covfun)
+        super().__init__(input_shape=(), mean=self._sde_meanfun, cov=self._sde_covfun)
 
-    def _sde_meanfun(self, location):
-        return self._transition_rv(location).mean
+    def _sde_meanfun(self, input):
+        return self._transition_rv(input).mean
 
-    def _sde_covfun(self, location1, location2):
+    def _sde_covfun(self, input0, input1):
         raise NotImplementedError
 
-    @lru_cache
-    def _transition_rv(self, location):
-        return self.transition.transition_rv(
-            rv=self.initrv, start=self.t0, stop=location
-        )
+    def _transition_rv(self, input):
+        return self.transition.transition_rv(rv=self.initrv, start=self.t0, stop=input)
 
-    @property
-    def varfun(self):
-        return lambda loc: self._transition_rv(loc).cov
+    def var(self, input):
+        return lambda loc: self._transition_rv(input).cov
