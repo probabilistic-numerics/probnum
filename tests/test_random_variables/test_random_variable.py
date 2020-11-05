@@ -15,7 +15,7 @@ from tests.testing import NumpyAssertions
 class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
     """General test case for random variables."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Scalars, arrays, linear operators and random variables for tests."""
         # Seed
         np.random.seed(42)
@@ -172,16 +172,20 @@ class ArithmeticTestCase(RandomVariableTestCase):
                 )
 
     # Random seed
-    def test_different_rv_seeds(self):
+    def test_keep_fixed_seed(self):
         """
-        Arithmetic operation between two random variables with different seeds.
+        Arithmetic operation between two random variables with different seeds retain a
+        fixed seed.
         """
-        pass
+        x = rvs.Normal(0, 1, random_state=0)
+        y = rvs.Normal(0, 1, random_state=1)
+        z = x + y
+        self.assertIsNotNone(z.random_state)
 
 
 class ShapeTestCase(RandomVariableTestCase):
     """
-    Tests methods related to the shape of a random variable, its distribution or realizations.
+    Test methods related to the shape of a random variable or its realizations.
     """
 
     def test_reshape(self):

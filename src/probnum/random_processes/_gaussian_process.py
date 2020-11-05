@@ -43,16 +43,16 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     >>> np.random.seed(42)
     >>> # Gaussian process definition
     >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
-    >>> kernel = lambda x, y : (x @ y.T) ** 2  # polynomial kernel
+    >>> kernel = lambda x0, x1 : (x0 @ x1.T) ** 3  # polynomial kernel
     >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=())
-    >>> # Sample path for the unit interval
-    >>> xx = np.linspace(0, 1, 5)[:, None]
-    >>> gp.sample(xx)
-    array([[ 0.        ],
-           [-0.03104463],
-           [-0.12417854],
-           [-0.27940171],
-           [-0.49671415]])
+    >>> # Sample path
+    >>> x = np.linspace(-1, 1, 5)[:, None]
+    >>> gp.sample(x)
+    array([[-0.49671415],
+           [-0.06208927],
+           [ 0.        ],
+           [ 0.06208927],
+           [ 0.49671415]])
     """
 
     def __init__(
