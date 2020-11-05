@@ -1,3 +1,5 @@
+"""Wrapper classes for SciPy random variables."""
+
 from typing import Any, Dict, Union
 
 import numpy as np
@@ -9,10 +11,17 @@ from . import _normal, _random_variable
 
 _ValueType = Union[np.generic, np.ndarray]
 
+# pylint: disable=protected-access
+
 
 class _SciPyRandomVariableMixin:
+    """
+    Mix-in class for SciPy random variable wrappers.
+    """
+
     @property
     def scipy_rv(self):
+        """SciPy random variable."""
         return self._scipy_rv
 
 
@@ -238,12 +247,12 @@ def _rv_init_kwargs_from_scipy_rv(
     }
 
 
-def _return_numpy(fn, dtype=None):
-    if fn is None:
+def _return_numpy(fun, dtype=None):
+    if fun is None:
         return None
 
     def _wrapper(*args, **kwargs):
-        res = fn(*args, **kwargs)
+        res = fun(*args, **kwargs)
 
         if np.isscalar(res):
             return _utils.as_numpy_scalar(res, dtype=dtype)

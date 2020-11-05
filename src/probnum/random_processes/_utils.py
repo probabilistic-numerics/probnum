@@ -1,3 +1,5 @@
+"""Utility functions for random processes."""
+
 from typing import Any
 
 from . import _random_process

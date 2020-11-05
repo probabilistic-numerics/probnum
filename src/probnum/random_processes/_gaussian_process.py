@@ -6,9 +6,9 @@ import numpy as np
 
 from probnum import utils as _utils
 from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
+from probnum.random_variables import Normal, RandomVariable
 from probnum.type import FloatArgType, ShapeArgType
 
-from ..random_variables import Normal, RandomVariable
 from . import _random_process
 
 _InputType = Union[np.floating, np.ndarray]
@@ -40,11 +40,19 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Examples
     --------
     >>> import numpy as np
+    >>> np.random.seed(42)
+    >>> # Gaussian process definition
     >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
-    >>> kernel = lambda x, y : (x @ y) ** 2  # polynomial kernel
+    >>> kernel = lambda x, y : (x @ y.T) ** 2  # polynomial kernel
     >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=())
-    >>> gp.sample(input=np.linspace(0, 1, 5))
-    <Normal with shape=(5,), dtype=float64>
+    >>> # Sample path for the unit interval
+    >>> xx = np.linspace(0, 1, 5)[:, None]
+    >>> gp.sample(xx)
+    array([[ 0.        ],
+           [-0.03104463],
+           [-0.12417854],
+           [-0.27940171],
+           [-0.49671415]])
     """
 
     def __init__(
@@ -76,9 +84,10 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         return Normal(mean=self.mean(input), cov=self.cov(input0=input, input1=input))
 
     def _sample_at_input(self, input: _InputType, size: ShapeArgType = ()):
-        return Normal(
+        rv_at_input = Normal(
             mean=self.mean(input), cov=self.cov(input0=input, input1=input)
-        ).sample(size=size)
+        )
+        return rv_at_input.sample(size=size)
 
 
 class GaussMarkovProcess(GaussianProcess):
@@ -96,7 +105,7 @@ class GaussMarkovProcess(GaussianProcess):
         Linear transition model describing a state change of the system.
     initrv
         Initial random variable describing the initial state.
-    t0
+    time0
         Initial starting index / time of the process.
 
     See Also
@@ -111,10 +120,10 @@ class GaussMarkovProcess(GaussianProcess):
         self,
         linear_transition: Union[LinearSDEModel, DiscreteGaussianLinearModel],
         initrv: RandomVariable[_OutputType],
-        t0: FloatArgType = 0.0,
+        time0: FloatArgType = 0.0,
     ):
         self.transition = linear_transition
-        self.t0 = t0
+        self.time0 = time0
         self.initrv = initrv
         super().__init__(input_shape=(), mean=self._sde_meanfun, cov=self._sde_covfun)
 
@@ -125,7 +134,9 @@ class GaussMarkovProcess(GaussianProcess):
         raise NotImplementedError
 
     def _transition_rv(self, input):
-        return self.transition.transition_rv(rv=self.initrv, start=self.t0, stop=input)
+        return self.transition.transition_rv(
+            rv=self.initrv, start=self.time0, stop=input
+        )
 
     def var(self, input):
         return lambda loc: self._transition_rv(input).cov

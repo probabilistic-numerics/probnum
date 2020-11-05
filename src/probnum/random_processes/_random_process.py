@@ -36,7 +36,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     Parameters
     ----------
     input_shape :
-        Shape of an input to the random process.
+        Shape :math:`d` of an input to the random process.
     output_shape :
         Shape of the random process evaluated at an input.
     dtype :
@@ -60,6 +60,8 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     each sequence of operations will always result in the same output.
     """
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(
         self,
         input_shape: ShapeArgType,
@@ -75,6 +77,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         var: Optional[Callable[[_InputType], _OutputType]] = None,
         std: Optional[Callable[[_InputType], _OutputType]] = None,
     ):
+        # pylint: disable=too-many-arguments
         """Create a new random process."""
         # Evaluation of the random process
         self.__call = call
@@ -107,9 +110,12 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         input
-            Inputs to evaluate random process at.
+            *shape=(d,) or (n, d)* -- Input(s) to evaluate random process at.
         """
-        self.__call(input)
+        if self.__call is None:
+            raise NotImplementedError
+
+        return self.__call(input)
 
     @property
     def input_shape(self) -> ShapeType:
@@ -157,7 +163,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         input
-            Inputs where the mean function is evaluated.
+            *shape=(d,) or (n, d)* -- Inputs where the mean function is evaluated.
         """
         if self.__mean is None:
             raise NotImplementedError
@@ -171,7 +177,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         input
-            Input locations.
+            *shape=(d,) or (n, d)* -- Input locations.
         """
         if self.__std is None:
             try:
@@ -190,7 +196,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         input
-            Input locations.
+            *shape=(d,) or (n, d)* -- Input locations.
         """
         if self.__var is None:
             try:
@@ -211,9 +217,9 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         input0
-            First input to the covariance function.
+            *shape=(d,) or (n0, d)* -- First input to the covariance function.
         input1
-            Second input to the covariance function.
+            *shape=(d,) or (n1, d)* -- Second input to the covariance function.
         """
         if self.__cov is None:
             raise NotImplementedError
@@ -233,14 +239,15 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         input
-            Evaluation input of the sample paths of the process.
+            *shape=(d,) or (n, d)* -- Evaluation input(s) of the sample paths of the
+            process.
         size
             Size of the sample.
         """
         if input is None:
             return lambda inp: self.sample(input=inp, size=size)
-        else:
-            return self._sample_at_input(input=input, size=size)
+
+        return self._sample_at_input(input=input, size=size)
 
     def _sample_at_input(
         self, input: _InputType, size: ShapeArgType = ()
@@ -255,7 +262,8 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         input
-            Evaluation input of the sample paths of the process.
+            *shape=(d,) or (n, d)* -- Evaluation input(s) of the sample paths of the
+            process.
         size
             Size of the sample.
         """
