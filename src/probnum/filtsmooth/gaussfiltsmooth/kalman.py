@@ -34,7 +34,6 @@ class Kalman(BayesFiltSmooth):
             Data set that is filtered.
         times : array_like, shape (N,)
             Temporal locations of the data points.
-        kwargs : ???
 
         Returns
         -------
@@ -56,7 +55,6 @@ class Kalman(BayesFiltSmooth):
             Data set that is filtered.
         times : array_like, shape (N,)
             Temporal locations of the data points.
-        kwargs : ???
 
         Returns
         -------
