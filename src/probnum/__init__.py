@@ -9,10 +9,10 @@ Probabilistic Numerics in Python.
 and more.
 
 
-Available subpackages
----------------------
-prob
-    Random variables, distributions and sampling.
+Available subpackages and modules
+---------------------------------
+random_variables
+    Random variables.
 linalg
     Probabilistic numerical linear algebra.
 quad

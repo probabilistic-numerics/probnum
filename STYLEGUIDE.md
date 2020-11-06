@@ -1,7 +1,15 @@
 # Style Guide
 
-This style guide summarizes code conventions used in ProbNum. This is intended as a reference for developers.
-ProbNum follows [the *Black* code style](https://github.com/psf/black/blob/master/docs/the_black_code_style.md), which can be viewed as a strict subset of [PEP 8](https://www.python.org/dev/peps/pep-0008/), and we recommend [*Black*](https://github.com/psf/black) for automated code formatting.
+This style guide summarizes code conventions used in ProbNum. This is intended as a reference for developers. 
+
+ProbNum uses
+[*Black*'s formatting ruleset](https://github.com/psf/black/blob/master/docs/the_black_code_style.md), which 
+can be viewed as a strict subset of [PEP 8](https://www.python.org/dev/peps/pep-0008/), and we recommend 
+[*Black*](https://github.com/psf/black) for automated code formatting. 
+
+With respect to code style, the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) 
+should be applied with some notable additions and exceptions (i.e. docstrings, ...). We summarize and expand on this 
+style guide below.
 
 ## Code
 
@@ -73,9 +81,7 @@ Further conventions are
 - `inv*`: for inverse of a matrix; e.g. `invprecond`, `invcovmat`, ...
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
 - `msg`: message, e.g. for issuing raising and warnings (`errmsg`, `warnmsg`)
-- `randvar`: random variable; if concatenated with e.g. `init`, abbreviate to `initrv` (initial random variable)
-- `dist`: distribution. The only exception is in instantiation of a
-  `RandomVariable` object, where specifies a `distribution` key.
+- `rv`: random variable; if concatenated with e.g. `init`, abbreviate to `initrv` (initial random variable)
 - `data`: data (don't abbreviate that one)
 - functions/methods that do something from time `t0` to time `t1`
   with step size `h` use the signature `(start, stop, step, **kwargs)`
