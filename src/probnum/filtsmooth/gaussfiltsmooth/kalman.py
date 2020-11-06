@@ -1,5 +1,5 @@
 """
-Gaussian filtering.
+Gaussian filtering and smoothing.
 """
 
 import numpy as np
@@ -118,7 +118,7 @@ class Kalman(BayesFiltSmooth):
 
     def smooth(self, filter_posterior, **kwargs):
         """
-        Apply Gaussian smoothing to a set of filtered means and covariances.
+        Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
 
         Parameters
         ----------
@@ -190,13 +190,12 @@ class Kalman(BayesFiltSmooth):
         ----------
         unsmoothed_rv : RandomVariable
             Filtering distribution at time t.
-        pred_rv : RandomVariable
-            Prediction at time t+1 of the filtering distribution at time t.
         smoothed_rv : RandomVariable
-            Smoothing distribution at time t+1.
-        crosscov : array_like
-            Cross-covariance between unsmoothed_rv and pred_rv as
-            returned by predict().
+            Prediction at time t+1 of the filtering distribution at time t.
+        start : float
+            Time-point of the to-be-smoothed RV.
+        stop : float
+            Time-point of the already-smoothed RV.
         """
         predicted_rv, info = self.dynamod.transition_rv(
             unsmoothed_rv, start, stop=stop, **kwargs
