@@ -104,22 +104,6 @@ class DiscreteGaussian(trans.Transition):
             raise NotImplementedError
         return self._jacobfun(time, state)
 
-    @classmethod
-    def from_ode(cls, ode, integrator, covmat, order=1):
-        """
-        Create a transition density from an ODE model.
-
-
-        Parameters
-        ----------
-        ode
-        integrator
-        covmat
-        order
-            Zeroth or first order linearisation. Either 0 or 1.
-        """
-        raise NotImplementedError("Future work.")
-
 
 class DiscreteLinearGaussian(DiscreteGaussian):
     """
