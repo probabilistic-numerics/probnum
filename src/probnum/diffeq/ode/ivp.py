@@ -138,14 +138,14 @@ def fhn_rhs(t, y, params):
     """RHS for FitzHugh-Nagumo model."""
     y1, y2 = y
     a, b, c, d = params
-    return np.array([y1 - y1 ** 3. / 3. - y2 + a, (y1 + b - c * y2) / d])
+    return np.array([y1 - y1 ** 3.0 / 3.0 - y2 + a, (y1 + b - c * y2) / d])
 
 
 def fhn_jac(t, y, params):
     """Jacobian for FitzHugh-Nagumo model."""
     y1, y2 = y
     a, b, c, d = params
-    return np.array([[1. - y1 ** 2., -1.], [1.0 / d, -c / d]])
+    return np.array([[1.0 - y1 ** 2.0, -1.0], [1.0 / d, -c / d]])
 
 
 def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
