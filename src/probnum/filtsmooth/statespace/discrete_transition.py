@@ -16,11 +16,11 @@ class DiscreteGaussian(trans.Transition):
 
     Parameters
     ----------
-    transfun : callable
+    dynamicsfun : callable
         Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
-    covfun : callable
+    diffmatfun : callable
         Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
-    jacfun : callable, optional.
+    jacobfun : callable, optional.
         Jacobian of the dynamics function :math:`g`, :math:`Jg=Jg(t, x)`.
         Signature: ``jacfct(t, x)``.
 

@@ -137,13 +137,10 @@ class LTISDE(LinearSDE):
     ----------
     driftmatrix : np.ndarray, shape=(n, n)
         This is F. It is the drift matrix of the SDE.
-    force : np.ndarray, shape=(n,)
+    forcevec : np.ndarray, shape=(n,)
         This is U. It is the force vector of the SDE.
     dispmatrix : np.ndarray, shape(n, s)
         This is L. It is the dispersion matrix of the SDE.
-    diffmatrix : np.ndarray, shape=(s, s)
-        This is the diffusion matrix Q of the Brownian motion
-        driving the SDE.
 
     Notes
     -----
