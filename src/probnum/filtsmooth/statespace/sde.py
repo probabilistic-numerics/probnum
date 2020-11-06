@@ -66,7 +66,6 @@ class LinearSDE(SDE):
     Notes
     -----
     If initial conditions are Gaussian, the solution is a Gauss-Markov process.
-    We assume Gaussianity for :meth:`chapmankolmogorov`.
     """
 
     def __init__(self, driftmatrixfun, forcevecfun, dispmatrixfun):
@@ -98,8 +97,7 @@ class LinearSDE(SDE):
             raise TypeError("LinearSDE.transition_* requires an euler_step")
         if not issubclass(type(rv), pnrv.Normal):
             errormsg = (
-                "Closed form solution for Chapman-Kolmogorov "
-                "equations in linear SDE models is only "
+                "Closed form transitions in linear SDE models is only "
                 "available for Gaussian initial conditions."
             )
             raise TypeError(errormsg)
@@ -188,8 +186,7 @@ class LTISDE(LinearSDE):
     def transition_rv(self, rv, start, stop, **kwargs):
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
-                "Closed form solution for Chapman-Kolmogorov "
-                "equations in LTI SDE models is only "
+                "Closed form transitions in LTI SDE models is only "
                 "available for Gaussian initial conditions."
             )
             raise TypeError(errormsg)
