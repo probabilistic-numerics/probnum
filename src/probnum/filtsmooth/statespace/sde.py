@@ -78,23 +78,19 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: dispmatrixfun(t)),
         )
 
-    def transition_realization(self, real, start, stop, **kwargs):
-        if "euler_step" not in kwargs.keys():
-            raise TypeError("LinearSDE.transition_* requires an euler_step")
+    def transition_realization(self, real, start, stop, euler_step, **kwargs):
         rv = pnrv.Normal(real, 0 * np.eye(len(real)))
         return linear_sde_statistics(
             rv,
             start,
             stop,
-            kwargs["euler_step"],
+            euler_step,
             self._driftfun,
             self._driftmatrixfun,
             self._dispmatrixfun,
         )
 
-    def transition_rv(self, rv, start, stop, **kwargs):
-        if "euler_step" not in kwargs.keys():
-            raise TypeError("LinearSDE.transition_* requires an euler_step")
+    def transition_rv(self, rv, start, stop, euler_step, **kwargs):
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in linear SDE models is only "
@@ -105,7 +101,7 @@ class LinearSDE(SDE):
             rv,
             start,
             stop,
-            kwargs["euler_step"],
+            euler_step,
             self._driftfun,
             self._driftmatrixfun,
             self._dispmatrixfun,
