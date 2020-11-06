@@ -95,7 +95,7 @@ class LinearSDE(SDE):
     def transition_rv(self, rv, start, stop, **kwargs):
         if "euler_step" not in kwargs.keys():
             raise TypeError("LinearSDE.transition_* requires an euler_step")
-        if not issubclass(type(rv), pnrv.Normal):
+        if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in linear SDE models is only "
                 "available for Gaussian initial conditions."
@@ -147,14 +147,6 @@ class LTISDE(LinearSDE):
     """
 
     def __init__(self, driftmatrix, forcevec, dispmatrix):
-        """
-        Parameters
-        ----------
-        driftmatrix : ndarray (F)
-        force : ndarray (u)
-        dispmatrix : ndarray (L)
-        diffmatrix : ndarray (Q)
-        """
         _check_initial_state_dimensions(driftmatrix, forcevec, dispmatrix)
         super().__init__(
             (lambda t, **kwargs: driftmatrix),
@@ -226,15 +218,13 @@ def _check_initial_state_dimensions(drift, force, disp):
     drift : np.ndarray, shape=(n, n)
     force : np.ndarray, shape=(n,)
     disp : np.ndarray, shape=(n, s)
-    diff : np.ndarray, shape=(s, s)
-
     """
     if drift.ndim != 2 or drift.shape[0] != drift.shape[1]:
         raise ValueError("driftmatrix not of shape (n, n)")
     if force.ndim != 1:
         raise ValueError("force not of shape (n,)")
     if force.shape[0] != drift.shape[1]:
-        raise ValueError("force not of shape (n,)" "or driftmatrix not of shape (n, n)")
+        raise ValueError("force not of shape (n,) or driftmatrix not of shape (n, n)")
     if disp.ndim != 2:
         raise ValueError("dispersion not of shape (n, s)")
 
@@ -257,9 +247,7 @@ def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun)
 def _evaluate_increments(time, mean, cov, driftfun, jacobfun, dispmatfun):
     """
     Euler step for closed form solutions of ODE defining mean
-    and kernels of the solution of the Chapman-Kolmogoro
-    equations (via Fokker-Planck equations, but that is not crucial
-    here).
+    and covariance of the closed-form transition.
 
     Maybe make this into a different solver (euler sucks).
 
@@ -277,9 +265,9 @@ def _evaluate_increments(time, mean, cov, driftfun, jacobfun, dispmatfun):
 def matrix_fraction_decomposition(F, L, h):
     """Matrix fraction decomposition."""
     if F.ndim != 2 or L.ndim != 2:
-        raise TypeError
+        raise TypeError("F and L must be matrices.")
     if not np.isscalar(h):
-        raise TypeError
+        raise TypeError("h must be a float/scalar")
 
     topleft = F
     topright = L @ L.T
