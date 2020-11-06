@@ -102,21 +102,6 @@ def ivp2ukf(ivp, prior, evlvar):
     return pnfs.Kalman(prior, ukf_mod, initrv)
 
 
-def _measmod_ukf(ivp, prior, measvar):
-
-    spatialdim = prior.spatialdim
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-
-    def dyna(t, x, **kwargs):
-        return h1 @ x - ivp.rhs(t, h0 @ x)
-
-    def diff(t, **kwargs):
-        return measvar * np.eye(spatialdim)
-
-    return pnfs.DiscreteGaussian(dyna, diff)
-
-
 def _initialdistribution(ivp, prior):
     """
     Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)`
