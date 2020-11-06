@@ -85,31 +85,19 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
 
     def test_transition_realization(self):
 
-        with self.subTest("Euler exception"):
-            with self.assertRaises(TypeError):
-                self.sde.transition_realization(
-                    self.some_rv.sample(), self.start, self.stop
-                )
-
-        with self.subTest("Output attainable"):
-            _ = self.sde.transition_realization(
-                self.some_rv.sample(), self.start, self.stop, euler_step=self.euler_step
-            )
+        _ = self.sde.transition_realization(
+            self.some_rv.sample(), self.start, self.stop, euler_step=self.euler_step
+        )
 
     def test_transition_rv(self):
 
-        with self.subTest("Euler exception"):
-            with self.assertRaises(TypeError):
-                self.sde.transition_rv(self.some_rv, self.start, self.stop)
-
-        with self.subTest("NormalRV exception"):
-            with self.assertRaises(TypeError):
-                self.sde.transition_rv(
-                    self.some_nongaussian_rv,
-                    self.start,
-                    self.stop,
-                    euler_step=self.euler_step,
-                )
+        with self.assertRaises(TypeError):
+            self.sde.transition_rv(
+                self.some_nongaussian_rv,
+                self.start,
+                self.stop,
+                euler_step=self.euler_step,
+            )
 
         with self.subTest("Output attainable"):
             _ = self.sde.transition_rv(

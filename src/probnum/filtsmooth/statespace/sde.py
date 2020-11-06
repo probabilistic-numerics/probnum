@@ -91,6 +91,7 @@ class LinearSDE(SDE):
         )
 
     def transition_rv(self, rv, start, stop, euler_step, **kwargs):
+
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in linear SDE models is only "
