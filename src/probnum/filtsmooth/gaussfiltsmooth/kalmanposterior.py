@@ -138,9 +138,9 @@ class KalmanPosterior(FiltSmoothPosterior):
             random_vars = self.__call__(locations)
 
         if size == ():
-            return self._single_sample_path(
+            return np.array(self._single_sample_path(
                 locations=locations, random_vars=random_vars
-            )
+            ))
 
         return np.array(
             [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
