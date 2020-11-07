@@ -129,33 +129,29 @@ class KalmanPosterior(FiltSmoothPosterior):
     def __getitem__(self, idx):
         return self.state_rvs[idx]
 
-    def sample(
-        self, input: Union[np.floating, np.ndarray] = None, size: ShapeArgType = ()
-    ):
-        if input is None:
+    def sample(self, x: Union[np.floating, np.ndarray] = None, size: ShapeArgType = ()):
+        if x is None:
             # TODO: this behaviour is not yet consistent with RandomProcess
             # Once tests and associated functions have been refactored the sample
             # function should be removed to use behaviour of RandomProcess instead
-            return self.sample(input=self.locations, size=size)
+            return self.sample(x=self.locations, size=size)
         else:
-            return self._sample_at_input(input=input, size=size)
+            return self._sample_at_input(x=x, size=size)
 
-    def _sample_at_input(self, input=None, size=()):
+    def _sample_at_input(self, x=None, size=()):
 
         size = utils.as_shape(size)
 
-        if input is None:
-            input = self.locations
+        if x is None:
+            x = self.locations
             random_vars = self.state_rvs
         else:
-            random_vars = self.__call__(input)
+            random_vars = self.__call__(x)
 
         if size == ():
-            return self._single_sample_path(locations=input, random_vars=random_vars)
+            return self._single_sample_path(locations=x, random_vars=random_vars)
 
-        return np.array(
-            [self.sample(input=input, size=size[1:]) for _ in range(size[0])]
-        )
+        return np.array([self.sample(x=x, size=size[1:]) for _ in range(size[0])])
 
     def _single_sample_path(self, locations, random_vars):
         curr_sample = rvs.asrandvar(random_vars[-1].sample())

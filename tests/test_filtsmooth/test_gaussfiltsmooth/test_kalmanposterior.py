@@ -102,7 +102,7 @@ class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
         for size in [(), (5,), (2, 3, 4)]:
             for loc, loc_shape in zip(loc_inputs, single_sample_shapes):
                 with self.subTest(size=size, loc=loc):
-                    sample = self.posterior.sample(input=loc, size=size)
+                    sample = self.posterior.sample(x=loc, size=size)
                     if size == ():
                         self.assertEqual(sample.shape, loc_shape)
                     else:
@@ -124,7 +124,7 @@ class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
 
     def test_sampling_two_locations_multiple_samples(self):
         locs = self.posterior.locations[[2, 3]]
-        five_samples = self.posterior.sample(input=locs, size=5)
+        five_samples = self.posterior.sample(x=locs, size=5)
 
         chi_squared = np.array(
             [
@@ -141,7 +141,7 @@ class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
 
     def test_sampling_many_locations_multiple_samples(self):
         locs = np.arange(0.0, 0.5, 0.025)
-        five_samples = self.posterior.sample(input=locs, size=5)
+        five_samples = self.posterior.sample(x=locs, size=5)
 
         chi_squared = np.array(
             [

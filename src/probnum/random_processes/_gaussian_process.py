@@ -1,10 +1,9 @@
 """Gaussian processes."""
 
-from typing import Callable, Optional, Union
+from typing import Callable, Union
 
 import numpy as np
 
-from probnum import utils as _utils
 from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
 from probnum.random_variables import Normal, RandomVariable
 from probnum.type import FloatArgType, ShapeArgType
@@ -44,7 +43,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     >>> # Gaussian process definition
     >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
     >>> kernel = lambda x0, x1 : (x0 @ x1.T) ** 3  # polynomial kernel
-    >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=())
+    >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=(), output_shape=())
     >>> # Sample path
     >>> x = np.linspace(-1, 1, 5)[:, None]
     >>> gp.sample(x)
@@ -57,9 +56,10 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def __init__(
         self,
-        mean: Optional[Callable[[_InputType], _OutputType]],
-        cov: Optional[Callable[[_InputType], _OutputType]],
         input_shape: ShapeArgType,
+        output_shape: ShapeArgType,
+        mean: Callable[[_InputType], _OutputType],
+        cov: Callable[[_InputType], _OutputType],
     ):
         # Type normalization
         # TODO
@@ -67,26 +67,27 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         # Data type normalization
         # TODO
 
-        # Shape checking
-        _input_shape = _utils.as_shape(input_shape)
-        _value_shape = mean(np.zeros_like(input_shape)).shape
-
         # Call to super class
         super().__init__(
-            input_shape=_input_shape,
-            output_shape=_value_shape,
+            input_shape=input_shape,
+            output_shape=output_shape,
             dtype=np.dtype(np.float_),
             mean=mean,
             cov=cov,
         )
 
-    def __call__(self, input: _InputType) -> Normal:
-        return Normal(mean=self.mean(input), cov=self.cov(input0=input, input1=input))
+    def __call__(self, x: _InputType) -> Normal:
 
-    def _sample_at_input(self, input: _InputType, size: ShapeArgType = ()):
-        rv_at_input = Normal(
-            mean=self.mean(input), cov=self.cov(input0=input, input1=input)
-        )
+        # Reshape input to (n, d)
+        if len(self.input_shape) == 0:
+            x = np.asarray(x).reshape((-1, 1))
+        else:
+            x = x.reshape((-1,) + self.input_shape)
+
+        return Normal(mean=np.squeeze(self.mean(x)), cov=self.cov(x0=x, x1=x))
+
+    def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()):
+        rv_at_input = Normal(mean=self.mean(x), cov=self.cov(x0=x, x1=x))
         return rv_at_input.sample(size=size)
 
 
@@ -125,18 +126,21 @@ class GaussMarkovProcess(GaussianProcess):
         self.transition = linear_transition
         self.time0 = time0
         self.initrv = initrv
-        super().__init__(input_shape=(), mean=self._sde_meanfun, cov=self._sde_covfun)
-
-    def _sde_meanfun(self, input):
-        return self._transition_rv(input).mean
-
-    def _sde_covfun(self, input0, input1):
-        raise NotImplementedError
-
-    def _transition_rv(self, input):
-        return self.transition.transition_rv(
-            rv=self.initrv, start=self.time0, stop=input
+        super().__init__(
+            input_shape=(),
+            output_shape=initrv.shape,
+            mean=self._sde_meanfun,
+            cov=self._sde_covfun,
         )
 
-    def var(self, input):
-        return lambda loc: self._transition_rv(input).cov
+    def _sde_meanfun(self, t):
+        return self._transition_rv(t).mean
+
+    def _sde_covfun(self, t0, t1):
+        raise NotImplementedError
+
+    def _transition_rv(self, t):
+        return self.transition.transition_rv(rv=self.initrv, start=self.time0, stop=t)
+
+    def var(self, x):
+        return lambda loc: self._transition_rv(x).cov

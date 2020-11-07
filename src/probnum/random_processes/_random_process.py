@@ -18,7 +18,7 @@ from probnum.type import (
 from ..random_variables import RandomVariable
 
 _InputType = TypeVar("InputType")
-_OutputType = TypeVar("ValueType")
+_OutputType = TypeVar("OutputType")
 
 
 class RandomProcess(Generic[_InputType, _OutputType]):
@@ -103,24 +103,24 @@ class RandomProcess(Generic[_InputType, _OutputType]):
             f"={self.dtype}>"
         )
 
-    def __call__(self, input: _InputType) -> RandomVariable[_OutputType]:
+    def __call__(self, x: _InputType) -> RandomVariable[_OutputType]:
         """
         Evaluate the random process at a set of inputs.
 
         Parameters
         ----------
-        input
+        x
             *shape=(d,) or (n, d)* -- Input(s) to evaluate random process at.
         """
         if self.__call is None:
             raise NotImplementedError
 
-        return self.__call(input)
+        return self.__call(x)
 
     @property
     def input_shape(self) -> ShapeType:
         """Shape of inputs to the random process."""
-        return self.__output_shape
+        return self.__input_shape
 
     @property
     def output_shape(self) -> ShapeType:
@@ -156,78 +156,97 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         """
         self._random_state = _utils.as_random_state(seed)
 
-    def mean(self, input: _InputType) -> _OutputType:
+    def mean(self, x: _InputType) -> _OutputType:
         """
         Mean function of the random process.
 
         Parameters
         ----------
-        input
+        x
             *shape=(d,) or (n, d)* -- Inputs where the mean function is evaluated.
         """
         if self.__mean is None:
             raise NotImplementedError
 
-        return self.__mean(input)
+        return self.__mean(x)
 
-    def std(self, input: _InputType) -> _OutputType:
+    def std(self, x: _InputType) -> _OutputType:
         """
         Standard deviation function of the random process.
 
         Parameters
         ----------
-        input
+        x
             *shape=(d,) or (n, d)* -- Input locations.
+
+        Returns
+        -------
+        std
+            *shape=(n,) or (n, d)* -- Standard deviation of the process at ``x``.
         """
         if self.__std is None:
             try:
-                return np.sqrt(self.var(input=input))
+                return np.sqrt(self.var(x=x))
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
-            return self.__std(input)
+            return self.__std(x)
 
-    def var(self, input: _InputType) -> _OutputType:
+    def var(self, x: _InputType) -> _OutputType:
         """
         Variance function of the random process.
 
-        Returns the value of the covariance or kernel evaluated pairwise at `input`.
+        Returns the variance function which is the value of the covariance or kernel
+        evaluated pairwise at ``x`` for each output dimension separately.
 
         Parameters
         ----------
-        input
+        x
             *shape=(d,) or (n, d)* -- Input locations.
+
+        Returns
+        -------
+        var
+            *shape=(n,) or (n, d)* -- Variance of the process at ``x``.
         """
         if self.__var is None:
             try:
-                return (
-                    np.diag(self.cov(input0=input, input1=input))
-                    .reshape(input.shape)
-                    .copy()
-                )
+                return np.diag(self.cov(x0=x, x1=x)).reshape(x.shape).copy()
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
-            return self.__var(input)
+            return self.__var(x)
 
-    def cov(self, input0: _InputType, input1: _InputType) -> _OutputType:
+    def cov(self, x0: _InputType, x1: _InputType) -> _OutputType:
         """
         Covariance function or kernel of the random process.
 
+        Returns the covariance function :math:`\\operatorname{Cov}(x_0,
+        x_1) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
+        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``. The resulting
+        covariance has *shape=(n0, n1) or (n0, n1, d, d)* in the case of
+        multi-dimensional output.
+
         Parameters
         ----------
-        input0
+        x0
             *shape=(d,) or (n0, d)* -- First input to the covariance function.
-        input1
+        x1
             *shape=(d,) or (n1, d)* -- Second input to the covariance function.
-        """
+
+        Returns
+        -------
+        cov
+            *shape=(n0, n1) or (n0, n1, d, d)* -- Covariance of the process at ``x0``
+            and ``x1``.
+        """  # pylint: disable=trailing-whitespace
         if self.__cov is None:
             raise NotImplementedError
 
-        return self.__cov(input0, input1)
+        return self.__cov(x0, x1)
 
     def sample(
-        self, input: _InputType = None, size: ShapeArgType = ()
+        self, x: _InputType = None, size: ShapeArgType = ()
     ) -> Union[Callable[[_InputType], _OutputType], RandomVariable[_OutputType]]:
         """
         Sample paths from the random process.
@@ -238,19 +257,19 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
         Parameters
         ----------
-        input
+        x
             *shape=(d,) or (n, d)* -- Evaluation input(s) of the sample paths of the
             process.
         size
             Size of the sample.
         """
-        if input is None:
-            return lambda inp: self.sample(input=inp, size=size)
+        if x is None:
+            return lambda x: self.sample(x=x, size=size)
 
-        return self._sample_at_input(input=input, size=size)
+        return self._sample_at_input(x=x, size=size)
 
     def _sample_at_input(
-        self, input: _InputType, size: ShapeArgType = ()
+        self, x: _InputType, size: ShapeArgType = ()
     ) -> RandomVariable[_OutputType]:
         """
         Evaluate a set of sample paths at the given inputs.
@@ -261,7 +280,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
         Parameters
         ----------
-        input
+        x
             *shape=(d,) or (n, d)* -- Evaluation input(s) of the sample paths of the
             process.
         size
@@ -270,4 +289,4 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         if self.__sample_at_input is None:
             raise NotImplementedError("No sampling method provided.")
 
-        return self.__sample_at_input(input, _utils.as_shape(size))
+        return self.__sample_at_input(x, _utils.as_shape(size))

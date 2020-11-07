@@ -15,12 +15,12 @@ class FiltSmoothPosterior(_random_process.RandomProcess[_DomainType, _ValueType]
     """Posterior Distribution over States after Filtering/Smoothing"""
 
     @abstractmethod
-    def __call__(self, input):
+    def __call__(self, x):
         """Evaluate the time-continuous posterior for a given location
 
         Parameters
         ----------
-        input : float
+        x : float
             Location, or time, at which to evaluate the posterior.
 
         Returns
@@ -42,7 +42,7 @@ class FiltSmoothPosterior(_random_process.RandomProcess[_DomainType, _ValueType]
         """Return the corresponding index/slice of the discrete-time solution."""
         raise NotImplementedError
 
-    def _sample_at_input(self, input: _DomainType, size: ShapeArgType = ()):
+    def _sample_at_input(self, x: _DomainType, size: ShapeArgType = ()):
         """
         Draw samples from the filtering/smoothing posterior.
 
