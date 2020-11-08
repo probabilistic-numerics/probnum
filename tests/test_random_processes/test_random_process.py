@@ -9,7 +9,7 @@ from tests.testing import NumpyAssertions
 
 
 class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
-    """General test case for random variables."""
+    """General test case for random processes."""
 
     def setUp(self) -> None:
         """Create different random processes for tests."""
@@ -28,9 +28,42 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
         self.mean_functions = [mean_zero]
 
         # Covariance functions
-        cov_lin = lambda x0, x1: (x0 - 1.0) @ (x1 - 1.0).T
-        cov_poly = lambda x0, x1: (x0 @ x1.T) ** 3
-        cov_expquad = lambda x0, x1: np.exp(-0.5 * (x0 - x1) @ (x0 - x1).T)
+        def cov_lin(x0, x1, keepdims=False, constant=1.0):
+            """Linear kernel."""
+            covmat = (x0 - constant) @ (x1 - constant).T
+            if keepdims:
+                return covmat[:, :, None, None]
+            else:
+                return covmat
+
+        def cov_poly(x0, x1, power=3, keepdims=False):
+            """Polynomial kernel."""
+            covmat = (x0 @ x1.T) ** power
+            if keepdims:
+                return covmat[:, :, None, None]
+            else:
+                return covmat
+
+        def cov_expquad(x0, x1, keepdims=False):
+            """Exponentiated quadratic kernel."""
+            covmat = np.exp(-0.5 * np.sum(np.subtract.outer(x0, x1) ** 2, axis=(1, 3)))
+            if keepdims:
+                return covmat[:, :, None, None]
+            else:
+                return covmat
+
+        def cov_coreg_expquad(x0, x1, keepdims=False):
+            """Coregionalization kernel multiplied with an RBF kernel."""
+            covmat = np.multiply.outer(
+                cov_expquad(x0, x1, keepdims=False), np.array([[4, 2], [2, 1]])
+            )
+            if keepdims:
+                return covmat
+            else:
+                return np.transpose(covmat, axes=[2, 0, 3, 1]).reshape(
+                    2 * x0.shape[0], 2 * x1.shape[0]
+                )
+
         self.cov_functions = [cov_lin, cov_poly, cov_expquad]
 
         # Deterministic processes
@@ -57,8 +90,8 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
                 output_shape=(),
             ),
             rps.GaussianProcess(
-                mean=lambda x: mean_zero(x, 2),
-                cov=cov_poly,
+                mean=lambda x: mean_zero(x, out_dim=2),
+                cov=cov_coreg_expquad,
                 input_shape=(),
                 output_shape=(2,),
             ),
@@ -66,6 +99,7 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
 
         # Gauss-Markov processes
         self.gaussmarkov_processes = []
+        self.gaussian_processes += self.gaussmarkov_processes
 
         # Generic random processes
         self.random_processes = (
@@ -154,3 +188,14 @@ class ShapeTestCase(RandomProcessTestCase):
 
     def test_rp_sample_shape(self):
         pass
+
+
+class MethodTestCase(RandomProcessTestCase):
+    """Test the methods of a random process."""
+
+    def test_samples_are_callables(self):
+        """When not specifying inputs to the sample method it should return ``size``
+        number of callables."""
+        for rand_proc in self.random_processes:
+            with self.subTest():
+                self.assertTrue(callable(rand_proc.sample(size=())))

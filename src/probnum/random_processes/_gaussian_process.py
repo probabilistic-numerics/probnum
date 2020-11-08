@@ -42,16 +42,45 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     >>> np.random.seed(42)
     >>> # Gaussian process definition
     >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
-    >>> kernel = lambda x0, x1 : (x0 @ x1.T) ** 3  # polynomial kernel
+    >>> kernel = lambda x0, x1, _: np.exp(
+    ...     -0.5 * np.sum(np.subtract.outer(x0, x1) ** 2, axis=(1, 3))
+    ... )  # exponentiated quadratic kernel
     >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=(), output_shape=())
     >>> # Sample path
     >>> x = np.linspace(-1, 1, 5)[:, None]
     >>> gp.sample(x)
-    array([[-0.49671415],
-           [-0.06208927],
-           [ 0.        ],
-           [ 0.06208927],
-           [ 0.49671415]])
+    array([[-0.35187364],
+           [-0.41301096],
+           [-0.65094306],
+           [-0.56817194],
+           [ 0.01173088]])
+
+    >>> # Multi-output Gaussian process
+    >>> cov_coreg_expquad = lambda x0, x1, _: np.multiply.outer(
+    ...     kernel(x0, x1, _), np.array([[4, 2], [2, 1]])
+    ... )
+    >>> gp = GaussianProcess(
+    ...     mean=mean, cov=cov_coreg_expquad, input_shape=(), output_shape=(2,)
+    ... )
+    >>> x = np.array([-1, 0, 1])[:, None]
+    >>> K = gp.cov(x, x, keepdims=True)
+    >>> K.shape
+    (3, 3, 2, 2)
+
+    >>> # Covariance matrix in output-dimension-first order
+    >>> np.transpose(K, axes=[2, 0, 3, 1]).reshape(2 * x.shape[0], 2 * x.shape[0])
+    array([[4.        , 2.42612264, 0.54134113, 2.        , 1.21306132,
+        0.27067057],
+       [2.42612264, 4.        , 2.42612264, 1.21306132, 2.        ,
+        1.21306132],
+       [0.54134113, 2.42612264, 4.        , 0.27067057, 1.21306132,
+        2.        ],
+       [2.        , 1.21306132, 0.27067057, 1.        , 0.60653066,
+        0.13533528],
+       [1.21306132, 2.        , 1.21306132, 0.60653066, 1.        ,
+        0.60653066],
+       [0.27067057, 1.21306132, 2.        , 0.13533528, 0.60653066,
+        1.        ]])
     """
 
     def __init__(
@@ -59,7 +88,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         input_shape: ShapeArgType,
         output_shape: ShapeArgType,
         mean: Callable[[_InputType], _OutputType],
-        cov: Callable[[_InputType], _OutputType],
+        cov: Callable[[_InputType, _InputType, bool], _OutputType],
     ):
         # Type normalization
         # TODO
@@ -84,9 +113,11 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         else:
             x = x.reshape((-1,) + self.input_shape)
 
-        return Normal(mean=np.squeeze(self.mean(x)), cov=self.cov(x0=x, x1=x))
+        return Normal(
+            mean=np.squeeze(self.mean(x)), cov=self.cov(x0=x, x1=x, keepdims=False)
+        )
 
-    def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()):
+    def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         rv_at_input = Normal(mean=self.mean(x), cov=self.cov(x0=x, x1=x))
         return rv_at_input.sample(size=size)
 

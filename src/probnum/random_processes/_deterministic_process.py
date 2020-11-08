@@ -2,12 +2,10 @@
 Random process wrapper class for (deterministic) functions.
 """
 
-from typing import Callable, Optional, TypeVar, Union
+from typing import Callable, TypeVar
 
 import numpy as np
 
-from probnum import utils as _utils
-from probnum.random_variables import RandomVariable
 from probnum.type import DTypeArgType, RandomStateArgType, ShapeArgType
 
 from . import _random_process
@@ -37,9 +35,10 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     Examples
     --------
+    >>> import numpy as np
     >>> from probnum import random_processes as rps
     >>> f = lambda x : 2.0 * x ** 2 - 1.25 * x + 5.0
-    >>> rp = rps.DeterministicProcess(f)
+    >>> rp = rps.DeterministicProcess(f, input_shape=(), output_shape=(), dtype=float)
     >>> x = np.linspace(0, 1, 10)
     >>> np.all(rp.sample(x) == f(x))
     True
@@ -67,7 +66,5 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
             var=lambda x: np.zeros_like(x),
         )
 
-    def __sample_at_input(
-        self, x: _InputType, size: ShapeArgType = ()
-    ) -> RandomVariable[_OutputType]:
-        pass
+    def __sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
+        return np.tile(self.__call__(x), reps=size)

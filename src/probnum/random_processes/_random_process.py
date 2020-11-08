@@ -73,9 +73,9 @@ class RandomProcess(Generic[_InputType, _OutputType]):
             Callable[[_InputType, ShapeType], _OutputType]
         ] = None,
         mean: Optional[Callable[[_InputType], _OutputType]] = None,
-        cov: Optional[Callable[[_InputType, _InputType], _OutputType]] = None,
-        var: Optional[Callable[[_InputType], _OutputType]] = None,
-        std: Optional[Callable[[_InputType], _OutputType]] = None,
+        cov: Optional[Callable[[_InputType, _InputType, bool], _OutputType]] = None,
+        var: Optional[Callable[[_InputType, bool], _OutputType]] = None,
+        std: Optional[Callable[[_InputType, bool], _OutputType]] = None,
     ):
         # pylint: disable=too-many-arguments
         """Create a new random process."""
@@ -170,7 +170,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
         return self.__mean(x)
 
-    def std(self, x: _InputType) -> _OutputType:
+    def std(self, x: _InputType, keepdims=False) -> _OutputType:
         """
         Standard deviation function of the random process.
 
@@ -178,21 +178,24 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         ----------
         x
             *shape=(d,) or (n, d)* -- Input locations.
+        keepdims
+            Keep the dimensions of the standard deviation(s). If ``True`` the resulting
+            array has *shape=(n, d)*, otherwise *shape=(n * d)*.
 
         Returns
         -------
         std
-            *shape=(n,) or (n, d)* -- Standard deviation of the process at ``x``.
+            *shape=(n * d) or (n, d)* -- Standard deviation of the process at ``x``.
         """
         if self.__std is None:
             try:
-                return np.sqrt(self.var(x=x))
+                return np.sqrt(self.var(x=x, keepdims=keepdims))
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
-            return self.__std(x)
+            return self.__std(x, keepdims)
 
-    def var(self, x: _InputType) -> _OutputType:
+    def var(self, x: _InputType, keepdims=False) -> _OutputType:
         """
         Variance function of the random process.
 
@@ -203,11 +206,14 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         ----------
         x
             *shape=(d,) or (n, d)* -- Input locations.
+        keepdims
+            Keep the dimensions of the variance(s). If ``True`` the resulting
+            array has *shape=(n, d)*, otherwise *shape=(n * d)*.
 
         Returns
         -------
         var
-            *shape=(n,) or (n, d)* -- Variance of the process at ``x``.
+            *shape=(n * d) or (n, d)* -- Variance of the process at ``x``.
         """
         if self.__var is None:
             try:
@@ -215,17 +221,15 @@ class RandomProcess(Generic[_InputType, _OutputType]):
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
-            return self.__var(x)
+            return self.__var(x, keepdims)
 
-    def cov(self, x0: _InputType, x1: _InputType) -> _OutputType:
+    def cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
         """
         Covariance function or kernel of the random process.
 
         Returns the covariance function :math:`\\operatorname{Cov}(x_0,
         x_1) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
-        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``. The resulting
-        covariance has *shape=(n0, n1) or (n0, n1, d, d)* in the case of
-        multi-dimensional output.
+        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``.
 
         Parameters
         ----------
@@ -233,21 +237,24 @@ class RandomProcess(Generic[_InputType, _OutputType]):
             *shape=(d,) or (n0, d)* -- First input to the covariance function.
         x1
             *shape=(d,) or (n1, d)* -- Second input to the covariance function.
+        keepdims
+            Keep the dimensions of the covariance. If ``True`` the resulting
+            array has *shape=(n0, n1, d, d)*, otherwise *shape=(n0 * d, n1 * d)*.
 
         Returns
         -------
         cov
-            *shape=(n0, n1) or (n0, n1, d, d)* -- Covariance of the process at ``x0``
-            and ``x1``.
+            *shape=(n0 * d, n1 * d) or (n0, n1, d, d)* -- Covariance of the process
+            at ``x0`` and ``x1``.
         """  # pylint: disable=trailing-whitespace
         if self.__cov is None:
             raise NotImplementedError
 
-        return self.__cov(x0, x1)
+        return self.__cov(x0, x1, keepdims)
 
     def sample(
         self, x: _InputType = None, size: ShapeArgType = ()
-    ) -> Union[Callable[[_InputType], _OutputType], RandomVariable[_OutputType]]:
+    ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
         """
         Sample paths from the random process.
 
@@ -268,9 +275,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
         return self._sample_at_input(x=x, size=size)
 
-    def _sample_at_input(
-        self, x: _InputType, size: ShapeArgType = ()
-    ) -> RandomVariable[_OutputType]:
+    def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         """
         Evaluate a set of sample paths at the given inputs.
 
