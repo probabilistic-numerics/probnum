@@ -4,6 +4,7 @@ from typing import Callable, Union
 
 import numpy as np
 
+import probnum.utils as _utils
 from probnum.random_variables import Normal
 from probnum.type import RandomStateArgType, ShapeArgType
 
@@ -100,14 +101,26 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         # Type normalization
         # TODO
 
+        # Shape checking
+        _input_shape = _utils.as_shape(input_shape)
+        if len(_input_shape) > 1:
+            if len(_input_shape) == 2 and _input_shape[1] == 1:
+                _input_shape = (_input_shape[0],)
+            else:
+                raise ValueError(
+                    "Gaussian processes cannot be defined for "
+                    f"tensor-structured input of shape {_input_shape}."
+                )
+
         # Call to super class
         super().__init__(
-            input_shape=input_shape,
+            input_shape=_input_shape,
             output_shape=output_shape,
             dtype=np.dtype(np.float_),
+            random_state=random_state,
             mean=mean,
             cov=cov,
-            random_state=random_state,
+            sample_at_input=self._sample_at_input,
         )
 
     def __call__(self, x: _InputType) -> Normal:

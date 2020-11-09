@@ -76,23 +76,28 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
             dtype=dtype,
             random_state=random_state,
             fun=fun,
-            sample_at_input=self.__sample_at_input,
+            sample_at_input=self._sample_at_input,
             mean=fun,
             cov=self._cov,
-            var=lambda x: np.zeros(shape=[x.shape[0], output_shape]),
+            var=self._var,
         )
 
-    def _cov(self, x0: _InputType, x1: _InputType, keepdims=False):
+    def _cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
 
         if keepdims:
-            cov_shape = (x0.shape[0], x1.shape[0], self.output_shape, self.output_shape)
+            cov_shape = (
+                (x0.shape[0], x1.shape[0]) + self.output_shape + self.output_shape
+            )
         else:
             cov_shape = (
-                x0.shape[0] * self.output_shape,
-                x1.shape[0] * self.output_shape,
+                x0.shape[0] * np.prod(self.output_shape),
+                x1.shape[0] * np.prod(self.output_shape),
             )
 
         return np.zeros(shape=cov_shape)
 
-    def __sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
+    def _var(self, x: _InputType) -> _OutputType:
+        return np.zeros(shape=[x.shape[0], self.output_shape])
+
+    def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         return np.tile(self.__call__(x), reps=size)
