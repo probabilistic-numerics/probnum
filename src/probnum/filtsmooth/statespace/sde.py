@@ -17,9 +17,9 @@ class SDE(transition.Transition):
     driven by a Wiener process with unit diffusion.
     """
 
-    def __init__(self, driftfun, dispmatfun, jacobfun):
+    def __init__(self, driftfun, dispmatrixfun, jacobfun):
         self._driftfun = driftfun
-        self._dispmatfun = dispmatfun
+        self._dispmatrixfun = dispmatrixfun
         self._jacobfun = jacobfun
 
     def transition_realization(self, real, start, stop, **kwargs):
@@ -32,7 +32,7 @@ class SDE(transition.Transition):
         return self._driftfun(time, state, **kwargs)
 
     def dispersionmatrix(self, time, **kwargs):
-        return self._dispmatfun(time, **kwargs)
+        return self._dispmatrixfun(time, **kwargs)
 
     def jacobian(self, time, state, **kwargs):
         return self._jacobfun(time, state, **kwargs)
@@ -75,7 +75,7 @@ class LinearSDE(SDE):
         self._forcevecfun = forcevecfun
         super().__init__(
             driftfun=(lambda t, x: driftmatrixfun(t) @ x + forcevecfun(t)),
-            dispmatfun=dispmatrixfun,
+            dispmatrixfun=dispmatrixfun,
             jacobfun=(lambda t, x: dispmatrixfun(t)),
         )
 
@@ -252,6 +252,7 @@ def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun)
 
 
 def _euler_step(mean, cov, time, step, fun):
+    """Do a single Euler step to compute solution."""
     mean_increment, cov_increment = fun(time, mean, cov)
     mean = mean + step * mean_increment
     cov = cov + step * cov_increment

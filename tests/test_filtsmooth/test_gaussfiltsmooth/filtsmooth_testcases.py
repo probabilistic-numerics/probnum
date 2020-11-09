@@ -259,7 +259,7 @@ def benes_daum():
     initmean = np.zeros(1)
     initcov = 3.0 * np.eye(1)
     initrv = Normal(initmean, initcov)
-    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
+    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatrixfun=l, jacobfun=df)
     measmod = pnfs.statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
     return dynamod, measmod, initrv, {}
 

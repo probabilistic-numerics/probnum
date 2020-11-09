@@ -19,13 +19,13 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
         def f(t, x):
             return x + 1.0
 
-        def l(t, x):
-            return x + 2.0
+        def l(t):
+            return 2.0
 
         def df(t, x):
             return np.eye(len(x)) + 3
 
-        self.sde = pnfss.sde.SDE(driftfun=f, dispersionfun=l, jacobfun=df)
+        self.sde = pnfss.sde.SDE(driftfun=f, dispmatrixfun=l, jacobfun=df)
         self.f = f
         self.l = l
         self.df = df
@@ -45,9 +45,9 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
         received = self.sde.drift(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
-    def test_dispersion(self):
-        expected = self.l(self.start, self.some_rv.mean)
-        received = self.sde.dispersion(self.start, self.some_rv.mean)
+    def test_dispersionmatrix(self):
+        expected = self.l(self.start)
+        received = self.sde.dispersionmatrix(self.start)
         self.assertAllClose(received, expected)
 
     def test_jacobian(self):
