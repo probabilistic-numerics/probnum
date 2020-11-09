@@ -3,15 +3,16 @@ import unittest
 import probnum.filtsmooth as pnfs
 
 from . import filtsmooth_testcases as cases
+import functools
 
 
-class TestContinuousEKFComponent(unittest.TestCase):
+class TestContinuousEKFComponent(cases.LinearisedContinuousTransitionTestCase):
     """Implementation incomplete, hence check that an error is raised."""
 
-    def test_notimplementederror(self):
-        sde = pnfs.statespace.SDE(None, None, None)  # content is irrelevant.
-        with self.assertRaises(NotImplementedError):
-            pnfs.ContinuousEKFComponent(sde, num_steps=1)
+    def setUp(self):
+        ekf_component = functools.partial(pnfs.ContinuousEKFComponent, num_steps=10)
+        self.linearising_component_benes_daum = ekf_component
+        self.visualise = False
 
 
 class TestDiscreteEKFComponent(cases.LinearisedDiscreteTransitionTestCase):

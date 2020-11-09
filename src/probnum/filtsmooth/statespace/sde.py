@@ -12,14 +12,14 @@ class SDE(transition.Transition):
     """
     Stochastic differential equation.
 
-    .. math:: d x_t = g(t, x_t) d t + l(t, x_t) d w_t,
+    .. math:: d x_t = g(t, x_t) d t + L(t) d w_t,
 
     driven by a Wiener process with unit diffusion.
     """
 
-    def __init__(self, driftfun, dispersionfun, jacobfun):
+    def __init__(self, driftfun, dispmatfun, jacobfun):
         self._driftfun = driftfun
-        self._dispersionfun = dispersionfun
+        self._dispmatfun = dispmatfun
         self._jacobfun = jacobfun
 
     def transition_realization(self, real, start, stop, **kwargs):
@@ -31,8 +31,8 @@ class SDE(transition.Transition):
     def drift(self, time, state, **kwargs):
         return self._driftfun(time, state, **kwargs)
 
-    def dispersion(self, time, state, **kwargs):
-        return self._dispersionfun(time, state, **kwargs)
+    def dispersionmatrix(self, time, **kwargs):
+        return self._dispmatfun(time, **kwargs)
 
     def jacobian(self, time, state, **kwargs):
         return self._jacobfun(time, state, **kwargs)
@@ -73,10 +73,9 @@ class LinearSDE(SDE):
     def __init__(self, driftmatrixfun, forcevecfun, dispmatrixfun):
         self._driftmatrixfun = driftmatrixfun
         self._forcevecfun = forcevecfun
-        self._dispmatrixfun = dispmatrixfun
         super().__init__(
             driftfun=(lambda t, x: driftmatrixfun(t) @ x + forcevecfun(t)),
-            dispersionfun=(lambda t, x: dispmatrixfun(t) @ x),
+            dispmatfun=dispmatrixfun,
             jacobfun=(lambda t, x: dispmatrixfun(t)),
         )
 

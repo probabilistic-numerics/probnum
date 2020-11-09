@@ -138,6 +138,9 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     # overwrite by implementation
     visualise = False
 
+    linearising_component_pendulum = NotImplemented
+    linearising_component_car = NotImplemented
+
     def test_transition_rv(self):
         """transition_rv() not possible for original model but for the linearised model"""
         nonlinear_model, _, initrv, _ = pendulum()
@@ -239,3 +242,59 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         # Test if RMSEs behave well.
         self.assertLess(smoormse, filtrmse)
         self.assertLess(filtrmse, obs_rmse)
+
+
+def benes_daum():
+    """Benes-Daum testcase, example 10.17 in Applied SDEs."""
+
+    def f(t, x):
+        return np.tanh(x)
+
+    def df(t, x):
+        return 1.0 - np.tanh(x) ** 2
+
+    def l(t):
+        return np.ones(1)
+
+    initmean = np.zeros(1)
+    initcov = 3.0 * np.eye(1)
+    initrv = Normal(initmean, initcov)
+    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
+    measmod = pnfs.statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
+    return dynamod, measmod, initrv, {}
+
+
+class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions):
+    """
+    Test approximate Gaussian filtering and smoothing
+
+    1. Transition RV is enabled by linearising
+    2. Applied to a linear model, the outcome is exact
+    3. Smoothing RMSE < Filtering RMSE < Data RMSE on the Benes-Daum example.
+    """
+
+    # overwrite by implementation
+    visualise = False
+    linearising_component_benes_daum = NotImplemented
+
+    def test_transition_rv(self):
+        """transition_rv() not possible for original model but for the linearised model"""
+        nonlinear_model, _, initrv, _ = benes_daum()
+        linearised_model = self.linearising_component_benes_daum(nonlinear_model)
+
+        with self.subTest("Baseline should not work."):
+            with self.assertRaises(NotImplementedError):
+                nonlinear_model.transition_rv(initrv, 0.0, 1.0)
+        with self.subTest("Linearisation happens."):
+            linearised_model.transition_rv(initrv, 0.0, 1.0)
+
+    def test_transition_real(self):
+        """transition_real() not possible for original model but for the linearised model"""
+        nonlinear_model, _, initrv, _ = benes_daum()
+        linearised_model = self.linearising_component_benes_daum(nonlinear_model)
+
+        with self.subTest("Baseline should not work."):
+            with self.assertRaises(NotImplementedError):
+                nonlinear_model.transition_realization(initrv.mean, 0.0, 1.0)
+        with self.subTest("Linearisation happens."):
+            linearised_model.transition_realization(initrv.mean, 0.0, 1.0)

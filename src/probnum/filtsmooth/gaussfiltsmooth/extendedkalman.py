@@ -20,29 +20,29 @@ class ContinuousEKFComponent(statespace.Transition):
         self.num_steps = num_steps
 
     def transition_realization(self, real, start, stop, **kwargs):
-        jacobfun = functools.partial(self.non_linear_sde.jacobian(state=real))
+        jacobfun = functools.partial(self.non_linear_sde.jacobian, state=real)
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
             start=start,
             stop=stop,
             step=step,
-            driftfun=self.non_linear_sde.driftfun,
+            driftfun=self.non_linear_sde.drift,
             jacobfun=jacobfun,
-            dispmatfun=self.non_linear_sde.dispmatfun,
+            dispmatfun=self.non_linear_sde.dispersionmatrix,
         )
 
     def transition_rv(self, rv, start, stop, **kwargs):
-        jacobfun = functools.partial(self.non_linear_sde.jacobian(state=rv.mean))
+        jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=rv,
             start=start,
             stop=stop,
             step=step,
-            driftfun=self.non_linear_sde.driftfun,
+            driftfun=self.non_linear_sde.drift,
             jacobfun=jacobfun,
-            dispmatfun=self.non_linear_sde.dispmatfun,
+            dispmatfun=self.non_linear_sde.dispersionmatrix,
         )
 
     @property
