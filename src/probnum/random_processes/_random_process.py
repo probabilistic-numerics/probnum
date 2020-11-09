@@ -36,9 +36,9 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     Parameters
     ----------
     input_shape :
-        Shape :math:`d` of an input to the random process.
+        Shape of an input to the random process.
     output_shape :
-        Shape of the random process evaluated at an input.
+        Shape of the output of the random process.
     dtype :
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
@@ -46,6 +46,18 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Random state of the random process. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
+    fun :
+        Callable defining the random process.
+    sample_at_input :
+        Sampling from the random process at a set of inputs.
+    mean :
+        Mean function.
+    cov :
+        Covariance function or kernel.
+    var :
+        Variance function.
+    std :
+        Standard deviation function.
 
     See Also
     --------
@@ -68,7 +80,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         output_shape: ShapeArgType,
         dtype: DTypeArgType,
         random_state: RandomStateArgType = None,
-        call: Optional[Callable[[_InputType], RandomVariable[_OutputType]]] = None,
+        fun: Optional[Callable[[_InputType], RandomVariable[_OutputType]]] = None,
         sample_at_input: Optional[
             Callable[[_InputType, ShapeType], _OutputType]
         ] = None,
@@ -80,7 +92,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         # pylint: disable=too-many-arguments
         """Create a new random process."""
         # Evaluation of the random process
-        self.__call = call
+        self.__fun = fun
 
         # Shape and data type
         self.__input_shape = _utils.as_shape(input_shape)
@@ -99,8 +111,9 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__} with value shape={self.output_shape}, dtype"
-            f"={self.dtype}>"
+            f"<{self.__class__.__name__} with "
+            f"input_shape={self.input_shape}, output_shape={self.output_shape}, "
+            f"dtype={self.dtype}>"
         )
 
     def __call__(self, x: _InputType) -> RandomVariable[_OutputType]:
@@ -112,10 +125,10 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         x
             *shape=(d,) or (n, d)* -- Input(s) to evaluate random process at.
         """
-        if self.__call is None:
+        if self.__fun is None:
             raise NotImplementedError
 
-        return self.__call(x)
+        return self.__fun(x)
 
     @property
     def input_shape(self) -> ShapeType:
@@ -158,7 +171,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     def mean(self, x: _InputType) -> _OutputType:
         """
-        Mean function of the random process.
+        Mean function.
 
         Parameters
         ----------
@@ -172,7 +185,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     def std(self, x: _InputType, keepdims=False) -> _OutputType:
         """
-        Standard deviation function of the random process.
+        Standard deviation function.
 
         Parameters
         ----------
@@ -197,7 +210,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     def var(self, x: _InputType, keepdims=False) -> _OutputType:
         """
-        Variance function of the random process.
+        Variance function.
 
         Returns the variance function which is the value of the covariance or kernel
         evaluated pairwise at ``x`` for each output dimension separately.
@@ -225,7 +238,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     def cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
         """
-        Covariance function or kernel of the random process.
+        Covariance function or kernel.
 
         Returns the covariance function :math:`\\operatorname{Cov}(x_0,
         x_1) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(

@@ -80,14 +80,14 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
                 cov=cov_poly,
-                input_shape=(2,),
+                input_shape=(2, 1),
                 output_shape=(),
             ),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
                 cov=cov_expquad,
-                input_shape=(3,),
-                output_shape=(),
+                input_shape=3,
+                output_shape=1,
             ),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x, out_dim=2),

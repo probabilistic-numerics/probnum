@@ -28,6 +28,19 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     Parameters
     ----------
+    input_shape :
+        Shape of an input to the deterministic process.
+    output_shape :
+        Shape of the output of the deterministic process.
+    dtype :
+        Data type of the random process evaluated at an input. If ``object`` will be
+        converted to ``numpy.dtype``.
+    fun :
+        Callable defining the deterministic process.
+    random_state :
+        Random state of the random process. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
@@ -38,7 +51,10 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
     >>> import numpy as np
     >>> from probnum import random_processes as rps
     >>> f = lambda x : 2.0 * x ** 2 - 1.25 * x + 5.0
-    >>> rp = rps.DeterministicProcess(f, input_shape=(), output_shape=(), dtype=float)
+    >>> rp = rps.DeterministicProcess(fun=f,
+    ...                               input_shape=(),
+    ...                               output_shape=(),
+    ...                               dtype=np.dtype(np.float_))
     >>> x = np.linspace(0, 1, 10)
     >>> np.all(rp.sample(x) == f(x))
     True
@@ -46,10 +62,10 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     def __init__(
         self,
-        fun: Callable[[_InputType], _OutputType],
         input_shape: ShapeArgType,
         output_shape: ShapeArgType,
         dtype: DTypeArgType,
+        fun: Callable[[_InputType], _OutputType],
         random_state: RandomStateArgType = None,
     ):
         self._fun = fun
@@ -59,11 +75,11 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
             output_shape=output_shape,
             dtype=dtype,
             random_state=random_state,
-            call=fun,
+            fun=fun,
             sample_at_input=self.__sample_at_input,
             mean=fun,
             cov=lambda x: np.zeros_like(x, shape=(output_shape, output_shape)),
-            var=lambda x: np.zeros_like(x),
+            var=lambda x: np.zeros(shape=[x.shape[0], output_shape]),
         )
 
     def __sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:

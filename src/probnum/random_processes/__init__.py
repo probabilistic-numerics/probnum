@@ -10,8 +10,8 @@ from ._utils import asrandproc
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandproc",
-    "DeterministicProcess",
     "RandomProcess",
+    "DeterministicProcess",
     "GaussianProcess",
     "GaussMarkovProcess",
 ]

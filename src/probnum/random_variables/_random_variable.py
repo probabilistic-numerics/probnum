@@ -339,11 +339,10 @@ class RandomVariable(Generic[_ValueType]):
     @cached_property
     def cov(self) -> _ValueType:
         """
-        Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}[(X-\\mathbb{E}[X])(
-        X-\\mathbb{E}[X])^\\top]` of the random variable.
+        Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}[(X-\\mathbb{E}[X])(X-\\mathbb{E}[X])^\\top]` of the random variable.
 
         To learn about the dtype of the covariance, see :attr:`moment_dtype`.
-        """
+        """  # pylint: disable=line-too-long
         if self.__cov is None:
             raise NotImplementedError
 
@@ -979,6 +978,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     --------
     >>> # Create a custom categorical random variable
     >>> import numpy as np
+    >>> from probnum.random_variables import DiscreteRandomVariable
     >>>
     >>> # Distribution parameters
     >>> support = np.array([-1, 0, 1], dtype=np.int64)

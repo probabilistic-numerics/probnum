@@ -25,6 +25,7 @@ random_variables
 from pkg_resources import DistributionNotFound, get_distribution
 
 from . import diffeq, filtsmooth, linalg, linops, quad, random_variables, utils
+from .random_processes import RandomProcess, asrandproc
 from .random_variables import RandomVariable, asrandvar
 
 try:
