@@ -22,8 +22,7 @@ __all__ = [
     "DiscreteLTIGaussian",
     "FiltSmoothPosterior",
     "KalmanPosterior",
-    "generate_cd",
-    "generate_dd",
+    "generate",
 ]
 
 # Set correct module paths (for superclasses).

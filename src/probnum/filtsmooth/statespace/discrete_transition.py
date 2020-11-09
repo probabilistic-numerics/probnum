@@ -35,7 +35,7 @@ class DiscreteGaussian(trans.Transition):
         self._diffmatfun = diffmatfun
         self._jacobfun = jacobfun
 
-    def transition_realization(self, real, start, stop=None):
+    def transition_realization(self, real, start, stop=None, **kwargs):
         newmean = self._dynamicsfun(start, real)
         newcov = self._diffmatfun(start)
         return pnrv.Normal(newmean, newcov), {}

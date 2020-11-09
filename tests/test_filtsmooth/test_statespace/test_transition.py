@@ -20,25 +20,16 @@ class MockTransition(pnfss.Transition):
 
 class TestGenerate(unittest.TestCase):
 
-    def test_dd(self):
+    def test_generate(self):
         mocktrans = MockTransition()
         initrv = pnrv.Dirac(np.random.rand(TEST_NDIM))
         times = np.arange(0., 13., 1.)  # length 13
-        states, obs = pnfss.generate_dd(mocktrans, mocktrans, initrv, times)
+        states, obs = pnfss.generate(mocktrans, mocktrans, initrv, times)
         self.assertEqual(states.shape[0], len(times))
         self.assertEqual(states.shape[1], TEST_NDIM)
         self.assertEqual(obs.shape[0], len(times) - 1)
         self.assertEqual(obs.shape[1], TEST_NDIM)
 
-    def test_cd(self):
-        mocktrans = MockTransition()
-        initrv = pnrv.Dirac(np.random.rand(TEST_NDIM))
-        times = np.arange(0., 13., 1.)  # length 13
-        states, obs = pnfss.generate_dd(mocktrans, mocktrans, initrv, times)
-        self.assertEqual(states.shape[0], len(times))
-        self.assertEqual(states.shape[1], TEST_NDIM)
-        self.assertEqual(obs.shape[0], len(times) - 1)
-        self.assertEqual(obs.shape[1], TEST_NDIM)
 
 
 if __name__ == '__main__':

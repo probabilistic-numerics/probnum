@@ -50,7 +50,7 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
         self.dynmod, self.measmod, self.initrv, info = car_tracking()
         self.delta_t = info["dt"]
         self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate_dd(
+        self.states, self.obs = pnfs.statespace.generate(
             self.dynmod, self.measmod, self.initrv, self.tms
         )
 
@@ -82,7 +82,7 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
         self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
         self.delta_t = info["dt"]
         self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate_cd(
+        self.states, self.obs = pnfs.statespace.generate(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
 
@@ -173,7 +173,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         self.dynamod, self.measmod, self.initrv, info = pendulum()
         delta_t = info["dt"]
         self.tms = np.arange(0, 4, delta_t)
-        self.states, self.obs = pnfs.statespace.generate_dd(
+        self.states, self.obs = pnfs.statespace.generate(
             self.dynamod, self.measmod, self.initrv, self.tms
         )
 
