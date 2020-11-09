@@ -143,6 +143,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_transition_rv(self):
         """transition_rv() not possible for original model but for the linearised model"""
+        # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = pendulum()
         linearised_model = self.linearising_component_pendulum(nonlinear_model)
 
@@ -154,6 +155,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_exactness_linear_model(self):
         """Applied to a linear model, the results should be unchanged."""
+        # pylint: disable=not-callable
         linear_model, _, initrv, _ = car_tracking()
         linearised_model = self.linearising_component_car(linear_model)
 
@@ -171,7 +173,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
             self.assertAllClose(crosscov1, crosscov2, rtol=rtol, atol=atol)
 
     def test_filtsmooth_pendulum(self):
-
+        # pylint: disable=not-callable
         # Set up test problem
         self.dynamod, self.measmod, self.initrv, info = pendulum()
         delta_t = info["dt"]
@@ -279,6 +281,7 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
     def test_transition_rv(self):
         """transition_rv() not possible for original model but for the linearised model"""
+        # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = benes_daum()
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
 
@@ -290,6 +293,7 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
     def test_transition_real(self):
         """transition_real() not possible for original model but for the linearised model"""
+        # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = benes_daum()
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
 

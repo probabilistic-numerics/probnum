@@ -4,7 +4,6 @@ import numpy as np
 
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
-from tests.testing import NumpyAssertions
 
 TEST_NDIM = 10
 

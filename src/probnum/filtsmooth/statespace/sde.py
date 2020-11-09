@@ -164,7 +164,8 @@ class LTISDE(LinearSDE):
         return self._forcevec
 
     @property
-    def dispersionmatrix(self):  # pylint-disable: invalid-overridden-method
+    def dispersionmatrix(self):
+        # pylint: disable=invalid-overridden-method
         return self._dispmatrix
 
     def transition_realization(self, real, start, stop, **kwargs):
