@@ -11,7 +11,7 @@ class TestContinuousEKFComponent(unittest.TestCase):
     def test_notimplementederror(self):
         sde = pnfs.statespace.SDE(None, None, None)  # content is irrelevant.
         with self.assertRaises(NotImplementedError):
-            pnfs.ContinuousEKFComponent(sde)
+            pnfs.ContinuousEKFComponent(sde, num_steps=1)
 
 
 class TestDiscreteEKFComponent(cases.LinearisedDiscreteTransitionTestCase):

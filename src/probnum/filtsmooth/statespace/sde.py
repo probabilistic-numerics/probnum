@@ -1,10 +1,11 @@
 """SDE models as transitions."""
+import functools
+
 import numpy as np
 import scipy.linalg
 
 import probnum.random_variables as pnrv
 from probnum.filtsmooth.statespace import discrete_transition, transition
-import functools
 
 
 class SDE(transition.Transition):

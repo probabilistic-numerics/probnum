@@ -2,26 +2,48 @@
 Gaussian filtering and smoothing based on making intractable quantities
 tractable through Taylor-method approximations, e.g. linearization.
 """
+import functools
+
 import numpy as np
 
+import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace
-from probnum.random_variables import Normal
 
 
 class ContinuousEKFComponent(statespace.Transition):
     """Continuous extended Kalman filter transition."""
 
-    def __init__(self, non_linear_sde):
+    def __init__(self, non_linear_sde, num_steps):
         if not isinstance(non_linear_sde, statespace.SDE):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
-        self.cont_model = non_linear_sde
-        raise NotImplementedError("Implementation incomplete.")
+        self.non_linear_sde = non_linear_sde
+        self.num_steps = num_steps
 
     def transition_realization(self, real, start, stop, **kwargs):
-        raise NotImplementedError("TODO")  # Issue  #234
+        jacobfun = functools.partial(self.non_linear_sde.jacobian(state=real))
+        step = (stop - start) / self.num_steps
+        return statespace.linear_sde_statistics(
+            rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
+            start=start,
+            stop=stop,
+            step=step,
+            driftfun=self.non_linear_sde.driftfun,
+            jacobfun=jacobfun,
+            dispmatfun=self.non_linear_sde.dispmatfun,
+        )
 
     def transition_rv(self, rv, start, stop, **kwargs):
-        raise NotImplementedError("TODO")  # Issue  #234
+        jacobfun = functools.partial(self.non_linear_sde.jacobian(state=rv.mean))
+        step = (stop - start) / self.num_steps
+        return statespace.linear_sde_statistics(
+            rv=rv,
+            start=start,
+            stop=stop,
+            step=step,
+            driftfun=self.non_linear_sde.driftfun,
+            jacobfun=jacobfun,
+            dispmatfun=self.non_linear_sde.dispmatfun,
+        )
 
     @property
     def dimension(self):
@@ -43,7 +65,7 @@ class DiscreteEKFComponent(statespace.Transition):
         mpred = self.disc_model.dynamics(start, rv.mean)
         crosscov = rv.cov @ jacob.T
         cpred = jacob @ crosscov + diffmat
-        return Normal(mpred, cpred), {"crosscov": crosscov}
+        return pnrv.Normal(mpred, cpred), {"crosscov": crosscov}
 
     @property
     def dimension(self):
