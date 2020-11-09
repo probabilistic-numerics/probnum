@@ -4,6 +4,7 @@ import scipy.linalg
 
 import probnum.random_variables as pnrv
 from probnum.filtsmooth.statespace import discrete_transition, transition
+import functools
 
 
 class SDE(transition.Transition):
@@ -227,21 +228,38 @@ def _check_initial_state_dimensions(drift, force, disp):
 
 
 def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun):
-    """Computes mean and covariance of SDE solution."""
+    """Computes mean and covariance of SDE solution.
+
+
+    PASTE DOCSTRING HERE!!!"""
     if step <= 0.0:
         raise ValueError("Step-size must be positive.")
     mean, cov = rv.mean, rv.cov
     time = start
+
+    # Set default arguments for frequently used functions.
+    increment_fun = functools.partial(
+        _increment_fun,
+        driftfun=driftfun,
+        jacobfun=jacobfun,
+        dispmatfun=dispmatfun,
+    )
+    euler_step = functools.partial(_euler_step, step=step, fun=increment_fun)
+
     while time < stop:
-        meanincr, covincr = _evaluate_increments(
-            time, mean, cov, driftfun, jacobfun, dispmatfun
-        )
-        mean, cov = mean + step * meanincr, cov + step * covincr
-        time = time + step
+        mean, cov, time = euler_step(mean, cov, time)
     return pnrv.Normal(mean, cov), {}
 
 
-def _evaluate_increments(time, mean, cov, driftfun, jacobfun, dispmatfun):
+def _euler_step(mean, cov, time, step, fun):
+    mean_increment, cov_increment = fun(time, mean, cov)
+    mean = mean + step * mean_increment
+    cov = cov + step * cov_increment
+    time = time + step
+    return mean, cov, time
+
+
+def _increment_fun(time, mean, cov, driftfun, jacobfun, dispmatfun):
     """
     Euler step for closed form solutions of ODE defining mean
     and covariance of the closed-form transition.
