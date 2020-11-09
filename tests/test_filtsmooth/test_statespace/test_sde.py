@@ -164,12 +164,12 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
 class TestLinearSDEStatistics(unittest.TestCase, NumpyAssertions):
     """Test against Matrix Fraction decomposition"""
 
-    start = 0.01 + 0.01 * np.random.rand()
-    stop = start + 0.01 + 0.01 * np.random.rand()
+    start = 0.1
+    stop = start + 0.1
     some_rv = pnrv.Normal(
         np.random.rand(TEST_NDIM), np.diag(1 + np.random.rand(TEST_NDIM))
     )
-    step = (stop - start) / 100.0
+    step = (stop - start) / 20.0
 
     def setUp(self):
         self.Fmat = np.random.rand(TEST_NDIM, TEST_NDIM)
@@ -197,8 +197,8 @@ class TestLinearSDEStatistics(unittest.TestCase, NumpyAssertions):
             self.Fmat, self.Lmat, self.stop - self.start
         )
 
-        self.assertAllClose(out_rv.mean, ah @ self.some_rv.mean, rtol=1e-2)
-        self.assertAllClose(out_rv.cov, ah @ self.some_rv.cov @ ah.T + qh, rtol=1e-2)
+        self.assertAllClose(out_rv.mean, ah @ self.some_rv.mean, rtol=1e-6)
+        self.assertAllClose(out_rv.cov, ah @ self.some_rv.cov @ ah.T + qh, rtol=1e-6)
 
 
 class TestMatrixFractionDecomposition(unittest.TestCase):

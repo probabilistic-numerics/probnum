@@ -244,18 +244,21 @@ def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun)
         jacobfun=jacobfun,
         dispmatfun=dispmatfun,
     )
-    euler_step = functools.partial(_euler_step, step=step, fun=increment_fun)
+    rk4_step = functools.partial(_rk4_step, step=step, fun=increment_fun)
 
     while time < stop:
-        mean, cov, time = euler_step(mean, cov, time)
+        mean, cov, time = rk4_step(mean, cov, time)
     return pnrv.Normal(mean, cov), {}
 
 
-def _euler_step(mean, cov, time, step, fun):
-    """Do a single Euler step to compute solution."""
-    mean_increment, cov_increment = fun(time, mean, cov)
-    mean = mean + step * mean_increment
-    cov = cov + step * cov_increment
+def _rk4_step(mean, cov, time, step, fun):
+    """Do a single RK4 step to compute the solution."""
+    m1, c1 = fun(time, mean, cov)
+    m2, c2 = fun(time, mean + step * m1 / 2.0, cov + step * c1 / 2.0)
+    m3, c3 = fun(time, mean + step * m2 / 2.0, cov + step * c2 / 2.0)
+    m4, c4 = fun(time, mean + step * m3, cov + step * c3)
+    mean = mean + step * (m1 + 2 * m2 + 2 * m3 + m4) / 6.0
+    cov = cov + step * (c1 + 2 * c2 + 2 * c3 + c4) / 6.0
     time = time + step
     return mean, cov, time
 
