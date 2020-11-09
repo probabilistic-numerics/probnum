@@ -1,9 +1,9 @@
+import functools
 import unittest
 
 import probnum.filtsmooth as pnfs
 
 from . import filtsmooth_testcases as cases
-import functools
 
 
 class TestContinuousEKFComponent(cases.LinearisedContinuousTransitionTestCase):

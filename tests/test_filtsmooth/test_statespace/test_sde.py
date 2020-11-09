@@ -66,7 +66,7 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
     stop = start + np.random.rand()
     some_rv = pnrv.Normal(np.random.rand(TEST_NDIM), np.eye(TEST_NDIM))
     some_nongaussian_rv = pnrv.Dirac(np.random.rand(TEST_NDIM))
-    euler_step = (stop - start) / 10.0
+    rk_step = (stop - start) / 10.0
 
     def setUp(self) -> None:
         def F(t):
@@ -86,7 +86,7 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
     def test_transition_realization(self):
 
         _ = self.sde.transition_realization(
-            self.some_rv.sample(), self.start, self.stop, euler_step=self.euler_step
+            self.some_rv.sample(), self.start, self.stop, step=self.rk_step
         )
 
     def test_transition_rv(self):
@@ -96,12 +96,12 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
                 self.some_nongaussian_rv,
                 self.start,
                 self.stop,
-                euler_step=self.euler_step,
+                step=self.rk_step,
             )
 
         with self.subTest("Output attainable"):
             _ = self.sde.transition_rv(
-                self.some_rv, self.start, self.stop, euler_step=self.euler_step
+                self.some_rv, self.start, self.stop, step=self.rk_step
             )
 
     def test_dimension(self):
@@ -114,7 +114,6 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
     stop = start + np.random.rand()
     some_rv = pnrv.Normal(np.random.rand(TEST_NDIM), np.eye(TEST_NDIM))
     some_nongaussian_rv = pnrv.Dirac(np.random.rand(TEST_NDIM))
-    euler_step = (stop - start) / 10.0
 
     def setUp(self) -> None:
 
@@ -147,7 +146,6 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
                     self.some_nongaussian_rv,
                     self.start,
                     self.stop,
-                    euler_step=self.euler_step,
                 )
 
         with self.subTest("Output attainable"):
@@ -157,7 +155,9 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
 
         with self.subTest("Output attainable"):
             _ = self.sde.transition_realization(
-                self.some_rv.sample(), self.start, self.stop, euler_step=self.euler_step
+                self.some_rv.sample(),
+                self.start,
+                self.stop,
             )
 
 

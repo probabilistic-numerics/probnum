@@ -79,19 +79,19 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: dispmatrixfun(t)),
         )
 
-    def transition_realization(self, real, start, stop, euler_step, **kwargs):
+    def transition_realization(self, real, start, stop, step, **kwargs):
         rv = pnrv.Normal(real, 0 * np.eye(len(real)))
         return linear_sde_statistics(
             rv,
             start,
             stop,
-            euler_step,
+            step,
             self._driftfun,
             self._driftmatrixfun,
             self._dispmatrixfun,
         )
 
-    def transition_rv(self, rv, start, stop, euler_step, **kwargs):
+    def transition_rv(self, rv, start, stop, step, **kwargs):
 
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
@@ -103,7 +103,7 @@ class LinearSDE(SDE):
             rv,
             start,
             stop,
-            euler_step,
+            step,
             self._driftfun,
             self._driftmatrixfun,
             self._dispmatrixfun,
