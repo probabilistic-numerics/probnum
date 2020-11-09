@@ -23,6 +23,8 @@ __all__ = [
     "FiltSmoothPosterior",
     "KalmanPosterior",
     "generate",
+    "matrix_fraction_decomposition",
+    "linear_sde_statistics",
 ]
 
 # Set correct module paths (for superclasses).
