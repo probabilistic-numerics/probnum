@@ -61,10 +61,6 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
     def test_transition_realization(self):
         self.dtrans.transition_realization(self.some_rv.sample(), self.start)
 
-    def test_from_ode(self):
-        with self.assertRaises(NotImplementedError):
-            self.dtrans.from_ode(None, None, None)
-
 
 class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
 
