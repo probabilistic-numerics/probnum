@@ -57,7 +57,7 @@ class Transition(abc.ABC):
 
     @abc.abstractmethod
     def transition_realization(
-        self, real: np.ndarray, start: float, stop: float, **kwargs
+        self, real: np.ndarray, start: float, stop: float = None, **kwargs
     ) -> ("RandomVariable", Dict):
         """
         Transition a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
@@ -99,7 +99,7 @@ class Transition(abc.ABC):
 
     @abc.abstractmethod
     def transition_rv(
-        self, rv: "RandomVariable", start: float, stop: float, **kwargs
+        self, rv: "RandomVariable", start: float, stop: float = None, **kwargs
     ) -> ("RandomVariable", Dict):
         """
         Transition a random variable from time :math:`t` to time :math:`t+\\Delta t`.
