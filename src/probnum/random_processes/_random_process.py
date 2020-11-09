@@ -183,30 +183,34 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
         return self.__mean(x)
 
-    def std(self, x: _InputType, keepdims=False) -> _OutputType:
+    def cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
         """
-        Standard deviation function.
+        Covariance function or kernel.
+
+        Returns the covariance function :math:`\\operatorname{Cov}(x_0,
+        x_1) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
+        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``.
 
         Parameters
         ----------
-        x
-            *shape=(d,) or (n, d)* -- Input locations.
+        x0
+            *shape=(d,) or (n0, d)* -- First input to the covariance function.
+        x1
+            *shape=(d,) or (n1, d)* -- Second input to the covariance function.
         keepdims
-            Keep the dimensions of the standard deviation(s). If ``True`` the resulting
-            array has *shape=(n, d)*, otherwise *shape=(n * d)*.
+            Keep the dimensions of the covariance. If ``True`` the resulting
+            array has *shape=(n0, n1, d, d)*, otherwise *shape=(n0 * d, n1 * d)*.
 
         Returns
         -------
-        std
-            *shape=(n * d) or (n, d)* -- Standard deviation of the process at ``x``.
-        """
-        if self.__std is None:
-            try:
-                return np.sqrt(self.var(x=x, keepdims=keepdims))
-            except NotImplementedError as exc:
-                raise NotImplementedError from exc
-        else:
-            return self.__std(x, keepdims)
+        cov
+            *shape=(n0 * d, n1 * d) or (n0, n1, d, d)* -- Covariance of the process
+            at ``x0`` and ``x1``.
+        """  # pylint: disable=trailing-whitespace
+        if self.__cov is None:
+            raise NotImplementedError
+
+        return self.__cov(x0, x1, keepdims)
 
     def var(self, x: _InputType, keepdims=False) -> _OutputType:
         """
@@ -236,34 +240,30 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         else:
             return self.__var(x, keepdims)
 
-    def cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
+    def std(self, x: _InputType, keepdims=False) -> _OutputType:
         """
-        Covariance function or kernel.
-
-        Returns the covariance function :math:`\\operatorname{Cov}(x_0,
-        x_1) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
-        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``.
+        Standard deviation function.
 
         Parameters
         ----------
-        x0
-            *shape=(d,) or (n0, d)* -- First input to the covariance function.
-        x1
-            *shape=(d,) or (n1, d)* -- Second input to the covariance function.
+        x
+            *shape=(d,) or (n, d)* -- Input locations.
         keepdims
-            Keep the dimensions of the covariance. If ``True`` the resulting
-            array has *shape=(n0, n1, d, d)*, otherwise *shape=(n0 * d, n1 * d)*.
+            Keep the dimensions of the standard deviation(s). If ``True`` the resulting
+            array has *shape=(n, d)*, otherwise *shape=(n * d)*.
 
         Returns
         -------
-        cov
-            *shape=(n0 * d, n1 * d) or (n0, n1, d, d)* -- Covariance of the process
-            at ``x0`` and ``x1``.
-        """  # pylint: disable=trailing-whitespace
-        if self.__cov is None:
-            raise NotImplementedError
-
-        return self.__cov(x0, x1, keepdims)
+        std
+            *shape=(n * d) or (n, d)* -- Standard deviation of the process at ``x``.
+        """
+        if self.__std is None:
+            try:
+                return np.sqrt(self.var(x=x, keepdims=keepdims))
+            except NotImplementedError as exc:
+                raise NotImplementedError from exc
+        else:
+            return self.__std(x, keepdims)
 
     def sample(
         self, x: _InputType = None, size: ShapeArgType = ()

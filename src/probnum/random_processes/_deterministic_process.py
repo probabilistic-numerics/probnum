@@ -78,9 +78,21 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
             fun=fun,
             sample_at_input=self.__sample_at_input,
             mean=fun,
-            cov=lambda x: np.zeros_like(x, shape=(output_shape, output_shape)),
+            cov=self._cov,
             var=lambda x: np.zeros(shape=[x.shape[0], output_shape]),
         )
+
+    def _cov(self, x0: _InputType, x1: _InputType, keepdims=False):
+
+        if keepdims:
+            cov_shape = (x0.shape[0], x1.shape[0], self.output_shape, self.output_shape)
+        else:
+            cov_shape = (
+                x0.shape[0] * self.output_shape,
+                x1.shape[0] * self.output_shape,
+            )
+
+        return np.zeros(shape=cov_shape)
 
     def __sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         return np.tile(self.__call__(x), reps=size)
