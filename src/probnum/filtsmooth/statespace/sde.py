@@ -228,10 +228,46 @@ def _check_initial_state_dimensions(drift, force, disp):
 
 
 def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun):
-    """Computes mean and covariance of SDE solution.
+    """
+    Computes mean and covariance of SDE solution.
 
+    For a linear(ised) SDE
 
-    PASTE DOCSTRING HERE!!!"""
+    .. math:: d x_t = [G(t) x_t + v(t)] d t + L(t) x_t d w_t.
+
+    mean and covariance of the solution are computed by solving
+
+    .. math:: \\frac{dm}{dt}(t) = G(t) m(t) + v(t), \\frac{dC}{dt}(t) = G(t) C(t) + C(t) G(t)^\\top + L(t) L(t)^\\top,
+
+    which is done here with a few steps of the RK4 method.
+    This function is also called by the continuous-time extended Kalman filter,
+    which is why the drift can be any function.
+
+    Parameters
+    ----------
+    rv :
+        Normal random variable. Distribution of mean and covariance at the starting point.
+    start :
+        Start of the time-interval
+    stop :
+        End of the time-interval
+    step :
+        Step-size used in RK4.
+    driftfun :
+        Drift of the (non)linear SDE
+    jacobfun :
+        Jacobian of the drift function
+    dispmatfun :
+        Dispersion matrix function
+
+    Returns
+    -------
+    Normal random variable
+        Mean and covariance are the solution of the differential equation
+    dict
+        Empty dict, may be extended in the future to contain information
+        about the solution process, e.g. number of function evaluations.
+    """
     if step <= 0.0:
         raise ValueError("Step-size must be positive.")
     mean, cov = rv.mean, rv.cov
