@@ -5,7 +5,6 @@ Contains the discrete time and function outputs.
 Provides dense output by being callable.
 Can function values can also be accessed by indexing.
 """
-from typing import Union
 from warnings import warn
 
 import numpy as np
@@ -14,7 +13,6 @@ import probnum.random_variables as rvs
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
-from probnum.type import ShapeArgType
 
 
 class KalmanPosterior(FiltSmoothPosterior):
@@ -129,29 +127,24 @@ class KalmanPosterior(FiltSmoothPosterior):
     def __getitem__(self, idx):
         return self.state_rvs[idx]
 
-    def sample(self, x: Union[np.floating, np.ndarray] = None, size: ShapeArgType = ()):
-        if x is None:
-            # TODO: this behaviour is not yet consistent with RandomProcess
-            # Once tests and associated functions have been refactored the sample
-            # function should be removed to use behaviour of RandomProcess instead
-            return self.sample(x=self.locations, size=size)
-        else:
-            return self._sample_at_input(x=x, size=size)
-
-    def _sample_at_input(self, x=None, size=()):
+    def sample(self, locations=None, size=()):
 
         size = utils.as_shape(size)
 
-        if x is None:
-            x = self.locations
+        if locations is None:
+            locations = self.locations
             random_vars = self.state_rvs
         else:
-            random_vars = self.__call__(x)
+            random_vars = self.__call__(locations)
 
         if size == ():
-            return self._single_sample_path(locations=x, random_vars=random_vars)
+            return self._single_sample_path(
+                locations=locations, random_vars=random_vars
+            )
 
-        return np.array([self.sample(x=x, size=size[1:]) for _ in range(size[0])])
+        return np.array(
+            [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
+        )
 
     def _single_sample_path(self, locations, random_vars):
         curr_sample = rvs.asrandvar(random_vars[-1].sample())

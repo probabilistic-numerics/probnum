@@ -1,26 +1,17 @@
 """Abstract Base Class for posteriors over states after applying filtering/smoothing"""
 from abc import ABC, abstractmethod
-from typing import Union
-
-import numpy as np
-
-import probnum.random_processes._random_process as _random_process
-from probnum.type import ShapeArgType
-
-_DomainType = np.floating
-_ValueType = Union[np.floating, np.ndarray]
 
 
-class FiltSmoothPosterior(_random_process.RandomProcess[_DomainType, _ValueType], ABC):
+class FiltSmoothPosterior(ABC):
     """Posterior Distribution over States after Filtering/Smoothing"""
 
     @abstractmethod
-    def __call__(self, x):
+    def __call__(self, location):
         """Evaluate the time-continuous posterior for a given location
 
         Parameters
         ----------
-        x : float
+        location : float
             Location, or time, at which to evaluate the posterior.
 
         Returns
@@ -39,20 +30,20 @@ class FiltSmoothPosterior(_random_process.RandomProcess[_DomainType, _ValueType]
 
     @abstractmethod
     def __getitem__(self, idx):
-        """Return the corresponding index/slice of the discrete-time solution."""
+        """Return the corresponding index/slice of the discrete-time solution"""
         raise NotImplementedError
 
-    def _sample_at_input(self, x: _DomainType, size: ShapeArgType = ()):
+    def sample(self, locations=None, size=()):
         """
         Draw samples from the filtering/smoothing posterior.
 
-        If nothing is specified, a single sample is drawn (supported on self.inputs).
+        If nothing is specified, a single sample is drawn (supported on self.locations).
         If locations are specified, the samples are drawn on those locations.
         If size is specified, more than a single sample is drawn.
 
         Parameters
         ----------
-        inputs : array_like, optional
+        locations : array_like, optional
             Locations on which the samples are wanted. Default is none, which implies that
             self.location is used.
         size : int or tuple of ints, optional
