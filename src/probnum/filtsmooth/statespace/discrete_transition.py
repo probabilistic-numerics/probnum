@@ -1,8 +1,9 @@
 """Discrete transitions."""
 
 
-import probnum.filtsmooth.statespace.transition as trans
 import probnum.random_variables as pnrv
+
+from . import transition as trans
 
 
 class DiscreteGaussian(trans.Transition):

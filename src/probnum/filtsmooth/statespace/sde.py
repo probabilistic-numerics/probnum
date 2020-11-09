@@ -5,8 +5,8 @@ import numpy as np
 import scipy.linalg
 
 import probnum.random_variables as pnrv
-from . import transition
-from . import discrete_transition
+
+from . import discrete_transition, transition
 
 
 class SDE(transition.Transition):
