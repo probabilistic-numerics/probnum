@@ -1,3 +1,7 @@
+"""
+Bayesian filtering and smoothing.
+"""
+
 from .bayesfiltsmooth import *
 from .filtsmoothposterior import FiltSmoothPosterior
 from .gaussfiltsmooth import *

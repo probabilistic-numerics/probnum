@@ -102,7 +102,7 @@ class ODESolution(FiltSmoothPosterior):
         if self._t:  # hotfix
             return self._t
         else:
-            return self._kalman_posterior.inputs
+            return self._kalman_posterior.locations
 
     @property
     def y(self):

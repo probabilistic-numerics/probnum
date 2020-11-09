@@ -103,7 +103,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         Apply smoothing to a list of RVs with desired final random variable.
 
         Specification of a final RV is useful to compute joint samples from a KalmanPosterior object,
-        because in this case, the final RV is a Dirac (over a sample from the final Normal RV)
+        because in this case, the final RV is aConstant (over a sample from the final Normal RV)
         and not a Normal RV.
 
         Parameters
@@ -115,7 +115,7 @@ class GaussFiltSmooth(BayesFiltSmooth, ABC):
         final_rv : RandomVariable, optional.
             RandomVariable at the final point. Default is None, in which case standard smoothing is applied.
             If a random variable is specified, the smoothing iteration is based on this one, which is used
-            for sampling (in which case the final random variable is a Dirac that represents a sample)
+            for sampling (in which case the final random variable is aConstant that represents a sample)
 
         Returns
         -------

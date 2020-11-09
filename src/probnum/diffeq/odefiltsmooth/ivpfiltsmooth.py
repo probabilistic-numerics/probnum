@@ -10,7 +10,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
     """
     ODE solver that behaves like a Gaussian filter.
 
-
     This is based on continuous-discrete Gaussian filtering.
 
     Note: this is specific for IVPs and does not apply without
@@ -95,7 +94,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
 
         smoothed_solution = ODESolution(
-            times=ivp_smoother_posterior.inputs,
+            times=ivp_smoother_posterior.locations,
             rvs=ivp_smoother_posterior.state_rvs,
             solver=ode_solution._solver,
         )
