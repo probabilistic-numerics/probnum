@@ -101,7 +101,7 @@ class LinearSDEModel(continuousmodel.ContinuousModel):
     def _increment(self, time, mean, covar, **kwargs):
         """
         Euler step for closed form solutions of ODE defining mean
-        and kernels of the solution of the Chapman-Kolmogoro
+        and kernels of the solution of the Chapman-Kolmogorov
         equations (via Fokker-Planck equations, but that is not crucial
         here).
         See RHS of Eq. 10.82 in Applied SDEs.

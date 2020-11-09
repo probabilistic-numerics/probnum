@@ -1,7 +1,3 @@
-"""
-Random variables.
-"""
-
 from ._constant import Constant
 from ._normal import Normal
 from ._random_variable import (

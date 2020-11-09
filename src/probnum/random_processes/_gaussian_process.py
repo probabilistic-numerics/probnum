@@ -4,9 +4,8 @@ from typing import Callable, Union
 
 import numpy as np
 
-from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
-from probnum.random_variables import Normal, RandomVariable
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+from probnum.random_variables import Normal
+from probnum.type import RandomStateArgType, ShapeArgType
 
 from . import _random_process
 
@@ -126,59 +125,3 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         rv_at_input = Normal(mean=self.mean(x), cov=self.cov(x0=x, x1=x))
         return rv_at_input.sample(size=size)
-
-
-class GaussMarkovProcess(GaussianProcess):
-    """
-    Gaussian processes with the Markov property.
-
-    A Gauss-Markov process is a Gaussian process with the additional property that
-    conditioned on the present state of the system its future and past states are
-    independent. This is known as the Markov property or as the process being
-    memoryless.
-
-    Parameters
-    ----------
-    linear_transition
-        Linear transition model describing a state change of the system.
-    initrv
-        Initial random variable describing the initial state.
-    time0
-        Initial starting index / time of the process.
-
-    See Also
-    --------
-    GaussianProcess : Class representing Gaussian processes.
-
-    Examples
-    --------
-
-    """
-
-    def __init__(
-        self,
-        linear_transition: Union[LinearSDEModel, DiscreteGaussianLinearModel],
-        initrv: RandomVariable[_OutputType],
-        time0: FloatArgType = 0.0,
-    ):
-        self.transition = linear_transition
-        self.time0 = time0
-        self.initrv = initrv
-        super().__init__(
-            input_shape=(),
-            output_shape=initrv.shape,
-            mean=self._sde_meanfun,
-            cov=self._sde_covfun,
-        )
-
-    def _sde_meanfun(self, t):
-        return self._transition_rv(t).mean
-
-    def _sde_covfun(self, t0, t1):
-        raise NotImplementedError
-
-    def _transition_rv(self, t):
-        return self.transition.transition_rv(rv=self.initrv, start=self.time0, stop=t)
-
-    def var(self, x):
-        return lambda loc: self._transition_rv(x).cov

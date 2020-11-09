@@ -1,9 +1,6 @@
-"""
-Random processes.
-"""
-
 from ._deterministic_process import DeterministicProcess
-from ._gaussian_process import GaussianProcess, GaussMarkovProcess
+from ._gauss_markov_process import GaussMarkovProcess
+from ._gaussian_process import GaussianProcess
 from ._random_process import RandomProcess
 from ._utils import asrandproc
 

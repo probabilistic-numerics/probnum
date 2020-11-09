@@ -2,7 +2,6 @@
 
 import numpy as np
 
-from probnum import random_processes as rps
 from probnum import random_variables as rvs
 
 from .test_random_process import RandomProcessTestCase

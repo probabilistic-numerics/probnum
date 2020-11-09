@@ -35,10 +35,10 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution isConstant (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use theConstant distribution.
+        RandomVariable that describes the belief over the initial
+        value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy). To replicate 'classical' initial values
+        use the Constant distribution.
     params : (float, float), optional
         Parameters :math:`(a, b)` for the logistic IVP.
         Default is :math:`(a, b) = (3.0, 1.0)`.
@@ -111,9 +111,9 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution isConstant (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use theConstant distribution.
+        use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.0, 0.08, 0.07, 1.25)`.
@@ -168,9 +168,9 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution isConstant (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use theConstant distribution.
+        value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy). To replicate 'classical' initial values
+        use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.5, 0.05, 0.5, 0.05)`.
@@ -207,80 +207,80 @@ def lv_jac(t, y, params):
 
 class IVP(ODE):
     """
-     Initial value problems (IVP).
+    Initial value problems (IVP).
 
-     This class descibes initial value problems based on systems of
-     first order ordinary differential equations (ODEs),
+    This class descibes initial value problems based on systems of
+    first order ordinary differential equations (ODEs),
 
-     .. math:: \\dot y(t) = f(t, y(t)), \\quad y(t_0) = y_0,
-         \\quad t \\in [t_0, T]
+    .. math:: \\dot y(t) = f(t, y(t)), \\quad y(t_0) = y_0,
+        \\quad t \\in [t_0, T]
 
-     It provides options for defining custom right-hand side (RHS)
-     functions, their Jacobians and closed form solutions.
+    It provides options for defining custom right-hand side (RHS)
+    functions, their Jacobians and closed form solutions.
 
-     Since we use them for probabilistic ODE solvers these functions
-     fit into the probabilistic framework as well. That is,
-     the initial value is a RandomVariable object with some
-     distribution that reflects the prior belief over the initial
-     value. To recover "classical" initial values one can use the
-    Constant distribution.
+    Since we use them for probabilistic ODE solvers these functions
+    fit into the probabilistic framework as well. That is,
+    the initial value is a RandomVariable object with some
+    distribution that reflects the prior belief over the initial
+    value. To recover "classical" initial values one can use the Constant
+    distribution.
 
-     Parameters
-     ----------
-     timespan : (float, float)
-         Time span of IVP.
-     initrv : RandomVariable,
-         RandomVariable that  describes the belief over the initial
-         value. Usually its distribution isConstant (noise-free)
-         or Normal (noisy). To replicate "classical" initial values
-         use theConstant distribution.
-         Implementation depends on the mean of this RandomVariable,
-         so please only use RandomVariable objects with available
-         means, e.g.Constants or Normals.
-     rhs : callable, signature: ``(t, y, **kwargs)``
-         RHS function
-         :math:`f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
-         of the ODE system. As such it takes a float and an
-         np.ndarray of shape (d,) and returns a np.ndarray
-         of shape (d,). As of now, no vectorization is supported
-         (nor needed).
-     jac : callable, signature: ``(t, y, **kwargs)``, optional
-         Jacobian of RHS function
-         :math:`J_f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
-         of the ODE system. As such it takes a float and an
-         np.ndarray of shape (d,) and returns a np.ndarray
-         of shape (d,). As of now, no vectorization is supported
-         (nor needed).
-     sol : callable, signature: ``(t, **kwargs)``, optional
-         Solution of IVP.
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    initrv : RandomVariable,
+        RandomVariable that  describes the belief over the initial
+        value. Usually its distribution isConstant (noise-free)
+        or Normal (noisy). To replicate "classical" initial values
+        use theConstant distribution.
+        Implementation depends on the mean of this RandomVariable,
+        so please only use RandomVariable objects with available
+        means, e.g. Constants or Normals.
+    rhs : callable, signature: ``(t, y, **kwargs)``
+        RHS function
+        :math:`f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
+        of the ODE system. As such it takes a float and an
+        np.ndarray of shape (d,) and returns a np.ndarray
+        of shape (d,). As of now, no vectorization is supported
+        (nor needed).
+    jac : callable, signature: ``(t, y, **kwargs)``, optional
+        Jacobian of RHS function
+        :math:`J_f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
+        of the ODE system. As such it takes a float and an
+        np.ndarray of shape (d,) and returns a np.ndarray
+        of shape (d,). As of now, no vectorization is supported
+        (nor needed).
+    sol : callable, signature: ``(t, **kwargs)``, optional
+        Solution of IVP.
 
-     See Also
-     --------
-     ODE : Abstract interface for  ordinary differential equations.
+    See Also
+    --------
+    ODE : Abstract interface for  ordinary differential equations.
 
-     Examples
-     --------
-     >>> from probnum.diffeq import IVP
-     >>> rhsfun = lambda t, y, **kwargs: 2.0*y
-     >>> from probnum import random_variables as rvs
-     >>> initrv = rvs.Constant(0.1)
-     >>> timespan = (0, 10)
-     >>> ivp = IVP(timespan, initrv, rhsfun)
-     >>> print(ivp.rhs(0., 2.))
-     4.0
-     >>> print(ivp.timespan)
-     [0, 10]
-     >>> print(ivp.t0)
-     0
+    Examples
+    --------
+    >>> from probnum.diffeq import IVP
+    >>> rhsfun = lambda t, y, **kwargs: 2.0*y
+    >>> from probnum import random_variables as rvs
+    >>> initrv = rvs.Constant(0.1)
+    >>> timespan = (0, 10)
+    >>> ivp = IVP(timespan, initrv, rhsfun)
+    >>> print(ivp.rhs(0., 2.))
+    4.0
+    >>> print(ivp.timespan)
+    [0, 10]
+    >>> print(ivp.t0)
+    0
 
-     >>> initrv = rvs.Normal(0.1, 1.0)
-     >>> ivp = IVP(timespan, initrv, rhsfun)
-     >>> jac = lambda t, y, **kwargs: 2.0
-     >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)
-     >>> print(ivp.rhs(0., 2.))
-     4.0
-     >>> print(ivp.jacobian(100., -1))
-     2.0
+    >>> initrv = rvs.Normal(0.1, 1.0)
+    >>> ivp = IVP(timespan, initrv, rhsfun)
+    >>> jac = lambda t, y, **kwargs: 2.0
+    >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)
+    >>> print(ivp.rhs(0., 2.))
+    4.0
+    >>> print(ivp.jacobian(100., -1))
+    2.0
     """
 
     def __init__(self, timespan, initrv, rhs, jac=None, hess=None, sol=None):
