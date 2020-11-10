@@ -14,7 +14,9 @@ GLOBAL_DISABLES = {
 
 # Parse ./tox.ini
 tox_lines = TOXINI_FILE.read_text().splitlines()
-tox_pylint_lines = [l for l in tox_lines if l.strip().startswith("pylint")]
+tox_pylint_lines = [
+    l for l in tox_lines if l.strip().startswith("pylint") and "--disable" in l
+]
 tox_disables = {i for l in tox_pylint_lines for i in l.split('"')[1].split(",")}
 
 

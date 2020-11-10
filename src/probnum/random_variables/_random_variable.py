@@ -31,7 +31,7 @@ class RandomVariable(Generic[_ValueType]):
     """
     Random variables represent uncertainty about a value.
 
-    Random variables generalize multi-dimensional arrays by also encoding uncertainty
+    Random variables generalize multi-dimensional arrays by encoding uncertainty
     about the (numerical) quantity in question. Despite their name, they do not
     necessarily represent stochastic objects. Random variables are also the primary in-
     and outputs of probabilistic numerical methods.
@@ -45,8 +45,8 @@ class RandomVariable(Generic[_ValueType]):
     shape :
         Shape of realizations of this random variable.
     dtype :
-        Data type of realizations of this random variable. If ``object`` will be
-        converted to ``numpy.dtype``.
+        Data type of realizations of this random variable. If of type :class:`object`
+        the argument will be converted to ``numpy.dtype``.
     random_state :
         Random state of the random variable. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
