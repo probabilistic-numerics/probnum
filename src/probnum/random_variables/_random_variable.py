@@ -1070,8 +1070,14 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         """
         Probability mass function.
 
-        Following the predominant convention in mathematics, we express pdfs with
-        respect to the Lebesgue measure unless stated otherwise.
+        Computes the probability of the random variable being equal to the given
+        value. For a random variable :math:`X` it is defined as
+        :math:`p_X(x) = P(X = x)` for a probability measure :math:`P`.
+
+        Probability mass functions are the discrete analogue of probability density
+        functions in the sense that they are the Radon-Nikodym derivative of the
+        pushforward measure :math:`P \\circ X^{-1}` defined by the random variable with
+        respect to the counting measure.
 
         Parameters
         ----------
@@ -1288,8 +1294,14 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         """
         Probability density function.
 
-        Following the predominant convention in mathematics, we express pdfs with
-        respect to the Lebesgue measure unless stated otherwise.
+        The area under the curve defined by the probability density function
+        specifies the probability of the random variable :math:`X` taking values
+        within that area.
+
+        Probability density functions are defined as the Radon-Nikodym derivative of
+        the pushforward measure :math:`P \\circ X^{-1}` with respect to the Lebesgue
+        measure for a given probability measure :math:`P`. Following convention we
+        always assume the Lebesgue measure as a base measure unless stated otherwise.
 
         Parameters
         ----------
