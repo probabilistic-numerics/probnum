@@ -1,5 +1,5 @@
 """
-Bayesian filtering and smoothing.
+Bayesian Filtering and Smoothing.
 """
 
 from .bayesfiltsmooth import *

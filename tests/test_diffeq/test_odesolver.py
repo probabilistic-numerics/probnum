@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum.diffeq import ConstantSteps, ODESolver, logistic
-from probnum.random_variables import Dirac
+from probnum.random_variables import Constant
 
 
 class MockODESolver(ODESolver):
@@ -17,7 +17,7 @@ class MockODESolver(ODESolver):
         x = current.mean
         xnew = x + h * self.ivp(start, x)
         return (
-            Dirac(xnew),
+            Constant(xnew),
             np.nan,
         )  # return nan as error estimate to ensure that it is not used
 
@@ -29,7 +29,7 @@ class ODESolverTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        y0 = Dirac(0.3)
+        y0 = Constant(0.3)
         ivp = logistic([0, 4], initrv=y0)
         self.solver = MockODESolver(ivp)
         self.step = 0.2
