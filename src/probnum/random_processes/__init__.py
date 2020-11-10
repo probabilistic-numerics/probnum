@@ -1,3 +1,5 @@
+"""Random Processes."""
+
 from ._deterministic_process import DeterministicProcess
 from ._gauss_markov_process import GaussMarkovProcess
 from ._gaussian_process import GaussianProcess
