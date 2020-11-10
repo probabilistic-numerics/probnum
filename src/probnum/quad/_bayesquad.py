@@ -32,7 +32,7 @@ def bayesquad(fun, fun0, domain, measure, nevals=None, method="vanilla"):
 
         ====================  ===========
          vanilla              ``vanilla``
-         WASABI               ``wasabi``
+         WSABI               ``wsabi``
         ====================  ===========
 
     Returns
