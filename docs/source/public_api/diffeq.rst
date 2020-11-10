@@ -7,4 +7,5 @@ This package defines common dynamical models and probabilistic solvers for diffe
 equations.
 
 .. automodapi:: probnum.diffeq
-	:no-heading:
+    :no-heading:
+    :no-main-docstr:

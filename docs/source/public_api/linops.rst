@@ -13,4 +13,5 @@ Several algorithms in the :mod:`probnum.linalg` library are able to operate on
 :class:`~probnum.linops.LinearOperator` instances.
 
 .. automodapi:: probnum.linops
-	:no-heading:
+    :no-heading:
+    :no-main-docstr:

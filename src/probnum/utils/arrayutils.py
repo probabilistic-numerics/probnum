@@ -3,6 +3,7 @@
 from typing import Union
 
 import numpy as np
+import scipy
 
 import probnum
 
@@ -26,11 +27,6 @@ def atleast_1d(*rvs):
     res : array-like or list
         An array / random variable or list of arrays / random variables,
         each with ``a.ndim >= 1``.
-
-    See Also
-    --------
-    atleast_2d
-
     """
     res = []
     for rv in rvs:

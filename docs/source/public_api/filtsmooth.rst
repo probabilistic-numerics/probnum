@@ -10,4 +10,5 @@ observations up to a given point, while smoothing takes the entire set of
 observations into account.
 
 .. automodapi:: probnum.filtsmooth
-	:no-heading:
+    :no-heading:
+    :no-main-docstr:

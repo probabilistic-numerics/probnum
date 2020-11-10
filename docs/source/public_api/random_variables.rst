@@ -9,4 +9,5 @@ necessarily represent stochastic objects. Random variables are also the primary 
 and outputs of probabilistic numerical methods.
 
 .. automodapi:: probnum.random_variables
-	:no-heading:
+    :no-heading:
+    :no-main-docstr:
