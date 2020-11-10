@@ -9,8 +9,6 @@ __all__ = [
     "atleast_1d",
     "atleast_2d",
     "as_colvec",
-    "assert_is_1d_ndarray",
-    "assert_is_2d_ndarray",
 ]
 
 
@@ -118,27 +116,3 @@ def as_colvec(vec):
         if vec.ndim == 1:
             return vec[:, None]
     return vec
-
-
-def assert_is_1d_ndarray(arr):
-    """
-    Checks whether arr is an (d,) np.ndarray.
-
-    Used in classic optimization and mcmc, for instance.
-    """
-    if not isinstance(arr, np.ndarray):
-        raise ValueError("Please enter arr of shape (d,)")
-    elif len(arr.shape) != 1:
-        raise ValueError("Please enter arr of shape (d,)")
-
-
-def assert_is_2d_ndarray(arr):
-    """
-    Checks whether ar is an (n, d) np.ndarray.
-
-    Used in classic optimization and mcmc, for instance.
-    """
-    if not isinstance(arr, np.ndarray):
-        raise ValueError("Please enter arr of shape (n, d)")
-    elif arr.ndim != 2:
-        raise ValueError("Please enter arr of shape (n, d)")
