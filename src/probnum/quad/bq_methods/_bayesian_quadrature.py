@@ -1,14 +1,13 @@
-"""Bayesian Quadrature."""
-
-import abc
+"""Implementation of Bayesian Quadrature."""
 
 
-class BayesianQuadrature(abc.ABC):
+class BayesianQuadrature:
     """
-    An abstract base class for Bayesian quadrature methods.
+    Bayesian quadrature.
 
-    This class is designed to be subclassed by implementations of Bayesian quadrature
-    with an :meth:`integrate` method.
+    Bayesian quadrature methods build a model for the integrand via function
+    evaluations and return a belief over the value of the integral on a given
+    domain with respect to the specified measure.
 
     Parameters
     ----------
@@ -19,92 +18,23 @@ class BayesianQuadrature(abc.ABC):
     def __init__(self, fun0):
         self.fun0 = fun0
 
-    def integrate(self, fun, domain, nevals, **kwargs):
+    def integrate(self, fun, domain, measure, nevals):
         """
         Integrate the function ``fun``.
 
         Parameters
         ----------
-        fun : function
+        fun :
             Function to be integrated.
-        domain : ndarray, shape=()
+        domain :
             Domain to integrate over.
-        nevals : int
-            Number of function evaluations.
-        kwargs
-
-        Returns
-        -------
-
-        """
-        raise NotImplementedError
-
-
-class VanillaBayesianQuadrature(BayesianQuadrature):
-    """
-    Vanilla Bayesian quadrature in 1D.
-    """
-
-    def integrate(self, fun, domain, nevals, **kwargs):
-        """
-        Integrate the function ``fun``.
-
-        Parameters
-        ----------
-        fun : function
-            Function to be integrated.
-        fun0 : RandomProcess
-            Stochastic process modelling function to be integrated.
-        domain : ndarray, shape=()
-            Domain to integrate over.
-        nevals : int
+        measure :
+            Measure to integrate against.
+        nevals :
             Number of function evaluations.
 
         Returns
         -------
 
         """
-
-        # Initialization
-        integral = None
-
-        # Iteration
-        for _ in range(nevals):
-            # Predictive Distribution
-            # fun_pred = None
-
-            # Observation
-
-            # Update Distribution
-            self.fun0 = None
-
-        # Information on result
-        info = {"model_fit_diagnostic": None}
-
-        return integral, self.fun0, info
-
-
-class WSABIBayesianQuadrature(BayesianQuadrature):
-    """
-    Warped Sequential Active Bayesian Integration (WSABI).
-    """
-
-    def integrate(self, fun, domain, nevals, **kwargs):
-        """
-        Integrate the function ``fun``.
-
-        Parameters
-        ----------
-        fun : function
-            Function to be integrated.
-        domain : ndarray, shape=()
-            Domain to integrate over.
-        nevals : int
-            Number of function evaluations.
-
-        Returns
-        -------
-
-        """
-
         raise NotImplementedError
