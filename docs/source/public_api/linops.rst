@@ -11,7 +11,7 @@ efficient matrix-vector product. Linear operators support common algebraic
 operations, including matrix-vector products, addition, multiplication, and
 transposition.
 
-Several algorithms in the :mod:`probnum.linalg` library are able to operate on
+Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate on
 :class:`~probnum.linops.LinearOperator` instances.
 
 .. automodapi:: probnum.linops

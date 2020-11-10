@@ -59,9 +59,9 @@ class RandomVariable(Generic[_ValueType]):
         Callable checking whether the random variable takes value ``x`` with non-zero
         probability, i.e. if ``x`` is in the support of its distribution.
     cdf :
-        The cumulative distribution function of the random variable.
+        Cumulative distribution function of the random variable.
     logcdf :
-        The log-transformed cumulative distribution function of the random variable.
+        Log-transformed cumulative distribution function of the random variable.
     quantile :
         Quantile function of the random variable.
     mode :
@@ -933,13 +933,13 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         Callable checking whether the random variable takes value ``x`` with non-zero
         probability, i.e. if ``x`` is in the support of its distribution.
     pmf :
-        The probability mass function of the random variable.
+        Probability mass function of the random variable.
     logpmf :
-        The log-transformed probability mass function of the random variable.
+        Log-transformed probability mass function of the random variable.
     cdf :
-        The cumulative distribution function of the random variable.
+        Cumulative distribution function of the random variable.
     logcdf :
-        The log-transformed cumulative distribution function of the random variable.
+        Log-transformed cumulative distribution function of the random variable.
     quantile :
         Quantile function of the random variable.
     mode :
@@ -1156,13 +1156,13 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         Callable checking whether the random variable takes value ``x`` with non-zero
         probability, i.e. if ``x`` is in the support of its distribution.
     pdf :
-        The probability density function of the random variable.
+        Probability density function of the random variable.
     logpdf :
-        The log-transformed probability density function of the random variable.
+        Log-transformed probability density function of the random variable.
     cdf :
-        The cumulative distribution function of the random variable.
+        Cumulative distribution function of the random variable.
     logcdf :
-        The log-transformed cumulative distribution function of the random variable.
+        Log-transformed cumulative distribution function of the random variable.
     quantile :
         Quantile function of the random variable.
     mode :
