@@ -954,7 +954,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     std :
         (Element-wise) standard deviation of the random variable.
     entropy :
-        Information-theoretic entropy :math:`H(X)` of the random variable.
+        Shannon entropy :math:`H(X)` of the random variable.
     as_value_type :
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.
@@ -1171,7 +1171,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     std :
         (Element-wise) standard deviation of the random variable.
     entropy :
-        Information-theoretic entropy :math:`H(X)` of the random variable.
+        Differential entropy :math:`H(X)` of the random variable.
     as_value_type :
         Function which can be used to transform user-supplied arguments, interpreted as
         realizations of this random variable, to an easy-to-process, normalized format.

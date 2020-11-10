@@ -9,7 +9,7 @@ import scipy.sparse.linalg.interface
 
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
     """
-    Finite-dimensional linear operators.
+    Composite base class for finite-dimensional linear operators.
 
     This class provides a way to define finite-dimensional linear operators without
     explicitly constructing a matrix representation. Instead it suffices to define a
