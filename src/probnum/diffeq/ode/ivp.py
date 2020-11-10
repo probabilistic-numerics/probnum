@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum.diffeq.ode.ode import ODE
 
-__all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "IVP"]
+__all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "seir", "IVP"]
 
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):
@@ -196,6 +196,61 @@ def lv_jac(t, y, params):
     a, b, c, d = params
     y1, y2 = y
     return np.array([[a - b * y2, -b * y1], [d * y2, -c + d * y1]])
+
+
+def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
+    r"""
+    Initial value problem (IVP) based on the SEIR model.
+
+    The SEIR model with no vital dynamics is defined through
+
+    .. math:: f(t, y) =
+        \begin{pmatrix}
+        \frac{-\beta y_1 y_3}{N} \\
+        \frac{\beta y_1 y_3}{N} - \alpha y_2 \\
+        \alpha y_2 - \gamma y_3 \\
+        \gamma y_3
+        \end{pmatrix}
+
+    for some parameters :math:`(\alpha, \beta, \gamma, N)`.
+    N is a constant population count.
+    Default is :math:`(\alpha, \beta, \gamma, N)=(0.3, 0.3, 0.1, 10^7)`.
+
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    initrv : RandomVariable,
+        RandomVariable that  describes the belief over the initial
+        value. Usually its distribution is Dirac (noise-free)
+        or Normal (noisy). To replicate "classical" initial values
+        use the Dirac distribution.
+    params : (float, float, float, float), optional
+        Parameters :math:`(\alpha, \beta, \gamma, N)` for the SEIR model IVP.
+        Default is :math:`(\alpha, \beta, \gamma, N)=(0.3, 0.3, 0.1, 10^7)`.
+
+    Returns
+    -------
+    IVP
+        IVP object describing the SEIR model IVP with the prescribed
+        configuration.
+    """
+
+    def rhs(t, y):
+        return seir_rhs(t, y, params)
+
+    return IVP(timespan, initrv, rhs)
+
+
+def seir_rhs(t, y, params):
+    alpha, beta, gamma, N = params
+    s, e, i, r = y
+    s_next = -beta * s * i / N
+    e_next = beta * s * i / N - alpha * e
+    i_next = alpha * e - gamma * i
+    r_next = gamma * i
+
+    return np.array([s_next, e_next, i_next, r_next])
 
 
 class IVP(ODE):

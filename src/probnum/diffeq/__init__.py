@@ -13,6 +13,7 @@ __all__ = [
     "logistic",
     "fitzhughnagumo",
     "lotkavolterra",
+    "seir",
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",
