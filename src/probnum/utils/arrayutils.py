@@ -1,15 +1,11 @@
 """Utility functions for arrays and the like."""
 
+from typing import Union
+
 import numpy as np
-import scipy.sparse
+import scipy
 
 import probnum
-
-__all__ = [
-    "atleast_1d",
-    "atleast_2d",
-    "as_colvec",
-]
 
 
 def atleast_1d(*rvs):
@@ -28,9 +24,6 @@ def atleast_1d(*rvs):
     res : array-like or list
         An array / random variable or list of arrays / random variables,
         each with ``a.ndim >= 1``.
-    See Also
-    --------
-    atleast_2d
     """
     res = []
     for rv in rvs:
@@ -49,54 +42,19 @@ def atleast_1d(*rvs):
         return res
 
 
-def atleast_2d(*rvs):
-    """
-    View inputs as arrays with at least two dimensions.
-    Parameters
-    ----------
-    arys1, arys2, ... : array-like or RandomVariable
-        One or more random variables or array-like sequences. Non-array
-        inputs are converted to arrays or random variables. Arrays or
-        random variables that already have two or more dimensions are
-        preserved.
-    Returns
-    -------
-    rvs: array-like or list
-        An array, random variable or a list of arrays / random
-        variables, each with ``a.ndim >= 2``.
-    See Also
-    --------
-    atleast_1d
-    """
-    res = []
-    for rv in rvs:
-        if isinstance(rv, scipy.sparse.spmatrix):
-            result = rv
-        elif isinstance(rv, np.ndarray):
-            result = np.atleast_2d(rv)
-        elif isinstance(rv, probnum.RandomVariable):
-            raise NotImplementedError
-        else:
-            result = rv
-        res.append(result)
-    if len(res) == 1:
-        return res[0]
-    else:
-        return res
-
-
-def as_colvec(vec):
+def as_colvec(
+    vec: Union[np.ndarray, "probnum.RandomVariable"]
+) -> Union[np.ndarray, "probnum.RandomVariable"]:
     """
     Transform the given vector or random variable to column format.
     Given a vector (or random variable) of dimension (n,) return an array with
     dimensions (n, 1) instead. Higher-dimensional arrays are not changed.
+
     Parameters
     ----------
-    vec : np.ndarray or RandomVariable
-        Vector, array or random variable to be viewed as a column vector.
-    Returns
-    -------
-    vec2d : np.ndarray or RandomVariable
+    vec
+        Vector, array or random variable to be transformed into a column vector.
+
     """
     if isinstance(vec, probnum.RandomVariable):
         if vec.shape != (vec.shape[0], 1):

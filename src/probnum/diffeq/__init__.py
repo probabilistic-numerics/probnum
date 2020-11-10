@@ -1,3 +1,7 @@
+"""
+Differential Equations.
+"""
+
 from .ode import *
 from .odefiltsmooth import *
 from .odesolution import ODESolution

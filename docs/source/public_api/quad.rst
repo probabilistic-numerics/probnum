@@ -9,4 +9,5 @@ iteratively building a probabilistic model and adaptively choosing points to eva
 the integrand based on said model.
 
 .. automodapi:: probnum.quad
-	:no-heading:
+    :no-heading:
+    :no-main-docstr:

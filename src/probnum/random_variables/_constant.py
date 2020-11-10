@@ -24,7 +24,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
     Random variable representing a constant value.
 
     Discrete random variable which (with probability one) takes a constant value. The
-    law / image measure of this random variable is given by theConstant delta measure
+    law / image measure of this random variable is given by the Dirac delta measure
     which equals one in its (atomic) support and zero everywhere else.
 
     This class has the useful property that arithmetic operations between a
@@ -35,7 +35,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
     ----------
     support
         Constant value taken by the random variable. Also the (atomic) support of the
-        associatedConstant measure.
+        associated Dirac measure.
     random_state
         Random state of the random variable. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local

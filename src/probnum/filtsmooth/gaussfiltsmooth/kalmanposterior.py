@@ -138,8 +138,8 @@ class KalmanPosterior(FiltSmoothPosterior):
             random_vars = self.__call__(locations)
 
         if size == ():
-            return self._single_sample_path(
-                locations=locations, random_vars=random_vars
+            return np.array(
+                self._single_sample_path(locations=locations, random_vars=random_vars)
             )
 
         return np.array(
@@ -147,8 +147,29 @@ class KalmanPosterior(FiltSmoothPosterior):
         )
 
     def _single_sample_path(self, locations, random_vars):
-        curr_sample = rvs.asrandvar(random_vars[-1].sample())
-        rv_list = self.gauss_filter.smooth_list(
-            random_vars, locations, final_rv=curr_sample
-        )
-        return rv_list.mean
+
+        num_dim = len(random_vars[-1].sample())
+
+        curr_sample = random_vars[-1].sample()
+        out_samples = [curr_sample]
+        curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+
+        for idx in reversed(range(1, len(locations))):
+            unsmoothed_rv = random_vars[idx - 1]
+            pred_rv, info = self.gauss_filter.predict(
+                start=locations[idx - 1],
+                stop=locations[idx],
+                randvar=unsmoothed_rv,
+            )
+            if "crosscov" not in info.keys():
+                raise TypeError("Cross-covariance required for smoothing.")
+            curr_rv = self.gauss_filter.smooth_step(
+                unsmoothed_rv, pred_rv, curr_rv, info["crosscov"]
+            )
+
+            curr_sample = curr_rv.sample()
+            out_samples.append(curr_sample)
+            curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+
+        out_samples.reverse()
+        return out_samples
