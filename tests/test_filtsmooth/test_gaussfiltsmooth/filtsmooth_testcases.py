@@ -18,6 +18,12 @@ __all__ = [
 
 
 def car_tracking():
+
+    # Below is for consistency with pytest & unittest.
+    # Without a seed, unittest passes but pytest fails.
+    # I tried multiple seeds, they all work equally well.
+    np.random.seed(12345)
+
     delta_t = 0.2
     var = 0.5
     dynamat = np.eye(4) + delta_t * np.diag(np.ones(2), 2)
@@ -56,6 +62,12 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
 
 
 def ornstein_uhlenbeck():
+
+    # Below is for consistency with pytest & unittest.
+    # Without a seed, unittest passes but pytest fails.
+    # I tried multiple seeds, they all work equally well.
+    np.random.seed(12345)
+
     delta_t = 0.2
     lam, q, r = 0.21, 0.5, 0.1
     drift = -lam * np.eye(1)
@@ -88,6 +100,12 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
 
 
 def pendulum():
+
+    # Below is for consistency with pytest & unittest.
+    # Without a seed, unittest passes but pytest fails.
+    # I tried multiple seeds, they all work equally well.
+    np.random.seed(12345)
+
     delta_t = 0.0075
     var = 0.32 ** 2
     g = 9.81
@@ -175,30 +193,30 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_filtsmooth_pendulum(self):
         # pylint: disable=not-callable
         # Set up test problem
-        self.dynamod, self.measmod, self.initrv, info = pendulum()
+        dynamod, measmod, initrv, info = pendulum()
         delta_t = info["dt"]
-        self.tms = np.arange(0, 4, delta_t)
-        self.states, self.obs = pnfs.statespace.generate(
-            self.dynamod, self.measmod, self.initrv, self.tms
+        tms = np.arange(0, 4, delta_t)
+        states, obs = pnfs.statespace.generate(
+            dynamod, measmod, initrv, tms
         )
 
         # Linearise problem
-        self.ekf_meas = self.linearising_component_pendulum(self.measmod)
-        self.ekf_dyna = self.linearising_component_pendulum(self.dynamod)
-        self.method = pnfs.Kalman(self.ekf_dyna, self.ekf_meas, self.initrv)
+        ekf_meas = self.linearising_component_pendulum(measmod)
+        ekf_dyna = self.linearising_component_pendulum(dynamod)
+        method = pnfs.Kalman(ekf_dyna, ekf_meas, initrv)
 
         # Compute filter/smoother solution
-        filter_posterior = self.method.filter(self.obs, self.tms)
+        filter_posterior = method.filter(obs, tms)
         filtms = filter_posterior.state_rvs.mean
-        smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
+        smooth_posterior = method.filtsmooth(obs, tms)
         smooms = smooth_posterior.state_rvs.mean
 
         # Compute RMSEs
-        comp = self.states[:, 0]
+        comp = states[:, 0]
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[:, 0] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[:, 0] - comp) / normaliser
-        obs_rmse = np.linalg.norm(self.obs[:, 0] - comp[1:]) / normaliser
+        obs_rmse = np.linalg.norm(obs[:, 0] - comp[1:]) / normaliser
 
         # If desired, visualise.
         if self.visualise is True:
@@ -209,33 +227,33 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
             )
             ax1.set_title("Horizontal position")
             ax1.plot(
-                self.tms[1:], self.obs[:, 0], ".", alpha=0.25, label="Observations"
+                tms[1:], obs[:, 0], ".", alpha=0.25, label="Observations"
             )
             ax1.plot(
-                self.tms[1:],
-                np.sin(self.states)[1:, 0],
+                tms[1:],
+                np.sin(states)[1:, 0],
                 "-",
                 linewidth=4,
                 alpha=0.5,
                 label="Truth",
             )
-            ax1.plot(self.tms[1:], np.sin(filtms)[1:, 0], "-", label="Filter")
-            ax1.plot(self.tms[1:], np.sin(smooms)[1:, 0], "-", label="Smoother")
+            ax1.plot(tms[1:], np.sin(filtms)[1:, 0], "-", label="Filter")
+            ax1.plot(tms[1:], np.sin(smooms)[1:, 0], "-", label="Smoother")
             ax1.set_xlabel("time")
             ax1.set_ylabel("horizontal pos. = sin(angular)")
             ax1.legend()
 
             ax2.set_title("Angular position")
             ax2.plot(
-                self.tms[1:],
-                self.states[1:, 0],
+                tms[1:],
+                states[1:, 0],
                 "-",
                 linewidth=4,
                 alpha=0.5,
                 label="Truth",
             )
-            ax2.plot(self.tms[1:], filtms[1:, 0], "-", label="Filter")
-            ax2.plot(self.tms[1:], smooms[1:, 0], "-", label="Smoother")
+            ax2.plot(tms[1:], filtms[1:, 0], "-", label="Filter")
+            ax2.plot(tms[1:], smooms[1:, 0], "-", label="Smoother")
             ax2.set_xlabel("time")
             ax2.set_ylabel("angular pos.")
             ax2.legend()
