@@ -19,8 +19,11 @@ class ContinuousEKFComponent(statespace.Transition):
         self.non_linear_sde = non_linear_sde
         self.num_steps = num_steps
 
-    def transition_realization(self, real, start, stop, **kwargs):
-        jacobfun = functools.partial(self.non_linear_sde.jacobian, state=real)
+    def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
+        if linearise_at is None:
+            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=real)
+        else:
+            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=linearise_at.mean)
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
@@ -32,8 +35,11 @@ class ContinuousEKFComponent(statespace.Transition):
             dispmatfun=self.non_linear_sde.dispersionmatrix,
         )
 
-    def transition_rv(self, rv, start, stop, **kwargs):
-        jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
+    def transition_rv(self, rv, start, stop, linearise_at=None,  **kwargs):
+        if linearise_at is None:
+            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
+        else:
+            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=rv,
@@ -56,10 +62,10 @@ class DiscreteEKFComponent(statespace.Transition):
     def __init__(self, disc_model):
         self.disc_model = disc_model
 
-    def transition_realization(self, real, start, **kwargs):
+    def transition_realization(self, real, start, linearise_at=None,  **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
-    def transition_rv(self, rv, start, **kwargs):
+    def transition_rv(self, rv, start,  linearise_at=None, **kwargs):
         diffmat = self.disc_model.diffusionmatrix(start)
         jacob = self.disc_model.jacobian(start, rv.mean)
         mpred = self.disc_model.dynamics(start, rv.mean)
