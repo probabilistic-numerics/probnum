@@ -100,8 +100,8 @@ class Kalman(BayesFiltSmooth):
         """
         data = np.asarray(data)
         info = {}
-        predrv, info["info_pred"] = self.predict(start, stop, randvar)
-        filtrv, info["meas_rv"], info["info_upd"] = self.update(stop, predrv, data)
+        info["pred_rv"], info["info_pred"] = self.predict(start, stop, randvar)
+        filtrv, info["meas_rv"], info["info_upd"] = self.update(stop, info["pred_rv"], data)
         return filtrv, info
 
     def predict(self, start, stop, randvar, **kwargs):
@@ -246,7 +246,7 @@ class IteratedKalman(Kalman):
     def filter_step(self, start, stop, current_rv, data, linearise_at=None, **kwargs):
         if linearise_at is None:
             filt_rv, info = self.kalman.filter_step(
-                current_rv, data, start, stop, **kwargs
+                start, stop, current_rv, data, **kwargs
             )
             pred_rv = info["pred_rv"]
             meas_rv = info["meas_rv"]
@@ -262,7 +262,7 @@ class IteratedKalman(Kalman):
             )
 
         # repeat until happy
-        if self.continue_filter_updates(pred_rv, info_pred, filt_rv, meas_rv, info_upd):
+        if self.stoppingcriterion.continue_filter_updates(pred_rv, info_pred, filt_rv, meas_rv, info_upd):
             return self.filter_step(start, stop, filt_rv, data, linearise_at=filt_rv)
 
     #
