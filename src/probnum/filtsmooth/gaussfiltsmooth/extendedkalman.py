@@ -62,7 +62,7 @@ class DiscreteEKFComponent(statespace.Transition):
     def __init__(self, disc_model):
         self.disc_model = disc_model
 
-    def transition_realization(self, real, start,  linearise_at=None, **kwargs):
+    def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
     def transition_rv(self, rv, start, linearise_at=None, **kwargs):
