@@ -87,7 +87,7 @@ class Kalman(BayesFiltSmooth):
             Predict FROM this time point.
         stop : float
             Predict TO this time point.
-        randvar : RandomVariable
+        current_rv : RandomVariable
             Predict based on this random variable. For instance, this can be the result
             of a previous call to filter_step.
         data : array_like

@@ -36,16 +36,28 @@ class IteratedKalman(Kalman):
 
         Parameters
         ----------
-        start
-        stop
-        current_rv
-        data
-        previous_posterior :  KalmanPosterior
+        start : float
+            Predict FROM this time point.
+        stop : float
+            Predict TO this time point.
+        current_rv : RandomVariable
+            Predict based on this random variable. For instance, this can be the result
+            of a previous call to filter_step.
+        data : array_like
+            Compute the update based on this data.
+        previous_posterior : KalmanPosterior
+            Posterior distribution of a previous smoothing iteration. Optional.
+            If specified, posterior linearisation is applied.
 
         Returns
         -------
+        RandomVariable
+            Resulting filter estimate after the single step.
+        dict
+            Additional information provided by predict() and update().
+            Contains keys `pred_rv`, `info_pred`, `meas_rv`, `info_upd`.
         """
-        info = {}
+
         # initial prediction
         if previous_posterior is None:
             pred_rv, info_pred = self.kalman.predict(start, stop, current_rv)
@@ -59,9 +71,6 @@ class IteratedKalman(Kalman):
             pred_rv, info_pred = self.kalman.predict(
                 start, stop, current_rv, linearise_at=pred_rv
             )
-
-        info["pred_rv"] = pred_rv
-        info["info_pred"] = info_pred
 
         # initial update
         if previous_posterior is None:
@@ -79,9 +88,13 @@ class IteratedKalman(Kalman):
                 stop, current_rv, data, linearise_at=upd_rv
             )
 
-        info["meas_rv"] = meas_rv
-        info["info_upd"] = info_upd
-
+        # Specify additional information to be returned
+        info = {
+            "pred_rv": pred_rv,
+            "info_pred": info_pred,
+            "meas_rv": meas_rv,
+            "info_upd": info_upd,
+        }
         return upd_rv, info
 
     def iterated_filtsmooth(self, dataset, times, **kwargs):
