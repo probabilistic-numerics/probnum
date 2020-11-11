@@ -3,10 +3,7 @@ Continuous-Time priors for ODE solvers.
 
 Currently, they are only relevant in the context of ODEs.
 If needed in a more general setting, it is easy to move
-them to statespace module (->thoughts?)
-
-Matern will be easy to implement, just reuse the template
-provided by IOUP and change parameters
+them to statespace module
 """
 import warnings
 
@@ -14,10 +11,10 @@ import numpy as np
 from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
 
-from probnum.filtsmooth.statespace.continuous import LTISDEModel
+import probnum.filtsmooth.statespace as pnfss
 
 
-class ODEPrior(LTISDEModel):
+class ODEPrior(pnfss.LTISDE):
     """
     Prior dynamic model for ODE filtering and smoothing.
 
@@ -95,8 +92,7 @@ class ODEPrior(LTISDEModel):
         driftmat = self.precond @ driftmat @ self.invprecond
         dispmat = self.precond @ dispmat
         forcevec = np.zeros(len(driftmat))
-        diffmat = np.eye(spatialdim)
-        super().__init__(driftmat, forcevec, dispmat, diffmat)
+        super().__init__(driftmat, forcevec, dispmat)
 
     def proj2coord(self, coord: int) -> np.ndarray:
         """
