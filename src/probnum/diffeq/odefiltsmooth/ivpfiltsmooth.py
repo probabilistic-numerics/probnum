@@ -45,9 +45,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
         pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
         zero_data = 0.0
-        filt_rv, meas_rv, info = self.gfilt.update(
-            t_new, pred_rv, zero_data, **kwargs
-        )
+        filt_rv, meas_rv, info = self.gfilt.update(t_new, pred_rv, zero_data, **kwargs)
         errorest, self.sigma_squared_current = self._estimate_error(
             filt_rv, meas_rv, info
         )
