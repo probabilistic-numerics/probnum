@@ -27,6 +27,7 @@ __all__ = [
     "generate",
     "matrix_fraction_decomposition",
     "linear_sde_statistics",
+    "StoppingCriterion",
 ]
 
 # Set correct module paths (for superclasses).
