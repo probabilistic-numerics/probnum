@@ -1,6 +1,8 @@
 """Iterated Gaussian filtering and smoothing."""
 import numpy as np
 
+import probnum.random_variables as pnrv
+
 from .kalman import Kalman
 from .kalmanposterior import KalmanPosterior
 from .stoppingcriterion import StoppingCriterion
@@ -9,9 +11,12 @@ from .stoppingcriterion import StoppingCriterion
 class IteratedKalman(Kalman):
     """Iterated filter/smoother based on posterior linearisation.
 
-    In principle, this is the same as a Kalman filter; however, there is
-    also iterated_filtsmooth(), which computes things like MAP
-    estimates.
+    In principle, this is the same as a Kalman filter; however,
+    1. predict() and update() in each filter step may be repeated.
+    2. approximate Gaussian filtering and smoothing can use posterior linearisation.
+
+    There is an additional method: :meth:`iterated_filtsmooth()`,
+    which computes things like MAP estimates.
     """
 
     def __init__(self, kalman, stoppingcriterion=None):
@@ -61,33 +66,17 @@ class IteratedKalman(Kalman):
 
         # initial prediction
         if previous_posterior is None:
-            pred_rv, info_pred = self.kalman.predict(start, stop, current_rv)
+            linearise_predict_at = None
+            linearise_update_at = None
         else:
-            pred_rv, info_pred = self.kalman.predict(
-                start, stop, current_rv, linearise_at=previous_posterior(start)
-            )
-
-        # keep re-predicting while unhappy
-        while self.stoppingcriterion.continue_predict_iteration(pred_rv, info_pred):
-            pred_rv, info_pred = self.kalman.predict(
-                start, stop, current_rv, linearise_at=pred_rv
-            )
-
-        # initial update
-        if previous_posterior is None:
-            upd_rv, meas_rv, info_upd = self.kalman.update(stop, current_rv, data)
-        else:
-            upd_rv, meas_rv, info_upd = self.kalman.update(
-                stop, current_rv, data, linearise_at=previous_posterior(stop)
-            )
-
-        # keep re-updating while unhappy
-        while self.stoppingcriterion.continue_update_iteration(
-            upd_rv, meas_rv, info_upd
-        ):
-            upd_rv, meas_rv, info_upd = self.kalman.update(
-                stop, current_rv, data, linearise_at=upd_rv
-            )
+            linearise_predict_at = previous_posterior(start)
+            linearise_update_at = previous_posterior(stop)
+        pred_rv, info_pred = self.predict(
+            start, stop, current_rv, linearise_at=linearise_predict_at
+        )
+        upd_rv, meas_rv, info_upd = self.update(
+            stop, pred_rv, data, linearise_at=linearise_update_at
+        )
 
         # Specify additional information to be returned
         info = {
@@ -105,3 +94,60 @@ class IteratedKalman(Kalman):
             posterior = self.filter(dataset, times, linearise_at=posterior)
             posterior = self.smooth(posterior)
         return posterior
+
+    def predict(self, start, stop, randvar, linearise_at=None, **kwargs):
+        pred_rv, info_pred = self.dynamod.transition_rv(
+            randvar, start, stop=stop, linearise_at=linearise_at, **kwargs
+        )
+        while self.stoppingcriterion.continue_predict_iteration(pred_rv, info_pred):
+            pred_rv, info_pred = self.dynamod.transition_rv(
+                pred_rv, start, stop, linearise_at=pred_rv
+            )
+        return pred_rv, info_pred
+
+    def update(self, time, randvar, data, linearise_at=None, **kwargs):
+        """
+        Gaussian filter update step. Consists of a measurement step and a conditioning step.
+
+        Parameters
+        ----------
+        time
+            Time of the update.
+        randvar
+            Random variable to be updated. Result of :meth:`predict()`.
+        data
+            Data to update on.
+
+        Returns
+        -------
+        filt_rv : Normal
+            Updated Normal RV (new filter estimate).
+        meas_rv : Normal
+            Measured random variable, as returned by the measurement model.
+        info : dict
+            Additional info. Contains at least the key `crosscov`,
+            which is the crosscov between input RV and measured RV.
+            The crosscov does not relate to the updated RV!
+        """
+        upd_rv, meas_rv, info_upd = self._single_update(
+            time, randvar, data, linearise_at=linearise_at, **kwargs
+        )
+        while self.stoppingcriterion.continue_update_iteration(
+            upd_rv, meas_rv, info_upd
+        ):
+            upd_rv, meas_rv, info_upd = self._single_update(
+                time, randvar, data, linearise_at=upd_rv, **kwargs
+            )
+        return upd_rv, meas_rv, info_upd
+
+    def _single_update(self, time, randvar, data, linearise_at=None, **kwargs):
+        meas_rv, info = self.measmod.transition_rv(
+            randvar, time, linearise_at=linearise_at, **kwargs
+        )
+        crosscov = info["crosscov"]
+        new_mean = randvar.mean + crosscov @ np.linalg.solve(
+            meas_rv.cov, data - meas_rv.mean
+        )
+        new_cov = randvar.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
+        filt_rv = pnrv.Normal(new_mean, new_cov)
+        return filt_rv, meas_rv, info

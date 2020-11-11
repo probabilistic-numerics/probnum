@@ -10,6 +10,7 @@ from .statespace import *
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "Kalman",
+    "IteratedKalman",
     "ContinuousEKFComponent",
     "ContinuousUKFComponent",
     "DiscreteEKFComponent",
@@ -28,6 +29,7 @@ __all__ = [
     "matrix_fraction_decomposition",
     "linear_sde_statistics",
     "StoppingCriterion",
+    "FixedPointStopping",
 ]
 
 # Set correct module paths (for superclasses).

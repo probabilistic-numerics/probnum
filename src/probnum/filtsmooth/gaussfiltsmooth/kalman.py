@@ -103,9 +103,11 @@ class Kalman(BayesFiltSmooth):
         """
         data = np.asarray(data)
         info = {}
-        info["pred_rv"], info["info_pred"] = self.predict(start, stop, current_rv)
+        info["pred_rv"], info["info_pred"] = self.predict(
+            start, stop, current_rv, **kwargs
+        )
         filtrv, info["meas_rv"], info["info_upd"] = self.update(
-            stop, info["pred_rv"], data
+            stop, info["pred_rv"], data, **kwargs
         )
         return filtrv, info
 
