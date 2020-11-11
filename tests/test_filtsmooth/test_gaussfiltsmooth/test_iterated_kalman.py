@@ -1,10 +1,6 @@
 import unittest
 
-from probnum.filtsmooth.gaussfiltsmooth import (
-    IteratedKalman,
-    Kalman,
-    StoppingCriterion,
-)
+from probnum.filtsmooth.gaussfiltsmooth import IteratedKalman, Kalman, StoppingCriterion
 
 from .filtsmooth_testcases import OrnsteinUhlenbeckCDTestCase
 
