@@ -65,7 +65,7 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
     start = np.random.rand()
     stop = start + np.random.rand()
     some_rv = pnrv.Normal(np.random.rand(TEST_NDIM), np.eye(TEST_NDIM))
-    some_nongaussian_rv = pnrv.Dirac(np.random.rand(TEST_NDIM))
+    some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
     rk_step = (stop - start) / 10.0
 
     def setUp(self) -> None:
@@ -113,7 +113,7 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
     start = np.random.rand()
     stop = start + np.random.rand()
     some_rv = pnrv.Normal(np.random.rand(TEST_NDIM), np.eye(TEST_NDIM))
-    some_nongaussian_rv = pnrv.Dirac(np.random.rand(TEST_NDIM))
+    some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
 
     def setUp(self) -> None:
 

@@ -36,9 +36,9 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
     params : (float, float), optional
         Parameters :math:`(a, b)` for the logistic IVP.
         Default is :math:`(a, b) = (3.0, 1.0)`.
@@ -111,9 +111,9 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.0, 0.08, 0.07, 1.25)`.
@@ -168,9 +168,9 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.5, 0.05, 0.5, 0.05)`.
@@ -223,7 +223,7 @@ class IVP(ODE):
     the initial value is a RandomVariable object with some
     distribution that reflects the prior belief over the initial
     value. To recover "classical" initial values one can use the
-    Dirac distribution.
+    Constant distribution.
 
     Parameters
     ----------
@@ -231,12 +231,12 @@ class IVP(ODE):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
         Implementation depends on the mean of this RandomVariable,
         so please only use RandomVariable objects with available
-        means, e.g. Diracs or Normals.
+        means, e.g. Constants or Normals.
     rhs : callable, signature: ``(t, y, **kwargs)``
         RHS function
         :math:`f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`

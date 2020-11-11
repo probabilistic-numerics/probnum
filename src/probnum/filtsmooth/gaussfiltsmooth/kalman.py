@@ -135,7 +135,7 @@ class Kalman(BayesFiltSmooth):
             filter_posterior.locations, rv_list, self, with_smoothing=True
         )
 
-    def smooth_list(self, rv_list, locations, final_rv=None, **kwargs):
+    def smooth_list(self, rv_list, locations, **kwargs):
         """
         Apply smoothing to a list of RVs with desired final random variable.
 
@@ -149,18 +149,13 @@ class Kalman(BayesFiltSmooth):
             List of random variables to be smoothed.
         locations : array_like
             Locations of the random variables in rv_list.
-        final_rv : RandomVariable, optional.
-            RandomVariable at the final point. Default is None, in which case standard smoothing is applied.
-            If a random variable is specified, the smoothing iteration is based on this one, which is used
-            for sampling (in which case the final random variable is a Dirac that represents a sample)
 
         Returns
         -------
         _RandomVariableList
             List of smoothed random variables.
         """
-        if final_rv is None:
-            final_rv = rv_list[-1]
+        final_rv = rv_list[-1]
         curr_rv = final_rv
         out_rvs = [curr_rv]
         for idx in reversed(range(1, len(locations))):

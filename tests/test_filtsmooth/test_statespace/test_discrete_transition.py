@@ -67,7 +67,7 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
     some_rv = pnrv.Normal(
         mean=np.random.rand(TEST_NDIM), cov=np.diag(1 + np.random.rand(TEST_NDIM))
     )
-    some_nongaussian_rv = pnrv.Dirac(np.random.rand(TEST_NDIM))
+    some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
     start = 0.1 + 0.01 * np.random.rand()
 
     def setUp(self):
