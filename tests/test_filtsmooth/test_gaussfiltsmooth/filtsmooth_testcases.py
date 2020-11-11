@@ -196,9 +196,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         dynamod, measmod, initrv, info = pendulum()
         delta_t = info["dt"]
         tms = np.arange(0, 4, delta_t)
-        states, obs = pnfs.statespace.generate(
-            dynamod, measmod, initrv, tms
-        )
+        states, obs = pnfs.statespace.generate(dynamod, measmod, initrv, tms)
 
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(measmod)
@@ -226,9 +224,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
                 + "< %.2f < %.2f?)" % (filtrmse, obs_rmse)
             )
             ax1.set_title("Horizontal position")
-            ax1.plot(
-                tms[1:], obs[:, 0], ".", alpha=0.25, label="Observations"
-            )
+            ax1.plot(tms[1:], obs[:, 0], ".", alpha=0.25, label="Observations")
             ax1.plot(
                 tms[1:],
                 np.sin(states)[1:, 0],
