@@ -5,7 +5,12 @@ import numpy as np
 class StoppingCriterion:
     """Stopping criteria for iterated filters/smoothers."""
 
-    def __init__(self, max_num_predicts_per_step=None, max_num_updates_per_step=None, max_num_filtsmooth_iterations=None):
+    def __init__(
+        self,
+        max_num_predicts_per_step=None,
+        max_num_updates_per_step=None,
+        max_num_filtsmooth_iterations=None,
+    ):
         self.num_predict_iterations = 0
         self.num_update_iterations = 0
         self.num_filtsmooth_iterations = 0

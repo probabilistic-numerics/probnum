@@ -97,6 +97,9 @@ class Kalman(BayesFiltSmooth):
         -------
         RandomVariable
             Resulting filter estimate after the single step.
+        dict
+            Additional information provided by predict() and update().
+            Contains keys `pred_rv`, `info_pred`, `meas_rv`, `info_upd`.
         """
         data = np.asarray(data)
         info = {}
