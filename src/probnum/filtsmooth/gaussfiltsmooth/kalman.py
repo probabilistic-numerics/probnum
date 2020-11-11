@@ -262,7 +262,12 @@ class IteratedKalman(Kalman):
                 start, stop, current_rv, linearise_at=linearise_at(start)
             )
             filt_rv, meas_rv, info_upd = self.update(
-                stop, pred_rv, data, linearise_at=linearise_at(stop)
+                stop,
+                pred_rv,
+                data,
+                linearise_at=linearise_at(
+                    stop
+                ),  # should this be a posterior object or a Normal??
             )
 
         # repeat until happy

@@ -6,7 +6,6 @@ class StoppingCriterion:
     """
     Stopping criteria for iterated filters/smoothers.
 
-
     By default this stopping criterion is defined in a way
     that iterated filters behave like normal filters.
     Though, to unlock `Kalman.iterated_filtsmooth`, implement `self.stop_filtsmooth_updates`.
@@ -97,5 +96,37 @@ class FixedPointStopping(StoppingCriterion):
             self.previous_posterior = kalman_posterior
             return True
 
-        # return false, before implementing more recursions...
-        return False
+        #######################################################################################
+        # below is experimental...
+        # I think it works, but it is not tested...
+        #######################################################################################
+
+        # Compute relative thresholds
+        mean_threshold = self.atol + self.rtol * np.maximum(
+            np.abs(self.previous_posterior.state_rvs.mean),
+            np.abs(kalman_posterior.state_rvs.mean),
+        )
+        cov_threshold = self.atol + self.rtol * np.maximum(
+            np.abs(self.previous_posterior.state_rvs.cov),
+            np.abs(kalman_posterior.state_rvs.cov),
+        )
+
+        # Accept if discrepancy sufficiently small
+        mean_acceptable = np.all(
+            np.abs(
+                kalman_posterior.state_rvs.mean - self.previous_posterior.state_rvs.mean
+            )
+            < mean_threshold
+        )
+        cov_acceptable = np.all(
+            np.abs(
+                kalman_posterior.state_rvs.cov - self.previous_posterior.state_rvs.cov
+            )
+            < cov_threshold
+        )
+        continue_iteration = np.invert(
+            np.all(np.logical_and(mean_acceptable, cov_acceptable))
+        )
+        if continue_iteration:
+            self.previous_posterior = kalman_posterior
+        return continue_iteration

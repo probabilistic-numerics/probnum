@@ -22,7 +22,9 @@ class TestDefaultStoppingCriterion(unittest.TestCase):
 
 class TestFixedPointIteration(unittest.TestCase):
     def setUp(self):
-        self.stopcrit = pnfs.FixedPointStopping(atol=1e-4, rtol=1e-4, max_num_filter_updates=10)
+        self.stopcrit = pnfs.FixedPointStopping(
+            atol=1e-4, rtol=1e-4, max_num_filter_updates=10
+        )
 
     def test_continue_filter_updates(self):
         self.assertEqual(self.stopcrit.num_filter_updates, 0)
@@ -34,7 +36,7 @@ class TestFixedPointIteration(unittest.TestCase):
     def test_continue_filter_updates_exception(self):
         """No improvement at all raises error eventually"""
         worsening = 0.1
-        value = 0.
+        value = 0.0
         with self.assertRaises(RuntimeError):
             while self.stopcrit.continue_filter_updates(filt_rv=pnrv.Constant(value)):
                 value += worsening
