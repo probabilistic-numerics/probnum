@@ -39,13 +39,11 @@ class ODESolver(ABC):
 
             if steprule.is_accepted(stepsize, errorest):
                 self.num_steps += 1
-                t = t_new
-                current_rv = proposed_rv
-                times.append(t)
-                rvs.append(current_rv)
                 self.method_callback(
                     time=t_new, current_guess=proposed_rv, current_error=errorest
                 )
+                times.append(t_new)
+                rvs.append(proposed_rv)
 
             suggested_stepsize = self._suggest_step(stepsize, errorest, steprule)
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
