@@ -2,11 +2,23 @@ import unittest
 
 import probnum.filtsmooth as pnfs
 
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        pnfs.StoppingCriterion()
-        self.assertEqual(True, False)
+
+class TestDefaultStoppingCriterion(unittest.TestCase):
+    """The default stoppingcriterion should make sure that no filter updates are repeated but also
+    make sure that whenever iterated filtsmooth is attempted, an exception is thrown.
+    """
+
+    def setUp(self):
+        """"""
+        self.stopcrit = pnfs.StoppingCriterion()
+
+    def test_stop_filter_updates(self):
+        self.assertTrue(self.stopcrit.stop_filter_updates())
+
+    def test_stop_filtsmooth_updates(self):
+        with self.assertRaises(NotImplementedError):
+            self.assertTrue(self.stopcrit.stop_filtsmooth_updates())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
