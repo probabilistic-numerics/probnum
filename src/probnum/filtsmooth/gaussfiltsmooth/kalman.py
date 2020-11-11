@@ -112,21 +112,24 @@ class Kalman(BayesFiltSmooth):
 
     def update(self, time, randvar, data, **kwargs):
         """
+        Gaussian filter update step. Consists of a measurement step and a conditioning step.
 
         Parameters
         ----------
         time
+            Time of the update.
         randvar
+            Random variable to be updated. Result of :meth:`predict()`.
         data
-        kwargs
+            Data to update on.
 
         Returns
         -------
-        Normal
+        filt_rv : Normal
             Updated Normal RV (new filter estimate).
-        Normal
+        meas_rv : Normal
             Measured random variable, as returned by the measurement model.
-        dict
+        info : dict
             Additional info. Contains at least the key `crosscov`,
             which is the crosscov between input RV and measured RV.
             The crosscov does not relate to the updated RV!
@@ -137,7 +140,8 @@ class Kalman(BayesFiltSmooth):
             meas_rv.cov, data - meas_rv.mean
         )
         new_cov = randvar.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
-        return Normal(new_mean, new_cov), meas_rv, info
+        filt_rv = Normal(new_mean, new_cov)
+        return filt_rv, meas_rv, info
 
     def smooth(self, filter_posterior, **kwargs):
         """
