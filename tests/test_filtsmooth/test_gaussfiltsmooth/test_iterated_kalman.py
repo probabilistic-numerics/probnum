@@ -1,12 +1,8 @@
 import unittest
 
-import numpy as np
-
-import probnum.random_variables as pnrv
 from probnum.filtsmooth.gaussfiltsmooth import (
     IteratedKalman,
     Kalman,
-    KalmanPosterior,
     StoppingCriterion,
 )
 
@@ -46,19 +42,6 @@ class MockStoppingCriterion(StoppingCriterion):
             return False
         self.num_update_iterations += 1
         return True
-
-
-class MockKalmanPosterior(KalmanPosterior):
-    def __init__(self):
-        self.times = np.arange(0.0, 1.1, 0.1)
-        self.means = np.random.rand(10, 1)
-        self.covs = np.random.rand(10, 1, 1)
-
-    def __call_(self, t):
-        if t in self.times:
-            idx = (self.times <= t).sum() - 1
-            return pnrv.Normal(self.means[idx], self.covs[idx])
-        raise RuntimeError("beyond here is irrelevant for the test!")
 
 
 class TestIteratedKalman(OrnsteinUhlenbeckCDTestCase):

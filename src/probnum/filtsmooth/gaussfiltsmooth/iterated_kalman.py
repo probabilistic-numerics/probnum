@@ -4,7 +4,6 @@ import numpy as np
 import probnum.random_variables as pnrv
 
 from .kalman import Kalman
-from .kalmanposterior import KalmanPosterior
 from .stoppingcriterion import StoppingCriterion
 
 
