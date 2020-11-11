@@ -12,7 +12,15 @@ class StoppingCriterion:
     For iterated filtering (not iterated smoothing!), implement `self.stop_filter_updates`.
     """
 
-    def continue_filter_updates(self, predrv=None, info_pred=None, filtrv=None, meas_rv=None, info_upd=None, **kwargs):
+    def continue_filter_updates(
+        self,
+        predrv=None,
+        info_pred=None,
+        filtrv=None,
+        meas_rv=None,
+        info_upd=None,
+        **kwargs
+    ):
         """
         When do we stop iterating the filter steps. Default is true.
         If, e.g. IEKF is wanted, overwrite with something that does not always return True.
