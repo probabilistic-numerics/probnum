@@ -12,33 +12,56 @@ class TestDefaultStoppingCriterion(unittest.TestCase):
     def setUp(self):
         self.stopcrit = pnfs.StoppingCriterion()
 
-    def test_continue_filter_updates(self):
-        self.assertFalse(self.stopcrit.continue_filter_updates())
+    def test_continue_predict_iteration(self):
+        self.assertFalse(self.stopcrit.continue_predict_iteration())
 
-    def test_continue_filtsmooth_updates(self):
+    def test_continue_update_iteration(self):
+        self.assertFalse(self.stopcrit.continue_update_iteration())
+
+    def test_continue_filtsmooth_iteration(self):
         with self.assertRaises(NotImplementedError):
-            self.assertTrue(self.stopcrit.continue_filtsmooth_updates())
+            self.assertTrue(self.stopcrit.continue_filtsmooth_iteration())
 
 
 class TestFixedPointIteration(unittest.TestCase):
     def setUp(self):
         self.stopcrit = pnfs.FixedPointStopping(
-            atol=1e-4, rtol=1e-4, max_num_filter_updates=10
+            atol=1e-4,
+            rtol=1e-4,
+            max_num_predicts_per_step=10,
+            max_num_updates_per_step=10,
+            max_num_filtsmooth_iterations=10,
         )
 
-    def test_continue_filter_updates(self):
-        self.assertEqual(self.stopcrit.num_filter_updates, 0)
+    def test_continue_predict_iteration(self):
+        self.assertEqual(self.stopcrit.num_predict_iterations, 0)
         x0 = 1.0
-        while self.stopcrit.continue_filter_updates(filt_rv=pnrv.Constant(x0)):
+        while self.stopcrit.continue_predict_iteration(pred_rv=pnrv.Constant(x0)):
             x0 *= 0.1
-        self.assertGreaterEqual(self.stopcrit.num_filter_updates, 1)
+        self.assertGreaterEqual(self.stopcrit.num_predict_iterations, 1)
 
-    def test_continue_filter_updates_exception(self):
+    def test_continue_predict_iteration_exception(self):
         """No improvement at all raises error eventually"""
         worsening = 0.1
         value = 0.0
         with self.assertRaises(RuntimeError):
-            while self.stopcrit.continue_filter_updates(filt_rv=pnrv.Constant(value)):
+            while self.stopcrit.continue_predict_iteration(pred_rv=pnrv.Constant(value)):
+                value += worsening
+
+
+    def test_continue_update_iteration(self):
+        self.assertEqual(self.stopcrit.num_update_iterations, 0)
+        x0 = 1.0
+        while self.stopcrit.continue_update_iteration(upd_rv=pnrv.Constant(x0)):
+            x0 *= 0.1
+        self.assertGreaterEqual(self.stopcrit.num_update_iterations, 1)
+
+    def test_continue_update_iteration_exception(self):
+        """No improvement at all raises error eventually"""
+        worsening = 0.1
+        value = 0.0
+        with self.assertRaises(RuntimeError):
+            while self.stopcrit.continue_update_iteration(upd_rv=pnrv.Constant(value)):
                 value += worsening
 
 
