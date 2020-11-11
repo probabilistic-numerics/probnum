@@ -100,7 +100,7 @@ class IteratedKalman(Kalman):
     def iterated_filtsmooth(self, dataset, times, **kwargs):
         """Repeated filtering and smoothing using posterior linearisation."""
         posterior = self.filtsmooth(dataset, times, **kwargs)
-        while not self.stoppingcriterion.continue_filtsmooth_updates(posterior):
+        while self.stoppingcriterion.continue_filtsmooth_iteration(posterior):
             posterior = self.filter(dataset, times, linearise_at=posterior)
             posterior = self.smooth(posterior)
         return posterior
