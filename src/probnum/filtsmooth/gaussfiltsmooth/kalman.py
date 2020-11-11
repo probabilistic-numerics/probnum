@@ -99,7 +99,7 @@ class Kalman(BayesFiltSmooth):
         """
         data = np.asarray(data)
         predrv, _ = self.predict(start, stop, randvar)
-        filtrv, _, _, _ = self.update(stop, predrv, data)
+        filtrv, _, _ = self.update(stop, predrv, data)
         return filtrv
 
     def predict(self, start, stop, randvar, **kwargs):

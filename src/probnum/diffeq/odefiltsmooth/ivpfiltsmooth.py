@@ -45,11 +45,11 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
         pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
         zero_data = 0.0
-        filt_rv, meas_cov, crosscov, meas_mean = self.gfilt.update(
+        filt_rv, meas_rv, info = self.gfilt.update(
             t_new, pred_rv, zero_data, **kwargs
         )
         errorest, self.sigma_squared_current = self._estimate_error(
-            filt_rv.mean, crosscov, meas_cov, meas_mean
+            filt_rv, meas_rv, info
         )
         return filt_rv, errorest
 
@@ -109,7 +109,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         newrv = Normal(newmean, newcov)
         return newrv
 
-    def _estimate_error(self, currmn, ccest, covest, mnest):
+    def _estimate_error(self, filt_rv, meas_rv, info):
         """
         Error estimate.
 
@@ -121,12 +121,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """
         # remove numerical issues w.r.t. symmetry and positive definiteness
         std_like = np.linalg.cholesky(
-            0.5 * (covest + covest.T) + 1e-3 * np.eye(len(covest))
+            0.5 * (meas_rv.cov + meas_rv.cov.T) + 1e-3 * np.eye(len(meas_rv.cov))
         )
-        whitened_res = np.linalg.solve(std_like, mnest)
-        ssq = whitened_res @ whitened_res / mnest.size
+        whitened_res = np.linalg.solve(std_like, meas_rv.mean)
+        ssq = whitened_res @ whitened_res / meas_rv.mean.size
         abserrors = np.abs(whitened_res)
-        errorest = self._rel_and_abs_error(abserrors, currmn)
+        errorest = self._rel_and_abs_error(abserrors, filt_rv.mean)
         return errorest, ssq
 
     def _rel_and_abs_error(self, abserrors, currmn):
