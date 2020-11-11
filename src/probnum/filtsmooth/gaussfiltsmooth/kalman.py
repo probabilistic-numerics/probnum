@@ -8,7 +8,7 @@ from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
-
+from . import stoppingcriterion
 
 class Kalman(BayesFiltSmooth):
     """
@@ -203,3 +203,39 @@ class Kalman(BayesFiltSmooth):
             + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
         )
         return Normal(new_mean, new_cov)
+
+
+
+
+class IteratedKalman(Kalman):
+    """Iterated filter/smoother based on posterior linearisation.
+
+
+    In principle, this is the same as a Kalman filter; however, there is also
+    iterated_filtsmooth(), which computes things like MAP estimates.
+    """
+    def __init__(self, kalman, stoppingcriterion=None):
+        self.kalman = kalman
+        if stoppingcriterion is None:
+            self.stoppingcriterion = stoppingcriterion.StoppingCriterion()
+        else:
+            self.stoppingcriterion = stoppingcriterion
+        super().__init__(kalman.dynamod, kalman.measmod, kalman.initrv)
+
+    def filter_step(self, start, stop, randvar, data, linearise_at=None, **kwargs):
+        if linearise_at is None:
+            out = self.kalman.filter_step(randvar, data, start, stop, **kwargs)
+        else:
+            data = np.asarray(data)
+            predrv, _ = self.predict(start, stop, randvar, linearise_at=linearise_at)
+            filtrv, _, _, _ = self.update(stop, predrv, data, linearise_at=linearise_at)
+
+        # repeat until happy
+        if self.iterate_filter_step and not self.stop_filter_updates(out):
+            return self.filter_step(linearise_at=out)
+
+
+    def iterated_filtsmooth(self):
+        out = self.filtsmooth()
+        while not self.stoppingcriterion.stop_filtsmooth_updates():
+            out = self.filtsmooth(out)
