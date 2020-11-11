@@ -62,12 +62,15 @@ class DiscreteEKFComponent(statespace.Transition):
     def __init__(self, disc_model):
         self.disc_model = disc_model
 
-    def transition_realization(self, real, start, linearise_at=None,  **kwargs):
+    def transition_realization(self, real, start,  linearise_at=None, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
-    def transition_rv(self, rv, start,  linearise_at=None, **kwargs):
+    def transition_rv(self, rv, start, linearise_at=None, **kwargs):
         diffmat = self.disc_model.diffusionmatrix(start)
-        jacob = self.disc_model.jacobian(start, rv.mean)
+        if linearise_at is None:
+            jacob = self.disc_model.jacobian(start, rv.mean)
+        else:
+            jacob = self.disc_model.jacobian(start, linearise_at.mean)
         mpred = self.disc_model.dynamics(start, rv.mean)
         crosscov = rv.cov @ jacob.T
         cpred = jacob @ crosscov + diffmat
