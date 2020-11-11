@@ -78,7 +78,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         Rescale covariances with sigma square estimate,
         (if specified) smooth the estimate, return ODESolution.
         """
-        if false:  # will become useful again for time-fixed diffusion models
+        if False:  # will become useful again for time-fixed diffusion models
             rvs = self._rescale(rvs)
         odesol = super().postprocess(times, rvs)
         if self.with_smoothing is True:
