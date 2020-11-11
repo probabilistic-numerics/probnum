@@ -40,7 +40,8 @@ class FixedPointStopping(StoppingCriterion):
     ):
         self.atol = atol
         self.rtol = rtol
-        self.previous_rv = None
+        self.previous_pred_rv = None
+        self.previous_upd_rv = None
         self.previous_posterior = None
         super().__init__(
             max_num_predicts_per_step=max_num_predicts_per_step,
@@ -54,30 +55,30 @@ class FixedPointStopping(StoppingCriterion):
         if self.num_predict_iterations >= self.max_num_predicts_per_step:
             raise RuntimeError("Maximum number of filter update iterations reached.")
         self.num_predict_iterations += 1
-        if self.previous_rv is None:
-            self.previous_rv = pred_rv
+        if self.previous_pred_rv is None:
+            self.previous_pred_rv = pred_rv
             return True
 
         # Compute relative thresholds
         mean_threshold = self.atol + self.rtol * np.maximum(
-            np.abs(self.previous_rv.mean), np.abs(pred_rv.mean)
+            np.abs(self.previous_pred_rv.mean), np.abs(pred_rv.mean)
         )
         cov_threshold = self.atol + self.rtol * np.maximum(
-            np.abs(self.previous_rv.cov), np.abs(pred_rv.cov)
+            np.abs(self.previous_pred_rv.cov), np.abs(pred_rv.cov)
         )
 
         # Accept if discrepancy sufficiently small
         mean_acceptable = np.all(
-            np.abs(pred_rv.mean - self.previous_rv.mean) < mean_threshold
+            np.abs(pred_rv.mean - self.previous_pred_rv.mean) < mean_threshold
         )
         cov_acceptable = np.all(
-            np.abs(pred_rv.cov - self.previous_rv.cov) < cov_threshold
+            np.abs(pred_rv.cov - self.previous_pred_rv.cov) < cov_threshold
         )
         continue_iteration = np.invert(
             np.all(np.logical_and(mean_acceptable, cov_acceptable))
         )
         if continue_iteration:
-            self.previous_rv = pred_rv
+            self.previous_pred_rv = pred_rv
         return continue_iteration
 
     def continue_update_iteration(self, upd_rv=None, meas_rv=None, info_upd=None):
@@ -86,30 +87,30 @@ class FixedPointStopping(StoppingCriterion):
         if self.num_update_iterations >= self.max_num_updates_per_step:
             raise RuntimeError("Maximum number of filter update iterations reached.")
         self.num_update_iterations += 1
-        if self.previous_rv is None:
-            self.previous_rv = upd_rv
+        if self.previous_upd_rv is None:
+            self.previous_upd_rv = upd_rv
             return True
 
         # Compute relative thresholds
         mean_threshold = self.atol + self.rtol * np.maximum(
-            np.abs(self.previous_rv.mean), np.abs(upd_rv.mean)
+            np.abs(self.previous_upd_rv.mean), np.abs(upd_rv.mean)
         )
         cov_threshold = self.atol + self.rtol * np.maximum(
-            np.abs(self.previous_rv.cov), np.abs(upd_rv.cov)
+            np.abs(self.previous_upd_rv.cov), np.abs(upd_rv.cov)
         )
 
         # Accept if discrepancy sufficiently small
         mean_acceptable = np.all(
-            np.abs(upd_rv.mean - self.previous_rv.mean) < mean_threshold
+            np.abs(upd_rv.mean - self.previous_upd_rv.mean) < mean_threshold
         )
         cov_acceptable = np.all(
-            np.abs(upd_rv.cov - self.previous_rv.cov) < cov_threshold
+            np.abs(upd_rv.cov - self.previous_upd_rv.cov) < cov_threshold
         )
         continue_iteration = np.invert(
             np.all(np.logical_and(mean_acceptable, cov_acceptable))
         )
         if continue_iteration:
-            self.previous_rv = upd_rv
+            self.previous_upd_rv = upd_rv
         return continue_iteration
 
     def continue_filtsmooth_iteration(self, kalman_posterior=None):
