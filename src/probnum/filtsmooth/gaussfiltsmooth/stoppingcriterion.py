@@ -124,14 +124,9 @@ class FixedPointStopping(StoppingCriterion):
         if self.num_filtsmooth_iterations >= self.max_num_filtsmooth_iterations:
             raise RuntimeError("Maximum number of filter update iterations reached.")
         self.num_filtsmooth_iterations += 1
-        if self.previous_rv is None:
+        if self.previous_posterior is None:
             self.previous_posterior = kalman_posterior
             return True
-
-        #######################################################################################
-        # below is experimental...
-        # I think it works, but it is not tested...
-        #######################################################################################
 
         # Compute relative thresholds
         mean_threshold = self.atol + self.rtol * np.maximum(

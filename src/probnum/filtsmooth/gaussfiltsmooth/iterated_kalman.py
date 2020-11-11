@@ -96,6 +96,7 @@ class IteratedKalman(Kalman):
         return posterior
 
     def predict(self, start, stop, randvar, linearise_at=None, **kwargs):
+        """(Possibly iterated) prediction step."""
         pred_rv, info_pred = self.dynamod.transition_rv(
             randvar, start, stop=stop, linearise_at=linearise_at, **kwargs
         )
@@ -106,29 +107,7 @@ class IteratedKalman(Kalman):
         return pred_rv, info_pred
 
     def update(self, time, randvar, data, linearise_at=None, **kwargs):
-        """
-        Gaussian filter update step. Consists of a measurement step and a conditioning step.
-
-        Parameters
-        ----------
-        time
-            Time of the update.
-        randvar
-            Random variable to be updated. Result of :meth:`predict()`.
-        data
-            Data to update on.
-
-        Returns
-        -------
-        filt_rv : Normal
-            Updated Normal RV (new filter estimate).
-        meas_rv : Normal
-            Measured random variable, as returned by the measurement model.
-        info : dict
-            Additional info. Contains at least the key `crosscov`,
-            which is the crosscov between input RV and measured RV.
-            The crosscov does not relate to the updated RV!
-        """
+        """(Possibly iterated) update step."""
         upd_rv, meas_rv, info_upd = self._single_update(
             time, randvar, data, linearise_at=linearise_at, **kwargs
         )
@@ -141,6 +120,7 @@ class IteratedKalman(Kalman):
         return upd_rv, meas_rv, info_upd
 
     def _single_update(self, time, randvar, data, linearise_at=None, **kwargs):
+        # like kalman.update but with an explicit linearise_at argument
         meas_rv, info = self.measmod.transition_rv(
             randvar, time, linearise_at=linearise_at, **kwargs
         )
