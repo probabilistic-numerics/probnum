@@ -69,13 +69,14 @@ class Kalman(BayesFiltSmooth):
             filtrv, _ = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
-                randvar=filtrv,
+                current_rv=filtrv,
                 data=dataset[idx - 1],
+                **kwargs
             )
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
-    def filter_step(self, start, stop, randvar, data, **kwargs):
+    def filter_step(self, start, stop, current_rv, data, **kwargs):
         """
         A single filter step.
 
@@ -100,7 +101,7 @@ class Kalman(BayesFiltSmooth):
         """
         data = np.asarray(data)
         info = {}
-        info["pred_rv"], info["info_pred"] = self.predict(start, stop, randvar)
+        info["pred_rv"], info["info_pred"] = self.predict(start, stop, current_rv)
         filtrv, info["meas_rv"], info["info_upd"] = self.update(
             stop, info["pred_rv"], data
         )
@@ -246,6 +247,7 @@ class IteratedKalman(Kalman):
         super().__init__(kalman.dynamod, kalman.measmod, kalman.initrv)
 
     def filter_step(self, start, stop, current_rv, data, linearise_at=None, **kwargs):
+        """Linearise at: KalmanPosterior object."""
         if linearise_at is None:
             filt_rv, info = self.kalman.filter_step(
                 start, stop, current_rv, data, **kwargs
@@ -257,10 +259,10 @@ class IteratedKalman(Kalman):
         else:
             data = np.asarray(data)
             pred_rv, info_pred = self.predict(
-                start, stop, current_rv, linearise_at=linearise_at
+                start, stop, current_rv, linearise_at=linearise_at(start)
             )
             filt_rv, meas_rv, info_upd = self.update(
-                stop, pred_rv, data, linearise_at=linearise_at
+                stop, pred_rv, data, linearise_at=linearise_at(stop)
             )
 
         # repeat until happy
@@ -269,8 +271,10 @@ class IteratedKalman(Kalman):
         ):
             return self.filter_step(start, stop, filt_rv, data, linearise_at=filt_rv)
 
-    #
-    # def iterated_filtsmooth(self):
-    #     out = self.filtsmooth()
-    #     while not self.stoppingcriterion.stop_filtsmooth_updates():
-    #         out = self.filtsmooth(out)
+    def iterated_filtsmooth(self, dataset, times, **kwargs):
+        """Repeated filtering and smoothing using posterior linearisation."""
+        posterior = self.filtsmooth(dataset, times, **kwargs)
+        while not self.stoppingcriterion.continue_filtsmooth_updates(posterior):
+            posterior = self.filter(dataset, times, linearise_at=posterior)
+            posterior = self.smooth(posterior)
+        return posterior
