@@ -1,11 +1,5 @@
 """
-Quadrature, i.e. numerical integration.
-
-This module collects both classic and Bayesian quadrature rules used for numerical
-integration of functions.
-
-Bayesian quadrature methods integrate a function by iteratively building a probabilistic
-model and using its predictions to adaptively choose points to evaluate the integrand.
+Bayesian Quadrature.
 """
 
 from ._bayesquad import *

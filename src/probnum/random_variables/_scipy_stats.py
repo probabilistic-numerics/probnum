@@ -19,6 +19,15 @@ class _SciPyRandomVariableMixin:
 class WrappedSciPyRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.RandomVariable[_ValueType]
 ):
+    """
+    Wrapper for SciPy random variable objects.
+
+    Parameters
+    ----------
+    scipy_rv
+        SciPy random variable.
+    """
+
     def __init__(
         self,
         scipy_rv: Union[
@@ -34,6 +43,15 @@ class WrappedSciPyRandomVariable(
 class WrappedSciPyDiscreteRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.DiscreteRandomVariable[_ValueType]
 ):
+    """
+    Wrapper for discrete SciPy random variable objects.
+
+    Parameters
+    ----------
+    scipy_rv
+        Discrete SciPy random variable.
+    """
+
     def __init__(
         self,
         scipy_rv: Union[
@@ -65,6 +83,15 @@ class WrappedSciPyDiscreteRandomVariable(
 class WrappedSciPyContinuousRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.ContinuousRandomVariable[_ValueType]
 ):
+    """
+    Wrapper for continuous SciPy random variable objects.
+
+    Parameters
+    ----------
+    scipy_rv
+        Continuous SciPy random variable.
+    """
+
     def __init__(
         self,
         scipy_rv: Union[
@@ -100,23 +127,17 @@ def wrap_scipy_rv(
     ]
 ) -> _random_variable.RandomVariable:
     """
-    Transform SciPy distributions to Probnum :class:`RandomVariable`s.
+    Transform SciPy distributions to ProbNum :class:`RandomVariable`s.
 
     Parameters
     ----------
-    scipyrv :
-        SciPy distribution.
-
-    Returns
-    -------
-    dist : RandomVariable
-        ProbNum random variable.
-
+    scipy_rv :
+        SciPy random variable.
     """
 
     # pylint: disable=too-many-return-statements
 
-    # Random variables with concrete implementations in probnum
+    # Random variables with concrete implementations in ProbNum
     if isinstance(scipy_rv, scipy.stats._distn_infrastructure.rv_frozen):
         # Univariate distributions
         if scipy_rv.dist.name == "norm":
@@ -170,6 +191,14 @@ def _rv_init_kwargs_from_scipy_rv(
         scipy.stats._multivariate.multi_rv_frozen,
     ],
 ) -> Dict[str, Any]:
+    """
+    Create dictionary of random variable properties from a Scipy random variable.
+
+    Parameters
+    ----------
+    scipy_rv
+        SciPy random variable.
+    """
     # Infer shape and dtype
     sample = _return_numpy(scipy_rv.rvs)()
 

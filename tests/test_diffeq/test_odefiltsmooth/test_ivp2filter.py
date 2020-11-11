@@ -19,7 +19,7 @@ from tests.testing import NumpyAssertions
 class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         """We need a Prior object and an IVP object (with derivatives) to run the tests."""
-        y0 = pnrv.Dirac(np.array([20.0, 15.0]))
+        y0 = pnrv.Constant(np.array([20.0, 15.0]))
         self.ivp = pnd.lotkavolterra([0.4124, 1.15124], y0)
         self.prior = pnd.IBM(ordint=2, spatialdim=2, diffconst=1.7685)
         self.evlvar = 0.0005123121

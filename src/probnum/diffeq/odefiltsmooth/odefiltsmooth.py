@@ -183,7 +183,7 @@ def probsolve_ivp(
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
     >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Dirac(0.15)
+    >>> initrv = rvs.Constant(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> print(solution.y.mean)
@@ -204,7 +204,7 @@ def probsolve_ivp(
      [0.97577054]
      [0.9831919 ]]
 
-    >>> initrv = rvs.Dirac(0.15)
+    >>> initrv = rvs.Constant(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
     >>> print(solution.y.mean)

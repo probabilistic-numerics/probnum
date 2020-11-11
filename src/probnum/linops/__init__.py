@@ -1,9 +1,5 @@
 """
-(Finite-dimensional) Linear Operators.
-
-This package implements a variety of finite dimensional linear operators. These have the
-advantage of only implementing a matrix-vector product instead of representing the full
-linear operator as a matrix in memory.
+Finite-dimensional Linear Operators.
 """
 
 from ._kronecker import Kronecker, Svec, SymmetricKronecker, Symmetrize, Vec
