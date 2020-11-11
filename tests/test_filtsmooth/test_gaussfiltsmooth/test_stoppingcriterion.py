@@ -9,7 +9,6 @@ class TestDefaultStoppingCriterion(unittest.TestCase):
     """
 
     def setUp(self):
-        """"""
         self.stopcrit = pnfs.StoppingCriterion()
 
     def test_continue_filter_updates(self):
@@ -18,6 +17,14 @@ class TestDefaultStoppingCriterion(unittest.TestCase):
     def test_continue_filtsmooth_updates(self):
         with self.assertRaises(NotImplementedError):
             self.assertTrue(self.stopcrit.continue_filtsmooth_updates())
+
+
+class TestFixedPointIteration(unittest.TestCase):
+    def setUp(self):
+        self.stopcrit = pnfs.FixedPointStopping(atol=1e-4, rtol=1e-4)
+
+    def test_continue_filter_updates(self):
+        raise RuntimeError("Continue please.")
 
 
 if __name__ == "__main__":

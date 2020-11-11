@@ -1,6 +1,6 @@
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth import Kalman, IteratedKalman, StoppingCriterion
+from probnum.filtsmooth.gaussfiltsmooth import IteratedKalman, Kalman, StoppingCriterion
 
 from .filtsmooth_testcases import CarTrackingDDTestCase, OrnsteinUhlenbeckCDTestCase
 

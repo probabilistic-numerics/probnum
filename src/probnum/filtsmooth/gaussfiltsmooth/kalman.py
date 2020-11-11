@@ -7,8 +7,8 @@ import numpy as np
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
-from probnum.random_variables import Normal
 from probnum.filtsmooth.gaussfiltsmooth.stoppingcriterion import StoppingCriterion
+from probnum.random_variables import Normal
 
 
 class Kalman(BayesFiltSmooth):
@@ -101,7 +101,9 @@ class Kalman(BayesFiltSmooth):
         data = np.asarray(data)
         info = {}
         info["pred_rv"], info["info_pred"] = self.predict(start, stop, randvar)
-        filtrv, info["meas_rv"], info["info_upd"] = self.update(stop, info["pred_rv"], data)
+        filtrv, info["meas_rv"], info["info_upd"] = self.update(
+            stop, info["pred_rv"], data
+        )
         return filtrv, info
 
     def predict(self, start, stop, randvar, **kwargs):
@@ -262,7 +264,9 @@ class IteratedKalman(Kalman):
             )
 
         # repeat until happy
-        if self.stoppingcriterion.continue_filter_updates(pred_rv, info_pred, filt_rv, meas_rv, info_upd):
+        if self.stoppingcriterion.continue_filter_updates(
+            pred_rv, info_pred, filt_rv, meas_rv, info_upd
+        ):
             return self.filter_step(start, stop, filt_rv, data, linearise_at=filt_rv)
 
     #
