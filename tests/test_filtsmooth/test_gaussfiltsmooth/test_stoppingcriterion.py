@@ -45,7 +45,9 @@ class TestFixedPointIteration(unittest.TestCase):
         worsening = 0.1
         value = 0.0
         with self.assertRaises(RuntimeError):
-            while self.stopcrit.continue_predict_iteration(pred_rv=pnrv.Constant(value)):
+            while self.stopcrit.continue_predict_iteration(
+                pred_rv=pnrv.Constant(value)
+            ):
                 value += worsening
 
     def test_continue_update_iteration(self):

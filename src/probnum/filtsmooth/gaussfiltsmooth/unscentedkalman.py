@@ -27,7 +27,7 @@ class ContinuousUKFComponent(statespace.Transition):
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
         raise NotImplementedError("TODO")  # Issue  #234
 
-    def transition_rv(self, rv, start, stop, linearise_at=None,  **kwargs):
+    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
         raise NotImplementedError("TODO")  # Issue  #234
 
     @property

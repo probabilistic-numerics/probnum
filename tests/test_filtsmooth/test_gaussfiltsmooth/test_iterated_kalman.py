@@ -3,7 +3,12 @@ import unittest
 import numpy as np
 
 import probnum.random_variables as pnrv
-from probnum.filtsmooth.gaussfiltsmooth import IteratedKalman, Kalman, StoppingCriterion, KalmanPosterior
+from probnum.filtsmooth.gaussfiltsmooth import (
+    IteratedKalman,
+    Kalman,
+    KalmanPosterior,
+    StoppingCriterion,
+)
 
 from .filtsmooth_testcases import OrnsteinUhlenbeckCDTestCase
 

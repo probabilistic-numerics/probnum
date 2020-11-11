@@ -1,8 +1,9 @@
 """Iterated Gaussian filtering and smoothing."""
 import numpy as np
+
 from .kalman import Kalman
-from .stoppingcriterion import StoppingCriterion
 from .kalmanposterior import KalmanPosterior
+from .stoppingcriterion import StoppingCriterion
 
 
 class IteratedKalman(Kalman):

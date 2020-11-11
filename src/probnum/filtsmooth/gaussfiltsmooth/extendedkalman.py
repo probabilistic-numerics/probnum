@@ -23,7 +23,9 @@ class ContinuousEKFComponent(statespace.Transition):
         if linearise_at is None:
             jacobfun = functools.partial(self.non_linear_sde.jacobian, state=real)
         else:
-            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=linearise_at.mean)
+            jacobfun = functools.partial(
+                self.non_linear_sde.jacobian, state=linearise_at.mean
+            )
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
@@ -35,7 +37,7 @@ class ContinuousEKFComponent(statespace.Transition):
             dispmatfun=self.non_linear_sde.dispersionmatrix,
         )
 
-    def transition_rv(self, rv, start, stop, linearise_at=None,  **kwargs):
+    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
         if linearise_at is None:
             jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
         else:

@@ -106,4 +106,3 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
             plt.show()
         self.assertLess(smoormse, filtrmse)
         self.assertLess(filtrmse, obs_rmse)
-
