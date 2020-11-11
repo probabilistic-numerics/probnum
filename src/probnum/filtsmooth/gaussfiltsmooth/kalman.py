@@ -8,7 +8,8 @@ from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
-from . import stoppingcriterion
+from probnum.filtsmooth.gaussfiltsmooth.stoppingcriterion import StoppingCriterion
+
 
 class Kalman(BayesFiltSmooth):
     """
@@ -65,7 +66,7 @@ class Kalman(BayesFiltSmooth):
         filtrv = self.initialrandomvariable
         rvs = [filtrv]
         for idx in range(1, len(times)):
-            filtrv = self.filter_step(
+            filtrv, _ = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 randvar=filtrv,
@@ -98,9 +99,10 @@ class Kalman(BayesFiltSmooth):
             Resulting filter estimate after the single step.
         """
         data = np.asarray(data)
-        predrv, _ = self.predict(start, stop, randvar)
-        filtrv, _, _ = self.update(stop, predrv, data)
-        return filtrv
+        info = {}
+        predrv, info["info_pred"] = self.predict(start, stop, randvar)
+        filtrv, info["meas_rv"], info["info_upd"] = self.update(stop, predrv, data)
+        return filtrv, info
 
     def predict(self, start, stop, randvar, **kwargs):
         return self.dynamod.transition_rv(randvar, start, stop=stop, **kwargs)
@@ -225,8 +227,6 @@ class Kalman(BayesFiltSmooth):
         return Normal(new_mean, new_cov)
 
 
-
-
 class IteratedKalman(Kalman):
     """Iterated filter/smoother based on posterior linearisation.
 
@@ -234,28 +234,39 @@ class IteratedKalman(Kalman):
     In principle, this is the same as a Kalman filter; however, there is also
     iterated_filtsmooth(), which computes things like MAP estimates.
     """
+
     def __init__(self, kalman, stoppingcriterion=None):
         self.kalman = kalman
         if stoppingcriterion is None:
-            self.stoppingcriterion = stoppingcriterion.StoppingCriterion()
+            self.stoppingcriterion = StoppingCriterion()
         else:
             self.stoppingcriterion = stoppingcriterion
         super().__init__(kalman.dynamod, kalman.measmod, kalman.initrv)
 
-    def filter_step(self, start, stop, randvar, data, linearise_at=None, **kwargs):
+    def filter_step(self, start, stop, current_rv, data, linearise_at=None, **kwargs):
         if linearise_at is None:
-            out = self.kalman.filter_step(randvar, data, start, stop, **kwargs)
+            filt_rv, info = self.kalman.filter_step(
+                current_rv, data, start, stop, **kwargs
+            )
+            pred_rv = info["pred_rv"]
+            meas_rv = info["meas_rv"]
+            info_pred = info["info_pred"]
+            info_upd = info["info_upd"]
         else:
             data = np.asarray(data)
-            predrv, _ = self.predict(start, stop, randvar, linearise_at=linearise_at)
-            filtrv, _, _, _ = self.update(stop, predrv, data, linearise_at=linearise_at)
+            pred_rv, info_pred = self.predict(
+                start, stop, current_rv, linearise_at=linearise_at
+            )
+            filt_rv, meas_rv, info_upd = self.update(
+                stop, pred_rv, data, linearise_at=linearise_at
+            )
 
         # repeat until happy
-        if self.iterate_filter_step and not self.stop_filter_updates(out):
-            return self.filter_step(linearise_at=out)
+        if self.continue_filter_updates(pred_rv, info_pred, filt_rv, meas_rv, info_upd):
+            return self.filter_step(start, stop, filt_rv, data, linearise_at=filt_rv)
 
-
-    def iterated_filtsmooth(self):
-        out = self.filtsmooth()
-        while not self.stoppingcriterion.stop_filtsmooth_updates():
-            out = self.filtsmooth(out)
+    #
+    # def iterated_filtsmooth(self):
+    #     out = self.filtsmooth()
+    #     while not self.stoppingcriterion.stop_filtsmooth_updates():
+    #         out = self.filtsmooth(out)

@@ -12,12 +12,12 @@ class TestDefaultStoppingCriterion(unittest.TestCase):
         """"""
         self.stopcrit = pnfs.StoppingCriterion()
 
-    def test_stop_filter_updates(self):
-        self.assertTrue(self.stopcrit.stop_filter_updates())
+    def test_continue_filter_updates(self):
+        self.assertFalse(self.stopcrit.continue_filter_updates())
 
-    def test_stop_filtsmooth_updates(self):
+    def test_continue_filtsmooth_updates(self):
         with self.assertRaises(NotImplementedError):
-            self.assertTrue(self.stopcrit.stop_filtsmooth_updates())
+            self.assertTrue(self.stopcrit.continue_filtsmooth_updates())
 
 
 if __name__ == "__main__":
