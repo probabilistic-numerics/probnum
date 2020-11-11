@@ -105,17 +105,67 @@ class Kalman(BayesFiltSmooth):
     def predict(self, start, stop, randvar, **kwargs):
         return self.dynamod.transition_rv(randvar, start, stop=stop, **kwargs)
 
+    def measure(self, time, randvar, **kwargs):
+        """Propagate the state through the measurement model
+
+        Parameters
+        ----------
+        time : float
+            Time of the measurement.
+        randvar : Normal
+            Random variable to be propagated through the measurement model.
+
+        Returns
+        -------
+        meas_rv : Normal
+            Measured random variable, as returned by the measurement model.
+        info : dict
+            Additional info. Contains at leas the key `crosscov` which is the cross
+            covariance between the input random variable and the measured random
+            variable.
+        """
+        return self.measmod.transition_rv(randvar, time, **kwargs)
+
+    def condition_state_on_measurement(
+        self, randvar, meas_rv, data, crosscov, **kwargs
+    ):
+        """Condition the state on the observed data
+
+        Parameters
+        ----------
+        randvar : Normal
+            Random variable to be updated with the measurement and data.
+        meas_rv : Normal
+            Measured random variable, as returned by the measurement model.
+        data : np.ndarray
+            Data to update on.
+        crosscov : np.ndarray
+            Cross-covariance between the state random variable `randvar` and the
+            measurement random variable `meas_rv`.
+
+        Returns
+        -------
+        Normal
+            Updated Normal random variable (new filter estimate)
+        """
+        new_mean = randvar.mean + crosscov @ np.linalg.solve(
+            meas_rv.cov, data - meas_rv.mean
+        )
+        new_cov = randvar.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
+        filt_rv = Normal(new_mean, new_cov)
+        return filt_rv
+
     def update(self, time, randvar, data, **kwargs):
         """
         Gaussian filter update step. Consists of a measurement step and a conditioning step.
 
         Parameters
         ----------
-        time
+        time : float
             Time of the update.
-        randvar
+        randvar : RandomVariable
             Random variable to be updated. Result of :meth:`predict()`.
-        data
+        data : np.ndarray
             Data to update on.
 
         Returns
@@ -129,13 +179,10 @@ class Kalman(BayesFiltSmooth):
             which is the crosscov between input RV and measured RV.
             The crosscov does not relate to the updated RV!
         """
-        meas_rv, info = self.measmod.transition_rv(randvar, time, **kwargs)
-        crosscov = info["crosscov"]
-        new_mean = randvar.mean + crosscov @ np.linalg.solve(
-            meas_rv.cov, data - meas_rv.mean
+        meas_rv, info = self.measure(time, randvar, **kwargs)
+        filt_rv = self.condition_state_on_measurement(
+            randvar, meas_rv, data, info["crosscov"], **kwargs
         )
-        new_cov = randvar.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
-        filt_rv = Normal(new_mean, new_cov)
         return filt_rv, meas_rv, info
 
     def smooth(self, filter_posterior, **kwargs):
