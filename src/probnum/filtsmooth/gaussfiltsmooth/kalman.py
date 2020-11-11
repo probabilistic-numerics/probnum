@@ -106,13 +106,33 @@ class Kalman(BayesFiltSmooth):
         return self.dynamod.transition_rv(randvar, start, stop=stop, **kwargs)
 
     def update(self, time, randvar, data, **kwargs):
+        """
+
+        Parameters
+        ----------
+        time
+        randvar
+        data
+        kwargs
+
+        Returns
+        -------
+        Normal
+            Updated Normal RV (new filter estimate).
+        Normal
+            Measured random variable, as returned by the measurement model.
+        dict
+            Additional info. Contains at least the key `crosscov`,
+            which is the crosscov between input RV and measured RV.
+            The crosscov does not relate to the updated RV!
+        """
         meas_rv, info = self.measmod.transition_rv(randvar, time, **kwargs)
         crosscov = info["crosscov"]
         new_mean = randvar.mean + crosscov @ np.linalg.solve(
             meas_rv.cov, data - meas_rv.mean
         )
         new_cov = randvar.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
-        return Normal(new_mean, new_cov), meas_rv.cov, crosscov, meas_rv.mean
+        return Normal(new_mean, new_cov), meas_rv, info
 
     def smooth(self, filter_posterior, **kwargs):
         """
