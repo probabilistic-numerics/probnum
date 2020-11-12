@@ -65,16 +65,17 @@ class Kalman(BayesFiltSmooth):
         filtrv = self.initialrandomvariable
         rvs = [filtrv]
         for idx in range(1, len(times)):
-            filtrv = self.filter_step(
+            filtrv, _ = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
-                randvar=filtrv,
+                current_rv=filtrv,
                 data=dataset[idx - 1],
+                **kwargs
             )
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
-    def filter_step(self, start, stop, randvar, data, **kwargs):
+    def filter_step(self, start, stop, current_rv, data, **kwargs):
         """
         A single filter step.
 
@@ -86,7 +87,7 @@ class Kalman(BayesFiltSmooth):
             Predict FROM this time point.
         stop : float
             Predict TO this time point.
-        randvar : RandomVariable
+        current_rv : RandomVariable
             Predict based on this random variable. For instance, this can be the result
             of a previous call to filter_step.
         data : array_like
@@ -96,11 +97,19 @@ class Kalman(BayesFiltSmooth):
         -------
         RandomVariable
             Resulting filter estimate after the single step.
+        dict
+            Additional information provided by predict() and update().
+            Contains keys `pred_rv`, `info_pred`, `meas_rv`, `info_upd`.
         """
         data = np.asarray(data)
-        predrv, _ = self.predict(start, stop, randvar)
-        filtrv, _, _ = self.update(stop, predrv, data)
-        return filtrv
+        info = {}
+        info["pred_rv"], info["info_pred"] = self.predict(
+            start, stop, current_rv, **kwargs
+        )
+        filtrv, info["meas_rv"], info["info_upd"] = self.update(
+            stop, info["pred_rv"], data, **kwargs
+        )
+        return filtrv, info
 
     def predict(self, start, stop, randvar, **kwargs):
         return self.dynamod.transition_rv(randvar, start, stop=stop, **kwargs)
