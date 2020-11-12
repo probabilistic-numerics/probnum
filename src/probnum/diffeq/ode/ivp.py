@@ -38,7 +38,7 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
         RandomVariable that describes the belief over the initial
         value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate 'classical' initial values
-        use the Constant distribution.
+        use a Constant random variable.
     params : (float, float), optional
         Parameters :math:`(a, b)` for the logistic IVP.
         Default is :math:`(a, b) = (3.0, 1.0)`.
@@ -138,14 +138,14 @@ def fhn_rhs(t, y, params):
     """RHS for FitzHugh-Nagumo model."""
     y1, y2 = y
     a, b, c, d = params
-    return np.array([y1 - y1 ** 3 / 3 - y2 + a, (y1 + b - c * y2) / d])
+    return np.array([y1 - y1 ** 3.0 / 3.0 - y2 + a, (y1 + b - c * y2) / d])
 
 
 def fhn_jac(t, y, params):
     """Jacobian for FitzHugh-Nagumo model."""
     y1, y2 = y
     a, b, c, d = params
-    return np.array([[1 - y1 ** 2, -1], [1.0 / d, -c / d]])
+    return np.array([[1.0 - y1 ** 2.0, -1.0], [1.0 / d, -c / d]])
 
 
 def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
@@ -169,8 +169,8 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
         value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy). To replicate 'classical' initial values
-        use the Constant distribution.
+        or Normal (noisy). To replicate "classical" initial values
+        use a Constant random variable.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.5, 0.05, 0.5, 0.05)`.
@@ -222,8 +222,8 @@ class IVP(ODE):
     fit into the probabilistic framework as well. That is,
     the initial value is a RandomVariable object with some
     distribution that reflects the prior belief over the initial
-    value. To recover "classical" initial values one can use the Constant
-    distribution.
+    value. To recover "classical" initial values one can use a
+    Constant random variable.
 
     Parameters
     ----------
@@ -231,9 +231,9 @@ class IVP(ODE):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution isConstant (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use theConstant distribution.
+        use a :class:`~probnum.random_variables.Constant` random variable.
         Implementation depends on the mean of this RandomVariable,
         so please only use RandomVariable objects with available
         means, e.g. Constants or Normals.

@@ -156,17 +156,9 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = random_vars[idx - 1]
-            pred_rv, info = self.gauss_filter.predict(
-                start=locations[idx - 1],
-                stop=locations[idx],
-                randvar=unsmoothed_rv,
-            )
-            if "crosscov" not in info.keys():
-                raise TypeError("Cross-covariance required for smoothing.")
             curr_rv = self.gauss_filter.smooth_step(
-                unsmoothed_rv, pred_rv, curr_rv, info["crosscov"]
+                unsmoothed_rv, curr_rv, start=locations[idx - 1], stop=locations[idx]
             )
-
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)
             curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))

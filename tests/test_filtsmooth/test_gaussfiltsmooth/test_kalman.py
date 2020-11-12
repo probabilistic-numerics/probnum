@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.linalg
 
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
 
@@ -14,38 +13,16 @@ if VISUALISE is True:
 
 class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
     """
-    Try Kalman filtering and smoothing on a discrete setting.
+    Kalman filtering and smoothing on a discrete setting,
+    i.e. the car tracking problem.
+
+    By comparing filtering and smoothing RMSEs on the test problem,
+    all methods in Kalman() are called.
     """
 
     def setUp(self):
         super().setup_cartracking()
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)
-
-    def test_dynamicmodel(self):
-        self.assertEqual(self.dynmod, self.method.dynamicmodel)
-
-    def test_measurementmodel(self):
-        self.assertEqual(self.measmod, self.method.measurementmodel)
-
-    def test_initialdistribution(self):
-        self.assertEqual(self.initrv, self.method.initialrandomvariable)
-
-    def test_predict(self):
-        pred, _ = self.method.predict(0.0, self.delta_t, self.initrv)
-        self.assertEqual(pred.mean.ndim, 1)
-        self.assertEqual(pred.mean.shape[0], 4)
-        self.assertEqual(pred.cov.ndim, 2)
-        self.assertEqual(pred.cov.shape[0], 4)
-        self.assertEqual(pred.cov.shape[1], 4)
-
-    def test_update(self):
-        data = self.measmod.transition_realization(self.initrv.mean, 0.0)[0].sample()
-        upd, __, __, __ = self.method.update(0.0, self.initrv, data)
-        self.assertEqual(upd.mean.ndim, 1)
-        self.assertEqual(upd.mean.shape[0], 4)
-        self.assertEqual(upd.cov.ndim, 2)
-        self.assertEqual(upd.cov.shape[0], 4)
-        self.assertEqual(upd.cov.shape[1], 4)
 
     def test_filtsmooth(self):
         """
@@ -97,44 +74,10 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         super().setup_ornsteinuhlenbeck()
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)
 
-    def test_dynamicmodel(self):
-        self.assertEqual(self.dynmod, self.method.dynamicmodel)
-
-    def test_measurementmodel(self):
-        self.assertEqual(self.measmod, self.method.measurementmodel)
-
-    def test_initialdistribution(self):
-        self.assertEqual(self.initrv, self.method.initialrandomvariable)
-
-    def test_predict_shape(self):
-        pred, _ = self.method.predict(0.0, self.delta_t, self.initrv)
-        self.assertEqual(pred.mean.shape, (1,))
-        self.assertEqual(pred.cov.shape, (1, 1))
-
-    def test_predict_value(self):
-        pred, _ = self.method.predict(0.0, self.delta_t, self.initrv)
-        ah = scipy.linalg.expm(self.delta_t * self.drift)
-        qh = (
-            self.q
-            / (2 * self.lam)
-            * (1 - scipy.linalg.expm(2 * self.drift * self.delta_t))
-        )
-        expectedmean = np.squeeze(ah @ (self.initrv.mean * np.ones(1)))
-        expectedcov = np.squeeze(ah @ (self.initrv.cov * np.eye(1)) @ ah.T + qh)
-        self.assertApproxEqual(expectedmean, pred.mean)
-        self.assertApproxEqual(expectedcov, pred.cov)
-
-    def test_update(self):
-        data = self.measmod.transition_realization(self.initrv.mean * np.ones(1), 0.0)[
-            0
-        ].sample()
-        upd, __, __, __ = self.method.update(0.0, self.initrv, data)
-        self.assertEqual(upd.mean.shape, (1,))
-        self.assertEqual(upd.cov.shape, (1, 1))
-
-    def test_smoother(self):
+    def test_filtsmooth(self):
         """
-        RMSE of filter smaller than rmse of measurements?
+        RMSE of smoother smaller than rmse of filter smaller
+        than of measurements?
         """
         filter_posterior = self.method.filter(self.obs, self.tms)
         filtms = filter_posterior.state_rvs.mean

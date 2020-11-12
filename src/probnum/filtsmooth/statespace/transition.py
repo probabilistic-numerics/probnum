@@ -7,7 +7,7 @@ import numpy as np
 
 from probnum.random_variables import RandomVariable
 
-__all__ = ["Transition"]
+__all__ = ["Transition", "generate"]
 
 
 class Transition(abc.ABC):
@@ -57,7 +57,7 @@ class Transition(abc.ABC):
 
     @abc.abstractmethod
     def transition_realization(
-        self, real: np.ndarray, start: float, stop: float, **kwargs
+        self, real: np.ndarray, start: float, stop: float = None, **kwargs
     ) -> ("RandomVariable", Dict):
         """
         Transition a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
@@ -99,7 +99,7 @@ class Transition(abc.ABC):
 
     @abc.abstractmethod
     def transition_rv(
-        self, rv: "RandomVariable", start: float, stop: float, **kwargs
+        self, rv: "RandomVariable", start: float, stop: float = None, **kwargs
     ) -> ("RandomVariable", Dict):
         """
         Transition a random variable from time :math:`t` to time :math:`t+\\Delta t`.
@@ -142,7 +142,58 @@ class Transition(abc.ABC):
         raise NotImplementedError
 
     @property
-    @abc.abstractmethod
     def dimension(self) -> int:
-        """Dimension of the transition model."""
+        """Dimension of the transition model.
+
+        Not all transition models have a unique dimension.
+        Some turn a state (x, y) into a scalar z and it
+        is not clear whether the dimension should be 2 or 1.
+        """
         raise NotImplementedError
+
+
+def generate(dynmod, measmod, initrv, times, num_steps=5):
+    """
+    Samples true states and observations at pre-determined
+    timesteps "times" for a state space model.
+
+    Parameters
+    ----------
+    dynmod : statespace.Transition
+        Transition model describing the prior dynamics.
+    measmod : statespace.Transition
+        Transition model describing the measurement model.
+    initrv : probnum.RandomVariable object
+        Random variable according to initial distribution
+    times : np.ndarray, shape (n,)
+        Timesteps on which the states are to be sampled.
+    num_steps : int
+        Number of steps to be taken for numerical integration
+        of the continuous prior model. Optional. Default is 5.
+        Irrelevant for LTI or discrete models.
+
+    Returns
+    -------
+    states : np.ndarray; shape (len(times), dynmod.dimension)
+        True states according to dynamic model.
+    obs : np.ndarray; shape (len(times)-1, measmod.dimension)
+        Observations according to measurement model.
+    """
+    states = np.zeros((len(times), _read_dimension(dynmod, initrv)))
+    obs = np.zeros((len(times) - 1, _read_dimension(measmod, initrv)))
+    states[0] = initrv.sample()
+    for idx in range(1, len(times)):
+        start, stop = times[idx - 1], times[idx]
+        step = (stop - start) / num_steps
+        next_state_rv, _ = dynmod.transition_realization(
+            real=states[idx - 1], start=start, stop=stop, step=step
+        )
+        states[idx] = next_state_rv.sample()
+        next_obs_rv, _ = measmod.transition_realization(real=states[idx], start=stop)
+        obs[idx - 1] = next_obs_rv.sample()
+    return states, obs
+
+
+def _read_dimension(transition, initrv):
+    """Extracts dimension of a transition without calling .dimension(), which is not implemented everywhere."""
+    return len(transition.transition_realization(initrv.mean, 0.0, 1.0)[0].sample())
