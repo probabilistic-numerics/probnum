@@ -24,10 +24,10 @@ class ContinuousUKFComponent(statespace.Transition):
         self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
         raise NotImplementedError("Implementation incomplete.")
 
-    def transition_realization(self, real, start, stop, **kwargs):
+    def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
         raise NotImplementedError("TODO")  # Issue  #234
 
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
         raise NotImplementedError("TODO")  # Issue  #234
 
     @property
@@ -47,14 +47,16 @@ class DiscreteUKFComponent(statespace.Transition):
     def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
-    def transition_rv(self, rv, start, **kwargs):
-        sigmapts = self.ut.sigma_points(rv.mean, rv.cov)
+    def transition_rv(self, rv, start, linearise_at=None, **kwargs):
+        if linearise_at is None:
+            sigmapts = self.ut.sigma_points(rv.mean, rv.cov)
+        else:
+            sigmapts = self.ut.sigma_points(linearise_at.mean, linearise_at.cov)
         proppts = self.ut.propagate(start, sigmapts, self.disc_model.dynamics)
         meascov = self.disc_model.diffusionmatrix(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, meascov, rv.mean
         )
-
         return Normal(mean, cov), {"crosscov": crosscov}
 
     @property

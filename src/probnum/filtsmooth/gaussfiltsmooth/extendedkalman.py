@@ -19,8 +19,11 @@ class ContinuousEKFComponent(statespace.Transition):
         self.non_linear_sde = non_linear_sde
         self.num_steps = num_steps
 
-    def transition_realization(self, real, start, stop, **kwargs):
-        jacobfun = functools.partial(self.non_linear_sde.jacobian, state=real)
+    def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
+        compute_jacobian_at = linearise_at.mean if linearise_at else real
+        jacobfun = functools.partial(
+            self.non_linear_sde.jacobian, state=compute_jacobian_at
+        )
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
@@ -32,8 +35,11 @@ class ContinuousEKFComponent(statespace.Transition):
             dispmatfun=self.non_linear_sde.dispersionmatrix,
         )
 
-    def transition_rv(self, rv, start, stop, **kwargs):
-        jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
+    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
+        compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
+        jacobfun = functools.partial(
+            self.non_linear_sde.jacobian, state=compute_jacobian_at
+        )
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=rv,
@@ -59,9 +65,12 @@ class DiscreteEKFComponent(statespace.Transition):
     def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
-    def transition_rv(self, rv, start, **kwargs):
+    def transition_rv(self, rv, start, linearise_at=None, **kwargs):
         diffmat = self.disc_model.diffusionmatrix(start)
-        jacob = self.disc_model.jacobian(start, rv.mean)
+        if linearise_at is None:
+            jacob = self.disc_model.jacobian(start, rv.mean)
+        else:
+            jacob = self.disc_model.jacobian(start, linearise_at.mean)
         mpred = self.disc_model.dynamics(start, rv.mean)
         crosscov = rv.cov @ jacob.T
         cpred = jacob @ crosscov + diffmat
