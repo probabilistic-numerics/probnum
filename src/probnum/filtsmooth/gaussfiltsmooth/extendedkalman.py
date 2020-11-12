@@ -20,12 +20,10 @@ class ContinuousEKFComponent(statespace.Transition):
         self.num_steps = num_steps
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
-        if linearise_at is None:
-            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=real)
-        else:
-            jacobfun = functools.partial(
-                self.non_linear_sde.jacobian, state=linearise_at.mean
-            )
+        compute_jacobian_at = linearise_at.mean if linearise_at else real
+        jacobfun = functools.partial(
+            self.non_linear_sde.jacobian, state=compute_jacobian_at
+        )
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
@@ -38,10 +36,10 @@ class ContinuousEKFComponent(statespace.Transition):
         )
 
     def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
-        if linearise_at is None:
-            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
-        else:
-            jacobfun = functools.partial(self.non_linear_sde.jacobian, state=rv.mean)
+        compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
+        jacobfun = functools.partial(
+            self.non_linear_sde.jacobian, state=compute_jacobian_at
+        )
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=rv,
