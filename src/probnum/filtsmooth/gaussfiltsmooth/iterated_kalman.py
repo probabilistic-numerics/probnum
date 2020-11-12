@@ -35,7 +35,7 @@ class IteratedKalman(Kalman):
         a single predict, or multiple iterated predicts for a single update, or multiple iterated predicts
         and updates in general.
         This retrieves methods such as the iterated extended Kalman filter.
-        By further specifying a `previous_posterio` (KalmanPosterior), the first of those possibly
+        By further specifying a `previous_posterior` (KalmanPosterior), the first of those possibly
         iterated updates is linearised at the previous posterior estimate.
         This retrieves methods such as the iterated extended Kalman smoother.
 
