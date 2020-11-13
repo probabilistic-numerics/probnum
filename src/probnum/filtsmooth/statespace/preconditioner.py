@@ -1,6 +1,7 @@
 """Coordinate changes in state space models."""
 
 import abc
+import functools
 
 import numpy as np
 import scipy.special  # for vectorised factorial
@@ -41,11 +42,12 @@ class NordsieckCoordinates(Preconditioner):
         scales = np.flip(scipy.special.factorial(powers))
         return cls(powers, scales, spatialdim)
 
+    @functools.lru_cache(maxsize=16)  # cache in case of fixed step-sizes
     def __call__(self, step=1.0, **kwargs):
         scaling_vector = step ** self.powers / self.scales
         return np.kron(np.diag(scaling_vector), np.eye(self.spatialdim))
 
-    @property
+    @functools.cached_property
     def inverse(self) -> "Preconditioner":
         return NordsieckCoordinates(
             powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
@@ -74,11 +76,12 @@ class TaylorCoordinates(Preconditioner):
         scales = scipy.special.factorial(powers)
         return cls(powers + 0.5, scales, spatialdim)
 
+    @functools.lru_cache(maxsize=16)  # cache in case of fixed step-sizes
     def __call__(self, step=1.0, **kwargs):
         scaling_vector = step ** self.powers / self.scales
         return np.kron(np.diag(scaling_vector), np.eye(self.spatialdim))
 
-    @property
+    @functools.cached_property
     def inverse(self) -> "TaylorCoordinates":
         return TaylorCoordinates(
             powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim

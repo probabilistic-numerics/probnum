@@ -2,14 +2,15 @@
 
 This is the sucessor of the former ODEPrior.
 """
+import functools
+
 import numpy as np
 import scipy.special
 
-import probnum.random_variabls as pnrv
+import probnum.random_variables as pnrv
 
 from . import discrete_transition, sde
 from .preconditioner import NordsieckCoordinates
-import functools
 
 
 class Integrator:
