@@ -14,6 +14,7 @@ __all__ = [
     "fitzhughnagumo",
     "lotkavolterra",
     "seir",
+    "rigidbody",
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",

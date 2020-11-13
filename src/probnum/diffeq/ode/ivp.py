@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum.diffeq.ode.ode import ODE
 
-__all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "seir", "IVP"]
+__all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "seir", "rigidbody", "IVP"]
 
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):
@@ -251,6 +251,48 @@ def seir_rhs(t, y, params):
     r_next = gamma * i
 
     return np.array([s_next, e_next, i_next, r_next])
+
+
+def rigidbody(timespan, initrv):
+    r"""
+    Initial value problem (IVP) for rigid body dynamics without external forces
+
+    The SEIR model with no vital dynamics is defined through
+
+    .. math:: f(t, y) =
+        \begin{pmatrix}
+        y_2 y_3 \\
+        -y_1 y_3 \\
+        -0.51 \cdot y_1 y_2
+        \end{pmatrix}
+
+    The ODE system has no parameters.
+
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    initrv : RandomVariable,
+        RandomVariable that  describes the belief over the initial
+        value. Usually its distribution is Dirac (noise-free)
+        or Normal (noisy). To replicate "classical" initial values
+        use the Dirac distribution.
+    Returns
+    -------
+    IVP
+        IVP object describing the SEIR model IVP with the prescribed
+        configuration.
+    """
+
+    def rhs(t, y, params=None):
+        return rigidbody_rhs(t, y)
+
+    return IVP(timespan, initrv, rhs)
+
+
+def rigidbody_rhs(t, y):
+    y_1, y_2, y_3 = y
+    return np.array([y_2 * y_3, -y_1 * y_3, -0.51 * y_1 * y_2])
 
 
 class IVP(ODE):
