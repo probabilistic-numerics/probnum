@@ -52,6 +52,39 @@ class NordsieckCoordinates(Preconditioner):
         )
 
 
+class TaylorCoordinates(Preconditioner):
+    """
+    Taylor coordinates.
+
+    Similar to NordsieckCoordinates, but better. Used in IBM.
+    """
+
+    def __init__(self, powers, scales, spatialdim):
+        # Clean way of assembling these coordinates cheaply,
+        # because the powers and scales of the inverse
+        # are better read off than inverted
+        self.powers = powers
+        self.scales = scales
+        self.spatialdim = spatialdim
+
+    @classmethod
+    def from_order(cls, order, spatialdim):
+        # used to conveniently initialise in the beginning
+        powers = np.arange(order, -1, -1)
+        scales = scipy.special.factorial(powers)
+        return cls(powers + 0.5, scales, spatialdim)
+
+    def __call__(self, step=1.0, **kwargs):
+        scaling_vector = step ** self.powers / self.scales
+        return np.kron(np.diag(scaling_vector), np.eye(self.spatialdim))
+
+    @property
+    def inverse(self) -> "TaylorCoordinates":
+        return TaylorCoordinates(
+            powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
+        )
+
+
 #
 #
 #

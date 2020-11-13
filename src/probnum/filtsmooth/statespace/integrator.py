@@ -9,6 +9,7 @@ import probnum.random_variabls as pnrv
 
 from . import discrete_transition, sde
 from .preconditioner import NordsieckCoordinates
+import functools
 
 
 class Integrator:
@@ -54,7 +55,7 @@ class IBM(sde.LTISDE, Integrator):
 
     def __init__(self, ordint, spatialdim, diffconst):
         self.diffconst = diffconst
-        F, s, L = self._assemble_ibm_sde()
+        F, s, L = self._assemble_ibm_sde(ordint, spatialdim, diffconst)
 
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
@@ -71,7 +72,8 @@ class IBM(sde.LTISDE, Integrator):
             ordint, spatialdim
         )  # initialise preconditioner class
 
-    def _assemble_ibm_sde(self):
+    @staticmethod
+    def _assemble_ibm_sde(self, ordint, spatialdim, diffconst):
         F_1d = np.diag(np.ones(ordint), 1)
         L_1d = np.zeros(ordint + 1)
         L_1d[-1] = diffconst
@@ -82,51 +84,36 @@ class IBM(sde.LTISDE, Integrator):
 
     def discretise_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
-        raise NotImplementedError("Do this nico!")
-
-    def discretise(self, step):
-        """Overwrite MFD. Only present for user's convenience and to maintain a clean interface."""
-        dynamicsmatrix = self._trans_ibm(step)
-        empty_force = np.zeros(len(dynamicsmatrix))
-        diffusionmatrix = self._transdiff_ibm(step)
+        ah = self._driftmatrix
+        qh = self._diffusionmatrix
+        empty_force = np.zeros(len(ah))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamat=dynamicsmatrix, forcevec=empty_force, diffmat=diffusionmatrix
+            driftmatrix=self._driftmatrix,
+            forcevec=empty_force,
+            diffusionmatrix=self._diffusionmatrix,
         )
 
-    def _trans_ibm(self, step: float) -> np.ndarray:
-        """
-        Computes closed form solution for the transition matrix A(h).
-        """
-
-        # This seems like the faster solution compared to fully vectorising.
-        # I suspect it is because np.math.factorial is much faster than
-        # scipy.special.factorial
-        ah_1d = np.diag(np.ones(self.ordint + 1), 0)
-        for i in range(self.ordint):
-            offdiagonal = (
-                step ** (i + 1) / np.math.factorial(i + 1) * np.ones(self.ordint - i)
-            )
-            ah_1d += np.diag(offdiagonal, i + 1)
-
-        return np.kron(np.eye(self.spatialdim), ah_1d)
-
-    def _transdiff_ibm(self, step: float) -> np.ndarray:
-        """
-        Computes closed form solution for the diffusion matrix Q(h).
-        """
-        indices = np.arange(0, self.ordint + 1)
-        col_idcs, row_idcs = np.meshgrid(indices, indices)
-        exponent = 2 * self.ordint + 1 - row_idcs - col_idcs
-        factorial_rows = scipy.special.factorial(
-            self.ordint - row_idcs
-        )  # factorial() handles matrices but is slow(ish)
-        factorial_cols = scipy.special.factorial(self.ordint - col_idcs)
-        qh_1d = (
-            self.diffconst ** 2
-            * step ** exponent
-            / (exponent * factorial_rows * factorial_cols)
+    @functools.cached_property
+    def _driftmatrix(self):
+        # Loop, but cached anyway
+        drifmat_1d = np.array(
+            [
+                [
+                    scipy.special.binom(self.ordint - i, self.ordint - j)
+                    for j in range(0, self.ordint + 1)
+                ]
+                for i in range(0, self.ordint + 1)
+            ]
         )
-        return np.kron(np.eye(self.spatialdim), qh_1d)
+        return np.kron(drifmat_1d, np.eye(self.spatialdim))
+
+    @functools.cached_property
+    def _diffusionmatrix(self):
+        # Optimised with broadcaseing
+        range = np.arange(0, self.ordint + 1)
+        denominators = 2.0 * self.ordint + 1.0 - range[:, None] - range[None, :]
+        diffmat_1d = 1.0 / denominators
+        return np.kron(diffmat_1d, np.eye(self.spatialdim))
 
     def transition_rv(self, rv, start, stop, already_preconditioned=False, **kwargs):
         if not isinstance(rv, pnrv.Normal):
@@ -137,21 +124,46 @@ class IBM(sde.LTISDE, Integrator):
             raise TypeError(errormsg)
         step = stop - start
         if not already_preconditioned:
-            rv = self.precond(step) @ rv
+            rv = self.precond.inverse(step) @ rv
             rv = self.transition_rv(rv, start, stop, already_preconditioned=True)
-            return self.precond.inverse(step) @ rv
+            return self.precond(step) @ rv
         else:
             return self.equivalent_discretisation.transition_rv(rv)
 
-    def transition_realization(self, real, start, stop, already_preconditioned=False, **kwargs):
+    def transition_realization(
+        self, real, start, stop, already_preconditioned=False, **kwargs
+    ):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         if not already_preconditioned:
-            rv = self.preconditioner(step) @ real
+            rv = self.precond.inverse(step) @ real
             rv = self.transition_realization(
                 rv, start, stop, already_preconditioned=True
             )
             return self.precond.inverse(step) @ rv
         else:
             return self.equivalent_discretisation.transition_realization(real)
+
+    def discretise(self, step):
+        """
+        Overwrites matrix-fraction decomposition in the super-class.
+        Only present for user's convenience and to maintain a clean interface.
+        Not used for transition_rv, etc..
+        """
+
+        # P and Pinv might have to be swapped...
+        dynamicsmatrix = (
+            self.precond(step)
+            @ self.equivalent_discretisation.dynamicsmatrix
+            @ self.precond.inverse(step)
+        )
+        diffusionmatrix = (
+            self.precond(step)
+            @ self.equivalent_discretisation.diffusionmatrix
+            @ self.precond(step).T
+        )
+        empty_force = np.zeros(len(dynamicsmatrix))
+        return discrete_transition.DiscreteLTIGaussian(
+            dynamat=dynamicsmatrix, forcevec=empty_force, diffmat=diffusionmatrix
+        )
