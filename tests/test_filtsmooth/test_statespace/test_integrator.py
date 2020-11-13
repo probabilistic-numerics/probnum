@@ -1,6 +1,9 @@
 import unittest
-import probnum.filtsmooth as pnfs
+
 import numpy as np
+
+import probnum.filtsmooth as pnfs
+import probnum.random_variables as pnrv
 from tests.testing import NumpyAssertions
 
 
@@ -24,6 +27,59 @@ class TestIntegrator(unittest.TestCase, NumpyAssertions):
             e_q_expected = np.kron(np.eye(self.d), base)
             e_q = self.integrator.proj2deriv(coord=self.q)
             self.assertAllClose(e_q, e_q_expected, rtol=1e-15, atol=0)
+
+
+STEP = np.random.rand()
+DIFFCONST = np.random.rand()
+
+AH_22_IBM = np.array(
+    [
+        [1.0, STEP, STEP ** 2 / 2.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, STEP, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0, STEP, STEP ** 2 / 2.0],
+        [0.0, 0.0, 0.0, 0.0, 1.0, STEP],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+    ]
+)
+
+QH_22_IBM = DIFFCONST ** 2 * np.array(
+    [
+        [STEP ** 5 / 20.0, STEP ** 4 / 8.0, STEP ** 3 / 6.0, 0.0, 0.0, 0.0],
+        [STEP ** 4 / 8.0, STEP ** 3 / 3.0, STEP ** 2 / 2.0, 0.0, 0.0, 0.0],
+        [STEP ** 3 / 6.0, STEP ** 2 / 2.0, STEP, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, STEP ** 5 / 20.0, STEP ** 4 / 8.0, STEP ** 3 / 6.0],
+        [0.0, 0.0, 0.0, STEP ** 4 / 8.0, STEP ** 3 / 3.0, STEP ** 2 / 2.0],
+        [0.0, 0.0, 0.0, STEP ** 3 / 6.0, STEP ** 2 / 2.0, STEP],
+    ]
+)
+
+
+AH_21_PRE = np.array([[1, 1, 0.5], [0, 1, 1], [0, 0, 1]])
+
+QH_21_PRE = (
+    DIFFCONST ** 2
+    * STEP
+    * np.array([[1 / 20, 1 / 8, 1 / 6], [1 / 8, 1 / 3, 1 / 2], [1 / 6, 1 / 2, 1]])
+)
+
+
+class TestIBM(unittest.TestCase, NumpyAssertions):
+    def setUp(self):
+        self.sde = pnfs.statespace.IBM(ordint=2, spatialdim=2, diffconst=DIFFCONST)
+
+    def test_discretise(self):
+        discrete_model = self.sde.discretise(step=STEP)
+        self.assertAllClose(discrete_model.dynamat, AH_22_IBM, 1e-14)
+
+    def test_transition_rv(self):
+        mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
+        initrv = pnrv.Normal(mean, cov)
+        rv, _ = self.sde.transition_rv(initrv, 0.0, STEP, step=STEP)
+        self.assertAllClose(AH_22_IBM @ initrv.mean, rv.mean, 1e-14)
+        self.assertAllClose(
+            AH_22_IBM @ initrv.cov @ AH_22_IBM.T + QH_22_IBM, rv.cov, 1e-14
+        )
 
 
 if __name__ == "__main__":

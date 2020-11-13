@@ -10,7 +10,7 @@ import scipy.special
 import probnum.random_variables as pnrv
 
 from . import discrete_transition, sde
-from .preconditioner import NordsieckCoordinates
+from .preconditioner import TaylorCoordinates
 
 
 class Integrator:
@@ -50,9 +50,9 @@ class Integrator:
         return projmat
 
 
-class IBM(sde.LTISDE, Integrator):
+class IBM(Integrator, sde.LTISDE):
 
-    preconditioner = NordsieckCoordinates
+    preconditioner = TaylorCoordinates
 
     def __init__(self, ordint, spatialdim, diffconst):
         self.diffconst = diffconst
@@ -60,44 +60,48 @@ class IBM(sde.LTISDE, Integrator):
 
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
-        super().__init__(
+        Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
+        sde.LTISDE.__init__(
+            self,
             driftmatrix=F,
             forcevec=s,
             dispmatrix=L,
-            ordint=ordint,
-            spatialdim=spatialdim,
         )
 
-        self.equivalent_discretisation = self.discretise()
+        self.equivalent_discretisation = self.discretise_preconditioned()
         self.precond = self.preconditioner.from_order(
             ordint, spatialdim
         )  # initialise preconditioner class
 
     @staticmethod
-    def _assemble_ibm_sde(self, ordint, spatialdim, diffconst):
+    def _assemble_ibm_sde(ordint, spatialdim, diffconst):
         F_1d = np.diag(np.ones(ordint), 1)
         L_1d = np.zeros(ordint + 1)
         L_1d[-1] = diffconst
-        s_1d = np.np.zeros(ordint + 1)
+        s_1d = np.zeros(ordint + 1)
         I_d = np.eye(spatialdim)
-        F, L, s = np.kron(F_1d, I_d), np.kron(L_1d, I_d), np.kron(s_1d, I_d)
+        F, L, s = (
+            np.kron(I_d, F_1d),
+            np.kron(I_d, L_1d),
+            np.kron(np.ones(spatialdim), s_1d),
+        )
         return F, s, L
 
     def discretise_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
-        ah = self._driftmatrix
-        qh = self._diffusionmatrix
-        empty_force = np.zeros(len(ah))
+        empty_force = np.zeros(self.spatialdim * (self.ordint + 1))
+        a = self._dynamat
+        b = self._diffmat
         return discrete_transition.DiscreteLTIGaussian(
-            driftmatrix=self._driftmatrix,
+            dynamat=self._dynamat,
             forcevec=empty_force,
-            diffusionmatrix=self._diffusionmatrix,
+            diffmat=self._diffmat,
         )
 
     @functools.cached_property
-    def _driftmatrix(self):
+    def _dynamat(self):
         # Loop, but cached anyway
-        drifmat_1d = np.array(
+        driftmat_1d = np.array(
             [
                 [
                     scipy.special.binom(self.ordint - i, self.ordint - j)
@@ -106,15 +110,15 @@ class IBM(sde.LTISDE, Integrator):
                 for i in range(0, self.ordint + 1)
             ]
         )
-        return np.kron(drifmat_1d, np.eye(self.spatialdim))
+        return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
     @functools.cached_property
-    def _diffusionmatrix(self):
-        # Optimised with broadcaseing
+    def _diffmat(self):
+        # Optimised with broadcasting
         range = np.arange(0, self.ordint + 1)
         denominators = 2.0 * self.ordint + 1.0 - range[:, None] - range[None, :]
         diffmat_1d = 1.0 / denominators
-        return np.kron(diffmat_1d, np.eye(self.spatialdim))
+        return np.kron(np.eye(self.spatialdim), self.diffconst**2 * diffmat_1d)
 
     def transition_rv(self, rv, start, stop, already_preconditioned=False, **kwargs):
         if not isinstance(rv, pnrv.Normal):
@@ -126,10 +130,11 @@ class IBM(sde.LTISDE, Integrator):
         step = stop - start
         if not already_preconditioned:
             rv = self.precond.inverse(step) @ rv
-            rv = self.transition_rv(rv, start, stop, already_preconditioned=True)
-            return self.precond(step) @ rv
+            rv, info = self.transition_rv(rv, start, stop, already_preconditioned=True)
+            # does the cross-covariance have to be changed somehow??
+            return self.precond(step) @ rv, info
         else:
-            return self.equivalent_discretisation.transition_rv(rv)
+            return self.equivalent_discretisation.transition_rv(rv, start)
 
     def transition_realization(
         self, real, start, stop, already_preconditioned=False, **kwargs
@@ -139,10 +144,10 @@ class IBM(sde.LTISDE, Integrator):
         step = stop - start
         if not already_preconditioned:
             rv = self.precond.inverse(step) @ real
-            rv = self.transition_realization(
+            rv, info = self.transition_realization(
                 rv, start, stop, already_preconditioned=True
             )
-            return self.precond.inverse(step) @ rv
+            return self.precond(step) @ rv, info
         else:
             return self.equivalent_discretisation.transition_realization(real)
 
@@ -156,12 +161,12 @@ class IBM(sde.LTISDE, Integrator):
         # P and Pinv might have to be swapped...
         dynamicsmatrix = (
             self.precond(step)
-            @ self.equivalent_discretisation.dynamicsmatrix
+            @ self.equivalent_discretisation.dynamat
             @ self.precond.inverse(step)
         )
         diffusionmatrix = (
             self.precond(step)
-            @ self.equivalent_discretisation.diffusionmatrix
+            @ self.equivalent_discretisation.diffmat
             @ self.precond(step).T
         )
         empty_force = np.zeros(len(dynamicsmatrix))

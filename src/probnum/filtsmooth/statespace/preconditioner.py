@@ -15,7 +15,8 @@ class Preconditioner(abc.ABC):
     """
 
     @abc.abstractmethod
-    def __call__(self, **kwargs) -> np.ndarray:
+    def __call__(self, step) -> np.ndarray:
+        # if more than step is needed, add them into the signature in the future
         raise NotImplementedError
 
     @property
@@ -43,9 +44,9 @@ class NordsieckCoordinates(Preconditioner):
         return cls(powers, scales, spatialdim)
 
     @functools.lru_cache(maxsize=16)  # cache in case of fixed step-sizes
-    def __call__(self, step=1.0, **kwargs):
+    def __call__(self, step):
         scaling_vector = step ** self.powers / self.scales
-        return np.kron(np.diag(scaling_vector), np.eye(self.spatialdim))
+        return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
 
     @functools.cached_property
     def inverse(self) -> "Preconditioner":
@@ -74,12 +75,12 @@ class TaylorCoordinates(Preconditioner):
         # used to conveniently initialise in the beginning
         powers = np.arange(order, -1, -1)
         scales = scipy.special.factorial(powers)
-        return cls(powers + 0.5, scales, spatialdim)
+        return cls(powers=powers + 0.5, scales=scales, spatialdim=spatialdim)
 
     @functools.lru_cache(maxsize=16)  # cache in case of fixed step-sizes
-    def __call__(self, step=1.0, **kwargs):
+    def __call__(self, step):
         scaling_vector = step ** self.powers / self.scales
-        return np.kron(np.diag(scaling_vector), np.eye(self.spatialdim))
+        return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
 
     @functools.cached_property
     def inverse(self) -> "TaylorCoordinates":

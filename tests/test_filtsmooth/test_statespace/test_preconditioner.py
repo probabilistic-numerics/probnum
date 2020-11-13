@@ -1,10 +1,10 @@
+import abc
 import unittest
 
-import abc
+import numpy as np
 
 import probnum.filtsmooth as pnfs
 from tests.testing import NumpyAssertions
-import numpy as np
 
 
 class TestPreconditioner(abc.ABC):

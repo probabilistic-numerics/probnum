@@ -249,3 +249,10 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
             lambda t, **kwargs: forcevec,
             lambda t, **kwargs: diffmat,
         )
+
+        # In superclasses these are methods, here they are functions,
+        # and here I'd like them to be properties...
+        # clean solutions of this will require more thought.
+        self.dynamat = dynamat
+        self.forcevec = forcevec
+        self.diffmat = diffmat
