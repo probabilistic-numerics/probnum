@@ -30,6 +30,8 @@ __all__ = [
     "linear_sde_statistics",
     "StoppingCriterion",
     "FixedPointStopping",
+    "Preconditioner",
+    "NordsieckCoordinates",
 ]
 
 # Set correct module paths (for superclasses).
