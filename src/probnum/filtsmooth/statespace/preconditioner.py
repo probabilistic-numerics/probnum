@@ -24,42 +24,11 @@ class Preconditioner(abc.ABC):
         raise NotImplementedError
 
 
-# Better called TaylorCoordinates or something like this?
-class NordsieckCoordinates(Preconditioner):
-    """NordsieckCoordinates."""
-
-    def __init__(self, powers, scales, spatialdim):
-        # Clean way of assembling these coordinates cheaply,
-        # because the powers and scales of the inverse
-        # are better read off than inverted
-        self.powers = powers
-        self.scales = scales
-        self.spatialdim = spatialdim
-
-    @classmethod
-    def from_order(cls, order, spatialdim):
-        # used to conveniently initialise in the beginning
-        powers = np.arange(0, order + 1)
-        scales = np.flip(scipy.special.factorial(powers))
-        return cls(powers, scales, spatialdim)
-
-    @functools.lru_cache(maxsize=16)  # cache in case of fixed step-sizes
-    def __call__(self, step):
-        scaling_vector = step ** self.powers / self.scales
-        return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
-
-    @functools.cached_property
-    def inverse(self) -> "Preconditioner":
-        return NordsieckCoordinates(
-            powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
-        )
-
-
 class TaylorCoordinates(Preconditioner):
     """
     Taylor coordinates.
 
-    Similar to NordsieckCoordinates, but better. Used in IBM.
+    Similar to Nordsieck coordinates, but better. Used in IBM.
     """
 
     def __init__(self, powers, scales, spatialdim):
@@ -87,44 +56,6 @@ class TaylorCoordinates(Preconditioner):
         return TaylorCoordinates(
             powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
         )
-
-
-#
-#
-#
-#
-#
-#
-# class IBM(LTISDE):
-#
-#     preconditioner = NordsieckCoordinates
-#
-#     def __init__(self, ordint, spatialdim, diffconst):
-#         self.diffconst = diffconst
-#         self.equivalent_discretisation = self.discretise()
-#         self.precond = self.preconditioner.from_order(
-#             ordint, spatialdim
-#         )  # initialise preconditioner class
-#
-#     def transition_rv(self, rv, start, stop, already_preconditioned=False):
-#         step = stop - start
-#         if not already_preconditioned:
-#             rv = self.precond(step) @ rv
-#             rv = self.transition_rv(rv, start, stop, already_preconditioned=True)
-#             return self.precond.inverse(step) @ rv
-#         else:
-#             return self.equivalent_discretisation.transition_rv(rv)
-#
-#     def transition_realization(self, rv, start, stop, already_preconditioned=False):
-#         step = stop - start
-#         if not already_preconditioned:
-#             rv = self.preconditioner(step) @ rv
-#             rv = self.transition_realization(
-#                 rv, start, stop, already_preconditioned=True
-#             )
-#             return self.preconditioner.inverse(step) @ rv
-#         else:
-#             return self.equivalent_discretisation.transition_realization(rv)
 
 
 #

@@ -92,10 +92,10 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         diff1 = np.abs(rv1.mean - rv2.mean)
         diff2 = np.abs(rv1.cov - rv2.cov)
 
-        # 0.3 is some sufficiently large constant
+        # Choose some 'sufficiently positive' constant
         # that worked in the present example
-        self.assertGreater(np.linalg.norm(diff1), 0.3)
-        self.assertGreater(np.linalg.norm(diff2), 0.3)
+        self.assertGreater(np.linalg.norm(diff1), 1e-2)
+        self.assertGreater(np.linalg.norm(diff2), 1e-2)
 
     def test_transition_realization(self):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
@@ -114,10 +114,10 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         diff1 = np.abs(rv1.mean - rv2.mean)
         diff2 = np.abs(rv1.cov - rv2.cov)
 
-        # 0.3 is some sufficiently large constant
+        # Choose some 'sufficiently positive' constant
         # that worked in the present example
-        self.assertGreater(np.linalg.norm(diff1), 0.3)
-        self.assertGreater(np.linalg.norm(diff2), 0.3)
+        self.assertGreater(np.linalg.norm(diff1), 1e-2)
+        self.assertGreater(np.linalg.norm(diff2), 1e-2)
 
 
 if __name__ == "__main__":
