@@ -75,11 +75,49 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
     def test_transition_rv(self):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         initrv = pnrv.Normal(mean, cov)
-        rv, _ = self.sde.transition_rv(initrv, 0.0, STEP, step=STEP)
+        rv, _ = self.sde.transition_rv(rv=initrv, start=0.0, stop=STEP)
         self.assertAllClose(AH_22_IBM @ initrv.mean, rv.mean, 1e-14)
         self.assertAllClose(
             AH_22_IBM @ initrv.cov @ AH_22_IBM.T + QH_22_IBM, rv.cov, 1e-14
         )
+
+    def test_transition_rv_preconditioned(self):
+        """Check that if the flag is set, the result is different!"""
+        mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
+        initrv = pnrv.Normal(mean, cov)
+        rv1, _ = self.sde.transition_rv(rv=initrv, start=0.0, stop=STEP)
+        rv2, _ = self.sde.transition_rv(
+            rv=initrv, start=0.0, stop=STEP, already_preconditioned=True
+        )
+        diff1 = np.abs(rv1.mean - rv2.mean)
+        diff2 = np.abs(rv1.cov - rv2.cov)
+
+        # 0.3 is some sufficiently large constant
+        # that worked in the present example
+        self.assertGreater(np.linalg.norm(diff1), 0.3)
+        self.assertGreater(np.linalg.norm(diff2), 0.3)
+
+    def test_transition_realization(self):
+        mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
+        state = pnrv.Normal(mean, cov).sample()
+        rv, _ = self.sde.transition_realization(real=state, start=0.0, stop=STEP)
+        self.assertAllClose(AH_22_IBM @ state, rv.mean, 1e-14)
+        self.assertAllClose(QH_22_IBM, rv.cov, 1e-14)
+
+    def test_transition_realization_preconditioned(self):
+        mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
+        state = pnrv.Normal(mean, cov).sample()
+        rv1, _ = self.sde.transition_realization(real=state, start=0.0, stop=STEP)
+        rv2, _ = self.sde.transition_realization(
+            real=state, start=0.0, stop=STEP, already_preconditioned=True
+        )
+        diff1 = np.abs(rv1.mean - rv2.mean)
+        diff2 = np.abs(rv1.cov - rv2.cov)
+
+        # 0.3 is some sufficiently large constant
+        # that worked in the present example
+        self.assertGreater(np.linalg.norm(diff1), 0.3)
+        self.assertGreater(np.linalg.norm(diff2), 0.3)
 
 
 if __name__ == "__main__":

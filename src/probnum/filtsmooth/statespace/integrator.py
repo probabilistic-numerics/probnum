@@ -75,23 +75,21 @@ class IBM(Integrator, sde.LTISDE):
 
     @staticmethod
     def _assemble_ibm_sde(ordint, spatialdim, diffconst):
-        F_1d = np.diag(np.ones(ordint), 1)
-        L_1d = np.zeros(ordint + 1)
-        L_1d[-1] = diffconst
-        s_1d = np.zeros(ordint + 1)
+        driftmat_1d = np.diag(np.ones(ordint), 1)
+        dispmat_1d = np.zeros(ordint + 1)
+        dispmat_1d[-1] = diffconst
+        force_1d = np.zeros(ordint + 1)
         I_d = np.eye(spatialdim)
-        F, L, s = (
-            np.kron(I_d, F_1d),
-            np.kron(I_d, L_1d),
-            np.kron(np.ones(spatialdim), s_1d),
+        driftmat, dispmat, force = (
+            np.kron(I_d, driftmat_1d),
+            np.kron(I_d, dispmat_1d),
+            np.kron(np.ones(spatialdim), force_1d),
         )
-        return F, s, L
+        return driftmat, force, dispmat
 
     def discretise_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
         empty_force = np.zeros(self.spatialdim * (self.ordint + 1))
-        a = self._dynamat
-        b = self._diffmat
         return discrete_transition.DiscreteLTIGaussian(
             dynamat=self._dynamat,
             forcevec=empty_force,
@@ -118,7 +116,7 @@ class IBM(Integrator, sde.LTISDE):
         range = np.arange(0, self.ordint + 1)
         denominators = 2.0 * self.ordint + 1.0 - range[:, None] - range[None, :]
         diffmat_1d = 1.0 / denominators
-        return np.kron(np.eye(self.spatialdim), self.diffconst**2 * diffmat_1d)
+        return np.kron(np.eye(self.spatialdim), self.diffconst ** 2 * diffmat_1d)
 
     def transition_rv(self, rv, start, stop, already_preconditioned=False, **kwargs):
         if not isinstance(rv, pnrv.Normal):
@@ -149,7 +147,7 @@ class IBM(Integrator, sde.LTISDE):
             )
             return self.precond(step) @ rv, info
         else:
-            return self.equivalent_discretisation.transition_realization(real)
+            return self.equivalent_discretisation.transition_realization(real, start)
 
     def discretise(self, step):
         """
