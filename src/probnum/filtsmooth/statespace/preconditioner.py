@@ -22,6 +22,7 @@ class Preconditioner(abc.ABC):
         raise NotImplementedError
 
 
+# Better called TaylorCoordinates or something like this?
 class NordsieckCoordinates(Preconditioner):
     """NordsieckCoordinates."""
 
@@ -46,28 +47,9 @@ class NordsieckCoordinates(Preconditioner):
 
     @property
     def inverse(self) -> "Preconditioner":
-        return NordsieckCoordinates(powers=-self.powers, scales=1./self.scales, spatialdim=self.spatialdim)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return NordsieckCoordinates(
+            powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
+        )
 
 
 #

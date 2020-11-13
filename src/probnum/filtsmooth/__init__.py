@@ -32,6 +32,7 @@ __all__ = [
     "FixedPointStopping",
     "Preconditioner",
     "NordsieckCoordinates",
+    "Integrator",
 ]
 
 # Set correct module paths (for superclasses).
