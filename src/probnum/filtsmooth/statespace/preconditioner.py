@@ -19,7 +19,7 @@ class Preconditioner(abc.ABC):
         # if more than step is needed, add them into the signature in the future
         raise NotImplementedError
 
-    @property
+    @functools.cached_property
     def inverse(self) -> "Preconditioner":
         raise NotImplementedError
 
