@@ -6,24 +6,21 @@ import probnum.filtsmooth as pnfs
 from tests.testing import NumpyAssertions
 
 
-class TestPreconditioner:
-
-    precon = lambda step: NotImplemented
-
+class PreconditionerTestCase:
     def test_call(self):
-        P = self.precon(step=0.5)
+        P = self.precon(0.5)
         self.assertEqual(P.ndim, 2)
         self.assertEqual(P.shape[0], (self.some_order + 1) * self.some_dim)
         self.assertEqual(P.shape[1], (self.some_order + 1) * self.some_dim)
 
     def test_inverse(self):
-        P = self.precon(step=0.5)
+        P = self.precon(0.5)
         Pinv = self.precon.inverse(step=0.5)
         self.assertAllClose(P @ Pinv, np.eye(*P.shape), rtol=1e-15, atol=0.0)
         self.assertAllClose(Pinv @ P, np.eye(*P.shape), rtol=1e-15, atol=0.0)
 
 
-class TestTaylorCoordinates(unittest.TestCase, NumpyAssertions):
+class TestTaylorCoordinates(PreconditionerTestCase, unittest.TestCase, NumpyAssertions):
     def setUp(self):
         self.some_order = 3
         self.some_dim = 1
