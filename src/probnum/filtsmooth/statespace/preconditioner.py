@@ -4,7 +4,7 @@ import abc
 
 try:
     # cached_property is only available in Python >=3.8
-    from functools import cached_property, lru_cache
+    from functools import cached_property
 except ImportError:
     from cached_property import cached_property
 
