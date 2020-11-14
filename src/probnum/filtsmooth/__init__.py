@@ -31,7 +31,7 @@ __all__ = [
     "StoppingCriterion",
     "FixedPointStopping",
     "Preconditioner",
-    "NordsieckCoordinates",
+    "TaylorCoordinates",
     "Integrator",
 ]
 
