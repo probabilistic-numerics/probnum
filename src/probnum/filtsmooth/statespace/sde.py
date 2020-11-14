@@ -23,10 +23,26 @@ class SDE(transition.Transition):
         self._dispmatrixfun = dispmatrixfun
         self._jacobfun = jacobfun
 
-    def transition_realization(self, real, start, stop, **kwargs):
+    def transition_realization(
+        self,
+        real,
+        start,
+        stop=None,
+        step=None,
+        linearise_at=None,
+        already_preconditioned=False,
+    ):
         raise NotImplementedError
 
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(
+        self,
+        rv,
+        start,
+        stop=None,
+        step=None,
+        linearise_at=None,
+        already_preconditioned=False,
+    ):
         raise NotImplementedError
 
     def drift(self, time, state, **kwargs):
@@ -80,7 +96,15 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: dispmatrixfun(t)),
         )
 
-    def transition_realization(self, real, start, stop, step, **kwargs):
+    def transition_realization(
+        self,
+        real,
+        start,
+        stop,
+        step=None,
+        **kwargs,
+    ):
+        # **kwargs swallow all irrelevant arguments for this function.
         rv = pnrv.Normal(real, 0 * np.eye(len(real)))
         return linear_sde_statistics(
             rv,
@@ -92,7 +116,14 @@ class LinearSDE(SDE):
             self._dispmatrixfun,
         )
 
-    def transition_rv(self, rv, start, stop, step, **kwargs):
+    def transition_rv(
+        self,
+        rv,
+        start,
+        stop,
+        step=None,
+    ):
+        # **kwargs swallow all irrelevant arguments for this function.
 
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
@@ -169,13 +200,27 @@ class LTISDE(LinearSDE):
         # pylint: disable=invalid-overridden-method
         return self._dispmatrix
 
-    def transition_realization(self, real, start, stop, **kwargs):
+    def transition_realization(
+        self,
+        real,
+        start,
+        stop,
+        **kwargs,
+    ):
+        # **kwargs swallow all irrelevant arguments for this function.
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
         return discretised_model.transition_realization(real, start, stop)
 
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(
+        self,
+        rv,
+        start,
+        stop,
+        **kwargs,
+    ):
+        # **kwargs swallow all irrelevant arguments for this function.
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
