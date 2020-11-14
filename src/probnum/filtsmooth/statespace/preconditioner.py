@@ -1,7 +1,13 @@
 """Coordinate changes in state space models."""
 
 import abc
-import functools
+
+try:
+    # lru_cache and cached_property are only available in Python >=3.8
+    from functools import cached_property, lru_cache
+except ImportError:
+    from cached_property import cached_property
+    from lru_cache import lru_cache
 
 import numpy as np
 import scipy.special  # for vectorised factorial
@@ -19,7 +25,7 @@ class Preconditioner(abc.ABC):
         # if more than step is needed, add them into the signature in the future
         raise NotImplementedError
 
-    @functools.cached_property
+    @cached_property
     def inverse(self) -> "Preconditioner":
         raise NotImplementedError
 
@@ -46,12 +52,12 @@ class TaylorCoordinates(Preconditioner):
         scales = scipy.special.factorial(powers)
         return cls(powers=powers + 0.5, scales=scales, spatialdim=spatialdim)
 
-    @functools.lru_cache(maxsize=16)  # cache in case of fixed step-sizes
+    @lru_cache(maxsize=16)  # cache in case of fixed step-sizes
     def __call__(self, step):
         scaling_vector = step ** self.powers / self.scales
         return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
 
-    @functools.cached_property
+    @cached_property
     def inverse(self) -> "TaylorCoordinates":
         return TaylorCoordinates(
             powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
