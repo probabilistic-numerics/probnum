@@ -48,10 +48,10 @@ class DiscreteUKFComponent(statespace.Transition):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
     def transition_rv(self, rv, start, linearise_at=None, **kwargs):
-        if linearise_at is None:
-            sigmapts = self.ut.sigma_points(rv.mean, rv.cov)
-        else:
-            sigmapts = self.ut.sigma_points(linearise_at.mean, linearise_at.cov)
+        compute_sigmapts_at = linearise_at if linearise_at else rv
+        sigmapts = self.ut.sigma_points(
+            compute_sigmapts_at.mean, compute_sigmapts_at.cov
+        )
         proppts = self.ut.propagate(start, sigmapts, self.disc_model.dynamics)
         meascov = self.disc_model.diffusionmatrix(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
