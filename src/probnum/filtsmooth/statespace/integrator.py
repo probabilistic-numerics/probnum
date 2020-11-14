@@ -2,7 +2,11 @@
 
 This is the sucessor of the former ODEPrior.
 """
-import functools
+try:
+    # cached_property is only available in Python >=3.8
+    from functools import cached_property, lru_cache
+except ImportError:
+    from cached_property import cached_property
 
 import numpy as np
 import scipy.special
@@ -96,7 +100,7 @@ class IBM(Integrator, sde.LTISDE):
             diffmat=self._diffmat,
         )
 
-    @functools.cached_property
+    @cached_property
     def _dynamat(self):
         # Loop, but cached anyway
         driftmat_1d = np.array(
@@ -110,7 +114,7 @@ class IBM(Integrator, sde.LTISDE):
         )
         return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
-    @functools.cached_property
+    @cached_property
     def _diffmat(self):
         # Optimised with broadcasting
         range = np.arange(0, self.ordint + 1)
