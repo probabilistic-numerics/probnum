@@ -231,7 +231,7 @@ def probsolve_ivp(
     )
     with_smoothing = method[-2] == "s" or method[-1] == "s"
     solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
-    solution = solver.solve(firststep=firststep, steprule=stprl, **kwargs)
+    solution = solver.solve(firststep=firststep, steprule=stprl)
     return solution
 
 

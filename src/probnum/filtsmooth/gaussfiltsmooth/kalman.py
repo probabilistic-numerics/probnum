@@ -66,6 +66,7 @@ class Kalman(BayesFiltSmooth):
             Posterior distribution of the filtered output
         """
         # linearise_at is not used here, only in IteratedKalman.filter_step
+        # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
         filtrv = self.initialrandomvariable
         rvs = [filtrv]

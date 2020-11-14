@@ -40,17 +40,17 @@ class GaussianIVPFilter(odesolver.ODESolver):
     def initialise(self):
         return self.ivp.t0, self.gfilt.initialrandomvariable
 
-    def step(self, t, t_new, current_rv, **kwargs):
+    def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
         # 0. Obtain the diffusion matrix; required for calibration / error estimation
         discrete_dynamics = self.gfilt.dynamod.discretise(t_new - t)
         diffmat = discrete_dynamics.diffusionmatrix(t_new)
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
+        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv)
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv, **kwargs)
+        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
 
         # 3. Estimate the diffusion (sigma squared)
         self.sigma_squared_mle = self._estimate_diffusion(pred_rv, meas_rv)
@@ -59,12 +59,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
             pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * diffmat
         )
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv, **kwargs)
+        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
 
         # 4. Update
         zero_data = 0.0
         filt_rv = self.gfilt.condition_state_on_measurement(
-            pred_rv, meas_rv, zero_data, info["crosscov"], **kwargs
+            pred_rv, meas_rv, zero_data, info["crosscov"]
         )
 
         # 5. Error estimate
@@ -93,7 +93,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         rvs = [Normal(rv.mean, self.sigma_squared_mle * rv.cov) for rv in rvs]
         return rvs
 
-    def _odesmooth(self, ode_solution, **kwargs):
+    def _odesmooth(self, ode_solution):
         """
         Smooth out the ODE-Filter output.
 
@@ -109,7 +109,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         smoothed_solution: ODESolution
         """
         ivp_filter_posterior = ode_solution._kalman_posterior
-        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
+        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior)
 
         smoothed_solution = ODESolution(
             times=ivp_smoother_posterior.locations,
@@ -126,7 +126,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         newrv = Normal(newmean, newcov)
         return newrv
 
-    def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
+    def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat):
         """Estimate the local errors
 
         This corresponds to the approach in [1], implemented such that it is compatible
@@ -140,7 +140,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
             Statistics and Computing, 2019.
         """
         local_pred_rv = Normal(pred_rv.mean, calibrated_diffmat)
-        local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv, **kwargs)
+        local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv)
         error = local_meas_rv.cov.diagonal()
         return error
 
