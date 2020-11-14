@@ -41,7 +41,9 @@ class Transition(abc.ABC):
         arr_or_rv: Union[np.ndarray, "RandomVariable"],
         start: float = None,
         stop: float = None,
-        **kwargs
+        step: float = None,
+        linearise_at: "RandomVariable" = None,
+        already_preconditioned: bool = False,
     ) -> ("RandomVariable", Dict):
         """
         Transition a random variable or a realization of one.
@@ -50,14 +52,32 @@ class Transition(abc.ABC):
         Accordingly, the respective methods are called: :meth:`transition_realization` or :meth:`transition_rv`.
         """
         if isinstance(arr_or_rv, RandomVariable):
-            return self.transition_rv(rv=arr_or_rv, start=start, stop=stop, **kwargs)
+            return self.transition_rv(
+                rv=arr_or_rv,
+                start=start,
+                stop=stop,
+                step=step,
+                linearise_at=linearise_at,
+                already_preconditioned=already_preconditioned,
+            )
         return self.transition_realization(
-            real=arr_or_rv, start=start, stop=stop, **kwargs
+            real=arr_or_rv,
+            start=start,
+            stop=stop,
+            step=step,
+            linearise_at=linearise_at,
+            already_preconditioned=already_preconditioned,
         )
 
     @abc.abstractmethod
     def transition_realization(
-        self, real: np.ndarray, start: float, stop: float = None, **kwargs
+        self,
+        real: np.ndarray,
+        start: float,
+        stop: float = None,
+        step: float = None,
+        linearise_at: "RandomVariable" = None,
+        already_preconditioned: bool = False,
     ) -> ("RandomVariable", Dict):
         """
         Transition a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
@@ -79,6 +99,15 @@ class Transition(abc.ABC):
             Starting point :math:`t`.
         stop :
             End point :math:`t + \\Delta t`.
+        step :
+            Intermediate step-size. Optional, default is None.
+        linearise_at :
+            For approximate transitions , for instance ContinuousEKFComponent,
+            this argument overloads the state at which the Jacobian is computed.
+        already_preconditioned :
+            If the state space model uses a preconditioner, this variable can disable
+            the preconditioner, which may be preferrable if a sequence of transitions
+            ought to live in the same preconditioned space.
 
         Returns
         -------
@@ -99,7 +128,13 @@ class Transition(abc.ABC):
 
     @abc.abstractmethod
     def transition_rv(
-        self, rv: "RandomVariable", start: float, stop: float = None, **kwargs
+        self,
+        rv: "RandomVariable",
+        start: float,
+        stop: float = None,
+        step: float = None,
+        linearise_at: "RandomVariable" = None,
+        already_preconditioned: bool = False,
     ) -> ("RandomVariable", Dict):
         """
         Transition a random variable from time :math:`t` to time :math:`t+\\Delta t`.
@@ -123,6 +158,15 @@ class Transition(abc.ABC):
             Starting point :math:`t`.
         stop :
             End point :math:`t + \\Delta t`.
+        step :
+            Intermediate step-size. Optional, default is None.
+        linearise_at :
+            For approximate transitions , for instance ContinuousEKFComponent,
+            this argument overloads the state at which the Jacobian is computed.
+        already_preconditioned :
+            If the state space model uses a preconditioner, this variable can disable
+            the preconditioner, which may be preferrable if a sequence of transitions
+            ought to live in the same preconditioned space.
 
         Returns
         -------
@@ -170,7 +214,7 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
     num_steps : int
         Number of steps to be taken for numerical integration
         of the continuous prior model. Optional. Default is 5.
-        Irrelevant for LTI or discrete models.
+        Irrelevant for time-invariant or discrete models.
 
     Returns
     -------
