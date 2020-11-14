@@ -239,5 +239,12 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
 
 
 def _read_dimension(transition, initrv):
-    """Extracts dimension of a transition without calling .dimension(), which is not implemented everywhere."""
-    return len(transition.transition_realization(initrv.mean, 0.0, 1.0)[0].sample())
+    """Extracts dimension of a transition without calling .dimension(),
+    which is not implemented everywhere."""
+    # relies on evaluating at zero, which is a dangerous endeavour and therefore,
+    # this method is not used in Transition.dimension
+    return len(
+        transition.transition_realization(real=initrv.mean, start=0.0, stop=1.0)[
+            0
+        ].sample()
+    )

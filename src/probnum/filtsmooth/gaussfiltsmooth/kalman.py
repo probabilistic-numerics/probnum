@@ -75,7 +75,7 @@ class Kalman(BayesFiltSmooth):
                 stop=times[idx],
                 current_rv=filtrv,
                 data=dataset[idx - 1],
-                step=intermediate_step,
+                intermediate_step=intermediate_step,
             )
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)

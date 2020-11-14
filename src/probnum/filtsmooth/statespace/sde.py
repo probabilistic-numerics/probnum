@@ -211,7 +211,7 @@ class LTISDE(LinearSDE):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_realization(real, start, stop)
+        return discretised_model.transition_realization(real, start)
 
     def transition_rv(
         self,
@@ -228,7 +228,7 @@ class LTISDE(LinearSDE):
             )
             raise TypeError(errormsg)
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_rv(rv, start, stop)
+        return discretised_model.transition_rv(rv, start)
 
     def discretise(self, step):
         """
