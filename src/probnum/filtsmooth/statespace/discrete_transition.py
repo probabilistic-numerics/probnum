@@ -36,12 +36,14 @@ class DiscreteGaussian(trans.Transition):
         self._diffmatfun = diffmatfun
         self._jacobfun = jacobfun
 
-    def transition_realization(self, real, start, stop=None, **kwargs):
+    def transition_realization(self, real, start, **kwargs):
+        # **kwargs swallow all irrelevant arguments for this function.
         newmean = self._dynamicsfun(start, real)
         newcov = self._diffmatfun(start)
         return pnrv.Normal(newmean, newcov), {}
 
-    def transition_rv(self, rv, start, stop=None, **kwargs):
+    def transition_rv(self, rv, start, **kwargs):
+        # **kwargs swallow all irrelevant arguments for this function.
         raise NotImplementedError
 
     def dynamics(self, time, state, **kwargs):
@@ -141,7 +143,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         super().__init__(dynafct, diffmatfct, jacfct)
         self._forcefct = forcefct
 
-    def transition_rv(self, rv, start, stop=None, **kwargs):
+    def transition_rv(self, rv, start, **kwargs):
+        # **kwargs swallow all irrelevant arguments for this function.
+
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
         dynamat = self.dynamicsmatrix(time=start)
