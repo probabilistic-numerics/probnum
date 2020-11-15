@@ -1,7 +1,10 @@
 """Discrete transitions."""
+from typing import Callable, Optional
 
+import numpy as np
 
 import probnum.random_variables as pnrv
+from probnum.type import FloatArgType
 
 from . import transition as trans
 
@@ -17,11 +20,11 @@ class DiscreteGaussian(trans.Transition):
 
     Parameters
     ----------
-    dynamicsfun : callable
+    dynamicsfun :
         Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
-    diffmatfun : callable
+    diffmatfun :
         Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
-    jacobfun : callable, optional.
+    jacobfun :
         Jacobian of the dynamics function :math:`g`, :math:`Jg=Jg(t, x)`.
         Signature: ``jacfct(t, x)``.
 
@@ -31,7 +34,12 @@ class DiscreteGaussian(trans.Transition):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynamicsfun, diffmatfun, jacobfun=None):
+    def __init__(
+        self,
+        dynamicsfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        diffmatfun: Callable[[FloatArgType], np.ndarray],
+        jacobfun: Optional[Callable[[FloatArgType, np.ndarray], np.ndarray]] = None,
+    ):
         self.dynamicsfun = dynamicsfun
         self.diffmatfun = diffmatfun
 
@@ -76,7 +84,12 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynamicsmatfun, forcevecfun, diffmatfun):
+    def __init__(
+        self,
+        dynamicsmatfun: Callable[[FloatArgType], np.ndarray],
+        forcevecfun: Callable[[FloatArgType], np.ndarray],
+        diffmatfun: Callable[[FloatArgType], np.ndarray],
+    ):
 
         self.dynamicsmatfun = dynamicsmatfun
         self.forcevecfun = forcevecfun
@@ -121,11 +134,11 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
 
     Parameters
     ----------
-    dynamat : np.ndarray
+    dynamat :
         Dynamics matrix :math:`G`.
-    forcevec : np.ndarray
+    forcevec :
         Force vector :math:`v`.
-    diffmat : np.ndarray
+    diffmat :
         Diffusion matrix :math:`S`.
 
     Raises
@@ -139,7 +152,9 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynamicsmat, forcevec, diffmat):
+    def __init__(
+        self, dynamicsmat: np.ndarray, forcevec: np.ndarray, diffmat: np.ndarray
+    ):
         _check_dimensions(dynamicsmat, forcevec, diffmat)
 
         super().__init__(
