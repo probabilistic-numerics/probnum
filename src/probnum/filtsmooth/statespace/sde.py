@@ -1,10 +1,12 @@
 """SDE models as transitions."""
 import functools
+from typing import Callable
 
 import numpy as np
 import scipy.linalg
 
 import probnum.random_variables as pnrv
+from probnum.type import FloatArgType
 
 from . import discrete_transition, transition
 
@@ -18,7 +20,12 @@ class SDE(transition.Transition):
     driven by a Wiener process with unit diffusion.
     """
 
-    def __init__(self, driftfun, dispmatfun, jacobfun):
+    def __init__(
+        self,
+        driftfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        dispmatfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        jacobfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+    ):
         self.driftfun = driftfun
         self.dispmatfun = dispmatfun
         self.jacobfun = jacobfun
@@ -74,7 +81,12 @@ class LinearSDE(SDE):
         Returns np.ndarray with shape=(n, s)
     """
 
-    def __init__(self, driftmatfun, forcevecfun, dispmatfun):
+    def __init__(
+        self,
+        driftmatfun: Callable[[FloatArgType], np.ndarray],
+        forcevecfun: Callable[[FloatArgType], np.ndarray],
+        dispmatfun: Callable[[FloatArgType], np.ndarray],
+    ):
         self.driftmatfun = driftmatfun
         self.forcevecfun = forcevecfun
         super().__init__(
@@ -160,7 +172,7 @@ class LTISDE(LinearSDE):
         This is L. It is the dispersion matrix of the SDE.
     """
 
-    def __init__(self, driftmat, forcevec, dispmat):
+    def __init__(self, driftmat: np.ndarray, forcevec: np.ndarray, dispmat: np.ndarray):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
         super().__init__(
             (lambda t, **kwargs: driftmat),
