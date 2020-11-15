@@ -44,7 +44,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
         # 0. Obtain the diffusion matrix; required for calibration / error estimation
         discrete_dynamics = self.gfilt.dynamod.discretise(t_new - t)
-        diffmat = discrete_dynamics.diffusionmatrix(t_new)
+        diffmat = discrete_dynamics.diffmat
 
         # 1. Predict
         pred_rv, _ = self.gfilt.predict(t, t_new, current_rv)
