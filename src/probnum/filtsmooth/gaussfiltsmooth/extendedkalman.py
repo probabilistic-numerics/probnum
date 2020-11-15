@@ -2,7 +2,6 @@
 Gaussian filtering and smoothing based on making intractable quantities
 tractable through Taylor-method approximations, e.g. linearization.
 """
-import functools
 
 import numpy as np
 
@@ -21,10 +20,11 @@ class ContinuousEKFComponent(statespace.Transition):
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
         compute_jacobian_at = linearise_at.mean if linearise_at else real
-        jacobian_alias = lambda t, x: self.non_linear_sde.jacobfun(
-            t, x
-        )  # second argument is called 'x' now -> 'partial' is applicable
-        jacobfun = functools.partial(jacobian_alias, x=compute_jacobian_at)
+
+        def jacobfun(t, x=compute_jacobian_at):
+            # replaces functools (second variable may not be called x)
+            return self.non_linear_sde.jacobfun(t, x)
+
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
@@ -38,10 +38,11 @@ class ContinuousEKFComponent(statespace.Transition):
 
     def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
         compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
-        jacobian_alias = lambda t, x: self.non_linear_sde.jacobfun(
-            t, x
-        )  # second argument is called 'x' now -> 'partial' is applicable
-        jacobfun = functools.partial(jacobian_alias, x=compute_jacobian_at)
+
+        def jacobfun(t, x=compute_jacobian_at):
+            # replaces functools (second variable may not be called x)
+            return self.non_linear_sde.jacobfun(t, x)
+
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=rv,
