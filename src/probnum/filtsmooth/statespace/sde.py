@@ -67,15 +67,15 @@ class LinearSDE(SDE):
 
     Parameters
     ----------
-    driftmatfun : callable, signature=(t)
+    driftmatfun :
         This is G = G(t). The evaluations of this function are called
         the driftmatrix of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcevecfun : callable, signature=(t, \\**kwargs)
+    forcevecfun :
         This is v = v(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatfun : callable, signature=(t, \\**kwargs)
+    dispmatfun :
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
@@ -145,6 +145,7 @@ class LinearSDE(SDE):
         """
         Spatial dimension (utility attribute).
         """
+        # risky to evaluate at zero, but usually works
         return len(self.driftmatfun(0.0))
 
 
@@ -153,22 +154,22 @@ class LTISDE(LinearSDE):
     Linear time-invariant continuous Markov models of the
     form
 
-    .. math:: dx = [F x(t) + u] dt + L dw_t.
+    .. math:: d x_t = [G x_t + v] d t + L d w_t.
 
     In the language of dynamic models,
-    x(t) : state process
-    F : drift matrix
-    u : force term/vector
+    x_t : state process
+    G : drift matrix
+    v : force term/vector
     L : dispersion matrix.
-    w_t : Brownian motion/Wiener process with unit diffusion.
+    w_t : Wiener process with unit diffusion.
 
     Parameters
     ----------
-    driftmat : np.ndarray, shape=(n, n)
+    driftmat :
         This is F. It is the drift matrix of the SDE.
-    forcevec : np.ndarray, shape=(n,)
+    forcevec :
         This is U. It is the force vector of the SDE.
-    dispmat : np.ndarray, shape(n, s)
+    dispmat :
         This is L. It is the dispersion matrix of the SDE.
     """
 
@@ -230,29 +231,6 @@ class LTISDE(LinearSDE):
         ah, qh, _ = matrix_fraction_decomposition(self.driftmat, self.dispmat, step)
         sh = np.zeros(len(ah))
         return discrete_transition.DiscreteLTIGaussian(ah, sh, qh)
-
-
-def _check_initial_state_dimensions(driftmat, forcevec, dispmat):
-    """
-    Checks that the matrices all align and are of proper shape.
-
-    If all the bugs are removed and the tests run, these asserts
-    are turned into Exception-catchers.
-
-    Parameters
-    ----------
-    drift : np.ndarray, shape=(n, n)
-    force : np.ndarray, shape=(n,)
-    disp : np.ndarray, shape=(n, s)
-    """
-    if driftmat.ndim != 2 or driftmat.shape[0] != driftmat.shape[1]:
-        raise ValueError("driftmatrix not of shape (n, n)")
-    if forcevec.ndim != 1:
-        raise ValueError("force not of shape (n,)")
-    if forcevec.shape[0] != driftmat.shape[1]:
-        raise ValueError("force not of shape (n,) or driftmatrix not of shape (n, n)")
-    if dispmat.ndim != 2:
-        raise ValueError("dispersion not of shape (n, s)")
 
 
 def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun):
@@ -345,23 +323,23 @@ def _increment_fun(time, mean, cov, driftfun, jacobfun, dispmatfun):
     return mean_increment, cov_increment
 
 
-def matrix_fraction_decomposition(F, L, h):
-    """Matrix fraction decomposition."""
-    if F.ndim != 2 or L.ndim != 2:
-        raise TypeError("F and L must be matrices.")
-    if not np.isscalar(h):
-        raise TypeError("h must be a float/scalar")
+def matrix_fraction_decomposition(driftmat, dispmat, step):
+    """Matrix fraction decomposition (without force)."""
+    no_force = np.zeros(len(driftmat))
+    _check_initial_state_dimensions(
+        driftmat=driftmat, forcevec=no_force, dispmat=dispmat
+    )
 
-    topleft = F
-    topright = L @ L.T
-    bottomright = -F.T
-    bottomleft = np.zeros(F.shape)
+    topleft = driftmat
+    topright = dispmat @ dispmat.T
+    bottomright = -driftmat.T
+    bottomleft = np.zeros(driftmat.shape)
 
     toprow = np.hstack((topleft, topright))
     bottomrow = np.hstack((bottomleft, bottomright))
     bigmat = np.vstack((toprow, bottomrow))
 
-    Phi = scipy.linalg.expm(bigmat * h)
+    Phi = scipy.linalg.expm(bigmat * step)
     projmat1 = np.eye(*toprow.shape)
     projmat2 = np.flip(projmat1)
 
@@ -370,3 +348,23 @@ def matrix_fraction_decomposition(F, L, h):
     Qh = C @ D
 
     return Ah, Qh, bigmat
+
+
+def _check_initial_state_dimensions(driftmat, forcevec, dispmat):
+    """
+    Checks that the matrices all align and are of proper shape.
+
+    Parameters
+    ----------
+    driftmat : np.ndarray, shape=(n, n)
+    forcevec : np.ndarray, shape=(n,)
+    dispmat : np.ndarray, shape=(n, s)
+    """
+    if driftmat.ndim != 2 or driftmat.shape[0] != driftmat.shape[1]:
+        raise ValueError("driftmatrix not of shape (n, n)")
+    if forcevec.ndim != 1:
+        raise ValueError("force not of shape (n,)")
+    if forcevec.shape[0] != driftmat.shape[1]:
+        raise ValueError("force not of shape (n,) or driftmatrix not of shape (n, n)")
+    if dispmat.ndim != 2:
+        raise ValueError("dispersion not of shape (n, s)")
