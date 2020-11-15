@@ -37,28 +37,6 @@ class BayesFiltSmooth(ABC):
         )
         raise NotImplementedError(errormsg)
 
-    def predict(self, start, stop, randvar, **kwargs):
-        """
-        Prediction step of the Bayesian filter.
-
-        Not required for all filters, e.g. the Particle Filter only
-        has an `update()` method.
-        """
-        classname = type(self).__name__
-        errormsg = (
-            "predict(...) is not implemented for "
-            + "the Bayesian filter {}.".format(classname)
-        )
-        raise NotImplementedError(errormsg)
-
-    def update(self, time, randvar, data, **kwargs):
-        """
-        Update step of the Bayesian filter.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError
-
     @property
     def dynamicmodel(self):
         """
