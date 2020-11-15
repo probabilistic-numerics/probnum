@@ -95,7 +95,7 @@ class IBM(Integrator, sde.LTISDE):
         """Discretised IN THE PRECONDITIONED SPACE."""
         empty_force = np.zeros(self.spatialdim * (self.ordint + 1))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamat=self._dynamat,
+            dynamicsmat=self._dynamat,
             forcevec=empty_force,
             diffmat=self._diffmat,
         )
@@ -163,7 +163,7 @@ class IBM(Integrator, sde.LTISDE):
         # P and Pinv might have to be swapped...
         dynamicsmatrix = (
             self.precond(step)
-            @ self.equivalent_discretisation.dynamat
+            @ self.equivalent_discretisation.dynamicsmat
             @ self.precond.inverse(step)
         )
         diffusionmatrix = (
@@ -173,5 +173,5 @@ class IBM(Integrator, sde.LTISDE):
         )
         empty_force = np.zeros(len(dynamicsmatrix))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamat=dynamicsmatrix, forcevec=empty_force, diffmat=diffusionmatrix
+            dynamicsmat=dynamicsmatrix, forcevec=empty_force, diffmat=diffusionmatrix
         )

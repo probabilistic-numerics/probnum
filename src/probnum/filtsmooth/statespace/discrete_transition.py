@@ -32,80 +32,23 @@ class DiscreteGaussian(trans.Transition):
     """
 
     def __init__(self, dynamicsfun, diffmatfun, jacobfun=None):
-        self._dynamicsfun = dynamicsfun
-        self._diffmatfun = diffmatfun
-        self._jacobfun = jacobfun
+        self.dynamicsfun = dynamicsfun
+        self.diffmatfun = diffmatfun
+
+        def if_no_jacobian(t, x):
+            raise NotImplementedError
+
+        self.jacobfun = jacobfun if jacobfun is not None else if_no_jacobian
 
     def transition_realization(self, real, start, **kwargs):
         # **kwargs swallow all irrelevant arguments for this function.
-        newmean = self._dynamicsfun(start, real)
-        newcov = self._diffmatfun(start)
+        newmean = self.dynamicsfun(start, real)
+        newcov = self.diffmatfun(start)
         return pnrv.Normal(newmean, newcov), {}
 
     def transition_rv(self, rv, start, **kwargs):
         # **kwargs swallow all irrelevant arguments for this function.
         raise NotImplementedError
-
-    def dynamics(self, time, state, **kwargs):
-        """
-        Compute dynamics :math:`g=g(t, x)` at time :math:`t`
-        and state :math:`x`.
-
-        Parameters
-        ----------
-        time : float
-            Time :math:`t`.
-        state : array_like
-            State :math:`x`. For instance, realization of a random variable.
-
-        Returns
-        -------
-        :class:`np.ndarray`
-            Evaluation of :math:`g=g(t, x)`.
-        """
-        return self._dynamicsfun(time, state)
-
-    def diffusionmatrix(self, time, **kwargs):
-        """
-        Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
-
-        Parameters
-        ----------
-        time : float
-            Time :math:`t`.
-
-        Returns
-        -------
-        :class:`np.ndarray`
-            Diffusion matrix :math:`S=S(t)`.
-        """
-        return self._diffmatfun(time, **kwargs)
-
-    def jacobian(self, time, state, **kwargs):
-        """
-        Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
-
-        Parameters
-        ----------
-        time : float
-            Time :math:`t`.
-        state : array_like
-            State :math:`x`. For instance, realization of a random variable.
-
-        Raises
-        ------
-        NotImplementedError
-            If the Jacobian is not implemented.
-            This is the case if :meth:`jacfct` is not specified at initialization.
-
-        Returns
-        -------
-        :class:`np.ndarray`
-            Evaluation of the Jacobian :math:`J g=Jg(t, x)`.
-        """
-        if self._jacobfun is None:
-            raise NotImplementedError
-        return self._jacobfun(time, state)
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
@@ -133,66 +76,38 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynamatfct, forcefct, diffmatfct):
-        def dynafct(t, x, **kwargs):
-            return dynamatfct(t, **kwargs) @ x + forcefct(t, **kwargs)
+    def __init__(self, dynamicsmatfun, forcevecfun, diffmatfun):
 
-        def jacfct(t, x, **kwargs):
-            return dynamatfct(t, **kwargs)
+        self.dynamicsmatfun = dynamicsmatfun
+        self.forcevecfun = forcevecfun
 
-        super().__init__(dynafct, diffmatfct, jacfct)
-        self._forcefct = forcefct
+        super().__init__(
+            dynamicsfun=lambda t, x: (self.dynamicsmatfun(t) @ x + self.forcevecfun(t)),
+            diffmatfun=diffmatfun,
+            jacobfun=lambda t, x: dynamicsmatfun(t),
+        )
 
     def transition_rv(self, rv, start, **kwargs):
         # **kwargs swallow all irrelevant arguments for this function.
 
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
-        dynamat = self.dynamicsmatrix(time=start)
-        diffmat = self.diffusionmatrix(time=start)
-        force = self.forcevector(time=start)
 
-        new_mean = dynamat @ rv.mean + force
-        new_crosscov = rv.cov @ dynamat.T
-        new_cov = dynamat @ new_crosscov + diffmat
+        dynamicsmat = self.dynamicsmatfun(start)
+        diffmat = self.diffmatfun(start)
+        force = self.forcevecfun(start)
+
+        new_mean = dynamicsmat @ rv.mean + force
+        new_crosscov = rv.cov @ dynamicsmat.T
+        new_cov = dynamicsmat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
-
-    def dynamicsmatrix(self, time, **kwargs):
-        """
-        Compute dynamics matrix :math:`G=G(t)` at time :math:`t`.
-        The output is equivalent to :meth:`jacobian`.
-
-        Parameters
-        ----------
-        time : float
-            Time :math:`t`.
-
-        Returns
-        -------
-        :class:`np.ndarray`
-            Evaluation of the dynamics matrix :math:`G=G(t)`.
-        """
-        return self._jacobfun(time, None, **kwargs)
-
-    def forcevector(self, time, **kwargs):
-        """
-        Compute force vector :math:`v=v(t)` at time :math:`t`.
-
-        Parameters
-        ----------
-        time : float
-            Time :math:`t`.
-
-        Returns
-        -------
-        :class:`np.ndarray`
-            Evaluation of the force :math:`v=v(t)`.
-        """
-        return self._forcefct(time, **kwargs)
 
     @property
     def dimension(self):
-        return len(self.dynamicsmatrix(0.0).T)
+        # risky to evaluate at zero, but works well
+        # remove this -- the dimension of discrete transitions is not clear!
+        # input dim != output dim is possible...
+        return len(self.dynamicsmatfun(0.0).T)
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
@@ -224,39 +139,41 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     :class:`DiscreteGaussianLinearModel`
     """
 
-    def __init__(self, dynamat, forcevec, diffmat):
-        if dynamat.ndim != 2:
-            raise TypeError(
-                f"dynamat.ndim=2 expected. dynamat.ndim={dynamat.ndim} received."
-            )
-        if forcevec.ndim != 1:
-            raise TypeError(
-                f"forcevec.ndim=1 expected. forcevec.ndim={dynamat.ndim} received."
-            )
-        if diffmat.ndim != 2:
-            raise TypeError(
-                f"diffmat.ndim=2 expected. diffmat.ndim={dynamat.ndim} received."
-            )
-        if (
-            dynamat.shape[0] != forcevec.shape[0]
-            or forcevec.shape[0] != diffmat.shape[0]
-            or diffmat.shape[0] != diffmat.shape[1]
-        ):
-            raise TypeError(
-                f"Dimension of dynamat, forcevec and diffmat do not align. "
-                f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
-                f"Received: dynamat.shape={dynamat.shape}, forcevec.shape={forcevec.shape}, "
-                f"diffmat.shape={diffmat.shape}."
-            )
+    def __init__(self, dynamicsmat, forcevec, diffmat):
+        _check_dimensions(dynamicsmat, forcevec, diffmat)
+
         super().__init__(
-            lambda t, **kwargs: dynamat,
-            lambda t, **kwargs: forcevec,
-            lambda t, **kwargs: diffmat,
+            lambda t: dynamicsmat,
+            lambda t: forcevec,
+            lambda t: diffmat,
         )
 
-        # In superclasses these are methods, here they are functions,
-        # and here I'd like them to be properties...
-        # clean solutions of this will require more thought.
-        self.dynamat = dynamat
+        self.dynamicsmat = dynamicsmat
         self.forcevec = forcevec
         self.diffmat = diffmat
+
+
+def _check_dimensions(dynamicsmat, forcevec, diffmat):
+    if dynamicsmat.ndim != 2:
+        raise TypeError(
+            f"dynamat.ndim=2 expected. dynamat.ndim={dynamicsmat.ndim} received."
+        )
+    if forcevec.ndim != 1:
+        raise TypeError(
+            f"forcevec.ndim=1 expected. forcevec.ndim={forcevec.ndim} received."
+        )
+    if diffmat.ndim != 2:
+        raise TypeError(
+            f"diffmat.ndim=2 expected. diffmat.ndim={diffmat.ndim} received."
+        )
+    if (
+        dynamicsmat.shape[0] != forcevec.shape[0]
+        or forcevec.shape[0] != diffmat.shape[0]
+        or diffmat.shape[0] != diffmat.shape[1]
+    ):
+        raise TypeError(
+            f"Dimension of dynamat, forcevec and diffmat do not align. "
+            f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
+            f"Received: dynamat.shape={dynamicsmat.shape}, forcevec.shape={forcevec.shape}, "
+            f"diffmat.shape={diffmat.shape}."
+        )

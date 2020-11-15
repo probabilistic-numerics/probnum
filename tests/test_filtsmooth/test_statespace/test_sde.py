@@ -209,9 +209,7 @@ class TestMatrixFractionDecomposition(unittest.TestCase):
         self.h = 0.1
 
     def test_ibm_qh_stack(self):
-        *_, stack = pnfss.sde.matrix_fraction_decomposition(
-            F=self.a, L=self.b, h=self.h
-        )
+        *_, stack = pnfss.sde.matrix_fraction_decomposition(self.a, self.b, self.h)
 
         with self.subTest("top left"):
             error = np.linalg.norm(stack[:2, :2] - self.a)
@@ -230,13 +228,13 @@ class TestMatrixFractionDecomposition(unittest.TestCase):
             self.assertLess(error, 1e-15)
 
     def test_ibm_ah(self):
-        Ah, *_ = pnfss.sde.matrix_fraction_decomposition(F=self.a, L=self.b, h=self.h)
+        Ah, *_ = pnfss.sde.matrix_fraction_decomposition(self.a, self.b, self.h)
         expected = np.array([[1, self.h], [0, 1]])
         error = np.linalg.norm(Ah - expected)
         self.assertLess(error, 1e-15)
 
     def test_ibm_qh(self):
-        _, Qh, _ = pnfss.sde.matrix_fraction_decomposition(F=self.a, L=self.b, h=self.h)
+        _, Qh, _ = pnfss.sde.matrix_fraction_decomposition(self.a, self.b, self.h)
         expected = self.dc ** 2 * np.array(
             [[self.h ** 3 / 3, self.h ** 2 / 2], [self.h ** 2 / 2, self.h]]
         )
@@ -248,19 +246,19 @@ class TestMatrixFractionDecomposition(unittest.TestCase):
         good_B = np.array([[0], [1]])
         good_h = 0.1
         with self.subTest(culprit="F"):
-            with self.assertRaises(TypeError):
+            with self.assertRaises(ValueError):
                 pnfss.sde.matrix_fraction_decomposition(
-                    F=np.random.rand(2), L=good_B, h=good_h
+                    np.random.rand(2), good_B, good_h
                 )
 
         with self.subTest(culprit="L"):
-            with self.assertRaises(TypeError):
+            with self.assertRaises(ValueError):
                 pnfss.sde.matrix_fraction_decomposition(
-                    F=good_A, L=np.random.rand(2), h=good_h
+                    good_A, np.random.rand(2), good_h
                 )
 
         with self.subTest(culprit="h"):
-            with self.assertRaises(TypeError):
+            with self.assertRaises(ValueError):
                 pnfss.sde.matrix_fraction_decomposition(
-                    F=good_A, L=good_B, h=np.random.rand(2)
+                    good_A, good_B, np.random.rand(2)
                 )

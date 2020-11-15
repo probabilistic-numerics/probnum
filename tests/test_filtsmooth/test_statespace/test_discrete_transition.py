@@ -33,17 +33,17 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         self.dg = dg
 
     def test_dynamics(self):
-        received = self.dtrans.dynamics(self.start, self.some_rv.mean)
+        received = self.dtrans.dynamicsfun(self.start, self.some_rv.mean)
         expected = self.g(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
     def test_diffusionmatrix(self):
-        received = self.dtrans.diffusionmatrix(self.start)
+        received = self.dtrans.diffmatfun(self.start)
         expected = self.S(self.start)
         self.assertAllClose(received, expected)
 
     def test_jacobian(self):
-        received = self.dtrans.jacobian(self.start, self.some_rv.mean)
+        received = self.dtrans.jacobfun(self.start, self.some_rv.mean)
         expected = self.dg(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
@@ -51,7 +51,7 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         """Calling a Jacobian when nothing is provided throws an Exception."""
         dtrans_no_jacob = pnfss.discrete_transition.DiscreteGaussian(self.g, self.S)
         with self.assertRaises(NotImplementedError):
-            dtrans_no_jacob.jacobian(self.start, self.some_rv.mean)
+            dtrans_no_jacob.jacobfun(self.start, self.some_rv.mean)
 
     def test_transition_rv(self):
 
@@ -93,12 +93,12 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
                 self.dtrans.transition_rv(self.some_nongaussian_rv, self.start)
 
     def test_dynamicsmatrix(self):
-        received = self.dtrans.dynamicsmatrix(self.start)
+        received = self.dtrans.dynamicsmatfun(self.start)
         expected = self.G(self.start)
         self.assertAllClose(received, expected)
 
     def test_forcevector(self):
-        received = self.dtrans.forcevector(self.start)
+        received = self.dtrans.forcevecfun(self.start)
         expected = self.v(self.start)
         self.assertAllClose(received, expected)
 
