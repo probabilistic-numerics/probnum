@@ -19,6 +19,7 @@ class ContinuousEKFComponent(statespace.Transition):
         self.num_steps = num_steps
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
+
         compute_jacobian_at = linearise_at.mean if linearise_at else real
 
         def jacobfun(t, x=compute_jacobian_at):
@@ -37,6 +38,7 @@ class ContinuousEKFComponent(statespace.Transition):
         )
 
     def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
+
         compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
 
         def jacobfun(t, x=compute_jacobian_at):
@@ -87,16 +89,16 @@ class DiscreteEKFComponent(statespace.Transition):
         h0 = prior.proj2coord(coord=0)
         h1 = prior.proj2coord(coord=1)
 
-        def dyna(t, x, **kwargs):
+        def dyna(t, x):
             return h1 @ x - ode.rhs(t, h0 @ x)
 
-        def diff(t, **kwargs):
+        def diff(t):
             return evlvar * np.eye(spatialdim)
 
-        def jaco_ek1(t, x, **kwargs):
+        def jaco_ek1(t, x):
             return h1 - ode.jacobian(t, h0 @ x) @ h0
 
-        def jaco_ek0(t, x, **kwargs):
+        def jaco_ek0(t, x):
             return h1
 
         if ek0_or_ek1 == 0:

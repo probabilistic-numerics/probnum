@@ -70,10 +70,10 @@ class DiscreteUKFComponent(statespace.Transition):
         h0 = prior.proj2coord(coord=0)
         h1 = prior.proj2coord(coord=1)
 
-        def dyna(t, x, **kwargs):
+        def dyna(t, x):
             return h1 @ x - ode.rhs(t, h0 @ x)
 
-        def diff(t, **kwargs):
+        def diff(t):
             return evlvar * np.eye(spatialdim)
 
         disc_model = statespace.DiscreteGaussian(dyna, diff)
