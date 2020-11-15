@@ -92,7 +92,7 @@ class ODEPrior(pnfss.LTISDE):
         driftmat = self.precond @ driftmat @ self.invprecond
         dispmat = self.precond @ dispmat
         forcevec = np.zeros(len(driftmat))
-        super().__init__(driftmat, forcevec, dispmat)
+        super().__init__(driftmat=driftmat, forcevec=forcevec, dispmat=dispmat)
 
     def proj2coord(self, coord: int) -> np.ndarray:
         """

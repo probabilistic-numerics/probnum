@@ -18,10 +18,10 @@ class SDE(transition.Transition):
     driven by a Wiener process with unit diffusion.
     """
 
-    def __init__(self, driftfun, dispmatrixfun, jacobfun):
-        self._driftfun = driftfun
-        self._dispmatrixfun = dispmatrixfun
-        self._jacobfun = jacobfun
+    def __init__(self, driftfun, dispmatfun, jacobfun):
+        self.driftfun = driftfun
+        self.dispmatfun = dispmatfun
+        self.jacobfun = jacobfun
 
     def transition_realization(
         self,
@@ -45,15 +45,6 @@ class SDE(transition.Transition):
     ):
         raise NotImplementedError
 
-    def drift(self, time, state, **kwargs):
-        return self._driftfun(time, state, **kwargs)
-
-    def dispersionmatrix(self, time, **kwargs):
-        return self._dispmatrixfun(time, **kwargs)
-
-    def jacobian(self, time, state, **kwargs):
-        return self._jacobfun(time, state, **kwargs)
-
     @property
     def dimension(self):
         raise NotImplementedError
@@ -69,31 +60,27 @@ class LinearSDE(SDE):
 
     Parameters
     ----------
-    driftmatrixfun : callable, signature=(t, \\**kwargs)
-        This is F = F(t). The evaluations of this function are called
-        the drift(matrix) of the SDE.
+    driftmatfun : callable, signature=(t)
+        This is G = G(t). The evaluations of this function are called
+        the driftmatrix of the SDE.
         Returns np.ndarray with shape=(n, n)
     forcevecfun : callable, signature=(t, \\**kwargs)
-        This is u = u(t). Evaluations of this function are called
+        This is v = v(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatrixfun : callable, signature=(t, \\**kwargs)
+    dispmatfun : callable, signature=(t, \\**kwargs)
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
-
-    Notes
-    -----
-    If initial conditions are Gaussian, the solution is a Gauss-Markov process.
     """
 
-    def __init__(self, driftmatrixfun, forcevecfun, dispmatrixfun):
-        self._driftmatrixfun = driftmatrixfun
-        self._forcevecfun = forcevecfun
+    def __init__(self, driftmatfun, forcevecfun, dispmatfun):
+        self.driftmatfun = driftmatfun
+        self.forcevecfun = forcevecfun
         super().__init__(
-            driftfun=(lambda t, x: driftmatrixfun(t) @ x + forcevecfun(t)),
-            dispmatrixfun=dispmatrixfun,
-            jacobfun=(lambda t, x: dispmatrixfun(t)),
+            driftfun=(lambda t, x: driftmatfun(t) @ x + forcevecfun(t)),
+            dispmatfun=dispmatfun,
+            jacobfun=(lambda t, x: driftmatfun(t)),
         )
 
     def transition_realization(
@@ -111,9 +98,9 @@ class LinearSDE(SDE):
             start,
             stop,
             step,
-            self._driftfun,
-            self._driftmatrixfun,
-            self._dispmatrixfun,
+            self.driftfun,
+            self.driftmatfun,
+            self.dispmatfun,
         )
 
     def transition_rv(
@@ -136,9 +123,9 @@ class LinearSDE(SDE):
             start,
             stop,
             step,
-            self._driftfun,
-            self._driftmatrixfun,
-            self._dispmatrixfun,
+            self.driftfun,
+            self.driftmatfun,
+            self.dispmatfun,
         )
 
     @property
@@ -146,59 +133,43 @@ class LinearSDE(SDE):
         """
         Spatial dimension (utility attribute).
         """
-        return len(self._driftmatrixfun(0.0))
+        return len(self.driftmatfun(0.0))
 
 
 class LTISDE(LinearSDE):
     """
     Linear time-invariant continuous Markov models of the
     form
-    dx = [F x(t) + u] dt + L dBt.
+
+    .. math:: dx = [F x(t) + u] dt + L dw_t.
+
     In the language of dynamic models,
     x(t) : state process
     F : drift matrix
-    u : forcing term
+    u : force term/vector
     L : dispersion matrix.
-    Bt : Brownian motion with constant diffusion matrix Q.
+    w_t : Brownian motion/Wiener process with unit diffusion.
 
     Parameters
     ----------
-    driftmatrix : np.ndarray, shape=(n, n)
+    driftmat : np.ndarray, shape=(n, n)
         This is F. It is the drift matrix of the SDE.
     forcevec : np.ndarray, shape=(n,)
         This is U. It is the force vector of the SDE.
-    dispmatrix : np.ndarray, shape(n, s)
+    dispmat : np.ndarray, shape(n, s)
         This is L. It is the dispersion matrix of the SDE.
-
-    Notes
-    -----
-    It assumes Gaussian initial conditions (otherwise
-    it is no Gauss-Markov process).
     """
 
-    def __init__(self, driftmatrix, forcevec, dispmatrix):
-        _check_initial_state_dimensions(driftmatrix, forcevec, dispmatrix)
+    def __init__(self, driftmat, forcevec, dispmat):
+        _check_initial_state_dimensions(driftmat, forcevec, dispmat)
         super().__init__(
-            (lambda t, **kwargs: driftmatrix),
+            (lambda t, **kwargs: driftmat),
             (lambda t, **kwargs: forcevec),
-            (lambda t, **kwargs: dispmatrix),
+            (lambda t, **kwargs: dispmat),
         )
-        self._driftmatrix = driftmatrix
-        self._forcevec = forcevec
-        self._dispmatrix = dispmatrix
-
-    @property
-    def driftmatrix(self):
-        return self._driftmatrix
-
-    @property
-    def forcevec(self):
-        return self._forcevec
-
-    @property
-    def dispersionmatrix(self):
-        # pylint: disable=invalid-overridden-method
-        return self._dispmatrix
+        self.driftmat = driftmat
+        self.forcevec = forcevec
+        self.dispmat = dispmat
 
     def transition_realization(
         self,
@@ -242,16 +213,14 @@ class LTISDE(LinearSDE):
 
         which is the transition of the mild solution to the LTI SDE.
         """
-        if np.linalg.norm(self._forcevec) > 0:
+        if np.linalg.norm(self.forcevec) > 0:
             raise NotImplementedError("MFD does not work for force>0 (yet).")
-        ah, qh, _ = matrix_fraction_decomposition(
-            self.driftmatrix, self.dispersionmatrix, step
-        )
+        ah, qh, _ = matrix_fraction_decomposition(self.driftmat, self.dispmat, step)
         sh = np.zeros(len(ah))
         return discrete_transition.DiscreteLTIGaussian(ah, sh, qh)
 
 
-def _check_initial_state_dimensions(drift, force, disp):
+def _check_initial_state_dimensions(driftmat, forcevec, dispmat):
     """
     Checks that the matrices all align and are of proper shape.
 
@@ -264,13 +233,13 @@ def _check_initial_state_dimensions(drift, force, disp):
     force : np.ndarray, shape=(n,)
     disp : np.ndarray, shape=(n, s)
     """
-    if drift.ndim != 2 or drift.shape[0] != drift.shape[1]:
+    if driftmat.ndim != 2 or driftmat.shape[0] != driftmat.shape[1]:
         raise ValueError("driftmatrix not of shape (n, n)")
-    if force.ndim != 1:
+    if forcevec.ndim != 1:
         raise ValueError("force not of shape (n,)")
-    if force.shape[0] != drift.shape[1]:
+    if forcevec.shape[0] != driftmat.shape[1]:
         raise ValueError("force not of shape (n,) or driftmatrix not of shape (n, n)")
-    if disp.ndim != 2:
+    if dispmat.ndim != 2:
         raise ValueError("dispersion not of shape (n, s)")
 
 

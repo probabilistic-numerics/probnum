@@ -25,7 +25,7 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
         def df(t, x):
             return np.eye(len(x)) + 3
 
-        self.sde = pnfss.sde.SDE(driftfun=f, dispmatrixfun=l, jacobfun=df)
+        self.sde = pnfss.sde.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
         self.f = f
         self.l = l
         self.df = df
@@ -42,17 +42,17 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
 
     def test_drift(self):
         expected = self.f(self.start, self.some_rv.mean)
-        received = self.sde.drift(self.start, self.some_rv.mean)
+        received = self.sde.driftfun(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
     def test_dispersionmatrix(self):
         expected = self.l(self.start)
-        received = self.sde.dispersionmatrix(self.start)
+        received = self.sde.dispmatfun(self.start)
         self.assertAllClose(received, expected)
 
-    def test_jacobian(self):
+    def test_jacobfun(self):
         expected = self.df(self.start, self.some_rv.mean)
-        received = self.sde.jacobian(self.start, self.some_rv.mean)
+        received = self.sde.jacobfun(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
     def test_dimension(self):
@@ -78,7 +78,7 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
         def L(t):
             return 1 + np.arange(2 * TEST_NDIM).reshape((TEST_NDIM, 2))
 
-        self.sde = pnfss.sde.LinearSDE(driftmatrixfun=F, forcevecfun=s, dispmatrixfun=L)
+        self.sde = pnfss.sde.LinearSDE(driftmatfun=F, forcevecfun=s, dispmatfun=L)
         self.F = F
         self.s = s
         self.L = L
@@ -120,19 +120,17 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
         self.F = np.random.rand(TEST_NDIM, TEST_NDIM)
         self.s = np.zeros(TEST_NDIM)  # only because MFD is lazy so far
         self.L = np.random.rand(TEST_NDIM, 2)
-        self.sde = pnfss.sde.LTISDE(
-            driftmatrix=self.F, forcevec=self.s, dispmatrix=self.L
-        )
+        self.sde = pnfss.sde.LTISDE(driftmat=self.F, forcevec=self.s, dispmat=self.L)
 
     def test_driftmatrix(self):
-        self.assertAllClose(self.sde.driftmatrix, self.F)
+        self.assertAllClose(self.sde.driftmat, self.F)
 
     def test_force(self):
         self.assertAllClose(self.sde.forcevec, self.s)
 
     def test_dispersionmatrix(self):
 
-        self.assertAllClose(self.sde.dispersionmatrix, self.L)
+        self.assertAllClose(self.sde.dispmat, self.L)
 
     def test_discretise(self):
         discrete = self.sde.discretise(step=self.stop - self.start)

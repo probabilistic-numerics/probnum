@@ -67,9 +67,9 @@ class IBM(Integrator, sde.LTISDE):
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
         sde.LTISDE.__init__(
             self,
-            driftmatrix=F,
+            driftmat=F,
             forcevec=s,
-            dispmatrix=L,
+            dispmat=L,
         )
 
         self.equivalent_discretisation = self.discretise_preconditioned()

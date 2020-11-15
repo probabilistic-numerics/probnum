@@ -21,34 +21,36 @@ class ContinuousEKFComponent(statespace.Transition):
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
         compute_jacobian_at = linearise_at.mean if linearise_at else real
-        jacobfun = functools.partial(
-            self.non_linear_sde.jacobian, state=compute_jacobian_at
-        )
+        jacobian_alias = lambda t, x: self.non_linear_sde.jacobfun(
+            t, x
+        )  # second argument is called 'x' now -> 'partial' is applicable
+        jacobfun = functools.partial(jacobian_alias, x=compute_jacobian_at)
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
             start=start,
             stop=stop,
             step=step,
-            driftfun=self.non_linear_sde.drift,
+            driftfun=self.non_linear_sde.driftfun,
             jacobfun=jacobfun,
-            dispmatfun=self.non_linear_sde.dispersionmatrix,
+            dispmatfun=self.non_linear_sde.dispmatfun,
         )
 
     def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
         compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
-        jacobfun = functools.partial(
-            self.non_linear_sde.jacobian, state=compute_jacobian_at
-        )
+        jacobian_alias = lambda t, x: self.non_linear_sde.jacobfun(
+            t, x
+        )  # second argument is called 'x' now -> 'partial' is applicable
+        jacobfun = functools.partial(jacobian_alias, x=compute_jacobian_at)
         step = (stop - start) / self.num_steps
         return statespace.linear_sde_statistics(
             rv=rv,
             start=start,
             stop=stop,
             step=step,
-            driftfun=self.non_linear_sde.drift,
+            driftfun=self.non_linear_sde.driftfun,
             jacobfun=jacobfun,
-            dispmatfun=self.non_linear_sde.dispersionmatrix,
+            dispmatfun=self.non_linear_sde.dispmatfun,
         )
 
     @property

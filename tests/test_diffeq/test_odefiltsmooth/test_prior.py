@@ -129,8 +129,8 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         """
         ioup_speed0 = prior.IOUP(2, 3, driftspeed=0, diffconst=1.2345)
         ibm = prior.IBM(2, 3, diffconst=1.2345)
-        self.assertAllClose(ioup_speed0.driftmatrix, ibm.driftmatrix)
-        self.assertAllClose(ioup_speed0.dispersionmatrix, ibm.dispersionmatrix)
+        self.assertAllClose(ioup_speed0.driftmat, ibm.driftmat)
+        self.assertAllClose(ioup_speed0.dispmat, ibm.dispmat)
 
 
 class TestMatern(unittest.TestCase, NumpyAssertions):
@@ -151,7 +151,7 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         This is OUP.
         """
         xi = np.sqrt(2 * (self.mat0.dimension - 0.5)) / self.mat0.lengthscale
-        self.assertAlmostEqual(self.mat0.driftmatrix[0, 0], -xi)
+        self.assertAlmostEqual(self.mat0.driftmat[0, 0], -xi)
 
     def test_n1(self):
         """
@@ -159,7 +159,7 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         """
         xi = np.sqrt(2 * (self.mat1.dimension - 0.5)) / self.mat1.lengthscale
         expected = np.array([-(xi ** 2), -2 * xi])
-        self.assertAllClose(self.mat1.driftmatrix[-1, :], expected)
+        self.assertAllClose(self.mat1.driftmat[-1, :], expected)
 
     def test_n2(self):
         """
@@ -167,7 +167,7 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         """
         xi = np.sqrt(2 * (self.mat2.dimension - 0.5)) / self.mat2.lengthscale
         expected = np.array([-(xi ** 3), -3 * xi ** 2, -3 * xi])
-        self.assertAllClose(self.mat2.driftmatrix[-1, :], expected)
+        self.assertAllClose(self.mat2.driftmat[-1, :], expected)
 
     def test_larger_shape(self):
         mat2d = prior.Matern(2, 2, 1.0, 1.0)
