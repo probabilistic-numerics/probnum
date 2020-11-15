@@ -92,11 +92,11 @@ class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
             self.posterior.locations[[2, 3]],
             np.arange(0.0, 0.5, 0.025),
         ]
-        dim = (self.method.dynamod.dimension,)
+        dim = (self.method.dynamic_model.dimension,)
         single_sample_shapes = [
-            (len(self.posterior), self.method.dynamod.dimension),
-            (2, self.method.dynamod.dimension),
-            (len(loc_inputs[-1]), self.method.dynamod.dimension),
+            (len(self.posterior), self.method.dynamic_model.dimension),
+            (2, self.method.dynamic_model.dimension),
+            (len(loc_inputs[-1]), self.method.dynamic_model.dimension),
         ]
 
         for size in [(), (5,), (2, 3, 4)]:

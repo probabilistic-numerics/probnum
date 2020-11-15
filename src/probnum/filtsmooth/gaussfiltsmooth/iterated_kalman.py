@@ -24,7 +24,7 @@ class IteratedKalman(Kalman):
             self.stoppingcriterion = StoppingCriterion()
         else:
             self.stoppingcriterion = stoppingcriterion
-        super().__init__(kalman.dynamod, kalman.measmod, kalman.initrv)
+        super().__init__(kalman.dynamic_model, kalman.measurement_model, kalman.initrv)
 
     def filter_step(
         self,
@@ -106,11 +106,11 @@ class IteratedKalman(Kalman):
 
     def predict(self, start, stop, randvar, linearise_at=None, intermediate_step=None):
         """(Possibly iterated) prediction step."""
-        pred_rv, info_pred = self.dynamod.transition_rv(
+        pred_rv, info_pred = self.dynamic_model.transition_rv(
             randvar, start, stop=stop, linearise_at=linearise_at, step=intermediate_step
         )
         while self.stoppingcriterion.continue_predict_iteration(pred_rv, info_pred):
-            pred_rv, info_pred = self.dynamod.transition_rv(
+            pred_rv, info_pred = self.dynamic_model.transition_rv(
                 pred_rv, start, stop, linearise_at=pred_rv, step=intermediate_step
             )
         return pred_rv, info_pred
@@ -130,7 +130,7 @@ class IteratedKalman(Kalman):
 
     def _single_update(self, time, randvar, data, linearise_at=None):
         # like kalman.update but with an explicit linearise_at argument
-        meas_rv, info = self.measmod.transition_rv(
+        meas_rv, info = self.measurement_model.transition_rv(
             randvar, time, linearise_at=linearise_at
         )
         crosscov = info["crosscov"]

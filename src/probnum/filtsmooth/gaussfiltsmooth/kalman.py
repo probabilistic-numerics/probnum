@@ -68,7 +68,7 @@ class Kalman(BayesFiltSmooth):
         # linearise_at is not used here, only in IteratedKalman.filter_step
         # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
-        filtrv = self.initialrandomvariable
+        filtrv = self.initrv
         rvs = [filtrv]
         for idx in range(1, len(times)):
             filtrv, _ = self.filter_step(
@@ -118,7 +118,7 @@ class Kalman(BayesFiltSmooth):
         return filtrv, info
 
     def predict(self, start, stop, randvar, intermediate_step=None):
-        return self.dynamod.transition_rv(
+        return self.dynamic_model.transition_rv(
             randvar,
             start,
             stop=stop,
@@ -144,7 +144,7 @@ class Kalman(BayesFiltSmooth):
             covariance between the input random variable and the measured random
             variable.
         """
-        return self.measmod.transition_rv(randvar, time)
+        return self.measurement_model.transition_rv(randvar, time)
 
     def condition_state_on_measurement(self, randvar, meas_rv, data, crosscov):
         """Condition the state on the observed data
@@ -283,7 +283,7 @@ class Kalman(BayesFiltSmooth):
         stop : float
             Time-point of the already-smoothed RV.
         """
-        predicted_rv, info = self.dynamod.transition_rv(
+        predicted_rv, info = self.dynamic_model.transition_rv(
             unsmoothed_rv, start, stop=stop, step=intermediate_step
         )
         crosscov = info["crosscov"]

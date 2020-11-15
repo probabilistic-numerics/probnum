@@ -33,7 +33,9 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
 
     def test_ivp2ekf0_output(self):
         filtsmooth_object = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(filtsmooth_object.measmod, pnfs.DiscreteEKFComponent)
+        self.assertIsInstance(
+            filtsmooth_object.measurement_model, pnfs.DiscreteEKFComponent
+        )
 
     def test_ekf0_measmod(self):
         kalman = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
@@ -42,7 +44,9 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
+        received, _ = kalman.measurement_model.transition_realization(
+            random_eval, random_time
+        )
 
         self.assertAllClose(expected, received.mean)
 
@@ -56,9 +60,7 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
                 @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
             ]
         )
-        self.assertAllClose(
-            filtsmooth_object.initialrandomvariable.mean, expected_initval.T.flatten()
-        )
+        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
 
 
 class TestIvp2Ekf1(Ivp2FilterTestCase):
@@ -69,7 +71,9 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
 
     def test_ivp2ekf1_output(self):
         filtsmooth_object = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(filtsmooth_object.measmod, pnfs.DiscreteEKFComponent)
+        self.assertIsInstance(
+            filtsmooth_object.measurement_model, pnfs.DiscreteEKFComponent
+        )
 
     def test_ekf1_measmod(self):
         kalman = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
@@ -78,7 +82,9 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
+        received, _ = kalman.measurement_model.transition_realization(
+            random_eval, random_time
+        )
 
         self.assertAllClose(expected, received.mean)
 
@@ -92,9 +98,7 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
                 @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
             ]
         )
-        self.assertAllClose(
-            filtsmooth_object.initialrandomvariable.mean, expected_initval.T.flatten()
-        )
+        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
 
 
 class TestIvpUkf(Ivp2FilterTestCase):
@@ -105,7 +109,9 @@ class TestIvpUkf(Ivp2FilterTestCase):
 
     def test_ivp2ukf_output(self):
         filtsmooth_object = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(filtsmooth_object.measmod, pnfs.DiscreteUKFComponent)
+        self.assertIsInstance(
+            filtsmooth_object.measurement_model, pnfs.DiscreteUKFComponent
+        )
 
     def test_ukf_measmod(self):
         kalman = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
@@ -114,7 +120,9 @@ class TestIvpUkf(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measmod.transition_realization(random_eval, random_time)
+        received, _ = kalman.measurement_model.transition_realization(
+            random_eval, random_time
+        )
 
         self.assertAllClose(expected, received.mean)
 
@@ -128,6 +136,4 @@ class TestIvpUkf(Ivp2FilterTestCase):
                 @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
             ]
         )
-        self.assertAllClose(
-            filtsmooth_object.initialrandomvariable.mean, expected_initval.T.flatten()
-        )
+        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())

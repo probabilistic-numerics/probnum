@@ -10,9 +10,9 @@ class BayesFiltSmooth(ABC):
     Bayesian filtering and smoothing.
     """
 
-    def __init__(self, dynamod, measmod, initrv):
-        self.dynamod = dynamod
-        self.measmod = measmod
+    def __init__(self, dynamic_model, measurement_model, initrv):
+        self.dynamic_model = dynamic_model
+        self.measurement_model = measurement_model
         self.initrv = initrv
 
     @abstractmethod
@@ -36,31 +36,3 @@ class BayesFiltSmooth(ABC):
             + "the Bayesian smoother {}.".format(type(self).__name__)
         )
         raise NotImplementedError(errormsg)
-
-    @property
-    def dynamicmodel(self):
-        """
-        Convenience function for accessing ``self.dynamod``.
-        """
-        return self.dynamod
-
-    @property
-    def measurementmodel(self):
-        """
-        Convenience function for accessing ``self.measmod``.
-        """
-        return self.measmod
-
-    @property
-    def initialrandomvariable(self):
-        """
-        Convenience function for accessing ``self.initrv``.
-        """
-        return self.initrv
-
-    @property
-    def initialdistribution(self):
-        """
-        Convenience function for accessing ``self.initdist``.
-        """
-        return self.initrv

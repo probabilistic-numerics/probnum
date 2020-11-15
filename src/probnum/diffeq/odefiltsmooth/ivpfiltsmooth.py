@@ -24,13 +24,13 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         Notes
         -----
-        * gaussfilt.dynamicmodel contains the prior,
+        * gaussfilt.dynamic_model contains the prior,
         * gaussfilt.measurementmodel contains the information about the
         ODE right hand side function,
         * gaussfilt.initialdistribution contains the information about
         the initial values.
         """
-        if not issubclass(type(gaussfilt.dynamicmodel), ODEPrior):
+        if not issubclass(type(gaussfilt.dynamic_model), ODEPrior):
             raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
         self.gfilt = gaussfilt
         self.sigma_squared_mle = 1.0
@@ -38,12 +38,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
         super().__init__(ivp)
 
     def initialise(self):
-        return self.ivp.t0, self.gfilt.initialrandomvariable
+        return self.ivp.t0, self.gfilt.initrv
 
     def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
         # 0. Obtain the diffusion matrix; required for calibration / error estimation
-        discrete_dynamics = self.gfilt.dynamod.discretise(t_new - t)
+        discrete_dynamics = self.gfilt.dynamic_model.discretise(t_new - t)
         diffmat = discrete_dynamics.diffmat
 
         # 1. Predict
@@ -120,7 +120,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return smoothed_solution
 
     def undo_preconditioning(self, rv):
-        ipre = self.gfilt.dynamicmodel.invprecond
+        ipre = self.gfilt.dynamic_model.invprecond
         newmean = ipre @ rv.mean
         newcov = ipre @ rv.cov @ ipre.T
         newrv = Normal(newmean, newcov)
@@ -164,4 +164,4 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     @property
     def prior(self):
-        return self.gfilt.dynamicmodel
+        return self.gfilt.dynamic_model
