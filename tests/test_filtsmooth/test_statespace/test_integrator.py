@@ -107,5 +107,43 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         self.assertGreater(np.linalg.norm(diff2), 1e-2)
 
 
+class TestIOUP(unittest.TestCase, NumpyAssertions):
+    def setUp(self):
+        driftspeed = 0.151231
+        self.ioup = pnfs.statespace.IOUP(2, 2, driftspeed, DIFFCONST)
+
+    def test_transition_rv(self):
+        mean, cov = np.ones(self.ioup.dimension), np.eye(self.ioup.dimension)
+        initrv = pnrv.Normal(mean, cov)
+        self.ioup.transition_rv(initrv, start=0.0, stop=STEP)
+
+    def test_transition_realization(self):
+        mean, cov = np.ones(self.ioup.dimension), np.eye(self.ioup.dimension)
+        real = pnrv.Normal(mean, cov).sample()
+        self.ioup.transition_realization(real, start=0.0, stop=STEP)
+
+    def test_asymptotically_ibm(self):
+        """For driftspeed==0, it coincides with the IBM prior."""
+        ioup_speed0 = pnfs.statespace.IOUP(2, 3, driftspeed=0.0, diffconst=1.2345)
+
+        ibm = pnfs.statespace.IBM(2, 3, diffconst=1.2345)
+        self.assertAllClose(ioup_speed0.driftmat, ibm.driftmat)
+        self.assertAllClose(ioup_speed0.forcevec, ibm.forcevec)
+        self.assertAllClose(ioup_speed0.dispmat, ibm.dispmat)
+
+        mean, cov = np.ones(ibm.dimension), np.eye(ibm.dimension)
+        rv = pnrv.Normal(mean, cov)
+        ibm_out, _ = ibm.transition_rv(rv, start=0.0, stop=STEP)
+        ioup_out, _ = ioup_speed0.transition_rv(rv, start=0.0, stop=STEP)
+        self.assertAllClose(ibm_out.mean, ioup_out.mean)
+        self.assertAllClose(ibm_out.cov, ioup_out.cov)
+
+        real = rv.sample()
+        ibm_out, _ = ibm.transition_realization(real, start=0.0, stop=STEP)
+        ioup_out, _ = ioup_speed0.transition_realization(real, start=0.0, stop=STEP)
+        self.assertAllClose(ibm_out.mean, ioup_out.mean)
+        self.assertAllClose(ibm_out.cov, ioup_out.cov)
+
+
 if __name__ == "__main__":
     unittest.main()

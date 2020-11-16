@@ -58,7 +58,7 @@ class Integrator:
 
 
 class IBM(Integrator, sde.LTISDE):
-    """Integrated Brownian motion."""
+    """Integrated Brownian motion in :math:`d` dimensions."""
 
     def __init__(self, ordint, spatialdim, diffconst):
         self.diffconst = diffconst
@@ -78,7 +78,7 @@ class IBM(Integrator, sde.LTISDE):
     @property
     def _driftmat(self):
         driftmat_1d = np.diag(np.ones(self.ordint), 1)
-        return np.kron(np.eye(self.ordint), driftmat_1d)
+        return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
     @property
     def _forcevec(self):
@@ -89,7 +89,7 @@ class IBM(Integrator, sde.LTISDE):
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
         dispmat_1d[-1] = self.diffconst
-        return np.kron(np.eye(self.ordint), dispmat_1d)
+        return np.kron(np.eye(self.spatialdim), dispmat_1d).T
 
     @cached_property
     def equivalent_discretisation_preconditioned(self):
@@ -176,3 +176,55 @@ class IBM(Integrator, sde.LTISDE):
         return discrete_transition.DiscreteLTIGaussian(
             dynamicsmat=dynamicsmat, forcevec=zero_force, diffmat=diffmat
         )
+
+
+class IOUP(Integrator, sde.LTISDE):
+    """
+    Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions.
+
+    Parameters
+    ----------
+    ordint
+        Order of integration.
+    spatialdim
+        Dimensionality of the underlying OUP (this is :math:`d`)
+    driftspeed
+        Drift speed (aka mean-reverting speed) of the underlying OUP. Usually positive (mean-reverting).
+        If negative, the process is not mean-reverting. If zero, IBM is recovered.
+    """
+
+    def __init__(
+        self,
+        ordint: int,
+        spatialdim: int,
+        driftspeed: float,
+        diffconst: float,
+    ):
+        # Other than previously in ProbNum, we do not use preconditioning for IOUP by default.
+        self.driftspeed = driftspeed
+        self.diffconst = diffconst
+
+        Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
+        sde.LTISDE.__init__(
+            self,
+            driftmat=self._driftmat,
+            forcevec=self._forcevec,
+            dispmat=self._dispmat,
+        )
+
+    @property
+    def _driftmat(self):
+        driftmat_1d = np.diag(np.ones(self.ordint), 1)
+        driftmat_1d[-1, -1] = -self.driftspeed
+        return np.kron(np.eye(self.spatialdim), driftmat_1d)
+
+    @property
+    def _forcevec(self):
+        force_1d = np.zeros(self.ordint + 1)
+        return np.kron(np.ones(self.spatialdim), force_1d)
+
+    @property
+    def _dispmat(self):
+        dispmat_1d = np.zeros(self.ordint + 1)
+        dispmat_1d[-1] = self.diffconst
+        return np.kron(np.eye(self.spatialdim), dispmat_1d).T
