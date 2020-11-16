@@ -1,7 +1,7 @@
 import numpy as np
 
-from probnum.diffeq import odesolver
 import probnum.filtsmooth as pnfs
+from probnum.diffeq import odesolver
 from probnum.diffeq.odesolution import ODESolution
 from probnum.random_variables import Normal
 
