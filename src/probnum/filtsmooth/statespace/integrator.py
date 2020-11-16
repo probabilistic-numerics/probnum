@@ -92,7 +92,7 @@ class IBM(Integrator, sde.LTISDE):
         return np.kron(np.eye(self.ordint), dispmat_1d)
 
     @cached_property
-    def equivalent_discretisation(self):
+    def equivalent_discretisation_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
         empty_force = np.zeros(self.spatialdim * (self.ordint + 1))
         return discrete_transition.DiscreteLTIGaussian(
@@ -133,12 +133,11 @@ class IBM(Integrator, sde.LTISDE):
         step = stop - start
         rv = self.precon.inverse(step) @ rv
         rv, info = self.transition_rv_preconditioned(rv, start)
-        # does the cross-covariance have to be changed somehow??
+        print("does the cross-covariance have to be changed somehow??")
         return self.precon(step) @ rv, info
 
     def transition_rv_preconditioned(self, rv, start, **kwargs):
-        # `stop` is swallowed by the preconditioning
-        return self.equivalent_discretisation.transition_rv(rv, start)
+        return self.equivalent_discretisation_preconditioned.transition_rv(rv, start)
 
     def transition_realization(self, real, start, stop, **kwargs):
         if not isinstance(real, np.ndarray):
@@ -146,15 +145,18 @@ class IBM(Integrator, sde.LTISDE):
         step = stop - start
         real = self.precon.inverse(step) @ real
         real, info = self.transition_realization_preconditioned(real, start)
-        # does the cross-covariance have to be changed somehow??
+        print("does the cross-covariance have to be changed somehow??")
         return self.precon(step) @ real, info
 
     def transition_realization_preconditioned(self, real, start, **kwargs):
-        # `stop` is swallowed by the preconditioning
-        return self.equivalent_discretisation.transition_realization(real, start)
+        return self.equivalent_discretisation_preconditioned.transition_realization(
+            real, start
+        )
 
     def discretise(self, step):
         """
+        Equivalent discretisation of the process.
+
         Overwrites matrix-fraction decomposition in the super-class.
         Only present for user's convenience and to maintain a clean interface.
         Not used for transition_rv, etc..
@@ -162,12 +164,12 @@ class IBM(Integrator, sde.LTISDE):
 
         dynamicsmat = (
             self.precon(step)
-            @ self.equivalent_discretisation.dynamicsmat
+            @ self.equivalent_discretisation_preconditioned.dynamicsmat
             @ self.precon.inverse(step)
         )
         diffmat = (
             self.precon(step)
-            @ self.equivalent_discretisation.diffmat
+            @ self.equivalent_discretisation_preconditioned.diffmat
             @ self.precon(step).T
         )
         zero_force = np.zeros(len(dynamicsmat))
