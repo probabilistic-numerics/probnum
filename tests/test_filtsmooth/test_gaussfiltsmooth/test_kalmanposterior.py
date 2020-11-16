@@ -81,6 +81,7 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
 
 
 class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
+    # There is no check as to whether the samples make sense...
     def setUp(self):
         super().setup_cartracking()
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)

@@ -228,9 +228,7 @@ def probsolve_ivp(
     return solution
 
 
-def _create_solver_inputs(
-    ivp, method, which_prior, tol, step, firststep, **kwargs
-):
+def _create_solver_inputs(ivp, method, which_prior, tol, step, firststep, **kwargs):
     """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)

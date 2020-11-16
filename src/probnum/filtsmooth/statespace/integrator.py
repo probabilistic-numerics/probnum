@@ -27,7 +27,7 @@ class Integrator:
         self.ordint = ordint
         self.spatialdim = spatialdim
 
-    def proj2deriv(self, coord: int) -> np.ndarray:
+    def proj2coord(self, coord: int) -> np.ndarray:
         """
         Projection matrix to :math:`i`-th coordinates.
 

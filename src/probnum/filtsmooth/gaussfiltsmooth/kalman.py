@@ -364,7 +364,7 @@ class Kalman(BayesFiltSmooth):
         stop : float
             Time-point of the already-smoothed RV.
         """
-
+        # It is not clear to me how to best test this, except running IBM smoothing for high-ish order. (N)
         unsmoothed_rv = self.dynamic_model.precon.inverse(stop - start) @ unsmoothed_rv
         smoothed_rv = self.dynamic_model.precon.inverse(stop - start) @ smoothed_rv
 
