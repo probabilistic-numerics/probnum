@@ -11,6 +11,28 @@ except ImportError:
 import numpy as np
 import scipy.special  # for vectorised factorial
 
+from probnum import linops
+
+
+class Diagonal:
+    """Fast and lightweight diagonal matrices."""
+
+    __array_ufunc__ = None
+    __slots__ = ["diagonal"]
+
+    def __init__(self, diagonal):
+        self.diagonal = diagonal
+
+    def __matmul__(self, other):
+        return (self.diagonal * other.T).T
+
+    def __rmatmul__(self, other):
+        return self.diagonal * other
+
+    @property
+    def T(self):
+        return self
+
 
 class Preconditioner(abc.ABC):
     """
@@ -54,6 +76,7 @@ class TaylorCoordinates(Preconditioner):
     def __call__(self, step):
         scaling_vector = step ** self.powers / self.scales
         return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
+        # return Diagonal(np.repeat(scaling_vector, self.spatialdim))
 
     @cached_property
     def inverse(self) -> "TaylorCoordinates":

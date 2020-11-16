@@ -44,7 +44,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
-        # 0. Obtain the diffusion matrix; required for calibration / error estimation
+
+        # Read the diffusion matrix; required for calibration / error estimation
         discrete_dynamics = self.gfilt.dynamic_model.discretise(t_new - t)
         diffmat = discrete_dynamics.diffmat
 
@@ -55,7 +56,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         meas_rv, info = self.gfilt.measure(t_new, pred_rv)
 
         # 3. Estimate the diffusion (sigma squared)
-        self.sigma_squared_mle = self._estimate_diffusion(pred_rv, meas_rv)
+        self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
         # 3.1. Adjust the prediction covariance to include the diffusion
         pred_rv = Normal(
             pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * diffmat
@@ -145,9 +146,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
         local_pred_rv = Normal(pred_rv.mean, calibrated_diffmat)
         local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv)
         error = local_meas_rv.cov.diagonal()
-        return error
+        return np.sqrt(error)
 
-    def _estimate_diffusion(self, pred_rv, meas_rv):
+    def _estimate_diffusion(self, meas_rv):
         """Estimate the dynamic diffusion parameter sigma_squared
 
         This corresponds to the approach in [1], implemented such that it is compatible
@@ -168,3 +169,74 @@ class GaussianIVPFilter(odesolver.ODESolver):
     @property
     def prior(self):
         return self.gfilt.dynamic_model
+
+
+#####################################################################################################3
+#
+# below the code for using preconditioning in step():
+#
+# It seems slower though and we don't need it for stability in the forward pass?
+#
+#####################################################################################################3
+
+# def step(...)
+#     # if isinstance(self.prior, pnfs.statespace.IBM):
+#     #     return self._step_with_preconditioning(t, t_new, current_rv)
+#     return self._step_classic(t, t_new, current_rv)
+#
+# def _step_with_preconditioning(self, t, t_new, current_rv):
+#
+#     # works only for IBM
+#     discrete_dynamics = (
+#         self.gfilt.dynamic_model.equivalent_discretisation_preconditioned
+#     )
+#
+#     # Read the diffusion matrix; required for calibration / error estimation
+#     diffmat = discrete_dynamics.diffmat
+#     precon = self.prior.precon(t_new - t)
+#     precon_inv = self.prior.precon.inverse(t_new - t)
+#
+#     # 0. Fetch into preconditioned space
+#     current_rv = precon_inv @ current_rv
+#
+#     # 1. Predict
+#     pred_rv, _ = self.prior.transition_rv_preconditioned(
+#         current_rv, start=t, stop=t_new
+#     )
+#
+#     # 2. Measure
+#     pred_rv_oldspace = precon @ pred_rv
+#     meas_rv, info = self.gfilt.measure(t_new, pred_rv_oldspace)
+#
+#     # 3. Estimate the diffusion (sigma squared)
+#     self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
+#
+#     # 3.1. Adjust the prediction covariance to include the diffusion
+#     pred_rv = Normal(
+#         pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1.0) * diffmat
+#     )
+#
+#     # 3.2 Update the measurement covariance (measure again)
+#     pred_rv_oldspace = precon @ pred_rv
+#     meas_rv, info = self.gfilt.measure(t_new, pred_rv_oldspace)
+#     info["crosscov"] = precon_inv @ info["crosscov"]  # adjust cross-covariance
+#
+#     # 4. Update
+#     zero_data = 0.0
+#     filt_rv = self.gfilt.condition_state_on_measurement(
+#         pred_rv, meas_rv, zero_data, info["crosscov"]
+#     )
+#
+#     # 5. Error estimate
+#     local_errors = self._estimate_local_error(
+#         precon @ pred_rv,
+#         t_new,
+#         self.sigma_squared_mle * (precon @ diffmat @ precon.T),
+#     )
+#     err = np.linalg.norm(local_errors)
+#
+#     # 6. Push back into old space
+#     filt_rv = precon @ filt_rv
+#     return filt_rv, err
+#
+# def _step_classic(self, t, t_new, current_rv):
