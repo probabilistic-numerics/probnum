@@ -103,50 +103,6 @@ def ivp2ukf(ivp, prior, evlvar):
 
 
 def _initialdistribution(ivp, prior):
-    """
-    Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)`
-    on the initial values :math:`(x_0, f(t_0, x_0), ...)` using
-    as many available derivatives as possible.
-
-    Note that the projection matrices :math:`H_0` and :math:`H_1`
-    become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
-    """
-    if not issubclass(type(ivp.initrv), pnrv.Normal):
-        if not issubclass(type(ivp.initrv), pnrv.Constant):
-            raise RuntimeError("Initial distribution not Normal nor Dirac")
-    x0 = ivp.initialdistribution.mean
-    dx0 = ivp.rhs(ivp.t0, x0)
-    ddx0 = _ddx(ivp.t0, x0, ivp)
-    dddx0 = _dddx(ivp.t0, x0, ivp)
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-    precond = prior.preconditioner
-    # initcov = np.eye(*(precond @ precond.T).shape)
-    initcov = precond @ precond.T
-    if prior.ordint == 1:
-        projmat = np.hstack((h0.T, h1.T)).T
-        data = np.hstack((x0, dx0))
-        _size = 2
-    elif prior.ordint == 2:  # try only jacobian
-        h2 = prior.proj2coord(coord=2)
-        projmat = np.hstack((h0.T, h1.T, h2.T)).T
-        data = np.hstack((x0, dx0, ddx0))
-        _size = 3
-    else:  # try jacobian and hessian
-        h2 = prior.proj2coord(coord=2)
-        h3 = prior.proj2coord(coord=3)
-        projmat = np.hstack((h0.T, h1.T, h2.T, h3.T)).T
-        data = np.hstack((x0, dx0, ddx0, dddx0))
-        _size = 4
-    largecov = np.kron(np.eye(_size), ivp.initialdistribution.cov)
-    s = projmat @ initcov @ projmat.T + largecov
-    crosscov = initcov @ projmat.T
-    newmean = crosscov @ np.linalg.solve(s, data)
-    newcov = initcov - (crosscov @ np.linalg.solve(s.T, crosscov.T)).T
-    return pnrv.Normal(newmean, newcov)
-
-
-def _initialdistribution_no_precond(ivp, prior):
     x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)
