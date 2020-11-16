@@ -36,6 +36,9 @@ class Transition(abc.ABC):
         Discretely indexed transitions (transformations)
     """
 
+    def __init__(self):
+        self.precon = None
+
     def __call__(
         self,
         arr_or_rv: Union[np.ndarray, "RandomVariable"],

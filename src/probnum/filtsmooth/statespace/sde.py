@@ -29,6 +29,7 @@ class SDE(transition.Transition):
         self.driftfun = driftfun
         self.dispmatfun = dispmatfun
         self.jacobfun = jacobfun
+        self.precon = None
 
     def transition_realization(
         self,
@@ -100,7 +101,7 @@ class LinearSDE(SDE):
         real,
         start,
         stop,
-        step=None,
+        step,
         **kwargs,
     ):
         # **kwargs swallow all irrelevant arguments for this function.
@@ -115,13 +116,7 @@ class LinearSDE(SDE):
             self.dispmatfun,
         )
 
-    def transition_rv(
-        self,
-        rv,
-        start,
-        stop,
-        step=None,
-    ):
+    def transition_rv(self, rv, start, stop, step, **kwargs):
         # **kwargs swallow all irrelevant arguments for this function.
 
         if not isinstance(rv, pnrv.Normal):

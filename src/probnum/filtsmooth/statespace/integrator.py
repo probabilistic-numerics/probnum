@@ -73,7 +73,7 @@ class IBM(Integrator, sde.LTISDE):
             dispmat=self._dispmat,
         )
 
-        self.precond = TaylorCoordinates.from_order(ordint, spatialdim)
+        self.precon = TaylorCoordinates.from_order(ordint, spatialdim)
 
     @property
     def _driftmat(self):
@@ -132,10 +132,10 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(errormsg)
         step = stop - start
         if not already_preconditioned:
-            rv = self.precond.inverse(step) @ rv
+            rv = self.precon.inverse(step) @ rv
             rv, info = self.transition_rv(rv, start, stop, already_preconditioned=True)
             # does the cross-covariance have to be changed somehow??
-            return self.precond(step) @ rv, info
+            return self.precon(step) @ rv, info
         else:
             return self.equivalent_discretisation.transition_rv(rv, start)
 
@@ -146,11 +146,11 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         if not already_preconditioned:
-            rv = self.precond.inverse(step) @ real
+            rv = self.precon.inverse(step) @ real
             rv, info = self.transition_realization(
                 rv, start, stop, already_preconditioned=True
             )
-            return self.precond(step) @ rv, info
+            return self.precon(step) @ rv, info
         else:
             return self.equivalent_discretisation.transition_realization(real, start)
 
@@ -162,14 +162,14 @@ class IBM(Integrator, sde.LTISDE):
         """
 
         dynamicsmat = (
-            self.precond(step)
+            self.precon(step)
             @ self.equivalent_discretisation.dynamicsmat
-            @ self.precond.inverse(step)
+            @ self.precon.inverse(step)
         )
         diffmat = (
-            self.precond(step)
+            self.precon(step)
             @ self.equivalent_discretisation.diffmat
-            @ self.precond(step).T
+            @ self.precon(step).T
         )
         zero_force = np.zeros(len(dynamicsmat))
         return discrete_transition.DiscreteLTIGaussian(
