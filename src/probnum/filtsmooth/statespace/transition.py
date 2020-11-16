@@ -1,7 +1,7 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
-from typing import Dict, Union
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -44,10 +44,10 @@ class Transition(abc.ABC):
         self,
         real: np.ndarray,
         start: float,
-        stop: float = None,
-        step: float = None,
-        linearise_at: "RandomVariable" = None,
-    ) -> ("RandomVariable", Dict):
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
         """
         Transition a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
 
@@ -95,10 +95,10 @@ class Transition(abc.ABC):
         self,
         real: np.ndarray,
         start: float,
-        stop: float = None,
-        step: float = None,
-        linearise_at: "RandomVariable" = None,
-    ) -> ("RandomVariable", Dict):
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
         """
         Applies the transition, assuming that the state is already preconditioned.
 
@@ -119,10 +119,10 @@ class Transition(abc.ABC):
         self,
         rv: "RandomVariable",
         start: float,
-        stop: float = None,
-        step: float = None,
-        linearise_at: "RandomVariable" = None,
-    ) -> ("RandomVariable", Dict):
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
         """
         Transition a random variable from time :math:`t` to time :math:`t+\\Delta t`.
 
@@ -172,10 +172,10 @@ class Transition(abc.ABC):
         self,
         rv: "RandomVariable",
         start: float,
-        stop: float = None,
-        step: float = None,
-        linearise_at: "RandomVariable" = None,
-    ) -> ("RandomVariable", Dict):
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
         """
         Applies the transition, assuming that the state is already preconditioned.
 
@@ -247,8 +247,7 @@ def _read_dimension(transition, initrv):
     which is not implemented everywhere."""
     # relies on evaluating at zero, which is a dangerous endeavour and therefore,
     # this method is not used in Transition.dimension
-    return len(
-        transition.transition_realization(real=initrv.mean, start=0.0, stop=1.0)[
-            0
-        ].sample()
+    transitioned, _ = transition.transition_realization(
+        real=initrv.mean, start=0.0, stop=1.0
     )
+    return len(transitioned.sample())

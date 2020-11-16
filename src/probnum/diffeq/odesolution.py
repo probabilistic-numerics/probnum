@@ -11,7 +11,6 @@ from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth import KalmanPosterior
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
-from probnum.random_variables import Normal
 
 
 class ODESolution(FiltSmoothPosterior):
@@ -76,7 +75,7 @@ class ODESolution(FiltSmoothPosterior):
     def __init__(self, times, rvs, solver):
 
         # try-except is a hotfix for now:
-        # future PR is to move KalmanPosterior-info out of here, into GaussianIVPFilter
+        # future PR is to move KalmanPosterior-info out of here, e.g. into GaussianIVPFilter
         try:
             self._kalman_posterior = KalmanPosterior(
                 times, rvs, solver.gfilt, solver.with_smoothing
@@ -88,14 +87,6 @@ class ODESolution(FiltSmoothPosterior):
             self._t = times
             self._y = _RandomVariableList(rvs)
         self._solver = solver
-
-    #
-    # def _proj_normal_rv(self, rv, coord):
-    #     """Projection of a normal RV, e.g. to map 'states' to 'function values'."""
-    #     q = self._solver.prior.ordint
-    #     new_mean = rv.mean[coord :: (q + 1)]
-    #     new_cov = rv.cov[coord :: (q + 1), coord :: (q + 1)]
-    #     return Normal(new_mean, new_cov)
 
     @property
     def t(self):
@@ -134,14 +125,7 @@ class ODESolution(FiltSmoothPosterior):
     def _state_rvs(self):
         """
         :obj:`list` of :obj:`RandomVariable`:
-        Time-discrete posterior estimates over states, without preconditioning.
-
-        Note that this does not correspond to ``self._kalman_posterior.state_rvs``:
-        Here we undo the preconditioning to make the "states" interpretable.
         """
-        # state_rvs = _RandomVariableList(
-        #     [self._solver.undo_preconditioning(rv) for rv in self._kalman_posterior]
-        # )
         return self._kalman_posterior.state_rvs
 
     def __call__(self, t):
@@ -168,8 +152,6 @@ class ODESolution(FiltSmoothPosterior):
 
         if np.isscalar(t):
             return projmat @ out_rv
-            # out_rv = self._solver.undo_preconditioning(out_rv)
-            # return self._proj_normal_rv(out_rv, 0)
 
         return _RandomVariableList([projmat @ rv for rv in out_rv])
 
@@ -183,12 +165,9 @@ class ODESolution(FiltSmoothPosterior):
 
         if isinstance(idx, int):
             rv = self._kalman_posterior[idx]
-            # rv = self._solver.undo_preconditioning(rv)
-            # rv = self._proj_normal_rv(rv, 0)
             return projmat @ rv
         elif isinstance(idx, slice):
             rvs = self._kalman_posterior[idx]
-            # rvs = [self._solver.undo_preconditioning(rv) for rv in rvs]
             f_rvs = [projmat @ rv for rv in rvs]
             return _RandomVariableList(f_rvs)
         else:
@@ -198,14 +177,10 @@ class ODESolution(FiltSmoothPosterior):
 
         size = utils.as_shape(size)
         projmat = self._solver.prior.proj2coord(coord=0)
+
         # implement only single samples, rest via recursion
         if size != ():
             return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
 
         samples = self._kalman_posterior.sample(locations=t, size=size)
         return np.array([projmat @ sample for sample in samples])
-
-    # def _project_rv_list(self, rv_list):
-    #     """Undo preconditioning and project to first coordinate."""
-    #     projmat = self._solver.prior.proj2coord(coord=0)  # precond-aware projection
-    #     return [projmat @ rv for rv in rv_list]
