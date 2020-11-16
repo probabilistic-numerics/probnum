@@ -122,14 +122,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         return smoothed_solution
 
-    #
-    # def undo_preconditioning(self, rv):
-    #     ipre = self.gfilt.dynamic_model.invprecond
-    #     newmean = ipre @ rv.mean
-    #     newcov = ipre @ rv.cov @ ipre.T
-    #     newrv = Normal(newmean, newcov)
-    #     return newrv
-
     def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat):
         """Estimate the local errors
 
