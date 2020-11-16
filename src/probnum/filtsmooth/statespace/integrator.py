@@ -55,53 +55,51 @@ class Integrator:
 
 
 class IBM(Integrator, sde.LTISDE):
-
-    preconditioner = TaylorCoordinates
+    """Integrated Brownian motion."""
 
     def __init__(self, ordint, spatialdim, diffconst):
         self.diffconst = diffconst
-        F, s, L = self._assemble_ibm_sde(ordint, spatialdim, diffconst)
 
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
         sde.LTISDE.__init__(
             self,
-            driftmat=F,
-            forcevec=s,
-            dispmat=L,
+            driftmat=self._driftmat,
+            forcevec=self._forcevec,
+            dispmat=self._dispmat,
         )
 
-        self.equivalent_discretisation = self.discretise_preconditioned()
-        self.precond = self.preconditioner.from_order(
-            ordint, spatialdim
-        )  # initialise preconditioner class
+        self.precond = TaylorCoordinates.from_order(ordint, spatialdim)
 
-    @staticmethod
-    def _assemble_ibm_sde(ordint, spatialdim, diffconst):
-        driftmat_1d = np.diag(np.ones(ordint), 1)
-        dispmat_1d = np.zeros(ordint + 1)
-        dispmat_1d[-1] = diffconst
-        force_1d = np.zeros(ordint + 1)
-        I_d = np.eye(spatialdim)
-        driftmat, dispmat, force = (
-            np.kron(I_d, driftmat_1d),
-            np.kron(I_d, dispmat_1d),
-            np.kron(np.ones(spatialdim), force_1d),
-        )
-        return driftmat, force, dispmat
+    @property
+    def _driftmat(self):
+        driftmat_1d = np.diag(np.ones(self.ordint), 1)
+        return np.kron(np.eye(self.ordint), driftmat_1d)
 
-    def discretise_preconditioned(self):
+    @property
+    def _forcevec(self):
+        force_1d = np.zeros(self.ordint + 1)
+        return np.kron(np.ones(self.spatialdim), force_1d)
+
+    @property
+    def _dispmat(self):
+        dispmat_1d = np.zeros(self.ordint + 1)
+        dispmat_1d[-1] = self.diffconst
+        return np.kron(np.eye(self.ordint), dispmat_1d)
+
+    @cached_property
+    def equivalent_discretisation(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
         empty_force = np.zeros(self.spatialdim * (self.ordint + 1))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=self._dynamat,
+            dynamicsmat=self._dynamicsmat,
             forcevec=empty_force,
             diffmat=self._diffmat,
         )
 
     @cached_property
-    def _dynamat(self):
+    def _dynamicsmat(self):
         # Loop, but cached anyway
         driftmat_1d = np.array(
             [
@@ -160,18 +158,17 @@ class IBM(Integrator, sde.LTISDE):
         Not used for transition_rv, etc..
         """
 
-        # P and Pinv might have to be swapped...
-        dynamicsmatrix = (
+        dynamicsmat = (
             self.precond(step)
             @ self.equivalent_discretisation.dynamicsmat
             @ self.precond.inverse(step)
         )
-        diffusionmatrix = (
+        diffmat = (
             self.precond(step)
             @ self.equivalent_discretisation.diffmat
             @ self.precond(step).T
         )
-        empty_force = np.zeros(len(dynamicsmatrix))
+        zero_force = np.zeros(len(dynamicsmat))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=dynamicsmatrix, forcevec=empty_force, diffmat=diffusionmatrix
+            dynamicsmat=dynamicsmat, forcevec=zero_force, diffmat=diffmat
         )
