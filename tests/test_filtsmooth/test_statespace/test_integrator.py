@@ -53,16 +53,7 @@ QH_22_IBM = DIFFCONST ** 2 * np.array(
         [0.0, 0.0, 0.0, STEP ** 3 / 6.0, STEP ** 2 / 2.0, STEP],
     ]
 )
-
-
-AH_21_PRE = np.array([[1, 1, 0.5], [0, 1, 1], [0, 0, 1]])
-
-QH_21_PRE = (
-    DIFFCONST ** 2
-    * STEP
-    * np.array([[1 / 20, 1 / 8, 1 / 6], [1 / 8, 1 / 3, 1 / 2], [1 / 6, 1 / 2, 1]])
-)
-
+    
 
 class TestIBM(unittest.TestCase, NumpyAssertions):
     def setUp(self):
@@ -86,9 +77,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         initrv = pnrv.Normal(mean, cov)
         rv1, _ = self.sde.transition_rv(rv=initrv, start=0.0, stop=STEP)
-        rv2, _ = self.sde.transition_rv(
-            rv=initrv, start=0.0, stop=STEP, already_preconditioned=True
-        )
+        rv2, _ = self.sde.transition_rv_preconditioned(rv=initrv, start=0.0)
         diff1 = np.abs(rv1.mean - rv2.mean)
         diff2 = np.abs(rv1.cov - rv2.cov)
 
@@ -108,9 +97,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         state = pnrv.Normal(mean, cov).sample()
         rv1, _ = self.sde.transition_realization(real=state, start=0.0, stop=STEP)
-        rv2, _ = self.sde.transition_realization(
-            real=state, start=0.0, stop=STEP, already_preconditioned=True
-        )
+        rv2, _ = self.sde.transition_realization_preconditioned(real=state, start=0.0)
         diff1 = np.abs(rv1.mean - rv2.mean)
         diff2 = np.abs(rv1.cov - rv2.cov)
 

@@ -80,7 +80,6 @@ class Transition(abc.ABC):
         stop: float = None,
         step: float = None,
         linearise_at: "RandomVariable" = None,
-        already_preconditioned: bool = False,
     ) -> ("RandomVariable", Dict):
         """
         Transition a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
@@ -107,10 +106,6 @@ class Transition(abc.ABC):
         linearise_at :
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
-        already_preconditioned :
-            If the state space model uses a preconditioner, this variable can disable
-            the preconditioner, which may be preferrable if a sequence of transitions
-            ought to live in the same preconditioned space.
 
         Returns
         -------
@@ -129,6 +124,29 @@ class Transition(abc.ABC):
         """
         raise NotImplementedError
 
+    def transition_realization_preconditioned(
+        self,
+        real: np.ndarray,
+        start: float,
+        stop: float = None,
+        step: float = None,
+        linearise_at: "RandomVariable" = None,
+    ) -> ("RandomVariable", Dict):
+        """
+        Applies the transition, assuming that the state is already preconditioned.
+
+        This is useful for numerically stable implementation of Kalman smoothing steps and Kalman updates.
+        """
+        if self.precon is None:
+            errormsg = (
+                "There is no preconditioned associated with this transition. "
+                "Did you mean 'transition_realization'?"
+            )
+            raise NotImplementedError(errormsg)
+        raise NotImplementedError(
+            "'transition_realization_preconditioned' is not implemented."
+        )
+
     @abc.abstractmethod
     def transition_rv(
         self,
@@ -137,7 +155,6 @@ class Transition(abc.ABC):
         stop: float = None,
         step: float = None,
         linearise_at: "RandomVariable" = None,
-        already_preconditioned: bool = False,
     ) -> ("RandomVariable", Dict):
         """
         Transition a random variable from time :math:`t` to time :math:`t+\\Delta t`.
@@ -166,10 +183,6 @@ class Transition(abc.ABC):
         linearise_at :
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
-        already_preconditioned :
-            If the state space model uses a preconditioner, this variable can disable
-            the preconditioner, which may be preferrable if a sequence of transitions
-            ought to live in the same preconditioned space.
 
         Returns
         -------
@@ -187,6 +200,27 @@ class Transition(abc.ABC):
             Apply transition to a realization of a random variable.
         """
         raise NotImplementedError
+
+    def transition_rv_preconditioned(
+        self,
+        rv: "RandomVariable",
+        start: float,
+        stop: float = None,
+        step: float = None,
+        linearise_at: "RandomVariable" = None,
+    ) -> ("RandomVariable", Dict):
+        """
+        Applies the transition, assuming that the state is already preconditioned.
+
+        This is useful for numerically stable implementation of Kalman smoothing steps and Kalman updates.
+        """
+        if self.precon is None:
+            errormsg = (
+                "There is no preconditioned associated with this transition. "
+                "Did you mean 'transition_rv'?"
+            )
+            raise NotImplementedError(errormsg)
+        raise NotImplementedError("'transition_rv_preconditioned' is not implemented.")
 
     @property
     def dimension(self) -> int:

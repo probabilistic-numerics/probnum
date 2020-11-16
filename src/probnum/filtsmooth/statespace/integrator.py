@@ -123,7 +123,7 @@ class IBM(Integrator, sde.LTISDE):
         diffmat_1d = 1.0 / denominators
         return np.kron(np.eye(self.spatialdim), self.diffconst ** 2 * diffmat_1d)
 
-    def transition_rv(self, rv, start, stop, already_preconditioned=False, **kwargs):
+    def transition_rv(self, rv, start, stop, **kwargs):
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
@@ -131,28 +131,27 @@ class IBM(Integrator, sde.LTISDE):
             )
             raise TypeError(errormsg)
         step = stop - start
-        if not already_preconditioned:
-            rv = self.precon.inverse(step) @ rv
-            rv, info = self.transition_rv(rv, start, stop, already_preconditioned=True)
-            # does the cross-covariance have to be changed somehow??
-            return self.precon(step) @ rv, info
-        else:
-            return self.equivalent_discretisation.transition_rv(rv, start)
+        rv = self.precon.inverse(step) @ rv
+        rv, info = self.transition_rv_preconditioned(rv, start)
+        # does the cross-covariance have to be changed somehow??
+        return self.precon(step) @ rv, info
 
-    def transition_realization(
-        self, real, start, stop, already_preconditioned=False, **kwargs
-    ):
+    def transition_rv_preconditioned(self, rv, start, **kwargs):
+        # `stop` is swallowed by the preconditioning
+        return self.equivalent_discretisation.transition_rv(rv, start)
+
+    def transition_realization(self, real, start, stop, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
-        if not already_preconditioned:
-            rv = self.precon.inverse(step) @ real
-            rv, info = self.transition_realization(
-                rv, start, stop, already_preconditioned=True
-            )
-            return self.precon(step) @ rv, info
-        else:
-            return self.equivalent_discretisation.transition_realization(real, start)
+        real = self.precon.inverse(step) @ real
+        real, info = self.transition_realization_preconditioned(real, start)
+        # does the cross-covariance have to be changed somehow??
+        return self.precon(step) @ real, info
+
+    def transition_realization_preconditioned(self, real, start, **kwargs):
+        # `stop` is swallowed by the preconditioning
+        return self.equivalent_discretisation.transition_realization(real, start)
 
     def discretise(self, step):
         """

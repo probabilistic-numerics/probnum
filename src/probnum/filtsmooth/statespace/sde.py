@@ -38,7 +38,6 @@ class SDE(transition.Transition):
         stop=None,
         step=None,
         linearise_at=None,
-        already_preconditioned=False,
     ):
         raise NotImplementedError
 
@@ -49,7 +48,6 @@ class SDE(transition.Transition):
         stop=None,
         step=None,
         linearise_at=None,
-        already_preconditioned=False,
     ):
         raise NotImplementedError
 
