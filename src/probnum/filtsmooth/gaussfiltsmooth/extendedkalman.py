@@ -17,6 +17,7 @@ class ContinuousEKFComponent(statespace.Transition):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
         self.non_linear_sde = non_linear_sde
         self.num_steps = num_steps
+        super().__init__()
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
 
@@ -66,6 +67,7 @@ class DiscreteEKFComponent(statespace.Transition):
 
     def __init__(self, disc_model):
         self.disc_model = disc_model
+        super().__init__()
 
     def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)

@@ -47,6 +47,7 @@ class DiscreteGaussian(trans.Transition):
             raise NotImplementedError
 
         self.jacobfun = jacobfun if jacobfun is not None else if_no_jacobian
+        super().__init__()
 
     def transition_realization(self, real, start, **kwargs):
         # **kwargs swallow all irrelevant arguments for this function.

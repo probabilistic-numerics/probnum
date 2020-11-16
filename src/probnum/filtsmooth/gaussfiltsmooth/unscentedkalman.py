@@ -22,6 +22,8 @@ class ContinuousUKFComponent(statespace.Transition):
             raise TypeError("cont_model must be an SDE.")
         self.non_linear_sde = non_linear_sde
         self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
+        super().__init__()
+
         raise NotImplementedError("Implementation incomplete.")
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
@@ -43,6 +45,7 @@ class DiscreteUKFComponent(statespace.Transition):
     ):
         self.disc_model = disc_model
         self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
+        super().__init__()
 
     def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)

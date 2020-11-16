@@ -283,6 +283,44 @@ class Kalman(BayesFiltSmooth):
         stop : float
             Time-point of the already-smoothed RV.
         """
+        if self.dynamic_model.precon is None:
+            return self._smooth_step_classic(
+                unsmoothed_rv,
+                smoothed_rv,
+                start,
+                stop,
+                intermediate_step=intermediate_step,
+            )
+        else:
+            return self._smooth_step_with_preconditioning(
+                unsmoothed_rv,
+                smoothed_rv,
+                start,
+                stop,
+                intermediate_step=intermediate_step,
+            )
+
+    def _smooth_step_classic(
+        self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
+    ):
+        """
+        A single smoother step.
+
+        Consists of predicting from the filtering distribution at time t
+        to time t+1 and then updating based on the discrepancy to the
+        smoothing solution at time t+1.
+
+        Parameters
+        ----------
+        unsmoothed_rv : RandomVariable
+            Filtering distribution at time t.
+        smoothed_rv : RandomVariable
+            Prediction at time t+1 of the filtering distribution at time t.
+        start : float
+            Time-point of the to-be-smoothed RV.
+        stop : float
+            Time-point of the already-smoothed RV.
+        """
         predicted_rv, info = self.dynamic_model.transition_rv(
             unsmoothed_rv, start, stop=stop, step=intermediate_step
         )
@@ -296,3 +334,42 @@ class Kalman(BayesFiltSmooth):
             + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
         )
         return Normal(new_mean, new_cov)
+
+    def _smooth_step_with_preconditioning(
+        self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
+    ):
+        """
+        A single smoother step.
+
+        Consists of predicting from the filtering distribution at time t
+        to time t+1 and then updating based on the discrepancy to the
+        smoothing solution at time t+1.
+
+        Parameters
+        ----------
+        unsmoothed_rv : RandomVariable
+            Filtering distribution at time t.
+        smoothed_rv : RandomVariable
+            Prediction at time t+1 of the filtering distribution at time t.
+        start : float
+            Time-point of the to-be-smoothed RV.
+        stop : float
+            Time-point of the already-smoothed RV.
+        """
+
+        unsmoothed_rv = self.dynamic_model.precon(stop-start) @ unsmoothed_rv
+        smoothed_rv = self.dynamic_model.precon(stop-start) @ smoothed_rv
+
+        predicted_rv, info = self.dynamic_model.transition_rv_preconditioned(
+            unsmoothed_rv, start, stop=stop, step=intermediate_step
+        )
+        crosscov = info["crosscov"]
+        smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T
+        new_mean = unsmoothed_rv.mean + smoothing_gain @ (
+            smoothed_rv.mean - predicted_rv.mean
+        )
+        new_cov = (
+            unsmoothed_rv.cov
+            + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
+        )
+        return self.dynamic_model.precon.inverse(stop-start) @ Normal(new_mean, new_cov)
