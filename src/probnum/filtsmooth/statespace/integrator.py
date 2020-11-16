@@ -179,19 +179,7 @@ class IBM(Integrator, sde.LTISDE):
 
 
 class IOUP(Integrator, sde.LTISDE):
-    """
-    Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions.
-
-    Parameters
-    ----------
-    ordint
-        Order of integration.
-    spatialdim
-        Dimensionality of the underlying OUP (this is :math:`d`)
-    driftspeed
-        Drift speed (aka mean-reverting speed) of the underlying OUP. Usually positive (mean-reverting).
-        If negative, the process is not mean-reverting. If zero, IBM is recovered.
-    """
+    """Integrated Ornstein-Uhlenbeck process in :math:`d` dimensions."""
 
     def __init__(
         self,
@@ -217,6 +205,51 @@ class IOUP(Integrator, sde.LTISDE):
         driftmat_1d = np.diag(np.ones(self.ordint), 1)
         driftmat_1d[-1, -1] = -self.driftspeed
         return np.kron(np.eye(self.spatialdim), driftmat_1d)
+
+    @property
+    def _forcevec(self):
+        force_1d = np.zeros(self.ordint + 1)
+        return np.kron(np.ones(self.spatialdim), force_1d)
+
+    @property
+    def _dispmat(self):
+        dispmat_1d = np.zeros(self.ordint + 1)
+        dispmat_1d[-1] = self.diffconst
+        return np.kron(np.eye(self.spatialdim), dispmat_1d).T
+
+
+class Matern(Integrator, sde.LTISDE):
+    """Matern process in :math:`d` dimensions."""
+
+    def __init__(
+        self,
+        ordint: int,
+        spatialdim: int,
+        lengthscale: float,
+        diffconst: float,
+    ):
+
+        # Other than previously in ProbNum, we do not use preconditioning for Matern by default.
+        self.lengthscale = lengthscale
+        self.diffconst = diffconst
+
+        Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
+        sde.LTISDE.__init__(
+            self,
+            driftmat=self._driftmat,
+            forcevec=self._forcevec,
+            dispmat=self._dispmat,
+        )
+
+    @property
+    def _driftmat(self):
+        driftmat = np.diag(np.ones(self.ordint), 1)
+        nu = self.ordint + 0.5
+        D, lam = self.ordint + 1, np.sqrt(2 * nu) / self.lengthscale
+        driftmat[-1, :] = np.array(
+            [-scipy.special.binom(D, i) * lam ** (D - i) for i in range(D)]
+        )
+        return np.kron(np.eye(self.spatialdim), driftmat)
 
     @property
     def _forcevec(self):
