@@ -18,7 +18,10 @@ from .preconditioner import TaylorCoordinates
 
 
 class Integrator:
-    """An integrator is a special kind of SDE, which, among other things, has identifyable coordinates."""
+    """
+    An integrator is a special kind of SDE,
+    where the :math:`i`th coordinate models the :math:`i`th derivative.
+    """
 
     def __init__(self, ordint, spatialdim):
         self.ordint = ordint
