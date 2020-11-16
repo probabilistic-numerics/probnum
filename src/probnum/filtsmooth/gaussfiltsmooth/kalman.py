@@ -197,6 +197,7 @@ class Kalman(BayesFiltSmooth):
             which is the crosscov between input RV and measured RV.
             The crosscov does not relate to the updated RV!
         """
+        # if required, preconditioning can be leveraged here, similarly to `smooth_step`
         meas_rv, info = self.measure(time, randvar)
         filt_rv = self.condition_state_on_measurement(
             randvar, meas_rv, data, info["crosscov"]
@@ -211,7 +212,8 @@ class Kalman(BayesFiltSmooth):
         ----------
         filter_posterior : KalmanPosterior
             Posterior distribution obtained after filtering
-
+        intermediate_step :
+            Step-size to be taken by approximate transition methods.
         Returns
         -------
         KalmanPosterior
@@ -240,6 +242,8 @@ class Kalman(BayesFiltSmooth):
             List of random variables to be smoothed.
         locations : array_like
             Locations of the random variables in rv_list.
+        intermediate_step :
+            Step-size to be taken by approximate transition methods.
 
         Returns
         -------
@@ -271,6 +275,8 @@ class Kalman(BayesFiltSmooth):
         Consists of predicting from the filtering distribution at time t
         to time t+1 and then updating based on the discrepancy to the
         smoothing solution at time t+1.
+        If preconditioning is available in the dynamic model, this is leveraged here.
+        If not, a classic smoothing step estimate is taken.
 
         Parameters
         ----------
@@ -282,6 +288,8 @@ class Kalman(BayesFiltSmooth):
             Time-point of the to-be-smoothed RV.
         stop : float
             Time-point of the already-smoothed RV.
+        intermediate_step :
+            Step-size to be taken by approximate transition methods.
         """
         if self.dynamic_model.precon is None:
             return self._smooth_step_classic(
@@ -357,8 +365,8 @@ class Kalman(BayesFiltSmooth):
             Time-point of the already-smoothed RV.
         """
 
-        unsmoothed_rv = self.dynamic_model.precon.inverse(stop-start) @ unsmoothed_rv
-        smoothed_rv = self.dynamic_model.precon.inverse(stop-start) @ smoothed_rv
+        unsmoothed_rv = self.dynamic_model.precon.inverse(stop - start) @ unsmoothed_rv
+        smoothed_rv = self.dynamic_model.precon.inverse(stop - start) @ smoothed_rv
 
         predicted_rv, info = self.dynamic_model.transition_rv_preconditioned(
             unsmoothed_rv, start, stop=stop, step=intermediate_step
@@ -372,4 +380,4 @@ class Kalman(BayesFiltSmooth):
             unsmoothed_rv.cov
             + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
         )
-        return self.dynamic_model.precon(stop-start) @ Normal(new_mean, new_cov)
+        return self.dynamic_model.precon(stop - start) @ Normal(new_mean, new_cov)
