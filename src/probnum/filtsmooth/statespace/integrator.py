@@ -133,7 +133,8 @@ class IBM(Integrator, sde.LTISDE):
         step = stop - start
         rv = self.precon.inverse(step) @ rv
         rv, info = self.transition_rv_preconditioned(rv, start)
-        print("does the cross-covariance have to be changed somehow??")
+        # print("does the cross-covariance have to be changed somehow??")
+        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ rv, info
 
     def transition_rv_preconditioned(self, rv, start, **kwargs):
@@ -145,7 +146,8 @@ class IBM(Integrator, sde.LTISDE):
         step = stop - start
         real = self.precon.inverse(step) @ real
         real, info = self.transition_realization_preconditioned(real, start)
-        print("does the cross-covariance have to be changed somehow??")
+        # print("does the cross-covariance have to be changed somehow??")
+        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ real, info
 
     def transition_realization_preconditioned(self, real, start, **kwargs):

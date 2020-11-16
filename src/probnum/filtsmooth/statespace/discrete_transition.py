@@ -53,7 +53,8 @@ class DiscreteGaussian(trans.Transition):
         # **kwargs swallow all irrelevant arguments for this function.
         newmean = self.dynamicsfun(start, real)
         newcov = self.diffmatfun(start)
-        return pnrv.Normal(newmean, newcov), {}
+        crosscov = np.zeros(newcov.shape)
+        return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
 
     def transition_rv(self, rv, start, **kwargs):
         # **kwargs swallow all irrelevant arguments for this function.
