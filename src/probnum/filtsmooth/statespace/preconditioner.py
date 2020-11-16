@@ -25,7 +25,7 @@ class Preconditioner(abc.ABC):
         raise NotImplementedError
 
     @cached_property
-    def inverse(self) -> Preconditioner:
+    def inverse(self) -> "Preconditioner":
         raise NotImplementedError
 
 
