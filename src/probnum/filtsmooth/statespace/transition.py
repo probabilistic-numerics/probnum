@@ -39,39 +39,6 @@ class Transition(abc.ABC):
     def __init__(self):
         self.precon = None
 
-    def __call__(
-        self,
-        arr_or_rv: Union[np.ndarray, "RandomVariable"],
-        start: float = None,
-        stop: float = None,
-        step: float = None,
-        linearise_at: "RandomVariable" = None,
-        already_preconditioned: bool = False,
-    ) -> ("RandomVariable", Dict):
-        """
-        Transition a random variable or a realization of one.
-
-        The input is either interpreted as a random variable or as a realization.
-        Accordingly, the respective methods are called: :meth:`transition_realization` or :meth:`transition_rv`.
-        """
-        if isinstance(arr_or_rv, RandomVariable):
-            return self.transition_rv(
-                rv=arr_or_rv,
-                start=start,
-                stop=stop,
-                step=step,
-                linearise_at=linearise_at,
-                already_preconditioned=already_preconditioned,
-            )
-        return self.transition_realization(
-            real=arr_or_rv,
-            start=start,
-            stop=stop,
-            step=step,
-            linearise_at=linearise_at,
-            already_preconditioned=already_preconditioned,
-        )
-
     @abc.abstractmethod
     def transition_realization(
         self,

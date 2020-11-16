@@ -53,7 +53,7 @@ QH_22_IBM = DIFFCONST ** 2 * np.array(
         [0.0, 0.0, 0.0, STEP ** 3 / 6.0, STEP ** 2 / 2.0, STEP],
     ]
 )
-    
+
 
 class TestIBM(unittest.TestCase, NumpyAssertions):
     def setUp(self):
