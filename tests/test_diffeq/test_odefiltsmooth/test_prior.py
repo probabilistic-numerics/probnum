@@ -132,48 +132,48 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(ioup_speed0.driftmat, ibm.driftmat)
         self.assertAllClose(ioup_speed0.dispmat, ibm.dispmat)
 
-
-class TestMatern(unittest.TestCase, NumpyAssertions):
-    """
-    Test whether coefficients for q=1, 2 match closed form.
-    and whether coefficients for q=0 are Ornstein Uhlenbeck.
-    """
-
-    def setUp(self):
-        lenscale, diffconst = np.random.rand(), np.random.rand()
-        self.mat0 = prior.Matern(0, 1, lenscale, diffconst)
-        self.mat1 = prior.Matern(1, 1, lenscale, diffconst)
-        self.mat2 = prior.Matern(2, 1, lenscale, diffconst)
-
-    def test_n0(self):
-        """
-        Closed form solution for n=0.
-        This is OUP.
-        """
-        xi = np.sqrt(2 * (self.mat0.dimension - 0.5)) / self.mat0.lengthscale
-        self.assertAlmostEqual(self.mat0.driftmat[0, 0], -xi)
-
-    def test_n1(self):
-        """
-        Closed form solution for n=1.
-        """
-        xi = np.sqrt(2 * (self.mat1.dimension - 0.5)) / self.mat1.lengthscale
-        expected = np.array([-(xi ** 2), -2 * xi])
-        self.assertAllClose(self.mat1.driftmat[-1, :], expected)
-
-    def test_n2(self):
-        """
-        Closed form solution for n=2.
-        """
-        xi = np.sqrt(2 * (self.mat2.dimension - 0.5)) / self.mat2.lengthscale
-        expected = np.array([-(xi ** 3), -3 * xi ** 2, -3 * xi])
-        self.assertAllClose(self.mat2.driftmat[-1, :], expected)
-
-    def test_larger_shape(self):
-        mat2d = prior.Matern(2, 2, 1.0, 1.0)
-        self.assertEqual(mat2d.dimension, 2 * (2 + 1))
-
-    def test_transition_rv(self):
-        mean, cov = np.ones(self.mat1.dimension), np.eye(self.mat1.dimension)
-        initrv = Normal(mean, cov)
-        self.mat1.transition_rv(initrv, start=0.0, stop=STEP, step=STEP)
+#
+# class TestMatern(unittest.TestCase, NumpyAssertions):
+#     """
+#     Test whether coefficients for q=1, 2 match closed form.
+#     and whether coefficients for q=0 are Ornstein Uhlenbeck.
+#     """
+#
+#     def setUp(self):
+#         lenscale, diffconst = np.random.rand(), np.random.rand()
+#         self.mat0 = prior.Matern(0, 1, lenscale, diffconst)
+#         self.mat1 = prior.Matern(1, 1, lenscale, diffconst)
+#         self.mat2 = prior.Matern(2, 1, lenscale, diffconst)
+#
+#     def test_n0(self):
+#         """
+#         Closed form solution for n=0.
+#         This is OUP.
+#         """
+#         xi = np.sqrt(2 * (self.mat0.dimension - 0.5)) / self.mat0.lengthscale
+#         self.assertAlmostEqual(self.mat0.driftmat[0, 0], -xi)
+#
+#     def test_n1(self):
+#         """
+#         Closed form solution for n=1.
+#         """
+#         xi = np.sqrt(2 * (self.mat1.dimension - 0.5)) / self.mat1.lengthscale
+#         expected = np.array([-(xi ** 2), -2 * xi])
+#         self.assertAllClose(self.mat1.driftmat[-1, :], expected)
+#
+#     def test_n2(self):
+#         """
+#         Closed form solution for n=2.
+#         """
+#         xi = np.sqrt(2 * (self.mat2.dimension - 0.5)) / self.mat2.lengthscale
+#         expected = np.array([-(xi ** 3), -3 * xi ** 2, -3 * xi])
+#         self.assertAllClose(self.mat2.driftmat[-1, :], expected)
+#
+#     def test_larger_shape(self):
+#         mat2d = prior.Matern(2, 2, 1.0, 1.0)
+#         self.assertEqual(mat2d.dimension, 2 * (2 + 1))
+#
+#     def test_transition_rv(self):
+#         mean, cov = np.ones(self.mat1.dimension), np.eye(self.mat1.dimension)
+#         initrv = Normal(mean, cov)
+#         self.mat1.transition_rv(initrv, start=0.0, stop=STEP, step=STEP)
