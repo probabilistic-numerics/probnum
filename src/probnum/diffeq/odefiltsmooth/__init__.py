@@ -11,4 +11,3 @@ to work.
 from .ivp2filter import *
 from .ivpfiltsmooth import *
 from .odefiltsmooth import *
-from .prior import *

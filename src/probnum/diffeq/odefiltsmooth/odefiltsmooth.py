@@ -19,6 +19,8 @@ References
 .. [4] https://arxiv.org/pdf/2004.00623.pdf
 """
 
+import probnum.filtsmooth as pnfs
+
 from probnum.diffeq import steprule
 from probnum.diffeq.odefiltsmooth import ivp2filter, prior
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
@@ -31,7 +33,6 @@ def probsolve_ivp(
     tol=None,
     step=None,
     firststep=None,
-    precond_step=None,
     **kwargs
 ):
     """
@@ -131,14 +132,6 @@ def probsolve_ivp(
         efficient to start out with smaller :math:`h_0` so that the
         first acceptance occurs earlier.
 
-    precond_step : float, optional
-        Expected average step size, used for preconditioning.
-        See :class:`ODEPrior` for details.
-        Default is ``precond_step=1.0`` which amounts to no
-        preconditioning. If constant step size, precond_step is
-        overwritten with the actual step size to provide optimal
-        preconditioning.
-
     Returns
     -------
     solution : ODESolution
@@ -227,7 +220,7 @@ def probsolve_ivp(
 
     """
     gfilt, firststep, stprl = _create_solver_inputs(
-        ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
+        ivp, method, which_prior, tol, step, firststep, **kwargs
     )
     with_smoothing = method[-2] == "s" or method[-1] == "s"
     solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
@@ -236,14 +229,12 @@ def probsolve_ivp(
 
 
 def _create_solver_inputs(
-    ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs
+    ivp, method, which_prior, tol, step, firststep, **kwargs
 ):
     """Create the solver object that is used."""
     _check_step_tol(step, tol)
     _check_method(method)
-    if precond_step is None:
-        precond_step = step or 1.0
-    _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
+    _prior = _string2prior(ivp, which_prior, **kwargs)
     if tol is not None:
         stprl = steprule.AdaptiveSteps(tol, _prior.ordint + 1, **kwargs)
         if firststep is None:
@@ -270,40 +261,40 @@ def _check_method(method):
         raise ValueError("Method not supported.")
 
 
-def _string2prior(ivp, which_prior, precond_step, **kwargs):
+def _string2prior(ivp, which_prior, **kwargs):
 
     ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
     ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
     matern_family = ["matern32", "matern52", "matern72", "matern92"]
     if which_prior in ibm_family:
-        return _string2ibm(ivp, which_prior, precond_step, **kwargs)
+        return _string2ibm(ivp, which_prior, **kwargs)
     elif which_prior in ioup_family:
-        return _string2ioup(ivp, which_prior, precond_step, **kwargs)
+        return _string2ioup(ivp, which_prior, **kwargs)
     elif which_prior in matern_family:
-        return _string2matern(ivp, which_prior, precond_step, **kwargs)
+        return _string2matern(ivp, which_prior, **kwargs)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2ibm(ivp, which_prior, precond_step, **kwargs):
+def _string2ibm(ivp, which_prior, **kwargs):
 
     if "diffconst" in kwargs.keys():
         diffconst = kwargs["diffconst"]
     else:
         diffconst = 1.0
     if which_prior == "ibm1":
-        return prior.IBM(1, ivp.dimension, diffconst, precond_step)
+        return pnfs.statespace.IBM(1, ivp.dimension, diffconst)
     elif which_prior == "ibm2":
-        return prior.IBM(2, ivp.dimension, diffconst, precond_step)
+        return pnfs.statespace.IBM(2, ivp.dimension, diffconst)
     elif which_prior == "ibm3":
-        return prior.IBM(3, ivp.dimension, diffconst, precond_step)
+        return pnfs.statespace.IBM(3, ivp.dimension, diffconst)
     elif which_prior == "ibm4":
-        return prior.IBM(4, ivp.dimension, diffconst, precond_step)
+        return pnfs.statespace.IBM(4, ivp.dimension, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2ioup(ivp, which_prior, precond_step, **kwargs):
+def _string2ioup(ivp, which_prior, **kwargs):
 
     if "diffconst" in kwargs.keys():
         diffconst = kwargs["diffconst"]
@@ -314,18 +305,18 @@ def _string2ioup(ivp, which_prior, precond_step, **kwargs):
     else:
         driftspeed = 1.0
     if which_prior == "ioup1":
-        return prior.IOUP(1, ivp.dimension, driftspeed, diffconst, precond_step)
+        return pnfs.statespace.IOUP(1, ivp.dimension, driftspeed, diffconst)
     elif which_prior == "ioup2":
-        return prior.IOUP(2, ivp.dimension, driftspeed, diffconst, precond_step)
+        return pnfs.statespace.IOUP(2, ivp.dimension, driftspeed, diffconst)
     elif which_prior == "ioup3":
-        return prior.IOUP(3, ivp.dimension, driftspeed, diffconst, precond_step)
+        return pnfs.statespace.IOUP(3, ivp.dimension, driftspeed, diffconst)
     elif which_prior == "ioup4":
-        return prior.IOUP(4, ivp.dimension, driftspeed, diffconst, precond_step)
+        return pnfs.statespace.IOUP(4, ivp.dimension, driftspeed, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2matern(ivp, which_prior, precond_step, **kwargs):
+def _string2matern(ivp, which_prior, **kwargs):
 
     if "diffconst" in kwargs.keys():
         diffconst = kwargs["diffconst"]
@@ -336,13 +327,13 @@ def _string2matern(ivp, which_prior, precond_step, **kwargs):
     else:
         lengthscale = 1.0
     if which_prior == "matern32":
-        return prior.Matern(1, ivp.dimension, lengthscale, diffconst, precond_step)
+        return pnfs.statespace.Matern(1, ivp.dimension, lengthscale, diffconst)
     elif which_prior == "matern52":
-        return prior.Matern(2, ivp.dimension, lengthscale, diffconst, precond_step)
+        return pnfs.statespace.Matern(2, ivp.dimension, lengthscale, diffconst)
     elif which_prior == "matern72":
-        return prior.Matern(3, ivp.dimension, lengthscale, diffconst, precond_step)
+        return pnfs.statespace.Matern(3, ivp.dimension, lengthscale, diffconst)
     elif which_prior == "matern92":
-        return prior.Matern(4, ivp.dimension, lengthscale, diffconst, precond_step)
+        return pnfs.statespace.Matern(4, ivp.dimension, lengthscale, diffconst)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
