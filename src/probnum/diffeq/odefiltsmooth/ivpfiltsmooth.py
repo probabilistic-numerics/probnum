@@ -1,7 +1,7 @@
 import numpy as np
 
 from probnum.diffeq import odesolver
-from probnum.diffeq.odefiltsmooth.prior import ODEPrior
+import probnum.filtsmooth as pnfs
 from probnum.diffeq.odesolution import ODESolution
 from probnum.random_variables import Normal
 
@@ -30,8 +30,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         * gaussfilt.initialdistribution contains the information about
         the initial values.
         """
-        if not issubclass(type(gaussfilt.dynamic_model), ODEPrior):
-            raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
+        if not issubclass(type(gaussfilt.dynamic_model), pnfs.statespace.Integrator):
+            raise ValueError("Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)")
         self.gfilt = gaussfilt
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
@@ -118,13 +118,13 @@ class GaussianIVPFilter(odesolver.ODESolver):
         )
 
         return smoothed_solution
-
-    def undo_preconditioning(self, rv):
-        ipre = self.gfilt.dynamic_model.invprecond
-        newmean = ipre @ rv.mean
-        newcov = ipre @ rv.cov @ ipre.T
-        newrv = Normal(newmean, newcov)
-        return newrv
+    #
+    # def undo_preconditioning(self, rv):
+    #     ipre = self.gfilt.dynamic_model.invprecond
+    #     newmean = ipre @ rv.mean
+    #     newcov = ipre @ rv.cov @ ipre.T
+    #     newrv = Normal(newmean, newcov)
+    #     return newrv
 
     def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat):
         """Estimate the local errors

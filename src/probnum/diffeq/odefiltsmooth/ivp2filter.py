@@ -106,8 +106,10 @@ def _initialdistribution(ivp, prior):
     x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)
+
     h0 = prior.proj2coord(coord=0)
     h1 = prior.proj2coord(coord=1)
+
     initcov = np.eye(len(h0.T))
     if prior.ordint == 1:
         projmat = np.hstack((h0.T, h1.T)).T
@@ -116,10 +118,11 @@ def _initialdistribution(ivp, prior):
         h2 = prior.proj2coord(coord=2)
         projmat = np.hstack((h0.T, h1.T, h2.T)).T
         data = np.hstack((x0, dx0, ddx0))
+
     s = projmat @ initcov @ projmat.T
     crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
     newmean = crosscov @ np.linalg.solve(s, data)
-    newcov = initcov - (crosscov @ np.linalg.solve(s, crosscov)).T
+    newcov = initcov - crosscov @ np.linalg.solve(s, crosscov.T)
     return pnrv.Normal(newmean, newcov)
 
 
