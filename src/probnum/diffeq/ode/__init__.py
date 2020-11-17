@@ -8,5 +8,6 @@ __all__ = [
     "fitzhughnagumo",
     "seir",
     "rigidbody",
+    "vanderpol",
     "lotkavolterra",
 ]

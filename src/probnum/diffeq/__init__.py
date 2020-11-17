@@ -15,6 +15,7 @@ __all__ = [
     "lotkavolterra",
     "seir",
     "rigidbody",
+    "vanderpol",
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",

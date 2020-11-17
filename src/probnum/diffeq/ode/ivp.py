@@ -6,7 +6,15 @@ import numpy as np
 
 from probnum.diffeq.ode.ode import ODE
 
-__all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "seir", "rigidbody", "IVP"]
+__all__ = [
+    "logistic",
+    "fitzhughnagumo",
+    "lotkavolterra",
+    "seir",
+    "rigidbody",
+    "vanderpol",
+    "IVP",
+]
 
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):
@@ -301,6 +309,72 @@ def rigidbody_rhs(t, y):
 def rigidbody_jac(t, y):
     y1, y2, y3 = y
     return np.array([[0.0, y3, y2], [-y3, 0.0, -y1], [-0.51 * y2, -0.51 * y1, 0.0]])
+
+
+def vanderpol(timespan, initrv, params=(0.1,)):
+    r"""
+    Initial value problem (IVP) based on the Van der Pol Oscillator.
+
+    The Van der Pol Oscillator is defined through
+
+    .. math:: f(t, y) =
+        \begin{pmatrix}
+        y_2 \\
+        \mu \cdot (1 - y_1^2)y_2 - y_1
+        \end{pmatrix}
+
+    for a constant parameter  :math:`\mu`.
+    :math:`\mu` determines the stiffness of the problem, where
+    the larger :math:`\mu` is chosen, the more stiff the problem becomes.
+    Default is :math:`\mu = 0.1`.
+
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    initrv : RandomVariable,
+        RandomVariable that  describes the belief over the initial
+        value. Usually its distribution is Dirac (noise-free)
+        or Normal (noisy). To replicate "classical" initial values
+        use the Dirac distribution.
+    params : (float), optional
+        Parameters :math:`(\mu)` for the Van der Pol Equations
+        Default is :math:`(\mu)=(0.1)`.
+
+    Returns
+    -------
+    IVP
+        IVP object describing the Van der Pol Oscillator IVP with the prescribed
+        configuration.
+    """
+
+    def rhs(t, y):
+        return vanderpol_rhs(t, y, params)
+
+    def jac(t, y):
+        return vanderpol_jac(t, y, params)
+
+    return IVP(timespan, initrv, rhs, jac=jac)
+
+
+def vanderpol_rhs(t, y, params):
+    y1, y2 = y
+    if isinstance(params, float):
+        mu = params
+    else:
+        (mu,) = params
+
+    return np.array([y2, mu * (1.0 - y1 ** 2) * y2 - y1])
+
+
+def vanderpol_jac(t, y, params):
+    y1, y2 = y
+    if isinstance(params, float):
+        mu = params
+    else:
+        (mu,) = params
+
+    return np.array([[0.0, 1.0], [2.0 * mu * y2 - 1.0, mu * (1.0 - y1 ** 2)]])
 
 
 class IVP(ODE):
