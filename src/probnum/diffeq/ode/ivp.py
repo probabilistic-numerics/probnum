@@ -244,13 +244,13 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
 
 def seir_rhs(t, y, params):
     alpha, beta, gamma, N = params
-    s, e, i, r = y
-    s_next = -beta * s * i / N
-    e_next = beta * s * i / N - alpha * e
-    i_next = alpha * e - gamma * i
-    r_next = gamma * i
+    y1, y2, y3, y4 = y
+    y1_next = -beta * y1 * y3 / N
+    y2_next = beta * y1 * y3 / N - alpha * y2
+    y3_next = alpha * y2 - gamma * y3
+    y4_next = gamma * y3
 
-    return np.array([s_next, e_next, i_next, r_next])
+    return np.array([y1_next, y2_next, y3_next, y4_next])
 
 
 def rigidbody(timespan, initrv):
@@ -291,8 +291,8 @@ def rigidbody(timespan, initrv):
 
 
 def rigidbody_rhs(t, y):
-    y_1, y_2, y_3 = y
-    return np.array([y_2 * y_3, -y_1 * y_3, -0.51 * y_1 * y_2])
+    y1, y2, y3 = y
+    return np.array([y2 * y3, -y1 * y3, -0.51 * y1 * y2])
 
 
 class IVP(ODE):
