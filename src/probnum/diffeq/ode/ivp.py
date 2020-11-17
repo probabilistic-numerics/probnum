@@ -295,6 +295,11 @@ def rigidbody_rhs(t, y):
     return np.array([y2 * y3, -y1 * y3, -0.51 * y1 * y2])
 
 
+def rigidbody_jac(t, y):
+    y1, y2, y3 = y
+    return np.array([[0.0, y3, y2], [-y3, 0.0, -y1], [-0.51 * y2, -0.51 * y1, 0.0]])
+
+
 class IVP(ODE):
     """Initial value problems (IVP).
 
