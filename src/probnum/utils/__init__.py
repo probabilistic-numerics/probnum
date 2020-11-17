@@ -2,6 +2,7 @@
 
 from .argutils import *
 from .arrayutils import *
+from .linalgutils import *
 from .randomutils import *
 
 # Public classes and functions. Order is reflected in documentation.
@@ -11,4 +12,6 @@ __all__ = [
     "as_random_state",
     "as_shape",
     "derive_random_seed",
+    "cholesky_rank_1_update",
+    "cholesky_rank_1_downdate",
 ]
