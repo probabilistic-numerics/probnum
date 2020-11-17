@@ -24,7 +24,7 @@ class IteratedKalman(Kalman):
             self.stoppingcriterion = StoppingCriterion()
         else:
             self.stoppingcriterion = stoppingcriterion
-        super().__init__(kalman.dynamic_model, kalman.measurement_model, kalman.initrv)
+        super().__init__(kalman.dynamics_model, kalman.measurement_model, kalman.initrv)
 
     def filter_step(
         self,
@@ -106,11 +106,11 @@ class IteratedKalman(Kalman):
 
     def predict(self, start, stop, randvar, linearise_at=None, intermediate_step=None):
         """(Possibly iterated) prediction step."""
-        pred_rv, info_pred = self.dynamic_model.transition_rv(
+        pred_rv, info_pred = self.dynamics_model.transition_rv(
             randvar, start, stop=stop, linearise_at=linearise_at, step=intermediate_step
         )
         while self.stoppingcriterion.continue_predict_iteration(pred_rv, info_pred):
-            pred_rv, info_pred = self.dynamic_model.transition_rv(
+            pred_rv, info_pred = self.dynamics_model.transition_rv(
                 pred_rv, start, stop, linearise_at=pred_rv, step=intermediate_step
             )
         return pred_rv, info_pred

@@ -24,13 +24,13 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         Notes
         -----
-        * gaussfilt.dynamic_model contains the prior,
+        * gaussfilt.dynamics_model contains the prior,
         * gaussfilt.measurementmodel contains the information about the
         ODE right hand side function,
         * gaussfilt.initialdistribution contains the information about
         the initial values.
         """
-        if not issubclass(type(gaussfilt.dynamic_model), pnfs.statespace.Integrator):
+        if not issubclass(type(gaussfilt.dynamics_model), pnfs.statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
             )
@@ -46,7 +46,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
 
         # Read the diffusion matrix; required for calibration / error estimation
-        discrete_dynamics = self.gfilt.dynamic_model.discretise(t_new - t)
+        discrete_dynamics = self.gfilt.dynamics_model.discretise(t_new - t)
         diffmat = discrete_dynamics.diffmat
 
         # 1. Predict
@@ -160,7 +160,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     @property
     def prior(self):
-        return self.gfilt.dynamic_model
+        return self.gfilt.dynamics_model
 
 
 #####################################################################################################3
@@ -180,7 +180,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
 #
 #     # works only for IBM
 #     discrete_dynamics = (
-#         self.gfilt.dynamic_model.equivalent_discretisation_preconditioned
+#         self.gfilt.dynamics_model.equivalent_discretisation_preconditioned
 #     )
 #
 #     # Read the diffusion matrix; required for calibration / error estimation

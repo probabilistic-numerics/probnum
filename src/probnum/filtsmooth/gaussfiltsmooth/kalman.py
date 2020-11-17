@@ -15,14 +15,14 @@ class Kalman(BayesFiltSmooth):
     Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
     """
 
-    def __init__(self, dynamic_model, measurement_model, initrv):
+    def __init__(self, dynamics_model, measurement_model, initrv):
         """Check that the initial distribution is Gaussian."""
         if not issubclass(type(initrv), Normal):
             raise ValueError(
                 "Gaussian filters/smoothers need initial "
                 "random variables with Normal distribution."
             )
-        super().__init__(dynamic_model, measurement_model, initrv)
+        super().__init__(dynamics_model, measurement_model, initrv)
 
     def filtsmooth(self, dataset, times, intermediate_step=None):
         """
@@ -118,7 +118,7 @@ class Kalman(BayesFiltSmooth):
         return filtrv, info
 
     def predict(self, start, stop, randvar, intermediate_step=None):
-        return self.dynamic_model.transition_rv(
+        return self.dynamics_model.transition_rv(
             randvar,
             start,
             stop=stop,
@@ -291,7 +291,7 @@ class Kalman(BayesFiltSmooth):
         intermediate_step :
             Step-size to be taken by approximate transition methods.
         """
-        if self.dynamic_model.precon is None:
+        if self.dynamics_model.precon is None:
             return self._smooth_step_classic(
                 unsmoothed_rv,
                 smoothed_rv,
@@ -329,7 +329,7 @@ class Kalman(BayesFiltSmooth):
         stop : float
             Time-point of the already-smoothed RV.
         """
-        predicted_rv, info = self.dynamic_model.transition_rv(
+        predicted_rv, info = self.dynamics_model.transition_rv(
             unsmoothed_rv, start, stop=stop, step=intermediate_step
         )
         crosscov = info["crosscov"]
@@ -365,11 +365,11 @@ class Kalman(BayesFiltSmooth):
             Time-point of the already-smoothed RV.
         """
         # It is not clear to me how to best test this, except running IBM smoothing for high-ish order. (N)
-        precon_inv = self.dynamic_model.precon.inverse(stop - start)
+        precon_inv = self.dynamics_model.precon.inverse(stop - start)
         unsmoothed_rv = precon_inv @ unsmoothed_rv
         smoothed_rv = precon_inv @ smoothed_rv
 
-        predicted_rv, info = self.dynamic_model.transition_rv_preconditioned(
+        predicted_rv, info = self.dynamics_model.transition_rv_preconditioned(
             unsmoothed_rv, start, stop=stop, step=intermediate_step
         )
         crosscov = info["crosscov"]
@@ -381,4 +381,4 @@ class Kalman(BayesFiltSmooth):
             unsmoothed_rv.cov
             + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
         )
-        return self.dynamic_model.precon(stop - start) @ Normal(new_mean, new_cov)
+        return self.dynamics_model.precon(stop - start) @ Normal(new_mean, new_cov)

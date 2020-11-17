@@ -10,8 +10,8 @@ class BayesFiltSmooth(ABC):
     Bayesian filtering and smoothing.
     """
 
-    def __init__(self, dynamic_model, measurement_model, initrv):
-        self.dynamic_model = dynamic_model
+    def __init__(self, dynamics_model, measurement_model, initrv):
+        self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
 
@@ -29,7 +29,7 @@ class BayesFiltSmooth(ABC):
         )
         raise NotImplementedError(errormsg)
 
-    def smoother_step(self, **kwargs):
+    def smoother_step(self, **kwargs):  
         """Smoother step."""
         errormsg = (
             "smoother_step(...) is not implemented for "
