@@ -311,7 +311,7 @@ def rigidbody_jac(t, y):
     return np.array([[0.0, y3, y2], [-y3, 0.0, -y1], [-0.51 * y2, -0.51 * y1, 0.0]])
 
 
-def vanderpol(timespan, initrv, params=(0.1,)):
+def vanderpol(timespan, initrv, params=0.1):
     r"""
     Initial value problem (IVP) based on the Van der Pol Oscillator.
 
@@ -338,8 +338,8 @@ def vanderpol(timespan, initrv, params=(0.1,)):
         or Normal (noisy). To replicate "classical" initial values
         use the Dirac distribution.
     params : (float), optional
-        Parameters :math:`(\mu)` for the Van der Pol Equations
-        Default is :math:`(\mu)=(0.1)`.
+        Parameters :math:`\mu` for the Van der Pol Equations
+        Default is :math:`\mu=0.1`.
 
     Returns
     -------
