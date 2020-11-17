@@ -29,7 +29,7 @@ class BayesFiltSmooth(ABC):
         )
         raise NotImplementedError(errormsg)
 
-    def smoother_step(self, **kwargs):  
+    def smoother_step(self, **kwargs):
         """Smoother step."""
         errormsg = (
             "smoother_step(...) is not implemented for "
