@@ -169,9 +169,9 @@ class LTISDE(LinearSDE):
     def __init__(self, driftmat: np.ndarray, forcevec: np.ndarray, dispmat: np.ndarray):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
         super().__init__(
-            (lambda t, **kwargs: driftmat),
-            (lambda t, **kwargs: forcevec),
-            (lambda t, **kwargs: dispmat),
+            (lambda t: driftmat),
+            (lambda t: forcevec),
+            (lambda t: dispmat),
         )
         self.driftmat = driftmat
         self.forcevec = forcevec
