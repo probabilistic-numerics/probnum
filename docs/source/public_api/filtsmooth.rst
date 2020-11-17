@@ -15,7 +15,7 @@ observations into account.
 
 
 probnum.filtsmooth.statespace
-==================
+=============================
 
 Probabilistic State Space Models.
 
