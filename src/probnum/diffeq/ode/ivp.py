@@ -257,7 +257,7 @@ def rigidbody(timespan, initrv):
     r"""
     Initial value problem (IVP) for rigid body dynamics without external forces
 
-    The SEIR model with no vital dynamics is defined through
+    The rigid body dynamics without external forces is defined through
 
     .. math:: f(t, y) =
         \begin{pmatrix}
@@ -280,7 +280,7 @@ def rigidbody(timespan, initrv):
     Returns
     -------
     IVP
-        IVP object describing the SEIR model IVP with the prescribed
+        IVP object describing the rigid body dynamics IVP with the prescribed
         configuration.
     """
 
