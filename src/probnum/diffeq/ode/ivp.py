@@ -287,7 +287,10 @@ def rigidbody(timespan, initrv):
     def rhs(t, y):
         return rigidbody_rhs(t, y)
 
-    return IVP(timespan, initrv, rhs, jac=rigidbody_jac)
+    def jac(t, y):
+        return rigidbody_jac(t, y)
+
+    return IVP(timespan, initrv, rhs, jac=jac)
 
 
 def rigidbody_rhs(t, y):
