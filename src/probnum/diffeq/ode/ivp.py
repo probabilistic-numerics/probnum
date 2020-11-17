@@ -284,10 +284,10 @@ def rigidbody(timespan, initrv):
         configuration.
     """
 
-    def rhs(t, y, params=None):
+    def rhs(t, y):
         return rigidbody_rhs(t, y)
 
-    return IVP(timespan, initrv, rhs)
+    return IVP(timespan, initrv, rhs, jac=rigidbody_jac)
 
 
 def rigidbody_rhs(t, y):
