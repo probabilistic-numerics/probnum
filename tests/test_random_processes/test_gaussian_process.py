@@ -15,8 +15,8 @@ class PropertiesTestCase(GaussianProcessTestCase):
     """Test known properties of Gaussian processes."""
 
     def test_finite_evaluation_is_normal(self):
-        """A Gaussian process evaluated at a finite set of inputs is a Gaussian
-        random variable."""
+        """A Gaussian process evaluated at a finite set of inputs is a Gaussian random
+        variable."""
         for gp in self.gaussian_processes:
             with self.subTest():
                 x = np.random.normal(size=(5,) + gp.input_shape)

@@ -1,6 +1,4 @@
-"""
-Random Processes.
-"""
+"""Random Processes."""
 
 from typing import Callable, Generic, Optional, TypeVar, Union
 
@@ -22,8 +20,7 @@ _OutputType = TypeVar("OutputType")
 
 
 class RandomProcess(Generic[_InputType, _OutputType]):
-    """
-    Random processes represent uncertainty about a function.
+    """Random processes represent uncertainty about a function.
 
     Random processes generalize functions by encoding uncertainty over function
     values in their covariance function. They can be used to model (deterministic)
@@ -68,7 +65,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     Notes
     -----
     Random processes are assumed to have an (un-/countably) infinite domain. Random
-    processes with a finite index set are represented by :class:`RandomVariable`s.
+    processes with a finite index set are represented by :class:`RandomVariable` s.
 
     Sampling from random processes with fixed seed is not stable with respect to the
     order of operations. This means sampling from a random process and then
@@ -122,8 +119,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         )
 
     def __call__(self, x: _InputType) -> RandomVariable[_OutputType]:
-        """
-        Evaluate the random process at a set of inputs.
+        """Evaluate the random process at a set of inputs.
 
         Parameters
         ----------
@@ -155,29 +151,26 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         """Random state of the random process.
 
         This attribute defines the RandomState object to use for drawing
-        realizations from this random variable.
-        If None (or np.random), the global np.random state is used.
-        If integer, it is used to seed the local :class:`~numpy.random.RandomState`
-        instance.
+        realizations from this random variable. If None (or np.random),
+        the global np.random state is used. If integer, it is used to
+        seed the local :class:`~numpy.random.RandomState` instance.
         """
         return self._random_state
 
     @random_state.setter
     def random_state(self, seed: RandomStateArgType):
-        """
-        Get or set the RandomState object of the random process.
+        """Get or set the RandomState object of the random process.
 
-        This can be either None or an existing RandomState object.
-        If None (or np.random), use the RandomState singleton used by np.random.
-        If already a RandomState instance, use it.
-        If an int, use a new RandomState instance seeded with seed.
+        This can be either None or an existing RandomState object. If
+        None (or np.random), use the RandomState singleton used by
+        np.random. If already a RandomState instance, use it. If an int,
+        use a new RandomState instance seeded with seed.
         """
         self._random_state = _utils.as_random_state(seed)
 
     def mean(self, x: _InputType) -> _OutputType:
         # TODO extend this to a vectorized function for inputs of shape (n, k) or (n, input_shape, k)?
-        """
-        Mean function.
+        """Mean function.
 
         Returns the mean function evaluated at the given input(s).
 
@@ -202,8 +195,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         self, x0: _InputType, x1: Optional[_InputType] = None, keepdims=False
     ) -> _OutputType:
         # TODO What about pairwise evaluation? This could also remove the need for having x1 be None, by specifying x0=x1
-        """
-        Covariance function or kernel.
+        """Covariance function or kernel.
 
         Returns the covariance function :math:`\\operatorname{Cov}(f(x_0),
         f(x_1)) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
@@ -238,8 +230,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         return self.__cov(x0, x1, keepdims)
 
     def var(self, x: _InputType, keepdims=False) -> _OutputType:
-        """
-        Variance function.
+        """Variance function.
 
         Returns the variance function which is the value of the covariance or kernel
         evaluated pairwise at ``x`` for each output dimension separately.
@@ -267,8 +258,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
             return self.__var(x, keepdims)
 
     def std(self, x: _InputType, keepdims=False) -> _OutputType:
-        """
-        Standard deviation function.
+        """Standard deviation function.
 
         Parameters
         ----------
@@ -295,8 +285,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     def sample(
         self, x: _InputType = None, size: ShapeArgType = ()
     ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
-        """
-        Sample paths from the random process.
+        """Sample paths from the random process.
 
         If no inputs are provided this function returns sample paths which are
         callables, otherwise random variables corresponding to the input locations
@@ -316,8 +305,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         return self._sample_at_input(x=x, size=size)
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
-        """
-        Evaluate a set of sample paths at the given inputs.
+        """Evaluate a set of sample paths at the given inputs.
 
         This function should be implemented by subclasses of :class:`RandomProcess`.
         This enables :meth:`sample` to both return functions, i.e. sample paths if

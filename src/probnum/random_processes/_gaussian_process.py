@@ -15,8 +15,7 @@ _OutputType = Union[np.floating, np.ndarray]
 
 
 class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
-    """
-    Gaussian processes.
+    """Gaussian processes.
 
     A Gaussian process is a continuous stochastic process which if evaluated at a
     finite set of inputs returns a random variable with a normal distribution. Gaussian
@@ -87,7 +86,6 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
             0.60653066],
            [0.27067057, 1.21306132, 2.        , 0.13533528, 0.60653066,
             1.        ]])
-
     """
 
     def __init__(

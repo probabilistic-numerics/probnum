@@ -1,6 +1,4 @@
-"""
-Random process wrapper class for (deterministic) functions.
-"""
+"""Random process wrapper class for (deterministic) functions."""
 
 from typing import Callable, TypeVar
 
@@ -15,8 +13,7 @@ _OutputType = TypeVar("ValueType")
 
 
 class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType]):
-    """
-    Random process representing a deterministic function.
+    """Random process representing a deterministic function.
 
     Deterministic function wrapped as a
     :class:`~probnum.random_processes.RandomProcess`.

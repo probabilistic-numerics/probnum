@@ -117,7 +117,7 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
 
 
 class InstantiationTestCase(RandomProcessTestCase):
-    """Test random process instantiation"""
+    """Test random process instantiation."""
 
     def test_rp_from_function(self):
         """Create a random process from a function."""
@@ -128,16 +128,15 @@ class InstantiationTestCase(RandomProcessTestCase):
 
 
 class ArithmeticTestCase(RandomProcessTestCase):
-    """Test random process arithmetic"""
+    """Test random process arithmetic."""
 
 
 class ShapeTestCase(RandomProcessTestCase):
     """Test shapes of random process in-/output and associated functions."""
 
     def test_rp_output_shape(self):
-        """
-        Test whether output shape matches shape of evaluations of the random process.
-        """
+        """Test whether output shape matches shape of evaluations of the random
+        process."""
         for rand_proc in self.random_processes:
             with self.subTest():
                 n_inputs_x = 10
@@ -156,10 +155,8 @@ class ShapeTestCase(RandomProcessTestCase):
                 )
 
     def test_rp_mean_shape(self):
-        """
-        Test whether output shape matches the shape of the mean function of the random
-        process.
-        """
+        """Test whether output shape matches the shape of the mean function of the
+        random process."""
         for rand_proc in self.random_processes:
             with self.subTest():
                 n_inputs_x = 10
@@ -178,10 +175,11 @@ class ShapeTestCase(RandomProcessTestCase):
                 )
 
     def test_rp_cov_shape(self):
-        """
-        Test whether the covariance at a set of n inputs has dimension n x n x
-        d x d, where d is the output dimension of the process. In the common case of a
-        process with one-dimensional output the covariance should have shape n x n.
+        """Test whether the covariance at a set of n inputs has dimension n x n x d x d,
+        where d is the output dimension of the process.
+
+        In the common case of a process with one-dimensional output the
+        covariance should have shape n x n.
         """
         for rand_proc in self.random_processes:
             with self.subTest():
@@ -210,10 +208,8 @@ class ShapeTestCase(RandomProcessTestCase):
                 )
 
     def test_rp_var_shape(self):
-        """
-        Test whether output shape matches the shape of the variance function of the
-        random process.
-        """
+        """Test whether output shape matches the shape of the variance function of the
+        random process."""
         for rand_proc in self.random_processes:
             with self.subTest():
                 n_inputs_x = 10
@@ -230,10 +226,8 @@ class ShapeTestCase(RandomProcessTestCase):
                 )
 
     def test_rp_sample_shape(self):
-        """
-        Test whether output shape matches last dimensions of a drawn sample from the
-        process.
-        """
+        """Test whether output shape matches last dimensions of a drawn sample from the
+        process."""
         for rand_proc in self.random_processes:
             for sample_size in [(), 1, (2,), (2, 2)]:
                 with self.subTest():

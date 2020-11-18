@@ -1,6 +1,4 @@
-"""
-Random Variables.
-"""
+"""Random Variables."""
 
 from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
@@ -28,8 +26,7 @@ _ValueType = TypeVar("ValueType")
 
 
 class RandomVariable(Generic[_ValueType]):
-    """
-    Random variables represent uncertainty about a value.
+    """Random variables represent uncertainty about a value.
 
     Random variables generalize multi-dimensional arrays by encoding uncertainty
     about the (numerical) quantity in question. Despite their name, they do not
@@ -192,10 +189,8 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def size(self) -> int:
-        """
-        Size of realizations of the random variable, defined as the product over all
-        components of :meth:`shape`.
-        """
+        """Size of realizations of the random variable, defined as the product over all
+        components of :meth:`shape`."""
         return int(np.prod(self.__shape))
 
     @property
@@ -205,12 +200,15 @@ class RandomVariable(Generic[_ValueType]):
 
     @property
     def median_dtype(self) -> np.dtype:
-        """The dtype of the :attr:`median`. It will be set to the dtype arising from
-        the multiplication of values with dtypes :attr:`dtype` and :class:`np.float_`.
-        This is motivated by the fact that, even for discrete random variables, e.g.
-        integer-valued random variables, the :attr:`median` might lie in between two
-        values in which case these values are averaged. For example, a uniform random
-        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
+        """The dtype of the :attr:`median`.
+
+        It will be set to the dtype arising from the multiplication of
+        values with dtypes :attr:`dtype` and :class:`np.float_`. This is
+        motivated by the fact that, even for discrete random variables,
+        e.g. integer-valued random variables, the :attr:`median` might
+        lie in between two values in which case these values are
+        averaged. For example, a uniform random variable on :math:`\\{
+        1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
         """
         return self.__median_dtype
 
@@ -231,40 +229,36 @@ class RandomVariable(Generic[_ValueType]):
         """Random state of the random variable.
 
         This attribute defines the RandomState object to use for drawing
-        realizations from this random variable.
-        If None (or np.random), the global np.random state is used.
-        If integer, it is used to seed the local :class:`~numpy.random.RandomState`
-        instance.
+        realizations from this random variable. If None (or np.random),
+        the global np.random state is used. If integer, it is used to
+        seed the local :class:`~numpy.random.RandomState` instance.
         """
         return self._random_state
 
     @random_state.setter
     def random_state(self, seed: RandomStateArgType):
-        """
-        Get or set the RandomState object of the random variable.
+        """Get or set the RandomState object of the random variable.
 
-        This can be either None or an existing RandomState object.
-        If None (or np.random), use the RandomState singleton used by np.random.
-        If already a RandomState instance, use it.
-        If an int, use a new RandomState instance seeded with seed.
+        This can be either None or an existing RandomState object. If
+        None (or np.random), use the RandomState singleton used by
+        np.random. If already a RandomState instance, use it. If an int,
+        use a new RandomState instance seeded with seed.
         """
         self._random_state = _utils.as_random_state(seed)
 
     @property
     def parameters(self) -> Dict[str, Any]:
-        """
-        Parameters of the associated probability distribution.
+        """Parameters of the associated probability distribution.
 
-        The parameters of the probability distribution of the random variable,
-        e.g. mean, variance, scale, rate, etc. stored in a ``dict``.
+        The parameters of the probability distribution of the random
+        variable, e.g. mean, variance, scale, rate, etc. stored in a
+        ``dict``.
         """
         return self.__parameters.copy()
 
     @cached_property
     def mode(self) -> _ValueType:
-        """
-        Mode of the random variable.
-        """
+        """Mode of the random variable."""
         if self.__mode is None:
             raise NotImplementedError
 
@@ -285,10 +279,10 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def median(self) -> _ValueType:
-        """
-        Median of the random variable.
+        """Median of the random variable.
 
-        To learn about the dtype of the median, see :attr:`median_dtype`.
+        To learn about the dtype of the median, see
+        :attr:`median_dtype`.
         """
 
         if self.__shape != ():
@@ -313,8 +307,7 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def mean(self) -> _ValueType:
-        """
-        Mean :math:`\\mathbb{E}(X)` of the random variable.
+        """Mean :math:`\\mathbb{E}(X)` of the random variable.
 
         To learn about the dtype of the mean, see :attr:`moment_dtype`.
         """
@@ -392,10 +385,10 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def std(self) -> _ValueType:
-        """
-        Standard deviation of the random variable.
+        """Standard deviation of the random variable.
 
-        To learn about the dtype of the standard deviation, see :attr:`moment_dtype`.
+        To learn about the dtype of the standard deviation, see
+        :attr:`moment_dtype`.
         """
         if self.__std is None:
             try:
@@ -420,9 +413,7 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def entropy(self) -> np.float_:
-        """
-        Information-theoretic entropy :math:`H(X)` of the random variable.
-        """
+        """Information-theoretic entropy :math:`H(X)` of the random variable."""
         if self.__entropy is None:
             raise NotImplementedError
 
@@ -435,8 +426,7 @@ class RandomVariable(Generic[_ValueType]):
         return entropy
 
     def in_support(self, x: _ValueType) -> bool:
-        """
-        Check whether the random variable takes value ``x`` with non-zero
+        """Check whether the random variable takes value ``x`` with non-zero
         probability, i.e. if ``x`` is in the support of its distribution.
 
         Parameters
@@ -458,8 +448,7 @@ class RandomVariable(Generic[_ValueType]):
         return in_support
 
     def sample(self, size: ShapeArgType = ()) -> _ValueType:
-        """
-        Draw realizations from a random variable.
+        """Draw realizations from a random variable.
 
         Parameters
         ----------
@@ -472,8 +461,7 @@ class RandomVariable(Generic[_ValueType]):
         return self.__sample(_utils.as_shape(size))
 
     def cdf(self, x: _ValueType) -> np.float_:
-        """
-        Cumulative distribution function.
+        """Cumulative distribution function.
 
         Parameters
         ----------
@@ -500,8 +488,7 @@ class RandomVariable(Generic[_ValueType]):
             )
 
     def logcdf(self, x: _ValueType) -> np.float_:
-        """
-        Log-cumulative distribution function.
+        """Log-cumulative distribution function.
 
         Parameters
         ----------
@@ -528,8 +515,7 @@ class RandomVariable(Generic[_ValueType]):
             )
 
     def quantile(self, p: FloatArgType) -> _ValueType:
-        """
-        Quantile function.
+        """Quantile function.
 
         The quantile function :math:`Q \\colon [0, 1] \\to \\mathbb{R}` of a random
         variable :math:`X` is defined as
@@ -590,8 +576,7 @@ class RandomVariable(Generic[_ValueType]):
         )
 
     def reshape(self, newshape: ShapeArgType) -> "RandomVariable":
-        """
-        Give a new shape to a random variable.
+        """Give a new shape to a random variable.
 
         Parameters
         ----------
@@ -617,8 +602,7 @@ class RandomVariable(Generic[_ValueType]):
         )
 
     def transpose(self, *axes: int) -> "RandomVariable":
-        """
-        Transpose the random variable.
+        """Transpose the random variable.
 
         Parameters
         ----------
@@ -805,8 +789,7 @@ class RandomVariable(Generic[_ValueType]):
 
     @staticmethod
     def infer_median_dtype(value_dtype: DTypeArgType) -> np.dtype:
-        """
-        Infer the dtype of the median.
+        """Infer the dtype of the median.
 
         Set the dtype to the dtype arising from
         the multiplication of values with dtypes :attr:`dtype` and :class:`np.float_`.
@@ -824,8 +807,7 @@ class RandomVariable(Generic[_ValueType]):
 
     @staticmethod
     def infer_moment_dtype(value_dtype: DTypeArgType) -> np.dtype:
-        """
-        Infer the dtype of any moment.
+        """Infer the dtype of any moment.
 
         Infers the dtype of any (function of a) moment of the random variable, e.g. its
         :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. Returns the
@@ -907,8 +889,7 @@ class RandomVariable(Generic[_ValueType]):
 
 
 class DiscreteRandomVariable(RandomVariable[_ValueType]):
-    """
-    Random variable with countable range.
+    """Random variable with countable range.
 
     Discrete random variables map to a countable set. Typical examples are the natural
     numbers or integers.
@@ -1068,8 +1049,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         )
 
     def pmf(self, x: _ValueType) -> np.float_:
-        """
-        Probability mass function.
+        """Probability mass function.
 
         Computes the probability of the random variable being equal to the given
         value. For a random variable :math:`X` it is defined as
@@ -1103,8 +1083,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             )
 
     def logpmf(self, x: _ValueType) -> np.float_:
-        """
-        Natural logarithm of the probability mass function.
+        """Natural logarithm of the probability mass function.
 
         Parameters
         ----------
@@ -1132,8 +1111,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
 
 class ContinuousRandomVariable(RandomVariable[_ValueType]):
-    """
-    Random variable with uncountably infinite range.
+    """Random variable with uncountably infinite range.
 
     Continuous random variables map to a uncountably infinite set. Typically, this is a
     subset of a real vector space.
@@ -1293,8 +1271,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         )
 
     def pdf(self, x: _ValueType) -> np.float_:
-        """
-        Probability density function.
+        """Probability density function.
 
         The area under the curve defined by the probability density function
         specifies the probability of the random variable :math:`X` taking values
@@ -1329,8 +1306,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         )
 
     def logpdf(self, x: _ValueType) -> np.float_:
-        """
-        Natural logarithm of the probability density function.
+        """Natural logarithm of the probability density function.
 
         Parameters
         ----------
