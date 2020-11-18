@@ -29,109 +29,94 @@ _ValueType = TypeVar("ValueType")
 
 class RandomVariable(Generic[_ValueType]):
     """
-        Random variables represent uncertainty about a value.
+    Random variables represent uncertainty about a value.
 
-    <<<<<<< HEAD
-        Random variables generalize multi-dimensional arrays by also encoding uncertainty
-    =======
-        Random variables generalize multi-dimensional arrays by encoding uncertainty
-    >>>>>>> master
-        about the (numerical) quantity in question. Despite their name, they do not
-        necessarily represent stochastic objects. Random variables are also the primary in-
-        and outputs of probabilistic numerical methods.
+    Random variables generalize multi-dimensional arrays by encoding uncertainty
+    about the (numerical) quantity in question. Despite their name, they do not
+    necessarily represent stochastic objects. Random variables are also the
+    primary  in- and outputs of probabilistic numerical methods.
 
-        Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and
-        linear operators. This may change their distribution and therefore not necessarily
-        all previously available methods are retained.
+    Instances of :class:`RandomVariable` can be added, multiplied, etc. with
+    arrays and linear operators. This may change their distribution and therefore
+    not necessarily all previously available methods are retained.
 
-        Parameters
-        ----------
-        shape :
-            Shape of realizations of this random variable.
-        dtype :
-    <<<<<<< HEAD
-            Data type of realizations of this random variable. If ``object`` will be
-            converted to ``numpy.dtype``.
-    =======
-            Data type of realizations of this random variable. If of type :class:`object`
-            the argument will be converted to ``numpy.dtype``.
-    >>>>>>> master
-        random_state :
-            Random state of the random variable. If None (or np.random), the global
-            :mod:`numpy.random` state is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
-        parameters :
-            Parameters of the distribution of the random variable.
-        sample :
-            Callable implementing sampling from the random variable.
-        in_support :
-            Callable checking whether the random variable takes value ``x`` with non-zero
-            probability, i.e. if ``x`` is in the support of its distribution.
-        cdf :
-    <<<<<<< HEAD
-            The cumulative distribution function of the random variable.
-        logcdf :
-            The log-transformed cumulative distribution function of the random variable.
-    =======
-            Cumulative distribution function of the random variable.
-        logcdf :
-            Log-transformed cumulative distribution function of the random variable.
-    >>>>>>> master
-        quantile :
-            Quantile function of the random variable.
-        mode :
-            Mode of the random variable. Value of the random variable at which its
-            probability density function or probability mass function takes its maximal
-            value.
-        mean :
-            Expected value of the random variable.
-        cov :
-            Covariance of the random variable.
-        var :
-            (Element-wise) variance of the random variable.
-        std :
-            (Element-wise) standard deviation of the random variable.
-        entropy :
-            Information-theoretic entropy :math:`H(X)` of the random variable.
-        as_value_type :
-            Function which can be used to transform user-supplied arguments, interpreted as
-            realizations of this random variable, to an easy-to-process, normalized format.
-            Will be called internally to transform the argument of functions like
-            :meth:`~RandomVariable.in_support`, :meth:`~RandomVariable.cdf`
-            and :meth:`~RandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
-            and :meth:`~DiscreteRandomVariable.logpmf` (in :class:`DiscreteRandomVariable`),
-            :meth:`~ContinuousRandomVariable.pdf` and
-            :meth:`~ContinuousRandomVariable.logpdf` (in :class:`ContinuousRandomVariable`),
-            and potentially by similar functions in subclasses.
+    Parameters
+    ----------
+    shape :
+        Shape of realizations of this random variable.
+    dtype :
+        Data type of realizations of this random variable. If of type :class:`object`
+        the argument will be converted to ``numpy.dtype``.
+    random_state :
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
+    parameters :
+        Parameters of the distribution of the random variable.
+    sample :
+        Callable implementing sampling from the random variable.
+    in_support :
+        Callable checking whether the random variable takes value ``x`` with non-zero
+        probability, i.e. if ``x`` is in the support of its distribution.
+    cdf :
+        Cumulative distribution function of the random variable.
+    logcdf :
+        Log-transformed cumulative distribution function of the random variable.
+    quantile :
+        Quantile function of the random variable.
+    mode :
+        Mode of the random variable. Value of the random variable at which its
+        probability density function or probability mass function takes its maximal
+        value.
+    mean :
+        Expected value of the random variable.
+    cov :
+        Covariance of the random variable.
+    var :
+        (Element-wise) variance of the random variable.
+    std :
+        (Element-wise) standard deviation of the random variable.
+    entropy :
+        Information-theoretic entropy :math:`H(X)` of the random variable.
+    as_value_type :
+        Function which can be used to transform user-supplied arguments, interpreted as
+        realizations of this random variable, to an easy-to-process, normalized format.
+        Will be called internally to transform the argument of functions like
+        :meth:`~RandomVariable.in_support`, :meth:`~RandomVariable.cdf`
+        and :meth:`~RandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
+        and :meth:`~DiscreteRandomVariable.logpmf` (in :class:`DiscreteRandomVariable`),
+        :meth:`~ContinuousRandomVariable.pdf` and
+        :meth:`~ContinuousRandomVariable.logpdf` (in :class:`ContinuousRandomVariable`),
+        and potentially by similar functions in subclasses.
 
-            For instance, this method is useful if (``log``)
-            :meth:`~ContinousRandomVariable.cdf` and (``log``)
-            :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
-            arguments, but we still want the user to be able to pass Python
-            :class:`float`. Then :meth:`~RandomVariable.as_value_type`
-            should be set to something like ``lambda x: np.float64(x)``.
+        For instance, this method is useful if (``log``)
+        :meth:`~ContinousRandomVariable.cdf` and (``log``)
+        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
+        arguments, but we still want the user to be able to pass Python
+        :class:`float`. Then :meth:`~RandomVariable.as_value_type`
+        should be set to something like ``lambda x: np.float64(x)``.
 
-        See Also
-        --------
-        asrandvar : Transform into a :class:`RandomVariable`.
-        DiscreteRandomVariable : A random variable with countable range.
-        ContinuousRandomVariable : A random variable with uncountably infinite range.
+    See Also
+    --------
+    asrandvar : Transform into a :class:`RandomVariable`.
+    DiscreteRandomVariable : A random variable with countable range.
+    ContinuousRandomVariable : A random variable with uncountably infinite range.
 
-        Notes
-        -----
-        The internals of :class:`RandomVariable` objects are assumed to be constant over
-        their whole lifecycle. This is due to the caches used to make certain computations
-        more efficient. As a consequence, altering the internal state of a
-        :class:`RandomVariable` (e.g. its mean, cov, sampling function, etc.) will result in
-        undefined behavior. In particular, this should be kept in mind when subclassing
-        :class:`RandomVariable` or any of its descendants.
+    Notes
+    -----
+    The internals of :class:`RandomVariable` objects are assumed to be constant over
+    their whole lifecycle. This is due to the caches used to make certain computations
+    more efficient. As a consequence, altering the internal state of a
+    :class:`RandomVariable` (e.g. its mean, cov, sampling function, etc.) will result in
+    undefined behavior. In particular, this should be kept in mind when subclassing
+    :class:`RandomVariable` or any of its descendants.
 
-        Sampling from random variables with fixed seed is not stable with respect to the
-        order of operations (such as slicing, masking, etc.). This means sampling from a
-        random variable and then slicing the resulting array does not necessarily
-        return the same result as slicing the random variable and sampling from the
-        result. However, the random seed ensures that each sequence of operations will
-        always result in the same output.
+    Sampling from random variables with fixed seed is not stable with respect to the
+    order of operations (such as slicing, masking, etc.). This means sampling from a
+    random variable and then slicing the resulting array does not necessarily
+    return the same result as slicing the random variable and sampling from the
+    result. However, the random seed ensures that each sequence of operations will
+    always result in the same output.
     """
 
     # pylint: disable=too-many-instance-attributes,too-many-public-methods
@@ -379,7 +364,7 @@ class RandomVariable(Generic[_ValueType]):
     @cached_property
     def var(self) -> _ValueType:
         """
-        Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of
+        Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}[(X-\\mathbb{E}(X))^2]` of
         the random variable.
 
         To learn about the dtype of the variance, see :attr:`moment_dtype`.

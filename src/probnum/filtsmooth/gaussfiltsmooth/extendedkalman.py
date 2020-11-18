@@ -2,109 +2,108 @@
 Gaussian filtering and smoothing based on making intractable quantities
 tractable through Taylor-method approximations, e.g. linearization.
 """
+import functools
+
 import numpy as np
 
-from probnum.filtsmooth.gaussfiltsmooth._utils import is_cont_disc, is_disc_disc
-from probnum.filtsmooth.gaussfiltsmooth.gaussfiltsmooth import (
-    GaussFiltSmooth,
-    linear_discrete_update,
-)
-from probnum.filtsmooth.statespace import DiscreteGaussianModel, LinearSDEModel
-from probnum.random_variables import Normal
+import probnum.random_variables as pnrv
+from probnum.filtsmooth import statespace
 
 
-class ExtendedKalman(GaussFiltSmooth):
-    """
-    Factory method for Kalman filters.
-    """
+class ContinuousEKFComponent(statespace.Transition):
+    """Continuous extended Kalman filter transition."""
 
-    def __new__(cls, dynamod, measmod, initrv, **kwargs):
+    def __init__(self, non_linear_sde, num_steps):
+        if not isinstance(non_linear_sde, statespace.SDE):
+            raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
+        self.non_linear_sde = non_linear_sde
+        self.num_steps = num_steps
 
-        if cls is ExtendedKalman:
-            if is_cont_disc(dynamod, measmod):
-                return _ContDiscExtendedKalman(dynamod, measmod, initrv, **kwargs)
-            if is_disc_disc(dynamod, measmod):
-                return _DiscDiscExtendedKalman(dynamod, measmod, initrv, **kwargs)
-            else:
-                errmsg = (
-                    "Cannot instantiate Extended Kalman filter with "
-                    "given dynamic model and measurement model."
-                )
-                raise ValueError(errmsg)
-        else:
-            return super().__new__(cls)
-
-
-class _ContDiscExtendedKalman(ExtendedKalman):
-    """
-    Continuous-discrete extended Kalman filtering and smoothing.
-    """
-
-    def __init__(self, dynamod, measmod, initrv, **kwargs):
-        if not issubclass(type(dynamod), LinearSDEModel):
-            raise ValueError(
-                "This implementation of ContDiscExtendedKalman "
-                "requires a linear dynamic model."
-            )
-        if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise ValueError(
-                "ContDiscExtendedKalman requires a Gaussian measurement model."
-            )
-        if "cke_nsteps" in kwargs.keys():
-            self.cke_nsteps = kwargs["cke_nsteps"]
-        else:
-            self.cke_nsteps = 1
-        super().__init__(dynamod, measmod, initrv)
-
-    def predict(self, start, stop, randvar, **kwargs):
-        step = (stop - start) / self.cke_nsteps
-        return self.dynamicmodel.transition_rv(
-            rv=randvar, start=start, stop=stop, step=step, **kwargs
+    def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
+        compute_jacobian_at = linearise_at.mean if linearise_at else real
+        jacobfun = functools.partial(
+            self.non_linear_sde.jacobian, state=compute_jacobian_at
+        )
+        step = (stop - start) / self.num_steps
+        return statespace.linear_sde_statistics(
+            rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
+            start=start,
+            stop=stop,
+            step=step,
+            driftfun=self.non_linear_sde.drift,
+            jacobfun=jacobfun,
+            dispmatfun=self.non_linear_sde.dispersionmatrix,
         )
 
-    def update(self, time, randvar, data, **kwargs):
-        return _discrete_extkalman_update(
-            time, randvar, data, self.measurementmodel, **kwargs
+    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
+        compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
+        jacobfun = functools.partial(
+            self.non_linear_sde.jacobian, state=compute_jacobian_at
+        )
+        step = (stop - start) / self.num_steps
+        return statespace.linear_sde_statistics(
+            rv=rv,
+            start=start,
+            stop=stop,
+            step=step,
+            driftfun=self.non_linear_sde.drift,
+            jacobfun=jacobfun,
+            dispmatfun=self.non_linear_sde.dispersionmatrix,
         )
 
+    @property
+    def dimension(self):
+        raise NotImplementedError
 
-class _DiscDiscExtendedKalman(ExtendedKalman):
-    def __init__(self, dynamod, measmod, initrv, **kwargs):
-        """
-        Checks that dynamod and measmod are linear and moves on.
-        """
-        if not issubclass(type(dynamod), DiscreteGaussianModel):
-            raise ValueError(
-                "DiscDiscExtendedKalmanFilter requires " "a linear dynamic model."
-            )
-        if not issubclass(type(measmod), DiscreteGaussianModel):
-            raise ValueError(
-                "DiscDiscExtendedKalmanFilter requires " "a linear measurement model."
-            )
-        super().__init__(dynamod, measmod, initrv)
 
-    def predict(self, start, stop, randvar, **kwargs):
-        mean, covar = randvar.mean, randvar.cov
-        if np.isscalar(mean) and np.isscalar(covar):
-            mean, covar = mean * np.ones(1), covar * np.eye(1)
-        diffmat = self.dynamod.diffusionmatrix(start, **kwargs)
-        jacob = self.dynamod.jacobian(start, mean, **kwargs)
-        mpred = self.dynamod.dynamics(start, mean, **kwargs)
-        crosscov = covar @ jacob.T
+class DiscreteEKFComponent(statespace.Transition):
+    """Discrete extended Kalman filter transition."""
+
+    def __init__(self, disc_model):
+        self.disc_model = disc_model
+
+    def transition_realization(self, real, start, **kwargs):
+        return self.disc_model.transition_realization(real, start, **kwargs)
+
+    def transition_rv(self, rv, start, linearise_at=None, **kwargs):
+        diffmat = self.disc_model.diffusionmatrix(start)
+        if linearise_at is None:
+            jacob = self.disc_model.jacobian(start, rv.mean)
+        else:
+            jacob = self.disc_model.jacobian(start, linearise_at.mean)
+        mpred = self.disc_model.dynamics(start, rv.mean)
+        crosscov = rv.cov @ jacob.T
         cpred = jacob @ crosscov + diffmat
-        return Normal(mpred, cpred), {"crosscov": crosscov}
+        return pnrv.Normal(mpred, cpred), {"crosscov": crosscov}
 
-    def update(self, time, randvar, data, **kwargs):
-        return _discrete_extkalman_update(
-            time, randvar, data, self.measurementmodel, **kwargs
-        )
+    @property
+    def dimension(self):
+        raise NotImplementedError
 
+    @classmethod
+    def from_ode(cls, ode, prior, evlvar, ek0_or_ek1=0):
+        spatialdim = prior.spatialdim
+        h0 = prior.proj2coord(coord=0)
+        h1 = prior.proj2coord(coord=1)
 
-def _discrete_extkalman_update(time, randvar, data, measmod, **kwargs):
-    mpred, cpred = randvar.mean, randvar.cov
-    if np.isscalar(mpred) and np.isscalar(cpred):
-        mpred, cpred = mpred * np.ones(1), cpred * np.eye(1)
-    jacob = measmod.jacobian(time, mpred, **kwargs)
-    meascov = measmod.diffusionmatrix(time, **kwargs)
-    meanest = measmod.dynamics(time, mpred, **kwargs)
-    return linear_discrete_update(meanest, cpred, data, meascov, jacob, mpred)
+        def dyna(t, x, **kwargs):
+            return h1 @ x - ode.rhs(t, h0 @ x)
+
+        def diff(t, **kwargs):
+            return evlvar * np.eye(spatialdim)
+
+        def jaco_ek1(t, x, **kwargs):
+            return h1 - ode.jacobian(t, h0 @ x) @ h0
+
+        def jaco_ek0(t, x, **kwargs):
+            return h1
+
+        if ek0_or_ek1 == 0:
+            jaco = jaco_ek0
+        elif ek0_or_ek1 == 1:
+            jaco = jaco_ek1
+        else:
+            raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
+
+        discrete_model = statespace.DiscreteGaussian(dyna, diff, jaco)
+        return cls(discrete_model)

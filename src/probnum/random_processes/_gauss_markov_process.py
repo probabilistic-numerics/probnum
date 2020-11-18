@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-from probnum.filtsmooth.statespace import DiscreteGaussianLinearModel, LinearSDEModel
+from probnum.filtsmooth.statespace import DiscreteLinearGaussian, LinearSDE
 from probnum.random_variables import Normal
 from probnum.type import FloatArgType, RandomStateArgType
 
@@ -52,7 +52,7 @@ class GaussMarkovProcess(GaussianProcess):
 
     def __init__(
         self,
-        linear_transition: Union[LinearSDEModel, DiscreteGaussianLinearModel],
+        linear_transition: Union[LinearSDE, DiscreteLinearGaussian],
         initrv: Normal,
         x0: FloatArgType = 0.0,
         random_state: RandomStateArgType = None,

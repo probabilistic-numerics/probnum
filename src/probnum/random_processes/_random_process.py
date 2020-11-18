@@ -175,42 +175,62 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         self._random_state = _utils.as_random_state(seed)
 
     def mean(self, x: _InputType) -> _OutputType:
+        # TODO extend this to a vectorized function for inputs of shape (n, k) or (n, input_shape, k)?
         """
         Mean function.
+
+        Returns the mean function evaluated at the given input(s).
 
         Parameters
         ----------
         x
-            *shape=(d,) or (n, d)* -- Inputs where the mean function is evaluated.
+            *shape=(n,) or (n, input_shape)* -- Input(s) where the mean function is
+            evaluated.
+
+        Returns
+        -------
+        mean
+            *shape=(n, ) or (n, output_shape)* -- Mean function of the process at
+            evaluated at the timepoints ``x``.
         """
         if self.__mean is None:
             raise NotImplementedError
 
         return self.__mean(x)
 
-    def cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
+    def cov(
+        self, x0: _InputType, x1: Optional[_InputType] = None, keepdims=False
+    ) -> _OutputType:
+        # TODO What about pairwise evaluation? This could also remove the need for having x1 be None, by specifying x0=x1
         """
         Covariance function or kernel.
 
-        Returns the covariance function :math:`\\operatorname{Cov}(x_0,
-        x_1) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
-        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``.
+        Returns the covariance function :math:`\\operatorname{Cov}(f(x_0),
+        f(x_1)) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
+        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``. If only ``x0``
+        is provided the covariance among the components of the random process at the
+        inputs defined by ``x0`` is computed.
 
         Parameters
         ----------
         x0
-            *shape=(d,) or (n0, d)* -- First input to the covariance function.
+            *shape=(n0,) or (n0, output_shape)* -- First input to the covariance
+            function.
         x1
-            *shape=(d,) or (n1, d)* -- Second input to the covariance function.
+            *shape=(n1,) or (n1, output_shape)* -- Second input to the covariance
+            function.
         keepdims
             Keep the dimensions of the covariance. If ``True`` the resulting
-            array has *shape=(n0, n1, d, d)*, otherwise *shape=(n0 * d, n1 * d)*.
+            array has *shape=(n0, n1, output_shape, output_shape)*, otherwise
+            *shape=(n0 * output_shape, n1 * output_shape)*.
 
         Returns
         -------
         cov
-            *shape=(n0 * d, n1 * d) or (n0, n1, d, d)* -- Covariance of the process
-            at ``x0`` and ``x1``.
+            *shape=(n0 * output_shape, n1 * output_shape) or (n0, n1, output_shape,
+            output_shape)* -- Covariance of the process at ``x0`` and ``x1``. If only
+            ``x0`` is given, the resulting array has *shape=(n0 * output_shape,
+            output_shape) or (n0, output_shape, output_shape)*.
         """  # pylint: disable=trailing-whitespace
         if self.__cov is None:
             raise NotImplementedError
@@ -227,15 +247,16 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(d,) or (n, d)* -- Input locations.
+            *shape=(n,) or (n, output_shape)* -- Input locations.
         keepdims
             Keep the dimensions of the variance(s). If ``True`` the resulting
-            array has *shape=(n, d)*, otherwise *shape=(n * d)*.
+            array has *shape=(n, output_shape)*, otherwise *shape=(n * output_shape)*.
 
         Returns
         -------
         var
-            *shape=(n * d) or (n, d)* -- Variance of the process at ``x``.
+            *shape=(n * output_shape) or (n, output_shape)* -- Variance of the
+            process at ``x``.
         """
         if self.__var is None:
             try:
@@ -252,15 +273,16 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(d,) or (n, d)* -- Input locations.
+            *shape=(n,) or (n, output_shape)* -- Input locations.
         keepdims
             Keep the dimensions of the standard deviation(s). If ``True`` the resulting
-            array has *shape=(n, d)*, otherwise *shape=(n * d)*.
+            array has *shape=(n, output_shape)*, otherwise *shape=(n * output_shape)*.
 
         Returns
         -------
         std
-            *shape=(n * d) or (n, d)* -- Standard deviation of the process at ``x``.
+            *shape=(n * output_shape) or (n, output_shape)* -- Standard deviation of
+            the process at ``x``.
         """
         if self.__std is None:
             try:
@@ -283,8 +305,8 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(d,) or (n, d)* -- Evaluation input(s) of the sample paths of the
-            process.
+            *shape=(n,) or (n, output_shape)* -- Evaluation input(s) of the sample
+            paths of the process.
         size
             Size of the sample.
         """
@@ -304,8 +326,8 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(d,) or (n, d)* -- Evaluation input(s) of the sample paths of the
-            process.
+            *shape=(n,) or (n, output_shape)* -- Evaluation input(s) of the sample
+            paths of the process.
         size
             Size of the sample.
         """
