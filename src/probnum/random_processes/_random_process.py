@@ -27,7 +27,8 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     Random processes generalize functions by encoding uncertainty over function
     values in their covariance function. They can be used to model (deterministic)
-    functions which are not fully known or to define functions with stochastic output.
+    functions which are not fully known or to define functions with stochastic
+    output.
 
     Instances of :class:`RandomProcess` can be added, multiplied, etc. with scalars,
     arrays and random variables. Such (arithmetic) operations may not retain all
@@ -62,9 +63,13 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     See Also
     --------
     asrandproc : Convert an object to a random process.
+    RandomVariable : Class representing random variables.
 
     Notes
     -----
+    Random processes are assumed to have an (un-/countably) infinite domain. Random
+    processes with a finite index set are represented by :class:`RandomVariable`s.
+
     Sampling from random processes with fixed seed is not stable with respect to the
     order of operations. This means sampling from a random process and then
     performing an arithmetic operation will not necessarily return the same samples

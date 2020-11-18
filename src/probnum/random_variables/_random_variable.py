@@ -987,6 +987,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
     See Also
     --------
+    RandomVariable : Class representing random variables.
     ContinuousRandomVariable : A random variable with uncountably infinite range.
 
     Examples
@@ -1213,6 +1214,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
     See Also
     --------
+    RandomVariable : Class representing random variables.
     DiscreteRandomVariable : A random variable with countable range.
 
     Examples
