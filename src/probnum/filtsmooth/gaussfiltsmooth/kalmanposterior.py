@@ -1,9 +1,7 @@
-"""
-Posterior over states after applying (Extended/Unscented) Kalman filtering/smoothing
+"""Posterior over states after applying (Extended/Unscented) Kalman filtering/smoothing.
 
-Contains the discrete time and function outputs.
-Provides dense output by being callable.
-Can function values can also be accessed by indexing.
+Contains the discrete time and function outputs. Provides dense output
+by being callable. Can function values can also be accessed by indexing.
 """
 from warnings import warn
 
@@ -16,9 +14,7 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
 class KalmanPosterior(FiltSmoothPosterior):
-    """
-    Posterior Distribution after (Extended/Unscented) Kalman Filtering/Smoothing
-
+    """Posterior Distribution after (Extended/Unscented) Kalman Filtering/Smoothing.
 
     Parameters
     ----------
@@ -43,14 +39,11 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     @property
     def state_rvs(self):
-        """
-        :obj:`list` of :obj:`RandomVariable`: Discrete-time posterior state estimates
-        """
+        """:obj:`list` of :obj:`RandomVariable`: Discrete-time posterior state estimates"""
         return self._state_rvs
 
     def __call__(self, t):
-        """
-        Evaluate the time-continuous posterior at location `t`
+        """Evaluate the time-continuous posterior at location `t`
 
         Algorithm:
         1. Find closest t_prev and t_next, with t_prev < t < t_next
@@ -98,7 +91,7 @@ class KalmanPosterior(FiltSmoothPosterior):
         return self._predict_to_loc(t)
 
     def _predict_to_loc(self, loc):
-        """Predict states at location `loc` from the closest, previous state"""
+        """Predict states at location `loc` from the closest, previous state."""
         prev_idx = (self.locations < loc).sum() - 1
         prev_loc = self.locations[prev_idx]
         prev_rv = self.state_rvs[prev_idx]
@@ -109,7 +102,7 @@ class KalmanPosterior(FiltSmoothPosterior):
         return pred_rv
 
     def _smooth_prediction(self, pred_rv, loc):
-        """Smooth the predicted state at location `loc` using the next closest"""
+        """Smooth the predicted state at location `loc` using the next closest."""
         next_idx = (self.locations < loc).sum()
         next_loc = self.locations[next_idx]
         next_rv = self._state_rvs[next_idx]

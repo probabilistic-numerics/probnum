@@ -1,8 +1,7 @@
-"""
-Solution-based probabilistic linear solvers.
+"""Solution-based probabilistic linear solvers.
 
-Implementations of solution-based linear solvers which perform inference on the solution
-of a linear system given linear observations.
+Implementations of solution-based linear solvers which perform inference
+on the solution of a linear system given linear observations.
 """
 
 import warnings
@@ -13,8 +12,7 @@ from probnum.linalg.linearsolvers.matrixbased import ProbabilisticLinearSolver
 
 
 class SolutionBasedSolver(ProbabilisticLinearSolver):
-    """
-    Solver iteration of BayesCG.
+    """Solver iteration of BayesCG.
 
     Implements the solve iteration of the solution-based solver BayesCG [1]_.
 
@@ -36,8 +34,7 @@ class SolutionBasedSolver(ProbabilisticLinearSolver):
         super().__init__(A=A, b=b)
 
     def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
-        """
-        Check convergence of a linear solver.
+        """Check convergence of a linear solver.
 
         Evaluates a set of convergence criteria based on its input arguments to decide
         whether the iteration has converged.

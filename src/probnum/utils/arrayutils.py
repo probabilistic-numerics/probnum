@@ -9,9 +9,8 @@ import probnum
 
 
 def atleast_1d(*rvs):
-    """
-    Convert arrays or random variables to arrays or random variables
-    with at least one dimension.
+    """Convert arrays or random variables to arrays or random variables with at least
+    one dimension.
 
     Scalar inputs are converted to 1-dimensional arrays, whilst
     higher-dimensional inputs are preserved. Sparse arrays are not
@@ -48,8 +47,7 @@ def atleast_1d(*rvs):
 def as_colvec(
     vec: Union[np.ndarray, "probnum.RandomVariable"]
 ) -> Union[np.ndarray, "probnum.RandomVariable"]:
-    """
-    Transform the given vector or random variable to column format.
+    """Transform the given vector or random variable to column format.
 
     Given a vector (or random variable) of dimension (n,) return an array with
     dimensions (n, 1) instead. Higher-dimensional arrays are not changed.

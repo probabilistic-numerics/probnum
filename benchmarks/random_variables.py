@@ -1,6 +1,4 @@
-"""
-Benchmarks for random variables.
-"""
+"""Benchmarks for random variables."""
 
 import numpy as np
 

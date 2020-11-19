@@ -12,12 +12,11 @@ if VISUALISE is True:
 
 
 class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
-    """
-    Kalman filtering and smoothing on a discrete setting,
-    i.e. the car tracking problem.
+    """Kalman filtering and smoothing on a discrete setting, i.e. the car tracking
+    problem.
 
-    By comparing filtering and smoothing RMSEs on the test problem,
-    all methods in Kalman() are called.
+    By comparing filtering and smoothing RMSEs on the test problem, all
+    methods in Kalman() are called.
     """
 
     def setUp(self):
@@ -25,10 +24,7 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)
 
     def test_filtsmooth(self):
-        """
-        RMSE of smoother smaller than rmse of filter smaller
-        than of measurements?
-        """
+        """RMSE of smoother smaller than rmse of filter smaller than of measurements?"""
         filter_posterior = self.method.filter(self.obs, self.tms)
         filtms = filter_posterior.state_rvs.mean
         smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
@@ -64,8 +60,7 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
 
 
 class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
-    """
-    Try Kalman filtering on a continuous-discrete setting.
+    """Try Kalman filtering on a continuous-discrete setting.
 
     Try OU process.
     """
@@ -75,10 +70,7 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)
 
     def test_filtsmooth(self):
-        """
-        RMSE of smoother smaller than rmse of filter smaller
-        than of measurements?
-        """
+        """RMSE of smoother smaller than rmse of filter smaller than of measurements?"""
         filter_posterior = self.method.filter(self.obs, self.tms)
         filtms = filter_posterior.state_rvs.mean
         smooth_posterior = self.method.filtsmooth(self.obs, self.tms)

@@ -11,9 +11,7 @@ class NumpyAssertions:
     __unittest = True  # avoids printing traceback from this class
 
     def assertApproxEqual(self, actual, desired, significant=7, msg=""):
-        """
-        Raises an AssertionError if two items are not equal up to significant
-        digits.
+        """Raises an AssertionError if two items are not equal up to significant digits.
 
         .. note:: It is recommended to use one of `assert_allclose`,
                   `assert_array_almost_equal_nulp` or `assert_array_max_ulp`
@@ -51,8 +49,7 @@ class NumpyAssertions:
     def assertAllClose(
         self, actual, desired, rtol=1e-7, atol=0, equal_nan=True, msg=""
     ):
-        """
-        Raises an AssertionError if two objects are not equal up to desired
+        """Raises an AssertionError if two objects are not equal up to desired
         tolerance.
 
         The test is equivalent to ``allclose(actual, desired, rtol, atol)`` (note
@@ -89,8 +86,7 @@ class NumpyAssertions:
         )
 
     def assertArrayAlmostEqualNulp(self, actual, desired, nulp=1):
-        """
-        Compare two arrays relatively to their spacing.
+        """Compare two arrays relatively to their spacing.
 
         This is a relatively robust method to compare two arrays whose amplitude
         is variable.
@@ -124,8 +120,7 @@ class NumpyAssertions:
         np.testing.assert_array_almost_equal_nulp(x=actual, y=desired, nulp=nulp)
 
     def assertArrayMaxUlp(self, actual, desired, maxulp=1, dtype=None):
-        """
-        Check that all items of arrays differ in at most N Units in the Last Place.
+        """Check that all items of arrays differ in at most N Units in the Last Place.
 
         Parameters
         ----------
@@ -153,8 +148,7 @@ class NumpyAssertions:
         np.testing.assert_array_max_ulp(a=actual, b=desired, maxulp=maxulp, dtype=dtype)
 
     def assertArrayEqual(self, actual, desired, msg=""):
-        """
-        Raises an AssertionError if two array_like objects are not equal.
+        """Raises an AssertionError if two array_like objects are not equal.
 
         Given two array_like objects, check that the shape is equal and all
         elements of these objects are equal. An exception is raised at
@@ -181,8 +175,7 @@ class NumpyAssertions:
         np.testing.assert_array_equal(x=actual, y=desired, err_msg=msg, verbose=True)
 
     def assertArrayLess(self, smaller, larger, msg=""):
-        """
-        Raises an AssertionError if two array_like objects are not ordered by less
+        """Raises an AssertionError if two array_like objects are not ordered by less
         than.
 
         Given two array_like objects, check that the shape is equal and all

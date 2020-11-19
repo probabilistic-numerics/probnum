@@ -1,8 +1,8 @@
-"""
-General Gaussian filters based on approximating intractable
-quantities with numerical quadrature.
-Examples include the unscented Kalman filter / RTS smoother
-which is based on a third degree fully symmetric rule.
+"""General Gaussian filters based on approximating intractable quantities with numerical
+quadrature.
+
+Examples include the unscented Kalman filter / RTS smoother which is
+based on a third degree fully symmetric rule.
 """
 
 import numpy as np

@@ -31,8 +31,7 @@ _ValueType = Union[np.floating, np.ndarray, linops.LinearOperator]
 
 
 class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
-    """
-    Random variable with a normal distribution.
+    """Random variable with a normal distribution.
 
     Gaussian random variables are ubiquitous in probability theory, since the
     Gaussian is the equilibrium distribution to which other distributions gravitate
@@ -260,9 +259,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     @cached_property
     def cov_cholesky(self) -> _ValueType:
-        """
-        Cholesky factor :math:`L` of the covariance :math:`\\operatorname{Cov}(X) =LL^\\top`.
-        """
+        """Cholesky factor :math:`L` of the covariance
+        :math:`\\operatorname{Cov}(X) =LL^\\top`."""
         if self._compute_cov_cholesky is None:
             raise NotImplementedError
 
@@ -270,9 +268,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     @cached_property
     def dense_mean(self) -> Union[np.floating, np.ndarray]:
-        """
-        Dense representation of the mean.
-        """
+        """Dense representation of the mean."""
         if isinstance(self._mean, linops.LinearOperator):
             return self._mean.todense()
         else:
@@ -280,17 +276,14 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     @cached_property
     def dense_cov(self) -> Union[np.floating, np.ndarray]:
-        """
-        Dense representation of the covariance.
-        """
+        """Dense representation of the covariance."""
         if isinstance(self._cov, linops.LinearOperator):
             return self._cov.todense()
         else:
             return self._cov
 
     def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Normal":
-        """
-        Marginalization in multi- and matrixvariate normal random variables,
+        """Marginalization in multi- and matrixvariate normal random variables,
         expressed as (advanced) indexing, masking and slicing.
 
         We support all modes of array indexing presented in
@@ -466,10 +459,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     # Multi- and matrixvariate Gaussians
     def dense_cov_cholesky(self) -> np.ndarray:
-        """
-        Compute the Cholesky factorization of the covariance from its dense
-        representation.
-        """
+        """Compute the Cholesky factorization of the covariance from its dense
+        representation."""
         dense_cov = self.dense_cov
 
         return scipy.linalg.cholesky(

@@ -18,8 +18,7 @@ __all__ = ["as_shape", "as_random_state", "as_numpy_scalar"]
 
 
 def as_random_state(seed: RandomStateArgType) -> RandomStateType:
-    """
-    Turn ``seed`` into a np.random.RandomState instance.
+    """Turn ``seed`` into a np.random.RandomState instance.
 
     Parameters
     ----------
@@ -37,8 +36,7 @@ def as_random_state(seed: RandomStateArgType) -> RandomStateType:
 
 
 def as_shape(x: ShapeArgType) -> ShapeType:
-    """
-    Convert a shape representation into a shape defined as a tuple of ints.
+    """Convert a shape representation into a shape defined as a tuple of ints.
 
     Parameters
     ----------
@@ -64,8 +62,7 @@ def as_shape(x: ShapeArgType) -> ShapeType:
 
 
 def as_numpy_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:
-    """
-    Convert a scalar into a NumPy scalar.
+    """Convert a scalar into a NumPy scalar.
 
     Parameters
     ----------

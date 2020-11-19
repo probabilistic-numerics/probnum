@@ -13,7 +13,7 @@ from tests.testing import NumpyAssertions
 
 
 def _random_spd_matrix(D=10):
-    """ Generates a random symmetric positive definite matrix. """
+    """Generates a random symmetric positive definite matrix."""
 
     # Sample a rotation matrix Q in SO(D) (the special orthogonal group SO(D), or
     # orthogonal matrices with unit determinant, drawn uniformly from the Haar measure.
@@ -108,7 +108,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         ]
 
     def test_correct_instantiation(self):
-        """Test whether different variants of the normal distribution are instances of Normal."""
+        """Test whether different variants of the normal distribution are instances of
+        Normal."""
         for mean, cov in self.normal_params:
             with self.subTest():
                 dist = rvs.Normal(mean=mean, cov=cov)
@@ -130,7 +131,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertIsInstance(normrv, rvs.Constant)
 
     def test_addition_normal(self):
-        """Add two random variables with a normal distribution"""
+        """Add two random variables with a normal distribution."""
         for (mean0, cov0), (mean1, cov1) in list(
             itertools.product(self.normal_params, self.normal_params)
         ):
@@ -151,7 +152,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                         normrv_added = normrv0 + normrv1
 
     def test_rv_linop_kroneckercov(self):
-        """Create a rv with a normal distribution with linear operator mean and Kronecker product kernels."""
+        """Create a rv with a normal distribution with linear operator mean and
+        Kronecker product kernels."""
 
         def mv(v):
             return np.array([2 * v[0], 3 * v[1]])
@@ -161,7 +163,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         rvs.Normal(mean=A, cov=V)
 
     def test_normal_dimension_mismatch(self):
-        """Instantiating a normal distribution with mismatched mean and kernels should result in a ValueError."""
+        """Instantiating a normal distribution with mismatched mean and kernels should
+        result in a ValueError."""
         for mean, cov in [
             (0, np.array([1, 2])),
             (np.array([1, 2]), np.array([1, 0])),
@@ -204,7 +207,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     )
 
     def test_sample_zero_cov(self):
-        """Draw sample from distribution with zero kernels and check whether it equals the mean."""
+        """Draw sample from distribution with zero kernels and check whether it equals
+        the mean."""
         for mean, cov in self.normal_params:
             with self.subTest():
                 rv = rvs.Normal(mean=mean, cov=0 * cov, random_state=1)
@@ -216,8 +220,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertAllClose(rv_sample, rv.mean, msg=assert_str)
 
     def test_symmetric_samples(self):
-        """Samples from a normal distribution with symmetric Kronecker kernels of two symmetric matrices are
-        symmetric."""
+        """Samples from a normal distribution with symmetric Kronecker kernels of two
+        symmetric matrices are symmetric."""
         np.random.seed(42)
         n = 3
         A = np.random.uniform(size=(n, n))
@@ -240,7 +244,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             )
 
     def test_indexing(self):
-        """ Indexing with Python integers yields a univariate normal distribution. """
+        """Indexing with Python integers yields a univariate normal distribution."""
         for mean, cov in self.normal_params:
             rv = rvs.Normal(mean=mean, cov=cov)
 
@@ -269,7 +273,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertEqual(indexed_rv.cov, rv.dense_cov[flat_idx + flat_idx])
 
     def test_slicing(self):
-        """ Slicing into a normal distribution yields a normal distribution of the same type """
+        """Slicing into a normal distribution yields a normal distribution of the same
+        type."""
         for mean, cov in self.normal_params:
             rv = rvs.Normal(mean=mean, cov=cov)
 
@@ -302,7 +307,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertArrayEqual(sliced_rv.cov, rv.cov)
 
     def test_array_indexing(self):
-        """ Indexing with 1-dim integer arrays yields a multivariate normal. """
+        """Indexing with 1-dim integer arrays yields a multivariate normal."""
         for mean, cov in self.normal_params:
             rv = rvs.Normal(mean=mean, cov=cov)
 
@@ -337,7 +342,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_array_indexing_broadcast(self):
-        """ Indexing with broadcasted integer arrays yields a matrixvariate normal. """
+        """Indexing with broadcasted integer arrays yields a matrixvariate normal."""
         for mean, cov in self.normal_params:
             rv = rvs.Normal(mean=mean, cov=cov)
 
@@ -370,7 +375,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_masking(self):
-        """ Masking a multivariate or matrixvariate normal yields a multivariate normal. """
+        """Masking a multivariate or matrixvariate normal yields a multivariate
+        normal."""
         for mean, cov in self.normal_params:
             rv = rvs.Normal(mean=mean, cov=cov)
 

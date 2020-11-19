@@ -1,5 +1,6 @@
-"""
-Abstract ODESolver class. Interface for Runge-Kutta, ODEFilter.
+"""Abstract ODESolver class.
+
+Interface for Runge-Kutta, ODEFilter.
 """
 
 import warnings
@@ -9,17 +10,14 @@ from probnum.diffeq.odesolution import ODESolution
 
 
 class ODESolver(ABC):
-    """
-    Interface for ODESolver.
-    """
+    """Interface for ODESolver."""
 
     def __init__(self, ivp):
         self.ivp = ivp
         self.num_steps = 0
 
     def solve(self, firststep, steprule, **kwargs):
-        """
-        Solve an IVP.
+        """Solve an IVP.
 
         Parameters
         ----------
@@ -54,8 +52,7 @@ class ODESolver(ABC):
         return odesol
 
     def _suggest_step(self, step, errorest, steprule):
-        """
-        Suggests step according to steprule and warns if step is extremely small.
+        """Suggests step according to steprule and warns if step is extremely small.
 
         Raises
         ------
@@ -75,13 +72,13 @@ class ODESolver(ABC):
 
     @abstractmethod
     def step(self, start, stop, current, **kwargs):
-        """Every ODE solver needs a step() method that returns a new random variable and an error estimate"""
+        """Every ODE solver needs a step() method that returns a new random variable and
+        an error estimate."""
         raise NotImplementedError
 
     def postprocess(self, times, rvs):
-        """
-        Turn list of random variables into an ODE solution object and potentially do more.
-        Overwrite for instance via
+        """Turn list of random variables into an ODE solution object and potentially do
+        more. Overwrite for instance via.
 
         >>> def postprocess(self, times, rvs):
         >>> # do something with times and rvs
@@ -92,9 +89,10 @@ class ODESolver(ABC):
         return ODESolution(times, rvs, self)
 
     def method_callback(self, time, current_guess, current_error):
-        """
-        Optional callback. Can be overwritten.
-        Do this as soon as it is clear that the current guess is accepted, but before storing it.
-        No return. For example: tune hyperparameters (sigma).
+        """Optional callback.
+
+        Can be overwritten. Do this as soon as it is clear that the
+        current guess is accepted, but before storing it. No return. For
+        example: tune hyperparameters (sigma).
         """
         pass

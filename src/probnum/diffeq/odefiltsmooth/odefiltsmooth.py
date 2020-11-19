@@ -1,5 +1,4 @@
-"""
-Convenience functions for Gaussian filtering and smoothing.
+"""Convenience functions for Gaussian filtering and smoothing.
 
 We support the following methods:
     - ekf0: Extended Kalman filtering based on a zero-th order Taylor
@@ -34,8 +33,7 @@ def probsolve_ivp(
     precond_step=None,
     **kwargs
 ):
-    """
-    Solve initial value problem with Gaussian filtering and smoothing.
+    """Solve initial value problem with Gaussian filtering and smoothing.
 
     Numerically computes a Gauss-Markov process which solves numerically
     the initial value problem (IVP) based on a system of first order
@@ -224,7 +222,6 @@ def probsolve_ivp(
      [0.96968542]
      [0.9794734 ]
      [0.98614926]]
-
     """
     gfilt, firststep, stprl = _create_solver_inputs(
         ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs

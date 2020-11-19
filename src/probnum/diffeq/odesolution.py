@@ -1,9 +1,7 @@
-"""
-ODESolution object, returned by `probsolve_ivp`
+"""ODESolution object, returned by `probsolve_ivp`
 
-Contains the discrete time and function outputs.
-Provides dense output by being callable.
-Can function values can also be accessed by indexing.
+Contains the discrete time and function outputs. Provides dense output
+by being callable. Can function values can also be accessed by indexing.
 """
 import numpy as np
 
@@ -15,9 +13,7 @@ from probnum.random_variables import Normal
 
 
 class ODESolution(FiltSmoothPosterior):
-    """
-    Gaussian IVP filtering solution of an ODE problem
-
+    """Gaussian IVP filtering solution of an ODE problem.
 
     Parameters
     ----------
@@ -106,8 +102,7 @@ class ODESolution(FiltSmoothPosterior):
 
     @property
     def y(self):
-        """
-        :obj:`list` of :obj:`RandomVariable`: Probabilistic discrete-time solution
+        """:obj:`list` of :obj:`RandomVariable`: Probabilistic discrete-time solution
 
         Probabilistic discrete-time solution at times :math:`t_1, ..., t_N`,
         as a list of random variables.
@@ -121,16 +116,14 @@ class ODESolution(FiltSmoothPosterior):
 
     @property
     def dy(self):
-        """
-        :obj:`list` of :obj:`RandomVariable`: Derivatives of the discrete-time solution
-        """
+        """:obj:`list` of :obj:`RandomVariable`: Derivatives of the discrete-time
+        solution"""
         dy_rvs = [self._proj_normal_rv(rv, 1) for rv in self._state_rvs]
         return _RandomVariableList(dy_rvs)
 
     @property
     def _state_rvs(self):
-        """
-        :obj:`list` of :obj:`RandomVariable`:
+        """:obj:`list` of :obj:`RandomVariable`:
         Time-discrete posterior estimates over states, without preconditioning.
 
         Note that this does not correspond to ``self._kalman_posterior.state_rvs``:
@@ -142,8 +135,7 @@ class ODESolution(FiltSmoothPosterior):
         return state_rvs
 
     def __call__(self, t):
-        """
-        Evaluate the time-continuous solution at time t.
+        """Evaluate the time-continuous solution at time t.
 
         `KalmanPosterior.__call__` does the main algorithmic work to return the
         posterior for a given location. All that is left to do here is to (1) undo the
@@ -186,7 +178,7 @@ class ODESolution(FiltSmoothPosterior):
             raise ValueError("Invalid index")
 
     def sample(self, t=None, size=()):
-        # this has its own recursion because of the tedious undoing of preconditioning....
+        # has its own recursion because of the tedious undoing of preconditioning...
 
         size = utils.as_shape(size)
 

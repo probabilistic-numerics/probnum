@@ -1,10 +1,7 @@
-"""
-Adapter methods:
-from initial value problems + state space model to filters.
+"""Adapter methods: from initial value problems + state space model to filters.
 
-Soon the be replaced by initialisation methods.
-The adapter is taken care of elsewhere.
-
+Soon the be replaced by initialisation methods. The adapter is taken
+care of elsewhere.
 """
 
 import numpy as np
@@ -14,9 +11,8 @@ import probnum.random_variables as pnrv
 
 
 def ivp2ekf0(ivp, prior, evlvar):
-    """
-    Computes measurement model and initial distribution
-    for KF based on IVP and prior.
+    """Computes measurement model and initial distribution for KF based on IVP and
+    prior.
 
     **Initialdistribution:**
 
@@ -75,9 +71,8 @@ def ivp2ekf0(ivp, prior, evlvar):
 
 
 def ivp2ekf1(ivp, prior, evlvar):
-    """
-    Computes measurement model and initial distribution
-    for EKF based on IVP and prior.
+    """Computes measurement model and initial distribution for EKF based on IVP and
+    prior.
 
     Returns ExtendedKalmanFilter object.
 
@@ -89,9 +84,8 @@ def ivp2ekf1(ivp, prior, evlvar):
 
 
 def ivp2ukf(ivp, prior, evlvar):
-    """
-    Computes measurement model and initial distribution
-    for EKF based on IVP and prior.
+    """Computes measurement model and initial distribution for EKF based on IVP and
+    prior.
 
     Returns ExtendedKalmanFilter object.
 
@@ -103,13 +97,12 @@ def ivp2ukf(ivp, prior, evlvar):
 
 
 def _initialdistribution(ivp, prior):
-    """
-    Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)`
-    on the initial values :math:`(x_0, f(t_0, x_0), ...)` using
-    as many available derivatives as possible.
+    """Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)` on the initial
+    values :math:`(x_0, f(t_0, x_0), ...)` using as many available derivatives as
+    possible.
 
-    Note that the projection matrices :math:`H_0` and :math:`H_1`
-    become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
+    Note that the projection matrices :math:`H_0` and :math:`H_1` become
+    :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
     """
     if not issubclass(type(ivp.initrv), pnrv.Normal):
         if not issubclass(type(ivp.initrv), pnrv.Constant):
@@ -168,8 +161,8 @@ def _initialdistribution_no_precond(ivp, prior):
 
 
 def _ddx(t, x, ivp):
-    """
-    If Jacobian is available:
+    """If Jacobian is available:
+
     x''(t) = J_f(x(t)) @ f(x(t))
     Else it just returns zero.
     """
@@ -185,8 +178,7 @@ def _ddx(t, x, ivp):
 
 
 def _dddx(t, x, ivp):
-    """
-    x'''(t) = H_f(x) @ f(x) @ f(x) + J_f(X) @ J_f(x) @ f(x)
+    """x'''(t) = H_f(x) @ f(x) @ f(x) + J_f(X) @ J_f(x) @ f(x)
     with an approximate Hessian-vector product.
     """
     evl = ivp.rhs(t, x)
