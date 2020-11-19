@@ -25,9 +25,9 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     Parameters
     ----------
-    input_shape :
+    input_dim :
         Shape of an input to the deterministic process.
-    output_shape :
+    output_dim :
         Shape of the output of the deterministic process.
     dtype :
         Data type of the random process evaluated at an input. If ``object`` will be
@@ -49,8 +49,8 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
     >>> from probnum import random_processes as rps
     >>> f = lambda x : 2.0 * x ** 2 - 1.25 * x + 5.0
     >>> rp = rps.DeterministicProcess(fun=f,
-    ...                               input_shape=(),
-    ...                               output_shape=(),
+    ...                               input_dim=(),
+    ...                               output_dim=(),
     ...                               dtype=np.dtype(np.float_))
     >>> x = np.linspace(0, 1, 10)
     >>> np.all(rp.sample(x) == f(x))
@@ -59,8 +59,8 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     def __init__(
         self,
-        input_shape: ShapeArgType,
-        output_shape: ShapeArgType,
+        input_dim: ShapeArgType,
+        output_dim: ShapeArgType,
         dtype: DTypeArgType,
         fun: Callable[[_InputType], _OutputType],
         random_state: RandomStateArgType = None,
@@ -68,8 +68,8 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
         self._fun = fun
 
         super().__init__(
-            input_shape=input_shape,
-            output_shape=output_shape,
+            input_dim=input_dim,
+            output_dim=output_dim,
             dtype=dtype,
             random_state=random_state,
             fun=fun,
@@ -82,19 +82,17 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
     def _cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
 
         if keepdims:
-            cov_shape = (
-                (x0.shape[0], x1.shape[0]) + self.output_shape + self.output_shape
-            )
+            cov_shape = (x0.shape[0], x1.shape[0]) + self.output_dim + self.output_dim
         else:
             cov_shape = (
-                x0.shape[0] * np.prod(self.output_shape),
-                x1.shape[0] * np.prod(self.output_shape),
+                x0.shape[0] * np.prod(self.output_dim),
+                x1.shape[0] * np.prod(self.output_dim),
             )
 
         return np.zeros(shape=cov_shape)
 
     def _var(self, x: _InputType) -> _OutputType:
-        return np.zeros(shape=[x.shape[0], self.output_shape])
+        return np.zeros(shape=[x.shape[0], self.output_dim])
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         return np.tile(self.__call__(x), reps=size)

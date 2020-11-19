@@ -37,7 +37,7 @@ def asrandproc(obj: Any) -> _random_process.RandomProcess:
         return obj
     elif callable(obj):
         return _random_process.RandomProcess(
-            input_shape=(), output_shape=(), dtype=np.dtype(np.float_), fun=obj
+            input_dim=(), output_dim=(), dtype=np.dtype(np.float_), fun=obj
         )
     else:
         raise ValueError(

@@ -23,9 +23,9 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     Parameters
     ----------
-    input_shape :
+    input_dim :
         Shape of the input of the Gaussian process.
-    output_shape :
+    output_dim :
         Shape of the output of the Gaussian process.
     mean :
         Mean function.
@@ -50,7 +50,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     >>> kernel = lambda x0, x1, _: np.exp(
     ...     -0.5 * np.sum(np.subtract.outer(x0, x1) ** 2, axis=(1, 3))
     ... )  # exponentiated quadratic kernel
-    >>> gp = GaussianProcess(mean=mean, cov=kernel, input_shape=(), output_shape=())
+    >>> gp = GaussianProcess(mean=mean, cov=kernel, input_dim=(), output_dim=())
     >>> # Sample path
     >>> x = np.linspace(-1, 1, 5)[:, None]
     >>> np.random.seed(42)
@@ -66,10 +66,10 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     ...     kernel(x0, x1, _), np.array([[4, 2], [2, 1]])
     ... )
     >>> gp = GaussianProcess(
-    ...     mean=mean, cov=cov_coreg_expquad, input_shape=(), output_shape=(2,)
+    ...     mean=mean, cov=cov_coreg_expquad, input_dim=(), output_shape=(2,)
     ... )
     >>> x = np.array([-1, 0, 1])[:, None]
-    >>> K = gp.cov(x, x, keepdims=True)
+    >>> K = gp.cov(x, x, flatten=True)
     >>> K.shape
     (3, 3, 2, 2)
     >>> # Covariance matrix in output-dimension-first order
@@ -90,8 +90,8 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def __init__(
         self,
-        input_shape: ShapeArgType,
-        output_shape: ShapeArgType,
+        input_dim: ShapeArgType,
+        output_dim: ShapeArgType,
         mean: Callable[[_InputType], _OutputType],
         cov: Callable[[_InputType, _InputType, bool], _OutputType],
         random_state: RandomStateArgType = None,
@@ -100,20 +100,20 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         # TODO
 
         # Shape checking
-        _input_shape = _utils.as_shape(input_shape)
-        if len(_input_shape) > 1:
-            if len(_input_shape) == 2 and _input_shape[1] == 1:
-                _input_shape = (_input_shape[0],)
+        _input_dim = _utils.as_shape(input_dim)
+        if len(_input_dim) > 1:
+            if len(_input_dim) == 2 and _input_dim[1] == 1:
+                _input_dim = (_input_dim[0],)
             else:
                 raise ValueError(
                     "Gaussian processes cannot be defined for "
-                    f"tensor-structured input of shape {_input_shape}."
+                    f"tensor-structured input of shape {_input_dim}."
                 )
 
         # Call to super class
         super().__init__(
-            input_shape=_input_shape,
-            output_shape=output_shape,
+            input_dim=_input_dim,
+            output_dim=output_dim,
             dtype=np.dtype(np.float_),
             random_state=random_state,
             mean=mean,
@@ -124,13 +124,13 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def __call__(self, x: _InputType) -> Normal:
 
         # Reshape input to (n, d)
-        if len(self.input_shape) == 0:
+        if len(self.input_dim) == 0:
             x = np.asarray(x).reshape((-1, 1))
         else:
-            x = x.reshape((-1,) + self.input_shape)
+            x = x.reshape((-1,) + self.input_dim)
 
         return Normal(
-            mean=np.squeeze(self.mean(x)), cov=self.cov(x0=x, x1=x, keepdims=False)
+            mean=np.squeeze(self.mean(x)), cov=self.cov(x0=x, x1=x, flatten=False)
         )
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:

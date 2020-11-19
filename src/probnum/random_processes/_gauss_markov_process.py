@@ -14,8 +14,7 @@ _OutputType = Union[np.floating, np.ndarray]
 
 
 class GaussMarkovProcess(GaussianProcess):
-    """
-    Gaussian processes with the Markov property.
+    """Gaussian processes with the Markov property.
 
     A Gauss-Markov process is a Gaussian process with the additional property that
     conditioned on the present state of the system its future and past states are
@@ -47,7 +46,6 @@ class GaussMarkovProcess(GaussianProcess):
 
     Examples
     --------
-
     """
 
     def __init__(
@@ -61,8 +59,8 @@ class GaussMarkovProcess(GaussianProcess):
         self.x0 = x0
         self.initrv = initrv
         super().__init__(
-            input_shape=(),
-            output_shape=initrv.shape,
+            input_dim=(),
+            output_dim=initrv.shape,
             mean=self._sde_solution_mean,
             cov=self._sde_solution_cov,
             random_state=random_state,
@@ -74,10 +72,8 @@ class GaussMarkovProcess(GaussianProcess):
     #  RandomProcess interface.
 
     def __call__(self, x: _InputType) -> Normal:
-        """
-        Closed form solution to the SDE evaluated at ``x`` as defined by the
-        linear transition.
-        """
+        """Closed form solution to the SDE evaluated at ``x`` as defined by the linear
+        transition."""
         return self.transition.transition_rv(rv=self.initrv, start=self.x0, stop=x)
 
     def _sde_solution_mean(self, x: _InputType) -> _OutputType:

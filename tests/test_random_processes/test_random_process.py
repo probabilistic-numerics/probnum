@@ -72,7 +72,7 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
         # Deterministic processes
         self.deterministic_processes = [
             rps.DeterministicProcess(
-                fun=mean_zero, input_shape=1, output_shape=1, dtype=np.dtype(np.float_)
+                fun=mean_zero, input_dim=1, output_dim=1, dtype=np.dtype(np.float_)
             )
         ]
 
@@ -81,26 +81,26 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
                 cov=cov_lin,
-                input_shape=(1,),
-                output_shape=(),
+                input_dim=(1,),
+                output_dim=(),
             ),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
                 cov=cov_poly,
-                input_shape=(2, 1),
-                output_shape=(),
+                input_dim=(2, 1),
+                output_dim=(),
             ),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
                 cov=cov_expquad,
-                input_shape=3,
-                output_shape=1,
+                input_dim=3,
+                output_dim=1,
             ),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x, out_dim=2),
                 cov=cov_coreg_expquad,
-                input_shape=(),
-                output_shape=(2,),
+                input_dim=(),
+                output_dim=(2,),
             ),
         ]
 
@@ -185,8 +185,8 @@ class ShapeTestCase(RandomProcessTestCase):
             with self.subTest():
                 n_inputs_x = 10
                 x = np.random.normal(size=(n_inputs_x,) + rand_proc.input_shape)
-                covar_matrix = rand_proc.cov(x, x, keepdims=False)
-                covar_tensor = rand_proc.cov(x, x, keepdims=True)
+                covar_matrix = rand_proc.cov(x, x, flatten=False)
+                covar_tensor = rand_proc.cov(x, x, flatten=True)
 
                 self.assertTupleEqual(
                     tuple1=(

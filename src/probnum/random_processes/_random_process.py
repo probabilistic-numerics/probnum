@@ -7,6 +7,7 @@ import numpy as np
 from probnum import utils as _utils
 from probnum.type import (
     DTypeArgType,
+    IntArgType,
     RandomStateArgType,
     RandomStateType,
     ShapeArgType,
@@ -33,10 +34,10 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     Parameters
     ----------
-    input_shape :
-        Shape of an input to the random process.
-    output_shape :
-        Shape of the output of the random process.
+    input_dim :
+        Input dimension of the random process.
+    output_dim :
+        Output dimension of the random process.
     dtype :
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
@@ -78,8 +79,8 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     def __init__(
         self,
-        input_shape: ShapeArgType,
-        output_shape: ShapeArgType,
+        input_dim: IntArgType,
+        output_dim: IntArgType,
         dtype: DTypeArgType,
         random_state: RandomStateArgType = None,
         fun: Optional[Callable[[_InputType], RandomVariable[_OutputType]]] = None,
@@ -96,9 +97,9 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         # Evaluation of the random process
         self.__fun = fun
 
-        # Shape and data type
-        self.__input_shape = _utils.as_shape(input_shape)
-        self.__output_shape = _utils.as_shape(output_shape)
+        # Dimension  and data type
+        self.__input_dim = input_dim
+        self.__output_dim = output_dim
         self.__dtype = np.dtype(dtype)
 
         # Random seed and sampling
@@ -114,7 +115,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     def __repr__(self) -> str:
         return (
             f"<{self.__class__.__name__} with "
-            f"input_shape={self.input_shape}, output_shape={self.output_shape}, "
+            f"input_dim={self.input_dim}, output_dim={self.output_dim}, "
             f"dtype={self.dtype}>"
         )
 
@@ -132,14 +133,14 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         return self.__fun(x)
 
     @property
-    def input_shape(self) -> ShapeType:
+    def input_dim(self) -> ShapeType:
         """Shape of inputs to the random process."""
-        return self.__input_shape
+        return self.__input_dim
 
     @property
-    def output_shape(self) -> ShapeType:
+    def output_dim(self) -> ShapeType:
         """Shape of the random process evaluated at an input."""
-        return self.__output_shape
+        return self.__output_dim
 
     @property
     def dtype(self) -> np.dtype:
@@ -169,7 +170,6 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         self._random_state = _utils.as_random_state(seed)
 
     def mean(self, x: _InputType) -> _OutputType:
-        # TODO extend this to a vectorized function for inputs of shape (n, k) or (n, input_shape, k)?
         """Mean function.
 
         Returns the mean function evaluated at the given input(s).
@@ -177,14 +177,14 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(n,) or (n, input_shape)* -- Input(s) where the mean function is
+            *shape=(n,) or (n, input_dim)* -- Input(s) where the mean function is
             evaluated.
 
         Returns
         -------
         mean
-            *shape=(n, ) or (n, output_shape)* -- Mean function of the process at
-            evaluated at the timepoints ``x``.
+            *shape=(n, ) or (n, output_dim)* -- Mean function of the process
+            evaluated at inputs ``x``.
         """
         if self.__mean is None:
             raise NotImplementedError
@@ -192,61 +192,64 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         return self.__mean(x)
 
     def cov(
-        self, x0: _InputType, x1: Optional[_InputType] = None, keepdims=False
+        self, x0: _InputType, x1: Optional[_InputType] = None, flatten: bool = False
     ) -> _OutputType:
-        # TODO What about pairwise evaluation? This could also remove the need for having x1 be None, by specifying x0=x1
         """Covariance function or kernel.
 
         Returns the covariance function :math:`\\operatorname{Cov}(f(x_0),
         f(x_1)) = \\mathbb{E}[(f(x_0) - \\mathbb{E}[f(x_0)])(f(x_0) - \\mathbb{E}[f(
-        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``. If only ``x0``
-        is provided the covariance among the components of the random process at the
+        x_0)])^\\top]` of the process evaluated at ``x0`` and ``x1``. If only ``x0`` is
+        provided the covariance among the components of the random process at the
         inputs defined by ``x0`` is computed.
 
         Parameters
         ----------
         x0
-            *shape=(n0,) or (n0, output_shape)* -- First input to the covariance
+            *shape=(n0,) or (n0, output_dim)* -- First input to the covariance
             function.
         x1
-            *shape=(n1,) or (n1, output_shape)* -- Second input to the covariance
+            *shape=(n1,) or (n1, output_dim)* -- Second input to the covariance
             function.
-        keepdims
-            Keep the dimensions of the covariance. If ``True`` the resulting
-            array has *shape=(n0, n1, output_shape, output_shape)*, otherwise
-            *shape=(n0 * output_shape, n1 * output_shape)*.
+        flatten
+            Flatten the dimensions of the covariance. If ``True`` the resulting
+            array has *shape=(n0 * output_dim, n1 * output_dim)*, otherwise
+            *shape=(n0, n1, output_dim, output_dim)*.
 
         Returns
         -------
         cov
-            *shape=(n0 * output_shape, n1 * output_shape) or (n0, n1, output_shape,
-            output_shape)* -- Covariance of the process at ``x0`` and ``x1``. If only
-            ``x0`` is given, the resulting array has *shape=(n0 * output_shape,
-            output_shape) or (n0, output_shape, output_shape)*.
+            *shape=(n0, n1, output_dim, output_dim) or (n0 * output_dim,
+            n1 * output_dim)* -- Covariance of the process at ``x0`` and ``x1``. If
+            only ``x0`` is given, the resulting array has *shape=(n0, output_dim,
+            output_dim) or (n0 * output_dim, output_dim)*.
         """  # pylint: disable=trailing-whitespace
         if self.__cov is None:
             raise NotImplementedError
 
-        return self.__cov(x0, x1, keepdims)
+        return self.__cov(x0, x1, flatten)
 
-    def var(self, x: _InputType, keepdims=False) -> _OutputType:
+    def var(self, x: _InputType, flatten: bool = False) -> _OutputType:
         """Variance function.
 
         Returns the variance function which is the value of the covariance or kernel
-        evaluated pairwise at ``x`` for each output dimension separately.
+        evaluated elementwise at ``x`` for each output dimension separately.
 
         Parameters
         ----------
         x
-            *shape=(n,) or (n, output_shape)* -- Input locations.
-        keepdims
-            Keep the dimensions of the variance(s). If ``True`` the resulting
-            array has *shape=(n, output_shape)*, otherwise *shape=(n * output_shape)*.
+            *shape=(n,) or (n, output_dim)* -- Input locations.
+        flatten
+            Keep the dimensions of the variance. If ``True`` the resulting
+            array has *shape=(n, output_dim)*, otherwise *shape=(n * output_dim)*.
+
+        flatten
+            Flatten the dimensions of the variance. If ``True`` the resulting
+            array has *shape=(n * output_dim)*, otherwise *shape=(n, output_dim)*.
 
         Returns
         -------
         var
-            *shape=(n * output_shape) or (n, output_shape)* -- Variance of the
+            *shape=(n, output_dim) or (n * output_dim)* -- Variance of the
             process at ``x``.
         """
         if self.__var is None:
@@ -255,32 +258,32 @@ class RandomProcess(Generic[_InputType, _OutputType]):
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
-            return self.__var(x, keepdims)
+            return self.__var(x, flatten)
 
-    def std(self, x: _InputType, keepdims=False) -> _OutputType:
+    def std(self, x: _InputType, flatten: bool = False) -> _OutputType:
         """Standard deviation function.
 
         Parameters
         ----------
         x
-            *shape=(n,) or (n, output_shape)* -- Input locations.
-        keepdims
-            Keep the dimensions of the standard deviation(s). If ``True`` the resulting
-            array has *shape=(n, output_shape)*, otherwise *shape=(n * output_shape)*.
+            *shape=(n,) or (n, output_dim)* -- Input locations.
+        flatten
+            Flatten the dimensions of the standard deviation. If ``True`` the resulting
+            array has *shape=(n * output_dim)*, otherwise *shape=(n, output_dim)*.
 
         Returns
         -------
-        std
-            *shape=(n * output_shape) or (n, output_shape)* -- Standard deviation of
-            the process at ``x``.
+        var
+            *shape=(n, output_dim) or (n * output_dim)* -- Standard deviation of the
+            process at ``x``.
         """
         if self.__std is None:
             try:
-                return np.sqrt(self.var(x=x, keepdims=keepdims))
+                return np.sqrt(self.var(x=x, flatten=flatten))
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
-            return self.__std(x, keepdims)
+            return self.__std(x, flatten)
 
     def sample(
         self, x: _InputType = None, size: ShapeArgType = ()
@@ -294,7 +297,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(n,) or (n, output_shape)* -- Evaluation input(s) of the sample
+            *shape=(n,) or (n, output_dim)* -- Evaluation input(s) of the sample
             paths of the process.
         size
             Size of the sample.
@@ -314,7 +317,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(n,) or (n, output_shape)* -- Evaluation input(s) of the sample
+            *shape=(n,) or (n, output_dim)* -- Evaluation input(s) of the sample
             paths of the process.
         size
             Size of the sample.
