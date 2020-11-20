@@ -7,8 +7,7 @@ import numpy as np
 
 
 def derive_random_seed(*rngs: Union[np.random.RandomState, np.random.Generator]) -> int:
-    """
-    Derive a new random seed from a set of random number generator(s).
+    """Derive a new random seed from a set of random number generator(s).
 
     Draws a single integer sample from each generator and combines them via a "bitwise
     exclusive or" (XOR) operation into a common seed. Note that in other frameworks this

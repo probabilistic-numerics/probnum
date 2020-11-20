@@ -5,9 +5,9 @@ import probnum.random_variables as pnrv
 
 
 class TestDefaultStoppingCriterion(unittest.TestCase):
-    """The default stoppingcriterion should make sure that no filter updates are repeated but also
-    make sure that whenever iterated filtsmooth is attempted, an exception is thrown.
-    """
+    """The default stoppingcriterion should make sure that no filter updates are
+    repeated but also make sure that whenever iterated filtsmooth is attempted, an
+    exception is thrown."""
 
     def setUp(self):
         self.stopcrit = pnfs.StoppingCriterion()
@@ -41,7 +41,7 @@ class TestFixedPointIteration(unittest.TestCase):
         self.assertGreaterEqual(self.stopcrit.num_predict_iterations, 1)
 
     def test_continue_predict_iteration_exception(self):
-        """No improvement at all raises error eventually"""
+        """No improvement at all raises error eventually."""
         worsening = 0.1
         value = 0.0
         with self.assertRaises(RuntimeError):
@@ -58,7 +58,7 @@ class TestFixedPointIteration(unittest.TestCase):
         self.assertGreaterEqual(self.stopcrit.num_update_iterations, 1)
 
     def test_continue_update_iteration_exception(self):
-        """No improvement at all raises error eventually"""
+        """No improvement at all raises error eventually."""
         worsening = 0.1
         value = 0.0
         with self.assertRaises(RuntimeError):

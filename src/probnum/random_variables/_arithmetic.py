@@ -1,6 +1,5 @@
-"""
-This module implements binary arithmetic operators between pairs of random variables.
-"""
+"""This module implements binary arithmetic operators between pairs of random
+variables."""
 
 import operator
 from typing import Any, Callable, Dict, Tuple, Union

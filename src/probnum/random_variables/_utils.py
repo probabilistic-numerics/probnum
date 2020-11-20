@@ -7,8 +7,7 @@ from . import _constant, _random_variable, _scipy_stats
 
 
 def asrandvar(obj: Any) -> _random_variable.RandomVariable:
-    """
-    Convert ``obj`` to a :class:`RandomVariable`.
+    """Convert ``obj`` to a :class:`RandomVariable`.
 
     Converts an object such as scalars, (sparse) arrays, or distribution-type objects to
     a ProbNum :class:`RandomVariable`.

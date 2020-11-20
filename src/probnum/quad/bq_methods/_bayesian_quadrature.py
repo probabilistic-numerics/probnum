@@ -2,8 +2,7 @@
 
 
 class BayesianQuadrature:
-    """
-    Bayesian quadrature.
+    """Bayesian quadrature.
 
     Bayesian quadrature methods build a model for the integrand via function
     evaluations and return a belief over the value of the integral on a given
@@ -19,8 +18,7 @@ class BayesianQuadrature:
         self.fun0 = fun0
 
     def integrate(self, fun, domain, measure, nevals):
-        """
-        Integrate the function ``fun``.
+        """Integrate the function ``fun``.
 
         Parameters
         ----------
@@ -35,6 +33,5 @@ class BayesianQuadrature:
 
         Returns
         -------
-
         """
         raise NotImplementedError

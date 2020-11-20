@@ -19,8 +19,7 @@ class _SciPyRandomVariableMixin:
 class WrappedSciPyRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.RandomVariable[_ValueType]
 ):
-    """
-    Wrapper for SciPy random variable objects.
+    """Wrapper for SciPy random variable objects.
 
     Parameters
     ----------
@@ -43,8 +42,7 @@ class WrappedSciPyRandomVariable(
 class WrappedSciPyDiscreteRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.DiscreteRandomVariable[_ValueType]
 ):
-    """
-    Wrapper for discrete SciPy random variable objects.
+    """Wrapper for discrete SciPy random variable objects.
 
     Parameters
     ----------
@@ -83,8 +81,7 @@ class WrappedSciPyDiscreteRandomVariable(
 class WrappedSciPyContinuousRandomVariable(
     _SciPyRandomVariableMixin, _random_variable.ContinuousRandomVariable[_ValueType]
 ):
-    """
-    Wrapper for continuous SciPy random variable objects.
+    """Wrapper for continuous SciPy random variable objects.
 
     Parameters
     ----------
@@ -126,8 +123,7 @@ def wrap_scipy_rv(
         scipy.stats._multivariate.multi_rv_frozen,
     ]
 ) -> _random_variable.RandomVariable:
-    """
-    Transform SciPy distributions to ProbNum :class:`RandomVariable`s.
+    """Transform SciPy distributions to ProbNum :class:`RandomVariable`s.
 
     Parameters
     ----------
@@ -191,8 +187,7 @@ def _rv_init_kwargs_from_scipy_rv(
         scipy.stats._multivariate.multi_rv_frozen,
     ],
 ) -> Dict[str, Any]:
-    """
-    Create dictionary of random variable properties from a Scipy random variable.
+    """Create dictionary of random variable properties from a Scipy random variable.
 
     Parameters
     ----------

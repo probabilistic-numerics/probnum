@@ -1,6 +1,4 @@
-"""
-Benchmarks for probabilistic ivp solvers
-"""
+"""Benchmarks for probabilistic ivp solvers."""
 import numpy as np
 
 from probnum.diffeq import lotkavolterra, probsolve_ivp
@@ -16,7 +14,7 @@ def load_lotkavolterra():
 
 
 class IVPSolve:
-    """Benchmark ODE-filter and ODE-smoother on small steps with high-order priors"""
+    """Benchmark ODE-filter and ODE-smoother on small steps with high-order priors."""
 
     param_names = ["method", "precond", "prior"]
     params = [["eks0", "ekf0"], ["with", "without"], ["ibm4", "ioup4", "matern92"]]

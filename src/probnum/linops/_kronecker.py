@@ -1,7 +1,7 @@
-"""
-Operators of Kronecker-type or related.
+"""Operators of Kronecker-type or related.
 
-This module implements operators of Kronecker-type or linked to Kronecker-type products.
+This module implements operators of Kronecker-type or linked to
+Kronecker-type products.
 """
 import numpy as np
 
@@ -9,8 +9,7 @@ from . import _linear_operator, _utils
 
 
 class Symmetrize(_linear_operator.LinearOperator):
-    """
-    Symmetrizes a vector in its matrix representation.
+    """Symmetrizes a vector in its matrix representation.
 
     Given a vector x=vec(X) representing a square matrix X, this linear operator
     computes y=vec(1/2(X + X^T)).
@@ -33,8 +32,7 @@ class Symmetrize(_linear_operator.LinearOperator):
 
 
 class Vec(_linear_operator.LinearOperator):
-    """
-    Vectorization operator.
+    """Vectorization operator.
 
     The column- or row-wise vectorization operator stacking the columns or rows of a
     matrix representation of a linear operator into a vector.
@@ -69,8 +67,7 @@ class Vec(_linear_operator.LinearOperator):
 
 
 class Svec(_linear_operator.LinearOperator):
-    """
-    Symmetric vectorization operator.
+    """Symmetric vectorization operator.
 
     The column- or row-wise symmetric normalized vectorization operator
     :math:`\\operatorname{svec}` [1]_ stacking the (normalized) lower/upper triangular
@@ -134,9 +131,8 @@ class Svec(_linear_operator.LinearOperator):
         return X[ind]
 
     def _matmat(self, X):
-        """
-        Vectorizes X if of dimension n^2, otherwise applies Svec to each column of X.
-        """
+        """Vectorizes X if of dimension n^2, otherwise applies Svec to each column of
+        X."""
         if np.shape(X)[0] == np.shape(X)[1] == self._dim:
             return self._matvec(X.ravel())
         elif np.shape(X)[0] == self._dim * self._dim:
@@ -149,8 +145,7 @@ class Svec(_linear_operator.LinearOperator):
 
 
 class Kronecker(_linear_operator.LinearOperator):
-    """
-    Kronecker product of two linear operators.
+    """Kronecker product of two linear operators.
 
     The Kronecker product [1]_ :math:`A \\otimes B` of two linear operators :math:`A`
     and :math:`B` is given by
@@ -186,7 +181,6 @@ class Kronecker(_linear_operator.LinearOperator):
     See Also
     --------
     SymmetricKronecker : The symmetric Kronecker product of two linear operators.
-
     """
 
     # todo: extend this to list of operators
@@ -202,8 +196,7 @@ class Kronecker(_linear_operator.LinearOperator):
         )
 
     def _matvec(self, X):
-        """
-        Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the
+        """Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the
         row-wise vectorization operator.
         """
         X = X.reshape(self.A.shape[1], self.B.shape[1])
@@ -259,8 +252,7 @@ class Kronecker(_linear_operator.LinearOperator):
 
 
 class SymmetricKronecker(_linear_operator.LinearOperator):
-    """
-    Symmetric Kronecker product of two linear operators.
+    """Symmetric Kronecker product of two linear operators.
 
     The symmetric Kronecker product [1]_ :math:`A \\otimes_{s} B` of two square linear
     operators :math:`A` and :math:`B` maps a symmetric linear operator :math:`X` to
@@ -314,8 +306,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         super().__init__(dtype=dtype, shape=(self._n ** 2, self._n ** 2))
 
     def _matvec(self, x):
-        """
-        Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
+        """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
         vec is the column-wise normalized symmetric stacking operator.
         """
         # vec(x)
@@ -342,7 +333,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     # properties
 
     def todense(self):
-        """Dense representation of the symmetric Kronecker product"""
+        """Dense representation of the symmetric Kronecker product."""
         # 1/2 (A (x) B + B (x) A)
         A_dense = self.A.todense()
         B_dense = self.B.todense()

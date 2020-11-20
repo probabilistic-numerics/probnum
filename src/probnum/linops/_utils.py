@@ -5,8 +5,7 @@ from . import _linear_operator
 
 
 def aslinop(A) -> _linear_operator.LinearOperator:
-    """
-    Return ``A`` as a :class:`LinearOperator`.
+    """Return ``A`` as a :class:`LinearOperator`.
 
     Parameters
     ----------
