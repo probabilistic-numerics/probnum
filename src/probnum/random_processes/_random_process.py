@@ -133,12 +133,12 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         return self.__fun(x)
 
     @property
-    def input_dim(self) -> ShapeType:
+    def input_dim(self) -> int:
         """Shape of inputs to the random process."""
         return self.__input_dim
 
     @property
-    def output_dim(self) -> ShapeType:
+    def output_dim(self) -> int:
         """Shape of the random process evaluated at an input."""
         return self.__output_dim
 
