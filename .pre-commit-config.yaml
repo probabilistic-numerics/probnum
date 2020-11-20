@@ -37,3 +37,9 @@ repos:
     rev: v5.5.4 # Make sure to use the same tag/version as specified in tox.ini.
     hooks:
       - id: isort
+  - repo: https://github.com/myint/docformatter
+    rev: v1.3.1
+    hooks:
+      - id: docformatter
+        args: ['--in-place',
+               '--wrap-summaries', '88']

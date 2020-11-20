@@ -1,5 +1,4 @@
-"""
-Ordinary differential equations.
+"""Ordinary differential equations.
 
 Subclassed by the types of ODEs: IVPs, BVPs and whatever you
 can imagine.
@@ -13,8 +12,7 @@ from abc import ABC, abstractmethod
 
 
 class ODE(ABC):
-    """
-    Ordinary differential equations.
+    """Ordinary differential equations.
 
     Extended by the types of ODEs, e.g. IVPs, BVPs.
     This class describes systems of first order ordinary differential
@@ -53,8 +51,7 @@ class ODE(ABC):
     """
 
     def __init__(self, timespan, rhs, jac=None, hess=None, sol=None):
-        """
-        Initialises basic ODE attributes.
+        """Initialises basic ODE attributes.
 
         Essentially, all but the initial/boundary distribution
         which then determine the type of problem.
@@ -69,29 +66,22 @@ class ODE(ABC):
         self._sol = sol
 
     def __call__(self, t, y, **kwargs):
-        """
-        Piggybacks on self.rhs(t, y).
-        """
+        """Piggybacks on self.rhs(t, y)."""
         return self.rhs(t, y, **kwargs)
 
     def rhs(self, t, y, **kwargs):
-        """
-        Evaluates model function f.
-        """
+        """Evaluates model function f."""
         return self._rhs(t, y, **kwargs)
 
     def jacobian(self, t, y, **kwargs):
-        """
-        Jacobian of model function f.
-        """
+        """Jacobian of model function f."""
         if self._jac is None:
             raise NotImplementedError
         else:
             return self._jac(t, y, **kwargs)
 
     def hessian(self, t, y, **kwargs):
-        """
-        Hessian of model function f.
+        """Hessian of model function f.
 
         For :math:`d=3`, the Hessian
         :math:`H_f(t, y) \\in \\mathbb{R}^{3 \\times 3 \\times 3}`
@@ -109,9 +99,7 @@ class ODE(ABC):
             return self._hess(t, y, **kwargs)
 
     def solution(self, t, **kwargs):
-        """
-        Solution of the IVP.
-        """
+        """Solution of the IVP."""
         if self._sol is None:
             raise NotImplementedError
         else:
@@ -127,18 +115,16 @@ class ODE(ABC):
 
     @property
     def timespan(self):
-        """
-        Returns :math:`(t_0, T)` as ``[self.t0, self.tmax]``.
-        Mainly here to provide an interface to scipy.integrate.
-        Both :math:`t_0` and :math:`T` can be accessed via
-        ``self.t0`` and ``self.tmax`` respectively.
+        """Returns :math:`(t_0, T)` as ``[self.t0, self.tmax]``.
+
+        Mainly here to provide an interface to scipy.integrate. Both
+        :math:`t_0` and :math:`T` can be accessed via ``self.t0`` and
+        ``self.tmax`` respectively.
         """
         return [self._t0, self._tmax]
 
     @property
     @abstractmethod
     def dimension(self):
-        """
-        Abstract, in order to force subclassing.
-        """
+        """Abstract, in order to force subclassing."""
         raise NotImplementedError

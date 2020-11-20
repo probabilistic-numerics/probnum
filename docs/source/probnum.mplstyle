@@ -19,7 +19,7 @@ lines.markeredgewidth : 0.75
 #### FONT
 ## font properties used by text.Text.  See
 ## http://matplotlib.org/api/font_manager_api.html for more
-## information on font properties.  
+## information on font properties.
 font.family          : sans-serif
 font.size            : 16.0
 
@@ -29,7 +29,7 @@ font.size            : 16.0
 ## information on text properties
 #text.color          : black
 
-#### LaTeX 
+#### LaTeX
 ## See http://wiki.scipy.org/Cookbook/Matplotlib/UsingTex
 text.usetex         : True
 text.latex.preamble : \usepackage[cm]{sfmath} \usepackage{amsmath, amssymb} \usepackage{bm} \renewcommand{\familydefault}{\sfdefault}

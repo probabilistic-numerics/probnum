@@ -1,9 +1,5 @@
-"""
-The folder is called "ode" but this
-module is "ivp" because in the future,
-there might be more ode-based problems,
-such as bvp.
-"""
+"""The folder is called "ode" but this module is "ivp" because in the future, there
+might be more ode-based problems, such as bvp."""
 # pylint: disable=unused-variable
 
 import numpy as np
@@ -14,8 +10,7 @@ __all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "IVP"]
 
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):
-    """
-    Initial value problem (IVP) based on the logistic ODE.
+    """Initial value problem (IVP) based on the logistic ODE.
 
     The logistic ODE is defined through
 
@@ -92,8 +87,7 @@ def log_sol(t, params, y0):
 
 
 def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
-    """
-    Initial value problem (IVP) based on the FitzHugh-Nagumo model.
+    """Initial value problem (IVP) based on the FitzHugh-Nagumo model.
 
     The FitzHugh-Nagumo (FHN) model is defined through
 
@@ -149,8 +143,7 @@ def fhn_jac(t, y, params):
 
 
 def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
-    """
-    Initial value problem (IVP) based on the Lotka-Volterra model.
+    """Initial value problem (IVP) based on the Lotka-Volterra model.
 
     The Lotka-Volterra (LV) model is defined through
 
@@ -192,22 +185,21 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
 
 
 def lv_rhs(t, y, params):
-    """RHS for Lotka-Volterra"""
+    """RHS for Lotka-Volterra."""
     a, b, c, d = params
     y1, y2 = y
     return np.array([a * y1 - b * y1 * y2, -c * y2 + d * y1 * y2])
 
 
 def lv_jac(t, y, params):
-    """Jacobian for Lotka-Volterra"""
+    """Jacobian for Lotka-Volterra."""
     a, b, c, d = params
     y1, y2 = y
     return np.array([[a - b * y2, -b * y1], [d * y2, -c + d * y1]])
 
 
 class IVP(ODE):
-    """
-    Initial value problems (IVP).
+    """Initial value problems (IVP).
 
     This class descibes initial value problems based on systems of
     first order ordinary differential equations (ODEs),
@@ -290,22 +282,17 @@ class IVP(ODE):
 
     @property
     def initialdistribution(self):
-        """
-        Distribution of the initial random variable.
-        """
+        """Distribution of the initial random variable."""
         return self.initrv
 
     @property
     def initialrandomvariable(self):
-        """
-        Initial random variable.
-        """
+        """Initial random variable."""
         return self.initrv
 
     @property
     def dimension(self):
-        """
-        Spatial dimension of the IVP problem.
+        """Spatial dimension of the IVP problem.
 
         Depends on the mean of the initial random variable.
         """

@@ -7,8 +7,8 @@ __all__ = ["chi_squared_statistic"]
 
 
 def chi_squared_statistic(realisations, means, covs):
-    """
-    Compute the multivariate chi-squared test statistic for a set of realisations of a random variable.
+    """Compute the multivariate chi-squared test statistic for a set of realisations of
+    a random variable.
 
     For :math:`N`, :math:`d`-dimensional realisations :math:`x_1, ..., x_N`
     with (assumed) means :math:`m_1, ..., m_N` and covariances
@@ -36,8 +36,7 @@ def chi_squared_statistic(realisations, means, covs):
 
 
 def _dot_along_last_axis(a, b):
-    """
-    Dot product of (N, K) and (N, K) into (N,).
+    """Dot product of (N, K) and (N, K) into (N,).
 
     Extracted, because otherwise I keep having to look up einsum...
     """

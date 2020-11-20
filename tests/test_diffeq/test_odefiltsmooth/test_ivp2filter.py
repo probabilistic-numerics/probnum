@@ -1,5 +1,4 @@
-"""
-Checks for ivp2filter functions.
+"""Checks for ivp2filter functions.
 
 Covers:
     * Are the output ExtendedKalman/UnscentedKalman objects?
@@ -18,7 +17,8 @@ from tests.testing import NumpyAssertions
 
 class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
-        """We need a Prior object and an IVP object (with derivatives) to run the tests."""
+        """We need a Prior object and an IVP object (with derivatives) to run the
+        tests."""
         y0 = pnrv.Constant(np.array([20.0, 15.0]))
         self.ivp = pnd.lotkavolterra([0.4124, 1.15124], y0)
         self.prior = pnd.IBM(ordint=2, spatialdim=2, diffconst=1.7685)
@@ -26,8 +26,8 @@ class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):
 
 
 class TestIvp2Ekf0(Ivp2FilterTestCase):
-    """
-    Do ivp2ekf0, ivp2ekf1 return the right objects?
+    """Do ivp2ekf0, ivp2ekf1 return the right objects?
+
     Do the measurement models work? Do the initial values work?
     """
 
@@ -62,8 +62,8 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
 
 
 class TestIvp2Ekf1(Ivp2FilterTestCase):
-    """
-    Do ivp2ekf0, ivp2ekf1 return the right objects?
+    """Do ivp2ekf0, ivp2ekf1 return the right objects?
+
     Do the measurement models work? Do the initial values work?
     """
 
@@ -98,8 +98,8 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
 
 
 class TestIvpUkf(Ivp2FilterTestCase):
-    """
-    Do ivp2ekf0, ivp2ekf1 return the right objects?
+    """Do ivp2ekf0, ivp2ekf1 return the right objects?
+
     Do the measurement models work? Do the initial values work?
     """
 

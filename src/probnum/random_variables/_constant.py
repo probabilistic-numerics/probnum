@@ -1,6 +1,4 @@
-"""
-(Almost surely) constant random variables.
-"""
+"""(Almost surely) constant random variables."""
 
 from typing import Callable, TypeVar
 
@@ -20,8 +18,7 @@ _ValueType = TypeVar("ValueType")
 
 
 class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
-    """
-    Random variable representing a constant value.
+    """Random variable representing a constant value.
 
     Discrete random variable which (with probability one) takes a constant value. The
     law / image measure of this random variable is given by the Dirac delta measure
@@ -101,14 +98,11 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     @property
     def support(self) -> _ValueType:
-        """
-        Constant value taken by the random variable.
-        """
+        """Constant value taken by the random variable."""
         return self._support
 
     def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Constant":
-        """
-        (Advanced) indexing, masking and slicing.
+        """(Advanced) indexing, masking and slicing.
 
         This method supports all modes of array indexing presented in
 

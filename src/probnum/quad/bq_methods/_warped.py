@@ -4,13 +4,10 @@ from ._bayesian_quadrature import BayesianQuadrature
 
 
 class WarpedBayesianQuadrature(BayesianQuadrature):
-    """
-    Warped Sequential Active Bayesian Integration (WSABI).
-    """
+    """Warped Sequential Active Bayesian Integration (WSABI)."""
 
     def integrate(self, fun, domain, measure, nevals):
-        """
-        Integrate the function ``fun``.
+        """Integrate the function ``fun``.
 
         Parameters
         ----------
@@ -25,6 +22,5 @@ class WarpedBayesianQuadrature(BayesianQuadrature):
 
         Returns
         -------
-
         """
         raise NotImplementedError

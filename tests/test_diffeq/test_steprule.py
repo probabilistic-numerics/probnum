@@ -8,10 +8,7 @@ random_state = np.random.mtrand.RandomState(seed=1234)
 
 
 class TestConstantStep(unittest.TestCase):
-    """
-    Check that step is always the same
-    and that is_accepted is always true.
-    """
+    """Check that step is always the same and that is_accepted is always true."""
 
     def setUp(self):
         self.step = random_state.rand()
@@ -27,15 +24,11 @@ class TestConstantStep(unittest.TestCase):
 
 
 class TestAdaptiveStep(unittest.TestCase):
-    """
-    We pretend that we have a solver of local error rate
-    three and see if steps are proposed accordingly.
-    """
+    """We pretend that we have a solver of local error rate three and see if steps are
+    proposed accordingly."""
 
     def setUp(self):
-        """
-        Set up imaginative solver of convergence rate 3.
-        """
+        """Set up imaginative solver of convergence rate 3."""
         self.tol = 1e-4
         self.asr = steprule.AdaptiveSteps(self.tol, 3)
 

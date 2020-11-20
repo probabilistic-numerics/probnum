@@ -16,10 +16,8 @@ class RandomUtilsTestCase(unittest.TestCase, NumpyAssertions):
         self.random_generator_list = [np.random.default_rng(seed=s) for s in range(5)]
 
     def test_derive_random_seed_invariant_random_state(self):
-        """
-        Test whether deriving a random seed leaves the original random states
-        untouched.
-        """
+        """Test whether deriving a random seed leaves the original random states
+        untouched."""
         # Original random states
         rs_state = self.random_state.get_state()[1]
         rng_state = self.random_generator.bit_generator.state["state"]["state"]

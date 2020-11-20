@@ -35,7 +35,8 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
                     linops.Svec(dim=n)
 
     def test_symmetrize(self):
-        """The Symmetrize operators should symmetrize vectors and columns of matrices."""
+        """The Symmetrize operators should symmetrize vectors and columns of
+        matrices."""
         for n in [1, 2, 3, 5, 12]:
             with self.subTest():
                 x = np.random.uniform(size=n * n)
@@ -80,7 +81,8 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAllClose(W.todense(), AkronB)
 
     def test_symmkronecker_todense_symmetric(self):
-        """Dense matrix from symmetric Kronecker product of two symmetric matrices must be symmetric."""
+        """Dense matrix from symmetric Kronecker product of two symmetric matrices must
+        be symmetric."""
         C = np.array([[5, 1], [1, 10]])
         D = np.array([[-2, 0.1], [0.1, 8]])
         Ws = linops.SymmetricKronecker(A=C, B=C)
@@ -92,7 +94,8 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
         )
 
     def test_symmkronecker_explicit(self):
-        """Test the symmetric Kronecker operator against explicit matrix representations."""
+        """Test the symmetric Kronecker operator against explicit matrix
+        representations."""
         pass
 
     def test_symmkronecker_transpose(self):

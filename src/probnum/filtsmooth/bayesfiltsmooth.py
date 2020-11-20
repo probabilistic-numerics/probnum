@@ -1,14 +1,10 @@
-"""
-Interfaces for Bayesian filtering and smoothing.
-"""
+"""Interfaces for Bayesian filtering and smoothing."""
 
 from abc import ABC, abstractmethod
 
 
 class BayesFiltSmooth(ABC):
-    """
-    Bayesian filtering and smoothing.
-    """
+    """Bayesian filtering and smoothing."""
 
     def __init__(self, dynamod, measmod, initrv):
         self.dynamod = dynamod
@@ -17,8 +13,7 @@ class BayesFiltSmooth(ABC):
 
     @abstractmethod
     def filter_step(self, start, stop, randvar, data, **kwargs):
-        """
-        Filter step.
+        """Filter step.
 
         For e.g. Gaussian filters, this means a prediction step followed
         by an update step.
@@ -38,11 +33,10 @@ class BayesFiltSmooth(ABC):
         raise NotImplementedError(errormsg)
 
     def predict(self, start, stop, randvar, **kwargs):
-        """
-        Prediction step of the Bayesian filter.
+        """Prediction step of the Bayesian filter.
 
-        Not required for all filters, e.g. the Particle Filter only
-        has an `update()` method.
+        Not required for all filters, e.g. the Particle Filter only has
+        an `update()` method.
         """
         classname = type(self).__name__
         errormsg = (
@@ -52,8 +46,7 @@ class BayesFiltSmooth(ABC):
         raise NotImplementedError(errormsg)
 
     def update(self, time, randvar, data, **kwargs):
-        """
-        Update step of the Bayesian filter.
+        """Update step of the Bayesian filter.
 
         Must be implemented by subclasses.
         """
@@ -61,28 +54,20 @@ class BayesFiltSmooth(ABC):
 
     @property
     def dynamicmodel(self):
-        """
-        Convenience function for accessing ``self.dynamod``.
-        """
+        """Convenience function for accessing ``self.dynamod``."""
         return self.dynamod
 
     @property
     def measurementmodel(self):
-        """
-        Convenience function for accessing ``self.measmod``.
-        """
+        """Convenience function for accessing ``self.measmod``."""
         return self.measmod
 
     @property
     def initialrandomvariable(self):
-        """
-        Convenience function for accessing ``self.initrv``.
-        """
+        """Convenience function for accessing ``self.initrv``."""
         return self.initrv
 
     @property
     def initialdistribution(self):
-        """
-        Convenience function for accessing ``self.initdist``.
-        """
+        """Convenience function for accessing ``self.initdist``."""
         return self.initrv

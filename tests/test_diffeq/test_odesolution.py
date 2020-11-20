@@ -82,7 +82,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
 
 class TestODESolutionHigherOrderPrior(TestODESolution):
-    """Same as above, but higher-order prior to test for a different dimensionality"""
+    """Same as above, but higher-order prior to test for a different dimensionality."""
 
     def setUp(self):
         initrv = Constant(20 * np.ones(2))
@@ -92,7 +92,7 @@ class TestODESolutionHigherOrderPrior(TestODESolution):
 
 
 class TestODESolutionOneDimODE(TestODESolution):
-    """Same as above, but 1d IVP to test for a different dimensionality"""
+    """Same as above, but 1d IVP to test for a different dimensionality."""
 
     def setUp(self):
         initrv = Constant(0.1 * np.ones(1))
@@ -102,7 +102,7 @@ class TestODESolutionOneDimODE(TestODESolution):
 
 
 class TestODESolutionAdaptive(TestODESolution):
-    """Same as above, but adaptive steps"""
+    """Same as above, but adaptive steps."""
 
     def setUp(self):
         super().setUp()

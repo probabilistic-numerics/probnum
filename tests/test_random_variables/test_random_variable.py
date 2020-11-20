@@ -173,10 +173,8 @@ class ArithmeticTestCase(RandomVariableTestCase):
 
     # Random seed
     def test_keep_fixed_seed(self):
-        """
-        Arithmetic operation between two random variables with different seeds retain a
-        fixed seed.
-        """
+        """Arithmetic operation between two random variables with different seeds retain
+        a fixed seed."""
         x = rvs.Normal(0, 1, random_state=0)
         y = rvs.Normal(0, 1, random_state=1)
         z = x + y
@@ -184,14 +182,10 @@ class ArithmeticTestCase(RandomVariableTestCase):
 
 
 class ShapeTestCase(RandomVariableTestCase):
-    """
-    Test methods related to the shape of a random variable or its realizations.
-    """
+    """Test methods related to the shape of a random variable or its realizations."""
 
     def test_reshape(self):
-        """
-        Reshape a random variable and test for correct output shape.
-        """
+        """Reshape a random variable and test for correct output shape."""
         np.random.seed(42)
         for rv in self.randvars2x2:
             for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
@@ -215,7 +209,6 @@ class ShapeTestCase(RandomVariableTestCase):
                         pass
 
     def test_sample_shape(self):
-        """
-        Sample from a random variable with different sizes and check sample shapes.
-        """
+        """Sample from a random variable with different sizes and check sample
+        shapes."""
         pass

@@ -7,8 +7,7 @@ from . import transition as trans
 
 
 class DiscreteGaussian(trans.Transition):
-    """
-    Random variable transitions with additive Gaussian noise
+    """Random variable transitions with additive Gaussian noise.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(g(t_i, x_i), S(t_i))
 
@@ -45,9 +44,8 @@ class DiscreteGaussian(trans.Transition):
         raise NotImplementedError
 
     def dynamics(self, time, state, **kwargs):
-        """
-        Compute dynamics :math:`g=g(t, x)` at time :math:`t`
-        and state :math:`x`.
+        """Compute dynamics :math:`g=g(t, x)` at time :math:`t` and state
+        :math:`x`.
 
         Parameters
         ----------
@@ -64,8 +62,7 @@ class DiscreteGaussian(trans.Transition):
         return self._dynamicsfun(time, state)
 
     def diffusionmatrix(self, time, **kwargs):
-        """
-        Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
+        """Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
 
         Parameters
         ----------
@@ -80,8 +77,7 @@ class DiscreteGaussian(trans.Transition):
         return self._diffmatfun(time, **kwargs)
 
     def jacobian(self, time, state, **kwargs):
-        """
-        Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
+        """Compute diffusion matrix :math:`S=S(t)` at time :math:`t`.
 
         Parameters
         ----------
@@ -107,8 +103,7 @@ class DiscreteGaussian(trans.Transition):
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
-    """
-    Discrete, linear Gaussian transition models of the form
+    """Discrete, linear Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G(t_i) x_i + v(t_i), S(t_i))
 
@@ -154,9 +149,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
     def dynamicsmatrix(self, time, **kwargs):
-        """
-        Compute dynamics matrix :math:`G=G(t)` at time :math:`t`.
-        The output is equivalent to :meth:`jacobian`.
+        """Compute dynamics matrix :math:`G=G(t)` at time :math:`t`. The output is
+        equivalent to :meth:`jacobian`.
 
         Parameters
         ----------
@@ -171,8 +165,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         return self._jacobfun(time, None, **kwargs)
 
     def forcevector(self, time, **kwargs):
-        """
-        Compute force vector :math:`v=v(t)` at time :math:`t`.
+        """Compute force vector :math:`v=v(t)` at time :math:`t`.
 
         Parameters
         ----------
@@ -192,8 +185,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
-    """
-    Discrete, linear, time-invariant Gaussian transition models of the form
+    """Discrete, linear, time-invariant Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G x_i + v, S)
 

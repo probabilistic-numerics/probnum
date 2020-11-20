@@ -11,21 +11,17 @@ class StepRule(ABC):
 
     @abstractmethod
     def is_accepted(self, proposedstep, errorest, **kwargs):
-        """
-        Check if the proposed step should be accepted or not.
+        """Check if the proposed step should be accepted or not.
 
-        Variable "proposedstep" not used yet, but may be
-        important in the future, e.g. if we decide that
-        instead of tol_per_step (see AdaptiveSteps) we want to be able to
-        control tol_per_unitstep.
+        Variable "proposedstep" not used yet, but may be important in
+        the future, e.g. if we decide that instead of tol_per_step (see
+        AdaptiveSteps) we want to be able to control tol_per_unitstep.
         """
         raise NotImplementedError
 
 
 class ConstantSteps(StepRule):
-    """
-    Constant step size rule for ODE solvers.
-    """
+    """Constant step size rule for ODE solvers."""
 
     def __init__(self, stepsize):
         self.step = stepsize
@@ -34,15 +30,12 @@ class ConstantSteps(StepRule):
         return self.step
 
     def is_accepted(self, proposedstep, errorest, **kwargs):
-        """
-        Meaningless since always True.
-        """
+        """Meaningless since always True."""
         return True
 
 
 class AdaptiveSteps(StepRule):
-    """
-    Adaptive step size selection based on tolerance per step.
+    """Adaptive step size selection based on tolerance per step.
 
     By default, there is no being "too small" for a step. However, a
     Warning is printed if the suggested step is smaller than roughly
