@@ -1,16 +1,19 @@
-"""Test cases for random processes."""
+"""Test cases for kernels."""
 
 import unittest
 
 import numpy as np
 import scipy.spatial
 
+import probnum
 import probnum.kernels as kernels
 from tests.testing import NumpyAssertions
 
 
 class KernelTestCase(unittest.TestCase, NumpyAssertions):
     """General test case for kernels."""
+
+    # pylint: disable=invalid-name
 
     def setUp(self) -> None:
         """Create different datasets and kernels for the tests."""
@@ -28,8 +31,8 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
         )
 
         # Kernels
-        self.k_custom = kernels.Kernel(fun=lambda x0, x1: np.inner(x0, x1).squeeze())
-        self.k_linear = kernels.Linear(constant=1.0)
+        self.k_custom = probnum.askernel(lambda x0, x1: np.inner(x0, x1).squeeze())
+        self.k_linear = kernels.Linear(shift=1.0)
         self.k_white_noise = kernels.WhiteNoise(sigma=-1.0)
         self.k_polynomial = kernels.Polynomial(constant=1.0, exponent=3)
         self.k_rbf = kernels.ExpQuad(lengthscale=1.0)
@@ -65,7 +68,8 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
         with self.subTest():
             for (X0, X1) in self.datasets:
                 for kern in self.kernels:
+                    # pylint: disable=protected-access
                     self.assertArrayEqual(
                         kern(X0, X1),
-                        scipy.spatial.distance.cdist(X0, X1, metric=kern.__fun),
+                        scipy.spatial.distance.cdist(X0, X1, metric=kern.__kernel),
                     )

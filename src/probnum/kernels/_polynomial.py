@@ -28,10 +28,13 @@ class Polynomial(Kernel[_InputType]):
     def __init__(self, constant: ScalarArgType, exponent=ScalarArgType):
         self.constant = _utils.as_numpy_scalar(constant)
         self.exponent = _utils.as_numpy_scalar(exponent)
-        super().__init__(fun=self._fun, output_dim=1)
+        super().__init__(kernel=self._kernel, output_dim=1)
 
-    def _fun(self, x0: _InputType, x1: _InputType):
-        return (np.inner(x0, x1) - self.constant) ** self.exponent
+    def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+        x0 = _utils.as_colvec(x0)
+        if x1 is None:
+            x1 = x0
+        else:
+            x1 = _utils.as_colvec(x1)
 
-    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        raise NotImplementedError
+        return (x0 @ x1.T + self.constant) ** self.exponent

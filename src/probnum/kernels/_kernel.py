@@ -1,18 +1,16 @@
-"""Kernel or covariance function."""
+"""Kernel / covariance function."""
 
 from typing import Callable, Generic, Optional, TypeVar
 
 import numpy as np
-import scipy.spatial
 
-import probnum.utils as _utils
 from probnum.type import IntArgType
 
 _InputType = TypeVar("InputType")
 
 
 class Kernel(Generic[_InputType]):
-    """Kernel or covariance function.
+    """Kernel / covariance function.
 
     Kernels describes the spatial or temporal variation of a random process. If
     evaluated at two sets of points a kernel is defined as the covariance of the
@@ -20,59 +18,61 @@ class Kernel(Generic[_InputType]):
 
     Parameters
     ----------
-    fun :
-        Function :math:`k(x_0,x_1)` defining the kernel. Assumed to be non-vectorized.
+    kernel :
+        Function :math:`k: \\mathbb{R}^n \\times \\mathbb{R}^n \\rightarrow \\mathbb{
+        R}^{n_{out} \\times n_{out}}` defining the kernel. Assumed to be vectorized
+        and callable with the second argument being `None`.
     output_dim :
         Output dimension of the kernel. If larger than 1, ``fun`` must return a
         matrix of dimension *(output_dim, output_dim)* representing the covariance at
         the inputs.
+
+    See Also
+    --------
+    askernel : Convert a bivariate function to a :class:`Kernel`.
     """
 
     def __init__(
         self,
-        fun: Callable[[_InputType, _InputType], np.float_],
+        kernel: Callable[[_InputType, Optional[_InputType]], np.ndarray],
         output_dim: IntArgType = 1,
     ):
-        self.__fun = fun
-        self.__output_dim = output_dim
+        self.__kernel = kernel
+        self._output_dim = output_dim
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
-    # todo: replace fun argument with clsmethod from_function?
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         """Evaluate the kernel.
 
-        If only the first input is provided the kernel matrix :math:`K=k(X_0, X_0)` is
-        computed.
+        Computes the covariance function at ``x0`` and ``x1``. If the inputs have
+        more than one dimension the covariance function is evaluated pairwise for all
+        observations determined by the first dimension(s) of ``x0`` and ``x1``. If
+        only ``x0`` is given the kernel matrix :math:`K=k(X_0, X_0)` is computed.
 
         Parameters
         ----------
         x0 :
-            First input.
+            *shape=(n0,) or (n0, d)* -- First input.
         x1 :
-            Second input.
+            *shape=(n1,) or (n1, d)* -- Second input.
 
         Returns
         -------
         cov :
             *shape=(n0, n1) or (n0, n1, output_dim, output_dim)* -- Kernel evaluated
-            pairwise for all entries / rows of ``x0`` and ``x1``.
+            at ``x0`` and ``x1`` or kernel matrix containing pairwise evaluations for
+            all observations in ``x0`` and ``x1``.
         """
-        if x1 is None:
-            x1 = x0
-
-        x0 = _utils.as_colvec(x0)
-        x1 = _utils.as_colvec(x1)
-
-        return scipy.spatial.distance.cdist(x0, x1, metric=self.__fun)
+        return self.__kernel(x0, x1)
 
     @property
     def output_dim(self) -> int:
         """Dimension of the evaluated covariance function.
 
         The resulting kernel matrix :math:`k(x_0, x_1) \\in
-        \\mathbb{R}^{n_out \\times n_out}` has dimension *(output_dim,
-        output_dim)*.
+        \\mathbb{R}^{n_{out} \\times n_{out}}` has dimension
+        *(output_dim,output_dim)*.
         """
-        return self.__output_dim
+        return self._output_dim

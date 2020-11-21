@@ -26,19 +26,15 @@ class WhiteNoise(Kernel[_InputType]):
 
     def __init__(self, sigma: ScalarArgType):
         self.sigma = _utils.as_numpy_scalar(sigma)
-        super().__init__(fun=self._fun, output_dim=1)
+        super().__init__(kernel=self._kernel, output_dim=1)
 
-    def _fun(self, x0: _InputType, x1: _InputType):
-        if x0 == x1:
-            return self.sigma
-        else:
-            return 0
-
-    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+        x0 = _utils.as_colvec(x0)
         if x1 is None:
             return self.sigma ** 2 * np.eye(x0.shape[0])
+        else:
+            x1 = _utils.as_colvec(x1)
 
-        x0 = _utils.as_colvec(x0)
-        x1 = _utils.as_colvec(x1)
-
-        return self.sigma ** 2 * np.equal.outer(x0, x1).squeeze().astype(float)
+        return self.sigma ** 2 * np.equal(x0, x1[:, np.newaxis, :]).all(
+            axis=2
+        ).T.astype(float)
