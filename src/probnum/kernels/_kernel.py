@@ -71,7 +71,7 @@ class Kernel(Generic[_InputType]):
     def output_dim(self) -> int:
         """Dimension of the evaluated covariance function.
 
-        The resulting kernel matrix :math:`k(x_0, x_1) \\in
+        The resulting evaluated kernel :math:`k(x_0, x_1) \\in
         \\mathbb{R}^{d_{out} \\times d_{out}}` has dimension
         *(output_dim,output_dim)*.
         """
