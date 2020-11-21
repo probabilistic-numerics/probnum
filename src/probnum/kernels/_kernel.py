@@ -19,8 +19,8 @@ class Kernel(Generic[_InputType]):
     Parameters
     ----------
     kernel :
-        Function :math:`k: \\mathbb{R}^n \\times \\mathbb{R}^n \\rightarrow \\mathbb{
-        R}^{n_{out} \\times n_{out}}` defining the kernel. Assumed to be vectorized
+        Function :math:`k: \\mathbb{R}^d \\times \\mathbb{R}^d \\rightarrow \\mathbb{
+        R}^{d_{out} \\times d_{out}}` defining the kernel. Assumed to be vectorized
         and callable with the second argument being `None`.
     output_dim :
         Output dimension of the kernel. If larger than 1, ``fun`` must return a
@@ -72,7 +72,7 @@ class Kernel(Generic[_InputType]):
         """Dimension of the evaluated covariance function.
 
         The resulting kernel matrix :math:`k(x_0, x_1) \\in
-        \\mathbb{R}^{n_{out} \\times n_{out}}` has dimension
+        \\mathbb{R}^{d_{out} \\times d_{out}}` has dimension
         *(output_dim,output_dim)*.
         """
         return self._output_dim

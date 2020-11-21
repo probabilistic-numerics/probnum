@@ -10,19 +10,20 @@ from probnum.type import ScalarArgType
 from ._kernel import Kernel
 
 _InputType = TypeVar("InputType")
+# TODO: fix correct types for kernels here
 
 
 class Polynomial(Kernel[_InputType]):
     """Polynomial kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = (x_0^\\top x_1 + c)^d`.
+    Covariance function defined by :math:`k(x_0, x_1) = (x_0^\\top x_1 + c)^q`.
 
     Parameters
     ----------
     constant
         Constant offset :math:`c`.
     exponent
-        Exponent :math:`d` of the polynomial.
+        Exponent :math:`q` of the polynomial.
     """
 
     def __init__(self, constant: ScalarArgType = 0.0, exponent: ScalarArgType = 1.0):

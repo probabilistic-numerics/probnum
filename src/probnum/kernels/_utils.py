@@ -13,7 +13,7 @@ def askernel(fun: Callable) -> _kernel.Kernel:
     """Convert ``fun`` to a :class:`Kernel`.
 
     Creates a :class:`Kernel` from a (non-vectorized) bivariate function :math:`k :
-    \\mathbb{R}^n \times \\mathbb{R}^n \\rightarrow \\mathbb{R}`. In particular, the
+    \\mathbb{R}^d \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}`. In particular, the
     given kernel function will automatically be vectorized.
 
     Parameters
