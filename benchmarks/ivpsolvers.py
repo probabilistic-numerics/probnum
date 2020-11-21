@@ -1,4 +1,4 @@
-"""Benchmarks for probabilistic ivp solvers."""
+"""Benchmarks for probabilistic IVP solvers."""
 import numpy as np
 
 from probnum.diffeq import lotkavolterra, probsolve_ivp

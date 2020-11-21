@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 
 import probnum.utils as _utils
+from probnum import kernels as kernels
 from probnum import random_processes as rps
 from tests.testing import NumpyAssertions
 
@@ -29,45 +30,20 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
         self.mean_functions = [mean_zero]
 
         # Covariance functions
-        def cov_lin(x0, x1, keepdims=False, constant=1.0):
-            """Linear kernel."""
-            covmat = np.sum(
-                np.multiply.outer(x0 - constant, x1 - constant), axis=(1, 3)
-            )
-            if keepdims:
-                return covmat
-            else:
-                return covmat.reshape(x0.shape[0], x1.shape[0])
+        cov_noise = kernels.WhiteNoise(sigma=10 ** -3)
+        cov_lin = kernels.Linear(shift=-1.0)
+        cov_poly = kernels.Polynomial(constant=1.0, exponent=3)
+        cov_expquad = kernels.ExpQuad(lengthscale=0.5)
+        cov_ratquad = kernels.RatQuad(lengthscale=2.0, alpha=0.5)
 
-        def cov_poly(x0, x1, power=3, keepdims=False):
-            """Polynomial kernel."""
-            covmat = np.sum(np.multiply.outer(x0, x1), axis=(1, 3)) ** power
-            if keepdims:
-                return covmat
-            else:
-                return covmat.reshape(x0.shape[0], x1.shape[0])
-
-        def cov_expquad(x0, x1, keepdims=False):
-            """Exponentiated quadratic kernel."""
-            covmat = np.exp(-0.5 * np.sum(np.subtract.outer(x0, x1) ** 2, axis=(1, 3)))
-            if keepdims:
-                return covmat
-            else:
-                return covmat.reshape(x0.shape[0], x1.shape[0])
-
-        def cov_coreg_expquad(x0, x1, keepdims=False):
+        def cov_coreg_expquad(x0, x1):
             """Coregionalization kernel multiplied with an RBF kernel."""
-            covmat = np.multiply.outer(
-                cov_expquad(x0, x1, keepdims=False), np.array([[4, 2], [2, 1]])
+            covmat = np.multiply.outer(cov_expquad(x0, x1), np.array([[4, 2], [2, 1]]))
+            return np.transpose(covmat, axes=[2, 0, 3, 1]).reshape(
+                2 * x0.shape[0], 2 * x1.shape[0]
             )
-            if keepdims:
-                return covmat
-            else:
-                return np.transpose(covmat, axes=[2, 0, 3, 1]).reshape(
-                    2 * x0.shape[0], 2 * x1.shape[0]
-                )
 
-        self.cov_functions = [cov_lin, cov_poly, cov_expquad]
+        self.cov_functions = [cov_noise, cov_lin, cov_poly, cov_expquad, cov_ratquad]
 
         # Deterministic processes
         self.deterministic_processes = [
@@ -82,13 +58,13 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
                 mean=lambda x: mean_zero(x),
                 cov=cov_lin,
                 input_dim=(1,),
-                output_dim=(),
+                output_dim=1,
             ),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
                 cov=cov_poly,
                 input_dim=(2, 1),
-                output_dim=(),
+                output_dim=1,
             ),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
@@ -100,7 +76,7 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
                 mean=lambda x: mean_zero(x, out_dim=2),
                 cov=cov_coreg_expquad,
                 input_dim=(),
-                output_dim=(2,),
+                output_dim=2,
             ),
         ]
 
