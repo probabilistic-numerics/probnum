@@ -39,6 +39,7 @@ class Kernel(Generic[_InputType]):
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
+    # todo: replace fun argument with clsmethod from_function?
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         """Evaluate the kernel.
 
