@@ -15,7 +15,8 @@ _InputType = TypeVar("InputType")
 class Linear(Kernel[_InputType]):
     """Linear kernel.
 
-    Linear ovariance function defined by :math:`k(x_0, x_1) = (x_0 - c)^\\top(x_1 - c)`.
+    Linear covariance function defined by :math:`k(x_0, x_1) = (x_0 - c)^\\top(x_1 -
+    c)`.
 
     Parameters
     ----------
@@ -41,10 +42,10 @@ class Linear(Kernel[_InputType]):
         super().__init__(kernel=self._kernel, output_dim=1)
 
     def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        x0 = _utils.as_colvec(x0)
+        x0 = np.atleast_2d(x0)
         if x1 is None:
             x1 = x0
         else:
-            x1 = _utils.as_colvec(x1)
+            x1 = np.atleast_2d(x1)
 
         return (x0 - self.shift) @ (x1 - self.shift).T

@@ -26,25 +26,25 @@ class ExpQuad(Kernel[_InputType]):
         varies.
     """
 
-    def __init__(self, lengthscale: ScalarArgType):
+    def __init__(self, lengthscale: ScalarArgType = 1.0):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
         super().__init__(kernel=self._kernel, output_dim=1)
 
     def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         # Transform into 2d array
-        x0 = _utils.as_colvec(x0)
-        # Pre-compute norms with einsum for performance
-        x0_norm = np.einsum("ij,ij->i", x0, x0)
+        x0 = np.atleast_2d(x0)
+        # Pre-compute norms with einsum for efficiency
+        x0_norm_sq = np.einsum("nd,nd->n", x0, x0)
 
         if x1 is None:
             x1 = x0
-            x1_norm = x0_norm
+            x1_norm_sq = x0_norm_sq
         else:
-            x1 = _utils.as_colvec(x1)
-            x1_norm = np.einsum("ij,ij->i", x1, x1)
+            x1 = np.atleast_2d(x1)
+            x1_norm_sq = np.einsum("nd,nd->n", x1, x1)
 
-        # Kernel matrix
+        # Kernel matrix via broadcasting
         return np.exp(
-            -(x0_norm[:, None] + x1_norm[None, :] - 2 * x0 @ x1.T)
+            -(x0_norm_sq[:, None] + x1_norm_sq[None, :] - 2 * x0 @ x1.T)
             / (2 * self.lengthscale ** 2)
         )

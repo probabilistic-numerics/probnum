@@ -17,8 +17,8 @@ class KernelUtilsTestCase(unittest.TestCase, NumpyAssertions):
         # Data
         rng = np.random.default_rng()
 
-        self.data_1d_0 = rng.normal(0, 1, size=5)
-        self.data_1d_1 = rng.normal(0, 1, size=10)
+        self.data_1d_0 = rng.normal(0, 1, size=(5, 1))
+        self.data_1d_1 = rng.normal(0, 1, size=(10, 1))
         self.data_2d_0 = rng.normal(0, 1, size=(5, 2))
         self.data_2d_1 = rng.normal(0, 1, size=(10, 2))
 
@@ -45,4 +45,7 @@ class KernelUtilsTestCase(unittest.TestCase, NumpyAssertions):
             for fun in self.kernfuns:
                 kern = pn.askernel(fun)
                 for X0, X1 in self.datasets:
-                    self.assertEqual(kern(X0, X1).shape, (X0.shape[0], X1.shape[0]))
+                    self.assertEqual(
+                        kern(X0, X1).shape,
+                        (np.atleast_2d(X0.shape[0]), np.atleast_2d(X1.shape[0])),
+                    )

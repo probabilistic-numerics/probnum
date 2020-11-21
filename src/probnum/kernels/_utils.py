@@ -42,11 +42,11 @@ def askernel(fun: Callable) -> _kernel.Kernel:
         # Create a kernel from a function f:R^n x R^n -> R
         def _kern_vectorized(x0, x1=None) -> np.ndarray:
             # pylint: disable=invalid-name
+            x0 = np.atleast_2d(x0)
             if x1 is None:
                 x1 = x0
-
-            x0 = _utils.as_colvec(x0)
-            x1 = _utils.as_colvec(x1)
+            else:
+                x1 = np.atleast_2d(x1)
 
             # Evaluate fun pairwise for all rows of x0 and x1
             return scipy.spatial.distance.cdist(x0, x1, metric=fun)

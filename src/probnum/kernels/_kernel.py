@@ -48,22 +48,22 @@ class Kernel(Generic[_InputType]):
 
         Computes the covariance function at ``x0`` and ``x1``. If the inputs have
         more than one dimension the covariance function is evaluated pairwise for all
-        observations determined by the first dimension(s) of ``x0`` and ``x1``. If
+        observations determined by the first dimension of ``x0`` and ``x1``. If
         only ``x0`` is given the kernel matrix :math:`K=k(X_0, X_0)` is computed.
 
         Parameters
         ----------
         x0 :
-            *shape=(n0,) or (n0, d)* -- First input.
+            *shape=(d,) or (n0, d)* -- First input.
         x1 :
-            *shape=(n1,) or (n1, d)* -- Second input.
+            *shape=(d,) or (n1, d)* -- Second input.
 
         Returns
         -------
         cov :
-            *shape=(n0, n1) or (n0, n1, output_dim, output_dim)* -- Kernel evaluated
-            at ``x0`` and ``x1`` or kernel matrix containing pairwise evaluations for
-            all observations in ``x0`` and ``x1``.
+            *(output_dim, output_dim) or (n0, n1) or (n0, n1, output_dim,
+            output_dim)* -- Kernel evaluated at ``x0`` and ``x1`` or kernel matrix
+            containing pairwise evaluations for all observations in ``x0`` and ``x1``.
         """
         return self.__kernel(x0, x1)
 
