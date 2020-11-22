@@ -94,6 +94,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     ):
         # pylint: disable=too-many-arguments
         """Create a new random process."""
+
         # Function defining the random process
         self.__fun = fun
 
@@ -108,9 +109,20 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
         # Functions of the random process
         self.__mean = mean
-        self.__cov = cov
         self.__var = var
         self.__std = std
+
+        # Type normalization
+        if isinstance(cov, Kernel):
+            if cov.output_dim != output_dim:
+                raise ValueError("Output dimension of kernel and process do not match.")
+            self.__cov = cov
+        elif callable(cov):
+            self.__cov = Kernel(kernel=cov, output_dim=output_dim)
+        elif cov is None:
+            self.__cov = None
+        else:
+            raise TypeError("Covariance function is not a callable.")
 
     def __repr__(self) -> str:
         return (
@@ -190,7 +202,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Returns
         -------
         mean
-            *shape=(input_dim, ) or (n, output_dim)* -- Mean function of the process
+            *shape=(output_dim, ) or (n, output_dim)* -- Mean function of the process
             evaluated at inputs ``x``.
         """
         if self.__mean is None:
@@ -251,7 +263,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
                     varshape = (x.shape[0], self.output_dim)
                 else:
                     varshape = (self.output_dim,)
-                return np.diag(self.cov(x0=x, x1=x)).reshape(varshape).copy()
+                return np.diag(self.cov(x0=x)).reshape(varshape).copy()
             except NotImplementedError as exc:
                 raise NotImplementedError from exc
         else:
@@ -292,7 +304,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(output_dim,) or (n, output_dim)* -- Evaluation input(s) of the
+            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process. If ``None``, sample paths, i.e. callables are
             returned.
         size
@@ -313,7 +325,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         Parameters
         ----------
         x
-            *shape=(output_dim,) or (n, output_dim)* -- Evaluation input(s) of the
+            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process.
         size
             Size of the sample.

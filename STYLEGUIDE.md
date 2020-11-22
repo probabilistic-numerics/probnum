@@ -30,14 +30,12 @@ to correct module paths in the documentation by adding `SuperClass.__module__ = 
 
 ### Type Standardization
 
-Many types representing numeric values, shapes, dtypes, random states, etc. have
- different possible representations. For example a shape could be specified in the
-  following ways: `n, (n,), (n, 1), \[n\], \[n, 1\]`.
+Many types representing numeric values, shapes, dtypes, random states, etc. have different
+possible representations. For example a shape could be specified in the following ways: `n, (n,), (n, 1), [n], [n, 1]`.
 
-For this reason most types should be standardized internally to a core set of
- types defined in `probnum.type`, e.g. for numeric types `np.generic`, `np.ndarray
- `. Methods for input argument standardization can be found in `probnum.utils
- .argutils`.
+For this reason most types should be standardized internally to a core set of types defined
+in `probnum.type`, e.g. for numeric types `np.generic`, `np.ndarray`. Methods for input
+argument standardization can be found in `probnum.utils.argutils`.
 
 ### Naming
 
@@ -69,7 +67,7 @@ method is implemented, Python will fall back to the `.__repr__()` method.
 As an example consider `numpy`'s array representation
 ```python
 array([[1, 0],
-      [0, 1]])
+       [0, 1]])
 ```
 versus its output of `str`.
 ```python
@@ -131,10 +129,9 @@ or https://docs.python.org/2/library/exceptions.html#exceptions.Warning.
 (more descriptive) the file name can be, because the chances
 that access is provided through higher-level namespaces are rather high.
 
-Interfaces to PN methods should be in a separate module, while their implementation
- (in classes) is in the same folder in other files.
+Interfaces to PN methods should be in a separate module, while their implementation (in classes) is in the same folder in other files.
 
 ## Documentation
 
-All documentation is written in American English. Every publicly visible class or
- function must have a docstring. Do not use extensive documentation as a clutch for spaghetti code -- divide and conquer instead!
+All documentation is written in American English. Every publicly visible class or function
+must have a docstring. Do not use extensive documentation as a clutch for spaghetti code -- divide and conquer instead!

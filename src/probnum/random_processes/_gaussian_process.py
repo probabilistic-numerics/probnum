@@ -4,7 +4,7 @@ from typing import Callable, Union
 
 import numpy as np
 
-import probnum.utils as _utils
+import probnum
 from probnum.kernels import Kernel
 from probnum.random_variables import Normal
 from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
@@ -70,7 +70,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     ...     mean=mean, cov=cov_coreg_expquad, output_shape=2
     ... )
     >>> x = np.array([-1, 0, 1])[:, None]
-    >>> K = gp.cov(x, x, flatten=True)
+    >>> K = gp.cov(x)
     >>> K.shape
     (3, 3, 2, 2)
     >>> # Covariance matrix in output-dimension-first order
@@ -92,17 +92,11 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def __init__(
         self,
         mean: Callable[[_InputType], _OutputType],
-        cov: Kernel,
+        cov: Union[Callable[[_InputType], _OutputType], Kernel],
         input_dim: IntArgType = 1,
         output_dim: IntArgType = 1,
         random_state: RandomStateArgType = None,
     ):
-        # Type normalization
-        # TODO
-
-        # TODO infer in and output shapes from kernel?
-
-        # Call to super class
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
@@ -114,17 +108,14 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         )
 
     def __call__(self, x: _InputType) -> Normal:
-
-        # Reshape input to (n, d)
-        if len(self.input_dim) == 0:
-            x = np.asarray(x).reshape((-1, 1))
+        x = np.asarray(x)
+        if x.ndim > 1:
+            mean_eval = self.mean(x).reshape(x.shape[0], self.output_dim)
         else:
-            x = x.reshape((-1,) + self.input_dim)
+            mean_eval = self.mean(x).reshape(self.output_dim)
+        cov_eval = self.cov(x)
 
-        return Normal(
-            mean=np.squeeze(self.mean(x)), cov=self.cov(x0=x, x1=x, flatten=False)
-        )
+        return Normal(mean=mean_eval, cov=cov_eval)
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
-        rv_at_input = Normal(mean=self.mean(x), cov=self.cov(x0=x, x1=x))
-        return rv_at_input.sample(size=size)
+        return self.__call__(x).sample(size=size)

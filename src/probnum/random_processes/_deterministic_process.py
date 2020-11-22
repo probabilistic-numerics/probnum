@@ -63,7 +63,6 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
         dtype: DTypeArgType = np.float_,
         random_state: RandomStateArgType = None,
     ):
-
         self._fun = fun
 
         super().__init__(
@@ -71,13 +70,20 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
             output_dim=output_dim,
             dtype=dtype,
             random_state=random_state,
-            fun=fun,
             sample_at_input=self._sample_at_input,
-            mean=fun,
+            mean=self.__call__,
         )
 
     def __call__(self, x: _InputType) -> rvs.Constant[_OutputType]:
-        return rvs.Constant(support=self._fun(x))
+        return rvs.Constant(self.mean(x))
+
+    def mean(self, x: _InputType) -> _OutputType:
+        x = np.asarray(x)
+        if x.ndim > 1:
+            fun_eval = self._fun(x).reshape(x.shape[0], self.output_dim)
+        else:
+            fun_eval = self._fun(x).reshape(self.output_dim)
+        return fun_eval
 
     def cov(self, x0: _InputType, x1: _InputType = None) -> _OutputType:
         x0 = np.atleast_2d(x0)
@@ -94,6 +100,7 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
         return np.zeros(shape=cov_shape)
 
     def var(self, x: _InputType) -> _OutputType:
+        x = np.asarray(x)
         if x.ndim == 1:
             var_shape = self.output_dim
         else:
