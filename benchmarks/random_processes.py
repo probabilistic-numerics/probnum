@@ -24,7 +24,7 @@ class Functions:
     params = [RP_NAMES]
 
     def setup(self, randproc, method):
-        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
+        # pylint: disable=unused-argument,missing-function-docstring
 
         self.randvar = get_randproc(rp_name=randproc)
 

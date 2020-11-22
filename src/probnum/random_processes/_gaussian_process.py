@@ -5,8 +5,9 @@ from typing import Callable, Union
 import numpy as np
 
 import probnum.utils as _utils
+from probnum.kernels import Kernel
 from probnum.random_variables import Normal
-from probnum.type import RandomStateArgType, ShapeArgType
+from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
 
 from . import _random_process
 
@@ -50,7 +51,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     >>> kernel = lambda x0, x1, _: np.exp(
     ...     -0.5 * np.sum(np.subtract.outer(x0, x1) ** 2, axis=(1, 3))
     ... )  # exponentiated quadratic kernel
-    >>> gp = GaussianProcess(mean=mean, cov=kernel, input_dim=(), output_dim=())
+    >>> gp = GaussianProcess(mean=mean, cov=kernel)
     >>> # Sample path
     >>> x = np.linspace(-1, 1, 5)[:, None]
     >>> np.random.seed(42)
@@ -66,7 +67,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     ...     kernel(x0, x1, _), np.array([[4, 2], [2, 1]])
     ... )
     >>> gp = GaussianProcess(
-    ...     mean=mean, cov=cov_coreg_expquad, input_dim=(), output_shape=(2,)
+    ...     mean=mean, cov=cov_coreg_expquad, output_shape=2
     ... )
     >>> x = np.array([-1, 0, 1])[:, None]
     >>> K = gp.cov(x, x, flatten=True)
@@ -90,29 +91,20 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def __init__(
         self,
-        input_dim: ShapeArgType,
-        output_dim: ShapeArgType,
         mean: Callable[[_InputType], _OutputType],
-        cov: Callable[[_InputType, _InputType, bool], _OutputType],
+        cov: Kernel,
+        input_dim: IntArgType = 1,
+        output_dim: IntArgType = 1,
         random_state: RandomStateArgType = None,
     ):
         # Type normalization
         # TODO
 
-        # Shape checking
-        _input_dim = _utils.as_shape(input_dim)
-        if len(_input_dim) > 1:
-            if len(_input_dim) == 2 and _input_dim[1] == 1:
-                _input_dim = (_input_dim[0],)
-            else:
-                raise ValueError(
-                    "Gaussian processes cannot be defined for "
-                    f"tensor-structured input of shape {_input_dim}."
-                )
+        # TODO infer in and output shapes from kernel?
 
         # Call to super class
         super().__init__(
-            input_dim=_input_dim,
+            input_dim=input_dim,
             output_dim=output_dim,
             dtype=np.dtype(np.float_),
             random_state=random_state,

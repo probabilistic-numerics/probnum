@@ -9,7 +9,7 @@ from probnum.type import ScalarArgType
 
 from ._kernel import Kernel
 
-_InputType = TypeVar("InputType")
+_InputType = np.ndarray
 
 
 class RatQuad(Kernel[_InputType]):
@@ -35,9 +35,9 @@ class RatQuad(Kernel[_InputType]):
         self.alpha = _utils.as_numpy_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
-        super().__init__(kernel=self._kernel, output_dim=1)
+        super().__init__(kernel=self.__call__, output_dim=1)
 
-    def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
 
         # Pre-compute norms with einsum for efficiency
         x0 = np.atleast_2d(x0)

@@ -8,8 +8,7 @@ from . import _random_process
 
 
 def asrandproc(obj: Any) -> _random_process.RandomProcess:
-    """
-    Convert ``obj`` to a :class:`RandomProcess`.
+    """Convert ``obj`` to a :class:`RandomProcess`.
 
     Converts an object such as functions or random process-type
     objects to a ProbNum :class:`RandomProcess`.
@@ -31,13 +30,13 @@ def asrandproc(obj: Any) -> _random_process.RandomProcess:
     >>> rp(2)
     5.0
     >>> rp
-    <RandomProcess with input_shape=(), output_shape=(), dtype=float64>
+    <RandomProcess with input_shape=1, output_shape=1, dtype=float64>
     """
     if isinstance(obj, _random_process.RandomProcess):
         return obj
     elif callable(obj):
         return _random_process.RandomProcess(
-            input_dim=(), output_dim=(), dtype=np.dtype(np.float_), fun=obj
+            input_dim=1, output_dim=1, dtype=np.dtype(np.float_), fun=obj
         )
     else:
         raise ValueError(

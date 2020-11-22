@@ -39,19 +39,7 @@ def askernel(fun: Callable) -> _kernel.Kernel:
            [32., 77.]])
     """
     if callable(fun):
-        # Create a kernel from a function f:R^n x R^n -> R
-        def _kern_vectorized(x0, x1=None) -> np.ndarray:
-            # pylint: disable=invalid-name
-            x0 = np.atleast_2d(x0)
-            if x1 is None:
-                x1 = x0
-            else:
-                x1 = np.atleast_2d(x1)
-
-            # Evaluate fun pairwise for all rows of x0 and x1
-            return scipy.spatial.distance.cdist(x0, x1, metric=fun)
-
-        return _kernel.Kernel(kernel=_kern_vectorized, output_dim=1)
+        return _kernel.Kernel.from_function(fun=fun, output_dim=1)
     else:
         raise ValueError(
             f"Argument of type {type(fun)} is not callable and therefore cannot be "

@@ -4,7 +4,8 @@ from typing import Callable, TypeVar
 
 import numpy as np
 
-from probnum.type import DTypeArgType, RandomStateArgType, ShapeArgType
+import probnum.random_variables as rvs
+from probnum.type import DTypeArgType, IntArgType, RandomStateArgType, ShapeArgType
 
 from . import _random_process
 
@@ -25,6 +26,8 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     Parameters
     ----------
+    fun :
+        Callable defining the deterministic process.
     input_dim :
         Shape of an input to the deterministic process.
     output_dim :
@@ -32,8 +35,6 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
     dtype :
         Data type of the random process evaluated at an input. If ``object`` will be
         converted to ``numpy.dtype``.
-    fun :
-        Callable defining the deterministic process.
     random_state :
         Random state of the random process. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
@@ -48,10 +49,7 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
     >>> import numpy as np
     >>> from probnum import random_processes as rps
     >>> f = lambda x : 2.0 * x ** 2 - 1.25 * x + 5.0
-    >>> rp = rps.DeterministicProcess(fun=f,
-    ...                               input_dim=(),
-    ...                               output_dim=(),
-    ...                               dtype=np.dtype(np.float_))
+    >>> rp = rps.DeterministicProcess(fun=f)
     >>> x = np.linspace(0, 1, 10)
     >>> np.all(rp.sample(x) == f(x))
     True
@@ -59,40 +57,49 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     def __init__(
         self,
-        input_dim: ShapeArgType,
-        output_dim: ShapeArgType,
-        dtype: DTypeArgType,
         fun: Callable[[_InputType], _OutputType],
+        input_dim: IntArgType = 1,
+        output_dim: IntArgType = 1,
+        dtype: DTypeArgType = np.float_,
         random_state: RandomStateArgType = None,
     ):
-        self._fun = fun
-
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
             dtype=dtype,
             random_state=random_state,
-            fun=fun,
+            fun=self._fun,
             sample_at_input=self._sample_at_input,
-            mean=fun,
+            mean=self._fun,
             cov=self._cov,
             var=self._var,
         )
 
-    def _cov(self, x0: _InputType, x1: _InputType, keepdims=False) -> _OutputType:
+    def _fun(self, x: _InputType) -> rvs.Constant[_OutputType]:
+        raise NotImplementedError
+        # TODO
 
-        if keepdims:
-            cov_shape = (x0.shape[0], x1.shape[0]) + self.output_dim + self.output_dim
+    def _cov(self, x0: _InputType, x1: _InputType = None) -> _OutputType:
+
+        x0 = np.atleast_2d(x0)
+        if x1 is None:
+            x0 = x1
         else:
-            cov_shape = (
-                x0.shape[0] * np.prod(self.output_dim),
-                x1.shape[0] * np.prod(self.output_dim),
-            )
+            x1 = np.atleast_2d(x1)
+
+        if self.output_dim == 1:
+            cov_shape = (x0.shape[0], x1.shape[1])
+        else:
+            cov_shape = (x0.shape[0], x1.shape[1], self.output_dim, self.output_dim)
 
         return np.zeros(shape=cov_shape)
 
     def _var(self, x: _InputType) -> _OutputType:
-        return np.zeros(shape=[x.shape[0], self.output_dim])
+        if x.ndim == 1:
+            var_shape = self.output_dim
+        else:
+            var_shape = (x.shape[0], self.output_dim)
+        return np.zeros(shape=var_shape)
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         return np.tile(self.__call__(x), reps=size)

@@ -9,8 +9,7 @@ from probnum.type import ScalarArgType
 
 from ._kernel import Kernel
 
-_InputType = TypeVar("InputType")
-# TODO: fix correct types for kernels here
+_InputType = np.ndarray
 
 
 class Polynomial(Kernel[_InputType]):
@@ -29,9 +28,9 @@ class Polynomial(Kernel[_InputType]):
     def __init__(self, constant: ScalarArgType = 0.0, exponent: ScalarArgType = 1.0):
         self.constant = _utils.as_numpy_scalar(constant)
         self.exponent = _utils.as_numpy_scalar(exponent)
-        super().__init__(kernel=self._kernel, output_dim=1)
+        super().__init__(kernel=self.__call__, output_dim=1)
 
-    def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         x0 = np.atleast_2d(x0)
         if x1 is None:
             x1 = x0

@@ -59,8 +59,8 @@ class GaussMarkovProcess(GaussianProcess):
         self.x0 = x0
         self.initrv = initrv
         super().__init__(
-            input_dim=(),
-            output_dim=initrv.shape,
+            input_dim=1,
+            output_dim=initrv.shape[0],
             mean=self._sde_solution_mean,
             cov=self._sde_solution_cov,
             random_state=random_state,

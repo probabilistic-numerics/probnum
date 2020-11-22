@@ -9,7 +9,7 @@ from probnum.type import ScalarArgType
 
 from ._kernel import Kernel
 
-_InputType = TypeVar("InputType")
+_InputType = np.ndarray
 
 
 class WhiteNoise(Kernel[_InputType]):
@@ -26,9 +26,9 @@ class WhiteNoise(Kernel[_InputType]):
 
     def __init__(self, sigma: ScalarArgType = 1.0):
         self.sigma = _utils.as_numpy_scalar(sigma)
-        super().__init__(kernel=self._kernel, output_dim=1)
+        super().__init__(kernel=self.__call__, output_dim=1)
 
-    def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         x0 = np.atleast_2d(x0)
         if x1 is None:
             return self.sigma ** 2 * np.eye(x0.shape[0])

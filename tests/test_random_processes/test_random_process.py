@@ -4,6 +4,7 @@ import unittest
 
 import numpy as np
 
+import probnum
 import probnum.utils as _utils
 from probnum import kernels as kernels
 from probnum import random_processes as rps
@@ -36,34 +37,30 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
         cov_expquad = kernels.ExpQuad(lengthscale=0.5)
         cov_ratquad = kernels.RatQuad(lengthscale=2.0, alpha=0.5)
 
-        def cov_coreg_expquad(x0, x1):
-            """Coregionalization kernel multiplied with an RBF kernel."""
-            covmat = np.multiply.outer(cov_expquad(x0, x1), np.array([[4, 2], [2, 1]]))
-            return np.transpose(covmat, axes=[2, 0, 3, 1]).reshape(
-                2 * x0.shape[0], 2 * x1.shape[0]
-            )
+        # def cov_coreg_expquad(x0, x1):
+        #     """Coregionalization kernel multiplied with an RBF kernel."""
+        #     covmat = np.multiply.outer(cov_expquad(x0, x1), np.array([[4, 2], [2, 1]]))
+        #     return np.transpose(covmat, axes=[2, 0, 3, 1]).reshape(
+        #         2 * x0.shape[0], 2 * x1.shape[0]
+        #     )
 
         self.cov_functions = [cov_noise, cov_lin, cov_poly, cov_expquad, cov_ratquad]
 
         # Deterministic processes
         self.deterministic_processes = [
             rps.DeterministicProcess(
-                fun=mean_zero, input_dim=1, output_dim=1, dtype=np.dtype(np.float_)
-            )
+                fun=lambda x: np.zeros(x.shape[0]) if x.ndim > 1 else np.zeros(1)
+            ),
+            probnum.asrandproc(lambda x: 2 * x ** 2 - 0.5),
         ]
 
         # Gaussian processes
         self.gaussian_processes = [
-            rps.GaussianProcess(
-                mean=lambda x: mean_zero(x),
-                cov=cov_lin,
-                input_dim=(1,),
-                output_dim=1,
-            ),
+            rps.GaussianProcess(mean=lambda x: mean_zero(x), cov=cov_lin),
             rps.GaussianProcess(
                 mean=lambda x: mean_zero(x),
                 cov=cov_poly,
-                input_dim=(2, 1),
+                input_dim=2,
                 output_dim=1,
             ),
             rps.GaussianProcess(
@@ -72,12 +69,12 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
                 input_dim=3,
                 output_dim=1,
             ),
-            rps.GaussianProcess(
-                mean=lambda x: mean_zero(x, out_dim=2),
-                cov=cov_coreg_expquad,
-                input_dim=(),
-                output_dim=2,
-            ),
+            # rps.GaussianProcess(
+            #     mean=lambda x: mean_zero(x, out_dim=2),
+            #     cov=cov_coreg_expquad,
+            #     input_dim=1,
+            #     output_dim=2,
+            # ),
         ]
 
         # Gauss-Markov processes
@@ -115,19 +112,24 @@ class ShapeTestCase(RandomProcessTestCase):
         process."""
         for rand_proc in self.random_processes:
             with self.subTest():
-                n_inputs_x = 10
-                x = np.random.normal(size=(n_inputs_x,) + rand_proc.input_shape)
-                y = rand_proc(x)
-                if rand_proc.output_shape == () or rand_proc.output_shape == (1,):
-                    rand_proc_out_shape = ()
-                else:
-                    rand_proc_out_shape = rand_proc.output_shape
+                n_inputs_x0 = 10
+                x0 = np.random.normal(size=(n_inputs_x0, rand_proc.input_dim))
+                y0 = rand_proc(x0)
 
                 self.assertTupleEqual(
-                    tuple1=(x.shape[0],) + rand_proc_out_shape,
-                    tuple2=y.shape,
+                    tuple1=(x0.shape[0], rand_proc.output_dim),
+                    tuple2=y0.shape,
                     msg=f"Output of {repr(rand_proc)} does not have the "
-                    f"correct shape.",
+                    f"correct shape for multiple inputs.",
+                )
+
+                x1 = np.random.normal(size=rand_proc.input_dim)
+                y1 = rand_proc(x1)
+                self.assertTupleEqual(
+                    tuple1=(rand_proc.output_dim,),
+                    tuple2=y1.shape,
+                    msg=f"Output of {repr(rand_proc)} for vector input should be a "
+                    f"vector.",
                 )
 
     def test_rp_mean_shape(self):

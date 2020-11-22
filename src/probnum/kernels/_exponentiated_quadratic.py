@@ -28,9 +28,9 @@ class ExpQuad(Kernel[_InputType]):
 
     def __init__(self, lengthscale: ScalarArgType = 1.0):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        super().__init__(kernel=self._kernel, output_dim=1)
+        super().__init__(kernel=self.__call__, output_dim=1)
 
-    def _kernel(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         # Transform into 2d array
         x0 = np.atleast_2d(x0)
         # Pre-compute norms with einsum for efficiency
