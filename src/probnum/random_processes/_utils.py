@@ -4,6 +4,8 @@ from typing import Any
 
 import numpy as np
 
+import probnum
+
 from . import _random_process
 
 
@@ -36,7 +38,10 @@ def asrandproc(obj: Any) -> _random_process.RandomProcess:
         return obj
     elif callable(obj):
         return _random_process.RandomProcess(
-            input_dim=1, output_dim=1, dtype=np.dtype(np.float_), fun=obj
+            input_dim=1,
+            output_dim=1,
+            dtype=np.dtype(np.float_),
+            fun=lambda x: probnum.asrandvar(obj(x)),
         )
     else:
         raise ValueError(

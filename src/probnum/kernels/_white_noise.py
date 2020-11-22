@@ -1,6 +1,6 @@
 """White noise kernel."""
 
-from typing import Optional, TypeVar
+from typing import Optional
 
 import numpy as np
 
@@ -26,7 +26,7 @@ class WhiteNoise(Kernel[_InputType]):
 
     def __init__(self, sigma: ScalarArgType = 1.0):
         self.sigma = _utils.as_numpy_scalar(sigma)
-        super().__init__(kernel=self.__call__, output_dim=1)
+        super().__init__(output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         x0 = np.atleast_2d(x0)

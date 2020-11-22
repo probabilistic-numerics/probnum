@@ -1,6 +1,6 @@
 """Polynomial kernel."""
 
-from typing import Optional, TypeVar
+from typing import Optional
 
 import numpy as np
 
@@ -23,12 +23,25 @@ class Polynomial(Kernel[_InputType]):
         Constant offset :math:`c`.
     exponent
         Exponent :math:`q` of the polynomial.
+
+    See Also
+    --------
+    Linear : Linear covariance function.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum.kernels import Polynomial
+    >>> K = Polynomial(constant=1.0, exponent=3)
+    >>> K(np.array([[1, -1], [-1, 0]]))
+    array([[27.,  0.],
+           [ 0.,  8.]])
     """
 
     def __init__(self, constant: ScalarArgType = 0.0, exponent: ScalarArgType = 1.0):
         self.constant = _utils.as_numpy_scalar(constant)
         self.exponent = _utils.as_numpy_scalar(exponent)
-        super().__init__(kernel=self.__call__, output_dim=1)
+        super().__init__(output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         x0 = np.atleast_2d(x0)

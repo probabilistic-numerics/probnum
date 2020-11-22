@@ -1,6 +1,6 @@
 """Exponentiated quadratic kernel."""
 
-from typing import Optional, TypeVar
+from typing import Optional
 
 import numpy as np
 
@@ -9,7 +9,7 @@ from probnum.type import ScalarArgType
 
 from ._kernel import Kernel
 
-_InputType = TypeVar("InputType")
+_InputType = np.ndarray
 
 
 class ExpQuad(Kernel[_InputType]):
@@ -24,11 +24,25 @@ class ExpQuad(Kernel[_InputType]):
     lengthscale
         Lengthscale of the kernel. Describes the input scale on which the process
         varies.
+
+    See Also
+    --------
+    RatQuad : Rational quadratic kernel.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum.kernels import ExpQuad
+    >>> K = ExpQuad(lengthscale=0.1)
+    >>> K(np.array([[1], [.1], [.5]]))
+    array([[1.00000000e+00, 2.57675711e-18, 3.72665317e-06],
+           [2.57675711e-18, 1.00000000e+00, 3.35462628e-04],
+           [3.72665317e-06, 3.35462628e-04, 1.00000000e+00]])
     """
 
     def __init__(self, lengthscale: ScalarArgType = 1.0):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        super().__init__(kernel=self.__call__, output_dim=1)
+        super().__init__(output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         # Transform into 2d array

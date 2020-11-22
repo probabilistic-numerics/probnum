@@ -1,6 +1,6 @@
 """Rational quadratic kernel."""
 
-from typing import Optional, TypeVar
+from typing import Optional
 
 import numpy as np
 
@@ -28,6 +28,20 @@ class RatQuad(Kernel[_InputType]):
     alpha :
         Scale mixture. Positive constant determining the weighting between different
         lengthscales.
+
+    See Also
+    --------
+    ExpQuad : Exponentiated Quadratic / RBF kernel.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum.kernels import RatQuad
+    >>> K = RatQuad(lengthscale=0.1, alpha=3)
+    >>> K(np.array([[1], [.1], [.5]]))
+    array([[1.00000000e+00, 4.55539359e-05, 1.22995627e-03],
+           [4.55539359e-05, 1.00000000e+00, 3.93643388e-03],
+           [1.22995627e-03, 3.93643388e-03, 1.00000000e+00]])
     """
 
     def __init__(self, lengthscale: ScalarArgType = 1.0, alpha: ScalarArgType = 1.0):
@@ -35,7 +49,7 @@ class RatQuad(Kernel[_InputType]):
         self.alpha = _utils.as_numpy_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
-        super().__init__(kernel=self.__call__, output_dim=1)
+        super().__init__(output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
 

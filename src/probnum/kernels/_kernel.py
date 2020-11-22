@@ -3,7 +3,6 @@
 from typing import Callable, Generic, Optional, TypeVar
 
 import numpy as np
-import scipy.spatial
 
 from probnum.type import IntArgType
 
@@ -30,43 +29,40 @@ class Kernel(Generic[_InputType]):
 
     See Also
     --------
-    askernel : Convert a bivariate function to a :class:`Kernel`.
+    askernel : Convert a callable to a :class:`Kernel`.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import probnum as pn
+    >>> from probnum.kernels import Kernel
+    >>> # Data
+    >>> x = np.array([[1, 2], [-1, -1]])
+    >>> # Custom kernel from a (non-vectorized) covariance function
+    >>> k = pn.askernel(lambda x0, x1: (x0.T @ x1 - 1.0) ** 2)
+    >>> k(x)
+    array([[16., 16.],
+           [16.,  1.]])
+    >>> # Custom kernel implemented more efficiently via vectorization
+    >>> def custom_kernel_fun(x0, x1=None):
+    ...     if x1 is None:
+    ...         x1 = x0
+    ...     return (x0 @ x1.T - 1.0) ** 2
+    >>> k = Kernel(output_dim=1, kernel=custom_kernel_fun)
+    >>> k(x)
+    array([[16., 16.],
+           [16.,  1.]])
     """
 
     def __init__(
         self,
-        kernel: Callable[[_InputType, Optional[_InputType]], np.ndarray],
         output_dim: IntArgType,
+        kernel: Optional[
+            Callable[[_InputType, Optional[_InputType]], np.ndarray]
+        ] = None,
     ):
         self.__kernel = kernel
         self._output_dim = output_dim
-
-    @classmethod
-    def from_function(
-        cls,
-        fun: Callable[[_InputType, Optional[_InputType]], np.ndarray],
-        output_dim: IntArgType = 1,
-    ):
-        """Create a kernel from a bivariate (non-vectorized) function.
-
-        Creates a kernel / covariance function from a (non-vectorized) function
-        :math:`k : \\mathbb{R}^{d_{in}} \\times \\mathbb{R}^{d_{in}} \\rightarrow
-        \\mathbb{R}`. When a kernel matrix is computed the given function ``fun`` is
-        applied to all pairs of inputs.
-        """
-        # Create a kernel from a function f:R^d x R^d -> R
-        def _kernfun_vectorized(x0, x1=None) -> np.ndarray:
-            # pylint: disable=invalid-name
-            x0 = np.atleast_2d(x0)
-            if x1 is None:
-                x1 = x0
-            else:
-                x1 = np.atleast_2d(x1)
-
-            # Evaluate fun pairwise for all rows of x0 and x1
-            return scipy.spatial.distance.cdist(x0, x1, metric=fun)
-
-        return cls(kernel=_kernfun_vectorized, output_dim=output_dim)
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
@@ -93,7 +89,10 @@ class Kernel(Generic[_InputType]):
             output_dim)* -- Kernel evaluated at ``x0`` and ``x1`` or kernel matrix
             containing pairwise evaluations for all observations in ``x0`` and ``x1``.
         """
-        return self.__kernel(x0, x1)
+        if self.__kernel is not None:
+            return self.__kernel(x0, x1)
+        else:
+            raise NotImplementedError
 
     @property
     def output_dim(self) -> int:

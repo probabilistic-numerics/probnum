@@ -8,6 +8,7 @@ import probnum
 import probnum.utils as _utils
 from probnum import kernels as kernels
 from probnum import random_processes as rps
+from probnum import random_variables as rvs
 from tests.testing import NumpyAssertions
 
 
@@ -224,6 +225,20 @@ class ShapeTestCase(RandomProcessTestCase):
 
 class MethodTestCase(RandomProcessTestCase):
     """Test the methods of a random process."""
+
+    def test_rp_output_random_variable(self):
+        """Test whether evaluating a random process returns a random variable."""
+        for rand_proc in self.random_processes:
+            with self.subTest():
+                n_inputs_x0 = 10
+                x0 = np.random.normal(size=(n_inputs_x0, rand_proc.input_dim))
+                y0 = rand_proc(x0)
+
+                self.assertIsInstance(
+                    y0,
+                    rvs.RandomVariable,
+                    msg=f"Output of {repr(rand_proc)} is not a " f"random variable.",
+                )
 
     def test_samples_are_callables(self):
         """When not specifying inputs to the sample method it should return ``size``

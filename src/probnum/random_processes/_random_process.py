@@ -94,10 +94,10 @@ class RandomProcess(Generic[_InputType, _OutputType]):
     ):
         # pylint: disable=too-many-arguments
         """Create a new random process."""
-        # Evaluation of the random process
+        # Function defining the random process
         self.__fun = fun
 
-        # Dimension  and data type
+        # Dimension and data type
         self.__input_dim = int(_utils.as_numpy_scalar(input_dim))
         self.__output_dim = int(_utils.as_numpy_scalar(output_dim))
         self.__dtype = np.dtype(dtype)
