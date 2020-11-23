@@ -23,8 +23,8 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
 
         self.data_0_0 = 0.5
         self.data_1_1 = 0.75
-        self.data_n_0 = self.rng.normal(0, 1, size=(5,))
-        self.data_n_1 = self.rng.normal(0, 1, size=(5,))
+        self.data_n_0 = self.rng.normal(0, 1, size=(1,))
+        self.data_n_1 = self.rng.normal(0, 1, size=(1,))
         self.data_1xd_0 = self.rng.normal(0, 1, size=(1, 2))
         self.data_1xd_1 = self.rng.normal(0, 1, size=(1, 2))
         self.data_nxd_0 = self.rng.normal(0, 1, size=(5, 3))
@@ -50,24 +50,49 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
         with self.subTest():
             for (X0, X1) in self.datasets:
                 for kern_def in self.kernels:
+                    # Define and evaluate kernel
                     kern = kern_def[0](
-                        **kern_def[1], input_dim=np.atleast_2d(X0).shape[0]
+                        **kern_def[1], input_dim=np.atleast_2d(X0).shape[1]
                     )
-                    kernshape = (np.atleast_2d(X0).shape[0], np.atleast_2d(X1).shape[0])
+                    kernmat = kern(X0, X1)
+
+                    # Check shape
+                    X0 = np.asarray(X0)
+                    X1 = np.asarray(X1)
+                    if (X0.ndim == 0 and X1.ndim == 0) or (
+                        X0.ndim == 1 and X1.ndim == 1
+                    ):
+                        kern_shape = ()
+                    else:
+                        kern_shape = (X0.shape[0], X1.shape[0])
                     if kern.output_dim > 1:
-                        kernshape += (kern.output_dim, kern.output_dim)
-                    self.assertEqual(kern(X0, X1).shape, kernshape)
+                        kern_shape += (kern.output_dim, kern.output_dim)
+
+                    self.assertTupleEqual(
+                        kernmat.shape,
+                        kern_shape,
+                        msg=f"Kernel {type(kern)} does not have the right shape if "
+                        f"evaluated at inputs of x0.shape={X0.shape} and x1.shape="
+                        f"{X1.shape}.",
+                    )
 
     def test_type(self):
-        """Check whether a kernel evaluates to a numpy array."""
+        """Check whether a kernel evaluates to a numpy scalar or array."""
         with self.subTest():
             for (X0, X1) in self.datasets:
                 for kern_def in self.kernels:
                     kern = kern_def[0](
-                        **kern_def[1], input_dim=np.atleast_2d(X0).shape[0]
+                        **kern_def[1], input_dim=np.atleast_2d(X0).shape[1]
                     )
-                    self.assertIsInstance(kern(X0, X1), np.ndarray)
-                    self.assertIsInstance(kern(X0), np.ndarray)
+                    for kernmat in (kern(X0), kern(X0, X1)):
+                        self.assertTrue(
+                            isinstance(kernmat, np.ndarray)
+                            or np.isscalar(
+                                kernmat,
+                            ),
+                            msg=f"{type(kernmat)} is neither a scalar nor an "
+                            f"numpy.ndarray.",
+                        )
 
     def test_kernel_matrix_against_naive(self):
         """Test the computation of the kernel matrix against a naive computation."""
@@ -75,7 +100,7 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
             for (X0, X1) in self.datasets:
                 for kern_def in self.kernels:
                     kern = kern_def[0](
-                        **kern_def[1], input_dim=np.atleast_2d(X0).shape[0]
+                        **kern_def[1], input_dim=np.atleast_2d(X0).shape[1]
                     )
                     self.assertAllClose(
                         kern(X0, X1),

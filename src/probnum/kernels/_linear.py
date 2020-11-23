@@ -44,12 +44,18 @@ class Linear(Kernel[_InputType]):
         super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+
+        # Check and reshape inputs
+        x0, x1, equal_inputs = self._check_and_transform_input(x0, x1)
+        x0_originalshape = x0.shape
+        x1_originalshape = x1.shape
+
+        # Compute kernel matrix
         x0 = np.atleast_2d(x0)
-        if x1 is None:
-            x1 = x0
-        else:
-            x1 = np.atleast_2d(x1)
+        x1 = np.atleast_2d(x1)
 
         kernmat = (x0 - self.shift) @ (x1 - self.shift).T
 
-        return self._normalize_kernelmatrix_shape(kerneval=kernmat, x0=x0, x1=x1)
+        return self._transform_kernelmatrix(
+            kerneval=kernmat, x0_shape=x0_originalshape, x1_shape=x1_originalshape
+        )

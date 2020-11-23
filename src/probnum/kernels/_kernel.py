@@ -1,12 +1,12 @@
 """Kernel / covariance function."""
 
-from typing import Callable, Generic, Optional, TypeVar, Union
+from typing import Callable, Generic, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import scipy.spatial
 
 import probnum.utils as _utils
-from probnum.type import IntArgType, ScalarArgType
+from probnum.type import IntArgType, ScalarArgType, ShapeArgType
 
 _InputType = TypeVar("InputType")
 
@@ -34,7 +34,6 @@ class Kernel(Generic[_InputType]):
     Examples
     --------
     >>> import numpy as np
-    >>> import probnum as pn
     >>> from probnum.kernels import Kernel
     >>> # Data
     >>> x = np.array([[1, 2], [-1, -1]])
@@ -90,8 +89,9 @@ class Kernel(Generic[_InputType]):
             containing pairwise evaluations for all observations in ``x0`` (and ``x1``).
         """
         if self.__kernelfun is not None:
-            return self._normalize_kernelmatrix_shape(
-                kerneval=self.__kernelfun(x0, x1), x0=x0, x1=x1
+            x0, x1, _ = self._check_and_transform_input(x0=x0, x1=x1)
+            return self._transform_kernelmatrix(
+                kerneval=self.__kernelfun(x0, x1), x0_shape=x0.shape, x1_shape=x1.shape
             )
         else:
             raise NotImplementedError
@@ -116,13 +116,94 @@ class Kernel(Generic[_InputType]):
         """
         return self._output_dim
 
-    def _normalize_kernelmatrix_shape(
+    def _check_and_transform_input(
         self,
-        kerneval: Union[np.ndarray, ScalarArgType],
         x0: _InputType,
         x1: Optional[_InputType] = None,
-    ) -> np.ndarray:
-        """Normalize the shape of a kernel matrix based on the given arguments.
+    ) -> Tuple[np.ndarray, np.ndarray, bool]:
+        """Transform inputs to the kernel matrix.
+
+        Transforms inputs into :class:`numpy.ndarray` and standardizes their shape.
+
+        Parameters
+        ----------
+        x0 :
+            First input to the covariance function.
+        x1 :
+            Second input to the covariance function.
+
+        Returns
+        -------
+        x0 :
+            First input to the covariance function.
+        x1 :
+            Second input to the covariance function.
+        equal_inputs :
+            Are the two inputs the same?
+
+        Raises
+        -------
+        ValueError :
+            If input shapes of x0 and x1 do not match the kernel input dimension or
+            each other.
+        """
+        # Transform into array and add second argument
+        x0 = np.asarray(x0)
+        equal_inputs = False
+        if x1 is None:
+            x1 = x0
+            equal_inputs = True
+        else:
+            x1 = np.asarray(x1)
+
+        # Error message
+        err_msg = (
+            f"Argument shapes x0.shape={x0.shape} and x1.shape="
+            f"{x1.shape} do not match kernel input dimension "
+            f"{self.input_dim}. Try passing either two vectors or two matrices with the "
+            f"second dimension equalling the kernel input dimension."
+        )
+
+        # Check and promote shapes
+        if x1 is None:
+            if (
+                (x0.ndim == 0 and self.input_dim > 1)
+                or (x0.ndim == 1 and x0.shape[0] != self.input_dim)
+                or (x0.ndim >= 2 and x0.shape[1] != self.input_dim)
+            ):
+                raise ValueError(err_msg)
+            equal_inputs = True
+        else:
+            # Promote unequal shapes
+            if x0.ndim < 2 and x1.ndim == 2:
+                x0 = np.atleast_2d(x0)
+            if x1.ndim < 2 and x0.ndim == 2:
+                x1 = np.atleast_2d(x1)
+
+            # Check shapes
+            if (
+                (x0.ndim != x1.ndim)
+                or (x0.ndim == 0 and self.input_dim > 1)
+                or (
+                    x0.ndim == 1
+                    and (x0.shape[0] != x1.shape[0] or x0.shape[0] != self.input_dim)
+                )
+                or (
+                    x0.ndim == 2
+                    and (x0.shape[1] != x1.shape[1] or x1.shape[1] != self.input_dim)
+                )
+            ):
+                raise ValueError(err_msg)
+
+        return x0, x1, equal_inputs
+
+    def _transform_kernelmatrix(
+        self,
+        kerneval: Union[np.ndarray, ScalarArgType],
+        x0_shape: ShapeArgType,
+        x1_shape: ShapeArgType,
+    ) -> Union[np.float_, np.ndarray]:
+        """Transform the kernel matrix based on the given arguments.
 
         Standardizes the given evaluation of the covariance function to the correct
         shape determined by the input arguments. If two vectors are passed the
@@ -135,32 +216,24 @@ class Kernel(Generic[_InputType]):
         ----------
         kerneval
             Covariance function evaluated at ``x0`` and ``x1``.
-        x0 :
-            *shape=(input_dim,) or (n0, input_dim)* -- First input to the covariance
-            function.
-        x1 :
-            *shape=(input_dim,) or (n1, input_dim)* -- Second input to the covariance
-            function.
+        x0_shape :
+            Shape of the first input to the covariance function.
+        x1_shape :
+            Shape of the second input to the covariance function.
         """
-        x0 = np.asarray(x0)
-        if x1 is None:
-            x1 = x0
-        else:
-            x1 = np.asarray(x1)
-        if x0.ndim == 0 and x1.ndim == 0:
-            return _utils.as_numpy_scalar(kerneval)
-        elif x0.ndim == 1 and x1.ndim == 1:
-            kern_shape = (self.output_dim, self.output_dim)
-        else:
+        if len(x0_shape) <= 1 and len(x1_shape) <= 1:
             if self.output_dim == 1:
-                kern_shape = (x0.shape[0], x1.shape[0])
+                return _utils.as_numpy_scalar(kerneval.squeeze())
             else:
-                kern_shape = (
-                    x0.shape[0],
-                    x1.shape[0],
-                    self.output_dim,
-                    self.output_dim,
-                )
+                kern_shape = ()
+        else:
+            kern_shape = (x0_shape[0], x1_shape[0])
+
+        if self.output_dim > 1:
+            kern_shape += (
+                self.output_dim,
+                self.output_dim,
+            )
 
         return kerneval.reshape(kern_shape)
 
@@ -201,7 +274,7 @@ class Kernel(Generic[_InputType]):
                         return fun(x0, x1)
 
                     return _fun
-            except AttributeError:
+            except (AttributeError, ValueError):
                 pass
 
             # Vectorize given kernel function
