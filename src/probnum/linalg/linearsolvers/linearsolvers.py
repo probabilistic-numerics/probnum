@@ -1,10 +1,9 @@
-"""
-Probabilistic numerical methods for solving linear systems.
+"""Probabilistic numerical methods for solving linear systems.
 
-This module provides routines to solve linear systems of equations in a Bayesian
-framework. This means that a prior distribution over elements of the linear system can
-be provided and is updated with information collected by the solvers to return a
-posterior distribution.
+This module provides routines to solve linear systems of equations in a
+Bayesian framework. This means that a prior distribution over elements
+of the linear system can be provided and is updated with information
+collected by the solvers to return a posterior distribution.
 """
 
 import warnings
@@ -44,8 +43,7 @@ def problinsolve(
 ) -> Tuple[
     "probnum.RandomVariable", "probnum.RandomVariable", "probnum.RandomVariable", Dict
 ]:
-    """
-    Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
+    """Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
     Probabilistic linear solvers infer solutions to problems of the form
 
@@ -138,7 +136,7 @@ def problinsolve(
     References
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
-       2020
+       *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
        Optimization*, 2015, 25, 234-260
     .. [3] Bartels, S. et al., Probabilistic Linear Solvers: A Unifying View,
@@ -230,8 +228,7 @@ def problinsolve(
 
 
 def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
-    """
-    Conjugate Gradients using prior information on the solution of the linear system.
+    """Conjugate Gradients using prior information on the solution of the linear system.
 
     In the setting where :math:`A` is a symmetric positive-definite matrix, this solver
     takes prior information on the solution and outputs a posterior belief over
@@ -298,8 +295,7 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
 
 
 def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
-    """
-    Check linear system compatibility.
+    """Check linear system compatibility.
 
     Raises an exception if the input arguments are not of the right type or not
     compatible.
@@ -384,8 +380,7 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
 
 
 def _preprocess_linear_system(A, b, x0=None):
-    """
-    Transform the linear system to an appropriate form.
+    """Transform the linear system to an appropriate form.
 
     Parameters
     ----------
@@ -418,9 +413,8 @@ def _preprocess_linear_system(A, b, x0=None):
 
 
 def _init_solver(A, b, A0, Ainv0, x0, assume_A):
-    """
-    Selects and initializes an appropriate instance of the probabilistic linear solver
-    based on the system properties and prior information given.
+    """Selects and initializes an appropriate instance of the probabilistic linear
+    solver based on the system properties and prior information given.
 
     Parameters
     ----------
@@ -454,7 +448,6 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
     linear_solver : ProbabilisticLinearSolver
         A type of probabilistic linear solver implementing the solve method for linear
         systems.
-
     """
     # Choose matrix based view if not clear from arguments
     if (Ainv0 is not None or A0 is not None) and isinstance(x0, probnum.RandomVariable):
@@ -502,8 +495,7 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
 
 
 def _postprocess(info, A):
-    """
-    Postprocess the linear system and its solution.
+    """Postprocess the linear system and its solution.
 
     Raises exceptions or warnings based on the properties of the linear system and the
     solver iteration.

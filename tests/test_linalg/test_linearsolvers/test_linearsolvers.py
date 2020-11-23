@@ -64,7 +64,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         self.solblinsolvers = [linalg.bayescg]
 
     def test_dimension_mismatch(self):
-        """Test whether linear solvers throw an exception for input with mismatched dimensions."""
+        """Test whether linear solvers throw an exception for input with mismatched
+        dimensions."""
         A = np.zeros(shape=[3, 3])
         b = np.zeros(shape=[4])
         x0 = np.zeros(shape=[1])
@@ -203,7 +204,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_residual_matches_error(self):
-        """Test whether the residual norm matches the error of the computed solution estimate."""
+        """Test whether the residual norm matches the error of the computed solution
+        estimate."""
         A, b, x_true = self.rbf_kernel_linear_system
 
         for plinsolve in self.problinsolvers:
@@ -230,10 +232,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     #                                     "estimated inverse, i.e. x =/= Ainv @ b ")
 
     def test_posterior_uncertainty_zero_in_explored_space(self):
-        """
-        Test whether the posterior uncertainty over the matrices A and Ainv is zero in the already explored spaces
-        span(S) and span(Y).
-        """
+        """Test whether the posterior uncertainty over the matrices A and Ainv is zero
+        in the already explored spaces span(S) and span(Y)."""
         A, b, x_true = self.rbf_kernel_linear_system
         n = A.shape[0]
 
@@ -352,10 +352,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_posterior_mean_CG_equivalency(self):
-        """
-        The probabilistic linear solver(s) should recover CG iterates as a posterior mean for specific
-        covariances.
-        """
+        """The probabilistic linear solver(s) should recover CG iterates as a posterior
+        mean for specific covariances."""
 
         # Linear system
         A, b = self.poisson_linear_system
@@ -414,11 +412,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAllClose(pls_iters_arr, cg_iters_arr, rtol=10 ** -12)
 
     def test_prior_distributions(self):
-        """The solver should automatically handle different types of prior information."""
+        """The solver should automatically handle different types of prior
+        information."""
         pass
 
     def test_iterative_covariance_trace_update(self):
-        """The solver's returned value for the trace must match the actual trace of the solution covariance."""
+        """The solver's returned value for the trace must match the actual trace of the
+        solution covariance."""
         A, b, x_true = self.rbf_kernel_linear_system
 
         for calib_method in [None, 0, 1.0, "adhoc", "weightedmean", "gpkern"]:
@@ -433,7 +433,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_uncertainty_calibration_error(self):
-        """Test if the available uncertainty calibration procedures affect the error of the returned solution."""
+        """Test if the available uncertainty calibration procedures affect the error of
+        the returned solution."""
         tol = 10 ** -6
         A, b, x_true = self.rbf_kernel_linear_system
 
@@ -470,10 +471,9 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         self.poisson_linear_system = A, f
 
     def test_prior_distribution_from_solution_guess(self):
-        """
-        When constructing prior means for A and H from a guess for the solution x0, then A_0 and H_0 should be symmetric
-        positive definite, inverses of each other and x0=Hb should hold.
-        """
+        """When constructing prior means for A and H from a guess for the solution x0,
+        then A_0 and H_0 should be symmetric positive definite, inverses of each other
+        and x0=Hb should hold."""
         for seed in range(0, 10):
             with self.subTest():
                 np.random.seed(seed)

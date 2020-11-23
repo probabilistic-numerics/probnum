@@ -1,9 +1,5 @@
-"""
-The folder is called "ode" but this
-module is "ivp" because in the future,
-there might be more ode-based problems,
-such as bvp.
-"""
+"""The folder is called "ode" but this module is "ivp" because in the future, there
+might be more ode-based problems, such as bvp."""
 # pylint: disable=unused-variable
 
 import numpy as np
@@ -14,8 +10,7 @@ __all__ = ["logistic", "fitzhughnagumo", "lotkavolterra", "IVP"]
 
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):
-    """
-    Initial value problem (IVP) based on the logistic ODE.
+    """Initial value problem (IVP) based on the logistic ODE.
 
     The logistic ODE is defined through
 
@@ -36,9 +31,9 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
     params : (float, float), optional
         Parameters :math:`(a, b)` for the logistic IVP.
         Default is :math:`(a, b) = (3.0, 1.0)`.
@@ -92,8 +87,7 @@ def log_sol(t, params, y0):
 
 
 def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
-    """
-    Initial value problem (IVP) based on the FitzHugh-Nagumo model.
+    """Initial value problem (IVP) based on the FitzHugh-Nagumo model.
 
     The FitzHugh-Nagumo (FHN) model is defined through
 
@@ -111,9 +105,9 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.0, 0.08, 0.07, 1.25)`.
@@ -138,19 +132,18 @@ def fhn_rhs(t, y, params):
     """RHS for FitzHugh-Nagumo model."""
     y1, y2 = y
     a, b, c, d = params
-    return np.array([y1 - y1 ** 3 / 3 - y2 + a, (y1 + b - c * y2) / d])
+    return np.array([y1 - y1 ** 3.0 / 3.0 - y2 + a, (y1 + b - c * y2) / d])
 
 
 def fhn_jac(t, y, params):
     """Jacobian for FitzHugh-Nagumo model."""
     y1, y2 = y
     a, b, c, d = params
-    return np.array([[1 - y1 ** 2, -1], [1.0 / d, -c / d]])
+    return np.array([[1.0 - y1 ** 2.0, -1.0], [1.0 / d, -c / d]])
 
 
 def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
-    """
-    Initial value problem (IVP) based on the Lotka-Volterra model.
+    """Initial value problem (IVP) based on the Lotka-Volterra model.
 
     The Lotka-Volterra (LV) model is defined through
 
@@ -168,9 +161,9 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.5, 0.05, 0.5, 0.05)`.
@@ -192,22 +185,21 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
 
 
 def lv_rhs(t, y, params):
-    """RHS for Lotka-Volterra"""
+    """RHS for Lotka-Volterra."""
     a, b, c, d = params
     y1, y2 = y
     return np.array([a * y1 - b * y1 * y2, -c * y2 + d * y1 * y2])
 
 
 def lv_jac(t, y, params):
-    """Jacobian for Lotka-Volterra"""
+    """Jacobian for Lotka-Volterra."""
     a, b, c, d = params
     y1, y2 = y
     return np.array([[a - b * y2, -b * y1], [d * y2, -c + d * y1]])
 
 
 class IVP(ODE):
-    """
-    Initial value problems (IVP).
+    """Initial value problems (IVP).
 
     This class descibes initial value problems based on systems of
     first order ordinary differential equations (ODEs),
@@ -223,7 +215,7 @@ class IVP(ODE):
     the initial value is a RandomVariable object with some
     distribution that reflects the prior belief over the initial
     value. To recover "classical" initial values one can use the
-    Dirac distribution.
+    Constant distribution.
 
     Parameters
     ----------
@@ -231,12 +223,12 @@ class IVP(ODE):
         Time span of IVP.
     initrv : RandomVariable,
         RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
+        value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        use the Constant distribution.
         Implementation depends on the mean of this RandomVariable,
         so please only use RandomVariable objects with available
-        means, e.g. Diracs or Normals.
+        means, e.g. Constants or Normals.
     rhs : callable, signature: ``(t, y, **kwargs)``
         RHS function
         :math:`f : [0, T] \\times \\mathbb{R}^d \\rightarrow \\mathbb{R}^d`
@@ -263,7 +255,7 @@ class IVP(ODE):
     >>> from probnum.diffeq import IVP
     >>> rhsfun = lambda t, y, **kwargs: 2.0*y
     >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Dirac(0.1)
+    >>> initrv = rvs.Constant(0.1)
     >>> timespan = (0, 10)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> print(ivp.rhs(0., 2.))
@@ -290,22 +282,17 @@ class IVP(ODE):
 
     @property
     def initialdistribution(self):
-        """
-        Distribution of the initial random variable.
-        """
+        """Distribution of the initial random variable."""
         return self.initrv
 
     @property
     def initialrandomvariable(self):
-        """
-        Initial random variable.
-        """
+        """Initial random variable."""
         return self.initrv
 
     @property
     def dimension(self):
-        """
-        Spatial dimension of the IVP problem.
+        """Spatial dimension of the IVP problem.
 
         Depends on the mean of the initial random variable.
         """

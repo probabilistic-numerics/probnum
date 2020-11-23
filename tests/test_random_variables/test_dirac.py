@@ -20,7 +20,7 @@ class TestDirac(unittest.TestCase):
         for supp in self.supports:
             for sample_size in [1, (), 10, (4,), (3, 2)]:
                 with self.subTest():
-                    s = rvs.Dirac(support=supp).sample(size=sample_size)
+                    s = rvs.Constant(support=supp).sample(size=sample_size)
                     if sample_size == ():
                         self.assertEqual(np.shape(supp), np.shape(s))
                     elif isinstance(sample_size, tuple):

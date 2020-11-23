@@ -1,25 +1,21 @@
+from typing import Any
+
 import numpy as np
 import scipy.sparse
 
-from . import _dirac, _random_variable, _scipy_stats
+from . import _constant, _random_variable, _scipy_stats
 
 
-def asrandvar(obj) -> _random_variable.RandomVariable:
-    """
-    Return ``obj`` as a :class:`RandomVariable`.
+def asrandvar(obj: Any) -> _random_variable.RandomVariable:
+    """Convert ``obj`` to a :class:`RandomVariable`.
 
-    Converts scalars, (sparse) arrays or distribution classes to a
-    :class:`RandomVariable`.
+    Converts an object such as scalars, (sparse) arrays, or distribution-type objects to
+    a ProbNum :class:`RandomVariable`.
 
     Parameters
     ----------
-    obj : object
-        Argument to be represented as a :class:`RandomVariable`.
-
-    Returns
-    -------
-    rv : RandomVariable
-        The object `obj` as a :class:`RandomVariable`.
+    obj :
+        Object to be represented as a :class:`RandomVariable`.
 
     See Also
     --------
@@ -28,11 +24,11 @@ def asrandvar(obj) -> _random_variable.RandomVariable:
     Examples
     --------
     >>> from scipy.stats import bernoulli
-    >>> from probnum import asrandvar
+    >>> import probnum as pn
     >>> bern = bernoulli(p=0.5)
     >>> bern.random_state = 42  # Seed for reproducibility
-    >>> b = asrandvar(bern)
-    >>> b.sample(size=5)
+    >>> bern_pn = pn.asrandvar(bern)
+    >>> bern_pn.sample(size=5)
     array([1, 1, 1, 0, 0])
     """
 
@@ -41,12 +37,12 @@ def asrandvar(obj) -> _random_variable.RandomVariable:
         return obj
     # Scalar
     elif np.isscalar(obj):
-        return _dirac.Dirac(support=obj)
+        return _constant.Constant(support=obj)
     # Numpy array, sparse array or Linear Operator
     elif isinstance(
         obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)
     ):
-        return _dirac.Dirac(support=obj)
+        return _constant.Constant(support=obj)
     # Scipy random variable
     elif isinstance(
         obj,

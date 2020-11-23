@@ -1,19 +1,18 @@
-"""
-Adapter methods:
-from initial value problems + state space model to filters.
+"""Adapter methods: from initial value problems + state space model to filters.
+
+Soon the be replaced by initialisation methods. The adapter is taken
+care of elsewhere.
 """
 
 import numpy as np
 
-from probnum import random_variables as rvs
-from probnum.filtsmooth import ExtendedKalman, UnscentedKalman
-from probnum.filtsmooth.statespace.discrete import DiscreteGaussianModel
+import probnum.filtsmooth as pnfs
+import probnum.random_variables as pnrv
 
 
 def ivp2ekf0(ivp, prior, evlvar):
-    """
-    Computes measurement model and initial distribution
-    for KF based on IVP and prior.
+    """Computes measurement model and initial distribution for KF based on IVP and
+    prior.
 
     **Initialdistribution:**
 
@@ -66,108 +65,47 @@ def ivp2ekf0(ivp, prior, evlvar):
     evlvar : float,
         measurement variance; in the literature, this is "R"
     """  # pylint: disable=line-too-long
-    measmod = _measmod_ekf0(ivp, prior, evlvar)
+    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(ivp, prior, evlvar, ek0_or_ek1=0)
     initrv = _initialdistribution(ivp, prior)
-    return ExtendedKalman(prior, measmod, initrv)
-
-
-def _measmod_ekf0(ivp, prior, evlvar):
-    """
-    Zero-th order Taylor approximation as linearisation.
-
-    We call it Kalman filter for convenience;
-    it is no Kalman filter in reality.
-    """
-    spatialdim = prior.spatialdim
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-
-    def dyna(t, x, **kwargs):
-        return h1 @ x - ivp.rhs(t, h0 @ x)
-
-    def diff(t, **kwargs):
-        return evlvar * np.eye(spatialdim)
-
-    def jaco(t, x, **kwargs):
-        return h1
-
-    return DiscreteGaussianModel(dyna, diff, jaco)
+    return pnfs.Kalman(prior, ekf_mod, initrv)
 
 
 def ivp2ekf1(ivp, prior, evlvar):
-    """
-    Computes measurement model and initial distribution
-    for EKF based on IVP and prior.
+    """Computes measurement model and initial distribution for EKF based on IVP and
+    prior.
 
     Returns ExtendedKalmanFilter object.
 
     evlvar : float, (this is "R")
     """
-    measmod = _measmod_ekf1(ivp, prior, evlvar)
+    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(ivp, prior, evlvar, ek0_or_ek1=1)
     initrv = _initialdistribution(ivp, prior)
-    return ExtendedKalman(prior, measmod, initrv)
-
-
-def _measmod_ekf1(ivp, prior, evlvar):
-    """
-    Computes H and R
-    """
-    spatialdim = prior.spatialdim
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-
-    def dyna(t, x, **kwargs):
-        return h1 @ x - ivp.rhs(t, h0 @ x)
-
-    def diff(t, **kwargs):
-        return evlvar * np.eye(spatialdim)
-
-    def jaco(t, x, **kwargs):
-        return h1 - ivp.jacobian(t, h0 @ x) @ h0
-
-    return DiscreteGaussianModel(dyna, diff, jaco)
+    return pnfs.Kalman(prior, ekf_mod, initrv)
 
 
 def ivp2ukf(ivp, prior, evlvar):
-    """
-    Computes measurement model and initial distribution
-    for EKF based on IVP and prior.
+    """Computes measurement model and initial distribution for EKF based on IVP and
+    prior.
 
     Returns ExtendedKalmanFilter object.
 
     evlvar : float, (this is "R")
     """
-    measmod = _measmod_ukf(ivp, prior, evlvar)
+    ukf_mod = pnfs.DiscreteUKFComponent.from_ode(ivp, prior, evlvar)
     initrv = _initialdistribution(ivp, prior)
-    return UnscentedKalman(prior, measmod, initrv, 1.0, 1.0, 1.0)
-
-
-def _measmod_ukf(ivp, prior, measvar):
-
-    spatialdim = prior.spatialdim
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-
-    def dyna(t, x, **kwargs):
-        return h1 @ x - ivp.rhs(t, h0 @ x)
-
-    def diff(t, **kwargs):
-        return measvar * np.eye(spatialdim)
-
-    return DiscreteGaussianModel(dyna, diff)
+    return pnfs.Kalman(prior, ukf_mod, initrv)
 
 
 def _initialdistribution(ivp, prior):
-    """
-    Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)`
-    on the initial values :math:`(x_0, f(t_0, x_0), ...)` using
-    as many available derivatives as possible.
+    """Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)` on the initial
+    values :math:`(x_0, f(t_0, x_0), ...)` using as many available derivatives as
+    possible.
 
-    Note that the projection matrices :math:`H_0` and :math:`H_1`
-    become :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
+    Note that the projection matrices :math:`H_0` and :math:`H_1` become
+    :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
     """
-    if not issubclass(type(ivp.initrv), rvs.Normal):
-        if not issubclass(type(ivp.initrv), rvs.Dirac):
+    if not issubclass(type(ivp.initrv), pnrv.Normal):
+        if not issubclass(type(ivp.initrv), pnrv.Constant):
             raise RuntimeError("Initial distribution not Normal nor Dirac")
     x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
@@ -198,7 +136,7 @@ def _initialdistribution(ivp, prior):
     crosscov = initcov @ projmat.T
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s.T, crosscov.T)).T
-    return rvs.Normal(newmean, newcov)
+    return pnrv.Normal(newmean, newcov)
 
 
 def _initialdistribution_no_precond(ivp, prior):
@@ -219,12 +157,12 @@ def _initialdistribution_no_precond(ivp, prior):
     crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - (crosscov @ np.linalg.solve(s, crosscov)).T
-    return rvs.Normal(newmean, newcov)
+    return pnrv.Normal(newmean, newcov)
 
 
 def _ddx(t, x, ivp):
-    """
-    If Jacobian is available:
+    """If Jacobian is available:
+
     x''(t) = J_f(x(t)) @ f(x(t))
     Else it just returns zero.
     """
@@ -240,8 +178,7 @@ def _ddx(t, x, ivp):
 
 
 def _dddx(t, x, ivp):
-    """
-    x'''(t) = H_f(x) @ f(x) @ f(x) + J_f(X) @ J_f(x) @ f(x)
+    """x'''(t) = H_f(x) @ f(x) @ f(x) + J_f(X) @ J_f(x) @ f(x)
     with an approximate Hessian-vector product.
     """
     evl = ivp.rhs(t, x)

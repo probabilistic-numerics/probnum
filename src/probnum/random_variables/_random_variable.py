@@ -1,9 +1,4 @@
-"""
-Random Variables.
-
-This module implements random variables. Random variables are the main in- and outputs
-of probabilistic numerical methods.
-"""
+"""Random Variables."""
 
 from typing import Any, Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
@@ -31,23 +26,81 @@ _ValueType = TypeVar("ValueType")
 
 
 class RandomVariable(Generic[_ValueType]):
-    """
-    Random variables are the main objects used by probabilistic numerical methods.
+    """Random variables represent uncertainty about a value.
 
-    Every probabilistic numerical method takes a random variable encoding the prior
-    distribution as input and outputs a random variable whose distribution encodes the
-    uncertainty arising from finite computation. The generic signature of a
-    probabilistic numerical method is:
-
-    ``output_rv = probnum_method(input_rv, method_params)``
-
-    In practice, most random variables used by methods in ProbNum have Dirac or Gaussian
-    measure.
+    Random variables generalize multi-dimensional arrays by encoding uncertainty
+    about the (numerical) quantity in question. Despite their name, they do not
+    necessarily represent stochastic objects. Random variables are also the primary in-
+    and outputs of probabilistic numerical methods.
 
     Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and
-    linear operators. This may change their ``distribution`` and not necessarily all
-    previously available methods are retained.
+    linear operators. This may change their distribution and therefore not necessarily
+    all previously available methods are retained.
 
+    Parameters
+    ----------
+    shape :
+        Shape of realizations of this random variable.
+    dtype :
+        Data type of realizations of this random variable. If of type :class:`object`
+        the argument will be converted to ``numpy.dtype``.
+    random_state :
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
+    parameters :
+        Parameters of the distribution of the random variable.
+    sample :
+        Callable implementing sampling from the random variable.
+    in_support :
+        Callable checking whether the random variable takes value ``x`` with non-zero
+        probability, i.e. if ``x`` is in the support of its distribution.
+    cdf :
+        Cumulative distribution function of the random variable.
+    logcdf :
+        Log-transformed cumulative distribution function of the random variable.
+    quantile :
+        Quantile function of the random variable.
+    mode :
+        Mode of the random variable. Value of the random variable at which its
+        probability density function or probability mass function takes its maximal
+        value.
+    mean :
+        Expected value of the random variable.
+    cov :
+        Covariance of the random variable.
+    var :
+        (Element-wise) variance of the random variable.
+    std :
+        (Element-wise) standard deviation of the random variable.
+    entropy :
+        Information-theoretic entropy :math:`H(X)` of the random variable.
+    as_value_type :
+        Function which can be used to transform user-supplied arguments, interpreted as
+        realizations of this random variable, to an easy-to-process, normalized format.
+        Will be called internally to transform the argument of functions like
+        :meth:`~RandomVariable.in_support`, :meth:`~RandomVariable.cdf`
+        and :meth:`~RandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
+        and :meth:`~DiscreteRandomVariable.logpmf` (in :class:`DiscreteRandomVariable`),
+        :meth:`~ContinuousRandomVariable.pdf` and
+        :meth:`~ContinuousRandomVariable.logpdf` (in :class:`ContinuousRandomVariable`),
+        and potentially by similar functions in subclasses.
+
+        For instance, this method is useful if (``log``)
+        :meth:`~ContinousRandomVariable.cdf` and (``log``)
+        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
+        arguments, but we still want the user to be able to pass Python
+        :class:`float`. Then :meth:`~RandomVariable.as_value_type`
+        should be set to something like ``lambda x: np.float64(x)``.
+
+    See Also
+    --------
+    asrandvar : Transform into a :class:`RandomVariable`.
+    DiscreteRandomVariable : A random variable with countable range.
+    ContinuousRandomVariable : A random variable with uncountably infinite range.
+
+    Notes
+    -----
     The internals of :class:`RandomVariable` objects are assumed to be constant over
     their whole lifecycle. This is due to the caches used to make certain computations
     more efficient. As a consequence, altering the internal state of a
@@ -55,33 +108,12 @@ class RandomVariable(Generic[_ValueType]):
     undefined behavior. In particular, this should be kept in mind when subclassing
     :class:`RandomVariable` or any of its descendants.
 
-    Parameters
-    ----------
-    shape :
-        Shape of realizations of this random variable.
-    dtype :
-        Data type of realizations of this random variable. If ``object`` will be
-        converted to ``numpy.dtype``.
-    as_value_type :
-        Function which can be used to transform user-supplied arguments, interpreted as
-        realizations of this random variable, to an easy-to-process, normalized format.
-        Will be called internally to transform the argument of functions like
-        ``in_support``, ``cdf`` and ``logcdf``, ``pmf`` and ``logpmf`` (in
-        :class:`DiscreteRandomVariable`), ``pdf`` and ``logpdf`` (in
-        :class:`ContinuousRandomVariable`), and potentially by similar functions in
-        subclasses.
-
-        For instance, this method is useful if (``log``)``cdf`` and (``log``)``pdf``
-        both only work on :class:`np.float_` arguments, but we still want the user to be
-        able to pass Python :class:`float`. Then ``as_value_type`` should be set to
-        something like ``lambda x: np.float64(x)``.
-
-    See Also
-    --------
-    asrandvar : Transform into a :class:`RandomVariable`.
-
-    Examples
-    --------
+    Sampling from random variables with fixed seed is not stable with respect to the
+    order of operations (such as slicing, masking, etc.). This means sampling from a
+    random variable and then slicing the resulting array does not necessarily
+    return the same result as slicing the random variable and sampling from the
+    result. However, the random seed ensures that each sequence of operations will
+    always result in the same output.
     """
 
     # pylint: disable=too-many-instance-attributes,too-many-public-methods
@@ -140,7 +172,10 @@ class RandomVariable(Generic[_ValueType]):
         self.__as_value_type = as_value_type
 
     def __repr__(self) -> str:
-        return f"<{self.shape} {self.__class__.__name__} with dtype={self.dtype}>"
+        return (
+            f"<{self.__class__.__name__} with shape={self.shape}, dtype"
+            f"={self.dtype}>"
+        )
 
     @property
     def shape(self) -> ShapeType:
@@ -149,10 +184,13 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def ndim(self) -> int:
+        """Number of dimensions of realizations of the random variable."""
         return len(self.__shape)
 
     @cached_property
     def size(self) -> int:
+        """Size of realizations of the random variable, defined as the product over all
+        components of :meth:`shape`."""
         return int(np.prod(self.__shape))
 
     @property
@@ -162,12 +200,15 @@ class RandomVariable(Generic[_ValueType]):
 
     @property
     def median_dtype(self) -> np.dtype:
-        """The dtype of the :attr:`median`. It will be set to the dtype arising from
-        the multiplication of values with dtypes :attr:`dtype` and :class:`np.float_`.
-        This is motivated by the fact that, even for discrete random variables, e.g.
-        integer-valued random variables, the :attr:`median` might lie in between two
-        values in which case these values are averaged. For example, a uniform random
-        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
+        """The dtype of the :attr:`median`.
+
+        It will be set to the dtype arising from the multiplication of
+        values with dtypes :attr:`dtype` and :class:`np.float_`. This is
+        motivated by the fact that, even for discrete random variables,
+        e.g. integer-valued random variables, the :attr:`median` might
+        lie in between two values in which case these values are
+        averaged. For example, a uniform random variable on :math:`\\{
+        1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
         """
         return self.__median_dtype
 
@@ -188,44 +229,36 @@ class RandomVariable(Generic[_ValueType]):
         """Random state of the random variable.
 
         This attribute defines the RandomState object to use for drawing
-        realizations from this random variable.
-        If None (or np.random), the global np.random state is used.
-        If integer, it is used to seed the local :class:`~numpy.random.RandomState`
-        instance.
+        realizations from this random variable. If None (or np.random),
+        the global np.random state is used. If integer, it is used to
+        seed the local :class:`~numpy.random.RandomState` instance.
         """
         return self._random_state
 
     @random_state.setter
     def random_state(self, seed: RandomStateArgType):
-        """Get or set the RandomState object of the underlying distribution.
+        """Get or set the RandomState object of the random variable.
 
-        This can be either None or an existing RandomState object.
-        If None (or np.random), use the RandomState singleton used by np.random.
-        If already a RandomState instance, use it.
-        If an int, use a new RandomState instance seeded with seed.
+        This can be either None or an existing RandomState object. If
+        None (or np.random), use the RandomState singleton used by
+        np.random. If already a RandomState instance, use it. If an int,
+        use a new RandomState instance seeded with seed.
         """
         self._random_state = _utils.as_random_state(seed)
 
     @property
     def parameters(self) -> Dict[str, Any]:
-        """
-        Parameters of the probability distribution.
+        """Parameters of the associated probability distribution.
 
-        The parameters of the distribution such as mean, variance, et cetera stored in a
+        The parameters of the probability distribution of the random
+        variable, e.g. mean, variance, scale, rate, etc. stored in a
         ``dict``.
         """
         return self.__parameters.copy()
 
     @cached_property
     def mode(self) -> _ValueType:
-        """
-        Mode of the random variable.
-
-        Returns
-        -------
-        mode : float
-            The mode of the random variable.
-        """
+        """Mode of the random variable."""
         if self.__mode is None:
             raise NotImplementedError
 
@@ -246,15 +279,10 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def median(self) -> _ValueType:
-        """
-        Median of the random variable.
+        """Median of the random variable.
 
-        To learn about the dtype of the median, see :attr:`median_dtype`.
-
-        Returns
-        -------
-        median : float
-            The median of the distribution.
+        To learn about the dtype of the median, see
+        :attr:`median_dtype`.
         """
 
         if self.__shape != ():
@@ -279,15 +307,9 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def mean(self) -> _ValueType:
-        """
-        Mean :math:`\\mathbb{E}(X)` of the distribution.
+        """Mean :math:`\\mathbb{E}(X)` of the random variable.
 
         To learn about the dtype of the mean, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        mean : array-like
-            The mean of the distribution.
         """
         if self.__mean is None:
             raise NotImplementedError
@@ -309,16 +331,9 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def cov(self) -> _ValueType:
-        """
-        Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)`
-        of the random variable.
+        """Covariance :math:`\\operatorname{Cov}(X) = \\mathbb{E}((X-\\mathbb{E}(X))(X-\\mathbb{E}(X))^\\top)` of the random variable.
 
         To learn about the dtype of the covariance, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        cov : array-like
-            The kernels of the random variable.
         """  # pylint: disable=line-too-long
         if self.__cov is None:
             raise NotImplementedError
@@ -340,16 +355,10 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def var(self) -> _ValueType:
-        """
-        Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)` of
-        the distribution.
+        """Variance :math:`\\operatorname{Var}(X) = \\mathbb{E}((X-\\mathbb{E}(X))^2)`
+        of the random variable.
 
         To learn about the dtype of the variance, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        var : array-like
-            The variance of the distribution.
         """
         if self.__var is None:
             try:
@@ -374,15 +383,10 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def std(self) -> _ValueType:
-        """
-        Standard deviation of the distribution.
+        """Standard deviation of the random variable.
 
-        To learn about the dtype of the standard deviation, see :attr:`moment_dtype`.
-
-        Returns
-        -------
-        std : array-like
-            The standard deviation of the distribution.
+        To learn about the dtype of the standard deviation, see
+        :attr:`moment_dtype`.
         """
         if self.__std is None:
             try:
@@ -407,6 +411,7 @@ class RandomVariable(Generic[_ValueType]):
 
     @cached_property
     def entropy(self) -> np.float_:
+        """Information-theoretic entropy :math:`H(X)` of the random variable."""
         if self.__entropy is None:
             raise NotImplementedError
 
@@ -419,6 +424,14 @@ class RandomVariable(Generic[_ValueType]):
         return entropy
 
     def in_support(self, x: _ValueType) -> bool:
+        """Check whether the random variable takes value ``x`` with non-zero
+        probability, i.e. if ``x`` is in the support of its distribution.
+
+        Parameters
+        ----------
+        x :
+            Input value.
+        """
         if self.__in_support is None:
             raise NotImplementedError
 
@@ -433,18 +446,12 @@ class RandomVariable(Generic[_ValueType]):
         return in_support
 
     def sample(self, size: ShapeArgType = ()) -> _ValueType:
-        """
-        Draw realizations from a random variable.
+        """Draw realizations from a random variable.
 
         Parameters
         ----------
-        size : tuple
+        size :
             Size of the drawn sample of realizations.
-
-        Returns
-        -------
-        sample : array-like
-            Sample of realizations with the given ``size`` and the inherent ``shape``.
         """
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
@@ -452,21 +459,15 @@ class RandomVariable(Generic[_ValueType]):
         return self.__sample(size=_utils.as_shape(size))
 
     def cdf(self, x: _ValueType) -> np.float_:
-        """
-        Cumulative distribution function.
+        """Cumulative distribution function.
 
         Parameters
         ----------
-        x : array-like
+        x :
             Evaluation points of the cumulative distribution function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The cdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        q : array-like
-            Value of the cumulative density function at the given points.
         """
         if self.__cdf is not None:
             return RandomVariable._ensure_numpy_float(
@@ -485,21 +486,15 @@ class RandomVariable(Generic[_ValueType]):
             )
 
     def logcdf(self, x: _ValueType) -> np.float_:
-        """
-        Log-cumulative distribution function.
+        """Log-cumulative distribution function.
 
         Parameters
         ----------
-        x : array-like
+        x :
             Evaluation points of the cumulative distribution function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The logcdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        q : array-like
-            Value of the log-cumulative density function at the given points.
         """
         if self.__logcdf is not None:
             return RandomVariable._ensure_numpy_float(
@@ -579,18 +574,13 @@ class RandomVariable(Generic[_ValueType]):
         )
 
     def reshape(self, newshape: ShapeArgType) -> "RandomVariable":
-        """
-        Give a new shape to a random variable.
+        """Give a new shape to a random variable.
 
         Parameters
         ----------
-        newshape : int or tuple of ints
+        newshape :
             New shape for the random variable. It must be compatible with the original
             shape.
-
-        Returns
-        -------
-        reshaped_rv : ``self`` with the new dimensions of ``shape``.
         """
         newshape = _utils.as_shape(newshape)
 
@@ -610,17 +600,12 @@ class RandomVariable(Generic[_ValueType]):
         )
 
     def transpose(self, *axes: int) -> "RandomVariable":
-        """
-        Transpose the random variable.
+        """Transpose the random variable.
 
         Parameters
         ----------
-        axes : None, tuple of ints, or n ints
+        axes :
             See documentation of numpy.ndarray.transpose.
-
-        Returns
-        -------
-        transposed_rv : The transposed random variable.
         """
         return RandomVariable(
             shape=np.empty(shape=self.shape).transpose(*axes).shape,
@@ -802,10 +787,39 @@ class RandomVariable(Generic[_ValueType]):
 
     @staticmethod
     def infer_median_dtype(value_dtype: DTypeArgType) -> np.dtype:
+        """Infer the dtype of the median.
+
+        Set the dtype to the dtype arising from
+        the multiplication of values with dtypes :attr:`dtype` and :class:`np.float_`.
+        This is motivated by the fact that, even for discrete random variables, e.g.
+        integer-valued random variables, the :attr:`median` might lie in between two
+        values in which case these values are averaged. For example, a uniform random
+        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
+
+        Parameters
+        ----------
+        value_dtype :
+            Dtype of a value.
+        """
         return RandomVariable.infer_moment_dtype(value_dtype)
 
     @staticmethod
     def infer_moment_dtype(value_dtype: DTypeArgType) -> np.dtype:
+        """Infer the dtype of any moment.
+
+        Infers the dtype of any (function of a) moment of the random variable, e.g. its
+        :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. Returns the
+        dtype arising from the multiplication of values with dtypes :attr:`dtype`
+        and :class:`np.float_`. This is motivated by the mathematical definition of a
+        moment as a sum or an integral over products of probabilities and values of the
+        random variable, which are represented as using the dtypes :class:`np.float_`
+        and :attr:`dtype`, respectively.
+
+        Parameters
+        ----------
+        value_dtype :
+            Dtype of a value.
+        """
         return np.promote_types(value_dtype, np.float_)
 
     def _as_value_type(self, x: Any) -> _ValueType:
@@ -873,6 +887,117 @@ class RandomVariable(Generic[_ValueType]):
 
 
 class DiscreteRandomVariable(RandomVariable[_ValueType]):
+    """Random variable with countable range.
+
+    Discrete random variables map to a countable set. Typical examples are the natural
+    numbers or integers.
+
+    Parameters
+    ----------
+    shape :
+        Shape of realizations of this random variable.
+    dtype :
+        Data type of realizations of this random variable. If ``object`` will be
+        converted to ``numpy.dtype``.
+    random_state :
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
+    parameters :
+        Parameters of the distribution of the random variable.
+    sample :
+        Callable implementing sampling from the random variable.
+    in_support :
+        Callable checking whether the random variable takes value ``x`` with non-zero
+        probability, i.e. if ``x`` is in the support of its distribution.
+    pmf :
+        Probability mass function of the random variable.
+    logpmf :
+        Log-transformed probability mass function of the random variable.
+    cdf :
+        Cumulative distribution function of the random variable.
+    logcdf :
+        Log-transformed cumulative distribution function of the random variable.
+    quantile :
+        Quantile function of the random variable.
+    mode :
+        Mode of the random variable. Value of the random variable at which
+        :meth:`~DiscreteRandomVariable.pmf` takes its maximal value.
+    mean :
+        Expected value of the random variable.
+    cov :
+        Covariance of the random variable.
+    var :
+        (Element-wise) variance of the random variable.
+    std :
+        (Element-wise) standard deviation of the random variable.
+    entropy :
+        Shannon entropy :math:`H(X)` of the random variable.
+    as_value_type :
+        Function which can be used to transform user-supplied arguments, interpreted as
+        realizations of this random variable, to an easy-to-process, normalized format.
+        Will be called internally to transform the argument of functions like
+        :meth:`~DiscreteRandomVariable.in_support`, :meth:`~DiscreteRandomVariable.cdf`
+        and :meth:`~DiscreteRandomVariable.logcdf`, :meth:`~DiscreteRandomVariable.pmf`
+        and :meth:`~DiscreteRandomVariable.logpmf`, and potentially by similar
+        functions in subclasses.
+
+        For instance, this method is useful if (``log``)
+        :meth:`~DiscreteRandomVariable.cdf` and (``log``)
+        :meth:`~DiscreteRandomVariable.pmf` both only work on :class:`np.float_`
+        arguments, but we still want the user to be able to pass Python
+        :class:`float`. Then :meth:`~DiscreteRandomVariable.as_value_type`
+        should be set to something like ``lambda x: np.float64(x)``.
+
+    See Also
+    --------
+    ContinuousRandomVariable : A random variable with uncountably infinite range.
+
+    Examples
+    --------
+    >>> # Create a custom categorical random variable
+    >>> import numpy as np
+    >>>
+    >>> # Distribution parameters
+    >>> support = np.array([-1, 0, 1], dtype=np.int64)
+    >>> p = np.array([0.2, 0.5, 0.3])
+    >>> parameters_categorical = {
+    ...     "support" : support,
+    ...     "p" : p}
+    >>>
+    >>> # Sampling function
+    >>> def sample_categorical(size=()):
+    ...     return np.random.choice(a=support, size=size, p=p)
+    >>>
+    >>> # Probability mass function
+    >>> def pmf_categorical(x):
+    ...     idx = np.where(x == support)[0]
+    ...     if len(idx) > 0:
+    ...         return p[idx]
+    ...     else:
+    ...         return 0.0
+    >>>
+    >>> # Create custom random variable
+    >>> x = DiscreteRandomVariable(
+    ...       shape=(),
+    ...       dtype=np.dtype(np.int64),
+    ...       parameters=parameters_categorical,
+    ...       sample=sample_categorical,
+    ...       pmf=pmf_categorical,
+    ...       mean=lambda : np.float64(0),
+    ...       median=lambda : np.float64(0),
+    ...       )
+    >>>
+    >>> # Sample from new random variable
+    >>> np.random.seed(42)
+    >>> x.sample(3)
+    array([0, 1, 1])
+    >>> x.pmf(2)
+    0.0
+    >>> x.mean
+    0.0
+    """
+
     def __init__(
         self,
         shape: ShapeArgType,
@@ -893,6 +1018,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         var: Optional[Callable[[], _ValueType]] = None,
         std: Optional[Callable[[], _ValueType]] = None,
         entropy: Optional[Callable[[], np.float_]] = None,
+        as_value_type: Optional[Callable[[Any], _ValueType]] = None,
     ):
         # Probability mass function
         self.__pmf = pmf
@@ -915,9 +1041,29 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             var=var,
             std=std,
             entropy=entropy,
+            as_value_type=as_value_type,
         )
 
     def pmf(self, x: _ValueType) -> np.float_:
+        """Probability mass function.
+
+        Computes the probability of the random variable being equal to the given
+        value. For a random variable :math:`X` it is defined as
+        :math:`p_X(x) = P(X = x)` for a probability measure :math:`P`.
+
+        Probability mass functions are the discrete analogue of probability density
+        functions in the sense that they are the Radon-Nikodym derivative of the
+        pushforward measure :math:`P \\circ X^{-1}` defined by the random variable with
+        respect to the counting measure.
+
+        Parameters
+        ----------
+        x :
+            Evaluation points of the probability mass function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The pmf evaluation will be broadcast over all additional dimensions.
+        """
         if self.__pmf is not None:
             return DiscreteRandomVariable._ensure_numpy_float("pmf", self.__pmf(x))
         elif self.__logpmf is not None:
@@ -933,6 +1079,16 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
             )
 
     def logpmf(self, x: _ValueType) -> np.float_:
+        """Natural logarithm of the probability mass function.
+
+        Parameters
+        ----------
+        x :
+            Evaluation points of the log-probability mass function.
+            The shape of this argument should be :code:`(..., S1, ..., SN)`, where
+            :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
+            The logpmf evaluation will be broadcast over all additional dimensions.
+        """
         if self.__logpmf is not None:
             return DiscreteRandomVariable._ensure_numpy_float(
                 "logpmf", self.__logpmf(self._as_value_type(x))
@@ -951,6 +1107,118 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
 
 class ContinuousRandomVariable(RandomVariable[_ValueType]):
+    """Random variable with uncountably infinite range.
+
+    Continuous random variables map to a uncountably infinite set. Typically, this is a
+    subset of a real vector space.
+
+    Parameters
+    ----------
+    shape :
+        Shape of realizations of this random variable.
+    dtype :
+        Data type of realizations of this random variable. If ``object`` will be
+        converted to ``numpy.dtype``.
+    random_state :
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
+    parameters :
+        Parameters of the distribution of the random variable.
+    sample :
+        Callable implementing sampling from the random variable.
+    in_support :
+        Callable checking whether the random variable takes value ``x`` with non-zero
+        probability, i.e. if ``x`` is in the support of its distribution.
+    pdf :
+        Probability density function of the random variable.
+    logpdf :
+        Log-transformed probability density function of the random variable.
+    cdf :
+        Cumulative distribution function of the random variable.
+    logcdf :
+        Log-transformed cumulative distribution function of the random variable.
+    quantile :
+        Quantile function of the random variable.
+    mode :
+        Mode of the random variable. Value of the random variable at which
+        :meth:`~ContinuousRandomVariable.pdf` takes its maximal value.
+    mean :
+        Expected value of the random variable.
+    cov :
+        Covariance of the random variable.
+    var :
+        (Element-wise) variance of the random variable.
+    std :
+        (Element-wise) standard deviation of the random variable.
+    entropy :
+        Differential entropy :math:`H(X)` of the random variable.
+    as_value_type :
+        Function which can be used to transform user-supplied arguments, interpreted as
+        realizations of this random variable, to an easy-to-process, normalized format.
+        Will be called internally to transform the argument of functions like
+        :meth:`~ContinuousRandomVariable.in_support`,
+        :meth:`~ContinuousRandomVariable.cdf`
+        and :meth:`~ContinuousRandomVariable.logcdf`,
+        :meth:`~ContinuousRandomVariable.pdf` and
+        :meth:`~ContinuousRandomVariable.logpdf`, and potentially by similar
+        functions in subclasses.
+
+        For instance, this method is useful if (``log``)
+        :meth:`~ContinuousRandomVariable.cdf` and (``log``)
+        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
+        arguments, but we still want the user to be able to pass Python
+        :class:`float`. Then :meth:`~ContinuousRandomVariable.as_value_type`
+        should be set to something like ``lambda x: np.float64(x)``.
+
+    See Also
+    --------
+    DiscreteRandomVariable : A random variable with countable range.
+
+    Examples
+    --------
+    >>> # Create a custom uniformly distributed random variable
+    >>> import numpy as np
+    >>>
+    >>> # Distribution parameters
+    >>> a = 0.0
+    >>> b = 1.0
+    >>> parameters_uniform = {"bounds" : [a, b]}
+    >>>
+    >>> # Sampling function
+    >>> def sample_uniform(size=()):
+    ...     return np.random.uniform(size=size)
+    >>>
+    >>> # Probability density function
+    >>> def pdf_uniform(x):
+    ...     if a <= x < b:
+    ...         return 1.0
+    ...     else:
+    ...         return 0.0
+    >>>
+    >>> # Create custom random variable
+    >>> u = ContinuousRandomVariable(
+    ...       shape=(),
+    ...       dtype=np.dtype(np.float64),
+    ...       parameters=parameters_uniform,
+    ...       sample=sample_uniform,
+    ...       pdf=pdf_uniform,
+    ...       mean=lambda : np.float64(0.5 * (a + b)),
+    ...       median=lambda : np.float64(0.5 * (a + b)),
+    ...       var=lambda : np.float64(1 / 12 * (b - a) ** 2),
+    ...       entropy=lambda : np.log(b - a),
+    ...       )
+    >>>
+    >>> # Sample from new random variable
+    >>> np.random.seed(42)
+    >>> u.sample(3)
+    array([0.37454012, 0.95071431, 0.73199394])
+    >>> u.pdf(0.5)
+    1.0
+    >>> u.var
+    0.08333333333333333
+    """
+
     def __init__(
         self,
         shape: ShapeArgType,
@@ -971,6 +1239,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         var: Optional[Callable[[], _ValueType]] = None,
         std: Optional[Callable[[], _ValueType]] = None,
         entropy: Optional[Callable[[], np.float_]] = None,
+        as_value_type: Optional[Callable[[Any], _ValueType]] = None,
     ):
         # Probability density function
         self.__pdf = pdf
@@ -993,28 +1262,28 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
             var=var,
             std=std,
             entropy=entropy,
+            as_value_type=as_value_type,
         )
 
     def pdf(self, x: _ValueType) -> np.float_:
-        """
-        Probability density or mass function.
+        """Probability density function.
 
-        Following the predominant convention in mathematics, we express pdfs with
-        respect to the Lebesgue measure unless stated otherwise.
+        The area under the curve defined by the probability density function
+        specifies the probability of the random variable :math:`X` taking values
+        within that area.
+
+        Probability density functions are defined as the Radon-Nikodym derivative of
+        the pushforward measure :math:`P \\circ X^{-1}` with respect to the Lebesgue
+        measure for a given probability measure :math:`P`. Following convention we
+        always assume the Lebesgue measure as a base measure unless stated otherwise.
 
         Parameters
         ----------
-        x : array-like
-            Evaluation points of the probability density / mass function.
+        x :
+            Evaluation points of the probability density function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The pdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        p : array-like
-            Value of the probability density / mass function at the given points.
-
         """
         if self.__pdf is not None:
             return ContinuousRandomVariable._ensure_numpy_float(
@@ -1032,21 +1301,15 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         )
 
     def logpdf(self, x: _ValueType) -> np.float_:
-        """
-        Natural logarithm of the probability density function.
+        """Natural logarithm of the probability density function.
 
         Parameters
         ----------
-        x : array-like
-            Evaluation points of the log-probability density/mass function.
+        x :
+            Evaluation points of the log-probability density function.
             The shape of this argument should be :code:`(..., S1, ..., SN)`, where
             :code:`(S1, ..., SN)` is the :attr:`shape` of the random variable.
             The logpdf evaluation will be broadcast over all additional dimensions.
-
-        Returns
-        -------
-        logp : array-like
-            Value of the log-probability density / mass function at the given points.
         """
         if self.__logpdf is not None:
             return ContinuousRandomVariable._ensure_numpy_float(

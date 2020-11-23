@@ -1,16 +1,6 @@
-"""
-This package implements random variables. Random variables are the primary in- and
-outputs of probabilistic numerical methods. A generic signature of such methods looks
-like this:
+"""Random Variables."""
 
-.. highlight:: python
-.. code-block:: python
-
-    randvar_out, info = probnum_method(problem, randvar_in, **kwargs)
-
-"""
-
-from ._dirac import Dirac
+from ._constant import Constant
 from ._normal import Normal
 from ._random_variable import (
     ContinuousRandomVariable,
@@ -30,7 +20,7 @@ __all__ = [
     "RandomVariable",
     "DiscreteRandomVariable",
     "ContinuousRandomVariable",
-    "Dirac",
+    "Constant",
     "Normal",
     "WrappedSciPyRandomVariable",
     "WrappedSciPyDiscreteRandomVariable",
@@ -46,7 +36,7 @@ WrappedSciPyRandomVariable.__module__ = "probnum.random_variables"
 WrappedSciPyDiscreteRandomVariable.__module__ = "probnum.random_variables"
 WrappedSciPyContinuousRandomVariable.__module__ = "probnum.random_variables"
 
-Dirac.__module__ = "probnum.random_variables"
+Constant.__module__ = "probnum.random_variables"
 Normal.__module__ = "probnum.random_variables"
 
 asrandvar.__module__ = "probnum.random_variables"

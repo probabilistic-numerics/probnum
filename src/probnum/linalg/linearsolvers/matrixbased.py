@@ -1,8 +1,7 @@
-"""
-Matrix-based probabilistic linear solvers.
+"""Matrix-based probabilistic linear solvers.
 
-Implementations of matrix-based linear solvers which perform inference on the matrix or
-its inverse given linear observations.
+Implementations of matrix-based linear solvers which perform inference
+on the matrix or its inverse given linear observations.
 """
 import abc
 import warnings
@@ -16,8 +15,7 @@ from probnum import random_variables as rvs
 
 
 class ProbabilisticLinearSolver(abc.ABC):
-    """
-    An abstract base class for probabilistic linear solvers.
+    """An abstract base class for probabilistic linear solvers.
 
     This class is designed to be subclassed with new (probabilistic) linear solvers,
     which implement a ``.solve()`` method. Objects of this type are instantiated in
@@ -39,8 +37,7 @@ class ProbabilisticLinearSolver(abc.ABC):
         self.n = A.shape[1]
 
     def has_converged(self, iter, maxiter, **kwargs):
-        """
-        Check convergence of a linear solver.
+        """Check convergence of a linear solver.
 
         Evaluates a set of convergence criteria based on its input arguments to decide
         whether the iteration has converged.
@@ -69,8 +66,7 @@ class ProbabilisticLinearSolver(abc.ABC):
             return False, ""
 
     def solve(self, callback=None, **kwargs):
-        """
-        Solve the linear system :math:`Ax=b`.
+        """Solve the linear system :math:`Ax=b`.
 
         Parameters
         ----------
@@ -94,14 +90,12 @@ class ProbabilisticLinearSolver(abc.ABC):
             Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
         info : dict
             Information on convergence of the solver.
-
         """
         raise NotImplementedError
 
 
 class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
-    """
-    Abstract class for matrix-based probabilistic linear solvers.
+    """Abstract class for matrix-based probabilistic linear solvers.
 
     Parameters
     ----------
@@ -121,7 +115,8 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         super().__init__(A=A, b=b)
 
     def _get_prior_params(self, A0, Ainv0, x0, b):
-        """
+        """Find the parameters of the prior distribution.
+
         Parameters
         ----------
         A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
@@ -142,9 +137,8 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         raise NotImplementedError
 
     def _construct_symmetric_matrix_prior_means(self, A, x0, b):
-        """
-        Create matrix prior means from an initial guess for the solution of the linear
-        system.
+        """Create matrix prior means from an initial guess for the solution of the
+        linear system.
 
         Constructs a matrix-variate prior mean for H from ``x0`` and ``b`` such that
         :math:`H_0b = x_0`, :math:`H_0` symmetric positive definite and
@@ -213,8 +207,7 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
 
 
 class AsymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
-    """
-    Asymmetric matrix-based probabilistic linear solver.
+    """Asymmetric matrix-based probabilistic linear solver.
 
     Parameters
     ----------
@@ -236,8 +229,7 @@ class AsymmetricMatrixBasedSolver(ProbabilisticLinearSolver):
 
 
 class SymmetricMatrixBasedSolver(MatrixBasedSolver):
-    """
-    Symmetric matrix-based probabilistic linear solver.
+    """Symmetric matrix-based probabilistic linear solver.
 
     Implements the solve iteration of the symmetric matrix-based probabilistic linear
     solver described in [1]_ and [2]_.
@@ -275,7 +267,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
     References
     ----------
     .. [1] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for Machine Learning,
-       2020
+       *Advances in Neural Information Processing Systems (NeurIPS)*, 2020
     .. [2] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
        Optimization*, 2015, 25, 234-260
 
@@ -323,8 +315,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         self.sy = []
 
     def _get_prior_params(self, A0, Ainv0, x0, b):
-        """
-        Get the parameters of the matrix priors on A and H.
+        """Get the parameters of the matrix priors on A and H.
 
         Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
 
@@ -460,8 +451,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             raise NotImplementedError
 
     def _compute_trace_Ainv_covfactor0(self, Y, unc_scale):
-        """
-        Computes the trace of the prior covariance factor for the inverse view.
+        """Computes the trace of the prior covariance factor for the inverse view.
 
         Parameters
         ----------
@@ -507,9 +497,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return _trace
 
     def _compute_trace_solution_covariance(self, bWb, Wb):
-        """
-        Computes the trace of the solution covariance
-        :math:`\\tr(\\operatorname{Cov}[x])`
+        """Computes the trace of the solution covariance :math:`\\tr(\\operatorname{
+        Cov}[x])`
 
         Parameters
         ----------
@@ -528,8 +517,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return 0.5 * (bWb * self.trace_Ainv_covfactor + np.linalg.norm(Wb, ord=2) ** 2)
 
     def has_converged(self, iter, maxiter, resid=None, atol=None, rtol=None):
-        """
-        Check convergence of a linear solver.
+        """Check convergence of a linear solver.
 
         Evaluates a set of convergence criteria based on its input arguments to decide
         whether the iteration has converged.
@@ -579,8 +567,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             return False, ""
 
     def _calibrate_uncertainty(self, S, sy, method):
-        """
-        Calibrate uncertainty based on the Rayleigh coefficients
+        """Calibrate uncertainty based on the Rayleigh coefficients.
 
         A regression model for the log-Rayleigh coefficient is built based on the
         collected observations. The degrees of freedom in the kernels of A and H are set
@@ -657,20 +644,16 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return Phi, Psi
 
     def _get_calibration_covariance_update_terms(self, phi=None, psi=None):
-        """
-        For the calibration covariance class set the calibration update terms of the
+        """For the calibration covariance class set the calibration update terms of the
         covariance in the null spaces of span(S) and span(Y) based on the degrees of
-        freedom.
-        """
+        freedom."""
         # Search directions and observations as arrays
         S = np.hstack(self.search_dir_list)
         Y = np.hstack(self.obs_list)
 
         def get_null_space_map(V, unc_scale):
-            """
-            Returns a function mapping to the null space of span(V), scaling with a
-            single degree of freedom and mapping back.
-            """
+            """Returns a function mapping to the null space of span(V), scaling with a
+            single degree of freedom and mapping back."""
 
             def null_space_proj(x):
                 try:
@@ -698,9 +681,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return calibration_term_A, calibration_term_Ainv
 
     def _get_output_randvars(self, Y_list, sy_list, phi=None, psi=None):
-        """
-        Return output random variables x, A, Ainv from their means and covariances.
-        """
+        """Return output random variables x, A, Ainv from their means and
+        covariances."""
 
         if self.iter_ > 0:
             # Observations and inner products in A-space between actions
@@ -785,9 +767,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return x, A, Ainv
 
     def _mean_update(self, u, v):
-        """
-        Linear operator implementing the symmetric rank 2 mean update (+= uv' + vu').
-        """
+        """Linear operator implementing the symmetric rank 2 mean update (+= uv' +
+        vu')."""
 
         def mv(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
@@ -795,9 +776,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
 
     def _covariance_update(self, u, Ws):
-        """
-        Linear operator implementing the symmetric rank 2 kernels update (-= Ws u^T).
-        """
+        """Linear operator implementing the symmetric rank 2 kernels update (-= Ws
+        u^T)."""
 
         def mv(x):
             return Ws @ (u.T @ x)
@@ -807,8 +787,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
     def solve(
         self, callback=None, maxiter=None, atol=None, rtol=None, calibration=None
     ):
-        """
-        Solve the linear system :math:`Ax=b`.
+        """Solve the linear system :math:`Ax=b`.
 
         Parameters
         ----------
@@ -1003,8 +982,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
 
 
 class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
-    """
-    Solver iteration of the noisy symmetric probabilistic linear solver.
+    """Solver iteration of the noisy symmetric probabilistic linear solver.
 
     Implements the solve iteration of the symmetric matrix-based probabilistic linear
     solver taking into account noisy matrix-vector products :math:`y_k = (A + E_k)s_k`
@@ -1101,8 +1079,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         self.x0 = self.x_mean
 
     def _get_prior_params(self, A0, Ainv0, x0, b):
-        """
-        Get the parameters of the matrix priors on A and H.
+        """Get the parameters of the matrix priors on A and H.
 
         Retrieves and / or initializes prior parameters of ``A0`` and ``Ainv0``.
 
@@ -1251,8 +1228,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             raise NotImplementedError
 
     def has_converged(self, iter, maxiter, atol=None, rtol=None):
-        """
-        Check convergence of a linear solver.
+        """Check convergence of a linear solver.
 
         Evaluates a set of convergence criteria based on its input arguments to decide
         whether the iteration has converged.
@@ -1307,8 +1283,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         noise_scale=None,
         **kwargs
     ):
-        """
-        Solve the linear system :math:`Ax=b`.
+        """Solve the linear system :math:`Ax=b`.
 
         Parameters
         ----------

@@ -3,11 +3,11 @@ import unittest
 import numpy as np
 
 from probnum.diffeq import ConstantSteps, ODESolver, logistic
-from probnum.random_variables import Dirac
+from probnum.random_variables import Constant
 
 
 class MockODESolver(ODESolver):
-    """Euler method as an ODE solver"""
+    """Euler method as an ODE solver."""
 
     def initialise(self):
         return self.ivp.t0, self.ivp.initrv
@@ -17,19 +17,19 @@ class MockODESolver(ODESolver):
         x = current.mean
         xnew = x + h * self.ivp(start, x)
         return (
-            Dirac(xnew),
+            Constant(xnew),
             np.nan,
         )  # return nan as error estimate to ensure that it is not used
 
 
 class ODESolverTestCase(unittest.TestCase):
-    """
-    An ODE Solver has to work with just step() and initialise() provided.
+    """An ODE Solver has to work with just step() and initialise() provided.
+
     We implement Euler in MockODESolver to assure this.
     """
 
     def setUp(self):
-        y0 = Dirac(0.3)
+        y0 = Constant(0.3)
         ivp = logistic([0, 4], initrv=y0)
         self.solver = MockODESolver(ivp)
         self.step = 0.2

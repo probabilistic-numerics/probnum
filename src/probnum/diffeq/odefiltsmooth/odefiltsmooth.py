@@ -1,5 +1,4 @@
-"""
-Convenience functions for Gaussian filtering and smoothing.
+"""Convenience functions for Gaussian filtering and smoothing.
 
 We support the following methods:
     - ekf0: Extended Kalman filtering based on a zero-th order Taylor
@@ -34,8 +33,7 @@ def probsolve_ivp(
     precond_step=None,
     **kwargs
 ):
-    """
-    Solve initial value problem with Gaussian filtering and smoothing.
+    """Solve initial value problem with Gaussian filtering and smoothing.
 
     Numerically computes a Gauss-Markov process which solves numerically
     the initial value problem (IVP) based on a system of first order
@@ -183,7 +181,7 @@ def probsolve_ivp(
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
     >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Dirac(0.15)
+    >>> initrv = rvs.Constant(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> print(solution.y.mean)
@@ -204,26 +202,26 @@ def probsolve_ivp(
      [0.97577054]
      [0.9831919 ]]
 
-    >>> initrv = rvs.Dirac(0.15)
+    >>> initrv = rvs.Constant(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
     >>> print(solution.y.mean)
     [[0.15      ]
-     [0.20795795]
-     [0.28228416]
-     [0.36926   ]
-     [0.46646494]
-     [0.5658788 ]
-     [0.66048505]
-     [0.74369892]
-     [0.81237394]
-     [0.86592791]
-     [0.90598293]
-     [0.9349573 ]
-     [0.95544749]
-     [0.96968754]
-     [0.97947631]
-     [0.98614541]]
+     [0.20837029]
+     [0.28203135]
+     [0.36939685]
+     [0.46639109]
+     [0.56591654]
+     [0.66046815]
+     [0.74369078]
+     [0.81236993]
+     [0.86592196]
+     [0.90595777]
+     [0.93495254]
+     [0.95543867]
+     [0.96968542]
+     [0.9794734 ]
+     [0.98614926]]
     """
     gfilt, firststep, stprl = _create_solver_inputs(
         ivp, method, which_prior, tol, step, firststep, precond_step, **kwargs

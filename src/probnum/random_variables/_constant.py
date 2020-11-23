@@ -1,4 +1,4 @@
-""" This module implements Dirac-distributed random variables. """
+"""(Almost surely) constant random variables."""
 
 from typing import Callable, TypeVar
 
@@ -17,33 +17,43 @@ from . import _random_variable
 _ValueType = TypeVar("ValueType")
 
 
-class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
-    """
-    The Dirac delta distribution.
+class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
+    """Random variable representing a constant value.
 
-    This distribution models a point mass and can be useful to represent
-    numbers as random variables with Dirac measure. It has the useful
-    property that arithmetic operations between a :class:`Dirac` random
-    variable and an arbitrary :class:`RandomVariable` acts in the same
-    way as the arithmetic operation with a constant.
+    Discrete random variable which (with probability one) takes a constant value. The
+    law / image measure of this random variable is given by the Dirac delta measure
+    which equals one in its (atomic) support and zero everywhere else.
 
-    Note, that a Dirac measure does not admit a probability density
-    function but can be viewed as a distribution (generalized function).
+    This class has the useful property that arithmetic operations between a
+    :class:`Constant` random variable and an arbitrary :class:`RandomVariable` represent
+    the same arithmetic operation with a constant.
 
     Parameters
     ----------
-    support : scalar or array-like or LinearOperator
-        The support of the dirac delta function.
+    support
+        Constant value taken by the random variable. Also the (atomic) support of the
+        associated Dirac measure.
+    random_state
+        Random state of the random variable. If None (or np.random), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
-    RandomVariable : Class representing general random variables.
+    RandomVariable : Class representing random variables.
+
+    Notes
+    -----
+    The Dirac measure formalizes the concept of a Dirac delta function as encountered in
+    physics, where it is used to model a point mass. Another way to formalize this idea
+    is to define the Dirac delta as a linear operator as is done in functional analysis.
+    While related, this is not the view taken here.
 
     Examples
     --------
     >>> from probnum import random_variables as rvs
-    >>> rv1 = rvs.Dirac(support=0.)
-    >>> rv2 = rvs.Dirac(support=1.)
+    >>> rv1 = rvs.Constant(support=0.)
+    >>> rv2 = rvs.Constant(support=1.)
     >>> rv = rv1 + rv2
     >>> rv.sample(size=5)
     array([1., 1., 1., 1., 1.])
@@ -88,12 +98,11 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     @property
     def support(self) -> _ValueType:
+        """Constant value taken by the random variable."""
         return self._support
 
-    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Dirac":
-        """
-        Marginalization for multivariate Dirac distributions, expressed by means of
-        (advanced) indexing, masking and slicing.
+    def __getitem__(self, key: ArrayLikeGetitemArgType) -> "Constant":
+        """(Advanced) indexing, masking and slicing.
 
         This method supports all modes of array indexing presented in
 
@@ -105,16 +114,16 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
             Indices, slice objects and/or boolean masks specifying which entries to keep
             while marginalizing over all other entries.
         """
-        return Dirac(support=self._support[key], random_state=self.random_state)
+        return Constant(support=self._support[key], random_state=self.random_state)
 
-    def reshape(self, newshape: ShapeType) -> "Dirac":
-        return Dirac(
+    def reshape(self, newshape: ShapeType) -> "Constant":
+        return Constant(
             support=self._support.reshape(newshape),
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def transpose(self, *axes: int) -> "Dirac":
-        return Dirac(
+    def transpose(self, *axes: int) -> "Constant":
+        return Constant(
             support=self._support.transpose(*axes),
             random_state=_utils.derive_random_seed(self.random_state),
         )
@@ -129,20 +138,20 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     # Unary arithmetic operations
 
-    def __neg__(self) -> "Dirac":
-        return Dirac(
+    def __neg__(self) -> "Constant":
+        return Constant(
             support=-self.support,
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def __pos__(self) -> "Dirac":
-        return Dirac(
+    def __pos__(self) -> "Constant":
+        return Constant(
             support=+self.support,
             random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def __abs__(self) -> "Dirac":
-        return Dirac(
+    def __abs__(self) -> "Constant":
+        return Constant(
             support=abs(self.support),
             random_state=_utils.derive_random_seed(self.random_state),
         )
@@ -152,14 +161,16 @@ class Dirac(_random_variable.DiscreteRandomVariable[_ValueType]):
     @staticmethod
     def _binary_operator_factory(
         operator: Callable[[_ValueType, _ValueType], _ValueType]
-    ) -> Callable[["Dirac", "Dirac"], "Dirac"]:
-        def _dirac_binary_operator(dirac_rv1: Dirac, dirac_rv2: Dirac) -> Dirac:
-            return Dirac(
-                support=operator(dirac_rv1.support, dirac_rv2.support),
+    ) -> Callable[["Constant", "Constant"], "Constant"]:
+        def _constant_rv_binary_operator(
+            constant_rv1: Constant, constant_rv2: Constant
+        ) -> Constant:
+            return Constant(
+                support=operator(constant_rv1.support, constant_rv2.support),
                 random_state=_utils.derive_random_seed(
-                    dirac_rv1.random_state,
-                    dirac_rv2.random_state,
+                    constant_rv1.random_state,
+                    constant_rv2.random_state,
                 ),
             )
 
-        return _dirac_binary_operator
+        return _constant_rv_binary_operator

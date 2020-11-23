@@ -1,5 +1,4 @@
-"""
-Tests include:
+"""Tests include:
 
 - IBM recovers closed form solutions of Chapman-Kolmogorov equations.
 - IOUP is same as IBM for driftspeed = 0.0
@@ -63,10 +62,8 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         )
 
     def test_chapmankolmogorov_super_comparison(self):
-        """
-        The result of chapmankolmogorov() should be identical to the matrix fraction decomposition technique
-        implemented in LinearSDE, just faster.
-        """
+        """The result of chapmankolmogorov() should be identical to the matrix fraction
+        decomposition technique implemented in LinearSDE, just faster."""
         # pylint: disable=bad-super-call
         mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
         initrv = Normal(mean, cov)
@@ -96,10 +93,8 @@ class TestIBMPrecond(unittest.TestCase, NumpyAssertions):
         )
 
     def test_chapmankolmogorov_super_comparison(self):
-        """
-        The result of chapmankolmogorov() should be identical to the matrix fraction decomposition technique
-        implemented in LinearSDE, just faster.
-        """
+        """The result of chapmankolmogorov() should be identical to the matrix fraction
+        decomposition technique implemented in LinearSDE, just faster."""
         # pylint: disable=bad-super-call
 
         mean, cov = np.ones(self.prior.dimension), np.eye(self.prior.dimension)
@@ -124,19 +119,16 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
         self.ibm.transition_rv(initrv, start=0.0, stop=STEP, step=STEP)
 
     def test_asymptotically_ibm(self):
-        """
-        Checks that for driftspeed==0, it coincides with the IBM prior.
-        """
+        """Checks that for driftspeed==0, it coincides with the IBM prior."""
         ioup_speed0 = prior.IOUP(2, 3, driftspeed=0, diffconst=1.2345)
         ibm = prior.IBM(2, 3, diffconst=1.2345)
         self.assertAllClose(ioup_speed0.driftmatrix, ibm.driftmatrix)
         self.assertAllClose(ioup_speed0.dispersionmatrix, ibm.dispersionmatrix)
-        self.assertAllClose(ioup_speed0.diffusionmatrix, ibm.diffusionmatrix)
 
 
 class TestMatern(unittest.TestCase, NumpyAssertions):
-    """
-    Test whether coefficients for q=1, 2 match closed form.
+    """Test whether coefficients for q=1, 2 match closed form.
+
     and whether coefficients for q=0 are Ornstein Uhlenbeck.
     """
 
@@ -147,25 +139,21 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         self.mat2 = prior.Matern(2, 1, lenscale, diffconst)
 
     def test_n0(self):
-        """
-        Closed form solution for n=0.
+        """Closed form solution for n=0.
+
         This is OUP.
         """
         xi = np.sqrt(2 * (self.mat0.dimension - 0.5)) / self.mat0.lengthscale
         self.assertAlmostEqual(self.mat0.driftmatrix[0, 0], -xi)
 
     def test_n1(self):
-        """
-        Closed form solution for n=1.
-        """
+        """Closed form solution for n=1."""
         xi = np.sqrt(2 * (self.mat1.dimension - 0.5)) / self.mat1.lengthscale
         expected = np.array([-(xi ** 2), -2 * xi])
         self.assertAllClose(self.mat1.driftmatrix[-1, :], expected)
 
     def test_n2(self):
-        """
-        Closed form solution for n=2.
-        """
+        """Closed form solution for n=2."""
         xi = np.sqrt(2 * (self.mat2.dimension - 0.5)) / self.mat2.lengthscale
         expected = np.array([-(xi ** 3), -3 * xi ** 2, -3 * xi])
         self.assertAllClose(self.mat2.driftmatrix[-1, :], expected)

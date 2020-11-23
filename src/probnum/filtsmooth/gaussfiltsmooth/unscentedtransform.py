@@ -1,6 +1,6 @@
-"""
+"""See BFaS; p.
 
-See BFaS; p. 84f.
+84f.
 """
 
 import numpy as np
@@ -9,28 +9,30 @@ __all__ = ["UnscentedTransform"]
 
 
 class UnscentedTransform:
-    """
-    Used for unscented Kalman filter.
+    """Used for unscented Kalman filter.
+
+    See also p. 7 ("Unscented transform:") of [1]_.
+
+    Parameters
+    ----------
+    dimension : int
+        Spatial dimensionality
+    spread : float
+        Spread of the sigma points around mean
+    priorpar : float
+        Incorporate prior knowledge about distribution of x.
+        For Gaussians, 2.0 is optimal (see link below)
+    special_scale : float
+        Secondary scaling parameter.
+        The primary parameter is computed below.
+
+    References
+    ----------
+    .. [1] Wan, E. A. and van der Merwe, R., The Unscented Kalman Filter,
+       http://read.pudn.com/downloads135/ebook/574389/wan01unscented.pdf
     """
 
     def __init__(self, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0):
-        """
-        dimension : int
-            Spatial dimensionality
-        spread : float
-            Spread of the sigma points around mean
-        priorpar : float
-            Incorporate prior knowledge about distribution of x.
-            For Gaussians, 2.0 is optimal (see link below)
-        special_scale : float
-            Secondary scaling parameter.
-            The primary parameter is computed below.
-
-        Source
-        ------
-        P. 7 ("Unscented transform:") of
-        https://www.pdx.edu/biomedical-signal-processing-lab/sites/www.pdx.edu.biomedical-signal-processing-lab/files/ukf.wan_.chapt7_.pdf
-        """
         self.scale = _compute_scale(dimension, spread, special_scale)
         self.dimension = dimension
         self.mweights, self.cweights = _unscented_weights(
@@ -38,8 +40,7 @@ class UnscentedTransform:
         )
 
     def sigma_points(self, mean, covar):
-        """
-        Sigma points.
+        """Sigma points.
 
         Parameters
         ----------
@@ -67,8 +68,7 @@ class UnscentedTransform:
         return sigpts
 
     def propagate(self, time, sigmapts, modelfct):
-        """
-        Propagate sigma points.
+        """Propagate sigma points.
 
         Parameters
         ----------
@@ -88,14 +88,12 @@ class UnscentedTransform:
         return propsigpts
 
     def estimate_statistics(self, proppts, sigpts, covmat, mpred):
-        """
-        Computes predicted summary statistics,
-        predicted mean/kernels/crosscovariance,
-        from (propagated) sigmapoints.
+        """Computes predicted summary statistics, predicted
+        mean/kernels/crosscovariance, from (propagated) sigmapoints.
 
-        Not to be confused with mean and kernels resulting
-        from the prediction step of the Bayesian filter.
-        Hence we call it "estimate_*" instead of "predict_*".
+        Not to be confused with mean and kernels resulting from the
+        prediction step of the Bayesian filter. Hence we call it
+        "estimate_*" instead of "predict_*".
         """
         estmean = _estimate_mean(self.mweights, proppts)
         estcovar = _estimate_covar(self.cweights, proppts, estmean, covmat)
@@ -106,8 +104,7 @@ class UnscentedTransform:
 
 
 def _compute_scale(dimension, spread, special_scale):
-    """
-    See BFaS; p. 83
+    """See BFaS; p. 83.
 
     Parameters
     ----------
@@ -127,8 +124,7 @@ def _compute_scale(dimension, spread, special_scale):
 
 
 def _unscented_weights(spread, priorpar, dimension, scale):
-    """
-    See BFaS; p. 84.
+    """See BFaS; p. 84.
 
     Parameters
     ----------
@@ -154,7 +150,8 @@ def _unscented_weights(spread, priorpar, dimension, scale):
 
 
 def _meanweights(dimension, lam):
-    """
+    """Mean weights.
+
     Parameters
     ----------
     dimension: int
@@ -173,7 +170,8 @@ def _meanweights(dimension, lam):
 
 
 def _covarweights(dimension, alp, bet, lam):
-    """
+    """Covariance weights.
+
     Parameters
     ----------
     dimension: int
@@ -196,11 +194,10 @@ def _covarweights(dimension, alp, bet, lam):
 
 
 def _estimate_mean(mweights, proppts):
-    """
-    See BFaS; p. 88.
+    """See BFaS; p. 88.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     mweights: np.ndarray, shape (2*dimension + 1,)
         Constant mean weights for unscented transform.
     proppts: np.ndarray, shape (2*dimension + 1, dimension)
@@ -215,11 +212,10 @@ def _estimate_mean(mweights, proppts):
 
 
 def _estimate_covar(cweights, proppts, mean, covmat):
-    """
-    See BFaS; p. 88.
+    """See BFaS; p. 88.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     cweights: np.ndarray, shape (2*dimension + 1,)
         Constant kernels weights for unscented transform.
     proppts: np.ndarray, shape (2*dimension + 1, dimension)
@@ -240,11 +236,10 @@ def _estimate_covar(cweights, proppts, mean, covmat):
 
 
 def _estimate_crosscovar(cweights, proppts, mean, sigpts, mpred):
-    """
-    See BFaS; p.88.
+    """See BFaS; p.88.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     cweights: np.ndarray, shape (2*dimension + 1,)
         Constant kernels weights for unscented transform.
     sigpts: np.ndarray, shape (2*dimension + 1, dimension)

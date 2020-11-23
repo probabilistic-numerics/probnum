@@ -1,28 +1,26 @@
-"""
-ProbNum
-=====
-Probabilistic Numerics in Python.
-  1. Linear Algebra
-  2. Quadrature
-  3. Differential Equations
-  4. Bayesian filtering and smoothing
-and more.
+"""ProbNum.
 
+ProbNum implements probabilistic numerical methods in Python. Such methods solve
+numerical problems from linear algebra, optimization, quadrature and differential
+equations using probabilistic inference. This approach captures uncertainty arising
+from finite computational resources and stochastic input.
 
-Available subpackages and modules
----------------------------------
-random_variables
-    Random variables.
-linalg
-    Probabilistic numerical linear algebra.
-quad
-    Bayesian quadrature / numerical integration.
-filtsmooth
-    Bayesian filtering and smoothing.
+Available subpackages
+---------------------
 diffeq
     Probabilistic solvers for ordinary differential equations.
+filtsmooth
+    Bayesian filtering and smoothing.
+linalg
+    Probabilistic numerical linear algebra.
+linops
+    Finite-dimensional linear operators.
+quad
+    Bayesian quadrature / numerical integration.
+random_variables
+    Random variables representing uncertain values.
 """
-# -*- coding: utf-8 -*-
+
 from pkg_resources import DistributionNotFound, get_distribution
 
 from . import diffeq, filtsmooth, linalg, linops, quad, random_variables, utils
