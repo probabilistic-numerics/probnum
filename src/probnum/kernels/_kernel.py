@@ -14,9 +14,10 @@ _InputType = TypeVar("InputType")
 class Kernel(Generic[_InputType]):
     """Kernel / covariance function.
 
-    Kernels describes the spatial or temporal variation of a random process. If
-    evaluated at two sets of points a kernel is defined as the covariance of the
-    values of the random process at these locations.
+    Kernels are a generalization of a positive-definite function or matrix. They
+    typically describe the covariance function of a random process and thus describe
+    its spatial or temporal variation. If evaluated at two sets of points a kernel
+    gives the covariance of the random process at these locations.
 
     Parameters
     ----------
@@ -26,10 +27,6 @@ class Kernel(Generic[_InputType]):
         Output dimension of the kernel.
     kernelfun :
         Function defining the kernel. Will be automatically vectorized.
-
-    See Also
-    --------
-    askernel : Convert a callable to a :class:`Kernel`.
 
     Examples
     --------
@@ -206,11 +203,11 @@ class Kernel(Generic[_InputType]):
         """Transform the kernel matrix based on the given arguments.
 
         Standardizes the given evaluation of the covariance function to the correct
-        shape determined by the input arguments. If two vectors are passed the
+        shape determined by the input arguments. If inputs are vectors the
         output is a numpy scalar if the output dimension of the kernel is 1,
-        otherwise *shape=(output_dim, output_dim)*. If multiple observations are
-        passed, then the resulting matrix has *shape=(n0, n1) or (n0, n1, output_dim,
-        output_dim)*.
+        otherwise *shape=(output_dim, output_dim)*. If inputs represent multiple
+        observations, then the resulting matrix has *shape=(n0, n1) or
+        (n0, n1, output_dim, output_dim)*.
 
         Parameters
         ----------

@@ -116,8 +116,12 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
         # Type normalization
         if isinstance(cov, kernels.Kernel):
-            if cov.output_dim != output_dim:
-                raise ValueError("Output dimension of kernel and process do not match.")
+            if cov.input_dim != self.input_dim or cov.output_dim != self.output_dim:
+                raise ValueError(
+                    f"Dimensions of kernel ({cov.input_dim}, "
+                    f"{cov.output_dim}) and process ({self.input_dim}, "
+                    f"{self.output_dim}) do not match."
+                )
             self.__cov = cov
         elif callable(cov):
             self.__cov = kernels.Kernel(
