@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.type import ScalarArgType
+from probnum.type import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 
@@ -20,13 +20,15 @@ class WhiteNoise(Kernel[_InputType]):
 
     Parameters
     ----------
-    sigma
+    input_dim :
+        Input dimension of the kernel.
+    sigma :
         Noise level.
     """
 
-    def __init__(self, sigma: ScalarArgType = 1.0):
+    def __init__(self, input_dim: IntArgType, sigma: ScalarArgType = 1.0):
         self.sigma = _utils.as_numpy_scalar(sigma)
-        super().__init__(output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         x0 = np.atleast_2d(x0)
@@ -35,6 +37,8 @@ class WhiteNoise(Kernel[_InputType]):
         else:
             x1 = np.atleast_2d(x1)
 
-        return self.sigma ** 2 * np.equal(x0, x1[:, np.newaxis, :]).all(
+        kernmat = self.sigma ** 2 * np.equal(x0, x1[:, np.newaxis, :]).all(
             axis=2
         ).T.astype(float)
+
+        return self._normalize_kernelmatrix_shape(kerneval=kernmat, x0=x0, x1=x1)

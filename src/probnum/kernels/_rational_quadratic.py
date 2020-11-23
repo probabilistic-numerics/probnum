@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.type import ScalarArgType
+from probnum.type import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 
@@ -22,6 +22,8 @@ class RatQuad(Kernel[_InputType]):
 
     Parameters
     ----------
+    input_dim :
+        Input dimension of the kernel.
     lengthscale :
         Lengthscale of the kernel. Describes the input scale on which the process
         varies.
@@ -37,19 +39,24 @@ class RatQuad(Kernel[_InputType]):
     --------
     >>> import numpy as np
     >>> from probnum.kernels import RatQuad
-    >>> K = RatQuad(lengthscale=0.1, alpha=3)
+    >>> K = RatQuad(input_dim=1, lengthscale=0.1, alpha=3)
     >>> K(np.array([[1], [.1], [.5]]))
     array([[1.00000000e+00, 4.55539359e-05, 1.22995627e-03],
            [4.55539359e-05, 1.00000000e+00, 3.93643388e-03],
            [1.22995627e-03, 3.93643388e-03, 1.00000000e+00]])
     """
 
-    def __init__(self, lengthscale: ScalarArgType = 1.0, alpha: ScalarArgType = 1.0):
+    def __init__(
+        self,
+        input_dim: IntArgType,
+        lengthscale: ScalarArgType = 1.0,
+        alpha: ScalarArgType = 1.0,
+    ):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
         self.alpha = _utils.as_numpy_scalar(alpha)
         if not self.alpha > 0:
             raise ValueError(f"Scale mixture alpha={self.alpha} must be positive.")
-        super().__init__(output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
 
@@ -65,8 +72,10 @@ class RatQuad(Kernel[_InputType]):
             x1_norm_sq = np.einsum("nd,nd->n", x1, x1)
 
         # Kernel matrix via broadcasting
-        return (
+        kernmat = (
             1.0
             + (x0_norm_sq[:, None] + x1_norm_sq[None, :] - 2 * x0 @ x1.T)
             / (self.alpha * self.lengthscale ** 2)
         ) ** (-self.alpha)
+
+        return self._normalize_kernelmatrix_shape(kerneval=kernmat, x0=x0, x1=x1)

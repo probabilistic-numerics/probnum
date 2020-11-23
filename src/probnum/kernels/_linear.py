@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.type import ScalarArgType
+from probnum.type import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 
@@ -20,6 +20,8 @@ class Linear(Kernel[_InputType]):
 
     Parameters
     ----------
+    input_dim :
+        Input dimension of the kernel.
     shift :
         Constant shift :math:`c`.
 
@@ -31,15 +33,15 @@ class Linear(Kernel[_InputType]):
     --------
     >>> import numpy as np
     >>> from probnum.kernels import Linear
-    >>> K = Linear()
+    >>> K = Linear(input_dim=2)
     >>> K(np.array([[1, 2], [2, 3]]))
     array([[ 5.,  8.],
            [ 8., 13.]])
     """
 
-    def __init__(self, shift: ScalarArgType = 0.0):
+    def __init__(self, input_dim: IntArgType, shift: ScalarArgType = 0.0):
         self.shift = _utils.as_numpy_scalar(shift)
-        super().__init__(output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         x0 = np.atleast_2d(x0)
@@ -48,4 +50,6 @@ class Linear(Kernel[_InputType]):
         else:
             x1 = np.atleast_2d(x1)
 
-        return (x0 - self.shift) @ (x1 - self.shift).T
+        kernmat = (x0 - self.shift) @ (x1 - self.shift).T
+
+        return self._normalize_kernelmatrix_shape(kerneval=kernmat, x0=x0, x1=x1)

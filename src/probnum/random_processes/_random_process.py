@@ -4,8 +4,8 @@ from typing import Callable, Generic, Optional, TypeVar, Union
 
 import numpy as np
 
+import probnum.kernels as kernels
 from probnum import utils as _utils
-from probnum.kernels import Kernel
 from probnum.random_variables import RandomVariable
 from probnum.type import (
     DTypeArgType,
@@ -88,7 +88,9 @@ class RandomProcess(Generic[_InputType, _OutputType]):
             Callable[[_InputType, ShapeType], _OutputType]
         ] = None,
         mean: Optional[Callable[[_InputType], _OutputType]] = None,
-        cov: Optional[Union[Callable[[_InputType], _OutputType], Kernel]] = None,
+        cov: Optional[
+            Union[Callable[[_InputType], _OutputType], kernels.Kernel]
+        ] = None,
         var: Optional[Callable[[_InputType], _OutputType]] = None,
         std: Optional[Callable[[_InputType], _OutputType]] = None,
     ):
@@ -113,16 +115,16 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         self.__std = std
 
         # Type normalization
-        if isinstance(cov, Kernel):
+        if isinstance(cov, kernels.Kernel):
             if cov.output_dim != output_dim:
                 raise ValueError("Output dimension of kernel and process do not match.")
             self.__cov = cov
         elif callable(cov):
-            self.__cov = Kernel(kernel=cov, output_dim=output_dim)
-        elif cov is None:
-            self.__cov = None
+            self.__cov = kernels.Kernel(
+                kernelfun=cov, input_dim=self.input_dim, output_dim=self.output_dim
+            )
         else:
-            raise TypeError("Covariance function is not a callable.")
+            self.__cov = None
 
     def __repr__(self) -> str:
         return (

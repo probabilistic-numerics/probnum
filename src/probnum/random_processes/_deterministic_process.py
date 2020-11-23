@@ -5,6 +5,7 @@ from typing import Callable, TypeVar
 import numpy as np
 
 import probnum.random_variables as rvs
+import probnum.utils as _utils
 from probnum.type import DTypeArgType, IntArgType, RandomStateArgType, ShapeArgType
 
 from . import _random_process
@@ -79,29 +80,37 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     def mean(self, x: _InputType) -> _OutputType:
         x = np.asarray(x)
-        if x.ndim > 1:
-            fun_eval = self._fun(x).reshape(x.shape[0], self.output_dim)
-        else:
+        if x.ndim == 0:
+            fun_eval = _utils.as_numpy_scalar(self._fun(x).squeeze())
+        elif x.ndim == 1:
             fun_eval = self._fun(x).reshape(self.output_dim)
+        else:
+            fun_eval = self._fun(x).reshape(x.shape[0], self.output_dim)
+
         return fun_eval
 
     def cov(self, x0: _InputType, x1: _InputType = None) -> _OutputType:
-        x0 = np.atleast_2d(x0)
+        x0 = np.asarray(x0)
         if x1 is None:
-            x0 = x1
+            x1 = x0
         else:
+            x1 = np.asarray(x1)
+        if x0.ndim < 2 and x1.ndim < 2:
+            cov_shape = (self.output_dim, self.output_dim)
+        else:
+            x0 = np.atleast_2d(x0)
             x1 = np.atleast_2d(x1)
 
-        if self.output_dim == 1:
-            cov_shape = (x0.shape[0], x1.shape[1])
-        else:
-            cov_shape = (x0.shape[0], x1.shape[1], self.output_dim, self.output_dim)
+            if self.output_dim == 1:
+                cov_shape = (x0.shape[0], x1.shape[0])
+            else:
+                cov_shape = (x0.shape[0], x1.shape[0], self.output_dim, self.output_dim)
 
         return np.zeros(shape=cov_shape)
 
     def var(self, x: _InputType) -> _OutputType:
         x = np.asarray(x)
-        if x.ndim == 1:
+        if x.ndim < 2:
             var_shape = self.output_dim
         else:
             var_shape = (x.shape[0], self.output_dim)

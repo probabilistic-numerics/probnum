@@ -122,12 +122,13 @@ class ShapeTestCase(RandomProcessTestCase):
                 x0 = self.rng.normal(size=(n_inputs_x0, rand_proc.input_dim))
                 y0 = rand_proc(x0)
 
-                self.assertTupleEqual(
-                    tuple1=(x0.shape[0], rand_proc.output_dim),
-                    tuple2=y0.shape,
-                    msg=f"Output of {repr(rand_proc)} does not have the "
-                    f"correct shape for multiple inputs.",
-                )
+                if rand_proc.input_dim == 1:
+                    self.assertEqual(
+                        0,
+                        rand_proc(x0[0, 0]).ndim,
+                        msg=f"Output of {repr(rand_proc)} for scalar input should "
+                        f"have 0 dimensions.",
+                    )
 
                 x1 = x0[0, :]
                 y1 = rand_proc(x1)
@@ -138,6 +139,13 @@ class ShapeTestCase(RandomProcessTestCase):
                     f"vector.",
                 )
 
+                self.assertTupleEqual(
+                    tuple1=(x0.shape[0], rand_proc.output_dim),
+                    tuple2=y0.shape,
+                    msg=f"Output of {repr(rand_proc)} does not have the "
+                    f"correct shape for multiple inputs.",
+                )
+
     def test_mean_shape(self):
         """Test whether output shape matches the shape of the mean function of the
         random process."""
@@ -146,6 +154,14 @@ class ShapeTestCase(RandomProcessTestCase):
                 n_inputs_x = 10
                 x0 = self.rng.normal(size=(n_inputs_x, rand_proc.input_dim))
                 mu0 = rand_proc.mean(x0)
+
+                if rand_proc.input_dim == 1:
+                    self.assertEqual(
+                        0,
+                        rand_proc.mean(x0[0, 0]).ndim,
+                        msg=f"Mean of {repr(rand_proc)} for a scalar input should "
+                        f"have 0 dimensions.",
+                    )
 
                 self.assertTupleEqual(
                     tuple1=(x0.shape[0], rand_proc.output_dim),
@@ -175,7 +191,7 @@ class ShapeTestCase(RandomProcessTestCase):
 
                 # Input: (input_dim,), (input_dim,) -- Output: (output_dim, output_dim)
                 self.assertTupleEqual(
-                    tuple1=rand_proc.cov(x0[0, :], x1[0, :]).shape,
+                    tuple1=rand_proc.cov(x0[0, :], x0[0, :]).shape,
                     tuple2=(rand_proc.output_dim, rand_proc.output_dim),
                     msg=f"Covariance of {repr(rand_proc)} does not have the correct "
                     f"shape for vector input.",

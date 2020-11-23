@@ -4,8 +4,8 @@ from typing import Callable, Union
 
 import numpy as np
 
-import probnum
-from probnum.kernels import Kernel
+import probnum.kernels as kernels
+import probnum.utils as _utils
 from probnum.random_variables import Normal
 from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
 
@@ -92,11 +92,12 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def __init__(
         self,
         mean: Callable[[_InputType], _OutputType],
-        cov: Union[Callable[[_InputType], _OutputType], Kernel],
+        cov: Union[Callable[[_InputType], _OutputType], kernels.Kernel],
         input_dim: IntArgType = 1,
         output_dim: IntArgType = 1,
         random_state: RandomStateArgType = None,
     ):
+
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
@@ -109,11 +110,15 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def __call__(self, x: _InputType) -> Normal:
         x = np.asarray(x)
-        if x.ndim > 1:
-            mean_eval = self.mean(x).reshape(x.shape[0], self.output_dim)
-        else:
+        if x.ndim == 0:
+            mean_eval = _utils.as_numpy_scalar(self.mean(x).squeeze())
+            cov_eval = _utils.as_numpy_scalar(self.cov(x).squeeze())
+        elif x.ndim == 1:
             mean_eval = self.mean(x).reshape(self.output_dim)
-        cov_eval = self.cov(x)
+            cov_eval = self.cov(x)
+        else:
+            mean_eval = self.mean(x).reshape(x.shape[0], self.output_dim)
+            cov_eval = self.cov(x)
 
         return Normal(mean=mean_eval, cov=cov_eval)
 

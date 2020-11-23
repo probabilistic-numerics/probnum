@@ -26,7 +26,7 @@ random_variables
 from pkg_resources import DistributionNotFound, get_distribution
 
 from . import diffeq, filtsmooth, kernels, linalg, linops, quad, random_variables, utils
-from .kernels import Kernel, askernel
+from .kernels import Kernel
 from .random_processes import RandomProcess, asrandproc
 from .random_variables import RandomVariable, asrandvar
 

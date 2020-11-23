@@ -5,12 +5,10 @@ from ._kernel import Kernel
 from ._linear import Linear
 from ._polynomial import Polynomial
 from ._rational_quadratic import RatQuad
-from ._utils import askernel
 from ._white_noise import WhiteNoise
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
-    "askernel",
     "Kernel",
     "WhiteNoise",
     "Linear",

@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import probnum.utils as _utils
-from probnum.type import ScalarArgType
+from probnum.type import IntArgType, ScalarArgType
 
 from ._kernel import Kernel
 
@@ -21,6 +21,8 @@ class ExpQuad(Kernel[_InputType]):
 
     Parameters
     ----------
+    input_dim :
+        Input dimension of the kernel.
     lengthscale
         Lengthscale of the kernel. Describes the input scale on which the process
         varies.
@@ -33,16 +35,16 @@ class ExpQuad(Kernel[_InputType]):
     --------
     >>> import numpy as np
     >>> from probnum.kernels import ExpQuad
-    >>> K = ExpQuad(lengthscale=0.1)
+    >>> K = ExpQuad(input_dim=1, lengthscale=0.1)
     >>> K(np.array([[1], [.1], [.5]]))
     array([[1.00000000e+00, 2.57675711e-18, 3.72665317e-06],
            [2.57675711e-18, 1.00000000e+00, 3.35462628e-04],
            [3.72665317e-06, 3.35462628e-04, 1.00000000e+00]])
     """
 
-    def __init__(self, lengthscale: ScalarArgType = 1.0):
+    def __init__(self, input_dim: IntArgType, lengthscale: ScalarArgType = 1.0):
         self.lengthscale = _utils.as_numpy_scalar(lengthscale)
-        super().__init__(output_dim=1)
+        super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         # Transform into 2d array
@@ -58,7 +60,8 @@ class ExpQuad(Kernel[_InputType]):
             x1_norm_sq = np.einsum("nd,nd->n", x1, x1)
 
         # Kernel matrix via broadcasting
-        return np.exp(
+        kernmat = np.exp(
             -(x0_norm_sq[:, None] + x1_norm_sq[None, :] - 2 * x0 @ x1.T)
             / (2 * self.lengthscale ** 2)
         )
+        return self._normalize_kernelmatrix_shape(kerneval=kernmat, x0=x0, x1=x1)

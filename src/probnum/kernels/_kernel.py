@@ -1,10 +1,12 @@
 """Kernel / covariance function."""
 
-from typing import Callable, Generic, Optional, TypeVar
+from typing import Callable, Generic, Optional, TypeVar, Union
 
 import numpy as np
+import scipy.spatial
 
-from probnum.type import IntArgType
+import probnum.utils as _utils
+from probnum.type import IntArgType, ScalarArgType
 
 _InputType = TypeVar("InputType")
 
@@ -18,14 +20,12 @@ class Kernel(Generic[_InputType]):
 
     Parameters
     ----------
-    kernel :
-        Function :math:`k: \\mathbb{R}^{d_{in}} \\times \\mathbb{R}^{d_{in}} \\rightarrow
-        \\mathbb{R}^{d_{out} \\times d_{out}}` defining the kernel. Assumed to be
-        vectorized and callable with the second argument being `None`.
+    input_dim :
+        Input dimension of the kernel.
     output_dim :
-        Output dimension of the kernel. If larger than 1, ``fun`` must return a
-        matrix of dimension *(output_dim, output_dim)* representing the covariance at
-        the inputs.
+        Output dimension of the kernel.
+    kernelfun :
+        Function defining the kernel. Will be automatically vectorized.
 
     See Also
     --------
@@ -39,35 +39,35 @@ class Kernel(Generic[_InputType]):
     >>> # Data
     >>> x = np.array([[1, 2], [-1, -1]])
     >>> # Custom kernel from a (non-vectorized) covariance function
-    >>> k = pn.askernel(lambda x0, x1: (x0.T @ x1 - 1.0) ** 2)
-    >>> k(x)
-    array([[16., 16.],
-           [16.,  1.]])
-    >>> # Custom kernel implemented more efficiently via vectorization
-    >>> def custom_kernel_fun(x0, x1=None):
-    ...     if x1 is None:
-    ...         x1 = x0
-    ...     return (x0 @ x1.T - 1.0) ** 2
-    >>> k = Kernel(output_dim=1, kernel=custom_kernel_fun)
+    >>> k = Kernel(kernelfun=lambda x0, x1: (x0.T @ x1 - 1.0) ** 2, input_dim=2)
     >>> k(x)
     array([[16., 16.],
            [16.,  1.]])
     """
 
+    # pylint: disable="invalid-name"
     def __init__(
         self,
-        output_dim: IntArgType,
-        kernel: Optional[
+        input_dim: IntArgType,
+        output_dim: IntArgType = 1,
+        kernelfun: Optional[
             Callable[[_InputType, Optional[_InputType]], np.ndarray]
         ] = None,
     ):
-        self.__kernel = kernel
+        self._input_dim = input_dim
         self._output_dim = output_dim
+        self.__kernelfun = (
+            self._as_vectorized_kernel_function(fun=kernelfun)
+            if kernelfun is not None
+            else None
+        )
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}>"
 
-    def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
+    def __call__(
+        self, x0: _InputType, x1: Optional[_InputType] = None
+    ) -> Union[np.ndarray, np.float_]:
         """Evaluate the kernel.
 
         Computes the covariance function at ``x0`` and ``x1``. If the inputs have
@@ -87,12 +87,24 @@ class Kernel(Generic[_InputType]):
         cov :
             *shape=(output_dim, output_dim) or (n0, n1) or (n0, n1, output_dim,
             output_dim)* -- Kernel evaluated at ``x0`` and ``x1`` or kernel matrix
-            containing pairwise evaluations for all observations in ``x0`` and ``x1``.
+            containing pairwise evaluations for all observations in ``x0`` (and ``x1``).
         """
-        if self.__kernel is not None:
-            return self.__kernel(x0, x1)
+        if self.__kernelfun is not None:
+            return self._normalize_kernelmatrix_shape(
+                kerneval=self.__kernelfun(x0, x1), x0=x0, x1=x1
+            )
         else:
             raise NotImplementedError
+
+    @property
+    def input_dim(self) -> int:
+        """Dimension of arguments of the covariance function.
+
+        The dimension of inputs to the covariance function :math:`k : \\mathbb{R}^{
+        d_{in}} \\times \\mathbb{R}^{d_{in}} \\rightarrow
+        \\mathbb{R}^{d_{out} \\times d_{out}}`.
+        """
+        return self._input_dim
 
     @property
     def output_dim(self) -> int:
@@ -103,3 +115,115 @@ class Kernel(Generic[_InputType]):
         output_dim)*.
         """
         return self._output_dim
+
+    def _normalize_kernelmatrix_shape(
+        self,
+        kerneval: Union[np.ndarray, ScalarArgType],
+        x0: _InputType,
+        x1: Optional[_InputType] = None,
+    ) -> np.ndarray:
+        """Normalize the shape of a kernel matrix based on the given arguments.
+
+        Standardizes the given evaluation of the covariance function to the correct
+        shape determined by the input arguments. If two vectors are passed the
+        output is a numpy scalar if the output dimension of the kernel is 1,
+        otherwise *shape=(output_dim, output_dim)*. If multiple observations are
+        passed, then the resulting matrix has *shape=(n0, n1) or (n0, n1, output_dim,
+        output_dim)*.
+
+        Parameters
+        ----------
+        kerneval
+            Covariance function evaluated at ``x0`` and ``x1``.
+        x0 :
+            *shape=(input_dim,) or (n0, input_dim)* -- First input to the covariance
+            function.
+        x1 :
+            *shape=(input_dim,) or (n1, input_dim)* -- Second input to the covariance
+            function.
+        """
+        x0 = np.asarray(x0)
+        if x1 is None:
+            x1 = x0
+        else:
+            x1 = np.asarray(x1)
+        if x0.ndim == 0 and x1.ndim == 0:
+            return _utils.as_numpy_scalar(kerneval)
+        elif x0.ndim == 1 and x1.ndim == 1:
+            kern_shape = (self.output_dim, self.output_dim)
+        else:
+            if self.output_dim == 1:
+                kern_shape = (x0.shape[0], x1.shape[0])
+            else:
+                kern_shape = (
+                    x0.shape[0],
+                    x1.shape[0],
+                    self.output_dim,
+                    self.output_dim,
+                )
+
+        return kerneval.reshape(kern_shape)
+
+    def _as_vectorized_kernel_function(
+        self,
+        fun: Callable[
+            [_InputType, Optional[_InputType]], Union[np.ndarray, ScalarArgType]
+        ],
+    ) -> Callable[[_InputType, Optional[_InputType]], Union[np.ndarray, np.float_]]:
+        """Transform a function into a vectorized covariance function.
+
+        Creates a kernel / covariance function from a (non-vectorized) function
+        :math:`k : \\mathbb{R}^{d_{in}} \\times \\mathbb{R}^{d_{in}} \\rightarrow
+        \\mathbb{R}`. When a kernel matrix is computed the given function ``fun`` is
+        applied to all pairs of inputs.
+
+        Parameters
+        ----------
+        fun
+            (Non-vectorized) covariance function.
+        """
+        if callable(fun):
+            rng = np.random.default_rng(42)
+            x0 = rng.normal(size=(2, self.input_dim))
+            x1 = rng.normal(size=(3, self.input_dim))
+            # Check if given function is already vectorized
+            try:
+                kernmat = fun(x0, x1)
+                outshape = (x0.shape[0], x1.shape[0])
+                if (self.output_dim == 1 and kernmat.shape == outshape) or (
+                    self.output_dim > 1
+                    and kernmat.shape == (outshape + (self.output_dim, self.output_dim))
+                ):
+                    # Make second argument optional
+                    def _fun(x0, x1=None):
+                        if x1 is None:
+                            x1 = x0
+                        return fun(x0, x1)
+
+                    return _fun
+            except AttributeError:
+                pass
+
+            # Vectorize given kernel function
+            def _kernfun_vectorized(x0, x1=None) -> np.ndarray:
+                # pylint: disable=invalid-name
+                x0 = np.asarray(x0)
+                if x1 is None:
+                    x1 = x0
+                else:
+                    x1 = np.asarray(x1)
+                if x0.ndim < 2 and x1.ndim < 2:
+                    return np.asarray(fun(x0, x1)).reshape(1, 1)
+                else:
+                    x0 = np.atleast_2d(x0)
+                    x1 = np.atleast_2d(x1)
+
+                    # Evaluate fun pairwise for all rows of x0 and x1
+                    return scipy.spatial.distance.cdist(x0, x1, metric=fun)
+
+            return _kernfun_vectorized
+        else:
+            raise TypeError(
+                f"The given covariance function of type {type(fun)} is "
+                f"not a callable."
+            )
