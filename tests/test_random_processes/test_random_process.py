@@ -193,9 +193,12 @@ class ShapeTestCase(RandomProcessTestCase):
                 x1 = self.rng.normal(size=(n_inputs_x1, rand_proc.input_dim))
 
                 # Input: (input_dim,), (input_dim,) -- Output: (output_dim, output_dim)
+                out_shape = ()
+                if rand_proc.output_dim > 1:
+                    out_shape += (rand_proc.output_dim, rand_proc.output_dim)
                 self.assertTupleEqual(
                     tuple1=rand_proc.cov(x0[0, :], x0[0, :]).shape,
-                    tuple2=(rand_proc.output_dim, rand_proc.output_dim),
+                    tuple2=out_shape,
                     msg=f"Covariance of {repr(rand_proc)} does not have the correct "
                     f"shape for vector input.",
                 )
@@ -229,7 +232,7 @@ class ShapeTestCase(RandomProcessTestCase):
                         tuple1=sample_paths.shape,
                         tuple2=(n_inputs_x,)
                         + _utils.as_shape(sample_size)
-                        + rand_proc.output_shape,
+                        + (rand_proc.output_dim,),
                         msg=f"Samples from {repr(rand_proc)} do not have the correct "
                         f"shape.",
                     )
@@ -238,7 +241,7 @@ class ShapeTestCase(RandomProcessTestCase):
 class MethodTestCase(RandomProcessTestCase):
     """Test the methods of a random process."""
 
-    def test_output_random_variable(self):
+    def test_output_is_random_variable(self):
         """Test whether evaluating a random process returns a random variable."""
         for rand_proc in self.random_processes:
             with self.subTest():
@@ -258,3 +261,24 @@ class MethodTestCase(RandomProcessTestCase):
         for rand_proc in self.random_processes:
             with self.subTest():
                 self.assertTrue(callable(rand_proc.sample(size=())))
+
+    def test_rp_function_evaluated_matches_rv_property(self):
+        """Check whether evaluating functions of a random process is equivalent to the
+        properties of the evaluated random process."""
+        for rand_proc in self.random_processes:
+            with self.subTest():
+                x = np.random.normal(size=(10, rand_proc.input_dim))
+
+                self.assertAllClose(
+                    rand_proc(x).mean,
+                    rand_proc.mean(x),
+                    msg=f"Mean of evaluated {repr(rand_proc)} does not match the "
+                    f"random process mean function evaluated.",
+                )
+
+                self.assertAllClose(
+                    rand_proc(x).cov,
+                    rand_proc.cov(x),
+                    msg=f"Covariance of evaluated {repr(rand_proc)} does not match the "
+                    f"random process mean function evaluated.",
+                )

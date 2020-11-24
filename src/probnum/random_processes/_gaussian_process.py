@@ -45,13 +45,12 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Examples
     --------
     >>> import numpy as np
+    >>> from probnum.kernels import ExpQuad
     >>> from probnum.random_processes import GaussianProcess
     >>> # Gaussian process definition
-    >>> mean = lambda x : np.zeros_like(x)  # zero-mean function
-    >>> kernel = lambda x0, x1, _: np.exp(
-    ...     -0.5 * np.sum(np.subtract.outer(x0, x1) ** 2, axis=(1, 3))
-    ... )  # exponentiated quadratic kernel
-    >>> gp = GaussianProcess(mean=mean, cov=kernel)
+    >>> mu = lambda x : np.zeros_like(x)  # zero-mean function
+    >>> k = ExpQuad(input_dim=1)# RBF kernel
+    >>> gp = GaussianProcess(mu, k)
     >>> # Sample path
     >>> x = np.linspace(-1, 1, 5)[:, None]
     >>> np.random.seed(42)
@@ -61,32 +60,12 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
            [-0.65094306],
            [-0.56817194],
            [ 0.01173088]])
-
-    >>> # Multi-output Gaussian process
-    >>> cov_coreg_expquad = lambda x0, x1, _: np.multiply.outer(
-    ...     kernel(x0, x1, _), np.array([[4, 2], [2, 1]])
-    ... )
-    >>> gp = GaussianProcess(
-    ...     mean=mean, cov=cov_coreg_expquad, output_shape=2
-    ... )
-    >>> x = np.array([-1, 0, 1])[:, None]
-    >>> K = gp.cov(x)
-    >>> K.shape
-    (3, 3, 2, 2)
-    >>> # Covariance matrix in output-dimension-first order
-    >>> np.transpose(K, axes=[2, 0, 3, 1]).reshape(2 * x.shape[0], 2 * x.shape[0])
-    array([[4.        , 2.42612264, 0.54134113, 2.        , 1.21306132,
-            0.27067057],
-           [2.42612264, 4.        , 2.42612264, 1.21306132, 2.        ,
-            1.21306132],
-           [0.54134113, 2.42612264, 4.        , 0.27067057, 1.21306132,
-            2.        ],
-           [2.        , 1.21306132, 0.27067057, 1.        , 0.60653066,
-            0.13533528],
-           [1.21306132, 2.        , 1.21306132, 0.60653066, 1.        ,
-            0.60653066],
-           [0.27067057, 1.21306132, 2.        , 0.13533528, 0.60653066,
-            1.        ]])
+    >>> gp.cov(x)
+    array([[1.        , 0.8824969 , 0.60653066, 0.32465247, 0.13533528],
+           [0.8824969 , 1.        , 0.8824969 , 0.60653066, 0.32465247],
+           [0.60653066, 0.8824969 , 1.        , 0.8824969 , 0.60653066],
+           [0.32465247, 0.60653066, 0.8824969 , 1.        , 0.8824969 ],
+           [0.13533528, 0.32465247, 0.60653066, 0.8824969 , 1.        ]])
     """
 
     def __init__(

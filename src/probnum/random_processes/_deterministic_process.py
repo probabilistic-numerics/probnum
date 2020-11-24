@@ -50,8 +50,8 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
     >>> import numpy as np
     >>> from probnum import random_processes as rps
     >>> f = lambda x : 2.0 * x ** 2 - 1.25 * x + 5.0
-    >>> rp = rps.DeterministicProcess(fun=f)
-    >>> x = np.linspace(0, 1, 10)
+    >>> rp = rps.DeterministicProcess(fun=f, input_dim=1, output_dim=1)
+    >>> x = np.linspace(0, 1, 10)[:, None]
     >>> np.all(rp.sample(x) == f(x))
     True
     """
@@ -112,4 +112,4 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
         return self._reshape_output(np.zeros(shape=var_shape), x_shape=x.shape)
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
-        return np.tile(self.__call__(x), reps=size)
+        return np.tile(self.mean(x), reps=size)
