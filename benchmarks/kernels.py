@@ -8,18 +8,18 @@ import probnum.kernels as kernels
 KERNEL_NAMES = ["white_noise", "linear", "polynomial", "exp_quad", "rat_quad"]
 
 
-def get_kernel(kernel_name):
+def get_kernel(kernel_name, input_dim):
     """Return a kernel for a given name."""
     if kernel_name == "white_noise":
-        kernel = kernels.WhiteNoise()
+        kernel = kernels.WhiteNoise(input_dim=input_dim)
     elif kernel_name == "linear":
-        kernel = kernels.Linear()
+        kernel = kernels.Linear(input_dim=input_dim)
     elif kernel_name == "polynomial":
-        kernel = kernels.Polynomial()
+        kernel = kernels.Polynomial(input_dim=input_dim)
     elif kernel_name == "exp_quad":
-        kernel = kernels.ExpQuad()
+        kernel = kernels.ExpQuad(input_dim=input_dim)
     elif kernel_name == "rat_quad":
-        kernel = kernels.RatQuad()
+        kernel = kernels.RatQuad(input_dim=input_dim)
     else:
         raise ValueError(f"Kernel name '{kernel_name}' not recognized.")
 
@@ -33,10 +33,11 @@ class Kernels:
     params = [KERNEL_NAMES]
 
     def setup(self, kernel):
-        # pylint: missing-function-docstring
+        # pylint: missing-function-docstring,attribute-defined-outside-init,missing-function-docstring
         rng = np.random.default_rng(42)
-        self.data = rng.normal(size=(1000, 100))
-        self.kernel = get_kernel(kernel_name=kernel)
+        self.input_dim = 100
+        self.data = rng.normal(size=(1000, self.input_dim))
+        self.kernel = get_kernel(kernel_name=kernel, input_dim=self.input_dim)
 
     def time_kernel_matrix(self, kernel):
         """Times sampling from this distribution."""
