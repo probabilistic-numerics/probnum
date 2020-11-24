@@ -16,6 +16,7 @@ __all__ = [
     "seir",
     "rigidbody",
     "vanderpol",
+    "threebody",
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",

@@ -13,6 +13,7 @@ __all__ = [
     "seir",
     "rigidbody",
     "vanderpol",
+    "threebody",
     "IVP",
 ]
 
@@ -338,7 +339,7 @@ def vanderpol(timespan, initrv, params=0.1):
         or Normal (noisy). To replicate "classical" initial values
         use the Dirac distribution.
     params : (float), optional
-        Parameters :math:`\mu` for the Van der Pol Equations
+        Parameter :math:`\mu` for the Van der Pol Equations
         Default is :math:`\mu=0.1`.
 
     Returns
@@ -375,6 +376,72 @@ def vanderpol_jac(t, y, params):
         (mu,) = params
 
     return np.array([[0.0, 1.0], [-2.0 * mu * y2 * y1 - 1.0, mu * (1.0 - y1 ** 2)]])
+
+
+def threebody(timespan, initrv, params=0.012277471):
+    r"""
+    Initial value problem (IVP) based on a three-body problem.
+
+    The three-body problem is defined as follows:
+    Let the initial conditions be :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`.
+
+    .. math::
+
+        f(t, y) =
+        \begin{pmatrix}
+            y_1 + 2 \dot{y}_2 - \frac{(1 - \mu) (y_1 + \mu)}{d_1} - \frac{\mu (y_1 - (1 - \mu))}{d_2} \\
+            y_2 - 2 \dot{y}_1 - \frac{(1 - \mu) y_2}{d_1} - \frac{\mu y_2}{d_2}
+        \end{pmatrix}
+
+    with
+
+    .. math::
+
+        d_1 &= ((y_1 + \mu)^2 + y_2^2)^{\frac{3}{2}} \\
+        d_2 &= ((y_1 - (1 - \mu))^2 + y_2^2)^{\frac{3}{2}}
+
+    and a constant parameter  :math:`\mu` denoting the standardized moon mass.
+    Default is :math:`\mu = 0.012277471`.
+
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    initrv : RandomVariable,
+        RandomVariable that  describes the belief over the initial
+        value. Usually its distribution is Dirac (noise-free)
+        or Normal (noisy). To replicate "classical" initial values
+        use the Dirac distribution.
+    params : (float), optional
+        Parameter :math:`\mu` for the three-body problem
+        Default is :math:`\mu = 0.012277471`.
+
+    Returns
+    -------
+    IVP
+        IVP object describing a three-body problem IVP with the prescribed
+        configuration.
+    """
+
+    def rhs(t, y):
+        return threebody_rhs(t, y, params)
+
+    return IVP(timespan, initrv, rhs)
+
+
+def threebody_rhs(t, y, params):
+    y1, y2, y1_dot, y2_dot = y
+    if isinstance(params, float):
+        mu = params
+    else:
+        (mu,) = params
+    mp = 1.0 - mu
+    d1 = ((y1 + mu) ** 2 + y2 ** 2) ** 1.5
+    d2 = ((y1 - mp) ** 2 + y2 ** 2) ** 1.5
+
+    y1p = y1 + 2.0 * y2_dot - mp * (y1 + mu) / d1 - mu * (y1 - mp) / d2
+    y2p = y2 - 2.0 * y1_dot - mp * y2 / d1 - mu * y2 / d2
+    return np.array([y1_dot, y2_dot, y1p, y2p])
 
 
 class IVP(ODE):
