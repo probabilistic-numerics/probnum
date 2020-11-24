@@ -374,7 +374,7 @@ def vanderpol_jac(t, y, params):
     else:
         (mu,) = params
 
-    return np.array([[0.0, 1.0], [2.0 * mu * y2 - 1.0, mu * (1.0 - y1 ** 2)]])
+    return np.array([[0.0, 1.0], [-2.0 * mu * y2 * y1 - 1.0, mu * (1.0 - y1 ** 2)]])
 
 
 class IVP(ODE):
