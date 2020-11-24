@@ -40,10 +40,10 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use the Constant distribution.
+        Scalar-valued RandomVariable (shape: :code:`()`) that describes the belief
+        over the initial value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy) with scalar mean and scalar variance.
+        To replicate "classical" initial values use the Constant distribution.
     params : (float, float), optional
         Parameters :math:`(a, b)` for the logistic IVP.
         Default is :math:`(a, b) = (3.0, 1.0)`.
@@ -118,10 +118,11 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use the Constant distribution.
+        Vector-valued RandomVariable (shape: :code:`(2, )`) that describes the belief
+        over the initial value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy) with :math:`2`-dimensional mean vector and
+        :math:`2 \times 2`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.0, 0.08, 0.07, 1.25)`.
@@ -178,10 +179,11 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use the Constant distribution.
+        Vector-valued RandomVariable (shape: :code:`(2, )`) that describes the belief
+        over the initial value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy) with :math:`2`-dimensional mean vector and
+        :math:`2 \times 2`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(a, b, c, d)` for the logistic IVP.
         Default is :math:`(a, b, c, d)=(0.5, 0.05, 0.5, 0.05)`.
@@ -241,10 +243,11 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        Vector-valued RandomVariable (shape: :code:`(4, )`) that describes the belief
+        over the initial value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy) with :math:`4`-dimensional mean vector and
+        :math:`4 \times 4`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float, float), optional
         Parameters :math:`(\alpha, \beta, \gamma, N)` for the SEIR model IVP.
         Default is :math:`(\alpha, \beta, \gamma, N)=(0.3, 0.3, 0.1, 10^7)`.
@@ -295,10 +298,11 @@ def rigidbody(timespan, initrv):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        Vector-valued RandomVariable (shape: :code:`(3, )`) that describes the belief
+        over the initial value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy) with :math:`3`-dimensional mean vector and
+        :math:`3 \times 3`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
     Returns
     -------
     IVP
@@ -349,10 +353,11 @@ def vanderpol(timespan, initrv, params=0.1):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        Vector-valued RandomVariable (shape: :code:`(2, )`) that  describes the belief
+        over the initial value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy) with :math:`2`-dimensional mean vector and
+        :math:`2 \times 2`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
     params : (float), optional
         Parameter :math:`\mu` for the Van der Pol Equations
         Default is :math:`\mu=0.1`.
@@ -404,6 +409,8 @@ def threebody(timespan, initrv, params=0.012277471):
 
         f(t, y) =
         \begin{pmatrix}
+            \dot{y_1} \\
+            \dot{y_2} \\
             y_1 + 2 \dot{y}_2 - \frac{(1 - \mu) (y_1 + \mu)}{d_1}
                 - \frac{\mu (y_1 - (1 - \mu))}{d_2} \\
             y_2 - 2 \dot{y}_1 - \frac{(1 - \mu) y_2}{d_1} - \frac{\mu y_2}{d_2}
@@ -424,10 +431,11 @@ def threebody(timespan, initrv, params=0.012277471):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
-        value. Usually its distribution is Dirac (noise-free)
-        or Normal (noisy). To replicate "classical" initial values
-        use the Dirac distribution.
+        Vector-valued RandomVariable (shape: :code:`(4, )`) that  describes the belief
+        over the initial value. Usually its distribution is Constant (noise-free)
+        or Normal (noisy) with :math:`4`-dimensional mean vector and
+        :math:`4 \times 4`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
     params : (float), optional
         Parameter :math:`\mu` for the three-body problem
         Default is :math:`\mu = 0.012277471`.
