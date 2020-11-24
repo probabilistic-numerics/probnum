@@ -34,20 +34,14 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
         self.mean_functions = [mean_zero]
 
         # Covariance functions
-        cov_noise = kernels.WhiteNoise(sigma=10 ** -3)
-        cov_lin = kernels.Linear(shift=-1.0)
-        cov_poly = kernels.Polynomial(constant=1.0, exponent=3)
-        cov_expquad = kernels.ExpQuad(lengthscale=0.5)
-        cov_ratquad = kernels.RatQuad(lengthscale=2.0, alpha=0.5)
-
-        # def cov_coreg_expquad(x0, x1):
-        #     """Coregionalization kernel multiplied with an RBF kernel."""
-        #     covmat = np.multiply.outer(cov_expquad(x0, x1), np.array([[4, 2], [2, 1]]))
-        #     return np.transpose(covmat, axes=[2, 0, 3, 1]).reshape(
-        #         2 * x0.shape[0], 2 * x1.shape[0]
-        #     )
-
-        self.cov_functions = [cov_noise, cov_lin, cov_poly, cov_expquad, cov_ratquad]
+        self.cov_functions = [
+            (kernels.Kernel, {"kernelfun": lambda x0, x1: np.inner(x0, x1).squeeze()}),
+            (kernels.Linear, {"shift": 1.0}),
+            (kernels.WhiteNoise, {"sigma": -1.0}),
+            (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
+            (kernels.ExpQuad, {"lengthscale": 1.5}),
+            (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
+        ]
 
         # Deterministic processes
         self.deterministic_processes = [
@@ -58,18 +52,15 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
 
         # Gaussian processes
         self.gaussian_processes = [
-            rps.GaussianProcess(mean=lambda x: mean_zero(x), cov=cov_lin),
             rps.GaussianProcess(
-                mean=lambda x: mean_zero(x),
-                cov=cov_poly,
-                input_dim=2,
-                output_dim=1,
+                mean=lambda x: mean_zero(x), cov=kernels.Linear(shift=1.0, input_dim=1)
             ),
             rps.GaussianProcess(
-                mean=lambda x: mean_zero(x),
-                cov=cov_expquad,
-                input_dim=3,
-                output_dim=1,
+                mean=mean_zero,
+                cov=kernels.Polynomial(exponent=3, constant=0.5, input_dim=2),
+            ),
+            rps.GaussianProcess(
+                mean=mean_zero, cov=kernels.ExpQuad(lengthscale=1.5, input_dim=3)
             ),
             # rps.GaussianProcess(
             #     mean=lambda x: mean_zero(x, out_dim=2),
@@ -113,6 +104,40 @@ class ArithmeticTestCase(RandomProcessTestCase):
 class ShapeTestCase(RandomProcessTestCase):
     """Test shapes of random process in-/output and associated functions."""
 
+    def _generic_shape_assert(self, x0, rand_proc, fun):
+        """A generic shape test for functions of a random process taking one input."""
+        if rand_proc.input_dim == 1:
+            self.assertEqual(
+                0,
+                fun(x0[0, 0]).ndim,
+                msg=f"Output of {repr(rand_proc)} for scalar input should "
+                f"have 0 dimensions.",
+            )
+
+        if rand_proc.output_dim == 1:
+            self.assertEqual(
+                0,
+                fun(x0[0, :]).ndim,
+                msg=f"Output of {repr(rand_proc)} for vector input should "
+                f"have 0 dimensions.",
+            )
+        else:
+            x1 = x0[0, :]
+            y1 = fun(x1)
+            self.assertTupleEqual(
+                tuple1=(rand_proc.output_dim,),
+                tuple2=y1.shape,
+                msg=f"Output of {repr(rand_proc)} for vector input should be a "
+                f"vector.",
+            )
+
+        self.assertTupleEqual(
+            tuple1=(x0.shape[0], rand_proc.output_dim),
+            tuple2=fun(x0).shape,
+            msg=f"Output of {repr(rand_proc)} does not have the "
+            f"correct shape for multiple inputs.",
+        )
+
     def test_output_shape(self):
         """Test whether evaluations of the random process have shape=(output_shape,) for
         an input vector or shape=(n, output_shape) for multiple inputs."""
@@ -120,31 +145,7 @@ class ShapeTestCase(RandomProcessTestCase):
             with self.subTest():
                 n_inputs_x0 = 10
                 x0 = self.rng.normal(size=(n_inputs_x0, rand_proc.input_dim))
-                y0 = rand_proc(x0)
-
-                if rand_proc.input_dim == 1:
-                    self.assertEqual(
-                        0,
-                        rand_proc(x0[0, 0]).ndim,
-                        msg=f"Output of {repr(rand_proc)} for scalar input should "
-                        f"have 0 dimensions.",
-                    )
-
-                x1 = x0[0, :]
-                y1 = rand_proc(x1)
-                self.assertTupleEqual(
-                    tuple1=(rand_proc.output_dim,),
-                    tuple2=y1.shape,
-                    msg=f"Output of {repr(rand_proc)} for vector input should be a "
-                    f"vector.",
-                )
-
-                self.assertTupleEqual(
-                    tuple1=(x0.shape[0], rand_proc.output_dim),
-                    tuple2=y0.shape,
-                    msg=f"Output of {repr(rand_proc)} does not have the "
-                    f"correct shape for multiple inputs.",
-                )
+                self._generic_shape_assert(x0=x0, rand_proc=rand_proc, fun=rand_proc)
 
     def test_mean_shape(self):
         """Test whether output shape matches the shape of the mean function of the
@@ -153,30 +154,32 @@ class ShapeTestCase(RandomProcessTestCase):
             with self.subTest():
                 n_inputs_x = 10
                 x0 = self.rng.normal(size=(n_inputs_x, rand_proc.input_dim))
-                mu0 = rand_proc.mean(x0)
-
-                if rand_proc.input_dim == 1:
-                    self.assertEqual(
-                        0,
-                        rand_proc.mean(x0[0, 0]).ndim,
-                        msg=f"Mean of {repr(rand_proc)} for a scalar input should "
-                        f"have 0 dimensions.",
-                    )
-
-                self.assertTupleEqual(
-                    tuple1=(x0.shape[0], rand_proc.output_dim),
-                    tuple2=mu0.shape,
-                    msg=f"Mean of {repr(rand_proc)} does not have the "
-                    f"correct shape for multiple inputs.",
+                self._generic_shape_assert(
+                    x0=x0, rand_proc=rand_proc, fun=rand_proc.mean
                 )
 
-                x1 = x0[0, :]
-                mu1 = rand_proc.mean(x1)
-                self.assertTupleEqual(
-                    tuple1=(rand_proc.output_dim,),
-                    tuple2=mu1.shape,
-                    msg=f"Mean of {repr(rand_proc)} for vector input should be a "
-                    f"vector.",
+    def test_var_shape(self):
+        """Test whether output shape matches the shape of the variance function of the
+        random process."""
+        for rand_proc in self.random_processes:
+            with self.subTest():
+                # Data
+                n_inputs_x0 = 10
+                x0 = self.rng.normal(size=(n_inputs_x0, rand_proc.input_dim))
+                self._generic_shape_assert(
+                    x0=x0, rand_proc=rand_proc, fun=rand_proc.var
+                )
+
+    def test_std_shape(self):
+        """Test whether output shape matches the shape of the standard deviation
+        function of the random process."""
+        for rand_proc in self.random_processes:
+            with self.subTest():
+                # Data
+                n_inputs_x0 = 10
+                x0 = self.rng.normal(size=(n_inputs_x0, rand_proc.input_dim))
+                self._generic_shape_assert(
+                    x0=x0, rand_proc=rand_proc, fun=rand_proc.std
                 )
 
     def test_cov_shape(self):
@@ -206,35 +209,6 @@ class ShapeTestCase(RandomProcessTestCase):
                     tuple1=rand_proc.cov(x0, x1).shape,
                     tuple2=out_shape,
                     msg=f"Covariance of {repr(rand_proc)} does not have the correct "
-                    f"shape for multiple inputs.",
-                )
-
-    def test_var_shape(self):
-        """Test whether output shape matches the shape of the variance function of the
-        random process."""
-        for rand_proc in self.random_processes:
-            with self.subTest():
-                # Data
-                n_inputs_x0 = 10
-                x0 = self.rng.normal(size=(n_inputs_x0, rand_proc.input_dim))
-
-                # Input: (input_dim,)-- Output: (output_dim, )
-                self.assertTupleEqual(
-                    tuple1=rand_proc.var(x0[0, :]).shape,
-                    tuple2=(rand_proc.output_dim,),
-                    msg=f"Variance of {repr(rand_proc)} does not have the correct "
-                    f"shape for vector input.",
-                )
-
-                # Input: (n0, input_dim), (n1, input_dim) -- Output: (n0, n1)
-                # or if output_dim > 1: (n0, n1, output_dim, output_dim)
-                out_shape = (n_inputs_x0,)
-                if rand_proc.output_dim > 1:
-                    out_shape += (rand_proc.output_dim,)
-                self.assertTupleEqual(
-                    tuple1=rand_proc.var(x0).shape,
-                    tuple2=out_shape,
-                    msg=f"Variance of {repr(rand_proc)} does not have the correct "
                     f"shape for multiple inputs.",
                 )
 

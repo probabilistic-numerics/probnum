@@ -80,14 +80,7 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
 
     def mean(self, x: _InputType) -> _OutputType:
         x = np.asarray(x)
-        if x.ndim == 0:
-            fun_eval = _utils.as_numpy_scalar(self._fun(x).squeeze())
-        elif x.ndim == 1:
-            fun_eval = self._fun(x).reshape(self.output_dim)
-        else:
-            fun_eval = self._fun(x).reshape(x.shape[0], self.output_dim)
-
-        return fun_eval
+        return self._reshape_output(output=self._fun(x), x_shape=x.shape)
 
     def cov(self, x0: _InputType, x1: _InputType = None) -> _OutputType:
         x0 = np.asarray(x0)
@@ -96,6 +89,8 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
         else:
             x1 = np.asarray(x1)
         if x0.ndim < 2 and x1.ndim < 2:
+            if self.output_dim == 1:
+                return np.float_(0)
             cov_shape = (self.output_dim, self.output_dim)
         else:
             x0 = np.atleast_2d(x0)
@@ -114,7 +109,7 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
             var_shape = self.output_dim
         else:
             var_shape = (x.shape[0], self.output_dim)
-        return np.zeros(shape=var_shape)
+        return self._reshape_output(np.zeros(shape=var_shape), x_shape=x.shape)
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         return np.tile(self.__call__(x), reps=size)

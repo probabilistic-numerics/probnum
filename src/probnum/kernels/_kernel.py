@@ -50,8 +50,8 @@ class Kernel(Generic[_InputType]):
             Callable[[_InputType, Optional[_InputType]], np.ndarray]
         ] = None,
     ):
-        self._input_dim = input_dim
-        self._output_dim = output_dim
+        self.__input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
+        self.__output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
         self.__kernelfun = (
             self._as_vectorized_kernel_function(fun=kernelfun)
             if kernelfun is not None
@@ -81,7 +81,7 @@ class Kernel(Generic[_InputType]):
         Returns
         -------
         cov :
-            *shape=(output_dim, output_dim) or (n0, n1) or (n0, n1, output_dim,
+            *shape=(), (output_dim, output_dim) or (n0, n1) or (n0, n1, output_dim,
             output_dim)* -- Kernel evaluated at ``x0`` and ``x1`` or kernel matrix
             containing pairwise evaluations for all observations in ``x0`` (and ``x1``).
         """
@@ -101,7 +101,7 @@ class Kernel(Generic[_InputType]):
         d_{in}} \\times \\mathbb{R}^{d_{in}} \\rightarrow
         \\mathbb{R}^{d_{out} \\times d_{out}}`.
         """
-        return self._input_dim
+        return self.__input_dim
 
     @property
     def output_dim(self) -> int:
@@ -111,7 +111,7 @@ class Kernel(Generic[_InputType]):
         \\mathbb{R}^{d_{out} \\times d_{out}}` has *shape=(output_dim,
         output_dim)*.
         """
-        return self._output_dim
+        return self.__output_dim
 
     def _check_and_transform_input(
         self,

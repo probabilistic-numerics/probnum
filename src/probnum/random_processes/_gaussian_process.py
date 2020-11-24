@@ -93,10 +93,20 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         self,
         mean: Callable[[_InputType], _OutputType],
         cov: Union[Callable[[_InputType], _OutputType], kernels.Kernel],
-        input_dim: IntArgType = 1,
-        output_dim: IntArgType = 1,
+        input_dim: IntArgType = None,
+        output_dim: IntArgType = None,
         random_state: RandomStateArgType = None,
     ):
+        if not isinstance(cov, kernels.Kernel) and (
+            input_dim is None or output_dim is None
+        ):
+            raise ValueError(
+                "If 'cov' is not a Kernel, 'input_dim' and 'output_dim' must be "
+                "specified."
+            )
+        else:
+            input_dim = cov.input_dim
+            output_dim = cov.output_dim
 
         super().__init__(
             input_dim=input_dim,
@@ -109,18 +119,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
         )
 
     def __call__(self, x: _InputType) -> Normal:
-        x = np.asarray(x)
-        if x.ndim == 0:
-            mean_eval = _utils.as_numpy_scalar(self.mean(x).squeeze())
-            cov_eval = _utils.as_numpy_scalar(self.cov(x).squeeze())
-        elif x.ndim == 1:
-            mean_eval = self.mean(x).reshape(self.output_dim)
-            cov_eval = self.cov(x)
-        else:
-            mean_eval = self.mean(x).reshape(x.shape[0], self.output_dim)
-            cov_eval = self.cov(x)
-
-        return Normal(mean=mean_eval, cov=cov_eval)
+        return Normal(mean=self.mean(x), cov=self.cov(x))
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
         return self.__call__(x).sample(size=size)
