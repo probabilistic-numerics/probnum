@@ -1,6 +1,6 @@
 from .ivp import *
-from .ode import *
 from .ivp_examples import *
+from .ode import *
 
 __all__ = [
     "ODE",
