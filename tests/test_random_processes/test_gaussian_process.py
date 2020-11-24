@@ -2,6 +2,7 @@
 
 import numpy as np
 
+import probnum.utils as _utils
 from probnum import random_variables as rvs
 
 from .test_random_process import RandomProcessTestCase
@@ -19,6 +20,6 @@ class PropertiesTestCase(GaussianProcessTestCase):
         variable."""
         for gp in self.gaussian_processes:
             with self.subTest():
-                x = np.random.normal(size=(5,) + gp.input_shape)
+                x = np.random.normal(size=(5,) + _utils.as_shape(gp.input_dim))
                 gp_eval = gp(x)
                 self.assertIsInstance(gp_eval, rvs.Normal)

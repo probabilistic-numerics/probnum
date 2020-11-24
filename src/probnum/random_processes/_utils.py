@@ -27,13 +27,15 @@ def asrandproc(obj: Any) -> _random_process.RandomProcess:
     Examples
     --------
     >>> import probnum as pn
-    >>> f = lambda x : x ** 2 + 1.0
-    >>> rp = pn.asrandproc(f)
-    >>> rp(2)
+    >>> f = pn.asrandproc(lambda x : x ** 2 + 1.0)
+    >>> f
+    <RandomProcess with input_dim=1, output_dim=1, dtype=float64>
+    >>> f(2)
+    <Constant with shape=(), dtype=float64>
+    >>> f.mean(2)
     5.0
-    >>> rp
-    <RandomProcess with input_shape=1, output_shape=1, dtype=float64>
     """
+    # TODO replace this function with an initialization in Random Process
     if isinstance(obj, _random_process.RandomProcess):
         return obj
     elif callable(obj):
@@ -42,6 +44,9 @@ def asrandproc(obj: Any) -> _random_process.RandomProcess:
             output_dim=1,
             dtype=np.dtype(np.float_),
             fun=lambda x: probnum.asrandvar(obj(x)),
+            mean=lambda x: probnum.asrandvar(obj(x)).mean,
+            # cov=lambda x: probnum.asrandvar(obj(x)).cov,
+            sample_at_input=lambda x, size: probnum.asrandvar(obj(x)).sample(size),
         )
     else:
         raise ValueError(

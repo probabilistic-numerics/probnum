@@ -112,4 +112,9 @@ class DeterministicProcess(_random_process.RandomProcess[_InputType, _OutputType
         return self._reshape_output(np.zeros(shape=var_shape), x_shape=x.shape)
 
     def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
-        return np.tile(self.mean(x), reps=size)
+        mean_eval = self.mean(x)
+        size = _utils.as_shape(size)
+        if len(size) == 0 or size[0] == 1:
+            return mean_eval
+        else:
+            return np.tile(mean_eval, reps=size + (1, 1))

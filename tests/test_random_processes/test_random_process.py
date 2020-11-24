@@ -227,12 +227,19 @@ class ShapeTestCase(RandomProcessTestCase):
 
                     # Sample paths
                     sample_paths = rand_proc.sample(x, size=sample_size)
+                    sample_size = _utils.as_shape(sample_size)
+                    if len(sample_size) > 0 and sample_size[0] > 1:
+                        sample_shape = sample_size
+                    else:
+                        sample_shape = ()
+                    sample_shape += (
+                        n_inputs_x,
+                        rand_proc.output_dim,
+                    )
 
                     self.assertTupleEqual(
                         tuple1=sample_paths.shape,
-                        tuple2=(n_inputs_x,)
-                        + _utils.as_shape(sample_size)
-                        + (rand_proc.output_dim,),
+                        tuple2=sample_shape,
                         msg=f"Samples from {repr(rand_proc)} do not have the correct "
                         f"shape.",
                     )
@@ -262,9 +269,10 @@ class MethodTestCase(RandomProcessTestCase):
             with self.subTest():
                 self.assertTrue(callable(rand_proc.sample(size=())))
 
-    def test_rp_function_evaluated_matches_rv_property(self):
-        """Check whether evaluating functions of a random process is equivalent to the
-        properties of the evaluated random process."""
+    def test_rp_mean_cov_evaluated_matches_rv_mean_cov(self):
+        """Check whether the evaluated mean and covariance function of a random process
+        is equivalent to the mean and covariance of the evaluated random process as a
+        random variable."""
         for rand_proc in self.random_processes:
             with self.subTest():
                 x = np.random.normal(size=(10, rand_proc.input_dim))

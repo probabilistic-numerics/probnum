@@ -85,7 +85,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
         random_state: RandomStateArgType = None,
         fun: Optional[Callable[[_InputType], RandomVariable[_OutputType]]] = None,
         sample_at_input: Optional[
-            Callable[[_InputType, ShapeType], _OutputType]
+            Callable[[_InputType, ShapeArgType], _OutputType]
         ] = None,
         mean: Optional[Callable[[_InputType], _OutputType]] = None,
         cov: Optional[
