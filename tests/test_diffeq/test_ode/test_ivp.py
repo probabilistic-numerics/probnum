@@ -87,6 +87,16 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
             lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
         )
 
+    def test_seir(self):
+        """
+        Test the SEIR ODE convenience function.
+        """
+        rv = Constant(0.1)
+        lg1 = ivp.seir(self.tspan, rv)
+        self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
+        lg2 = ivp.seir(self.tspan, rv, params=(1.0, 1.0))
+        self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
+
 
 class TestIVP(unittest.TestCase):
     def setUp(self):
