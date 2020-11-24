@@ -91,11 +91,65 @@ class TestExamples(unittest.TestCase, NumpyAssertions):
         """
         Test the SEIR ODE convenience function.
         """
-        rv = Constant(0.1)
+        rv = Constant(np.array([1.0, 0.0, 0.0, 0.0]))
         lg1 = ivp.seir(self.tspan, rv)
         self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
-        lg2 = ivp.seir(self.tspan, rv, params=(1.0, 1.0))
+        lg2 = ivp.seir(self.tspan, rv, params=(1.0, 1.0, 1.0, 1.0))
         self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
+
+    def test_rigidbody(self):
+        """
+        Test the rigidbody ODE convenience function.
+        """
+        rv = Constant(np.array([1.0, 1.0, 1.0]))
+        lg1 = ivp.rigidbody(self.tspan, rv)
+        self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
+
+    def test_rigidbody_jacobian(self):
+        rv = Constant(np.array([1.0, 1.0, 1.0]))
+        lg1 = ivp.rigidbody(self.tspan, rv)
+        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
+        random_point = 1 + np.random.rand(lg1.dimension)
+        fd_approx = (
+            0.5
+            * 1e11
+            * (
+                lg1(0.1, random_point + 1e-11 * random_direction)
+                - lg1(0.1, random_point - 1e-11 * random_direction)
+            )
+        )
+        self.assertAllClose(
+            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+        )
+
+    def test_vanderpol(self):
+        """
+        Test the Van der Pol ODE convenience function.
+        """
+        rv = Constant(np.array([1.0, 1.0]))
+        lg1 = ivp.vanderpol(self.tspan, rv)
+        self.assertEqual(issubclass(type(lg1), ivp.IVP), True)
+        lg2 = ivp.vanderpol(self.tspan, rv, params=(2.0,))
+        self.assertEqual(issubclass(type(lg2), ivp.IVP), True)
+        lg3 = ivp.vanderpol(self.tspan, rv, params=2.0)
+        self.assertEqual(issubclass(type(lg3), ivp.IVP), True)
+
+    def test_vanderpol_jacobian(self):
+        rv = Constant(np.array([1.0, 1.0]))
+        lg1 = ivp.vanderpol(self.tspan, rv)
+        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
+        random_point = 1 + np.random.rand(lg1.dimension)
+        fd_approx = (
+            0.5
+            * 1e11
+            * (
+                lg1(0.1, random_point + 1e-11 * random_direction)
+                - lg1(0.1, random_point - 1e-11 * random_direction)
+            )
+        )
+        self.assertAllClose(
+            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+        )
 
 
 class TestIVP(unittest.TestCase):
