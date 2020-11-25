@@ -45,7 +45,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import ExpQuad
+    >>> from probnum.kerns import ExpQuad
     >>> from probnum.random_processes import GaussianProcess
     >>> # Gaussian process definition
     >>> mu = lambda x : np.zeros_like(x)  # zero-mean function

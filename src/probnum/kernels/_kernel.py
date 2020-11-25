@@ -31,7 +31,7 @@ class Kernel(Generic[_InputType]):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import Kernel
+    >>> from probnum.kerns import Kernel
     >>> # Data
     >>> x = np.array([[1, 2], [-1, -1]])
     >>> # Custom kernel from a (non-vectorized) covariance function

@@ -33,7 +33,7 @@ class Polynomial(Kernel[_InputType]):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import Polynomial
+    >>> from probnum.kerns import Polynomial
     >>> K = Polynomial(input_dim=2, constant=1.0, exponent=3)
     >>> K(np.array([[1, -1], [-1, 0]]))
     array([[27.,  0.],

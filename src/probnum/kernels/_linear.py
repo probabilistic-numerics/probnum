@@ -32,7 +32,7 @@ class Linear(Kernel[_InputType]):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import Linear
+    >>> from probnum.kerns import Linear
     >>> K = Linear(input_dim=2)
     >>> K(np.array([[1, 2], [2, 3]]))
     array([[ 5.,  8.],

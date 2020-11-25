@@ -4,9 +4,8 @@ import unittest
 
 import numpy as np
 
-import probnum
 import probnum.utils as _utils
-from probnum import kernels as kernels
+from probnum import kernels as kerns
 from probnum import random_processes as rps
 from probnum import random_variables as rvs
 from tests.testing import NumpyAssertions
@@ -35,12 +34,12 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
 
         # Covariance functions
         self.cov_functions = [
-            (kernels.Kernel, {"kernelfun": lambda x0, x1: np.inner(x0, x1).squeeze()}),
-            (kernels.Linear, {"shift": 1.0}),
-            (kernels.WhiteNoise, {"sigma": -1.0}),
-            (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
-            (kernels.ExpQuad, {"lengthscale": 1.5}),
-            (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
+            (kerns.Kernel, {"kernelfun": lambda x0, x1: np.inner(x0, x1).squeeze()}),
+            (kerns.Linear, {"shift": 1.0}),
+            (kerns.WhiteNoise, {"sigma": -1.0}),
+            (kerns.Polynomial, {"constant": 1.0, "exponent": 3}),
+            (kerns.ExpQuad, {"lengthscale": 1.5}),
+            (kerns.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
         ]
 
         # Deterministic processes
@@ -53,14 +52,14 @@ class RandomProcessTestCase(unittest.TestCase, NumpyAssertions):
         # Gaussian processes
         self.gaussian_processes = [
             rps.GaussianProcess(
-                mean=lambda x: mean_zero(x), cov=kernels.Linear(shift=1.0, input_dim=1)
+                mean=mean_zero, cov=kerns.Linear(shift=1.0, input_dim=1)
             ),
             rps.GaussianProcess(
                 mean=mean_zero,
-                cov=kernels.Polynomial(exponent=3, constant=0.5, input_dim=2),
+                cov=kerns.Polynomial(exponent=3, constant=0.5, input_dim=2),
             ),
             rps.GaussianProcess(
-                mean=mean_zero, cov=kernels.ExpQuad(lengthscale=1.5, input_dim=3)
+                mean=mean_zero, cov=kerns.ExpQuad(lengthscale=1.5, input_dim=3)
             ),
             # rps.GaussianProcess(
             #     mean=lambda x: mean_zero(x, out_dim=2),

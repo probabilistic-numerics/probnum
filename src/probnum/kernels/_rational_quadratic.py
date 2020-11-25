@@ -38,7 +38,7 @@ class RatQuad(Kernel[_InputType]):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kernels import RatQuad
+    >>> from probnum.kerns import RatQuad
     >>> K = RatQuad(input_dim=1, lengthscale=0.1, alpha=3)
     >>> K(np.array([[1], [.1], [.5]]))
     array([[1.00000000e+00, 4.55539359e-05, 1.22995627e-03],
