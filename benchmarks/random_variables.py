@@ -39,6 +39,8 @@ def get_randvar(rv_name):
         randvar = rvs.Normal(mean=mean_2d_mat, cov=cov_2d_symkron)
     elif rv_name == "operatorvar_normal":
         randvar = rvs.Normal(mean=mean_2d_linop, cov=cov_2d_symkron)
+    else:
+        raise ValueError("Random variable not found.")
 
     return randvar
 
@@ -50,16 +52,12 @@ class Functions:
     params = [RV_NAMES, ["pdf", "logpdf", "cdf", "logcdf"]]
 
     def setup(self, randvar, method):
-        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
-
         self.randvar = get_randvar(rv_name=randvar)
         self.eval_point = np.random.uniform(size=self.randvar.shape)
         self.quantile = np.random.uniform(size=self.randvar.shape)
 
     def time_distr_functions(self, randvar, method):
         """Times evaluation of the pdf, logpdf, cdf and logcdf."""
-        # pylint: disable=unused-argument
-
         try:
             if method == "pdf":
                 self.randvar.pdf(x=self.eval_point)
@@ -80,19 +78,14 @@ class Sampling:
     params = [RV_NAMES]
 
     def setup(self, randvar):
-        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
         np.random.seed(42)
         self.n_samples = 1000
         self.randvar = get_randvar(rv_name=randvar)
 
     def time_sample(self, randvar):
         """Times sampling from this distribution."""
-        # pylint: disable=unused-argument
-
         self.randvar.sample(self.n_samples)
 
     def peakmem_sample(self, randvar):
         """Peak memory of sampling process."""
-        # pylint: disable=unused-argument
-
         self.randvar.sample(self.n_samples)
