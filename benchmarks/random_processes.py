@@ -12,9 +12,18 @@ RP_NAMES = ["gaussian"]
 def get_randproc(rp_name, input_dim, output_dim):
     """Return a random process for a given name."""
 
+    def mean_zero(x, out_dim=1):
+        x = np.asarray(x)
+        if x.ndim > 1:
+            shape = (x.shape[0], out_dim)
+        else:
+            shape = (out_dim,)
+
+        return np.zeros(shape=shape)
+
     if rp_name == "gaussian":
         randproc = rps.GaussianProcess(
-            mean=np.zeros_like,
+            mean=mean_zero,
             cov=kerns.ExpQuad(input_dim=input_dim),
             input_dim=input_dim,
             output_dim=output_dim,
@@ -48,22 +57,27 @@ class Functions:
     def time_cov(self, randproc, input_dim):
         self.randproc.cov(self.x)
 
+    def time_var(self, randproc, input_dim):
+        self.randproc.var(self.x)
+
 
 class Sampling:
     """Benchmark sampling routines for various distributions."""
 
-    param_names = ["randproc", "n_samples"]
-    params = [RP_NAMES, [10, 100, 1000]]
+    param_names = ["randproc", "input_dim", "n_samples"]
+    params = [RP_NAMES, [1, 10, 100], [10, 100, 1000]]
 
-    def setup(self, randproc, n_samples):
+    def setup(self, randproc, input_dim, n_samples):
         np.random.seed(42)
         self.n_samples = n_samples
-        self.randproc = get_randproc(rp_name=randproc, input_dim=1, output_dim=1)
+        self.randproc = get_randproc(
+            rp_name=randproc, input_dim=input_dim, output_dim=1
+        )
 
-    def time_sample(self, randproc, n_samples):
+    def time_sample(self, randproc, input_dim, n_samples):
         """Times sampling from this distribution."""
         self.randproc.sample(size=self.n_samples)
 
-    def peakmem_sample(self, randproc, n_samples):
+    def peakmem_sample(self, randproc, input_dim, n_samples):
         """Peak memory of sampling process."""
         self.randproc.sample(size=self.n_samples)
