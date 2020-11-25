@@ -5,7 +5,6 @@ from typing import Callable, Union
 import numpy as np
 
 import probnum.kernels as kernels
-import probnum.utils as _utils
 from probnum.random_variables import Normal
 from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
 
@@ -45,7 +44,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Examples
     --------
     >>> import numpy as np
-    >>> from probnum.kerns import ExpQuad
+    >>> from probnum.kernels import ExpQuad
     >>> from probnum.random_processes import GaussianProcess
     >>> # Gaussian process definition
     >>> mu = lambda x : np.zeros_like(x)  # zero-mean function

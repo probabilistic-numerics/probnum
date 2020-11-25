@@ -1,6 +1,5 @@
-"""
-This module implements binary arithmetic operators between pairs of random processes.
-"""
+"""This module implements binary arithmetic operators between pairs of random
+processes."""
 
 
 ########################################################################################

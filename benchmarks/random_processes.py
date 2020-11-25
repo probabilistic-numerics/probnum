@@ -2,17 +2,25 @@
 
 import numpy as np
 
+from probnum import kernels as kerns
 from probnum import random_processes as rps
 
 # Module level variables
 RP_NAMES = ["gaussian"]
 
 
-def get_randproc(rp_name):
+def get_randproc(rp_name, input_dim, output_dim):
     """Return a random process for a given name."""
 
     if rp_name == "gaussian":
-        randproc = rps.GaussianProcess()
+        randproc = rps.GaussianProcess(
+            mean=np.zeros_like,
+            cov=kerns.ExpQuad(input_dim=input_dim),
+            input_dim=input_dim,
+            output_dim=output_dim,
+        )
+    else:
+        raise ValueError(f"Unknown random process '{rp_name}'.")
 
     return randproc
 
@@ -20,45 +28,42 @@ def get_randproc(rp_name):
 class Functions:
     """Benchmark various functions of random processes."""
 
-    param_names = ["randvar", "method"]
-    params = [RP_NAMES]
+    param_names = ["randproc", "input_dim"]
+    params = [RP_NAMES, [1, 10, 100]]
 
-    def setup(self, randproc, method):
-        # pylint: disable=unused-argument,missing-function-docstring
+    def setup(self, randproc, input_dim):
+        self.rng = np.random.default_rng(41)
+        self.randproc = get_randproc(
+            rp_name=randproc, input_dim=input_dim, output_dim=1
+        )
+        self.x = self.rng.normal((1000, input_dim))
 
-        self.randvar = get_randproc(rp_name=randproc)
-
-    def time_eval(self):
+    def time_eval(self, randproc, input_dim):
         """Time evaluation of the random process at a set of inputs."""
-        pass
+        self.randproc(self.x)
 
-    def time_mean(self):
-        pass
+    def time_mean(self, randproc, input_dim):
+        self.randproc.mean(self.x)
 
-    def time_cov(self):
-        pass
+    def time_cov(self, randproc, input_dim):
+        self.randproc.cov(self.x)
 
 
 class Sampling:
     """Benchmark sampling routines for various distributions."""
 
-    param_names = ["randproc"]
-    params = [RP_NAMES]
+    param_names = ["randproc", "n_samples"]
+    params = [RP_NAMES, [10, 100, 1000]]
 
-    def setup(self, randvar):
-        # pylint: disable=unused-argument,attribute-defined-outside-init,missing-function-docstring
+    def setup(self, randproc, n_samples):
         np.random.seed(42)
-        self.n_samples = 1000
-        self.randproc = get_randproc(rp_name=randvar)
+        self.n_samples = n_samples
+        self.randproc = get_randproc(rp_name=randproc, input_dim=1, output_dim=1)
 
-    def time_sample(self, randproc):
+    def time_sample(self, randproc, n_samples):
         """Times sampling from this distribution."""
-        # pylint: disable=unused-argument
+        self.randproc.sample(size=self.n_samples)
 
-        self.randproc.sample(self.n_samples)
-
-    def peakmem_sample(self, randproc):
+    def peakmem_sample(self, randproc, n_samples):
         """Peak memory of sampling process."""
-        # pylint: disable=unused-argument
-
-        self.randproc.sample(self.n_samples)
+        self.randproc.sample(size=self.n_samples)
