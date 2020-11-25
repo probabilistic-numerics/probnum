@@ -33,7 +33,7 @@ class Kernels:
     params = [KERNEL_NAMES]
 
     def setup(self, kernel):
-        # pylint: missing-function-docstring,attribute-defined-outside-init,missing-function-docstring
+        # pylint: missing-function-docstring,attribute-defined-outside-init
         rng = np.random.default_rng(42)
         self.input_dim = 100
         self.data = rng.normal(size=(1000, self.input_dim))

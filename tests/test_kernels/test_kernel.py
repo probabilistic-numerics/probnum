@@ -107,8 +107,8 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
                         scipy.spatial.distance.cdist(
                             np.atleast_2d(X0),
                             np.atleast_2d(X1),
-                            metric=lambda x0, x1: _utils.as_numpy_scalar(
-                                kern(x0, x1).squeeze()
+                            metric=lambda x0, x1, k=kern: _utils.as_numpy_scalar(
+                                k(x0, x1).squeeze()
                             ),
                         ),
                         rtol=10 ** -12,
