@@ -114,3 +114,21 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
                         rtol=10 ** -12,
                         atol=10 ** -12,
                     )
+
+    def test_misshaped_input(self):
+        """Test whether misshaped/mismatched input throws an error."""
+        kern = kernels.Kernel(
+            input_dim=2, output_dim=1, kernelfun=lambda x0, x1: np.array(1.0)
+        )
+        datasets = [
+            (1, 1),
+            (1.0, np.array([1.0, 0.0])),
+            (np.array([1.0, 0.0, 0.2]), np.array([1.0, 0.0, 2.3])),
+            (np.array([[1.0]]), np.array([[1.0, -1.0]])),
+        ]
+        with self.subTest():
+            for x0, x1 in datasets:
+                with self.assertRaises(ValueError):
+                    kern(x0, x1)
+                with self.assertRaises(ValueError):
+                    kern(x0)
