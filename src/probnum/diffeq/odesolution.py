@@ -109,18 +109,14 @@ class ODESolution(FiltSmoothPosterior):
 
     @property
     def dy(self):
-        """
-        :obj:`list` of :obj:`RandomVariable`: Derivatives of the discrete-time solution
-        """
+        """:obj:`list` of :obj:`RandomVariable`: Derivatives of the discrete-time solution"""
         projmat = self._solver.prior.proj2coord(coord=1)
         dy_rvs = [projmat @ rv for rv in self._state_rvs]
         return _RandomVariableList(dy_rvs)
 
     @property
     def _state_rvs(self):
-        """
-        :obj:`list` of :obj:`RandomVariable`:
-        """
+        """:obj:`list` of :obj:`RandomVariable`:"""
         return self._kalman_posterior.state_rvs
 
     def __call__(self, t):
