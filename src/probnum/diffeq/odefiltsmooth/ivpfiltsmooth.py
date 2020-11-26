@@ -128,7 +128,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         return smoothed_solution
 
-
     def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
         """Estimate the local errors.
 

@@ -115,7 +115,6 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = dynamicsmat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
-
     @property
     def dimension(self):
         # risky to evaluate at zero, but works well
