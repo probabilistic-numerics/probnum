@@ -173,47 +173,48 @@ def probsolve_ivp(
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
     >>> from probnum import random_variables as rvs
+    >>> import numpy as np
     >>> initrv = rvs.Constant(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
-    >>> print(solution.y.mean)
-    [[0.15      ]
-     [0.2076198 ]
-     [0.27932997]
-     [0.3649165 ]
-     [0.46054129]
-     [0.55945475]
-     [0.65374523]
-     [0.73686744]
-     [0.8053776 ]
-     [0.85895587]
-     [0.89928283]
-     [0.92882899]
-     [0.95007559]
-     [0.96515825]
-     [0.97577054]
-     [0.9831919 ]]
+    >>> print(np.round(solution.y.mean, 2))
+    [[0.15]
+     [0.21]
+     [0.28]
+     [0.36]
+     [0.46]
+     [0.56]
+     [0.65]
+     [0.74]
+     [0.81]
+     [0.86]
+     [0.9 ]
+     [0.93]
+     [0.95]
+     [0.97]
+     [0.98]
+     [0.98]]
 
     >>> initrv = rvs.Constant(0.15)
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
-    >>> print(solution.y.mean)
-    [[0.15      ]
-     [0.20837029]
-     [0.28203135]
-     [0.36939685]
-     [0.46639109]
-     [0.56591654]
-     [0.66046815]
-     [0.74369078]
-     [0.81236993]
-     [0.86592196]
-     [0.90595777]
-     [0.93495254]
-     [0.95543867]
-     [0.96968542]
-     [0.9794734 ]
-     [0.98614926]]
+    >>> print(np.round(solution.y.mean, 2))
+    [[0.15]
+     [0.21]
+     [0.28]
+     [0.37]
+     [0.47]
+     [0.57]
+     [0.66]
+     [0.74]
+     [0.81]
+     [0.87]
+     [0.91]
+     [0.93]
+     [0.96]
+     [0.97]
+     [0.98]
+     [0.99]]
     """
     gfilt, firststep, stprl = _create_solver_inputs(
         ivp, method, which_prior, tol, step, firststep, **kwargs
