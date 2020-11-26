@@ -27,18 +27,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
     """
 
     def __init__(self, ivp, gaussfilt, with_smoothing):
-        """
-        gaussfilt : gaussianfilter.GaussianFilter object,
-            e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
-
-        Notes
-        -----
-        * gaussfilt.dynamics_model contains the prior,
-        * gaussfilt.measurementmodel contains the information about the
-        ODE right hand side function,
-        * gaussfilt.initialdistribution contains the information about
-        the initial values.
-        """
         if not issubclass(type(gaussfilt.dynamics_model), pnfs.statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
