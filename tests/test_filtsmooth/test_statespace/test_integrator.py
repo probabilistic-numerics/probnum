@@ -146,9 +146,9 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
 
 
 class TestMatern(unittest.TestCase, NumpyAssertions):
-    """
-    Test whether coefficients for q=1, 2 match closed form.
-    and whether coefficients for q=0 are Ornstein Uhlenbeck.
+    """Test whether coefficients for q=1, 2 match closed form.
+
+    ... and whether coefficients for q=0 are Ornstein Uhlenbeck.
     """
 
     def setUp(self):
@@ -158,7 +158,10 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         self.mat2 = pnfs.statespace.Matern(2, 1, lenscale, diffconst)
 
     def test_n0(self):
-        """Closed form solution for ordint=0. This is the OUP."""
+        """Closed form solution for ordint=0.
+
+        This is the OUP.
+        """
         xi = np.sqrt(2 * (self.mat0.dimension - 0.5)) / self.mat0.lengthscale
         self.assertAlmostEqual(self.mat0.driftmat[0, 0], -xi)
 
