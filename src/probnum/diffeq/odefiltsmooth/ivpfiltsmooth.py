@@ -7,14 +7,23 @@ from probnum.random_variables import Normal
 
 
 class GaussianIVPFilter(odesolver.ODESolver):
-    """
-    ODE solver that behaves like a Gaussian filter.
-
+    """ODE solver that behaves like a Gaussian filter.
 
     This is based on continuous-discrete Gaussian filtering.
 
     Note: this is specific for IVPs and does not apply without
     further considerations to, e.g., BVPs.
+
+    Parameters
+    ----------
+    gaussfilt : gaussianfilter.GaussianFilter
+        e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
+
+    Notes
+    -----
+    - gaussfilt.dynamicmodel contains the prior,
+    - gaussfilt.measurementmodel contains the information about the ODE right hand side function,
+    - gaussfilt.initialdistribution contains the information about the initial values.
     """
 
     def __init__(self, ivp, gaussfilt, with_smoothing):
@@ -79,10 +88,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return filt_rv, err
 
     def postprocess(self, times, rvs):
-        """
-        Rescale covariances with sigma square estimate,
-        (if specified) smooth the estimate, return ODESolution.
-        """
+        """Rescale covariances with sigma square estimate, (if specified) smooth the
+        estimate, return ODESolution."""
         if False:  # pylint: disable=using-constant-test
             # will become useful again for time-fixed diffusion models
             rvs = self._rescale(rvs)
@@ -96,9 +103,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         rvs = [Normal(rv.mean, self.sigma_squared_mle * rv.cov) for rv in rvs]
         return rvs
 
-    def _odesmooth(self, ode_solution):
-        """
-        Smooth out the ODE-Filter output.
+    def _odesmooth(self, ode_solution, **kwargs):
+        """Smooth out the ODE-Filter output.
 
         Be careful about the preconditioning: the GaussFiltSmooth object
         only knows the state space with changed coordinates!
@@ -122,8 +128,9 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         return smoothed_solution
 
-    def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat):
-        """Estimate the local errors
+
+    def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
+        """Estimate the local errors.
 
         This corresponds to the approach in [1], implemented such that it is compatible
         with the EKF1 and UKF.
@@ -141,7 +148,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return np.sqrt(error)
 
     def _estimate_diffusion(self, meas_rv):
-        """Estimate the dynamic diffusion parameter sigma_squared
+        """Estimate the dynamic diffusion parameter sigma_squared.
 
         This corresponds to the approach in [1], implemented such that it is compatible
         with the EKF1 and UKF.

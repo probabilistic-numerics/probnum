@@ -1,7 +1,5 @@
-"""
-Gaussian filtering and smoothing based on making intractable quantities
-tractable through Taylor-method approximations, e.g. linearization.
-"""
+"""Gaussian filtering and smoothing based on making intractable quantities tractable
+through Taylor-method approximations, e.g. linearization."""
 
 import numpy as np
 

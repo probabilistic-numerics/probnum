@@ -12,8 +12,7 @@ from . import discrete_transition, transition
 
 
 class SDE(transition.Transition):
-    """
-    Stochastic differential equation.
+    """Stochastic differential equation.
 
     .. math:: d x_t = g(t, x_t) d t + L(t) d w_t,
 
@@ -57,8 +56,7 @@ class SDE(transition.Transition):
 
 
 class LinearSDE(SDE):
-    """
-    Linear stochastic differential equation (SDE),
+    """Linear stochastic differential equation (SDE),
 
     .. math:: d x_t = [G(t) x_t + v(t)] d t + L(t) x_t d w_t.
 
@@ -208,9 +206,8 @@ class LTISDE(LinearSDE):
         return discretised_model.transition_rv(rv, start)
 
     def discretise(self, step):
-        """
-        Returns a discrete transition model (i.e. mild solution to SDE)
-        using matrix fraction decomposition.
+        """Returns a discrete transition model (i.e. mild solution to SDE) using matrix
+        fraction decomposition.
 
         That is, matrices A(h) and Q(h) and vector s(h) such
         that the transition is
@@ -227,8 +224,7 @@ class LTISDE(LinearSDE):
 
 
 def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun):
-    """
-    Computes mean and covariance of SDE solution.
+    """Computes mean and covariance of SDE solution.
 
     For a linear(ised) SDE
 
@@ -299,9 +295,8 @@ def _rk4_step(mean, cov, time, step, fun):
 
 
 def _increment_fun(time, mean, cov, driftfun, jacobfun, dispmatfun):
-    """
-    Euler step for closed form solutions of ODE defining mean
-    and covariance of the closed-form transition.
+    """Euler step for closed form solutions of ODE defining mean and covariance of the
+    closed-form transition.
 
     Maybe make this into a different solver (euler sucks).
 

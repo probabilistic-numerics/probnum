@@ -11,8 +11,7 @@ __all__ = ["Transition", "generate"]
 
 
 class Transition(abc.ABC):
-    """
-    Markov transition rules in discrete or continuous time.
+    """Markov transition rules in discrete or continuous time.
 
     In continuous time, this is a Markov process and described by a
     stochastic differential equation (SDE)
@@ -193,17 +192,16 @@ class Transition(abc.ABC):
     def dimension(self) -> int:
         """Dimension of the transition model.
 
-        Not all transition models have a unique dimension.
-        Some turn a state (x, y) into a scalar z and it
-        is not clear whether the dimension should be 2 or 1.
+        Not all transition models have a unique dimension. Some turn a
+        state (x, y) into a scalar z and it is not clear whether the
+        dimension should be 2 or 1.
         """
         raise NotImplementedError
 
 
 def generate(dynmod, measmod, initrv, times, num_steps=5):
-    """
-    Samples true states and observations at pre-determined
-    timesteps "times" for a state space model.
+    """Samples true states and observations at pre-determined timesteps "times" for a
+    state space model.
 
     Parameters
     ----------

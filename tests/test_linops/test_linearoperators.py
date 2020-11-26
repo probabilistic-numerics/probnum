@@ -51,7 +51,7 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
 
 
 class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
-    """Test linear operator arithmetic"""
+    """Test linear operator arithmetic."""
 
     def test_scalar_mult(self):
         """Matrix linear operator multiplication with scalars."""
@@ -62,7 +62,7 @@ class LinearOperatorArithmeticTestCase(LinearOperatorTestCase):
                 self.assertAllClose((alpha * Aop).todense(), alpha * A)
 
     def test_addition(self):
-        """Linear operator addition"""
+        """Linear operator addition."""
         for A, B in list(zip(self.arrays, self.arrays)):
             with self.subTest():
                 Aop = linops.MatrixMult(A)
@@ -90,10 +90,8 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
     """Test functions of linear operators."""
 
     def test_transpose_dense(self):
-        """
-        Test whether a transposed linear operators dense representation is equal to
-        its dense representation transposed.
-        """
+        """Test whether a transposed linear operators dense representation is equal to
+        its dense representation transposed."""
         for op in self.ops:
             with self.subTest():
                 A = op.todense()
@@ -101,10 +99,8 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
                 self.assertAllClose(Atrans, A.T)
 
     def test_inv_dense(self):
-        """
-        Test whether the inverse in its dense representation matches the inverse of the
-        dense representation.
-        """
+        """Test whether the inverse in its dense representation matches the inverse of
+        the dense representation."""
         for op in self.ops:
             with self.subTest():
                 try:
@@ -115,10 +111,8 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
                     pass
 
     def test_cond_dense(self):
-        """
-        Test whether the condition number of the linear operator matches the
-        condition number of the dense representation.
-        """
+        """Test whether the condition number of the linear operator matches the
+        condition number of the dense representation."""
         for A in self.ops:
             with self.subTest():
                 try:
@@ -129,10 +123,8 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
                     pass
 
     def test_det_dense(self):
-        """
-        Test whether the determinant of the linear operator matches the
-        determinant of the dense representation.
-        """
+        """Test whether the determinant of the linear operator matches the determinant
+        of the dense representation."""
         for A in self.ops:
             with self.subTest():
                 try:
@@ -143,10 +135,8 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
                     pass
 
     def test_logabsdet_dense(self):
-        """
-        Test whether the log-determinant of the linear operator matches the
-        log-determinant of the dense representation.
-        """
+        """Test whether the log-determinant of the linear operator matches the
+        log- determinant of the dense representation."""
         for A in self.ops:
             with self.subTest():
                 try:

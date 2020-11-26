@@ -1,5 +1,4 @@
-"""
-ProbNum
+"""ProbNum.
 
 ProbNum implements probabilistic numerical methods in Python. Such methods solve
 numerical problems from linear algebra, optimization, quadrature and differential

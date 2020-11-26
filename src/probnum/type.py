@@ -1,5 +1,4 @@
-"""
-Custom type aliases.
+"""Custom type aliases.
 
 This module defines commonly used types in the library. These are separated into two
 different kinds, API types and argument types.

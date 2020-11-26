@@ -1,6 +1,4 @@
-"""
-Gaussian filtering and smoothing.
-"""
+"""Gaussian filtering and smoothing."""
 
 import numpy as np
 
@@ -11,9 +9,7 @@ from probnum.random_variables import Normal
 
 
 class Kalman(BayesFiltSmooth):
-    """
-    Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
-    """
+    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers."""
 
     def __init__(self, dynamics_model, measurement_model, initrv):
         """Check that the initial distribution is Gaussian."""
@@ -25,8 +21,7 @@ class Kalman(BayesFiltSmooth):
         super().__init__(dynamics_model, measurement_model, initrv)
 
     def filtsmooth(self, dataset, times, intermediate_step=None):
-        """
-        Apply Gaussian filtering and smoothing to a data set.
+        """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
         ----------
@@ -50,8 +45,7 @@ class Kalman(BayesFiltSmooth):
         return smooth_posterior
 
     def filter(self, dataset, times, intermediate_step=None, linearise_at=None):
-        """
-        Apply Gaussian filtering (no smoothing!) to a data set.
+        """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
@@ -82,8 +76,7 @@ class Kalman(BayesFiltSmooth):
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
     def filter_step(self, start, stop, current_rv, data, intermediate_step=None):
-        """
-        A single filter step.
+        """A single filter step.
 
         Consists of a prediction step (t -> t+1) and an update step (at t+1).
 
@@ -126,7 +119,7 @@ class Kalman(BayesFiltSmooth):
         )
 
     def measure(self, time, randvar):
-        """Propagate the state through the measurement model
+        """Propagate the state through the measurement model.
 
         Parameters
         ----------
@@ -147,7 +140,7 @@ class Kalman(BayesFiltSmooth):
         return self.measurement_model.transition_rv(randvar, time)
 
     def condition_state_on_measurement(self, randvar, meas_rv, data, crosscov):
-        """Condition the state on the observed data
+        """Condition the state on the observed data.
 
         Parameters
         ----------
@@ -174,8 +167,8 @@ class Kalman(BayesFiltSmooth):
         return filt_rv
 
     def update(self, time, randvar, data):
-        """
-        Gaussian filter update step. Consists of a measurement step and a conditioning step.
+        """Gaussian filter update step. Consists of a measurement step and a
+        conditioning step.
 
         Parameters
         ----------
@@ -205,8 +198,7 @@ class Kalman(BayesFiltSmooth):
         return filt_rv, meas_rv, info
 
     def smooth(self, filter_posterior, intermediate_step=None):
-        """
-        Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
+        """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
 
         Parameters
         ----------
@@ -229,8 +221,7 @@ class Kalman(BayesFiltSmooth):
         )
 
     def smooth_list(self, rv_list, locations, intermediate_step=None):
-        """
-        Apply smoothing to a list of RVs with desired final random variable.
+        """Apply smoothing to a list of RVs with desired final random variable.
 
         Specification of a final RV is useful to compute joint samples from a KalmanPosterior object,
         because in this case, the final RV is a Dirac (over a sample from the final Normal RV)
@@ -269,8 +260,7 @@ class Kalman(BayesFiltSmooth):
     def smooth_step(
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
     ):
-        """
-        A single smoother step.
+        """A single smoother step.
 
         Consists of predicting from the filtering distribution at time t
         to time t+1 and then updating based on the discrepancy to the

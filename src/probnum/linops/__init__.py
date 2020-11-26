@@ -1,6 +1,4 @@
-"""
-Finite-dimensional Linear Operators.
-"""
+"""Finite-dimensional Linear Operators."""
 
 from ._kronecker import Kronecker, Svec, SymmetricKronecker, Symmetrize, Vec
 from ._linear_operator import Identity, LinearOperator, MatrixMult, ScalarMult

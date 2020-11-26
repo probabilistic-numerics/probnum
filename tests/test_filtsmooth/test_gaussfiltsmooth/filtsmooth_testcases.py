@@ -1,6 +1,4 @@
-"""
-Test cases for Gaussian Filtering and Smoothing
-"""
+"""Test cases for Gaussian Filtering and Smoothing."""
 import unittest
 
 import matplotlib.pyplot as plt
@@ -48,8 +46,9 @@ def car_tracking():
 
 
 class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
-    """
-    Car tracking: Ex. 4.3 in Bayesian Filtering and Smoothing
+    """Car tracking: Ex.
+
+    4.3 in Bayesian Filtering and Smoothing
     """
 
     def setup_cartracking(self):
@@ -86,9 +85,7 @@ def ornstein_uhlenbeck():
 
 
 class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
-    """
-    Ornstein Uhlenbeck process as a test case.
-    """
+    """Ornstein Uhlenbeck process as a test case."""
 
     def setup_ornsteinuhlenbeck(self):
         self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
@@ -145,8 +142,7 @@ def pendulum():
 
 
 class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
-    """
-    Test approximate Gaussian filtering and smoothing
+    """Test approximate Gaussian filtering and smoothing.
 
     1. Transition RV is enabled by linearising
     2. Applied to a linear model, the outcome is exact
@@ -160,7 +156,8 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     linearising_component_car = NotImplemented
 
     def test_transition_rv(self):
-        """transition_rv() not possible for original model but for the linearised model"""
+        """transition_rv() not possible for original model but for the linearised
+        model."""
         # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = pendulum()
         linearised_model = self.linearising_component_pendulum(nonlinear_model)
@@ -281,8 +278,7 @@ def benes_daum():
 
 
 class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions):
-    """
-    Test approximate Gaussian filtering and smoothing
+    """Test approximate Gaussian filtering and smoothing.
 
     1. Transition RV is enabled by linearising
     2. Applied to a linear model, the outcome is exact
@@ -294,7 +290,8 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
     linearising_component_benes_daum = NotImplemented
 
     def test_transition_rv(self):
-        """transition_rv() not possible for original model but for the linearised model"""
+        """transition_rv() not possible for original model but for the linearised
+        model."""
         # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = benes_daum()
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
@@ -306,7 +303,8 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
             linearised_model.transition_rv(initrv, 0.0, 1.0)
 
     def test_transition_real(self):
-        """transition_real() not possible for original model but for the linearised model"""
+        """transition_real() not possible for original model but for the linearised
+        model."""
         # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = benes_daum()
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)

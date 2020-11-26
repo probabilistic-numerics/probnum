@@ -1,6 +1,4 @@
-"""
-Bayesian Quadrature.
-"""
+"""Bayesian Quadrature."""
 
 from ._bayesquad import *
 from .bq_methods import *

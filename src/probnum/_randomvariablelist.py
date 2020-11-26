@@ -6,8 +6,7 @@ import probnum as pn
 
 
 class _RandomVariableList(list):
-    """
-    List of RandomVariables with convenient access to means, covariances, etc.
+    """List of RandomVariables with convenient access to means, covariances, etc.
 
     Parameters
     ----------

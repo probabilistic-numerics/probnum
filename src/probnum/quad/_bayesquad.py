@@ -1,19 +1,17 @@
-"""
-Bayesian Quadrature.
+"""Bayesian Quadrature.
 
-This module provides routines to integrate functions through Bayesian quadrature,
-meaning a model over the integrand is constructed in order to actively select evaluation
-points of the integrand to estimate the value of the integral. Bayesian quadrature
-methods return a random variable, specifying the belief about the true value of the
-integral.
+This module provides routines to integrate functions through Bayesian
+quadrature, meaning a model over the integrand is constructed in order
+to actively select evaluation points of the integrand to estimate the
+value of the integral. Bayesian quadrature methods return a random
+variable, specifying the belief about the true value of the integral.
 """
 
 from .bq_methods import BayesianQuadrature, WarpedBayesianQuadrature
 
 
 def bayesquad(fun, fun0, domain, measure, nevals=None, method="vanilla"):
-    """
-    N-dimensional Bayesian quadrature.
+    """N-dimensional Bayesian quadrature.
 
     Parameters
     ----------

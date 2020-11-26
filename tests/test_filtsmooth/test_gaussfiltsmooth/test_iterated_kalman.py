@@ -30,9 +30,10 @@ class MockStoppingCriterion(StoppingCriterion):
         return True
 
     def continue_update_iteration(self, upd_rv=None, meas_rv=None, info_upd=None):
-        """
-        When do we stop iterating the filter steps. Default is true.
-        If, e.g. IEKF is wanted, overwrite with something that does not always return True.
+        """When do we stop iterating the filter steps.
+
+        Default is true. If, e.g. IEKF is wanted, overwrite with
+        something that does not always return True.
         """
         if self.num_update_iterations >= self.max_num_updates_per_step:
             return False

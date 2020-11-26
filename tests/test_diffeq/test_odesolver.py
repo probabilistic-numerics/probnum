@@ -7,7 +7,7 @@ from probnum.random_variables import Constant
 
 
 class MockODESolver(ODESolver):
-    """Euler method as an ODE solver"""
+    """Euler method as an ODE solver."""
 
     def initialise(self):
         return self.ivp.t0, self.ivp.initrv
@@ -23,8 +23,8 @@ class MockODESolver(ODESolver):
 
 
 class ODESolverTestCase(unittest.TestCase):
-    """
-    An ODE Solver has to work with just step() and initialise() provided.
+    """An ODE Solver has to work with just step() and initialise() provided.
+
     We implement Euler in MockODESolver to assure this.
     """
 

@@ -1,6 +1,4 @@
-"""
-Benchmarks for linear solvers.
-"""
+"""Benchmarks for linear solvers."""
 
 import os
 
@@ -12,8 +10,7 @@ from probnum.linalg import problinsolve
 
 
 def load_poisson_linear_system():
-    """
-    Poisson equation with Dirichlet conditions.
+    """Poisson equation with Dirichlet conditions.
 
       - Laplace(u) = f    in the interior
                  u = u_D  on the boundary
@@ -55,17 +52,17 @@ class LinSolve:
             self.b = None
 
     def time_solve(self, system):
-        """Time solving a linear system"""
+        """Time solving a linear system."""
         # pylint: disable=unused-argument
         problinsolve(A=self.A, b=self.b)
 
     def mem_solve(self, system):
-        """Time solving a linear system"""
+        """Time solving a linear system."""
         # pylint: disable=unused-argument
         problinsolve(A=self.A, b=self.b)
 
     def peakmem_solve(self, system):
-        """Time solving a linear system"""
+        """Time solving a linear system."""
         # pylint: disable=unused-argument
         problinsolve(A=self.A, b=self.b)
 
@@ -90,7 +87,7 @@ class PosteriorDist:
         self.n_samples = 10
 
     def time_sample(self, output):
-        """Time sampling from the posterior distribution"""
+        """Time sampling from the posterior distribution."""
         if output == "solution":
             self.xhat.sample(self.n_samples)
         elif output == "matrix":

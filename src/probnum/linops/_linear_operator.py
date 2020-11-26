@@ -8,8 +8,7 @@ import scipy.sparse.linalg.interface
 
 
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
-    """
-    Composite base class for finite-dimensional linear operators.
+    """Composite base class for finite-dimensional linear operators.
 
     This class provides a way to define finite-dimensional linear operators without
     explicitly constructing a matrix representation. Instead it suffices to define a
@@ -145,9 +144,8 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
                 )
 
     def matvec(self, x):
-        """Matrix-vector multiplication.
-        Performs the operation y=A*x where A is an MxN linear
-        operator and x is a 1-d array or random variable.
+        """Matrix-vector multiplication. Performs the operation y=A*x where A is an MxN
+        linear operator and x is a 1-d array or random variable.
 
         Parameters
         ----------
@@ -187,8 +185,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         return y
 
     def transpose(self):
-        """
-        Transpose this linear operator.
+        """Transpose this linear operator.
 
         Can be abbreviated self.T instead of self.transpose().
         """
@@ -197,12 +194,11 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     T = property(transpose)
 
     def _transpose(self):
-        """ Default implementation of _transpose; defers to rmatvec + conj"""
+        """Default implementation of _transpose; defers to rmatvec + conj."""
         return _TransposedLinearOperator(self)
 
     def todense(self):
-        """
-        Dense matrix representation of the linear operator.
+        """Dense matrix representation of the linear operator.
 
         This method can be computationally very costly depending on the shape of the
         linear operator. Use with caution.
@@ -228,8 +224,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         raise NotImplementedError
 
     def cond(self, p=None):
-        """
-        Compute the condition number of the linear operator.
+        """Compute the condition number of the linear operator.
 
         The condition number of the linear operator with respect to the ``p`` norm. It
         measures how much the solution :math:`x` of the linear system :math:`Ax=b`
@@ -266,8 +261,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         raise NotImplementedError
 
     def trace(self):
-        """
-        Trace of the linear operator.
+        """Trace of the linear operator.
 
         Computes the trace of a square linear operator :math:`\\text{tr}(A) =
         \\sum_{i-1}^n A_ii`.
@@ -395,8 +389,7 @@ class _PowerLinearOperator(
 
 
 class Diagonal(LinearOperator):
-    """
-    A linear operator representing the diagonal from another linear operator.
+    """A linear operator representing the diagonal from another linear operator.
 
     Parameters
     ----------
@@ -413,8 +406,7 @@ class Diagonal(LinearOperator):
 
 
 class ScalarMult(LinearOperator):
-    """
-    A linear operator representing scalar multiplication.
+    """A linear operator representing scalar multiplication.
 
     Parameters
     ----------
@@ -461,8 +453,7 @@ class ScalarMult(LinearOperator):
 
 
 class Identity(ScalarMult):
-    """
-    The identity operator.
+    """The identity operator.
 
     Parameters
     ----------
@@ -508,8 +499,7 @@ class Identity(ScalarMult):
 
 
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
-    """
-    A linear operator defined via a matrix.
+    """A linear operator defined via a matrix.
 
     Parameters
     ----------

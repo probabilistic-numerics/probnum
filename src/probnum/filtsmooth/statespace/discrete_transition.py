@@ -10,8 +10,7 @@ from . import transition as trans
 
 
 class DiscreteGaussian(trans.Transition):
-    """
-    Random variable transitions with additive Gaussian noise
+    """Random variable transitions with additive Gaussian noise.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(g(t_i, x_i), S(t_i))
 
@@ -62,8 +61,7 @@ class DiscreteGaussian(trans.Transition):
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
-    """
-    Discrete, linear Gaussian transition models of the form
+    """Discrete, linear Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G(t_i) x_i + v(t_i), S(t_i))
 
@@ -117,6 +115,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = dynamicsmat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
+
     @property
     def dimension(self):
         # risky to evaluate at zero, but works well
@@ -126,8 +125,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
-    """
-    Discrete, linear, time-invariant Gaussian transition models of the form
+    """Discrete, linear, time-invariant Gaussian transition models of the form.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(G x_i + v, S)
 

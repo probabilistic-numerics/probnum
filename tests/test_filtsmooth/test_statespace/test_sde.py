@@ -160,7 +160,7 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
 
 
 class TestLinearSDEStatistics(unittest.TestCase, NumpyAssertions):
-    """Test against Matrix Fraction decomposition"""
+    """Test against Matrix Fraction decomposition."""
 
     start = 0.1
     stop = start + 0.1
