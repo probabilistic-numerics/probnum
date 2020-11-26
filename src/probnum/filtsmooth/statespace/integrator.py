@@ -18,18 +18,15 @@ from .preconditioner import TaylorCoordinates
 
 
 class Integrator:
-    """
-    An integrator is a special kind of SDE,
-    where the :math:`i` th coordinate models the :math:`i` th derivative.
-    """
+    """An integrator is a special kind of SDE, where the :math:`i` th coordinate models
+    the :math:`i` th derivative."""
 
     def __init__(self, ordint, spatialdim):
         self.ordint = ordint
         self.spatialdim = spatialdim
 
     def proj2coord(self, coord: int) -> np.ndarray:
-        """
-        Projection matrix to :math:`i` th coordinates.
+        """Projection matrix to :math:`i` th coordinates.
 
         Computes the matrix
 
@@ -154,12 +151,11 @@ class IBM(Integrator, sde.LTISDE):
         )
 
     def discretise(self, step):
-        """
-        Equivalent discretisation of the process.
+        """Equivalent discretisation of the process.
 
         Overwrites matrix-fraction decomposition in the super-class.
-        Only present for user's convenience and to maintain a clean interface.
-        Not used for transition_rv, etc..
+        Only present for user's convenience and to maintain a clean
+        interface. Not used for transition_rv, etc..
         """
 
         dynamicsmat = (

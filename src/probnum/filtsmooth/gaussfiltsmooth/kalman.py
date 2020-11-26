@@ -301,8 +301,7 @@ class Kalman(BayesFiltSmooth):
     def _smooth_step_classic(
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
     ):
-        """
-        A single smoother step.
+        """A single smoother step.
 
         Consists of predicting from the filtering distribution at time t
         to time t+1 and then updating based on the discrepancy to the
@@ -336,8 +335,7 @@ class Kalman(BayesFiltSmooth):
     def _smooth_step_with_preconditioning(
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
     ):
-        """
-        A single smoother step.
+        """A single smoother step.
 
         Consists of predicting from the filtering distribution at time t
         to time t+1 and then updating based on the discrepancy to the

@@ -133,17 +133,13 @@ class LinearSDE(SDE):
 
     @property
     def dimension(self):
-        """
-        Spatial dimension (utility attribute).
-        """
+        """Spatial dimension (utility attribute)."""
         # risky to evaluate at zero, but usually works
         return len(self.driftmatfun(0.0))
 
 
 class LTISDE(LinearSDE):
-    """
-    Linear time-invariant continuous Markov models of the
-    form
+    """Linear time-invariant continuous Markov models of the form.
 
     .. math:: d x_t = [G x_t + v] d t + L d w_t.
 
@@ -339,8 +335,7 @@ def matrix_fraction_decomposition(driftmat, dispmat, step):
 
 
 def _check_initial_state_dimensions(driftmat, forcevec, dispmat):
-    """
-    Checks that the matrices all align and are of proper shape.
+    """Checks that the matrices all align and are of proper shape.
 
     Parameters
     ----------

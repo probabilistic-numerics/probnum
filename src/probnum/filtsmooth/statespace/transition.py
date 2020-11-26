@@ -47,8 +47,8 @@ class Transition(abc.ABC):
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
-        """
-        Transition a realization of a random variable from time :math:`t` to time :math:`t+\\Delta t`.
+        """Transition a realization of a random variable from time :math:`t` to time
+        :math:`t+\\Delta t`.
 
         For random variable :math:`x_t`, it returns the random variable defined by
 
@@ -98,10 +98,10 @@ class Transition(abc.ABC):
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
-        """
-        Applies the transition, assuming that the state is already preconditioned.
+        """Applies the transition, assuming that the state is already preconditioned.
 
-        This is useful for numerically stable implementation of Kalman smoothing steps and Kalman updates.
+        This is useful for numerically stable implementation of Kalman
+        smoothing steps and Kalman updates.
         """
         if self.precon is None:
             errormsg = (
@@ -122,8 +122,8 @@ class Transition(abc.ABC):
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
-        """
-        Transition a random variable from time :math:`t` to time :math:`t+\\Delta t`.
+        """Transition a random variable from time :math:`t` to time
+        :math:`t+\\Delta t`.
 
         For random variable :math:`x_t`, it returns the random variable defined by
 
@@ -175,10 +175,10 @@ class Transition(abc.ABC):
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
-        """
-        Applies the transition, assuming that the state is already preconditioned.
+        """Applies the transition, assuming that the state is already preconditioned.
 
-        This is useful for numerically stable implementation of Kalman smoothing steps and Kalman updates.
+        This is useful for numerically stable implementation of Kalman
+        smoothing steps and Kalman updates.
         """
         if self.precon is None:
             errormsg = (
@@ -241,8 +241,8 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
 
 
 def _read_dimension(transition, initrv):
-    """Extracts dimension of a transition without calling .dimension(),
-    which is not implemented everywhere."""
+    """Extracts dimension of a transition without calling .dimension(), which is not
+    implemented everywhere."""
     # relies on evaluating at zero, which is a dangerous endeavour and therefore,
     # this method is not used in Transition.dimension
     transitioned, _ = transition.transition_realization(

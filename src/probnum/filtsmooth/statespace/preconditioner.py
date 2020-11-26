@@ -13,10 +13,10 @@ import scipy.special  # for vectorised factorial
 
 
 class Preconditioner(abc.ABC):
-    """
-    Coordinate change transformations as preconditioners in state space models.
+    """Coordinate change transformations as preconditioners in state space models.
 
-    For some models, this makes the filtering and smoothing steps more numerically stable.
+    For some models, this makes the filtering and smoothing steps more
+    numerically stable.
     """
 
     @abc.abstractmethod
@@ -30,8 +30,7 @@ class Preconditioner(abc.ABC):
 
 
 class TaylorCoordinates(Preconditioner):
-    """
-    Taylor coordinates.
+    """Taylor coordinates.
 
     Similar to Nordsieck coordinates, but better. Used in IBM.
     """
