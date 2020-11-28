@@ -263,6 +263,18 @@ class ShapeTestCase(RandomProcessTestCase):
                     )
 
 
+class PropertiesTestCase(RandomProcessTestCase):
+    """Test the attribute types/values/...
+
+    of a random process.
+    """
+
+    def test_random_state_type(self):
+        for rand_proc in self.random_processes:
+            with self.subTest():
+                self.assertIsInstance(rand_proc.random_state, np.random.RandomState)
+
+
 class MethodTestCase(RandomProcessTestCase):
     """Test the methods of a random process."""
 
