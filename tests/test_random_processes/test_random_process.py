@@ -95,6 +95,25 @@ class InstantiationTestCase(RandomProcessTestCase):
                 randproc = rps.asrandproc(fun)
                 self.assertIsInstance(randproc, rps.RandomProcess)
 
+    def test_rp_from_covariance_callable(self):
+        """Create a random process with a covariance function from a callable."""
+        kern = lambda x0, x1=None: x0 @ x0.T if x1 is None else x0 @ x1.T
+        fun = rps.RandomProcess(input_dim=1, output_dim=1, cov=kern, dtype=np.float_)
+        fun.cov(np.linspace(0, 1, 5)[:, None])
+
+    def test_dimension_process_kernel_mismatch(self):
+        """Test whether an error is raised if kernel and process dimension do not
+        match."""
+        with self.assertRaises(ValueError):
+            kern = kerns.Linear(input_dim=5)
+            rps.RandomProcess(input_dim=10, output_dim=1, cov=kern, dtype=np.float_)
+
+    def test_covariance_not_callable(self):
+        """Test whether an error is raised if the covariance is not a callable."""
+        with self.assertRaises(TypeError):
+            kern = 1.0
+            rps.RandomProcess(input_dim=1, output_dim=1, cov=kern, dtype=np.float_)
+
 
 class ArithmeticTestCase(RandomProcessTestCase):
     """Test random process arithmetic."""
