@@ -20,12 +20,11 @@ class IVPSolve:
     params = [["eks0", "ekf0"], ["with", "without"], ["ibm4", "ioup4", "matern92"]]
 
     def setup(self, method, precond, prior):
-        # pylint: disable=attribute-defined-outside-init,invalid-name,unused-argument
+        # pylint: disable=invalid-name
         self.ivp = load_lotkavolterra()
         self.stepsize = 1e-2
 
     def time_solve(self, method, precond, prior):
-        # pylint: disable=missing-function-docstring
         precond_step = self.stepsize if precond == "with" else 1.0
         probsolve_ivp(
             self.ivp,
@@ -36,7 +35,6 @@ class IVPSolve:
         )
 
     def peakmem_solve(self, method, precond, prior):
-        # pylint: disable=missing-function-docstring
         precond_step = self.stepsize if precond == "with" else 1.0
         probsolve_ivp(
             self.ivp,

@@ -5,7 +5,6 @@ from typing import Callable, Union
 import numpy as np
 
 import probnum.kernels as kernels
-import probnum.utils as _utils
 from probnum.random_variables import Normal
 from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
 

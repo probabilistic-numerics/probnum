@@ -33,7 +33,6 @@ class Kernels:
     params = [KERNEL_NAMES]
 
     def setup(self, kernel):
-        # pylint: missing-function-docstring,attribute-defined-outside-init,missing-function-docstring
         rng = np.random.default_rng(42)
         self.input_dim = 100
         self.data = rng.normal(size=(1000, self.input_dim))
@@ -41,10 +40,8 @@ class Kernels:
 
     def time_kernel_matrix(self, kernel):
         """Times sampling from this distribution."""
-        # pylint: disable=unused-argument
         self.kernel(self.data)
 
     def peakmem_kernel_matrix(self, kernel):
         """Peak memory of sampling process."""
-        # pylint: disable=unused-argument
         self.kernel(self.data)

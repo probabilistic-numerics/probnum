@@ -13,7 +13,6 @@ from probnum.type import (
     RandomStateArgType,
     RandomStateType,
     ShapeArgType,
-    ShapeType,
 )
 
 _InputType = TypeVar("InputType")

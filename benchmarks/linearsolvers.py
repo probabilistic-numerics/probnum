@@ -34,8 +34,6 @@ class LinSolve:
     params = [["sparse", "dense"]]  # , "large-scale"]
 
     def setup(self, system):
-        # pylint: disable=attribute-defined-outside-init,invalid-name
-
         # Seed
         np.random.seed(42)
 
@@ -53,17 +51,14 @@ class LinSolve:
 
     def time_solve(self, system):
         """Time solving a linear system."""
-        # pylint: disable=unused-argument
         problinsolve(A=self.A, b=self.b)
 
     def mem_solve(self, system):
         """Time solving a linear system."""
-        # pylint: disable=unused-argument
         problinsolve(A=self.A, b=self.b)
 
     def peakmem_solve(self, system):
         """Time solving a linear system."""
-        # pylint: disable=unused-argument
         problinsolve(A=self.A, b=self.b)
 
 
@@ -74,8 +69,7 @@ class PosteriorDist:
     params = [["solution", "matrix", "matrix_inverse"]]
 
     def setup(self, output):
-        # pylint: disable=attribute-defined-outside-init
-        # pylint: disable=unused-argument, invalid-name
+        # pylint: disable=invalid-name
 
         # Sparse system
         self.A, self.b = load_poisson_linear_system()

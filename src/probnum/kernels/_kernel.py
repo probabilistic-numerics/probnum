@@ -144,6 +144,7 @@ class Kernel(Generic[_InputType]):
             If input shapes of x0 and x1 do not match the kernel input dimension or
             each other.
         """
+        # pylint: disable="too-many-boolean-expressions"
         # Transform into array and add second argument
         x0 = np.asarray(x0)
         equal_inputs = False
@@ -163,10 +164,11 @@ class Kernel(Generic[_InputType]):
 
         # Check and promote shapes
         if x1 is None:
+
             if (
-                (x0.ndim == 0 and self.input_dim > 1)
-                or (x0.ndim == 1 and x0.shape[0] != self.input_dim)
-                or (x0.ndim >= 2 and x0.shape[1] != self.input_dim)
+                (x0.ndim == 0 and self.input_dim > 1)  # Scalar input
+                or (x0.ndim == 1 and x0.shape[0] != self.input_dim)  # Vector input
+                or (x0.ndim >= 2 and x0.shape[1] != self.input_dim)  # Matrix input
             ):
                 raise ValueError(err_msg)
             equal_inputs = True
@@ -176,18 +178,19 @@ class Kernel(Generic[_InputType]):
                 x0 = np.atleast_2d(x0)
             if x1.ndim < 2 and x0.ndim == 2:
                 x1 = np.atleast_2d(x1)
+            if x0.ndim != x1.ndim:  # Shape mismatch
+                raise ValueError(err_msg)
 
             # Check shapes
             if (
-                (x0.ndim != x1.ndim)
-                or (x0.ndim == 0 and self.input_dim > 1)
+                (x0.ndim == 0 and self.input_dim > 1)  # Scalar input
                 or (
-                    x0.ndim == 1
-                    and (x0.shape[0] != x1.shape[0] or x0.shape[0] != self.input_dim)
+                    x0.ndim == 1  # Vector input
+                    and not (x0.shape[0] == x1.shape[0] == self.input_dim)
                 )
                 or (
-                    x0.ndim == 2
-                    and (x0.shape[1] != x1.shape[1] or x1.shape[1] != self.input_dim)
+                    x0.ndim == 2  # Matrix input
+                    and not (x0.shape[1] == x1.shape[1] == self.input_dim)
                 )
             ):
                 raise ValueError(err_msg)
