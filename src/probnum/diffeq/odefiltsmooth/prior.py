@@ -8,8 +8,45 @@ import warnings
 import numpy as np
 from scipy.special import binom  # for Matern
 from scipy.special import factorial  # vectorised factorial for IBM-Q(h)
+from scipy.linalg import block_diag
 
 import probnum.filtsmooth.statespace as pnfss
+
+
+class LFMPrior(pnfss.LTISDE):
+    def __init__(self, forces_list):
+        self.forces = forces_list
+        self.spatialdim = sum([f.spatialdim for f in self.forces])
+
+        driftmat = block_diag(*[f.driftmatrix for f in self.forces])
+        dispmat = np.concatenate([f.dispersionmatrix for f in self.forces], axis=0)
+        forcevec = np.zeros(len(driftmat))
+        super().__init__(driftmat, forcevec, dispmat)
+
+    def __getitem__(self, idx):
+        return self.forces[idx]
+
+    def project_to_force(self, frc: int):
+        # Is applied to proj2coord-ed vector! (shape=[spatialdim, ])
+        projdim = (self.forces[frc].ordint + 1) * self.forces[frc].spatialdim
+        h = np.zeros((projdim, len(self.driftmatrix)))
+        start = 0
+        for i in range(frc):
+            start += (self.forces[i].ordint + 1) * self.forces[i].spatialdim
+
+        h[:, start : (start + projdim)] = np.eye(projdim)
+        return h
+
+    def proj2coord(self, coord: int):
+        return block_diag(*[f.proj2coord(coord) for f in self.forces])
+
+    @property
+    def preconditioner(self) -> np.ndarray:
+        return block_diag(*[f.preconditioner for f in self.forces])
+
+    @property
+    def inverse_preconditioner(self) -> np.ndarray:
+        return block_diag(*[f.inverse_preconditioner for f in self.forces])
 
 
 class ODEPrior(pnfss.LTISDE):

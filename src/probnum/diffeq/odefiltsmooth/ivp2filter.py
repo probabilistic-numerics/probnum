@@ -5,9 +5,23 @@ care of elsewhere.
 """
 
 import numpy as np
+from scipy.linalg import block_diag
 
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
+
+
+def lfm2ekf0(ivp, lfm, evlvar):
+    ekf_mod = pnfs.DiscreteEKFComponent.from_lfm(ivp, lfm, evlvar, ek0_or_ek1=0)
+    ivp_initrv = _initialdistribution(ivp, lfm[0])
+    frc_mean = np.zeros(((lfm[1].ordint + 1) * lfm[1].spatialdim,))
+    frc_cov = evlvar * np.eye((lfm[1].ordint + 1) * lfm[1].spatialdim)
+
+    initrv_mean = np.concatenate([ivp_initrv.mean, frc_mean])
+    initrv_cov = block_diag(ivp_initrv.cov, frc_cov)
+    initrv = pnrv.Normal(mean=initrv_mean, cov=initrv_cov)
+
+    return pnfs.Kalman(lfm, ekf_mod, initrv)
 
 
 def ivp2ekf0(ivp, prior, evlvar):

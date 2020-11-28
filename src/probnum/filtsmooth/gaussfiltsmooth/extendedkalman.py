@@ -105,3 +105,41 @@ class DiscreteEKFComponent(statespace.Transition):
 
         discrete_model = statespace.DiscreteGaussian(dyna, diff, jaco)
         return cls(discrete_model)
+
+    @classmethod
+    def from_lfm(cls, ode, lfm, evlvar, ek0_or_ek1=0):
+        spatialdim = lfm[0].spatialdim
+
+        proj_x = lfm.project_to_force(frc=0)
+        proj_resid = lfm.project_to_force(frc=1)
+
+        x_h0 = lfm[0].proj2coord(coord=0)
+        x_h1 = lfm[0].proj2coord(coord=1)
+
+        resid_h0 = lfm[1].proj2coord(coord=0)
+
+        def dyna(t, x, **kwargs):
+            state = proj_x @ x
+            resid = proj_resid @ x
+            res = x_h1 @ state - ode.rhs(t, x_h0 @ state) - (resid_h0 @ resid)
+            return res
+
+        def diff(t, **kwargs):
+            return evlvar * np.eye(spatialdim)
+
+        def jaco_ek1(t, x, **kwargs):
+            # TODO
+            pass
+
+        def jaco_ek0(t, x, **kwargs):
+            return x_h1 @ proj_x
+
+        if ek0_or_ek1 == 0:
+            jaco = jaco_ek0
+        elif ek0_or_ek1 == 1:
+            jaco = jaco_ek1
+        else:
+            raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
+
+        discrete_model = statespace.DiscreteGaussian(dyna, diff, jaco)
+        return cls(discrete_model)

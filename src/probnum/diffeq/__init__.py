@@ -17,6 +17,7 @@ __all__ = [
     "ODESolver",
     "GaussianIVPFilter",
     "ODEPrior",
+    "LFMPrior",
     "IBM",
     "IOUP",
     "Matern",
