@@ -42,3 +42,10 @@ class RandomUtilsTestCase(unittest.TestCase, NumpyAssertions):
                 for rng in self.random_generator_list
             ],
         )
+
+    def test_rng_wrong_type_raises_error(self):
+        """Test whether providing an rng of unexpected type raises an error."""
+        for rng in [1, 1.0]:
+            with self.subTest():
+                with self.assertRaises(TypeError):
+                    randomutils.derive_random_seed(rng)

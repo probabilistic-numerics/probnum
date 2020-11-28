@@ -27,7 +27,9 @@ def derive_random_seed(*rngs: Union[np.random.RandomState, np.random.Generator])
                 0, 2 ** 32, size=None, dtype=int, endpoint=False
             )
         else:
-            raise ValueError("Unsupported type of random number generator")
+            raise TypeError(
+                f"Unsupported type {type(rng)} of random number " f"generator."
+            )
 
     seed = _sample(rngs[0])
 
