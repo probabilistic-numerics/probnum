@@ -100,7 +100,7 @@ class LinearSDE(SDE):
         step,
         **kwargs,
     ):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         rv = pnrv.Normal(real, 0 * np.eye(len(real)))
         return linear_sde_statistics(
             rv,
@@ -113,7 +113,6 @@ class LinearSDE(SDE):
         )
 
     def transition_rv(self, rv, start, stop, step, **kwargs):
-        # **kwargs swallow all irrelevant arguments for this function.
 
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
@@ -178,7 +177,7 @@ class LTISDE(LinearSDE):
         stop,
         **kwargs,
     ):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
@@ -191,7 +190,7 @@ class LTISDE(LinearSDE):
         stop,
         **kwargs,
     ):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
