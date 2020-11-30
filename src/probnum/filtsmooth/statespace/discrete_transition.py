@@ -119,6 +119,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # risky to evaluate at zero, but works well
         # remove this -- the dimension of discrete transitions is not clear!
         # input dim != output dim is possible...
+        # See issue #266
         return len(self.dynamicsmatfun(0.0).T)
 
 
