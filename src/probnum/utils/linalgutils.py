@@ -172,14 +172,20 @@ def cholesky_rank_1_update(
     if not overwrite_v:
         v = v.copy()
 
-    # The algorithm in [1] uses L^T instead of L
+    # The algorithm updates the transpose of L instead of L itself
     L_T = L.T
 
-    assert not L_T.flags.owndata  # Transposition just changes
+    # L and L_T now refer to the same memory buffer, so updating L_T implicitly updates
+    # L correspondingly
+    assert not L_T.flags.owndata
+    assert np.may_share_memory(L, L_T)
 
     if L_T.flags.c_contiguous:
+        assert L.flags.f_contiguous
+
         _cholesky_rank_1_update_row_major(L_T, v)
     else:
+        assert L.flags.c_contiguous
         assert L_T.flags.f_contiguous
 
         _cholesky_rank_1_update_column_major(L_T, v)
