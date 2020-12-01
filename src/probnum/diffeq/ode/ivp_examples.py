@@ -40,7 +40,7 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        Scalar-valued RandomVariable (shape: :code:`()`) that describes the belief
+        *(shape=())* -- Scalar-valued RandomVariable that describes the belief
         over the initial value. Usually its distribution is Constant (noise-free)
         or Normal (noisy) with scalar mean and scalar variance.
         To replicate "classical" initial values use the Constant distribution.
@@ -118,7 +118,7 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        Vector-valued RandomVariable (shape: :code:`(2, )`) that describes the belief
+        *(shape=(2, ))* -- Vector-valued RandomVariable that describes the belief
         over the initial value. Usually its distribution is Constant (noise-free)
         or Normal (noisy) with :math:`2`-dimensional mean vector and
         :math:`2 \times 2`-dimensional covariance matrix.
@@ -179,7 +179,7 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        Vector-valued RandomVariable (shape: :code:`(2, )`) that describes the belief
+        *(shape=(2, ))* -- Vector-valued RandomVariable that describes the belief
         over the initial value. Usually its distribution is Constant (noise-free)
         or Normal (noisy) with :math:`2`-dimensional mean vector and
         :math:`2 \times 2`-dimensional covariance matrix.
@@ -242,7 +242,7 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        Vector-valued RandomVariable (shape: :code:`(4, )`) that describes the belief
+        *(shape=(4, ))* -- Vector-valued RandomVariable that describes the belief
         over the initial value. Usually its distribution is Constant (noise-free)
         or Normal (noisy) with :math:`4`-dimensional mean vector and
         :math:`4 \times 4`-dimensional covariance matrix.
@@ -296,7 +296,7 @@ def rigidbody(timespan, initrv):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        Vector-valued RandomVariable (shape: :code:`(3, )`) that describes the belief
+        *(shape=(3, ))* -- Vector-valued RandomVariable that describes the belief
         over the initial value. Usually its distribution is Constant (noise-free)
         or Normal (noisy) with :math:`3`-dimensional mean vector and
         :math:`3 \times 3`-dimensional covariance matrix.
@@ -350,7 +350,7 @@ def vanderpol(timespan, initrv, params=0.1):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        Vector-valued RandomVariable (shape: :code:`(2, )`) that  describes the belief
+        *(shape=(2, ))* -- Vector-valued RandomVariable that describes the belief
         over the initial value. Usually its distribution is Constant (noise-free)
         or Normal (noisy) with :math:`2`-dimensional mean vector and
         :math:`2 \times 2`-dimensional covariance matrix.
@@ -427,7 +427,7 @@ def threebody(timespan, initrv, params=0.012277471):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        Vector-valued RandomVariable (shape: :code:`(4, )`) that  describes the belief
+        *(shape=(4, ))* -- Vector-valued RandomVariable that describes the belief
         over the initial value. Usually its distribution is Constant (noise-free)
         or Normal (noisy) with :math:`4`-dimensional mean vector and
         :math:`4 \times 4`-dimensional covariance matrix.
