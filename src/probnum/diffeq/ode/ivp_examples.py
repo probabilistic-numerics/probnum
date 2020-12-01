@@ -243,6 +243,7 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1)):
     Default parameters are :math:`(\alpha, \beta, \gamma)=(0.3, 0.3, 0.1)`.
     The population count is computed from the (mean of the)
     initial value random variable.
+    This implementation includes the Jacobian :math:`J_f` of :math:`f`.
 
     Parameters
     ----------
@@ -271,10 +272,14 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1)):
     def rhs(t, y):
         return seir_rhs(t, y, params_and_population_count)
 
-    return IVP(timespan, initrv, rhs)
+    def jac(t, y):
+        return seir_jac(t, y, params_and_population_count)
+
+    return IVP(timespan, initrv, rhs, jac=jac)
 
 
 def seir_rhs(t, y, params):
+    """RHS for SEIR model"""
     alpha, beta, gamma, population_count = params
     y1, y2, y3, y4 = y
     y1_next = -beta * y1 * y3 / population_count
@@ -283,6 +288,22 @@ def seir_rhs(t, y, params):
     y4_next = gamma * y3
 
     return np.array([y1_next, y2_next, y3_next, y4_next])
+
+
+def seir_jac(t, y, params):
+    """Jacobian for SEIR model"""
+    alpha, beta, gamma, population_count = params
+    y1, y2, y3, y4 = y
+    d_dy1 = np.array(
+        [-beta * y3 / population_count, 0.0, -beta * y1 / population_count, 0.0]
+    )
+    d_dy2 = np.array(
+        [beta * y3 / population_count, -alpha, beta * y1 / population_count, 0.0]
+    )
+    d_dy3 = np.array([0.0, alpha, -gamma, 0.0])
+    d_dy4 = np.array([0.0, 0.0, gamma, 0.0])
+    jac_matrix = np.array([d_dy1, d_dy2, d_dy3, d_dy4])
+    return jac_matrix
 
 
 def rigidbody(timespan, initrv):
