@@ -492,9 +492,10 @@ def threebody(timespan, initrv, params=0.012277471):
 def threebody_rhs(t, y, params):
     y1, y2, y1_dot, y2_dot = y
     if isinstance(params, float):
-        mu = params
+        standardized_moon_mass = params
     else:
-        (mu,) = params
+        (standardized_moon_mass,) = params
+    mu = standardized_moon_mass
     mp = 1.0 - mu
     d1 = ((y1 + mu) ** 2 + y2 ** 2) ** 1.5
     d2 = ((y1 - mp) ** 2 + y2 ** 2) ** 1.5
