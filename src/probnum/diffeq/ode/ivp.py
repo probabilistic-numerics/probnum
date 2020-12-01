@@ -6,8 +6,6 @@ import numpy as np
 
 from probnum.diffeq.ode.ode import ODE
 
-__all__ = ["IVP"]
-
 
 class IVP(ODE):
     """Initial value problems (IVP).

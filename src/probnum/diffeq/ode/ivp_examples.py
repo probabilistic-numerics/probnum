@@ -2,16 +2,6 @@ import numpy as np
 
 from probnum.diffeq.ode.ivp import IVP
 
-__all__ = [
-    "logistic",
-    "fitzhughnagumo",
-    "lotkavolterra",
-    "seir",
-    "rigidbody",
-    "vanderpol",
-    "threebody",
-]
-
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):
     r"""Initial value problem (IVP) based on the logistic ODE.
