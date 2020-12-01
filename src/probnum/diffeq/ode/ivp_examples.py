@@ -16,7 +16,7 @@ __all__ = [
 
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):
-    r""" Initial value problem (IVP) based on the logistic ODE.
+    r"""Initial value problem (IVP) based on the logistic ODE.
 
     The logistic ODE is defined through
 
@@ -97,7 +97,7 @@ def log_sol(t, params, y0):
 
 
 def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
-    r""" Initial value problem (IVP) based on the FitzHugh-Nagumo model.
+    r"""Initial value problem (IVP) based on the FitzHugh-Nagumo model.
 
     The FitzHugh-Nagumo (FHN) model is defined through
 
@@ -158,7 +158,7 @@ def fhn_jac(t, y, params):
 
 
 def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
-    r""" Initial value problem (IVP) based on the Lotka-Volterra model.
+    r"""Initial value problem (IVP) based on the Lotka-Volterra model.
 
     The Lotka-Volterra (LV) model is defined through
 
@@ -219,7 +219,7 @@ def lv_jac(t, y, params):
 
 
 def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
-    r""" Initial value problem (IVP) based on the SEIR model.
+    r"""Initial value problem (IVP) based on the SEIR model.
 
     The SEIR model with no vital dynamics is defined through
 
@@ -276,7 +276,7 @@ def seir_rhs(t, y, params):
 
 
 def rigidbody(timespan, initrv):
-    r""" Initial value problem (IVP) for rigid body dynamics without external forces
+    r"""Initial value problem (IVP) for rigid body dynamics without external forces
 
     The rigid body dynamics without external forces is defined through
 
@@ -328,7 +328,7 @@ def rigidbody_jac(t, y):
 
 
 def vanderpol(timespan, initrv, params=0.1):
-    r""" Initial value problem (IVP) based on the Van der Pol Oscillator.
+    r"""Initial value problem (IVP) based on the Van der Pol Oscillator.
 
     The Van der Pol Oscillator is defined through
 
@@ -396,7 +396,7 @@ def vanderpol_jac(t, y, params):
 
 
 def threebody(timespan, initrv, params=0.012277471):
-    r""" Initial value problem (IVP) based on a three-body problem.
+    r"""Initial value problem (IVP) based on a three-body problem.
 
     The three-body problem is defined as follows:
     Let the initial conditions be :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`.
