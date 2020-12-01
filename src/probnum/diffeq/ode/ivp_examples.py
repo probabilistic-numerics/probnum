@@ -321,6 +321,7 @@ def rigidbody(timespan, initrv):
         \end{pmatrix}
 
     The ODE system has no parameters.
+    This implementation includes the Jacobian :math:`J_f` of :math:`f`.
 
     Parameters
     ----------
@@ -375,6 +376,7 @@ def vanderpol(timespan, initrv, params=0.1):
     :math:`\mu` determines the stiffness of the problem, where
     the larger :math:`\mu` is chosen, the more stiff the problem becomes.
     Default is :math:`\mu = 0.1`.
+    This implementation includes the Jacobian :math:`J_f` of :math:`f`.
 
     Parameters
     ----------
@@ -429,8 +431,9 @@ def vanderpol_jac(t, y, params):
 def threebody(timespan, initrv, params=0.012277471):
     r"""Initial value problem (IVP) based on a three-body problem.
 
-    The three-body problem is defined as follows:
     Let the initial conditions be :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`.
+    This function implements a first-order linearization of the
+    three-body problem, which is defined as follows: [1]_
 
     .. math::
 
@@ -472,6 +475,12 @@ def threebody(timespan, initrv, params=0.012277471):
     IVP
         IVP object describing a three-body problem IVP with the prescribed
         configuration.
+
+    References
+    ----------
+    .. [1] Hairer, E., Norsett, S. and Wanner, G..
+        Solving Ordinary Differential Equations I.
+        Springer Series in Computational Mathematics, 1993.
     """
 
     def rhs(t, y):
