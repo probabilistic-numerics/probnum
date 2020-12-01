@@ -1,5 +1,3 @@
-# pylint: disable=unused-variable
-
 import numpy as np
 
 from probnum.diffeq.ode.ivp import IVP
