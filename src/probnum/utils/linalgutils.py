@@ -17,16 +17,19 @@ def cholesky_rank_1_update(
     :math:`A' = A + v v^T` for some vector :math:`v \in \mathbb{R}^n`.
 
     We implement the method in section 2 of [1]_. This algorithm computes the Cholesky
-    decomposition of :math:`A'` from :math:`L` in :math:`\mathbb{O}(N^2)` time, which
-    is faster than the :math:`\mathbb{O}(N^3)` time complexity of naively applying a
-    Cholesky algorithm to :math:`A'` directly.
+    decomposition of :math:`A'` from :math:`L` in :math:`O(N^2)` time, which is faster
+    than the :math:`O(N^3)` time complexity of naively applying a Cholesky algorithm to
+    :math:`A'` directly.
 
     Parameters
     ----------
-    L : shape=(N, N), dtype=np.float64
-        Lower triangular Cholesky factor of :math:`A`.
+    L :
+        Lower triangular Cholesky factor of :math:`A` with shape :code:`(N, N)` and
+        dtype :class:`numpy.float64`.
         The algorithm is most efficient if this array is given in column-major layout,
-        a.k.a. Fortran-contiguous or f-contiguous memory order.
+        a.k.a. Fortran-contiguous or f-contiguous memory order. Hint: Lower triangular
+        Cholesky factors can be obtained efficiently (i.e. without requiring an
+        additional copy) from :func:`scipy.linalg.cho_factor`.
         Passing anything else than a valid lower triangular Cholesky factor in the lower
         triangular part of `L`, e.g. a matrix with zeros on the diagonal, will lead to
         undefined behavior.
@@ -35,24 +38,25 @@ def cholesky_rank_1_update(
         of the matrix. This behavior is useful when using the Cholesky factors returned
         by :func:`scipy.linalg.cho_factor` which contain arbitrary values on the
         irrelevant triangular part of the matrix.
-    v : shape=(N,), dtype=np.float64
-        The vector :math:`v` defining the symmetric rank-1 matrix :math:`v v^T`.
-    overwrite_L : optional
+    v :
+        The vector :math:`v` with shape :code:`(N, N)` and dtype :class:`numpy.float64`
+        defining the symmetric rank-1 matrix :math:`v v^T`.
+    overwrite_L :
         If set to :code:`True`, the function will overwrite the array :code:`L` with the
         upper Cholesky factor :math:`L'` of :math:`A'`, i.e. the result is computed
         in-place.
         Passing `False` here ensures that the array :code:`L` is not modified.
-    overwrite_v : optional
+    overwrite_v :
         If set to `True`, the function will reuse the array :code:`v` as an internal
         computation buffer, which will modify :code:`v`.
         Passing `False` here ensures that the array :code:`v` is not modified.
         In this case, an additional array of shape :code:`(N,)` and dtype
-        :class:`np.float64` must be allocated.
+        :class:`numpy.float64` must be allocated.
 
     Returns
     -------
-    L_prime : shape=(N, N), dtype=np.float64
-        Lower triangular Cholesky factor :math:`L'` of :math:`A + v v^T = L' L'^T`.
+        Lower triangular Cholesky factor :math:`L'` of :math:`A + v v^T = L' L'^T` with
+        shape :code:`(N, N)` and dtype :class:`numpy.float64`.
         The diagonal entries of this matrix are guaranteed to be positive.
         The strict upper triangular part of this matrix will contain arbitrary values.
         The matrix will inherit the memory order from :code:`L`.
@@ -62,19 +66,24 @@ def cholesky_rank_1_update(
     ValueError
         If :code:`L` does not have shape :code:`(N, N)` for some :code:`N`.
     TypeError
-        If :code:`L` does not have dtype :class:`np.float64`.
+        If :code:`L` does not have dtype :class:`numpy.float64`.
     ValueError
         If :code:`v` does not have shape :code:`(N,)`, while :code:`L` has shape
         :code:`(N, N)`.
     TypeError
-        If :code:`v` does not have dtype :class:`np.float64`.
+        If :code:`v` does not have dtype :class:`numpy.float64`.
+
+    See Also
+    --------
+    cholesky_rank_1_downdate : A similar function which performs a symmetric rank 1
+        downdate instead of an update.
 
     References
     ----------
     .. [1] M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008.
     """
 
-    # Check L
+    # Validate L
     if L.ndim != 2 or L.shape[0] != L.shape[1]:
         raise ValueError(
             f"The given Cholesky factor `L_T` is not a square matrix (given shape: "
@@ -87,7 +96,7 @@ def cholesky_rank_1_update(
             f"dtype: {L.dtype.name})"
         )
 
-    # Check v
+    # Validate v
     if v.ndim != 1 or v.shape[0] != L.shape[0]:
         raise ValueError(
             f"The shape of the given vector `v` is compatible with the shape of the "
@@ -111,7 +120,7 @@ def cholesky_rank_1_update(
     # The algorithm in [1] uses L^T instead of L
     L_T = L.T
 
-    assert not L_T.flags.owndata
+    assert not L_T.flags.owndata  # Transposition just changes
 
     if L_T.flags.c_contiguous:
         _cholesky_rank_1_update_row_major(L_T, v)
