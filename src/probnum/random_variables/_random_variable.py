@@ -43,7 +43,7 @@ class RandomVariable(Generic[_ValueType]):
         Shape of realizations of this random variable.
     dtype :
         Data type of realizations of this random variable. If of type :class:`object`
-        the argument will be converted to ``numpy.dtype``.
+        the argument will be converted to :class:`numpy.dtype`.
     random_state :
         Random state of the random variable. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
@@ -88,7 +88,7 @@ class RandomVariable(Generic[_ValueType]):
 
         For instance, this method is useful if (``log``)
         :meth:`~ContinousRandomVariable.cdf` and (``log``)
-        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
+        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`numpy.float_`
         arguments, but we still want the user to be able to pass Python
         :class:`float`. Then :meth:`~RandomVariable.as_value_type`
         should be set to something like ``lambda x: np.float64(x)``.
@@ -203,12 +203,13 @@ class RandomVariable(Generic[_ValueType]):
         """The dtype of the :attr:`median`.
 
         It will be set to the dtype arising from the multiplication of
-        values with dtypes :attr:`dtype` and :class:`np.float_`. This is
-        motivated by the fact that, even for discrete random variables,
-        e.g. integer-valued random variables, the :attr:`median` might
-        lie in between two values in which case these values are
-        averaged. For example, a uniform random variable on :math:`\\{
-        1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
+        values with dtypes :attr:`dtype` and :class:`numpy.float_`. This
+        is motivated by the fact that, even for discrete random
+        variables, e.g. integer-valued random variables, the
+        :attr:`median` might lie in between two values in which case
+        these values are averaged. For example, a uniform random
+        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of
+        :math:`2.5`.
         """
         return self.__median_dtype
 
@@ -217,9 +218,9 @@ class RandomVariable(Generic[_ValueType]):
         """The dtype of any (function of a) moment of the random variable, e.g. its
         :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. It will be set to the
         dtype arising from the multiplication of values with dtypes :attr:`dtype`
-        and :class:`np.float_`. This is motivated by the mathematical definition of a
+        and :class:`numpy.float_`. This is motivated by the mathematical definition of a
         moment as a sum or an integral over products of probabilities and values of the
-        random variable, which are represented as using the dtypes :class:`np.float_`
+        random variable, which are represented as using the dtypes :class:`numpy.float_`
         and :attr:`dtype`, respectively.
         """
         return self.__moment_dtype
@@ -605,7 +606,7 @@ class RandomVariable(Generic[_ValueType]):
         Parameters
         ----------
         axes :
-            See documentation of numpy.ndarray.transpose.
+            See documentation of :meth:`numpy.ndarray.transpose`.
         """
         return RandomVariable(
             shape=np.empty(shape=self.shape).transpose(*axes).shape,
@@ -790,11 +791,12 @@ class RandomVariable(Generic[_ValueType]):
         """Infer the dtype of the median.
 
         Set the dtype to the dtype arising from
-        the multiplication of values with dtypes :attr:`dtype` and :class:`np.float_`.
-        This is motivated by the fact that, even for discrete random variables, e.g.
-        integer-valued random variables, the :attr:`median` might lie in between two
-        values in which case these values are averaged. For example, a uniform random
-        variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a median of :math:`2.5`.
+        the multiplication of values with dtypes :attr:`dtype` and
+        :class:`numpy.float_`. This is motivated by the fact that, even for discrete
+        random variables, e.g. integer-valued random variables, the :attr:`median`
+        might lie in between two values in which case these values are averaged. For
+        example, a uniform random variable on :math:`\\{ 1, 2, 3, 4 \\}` will have a
+        median of :math:`2.5`.
 
         Parameters
         ----------
@@ -810,9 +812,9 @@ class RandomVariable(Generic[_ValueType]):
         Infers the dtype of any (function of a) moment of the random variable, e.g. its
         :attr:`mean`, :attr:`cov`, :attr:`var`, or :attr:`std`. Returns the
         dtype arising from the multiplication of values with dtypes :attr:`dtype`
-        and :class:`np.float_`. This is motivated by the mathematical definition of a
+        and :class:`numpy.float_`. This is motivated by the mathematical definition of a
         moment as a sum or an integral over products of probabilities and values of the
-        random variable, which are represented as using the dtypes :class:`np.float_`
+        random variable, which are represented as using the dtypes :class:`numpy.float_`
         and :attr:`dtype`, respectively.
 
         Parameters
@@ -944,7 +946,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
         For instance, this method is useful if (``log``)
         :meth:`~DiscreteRandomVariable.cdf` and (``log``)
-        :meth:`~DiscreteRandomVariable.pmf` both only work on :class:`np.float_`
+        :meth:`~DiscreteRandomVariable.pmf` both only work on :class:`numpy.float_`
         arguments, but we still want the user to be able to pass Python
         :class:`float`. Then :meth:`~DiscreteRandomVariable.as_value_type`
         should be set to something like ``lambda x: np.float64(x)``.
@@ -1166,7 +1168,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
         For instance, this method is useful if (``log``)
         :meth:`~ContinuousRandomVariable.cdf` and (``log``)
-        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`np.float_`
+        :meth:`~ContinuousRandomVariable.pdf` both only work on :class:`numpy.float_`
         arguments, but we still want the user to be able to pass Python
         :class:`float`. Then :meth:`~ContinuousRandomVariable.as_value_type`
         should be set to something like ``lambda x: np.float64(x)``.
