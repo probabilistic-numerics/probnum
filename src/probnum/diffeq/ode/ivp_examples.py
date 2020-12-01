@@ -216,7 +216,7 @@ def lv_jac(t, y, params):
     return np.array([[a - b * y2, -b * y1], [d * y2, -c + d * y1]])
 
 
-def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
+def seir(timespan, initrv, params=(0.3, 0.3, 0.1)):
     r"""Initial value problem (IVP) based on the SEIR model.
 
     The SEIR model with no vital dynamics is defined through
@@ -231,9 +231,18 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
             \gamma y_3
         \end{pmatrix}
 
-    for some parameters :math:`(\alpha, \beta, \gamma, N)`.
-    N is a constant population count.
-    Default is :math:`(\alpha, \beta, \gamma, N)=(0.3, 0.3, 0.1, 10^7)`.
+    for some parameters :math:`(\alpha, \beta, \gamma)` and population
+    count :math:`N`. Without taking vital dynamics into consideration,
+    :math:`N` is constant such that for every time point :math:`t`
+
+    .. math::
+
+        S(t) + E(t) + I(t) + R(t) = N
+
+    holds.
+    Default parameters are :math:`(\alpha, \beta, \gamma)=(0.3, 0.3, 0.1)`.
+    The population count is computed from the (mean of the)
+    initial value random variable.
 
     Parameters
     ----------
@@ -245,9 +254,9 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
         or Normal (noisy) with :math:`4`-dimensional mean vector and
         :math:`4 \times 4`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
-    params : (float, float, float, float), optional
-        Parameters :math:`(\alpha, \beta, \gamma, N)` for the SEIR model IVP.
-        Default is :math:`(\alpha, \beta, \gamma, N)=(0.3, 0.3, 0.1, 10^7)`.
+    params : (float, float, float), optional
+        Parameters :math:`(\alpha, \beta, \gamma)` for the SEIR model IVP.
+        Default is :math:`(\alpha, \beta, \gamma)=(0.3, 0.3, 0.1)`.
 
     Returns
     -------
@@ -256,17 +265,20 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1, 1e7)):
         configuration.
     """
 
+    population_count = np.sum(initrv.mean)
+    params_and_population_count = (*params, population_count)
+
     def rhs(t, y):
-        return seir_rhs(t, y, params)
+        return seir_rhs(t, y, params_and_population_count)
 
     return IVP(timespan, initrv, rhs)
 
 
 def seir_rhs(t, y, params):
-    alpha, beta, gamma, N = params
+    alpha, beta, gamma, population_count = params
     y1, y2, y3, y4 = y
-    y1_next = -beta * y1 * y3 / N
-    y2_next = beta * y1 * y3 / N - alpha * y2
+    y1_next = -beta * y1 * y3 / population_count
+    y2_next = beta * y1 * y3 / population_count - alpha * y2
     y3_next = alpha * y2 - gamma * y3
     y4_next = gamma * y3
 
