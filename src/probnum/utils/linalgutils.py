@@ -81,6 +81,61 @@ def cholesky_rank_1_update(
     References
     ----------
     .. [1] M. Seeger, "Low Rank Updates for the Cholesky Decomposition", 2008.
+
+    Examples
+    --------
+    Consider the following matrix-vector pair
+
+    >>> A = np.diag([1.0, 2.0, 3.0]) + 0.1
+    >>> A
+    array([[1.1, 0.1, 0.1],
+           [0.1, 2.1, 0.1],
+           [0.1, 0.1, 3.1]])
+    >>> v = np.array([1.0, 25.0, 10.0])
+    >>> v
+    array([ 1., 25., 10.])
+
+    We want to compute the lower triangular Cholesky factor :code:`L_prime` of
+
+    >>> A_prime = A + np.outer(v, v)
+    >>> A_prime
+    array([[  2.1,  25.1,  10.1],
+           [ 25.1, 627.1, 250.1],
+           [ 10.1, 250.1, 103.1]])
+
+    We assume that the lower triangular Cholesky factor of :code:`A` is given
+
+    >>> L = scipy.linalg.cho_factor(A, lower=True)[0]
+    >>> np.tril(L)
+    array([[1.04880885, 0.        , 0.        ],
+           [0.09534626, 1.44599761, 0.        ],
+           [0.09534626, 0.06286946, 1.75697368]])
+
+    The function :func:`cholesky_rank_1_update` can compute :code:`L_prime` from
+    :code:`L` efficiently
+
+    >>> import probnum as pn
+    >>> L_prime = pn.utils.cholesky_rank_1_update(L, v)
+    >>> np.tril(L_prime)
+    array([[ 1.44913767,  0.        ,  0.        ],
+           [17.32064554, 18.08577447,  0.        ],
+           [ 6.96966215,  7.15374133,  1.82969791]])
+
+    Did it work?
+
+    >>> np.linalg.norm(A_prime - np.tril(L_prime) @ np.tril(L_prime).T, ord=np.inf)
+    1.2079226507921703e-13
+
+    We could also compute :code:`L_prime` by directly computing the Cholesky
+    factorization of :code:`A_prime` (which is however less efficient)
+
+    >>> L_prime = scipy.linalg.cho_factor(A_prime, lower=True)[0]
+    >>> np.tril(L_prime)
+    array([[ 1.44913767,  0.        ,  0.        ],
+           [17.32064554, 18.08577447,  0.        ],
+           [ 6.96966215,  7.15374133,  1.82969791]])
+    >>> np.linalg.norm(A_prime - np.tril(L_prime) @ np.tril(L_prime).T, ord=np.inf)
+    1.1723955140041653e-13
     """
 
     # Validate L
