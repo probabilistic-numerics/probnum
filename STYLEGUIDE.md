@@ -88,7 +88,10 @@ Stick to the first few letters for abbreviations if they are sufficiently descri
 Further conventions are
 - `unit2unit`: convert between types or units, e.g. `mat2arr`: convert matrix to array or `s2ms`: convert seconds to milliseconds. Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - `proj`: projection (if required: `projmat`, `projvec`, `projlinop`, ...)
-- `precond`: preconditioner
+- `precon`: preconditioner
+- `driftmat`: drift-matrix, `forcevec`: force-vector, `dispmat` dispersion-matrix, 
+`dynamicsmat` dynamics-matrix, `diffmat` diffusion-matrix, 
+plus the respective `driftmatfun`, `driftfun`, `dispmatfun`, etc.
 - `inv*`: for inverse of a matrix; e.g. `invprecond`, `invcovmat`, ...
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
 - `msg`: message, e.g. for issuing raising and warnings (`errmsg`, `warnmsg`)
