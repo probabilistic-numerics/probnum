@@ -27,7 +27,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
     """
 
     def __init__(self, ivp, gaussfilt, with_smoothing):
-        if not issubclass(type(gaussfilt.dynamics_model), pnfs.statespace.Integrator):
+        if not isinstance(gaussfilt.dynamics_model, pnfs.statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
             )

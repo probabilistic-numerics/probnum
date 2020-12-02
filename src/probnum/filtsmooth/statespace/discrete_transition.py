@@ -49,14 +49,14 @@ class DiscreteGaussian(trans.Transition):
         super().__init__()
 
     def transition_realization(self, real, start, **kwargs):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         newmean = self.dynamicsfun(start, real)
         newcov = self.diffmatfun(start)
         crosscov = np.zeros(newcov.shape)
         return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
 
     def transition_rv(self, rv, start, **kwargs):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         raise NotImplementedError
 
 
@@ -101,7 +101,6 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         )
 
     def transition_rv(self, rv, start, **kwargs):
-        # **kwargs swallow all irrelevant arguments for this function.
 
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
@@ -120,6 +119,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # risky to evaluate at zero, but works well
         # remove this -- the dimension of discrete transitions is not clear!
         # input dim != output dim is possible...
+        # See issue #266
         return len(self.dynamicsmatfun(0.0).T)
 
 

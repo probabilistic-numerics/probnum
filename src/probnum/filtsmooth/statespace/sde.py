@@ -14,7 +14,7 @@ from . import discrete_transition, transition
 class SDE(transition.Transition):
     """Stochastic differential equation.
 
-    .. math:: d x_t = g(t, x_t) d t + L(t) d w_t,
+    .. math:: d x(t) = g(t, x(t)) d t + L(t) d w(t),
 
     driven by a Wiener process with unit diffusion.
     """
@@ -58,7 +58,7 @@ class SDE(transition.Transition):
 class LinearSDE(SDE):
     """Linear stochastic differential equation (SDE),
 
-    .. math:: d x_t = [G(t) x_t + v(t)] d t + L(t) x_t d w_t.
+    .. math:: d x(t) = [G(t) x(t) + v(t)] d t + L(t) x(t) d w(t).
 
     For Gaussian initial conditions, this solution is a Gaussian process.
 
@@ -100,7 +100,7 @@ class LinearSDE(SDE):
         step,
         **kwargs,
     ):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         rv = pnrv.Normal(real, 0 * np.eye(len(real)))
         return linear_sde_statistics(
             rv,
@@ -113,7 +113,6 @@ class LinearSDE(SDE):
         )
 
     def transition_rv(self, rv, start, stop, step, **kwargs):
-        # **kwargs swallow all irrelevant arguments for this function.
 
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
@@ -141,14 +140,14 @@ class LinearSDE(SDE):
 class LTISDE(LinearSDE):
     """Linear time-invariant continuous Markov models of the form.
 
-    .. math:: d x_t = [G x_t + v] d t + L d w_t.
+    .. math:: d x(t) = [G x(t) + v] d t + L d w(t).
 
     In the language of dynamic models,
-    x_t : state process
+    x(t) : state process
     G : drift matrix
     v : force term/vector
     L : dispersion matrix.
-    w_t : Wiener process with unit diffusion.
+    w(t) : Wiener process with unit diffusion.
 
     Parameters
     ----------
@@ -178,7 +177,7 @@ class LTISDE(LinearSDE):
         stop,
         **kwargs,
     ):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
@@ -191,7 +190,7 @@ class LTISDE(LinearSDE):
         stop,
         **kwargs,
     ):
-        # **kwargs swallow all irrelevant arguments for this function.
+
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
@@ -224,7 +223,7 @@ def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun)
 
     For a linear(ised) SDE
 
-    .. math:: d x_t = [G(t) x_t + v(t)] d t + L(t) x_t d w_t.
+    .. math:: d x(t) = [G(t) x(t) + v(t)] d t + L(t) x(t) d w(t).
 
     mean and covariance of the solution are computed by solving
 

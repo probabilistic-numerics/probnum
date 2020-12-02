@@ -190,7 +190,6 @@ class Kalman(BayesFiltSmooth):
             which is the crosscov between input RV and measured RV.
             The crosscov does not relate to the updated RV!
         """
-        # if required, preconditioning can be leveraged here, similarly to `smooth_step`
         meas_rv, info = self.measure(time, randvar)
         filt_rv = self.condition_state_on_measurement(
             randvar, meas_rv, data, info["crosscov"]
