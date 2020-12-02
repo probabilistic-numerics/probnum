@@ -19,7 +19,7 @@ class ContinuousEKFComponent(statespace.Transition):
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
 
-        compute_jacobian_at = linearise_at.mean if linearise_at else real
+        compute_jacobian_at = linearise_at.mean if linearise_at is not None else real
 
         def jacobfun(t, x=compute_jacobian_at):
             # replaces functools (second variable may not be called x)
@@ -38,7 +38,7 @@ class ContinuousEKFComponent(statespace.Transition):
 
     def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
 
-        compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
+        compute_jacobian_at = linearise_at.mean if linearise_at is not None else rv.mean
 
         def jacobfun(t, x=compute_jacobian_at):
             # replaces functools (second variable may not be called x)
@@ -72,7 +72,7 @@ class DiscreteEKFComponent(statespace.Transition):
 
     def transition_rv(self, rv, start, linearise_at=None, **kwargs):
         diffmat = self.disc_model.diffmatfun(start)
-        compute_jacobian_at = linearise_at.mean if linearise_at else rv.mean
+        compute_jacobian_at = linearise_at.mean if linearise_at is not None else rv.mean
         jacob = self.disc_model.jacobfun(start, compute_jacobian_at)
         mpred = self.disc_model.dynamicsfun(start, rv.mean)
         crosscov = rv.cov @ jacob.T

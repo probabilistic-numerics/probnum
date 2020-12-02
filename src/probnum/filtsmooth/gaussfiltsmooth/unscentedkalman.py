@@ -51,7 +51,7 @@ class DiscreteUKFComponent(statespace.Transition):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
     def transition_rv(self, rv, start, linearise_at=None, **kwargs):
-        compute_sigmapts_at = linearise_at if linearise_at else rv
+        compute_sigmapts_at = linearise_at if linearise_at is not None else rv
         sigmapts = self.ut.sigma_points(
             compute_sigmapts_at.mean, compute_sigmapts_at.cov
         )
