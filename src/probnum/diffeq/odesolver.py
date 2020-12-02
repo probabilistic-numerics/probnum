@@ -6,6 +6,8 @@ Interface for Runge-Kutta, ODEFilter.
 import warnings
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 from probnum.diffeq.odesolution import ODESolution
 
 
@@ -17,7 +19,7 @@ class ODESolver(ABC):
         self.order = order  # RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-    def solve(self, steprule, **kwargs):
+    def solve(self, steprule, atol, rtol, **kwargs):
         """Solve an IVP.
 
         Parameters
@@ -35,8 +37,14 @@ class ODESolver(ABC):
 
             t_new = t + stepsize
             proposed_rv, errorest = self.step(t, t_new, current_rv, **kwargs)
-
-            if steprule.is_accepted(stepsize, errorest):
+            scaled_error = steprule.errorest_to_internalnorm(
+                errorest=errorest,
+                proposed_rv=proposed_rv,
+                current_rv=current_rv,
+                atol=atol,
+                rtol=rtol,
+            )
+            if steprule.is_accepted(stepsize, scaled_error):
                 self.num_steps += 1
                 self.method_callback(
                     time=t_new, current_guess=proposed_rv, current_error=errorest
@@ -47,12 +55,22 @@ class ODESolver(ABC):
                 rvs.append(current_rv)
 
             suggested_stepsize = steprule.suggest(
-                stepsize, errorest, localconvrate=self.order + 1
+                stepsize, scaled_error, localconvrate=self.order + 1
             )
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
         odesol = self.postprocess(times=times, rvs=rvs)
         return odesol
+
+    # This is part of the solver now, not part of the steprule.
+    # For constant steps, this is computed even if not needed...
+    def _errorest_to_scaled_error(self, errorest, proposed_rv, current_rv, atol, rtol):
+        """Computes the scaled error (usually referred to as 'E')."""
+        tolerance = atol + rtol * np.maximum(
+            np.abs(proposed_rv.mean), np.abs(current_rv.mean)
+        )
+        ratio = errorest / tolerance
+        return np.sqrt(ratio.T @ ratio / len(ratio))
 
     @abstractmethod
     def initialise(self):

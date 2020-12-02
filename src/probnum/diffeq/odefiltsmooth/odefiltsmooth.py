@@ -228,7 +228,7 @@ def probsolve_ivp(
     )
     with_smoothing = method[-2] == "s" or method[-1] == "s"
     solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
-    solution = solver.solve(steprule=stprl, **kwargs)
+    solution = solver.solve(steprule=stprl, atol=tol, rtol=tol, **kwargs)
     return solution
 
 
@@ -244,7 +244,7 @@ def _create_solver_inputs(
     if tol is not None:
         if firststep is None:
             firststep = ivp.tmax - ivp.t0
-        stprl = steprule.AdaptiveSteps(tol, firststep=firststep)
+        stprl = steprule.AdaptiveSteps(firststep=firststep)
     else:
         stprl = steprule.ConstantSteps(step)
     gfilt = _string2filter(ivp, _prior, method, **kwargs)

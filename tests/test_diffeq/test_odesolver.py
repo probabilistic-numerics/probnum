@@ -38,7 +38,9 @@ class ODESolverTestCase(unittest.TestCase):
     def test_solve(self):
         steprule = ConstantSteps(self.step)
         odesol = self.solver.solve(
-            steprule=steprule
+            steprule=steprule,
+            atol=1,
+            rtol=1,
         )  # this is the actual part of the test
 
         # quick check that the result is sensible
