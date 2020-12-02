@@ -12,8 +12,9 @@ from probnum.diffeq.odesolution import ODESolution
 class ODESolver(ABC):
     """Interface for ODESolver."""
 
-    def __init__(self, ivp):
+    def __init__(self, ivp, order):
         self.ivp = ivp
+        self.order = order  # RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
     def solve(self, firststep, steprule, **kwargs):
