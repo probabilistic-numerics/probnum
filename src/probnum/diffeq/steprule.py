@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 
 class StepRule(ABC):
     """(Adaptive) step size rules for ODE solvers."""
@@ -56,15 +58,25 @@ class AdaptiveSteps(StepRule):
     """
 
     def __init__(
-        self, tol_per_step, firststep, limitchange=(0.1, 5.0), safetyscale=0.95
+        self,
+        tol_per_step,
+        firststep,
+        limitchange=(0.1, 5.0),
+        safetyscale=0.95,
+        minstep=1e-15,
+        maxstep=1e15,
     ):
         self.tol_per_step = float(tol_per_step)
         self.safetyscale = float(safetyscale)
         self.limitchange = limitchange
+        self.minstep = minstep
+        self.maxstep = maxstep
+
         super().__init__(firststep=firststep)
 
     def suggest(self, laststep, errorest, localconvrate=None):
         small, large = self.limitchange
+
         ratio = self.tol_per_step / (laststep * errorest)
         change = self.safetyscale * ratio ** (1.0 / localconvrate)
         if change < small:
@@ -75,6 +87,10 @@ class AdaptiveSteps(StepRule):
             step = change * laststep
         if step < 1e-15:
             print("Warning: Stepsize is num. zero (h=%.1e)" % step)
+        if step < self.minstep:
+            raise RuntimeError("Step-size smaller than minimum step-size")
+        if step > self.maxstep:
+            raise RuntimeError("Step-size larger than maximum step-size")
         return step
 
     def is_accepted(self, proposedstep, errorest, localconvrate=None):
