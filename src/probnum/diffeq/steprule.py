@@ -116,9 +116,12 @@ class AdaptiveSteps(StepRule):
     # In here, because we do not want to compute it for constant steps,
     # in fact, we don't even want to think about which value atol and rtol should have.
     # Who knows, maybe there are other ways of dealing with this.
-    def errorest_to_internalnorm(self, errorest, proposed_rv, current_rv, atol, rtol):
+    def errorest_to_internalnorm(
+        self, errorest, proposed_state, current_state, atol, rtol
+    ):
         tolerance = atol + rtol * np.maximum(
-            np.abs(proposed_rv.mean), np.abs(current_rv.mean)
+            np.abs(proposed_state), np.abs(current_state)
         )
         ratio = errorest / tolerance
-        return np.sqrt(ratio.T @ ratio / len(ratio))
+        dim = len(ratio) if ratio.ndim > 0 else 1
+        return np.linalg.norm(ratio) / np.sqrt(dim)

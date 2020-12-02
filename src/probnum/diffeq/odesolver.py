@@ -36,8 +36,8 @@ class ODESolver(ABC):
             proposed_rv, errorest = self.step(t, t_new, current_rv, **kwargs)
             internal_norm = steprule.errorest_to_internalnorm(
                 errorest=errorest,
-                proposed_rv=proposed_rv,
-                current_rv=current_rv,
+                proposed_state=proposed_rv.mean,
+                current_state=current_rv.mean,
                 atol=atol,
                 rtol=rtol,
             )

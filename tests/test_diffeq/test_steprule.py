@@ -34,15 +34,42 @@ class TestAdaptiveStep(unittest.TestCase):
         self.asr = steprule.AdaptiveSteps(firststep=1.0)
 
     def test_is_accepted(self):
-        suggstep = random_state.rand()
-        errorest = suggstep ** 3 / 3
+        errorest = 0.5  # < 1, should be accepted
+        suggstep = np.nan  # value should not matter
+        localconvrate = None  # should not matter either
         self.assertEqual(
-            self.asr.is_accepted(suggstep, errorest, localconvrate=3), True
+            self.asr.is_accepted(suggstep, errorest, localconvrate=localconvrate), True
         )
 
-    def test_propose(self):
-        step = 0.25 * random_state.rand()
-        errorest = step
+    def test_suggest(self):
+        """If errorest <1, the next step should be larger."""
+        step = 0.55 * random_state.rand()
+        errorest = 0.75
         sugg = self.asr.suggest(step, errorest, localconvrate=3)
-        err = sugg ** 3 / 3
-        self.assertEqual(self.asr.is_accepted(sugg, err), True)
+        self.assertGreater(sugg, step)
+
+    def test_errorest_to_internalnorm_1d(self):
+        errorest = 0.5
+        proposed_state = np.array(1.0)
+        current_state = np.array(2.0)
+        atol = 0.1
+        rtol = 0.01
+        expected = errorest / (atol + rtol * np.maximum(proposed_state, current_state))
+        received = self.asr.errorest_to_internalnorm(
+            errorest, proposed_state, current_state, atol, rtol
+        )
+        self.assertAlmostEqual(expected, received)
+
+    def test_errorest_to_internalnorm_2d(self):
+        errorest = np.array([0.1, 0.2])
+        proposed_state = np.array([1.0, 3.0])
+        current_state = np.array([2.0, 3.0])
+        atol = 0.1
+        rtol = 0.01
+        expected = np.linalg.norm(
+            errorest / (atol + rtol * np.maximum(proposed_state, current_state))
+        ) / np.sqrt(2)
+        received = self.asr.errorest_to_internalnorm(
+            errorest, proposed_state, current_state, atol, rtol
+        )
+        self.assertAlmostEqual(expected, received)
