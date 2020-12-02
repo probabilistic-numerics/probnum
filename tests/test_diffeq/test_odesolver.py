@@ -31,7 +31,8 @@ class ODESolverTestCase(unittest.TestCase):
     def setUp(self):
         y0 = Constant(0.3)
         ivp = logistic([0, 4], initrv=y0)
-        self.solver = MockODESolver(ivp)
+        euler_order = 1
+        self.solver = MockODESolver(ivp, order=euler_order)
         self.step = 0.2
 
     def test_solve(self):
