@@ -24,9 +24,15 @@ class StepRule(ABC):
         """
         raise NotImplementedError
 
+    # 'internalnorm' is named after the respective variable used by SciML.
     @abstractmethod
     def errorest_to_internalnorm(self, errorest, proposed_rv, current_rv, atol, rtol):
-        """Computes the scaled error (usually referred to as 'E')."""
+        """Computes the internal norm (usually referred to as 'E').
+
+        The internal norm is usually the current error estimate
+        normalised with atol, rtol, and the magnitude of the previous
+        states.
+        """
         raise NotImplementedError
 
 
@@ -45,25 +51,26 @@ class ConstantSteps(StepRule):
         return True
 
     def errorest_to_internalnorm(self, errorest, proposed_rv, current_rv, atol, rtol):
-        """Computes the scaled error (usually referred to as 'E')."""
         pass
 
 
+# Once we have other controls, e.g. PI control, we can rename this into ProportionalControl.
+# Until then, lets keep the delta small, I'd say (N).
 class AdaptiveSteps(StepRule):
-    """Adaptive step size selection based on tolerance per step.
-
-    By default, there is no being "too small" for a step. However, a
-    Warning is printed if the suggested step is smaller than roughly
-    machine precision: 1e-15.
+    """Adaptive step size selection using proportional control.
 
     Parameters
     ----------
-    tol_per_step : float
-        Tolerance per step (absolute)
+    firststep : float
+        First step to be taken by the ODE solver (which happens in absence of error estimates).
     limitchange : list with 2 elements, optional
         Lower and upper bounds for computed change of step.
     safetyscale : float, optional
         Safety factor for proposal of distributions, 0 << safetyscale < 1
+    minstep : float, optional
+        Minimum step that is allowed. A runtime error is thrown if the proposed step is smaller. Default is 1e-15.
+    maxstep : float, optional
+        Maximum step that is allowed. A runtime error is thrown if the proposed step is larger. Default is 1e15.
     """
 
     def __init__(
@@ -108,8 +115,8 @@ class AdaptiveSteps(StepRule):
 
     # In here, because we do not want to compute it for constant steps,
     # in fact, we don't even want to think about which value atol and rtol should have.
+    # Who knows, maybe there are other ways of dealing with this.
     def errorest_to_internalnorm(self, errorest, proposed_rv, current_rv, atol, rtol):
-        """Computes the scaled error (usually referred to as 'E')."""
         tolerance = atol + rtol * np.maximum(
             np.abs(proposed_rv.mean), np.abs(current_rv.mean)
         )
