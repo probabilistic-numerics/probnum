@@ -2,7 +2,7 @@
 
 from .argutils import *
 from .arrayutils import *
-from .linalgutils import *
+from .choleskyutils import *
 from .randomutils import *
 
 # Public classes and functions. Order is reflected in documentation.

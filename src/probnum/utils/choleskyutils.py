@@ -1,4 +1,4 @@
-""" Linear algebra utilities """
+""" Utility funcions for working with Cholesky factorizations. """
 
 import numpy as np
 import scipy.linalg
