@@ -14,7 +14,7 @@ import scipy.special
 import probnum.random_variables as pnrv
 
 from . import discrete_transition, sde
-from .preconditioner import TaylorCoordinates
+from .preconditioner import NordsieckLikeCoordinates
 
 
 class Integrator:
@@ -70,7 +70,7 @@ class IBM(Integrator, sde.LTISDE):
             dispmat=self._dispmat,
         )
 
-        self.precon = TaylorCoordinates.from_order(ordint, spatialdim)
+        self.precon = NordsieckLikeCoordinates.from_order(ordint, spatialdim)
 
     @property
     def _driftmat(self):

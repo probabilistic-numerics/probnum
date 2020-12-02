@@ -20,11 +20,13 @@ class PreconditionerTestCase:
         self.assertAllClose(Pinv @ P, np.eye(*P.shape), rtol=1e-15, atol=0.0)
 
 
-class TestTaylorCoordinates(PreconditionerTestCase, unittest.TestCase, NumpyAssertions):
+class TestNordsieckLikeCoordinates(
+    PreconditionerTestCase, unittest.TestCase, NumpyAssertions
+):
     def setUp(self):
         self.some_order = 3
         self.some_dim = 1
-        self.precon = pnfs.statespace.TaylorCoordinates.from_order(
+        self.precon = pnfs.statespace.NordsieckLikeCoordinates.from_order(
             self.some_order, self.some_dim
         )
 

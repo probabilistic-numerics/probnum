@@ -29,10 +29,12 @@ class Preconditioner(abc.ABC):
         raise NotImplementedError
 
 
-class TaylorCoordinates(Preconditioner):
-    """Taylor coordinates.
+class NordsieckLikeCoordinates(Preconditioner):
+    """Nordsieck-like coordinates.
 
-    Similar to Nordsieck coordinates, but better. Used in IBM.
+    Similar to Nordsieck coordinates (which store the Taylor
+    coefficients instead of the derivatives), but better for ODE
+    filtering and smoothing. Used in IBM.
     """
 
     def __init__(self, powers, scales, spatialdim):
@@ -55,7 +57,7 @@ class TaylorCoordinates(Preconditioner):
         return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
 
     @cached_property
-    def inverse(self) -> "TaylorCoordinates":
-        return TaylorCoordinates(
+    def inverse(self) -> "NordsieckLikeCoordinates":
+        return NordsieckLikeCoordinates(
             powers=-self.powers, scales=1.0 / self.scales, spatialdim=self.spatialdim
         )

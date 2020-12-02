@@ -17,5 +17,5 @@ __all__ = [
     "DiscreteLinearGaussian",
     "DiscreteLTIGaussian",
     "Preconditioner",
-    "TaylorCoordinates",
+    "NordsieckLikeCoordinates",
 ]
