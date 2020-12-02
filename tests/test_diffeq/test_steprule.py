@@ -73,3 +73,17 @@ class TestAdaptiveStep(unittest.TestCase):
             errorest, proposed_state, current_state, atol, rtol
         )
         self.assertAlmostEqual(expected, received)
+
+    def test_minstep_maxstep(self):
+        adaptive_steps = steprule.AdaptiveSteps(
+            firststep=1.0, limitchange=(0.0, 1e10), minstep=0.1, maxstep=10
+        )
+
+        with self.assertRaises(RuntimeError):
+            adaptive_steps.suggest(
+                laststep=1.0, scaled_error=100_000.0, localconvrate=1
+            )
+        with self.assertRaises(RuntimeError):
+            adaptive_steps.suggest(
+                laststep=1.0, scaled_error=1.0 / 100_000.0, localconvrate=1
+            )
