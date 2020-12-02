@@ -30,7 +30,7 @@ class TestAdaptiveStep(unittest.TestCase):
     def setUp(self):
         """Set up imaginative solver of convergence rate 3."""
         self.tol = 1e-4
-        self.asr = steprule.AdaptiveSteps(self.tol)
+        self.asr = steprule.AdaptiveSteps(self.tol, firststep=1.0)
 
     def test_is_accepted(self):
         suggstep = random_state.rand()

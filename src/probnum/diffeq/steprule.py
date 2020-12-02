@@ -4,6 +4,9 @@ from abc import ABC, abstractmethod
 class StepRule(ABC):
     """(Adaptive) step size rules for ODE solvers."""
 
+    def __init__(self, firststep):
+        self.firststep = firststep
+
     @abstractmethod
     def suggest(self, laststep, errorest, localconvrate=None):
         """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
@@ -25,7 +28,7 @@ class ConstantSteps(StepRule):
 
     def __init__(self, stepsize):
         self.step = stepsize
-        super().__init__()
+        super().__init__(firststep=stepsize)
 
     def suggest(self, laststep, errorest, localconvrate=None):
         return self.step
@@ -52,10 +55,13 @@ class AdaptiveSteps(StepRule):
         Safety factor for proposal of distributions, 0 << safetyscale < 1
     """
 
-    def __init__(self, tol_per_step, limitchange=(0.1, 5.0), safetyscale=0.95):
+    def __init__(
+        self, tol_per_step, firststep, limitchange=(0.1, 5.0), safetyscale=0.95
+    ):
         self.tol_per_step = float(tol_per_step)
         self.safetyscale = float(safetyscale)
         self.limitchange = limitchange
+        super().__init__(firststep=firststep)
 
     def suggest(self, laststep, errorest, localconvrate=None):
         small, large = self.limitchange
