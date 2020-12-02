@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# probnum documentation build configuration file, created by
+# ProbNum documentation build configuration file, created by
 # sphinx-quickstart on Fri Nov  2 15:54:04 2019.
 #
 # This file is execfile()d with the current directory set to its
@@ -13,17 +13,16 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-
 import os
 import sys
 from datetime import datetime
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-sys.path.insert(0, os.path.abspath("../../../probnum/src"))
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+sys.path.insert(0, os.path.abspath("../src"))
 
 # -- General configuration ------------------------------------------------
 
@@ -112,6 +111,40 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+# -- Jupyter notebooks (nbsphinx) ------------------------------
+
+# Work-around until https://github.com/sphinx-doc/sphinx/issues/4229 is solved:
+html_scaled_image_link = False
+
+# Don't add .txt suffix to source files:
+html_sourcelink_suffix = ""
+
+# Allow errors in the build process
+nbsphinx_allow_errors = True
+
+# Whether to execute notebooks before conversion or not.
+# Possible values: 'always', 'never', 'auto' (default).
+nbsphinx_execute = "auto"
+
+# List of arguments to be passed to the kernel that executes the notebooks:
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",  # e.g. for matplotlib plots
+    "--InlineBackend.rc={'figure.dpi': 150}",
+]
+
+# -- Intersphinx configuration ----------------------------------------------
+
+# Whenever Sphinx encounters a cross-reference that has no matching target in the
+# current documentation set, it looks for targets in 'intersphinx_mapping'. A reference
+# like :py:class:`zipfile.ZipFile` can then link to the Python documentation for the
+# ZipFile class.
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
+    "matplotlib": ("https://matplotlib.org/", None),
+}
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -155,32 +188,6 @@ sphinx_gallery_conf = {
     "default_thumb_file": "img/pn_logo_wide.png"  # default thumbnail image
 }
 
-# -- Jupyter notebooks (nbsphinx) ------------------------------
-
-# Work-around until https://github.com/sphinx-doc/sphinx/issues/4229 is solved:
-html_scaled_image_link = False
-
-# Don't add .txt suffix to source files:
-html_sourcelink_suffix = ""
-
-# Allow errors in the build process
-nbsphinx_allow_errors = True
-
-# Whether to execute notebooks before conversion or not.
-# Possible values: 'always', 'never', 'auto' (default).
-nbsphinx_execute = "auto"
-
-# List of arguments to be passed to the kernel that executes the notebooks:
-nbsphinx_execute_arguments = [
-    "--InlineBackend.figure_formats={'svg', 'pdf'}",  # e.g. for matplotlib plots
-    "--InlineBackend.rc={'figure.dpi': 150}",
-]
-
-# -- Options for HTMLHelp output ------------------------------------------
-
-# Output file base name for HTML help builder.
-htmlhelp_basename = "probnumdoc"
-
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
@@ -204,29 +211,3 @@ latex_elements = {
 latex_documents = [
     (master_doc, "probnum.tex", "ProbNum's Documentation", [author], "manual")
 ]
-
-# -- Options for manual page output ---------------------------------------
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "probnum", "ProbNum's Documentation", [author], 1)]
-
-# -- Options for Texinfo output -------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (
-        master_doc,
-        "probnum",
-        "ProbNum's Documentation",
-        author,
-        "probnum",
-        "Probabilistic Numerics in Python.",
-        "Miscellaneous",
-    )
-]
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"https://docs.python.org/": None}
