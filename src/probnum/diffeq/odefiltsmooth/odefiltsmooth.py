@@ -242,7 +242,7 @@ def _create_solver_inputs(
         precond_step = step or 1.0
     _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
     if tol is not None:
-        stprl = steprule.AdaptiveSteps(tol, _prior.ordint + 1, **kwargs)
+        stprl = steprule.AdaptiveSteps(tol)
         if firststep is None:
             firststep = ivp.tmax - ivp.t0
     else:

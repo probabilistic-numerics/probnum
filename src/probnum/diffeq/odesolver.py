@@ -60,7 +60,7 @@ class ODESolver(ABC):
         RuntimeWarning
             If suggested step is smaller than :math:`10^{-15}`.
         """
-        step = steprule.suggest(step, errorest)
+        step = steprule.suggest(step, errorest, localconvrate=self.order + 1)
         if step < 1e-15:
             warnmsg = "Stepsize is num. zero (%.1e)" % step
             warnings.warn(message=warnmsg, category=RuntimeWarning)

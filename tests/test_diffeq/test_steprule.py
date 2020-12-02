@@ -30,16 +30,18 @@ class TestAdaptiveStep(unittest.TestCase):
     def setUp(self):
         """Set up imaginative solver of convergence rate 3."""
         self.tol = 1e-4
-        self.asr = steprule.AdaptiveSteps(self.tol, 3)
+        self.asr = steprule.AdaptiveSteps(self.tol)
 
     def test_is_accepted(self):
         suggstep = random_state.rand()
         errorest = suggstep ** 3 / 3
-        self.assertEqual(self.asr.is_accepted(suggstep, errorest), False)
+        self.assertEqual(
+            self.asr.is_accepted(suggstep, errorest, localconvrate=3), False
+        )
 
     def test_propose(self):
         step = 0.25 * random_state.rand()
         errorest = step
-        sugg = self.asr.suggest(step, errorest)
+        sugg = self.asr.suggest(step, errorest, localconvrate=3)
         err = sugg ** 3 / 3
         self.assertEqual(self.asr.is_accepted(sugg, err), True)

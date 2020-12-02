@@ -5,12 +5,12 @@ class StepRule(ABC):
     """(Adaptive) step size rules for ODE solvers."""
 
     @abstractmethod
-    def suggest(self, laststep, errorest, **kwargs):
+    def suggest(self, laststep, errorest, localconvrate=None):
         """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
         raise NotImplementedError
 
     @abstractmethod
-    def is_accepted(self, proposedstep, errorest, **kwargs):
+    def is_accepted(self, proposedstep, errorest, localconvrate=None):
         """Check if the proposed step should be accepted or not.
 
         Variable "proposedstep" not used yet, but may be important in
@@ -25,11 +25,12 @@ class ConstantSteps(StepRule):
 
     def __init__(self, stepsize):
         self.step = stepsize
+        super().__init__()
 
-    def suggest(self, laststep, errorest, **kwargs):
+    def suggest(self, laststep, errorest, localconvrate=None):
         return self.step
 
-    def is_accepted(self, proposedstep, errorest, **kwargs):
+    def is_accepted(self, proposedstep, errorest, localconvrate=None):
         """Meaningless since always True."""
         return True
 
@@ -45,31 +46,21 @@ class AdaptiveSteps(StepRule):
     ----------
     tol_per_step : float
         Tolerance per step (absolute)
-    localconvrate : float
-        (Estimated) convergence rate of the solver.
     limitchange : list with 2 elements, optional
         Lower and upper bounds for computed change of step.
     safetyscale : float, optional
         Safety factor for proposal of distributions, 0 << safetyscale < 1
     """
 
-    def __init__(
-        self,
-        tol_per_step,
-        localconvrate,
-        limitchange=(0.1, 5.0),
-        safetyscale=0.95,
-        **kwargs
-    ):
+    def __init__(self, tol_per_step, limitchange=(0.1, 5.0), safetyscale=0.95):
         self.tol_per_step = float(tol_per_step)
         self.safetyscale = float(safetyscale)
-        self.localconvrate = float(localconvrate + 1)
         self.limitchange = limitchange
 
-    def suggest(self, laststep, errorest, **kwargs):
+    def suggest(self, laststep, errorest, localconvrate=None):
         small, large = self.limitchange
         ratio = self.tol_per_step / (laststep * errorest)
-        change = self.safetyscale * ratio ** (1.0 / self.localconvrate)
+        change = self.safetyscale * ratio ** (1.0 / localconvrate)
         if change < small:
             step = small * laststep
         elif large < change:
@@ -80,5 +71,5 @@ class AdaptiveSteps(StepRule):
             print("Warning: Stepsize is num. zero (h=%.1e)" % step)
         return step
 
-    def is_accepted(self, proposedstep, errorest, **kwargs):
+    def is_accepted(self, proposedstep, errorest, localconvrate=None):
         return errorest * proposedstep < self.tol_per_step
