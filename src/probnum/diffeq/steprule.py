@@ -26,7 +26,9 @@ class StepRule(ABC):
 
     # 'internalnorm' is named after the respective variable used by SciML.
     @abstractmethod
-    def errorest_to_internalnorm(self, errorest, proposed_rv, current_rv, atol, rtol):
+    def errorest_to_internalnorm(
+        self, errorest, proposed_state, current_state, atol, rtol
+    ):
         """Computes the internal norm (usually referred to as 'E').
 
         The internal norm is usually the current error estimate
@@ -50,7 +52,9 @@ class ConstantSteps(StepRule):
         """Meaningless since always True."""
         return True
 
-    def errorest_to_internalnorm(self, errorest, proposed_rv, current_rv, atol, rtol):
+    def errorest_to_internalnorm(
+        self, errorest, proposed_state, current_state, atol, rtol
+    ):
         pass
 
 
