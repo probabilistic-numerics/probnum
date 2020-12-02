@@ -46,25 +46,13 @@ class ODESolver(ABC):
                 times.append(t)
                 rvs.append(current_rv)
 
-            suggested_stepsize = self._suggest_step(stepsize, errorest, steprule)
+            suggested_stepsize = steprule.suggest(
+                stepsize, errorest, localconvrate=self.order + 1
+            )
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
         odesol = self.postprocess(times=times, rvs=rvs)
         return odesol
-
-    def _suggest_step(self, step, errorest, steprule):
-        """Suggests step according to steprule and warns if step is extremely small.
-
-        Raises
-        ------
-        RuntimeWarning
-            If suggested step is smaller than :math:`10^{-15}`.
-        """
-        step = steprule.suggest(step, errorest, localconvrate=self.order + 1)
-        if step < 1e-15:
-            warnmsg = "Stepsize is num. zero (%.1e)" % step
-            warnings.warn(message=warnmsg, category=RuntimeWarning)
-        return step
 
     @abstractmethod
     def initialise(self):
