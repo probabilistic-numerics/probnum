@@ -113,9 +113,10 @@ class AdaptiveSteps(StepRule):
     def is_accepted(self, laststep, scaled_error, localconvrate=None):
         return scaled_error < 1
 
-    # In here, because we do not want to compute it for constant steps,
-    # in fact, we don't even want to think about which value atol and rtol should have.
-    # Who knows, maybe there are other ways of dealing with this.
+    # In here, because (i) we do not want to compute it for constant steps,
+    # and in fact, we don't even want to think about which value atol and rtol should have;
+    # (ii) having it in StepRule makes it easier to test, because the class is more light-weight;
+    # (iii) who knows, maybe there are other ways of dealing with this.
     def errorest_to_internalnorm(
         self, errorest, proposed_state, current_state, atol, rtol
     ):
