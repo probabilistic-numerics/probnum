@@ -33,7 +33,7 @@ class ODESolver(ABC):
         while t < self.ivp.tmax:
 
             t_new = t + stepsize
-            proposed_rv, errorest = self.step(t, t_new, current_rv, **kwargs)
+            proposed_rv, errorest = self.step(t, t_new, current_rv)
 
             if steprule.is_accepted(stepsize, errorest):
                 self.num_steps += 1

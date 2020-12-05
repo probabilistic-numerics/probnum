@@ -36,10 +36,10 @@ def car_tracking():
     cov = 0.5 * var * np.eye(4)
 
     dynmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamat=dynamat, forcevec=np.zeros(4), diffmat=dynadiff
+        dynamicsmat=dynamat, forcevec=np.zeros(4), diffmat=dynadiff
     )
     measmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamat=measmat, forcevec=np.zeros(2), diffmat=measdiff
+        dynamicsmat=measmat, forcevec=np.zeros(2), diffmat=measdiff
     )
     initrv = Normal(mean, cov)
     return dynmod, measmod, initrv, {"dt": delta_t}
@@ -73,12 +73,12 @@ def ornstein_uhlenbeck():
     force = np.zeros(1)
     disp = np.sqrt(q) * np.eye(1)
     dynmod = pnfs.statespace.LTISDE(
-        driftmatrix=drift,
+        driftmat=drift,
         forcevec=force,
-        dispmatrix=disp,
+        dispmat=disp,
     )
     measmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
+        dynamicsmat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
     return dynmod, measmod, initrv, {"dt": delta_t}
@@ -272,7 +272,7 @@ def benes_daum():
     initmean = np.zeros(1)
     initcov = 3.0 * np.eye(1)
     initrv = Normal(initmean, initcov)
-    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatrixfun=l, jacobfun=df)
+    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
     measmod = pnfs.statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
     return dynamod, measmod, initrv, {}
 

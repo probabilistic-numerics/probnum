@@ -81,6 +81,7 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
 
 
 class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
+    # There is no check as to whether the samples make sense...
     def setUp(self):
         super().setup_cartracking()
         self.method = Kalman(self.dynmod, self.measmod, self.initrv)
@@ -92,11 +93,11 @@ class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
             self.posterior.locations[[2, 3]],
             np.arange(0.0, 0.5, 0.025),
         ]
-        dim = (self.method.dynamod.dimension,)
+        dim = (self.method.dynamics_model.dimension,)
         single_sample_shapes = [
-            (len(self.posterior), self.method.dynamod.dimension),
-            (2, self.method.dynamod.dimension),
-            (len(loc_inputs[-1]), self.method.dynamod.dimension),
+            (len(self.posterior), self.method.dynamics_model.dimension),
+            (2, self.method.dynamics_model.dimension),
+            (len(loc_inputs[-1]), self.method.dynamics_model.dimension),
         ]
 
         for size in [(), (5,), (2, 3, 4)]:

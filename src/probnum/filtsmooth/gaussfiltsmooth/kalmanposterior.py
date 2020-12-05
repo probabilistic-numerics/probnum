@@ -106,12 +106,7 @@ class KalmanPosterior(FiltSmoothPosterior):
         next_idx = (self.locations < loc).sum()
         next_loc = self.locations[next_idx]
         next_rv = self._state_rvs[next_idx]
-        next_pred, crosscov = self.gauss_filter.predict(
-            start=loc, stop=next_loc, randvar=pred_rv
-        )
-        smoothed_rv = self.gauss_filter.smooth_step(
-            pred_rv, next_pred, next_rv, crosscov
-        )
+        smoothed_rv = self.gauss_filter.smooth_step(pred_rv, next_rv, loc, next_loc)
         return smoothed_rv
 
     def __len__(self):

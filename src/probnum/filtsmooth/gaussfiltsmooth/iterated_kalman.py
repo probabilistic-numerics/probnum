@@ -24,10 +24,16 @@ class IteratedKalman(Kalman):
             self.stoppingcriterion = StoppingCriterion()
         else:
             self.stoppingcriterion = stoppingcriterion
-        super().__init__(kalman.dynamod, kalman.measmod, kalman.initrv)
+        super().__init__(kalman.dynamics_model, kalman.measurement_model, kalman.initrv)
 
     def filter_step(
-        self, start, stop, current_rv, data, previous_posterior=None, **kwargs
+        self,
+        start,
+        stop,
+        current_rv,
+        data,
+        previous_posterior=None,
+        intermediate_step=None,
     ):
         """Filter step of iterated filter.
 
@@ -71,7 +77,11 @@ class IteratedKalman(Kalman):
             linearise_predict_at = previous_posterior(start)
             linearise_update_at = previous_posterior(stop)
         pred_rv, info_pred = self.predict(
-            start, stop, current_rv, linearise_at=linearise_predict_at
+            start,
+            stop,
+            current_rv,
+            linearise_at=linearise_predict_at,
+            intermediate_step=intermediate_step,
         )
         upd_rv, meas_rv, info_upd = self.update(
             stop, pred_rv, data, linearise_at=linearise_update_at
@@ -94,34 +104,34 @@ class IteratedKalman(Kalman):
             posterior = self.smooth(posterior)
         return posterior
 
-    def predict(self, start, stop, randvar, linearise_at=None, **kwargs):
+    def predict(self, start, stop, randvar, linearise_at=None, intermediate_step=None):
         """(Possibly iterated) prediction step."""
-        pred_rv, info_pred = self.dynamod.transition_rv(
-            randvar, start, stop=stop, linearise_at=linearise_at, **kwargs
+        pred_rv, info_pred = self.dynamics_model.transition_rv(
+            randvar, start, stop=stop, linearise_at=linearise_at, step=intermediate_step
         )
         while self.stoppingcriterion.continue_predict_iteration(pred_rv, info_pred):
-            pred_rv, info_pred = self.dynamod.transition_rv(
-                pred_rv, start, stop, linearise_at=pred_rv
+            pred_rv, info_pred = self.dynamics_model.transition_rv(
+                pred_rv, start, stop, linearise_at=pred_rv, step=intermediate_step
             )
         return pred_rv, info_pred
 
-    def update(self, time, randvar, data, linearise_at=None, **kwargs):
+    def update(self, time, randvar, data, linearise_at=None):
         """(Possibly iterated) update step."""
         upd_rv, meas_rv, info_upd = self._single_update(
-            time, randvar, data, linearise_at=linearise_at, **kwargs
+            time, randvar, data, linearise_at=linearise_at
         )
         while self.stoppingcriterion.continue_update_iteration(
             upd_rv, meas_rv, info_upd
         ):
             upd_rv, meas_rv, info_upd = self._single_update(
-                time, randvar, data, linearise_at=upd_rv, **kwargs
+                time, randvar, data, linearise_at=upd_rv
             )
         return upd_rv, meas_rv, info_upd
 
-    def _single_update(self, time, randvar, data, linearise_at=None, **kwargs):
+    def _single_update(self, time, randvar, data, linearise_at=None):
         # like kalman.update but with an explicit linearise_at argument
-        meas_rv, info = self.measmod.transition_rv(
-            randvar, time, linearise_at=linearise_at, **kwargs
+        meas_rv, info = self.measurement_model.transition_rv(
+            randvar, time, linearise_at=linearise_at
         )
         crosscov = info["crosscov"]
         new_mean = randvar.mean + crosscov @ np.linalg.solve(

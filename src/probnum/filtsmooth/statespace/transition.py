@@ -1,7 +1,7 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
-from typing import Dict, Union
+from typing import Dict, Optional
 
 import numpy as np
 
@@ -35,29 +35,18 @@ class Transition(abc.ABC):
         Discretely indexed transitions (transformations)
     """
 
-    def __call__(
-        self,
-        arr_or_rv: Union[np.ndarray, "RandomVariable"],
-        start: float = None,
-        stop: float = None,
-        **kwargs
-    ) -> ("RandomVariable", Dict):
-        """Transition a random variable or a realization of one.
-
-        The input is either interpreted as a random variable or as a
-        realization. Accordingly, the respective methods are called:
-        :meth:`transition_realization` or :meth:`transition_rv`.
-        """
-        if isinstance(arr_or_rv, RandomVariable):
-            return self.transition_rv(rv=arr_or_rv, start=start, stop=stop, **kwargs)
-        return self.transition_realization(
-            real=arr_or_rv, start=start, stop=stop, **kwargs
-        )
+    def __init__(self):
+        self.precon = None
 
     @abc.abstractmethod
     def transition_realization(
-        self, real: np.ndarray, start: float, stop: float = None, **kwargs
-    ) -> ("RandomVariable", Dict):
+        self,
+        real: np.ndarray,
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
         """Transition a realization of a random variable from time :math:`t` to time
         :math:`t+\\Delta t`.
 
@@ -78,6 +67,11 @@ class Transition(abc.ABC):
             Starting point :math:`t`.
         stop :
             End point :math:`t + \\Delta t`.
+        step :
+            Intermediate step-size. Optional, default is None.
+        linearise_at :
+            For approximate transitions , for instance ContinuousEKFComponent,
+            this argument overloads the state at which the Jacobian is computed.
 
         Returns
         -------
@@ -96,10 +90,38 @@ class Transition(abc.ABC):
         """
         raise NotImplementedError
 
+    def transition_realization_preconditioned(
+        self,
+        real: np.ndarray,
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
+        """Applies the transition, assuming that the state is already preconditioned.
+
+        This is useful for numerically stable implementation of Kalman
+        smoothing steps and Kalman updates.
+        """
+        if self.precon is None:
+            errormsg = (
+                "There is no preconditioned associated with this transition. "
+                "Did you mean 'transition_realization'?"
+            )
+            raise NotImplementedError(errormsg)
+        raise NotImplementedError(
+            "'transition_realization_preconditioned' is not implemented."
+        )
+
     @abc.abstractmethod
     def transition_rv(
-        self, rv: "RandomVariable", start: float, stop: float = None, **kwargs
-    ) -> ("RandomVariable", Dict):
+        self,
+        rv: "RandomVariable",
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
         """Transition a random variable from time :math:`t` to time
         :math:`t+\\Delta t`.
 
@@ -122,6 +144,11 @@ class Transition(abc.ABC):
             Starting point :math:`t`.
         stop :
             End point :math:`t + \\Delta t`.
+        step :
+            Intermediate step-size. Optional, default is None.
+        linearise_at :
+            For approximate transitions , for instance ContinuousEKFComponent,
+            this argument overloads the state at which the Jacobian is computed.
 
         Returns
         -------
@@ -139,6 +166,27 @@ class Transition(abc.ABC):
             Apply transition to a realization of a random variable.
         """
         raise NotImplementedError
+
+    def transition_rv_preconditioned(
+        self,
+        rv: "RandomVariable",
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (RandomVariable, Dict):
+        """Applies the transition, assuming that the state is already preconditioned.
+
+        This is useful for numerically stable implementation of Kalman
+        smoothing steps and Kalman updates.
+        """
+        if self.precon is None:
+            errormsg = (
+                "There is no preconditioned associated with this transition. "
+                "Did you mean 'transition_rv'?"
+            )
+            raise NotImplementedError(errormsg)
+        raise NotImplementedError("'transition_rv_preconditioned' is not implemented.")
 
     @property
     def dimension(self) -> int:
@@ -168,7 +216,7 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
     num_steps : int
         Number of steps to be taken for numerical integration
         of the continuous prior model. Optional. Default is 5.
-        Irrelevant for LTI or discrete models.
+        Irrelevant for time-invariant or discrete models.
 
     Returns
     -------
@@ -195,4 +243,9 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
 def _read_dimension(transition, initrv):
     """Extracts dimension of a transition without calling .dimension(), which is not
     implemented everywhere."""
-    return len(transition.transition_realization(initrv.mean, 0.0, 1.0)[0].sample())
+    # relies on evaluating at zero, which is a dangerous endeavour and therefore,
+    # this method is not used in Transition.dimension
+    transitioned, _ = transition.transition_realization(
+        real=initrv.mean, start=0.0, stop=1.0
+    )
+    return len(transitioned.sample())
