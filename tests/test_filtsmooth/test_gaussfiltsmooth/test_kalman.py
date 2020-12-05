@@ -10,7 +10,10 @@ np.random.seed(5472)
 VISUALISE = False
 
 if VISUALISE:
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as err:
+        raise ImportError("Install matplotlib to visualise the tes functions.") from err
 
 
 class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):

@@ -611,7 +611,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 ) ** np.arange(self.iter_ + 1)
             elif method == "gpkern":
                 try:
-                    import GPy
+                    import GPy  # pylint: disable=import-outside-toplevel
 
                     # GP mean function via Weyl's result on spectra of Gram matrices for
                     # differentiable kernels
@@ -632,11 +632,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     # Predict Rayleigh quotient
                     remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
                     logR_pred = m.predict(remaining_dims + 1)[0].ravel()
-                except ImportError:
+                except ImportError as err:
                     raise ImportError(
                         "Cannot perform GP-based calibration without optional "
                         "dependency GPy. Try installing GPy via `pip install GPy`."
-                    )
+                    ) from err
             else:
                 raise ValueError("Calibration method not recognized.")
 
