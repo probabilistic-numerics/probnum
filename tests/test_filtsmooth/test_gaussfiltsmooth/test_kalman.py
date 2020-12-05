@@ -5,9 +5,11 @@ from probnum.filtsmooth.gaussfiltsmooth import Kalman
 from .filtsmooth_testcases import CarTrackingDDTestCase, OrnsteinUhlenbeckCDTestCase
 
 np.random.seed(5472)
-VISUALISE = False  # show plots or not?
 
-if VISUALISE is True:
+# Show plots in tests?
+VISUALISE = False
+
+if VISUALISE:
     import matplotlib.pyplot as plt
 
 

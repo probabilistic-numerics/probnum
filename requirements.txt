@@ -17,4 +17,3 @@
 #
 numpy
 scipy>=1.4
-matplotlib
