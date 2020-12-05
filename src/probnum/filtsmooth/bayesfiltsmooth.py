@@ -6,9 +6,9 @@ from abc import ABC, abstractmethod
 class BayesFiltSmooth(ABC):
     """Bayesian filtering and smoothing."""
 
-    def __init__(self, dynamod, measmod, initrv):
-        self.dynamod = dynamod
-        self.measmod = measmod
+    def __init__(self, dynamics_model, measurement_model, initrv):
+        self.dynamics_model = dynamics_model
+        self.measurement_model = measurement_model
         self.initrv = initrv
 
     @abstractmethod
@@ -31,43 +31,3 @@ class BayesFiltSmooth(ABC):
             + "the Bayesian smoother {}.".format(type(self).__name__)
         )
         raise NotImplementedError(errormsg)
-
-    def predict(self, start, stop, randvar, **kwargs):
-        """Prediction step of the Bayesian filter.
-
-        Not required for all filters, e.g. the Particle Filter only has
-        an `update()` method.
-        """
-        classname = type(self).__name__
-        errormsg = (
-            "predict(...) is not implemented for "
-            + "the Bayesian filter {}.".format(classname)
-        )
-        raise NotImplementedError(errormsg)
-
-    def update(self, time, randvar, data, **kwargs):
-        """Update step of the Bayesian filter.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError
-
-    @property
-    def dynamicmodel(self):
-        """Convenience function for accessing ``self.dynamod``."""
-        return self.dynamod
-
-    @property
-    def measurementmodel(self):
-        """Convenience function for accessing ``self.measmod``."""
-        return self.measmod
-
-    @property
-    def initialrandomvariable(self):
-        """Convenience function for accessing ``self.initrv``."""
-        return self.initrv
-
-    @property
-    def initialdistribution(self):
-        """Convenience function for accessing ``self.initdist``."""
-        return self.initrv

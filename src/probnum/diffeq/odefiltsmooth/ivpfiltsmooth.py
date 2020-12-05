@@ -1,7 +1,7 @@
 import numpy as np
 
+import probnum.filtsmooth as pnfs
 from probnum.diffeq import odesolver
-from probnum.diffeq.odefiltsmooth.prior import ODEPrior
 from probnum.diffeq.odesolution import ODESolution
 from probnum.random_variables import Normal
 
@@ -27,41 +27,44 @@ class GaussianIVPFilter(odesolver.ODESolver):
     """
 
     def __init__(self, ivp, gaussfilt, with_smoothing):
-        if not issubclass(type(gaussfilt.dynamicmodel), ODEPrior):
-            raise ValueError("Please initialise a Gaussian filter with an ODEPrior")
+        if not isinstance(gaussfilt.dynamics_model, pnfs.statespace.Integrator):
+            raise ValueError(
+                "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
+            )
         self.gfilt = gaussfilt
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         super().__init__(ivp)
 
     def initialise(self):
-        return self.ivp.t0, self.gfilt.initialrandomvariable
+        return self.ivp.t0, self.gfilt.initrv
 
-    def step(self, t, t_new, current_rv, **kwargs):
+    def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
-        # 0. Obtain the diffusion matrix; required for calibration / error estimation
-        discrete_dynamics = self.gfilt.dynamod.discretise(t_new - t)
-        diffmat = discrete_dynamics.diffusionmatrix(t_new)
+
+        # Read the diffusion matrix; required for calibration / error estimation
+        discrete_dynamics = self.gfilt.dynamics_model.discretise(t_new - t)
+        diffmat = discrete_dynamics.diffmat
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv, **kwargs)
+        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv)
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv, **kwargs)
+        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
 
         # 3. Estimate the diffusion (sigma squared)
-        self.sigma_squared_mle = self._estimate_diffusion(pred_rv, meas_rv)
+        self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
         # 3.1. Adjust the prediction covariance to include the diffusion
         pred_rv = Normal(
             pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * diffmat
         )
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv, **kwargs)
+        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
 
         # 4. Update
         zero_data = 0.0
         filt_rv = self.gfilt.condition_state_on_measurement(
-            pred_rv, meas_rv, zero_data, info["crosscov"], **kwargs
+            pred_rv, meas_rv, zero_data, info["crosscov"]
         )
 
         # 5. Error estimate
@@ -103,7 +106,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         smoothed_solution: ODESolution
         """
         ivp_filter_posterior = ode_solution._kalman_posterior
-        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior, **kwargs)
+        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior)
 
         smoothed_solution = ODESolution(
             times=ivp_smoother_posterior.locations,
@@ -112,13 +115,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         )
 
         return smoothed_solution
-
-    def undo_preconditioning(self, rv):
-        ipre = self.gfilt.dynamicmodel.invprecond
-        newmean = ipre @ rv.mean
-        newcov = ipre @ rv.cov @ ipre.T
-        newrv = Normal(newmean, newcov)
-        return newrv
 
     def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
         """Estimate the local errors.
@@ -134,11 +130,11 @@ class GaussianIVPFilter(odesolver.ODESolver):
             Statistics and Computing, 2019.
         """
         local_pred_rv = Normal(pred_rv.mean, calibrated_diffmat)
-        local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv, **kwargs)
+        local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv)
         error = local_meas_rv.cov.diagonal()
-        return error
+        return np.sqrt(error)
 
-    def _estimate_diffusion(self, pred_rv, meas_rv):
+    def _estimate_diffusion(self, meas_rv):
         """Estimate the dynamic diffusion parameter sigma_squared.
 
         This corresponds to the approach in [1], implemented such that it is compatible
@@ -158,4 +154,4 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     @property
     def prior(self):
-        return self.gfilt.dynamicmodel
+        return self.gfilt.dynamics_model
