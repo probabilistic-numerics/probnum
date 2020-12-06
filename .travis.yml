@@ -18,7 +18,7 @@ jobs:
       python: 3.9
       env: TOXENV=py39
     - name: "Documentation"
-      python: 3.6
+      python: 3.6which
       env: TOXENV=docs
     - name: "Benchmarks"
       python: 3.6
