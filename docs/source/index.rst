@@ -2,7 +2,7 @@
 ProbNum
 =======
 
-|Travis Status| |Coverage Status| |Benchmarks| |PyPI|
+|CI Status| |Coverage Status| |Benchmarks| |PyPI|
 
 ----
 
@@ -88,9 +88,9 @@ Indices
 
 
 
-.. |Travis Status| image:: https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI
-    :target: https://travis-ci.com/github/probabilistic-numerics/probnum
-    :alt: ProbNum's Travis CI Status
+.. |CI Status| image:: https://github.com/probabilistic-numerics/probnum/workflows/CI-build/badge.svg
+    :target: https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build
+    :alt: ProbNum's CI Build Status
 
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov&logoColor=white
     :target: https://codecov.io/gh/probabilistic-numerics/probnum/branch/master
