@@ -21,10 +21,10 @@ def derive_random_seed(*rngs: Union[np.random.RandomState, np.random.Generator])
 
     def _sample(rng: Union[np.random.RandomState, np.random.Generator]) -> int:
         if isinstance(rng, np.random.RandomState):
-            return copy.copy(rng).randint(0, 2 ** 32, size=None, dtype=int)
+            return copy.copy(rng).randint(0, 2 ** 32, size=None, dtype=np.int64)
         elif isinstance(rng, np.random.Generator):
             return copy.copy(rng).integers(
-                0, 2 ** 32, size=None, dtype=int, endpoint=False
+                0, 2 ** 32, size=None, dtype=np.int64, endpoint=False
             )
         else:
             raise ValueError("Unsupported type of random number generator")
