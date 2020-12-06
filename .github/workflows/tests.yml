@@ -8,9 +8,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-env:
-  PY_COLORS: 1
-
 jobs:
   tests-py36:
     runs-on: ubuntu-latest
@@ -56,3 +53,10 @@ jobs:
         run: pip install tox
       - name: Run tests through tox
         run: tox -e py39
+      # Upload coverage report to codecov
+      - uses: actions/checkout@master
+      - uses: codecov/codecov-action@v1
+        with:
+          name: codecov
+          fail_ci_if_error: true
+          verbose: true
