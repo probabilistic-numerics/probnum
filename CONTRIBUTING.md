@@ -66,7 +66,7 @@ Python 3.6 or `tox -e docs` to just build the documentation.
 ### External Tools
 
 Building the documentation locally requires additional packages (e.g. for inheritance diagrams), which can be found in
-`.travis.yml`. These packages are currently:
+`.github/workflows/CI-build.yml`. These packages are currently:
 - [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
 - [graphviz](https://graphviz.org/): In Ubuntu, install via `sudo apt install graphviz`
 

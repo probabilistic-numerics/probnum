@@ -43,6 +43,9 @@ jobs:
           python-version: 3.8
       - name: Install tox
         run: pip install tox
+      - name: Install external doc tools
+        run: sudo apt install pandoc
+             sudo apt install graphviz
       - name: Build documentation
         run: tox -e docs
 
