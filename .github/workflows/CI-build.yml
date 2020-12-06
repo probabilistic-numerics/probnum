@@ -29,11 +29,8 @@ jobs:
         # Run tox using the version of Python in `PATH`
         run: tox -e py3
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          name: codecov
-          fail_ci_if_error: true
-          verbose: true
+        if: startsWith(matrix.platform,'ubuntu') && matrix.python == '3.8'
+        run: bash <(curl -s https://codecov.io/bash)
 
   documentation:
     runs-on: ubuntu-latest
