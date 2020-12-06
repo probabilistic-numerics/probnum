@@ -13,7 +13,9 @@ if VISUALISE:
     try:
         import matplotlib.pyplot as plt
     except ImportError as err:
-        raise ImportError("Install matplotlib to visualise the tes functions.") from err
+        raise ImportError(
+            "Install matplotlib to visualise the test functions."
+        ) from err
 
 
 class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
