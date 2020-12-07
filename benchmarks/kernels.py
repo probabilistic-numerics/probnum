@@ -5,7 +5,16 @@ import numpy as np
 import probnum.kernels as kernels
 
 # Module level variables
-KERNEL_NAMES = ["white_noise", "linear", "polynomial", "exp_quad", "rat_quad"]
+KERNEL_NAMES = [
+    "white_noise",
+    "linear",
+    "polynomial",
+    "exp_quad",
+    "rat_quad",
+    "matern12",
+    "matern32",
+    "matern52",
+]
 
 
 def get_kernel(kernel_name, input_dim):
@@ -20,6 +29,12 @@ def get_kernel(kernel_name, input_dim):
         kernel = kernels.ExpQuad(input_dim=input_dim)
     elif kernel_name == "rat_quad":
         kernel = kernels.RatQuad(input_dim=input_dim)
+    elif kernel_name == "matern12":
+        kernel = kernels.Matern(input_dim=input_dim, nu=0.5)
+    elif kernel_name == "matern32":
+        kernel = kernels.Matern(input_dim=input_dim, nu=1.5)
+    elif kernel_name == "matern52":
+        kernel = kernels.Matern(input_dim=input_dim, nu=2.5)
     else:
         raise ValueError(f"Kernel name '{kernel_name}' not recognized.")
 
