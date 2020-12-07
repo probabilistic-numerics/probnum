@@ -6,7 +6,6 @@ on the matrix or its inverse given linear observations.
 import abc
 import warnings
 
-import GPy
 import numpy as np
 
 import probnum
@@ -611,25 +610,33 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     deprecation_rate, self.iter_ + 1
                 ) ** np.arange(self.iter_ + 1)
             elif method == "gpkern":
-                # GP mean function via Weyl's result on spectra of Gram matrices for
-                # differentiable kernels
-                # ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
-                lnmap = GPy.core.Mapping(1, 1)
-                lnmap.f = lambda n: np.log(n + 10 ** -16)
-                lnmap.update_gradients = lambda a, b: None
-                mf = GPy.mappings.Additive(
-                    GPy.mappings.Constant(1, 1, value=0),
-                    GPy.mappings.Compound(lnmap, GPy.mappings.Linear(1, 1)),
-                )
-                k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
-                m = GPy.models.GPRegression(
-                    iters[:, None] + 1, logR[:, None], kernel=k, mean_function=mf
-                )
-                m.optimize(messages=False)
+                try:
+                    import GPy  # pylint: disable=import-outside-toplevel
 
-                # Predict Rayleigh quotient
-                remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
-                logR_pred = m.predict(remaining_dims + 1)[0].ravel()
+                    # GP mean function via Weyl's result on spectra of Gram matrices for
+                    # differentiable kernels
+                    # ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
+                    lnmap = GPy.core.Mapping(1, 1)
+                    lnmap.f = lambda n: np.log(n + 10 ** -16)
+                    lnmap.update_gradients = lambda a, b: None
+                    mf = GPy.mappings.Additive(
+                        GPy.mappings.Constant(1, 1, value=0),
+                        GPy.mappings.Compound(lnmap, GPy.mappings.Linear(1, 1)),
+                    )
+                    k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
+                    m = GPy.models.GPRegression(
+                        iters[:, None] + 1, logR[:, None], kernel=k, mean_function=mf
+                    )
+                    m.optimize(messages=False)
+
+                    # Predict Rayleigh quotient
+                    remaining_dims = np.arange(self.iter_, self.A.shape[0])[:, None]
+                    logR_pred = m.predict(remaining_dims + 1)[0].ravel()
+                except ImportError as err:
+                    raise ImportError(
+                        "Cannot perform GP-based calibration without optional "
+                        "dependency GPy. Try installing GPy via `pip install GPy`."
+                    ) from err
             else:
                 raise ValueError("Calibration method not recognized.")
 
