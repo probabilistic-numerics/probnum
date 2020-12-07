@@ -17,15 +17,13 @@ class Matern(Kernel[_InputType]):
     """Matern kernel.
 
     Covariance function defined by :math:`k(x_0, x_1) = \\frac{1}{\\Gamma(\\nu)2^{
-    \\nu-1}}\\Bigg(\\frac{\\sqrt{2\\nu}}{l} \\lVert x_0 , x_1\\rVert \\Bigg)^\\nu
-    K_\\nu\\Bigg(
-         \\frac{\\sqrt{2\\nu}}{l} d(x_i , x_j )\\Bigg)`
-
-    The Matern
-    kernel generalizes the :class:`~probnum.kernels.ExponentiatedQuadratic` kernel
+    \\nu-1}}\\big(\\frac{\\sqrt{2\\nu}}{l} \\lVert x_0 , x_1\\rVert \\big)^\\nu
+    K_\\nu\\big(\\frac{\\sqrt{2\\nu}}{l} \\lVert x_0 , x_1 \\rVert \\big)`, where
+    :math:`K_\\nu` is a modified Bessel function. The Matern
+    kernel generalizes the :class:`~probnum.kernels.ExpQuad` kernel
     via its additional parameter :math:`\\nu` controlling the smoothness of the
     function. For :math:`\\nu \\rightarrow \\infty` the Matern kernel converges to
-    the :class:`~probnum.kernels.ExponentiatedQuadratic` kernel. A Gaussian process
+    the :class:`~probnum.kernels.ExpQuad` kernel. A Gaussian process
     with Matern covariance function is :math:`\\lceil \\nu \\rceil - 1` times
     differentiable.
 
@@ -48,7 +46,10 @@ class Matern(Kernel[_InputType]):
     >>> import numpy as np
     >>> from probnum.kernels import Matern
     >>> K = Matern(input_dim=1, lengthscale=0.1, nu=2.5)
-    >>> K(np.linspace(0, 1, 5))
+    >>> K(np.linspace(0, 1, 3)[:, None])
+    array([[1.00000000e+00, 7.50933789e-04, 3.69569622e-08],
+           [7.50933789e-04, 1.00000000e+00, 7.50933789e-04],
+           [3.69569622e-08, 7.50933789e-04, 1.00000000e+00]])
     """
 
     def __init__(

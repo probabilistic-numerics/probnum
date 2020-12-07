@@ -15,8 +15,8 @@ _InputType = np.ndarray
 class RatQuad(Kernel[_InputType]):
     """Rational quadratic kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = (1 + \\frac{\\lVert x_0 -
-    x_1 \\rVert^2}{2\\alpha l^2})^{-\\alpha}`, where :math:`\\alpha > 0`. For
+    Covariance function defined by :math:`k(x_0, x_1) = \\big(1 + \\frac{\\lVert x_0 -
+    x_1 \\rVert^2}{2\\alpha l^2}\\big)^{-\\alpha}`, where :math:`\\alpha > 0`. For
     :math:`\\alpha \\rightarrow \\infty` the rational quadratic kernel converges to the
     :class:`~probnum.kernels.ExpQuad` kernel.
 

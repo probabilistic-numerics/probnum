@@ -15,9 +15,9 @@ _InputType = np.ndarray
 class ExpQuad(Kernel[_InputType]):
     """Exponentiated quadratic / RBF kernel.
 
-    Covariance function defined by :math:`k(x_0, x_1) = \\exp(-\\frac{\\lVert x_0 -
-    x_1 \\rVert^2}{2l^2})`. This kernel is also known as the squared exponential or
-    radial basis function kernel.
+    Covariance function defined by :math:`k(x_0, x_1) = \\exp \\big(-\\frac{\\lVert
+    x_0 - x_1 \\rVert^2}{2l^2}\\big)`. This kernel is also known as the squared
+    exponential or radial basis function kernel.
 
     Parameters
     ----------
@@ -30,6 +30,7 @@ class ExpQuad(Kernel[_InputType]):
     See Also
     --------
     RatQuad : Rational quadratic kernel.
+    Matern : Matern kernel.
 
     Examples
     --------
