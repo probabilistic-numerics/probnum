@@ -50,7 +50,7 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    tutorials/ordinary_differential_equations
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
    :caption: API Documentation
 
    public_api/diffeq

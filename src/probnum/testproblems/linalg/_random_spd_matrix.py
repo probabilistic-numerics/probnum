@@ -5,6 +5,7 @@ from typing import Optional, Sequence
 import numpy as np
 import scipy.stats
 
+import probnum.utils as _utils
 from probnum.type import IntArgType, RandomStateArgType
 
 
@@ -36,10 +37,27 @@ def random_spd_matrix(
     See Also
     --------
     random_sparse_spd_matrix : Generate a random sparse symmetric positive definite matrix.
-    """
 
-    if random_state is None:
-        random_state = np.random.default_rng()
+    Examples
+    --------
+    >>> from probnum.testproblems.linalg import random_spd_matrix
+    >>> mat = random_spd_matrix(dim=5, random_state=0)
+    >>> mat
+    array([[10.49868572, -0.80840778,  0.79781892,  1.9229059 ,  0.73413367],
+           [-0.80840778, 15.79117417,  0.52641887, -1.8727916 , -0.9309482 ],
+           [ 0.79781892,  0.52641887, 15.56457452,  1.26004438, -1.44969733],
+           [ 1.9229059 , -1.8727916 ,  1.26004438,  8.59057287, -0.44955394],
+           [ 0.73413367, -0.9309482 , -1.44969733, -0.44955394,  9.77198568]])
+
+    Check for symmetry and positive definiteness.
+
+    >>> np.all(mat == mat.T)
+    True
+    >>> np.linalg.eigvals(mat)
+    array([ 6.93542496, 10.96494454,  9.34928449, 16.25401501, 16.71332395])
+    """
+    # Initialization
+    random_state = _utils.as_random_state(random_state)
 
     if spectrum is None:
         # Create a custom ordered spectrum if none is given.
@@ -103,17 +121,26 @@ def random_sparse_spd_matrix(
     See Also
     --------
     random_spd_matrix : Generate a random symmetric positive definite matrix.
+
+    Examples
+    --------
+    >>> from probnum.testproblems.linalg import random_sparse_spd_matrix
+    >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=0)
+    >>> sparsemat
+    array([[1.        , 0.        , 0.        , 0.        , 0.        ],
+           [0.        , 1.        , 0.        , 0.        , 0.        ],
+           [0.        , 0.        , 1.        , 0.        , 0.24039507],
+           [0.        , 0.        , 0.        , 1.        , 0.        ],
+           [0.        , 0.        , 0.24039507, 0.        , 1.05778979]])
     """
-    if not 0 <= density <= 1:
-        raise ValueError(f"Density must be between 0 and 1, but is {density}.")
 
     # Initialization
+    random_state = _utils.as_random_state(random_state)
+    if not 0 <= density <= 1:
+        raise ValueError(f"Density must be between 0 and 1, but is {density}.")
     chol = np.eye(dim)
     num_off_diag_cholesky = int(0.5 * dim * (dim - 1))
     num_nonzero_entries = int(num_off_diag_cholesky * density)
-
-    if random_state is None:
-        random_state = np.random.default_rng()
 
     if num_nonzero_entries > 0:
         # Draw entries of lower triangle (below diagonal) according to sparsity level
