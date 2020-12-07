@@ -1,0 +1,61 @@
+name: CI-build
+
+on:
+  # Triggers the workflow on push or pull request
+  push:
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+        python: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Tox and any other packages
+        run: pip install tox
+      - name: Run Tox
+        # Run tox using the version of Python in `PATH`
+        run: tox -e py3
+      - name: Upload coverage report to Codecov
+        if: startsWith(matrix.platform,'ubuntu') && matrix.python == '3.8'
+        run: bash <(curl -s https://codecov.io/bash)
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install tox
+        run: pip install tox
+      - name: Install external doc tools
+        run: |
+          sudo apt-get install pandoc
+          sudo apt-get install graphviz
+      - name: Build documentation
+        run: tox -e docs
+
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install tox
+        run: pip install tox
+      - name: Dry-run benchmarks
+        run: tox -e benchmarks

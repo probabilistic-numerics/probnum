@@ -1,7 +1,6 @@
 """Test cases for Gaussian Filtering and Smoothing."""
 import unittest
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import probnum.filtsmooth as pnfs
@@ -13,6 +12,17 @@ __all__ = [
     "OrnsteinUhlenbeckCDTestCase",
     "LinearisedDiscreteTransitionTestCase",
 ]
+
+# Show plots in tests?
+VISUALISE = False
+
+if VISUALISE:
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as err:
+        raise ImportError(
+            "Install matplotlib to visualise the test functions."
+        ) from err
 
 
 def car_tracking():
@@ -149,9 +159,6 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     3. Smoothing RMSE < Filtering RMSE < Data RMSE on the pendulum example.
     """
 
-    # overwrite by implementation
-    visualise = False
-
     linearising_component_pendulum = NotImplemented
     linearising_component_car = NotImplemented
 
@@ -214,7 +221,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         obs_rmse = np.linalg.norm(obs[:, 0] - comp[1:]) / normaliser
 
         # If desired, visualise.
-        if self.visualise is True:
+        if VISUALISE:
             fig, (ax1, ax2) = plt.subplots(1, 2)
             fig.suptitle(
                 "Noisy pendulum model (%.2f " % smoormse
@@ -285,8 +292,6 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
     3. Smoothing RMSE < Filtering RMSE < Data RMSE on the Benes-Daum example.
     """
 
-    # overwrite by implementation
-    visualise = False
     linearising_component_benes_daum = NotImplemented
 
     def test_transition_rv(self):
