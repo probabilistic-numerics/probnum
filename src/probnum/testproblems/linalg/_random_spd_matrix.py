@@ -125,7 +125,7 @@ def random_sparse_spd_matrix(
     Examples
     --------
     >>> from probnum.testproblems.linalg import random_sparse_spd_matrix
-    >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=0)
+    >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=42)
     >>> sparsemat
     array([[1.        , 0.        , 0.        , 0.        , 0.        ],
            [0.        , 1.        , 0.        , 0.        , 0.        ],
