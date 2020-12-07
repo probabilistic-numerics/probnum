@@ -141,7 +141,7 @@ make html
 
 ## Continuous Integration
 
-[![CI build](https://github.com/probabilistic-numerics/probnum/workflows/CI-build/badge.svg)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
+[![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/CI-build/badge.svg?logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 
 ProbNum uses [Github Actions](https://github.com/probabilistic-numerics/probnum/actions) for continuous integration.
 For every pull request and every commit the project is built, the test suite is run,

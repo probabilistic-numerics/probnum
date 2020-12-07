@@ -88,7 +88,7 @@ Indices
 
 
 
-.. |CI Status| image:: https://github.com/probabilistic-numerics/probnum/workflows/CI-build/badge.svg
+.. |CI Status| image:: https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/CI-build/badge.svg?logo=github&logoColor=white&label=CI-build
     :target: https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build
     :alt: ProbNum's CI Build Status
 
