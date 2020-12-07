@@ -12,19 +12,13 @@ problems are meant for rapid experimentation and prototyping.
     :no-main-docstr:
 
 probnum.testproblems.ode
-************************
-
-Test problems involving ordinary differential equations.
+------------------------
 
 .. automodapi:: probnum.testproblems.ode
     :no-heading:
-    :no-main-docstr:
 
 probnum.testproblems.linalg
-***************************
-
-Test problems from linear algebra.
+---------------------------
 
 .. automodapi:: probnum.testproblems.linalg
     :no-heading:
-    :no-main-docstr:
