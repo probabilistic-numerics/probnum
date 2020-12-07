@@ -9,43 +9,8 @@ import scipy.stats
 import probnum
 from probnum import linops
 from probnum import random_variables as rvs
+from probnum.testproblems.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
-
-
-def _random_spd_matrix(D=10):
-    """Generates a random symmetric positive definite matrix."""
-
-    # Sample a rotation matrix Q in SO(D) (the special orthogonal group SO(D), or
-    # orthogonal matrices with unit determinant, drawn uniformly from the Haar measure.
-    #
-    # The algorithm used is the subgroup algorithm as originally proposed by
-    #
-    # P. Diaconis & M. Shahshahani, "The subgroup algorithm for generating uniform
-    # random variables". Probability in the Engineering and Informational Sciences 1:
-    # 15?32 (1987)
-    t = 2 * np.pi * np.random.rand()
-    A = np.array([[np.cos(t), np.sin(t)], [-np.sin(t), np.cos(t)]])
-
-    for d in range(2, D):
-        v = np.random.randn(d + 1, 1)
-        v /= np.sqrt(v.T.dot(v))
-        e = np.zeros((d + 1, 1))
-        e[0] += 1
-
-        x = e - v
-        x /= np.sqrt(x.T.dot(x))
-
-        D_ = np.zeros((d + 1, d + 1))
-        D_[0, 0] += 1
-        D_[1:, 1:] += A
-        A = D_ - 2 * x * (x.T.dot(D_))
-
-    Q = -A
-
-    # Generate random positive spectrum
-    lam = np.random.gamma(shape=6, scale=1.0, size=D)
-
-    return Q @ np.diag(lam) @ Q.T
 
 
 class NormalTestCase(unittest.TestCase, NumpyAssertions):
@@ -67,7 +32,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (1, 3),
             # Multivariate
             (np.random.uniform(size=10), np.eye(10)),
-            (np.random.uniform(size=10), _random_spd_matrix(10)),
+            (np.random.uniform(size=10), random_spd_matrix(10)),
             # Matrixvariate
             (
                 np.random.uniform(size=(2, 2)),
@@ -451,7 +416,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
 class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
-        self.params = (np.random.uniform(size=10), _random_spd_matrix(10))
+        self.params = (np.random.uniform(size=10), random_spd_matrix(10))
 
     def test_newaxis(self):
         vector_rv = rvs.Normal(*self.params)
@@ -504,7 +469,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         rv = rvs.Normal(
             mean=np.random.uniform(size=(4, 3)),
             cov=linops.Kronecker(
-                A=_random_spd_matrix(4), B=_random_spd_matrix(3)
+                A=random_spd_matrix(4), B=random_spd_matrix(3)
             ).todense(),
         )
 
@@ -526,7 +491,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         )
 
     def test_transpose(self):
-        rv = rvs.Normal(mean=np.random.uniform(size=(2, 2)), cov=_random_spd_matrix(4))
+        rv = rvs.Normal(mean=np.random.uniform(size=(2, 2)), cov=random_spd_matrix(4))
         transposed_rv = rv.transpose()
 
         self.assertArrayEqual(transposed_rv.mean, rv.mean.T)
