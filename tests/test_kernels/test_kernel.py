@@ -44,11 +44,10 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
             (kernels.ExpQuad, {"lengthscale": 1.5}),
             (kernels.RatQuad, {"lengthscale": 0.5, "alpha": 2.0}),
             (kernels.Matern, {"lengthscale": 0.5, "nu": 0.5}),
-            (kernels.Matern, {"lengthscale": 0.5, "nu": 0.5}),
-            (kernels.Matern, {"lengthscale": 1.5, "nu": 1.5}),
-            (kernels.Matern, {"lengthscale": 2.5, "nu": 10}),
-            (kernels.Matern, {"lengthscale": np.inf, "nu": 1.0}),
-            (kernels.Matern, {"lengthscale": 7.0, "nu": 3.0}),
+            (kernels.Matern, {"lengthscale": 0.5, "nu": 1.5}),
+            (kernels.Matern, {"lengthscale": 1.5, "nu": 2.5}),
+            (kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
+            (kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
         ]
 
     def test_shape(self):
