@@ -40,9 +40,10 @@ For all of the above the existing ProbNum code is a good initial reference point
 Probnum uses [tox](https://tox.readthedocs.io/en/latest/) in its [continuous integration (CI)](#continuous-integration)
 pipeline to run tests, build documentation, check code formatting and code quality. Under the hood, tox builds virtual
 environments following the specifications in `./tox.ini` in order to run tests across multiple python versions, while
-making sure that all the necessary dependencies are installed. Using tox unifies the *local* development process with CI,
-such that local test results should match the outcomes of Travis's builds more closely. This ensures that your pull
-request can be merged seamlessly into ProbNum's codebase.
+making sure that all the necessary dependencies are installed. Using tox unifies the
+*local* development process with continuous integration builds (via Github Actions),
+such that local test results should match the outcomes of the CI builds more closely.
+This ensures that your pull request can be merged seamlessly into ProbNum's codebase.
 
 Install tox from the Python Package Index (PyPI) via
 ```bash
@@ -66,7 +67,7 @@ Python 3.6 or `tox -e docs` to just build the documentation.
 ### External Tools
 
 Building the documentation locally requires additional packages (e.g. for inheritance diagrams), which can be found in
-`.travis.yml`. These packages are currently:
+`.github/workflows/CI-build.yml`. These packages are currently:
 - [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
 - [graphviz](https://graphviz.org/): In Ubuntu, install via `sudo apt install graphviz`
 
@@ -140,12 +141,12 @@ make html
 
 ## Continuous Integration
 
-[![build status: latest](https://img.shields.io/travis/probabilistic-numerics/probnum/master.svg?logo=travis%20ci&logoColor=white&label=Travis%20CI:%20latest)](https://travis-ci.com/github/probabilistic-numerics/probnum/branches)
+[![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/CI-build/badge.svg?logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 
-ProbNum uses [Travis CI](https://travis-ci.com/github/probabilistic-numerics/probnum) for continuous integration.
-For every pull request and every commit Travis builds the project and runs the test suite (through `tox`), to make sure
-that no breaking changes are introduced by mistake. Travis also automatically triggers a
-build of ProbNum's documentation. Changes to Travis can be made through the `.travis.yml` file, as well as through
-`tox.ini` since Travis relies on `tox` for both testing and building the documentation. ProbNum also uses
-[GitHub Actions](https://docs.github.com/en/actions) to verify that all pushes and pull requests are compliant with the
-[*Black*](https://github.com/psf/black) code style.
+ProbNum uses [Github Actions](https://github.com/probabilistic-numerics/probnum/actions) for continuous integration.
+For every pull request and every commit the project is built, the test suite is run,
+the documentation is built, the benchmarks are dry-run, the code is linted and
+checked for consistency with the [*Black*](https://github.com/psf/black) code style.
+This ensures that no breaking changes are introduced by mistake. Changes to
+Github Actions can be made in the  `.github/workflows/` folder, as well as in
+`tox.ini` since Github Actions rely on `tox` for all the above checks.
