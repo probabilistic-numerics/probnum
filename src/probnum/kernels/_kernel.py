@@ -26,7 +26,7 @@ class Kernel(Generic[_InputType]):
     output_dim :
         Output dimension of the kernel.
     kernelfun :
-        Function defining the kernel. Will be automatically vectorized.
+        Function defining the kernel.
 
     Examples
     --------
