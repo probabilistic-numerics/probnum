@@ -3,6 +3,7 @@
 from typing import Optional
 
 import numpy as np
+import scipy.spatial.distance
 
 import probnum.utils as _utils
 from probnum.type import IntArgType, ScalarArgType
@@ -53,22 +54,20 @@ class ExpQuad(Kernel[_InputType]):
         x0_originalshape = x0.shape
         x1_originalshape = x1.shape
 
-        # Pre-compute norms with einsum for efficiency
+        # Compute pairwise euclidean distances ||x0 - x1|| / l
         x0 = np.atleast_2d(x0)
-        x0_norm_sq = np.einsum("nd,nd->n", x0, x0)
-
         if equal_inputs:
-            x1 = x0
-            x1_norm_sq = x0_norm_sq
+            pdists = scipy.spatial.distance.squareform(
+                scipy.spatial.distance.pdist(x0 / self.lengthscale, metric="euclidean")
+            )
         else:
             x1 = np.atleast_2d(x1)
-            x1_norm_sq = np.einsum("nd,nd->n", x1, x1)
+            pdists = scipy.spatial.distance.cdist(
+                x0 / self.lengthscale, x1 / self.lengthscale, metric="euclidean"
+            )
 
-        # Kernel matrix via broadcasting
-        kernmat = np.exp(
-            -(x0_norm_sq[:, None] + x1_norm_sq[None, :] - 2 * x0 @ x1.T)
-            / (2 * self.lengthscale ** 2)
-        )
+        # Kernel matrix
+        kernmat = np.exp(-(pdists ** 2) / 2.0)
         return self._transform_kernelmatrix(
             kerneval=kernmat, x0_shape=x0_originalshape, x1_shape=x1_originalshape
         )

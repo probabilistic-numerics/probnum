@@ -14,7 +14,10 @@ KERNEL_NAMES = [
     "matern12",
     "matern32",
     "matern52",
+    "matern72",
 ]
+
+N_DATAPOINTS = [10, 100, 1000]
 
 
 def get_kernel(kernel_name, input_dim):
@@ -35,6 +38,8 @@ def get_kernel(kernel_name, input_dim):
         kernel = kernels.Matern(input_dim=input_dim, nu=1.5)
     elif kernel_name == "matern52":
         kernel = kernels.Matern(input_dim=input_dim, nu=2.5)
+    elif kernel_name == "matern72":
+        kernel = kernels.Matern(input_dim=input_dim, nu=3.5)
     else:
         raise ValueError(f"Kernel name '{kernel_name}' not recognized.")
 
@@ -44,19 +49,19 @@ def get_kernel(kernel_name, input_dim):
 class Kernels:
     """Benchmark evaluation of a kernel at a set of inputs."""
 
-    param_names = ["kernel"]
-    params = [KERNEL_NAMES]
+    param_names = ["kernel", "n_datapoints"]
+    params = [KERNEL_NAMES, N_DATAPOINTS]
 
-    def setup(self, kernel):
+    def setup(self, kernel, n_datapoints):
         rng = np.random.default_rng(42)
         self.input_dim = 100
-        self.data = rng.normal(size=(1000, self.input_dim))
+        self.data = rng.normal(size=(n_datapoints, self.input_dim))
         self.kernel = get_kernel(kernel_name=kernel, input_dim=self.input_dim)
 
-    def time_kernel_matrix(self, kernel):
+    def time_kernel_matrix(self, kernel, n_datapoints):
         """Times sampling from this distribution."""
         self.kernel(self.data)
 
-    def peakmem_kernel_matrix(self, kernel):
+    def peakmem_kernel_matrix(self, kernel, n_datapoints):
         """Peak memory of sampling process."""
         self.kernel(self.data)

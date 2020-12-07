@@ -3,6 +3,7 @@
 from typing import Optional
 
 import numpy as np
+import scipy.spatial.distance
 import scipy.special
 
 import probnum.utils as _utils
@@ -74,22 +75,19 @@ class Matern(Kernel[_InputType]):
         x0_originalshape = x0.shape
         x1_originalshape = x1.shape
 
-        # Pre-compute norms with einsum for efficiency
+        # Compute pairwise euclidean distances ||x0 - x1|| / l
         x0 = np.atleast_2d(x0)
-        x0_norm_sq = np.einsum("nd,nd->n", x0, x0)
-
         if equal_inputs:
-            x1 = x0
-            x1_norm_sq = x0_norm_sq
+            pdists = scipy.spatial.distance.squareform(
+                scipy.spatial.distance.pdist(x0 / self.lengthscale, metric="euclidean")
+            )
         else:
             x1 = np.atleast_2d(x1)
-            x1_norm_sq = np.einsum("nd,nd->n", x1, x1)
+            pdists = scipy.spatial.distance.cdist(
+                x0 / self.lengthscale, x1 / self.lengthscale, metric="euclidean"
+            )
 
-        pdists = (
-            np.sqrt(x0_norm_sq[:, None] + x1_norm_sq[None, :] - 2 * x0 @ x1.T)
-            / self.lengthscale
-        )
-
+        # Kernel matrix computation dependent on differentiability
         if self.nu == 0.5:
             kernmat = np.exp(-pdists)
         elif self.nu == 1.5:
