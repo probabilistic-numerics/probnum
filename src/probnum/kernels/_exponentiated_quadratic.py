@@ -38,10 +38,10 @@ class ExpQuad(Kernel[_InputType]):
     >>> import numpy as np
     >>> from probnum.kernels import ExpQuad
     >>> K = ExpQuad(input_dim=1, lengthscale=0.1)
-    >>> K(np.array([[1], [.1], [.5]]))
-    array([[1.00000000e+00, 2.57675711e-18, 3.72665317e-06],
-           [2.57675711e-18, 1.00000000e+00, 3.35462628e-04],
-           [3.72665317e-06, 3.35462628e-04, 1.00000000e+00]])
+    >>> K(np.linspace(0, 1, 3)[:, None])
+    array([[1.00000000e+00, 3.72665317e-06, 1.92874985e-22],
+           [3.72665317e-06, 1.00000000e+00, 3.72665317e-06],
+           [1.92874985e-22, 3.72665317e-06, 1.00000000e+00]])
     """
 
     def __init__(self, input_dim: IntArgType, lengthscale: ScalarArgType = 1.0):
