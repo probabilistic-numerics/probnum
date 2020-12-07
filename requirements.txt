@@ -1,9 +1,17 @@
-# Add your pinned requirements so that they can be easily installed with:
+# =============================================================================
+# DEPRECATION WARNING:
+#
+# This file exists purely for convenience so that requirements can be easily
+# installed with
+#
 # pip install -r requirements.txt
-# Remember to also add them in setup.cfg but unpinned.
-# Example:
-# numpy==1.13.3
-# scipy==1.0
+#
+# and so that they show up on GitHub. Requirements of the package are
+# specified in setup.cfg. Currently parsing of requirements.txt files is not
+# supported by setup.cfg.
+#
+# If you make changes here, make sure to edit setup.cfg as well!
+# =============================================================================
 numpy<=1.19.1; python_version<="3.6"
 numpy; python_version>"3.6"
 scipy>=1.4
