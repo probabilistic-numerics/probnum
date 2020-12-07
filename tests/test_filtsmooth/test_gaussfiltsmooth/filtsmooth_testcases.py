@@ -1,7 +1,6 @@
 """Test cases for Gaussian Filtering and Smoothing."""
 import unittest
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import probnum.filtsmooth as pnfs
@@ -13,6 +12,17 @@ __all__ = [
     "OrnsteinUhlenbeckCDTestCase",
     "LinearisedDiscreteTransitionTestCase",
 ]
+
+# Show plots in tests?
+VISUALISE = False
+
+if VISUALISE:
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as err:
+        raise ImportError(
+            "Install matplotlib to visualise the test functions."
+        ) from err
 
 
 def car_tracking():
@@ -36,10 +46,10 @@ def car_tracking():
     cov = 0.5 * var * np.eye(4)
 
     dynmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamat=dynamat, forcevec=np.zeros(4), diffmat=dynadiff
+        dynamicsmat=dynamat, forcevec=np.zeros(4), diffmat=dynadiff
     )
     measmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamat=measmat, forcevec=np.zeros(2), diffmat=measdiff
+        dynamicsmat=measmat, forcevec=np.zeros(2), diffmat=measdiff
     )
     initrv = Normal(mean, cov)
     return dynmod, measmod, initrv, {"dt": delta_t}
@@ -73,12 +83,12 @@ def ornstein_uhlenbeck():
     force = np.zeros(1)
     disp = np.sqrt(q) * np.eye(1)
     dynmod = pnfs.statespace.LTISDE(
-        driftmatrix=drift,
+        driftmat=drift,
         forcevec=force,
-        dispmatrix=disp,
+        dispmat=disp,
     )
     measmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
+        dynamicsmat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
     return dynmod, measmod, initrv, {"dt": delta_t}
@@ -149,9 +159,6 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     3. Smoothing RMSE < Filtering RMSE < Data RMSE on the pendulum example.
     """
 
-    # overwrite by implementation
-    visualise = False
-
     linearising_component_pendulum = NotImplemented
     linearising_component_car = NotImplemented
 
@@ -214,7 +221,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         obs_rmse = np.linalg.norm(obs[:, 0] - comp[1:]) / normaliser
 
         # If desired, visualise.
-        if self.visualise is True:
+        if VISUALISE:
             fig, (ax1, ax2) = plt.subplots(1, 2)
             fig.suptitle(
                 "Noisy pendulum model (%.2f " % smoormse
@@ -272,7 +279,7 @@ def benes_daum():
     initmean = np.zeros(1)
     initcov = 3.0 * np.eye(1)
     initrv = Normal(initmean, initcov)
-    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatrixfun=l, jacobfun=df)
+    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
     measmod = pnfs.statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
     return dynamod, measmod, initrv, {}
 
@@ -285,8 +292,6 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
     3. Smoothing RMSE < Filtering RMSE < Data RMSE on the Benes-Daum example.
     """
 
-    # overwrite by implementation
-    visualise = False
     linearising_component_benes_daum = NotImplemented
 
     def test_transition_rv(self):

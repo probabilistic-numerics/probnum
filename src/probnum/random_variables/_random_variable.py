@@ -963,7 +963,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     >>> from probnum.random_variables import DiscreteRandomVariable
     >>>
     >>> # Distribution parameters
-    >>> support = np.array([-1, 0, 1], dtype=np.int64)
+    >>> support = np.array([-1, 0, 1])
     >>> p = np.array([0.2, 0.5, 0.3])
     >>> parameters_categorical = {
     ...     "support" : support,

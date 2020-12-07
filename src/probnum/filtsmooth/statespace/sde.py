@@ -1,10 +1,12 @@
 """SDE models as transitions."""
 import functools
+from typing import Callable
 
 import numpy as np
 import scipy.linalg
 
 import probnum.random_variables as pnrv
+from probnum.type import FloatArgType
 
 from . import discrete_transition, transition
 
@@ -12,30 +14,41 @@ from . import discrete_transition, transition
 class SDE(transition.Transition):
     """Stochastic differential equation.
 
-    .. math:: d x_t = g(t, x_t) d t + L(t) d w_t,
+    .. math:: d x(t) = g(t, x(t)) d t + L(t) d w(t),
 
     driven by a Wiener process with unit diffusion.
     """
 
-    def __init__(self, driftfun, dispmatrixfun, jacobfun):
-        self._driftfun = driftfun
-        self._dispmatrixfun = dispmatrixfun
-        self._jacobfun = jacobfun
+    def __init__(
+        self,
+        driftfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        dispmatfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        jacobfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+    ):
+        self.driftfun = driftfun
+        self.dispmatfun = dispmatfun
+        self.jacobfun = jacobfun
+        self.precon = None
 
-    def transition_realization(self, real, start, stop, **kwargs):
+    def transition_realization(
+        self,
+        real,
+        start,
+        stop=None,
+        step=None,
+        linearise_at=None,
+    ):
         raise NotImplementedError
 
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(
+        self,
+        rv,
+        start,
+        stop=None,
+        step=None,
+        linearise_at=None,
+    ):
         raise NotImplementedError
-
-    def drift(self, time, state, **kwargs):
-        return self._driftfun(time, state, **kwargs)
-
-    def dispersionmatrix(self, time, **kwargs):
-        return self._dispmatrixfun(time, **kwargs)
-
-    def jacobian(self, time, state, **kwargs):
-        return self._jacobfun(time, state, **kwargs)
 
     @property
     def dimension(self):
@@ -45,49 +58,58 @@ class SDE(transition.Transition):
 class LinearSDE(SDE):
     """Linear stochastic differential equation (SDE),
 
-    .. math:: d x_t = [G(t) x_t + v(t)] d t + L(t) x_t d w_t.
+    .. math:: d x(t) = [G(t) x(t) + v(t)] d t + L(t) x(t) d w(t).
 
     For Gaussian initial conditions, this solution is a Gaussian process.
 
     Parameters
     ----------
-    driftmatrixfun : callable, signature=(t, \\**kwargs)
-        This is F = F(t). The evaluations of this function are called
-        the drift(matrix) of the SDE.
+    driftmatfun :
+        This is G = G(t). The evaluations of this function are called
+        the driftmatrix of the SDE.
         Returns np.ndarray with shape=(n, n)
-    forcevecfun : callable, signature=(t, \\**kwargs)
-        This is u = u(t). Evaluations of this function are called
+    forcevecfun :
+        This is v = v(t). Evaluations of this function are called
         the force(vector) of the SDE.
         Returns np.ndarray with shape=(n,)
-    dispmatrixfun : callable, signature=(t, \\**kwargs)
+    dispmatfun :
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
-
-    Notes
-    -----
-    If initial conditions are Gaussian, the solution is a Gauss-Markov process.
     """
 
-    def __init__(self, driftmatrixfun, forcevecfun, dispmatrixfun):
-        self._driftmatrixfun = driftmatrixfun
-        self._forcevecfun = forcevecfun
+    def __init__(
+        self,
+        driftmatfun: Callable[[FloatArgType], np.ndarray],
+        forcevecfun: Callable[[FloatArgType], np.ndarray],
+        dispmatfun: Callable[[FloatArgType], np.ndarray],
+    ):
+        self.driftmatfun = driftmatfun
+        self.forcevecfun = forcevecfun
         super().__init__(
-            driftfun=(lambda t, x: driftmatrixfun(t) @ x + forcevecfun(t)),
-            dispmatrixfun=dispmatrixfun,
-            jacobfun=(lambda t, x: dispmatrixfun(t)),
+            driftfun=(lambda t, x: driftmatfun(t) @ x + forcevecfun(t)),
+            dispmatfun=dispmatfun,
+            jacobfun=(lambda t, x: driftmatfun(t)),
         )
 
-    def transition_realization(self, real, start, stop, step, **kwargs):
+    def transition_realization(
+        self,
+        real,
+        start,
+        stop,
+        step,
+        **kwargs,
+    ):
+
         rv = pnrv.Normal(real, 0 * np.eye(len(real)))
         return linear_sde_statistics(
             rv,
             start,
             stop,
             step,
-            self._driftfun,
-            self._driftmatrixfun,
-            self._dispmatrixfun,
+            self.driftfun,
+            self.driftmatfun,
+            self.dispmatfun,
         )
 
     def transition_rv(self, rv, start, stop, step, **kwargs):
@@ -103,73 +125,72 @@ class LinearSDE(SDE):
             start,
             stop,
             step,
-            self._driftfun,
-            self._driftmatrixfun,
-            self._dispmatrixfun,
+            self.driftfun,
+            self.driftmatfun,
+            self.dispmatfun,
         )
 
     @property
     def dimension(self):
         """Spatial dimension (utility attribute)."""
-        return len(self._driftmatrixfun(0.0))
+        # risky to evaluate at zero, but usually works
+        return len(self.driftmatfun(0.0))
 
 
 class LTISDE(LinearSDE):
-    """Linear time-invariant continuous Markov models of the form
-    dx = [F x(t) + u] dt + L dBt.
+    """Linear time-invariant continuous Markov models of the form.
+
+    .. math:: d x(t) = [G x(t) + v] d t + L d w(t).
+
     In the language of dynamic models,
     x(t) : state process
-    F : drift matrix
-    u : forcing term
+    G : drift matrix
+    v : force term/vector
     L : dispersion matrix.
-    Bt : Brownian motion with constant diffusion matrix Q.
+    w(t) : Wiener process with unit diffusion.
 
     Parameters
     ----------
-    driftmatrix : np.ndarray, shape=(n, n)
+    driftmat :
         This is F. It is the drift matrix of the SDE.
-    forcevec : np.ndarray, shape=(n,)
+    forcevec :
         This is U. It is the force vector of the SDE.
-    dispmatrix : np.ndarray, shape(n, s)
+    dispmat :
         This is L. It is the dispersion matrix of the SDE.
-
-    Notes
-    -----
-    It assumes Gaussian initial conditions (otherwise
-    it is no Gauss-Markov process).
     """
 
-    def __init__(self, driftmatrix, forcevec, dispmatrix):
-        _check_initial_state_dimensions(driftmatrix, forcevec, dispmatrix)
+    def __init__(self, driftmat: np.ndarray, forcevec: np.ndarray, dispmat: np.ndarray):
+        _check_initial_state_dimensions(driftmat, forcevec, dispmat)
         super().__init__(
-            (lambda t, **kwargs: driftmatrix),
-            (lambda t, **kwargs: forcevec),
-            (lambda t, **kwargs: dispmatrix),
+            (lambda t: driftmat),
+            (lambda t: forcevec),
+            (lambda t: dispmat),
         )
-        self._driftmatrix = driftmatrix
-        self._forcevec = forcevec
-        self._dispmatrix = dispmatrix
+        self.driftmat = driftmat
+        self.forcevec = forcevec
+        self.dispmat = dispmat
 
-    @property
-    def driftmatrix(self):
-        return self._driftmatrix
+    def transition_realization(
+        self,
+        real,
+        start,
+        stop,
+        **kwargs,
+    ):
 
-    @property
-    def forcevec(self):
-        return self._forcevec
-
-    @property
-    def dispersionmatrix(self):
-        # pylint: disable=invalid-overridden-method
-        return self._dispmatrix
-
-    def transition_realization(self, real, start, stop, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_realization(real, start, stop)
+        return discretised_model.transition_realization(real, start)
 
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(
+        self,
+        rv,
+        start,
+        stop,
+        **kwargs,
+    ):
+
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
@@ -177,7 +198,7 @@ class LTISDE(LinearSDE):
             )
             raise TypeError(errormsg)
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_rv(rv, start, stop)
+        return discretised_model.transition_rv(rv, start)
 
     def discretise(self, step):
         """Returns a discrete transition model (i.e. mild solution to SDE) using matrix
@@ -190,35 +211,11 @@ class LTISDE(LinearSDE):
 
         which is the transition of the mild solution to the LTI SDE.
         """
-        if np.linalg.norm(self._forcevec) > 0:
+        if np.linalg.norm(self.forcevec) > 0:
             raise NotImplementedError("MFD does not work for force>0 (yet).")
-        ah, qh, _ = matrix_fraction_decomposition(
-            self.driftmatrix, self.dispersionmatrix, step
-        )
+        ah, qh, _ = matrix_fraction_decomposition(self.driftmat, self.dispmat, step)
         sh = np.zeros(len(ah))
         return discrete_transition.DiscreteLTIGaussian(ah, sh, qh)
-
-
-def _check_initial_state_dimensions(drift, force, disp):
-    """Checks that the matrices all align and are of proper shape.
-
-    If all the bugs are removed and the tests run, these asserts
-    are turned into Exception-catchers.
-
-    Parameters
-    ----------
-    drift : np.ndarray, shape=(n, n)
-    force : np.ndarray, shape=(n,)
-    disp : np.ndarray, shape=(n, s)
-    """
-    if drift.ndim != 2 or drift.shape[0] != drift.shape[1]:
-        raise ValueError("driftmatrix not of shape (n, n)")
-    if force.ndim != 1:
-        raise ValueError("force not of shape (n,)")
-    if force.shape[0] != drift.shape[1]:
-        raise ValueError("force not of shape (n,) or driftmatrix not of shape (n, n)")
-    if disp.ndim != 2:
-        raise ValueError("dispersion not of shape (n, s)")
 
 
 def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun):
@@ -226,7 +223,7 @@ def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun)
 
     For a linear(ised) SDE
 
-    .. math:: d x_t = [G(t) x_t + v(t)] d t + L(t) x_t d w_t.
+    .. math:: d x(t) = [G(t) x(t) + v(t)] d t + L(t) x(t) d w(t).
 
     mean and covariance of the solution are computed by solving
 
@@ -309,23 +306,23 @@ def _increment_fun(time, mean, cov, driftfun, jacobfun, dispmatfun):
     return mean_increment, cov_increment
 
 
-def matrix_fraction_decomposition(F, L, h):
-    """Matrix fraction decomposition."""
-    if F.ndim != 2 or L.ndim != 2:
-        raise TypeError("F and L must be matrices.")
-    if not np.isscalar(h):
-        raise TypeError("h must be a float/scalar")
+def matrix_fraction_decomposition(driftmat, dispmat, step):
+    """Matrix fraction decomposition (without force)."""
+    no_force = np.zeros(len(driftmat))
+    _check_initial_state_dimensions(
+        driftmat=driftmat, forcevec=no_force, dispmat=dispmat
+    )
 
-    topleft = F
-    topright = L @ L.T
-    bottomright = -F.T
-    bottomleft = np.zeros(F.shape)
+    topleft = driftmat
+    topright = dispmat @ dispmat.T
+    bottomright = -driftmat.T
+    bottomleft = np.zeros(driftmat.shape)
 
     toprow = np.hstack((topleft, topright))
     bottomrow = np.hstack((bottomleft, bottomright))
     bigmat = np.vstack((toprow, bottomrow))
 
-    Phi = scipy.linalg.expm(bigmat * h)
+    Phi = scipy.linalg.expm(bigmat * step)
     projmat1 = np.eye(*toprow.shape)
     projmat2 = np.flip(projmat1)
 
@@ -334,3 +331,22 @@ def matrix_fraction_decomposition(F, L, h):
     Qh = C @ D
 
     return Ah, Qh, bigmat
+
+
+def _check_initial_state_dimensions(driftmat, forcevec, dispmat):
+    """Checks that the matrices all align and are of proper shape.
+
+    Parameters
+    ----------
+    driftmat : np.ndarray, shape=(n, n)
+    forcevec : np.ndarray, shape=(n,)
+    dispmat : np.ndarray, shape=(n, s)
+    """
+    if driftmat.ndim != 2 or driftmat.shape[0] != driftmat.shape[1]:
+        raise ValueError("driftmatrix not of shape (n, n)")
+    if forcevec.ndim != 1:
+        raise ValueError("force not of shape (n,)")
+    if forcevec.shape[0] != driftmat.shape[1]:
+        raise ValueError("force not of shape (n,) or driftmatrix not of shape (n, n)")
+    if dispmat.ndim != 2:
+        raise ValueError("dispersion not of shape (n, s)")
