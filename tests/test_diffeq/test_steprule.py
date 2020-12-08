@@ -48,19 +48,19 @@ class TestAdaptiveStep(unittest.TestCase):
         sugg = self.asr.suggest(step, errorest, localconvrate=3)
         self.assertGreater(sugg, step)
 
-    def test_errorest_to_internalnorm_1d(self):
+    def test_errorest_to_norm_1d(self):
         errorest = 0.5
         proposed_state = np.array(1.0)
         current_state = np.array(2.0)
         atol = 0.1
         rtol = 0.01
         expected = errorest / (atol + rtol * np.maximum(proposed_state, current_state))
-        received = self.asr.errorest_to_internalnorm(
+        received = self.asr.errorest_to_norm(
             errorest, proposed_state, current_state, atol, rtol
         )
         self.assertAlmostEqual(expected, received)
 
-    def test_errorest_to_internalnorm_2d(self):
+    def test_errorest_to_norm_2d(self):
         errorest = np.array([0.1, 0.2])
         proposed_state = np.array([1.0, 3.0])
         current_state = np.array([2.0, 3.0])
@@ -69,7 +69,7 @@ class TestAdaptiveStep(unittest.TestCase):
         expected = np.linalg.norm(
             errorest / (atol + rtol * np.maximum(proposed_state, current_state))
         ) / np.sqrt(2)
-        received = self.asr.errorest_to_internalnorm(
+        received = self.asr.errorest_to_norm(
             errorest, proposed_state, current_state, atol, rtol
         )
         self.assertAlmostEqual(expected, received)

@@ -16,7 +16,7 @@ class ODESolver(ABC):
         self.order = order  # RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-    def solve(self, steprule, atol, rtol, **kwargs):
+    def solve(self, steprule, atol, rtol):
         """Solve an IVP.
 
         Parameters
@@ -33,8 +33,8 @@ class ODESolver(ABC):
         while t < self.ivp.tmax:
 
             t_new = t + stepsize
-            proposed_rv, errorest = self.step(t, t_new, current_rv, **kwargs)
-            internal_norm = steprule.errorest_to_internalnorm(
+            proposed_rv, errorest = self.step(t, t_new, current_rv)
+            internal_norm = steprule.errorest_to_norm(
                 errorest=errorest,
                 proposed_state=proposed_rv.mean,
                 current_state=current_rv.mean,

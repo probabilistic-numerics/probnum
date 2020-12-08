@@ -219,11 +219,11 @@ def probsolve_ivp(
     """
     _check_step_tol(step, atol, rtol)
     gfilt, stprl = _create_solver_inputs(
-        ivp, method, which_prior, step, firststep, precond_step, **kwargs
+        ivp, method, which_prior, step, firststep, **kwargs
     )
     with_smoothing = method[-2] == "s" or method[-1] == "s"
     solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
-    solution = solver.solve(steprule=stprl, atol=atol, rtol=rtol, **kwargs)
+    solution = solver.solve(steprule=stprl, atol=atol, rtol=rtol)
     return solution
 
 
@@ -240,14 +240,10 @@ def _check_step_tol(step, atol, rtol):
         raise ValueError(errormsg)
 
 
-def _create_solver_inputs(
-    ivp, method, which_prior, step, firststep, precond_step, **kwargs
-):
+def _create_solver_inputs(ivp, method, which_prior, step, firststep, **kwargs):
     """Create the solver object that is used."""
     _check_method(method)
-    if precond_step is None:
-        precond_step = step or 1.0
-    _prior = _string2prior(ivp, which_prior, precond_step, **kwargs)
+    _prior = _string2prior(ivp, which_prior, **kwargs)
     if step is not None:
         stprl = steprule.ConstantSteps(step)
     else:

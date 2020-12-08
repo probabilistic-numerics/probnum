@@ -24,16 +24,13 @@ class StepRule(ABC):
         """
         raise NotImplementedError
 
-    # 'internalnorm' is named after the respective variable used by SciML.
     @abstractmethod
-    def errorest_to_internalnorm(
-        self, errorest, proposed_state, current_state, atol, rtol
-    ):
-        """Computes the internal norm (usually referred to as 'E').
+    def errorest_to_norm(self, errorest, proposed_state, current_state, atol, rtol):
+        """Computes the norm of error per tolerance (usually referred to as 'E').
 
-        The internal norm is usually the current error estimate
-        normalised with atol, rtol, and the magnitude of the previous
-        states.
+        The norm is usually the current error estimate normalised with
+        atol, rtol, and the magnitude of the previous states. If this is
+        smaller than 1, the step was small enough.
         """
         raise NotImplementedError
 
@@ -52,14 +49,11 @@ class ConstantSteps(StepRule):
         """Meaningless since always True."""
         return True
 
-    def errorest_to_internalnorm(
-        self, errorest, proposed_state, current_state, atol, rtol
-    ):
+    def errorest_to_norm(self, errorest, proposed_state, current_state, atol, rtol):
         pass
 
 
 # Once we have other controls, e.g. PI control, we can rename this into ProportionalControl.
-# Until then, lets keep the delta small, I'd say (N).
 class AdaptiveSteps(StepRule):
     """Adaptive step size selection using proportional control.
 
@@ -112,18 +106,10 @@ class AdaptiveSteps(StepRule):
             raise RuntimeError("Step-size larger than maximum step-size")
         return step
 
-    # Looks unnecessary, though maybe we want tolerance per unit step
-    # in which case it is good to have such method in here.
     def is_accepted(self, laststep, scaled_error, localconvrate=None):
         return scaled_error < 1
 
-    # In here, because (i) we do not want to compute it for constant steps,
-    # and in fact, we don't even want to think about which value atol and rtol should have;
-    # (ii) having it in StepRule makes it easier to test, because the class is more light-weight;
-    # (iii) who knows, maybe there are other ways of dealing with this.
-    def errorest_to_internalnorm(
-        self, errorest, proposed_state, current_state, atol, rtol
-    ):
+    def errorest_to_norm(self, errorest, proposed_state, current_state, atol, rtol):
         tolerance = atol + rtol * np.maximum(
             np.abs(proposed_state), np.abs(current_state)
         )
