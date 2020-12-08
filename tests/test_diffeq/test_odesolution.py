@@ -106,7 +106,7 @@ class TestODESolutionAdaptive(TestODESolution):
 
     def setUp(self):
         super().setUp()
-        self.solution = probsolve_ivp(self.ivp, which_prior="ibm2", tol=0.1)
+        self.solution = probsolve_ivp(self.ivp, which_prior="ibm2", atol=0.1, rtol=0.1)
 
 
 class TestODESolutionSampling(unittest.TestCase):

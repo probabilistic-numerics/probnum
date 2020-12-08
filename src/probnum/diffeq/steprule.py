@@ -1,21 +1,36 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 
 class StepRule(ABC):
     """(Adaptive) step size rules for ODE solvers."""
 
+    def __init__(self, firststep):
+        self.firststep = firststep
+
     @abstractmethod
-    def suggest(self, laststep, errorest, **kwargs):
+    def suggest(self, laststep, errorest, localconvrate=None):
         """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
         raise NotImplementedError
 
     @abstractmethod
-    def is_accepted(self, proposedstep, errorest, **kwargs):
+    def is_accepted(self, scaled_error):
         """Check if the proposed step should be accepted or not.
 
         Variable "proposedstep" not used yet, but may be important in
         the future, e.g. if we decide that instead of tol_per_step (see
         AdaptiveSteps) we want to be able to control tol_per_unitstep.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def errorest_to_norm(self, errorest, proposed_state, current_state):
+        """Computes the norm of error per tolerance (usually referred to as 'E').
+
+        The norm is usually the current error estimate normalised with
+        atol, rtol, and the magnitude of the previous states. If this is
+        smaller than 1, the step was small enough.
         """
         raise NotImplementedError
 
@@ -25,60 +40,82 @@ class ConstantSteps(StepRule):
 
     def __init__(self, stepsize):
         self.step = stepsize
+        super().__init__(firststep=stepsize)
 
-    def suggest(self, laststep, errorest, **kwargs):
+    def suggest(self, laststep, errorest, localconvrate=None):
         return self.step
 
-    def is_accepted(self, proposedstep, errorest, **kwargs):
-        """Meaningless since always True."""
+    def is_accepted(self, scaled_error):
+        """Always True."""
         return True
 
+    def errorest_to_norm(self, errorest, proposed_state, current_state):
+        pass
 
+
+# Once we have other controls, e.g. PI control, we can rename this into ProportionalControl.
 class AdaptiveSteps(StepRule):
-    """Adaptive step size selection based on tolerance per step.
-
-    By default, there is no being "too small" for a step. However, a
-    Warning is printed if the suggested step is smaller than roughly
-    machine precision: 1e-15.
+    """Adaptive step size selection using proportional control.
 
     Parameters
     ----------
-    tol_per_step : float
-        Tolerance per step (absolute)
-    localconvrate : float
-        (Estimated) convergence rate of the solver.
+    firststep : float
+        First step to be taken by the ODE solver (which happens in absence of error estimates).
     limitchange : list with 2 elements, optional
         Lower and upper bounds for computed change of step.
     safetyscale : float, optional
         Safety factor for proposal of distributions, 0 << safetyscale < 1
+    minstep : float, optional
+        Minimum step that is allowed. A runtime error is thrown if the proposed step is smaller. Default is 1e-15.
+    maxstep : float, optional
+        Maximum step that is allowed. A runtime error is thrown if the proposed step is larger. Default is 1e15.
     """
 
     def __init__(
         self,
-        tol_per_step,
-        localconvrate,
+        firststep,
+        atol,
+        rtol,
         limitchange=(0.1, 5.0),
         safetyscale=0.95,
-        **kwargs
+        minstep=1e-15,
+        maxstep=1e15,
     ):
-        self.tol_per_step = float(tol_per_step)
         self.safetyscale = float(safetyscale)
-        self.localconvrate = float(localconvrate + 1)
         self.limitchange = limitchange
+        self.minstep = minstep
+        self.maxstep = maxstep
+        self.atol = atol
+        self.rtol = rtol
+        super().__init__(firststep=firststep)
 
-    def suggest(self, laststep, errorest, **kwargs):
+    def suggest(self, laststep, scaled_error, localconvrate=None):
         small, large = self.limitchange
-        ratio = self.tol_per_step / (laststep * errorest)
-        change = self.safetyscale * ratio ** (1.0 / self.localconvrate)
+
+        ratio = 1.0 / scaled_error
+        change = self.safetyscale * ratio ** (1.0 / localconvrate)
+
+        # The below code should be doable in a single line?
         if change < small:
             step = small * laststep
         elif large < change:
             step = large * laststep
         else:
             step = change * laststep
-        if step < 1e-15:
-            print("Warning: Stepsize is num. zero (h=%.1e)" % step)
+
+        if step < self.minstep:
+            raise RuntimeError("Step-size smaller than minimum step-size")
+        if step > self.maxstep:
+            raise RuntimeError("Step-size larger than maximum step-size")
         return step
 
-    def is_accepted(self, proposedstep, errorest, **kwargs):
-        return errorest * proposedstep < self.tol_per_step
+    def is_accepted(self, scaled_error):
+        return scaled_error < 1
+
+    def errorest_to_norm(self, errorest, proposed_state, current_state):
+        tolerance = self.atol + self.rtol * np.maximum(
+            np.abs(proposed_state), np.abs(current_state)
+        )
+        ratio = errorest / tolerance
+        dim = len(ratio) if ratio.ndim > 0 else 1
+        return np.linalg.norm(ratio) / np.sqrt(dim)

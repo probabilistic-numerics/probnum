@@ -167,13 +167,17 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
 
     def test_kf_ibm1_stdev(self):
         """Standard deviation at end point roughly equal to tolerance."""
-        sol = probsolve_ivp(self.ivp, tol=self.tol, which_prior="ibm1", method="ekf0")
+        sol = probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="ekf0"
+        )
         self.assertLess(np.sqrt(sol.y.cov[-1, 0, 0]), 10 * self.tol)
         self.assertLess(0.1 * self.tol, np.sqrt(sol.y.cov[-1, 0, 0]))
 
     def test_kf_ibm1(self):
         """Tests whether resulting steps are not evenly distributed."""
-        sol = probsolve_ivp(self.ivp, tol=self.tol, which_prior="ibm1", method="ekf0")
+        sol = probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="ekf0"
+        )
         steps = np.diff(sol.t)
         self.assertLess(np.amin(steps) / np.amax(steps), 0.8)
 
@@ -189,16 +193,25 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
         self.step = 0.1
 
     def test_filter_ivp_ioup1_kf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup1", method="ekf0")
+        probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ioup1", method="ekf0"
+        )
 
     def test_filter_ivp_ioup2_ekf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup2", method="ekf1")
+        probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ioup2", method="ekf1"
+        )
 
     def test_filter_ivp_ioup3_ukf(self):
         """UKF requires some evaluation-variance to have a positive definite innovation
         matrix, apparently."""
         probsolve_ivp(
-            self.ivp, tol=self.tol, evlvar=0.01, which_prior="ioup3", method="ukf"
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            evlvar=0.01,
+            which_prior="ioup3",
+            method="ukf",
         )
 
     def test_filter_ivp_h_ioup1_ekf(self):
@@ -215,16 +228,33 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
         probsolve_ivp(self.ivp, step=self.step, which_prior="ioup3", method="ekf0")
 
     def test_filter_ivp_mat32_kf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern32", method="ekf0")
+        probsolve_ivp(
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            which_prior="matern32",
+            method="ekf0",
+        )
 
     def test_filter_ivp_mat52_ekf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern52", method="ekf1")
+        probsolve_ivp(
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            which_prior="matern52",
+            method="ekf1",
+        )
 
     def test_filter_ivp_mat72_ukf(self):
         """UKF requires some evaluation-variance to have a positive definite innovation
         matrix, apparently."""
         probsolve_ivp(
-            self.ivp, tol=self.tol, evlvar=0.01, which_prior="matern72", method="ukf"
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            evlvar=0.01,
+            which_prior="matern72",
+            method="ukf",
         )
 
     def test_filter_ivp_h_mat32_ekf(self):
@@ -353,13 +383,17 @@ class TestAdaptivityOnLotkaVolterraSmoother(unittest.TestCase):
 
     def test_kf_ibm1_stdev(self):
         """Standard deviation at end point roughly equal to tolerance."""
-        sol = probsolve_ivp(self.ivp, tol=self.tol, which_prior="ibm1", method="eks0")
+        sol = probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="eks0"
+        )
         self.assertLess(np.sqrt(sol.y.cov[-1, 0, 0]), 10 * self.tol)
         self.assertLess(0.1 * self.tol, np.sqrt(sol.y.cov[-1, 0, 0]))
 
     def test_kf_ibm1(self):
         """Tests whether resulting steps are not evenly distributed."""
-        sol = probsolve_ivp(self.ivp, tol=self.tol, which_prior="ibm1", method="eks0")
+        sol = probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="eks0"
+        )
         steps = np.diff(sol.t)
         self.assertLess(np.amin(steps) / np.amax(steps), 0.8)
 
@@ -375,16 +409,25 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
         self.step = 0.1
 
     def test_filter_ivp_ioup1_kf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup1", method="eks0")
+        probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ioup1", method="eks0"
+        )
 
     def test_filter_ivp_ioup2_ekf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="ioup2", method="eks1")
+        probsolve_ivp(
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ioup2", method="eks1"
+        )
 
     def test_filter_ivp_ioup3_ukf(self):
         """UKF requires some evaluation-variance to have a positive definite innovation
         matrix, apparently."""
         probsolve_ivp(
-            self.ivp, tol=self.tol, evlvar=0.01, which_prior="ioup3", method="uks"
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            evlvar=0.01,
+            which_prior="ioup3",
+            method="uks",
         )
 
     def test_filter_ivp_h_ioup1_ekf(self):
@@ -401,16 +444,33 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
         probsolve_ivp(self.ivp, step=self.step, which_prior="ioup3", method="eks0")
 
     def test_filter_ivp_mat32_kf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern32", method="eks0")
+        probsolve_ivp(
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            which_prior="matern32",
+            method="eks0",
+        )
 
     def test_filter_ivp_mat52_ekf(self):
-        probsolve_ivp(self.ivp, tol=self.tol, which_prior="matern52", method="eks1")
+        probsolve_ivp(
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            which_prior="matern52",
+            method="eks1",
+        )
 
     def test_filter_ivp_mat72_ukf(self):
         """UKF requires some evaluation-variance to have a positive definite innovation
         matrix, apparently."""
         probsolve_ivp(
-            self.ivp, tol=self.tol, evlvar=0.01, which_prior="matern72", method="uks"
+            self.ivp,
+            atol=self.tol,
+            rtol=self.tol,
+            evlvar=0.01,
+            which_prior="matern72",
+            method="uks",
         )
 
     def test_filter_ivp_h_mat32_ekf(self):
