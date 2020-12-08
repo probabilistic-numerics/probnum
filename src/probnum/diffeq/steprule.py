@@ -25,7 +25,7 @@ class StepRule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def errorest_to_norm(self, errorest, proposed_state, current_state, atol, rtol):
+    def errorest_to_norm(self, errorest, proposed_state, current_state):
         """Computes the norm of error per tolerance (usually referred to as 'E').
 
         The norm is usually the current error estimate normalised with
@@ -49,7 +49,7 @@ class ConstantSteps(StepRule):
         """Meaningless since always True."""
         return True
 
-    def errorest_to_norm(self, errorest, proposed_state, current_state, atol, rtol):
+    def errorest_to_norm(self, errorest, proposed_state, current_state):
         pass
 
 
@@ -74,6 +74,8 @@ class AdaptiveSteps(StepRule):
     def __init__(
         self,
         firststep,
+        atol,
+        rtol,
         limitchange=(0.1, 5.0),
         safetyscale=0.95,
         minstep=1e-15,
@@ -83,7 +85,8 @@ class AdaptiveSteps(StepRule):
         self.limitchange = limitchange
         self.minstep = minstep
         self.maxstep = maxstep
-
+        self.atol = atol
+        self.rtol = rtol
         super().__init__(firststep=firststep)
 
     def suggest(self, laststep, scaled_error, localconvrate=None):
@@ -109,8 +112,8 @@ class AdaptiveSteps(StepRule):
     def is_accepted(self, laststep, scaled_error, localconvrate=None):
         return scaled_error < 1
 
-    def errorest_to_norm(self, errorest, proposed_state, current_state, atol, rtol):
-        tolerance = atol + rtol * np.maximum(
+    def errorest_to_norm(self, errorest, proposed_state, current_state):
+        tolerance = self.atol + self.rtol * np.maximum(
             np.abs(proposed_state), np.abs(current_state)
         )
         ratio = errorest / tolerance

@@ -31,7 +31,9 @@ class TestAdaptiveStep(unittest.TestCase):
 
     def setUp(self):
         """Set up imaginative solver of convergence rate 3."""
-        self.asr = steprule.AdaptiveSteps(firststep=1.0)
+        self.atol = 0.1
+        self.rtol = 0.01
+        self.asr = steprule.AdaptiveSteps(firststep=1.0, atol=self.atol, rtol=self.rtol)
 
     def test_is_accepted(self):
         errorest = 0.5  # < 1, should be accepted
@@ -52,31 +54,31 @@ class TestAdaptiveStep(unittest.TestCase):
         errorest = 0.5
         proposed_state = np.array(1.0)
         current_state = np.array(2.0)
-        atol = 0.1
-        rtol = 0.01
-        expected = errorest / (atol + rtol * np.maximum(proposed_state, current_state))
-        received = self.asr.errorest_to_norm(
-            errorest, proposed_state, current_state, atol, rtol
+        expected = errorest / (
+            self.atol + self.rtol * np.maximum(proposed_state, current_state)
         )
+        received = self.asr.errorest_to_norm(errorest, proposed_state, current_state)
         self.assertAlmostEqual(expected, received)
 
     def test_errorest_to_norm_2d(self):
         errorest = np.array([0.1, 0.2])
         proposed_state = np.array([1.0, 3.0])
         current_state = np.array([2.0, 3.0])
-        atol = 0.1
-        rtol = 0.01
         expected = np.linalg.norm(
-            errorest / (atol + rtol * np.maximum(proposed_state, current_state))
+            errorest
+            / (self.atol + self.rtol * np.maximum(proposed_state, current_state))
         ) / np.sqrt(2)
-        received = self.asr.errorest_to_norm(
-            errorest, proposed_state, current_state, atol, rtol
-        )
+        received = self.asr.errorest_to_norm(errorest, proposed_state, current_state)
         self.assertAlmostEqual(expected, received)
 
     def test_minstep_maxstep(self):
         adaptive_steps = steprule.AdaptiveSteps(
-            firststep=1.0, limitchange=(0.0, 1e10), minstep=0.1, maxstep=10
+            firststep=1.0,
+            limitchange=(0.0, 1e10),
+            minstep=0.1,
+            maxstep=10,
+            atol=1,
+            rtol=1,
         )
 
         with self.assertRaises(RuntimeError):
