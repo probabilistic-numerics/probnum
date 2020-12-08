@@ -19,8 +19,8 @@ class TestConstantStep(unittest.TestCase):
         self.assertEqual(stp, self.step)
 
     def test_is_accepted(self):
-        isacc = self.sr.is_accepted(np.inf, np.nan)
-        self.assertEqual(isacc, True)
+        isacc = self.sr.is_accepted(np.nan)
+        self.assertTrue(isacc)
 
 
 # The tests below will need reconsideration
@@ -37,11 +37,7 @@ class TestAdaptiveStep(unittest.TestCase):
 
     def test_is_accepted(self):
         errorest = 0.5  # < 1, should be accepted
-        suggstep = np.nan  # value should not matter
-        localconvrate = None  # should not matter either
-        self.assertEqual(
-            self.asr.is_accepted(suggstep, errorest, localconvrate=localconvrate), True
-        )
+        self.assertTrue(self.asr.is_accepted(errorest))
 
     def test_suggest(self):
         """If errorest <1, the next step should be larger."""

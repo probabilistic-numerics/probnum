@@ -37,7 +37,7 @@ class ODESolver(ABC):
                 proposed_state=proposed_rv.mean,
                 current_state=current_rv.mean,
             )
-            if steprule.is_accepted(stepsize, internal_norm):
+            if steprule.is_accepted(internal_norm):
                 self.num_steps += 1
                 self.method_callback(
                     time=t_new, current_guess=proposed_rv, current_error=errorest

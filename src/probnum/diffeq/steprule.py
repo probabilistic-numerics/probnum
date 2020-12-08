@@ -15,7 +15,7 @@ class StepRule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def is_accepted(self, proposedstep, errorest, localconvrate=None):
+    def is_accepted(self, scaled_error):
         """Check if the proposed step should be accepted or not.
 
         Variable "proposedstep" not used yet, but may be important in
@@ -45,8 +45,8 @@ class ConstantSteps(StepRule):
     def suggest(self, laststep, errorest, localconvrate=None):
         return self.step
 
-    def is_accepted(self, proposedstep, errorest, localconvrate=None):
-        """Meaningless since always True."""
+    def is_accepted(self, scaled_error):
+        """Always True."""
         return True
 
     def errorest_to_norm(self, errorest, proposed_state, current_state):
@@ -109,7 +109,7 @@ class AdaptiveSteps(StepRule):
             raise RuntimeError("Step-size larger than maximum step-size")
         return step
 
-    def is_accepted(self, laststep, scaled_error, localconvrate=None):
+    def is_accepted(self, scaled_error):
         return scaled_error < 1
 
     def errorest_to_norm(self, errorest, proposed_state, current_state):
