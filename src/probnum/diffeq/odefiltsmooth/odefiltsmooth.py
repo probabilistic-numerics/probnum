@@ -243,6 +243,7 @@ def _create_steprule(atol, rtol, step, firststep, ivp):
         stprl = steprule.ConstantSteps(step)
     else:
         if firststep is None:
+            # lazy version of Hairer, Wanner, Norsett, p. 169
             norm_y0 = np.linalg.norm(ivp.initrv.mean)
             norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
             firststep = 0.01 * norm_y0 / norm_dy0
