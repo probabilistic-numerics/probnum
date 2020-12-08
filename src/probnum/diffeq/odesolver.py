@@ -13,7 +13,7 @@ class ODESolver(ABC):
 
     def __init__(self, ivp, order):
         self.ivp = ivp
-        self.order = order  # RK45 has order=5, IBM(q) has order=q
+        self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
     def solve(self, steprule):
@@ -21,8 +21,6 @@ class ODESolver(ABC):
 
         Parameters
         ----------
-        firststep : float
-            First step for adaptive step-size rule.
         steprule : :class:`StepRule`
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
