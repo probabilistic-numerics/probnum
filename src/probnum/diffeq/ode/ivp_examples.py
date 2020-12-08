@@ -29,8 +29,8 @@ def logistic(timespan, initrv, params=(3.0, 1.0)):
         Time span of IVP.
     initrv : RandomVariable,
         *(shape=())* -- Scalar-valued RandomVariable that describes the belief
-        over the initial value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy) with scalar mean and scalar variance.
+        over the initial value. Usually it is a Constant (noise-free      or Normal (no
+        Random Variable isy) with scalar mean and scalar variance.
         To replicate "classical" initial values use the Constant distribution.
     params : (float, float), optional
         Parameters :math:`(a, b)` for the logistic IVP.
@@ -107,8 +107,8 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
         Time span of IVP.
     initrv : RandomVariable,
         *(shape=(2, ))* -- Vector-valued RandomVariable that describes the belief
-        over the initial value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy) with :math:`2`-dimensional mean vector and
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`2`-dimensional mean vector and
         :math:`2 \times 2`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float, float), optional
@@ -168,8 +168,8 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
         Time span of IVP.
     initrv : RandomVariable,
         *(shape=(2, ))* -- Vector-valued RandomVariable that describes the belief
-        over the initial value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy) with :math:`2`-dimensional mean vector and
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`2`-dimensional mean vector and
         :math:`2 \times 2`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float, float), optional
@@ -241,8 +241,8 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1)):
         Time span of IVP.
     initrv : RandomVariable,
         *(shape=(4, ))* -- Vector-valued RandomVariable that describes the belief
-        over the initial value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy) with :math:`4`-dimensional mean vector and
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`4`-dimensional mean vector and
         :math:`4 \times 4`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float), optional
@@ -319,8 +319,8 @@ def rigidbody(timespan, initrv):
         Time span of IVP.
     initrv : RandomVariable,
         *(shape=(3, ))* -- Vector-valued RandomVariable that describes the belief
-        over the initial value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy) with :math:`3`-dimensional mean vector and
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`3`-dimensional mean vector and
         :math:`3 \times 3`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     Returns
@@ -352,7 +352,9 @@ def rigidbody_jac(t, y):
 def vanderpol(timespan, initrv, params=0.1):
     r"""Initial value problem (IVP) based on the Van der Pol Oscillator.
 
-    The Van der Pol Oscillator is defined through
+    This function implements the second-order Van-der-Pol Oscillator as a system
+    of first-order ODEs.
+    The Van der Pol Oscillator is defined as
 
     .. math::
 
@@ -374,8 +376,8 @@ def vanderpol(timespan, initrv, params=0.1):
         Time span of IVP.
     initrv : RandomVariable,
         *(shape=(2, ))* -- Vector-valued RandomVariable that describes the belief
-        over the initial value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy) with :math:`2`-dimensional mean vector and
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`2`-dimensional mean vector and
         :math:`2 \times 2`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     params : (float), optional
@@ -422,8 +424,8 @@ def threebody(timespan, initrv, params=0.012277471):
     r"""Initial value problem (IVP) based on a three-body problem.
 
     Let the initial conditions be :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`.
-    This function implements a first-order linearization of the
-    three-body problem, which is defined as follows: [1]_
+    This function implements the second-order three-body problem as a system of
+    first-order ODEs, which is defined as follows: [1]_
 
     .. math::
 
@@ -452,8 +454,8 @@ def threebody(timespan, initrv, params=0.012277471):
         Time span of IVP.
     initrv : RandomVariable,
         *(shape=(4, ))* -- Vector-valued RandomVariable that describes the belief
-        over the initial value. Usually its distribution is Constant (noise-free)
-        or Normal (noisy) with :math:`4`-dimensional mean vector and
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`4`-dimensional mean vector and
         :math:`4 \times 4`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     params : (float), optional
