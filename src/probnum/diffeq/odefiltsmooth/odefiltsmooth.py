@@ -243,11 +243,9 @@ def _create_steprule(atol, rtol, step, firststep, ivp):
         stprl = steprule.ConstantSteps(step)
     else:
         if firststep is None:
-            firststep = (
-                0.01
-                * np.linalg.norm(ivp.initrv.mean)
-                / np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
-            )
+            norm_y0 = np.linalg.norm(ivp.initrv.mean)
+            norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
+            firststep = 0.01 * norm_y0 / norm_dy0
         stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     return stprl
 
