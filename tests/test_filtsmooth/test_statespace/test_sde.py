@@ -25,7 +25,7 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
         def df(t, x):
             return np.eye(len(x)) + 3
 
-        self.sde = pnfss.sde.SDE(driftfun=f, dispmatrixfun=l, jacobfun=df)
+        self.sde = pnfss.sde.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
         self.f = f
         self.l = l
         self.df = df
@@ -42,17 +42,17 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
 
     def test_drift(self):
         expected = self.f(self.start, self.some_rv.mean)
-        received = self.sde.drift(self.start, self.some_rv.mean)
+        received = self.sde.driftfun(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
     def test_dispersionmatrix(self):
         expected = self.l(self.start)
-        received = self.sde.dispersionmatrix(self.start)
+        received = self.sde.dispmatfun(self.start)
         self.assertAllClose(received, expected)
 
-    def test_jacobian(self):
+    def test_jacobfun(self):
         expected = self.df(self.start, self.some_rv.mean)
-        received = self.sde.jacobian(self.start, self.some_rv.mean)
+        received = self.sde.jacobfun(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
     def test_dimension(self):
@@ -78,7 +78,7 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
         def L(t):
             return 1 + np.arange(2 * TEST_NDIM).reshape((TEST_NDIM, 2))
 
-        self.sde = pnfss.sde.LinearSDE(driftmatrixfun=F, forcevecfun=s, dispmatrixfun=L)
+        self.sde = pnfss.sde.LinearSDE(driftmatfun=F, forcevecfun=s, dispmatfun=L)
         self.F = F
         self.s = s
         self.L = L
@@ -120,19 +120,17 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
         self.F = np.random.rand(TEST_NDIM, TEST_NDIM)
         self.s = np.zeros(TEST_NDIM)  # only because MFD is lazy so far
         self.L = np.random.rand(TEST_NDIM, 2)
-        self.sde = pnfss.sde.LTISDE(
-            driftmatrix=self.F, forcevec=self.s, dispmatrix=self.L
-        )
+        self.sde = pnfss.sde.LTISDE(driftmat=self.F, forcevec=self.s, dispmat=self.L)
 
     def test_driftmatrix(self):
-        self.assertAllClose(self.sde.driftmatrix, self.F)
+        self.assertAllClose(self.sde.driftmat, self.F)
 
     def test_force(self):
         self.assertAllClose(self.sde.forcevec, self.s)
 
     def test_dispersionmatrix(self):
 
-        self.assertAllClose(self.sde.dispersionmatrix, self.L)
+        self.assertAllClose(self.sde.dispmat, self.L)
 
     def test_discretise(self):
         discrete = self.sde.discretise(step=self.stop - self.start)
@@ -211,9 +209,7 @@ class TestMatrixFractionDecomposition(unittest.TestCase):
         self.h = 0.1
 
     def test_ibm_qh_stack(self):
-        *_, stack = pnfss.sde.matrix_fraction_decomposition(
-            F=self.a, L=self.b, h=self.h
-        )
+        *_, stack = pnfss.sde.matrix_fraction_decomposition(self.a, self.b, self.h)
 
         with self.subTest("top left"):
             error = np.linalg.norm(stack[:2, :2] - self.a)
@@ -232,13 +228,13 @@ class TestMatrixFractionDecomposition(unittest.TestCase):
             self.assertLess(error, 1e-15)
 
     def test_ibm_ah(self):
-        Ah, *_ = pnfss.sde.matrix_fraction_decomposition(F=self.a, L=self.b, h=self.h)
+        Ah, *_ = pnfss.sde.matrix_fraction_decomposition(self.a, self.b, self.h)
         expected = np.array([[1, self.h], [0, 1]])
         error = np.linalg.norm(Ah - expected)
         self.assertLess(error, 1e-15)
 
     def test_ibm_qh(self):
-        _, Qh, _ = pnfss.sde.matrix_fraction_decomposition(F=self.a, L=self.b, h=self.h)
+        _, Qh, _ = pnfss.sde.matrix_fraction_decomposition(self.a, self.b, self.h)
         expected = self.dc ** 2 * np.array(
             [[self.h ** 3 / 3, self.h ** 2 / 2], [self.h ** 2 / 2, self.h]]
         )
@@ -250,19 +246,19 @@ class TestMatrixFractionDecomposition(unittest.TestCase):
         good_B = np.array([[0], [1]])
         good_h = 0.1
         with self.subTest(culprit="F"):
-            with self.assertRaises(TypeError):
+            with self.assertRaises(ValueError):
                 pnfss.sde.matrix_fraction_decomposition(
-                    F=np.random.rand(2), L=good_B, h=good_h
+                    np.random.rand(2), good_B, good_h
                 )
 
         with self.subTest(culprit="L"):
-            with self.assertRaises(TypeError):
+            with self.assertRaises(ValueError):
                 pnfss.sde.matrix_fraction_decomposition(
-                    F=good_A, L=np.random.rand(2), h=good_h
+                    good_A, np.random.rand(2), good_h
                 )
 
         with self.subTest(culprit="h"):
-            with self.assertRaises(TypeError):
+            with self.assertRaises(ValueError):
                 pnfss.sde.matrix_fraction_decomposition(
-                    F=good_A, L=good_B, h=np.random.rand(2)
+                    good_A, good_B, np.random.rand(2)
                 )

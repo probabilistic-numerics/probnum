@@ -137,20 +137,6 @@ class TestODESolutionSampling(unittest.TestCase):
                     else:
                         self.assertEqual(sample.shape, size + loc_shape)
 
-    def test_sampling_all_locations_multiple_samples(self):
-        five_samples = self.solution.sample(size=5)
-
-        chi_squared = np.array(
-            [
-                chi_squared_statistic(
-                    sample, self.solution[:].mean, self.solution[:].cov
-                )
-                for sample in five_samples
-            ]
-        ).mean()
-        self.assertLess(chi_squared, 10.0)
-        self.assertLess(0.1, chi_squared)
-
     def test_sampling_two_locations_multiple_samples(self):
         locs = self.solution.t[[2, 3]]
         five_samples = self.solution.sample(t=locs, size=5)
@@ -161,21 +147,6 @@ class TestODESolutionSampling(unittest.TestCase):
                     sample,
                     self.solution[:].mean[[2, 3]],
                     self.solution[:].cov[[2, 3]],
-                )
-                for sample in five_samples
-            ]
-        ).mean()
-        self.assertLess(chi_squared, 10.0)
-        self.assertLess(0.1, chi_squared)
-
-    def test_sampling_many_locations_multiple_samples(self):
-        locs = np.arange(0.0, 0.5, 0.025)
-        five_samples = self.solution.sample(t=locs, size=5)
-
-        chi_squared = np.array(
-            [
-                chi_squared_statistic(
-                    sample, self.solution(locs).mean, self.solution(locs).cov
                 )
                 for sample in five_samples
             ]

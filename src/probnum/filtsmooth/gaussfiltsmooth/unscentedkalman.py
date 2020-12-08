@@ -22,6 +22,8 @@ class ContinuousUKFComponent(statespace.Transition):
             raise TypeError("cont_model must be an SDE.")
         self.non_linear_sde = non_linear_sde
         self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
+        super().__init__()
+
         raise NotImplementedError("Implementation incomplete.")
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
@@ -43,17 +45,18 @@ class DiscreteUKFComponent(statespace.Transition):
     ):
         self.disc_model = disc_model
         self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
+        super().__init__()
 
     def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)
 
     def transition_rv(self, rv, start, linearise_at=None, **kwargs):
-        if linearise_at is None:
-            sigmapts = self.ut.sigma_points(rv.mean, rv.cov)
-        else:
-            sigmapts = self.ut.sigma_points(linearise_at.mean, linearise_at.cov)
-        proppts = self.ut.propagate(start, sigmapts, self.disc_model.dynamics)
-        meascov = self.disc_model.diffusionmatrix(start)
+        compute_sigmapts_at = linearise_at if linearise_at is not None else rv
+        sigmapts = self.ut.sigma_points(
+            compute_sigmapts_at.mean, compute_sigmapts_at.cov
+        )
+        proppts = self.ut.propagate(start, sigmapts, self.disc_model.dynamicsfun)
+        meascov = self.disc_model.diffmatfun(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, meascov, rv.mean
         )
@@ -70,10 +73,10 @@ class DiscreteUKFComponent(statespace.Transition):
         h0 = prior.proj2coord(coord=0)
         h1 = prior.proj2coord(coord=1)
 
-        def dyna(t, x, **kwargs):
+        def dyna(t, x):
             return h1 @ x - ode.rhs(t, h0 @ x)
 
-        def diff(t, **kwargs):
+        def diff(t):
             return evlvar * np.eye(spatialdim)
 
         disc_model = statespace.DiscreteGaussian(dyna, diff)
