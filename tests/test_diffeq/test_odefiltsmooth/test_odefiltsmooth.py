@@ -24,7 +24,7 @@ class TestConvergenceOnLogisticODE(unittest.TestCase):
     """We test whether the convergence rates roughly hold true."""
 
     def setUp(self):
-        """Setup odesolver and solve a scalar ode."""
+        """Setup odesolver and solve a scalar diffeq."""
         initrv = Constant(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
@@ -160,7 +160,7 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
     dislike the adaptive scheme based on the whitened residual as an error estimate."""
 
     def setUp(self):
-        """Setup odesolver and solve a scalar ode."""
+        """Setup odesolver and solve a scalar diffeq."""
         initrv = Constant(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2
@@ -275,7 +275,7 @@ class TestConvergenceOnLogisticODESmoother(unittest.TestCase):
     """We test whether the convergence rates roughly hold true."""
 
     def setUp(self):
-        """Setup odesolver and solve a scalar ode."""
+        """Setup odesolver and solve a scalar diffeq."""
         initrv = Constant(0.1 * np.ones(1))
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.stps = [0.2, 0.1]
@@ -376,7 +376,7 @@ class TestAdaptivityOnLotkaVolterraSmoother(unittest.TestCase):
     dislike the adaptive scheme based on the whitened residual as an error estimate."""
 
     def setUp(self):
-        """Setup odesolver and solve a scalar ode."""
+        """Setup odesolver and solve a scalar diffeq."""
         initrv = Constant(20 * np.ones(2))
         self.ivp = ode.lotkavolterra([0.0, 0.5], initrv)
         self.tol = 1e-2

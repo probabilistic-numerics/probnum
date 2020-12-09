@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from probnum.problem_zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
+from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 from tests.testing import NumpyAssertions
 
 

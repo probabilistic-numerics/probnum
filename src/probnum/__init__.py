@@ -19,8 +19,8 @@ quad
     Bayesian quadrature / numerical integration.
 random_variables
     Random variables representing uncertain values.
-problem_zoo
-    Standard test problems for probabilistic numerical methods.
+problems
+    Definitions and collection of problems solved by probabilistic numerical methods.
 utils
     Utility functions.
 """
@@ -32,7 +32,7 @@ from . import (
     filtsmooth,
     linalg,
     linops,
-    problem_zoo,
+    problems,
     quad,
     random_variables,
     utils,

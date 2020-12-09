@@ -1,5 +1,5 @@
-"""The folder is called "ode" but this module is "ivp" because in the future, there
-might be more ode-based problems, such as bvp."""
+"""The folder is called "diffeq" but this module is "ivp" because in the future, there
+might be more diffeq-based problems, such as bvp."""
 # pylint: disable=unused-variable
 
 import numpy as np
