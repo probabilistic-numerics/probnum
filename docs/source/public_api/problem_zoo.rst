@@ -1,24 +1,24 @@
-probnum.testproblems
+probnum.problem_zoo
 ========================
 
-Test problems for probabilistic linear solvers.
+Problem zoo for probabilistic numerical methods.
 
 Subpackage offering implementations of standard example problems or convenient
 interfaces to benchmark problems for probabilistic numerical methods. These test
 problems are meant for rapid experimentation and prototyping.
 
-.. automodapi:: probnum.testproblems
+.. automodapi:: probnum.problem_zoo
     :no-heading:
     :no-main-docstr:
 
-probnum.testproblems.ode
+probnum.problem_zoo.ode
 ------------------------
 
-.. automodapi:: probnum.testproblems.ode
+.. automodapi:: probnum.problem_zoo.ode
     :no-heading:
 
-probnum.testproblems.linalg
+probnum.problem_zoo.linalg
 ---------------------------
 
-.. automodapi:: probnum.testproblems.linalg
+.. automodapi:: probnum.problem_zoo.linalg
     :no-heading:

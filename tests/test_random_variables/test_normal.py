@@ -9,7 +9,7 @@ import scipy.stats
 import probnum
 from probnum import linops
 from probnum import random_variables as rvs
-from probnum.testproblems.linalg import random_spd_matrix
+from probnum.problem_zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
 

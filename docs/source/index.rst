@@ -59,7 +59,7 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    public_api/linops
    public_api/quad
    public_api/random_variables
-   public_api/testproblems
+   public_api/problem_zoo
    public_api/utils
 
 .. toctree::
