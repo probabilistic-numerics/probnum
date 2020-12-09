@@ -1,5 +1,6 @@
 """Definitions of problems currently solved by probabilistic numerical methods."""
 
+import dataclasses
 import typing
 
 import numpy as np
@@ -9,11 +10,12 @@ import probnum.linops
 import probnum.type
 
 
-class RegressionProblem(typing.NamedTuple):
+@dataclasses.dataclass
+class RegressionProblem:
     r"""Regression problems.
 
     Fit a stochastic process to data, given a likelihood (realised by a :obj:`Transition`).
-    Solved by, for instance, Kalman filtering and smoothing.
+    Solved by Kalman filtering and smoothing in :mod:`probnum.filtsmooth`.
     """
 
     observations: np.ndarray
@@ -23,7 +25,8 @@ class RegressionProblem(typing.NamedTuple):
     likelihood: probnum.filtsmooth.statespace.DiscreteGaussian = None
 
 
-class IVProblem(typing.NamedTuple):
+@dataclasses.dataclass
+class IVProblem:
     r"""First order ODE initial value problems.
 
     Compute a function :math:`y=y(t)` that solves
@@ -31,9 +34,12 @@ class IVProblem(typing.NamedTuple):
     .. math::
         \dot y(t) = f(t, y(t)), \quad y(0) = y_0
 
+    Solved by the ODE solvers in :mod:`probnum.diffeq`.
+
     Examples
     --------
-    >>> def f(t, x): return x*(1-x)
+    >>> def f(t, x):
+    ...     return x*(1-x)
     >>> ivp = IVProblem(f, 0., 3., 0.1)
     >>> ivp.t0, ivp.tmax, ivp.y0
     (0.0, 3.0, 0.1)
@@ -47,9 +53,12 @@ class IVProblem(typing.NamedTuple):
     y0: np.ndarray
 
 
-class LinearSystemProblem(typing.NamedTuple):
-    r"""Solve a linear system of equations: compute :math:`x` from :math;`Ax=b`.
+@dataclasses.dataclass
+class LinearSystemProblem:
+    r"""Solve a linear system of equations.
 
+    Compute :math:`x` from :math:`Ax=b`.
+    Solved by the probabilistic linear solver in mod:`probnum.linalg`
 
     Example
     -------
@@ -66,21 +75,25 @@ class LinearSystemProblem(typing.NamedTuple):
     b: np.ndarray  # Can probnum.linalg handle multiple RHSs?
 
 
-class QuadProblem(typing.NamedTuple):
+@dataclasses.dataclass
+class QuadProblem:
     r"""Numerically approximate an integral.
 
     Compute the integral
 
-        .. math:
-            \int_\Omega f(x) \diff \mu(x)
+        .. math::
+            \int_\Omega f(x) \, \text{d} \mu(x)
 
     for a function :math:`f: \Omega \rightarrow \mathbb{R}`.
     For the time being, :math:`\mu` is the Lebesgue measure.
+    Solved by the quadrature rules in :mod:`probnum.quad`.
 
     Example
     -------
-    >>> def integrand(x): return x**2
-    >>> def domain(x): return 0 < x < 1
+    >>> def integrand(x):
+    ...     return x**2
+    >>> def domain(x):
+    ...     return 0 < x < 1
     >>> qp = QuadProblem(integrand, domain)
     >>> np.round(qp.integrand(0.2), 2)
     0.04
