@@ -18,6 +18,8 @@ References
 .. [4] https://arxiv.org/pdf/2004.00623.pdf
 """
 
+import numpy as np
+
 import probnum.filtsmooth as pnfs
 from probnum.diffeq import steprule
 from probnum.diffeq.odefiltsmooth import ivp2filter
@@ -28,7 +30,8 @@ def probsolve_ivp(
     ivp,
     method="ekf0",
     which_prior="ibm1",
-    tol=None,
+    atol=None,
+    rtol=None,
     step=None,
     firststep=None,
     **kwargs
@@ -216,44 +219,49 @@ def probsolve_ivp(
      [0.98]
      [0.99]]
     """
-    gfilt, firststep, stprl = _create_solver_inputs(
-        ivp, method, which_prior, tol, step, firststep, **kwargs
-    )
+    stprl = _create_steprule(atol, rtol, step, firststep, ivp)
+    prior = _string2prior(ivp, which_prior, **kwargs)
+    gfilt = _create_filter(ivp, prior, method, **kwargs)
     with_smoothing = method[-2] == "s" or method[-1] == "s"
     solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
-    solution = solver.solve(firststep=firststep, steprule=stprl)
+    solution = solver.solve(steprule=stprl)
     return solution
 
 
-def _create_solver_inputs(ivp, method, which_prior, tol, step, firststep, **kwargs):
+def _create_filter(ivp, prior, method, **kwargs):
     """Create the solver object that is used."""
-    _check_step_tol(step, tol)
-    _check_method(method)
-    _prior = _string2prior(ivp, which_prior, **kwargs)
-    if tol is not None:
-        stprl = steprule.AdaptiveSteps(tol, _prior.ordint + 1, **kwargs)
-        if firststep is None:
-            firststep = ivp.tmax - ivp.t0
-    else:
+    if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
+        raise ValueError("Method not supported.")
+    gfilt = _string2filter(ivp, prior, method, **kwargs)
+    return gfilt
+
+
+def _create_steprule(atol, rtol, step, firststep, ivp):
+    _check_step_tol(step, atol, rtol)
+
+    if step is not None:
         stprl = steprule.ConstantSteps(step)
-        firststep = step
-    gfilt = _string2filter(ivp, _prior, method, **kwargs)
-    return gfilt, firststep, stprl
+    else:
+        if firststep is None:
+            # lazy version of Hairer, Wanner, Norsett, p. 169
+            norm_y0 = np.linalg.norm(ivp.initrv.mean)
+            norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
+            firststep = 0.01 * norm_y0 / norm_dy0
+        stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+    return stprl
 
 
-def _check_step_tol(step, tol):
-
-    both_none = tol is None and step is None
-    both_not_none = tol is not None and step is not None
+def _check_step_tol(step, atol, rtol):
+    both_none = atol is None and rtol is None and step is None
+    both_not_none = (atol is not None and rtol is not None) and step is not None
     if both_none or both_not_none:
         errormsg = "Please specify either a tolerance or a step size."
         raise ValueError(errormsg)
-
-
-def _check_method(method):
-
-    if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
-        raise ValueError("Method not supported.")
+    atol_not_rtol = atol is not None and rtol is None
+    rtol_not_atol = rtol is not None and atol is None
+    if atol_not_rtol or rtol_not_atol:
+        errormsg = "Please specify either both atol and rtol, or neither."
+        raise ValueError(errormsg)
 
 
 def _string2prior(ivp, which_prior, **kwargs):

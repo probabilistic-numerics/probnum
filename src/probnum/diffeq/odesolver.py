@@ -3,7 +3,6 @@
 Interface for Runge-Kutta, ODEFilter.
 """
 
-import warnings
 from abc import ABC, abstractmethod
 
 from probnum.diffeq.odesolution import ODESolution
@@ -12,30 +11,33 @@ from probnum.diffeq.odesolution import ODESolution
 class ODESolver(ABC):
     """Interface for ODESolver."""
 
-    def __init__(self, ivp):
+    def __init__(self, ivp, order):
         self.ivp = ivp
+        self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
         self.num_steps = 0
 
-    def solve(self, firststep, steprule, **kwargs):
+    def solve(self, steprule):
         """Solve an IVP.
 
         Parameters
         ----------
-        firststep : float
-            First step for adaptive step-size rule.
         steprule : :class:`StepRule`
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
         t, current_rv = self.initialise()
         times, rvs = [t], [current_rv]
-        stepsize = firststep
+        stepsize = steprule.firststep
 
         while t < self.ivp.tmax:
 
             t_new = t + stepsize
             proposed_rv, errorest = self.step(t, t_new, current_rv)
-
-            if steprule.is_accepted(stepsize, errorest):
+            internal_norm = steprule.errorest_to_norm(
+                errorest=errorest,
+                proposed_state=proposed_rv.mean,
+                current_state=current_rv.mean,
+            )
+            if steprule.is_accepted(internal_norm):
                 self.num_steps += 1
                 self.method_callback(
                     time=t_new, current_guess=proposed_rv, current_error=errorest
@@ -45,25 +47,13 @@ class ODESolver(ABC):
                 times.append(t)
                 rvs.append(current_rv)
 
-            suggested_stepsize = self._suggest_step(stepsize, errorest, steprule)
+            suggested_stepsize = steprule.suggest(
+                stepsize, internal_norm, localconvrate=self.order + 1
+            )
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
         odesol = self.postprocess(times=times, rvs=rvs)
         return odesol
-
-    def _suggest_step(self, step, errorest, steprule):
-        """Suggests step according to steprule and warns if step is extremely small.
-
-        Raises
-        ------
-        RuntimeWarning
-            If suggested step is smaller than :math:`10^{-15}`.
-        """
-        step = steprule.suggest(step, errorest)
-        if step < 1e-15:
-            warnmsg = "Stepsize is num. zero (%.1e)" % step
-            warnings.warn(message=warnmsg, category=RuntimeWarning)
-        return step
 
     @abstractmethod
     def initialise(self):

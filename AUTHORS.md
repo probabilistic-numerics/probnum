@@ -50,6 +50,12 @@ The following people contributed to the ProbNum repository.
 					<p>Marvin Pförtner</p>
 				</a>
 			</li>
+			<li>
+				<a href="https://github.com/schmidtjonathan">
+					<img class="avatar" alt="schmidtjonathan" src="https://github.com/schmidtjonathan.png?v=3&s=96" width="64" height="64" />
+					<p>Jonathan Schmidt</p>
+				</a>
+			</li>
 		</ul>
 	</center>
 </div>
