@@ -1,6 +1,8 @@
-"""Definitions of problems solved by probabilistic numerical methods."""
+"""Definitions of problems currently solved by probabilistic numerical methods."""
 
 import typing
+
+import numpy as np
 
 import probnum.filtsmooth.statespace
 import probnum.linops
@@ -32,9 +34,9 @@ class IVProblem(typing.NamedTuple):
     Examples
     --------
     >>> ivp = IVProblem(lambda t, x: x*(1-x), 0., 3., 0.1)
-    >>> ivp
-    IVProblem(f=1.0, t0=1.0, tmax=1.0, y0=1.0)
-    >>> ivp.f(ivp.t0, ivp.y0)
+    >>> ivp.t0, ivp.tmax, ivp.y0
+    (0.0, 3.0, 0.1)
+    >>> np.round(ivp.f(ivp.t0, ivp.y0), 2)
     0.09
     """
 
@@ -45,10 +47,22 @@ class IVProblem(typing.NamedTuple):
 
 
 class LinearSystemProblem(typing.NamedTuple):
-    r"""Solve a linear system of equations: compute :math:`x` from :math;`Ax=b`."""
+    r"""Solve a linear system of equations: compute :math:`x` from :math;`Ax=b`.
 
-    A: Union[probnum.linops.LinearOperator, np.ndarray]
-    b: np.ndarray  # Can linalg handle multiple RHSs?
+
+    Example
+    -------
+    >>> A = np.eye(3)
+    >>> b = np.arange(3)
+    >>> lsp = LinearSystemProblem(A, b)
+    >>> lsp
+    LinearSystemProblem(A=array([[1., 0., 0.],
+           [0., 1., 0.],
+           [0., 0., 1.]]), b=array([0, 1, 2]))
+    """
+
+    A: typing.Union[probnum.linops.LinearOperator, np.ndarray]
+    b: np.ndarray  # Can probnum.linalg handle multiple RHSs?
 
 
 class QuadratureProblem(typing.NamedTuple):
@@ -64,4 +78,4 @@ class QuadratureProblem(typing.NamedTuple):
     """
 
     integrand: typing.Callable[[np.ndarray], np.ndarray]
-    domain: Callable[[np.ndarray], bool]  # Up for discussion...
+    domain: typing.Callable[[np.ndarray], bool]  # Up for discussion...
