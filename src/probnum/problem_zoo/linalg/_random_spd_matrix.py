@@ -145,10 +145,10 @@ def random_sparse_spd_matrix(
     if num_nonzero_entries > 0:
         # Draw entries of lower triangle (below diagonal) according to sparsity level
         entry_ids = np.mask_indices(n=dim, mask_func=np.tril, k=-1)
-        _idx = random_state.choice(
+        idx_samples = random_state.choice(
             a=num_off_diag_cholesky, size=num_nonzero_entries, replace=False
         )
-        nonzero_entry_ids = (entry_ids[0][_idx], entry_ids[1][_idx])
+        nonzero_entry_ids = (entry_ids[0][idx_samples], entry_ids[1][idx_samples])
 
         # Fill Cholesky factor
         chol[nonzero_entry_ids] = random_state.uniform(
