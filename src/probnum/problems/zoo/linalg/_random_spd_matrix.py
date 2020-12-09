@@ -40,7 +40,7 @@ def random_spd_matrix(
 
     Examples
     --------
-    >>> from probnum.problems.linalg import random_spd_matrix
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> mat = random_spd_matrix(dim=5, random_state=0)
     >>> mat
     array([[10.49868572, -0.80840778,  0.79781892,  1.9229059 ,  0.73413367],
@@ -124,7 +124,7 @@ def random_sparse_spd_matrix(
 
     Examples
     --------
-    >>> from probnum.problems.linalg import random_sparse_spd_matrix
+    >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
     >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=42)
     >>> sparsemat
     array([[1.        , 0.        , 0.        , 0.        , 0.        ],
