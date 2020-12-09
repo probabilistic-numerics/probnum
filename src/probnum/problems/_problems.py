@@ -1,1 +1,1 @@
-"""Definitions of problems solved by probabilistic linear solvers."""
+"""Definitions of problems solved by probabilistic numerical methods."""

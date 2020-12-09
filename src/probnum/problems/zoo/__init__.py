@@ -1,1 +1,1 @@
-"""Collection of test problems for probabilistic linear solvers."""
+"""Collection of test problems for probabilistic numerical methods."""
