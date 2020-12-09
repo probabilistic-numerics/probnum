@@ -10,16 +10,24 @@ import probnum.type
 class RegressionProblem(typing.NamedTuple):
     r"""Regression problems.
 
-    Find a stochastic process that fits data given a likelihood (realised by a :obj:`Transition`). Solved by, for instance, Kalman filtering and smoothing.
+    Fit a stochastic process to data, given a likelihood (realised by a :obj:`Transition`).
+    Solved by, for instance, Kalman filtering and smoothing.
     """
 
     observations: np.ndarray
     locations: np.ndarray
-    likelihood: probnum.filtsmooth.statespace.DiscreteGaussian  # Not sure how to deal with this.
+
+    # Not sure how to best deal with this re. dependencies.
+    likelihood: probnum.filtsmooth.statespace.DiscreteGaussian = None
 
 
 class IVProblem(typing.NamedTuple):
-    r"""ODE initial value problems.
+    r"""First order ODE initial value problems.
+
+    Compute a function :math:`y=y(t)` that solves
+
+    .. math::
+        \dot y(t) = f(t, y(t)), \quad y(0) = y_0
 
     Examples
     --------
@@ -32,8 +40,8 @@ class IVProblem(typing.NamedTuple):
 
     f: typing.Callable[[float, np.ndarray], np.ndarray]
     t0: float
-    tmax: float
-    y0: np.ndarray  # Formerly (and unnecessarily) a RandomVariable
+    tmax: float  # Bold move: remove this? This is not really part of an IVP.
+    y0: np.ndarray
 
 
 class LinearSystemProblem(typing.NamedTuple):
@@ -46,7 +54,13 @@ class LinearSystemProblem(typing.NamedTuple):
 class QuadratureProblem(typing.NamedTuple):
     r"""Numerically approximate an integral.
 
-    Compute :math:`\int_\Omega f(x) \diff \mu(x)` for a function :math:`f: \Omega \rightarrow \mathbb{R}`. For the time being, :math:`\mu` is the Lebesgue measure.
+    Compute the integral
+
+        .. math:
+            \int_\Omega f(x) \diff \mu(x)
+
+    for a function :math:`f: \Omega \rightarrow \mathbb{R}`.
+    For the time being, :math:`\mu` is the Lebesgue measure.
     """
 
     integrand: typing.Callable[[np.ndarray], np.ndarray]
