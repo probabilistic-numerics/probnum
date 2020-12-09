@@ -33,7 +33,8 @@ class IVProblem(typing.NamedTuple):
 
     Examples
     --------
-    >>> ivp = IVProblem(lambda t, x: x*(1-x), 0., 3., 0.1)
+    >>> def f(t, x): return x*(1-x)
+    >>> ivp = IVProblem(f, 0., 3., 0.1)
     >>> ivp.t0, ivp.tmax, ivp.y0
     (0.0, 3.0, 0.1)
     >>> np.round(ivp.f(ivp.t0, ivp.y0), 2)
@@ -65,7 +66,7 @@ class LinearSystemProblem(typing.NamedTuple):
     b: np.ndarray  # Can probnum.linalg handle multiple RHSs?
 
 
-class QuadratureProblem(typing.NamedTuple):
+class QuadProblem(typing.NamedTuple):
     r"""Numerically approximate an integral.
 
     Compute the integral
@@ -75,6 +76,16 @@ class QuadratureProblem(typing.NamedTuple):
 
     for a function :math:`f: \Omega \rightarrow \mathbb{R}`.
     For the time being, :math:`\mu` is the Lebesgue measure.
+
+    Example
+    -------
+    >>> def integrand(x): return x**2
+    >>> def domain(x): return 0 < x < 1
+    >>> qp = QuadProblem(integrand, domain)
+    >>> np.round(qp.integrand(0.2), 2)
+    0.04
+    >>> qp.domain(0.2)
+    True
     """
 
     integrand: typing.Callable[[np.ndarray], np.ndarray]
