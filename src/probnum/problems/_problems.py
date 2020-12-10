@@ -68,6 +68,10 @@ class IVProblem:
         Final point in time.
     y0
         Initial value of the solution.
+    df
+        Jacobian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
+    ddf
+        Hessian of the ODE vector-field :math:`f=f(t,y)`  with respect to the :math:`y` variable.
 
     Examples
     --------
@@ -84,6 +88,8 @@ class IVProblem:
     t0: float
     tmax: float  # Bold move: remove this? This is not really part of an IVP.
     y0: typing.Union[probnum.type.FloatArgType, np.ndarray]
+    df: typing.Callable[[float, np.ndarray], np.ndarray] = None
+    ddf: typing.Callable[[float, np.ndarray], np.ndarray] = None
 
 
 @dataclasses.dataclass
