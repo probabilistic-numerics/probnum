@@ -8,7 +8,6 @@ import dataclasses
 import typing
 
 import numpy as np
-import scipy.sparse
 
 import probnum
 
