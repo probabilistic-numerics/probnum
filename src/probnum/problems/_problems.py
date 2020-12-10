@@ -27,7 +27,8 @@ class RegressionProblem:
     locations
         Grid-points on which the observations were taken.
     likelihood
-        Likelihood of the observations; that is, relation between the latent process and the observed values. Encodes for example noise.
+        Likelihood of the observations; that is, relation between the latent process and the observed values.
+        Encodes for example noise.
 
     Examples
     --------
@@ -42,7 +43,9 @@ class RegressionProblem:
 
     observations: np.ndarray
     locations: np.ndarray
-    likelihood: "probnum.filtsmooth.statespace.DiscreteGaussian" = None
+
+    # Optional, because it should be specifiable without explicit likelihood info.
+    likelihood: probnum.filtsmooth.statespace.DiscreteGaussian = None
 
 
 @dataclasses.dataclass
@@ -71,7 +74,7 @@ class IVProblem:
     df
         Jacobian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
     ddf
-        Hessian of the ODE vector-field :math:`f=f(t,y)`  with respect to the :math:`y` variable.
+        Hessian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
 
     Examples
     --------
