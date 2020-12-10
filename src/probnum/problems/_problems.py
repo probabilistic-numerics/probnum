@@ -1,13 +1,16 @@
-"""Definitions of problems currently solved by probabilistic numerical methods."""
+"""Definitions of problems currently solved by probabilistic numerical methods.
+
+If a problem is not listed here, we have not implemented a probabilistic
+numerical method for it yet.
+"""
 
 import dataclasses
 import typing
 
 import numpy as np
+import scipy.sparse
 
-import probnum.filtsmooth.statespace
-import probnum.linops
-import probnum.type
+import probnum
 
 
 @dataclasses.dataclass
@@ -20,9 +23,7 @@ class RegressionProblem:
 
     observations: np.ndarray
     locations: np.ndarray
-
-    # Not sure how to best deal with this re. dependencies.
-    likelihood: probnum.filtsmooth.statespace.DiscreteGaussian = None
+    likelihood: "probnum.filtsmooth.statespace.DiscreteGaussian" = None
 
 
 @dataclasses.dataclass
@@ -55,7 +56,7 @@ class IVProblem:
 
 @dataclasses.dataclass
 class LinearSystemProblem:
-    r"""Solve a linear system of equations.
+    r"""Linear system of equations.
 
     Compute :math:`x` from :math:`Ax=b`.
     Solved by the probabilistic linear solver in mod:`probnum.linalg`
@@ -71,13 +72,18 @@ class LinearSystemProblem:
            [0., 0., 1.]]), b=array([0, 1, 2]))
     """
 
-    A: typing.Union[probnum.linops.LinearOperator, np.ndarray]
-    b: np.ndarray  # Can probnum.linalg handle multiple RHSs?
+    A: typing.Union[
+        np.ndarray,
+        "scipy.sparse.spmatrix",
+        "probnum.linops.LinearOperator",
+        "probnum.RandomVariable",
+    ]
+    b: typing.Union[np.ndarray, "probnum.RandomVariable"]
 
 
 @dataclasses.dataclass
 class QuadProblem:
-    r"""Numerically approximate an integral.
+    r"""Numerically compute an integral.
 
     Compute the integral
 
