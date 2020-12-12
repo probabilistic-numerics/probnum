@@ -65,13 +65,14 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         stopping_criteria=None,
         optimize_hyperparams=None,
     ):
+
+        self.action_rule = action_rule
+        self.observe = observe
+        self.update_belief = update_belief
+        self.stopping_criteria = stopping_criteria
+        self.optimize_hyperparams = optimize_hyperparams
         super().__init__(
             prior=prior,
-            action_rule=action_rule,
-            observe=observe,
-            update_belief=update_belief,
-            stopping_criteria=stopping_criteria,
-            optimize_hyperparams=optimize_hyperparams,
         )
 
     def has_converged(

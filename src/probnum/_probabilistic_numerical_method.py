@@ -19,7 +19,8 @@ class ProbabilisticNumericalMethod(ABC):
 
     Parameters
     ----------
-
+    prior :
+        Prior knowledge about quantities of interest for the numerical problem.
 
     References
     ----------
@@ -36,19 +37,9 @@ class ProbabilisticNumericalMethod(ABC):
 
     def __init__(
         self,
-        prior,
-        action_rule,
-        observe,
-        update_belief,
-        stopping_criteria=None,
-        optimize_hyperparams=None,
+        prior: Tuple[Union["probnum.RandomVariable", "probnum.RandomProcess"], ...],
     ):
         self.prior = prior
-        self.__action_rule = action_rule
-        self.__observe = observe
-        self.__update_belief = update_belief
-        self.stopping_criteria = stopping_criteria
-        self.__optimize_hyperparams = optimize_hyperparams
 
     @abstractmethod
     def solve(
