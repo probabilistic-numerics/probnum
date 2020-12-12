@@ -1,4 +1,4 @@
-"""Probabilistic Numerical Method."""
+"""Probabilistic Numerical Methods."""
 
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, TypeVar, Union
@@ -32,7 +32,7 @@ class ProbabilisticNumericalMethod(ABC):
 
     See Also
     --------
-    ProbabilisticLinearSolver : Probabilistic numerical method solving linear systems.
+    ProbabilisticLinearSolver : Compose a custom probabilistic linear solver.
     """
 
     def __init__(

@@ -3,12 +3,12 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax_* = b`.
 """
 
-from typing import Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum import ProbabilisticNumericalMethod
+from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from probnum.type import IntArgType
 
 
@@ -23,7 +23,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
     from finite computational resources. This class unifies and generalizes the methods
-    described in in Hennig et al. [1]_, Cockayne et al. [2]_, Bartels et al. [3]_ and
+    described in Hennig et al. [1]_, Cockayne et al. [2]_, Bartels et al. [3]_ and
     Wenger et al. [4]_.
 
     Parameters
@@ -121,8 +121,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             Action to probe the problem.
         observation :
             Observation of the problem for the given ``action``.
-        fun_params :
-            Belief over the parameters of the objective function.
+        belief :
+            Belief over the parameters of the linear system.
         """
         while True:
             # Compute action via policy
@@ -131,10 +131,66 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             # Make an observation of the linear system
             observation = self.observe(problem, action)
 
-            # Update the belief over the system matrix, its inverse or the solution
+            # Update the belief over the system matrix, its inverse and/or the solution
             self.belief = self.update_belief(self.belief, action, observation)
 
             yield action, observation, self.belief
 
-    def solve(self, problem: "LinearSystem"):
+    def solve(
+        self,
+        problem: "LinearSystem",
+        callback: Optional[
+            Callable[[np.ndarray, np.ndarray, rvs.RandomVariable], None]
+        ] = None,
+    ) -> Tuple[Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable], Dict]:
+        """Solve the linear system.
+
+        Parameters
+        ----------
+        problem :
+            Linear system to solve.
+        callback :
+            Callback function returning intermediate quantities of the optimization
+            loop. Note that depending on the function supplied, this can slow down
+            the solver considerably.
+
+        Returns
+        -------
+        """
+        # Setup
+        _has_converged = False
+        iteration = 0
+        solve_iterator = self.solve_iterator(problem=problem)
+
+        # Evaluate stopping criteria
+        _has_converged, conv_crit = self.has_converged(
+            problem=problem, iteration=iteration
+        )
+
+        while not _has_converged:
+
+            # Perform one iteration of the optimizer
+            action, observation, _ = next(solve_iterator)
+
+            # Callback function
+            if callback is not None:
+                callback(action, observation, self.belief)
+
+            iteration += 1
+
+            # Evaluate stopping criteria
+            _has_converged, conv_crit = self.has_converged(
+                problem=problem, iteration=iteration
+            )
+
+        # Belief over optimal function value and optimum
+        x_opt, fun_opt = self._belief_solution()
+
+        # Information (e.g. on convergence)
+        info = {"iter": iteration, "conv_crit": conv_crit}
+
+        return x_opt, fun_opt, self.belief, info
+
+    def _belief_solution(self):
+        """Compute the belief over the solution of the linear system."""
         raise NotImplementedError
