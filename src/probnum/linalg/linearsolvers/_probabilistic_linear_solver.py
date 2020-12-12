@@ -29,7 +29,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     Parameters
     ----------
     prior :
-    action_rule :
+    policy :
     observe :
     update_belief :
     stopping_criteria :
@@ -59,14 +59,15 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     def __init__(
         self,
         prior,
-        action_rule,
+        policy,
         observe,
         update_belief,
         stopping_criteria=None,
         optimize_hyperparams=None,
     ):
-
-        self.action_rule = action_rule
+        # pylint: disable="too-many-arguments"
+        self.belief = prior
+        self.policy = policy
         self.observe = observe
         self.update_belief = update_belief
         self.stopping_criteria = stopping_criteria
@@ -125,13 +126,13 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         """
         while True:
             # Compute action via policy
-            action = self.action_rule(problem, self.belief)
+            action = self.policy(problem, self.belief)
 
-            # Make an observation
+            # Make an observation of the linear system
             observation = self.observe(problem, action)
 
-            # Belief update
-            self.belief = self.belief_update(self.fun_params, action, observation)
+            # Update the belief over the system matrix, its inverse or the solution
+            self.belief = self.update_belief(self.belief, action, observation)
 
             yield action, observation, self.belief
 
