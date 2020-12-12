@@ -43,7 +43,8 @@ class ProbabilisticNumericalMethod(ABC):
 
     @abstractmethod
     def solve(
-        self, problem: ProblemType
+        self,
+        problem: ProblemType,
     ) -> Tuple[
         Tuple[Union["probnum.RandomVariable", "probnum.RandomProcess"], ...], Dict
     ]:

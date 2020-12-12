@@ -11,6 +11,8 @@ import probnum.random_variables as rvs
 from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from probnum.type import IntArgType
 
+# pylint: disable="invalid-name"
+
 
 class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     """Compose a custom probabilistic linear solver.
@@ -18,13 +20,13 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     Class implementing probabilistic linear solvers. Such (iterative) solvers infer
     solutions to problems of the form
 
-    .. math:: Ax=b,
+    .. math:: Ax_*=b,
 
     where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
-    from finite computational resources. This class unifies and generalizes the methods
-    described in Hennig et al. [1]_, Cockayne et al. [2]_, Bartels et al. [3]_ and
-    Wenger et al. [4]_.
+    from finite computational resources or stochastic input. This class unifies and
+    generalizes the methods described in Hennig et al. [1]_, Cockayne et al. [2]_,
+    Bartels et al. [3]_ and Wenger et al. [4]_.
 
     Parameters
     ----------
@@ -53,7 +55,25 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
     Examples
     --------
+    Create a custom probabilistic linear solver from pre-defined components.
+
     >>> from probnum.linalg import ProbabilisticLinearSolver
+
+
+    >>> #pls = ProbabilisticLinearSolver()
+
+    Define a linear system.
+
+    >>> import numpy as np
+    >>> import probnum as pn
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
+    >>> n = 20
+    >>> A = random_spd_matrix(dim=n, random_state=1)
+    >>> b = np.random.rand(n)
+
+    Solve the linear system using the custom solver.
+
+    >>> #sol, info = pls(A, b)
     """
 
     def __init__(
@@ -183,14 +203,14 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                 problem=problem, iteration=iteration
             )
 
-        # Belief over optimal function value and optimum
-        x_opt, fun_opt = self._belief_solution()
+        # Belief over solution, inverse and system matrix
+        x, A, Ainv = self._belief_solution()
 
         # Information (e.g. on convergence)
         info = {"iter": iteration, "conv_crit": conv_crit}
 
-        return x_opt, fun_opt, self.belief, info
+        return (x, A, Ainv), info
 
     def _belief_solution(self):
-        """Compute the belief over the solution of the linear system."""
+        """Compute the belief over the components of the linear system."""
         raise NotImplementedError
