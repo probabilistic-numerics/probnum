@@ -1,5 +1,13 @@
 """Linear Algebra."""
-from probnum.linalg.linearsolvers import *
+from probnum.linalg.linearsolvers import (
+    AsymmetricMatrixBasedSolver,
+    MatrixBasedSolver,
+    ProbabilisticLinearSolver,
+    SolutionBasedSolver,
+    SymmetricMatrixBasedSolver,
+    bayescg,
+    problinsolve,
+)
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

@@ -37,6 +37,7 @@ from . import (
     random_variables,
     utils,
 )
+from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from .random_variables import RandomVariable, asrandvar
 
 try:

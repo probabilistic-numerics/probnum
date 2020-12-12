@@ -113,7 +113,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertIsInstance(
                         rv,
                         probnum.RandomVariable,
-                        msg="Output of probabilistic linear solver is not a random variable.",
+                        msg="Output of probabilistic linear solver is not a random "
+                        "variable.",
                     )
 
     def test_symmetric_posterior_params(self):
@@ -214,11 +215,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAlmostEqual(
                     info["resid_l2norm"],
                     np.linalg.norm(A @ x_est.mean - b),
-                    msg="Residual in output info does not match l2-error of solution estimate.",
+                    msg="Residual in output info does not match l2-error of solution "
+                    "estimate.",
                 )
 
     # def test_solution_equivalence(self):
-    #     """The iteratively computed solution should match the induced solution estimate: x_k = E[A^-1] b"""
+    #     """The iteratively computed solution should match the induced solution
+    #     estimate: x_k = E[A^-1] b"""
     #     A, f = self.poisson_linear_system
     #
     #     for matblinsolve in self.matblinsolvers:
@@ -325,7 +328,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 )
 
     def test_searchdir_conjugacy(self):
-        """Search directions should remain A-conjugate up to machine precision, i.e. s_i^T A s_j = 0 for i != j."""
+        """Search directions should remain A-conjugate up to machine precision, i.e.
+        s_i^T A s_j = 0 for i != j."""
         searchdirs = []
 
         # Define callback function to obtain search directions
@@ -429,7 +433,8 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertAlmostEqual(
                     info["trace_sol_cov"],
                     x_est.cov.trace(),
-                    msg="Iteratively computed trace not equal to trace of solution covariance.",
+                    msg="Iteratively computed trace not equal to trace of solution "
+                    "covariance.",
                 )
 
     def test_uncertainty_calibration_error(self):
