@@ -9,3 +9,9 @@ arising in linear algebra, such as the solution of linear systems.
 .. automodapi:: probnum.linalg
     :no-heading:
     :no-main-docstr:
+
+probnum.linalg.linearsolvers
+****************************
+
+.. automodapi:: probnum.linalg.linearsolvers
+    :no-heading:
