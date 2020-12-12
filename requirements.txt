@@ -12,7 +12,7 @@
 #
 # If you make changes here, make sure to edit setup.cfg as well!
 # =============================================================================
-numpy<=1.19.1; python_version<="3.6"
-numpy; python_version>"3.6"
+numpy<=1.19.1; python_version<"3.7"
+numpy; python_version>="3.7"
 scipy>=1.4
 cached_property; python_version<"3.8"

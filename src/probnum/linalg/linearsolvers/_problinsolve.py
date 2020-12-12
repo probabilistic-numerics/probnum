@@ -149,14 +149,14 @@ def problinsolve(
     Examples
     --------
     >>> import numpy as np
-    >>> np.random.seed(1)
+    >>> import probnum as pn
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> n = 20
-    >>> A = np.random.rand(n, n)
-    >>> A = 0.5 * (A + A.T) + 5 * np.eye(n)
+    >>> A = random_spd_matrix(dim=n, random_state=1)
     >>> b = np.random.rand(n)
     >>> x, A, Ainv, info = problinsolve(A=A, b=b)
     >>> print(info["iter"])
-    9
+    11
     """
 
     # Check linear system for type and dimension mismatch
