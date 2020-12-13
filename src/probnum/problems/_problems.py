@@ -32,6 +32,8 @@ class RegressionProblem:
     likelihood
         Likelihood of the observations; that is, relation between the latent process and the observed values.
         Encodes for example noise.
+    solution
+        Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
     Examples
     --------
@@ -48,10 +50,12 @@ class RegressionProblem:
     locations: np.ndarray
 
     # Optional, because it should be specifiable without explicit likelihood info.
-    likelihood: pnfs.statespace.DiscreteGaussian = None
+    likelihood: typing.Optional[pnfs.statespace.DiscreteGaussian] = None
 
     # For testing and benchmarking
-    solution: typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]] = None
+    solution: typing.Optional[
+        typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
+    ] = None
 
 
 @dataclasses.dataclass
@@ -81,6 +85,8 @@ class IVProblem:
         Jacobian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
     ddf
         Hessian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
+    solution
+        Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
     Examples
     --------
@@ -97,11 +103,11 @@ class IVProblem:
     t0: float
     tmax: float  # Bold move: remove this? This is not really part of an IVP.
     y0: typing.Union[pntp.FloatArgType, np.ndarray]
-    df: typing.Callable[[float, np.ndarray], np.ndarray] = None
-    ddf: typing.Callable[[float, np.ndarray], np.ndarray] = None
+    df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+    ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
 
     # For testing and benchmarking
-    solution: typing.Callable[[float, np.ndarray], np.ndarray] = None
+    solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
 
 
 @dataclasses.dataclass
@@ -117,6 +123,8 @@ class LinearSystem:
         Square matrix or linear operator.
     b
         Right-hand side vector or matrix.
+    solution
+        Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
     Examples
     --------
@@ -138,7 +146,7 @@ class LinearSystem:
     b: typing.Union[np.ndarray, pnrv.RandomVariable]
 
     # For testing and benchmarking
-    solution: typing.Union[np.ndarray, pnrv.RandomVariable] = None
+    solution: typing.Optional[typing.Union[np.ndarray, pnrv.RandomVariable]] = None
 
 
 @dataclasses.dataclass
@@ -162,6 +170,8 @@ class QuadratureProblem:
         A number or a vector representing the lower bounds of the integrals.
     upper_bd
         A number or a vector representing the upper bounds of the integrals.
+    solution
+        Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
     Examples
     --------
@@ -186,7 +196,7 @@ class QuadratureProblem:
     integrand: typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
     lower_bd: typing.Union[pntp.FloatArgType, np.ndarray]
     upper_bd: typing.Union[pntp.FloatArgType, np.ndarray]
-    output_dim: int = 1
+    output_dim: typing.Optional[int] = 1
 
     # For testing and benchmarking
-    solution: typing.Union[float, np.ndarray] = None
+    solution: typing.Optional[typing.Union[float, np.ndarray]] = None
