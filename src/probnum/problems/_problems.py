@@ -41,7 +41,7 @@ class RegressionProblem:
     >>> loc = [0.1, 0.2]
     >>> rp = RegressionProblem(observations=obs, locations=loc)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], likelihood=None)
+    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], likelihood=None, solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
     """
@@ -134,7 +134,7 @@ class LinearSystem:
     >>> lin_sys
     LinearSystem(A=array([[1., 0., 0.],
            [0., 1., 0.],
-           [0., 0., 1.]]), b=array([0, 1, 2]))
+           [0., 0., 1.]]), b=array([0, 1, 2]), solution=None)
     """
 
     A: typing.Union[
