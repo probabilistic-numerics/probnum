@@ -113,9 +113,9 @@ class LinearSystem:
     --------
     >>> A = np.eye(3)
     >>> b = np.arange(3)
-    >>> lsp = LinearSystemProblem(A, b)
-    >>> lsp
-    LinearSystemProblem(A=array([[1., 0., 0.],
+    >>> lin_sys = LinearSystem(A, b)
+    >>> lin_sys
+    LinearSystem(A=array([[1., 0., 0.],
            [0., 1., 0.],
            [0., 0., 1.]]), b=array([0, 1, 2]))
     """
@@ -162,13 +162,13 @@ class QuadratureProblem:
     >>> np.round(qp1d.integrand(0.2), 2)
     0.04
     >>> qp1d.lower_bd
-    0.42
+    0.41
     >>>
     >>> lower_bd = [0., 0.]
     >>> upper_bd = [1., 1.]
     >>> qp2d = QuadratureProblem(integrand, lower_bd=lower_bd, upper_bd=upper_bd)
     >>> qp2d.upper_bd
-    [1., 1.]
+    [1.0, 1.0]
     """
 
     integrand: typing.Callable[[np.ndarray], np.ndarray]
