@@ -10,7 +10,10 @@ import typing
 import numpy as np
 import scipy.sparse
 
-import probnum
+import probnum.filtsmooth as pnfs
+import probnum.linops as pnlo
+import probnum.random_variables as pnrv
+import probnum.type as pntp
 
 
 @dataclasses.dataclass
@@ -45,7 +48,7 @@ class RegressionProblem:
     locations: np.ndarray
 
     # Optional, because it should be specifiable without explicit likelihood info.
-    likelihood: probnum.filtsmooth.statespace.DiscreteGaussian = None
+    likelihood: pnfs.statespace.DiscreteGaussian = None
 
 
 @dataclasses.dataclass
@@ -90,7 +93,7 @@ class IVProblem:
     f: typing.Callable[[float, np.ndarray], np.ndarray]
     t0: float
     tmax: float  # Bold move: remove this? This is not really part of an IVP.
-    y0: typing.Union[probnum.type.FloatArgType, np.ndarray]
+    y0: typing.Union[pntp.FloatArgType, np.ndarray]
     df: typing.Callable[[float, np.ndarray], np.ndarray] = None
     ddf: typing.Callable[[float, np.ndarray], np.ndarray] = None
 
@@ -123,10 +126,10 @@ class LinearSystem:
     A: typing.Union[
         np.ndarray,
         scipy.sparse.spmatrix,
-        probnum.linops.LinearOperator,
-        probnum.RandomVariable,
+        pnlo.LinearOperator,
+        pnrv.RandomVariable,
     ]
-    b: typing.Union[np.ndarray, probnum.RandomVariable]
+    b: typing.Union[np.ndarray, pnrv.RandomVariable]
 
 
 @dataclasses.dataclass
@@ -172,5 +175,5 @@ class QuadratureProblem:
     """
 
     integrand: typing.Callable[[np.ndarray], np.ndarray]
-    lower_bd: typing.Union[probnum.type.FloatArgType, np.ndarray]
-    upper_bd: typing.Union[probnum.type.FloatArgType, np.ndarray]
+    lower_bd: typing.Union[pntp.FloatArgType, np.ndarray]
+    upper_bd: typing.Union[pntp.FloatArgType, np.ndarray]
