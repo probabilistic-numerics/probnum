@@ -1,5 +1,5 @@
 """Definitions and collection of problems solved by probabilistic numerical methods."""
 
-from ._problems import IVProblem, LinearSystemProblem, QuadProblem, RegressionProblem
+from ._problems import IVProblem, LinearSystem, QuadProblem, RegressionProblem
 
-__all__ = ["RegressionProblem", "IVProblem", "LinearSystemProblem", "QuadProblem"]
+__all__ = ["RegressionProblem", "IVProblem", "LinearSystem", "QuadProblem"]

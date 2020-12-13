@@ -95,7 +95,7 @@ class IVProblem:
 
 
 @dataclasses.dataclass
-class LinearSystemProblem:
+class LinearSystem:
     r"""Linear system of equations.
 
     Compute :math:`x` from :math:`Ax=b`.
