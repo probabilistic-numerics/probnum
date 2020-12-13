@@ -146,21 +146,31 @@ class QuadratureProblem:
     ----------
     integrand
         Function to be integrated.
-    domain
-        Domain of the integral.
+    lower_bd
+        A number or a vector representing the lower bounds of the integrals.
+    upper_bd
+        A number or a vector representing the upper bounds of the integrals.
 
     Examples
     --------
+    >>> import numpy as np
     >>> def integrand(x):
-    ...     return x**2
-    >>> def domain(x):
-    ...     return 0 < x < 1
-    >>> qp = QuadProblem(integrand, domain)
-    >>> np.round(qp.integrand(0.2), 2)
+    ...     return np.linalg.norm(x)**2
+    >>> lower_bd = 0.41
+    >>> upper_bd = 4.32
+    >>> qp1d = QuadratureProblem(integrand, lower_bd=lower_bd, upper_bd=upper_bd)
+    >>> np.round(qp1d.integrand(0.2), 2)
     0.04
-    >>> qp.domain(0.2)
-    True
+    >>> qp1d.lower_bd
+    0.42
+    >>>
+    >>> lower_bd = [0., 0.]
+    >>> upper_bd = [1., 1.]
+    >>> qp2d = QuadratureProblem(integrand, lower_bd=lower_bd, upper_bd=upper_bd)
+    >>> qp2d.upper_bd
+    [1., 1.]
     """
 
     integrand: typing.Callable[[np.ndarray], np.ndarray]
-    domain: typing.Callable[[np.ndarray], bool]  # Up for discussion...
+    lower_bd: typing.Union[probnum.type.FloatArgType, np.ndarray]
+    upper_bd: typing.Union[probnum.type.FloatArgType, np.ndarray]
