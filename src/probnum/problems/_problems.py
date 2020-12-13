@@ -20,7 +20,7 @@ import probnum.type as pntp
 class RegressionProblem:
     r"""Regression problem.
 
-    Fit a stochastic process to data, given a likelihood (realised by a :obj:`Transition`).
+    Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
     Solved by Kalman filtering and smoothing in :mod:`probnum.filtsmooth`.
 
     Parameters
@@ -115,7 +115,7 @@ class LinearSystem:
     r"""Linear system of equations.
 
     Compute :math:`x` from :math:`Ax=b`.
-    Solved by the probabilistic linear solver in mod:`probnum.linalg`
+    Solved by the probabilistic linear solver in :mod:`probnum.linalg`
 
     Parameters
     ----------
@@ -170,6 +170,8 @@ class QuadratureProblem:
         A number or a vector representing the lower bounds of the integrals.
     upper_bd
         A number or a vector representing the upper bounds of the integrals.
+    output_dim
+        Output dimension of the integrand.
     solution
         Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
