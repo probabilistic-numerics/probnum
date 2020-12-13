@@ -50,6 +50,9 @@ class RegressionProblem:
     # Optional, because it should be specifiable without explicit likelihood info.
     likelihood: pnfs.statespace.DiscreteGaussian = None
 
+    # For testing and benchmarking
+    solution: typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]] = None
+
 
 @dataclasses.dataclass
 class IVProblem:
@@ -97,6 +100,9 @@ class IVProblem:
     df: typing.Callable[[float, np.ndarray], np.ndarray] = None
     ddf: typing.Callable[[float, np.ndarray], np.ndarray] = None
 
+    # For testing and benchmarking
+    solution: typing.Callable[[float, np.ndarray], np.ndarray] = None
+
 
 @dataclasses.dataclass
 class LinearSystem:
@@ -130,6 +136,9 @@ class LinearSystem:
         pnrv.RandomVariable,
     ]
     b: typing.Union[np.ndarray, pnrv.RandomVariable]
+
+    # For testing and benchmarking
+    solution: typing.Union[np.ndarray, pnrv.RandomVariable] = None
 
 
 @dataclasses.dataclass
@@ -174,6 +183,10 @@ class QuadratureProblem:
     [1.0, 1.0]
     """
 
-    integrand: typing.Callable[[np.ndarray], np.ndarray]
+    integrand: typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
     lower_bd: typing.Union[pntp.FloatArgType, np.ndarray]
     upper_bd: typing.Union[pntp.FloatArgType, np.ndarray]
+    output_dim: int = 1
+
+    # For testing and benchmarking
+    solution: typing.Union[float, np.ndarray] = None
