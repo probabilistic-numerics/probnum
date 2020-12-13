@@ -8,6 +8,7 @@ import dataclasses
 import typing
 
 import numpy as np
+import scipy.sparse
 
 import probnum
 
@@ -121,11 +122,11 @@ class LinearSystem:
 
     A: typing.Union[
         np.ndarray,
-        "scipy.sparse.spmatrix",
-        "probnum.linops.LinearOperator",
-        "probnum.RandomVariable",
+        scipy.sparse.spmatrix,
+        probnum.linops.LinearOperator,
+        probnum.RandomVariable,
     ]
-    b: typing.Union[np.ndarray, "probnum.RandomVariable"]
+    b: typing.Union[np.ndarray, probnum.RandomVariable]
 
 
 @dataclasses.dataclass
