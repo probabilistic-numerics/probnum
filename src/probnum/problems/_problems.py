@@ -130,7 +130,7 @@ class LinearSystem:
 
 
 @dataclasses.dataclass
-class QuadProblem:
+class QuadratureProblem:
     r"""Numerical computation of an integral.
 
     Compute the integral
