@@ -118,11 +118,11 @@ class LinearSystem:
     Parameters
     ----------
     A
-        Square matrix or linear operator.
+        System matrix or linear operator.
     b
         Right-hand side vector or matrix.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        True solution to the problem. Used for testing and benchmarking.
 
     Examples
     --------
