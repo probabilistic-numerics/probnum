@@ -90,7 +90,7 @@ class InitialValueProblem:
     --------
     >>> def f(t, x):
     ...     return x*(1-x)
-    >>> ivp = IVProblem(f, t0=0., tmax=3., y0=0.1)
+    >>> ivp = InitialValueProblem(f, t0=0., tmax=3., y0=0.1)
     >>> ivp.t0, ivp.tmax, ivp.y0
     (0.0, 3.0, 0.1)
     >>> np.round(ivp.f(ivp.t0, ivp.y0), 2)
