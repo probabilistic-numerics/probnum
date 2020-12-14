@@ -3,6 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, TypeVar, Union
 
+import probnum
+
 ProblemType = TypeVar("ProblemType")
 
 
@@ -10,11 +12,11 @@ class ProbabilisticNumericalMethod(ABC):
     """Probabilistic numerical methods.
 
     An abstract base class defining the implementation of a probabilistic numerical
-    method [1,2]_. A PN method solves a numerical problem by treating it as a
+    method [1]_ [2]_. A PN method solves a numerical problem by treating it as a
     probabilistic inference task.
 
     All PN methods should subclass this base class. Typically convenience functions
-    (such as :meth:`~probnum.linalg.problinsolve` will instantiate an object of a
+    (such as :meth:`~probnum.linalg.problinsolve`) will instantiate an object of a
     derived subclass.
 
     Parameters
@@ -32,12 +34,19 @@ class ProbabilisticNumericalMethod(ABC):
 
     See Also
     --------
-    ProbabilisticLinearSolver : Compose a custom probabilistic linear solver.
+    ~probnum.linalg.linearsolvers.ProbabilisticLinearSolver : Compose a custom
+        probabilistic linear solver.
     """
 
     def __init__(
         self,
-        prior: Tuple[Union["probnum.RandomVariable", "probnum.RandomProcess"], ...],
+        prior: Tuple[
+            Union[
+                "probnum.random_variables.RandomVariable",
+                "probnum.random_processes.RandomProcess",
+            ],
+            ...,
+        ],
     ):
         self.prior = prior
 
@@ -46,7 +55,14 @@ class ProbabilisticNumericalMethod(ABC):
         self,
         problem: ProblemType,
     ) -> Tuple[
-        Tuple[Union["probnum.RandomVariable", "probnum.RandomProcess"], ...], Dict
+        Tuple[
+            Union[
+                "probnum.random_variables.RandomVariable",
+                "probnum.random_processes.RandomProcess",
+            ],
+            ...,
+        ],
+        Dict,
     ]:
         """Solve the given numerical problem."""
         raise NotImplementedError

@@ -1,4 +1,8 @@
-"""Differential Equations."""
+"""Differential Equations.
+
+This package implements probabilistic solvers for (ordinary)
+differential equations.
+"""
 
 from .ode import *
 from .odefiltsmooth import *

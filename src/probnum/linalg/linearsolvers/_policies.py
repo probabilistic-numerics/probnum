@@ -3,6 +3,7 @@ from typing import Tuple
 
 import numpy as np
 
+import probnum
 import probnum.random_variables as rvs
 from probnum.type import RandomStateArgType
 
@@ -18,14 +19,14 @@ def conjugate_directions_policy(
     ----------
     problem :
         Linear system to solve.
-        belief :
-            Belief over the parameters of the linear system.
+    belief :
+        Belief over the parameters of the linear system.
     random_state :
         Random state of the policy. If None (or np.random), the global np.random state
         is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
     """
-    x, A, Ainv = belief
+    x, _, Ainv = belief
     return Ainv @ (problem.A @ x - problem.b)
 
 
@@ -40,8 +41,8 @@ def explore_exploit_policy(
     ----------
     problem :
         Linear system to solve.
-        belief :
-            Belief over the parameters of the linear system.
+    belief :
+        Belief over the parameters of the linear system.
     random_state :
         Random state of the policy. If None (or np.random), the global np.random state
         is used. If integer, it is used to seed the local
