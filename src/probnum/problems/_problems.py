@@ -46,6 +46,8 @@ class RegressionProblem:
     locations: np.ndarray
 
     # Optional, because it should be specifiable without explicit likelihood info.
+    # 'DiscreteGaussian' is currently in 'statespace', but can be used to define general
+    # Likelihood functions; see #282
     likelihood: typing.Optional[pnfs.statespace.DiscreteGaussian] = None
 
     # For testing and benchmarking
