@@ -1,8 +1,4 @@
-"""Definitions of problems currently solved by probabilistic numerical methods.
-
-If a problem is not listed here, we have not implemented a probabilistic
-numerical method for it yet.
-"""
+"""Definitions of problems currently solved by probabilistic numerical methods."""
 
 import dataclasses
 import typing
