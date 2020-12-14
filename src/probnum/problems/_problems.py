@@ -57,7 +57,7 @@ class RegressionProblem:
 
 
 @dataclasses.dataclass
-class IVProblem:
+class InitialValueProblem:
     r"""First order ODE initial value problem.
 
     Compute a function :math:`y=y(t)` that solves
