@@ -123,9 +123,11 @@ class Residual(StoppingCriterion):
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
         if resid_norm <= self.atol:
-            return True, "resid_atol"
+            return True, self.__class__.__name__ + "_atol"
         elif resid_norm <= self.rtol * b_norm:
-            return True, "resid_rtol"
+            return True, self.__class__.__name__ + "_rtol"
+        else:
+            return False, None
 
 
 class PosteriorContraction(StoppingCriterion):
@@ -156,12 +158,15 @@ class PosteriorContraction(StoppingCriterion):
     ) -> Tuple[bool, Union[str, None]]:
         # Trace of the solution covariance
         x, _, _ = belief
-        # TODO: replace this with more efficient trace computation (iterative update?)
-        trace_sol_cov = np.trace(x.cov)
+        # TODO: replace this with (existing) more efficient trace computation; maybe an
+        #  iterative update to the trace property of the linear operator
+        trace_sol_cov = x.cov.trace()
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
         if np.abs(trace_sol_cov) <= self.atol ** 2:
-            return True, "resid_atol"
+            return True, self.__class__.__name__ + "_atol"
         elif np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2:
-            return True, "resid_rtol"
+            return True, self.__class__.__name__ + "_rtol"
+        else:
+            return False, None
