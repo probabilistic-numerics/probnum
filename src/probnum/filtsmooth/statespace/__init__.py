@@ -11,7 +11,7 @@ from .discrete_transition import (
     DiscreteLTIGaussian,
 )
 from .integrator import IBM, IOUP, Integrator, Matern
-from .preconditioner import NordsieckLikeCoordinates
+from .preconditioner import NordsieckLikeCoordinates, Preconditioner
 from .sde import (
     LTISDE,
     SDE,
