@@ -1,6 +1,14 @@
-from .ivp import *
-from .ivp_examples import *
-from .ode import *
+from .ivp import IVP
+from .ivp_examples import (
+    fitzhughnagumo,
+    logistic,
+    lotkavolterra,
+    rigidbody,
+    seir,
+    threebody,
+    vanderpol,
+)
+from .ode import ODE
 
 __all__ = [
     "ODE",
