@@ -97,7 +97,17 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
 
     def test_directions_are_conjugate(self):
         """Test whether the actions given by the policy are A-conjugate."""
+        # TODO: use ProbabilisticLinearSolver's solve_iter function to test this
+
+    def test_is_deterministic(self):
+        self.assertTrue(self.conj_dir_policy.is_deterministic)
 
 
 class ExploreExploitPolicyTestCase(LinearSolverPolicyTestCase):
     """Test case for the explore-exploit policy."""
+
+    def test_is_stochastic(self):
+        self.assertFalse(self.explore_exploit_policy.is_deterministic)
+        action1 = self.explore_exploit_policy(problem=self.linsys, belief=self.belief)
+        action2 = self.explore_exploit_policy(problem=self.linsys, belief=self.belief)
+        self.assertFalse(np.all(action1 == action2))

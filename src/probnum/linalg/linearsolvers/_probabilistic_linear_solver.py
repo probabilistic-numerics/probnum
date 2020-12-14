@@ -12,6 +12,8 @@ from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from probnum.problems import LinearSystem
 from probnum.type import IntArgType
 
+from ._policies import LinearSolverPolicy
+
 # pylint: disable="invalid-name"
 
 
@@ -26,17 +28,25 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
     from finite computational resources or stochastic input. This class unifies and
-    generalizes the methods described in Hennig et al. [1]_, Cockayne et al. [2]_,
-    Bartels et al. [3]_ and Wenger et al. [4]_.
+    generalizes probabilistic linear solvers as described in the literature [1]_ [2]_
+    [3]_ [4]_.
 
     Parameters
     ----------
     prior :
+        Prior belief over the parameters :math:`(x, A, A^{-1})` of the linear system.
     policy :
+        Policy defining actions taken by the solver.
     observe :
+        Observation process defining how information about the linear system is
+        obtained.
     update_belief :
+        Operator updating the belief over the parameters :math:`(x, A, A^{-1})` of the
+        linear system.
     stopping_criteria :
+        Stopping criteria determining when the solver has converged.
     optimize_hyperparams :
+        Function optimizing hyperparameters of the solver.
 
     References
     ----------
@@ -60,7 +70,6 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
     >>> from probnum.linalg.linearsolvers import ProbabilisticLinearSolver
 
-
     >>> #pls = ProbabilisticLinearSolver()
 
     Define a linear system.
@@ -79,8 +88,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
     def __init__(
         self,
-        prior,
-        policy,
+        prior: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
+        policy: LinearSolverPolicy,
         observe,
         update_belief,
         stopping_criteria=None,
