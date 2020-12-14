@@ -78,7 +78,7 @@ class LinearSolverPolicy:
 class ConjugateDirectionsPolicy(LinearSolverPolicy):
     """Policy returning A-conjugate directions.
 
-    Returns an action given by :math:`s = \\mathbb{E}[\\mathsf{H}]r_{i-1}` where
+    Returns an action given by :math:`s_i = -\\mathbb{E}[\\mathsf{H}]r_{i-1}` where
     :math:`r_{i-1} = A x_{i-1} - b` is the current residual. If the posterior mean of
     :math:`\\mathbb{E}[\\mathsf{H}]` of the inverse model equals the true inverse,
     the resulting action is the exact step to the solution of the linear system. [1]_
@@ -105,10 +105,10 @@ class ConjugateDirectionsPolicy(LinearSolverPolicy):
 class ExploreExploitPolicy(LinearSolverPolicy):
     """Policy trading off exploration and exploitation.
 
-    Returns an action given by :math:`s = \\mathbb{E}[\\mathsf{H}]r_{i-1} +
-    \\mathcal{N}(s; 0, \\mathbb{Cov}(\\mathsf{x})))` where
-    :math:`r_{i-1} = A x_{i-1} - b` is the current residual and :math:`\\mathbb{Cov}(
-    \\mathsf{x})` the uncertainty in the solution estimate.
+    Returns an action given by :math:`s_i \\sim \\mathcal{N}(s; -\\mathbb{E}[
+    \\mathsf{H}]r_{i-1}, \\mathbb{Cov}(\\mathsf{x})))` where :math:`r_{i-1} = A x_{i-1}
+    - b` is the current residual and :math:`\\mathbb{Cov}(\\mathsf{x})` the
+    uncertainty of the solution estimate.
 
     Parameters
     ----------
@@ -130,5 +130,4 @@ class ExploreExploitPolicy(LinearSolverPolicy):
     ) -> np.ndarray:
         x, _, Ainv = belief
         resid = problem.A @ x.mean.reshape(-1, 1) - problem.b.reshape(-1, 1)
-        exploration_direction = rvs.Normal(np.zeros((x.shape[0], 1)), x.cov).sample()
-        return -Ainv.mean @ resid + exploration_direction
+        return rvs.Normal(-Ainv.mean @ resid, x.cov).sample()
