@@ -5,10 +5,10 @@ from typing import Union
 import numpy as np
 import scipy
 
-import probnum
+import probnum.random_variables as rvs
 
 
-def atleast_1d(*rvs):
+def atleast_1d(*randvars):
     """Convert arrays or random variables to arrays or random variables with at least
     one dimension.
 
@@ -18,7 +18,7 @@ def atleast_1d(*rvs):
 
     Parameters
     ----------
-    rvs: array-like or RandomVariable
+    randvars: array-like or RandomVariable
         One or more input random variables or arrays.
 
     Returns
@@ -28,12 +28,12 @@ def atleast_1d(*rvs):
         each with ``a.ndim >= 1``.
     """
     res = []
-    for rv in rvs:
+    for rv in randvars:
         if isinstance(rv, scipy.sparse.spmatrix):
             result = rv
         elif isinstance(rv, np.ndarray):
             result = np.atleast_1d(rv)
-        elif isinstance(rv, probnum.RandomVariable):
+        elif isinstance(rv, rvs.RandomVariable):
             raise NotImplementedError
         else:
             result = rv
@@ -45,8 +45,8 @@ def atleast_1d(*rvs):
 
 
 def as_colvec(
-    vec: Union[np.ndarray, "probnum.RandomVariable"]
-) -> Union[np.ndarray, "probnum.RandomVariable"]:
+    vec: Union[np.ndarray, "rvs.RandomVariable"]
+) -> Union[np.ndarray, "rvs.RandomVariable"]:
     """Transform the given vector or random variable to column format.
 
     Given a vector (or random variable) of dimension (n,) return an array with
@@ -57,7 +57,7 @@ def as_colvec(
     vec
         Vector, array or random variable to be transformed into a column vector.
     """
-    if isinstance(vec, probnum.RandomVariable):
+    if isinstance(vec, rvs.RandomVariable):
         if vec.shape != (vec.shape[0], 1):
             vec.reshape(newshape=(vec.shape[0], 1))
     else:

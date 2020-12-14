@@ -6,7 +6,6 @@ import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 
-import probnum
 from probnum import linalg, linops
 from probnum import random_variables as rvs
 from tests.testing import NumpyAssertions
@@ -112,7 +111,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 for rv in [x, A, Ainv]:
                     self.assertIsInstance(
                         rv,
-                        probnum.RandomVariable,
+                        rvs.RandomVariable,
                         msg="Output of probabilistic linear solver is not a random "
                         "variable.",
                     )

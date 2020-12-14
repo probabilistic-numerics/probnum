@@ -57,7 +57,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     --------
     Create a custom probabilistic linear solver from pre-defined components.
 
-    >>> from probnum.linalg import ProbabilisticLinearSolver
+    >>> from probnum.linalg.linearsolvers import ProbabilisticLinearSolver
 
 
     >>> #pls = ProbabilisticLinearSolver()

@@ -2,7 +2,7 @@ from typing import Union
 
 import numpy as np
 
-import probnum as pn
+import probnum.random_variables as rvs
 
 
 class _RandomVariableList(list):
@@ -19,7 +19,7 @@ class _RandomVariableList(list):
             raise TypeError("RandomVariableList expects a list.")
 
         # First element as a proxy for checking all elements
-        if not isinstance(rv_list[0], pn.RandomVariable):
+        if not isinstance(rv_list[0], rvs.RandomVariable):
             raise TypeError(
                 "RandomVariableList expects RandomVariable elements, but "
                 + f"first element has type {type(rv_list[0])}."
@@ -42,7 +42,7 @@ class _RandomVariableList(list):
     def std(self) -> np.ndarray:
         return np.stack([rv.std for rv in self])
 
-    def __getitem__(self, idx) -> Union["pn.RandomVariable", list]:
+    def __getitem__(self, idx) -> Union["rvs.RandomVariable", list]:
         result = super().__getitem__(idx)
         # Make sure to wrap the result into a _RandomVariableList if necessary
         if isinstance(result, list):

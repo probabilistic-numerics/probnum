@@ -37,7 +37,7 @@ from . import (
     utils,
 )
 from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
-from .random_variables import RandomVariable, asrandvar
+from .random_variables import asrandvar
 
 try:
     # Change here if project is renamed and does not equal the package name
