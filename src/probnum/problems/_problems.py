@@ -17,7 +17,7 @@ class RegressionProblem:
     r"""Regression problem.
 
     Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
-    Solved by Kalman filtering and smoothing in :mod:`probnum.filtsmooth`.
+    Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
 
     Parameters
     ----------
@@ -66,7 +66,7 @@ class IVProblem:
         \dot y(t) = f(t, y(t)), \quad y(t_0) = y_0
 
     on time-interval :math:`[t_0, t_\text{max}]`.
-    Solved by the ODE solvers in :mod:`probnum.diffeq`.
+    Solved by probabilistic ODE solvers in :mod:`probnum.diffeq`.
 
 
     Parameters
@@ -113,7 +113,7 @@ class LinearSystem:
     r"""Linear system of equations.
 
     Compute :math:`x` from :math:`Ax=b`.
-    Solved by the probabilistic linear solver in :mod:`probnum.linalg`
+    Solved by probabilistic linear solvers in :mod:`probnum.linalg`
 
     Parameters
     ----------
@@ -158,7 +158,7 @@ class QuadratureProblem:
 
     for a function :math:`f: \Omega \rightarrow \mathbb{R}`.
     For the time being, :math:`\mu` is the Lebesgue measure.
-    Solved by the quadrature rules in :mod:`probnum.quad`.
+    Solved by quadrature rules in :mod:`probnum.quad`.
 
     Parameters
     ----------
