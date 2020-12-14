@@ -199,4 +199,6 @@ class QuadratureProblem:
     output_dim: typing.Optional[int] = 1
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Union[float, np.ndarray]] = None
+    solution: typing.Optional[
+        typing.Union[float, np.ndarray, pnrv.RandomVariable]
+    ] = None
