@@ -99,7 +99,7 @@ class IVProblem:
 
     f: typing.Callable[[float, np.ndarray], np.ndarray]
     t0: float
-    tmax: float  # Bold move: remove this? This is not really part of an IVP.
+    tmax: float
     y0: typing.Union[pntp.FloatArgType, np.ndarray]
     df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
