@@ -1,6 +1,6 @@
 """Probabilistic Linear Solvers.
 
-Iterative probabilistic numerical methods solving linear systems :math:`Ax_* = b`.
+Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
 from typing import Callable, Dict, Optional, Tuple, Union
@@ -20,7 +20,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     Class implementing probabilistic linear solvers. Such (iterative) solvers infer
     solutions to problems of the form
 
-    .. math:: Ax_*=b,
+    .. math:: Ax=b,
 
     where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising

@@ -41,11 +41,11 @@ def problinsolve(
     callback: Optional[Callable] = None,
     **kwargs
 ) -> Tuple["rvs.RandomVariable", "rvs.RandomVariable", "rvs.RandomVariable", Dict]:
-    """Infer a solution to the linear system :math:`A x_* = b` in a Bayesian framework.
+    """Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
     Probabilistic linear solvers infer solutions to problems of the form
 
-    .. math:: Ax_*=b,
+    .. math:: Ax=b,
 
     where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
@@ -62,7 +62,7 @@ def problinsolve(
         products :math:`v \\mapsto Av` are used internally.
     b :
         *shape=(n, ) or (n, nrhs)* -- Right-hand side vector, matrix or random
-        variable in :math:`A x_* = b`. For multiple right hand sides, ``nrhs`` problems
+        variable in :math:`A x = b`. For multiple right hand sides, ``nrhs`` problems
         are solved sequentially with the posteriors over the matrices acting as priors
         for subsequent solves. If the right-hand-side is assumed to be noisy, every
         iteration of the solver samples a realization from ``b``.
@@ -230,7 +230,7 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
 
     In the setting where :math:`A` is a symmetric positive-definite matrix, this solver
     takes prior information on the solution and outputs a posterior belief over
-    :math:`x_*`. This code implements the method described in Cockayne et al. [1]_.
+    :math:`x`. This code implements the method described in Cockayne et al. [1]_.
 
     Note that the solution-based view of BayesCG and the matrix-based view of
     :meth:`problinsolve` correspond [2]_.
@@ -241,7 +241,7 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
         A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
         used internally.
     b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x_* = b`.
+        Right-hand side vector or matrix in :math:`A x = b`.
     x0 : array-like or RandomVariable, shape=(n,) or or (n, nrhs)
         Prior belief over the solution of the linear system.
     maxiter : int
@@ -304,7 +304,7 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
         A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
         used internally.
     b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x_* = b`.
+        Right-hand side vector or matrix in :math:`A x = b`.
     A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
         A square matrix, linear operator or random variable representing the prior
         belief over the linear operator :math:`A`.
@@ -385,7 +385,7 @@ def _preprocess_linear_system(A, b, x0=None):
         A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
         used internally.
     b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x_* = b`.
+        Right-hand side vector or matrix in :math:`A x = b`.
     x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
         Optional. Prior belief for the solution of the linear system. Will be ignored if
         ``Ainv0`` is given.
@@ -419,7 +419,7 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
         A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
         used internally.
     b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x_* = b`.
+        Right-hand side vector or matrix in :math:`A x = b`.
     A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
         A square matrix, linear operator or random variable representing the prior
         belief over the linear operator :math:`A`.

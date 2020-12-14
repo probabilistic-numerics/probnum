@@ -13,7 +13,4 @@ class PNMethodTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             _ = ProbabilisticNumericalMethod(
                 prior=None,
-                action_rule=None,
-                observe=None,
-                update_belief=None,
             )
