@@ -14,11 +14,11 @@ finite computational resources and stochastic input.
 +----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.linops`           | Finite-dimensional linear operators.                         |
 +----------------------------------+--------------------------------------------------------------+
+| :mod:`~probnum.problems`         | Definitions and collection of problems solved by PN methods. |
++----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.quad`             | Bayesian quadrature / numerical integration.                 |
 +----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.random_variables` | Random variables representing uncertain values.              |
-+----------------------------------+--------------------------------------------------------------+
-| :mod:`~probnum.problems`         | Definitions and collection of problems solved by PN methods. |
 +----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.utils`            | Utility functions.                                           |
 +----------------------------------+--------------------------------------------------------------+

@@ -9,6 +9,7 @@ import numpy as np
 
 import probnum.random_variables as rvs
 from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
+from probnum.problems import LinearSystem
 from probnum.type import IntArgType
 
 # pylint: disable="invalid-name"
@@ -97,7 +98,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         )
 
     def has_converged(
-        self, problem: "LinearSystem", iteration: IntArgType
+        self, problem: LinearSystem, iteration: IntArgType
     ) -> Tuple[bool, Union[str, None]]:
         """Check whether the solver has converged.
 
@@ -124,7 +125,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         return False, None
 
     def solve_iterator(
-        self, problem: "LinearSystem"
+        self, problem: LinearSystem
     ) -> Tuple[np.array, np.array, rvs.RandomVariable]:
         """Generator implementing the solver iteration.
 
@@ -158,7 +159,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
     def solve(
         self,
-        problem: "LinearSystem",
+        problem: LinearSystem,
         callback: Optional[
             Callable[[np.ndarray, np.ndarray, rvs.RandomVariable], None]
         ] = None,

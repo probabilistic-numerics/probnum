@@ -5,6 +5,7 @@ probnum.problems
 .. automodapi:: probnum.problems
     :no-heading:
     :headings: "="
+    :no-inheritance-diagram:
 
 probnum.problems.zoo
 ====================

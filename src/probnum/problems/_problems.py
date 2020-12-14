@@ -165,9 +165,9 @@ class QuadratureProblem:
     integrand
         Function to be integrated.
     lower_bd
-        A number or a vector representing the lower bounds of the integrals.
+        A number or a vector representing the lower bounds of the integral.
     upper_bd
-        A number or a vector representing the upper bounds of the integrals.
+        A number or a vector representing the upper bounds of the integral.
     output_dim
         Output dimension of the integrand.
     solution
@@ -185,7 +185,6 @@ class QuadratureProblem:
     0.04
     >>> qp1d.lower_bd
     0.41
-    >>>
     >>> lower_bd = [0., 0.]
     >>> upper_bd = [1., 1.]
     >>> qp2d = QuadratureProblem(integrand, lower_bd=lower_bd, upper_bd=upper_bd)

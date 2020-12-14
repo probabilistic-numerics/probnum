@@ -5,7 +5,11 @@ classes and methods in this subpackage allow the creation of custom
 linear solvers.
 """
 
-from ._policies import conjugate_directions_policy, explore_exploit_policy
+from ._policies import (
+    ConjugateDirectionsPolicy,
+    ExploreExploitPolicy,
+    LinearSolverPolicy,
+)
 from ._probabilistic_linear_solver import ProbabilisticLinearSolver
 
 # from ._stopping_criteria import
@@ -16,9 +20,13 @@ from ._probabilistic_linear_solver import ProbabilisticLinearSolver
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "ProbabilisticLinearSolver",
-    "conjugate_directions_policy",
-    "explore_exploit_policy",
+    "LinearSolverPolicy",
+    "ConjugateDirectionsPolicy",
+    "ExploreExploitPolicy",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticLinearSolver.__module__ = "probnum.linalg.linearsolvers"
+LinearSolverPolicy.__module__ = "probnum.linalg.linearsolvers"
+ConjugateDirectionsPolicy.__module__ = "probnum.linalg.linearsolvers"
+ExploreExploitPolicy.__module__ = "probnum.linalg.linearsolvers"
