@@ -27,7 +27,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         #     f = -4
         #
         # Linear system resulting from discretization on an elliptic grid.
-        fpath = os.path.join(os.path.dirname(__file__), "../../resources")
+        fpath = os.path.join(os.path.dirname(__file__), "../resources")
         A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
         f = np.load(file=fpath + "/rhs_poisson.npy")
         self.poisson_linear_system = A, f
@@ -470,7 +470,7 @@ class MatrixBasedLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         #     f = -4
         #
         # Linear system resulting from discretization on an elliptic grid.
-        fpath = os.path.join(os.path.dirname(__file__), "../../resources")
+        fpath = os.path.join(os.path.dirname(__file__), "../resources")
         A = scipy.sparse.load_npz(file=fpath + "/matrix_poisson.npz")
         f = np.load(file=fpath + "/rhs_poisson.npy")
         self.poisson_linear_system = A, f
