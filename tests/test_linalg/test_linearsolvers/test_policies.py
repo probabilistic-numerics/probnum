@@ -69,12 +69,12 @@ class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertIsInstance(
                     action,
                     np.ndarray,
-                    msg=f"Action {action} returned by {policy.__class__} is not an "
-                    f"np.ndarray.",
+                    msg=f"Action {action} returned by {policy.__class__.__name__} is "
+                    f"not an np.ndarray.",
                 )
                 self.assertTrue(
                     np.squeeze(action).ndim == 1,
-                    msg=f"Action returned by {policy.__class__} has shape"
+                    msg=f"Action returned by {policy.__class__.__name__} has shape"
                     f" {action.shape}.",
                 )
 

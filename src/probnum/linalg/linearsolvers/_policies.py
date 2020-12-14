@@ -64,10 +64,7 @@ class LinearSolverPolicy:
         belief :
             Belief over the parameters :code:`(x, A, Ainv)` of the linear system.
         """
-        if self._policy is not None:
-            return self._policy(problem, belief, self.random_state)
-        else:
-            raise NotImplementedError
+        return self._policy(problem, belief, self.random_state)
 
     @property
     def is_deterministic(self) -> bool:
@@ -98,6 +95,7 @@ class ConjugateDirectionsPolicy(LinearSolverPolicy):
         belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
     ) -> np.ndarray:
         x, _, Ainv = belief
+        # TODO pass belief over residual as well for increased efficiency (saves one mvm)
         resid = problem.A @ x.mean.reshape(-1, 1) - problem.b.reshape(-1, 1)
         return -Ainv.mean @ resid
 
