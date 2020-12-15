@@ -281,7 +281,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             _identity = np.eye(self.shape[0])
             trace = 0.0
             for i in range(self.shape[0]):
-                trace += np.dot(self.matvec(_identity[:, i]), _identity[:, i])
+                trace += self.matvec(_identity[:, i]).dot(_identity[:, i])
             return trace
 
 
