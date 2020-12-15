@@ -213,6 +213,9 @@ class Kronecker(_linear_operator.LinearOperator):
         # (A (x) B)^T = A^T (x) B^T
         return Kronecker(A=self.A.transpose(), B=self.B.transpose(), dtype=self.dtype)
 
+    def adjoint(self):
+        return Kronecker(A=self.A.adjoint(), B=self.B.adjoint(), dtype=self.dtype)
+
     def inv(self):
         #  (A (x) B)^-1 = A^-1 (x) B^-1
         return Kronecker(A=self.A.inv(), B=self.B.inv(), dtype=self.dtype)
@@ -330,7 +333,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         return Y.ravel()
 
     # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker
-    # properties
+    #   properties.
 
     def todense(self):
         """Dense representation of the symmetric Kronecker product."""

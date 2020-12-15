@@ -33,6 +33,7 @@ class LinearSolverStoppingCriterionTestCase(unittest.TestCase, NumpyAssertions):
         self.linsys = LinearSystem(A=_A, b=_A @ _solution, solution=_solution)
 
         # Belief over system
+        self.iteration = 10
         Ainv0 = rvs.Normal(
             linops.ScalarMult(scalar=2.0, shape=(self.dim, self.dim)),
             linops.SymmetricKronecker(linops.Identity(self.dim)),
@@ -54,15 +55,30 @@ class LinearSolverStoppingCriterionTestCase(unittest.TestCase, NumpyAssertions):
         self.custom_stopcrit = StoppingCriterion(
             stopping_criterion=custom_stopping_criterion
         )
-        self.maxiter_stopcrit = MaxIterations(maxiter=10 * self.dim)
+        self.maxiter_stopcrit = MaxIterations()
         self.residual_stopcrit = Residual()
         self.uncertainty_stopcrit = PosteriorContraction()
 
         self.stopping_criteria = [
             self.custom_stopcrit,
+            self.maxiter_stopcrit,
             self.residual_stopcrit,
             self.uncertainty_stopcrit,
         ]
+
+    def test_stop_crit_returns_bool_and_string(self):
+        """Test whether stopping criteria return a bool and a string or None."""
+        for stopcrit in self.stopping_criteria:
+
+            with self.subTest():
+                has_converged, criterion = stopcrit(
+                    self.iteration, self.linsys, self.belief
+                )
+                self.assertIsInstance(has_converged, bool)
+                if has_converged:
+                    self.assertIsInstance(criterion, str)
+                else:
+                    self.assertIsNone(criterion)
 
 
 class MaxIterationsTestCase(LinearSolverStoppingCriterionTestCase):
@@ -70,12 +86,13 @@ class MaxIterationsTestCase(LinearSolverStoppingCriterionTestCase):
 
     def test_stop_if_iter_larger_or_equal_than_maxiter(self):
         """Test if stopping criterion returns true for iteration >= maxiter."""
-        iteration = 5
-        for maxiter in [-1, 0, 1.0, 10]:
+        for maxiter in [-1, 0, 1.0, 10, 100]:
             stopcrit = MaxIterations(maxiter=maxiter)
             with self.subTest():
-                has_converged, criterion = stopcrit(iteration, self.linsys, self.belief)
-                if iteration >= maxiter:
+                has_converged, criterion = stopcrit(
+                    self.iteration, self.linsys, self.belief
+                )
+                if self.iteration >= maxiter:
                     self.assertTrue(has_converged)
                     self.assertIsInstance(criterion, str)
                 else:
@@ -92,3 +109,6 @@ class ResidualTestCase(LinearSolverStoppingCriterionTestCase):
 
 class PosteriorContractionTestCase(LinearSolverStoppingCriterionTestCase):
     """Test case for the posterior contraction stopping criterion."""
+
+    def test_stops_if_true_solution(self):
+        """Test if stopping criterion returns True for exact solution."""

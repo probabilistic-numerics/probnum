@@ -281,10 +281,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             _identity = np.eye(self.shape[0])
             trace = 0.0
             for i in range(self.shape[0]):
-                trace += np.squeeze(
-                    _identity[np.newaxis, i, :]
-                    @ self.matvec(_identity[i, :, np.newaxis])
-                )
+                trace += np.dot(self.matvec(_identity[:, i]), _identity[:, i])
             return trace
 
 
@@ -353,6 +350,12 @@ class _ProductLinearOperator(
         self.A = A
         self.B = B
         super().__init__(A=A, B=B)
+
+    def transpose(self):
+        return _ProductLinearOperator(A=self.B.T, B=self.A.T)
+
+    def adjoint(self):
+        return _ProductLinearOperator(A=self.B.H, B=self.A.H)
 
     def todense(self):
         return self.A.todense() @ self.B.todense()
@@ -426,6 +429,12 @@ class ScalarMult(LinearOperator):
     def _matmat(self, X):
         return self.scalar * X
 
+    def transpose(self):
+        return self
+
+    def adjoint(self):
+        return ScalarMult(shape=self.shape, scalar=np.conj(self.scalar))
+
     def todense(self):
         return np.eye(self.shape[0]) * self.scalar
 
@@ -472,6 +481,12 @@ class Identity(ScalarMult):
         # Initiator of super class
         super().__init__(shape=_shape, scalar=1.0)
 
+    def transpose(self):
+        return self
+
+    def adjoint(self):
+        return self
+
     def todense(self):
         return np.eye(self.shape[0])
 
@@ -515,6 +530,12 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
 
     def _matmat(self, X):
         return self.A @ X
+
+    def transpose(self):
+        return MatrixMult(A=self.A.T)
+
+    def adjoint(self):
+        return MatrixMult(A=np.conj(self.A.T))
 
     def todense(self):
         if isinstance(self.A, scipy.sparse.spmatrix):

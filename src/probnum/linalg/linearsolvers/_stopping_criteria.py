@@ -80,7 +80,7 @@ class MaxIterations(StoppingCriterion):
         else:
             _maxiter = self.maxiter
 
-        if iteration >= self.maxiter:
+        if iteration >= _maxiter:
             warnings.warn(
                 "Iteration terminated. Solver reached the maximum number of iterations."
             )
