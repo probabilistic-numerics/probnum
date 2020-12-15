@@ -28,7 +28,6 @@ class SDE(transition.Transition):
         self.driftfun = driftfun
         self.dispmatfun = dispmatfun
         self.jacobfun = jacobfun
-        self.precon = None
         super().__init__()
 
     def transition_realization(
