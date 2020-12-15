@@ -68,9 +68,26 @@ class LinearSolverStoppingCriterionTestCase(unittest.TestCase, NumpyAssertions):
 class MaxIterationsTestCase(LinearSolverStoppingCriterionTestCase):
     """Test case for the maximum iterations stopping criterion."""
 
+    def test_stop_if_iter_larger_or_equal_than_maxiter(self):
+        """Test if stopping criterion returns true for iteration >= maxiter."""
+        iteration = 5
+        for maxiter in [-1, 0, 1.0, 10]:
+            stopcrit = MaxIterations(maxiter=maxiter)
+            with self.subTest():
+                has_converged, criterion = stopcrit(iteration, self.linsys, self.belief)
+                if iteration >= maxiter:
+                    self.assertTrue(has_converged)
+                    self.assertIsInstance(criterion, str)
+                else:
+                    self.assertIsNone(criterion)
+                    self.assertFalse(has_converged)
+
 
 class ResidualTestCase(LinearSolverStoppingCriterionTestCase):
     """Test case for the residual stopping criterion."""
+
+    def test_stops_if_true_solution(self):
+        """Test if stopping criterion returns True for exact solution."""
 
 
 class PosteriorContractionTestCase(LinearSolverStoppingCriterionTestCase):

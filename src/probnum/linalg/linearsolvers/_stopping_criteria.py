@@ -7,7 +7,7 @@ import numpy as np
 
 import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
-from probnum.type import ScalarArgType
+from probnum.type import IntArgType, ScalarArgType
 
 # pylint: disable="invalid-name,too-few-public-methods"
 
@@ -65,7 +65,7 @@ class MaxIterations(StoppingCriterion):
     of the solution to the linear system.
     """
 
-    def __init__(self, maxiter=None):
+    def __init__(self, maxiter: IntArgType = None):
         self.maxiter = maxiter
         super().__init__(stopping_criterion=self.__call__)
 
