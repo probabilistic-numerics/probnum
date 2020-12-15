@@ -70,13 +70,13 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
     """
 
     def test_ivp2ekf1_output(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = pnd.ivp2ekf1(self.ivp, self.prior, self.evlvar)
         self.assertIsInstance(
             filtsmooth_object.measurement_model, pnfs.DiscreteEKFComponent
         )
 
     def test_ekf1_measmod(self):
-        kalman = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
+        kalman = pnd.ivp2ekf1(self.ivp, self.prior, self.evlvar)
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
@@ -89,7 +89,7 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
         self.assertAllClose(expected, received.mean)
 
     def test_ekf1_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ekf1(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = pnd.ivp2ekf1(self.ivp, self.prior, self.evlvar)
         expected_initval = np.array(
             [
                 self.ivp.initrv.mean,
@@ -108,13 +108,13 @@ class TestIvpUkf(Ivp2FilterTestCase):
     """
 
     def test_ivp2ukf_output(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = pnd.ivp2ukf(self.ivp, self.prior, self.evlvar)
         self.assertIsInstance(
             filtsmooth_object.measurement_model, pnfs.DiscreteUKFComponent
         )
 
     def test_ukf_measmod(self):
-        kalman = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
+        kalman = pnd.ivp2ukf(self.ivp, self.prior, self.evlvar)
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
@@ -127,7 +127,7 @@ class TestIvpUkf(Ivp2FilterTestCase):
         self.assertAllClose(expected, received.mean)
 
     def test_ukf_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2filter.ivp2ukf(self.ivp, self.prior, self.evlvar)
+        filtsmooth_object = pnd.ivp2ukf(self.ivp, self.prior, self.evlvar)
         expected_initval = np.array(
             [
                 self.ivp.initrv.mean,
