@@ -1,7 +1,5 @@
 """Test cases for the Matern kernel."""
 
-import numpy as np
-
 import probnum.kernels as kerns
 
 from .test_kernel import KernelTestCase
