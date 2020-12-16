@@ -15,15 +15,14 @@ _InputType = np.ndarray
 class Linear(Kernel[_InputType]):
     """Linear kernel.
 
-    Linear covariance function defined by :math:`k(x_0, x_1) = (x_0 - c)^\\top(x_1 -
-    c)`.
+    Linear covariance function defined by :math:`k(x_0, x_1) = x_0^\\top x_1 + c`.
 
     Parameters
     ----------
     input_dim :
         Input dimension of the kernel.
-    shift :
-        Constant shift :math:`c`.
+    constant
+        Constant offset :math:`c`.
 
     See Also
     --------
@@ -39,8 +38,8 @@ class Linear(Kernel[_InputType]):
            [ 8., 13.]])
     """
 
-    def __init__(self, input_dim: IntArgType, shift: ScalarArgType = 0.0):
-        self.shift = _utils.as_numpy_scalar(shift)
+    def __init__(self, input_dim: IntArgType, constant: ScalarArgType = 0.0):
+        self.constant = _utils.as_numpy_scalar(constant)
         super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
@@ -54,7 +53,7 @@ class Linear(Kernel[_InputType]):
         x0 = np.atleast_2d(x0)
         x1 = np.atleast_2d(x1)
 
-        kernmat = (x0 - self.shift) @ (x1 - self.shift).T
+        kernmat = x0 @ x1.T + self.constant
 
         return self._transform_kernelmatrix(
             kerneval=kernmat, x0_shape=x0_originalshape, x1_shape=x1_originalshape

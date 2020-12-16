@@ -38,7 +38,7 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
         # Kernels
         self.kernels = [
             (kernels.Kernel, {"kernelfun": lambda x0, x1: np.inner(x0, x1).squeeze()}),
-            (kernels.Linear, {"shift": 1.0}),
+            (kernels.Linear, {"constant": 1.0}),
             (kernels.WhiteNoise, {"sigma": -1.0}),
             (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
             (kernels.ExpQuad, {"lengthscale": 1.5}),
