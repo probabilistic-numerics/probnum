@@ -1,10 +1,20 @@
 """Differential Equations."""
 
-from .ode import *
-from .odefiltsmooth import *
+from .ode import (
+    IVP,
+    ODE,
+    fitzhughnagumo,
+    logistic,
+    lotkavolterra,
+    rigidbody,
+    seir,
+    threebody,
+    vanderpol,
+)
+from .odefiltsmooth import GaussianIVPFilter, ivp2ekf0, ivp2ekf1, ivp2ukf, probsolve_ivp
 from .odesolution import ODESolution
-from .odesolver import *
-from .steprule import *
+from .odesolver import ODESolver
+from .steprule import AdaptiveSteps, ConstantSteps, StepRule
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -13,6 +23,10 @@ __all__ = [
     "logistic",
     "fitzhughnagumo",
     "lotkavolterra",
+    "seir",
+    "rigidbody",
+    "vanderpol",
+    "threebody",
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",

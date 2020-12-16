@@ -21,12 +21,25 @@ quad
     Bayesian quadrature / numerical integration.
 random_variables
     Random variables representing uncertain values.
+problems
+    Definitions and collection of problems solved by probabilistic numerical methods.
+utils
+    Utility functions.
 """
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from . import diffeq, filtsmooth, kernels, linalg, linops, quad, random_variables, utils
-from .kernels import Kernel
+from . import (
+    diffeq,
+    filtsmooth,
+    kernels,
+    linalg,
+    linops,
+    problems,
+    quad,
+    random_variables,
+    utils,
+)
 from .random_variables import RandomVariable, asrandvar
 
 try:

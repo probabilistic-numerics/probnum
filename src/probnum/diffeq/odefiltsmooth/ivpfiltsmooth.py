@@ -34,7 +34,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         self.gfilt = gaussfilt
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
-        super().__init__(ivp)
+        super().__init__(ivp=ivp, order=gaussfilt.dynamics_model.ordint)
 
     def initialise(self):
         return self.ivp.t0, self.gfilt.initrv

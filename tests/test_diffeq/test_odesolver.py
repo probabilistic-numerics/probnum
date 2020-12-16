@@ -31,13 +31,14 @@ class ODESolverTestCase(unittest.TestCase):
     def setUp(self):
         y0 = Constant(0.3)
         ivp = logistic([0, 4], initrv=y0)
-        self.solver = MockODESolver(ivp)
+        euler_order = 1
+        self.solver = MockODESolver(ivp, order=euler_order)
         self.step = 0.2
 
     def test_solve(self):
         steprule = ConstantSteps(self.step)
         odesol = self.solver.solve(
-            firststep=self.step, steprule=steprule
+            steprule=steprule,
         )  # this is the actual part of the test
 
         # quick check that the result is sensible
