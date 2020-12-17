@@ -37,6 +37,7 @@ class SDE(transition.Transition):
         stop=None,
         step=None,
         linearise_at=None,
+        diffusion=1.0,
     ):
         raise NotImplementedError
 
@@ -47,6 +48,7 @@ class SDE(transition.Transition):
         stop=None,
         step=None,
         linearise_at=None,
+        diffusion=1.0,
     ):
         raise NotImplementedError
 
@@ -98,6 +100,7 @@ class LinearSDE(SDE):
         start,
         stop,
         step,
+        diffusion=1.0,
         **kwargs,
     ):
 
@@ -110,9 +113,10 @@ class LinearSDE(SDE):
             self.driftfun,
             self.driftmatfun,
             self.dispmatfun,
+            diffusion=diffusion,
         )
 
-    def transition_rv(self, rv, start, stop, step, **kwargs):
+    def transition_rv(self, rv, start, stop, step, diffusion=1.0, **kwargs):
 
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
@@ -128,6 +132,7 @@ class LinearSDE(SDE):
             self.driftfun,
             self.driftmatfun,
             self.dispmatfun,
+            diffusion=diffusion,
         )
 
     @property
@@ -175,19 +180,23 @@ class LTISDE(LinearSDE):
         real,
         start,
         stop,
+        diffusion=1.0,
         **kwargs,
     ):
 
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_realization(real, start)
+        return discretised_model.transition_realization(
+            real, start, diffusion=diffusion
+        )
 
     def transition_rv(
         self,
         rv,
         start,
         stop,
+        diffusion=1.0,
         **kwargs,
     ):
 
@@ -198,7 +207,7 @@ class LTISDE(LinearSDE):
             )
             raise TypeError(errormsg)
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_rv(rv, start)
+        return discretised_model.transition_rv(rv, start, diffusion=diffusion)
 
     def discretise(self, step):
         """Returns a discrete transition model (i.e. mild solution to SDE) using matrix
@@ -218,7 +227,16 @@ class LTISDE(LinearSDE):
         return discrete_transition.DiscreteLTIGaussian(ah, sh, qh)
 
 
-def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun):
+def linear_sde_statistics(
+    rv,
+    start,
+    stop,
+    step,
+    driftfun,
+    jacobfun,
+    dispmatfun,
+    diffusion: Optional[float] = 1.0,
+):
     """Computes mean and covariance of SDE solution.
 
     For a linear(ised) SDE
@@ -269,6 +287,7 @@ def linear_sde_statistics(rv, start, stop, step, driftfun, jacobfun, dispmatfun)
         driftfun=driftfun,
         jacobfun=jacobfun,
         dispmatfun=dispmatfun,
+        diffusion=diffusion,
     )
     rk4_step = functools.partial(_rk4_step, step=step, fun=increment_fun)
 

@@ -46,6 +46,7 @@ class Transition(abc.ABC):
         stop: Optional[float] = None,
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
+        diffusion: Optional[float] = 1.0,
     ) -> (RandomVariable, Dict):
         """Transition a realization of a random variable from time :math:`t` to time
         :math:`t+\\Delta t`.
@@ -72,6 +73,8 @@ class Transition(abc.ABC):
         linearise_at :
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
+        diffusion :
+            Diffusion (or diffusion estimate) for this transition
 
         Returns
         -------
@@ -97,6 +100,7 @@ class Transition(abc.ABC):
         stop: Optional[float] = None,
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
+        diffusion: Optional[float] = 1.0,
     ) -> (RandomVariable, Dict):
         """Applies the transition, assuming that the state is already preconditioned.
 
@@ -121,6 +125,7 @@ class Transition(abc.ABC):
         stop: Optional[float] = None,
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
+        diffusion: Optional[float] = 1.0,
     ) -> (RandomVariable, Dict):
         """Transition a random variable from time :math:`t` to time
         :math:`t+\\Delta t`.
@@ -149,6 +154,8 @@ class Transition(abc.ABC):
         linearise_at :
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
+        diffusion :
+            Diffusion (or diffusion estimate) for this transition
 
         Returns
         -------
@@ -174,6 +181,7 @@ class Transition(abc.ABC):
         stop: Optional[float] = None,
         step: Optional[float] = None,
         linearise_at: Optional[RandomVariable] = None,
+        diffusion: Optional[float] = 1.0,
     ) -> (RandomVariable, Dict):
         """Applies the transition, assuming that the state is already preconditioned.
 

@@ -118,7 +118,7 @@ class IBM(Integrator, sde.LTISDE):
         diffmat_1d = 1.0 / denominators
         return np.kron(np.eye(self.spatialdim), diffmat_1d)
 
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(self, rv, start, stop, diffusion=1.0, **kwargs):
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
@@ -127,25 +127,31 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(errormsg)
         step = stop - start
         rv = self.precon.inverse(step) @ rv
-        rv, info = self.transition_rv_preconditioned(rv, start)
+        rv, info = self.transition_rv_preconditioned(rv, start, diffusion=diffusion)
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ rv, info
 
-    def transition_rv_preconditioned(self, rv, start, **kwargs):
-        return self.equivalent_discretisation_preconditioned.transition_rv(rv, start)
+    def transition_rv_preconditioned(self, rv, start, diffusion=1.0, **kwargs):
+        return self.equivalent_discretisation_preconditioned.transition_rv(
+            rv, start, diffusion=diffusion
+        )
 
-    def transition_realization(self, real, start, stop, **kwargs):
+    def transition_realization(self, real, start, stop, diffusion=1.0, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         real = self.precon.inverse(step) @ real
-        real, info = self.transition_realization_preconditioned(real, start)
+        real, info = self.transition_realization_preconditioned(
+            real, start, diffusion=diffusion
+        )
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ real, info
 
-    def transition_realization_preconditioned(self, real, start, **kwargs):
+    def transition_realization_preconditioned(
+        self, real, start, diffusion=1.0, **kwargs
+    ):
         return self.equivalent_discretisation_preconditioned.transition_realization(
-            real, start
+            real, start, diffusion=diffusion
         )
 
     def discretise(self, step):
