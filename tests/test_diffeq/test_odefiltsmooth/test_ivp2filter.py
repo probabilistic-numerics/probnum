@@ -21,7 +21,7 @@ class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):
         tests."""
         y0 = pnrv.Constant(np.array([20.0, 15.0]))
         self.ivp = pnd.lotkavolterra([0.4124, 1.15124], y0)
-        self.prior = pnfs.statespace.IBM(ordint=2, spatialdim=2, diffconst=1.7685)
+        self.prior = pnfs.statespace.IBM(ordint=2, spatialdim=2)
         self.evlvar = 0.0005123121
 
 

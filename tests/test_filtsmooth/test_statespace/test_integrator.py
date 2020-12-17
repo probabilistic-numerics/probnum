@@ -30,7 +30,7 @@ class TestIntegrator(unittest.TestCase, NumpyAssertions):
 
 
 STEP = np.random.rand()
-DIFFCONST = np.random.rand()
+DIFFCONST = 1.0
 
 AH_22_IBM = np.array(
     [
@@ -57,7 +57,7 @@ QH_22_IBM = DIFFCONST ** 2 * np.array(
 
 class TestIBM(unittest.TestCase, NumpyAssertions):
     def setUp(self):
-        self.sde = pnfs.statespace.IBM(ordint=2, spatialdim=2, diffconst=DIFFCONST)
+        self.sde = pnfs.statespace.IBM(ordint=2, spatialdim=2)
 
     def test_discretise(self):
         discrete_model = self.sde.discretise(step=STEP)
@@ -110,7 +110,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 class TestIOUP(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         driftspeed = 0.151231
-        self.ioup = pnfs.statespace.IOUP(2, 2, driftspeed, DIFFCONST)
+        self.ioup = pnfs.statespace.IOUP(2, 2, driftspeed)
 
     def test_transition_rv(self):
         mean, cov = np.ones(self.ioup.dimension), np.eye(self.ioup.dimension)
@@ -124,9 +124,9 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
 
     def test_asymptotically_ibm(self):
         """For driftspeed==0, it coincides with the IBM prior."""
-        ioup_speed0 = pnfs.statespace.IOUP(2, 3, driftspeed=0.0, diffconst=1.2345)
+        ioup_speed0 = pnfs.statespace.IOUP(2, 3, driftspeed=0.0)
 
-        ibm = pnfs.statespace.IBM(2, 3, diffconst=1.2345)
+        ibm = pnfs.statespace.IBM(2, 3)
         self.assertAllClose(ioup_speed0.driftmat, ibm.driftmat)
         self.assertAllClose(ioup_speed0.forcevec, ibm.forcevec)
         self.assertAllClose(ioup_speed0.dispmat, ibm.dispmat)
@@ -152,10 +152,11 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
     """
 
     def setUp(self):
-        lenscale, diffconst = np.random.rand(), np.random.rand()
-        self.mat0 = pnfs.statespace.Matern(0, 1, lenscale, diffconst)
-        self.mat1 = pnfs.statespace.Matern(1, 1, lenscale, diffconst)
-        self.mat2 = pnfs.statespace.Matern(2, 1, lenscale, diffconst)
+        lenscale = np.random.rand()
+        self.diffusion = np.random.rand()
+        self.mat0 = pnfs.statespace.Matern(0, 1, lenscale)
+        self.mat1 = pnfs.statespace.Matern(1, 1, lenscale)
+        self.mat2 = pnfs.statespace.Matern(2, 1, lenscale)
 
     def test_n0(self):
         """Closed form solution for ordint=0.
@@ -178,7 +179,7 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(self.mat2.driftmat[-1, :], expected)
 
     def test_larger_shape(self):
-        mat2d = pnfs.statespace.Matern(2, 2, 1.0, 1.0)
+        mat2d = pnfs.statespace.Matern(2, 2, 1.0)
         self.assertEqual(mat2d.dimension, 2 * (2 + 1))
 
     def test_transition_rv(self):
