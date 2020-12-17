@@ -1,6 +1,6 @@
 """SDE models as transitions."""
 import functools
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 import scipy.linalg
@@ -289,7 +289,9 @@ def _rk4_step(mean, cov, time, step, fun):
     return mean, cov, time
 
 
-def _increment_fun(time, mean, cov, driftfun, jacobfun, dispmatfun):
+def _increment_fun(
+    time, mean, cov, driftfun, jacobfun, dispmatfun, diffusion: Optional[float] = 1.0
+):
     """Euler step for closed form solutions of ODE defining mean and covariance of the
     closed-form transition.
 
@@ -301,7 +303,9 @@ def _increment_fun(time, mean, cov, driftfun, jacobfun, dispmatfun):
     jacobian = jacobfun(time)
     mean_increment = driftfun(time, mean)
     cov_increment = (
-        cov @ jacobian.T + jacobian @ cov.T + dispersion_matrix @ dispersion_matrix.T
+        cov @ jacobian.T
+        + jacobian @ cov.T
+        + diffusion * dispersion_matrix @ dispersion_matrix.T
     )
     return mean_increment, cov_increment
 
