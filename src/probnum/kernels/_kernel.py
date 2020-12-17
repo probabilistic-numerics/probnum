@@ -29,7 +29,36 @@ class Kernel(Generic[_InputType], abc.ABC):
 
     Examples
     --------
+    Kernels are implemented by subclassing this abstract base class.
+
+    >>> from probnum.kernels import Kernel
+    ...
+    >>> class CustomLinearKernel(Kernel):
+    ...
+    ...     def __init__(self, constant=0.0):
+    ...         self.constant = constant
+    ...         super().__init__(input_dim=1, output_dim=1)
+    ...
+    ...     def __call__(self, x0, x1=None):
+    ...         # Check and reshape inputs
+    ...         x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
+    ...
+    ...         # Compute kernel matrix
+    ...         if x1 is None:
+    ...             x1 = x0
+    ...         kernmat = x0 @ x1.T + self.constant
+    ...
+    ...         return Kernel._reshape_kernelmatrix(kernmat, newshape=kernshape)
+
+    We can now evaluate the kernel like so.
+
     >>> import numpy as np
+    >>> k = CustomLinearKernel(constant=1.0)
+    >>> k(np.linspace(0, 1, 4)[:, None])
+    array([[1.        , 1.        , 1.        , 1.        ],
+           [1.        , 1.11111111, 1.22222222, 1.33333333],
+           [1.        , 1.22222222, 1.44444444, 1.66666667],
+           [1.        , 1.33333333, 1.66666667, 2.        ]])
     """
 
     # pylint: disable="invalid-name"
