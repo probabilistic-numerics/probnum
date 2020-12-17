@@ -30,7 +30,7 @@ class TestIntegrator(unittest.TestCase, NumpyAssertions):
 
 
 STEP = np.random.rand()
-DIFFCONST = 1.0
+DIFFCONST = np.random.rand() ** 2
 
 AH_22_IBM = np.array(
     [
@@ -43,7 +43,7 @@ AH_22_IBM = np.array(
     ]
 )
 
-QH_22_IBM = DIFFCONST ** 2 * np.array(
+QH_22_IBM = DIFFCONST * np.array(
     [
         [STEP ** 5 / 20.0, STEP ** 4 / 8.0, STEP ** 3 / 6.0, 0.0, 0.0, 0.0],
         [STEP ** 4 / 8.0, STEP ** 3 / 3.0, STEP ** 2 / 2.0, 0.0, 0.0, 0.0],
