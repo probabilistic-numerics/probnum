@@ -32,21 +32,14 @@ class WhiteNoise(Kernel[_InputType]):
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
         # Check and reshape inputs
-        x0, x1, equal_inputs = self._check_and_transform_input(x0, x1)
-        x0_originalshape = x0.shape
-        x1_originalshape = x1.shape
+        x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
 
         # Compute kernel matrix
-        x0 = np.atleast_2d(x0)
-        if equal_inputs:
-            return self.sigma ** 2 * np.eye(x0.shape[0])
+        if x1 is None:
+            kernmat = self.sigma ** 2 * np.eye(x0.shape[0])
         else:
-            x1 = np.atleast_2d(x1)
+            kernmat = self.sigma ** 2 * np.equal(x0, x1[:, np.newaxis, :]).all(
+                axis=2
+            ).T.astype(float)
 
-        kernmat = self.sigma ** 2 * np.equal(x0, x1[:, np.newaxis, :]).all(
-            axis=2
-        ).T.astype(float)
-
-        return self._transform_kernelmatrix(
-            kerneval=kernmat, x0_shape=x0_originalshape, x1_shape=x1_originalshape
-        )
+        return Kernel._reshape_kernelmatrix(kernmat, newshape=kernshape)

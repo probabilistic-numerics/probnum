@@ -37,7 +37,6 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
 
         # Kernels
         self.kernels = [
-            (kernels.Kernel, {"kernelfun": lambda x0, x1: np.inner(x0, x1).squeeze()}),
             (kernels.Linear, {"constant": 1.0}),
             (kernels.WhiteNoise, {"sigma": -1.0}),
             (kernels.Polynomial, {"constant": 1.0, "exponent": 3}),
@@ -122,9 +121,7 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_misshaped_input(self):
         """Test whether misshaped/mismatched input raises an error."""
-        kern = kernels.Kernel(
-            input_dim=2, output_dim=1, kernelfun=lambda x0, x1=None: np.array(1.0)
-        )
+        kern = kernels.Linear(input_dim=2)
         datasets = [
             (1, 1),
             (1.0, np.array([1.0, 0.0])),
@@ -137,30 +134,3 @@ class KernelTestCase(unittest.TestCase, NumpyAssertions):
                     kern(x0, x1)
                 with self.assertRaises(ValueError):
                     kern(x0)
-
-
-class InstantiateKernelTestCase(KernelTestCase):
-    """Test kernel instantiation."""
-
-    def test_kernel_from_noncallable(self):
-        """Test whether instantiating a kernel from a non-callable raises an error."""
-        with self.assertRaises(TypeError):
-            kernels.Kernel(kernelfun=1.0, input_dim=1, output_dim=1)
-
-    def test_kernel_from_vectorized_function(self):
-        """Test whether a kernel can be created from a vectorized function."""
-
-        def _kernelfun(x0, x1):
-            x0 = np.atleast_2d(x0)
-            x1 = np.atleast_2d(x1)
-            return x0 @ x1.T
-
-        kernels.Kernel(kernelfun=_kernelfun, input_dim=2, output_dim=1)
-
-    def test_kernel_from_nonvectorized_function(self):
-        """Test whether a kernel can be created from a non-vectorized function."""
-
-        def _nonvectorized_kernelfun(x0, x1):
-            return np.inner(x0, x1).squeeze()
-
-        kernels.Kernel(kernelfun=_nonvectorized_kernelfun, input_dim=2, output_dim=1)
