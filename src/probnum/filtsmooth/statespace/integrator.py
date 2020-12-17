@@ -83,7 +83,7 @@ class IBM(Integrator, sde.LTISDE):
     @property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
-        dispmat_1d[-1] = 1.0  # Standard diffusion
+        dispmat_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
 
     @cached_property
@@ -212,7 +212,7 @@ class IOUP(Integrator, sde.LTISDE):
     @property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
-        dispmat_1d[-1] = 1.0  # Standard Diffusion
+        dispmat_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
 
 
@@ -255,5 +255,5 @@ class Matern(Integrator, sde.LTISDE):
     @property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
-        dispmat_1d[-1] = 1.0  # Standard diffusion
+        dispmat_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
