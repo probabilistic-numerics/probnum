@@ -16,6 +16,7 @@ from probnum._probabilistic_numerical_method import (
 from probnum.problems import LinearSystem
 
 from ._policies import LinearSolverPolicy
+from ._stopping_criteria import StoppingCriterion
 
 # pylint: disable="invalid-name"
 
@@ -47,6 +48,10 @@ class LinearSolverState(PNMethodState):
         Residual :math:`r_i = Ax_i - b` of the current solution.
     rayleigh_quotients
         Rayleigh quotients :math:`R(A, s_i) = \frac{s_i^\top A s_i}{s_i^\top s_i}`.
+    has_converged
+        Has the solver converged?
+    stopping_criterion
+        Stopping criterion which caused termination of the solver.
 
     Examples
     --------
@@ -58,8 +63,8 @@ class LinearSolverState(PNMethodState):
     iteration: int = 0
     residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
     rayleigh_quotients: Optional[List[float]] = None
-    has_converged = False
-    stopping_criterion = None
+    has_converged: bool = False
+    stopping_criterion: Optional[List[StoppingCriterion]] = None
 
 
 class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
@@ -138,7 +143,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         policy: LinearSolverPolicy,
         observe,
         update_belief,
-        stopping_criteria=None,
+        stopping_criteria=Optional[List[StoppingCriterion]],
         optimize_hyperparams=None,
     ):
         # pylint: disable="too-many-arguments"
@@ -196,12 +201,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
         Returns
         -------
-        action :
-            Action to probe the problem.
-        observation :
-            Observation of the problem for the given ``action``.
-        belief :
-            Belief over the parameters of the linear system.
+        solver_state :
+            Updated state of the linear solver.
         """
         # Setup
         solver_state = LinearSolverState(
@@ -215,29 +216,35 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             stopping_criterion=None,
         )
 
-        # Evaluate stopping criteria
-        _has_converged, conv_crit = self.has_converged(
+        # Evaluate stopping criteria for
+        _has_converged, solver_state = self.has_converged(
             problem=problem, solver_state=solver_state
         )
 
-        while True:
+        while not _has_converged:
             # Compute action via policy
-            action = self.policy(problem, self.belief)
+            action = self.policy(problem, solver_state.belief)
+            solver_state.actions.append(action)
 
             # Make an observation of the linear system
             observation = self.observe(problem, action)
+            solver_state.observations.append(observation)
 
             # Update the belief over the system matrix, its inverse and/or the solution
-            self.belief = self.update_belief(self.belief, action, observation)
+            solver_state.belief = self.update_belief(
+                solver_state.belief, action, observation
+            )
 
-            yield action, observation, self.belief
+            # Evaluate stopping criteria
+            _has_converged, solver_state = self.has_converged(
+                problem=problem, solver_state=solver_state
+            )
+
+            yield solver_state
 
     def solve(
         self,
         problem: LinearSystem,
-        callback: Optional[
-            Callable[[np.ndarray, np.ndarray, rvs.RandomVariable], None]
-        ] = None,
     ) -> Tuple[
         Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
         LinearSolverState,
@@ -248,47 +255,20 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         ----------
         problem :
             Linear system to solve.
-        callback :
-            Callback function returning intermediate quantities of the optimization
-            loop. Note that depending on the function supplied, this can slow down
-            the solver considerably.
 
         Returns
         -------
         """
-        # Setup
-        _has_converged = False
-        iteration = 0
+
         solve_iterator = self.solve_iterator(problem=problem)
 
-        # Evaluate stopping criteria
-        _has_converged, conv_crit = self.has_converged(
-            problem=problem, iteration=iteration
-        )
-
-        while not _has_converged:
-
-            # Perform one iteration of the optimizer
-            action, observation, _ = next(solve_iterator)
-
-            # Callback function
-            if callback is not None:
-                callback(action, observation, self.belief)
-
-            iteration += 1
-
-            # Evaluate stopping criteria
-            _has_converged, conv_crit = self.has_converged(
-                problem=problem, iteration=iteration
-            )
+        for solver_state in solve_iterator:
+            pass
 
         # Belief over solution, inverse and system matrix
         x, A, Ainv = self._belief_solution()
 
-        # Information (e.g. on convergence)
-        info = {"iter": iteration, "conv_crit": conv_crit}
-
-        return (x, A, Ainv), info
+        return (x, A, Ainv), solver_state
 
     def _belief_solution(self):
         """Compute the belief over the components of the linear system."""
