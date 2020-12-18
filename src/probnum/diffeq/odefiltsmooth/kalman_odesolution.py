@@ -1,10 +1,14 @@
 """ODE solutions returned by Gaussian ODE filtering."""
 
+import typing
+
 import numpy as np
 
-from probnum import utils
-from probnum._randomvariablelist import _RandomVariableList
-from probnum.filtsmooth import KalmanPosterior
+import probnum._randomvariablelist as pnrv_list
+import probnum.filtsmooth as pnfs
+import probnum.random_variables as pnrv
+import probnum.type
+import probnum.utils
 
 from ..odesolution import ODESolution
 
@@ -12,21 +16,18 @@ from ..odesolution import ODESolution
 class KalmanODESolution(ODESolution):
     """Gaussian IVP filtering solution of an ODE problem.
 
+    Recall that in ProbNum, Gaussian filtering and smoothing is generally named "Kalman".
+
     Parameters
     ----------
-    times : `array_like`
-        Times of the discrete-time solution.
-    rvs : :obj:`list` of :obj:`RandomVariable`
-        Estimated states (in the state-space model view) of the discrete-time solution.
-    solver : :obj:`GaussianIVPFilter`
-        Solver used to compute the discrete-time solution.
-
+    kalman_posterior
+        Gauss-Markov posterior over the ODE solver state space model.
+        Therefore, it assumes that the dynamics model is an :class:`Integrator`.
 
     See Also
     --------
     GaussianIVPFilter : ODE solver that behaves like a Gaussian filter.
     KalmanPosterior : Posterior over states after Gaussian filtering/smoothing.
-
 
     Examples
     --------
@@ -66,11 +67,11 @@ class KalmanODESolution(ODESolution):
     [0.69875089]
     """
 
-    def __init__(self, kalman_posterior):
+    def __init__(self, kalman_posterior: pnfs.KalmanPosterior):
         self.kalman_posterior = kalman_posterior
 
-        # Pre-compute projection matrices
-        # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'
+        # Pre-compute projection matrices.
+        # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'.
         self.proj_to_y = kalman_posterior.gauss_filter.dynamics_model.proj2coord(
             coord=0
         )
@@ -79,78 +80,37 @@ class KalmanODESolution(ODESolution):
         )
 
     @property
-    def t(self):
-        """:obj:`np.ndarray`: Times of the discrete-time solution"""
+    def t(self) -> np.ndarray:
         return self.kalman_posterior.locations
 
     @property
-    def y(self):
-        """:obj:`list` of :obj:`RandomVariable`: Probabilistic discrete-time solution
-
-        Probabilistic discrete-time solution at times :math:`t_1, ..., t_N`,
-        as a list of random variables.
-        To return means and covariances use ``y.mean`` and ``y.cov``.
-        """
-        function_rvs = [self.proj_to_y @ rv for rv in self.kalman_posterior.state_rvs]
-        return _RandomVariableList(function_rvs)
+    def y(self) -> pnrv_list._RandomVariableList:
+        y_rvs = [self.proj_to_y @ rv for rv in self.kalman_posterior.state_rvs]
+        return pnrv_list._RandomVariableList(y_rvs)
 
     @property
-    def dy(self):
-        """:obj:`list` of :obj:`RandomVariable`: Derivatives of the discrete-time solution"""
-        function_rvs = [self.proj_to_dy @ rv for rv in self.kalman_posterior.state_rvs]
-        return _RandomVariableList(function_rvs)
+    def dy(self) -> pnrv_list._RandomVariableList:
+        dy_rvs = [self.proj_to_dy @ rv for rv in self.kalman_posterior.state_rvs]
+        return pnrv_list._RandomVariableList(dy_rvs)
 
-    # @property
-    # def _state_rvs(self):
-    #     """:obj:`list` of :obj:`RandomVariable`:"""
-    #     return self._kalman_posterior.state_rvs
-
-    def __call__(self, t):
-        """Evaluate the time-continuous solution at time t.
-
-        `KalmanPosterior.__call__` does the main algorithmic work to return the
-        posterior for a given location. All that is left to do here is to (1) undo the
-        preconditioning, and (2) to slice the state_rv in order to return only the
-        rv for the function value.
-
-        Parameters
-        ----------
-        t : float
-            Location / time at which to evaluate the continuous ODE solution.
-
-        Returns
-        -------
-        :obj:`RandomVariable`
-            Probabilistic estimate of the continuous-time solution at time ``t``.
-        """
+    def __call__(
+        self, t: float
+    ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
         out_rv = self.kalman_posterior(t)
 
         if np.isscalar(t):
             return self.proj_to_y @ out_rv
 
-        return _RandomVariableList([self.proj_to_y @ rv for rv in out_rv])
+        return pnrv_list._RandomVariableList([self.proj_to_y @ rv for rv in out_rv])
 
-    # def __len__(self):
-    #     """Number of points in the discrete-time solution."""
-    #     return len(self._kalman_posterior)
-    #
-    # def __getitem__(self, idx):
-    #     """Access the discrete-time solution through indexing and slicing."""
-    #     projmat = self._solver.prior.proj2coord(coord=0)
-    #
-    #     if isinstance(idx, int):
-    #         rv = self._kalman_posterior[idx]
-    #         return projmat @ rv
-    #     elif isinstance(idx, slice):
-    #         rvs = self._kalman_posterior[idx]
-    #         f_rvs = [projmat @ rv for rv in rvs]
-    #         return _RandomVariableList(f_rvs)
-    #     else:
-    #         raise ValueError("Invalid index")
-
-    def sample(self, t=None, size=()):
-        """Sample from the Gaussian filtering ODE solution."""
-        size = utils.as_shape(size)
+    def sample(
+        self,
+        t: typing.Optional[float] = None,
+        size: typing.Optional[probnum.type.ShapeArgType] = (),
+    ) -> np.ndarray:
+        """Sample from the Gaussian filtering ODE solution by sampling from the Gauss-
+        Markov posterior."""
+        size = probnum.utils.as_shape(size)
 
         # implement only single samples, rest via recursion
         if size != ():
