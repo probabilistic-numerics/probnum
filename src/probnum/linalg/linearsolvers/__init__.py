@@ -10,7 +10,7 @@ from ._policies import (
     ExploreExploitPolicy,
     LinearSolverPolicy,
 )
-from ._probabilistic_linear_solver import ProbabilisticLinearSolver
+from ._probabilistic_linear_solver import LinearSolverState, ProbabilisticLinearSolver
 from ._stopping_criteria import (
     MaxIterations,
     PosteriorContraction,
@@ -25,6 +25,7 @@ from ._stopping_criteria import (
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "ProbabilisticLinearSolver",
+    "LinearSolverState",
     "LinearSolverPolicy",
     "ConjugateDirectionsPolicy",
     "ExploreExploitPolicy",
@@ -36,6 +37,7 @@ __all__ = [
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticLinearSolver.__module__ = "probnum.linalg.linearsolvers"
+LinearSolverState.__module__ = "probnum.linalg.linearsolvers"
 LinearSolverPolicy.__module__ = "probnum.linalg.linearsolvers"
 ConjugateDirectionsPolicy.__module__ = "probnum.linalg.linearsolvers"
 ExploreExploitPolicy.__module__ = "probnum.linalg.linearsolvers"

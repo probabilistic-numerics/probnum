@@ -3,18 +3,63 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
-from typing import Callable, Dict, Optional, Tuple, Union
+import dataclasses
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
+from probnum._probabilistic_numerical_method import (
+    PNMethodState,
+    ProbabilisticNumericalMethod,
+)
 from probnum.problems import LinearSystem
-from probnum.type import IntArgType
 
 from ._policies import LinearSolverPolicy
 
 # pylint: disable="invalid-name"
+
+
+@dataclasses.dataclass
+class LinearSolverState(PNMethodState):
+    r"""State of a probabilistic linear solver.
+
+    The solver state contains miscellaneous quantities computed during an iteration
+    of a probabilistic linear solver. The solver state is passed between the
+    different components of the solver and may be used by them.
+
+    For example the residual :math:`r_i = Ax_i - b` can (depending on the prior) be
+    updated more efficiently than in :math:`\mathcal{O}(n^2)` and is therefore part
+    of the solver state and passed to the stopping criteria.
+
+    Parameters
+    ----------
+    belief
+        Current belief over the solution :math:`x`, the system matrix :math:`A` and the
+        inverse :math:`H=A^{-1}`.
+    actions
+        Performed actions :math:`s_i`.
+    observations
+        Collected observations :math:`y_i = A s_i`.
+    iteration
+        Current iteration :math:`i` of the solver.
+    residual
+        Residual :math:`r_i = Ax_i - b` of the current solution.
+    rayleigh_quotients
+        Rayleigh quotients :math:`R(A, s_i) = \frac{s_i^\top A s_i}{s_i^\top s_i}`.
+
+    Examples
+    --------
+
+    """
+
+    actions: List[np.ndarray]
+    observations: List[np.ndarray]
+    iteration: int = 0
+    residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
+    rayleigh_quotients: Optional[List[float]] = None
+    has_converged = False
+    stopping_criterion = None
 
 
 class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
@@ -34,15 +79,16 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     Parameters
     ----------
     prior :
-        Prior belief over the parameters :math:`(x, A, A^{-1})` of the linear system.
+        Prior belief over the quantities of interest :math:`(x, A, A^{-1})` of the
+        linear system.
     policy :
         Policy defining actions taken by the solver.
     observe :
         Observation process defining how information about the linear system is
         obtained.
     update_belief :
-        Operator updating the belief over the parameters :math:`(x, A, A^{-1})` of the
-        linear system.
+        Operator updating the belief over the quantities of interest :math:`(x, A,
+        A^{-1})` of the linear system.
     stopping_criteria :
         Stopping criteria determining when the solver has converged.
     optimize_hyperparams :
@@ -96,7 +142,6 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         optimize_hyperparams=None,
     ):
         # pylint: disable="too-many-arguments"
-        self.belief = prior
         self.policy = policy
         self.observe = observe
         self.update_belief = update_belief
@@ -107,35 +152,39 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         )
 
     def has_converged(
-        self, problem: LinearSystem, iteration: IntArgType
-    ) -> Tuple[bool, Union[str, None]]:
+        self, problem: LinearSystem, solver_state: LinearSolverState
+    ) -> Tuple[bool, LinearSolverState]:
         """Check whether the solver has converged.
 
         Parameters
         ----------
         problem :
             Linear system to solve.
-        iteration :
-            Number of iterations of the solver performed up to this point.
+        solver_state :
+            Current state of the solver.
 
         Returns
         -------
         has_converged :
             True if the method has converged.
-        convergence_criterion :
-            Convergence criterion which caused termination.
+        solver_state :
+            Updated state of the solver.
         """
+        if solver_state.has_converged:
+            return True, solver_state
+
+        # Check stopping criteria
         for stopping_criterion in self.stopping_criteria:
             _has_converged, convergence_criterion = stopping_criterion(
-                problem, self.belief, iteration
+                problem, self.belief, solver_state
             )
             if _has_converged:
+                solver_state.has_converged = True
+                solver_state.stopping_criterion = stopping_criterion.__class__.__name__
                 return True, convergence_criterion
-        return False, None
+        return False, solver_state
 
-    def solve_iterator(
-        self, problem: LinearSystem
-    ) -> Tuple[np.array, np.array, rvs.RandomVariable]:
+    def solve_iterator(self, problem: LinearSystem) -> LinearSolverState:
         """Generator implementing the solver iteration.
 
         This function allows stepping through the solver iteration one step at a time.
@@ -154,6 +203,23 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         belief :
             Belief over the parameters of the linear system.
         """
+        # Setup
+        solver_state = LinearSolverState(
+            belief=self.prior,
+            actions=[],
+            observations=[],
+            iteration=0,
+            residual=problem.A @ self.prior[0].mean - problem.b,
+            rayleigh_quotients=[],
+            has_converged=False,
+            stopping_criterion=None,
+        )
+
+        # Evaluate stopping criteria
+        _has_converged, conv_crit = self.has_converged(
+            problem=problem, solver_state=solver_state
+        )
+
         while True:
             # Compute action via policy
             action = self.policy(problem, self.belief)
@@ -172,7 +238,10 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         callback: Optional[
             Callable[[np.ndarray, np.ndarray, rvs.RandomVariable], None]
         ] = None,
-    ) -> Tuple[Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable], Dict]:
+    ) -> Tuple[
+        Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
+        LinearSolverState,
+    ]:
         """Solve the linear system.
 
         Parameters
