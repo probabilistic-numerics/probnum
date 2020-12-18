@@ -5,13 +5,13 @@ classes and methods in this subpackage allow the creation of custom
 linear solvers.
 """
 
-from ._linear_solver_state import LinearSolverState
+from ._observation_operators import MatrixMultObservation, ObservationOperator
 from ._policies import (
     ConjugateDirectionsPolicy,
     ExploreExploitPolicy,
     LinearSolverPolicy,
 )
-from ._probabilistic_linear_solver import ProbabilisticLinearSolver
+from ._probabilistic_linear_solver import LinearSolverState, ProbabilisticLinearSolver
 from ._stopping_criteria import (
     MaxIterStoppingCriterion,
     PosteriorStoppingCriterion,
@@ -19,7 +19,6 @@ from ._stopping_criteria import (
     StoppingCriterion,
 )
 
-# from ._observe import
 # from ._hyperparameter_optimization import
 # from ._belief_updates import
 
@@ -34,6 +33,8 @@ __all__ = [
     "MaxIterStoppingCriterion",
     "ResidualStoppingCriterion",
     "PosteriorStoppingCriterion",
+    "ObservationOperator",
+    "MatrixMultObservation",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -46,3 +47,5 @@ StoppingCriterion.__module__ = "probnum.linalg.linearsolvers"
 MaxIterStoppingCriterion.__module__ = "probnum.linalg.linearsolvers"
 ResidualStoppingCriterion.__module__ = "probnum.linalg.linearsolvers"
 PosteriorStoppingCriterion.__module__ = "probnum.linalg.linearsolvers"
+ObservationOperator.__module__ = "probnum.linalg.linearsolvers"
+MatrixMultObservation.__module__ = "probnum.linalg.linearsolvers"

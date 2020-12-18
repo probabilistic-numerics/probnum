@@ -1,13 +1,12 @@
 """Policies of probabilistic linear solvers returning actions."""
-from typing import Callable, Tuple
+from typing import Callable
 
 import numpy as np
 
+import probnum
 import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 from probnum.type import RandomStateArgType
-
-from ._linear_solver_state import LinearSolverState
 
 # pylint: disable="invalid-name"
 
@@ -40,7 +39,7 @@ class LinearSolverPolicy:
         policy: Callable[
             [
                 LinearSystem,
-                LinearSolverState,
+                "probnum.linalg.linearsolvers.LinearSolverState",
                 RandomStateArgType,
             ],
             np.ndarray,
@@ -53,7 +52,9 @@ class LinearSolverPolicy:
         self.random_state = random_state
 
     def __call__(
-        self, problem: LinearSystem, solver_state: LinearSolverState
+        self,
+        problem: LinearSystem,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> np.ndarray:
         """Return an action based on the given problem and model.
 
@@ -61,8 +62,8 @@ class LinearSolverPolicy:
         ----------
         problem :
             Linear system to solve.
-        belief :
-            Belief over the parameters :code:`(x, A, Ainv)` of the linear system.
+        solver_state :
+            Current state of the linear solver.
         """
         return self._policy(problem, solver_state, self.random_state)
 
@@ -92,11 +93,10 @@ class ConjugateDirectionsPolicy(LinearSolverPolicy):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: LinearSolverState,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> np.ndarray:
-        residual = solver_state.residual
         _, _, Ainv, _ = solver_state.belief
-        return -Ainv.mean @ residual
+        return -Ainv.mean @ solver_state.residual
 
 
 class ExploreExploitPolicy(LinearSolverPolicy):
@@ -123,8 +123,7 @@ class ExploreExploitPolicy(LinearSolverPolicy):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> np.ndarray:
-        x, _, Ainv = belief
-        resid = problem.A @ x.mean.reshape(-1, 1) - problem.b.reshape(-1, 1)
-        return rvs.Normal(-Ainv.mean @ resid, x.cov).sample()
+        x, _, Ainv, _ = solver_state.belief
+        return rvs.Normal(-Ainv.mean @ solver_state.residual, x.cov).sample()

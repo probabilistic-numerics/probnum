@@ -5,10 +5,9 @@ from typing import Callable
 
 import numpy as np
 
+import probnum
 from probnum.problems import LinearSystem
 from probnum.type import IntArgType, ScalarArgType
-
-from ._linear_solver_state import LinearSolverState
 
 # pylint: disable="invalid-name,too-few-public-methods"
 
@@ -30,7 +29,7 @@ class StoppingCriterion:
         stopping_criterion: Callable[
             [
                 LinearSystem,
-                LinearSolverState,
+                "probnum.linalg.linearsolvers.LinearSolverState",
             ],
             bool,
         ],
@@ -40,7 +39,7 @@ class StoppingCriterion:
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: LinearSolverState,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> bool:
         """Evaluate whether the solver has converged.
 
@@ -69,7 +68,7 @@ class MaxIterStoppingCriterion(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: LinearSolverState,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> bool:
         if self.maxiter is None:
             _maxiter = problem.A.shape[0] * 10
@@ -108,7 +107,7 @@ class ResidualStoppingCriterion(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: LinearSolverState,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> bool:
         # Compute residual
         x, _, _, _ = solver_state.belief
@@ -117,10 +116,7 @@ class ResidualStoppingCriterion(StoppingCriterion):
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
-        if resid_norm <= self.atol or resid_norm <= self.rtol * b_norm:
-            return True
-        else:
-            return False
+        return (resid_norm <= self.atol) or (resid_norm <= self.rtol * b_norm)
 
 
 class PosteriorStoppingCriterion(StoppingCriterion):
@@ -146,7 +142,7 @@ class PosteriorStoppingCriterion(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: LinearSolverState,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> bool:
         # Trace of the solution covariance
         x, _, _, _ = solver_state.belief
@@ -156,10 +152,6 @@ class PosteriorStoppingCriterion(StoppingCriterion):
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
-        if (
-            np.abs(trace_sol_cov) <= self.atol ** 2
-            or np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2
-        ):
-            return True
-        else:
-            return False
+        return (np.abs(trace_sol_cov) <= self.atol ** 2) or (
+            np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2
+        )
