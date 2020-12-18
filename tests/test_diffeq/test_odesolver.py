@@ -2,8 +2,22 @@ import unittest
 
 import numpy as np
 
-from probnum.diffeq import ConstantSteps, ODESolver, logistic
+from probnum.diffeq import ConstantSteps, ODESolution, ODESolver, logistic
 from probnum.random_variables import Constant
+
+
+class MockODESolution(ODESolution):
+    def __init__(self, t, y):
+        self._t = t
+        self._y = y
+
+    @property
+    def t(self):
+        return self._t
+
+    @property
+    def y(self):
+        return self._y
 
 
 class MockODESolver(ODESolver):
@@ -20,6 +34,9 @@ class MockODESolver(ODESolver):
             Constant(xnew),
             np.nan,
         )  # return nan as error estimate to ensure that it is not used
+
+    def rvlist_to_odesol(self, times, rvs):
+        return MockODESolution(times, rvs)
 
 
 class ODESolverTestCase(unittest.TestCase):

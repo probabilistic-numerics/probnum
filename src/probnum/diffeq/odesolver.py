@@ -52,7 +52,8 @@ class ODESolver(ABC):
             )
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
-        odesol = self.postprocess(times=times, rvs=rvs)
+        odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
+        odesol = self.postprocess(odesol)
         return odesol
 
     @abstractmethod
@@ -66,17 +67,14 @@ class ODESolver(ABC):
         an error estimate."""
         raise NotImplementedError
 
-    def postprocess(self, times, rvs):
-        """Turn list of random variables into an ODE solution object and potentially do
-        more. Overwrite for instance via.
+    @abstractmethod
+    def rvlist_to_odesol(self, times, rvs):
+        """Create an ODESolution object."""
+        raise NotImplementedError
 
-        >>> def postprocess(self, times, rvs):
-        >>> # do something with times and rvs
-        >>> odesol = super().postprocess(times, rvs)
-        >>> # do something with odesol
-        >>> return odesol
-        """
-        return ODESolution(times, rvs, self)
+    def postprocess(self, odesol):
+        """Process the ODESolution object before returning."""
+        return odesol
 
     def method_callback(self, time, current_guess, current_error):
         """Optional callback.
