@@ -19,7 +19,6 @@ from probnum.linalg.linearsolvers.matrixbased import (
     NoisySymmetricMatrixBasedSolver,
     SymmetricMatrixBasedSolver,
 )
-from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
 # Type aliases
 SquareLinOp = Union[
@@ -270,26 +269,7 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
     --------
     problinsolve : Solve linear systems in a Bayesian framework.
     """
-    # Check linear system for type and dimension mismatch
-    _check_linear_system(A=A, b=b, x0=x0)
-
-    # Preprocess linear system
-    A, b, x0 = _preprocess_linear_system(A=A, b=b, x0=x0)
-
-    # Set default convergence parameters
-    n = A.shape[0]
-    if maxiter is None:
-        maxiter = n * 10
-
-    # Solve linear system
-    x, info = SolutionBasedSolver(A=A, b=b, x0=x0).solve(
-        callback=callback, maxiter=maxiter, atol=atol, rtol=rtol
-    )
-
-    # Check result and issue warnings (e.g. singular or ill-conditioned matrix)
-    _postprocess(info=info, A=A)
-
-    return x, info
+    raise NotImplementedError
 
 
 def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
