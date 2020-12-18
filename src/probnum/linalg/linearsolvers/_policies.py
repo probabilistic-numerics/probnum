@@ -11,7 +11,7 @@ from probnum.type import RandomStateArgType
 # pylint: disable="invalid-name"
 
 
-class LinearSolverPolicy:
+class Policy:
     """Policy of a (probabilistic) linear solver.
 
     The policy :math:`\\pi(s \\mid \\mathsf{A}, \\mathsf{H}, \\mathsf{x}, A, b)` of a
@@ -73,8 +73,8 @@ class LinearSolverPolicy:
         return self._is_deterministic
 
 
-class ConjugateDirectionsPolicy(LinearSolverPolicy):
-    """Policy returning A-conjugate directions.
+class ConjugateDirectionsPolicy(Policy):
+    """Policy returning :math:`A`-conjugate directions.
 
     Returns an action given by :math:`s_i = -\\mathbb{E}[\\mathsf{H}]r_{i-1}` where
     :math:`r_{i-1} = A x_{i-1} - b` is the current residual. If the posterior mean of
@@ -99,7 +99,7 @@ class ConjugateDirectionsPolicy(LinearSolverPolicy):
         return -Ainv.mean @ solver_state.residual
 
 
-class ExploreExploitPolicy(LinearSolverPolicy):
+class ExploreExploitPolicy(Policy):
     """Policy trading off exploration and exploitation.
 
     Returns an action given by :math:`s_i \\sim \\mathcal{N}(s; -\\mathbb{E}[

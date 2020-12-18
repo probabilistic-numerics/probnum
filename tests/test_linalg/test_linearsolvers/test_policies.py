@@ -9,7 +9,7 @@ import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
     ConjugateDirectionsPolicy,
     ExploreExploitPolicy,
-    LinearSolverPolicy,
+    Policy,
 )
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
@@ -49,7 +49,7 @@ class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
                 np.zeros(self.dim), np.identity(self.dim), random_state=random_state
             ).sample()
 
-        self.custom_policy = LinearSolverPolicy(
+        self.custom_policy = Policy(
             policy=custom_policy, is_deterministic=False, random_state=self.rng
         )
         self.conj_dir_policy = ConjugateDirectionsPolicy()

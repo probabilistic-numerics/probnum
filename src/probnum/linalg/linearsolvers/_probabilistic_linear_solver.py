@@ -15,7 +15,7 @@ from probnum._probabilistic_numerical_method import (
 )
 from probnum.problems import LinearSystem
 
-from ._policies import LinearSolverPolicy
+from ._policies import Policy
 from ._stopping_criteria import StoppingCriterion
 
 # pylint: disable="invalid-name"
@@ -140,7 +140,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     def __init__(
         self,
         prior: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
-        policy: LinearSolverPolicy,
+        policy: Policy,
         observe,
         update_belief,
         stopping_criteria=Optional[List[StoppingCriterion]],
