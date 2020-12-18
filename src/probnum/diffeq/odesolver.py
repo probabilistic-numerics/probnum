@@ -5,8 +5,6 @@ Interface for Runge-Kutta, ODEFilter.
 
 from abc import ABC, abstractmethod
 
-from probnum.diffeq.odesolution import ODESolution
-
 
 class ODESolver(ABC):
     """Interface for ODESolver."""
