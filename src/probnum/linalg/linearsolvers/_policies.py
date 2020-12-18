@@ -7,6 +7,8 @@ import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 from probnum.type import RandomStateArgType
 
+from ._linear_solver_state import LinearSolverState
+
 # pylint: disable="invalid-name"
 
 
@@ -38,7 +40,7 @@ class LinearSolverPolicy:
         policy: Callable[
             [
                 LinearSystem,
-                Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
+                LinearSolverState,
                 RandomStateArgType,
             ],
             np.ndarray,
@@ -51,9 +53,7 @@ class LinearSolverPolicy:
         self.random_state = random_state
 
     def __call__(
-        self,
-        problem: LinearSystem,
-        belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
+        self, problem: LinearSystem, solver_state: LinearSolverState
     ) -> np.ndarray:
         """Return an action based on the given problem and model.
 
@@ -64,7 +64,7 @@ class LinearSolverPolicy:
         belief :
             Belief over the parameters :code:`(x, A, Ainv)` of the linear system.
         """
-        return self._policy(problem, belief, self.random_state)
+        return self._policy(problem, solver_state, self.random_state)
 
     @property
     def is_deterministic(self) -> bool:
@@ -92,12 +92,11 @@ class ConjugateDirectionsPolicy(LinearSolverPolicy):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
+        solver_state: LinearSolverState,
     ) -> np.ndarray:
-        x, _, Ainv = belief
-        # TODO pass belief over residual as well for increased efficiency (saves one mvm)
-        resid = problem.A @ x.mean.reshape(-1, 1) - problem.b.reshape(-1, 1)
-        return -Ainv.mean @ resid
+        residual = solver_state.residual
+        _, _, Ainv, _ = solver_state.belief
+        return -Ainv.mean @ residual
 
 
 class ExploreExploitPolicy(LinearSolverPolicy):

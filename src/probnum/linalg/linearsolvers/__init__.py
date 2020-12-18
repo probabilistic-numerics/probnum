@@ -5,16 +5,17 @@ classes and methods in this subpackage allow the creation of custom
 linear solvers.
 """
 
+from ._linear_solver_state import LinearSolverState
 from ._policies import (
     ConjugateDirectionsPolicy,
     ExploreExploitPolicy,
     LinearSolverPolicy,
 )
-from ._probabilistic_linear_solver import LinearSolverState, ProbabilisticLinearSolver
+from ._probabilistic_linear_solver import ProbabilisticLinearSolver
 from ._stopping_criteria import (
-    MaxIterations,
-    PosteriorContraction,
-    Residual,
+    MaxIterStoppingCriterion,
+    PosteriorStoppingCriterion,
+    ResidualStoppingCriterion,
     StoppingCriterion,
 )
 
@@ -30,9 +31,9 @@ __all__ = [
     "ConjugateDirectionsPolicy",
     "ExploreExploitPolicy",
     "StoppingCriterion",
-    "MaxIterations",
-    "Residual",
-    "PosteriorContraction",
+    "MaxIterStoppingCriterion",
+    "ResidualStoppingCriterion",
+    "PosteriorStoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -42,6 +43,6 @@ LinearSolverPolicy.__module__ = "probnum.linalg.linearsolvers"
 ConjugateDirectionsPolicy.__module__ = "probnum.linalg.linearsolvers"
 ExploreExploitPolicy.__module__ = "probnum.linalg.linearsolvers"
 StoppingCriterion.__module__ = "probnum.linalg.linearsolvers"
-MaxIterations.__module__ = "probnum.linalg.linearsolvers"
-Residual.__module__ = "probnum.linalg.linearsolvers"
-PosteriorContraction.__module__ = "probnum.linalg.linearsolvers"
+MaxIterStoppingCriterion.__module__ = "probnum.linalg.linearsolvers"
+ResidualStoppingCriterion.__module__ = "probnum.linalg.linearsolvers"
+PosteriorStoppingCriterion.__module__ = "probnum.linalg.linearsolvers"

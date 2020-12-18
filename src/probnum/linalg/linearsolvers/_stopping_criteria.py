@@ -1,13 +1,14 @@
 """Stopping criteria of probabilistic linear solvers."""
 
 import warnings
-from typing import Callable, Tuple, Union
+from typing import Callable
 
 import numpy as np
 
-import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 from probnum.type import IntArgType, ScalarArgType
+
+from ._linear_solver_state import LinearSolverState
 
 # pylint: disable="invalid-name,too-few-public-methods"
 
@@ -28,36 +29,32 @@ class StoppingCriterion:
         self,
         stopping_criterion: Callable[
             [
-                int,
                 LinearSystem,
-                Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
+                LinearSolverState,
             ],
-            Tuple[bool, Union[str, None]],
+            bool,
         ],
     ):
         self._stopping_criterion = stopping_criterion
 
     def __call__(
         self,
-        iteration: int,
         problem: LinearSystem,
-        belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
-    ) -> Tuple[bool, Union[str, None]]:
+        solver_state: LinearSolverState,
+    ) -> bool:
         """Evaluate whether the solver has converged.
 
         Parameters
         ----------
-        iteration
-            Current iteration of the solver.
         problem :
             Linear system to solve.
-        belief :
-            Belief over the parameters :code:`(x, A, Ainv)` of the linear system.
+        solver_state :
+            Current state of the linear solver.
         """
-        return self._stopping_criterion(iteration, problem, belief)
+        return self._stopping_criterion(problem, solver_state)
 
 
-class MaxIterations(StoppingCriterion):
+class MaxIterStoppingCriterion(StoppingCriterion):
     """Maximum number of iterations.
 
     Stop when a maximum number of iterations is reached. If none is
@@ -71,25 +68,24 @@ class MaxIterations(StoppingCriterion):
 
     def __call__(
         self,
-        iteration: int,
         problem: LinearSystem,
-        belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
-    ) -> Tuple[bool, Union[str, None]]:
+        solver_state: LinearSolverState,
+    ) -> bool:
         if self.maxiter is None:
             _maxiter = problem.A.shape[0] * 10
         else:
             _maxiter = self.maxiter
 
-        if iteration >= _maxiter:
+        if solver_state.iteration >= _maxiter:
             warnings.warn(
                 "Iteration terminated. Solver reached the maximum number of iterations."
             )
-            return True, self.__class__.__name__
+            return True
         else:
-            return False, None
+            return False
 
 
-class Residual(StoppingCriterion):
+class ResidualStoppingCriterion(StoppingCriterion):
     """Residual stopping criterion.
 
     Terminate when the norm of the residual :math:`r_{i} = A x_{i} - b` is
@@ -111,26 +107,23 @@ class Residual(StoppingCriterion):
 
     def __call__(
         self,
-        iteration: int,
         problem: LinearSystem,
-        belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
-    ) -> Tuple[bool, Union[str, None]]:
+        solver_state: LinearSolverState,
+    ) -> bool:
         # Compute residual
-        x, _, _ = belief
+        x, _, _, _ = solver_state.belief
         resid = problem.A @ x.mean.reshape(-1, 1) - problem.b.reshape(-1, 1)
         resid_norm = np.linalg.norm(resid)
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
-        if resid_norm <= self.atol:
-            return True, self.__class__.__name__ + "_atol"
-        elif resid_norm <= self.rtol * b_norm:
-            return True, self.__class__.__name__ + "_rtol"
+        if resid_norm <= self.atol or resid_norm <= self.rtol * b_norm:
+            return True
         else:
-            return False, None
+            return False
 
 
-class PosteriorContraction(StoppingCriterion):
+class PosteriorStoppingCriterion(StoppingCriterion):
     """Posterior contraction stopping criterion.
 
     Terminate when the uncertainty about the solution is sufficiently small, i.e. if it
@@ -152,21 +145,21 @@ class PosteriorContraction(StoppingCriterion):
 
     def __call__(
         self,
-        iteration: int,
         problem: LinearSystem,
-        belief: Tuple[rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable],
-    ) -> Tuple[bool, Union[str, None]]:
+        solver_state: LinearSolverState,
+    ) -> bool:
         # Trace of the solution covariance
-        x, _, _ = belief
+        x, _, _, _ = solver_state.belief
         # TODO: replace this with (existing) more efficient trace computation; maybe an
         #  iterative update to the trace property of the linear operator
         trace_sol_cov = x.cov.trace()
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
-        if np.abs(trace_sol_cov) <= self.atol ** 2:
-            return True, self.__class__.__name__ + "_atol"
-        elif np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2:
-            return True, self.__class__.__name__ + "_rtol"
+        if (
+            np.abs(trace_sol_cov) <= self.atol ** 2
+            or np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2
+        ):
+            return True
         else:
-            return False, None
+            return False

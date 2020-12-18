@@ -7,9 +7,9 @@ import numpy as np
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
-    MaxIterations,
-    PosteriorContraction,
-    Residual,
+    MaxIterStoppingCriterion,
+    PosteriorStoppingCriterion,
+    ResidualStoppingCriterion,
     StoppingCriterion,
 )
 from probnum.problems import LinearSystem
@@ -55,9 +55,9 @@ class LinearSolverStoppingCriterionTestCase(unittest.TestCase, NumpyAssertions):
         self.custom_stopcrit = StoppingCriterion(
             stopping_criterion=custom_stopping_criterion
         )
-        self.maxiter_stopcrit = MaxIterations()
-        self.residual_stopcrit = Residual()
-        self.uncertainty_stopcrit = PosteriorContraction()
+        self.maxiter_stopcrit = MaxIterStoppingCriterion()
+        self.residual_stopcrit = ResidualStoppingCriterion()
+        self.uncertainty_stopcrit = PosteriorStoppingCriterion()
 
         self.stopping_criteria = [
             self.custom_stopcrit,
@@ -87,7 +87,7 @@ class MaxIterationsTestCase(LinearSolverStoppingCriterionTestCase):
     def test_stop_if_iter_larger_or_equal_than_maxiter(self):
         """Test if stopping criterion returns true for iteration >= maxiter."""
         for maxiter in [-1, 0, 1.0, 10, 100]:
-            stopcrit = MaxIterations(maxiter=maxiter)
+            stopcrit = MaxIterStoppingCriterion(maxiter=maxiter)
             with self.subTest():
                 has_converged, criterion = stopcrit(
                     self.iteration, self.linsys, self.belief
