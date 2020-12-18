@@ -9,4 +9,5 @@ to work.
 
 from .ivp2filter import ivp2ekf0, ivp2ekf1, ivp2ukf
 from .ivpfiltsmooth import GaussianIVPFilter
+from .kalman_odesolution import KalmanODESolution
 from .odefiltsmooth import probsolve_ivp
