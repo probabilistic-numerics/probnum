@@ -8,7 +8,7 @@ from .kalman_odesolution import KalmanODESolution
 
 
 class GaussianIVPFilter(odesolver.ODESolver):
-    """ODE solver that behaves like a Gaussian filter.
+    """ODE solver that uses a Gaussian filter.
 
     This is based on continuous-discrete Gaussian filtering.
 
