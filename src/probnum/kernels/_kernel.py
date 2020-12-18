@@ -154,7 +154,7 @@ class Kernel(Generic[_InputType], abc.ABC):
             each other.
         """
         # pylint: disable="too-many-boolean-expressions"
-        # Transform into array(s) and add second argument
+
         x0 = np.asarray(x0)
         equal_inputs = False
         if x1 is None:
@@ -163,7 +163,6 @@ class Kernel(Generic[_InputType], abc.ABC):
         else:
             x1 = np.asarray(x1)
 
-        # Error message
         err_msg = (
             f"Argument shapes x0.shape={x0.shape} and x1.shape="
             f"{x1.shape} do not match kernel input dimension "
