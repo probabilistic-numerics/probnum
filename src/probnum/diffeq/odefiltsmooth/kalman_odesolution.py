@@ -66,22 +66,22 @@ class KalmanODESolution(ODESolution):
     [0.69875089]
     """
 
-    def __init__(self, times, rvs, solver):
+    def __init__(self, kalman_posterior):
+        self.kalman_posterior = kalman_posterior
 
-        self._kalman_posterior = KalmanPosterior(
-            times, rvs, solver.gfilt, solver.with_smoothing
+        # Pre-compute projection matrices
+        # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'
+        self.proj_to_y = kalman_posterior.gauss_filter.dynamics_model.proj2coord(
+            coord=0
         )
-        self._t = None
-        self._y = None
-        self._solver = solver
+        self.proj_to_dy = kalman_posterior.gauss_filter.dynamics_model.proj2coord(
+            coord=1
+        )
 
     @property
     def t(self):
         """:obj:`np.ndarray`: Times of the discrete-time solution"""
-        if self._t:  # hotfix
-            return self._t
-        else:
-            return self._kalman_posterior.locations
+        return self.kalman_posterior.locations
 
     @property
     def y(self):
@@ -91,24 +91,19 @@ class KalmanODESolution(ODESolution):
         as a list of random variables.
         To return means and covariances use ``y.mean`` and ``y.cov``.
         """
-        if self._y:  # hotfix
-            return self._y
-        else:
-            projmat = self._solver.prior.proj2coord(coord=0)
-            function_rvs = [projmat @ rv for rv in self._state_rvs]
-            return _RandomVariableList(function_rvs)
+        function_rvs = [self.proj_to_y @ rv for rv in self.kalman_posterior.state_rvs]
+        return _RandomVariableList(function_rvs)
 
     @property
     def dy(self):
         """:obj:`list` of :obj:`RandomVariable`: Derivatives of the discrete-time solution"""
-        projmat = self._solver.prior.proj2coord(coord=1)
-        dy_rvs = [projmat @ rv for rv in self._state_rvs]
-        return _RandomVariableList(dy_rvs)
+        function_rvs = [self.proj_to_dy @ rv for rv in self.kalman_posterior.state_rvs]
+        return _RandomVariableList(function_rvs)
 
-    @property
-    def _state_rvs(self):
-        """:obj:`list` of :obj:`RandomVariable`:"""
-        return self._kalman_posterior.state_rvs
+    # @property
+    # def _state_rvs(self):
+    #     """:obj:`list` of :obj:`RandomVariable`:"""
+    #     return self._kalman_posterior.state_rvs
 
     def __call__(self, t):
         """Evaluate the time-continuous solution at time t.
@@ -128,40 +123,38 @@ class KalmanODESolution(ODESolution):
         :obj:`RandomVariable`
             Probabilistic estimate of the continuous-time solution at time ``t``.
         """
-        out_rv = self._kalman_posterior(t)
-        projmat = self._solver.prior.proj2coord(coord=0)
+        out_rv = self.kalman_posterior(t)
 
         if np.isscalar(t):
-            return projmat @ out_rv
+            return self.proj_to_y @ out_rv
 
-        return _RandomVariableList([projmat @ rv for rv in out_rv])
+        return _RandomVariableList([self.proj_to_y @ rv for rv in out_rv])
 
-    def __len__(self):
-        """Number of points in the discrete-time solution."""
-        return len(self._kalman_posterior)
-
-    def __getitem__(self, idx):
-        """Access the discrete-time solution through indexing and slicing."""
-        projmat = self._solver.prior.proj2coord(coord=0)
-
-        if isinstance(idx, int):
-            rv = self._kalman_posterior[idx]
-            return projmat @ rv
-        elif isinstance(idx, slice):
-            rvs = self._kalman_posterior[idx]
-            f_rvs = [projmat @ rv for rv in rvs]
-            return _RandomVariableList(f_rvs)
-        else:
-            raise ValueError("Invalid index")
+    # def __len__(self):
+    #     """Number of points in the discrete-time solution."""
+    #     return len(self._kalman_posterior)
+    #
+    # def __getitem__(self, idx):
+    #     """Access the discrete-time solution through indexing and slicing."""
+    #     projmat = self._solver.prior.proj2coord(coord=0)
+    #
+    #     if isinstance(idx, int):
+    #         rv = self._kalman_posterior[idx]
+    #         return projmat @ rv
+    #     elif isinstance(idx, slice):
+    #         rvs = self._kalman_posterior[idx]
+    #         f_rvs = [projmat @ rv for rv in rvs]
+    #         return _RandomVariableList(f_rvs)
+    #     else:
+    #         raise ValueError("Invalid index")
 
     def sample(self, t=None, size=()):
-
+        """Sample from the Gaussian filtering ODE solution."""
         size = utils.as_shape(size)
-        projmat = self._solver.prior.proj2coord(coord=0)
 
         # implement only single samples, rest via recursion
         if size != ():
             return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
 
-        samples = self._kalman_posterior.sample(locations=t, size=size)
-        return np.array([projmat @ sample for sample in samples])
+        samples = self.kalman_posterior.sample(locations=t, size=size)
+        return np.array([self.proj_to_y @ sample for sample in samples])

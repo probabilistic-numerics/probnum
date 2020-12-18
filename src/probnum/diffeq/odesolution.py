@@ -45,7 +45,7 @@ class ODESolution(abc.ABC):
         -------
         Probabilistic estimate of the continuous-time solution at time ``t``.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Dense output is not implemented.")
 
     def __len__(self) -> int:
         """Number of points in the discrete-time solution."""
@@ -54,3 +54,7 @@ class ODESolution(abc.ABC):
     def __getitem__(self, idx: int) -> pnrv.RandomVariable:
         """Access the :math:`i`th element of the discrete-time solution."""
         return self.y[idx]
+
+    def sample(self, t=None, size=()):
+        """Sample from the ODE solution."""
+        raise NotImplementedError("Sampling is not implemented.")

@@ -2,7 +2,6 @@ import numpy as np
 
 import probnum.filtsmooth as pnfs
 from probnum.diffeq import odesolver
-from probnum.diffeq.odesolution import ODESolution
 from probnum.random_variables import Normal
 
 from .kalman_odesolution import KalmanODESolution
@@ -79,7 +78,12 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
-        return KalmanODESolution(times=times, rvs=rvs, solver=self)
+
+        kalman_posterior = pnfs.KalmanPosterior(
+            times, rvs, self.gfilt, self.with_smoothing
+        )
+
+        return KalmanODESolution(kalman_posterior)
 
     def postprocess(self, odesol):
         """Rescale covariances with sigma square estimate, (if specified) smooth the
@@ -110,16 +114,18 @@ class GaussianIVPFilter(odesolver.ODESolver):
         -------
         smoothed_solution: ODESolution
         """
-        ivp_filter_posterior = ode_solution._kalman_posterior
-        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior)
-
-        smoothed_solution = KalmanODESolution(
-            times=ivp_smoother_posterior.locations,
-            rvs=ivp_smoother_posterior.state_rvs,
-            solver=ode_solution._solver,
-        )
-
-        return smoothed_solution
+        smoothing_posterior = self.gfilt.smooth(ode_solution.kalman_posterior)
+        return KalmanODESolution(smoothing_posterior)
+        # ivp_filter_posterior = ode_solution._kalman_posterior
+        # ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior)
+        #
+        # smoothed_solution = KalmanODESolution(
+        #     times=ivp_smoother_posterior.locations,
+        #     rvs=ivp_smoother_posterior.state_rvs,
+        #     solver=ode_solution._solver,
+        # )
+        #
+        # return smoothed_solution
 
     def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
         """Estimate the local errors.
