@@ -51,7 +51,7 @@ class Polynomial(Kernel[_InputType]):
         super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        # Check and reshape inputs
+
         x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
 
         # Compute kernel matrix

@@ -70,7 +70,7 @@ class Matern(Kernel[_InputType]):
         super().__init__(input_dim=input_dim, output_dim=1)
 
     def __call__(self, x0: _InputType, x1: Optional[_InputType] = None) -> np.ndarray:
-        # Check and reshape inputs
+
         x0, x1, kernshape = self._check_and_reshape_inputs(x0, x1)
 
         # Compute pairwise euclidean distances ||x0 - x1|| / l
@@ -97,6 +97,7 @@ class Matern(Kernel[_InputType]):
         elif self.nu == np.inf:
             kernmat = np.exp(-(pdists ** 2) / 2.0)
         else:
+            # The modified Bessel function K_nu is not defined for z=0
             pdists[pdists == 0.0] += np.finfo(float).eps
             scaled_pdists = np.sqrt(2 * self.nu) * pdists
             kernmat = (
