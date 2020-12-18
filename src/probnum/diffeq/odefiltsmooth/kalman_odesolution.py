@@ -5,10 +5,11 @@ import numpy as np
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth import KalmanPosterior
-from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
+
+from ..odesolution import ODESolution
 
 
-class KalmanODESolution(FiltSmoothPosterior):
+class KalmanODESolution(ODESolution):
     """Gaussian IVP filtering solution of an ODE problem.
 
     Parameters
@@ -67,18 +68,11 @@ class KalmanODESolution(FiltSmoothPosterior):
 
     def __init__(self, times, rvs, solver):
 
-        # try-except is a hotfix for now:
-        # future PR is to move KalmanPosterior-info out of here, e.g. into GaussianIVPFilter
-        try:
-            self._kalman_posterior = KalmanPosterior(
-                times, rvs, solver.gfilt, solver.with_smoothing
-            )
-            self._t = None
-            self._y = None
-        except AttributeError:
-            self._kalman_posterior = None
-            self._t = times
-            self._y = _RandomVariableList(rvs)
+        self._kalman_posterior = KalmanPosterior(
+            times, rvs, solver.gfilt, solver.with_smoothing
+        )
+        self._t = None
+        self._y = None
         self._solver = solver
 
     @property

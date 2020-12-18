@@ -9,7 +9,7 @@ by being callable. Can function values can also be accessed by indexing.
 import abc
 
 import probnum._randomvariablelist as pnrv_list
-import probnum.random_variable as pnrv
+import probnum.random_variables as pnrv
 
 
 class ODESolution(abc.ABC):

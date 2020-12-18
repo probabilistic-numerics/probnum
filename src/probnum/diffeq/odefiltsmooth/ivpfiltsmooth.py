@@ -5,6 +5,8 @@ from probnum.diffeq import odesolver
 from probnum.diffeq.odesolution import ODESolution
 from probnum.random_variables import Normal
 
+from .kalman_odesolution import KalmanODESolution
+
 
 class GaussianIVPFilter(odesolver.ODESolver):
     """ODE solver that behaves like a Gaussian filter.
@@ -75,13 +77,16 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         return filt_rv, err
 
-    def postprocess(self, times, rvs):
+    def rvlist_to_odesol(self, times, rvs):
+        """Create an ODESolution object."""
+        return KalmanODESolution(times=times, rvs=rvs, solver=self)
+
+    def postprocess(self, odesol):
         """Rescale covariances with sigma square estimate, (if specified) smooth the
         estimate, return ODESolution."""
         if False:  # pylint: disable=using-constant-test
             # will become useful again for time-fixed diffusion models
             rvs = self._rescale(rvs)
-        odesol = super().postprocess(times, rvs)
         if self.with_smoothing is True:
             odesol = self._odesmooth(ode_solution=odesol)
         return odesol
@@ -108,7 +113,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         ivp_filter_posterior = ode_solution._kalman_posterior
         ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior)
 
-        smoothed_solution = ODESolution(
+        smoothed_solution = KalmanODESolution(
             times=ivp_smoother_posterior.locations,
             rvs=ivp_smoother_posterior.state_rvs,
             solver=ode_solution._solver,
