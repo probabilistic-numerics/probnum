@@ -1,13 +1,13 @@
 import numpy as np
 
 import probnum.filtsmooth as pnfs
-from probnum.diffeq import odesolver
 from probnum.random_variables import Normal
 
+from ..odesolver import ODESolver
 from .kalman_odesolution import KalmanODESolution
 
 
-class GaussianIVPFilter(odesolver.ODESolver):
+class GaussianIVPFilter(ODESolver):
     """ODE solver that uses a Gaussian filter.
 
     This is based on continuous-discrete Gaussian filtering.
@@ -86,8 +86,7 @@ class GaussianIVPFilter(odesolver.ODESolver):
         return KalmanODESolution(kalman_posterior)
 
     def postprocess(self, odesol):
-        """Rescale covariances with sigma square estimate, (if specified) smooth the
-        estimate, return ODESolution."""
+        """If specified (at initialisation), smooth the filter output."""
         if False:  # pylint: disable=using-constant-test
             # will become useful again for time-fixed diffusion models
             rvs = self._rescale(rvs)
@@ -116,16 +115,6 @@ class GaussianIVPFilter(odesolver.ODESolver):
         """
         smoothing_posterior = self.gfilt.smooth(ode_solution.kalman_posterior)
         return KalmanODESolution(smoothing_posterior)
-        # ivp_filter_posterior = ode_solution._kalman_posterior
-        # ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior)
-        #
-        # smoothed_solution = KalmanODESolution(
-        #     times=ivp_smoother_posterior.locations,
-        #     rvs=ivp_smoother_posterior.state_rvs,
-        #     solver=ode_solution._solver,
-        # )
-        #
-        # return smoothed_solution
 
     def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
         """Estimate the local errors.
