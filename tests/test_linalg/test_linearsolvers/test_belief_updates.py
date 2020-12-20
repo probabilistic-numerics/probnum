@@ -3,7 +3,11 @@
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import BeliefUpdate, LinearGaussianBeliefUpdate
+from probnum.linalg.linearsolvers import (
+    BeliefUpdate,
+    LinearGaussianBeliefUpdate,
+    LinearSolverState,
+)
 from tests.testing import NumpyAssertions
 
 from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase
@@ -18,7 +22,7 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
         """Test resources for linear solver belief updates."""
 
         # Belief updates
-        def custom_belief_update(solver_state, action, observation):
+        def custom_belief_update(solver_state: LinearSolverState):
             raise NotImplementedError
 
         self.custom_belief_update = BeliefUpdate(belief_update=custom_belief_update)

@@ -120,7 +120,6 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     Create a custom probabilistic linear solver from pre-defined components.
 
     >>> from probnum.linalg.linearsolvers import ProbabilisticLinearSolver
-
     >>> #pls = ProbabilisticLinearSolver()
 
     Define a linear system.
@@ -174,7 +173,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             actions=[],
             observations=[],
             iteration=0,
-            residual=problem.A @ self.prior[0].mean - problem.b[:, None],
+            residual=problem.A @ self.prior[0].mean - problem.b,
             rayleigh_quotients=[],
             has_converged=False,
             stopping_criterion=None,
@@ -248,15 +247,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     def solve(
         self,
         problem: LinearSystem,
-    ) -> Tuple[
-        Tuple[
-            rvs.RandomVariable,
-            rvs.RandomVariable,
-            rvs.RandomVariable,
-            rvs.RandomVariable,
-        ],
-        LinearSolverState,
-    ]:
+    ) -> Tuple[Tuple[rvs.RandomVariable, ...], LinearSolverState,]:
         """Solve the linear system.
 
         Parameters
@@ -266,6 +257,10 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
         Returns
         -------
+        belief : Posterior belief `(x, A, Ainv, b)` over the solution :math:`x`,
+                 the system matrix :math:`A`, its inverse :math:`H=A^{-1}` and the
+                 right hand side :math:`b`.
+        solver_state : State of the solver at convergence.
         """
         # Setup
         solver_state = self._init_solver_state(problem=problem)
@@ -278,18 +273,20 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         # Solver iteration
         solve_iterator = self.solve_iterator(problem=problem, solver_state=solver_state)
 
-        for sost in solve_iterator:
+        for current_solver_state in solve_iterator:
 
             # Evaluate stopping criteria and update solver state
             _has_converged, solver_state = self.has_converged(
-                problem=problem, solver_state=sost
+                problem=problem, solver_state=current_solver_state
             )
 
         # Belief over solution, system matrix, its inverse and the right hand side
-        x, A, Ainv, b = self._infer_belief_system_components(solver_state=solver_state)
+        solver_state = self._infer_belief_system_components(solver_state=solver_state)
 
-        return (x, A, Ainv, b), solver_state
+        return solver_state.belief, solver_state
 
-    def _infer_belief_system_components(self, solver_state: LinearSolverState):
+    def _infer_belief_system_components(
+        self, solver_state: LinearSolverState
+    ) -> LinearSolverState:
         """Compute the belief over all components of the linear system."""
         raise NotImplementedError

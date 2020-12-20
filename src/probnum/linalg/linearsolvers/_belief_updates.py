@@ -1,7 +1,5 @@
 """Belief updates for probabilistic linear solvers."""
 
-import numpy as np
-
 import probnum  # pylint: disable="unused-import
 
 
@@ -39,13 +37,13 @@ class BeliefUpdate:
 
 
 class LinearGaussianBeliefUpdate(BeliefUpdate):
-    """"""
+    """Belief update assuming Gaussianity and linear observations."""
 
     def __init__(self):
         super().__init__(belief_update=self.__call__)
 
     def __call__(self, solver_state: "probnum.linalg.linearsolvers.LinearSolverState"):
-        """Belief update assuming Gaussianity and linear observations.
+        """
 
         Parameters
         ----------
