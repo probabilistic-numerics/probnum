@@ -58,8 +58,8 @@ class LinearSolverState(PNMethodState):
 
     """
 
-    actions: List[np.ndarray]
-    observations: List[np.ndarray]
+    actions: Optional[List[np.ndarray]] = None
+    observations: Optional[List[np.ndarray]] = None
     iteration: int = 0
     residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
     rayleigh_quotients: Optional[List[float]] = None
@@ -174,7 +174,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             actions=[],
             observations=[],
             iteration=0,
-            residual=problem.A @ self.prior[0].mean - problem.b,
+            residual=problem.A @ self.prior[0].mean - problem.b[:, None],
             rayleigh_quotients=[],
             has_converged=False,
             stopping_criterion=None,

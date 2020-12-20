@@ -95,8 +95,11 @@ class ConjugateDirectionsPolicy(Policy):
         problem: LinearSystem,
         solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> np.ndarray:
-        _, _, Ainv, _ = solver_state.belief
-        return -Ainv.mean @ solver_state.residual
+        x, _, Ainv, _ = solver_state.belief
+        residual = solver_state.residual
+        if residual is None:
+            residual = problem.A @ x.mean - problem.b
+        return -Ainv.mean @ residual
 
 
 class ExploreExploitPolicy(Policy):

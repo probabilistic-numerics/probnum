@@ -9,6 +9,7 @@ import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
     ConjugateDirectionsPolicy,
     ExploreExploitPolicy,
+    LinearSolverState,
     Policy,
 )
 from probnum.problems import LinearSystem
@@ -31,7 +32,7 @@ class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
         _A = random_spd_matrix(self.dim, random_state=self.rng)
         self.linsys = LinearSystem(A=_A, b=_A @ _solution, solution=_solution)
 
-        # Belief over system
+        # Prior and solver state
         Ainv0 = rvs.Normal(
             linops.ScalarMult(scalar=2.0, shape=(self.dim, self.dim)),
             linops.SymmetricKronecker(linops.Identity(self.dim)),
@@ -40,11 +41,33 @@ class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
             linops.ScalarMult(scalar=0.5, shape=(self.dim, self.dim)),
             linops.SymmetricKronecker(linops.Identity(self.dim)),
         )
-        x = Ainv0 @ self.linsys.b.reshape(-1, 1)
-        self.belief = (x, A0, Ainv0)
+        # Induced distribution on x via Ainv
+        # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
+        Wb = Ainv0.cov.A @ self.linsys.b
+        bWb = np.squeeze(Wb.T @ self.linsys.b)
+
+        def _mv(x):
+            return 0.5 * (bWb * Ainv0.cov.A @ x + Wb @ (Wb.T @ x))
+
+        cov_op = linops.LinearOperator(
+            shape=self.linsys.A.shape, dtype=float, matvec=_mv, matmat=_mv
+        )
+        x = rvs.Normal(mean=Ainv0.mean @ self.linsys.b, cov=cov_op)
+        b = rvs.Constant(self.linsys.b)
+        self.prior = (x, A0, Ainv0, b)
+        self.solver_state = LinearSolverState(
+            belief=self.prior,
+            actions=[],
+            observations=[],
+            iteration=0,
+            residual=self.linsys.A @ self.prior[0].mean - self.linsys.b,
+            rayleigh_quotients=[],
+            has_converged=False,
+            stopping_criterion=None,
+        )
 
         # Policies
-        def custom_policy(problem, belief, random_state):
+        def custom_policy(problem, solver_state, random_state):
             return rvs.Normal(
                 np.zeros(self.dim), np.identity(self.dim), random_state=random_state
             ).sample()
@@ -65,7 +88,7 @@ class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
         """Test whether policies return a vector."""
         for policy in self.policies:
             with self.subTest():
-                action = policy(problem=self.linsys, belief=self.belief)
+                action = policy(problem=self.linsys, solver_state=self.solver_state)
                 self.assertIsInstance(
                     action,
                     np.ndarray,
@@ -87,8 +110,15 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
         over the inverse has the true inverse as a posterior mean."""
         Ainv = np.linalg.inv(self.linsys.A)
         x = self.rng.random(self.dim)
-        belief = (rvs.Constant(x), self.linsys.A, rvs.Constant(Ainv))
-        action = self.conj_dir_policy(self.linsys, belief)
+        solver_state = LinearSolverState(
+            belief=(
+                rvs.Constant(x),
+                self.linsys.A,
+                rvs.Constant(Ainv),
+                rvs.Constant(self.linsys.b),
+            )
+        )
+        action = self.conj_dir_policy(problem=self.linsys, solver_state=solver_state)
 
         self.assertAllClose(
             self.linsys.solution,
@@ -100,14 +130,33 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
         # TODO: use ProbabilisticLinearSolver's solve_iter function to test this
 
     def test_is_deterministic(self):
+        """Test whether the policy is deterministic."""
         self.assertTrue(self.conj_dir_policy.is_deterministic)
+        action1 = self.conj_dir_policy(
+            problem=self.linsys, solver_state=self.solver_state
+        )
+        action2 = self.conj_dir_policy(
+            problem=self.linsys, solver_state=self.solver_state
+        )
+        self.assertTrue(
+            np.all(action1 == action2),
+            msg=f"Policy returned two different actions for the same " f"input.",
+        )
 
 
 class ExploreExploitPolicyTestCase(LinearSolverPolicyTestCase):
     """Test case for the explore-exploit policy."""
 
     def test_is_stochastic(self):
+        """Test whether the policy behaves stochastically."""
         self.assertFalse(self.explore_exploit_policy.is_deterministic)
-        action1 = self.explore_exploit_policy(problem=self.linsys, belief=self.belief)
-        action2 = self.explore_exploit_policy(problem=self.linsys, belief=self.belief)
-        self.assertFalse(np.all(action1 == action2))
+        action1 = self.explore_exploit_policy(
+            problem=self.linsys, solver_state=self.solver_state
+        )
+        action2 = self.explore_exploit_policy(
+            problem=self.linsys, solver_state=self.solver_state
+        )
+        self.assertFalse(
+            np.all(action1 == action2),
+            msg=f"Policy returned the same action for two subsequent " f"evaluations.",
+        )
