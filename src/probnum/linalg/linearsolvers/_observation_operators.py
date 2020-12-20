@@ -47,5 +47,8 @@ class MatrixMultObservation(ObservationOperator):
     multiplying with the system matrix :math:`y = As`.
     """
 
+    def __init__(self):
+        super().__init__(observation_op=self.__call__)
+
     def __call__(self, problem: LinearSystem, action: np.ndarray) -> np.ndarray:
         return problem.A @ action
