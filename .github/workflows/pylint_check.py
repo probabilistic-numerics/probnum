@@ -53,7 +53,7 @@ except AssertionError:
        configuration file.
     2. You added a new global exception to `./pyproject.toml` after deciding that this
        is a message that we do not want to enforce anywhere currently. Then, please add
-       this exception also to the `GLOBAL_DISABLES` variable in this this python script
+       this exception also to the `GLOBAL_DISABLES` variable in this python script
        (`./github/workflows/pylint_check.py`).
 
     If you are not sure what exactly you are supposed to do, or if you think that this

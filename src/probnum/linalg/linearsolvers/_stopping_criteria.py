@@ -99,7 +99,7 @@ class ResidualStoppingCriterion(StoppingCriterion):
         Relative residual tolerance.
     norm_ord :
         Order of the norm. Defaults to the euclidean (:math:`p=2`) norm. See
-        :meth:`numpy.linalg.norm` for a complete list of available choices.
+        :func:`numpy.linalg.norm` for a complete list of available choices.
     """
 
     def __init__(
