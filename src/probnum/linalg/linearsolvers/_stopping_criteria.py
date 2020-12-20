@@ -25,7 +25,7 @@ class StoppingCriterion:
 
     See Also
     --------
-    MaxiterStoppingCriterion : Stop after a maximum number of iterations.
+    MaxIterStoppingCriterion : Stop after a maximum number of iterations.
     ResidualStoppingCriterion : Stop based on the norm of the residual :math:`Ax_i -b`.
     PosteriorStoppingCriterion : Stop based on the uncertainty about the solution.
     """

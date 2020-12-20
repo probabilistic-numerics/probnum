@@ -2,7 +2,11 @@
 
 import numpy as np
 
-from probnum.linalg.linearsolvers import MatrixMultObservation, ObservationOperator
+from probnum.linalg.linearsolvers import (
+    LinearSolverState,
+    MatrixMultObservation,
+    ObservationOperator,
+)
 from probnum.problems import LinearSystem
 from tests.testing import NumpyAssertions
 
@@ -17,12 +21,13 @@ class ObservationOperatorTestCase(ProbabilisticLinearSolverTestCase, NumpyAssert
     def setUp(self) -> None:
         """Test resources for observation operators."""
 
-        # Actions
+        # Solver state
         self.action = self.rng.normal(size=self.dim)
+        self.solver_state.actions = [self.action]
 
         # Observation operators
-        def custom_obs(problem: LinearSystem, action: np.ndarray):
-            return action @ (problem.A @ action)
+        def custom_obs(problem: LinearSystem, solver_state: LinearSolverState):
+            return solver_state.actions[-1] @ (problem.A @ solver_state.actions[-1])
 
         self.custom_obs = ObservationOperator(observation_op=custom_obs)
         self.matmult_obs = MatrixMultObservation()
@@ -32,7 +37,9 @@ class ObservationOperatorTestCase(ProbabilisticLinearSolverTestCase, NumpyAssert
         """Test whether observation operators return a vector."""
         for obs_op in self.observation_ops:
             with self.subTest():
-                observation = obs_op(problem=self.linsys, action=self.action)
+                observation = obs_op(
+                    problem=self.linsys, solver_state=self.solver_state
+                )
                 self.assertIsInstance(
                     observation,
                     (np.ndarray, float, np.float_),
@@ -50,5 +57,5 @@ class MatrixMultObservationTestCase(ObservationOperatorTestCase):
         the system matrix."""
         A_copy = self.linsys.A.copy()  # in case evaluation of A is stochastic
         self.assertArrayEqual(
-            self.matmult_obs(self.linsys, self.action), A_copy @ self.action
+            self.matmult_obs(self.linsys, self.solver_state), A_copy @ self.action
         )
