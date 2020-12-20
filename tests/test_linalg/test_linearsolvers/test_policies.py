@@ -50,7 +50,7 @@ class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAsserti
                     action,
                     np.ndarray,
                     msg=f"Action {action} returned by {policy.__class__.__name__} is "
-                    f"not an np.ndarray.",
+                    "not an np.ndarray.",
                 )
                 self.assertTrue(
                     action.shape == (self.linsys.A.shape[1],),
@@ -97,7 +97,7 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
         )
         self.assertTrue(
             np.all(action1 == action2),
-            msg=f"Policy returned two different actions for the same " f"input.",
+            msg="Policy returned two different actions for the same input.",
         )
 
 
@@ -115,5 +115,5 @@ class ExploreExploitPolicyTestCase(LinearSolverPolicyTestCase):
         )
         self.assertFalse(
             np.all(action1 == action2),
-            msg=f"Policy returned the same action for two subsequent " f"evaluations.",
+            msg="Policy returned the same action for two subsequent evaluations.",
         )
