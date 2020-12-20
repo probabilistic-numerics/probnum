@@ -72,6 +72,16 @@ class ResidualTestCase(LinearSolverStoppingCriterionTestCase):
 
     def test_stops_if_true_solution(self):
         """Test if stopping criterion returns True for exact solution."""
+        self.assertTrue(
+            self.residual_stopcrit(self.linsys, self.solver_state_converged)
+        )
+
+    def test_different_norms(self):
+        """Test if stopping criterion can be computed for different norms."""
+        for norm_ord in [np.inf, -np.inf, 0.5, 1, 2, 10]:
+            stopcrit = ResidualStoppingCriterion(ord=norm_ord)
+            with self.subTest():
+                stopcrit(self.linsys, self.solver_state)
 
 
 class PosteriorContractionTestCase(LinearSolverStoppingCriterionTestCase):
@@ -79,3 +89,6 @@ class PosteriorContractionTestCase(LinearSolverStoppingCriterionTestCase):
 
     def test_stops_if_true_solution(self):
         """Test if stopping criterion returns True for exact solution."""
+        self.assertTrue(
+            self.residual_stopcrit(self.linsys, self.solver_state_converged)
+        )

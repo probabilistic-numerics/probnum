@@ -97,11 +97,16 @@ class ResidualStoppingCriterion(StoppingCriterion):
         Absolute residual tolerance.
     rtol :
         Relative residual tolerance.
+    ord :
+        Order of the norm (see :meth:`numpy.linalg.norm`). Default is the 2-norm.
     """
 
-    def __init__(self, atol: ScalarArgType = 10 ** -5, rtol: ScalarArgType = 10 ** -5):
+    def __init__(
+        self, atol: ScalarArgType = 10 ** -5, rtol: ScalarArgType = 10 ** -5, ord=2
+    ):
         self.atol = atol
         self.rtol = rtol
+        self.ord = ord
         super().__init__(stopping_criterion=self.__call__)
 
     def __call__(
@@ -110,13 +115,15 @@ class ResidualStoppingCriterion(StoppingCriterion):
         solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
     ) -> bool:
         # Compute residual
-        x, _, _, _ = solver_state.belief
-        resid = problem.A @ x.mean.reshape(-1, 1) - problem.b.reshape(-1, 1)
-        resid_norm = np.linalg.norm(resid)
+        residual = solver_state.residual
+        if residual is None:
+            x, _, _, _ = solver_state.belief
+            residual = problem.A @ x.mean - problem.b
+        residual_norm = np.linalg.norm(residual, ord=self.ord)
 
         # Compare (relative) residual to tolerances
-        b_norm = np.linalg.norm(problem.b)
-        return resid_norm <= self.atol or resid_norm <= self.rtol * b_norm
+        b_norm = np.linalg.norm(problem.b, ord=self.ord)
+        return residual_norm <= self.atol or residual_norm <= self.rtol * b_norm
 
 
 class PosteriorStoppingCriterion(StoppingCriterion):

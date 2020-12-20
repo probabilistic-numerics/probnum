@@ -64,6 +64,16 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             stopping_criterion=None,
         )
 
+        cls.solver_state_converged = LinearSolverState(
+            belief=(
+                rvs.Normal(mean=_solution, cov=10 ** -12 * np.eye(cls.dim)),
+                rvs.Constant(_A),
+                rvs.Constant(np.linalg.inv(_A)),
+                b,
+            ),
+            iteration=10,
+        )
+
     def setUp(self) -> None:
         """Test resources for custom probabilistic linear solvers."""
 
