@@ -1,56 +1,34 @@
 """Tests for stopping criteria of probabilistic linear solvers."""
 
-import unittest
-
 import numpy as np
 
-import probnum.linops as linops
-import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
     MaxIterStoppingCriterion,
     PosteriorStoppingCriterion,
     ResidualStoppingCriterion,
     StoppingCriterion,
 )
-from probnum.problems import LinearSystem
-from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
+
+from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase
 
 # pylint: disable="invalid-name"
 
 
-class LinearSolverStoppingCriterionTestCase(unittest.TestCase, NumpyAssertions):
+class LinearSolverStoppingCriterionTestCase(
+    ProbabilisticLinearSolverTestCase, NumpyAssertions
+):
     """General test case for stopping criteria of probabilistic linear solvers."""
 
     def setUp(self) -> None:
         """Test resources for linear solver stopping criteria."""
 
-        # Linear system
-        self.rng = np.random.default_rng()
-        self.dim = 10
-        _solution = self.rng.normal(size=self.dim)
-        _A = random_spd_matrix(self.dim, random_state=self.rng)
-        self.linsys = LinearSystem(A=_A, b=_A @ _solution, solution=_solution)
-
-        # Belief over system
-        self.iteration = 10
-        Ainv0 = rvs.Normal(
-            linops.ScalarMult(scalar=2.0, shape=(self.dim, self.dim)),
-            linops.SymmetricKronecker(linops.Identity(self.dim)),
-        )
-        A0 = rvs.Normal(
-            linops.ScalarMult(scalar=0.5, shape=(self.dim, self.dim)),
-            linops.SymmetricKronecker(linops.Identity(self.dim)),
-        )
-        x = Ainv0 @ self.linsys.b.reshape(-1, 1)
-        self.belief = (x, A0, Ainv0)
-
         # Stopping criteria
-        def custom_stopping_criterion(iteration, problem, belief):
-            if iteration >= 100 or belief[2].cov.trace() < 10 ** -3:
-                return True, "custom"
-            else:
-                return False, None
+        def custom_stopping_criterion(problem, solver_state):
+            return (
+                solver_state.iteration >= 100
+                or solver_state.belief[2].cov.trace() < 10 ** -3
+            )
 
         self.custom_stopcrit = StoppingCriterion(
             stopping_criterion=custom_stopping_criterion
@@ -66,19 +44,12 @@ class LinearSolverStoppingCriterionTestCase(unittest.TestCase, NumpyAssertions):
             self.uncertainty_stopcrit,
         ]
 
-    def test_stop_crit_returns_bool_and_string(self):
-        """Test whether stopping criteria return a bool and a string or None."""
+    def test_stop_crit_returns_bool(self):
+        """Test whether stopping criteria return a boolean value."""
         for stopcrit in self.stopping_criteria:
-
             with self.subTest():
-                has_converged, criterion = stopcrit(
-                    self.iteration, self.linsys, self.belief
-                )
-                self.assertIsInstance(has_converged, bool)
-                if has_converged:
-                    self.assertIsInstance(criterion, str)
-                else:
-                    self.assertIsNone(criterion)
+                has_converged = stopcrit(self.linsys, self.solver_state)
+                self.assertIsInstance(has_converged, (bool, np.bool_))
 
 
 class MaxIterationsTestCase(LinearSolverStoppingCriterionTestCase):
@@ -89,14 +60,10 @@ class MaxIterationsTestCase(LinearSolverStoppingCriterionTestCase):
         for maxiter in [-1, 0, 1.0, 10, 100]:
             stopcrit = MaxIterStoppingCriterion(maxiter=maxiter)
             with self.subTest():
-                has_converged, criterion = stopcrit(
-                    self.iteration, self.linsys, self.belief
-                )
-                if self.iteration >= maxiter:
+                has_converged = stopcrit(self.linsys, self.solver_state)
+                if self.solver_state.iteration >= maxiter:
                     self.assertTrue(has_converged)
-                    self.assertIsInstance(criterion, str)
                 else:
-                    self.assertIsNone(criterion)
                     self.assertFalse(has_converged)
 
 

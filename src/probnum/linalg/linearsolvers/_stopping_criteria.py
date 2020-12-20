@@ -116,7 +116,7 @@ class ResidualStoppingCriterion(StoppingCriterion):
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
-        return (resid_norm <= self.atol) or (resid_norm <= self.rtol * b_norm)
+        return resid_norm <= self.atol or resid_norm <= self.rtol * b_norm
 
 
 class PosteriorStoppingCriterion(StoppingCriterion):
@@ -152,6 +152,7 @@ class PosteriorStoppingCriterion(StoppingCriterion):
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)
-        return (np.abs(trace_sol_cov) <= self.atol ** 2) or (
-            np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2
+        return (
+            np.abs(trace_sol_cov) <= self.atol ** 2
+            or np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2
         )

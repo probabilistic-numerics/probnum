@@ -59,16 +59,13 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         # Matrix-based linear solvers
         self.matblinsolvers = [linalg.problinsolve]
 
-        # Solution-based linear solvers
-        self.solblinsolvers = [linalg.bayescg]
-
     def test_dimension_mismatch(self):
         """Test whether linear solvers throw an exception for input with mismatched
         dimensions."""
         A = np.zeros(shape=[3, 3])
         b = np.zeros(shape=[4])
         x0 = np.zeros(shape=[1])
-        for plinsolve in [linalg.problinsolve, linalg.bayescg]:
+        for plinsolve in [linalg.problinsolve]:
             with self.subTest():
                 with self.assertRaises(
                     ValueError, msg="Invalid input formats should raise a ValueError."
