@@ -4,6 +4,7 @@ from typing import Callable
 
 import numpy as np
 
+import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem
 
 
@@ -20,24 +21,35 @@ class ObservationOperator:
 
     Examples
     --------
+
+    See Also
+    --------
+    MatrixMultObservation : Matrix-vector product observations.
     """
 
     def __init__(
-        self, observation_op: Callable[[LinearSystem, np.ndarray], np.ndarray]
+        self,
+        observation_op: Callable[
+            [LinearSystem, "probnum.linalg.linearsolvers.LinearSolverState"], np.ndarray
+        ],
     ):
         self._observation_op = observation_op
 
-    def __call__(self, problem: LinearSystem, action: np.ndarray) -> np.ndarray:
+    def __call__(
+        self,
+        problem: LinearSystem,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+    ) -> np.ndarray:
         """Collect an observation about the linear system.
 
         Parameters
         ----------
         problem :
             Linear system to solve.
-        action
-            Action to probe linear system.
+        solver_state :
+            Current state of the linear solver.
         """
-        return self._observation_op(problem, action)
+        return self._observation_op(problem, solver_state)
 
 
 class MatrixMultObservation(ObservationOperator):
@@ -50,5 +62,9 @@ class MatrixMultObservation(ObservationOperator):
     def __init__(self):
         super().__init__(observation_op=self.__call__)
 
-    def __call__(self, problem: LinearSystem, action: np.ndarray) -> np.ndarray:
-        return problem.A @ action
+    def __call__(
+        self,
+        problem: LinearSystem,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+    ) -> np.ndarray:
+        return problem.A @ solver_state.actions[-1]

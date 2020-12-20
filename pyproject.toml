@@ -57,6 +57,7 @@ line-too-long,
 missing-class-docstring,
 unnecessary-pass,
 unused-variable,
+redefined-builtin,
 """
 # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 

@@ -22,6 +22,12 @@ class StoppingCriterion:
     ----------
     stopping_criterion
         Callable defining the stopping criterion.
+
+    See Also
+    --------
+    MaxiterStoppingCriterion : Stop after a maximum number of iterations.
+    ResidualStoppingCriterion : Stop based on the norm of the residual :math:`Ax_i -b`.
+    PosteriorStoppingCriterion : Stop based on the uncertainty about the solution.
     """
 
     def __init__(

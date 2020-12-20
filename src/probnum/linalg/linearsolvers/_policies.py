@@ -32,6 +32,11 @@ class Policy:
         Random state of the policy. If None (or :mod:`numpy.random`), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
+
+    See Also
+    --------
+    ConjugateDirectionsPolicy : Policy returning :math:`A`-conjugate actions.
+    ExploreExploitPolicy: Policy trading off exploration and exploitation.
     """
 
     def __init__(
