@@ -455,7 +455,7 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
 
     # Solution-based view
     if isinstance(x0, rvs.RandomVariable):
-        return SolutionBasedSolver(A=A, b=b, x0=x0)
+        raise NotImplementedError
     # Matrix-based view
     else:
         if "sym" in assume_A and "pos" in assume_A:

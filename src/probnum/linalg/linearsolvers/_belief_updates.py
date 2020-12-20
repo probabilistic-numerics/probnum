@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from ._probabilistic_linear_solver import LinearSolverState
+import probnum  # pylint: disable="unused-import
 
 
 class BeliefUpdate:
@@ -17,7 +17,7 @@ class BeliefUpdate:
 
     def __call__(
         self,
-        solver_state: LinearSolverState,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
         action: np.ndarray,
         observation: np.ndarray,
     ):

@@ -5,7 +5,7 @@ from typing import Callable
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem
 from probnum.type import IntArgType, ScalarArgType
 
@@ -97,16 +97,17 @@ class ResidualStoppingCriterion(StoppingCriterion):
         Absolute residual tolerance.
     rtol :
         Relative residual tolerance.
-    ord :
-        Order of the norm (see :meth:`numpy.linalg.norm`). Default is the 2-norm.
+    norm_ord :
+        Order of the norm. Defaults to the euclidean (:math:`p=2`) norm. See
+        :meth:`numpy.linalg.norm` for a complete list of available choices.
     """
 
     def __init__(
-        self, atol: ScalarArgType = 10 ** -5, rtol: ScalarArgType = 10 ** -5, ord=2
+        self, atol: ScalarArgType = 10 ** -5, rtol: ScalarArgType = 10 ** -5, norm_ord=2
     ):
         self.atol = atol
         self.rtol = rtol
-        self.ord = ord
+        self.norm_ord = norm_ord
         super().__init__(stopping_criterion=self.__call__)
 
     def __call__(
@@ -119,10 +120,10 @@ class ResidualStoppingCriterion(StoppingCriterion):
         if residual is None:
             x, _, _, _ = solver_state.belief
             residual = problem.A @ x.mean - problem.b
-        residual_norm = np.linalg.norm(residual, ord=self.ord)
+        residual_norm = np.linalg.norm(residual, ord=self.norm_ord)
 
         # Compare (relative) residual to tolerances
-        b_norm = np.linalg.norm(problem.b, ord=self.ord)
+        b_norm = np.linalg.norm(problem.b, ord=self.norm_ord)
         return residual_norm <= self.atol or residual_norm <= self.rtol * b_norm
 
 

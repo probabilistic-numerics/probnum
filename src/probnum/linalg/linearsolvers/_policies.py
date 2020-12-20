@@ -3,7 +3,7 @@ from typing import Callable
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import
 import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 from probnum.type import RandomStateArgType

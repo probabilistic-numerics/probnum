@@ -79,7 +79,7 @@ class ResidualTestCase(LinearSolverStoppingCriterionTestCase):
     def test_different_norms(self):
         """Test if stopping criterion can be computed for different norms."""
         for norm_ord in [np.inf, -np.inf, 0.5, 1, 2, 10]:
-            stopcrit = ResidualStoppingCriterion(ord=norm_ord)
+            stopcrit = ResidualStoppingCriterion(norm_ord=norm_ord)
             with self.subTest():
                 stopcrit(self.linsys, self.solver_state)
 
