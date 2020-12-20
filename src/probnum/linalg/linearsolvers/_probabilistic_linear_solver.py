@@ -240,7 +240,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             solver_state.observations.append(observation)
 
             # Update the belief over the system matrix, its inverse and/or the solution
-            solver_state.belief = self.update_belief(solver_state)
+            solver_state = self.update_belief(solver_state)
 
             yield solver_state
 
