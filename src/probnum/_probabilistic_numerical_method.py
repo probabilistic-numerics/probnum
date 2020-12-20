@@ -2,7 +2,7 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, TypeVar, Union
+from typing import Tuple, TypeVar, Union
 
 import probnum
 
@@ -11,9 +11,9 @@ ProblemType = TypeVar("ProblemType")
 
 @dataclasses.dataclass
 class PNMethodState:
-    """State of the probabilistic numerical method.
+    """State of a probabilistic numerical method.
 
-    The state of the PN method contains the current belief over the quantities of
+    The state of a PN method contains the current belief over the quantities of
     interest (such as the solution) and miscellaneous quantities computed during a
     run of a probabilistic numerical method. The state is passed between the
     different components of the method.
@@ -27,7 +27,7 @@ class PNMethodState:
     belief: Tuple[
         Union[
             "probnum.random_variables.RandomVariable",
-            "probnum.random_processes.RandomProcess",
+            # "probnum.random_processes.RandomProcess",
         ],
         ...,
     ]
@@ -68,7 +68,7 @@ class ProbabilisticNumericalMethod(ABC):
         prior: Tuple[
             Union[
                 "probnum.random_variables.RandomVariable",
-                "probnum.random_processes.RandomProcess",
+                # "probnum.random_processes.RandomProcess",
             ],
             ...,
         ],
@@ -83,7 +83,7 @@ class ProbabilisticNumericalMethod(ABC):
         Tuple[
             Union[
                 "probnum.random_variables.RandomVariable",
-                "probnum.random_processes.RandomProcess",
+                # "probnum.random_processes.RandomProcess",
             ],
             ...,
         ],

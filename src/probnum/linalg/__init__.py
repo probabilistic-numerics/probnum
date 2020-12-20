@@ -2,7 +2,7 @@
 
 This package implements probabilistic numerical methods for the solution
 of problems arising in linear algebra, such as the solution of linear
-systems.
+systems :math:`Ax=b`.
 """
 from ._problinsolve import bayescg, problinsolve
 
