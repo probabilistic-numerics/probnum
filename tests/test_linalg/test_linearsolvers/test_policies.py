@@ -1,10 +1,8 @@
 """Test cases for policies of probabilistic linear solvers."""
 
-import unittest
 
 import numpy as np
 
-import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
     ConjugateDirectionsPolicy,
@@ -12,59 +10,18 @@ from probnum.linalg.linearsolvers import (
     LinearSolverState,
     Policy,
 )
-from probnum.problems import LinearSystem
-from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
+
+from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase
 
 # pylint: disable="invalid-name"
 
 
-class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
+class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
     """General test case for policies of probabilistic linear solvers."""
 
     def setUp(self) -> None:
         """Test resources for linear solver policies."""
-
-        # Linear system
-        self.rng = np.random.default_rng()
-        self.dim = 10
-        _solution = self.rng.normal(size=self.dim)
-        _A = random_spd_matrix(self.dim, random_state=self.rng)
-        self.linsys = LinearSystem(A=_A, b=_A @ _solution, solution=_solution)
-
-        # Prior and solver state
-        Ainv0 = rvs.Normal(
-            linops.ScalarMult(scalar=2.0, shape=(self.dim, self.dim)),
-            linops.SymmetricKronecker(linops.Identity(self.dim)),
-        )
-        A0 = rvs.Normal(
-            linops.ScalarMult(scalar=0.5, shape=(self.dim, self.dim)),
-            linops.SymmetricKronecker(linops.Identity(self.dim)),
-        )
-        # Induced distribution on x via Ainv
-        # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
-        Wb = Ainv0.cov.A @ self.linsys.b
-        bWb = np.squeeze(Wb.T @ self.linsys.b)
-
-        def _mv(x):
-            return 0.5 * (bWb * Ainv0.cov.A @ x + Wb @ (Wb.T @ x))
-
-        cov_op = linops.LinearOperator(
-            shape=self.linsys.A.shape, dtype=float, matvec=_mv, matmat=_mv
-        )
-        x = rvs.Normal(mean=Ainv0.mean @ self.linsys.b, cov=cov_op)
-        b = rvs.Constant(self.linsys.b)
-        self.prior = (x, A0, Ainv0, b)
-        self.solver_state = LinearSolverState(
-            belief=self.prior,
-            actions=[],
-            observations=[],
-            iteration=0,
-            residual=self.linsys.A @ self.prior[0].mean - self.linsys.b,
-            rayleigh_quotients=[],
-            has_converged=False,
-            stopping_criterion=None,
-        )
 
         # Policies
         def custom_policy(problem, solver_state, random_state):
@@ -85,7 +42,7 @@ class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
         ]
 
     def test_returns_vector(self):
-        """Test whether policies return a vector."""
+        """Test whether policies return a vector of length n."""
         for policy in self.policies:
             with self.subTest():
                 action = policy(problem=self.linsys, solver_state=self.solver_state)
@@ -96,7 +53,7 @@ class LinearSolverPolicyTestCase(unittest.TestCase, NumpyAssertions):
                     f"not an np.ndarray.",
                 )
                 self.assertTrue(
-                    np.squeeze(action).ndim == 1,
+                    action.shape == (self.linsys.A.shape[1],),
                     msg=f"Action returned by {policy.__class__.__name__} has shape"
                     f" {action.shape}.",
                 )
