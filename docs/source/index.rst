@@ -2,7 +2,7 @@
 ProbNum
 =======
 
-|CI Status| |Coverage Status| |Benchmarks| |PyPI|
+|CI Status| |Coverage Status| |Tutorials| |Benchmarks| |PyPI|
 
 ----
 
@@ -96,6 +96,10 @@ Indices
 .. |Coverage Status| image:: https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov&logoColor=white
     :target: https://codecov.io/gh/probabilistic-numerics/probnum/branch/master
     :alt: ProbNum's Coverage Status
+
+.. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?&logo=Jupyter&logoColor=white
+    :target: https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials
+    :alt: ProbNum's Tutorials
 
 .. |Benchmarks| image:: http://img.shields.io/badge/Benchmarks-asv-blueviolet.svg?style=flat&logo=swift&logoColor=white
     :target: https://probabilistic-numerics.github.io/probnum-benchmarks/benchmarks/
