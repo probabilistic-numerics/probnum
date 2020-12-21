@@ -5,6 +5,7 @@
 # See also: https://mybinder.readthedocs.io/en/latest/using/config_files.html
 dvipng
 ghostscript
+cm-super
 texlive-fonts-recommended
 texlive-generic-recommended
 texlive-latex-base
