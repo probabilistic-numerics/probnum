@@ -9,9 +9,9 @@ See the notebooks below to learn more about linear algebra in ProbNum.
 .. nbgallery::
    :maxdepth: 2
 
-   linear_operators
-   linear_systems
-   galerkin_method
+   linalg/linear_operators
+   linalg/linear_systems
+   linalg/galerkin_method
 
 
 ----

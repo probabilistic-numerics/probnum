@@ -11,9 +11,9 @@ See the notebooks below to learn more about how to use ProbNum's functionality f
 .. nbgallery::
    :maxdepth: 2
 
-   adaptive_steps_odefilter
-   uncertainties_odefilters
-   odesolvers_from_scratch
+   odes/adaptive_steps_odefilter
+   odes/uncertainties_odefilters
+   odes/odesolvers_from_scratch
 
 ----
 

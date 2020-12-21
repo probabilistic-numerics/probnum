@@ -10,7 +10,7 @@ See the notebooks below to learn more about how to use and manipulate probabilis
 .. nbgallery::
    :maxdepth: 2
 
-   random_variables
+   probability/random_variables
 
 
 ----
