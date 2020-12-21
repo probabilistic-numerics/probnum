@@ -16,3 +16,4 @@ m2r2
 # Jupyter notebooks
 nbsphinx>=0.6.1
 jupyter
+matplotlib
