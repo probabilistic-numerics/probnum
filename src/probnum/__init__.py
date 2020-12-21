@@ -39,6 +39,13 @@ from . import (
 from ._probabilistic_numerical_method import PNMethodState, ProbabilisticNumericalMethod
 from .random_variables import asrandvar
 
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["asrandvar", "PNMethodState", "ProbabilisticNumericalMethod"]
+
+# Set correct module paths. Corrects links and module paths in documentation.
+PNMethodState.__module__ = "probnum"
+ProbabilisticNumericalMethod.__module__ = "probnum"
+
 try:
     # Change here if project is renamed and does not equal the package name
     dist_name = __name__

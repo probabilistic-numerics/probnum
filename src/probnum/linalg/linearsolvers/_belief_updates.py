@@ -44,7 +44,7 @@ class BeliefUpdate:
         return self._belief_update(solver_state)
 
     def update_solution(
-        self, belief_x: rvs.RandomVariable, step_size: float, action: np.ndarray
+        self, belief_x: rvs.RandomVariable, action: np.ndarray, observation: np.ndarray
     ) -> rvs.RandomVariable:
         """Update the belief over the solution :math:`x` of the linear system."""
         raise NotImplementedError
@@ -86,10 +86,15 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
         action = solver_state.actions[-1]
         observation = solver_state.observations[-1]
 
-        # Compute step size and Rayleigh quotient
+        # Compute step size
         sy = action.T @ observation
         step_size = -np.squeeze((action.T @ solver_state.residual) / sy)
-        # TODO log-Rayleigh quotient for calibration
+
+        # Rayleigh quotient
+        log_rayleigh_quotient = self.log_rayleigh_quotient(
+            action_obs_innerprod=sy, action=action
+        )
+        solver_state.log_rayleigh_quotients.append(log_rayleigh_quotient)
 
         # Solution and residual update
         belief_x = self.update_solution(
@@ -115,14 +120,12 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
 
         return solver_state
 
-    def update_residual(
-        self, residual: np.ndarray, step_size: float, observation: np.ndarray
-    ) -> np.ndarray:
-        """Update the residual :math:`r_i = Ax_i - b`."""
-        return residual + step_size * observation
-
     def update_solution(
-        self, belief_x: rvs.RandomVariable, step_size: float, action: np.ndarray
+        self,
+        belief_x: rvs.RandomVariable,
+        action: np.ndarray,
+        observation: np.ndarray,
+        step_size: float,
     ) -> rvs.RandomVariable:
         return belief_x + step_size * action
 
@@ -188,6 +191,19 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
 
     def update_rhs(self, belief_b: rvs.RandomVariable) -> rvs.RandomVariable:
         return belief_b
+
+    def update_residual(
+        self, residual: np.ndarray, step_size: float, observation: np.ndarray
+    ) -> np.ndarray:
+        """Update the residual :math:`r_i = Ax_i - b`."""
+        return residual + step_size * observation
+
+    def log_rayleigh_quotient(
+        self, action_obs_innerprod: float, action: np.ndarray
+    ) -> float:
+        r"""Compute the log-Rayleigh quotient :math:`\ln R(A, s_i) = \ln(s_i^\top A
+        s_i) -\ln(s_i^\top s_i)` for the current action."""
+        return np.log(action_obs_innerprod) - np.log(action @ action)
 
     def _matrix_model_mean_update(self, u, v):
         """Linear operator implementing the symmetric rank 2 mean update (+= uv' +

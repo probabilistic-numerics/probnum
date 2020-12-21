@@ -1,5 +1,5 @@
 """Policies of probabilistic linear solvers returning actions."""
-from typing import Callable
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -44,10 +44,13 @@ class Policy:
         policy: Callable[
             [
                 LinearSystem,
-                "probnum.linalg.linearsolvers.LinearSolverState",
+                "probnum.linalg.linearsolvers.LinearSystemBelief",
                 RandomStateArgType,
+                Optional["probnum.linalg.linearsolvers.LinearSolverState"],
             ],
-            np.ndarray,
+            Tuple[
+                np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+            ],
         ],
         is_deterministic: bool,
         random_state: RandomStateArgType = None,
@@ -59,18 +62,29 @@ class Policy:
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
-    ) -> np.ndarray:
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
         """Return an action based on the given problem and model.
 
         Parameters
         ----------
         problem :
             Linear system to solve.
+        belief
+            Belief over the solution :math:`x`, the system matrix :math:`A`, its
+            inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
         solver_state :
             Current state of the linear solver.
+
+        Returns
+        -------
+        action :
+            Action chosen by the policy.
+        solver_state :
+            Updated solver state.
         """
-        return self._policy(problem, solver_state, self.random_state)
+        return self._policy(problem, belief, self.random_state, solver_state)
 
     @property
     def is_deterministic(self) -> bool:
@@ -98,13 +112,17 @@ class ConjugateDirectionsPolicy(Policy):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
-    ) -> np.ndarray:
-        x, _, Ainv, _ = solver_state.belief
-        residual = solver_state.residual
-        if residual is None:
-            residual = problem.A @ x.mean - problem.b
-        return -Ainv.mean @ residual
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
+        # Residual
+        if solver_state.residual is None:
+            solver_state.residual = problem.A @ belief.x.mean - problem.b
+
+        # A-conjugate search direction / action (assuming exact arithmetic)
+        action = -belief.Ainv.mean @ solver_state.residual
+        solver_state.actions.append(action)
+        return action, solver_state
 
 
 class ExploreExploitPolicy(Policy):
@@ -131,7 +149,17 @@ class ExploreExploitPolicy(Policy):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
-    ) -> np.ndarray:
-        x, _, Ainv, _ = solver_state.belief
-        return rvs.Normal(-Ainv.mean @ solver_state.residual, x.cov).sample()
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
+
+        # Residual
+        if solver_state.residual is None:
+            solver_state.residual = problem.A @ belief.x.mean - problem.b
+
+        # Explore - exploit action
+        action = rvs.Normal(
+            -belief.Ainv.mean @ solver_state.residual, belief.x.cov
+        ).sample()
+        solver_state.actions.append(action)
+        return action, solver_state

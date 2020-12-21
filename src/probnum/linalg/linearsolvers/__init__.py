@@ -8,7 +8,11 @@ linear solvers.
 from ._belief_updates import BeliefUpdate, LinearGaussianBeliefUpdate
 from ._observation_operators import MatrixMultObservation, ObservationOperator
 from ._policies import ConjugateDirectionsPolicy, ExploreExploitPolicy, Policy
-from ._probabilistic_linear_solver import LinearSolverState, ProbabilisticLinearSolver
+from ._probabilistic_linear_solver import (
+    LinearSolverState,
+    LinearSystemBelief,
+    ProbabilisticLinearSolver,
+)
 from ._stopping_criteria import (
     MaxIterStoppingCriterion,
     PosteriorStoppingCriterion,
@@ -21,6 +25,7 @@ from ._stopping_criteria import (
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "ProbabilisticLinearSolver",
+    "LinearSystemBelief",
     "LinearSolverState",
     "Policy",
     "ConjugateDirectionsPolicy",
@@ -37,6 +42,7 @@ __all__ = [
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticLinearSolver.__module__ = "probnum.linalg.linearsolvers"
+LinearSystemBelief.__module__ = "probnum.linalg.linearsolvers"
 LinearSolverState.__module__ = "probnum.linalg.linearsolvers"
 Policy.__module__ = "probnum.linalg.linearsolvers"
 ConjugateDirectionsPolicy.__module__ = "probnum.linalg.linearsolvers"

@@ -2,35 +2,49 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Tuple, TypeVar, Union
+from typing import List, Optional, Tuple, Union
 
-import probnum
+import probnum  # pylint: disable="unused-import"
+from probnum.problems import (
+    InitialValueProblem,
+    LinearSystem,
+    QuadratureProblem,
+    RegressionProblem,
+)
 
-ProblemType = TypeVar("ProblemType")
-
-
-@dataclasses.dataclass
-class PNMethodState:
-    """State of a probabilistic numerical method.
-
-    The state of a PN method contains the current belief over the quantities of
-    interest (such as the solution) and miscellaneous quantities computed during a
-    run of a probabilistic numerical method. The state is passed between the
-    different components of the method.
-
-    Parameters
-    ----------
-    belief
-        Current belief over the quantities of interest.
-    """
-
-    belief: Tuple[
+ProblemType = Union[
+    InitialValueProblem, LinearSystem, QuadratureProblem, RegressionProblem
+]
+BeliefType = Union[
+    Tuple[
         Union[
             "probnum.random_variables.RandomVariable",
             # "probnum.random_processes.RandomProcess",
         ],
         ...,
-    ]
+    ],
+    "probnum.linalg.linearsolvers.LinearSystemBelief",
+]
+
+
+@dataclasses.dataclass
+class PNMethodState(ABC):
+    """State of a probabilistic numerical method.
+
+    The state of a PN method contains miscellaneous quantities computed during a
+    run of a probabilistic numerical method. The state is passed between the
+    different components of the method.
+
+    Parameters
+    ----------
+    actions
+        Performed actions of the solver.
+    observations
+        Collected observations of the solver.
+    """
+
+    actions: Optional[List] = None
+    observations: Optional[List] = None
 
 
 class ProbabilisticNumericalMethod(ABC):
@@ -63,31 +77,13 @@ class ProbabilisticNumericalMethod(ABC):
         probabilistic linear solver.
     """
 
-    def __init__(
-        self,
-        prior: Tuple[
-            Union[
-                "probnum.random_variables.RandomVariable",
-                # "probnum.random_processes.RandomProcess",
-            ],
-            ...,
-        ],
-    ):
+    def __init__(self, prior: BeliefType):
         self.prior = prior
 
     @abstractmethod
     def solve(
         self,
         problem: ProblemType,
-    ) -> Tuple[
-        Tuple[
-            Union[
-                "probnum.random_variables.RandomVariable",
-                # "probnum.random_processes.RandomProcess",
-            ],
-            ...,
-        ],
-        PNMethodState,
-    ]:
+    ) -> Tuple[BeliefType, PNMethodState]:
         """Solve the given numerical problem."""
         raise NotImplementedError
