@@ -74,7 +74,8 @@ class Transition(abc.ABC):
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
         diffusion :
-            Diffusion (or diffusion estimate) for this transition
+            Optional diffusion parameter for this transition. This field is usually used
+            to update diffusions with calibrated versions thereof.
 
         Returns
         -------
@@ -155,7 +156,8 @@ class Transition(abc.ABC):
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
         diffusion :
-            Diffusion (or diffusion estimate) for this transition
+            Optional diffusion parameter for this transition. This field is usually used
+            to update diffusions with calibrated versions thereof.
 
         Returns
         -------
