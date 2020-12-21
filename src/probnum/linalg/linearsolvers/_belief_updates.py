@@ -43,6 +43,28 @@ class BeliefUpdate:
         """
         return self._belief_update(solver_state)
 
+    def update_solution(
+        self, x: rvs.RandomVariable, step_size: float, action: np.ndarray
+    ) -> rvs.RandomVariable:
+        """Update the solution :math:`x_i` to the linear system."""
+        raise NotImplementedError
+
+    def update_matrix(
+        self, A: rvs.RandomVariable, action: np.ndarray, observation: np.ndarray
+    ) -> rvs.Normal:
+        """Update the belief over the system matrix :math:`A`."""
+        raise NotImplementedError
+
+    def update_inverse(
+        self, Ainv: rvs.RandomVariable, action: np.ndarray, observation: np.ndarray
+    ) -> rvs.Normal:
+        """Update the belief over the inverse of the system matrix :math:`H=A^{-1}`."""
+        raise NotImplementedError
+
+    def update_rhs(self, b: rvs.RandomVariable) -> rvs.RandomVariable:
+        """Update the belief over the right hand side of the linear system."""
+        raise NotImplementedError
+
     # TODO: make update functions with kwargs part of this function and then
     #  implement different variants of it depending on the type of solver (
     #  matrixbased/solutionbased) etc.
@@ -67,42 +89,42 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
         # TODO log-Rayleigh quotient for calibration
 
         # Solution and residual update
-        x = self._update_solution(
+        x = self.update_solution(
             x=solver_state.belief[0], action=action, step_size=step_size
         )
-        solver_state.residual = self._update_residual(
+        solver_state.residual = self.update_residual(
             residual=solver_state.residual, step_size=step_size, observation=observation
         )
 
         # System matrix and inverse updates
-        A = self._update_matrix(
+        A = self.update_matrix(
             A=solver_state.belief[1], action=action, observation=observation
         )
-        Ainv = self._update_inverse(
+        Ainv = self.update_inverse(
             Ainv=solver_state.belief[2], action=action, observation=observation
         )
 
         # Update right hand side b
-        b = self._update_rhs(b=solver_state.belief[3])
+        b = self.update_rhs(b=solver_state.belief[3])
 
         # Update solver state with new beliefs
         solver_state.belief = (x, A, Ainv, b)
 
         return solver_state
 
-    def _update_residual(
+    def update_residual(
         self, residual: np.ndarray, step_size: float, observation: np.ndarray
     ) -> np.ndarray:
         """Update the residual :math:`r_i = Ax_i - b`."""
-        raise NotImplementedError
+        return residual + step_size * observation
 
-    def _update_solution(
+    def update_solution(
         self, x: rvs.RandomVariable, step_size: float, action: np.ndarray
     ) -> rvs.RandomVariable:
         """Update the solution :math:`x_i` to the linear system."""
         return x + step_size * action
 
-    def _update_matrix(
+    def update_matrix(
         self, A: rvs.RandomVariable, action: np.ndarray, observation: np.ndarray
     ) -> rvs.Normal:
         """Update the belief over the system matrix :math:`A`."""
@@ -112,20 +134,23 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
         v_A = delta_A - 0.5 * (action.T @ delta_A) * u_A
 
         # Rank 2 mean update (+= uv' + vu')
-        A_mean = linops.aslinop(A.mean) + self._mean_update(u=u_A, v=v_A)
+        A_mean = linops.aslinop(A.mean) + self._matrix_model_mean_update(u=u_A, v=v_A)
 
         # Rank 1 covariance Kronecker factor update (-= u_A(Vs)')
         if solver_state.iteration == 0:
-            _A_covfactor_update_term = self._covariance_factor_update(u=u_A, Ws=Vs)
+            _A_covfactor_update_term = self._matrix_model_covariance_factor_update(
+                u=u_A, Ws=Vs
+            )
         else:
             _A_covfactor_update_term = (
-                _A_covfactor_update_term + self._covariance_factor_update(u=u_A, Ws=Vs)
+                _A_covfactor_update_term
+                + self._matrix_model_covariance_factor_update(u=u_A, Ws=Vs)
             )
         A_covfactor = linops.aslinop(self.A_covfactor0) - _A_covfactor_update_term
 
         return rvs.Normal(mean=A_mean, cov=linops.SymmetricKronecker(A_covfactor))
 
-    def _update_inverse(
+    def update_inverse(
         self, Ainv: rvs.RandomVariable, action: np.ndarray, observation: np.ndarray
     ) -> rvs.Normal:
         """Update the belief over the inverse of the system matrix :math:`H=A^{-1}`."""
@@ -136,17 +161,19 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
         v_Ainv = delta_Ainv - 0.5 * (observation.T @ delta_Ainv) * u_Ainv
 
         # Rank 2 mean update (+= uv' + vu')
-        Ainv_mean = linops.aslinop(Ainv.mean) + self._mean_update(u=u_Ainv, v=v_Ainv)
+        Ainv_mean = linops.aslinop(Ainv.mean) + self._matrix_model_mean_update(
+            u=u_Ainv, v=v_Ainv
+        )
 
         # Rank 1 covariance Kronecker factor update (-= u_Ainv(Wy)')
         if solver_state.iteration == 0:
-            _Ainv_covfactor_update_term = self._covariance_factor_update(
+            _Ainv_covfactor_update_term = self._matrix_model_covariance_factor_update(
                 u=u_Ainv, Ws=Wy
             )
         else:
             _Ainv_covfactor_update_term = (
                 _Ainv_covfactor_update_term
-                + self._covariance_factor_update(u=u_Ainv, Ws=Wy)
+                + self._matrix_model_covariance_factor_update(u=u_Ainv, Ws=Wy)
             )
         Ainv_covfactor = (
             linops.aslinop(self.Ainv_covfactor0) - _Ainv_covfactor_update_term
@@ -154,7 +181,11 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
 
         return rvs.Normal(mean=Ainv_mean, cov=linops.SymmetricKronecker(Ainv_covfactor))
 
-    def _mean_update(self, u, v):
+    def update_rhs(self, b: rvs.RandomVariable) -> rvs.RandomVariable:
+        """Update the belief over the right hand side of the linear system."""
+        return b
+
+    def _matrix_model_mean_update(self, u, v):
         """Linear operator implementing the symmetric rank 2 mean update (+= uv' +
         vu')."""
 
@@ -165,7 +196,7 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
             shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
         )
 
-    def _covariance_factor_update(self, u, Ws):
+    def _matrix_model_covariance_factor_update(self, u, Ws):
         """Linear operator implementing the symmetric rank 2 covariance factor downdate
         (-= Ws u^T)."""
 
@@ -175,7 +206,3 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
         return linops.LinearOperator(
             shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
         )
-
-    def _update_rhs(self, b: rvs.RandomVariable) -> rvs.RandomVariable:
-        """Update the belief over the right hand side of the linear system."""
-        return b
