@@ -12,5 +12,5 @@ dependencies:
   - matplotlib
   - jupyterlab
   - pip:
-    - -r file:requirements.txt
+    - -e .
     - jupyterlab_latex
