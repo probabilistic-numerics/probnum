@@ -118,6 +118,24 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
 
         return solver_state
 
+    def _update_residual(self, step_size: float, observation: np.ndarray) -> np.ndarray:
+        """Update the residual :math:`r_i = Ax_i - b`."""
+        raise NotImplementedError
+
+    def _update_solution(self, step_size: float, action: np.ndarray) -> np.ndarray:
+        """Update the solution :math:`x_i` to the linear system."""
+        raise NotImplementedError
+
+    def _update_matrix(self, A_mean, A_covfactor, action, observation) -> rvs.Normal:
+        """Update the belief over the system matrix :math:`A`."""
+        raise NotImplementedError
+
+    def _update_inverse(
+        self, Ainv_mean, Ainv_covfactor, action, observation
+    ) -> rvs.Normal:
+        """Update the belief over the inverse of the system matrix :math:`H=A^{-1}`."""
+        raise NotImplementedError
+
     def _mean_update(self, u, v):
         """Linear operator implementing the symmetric rank 2 mean update (+= uv' +
         vu')."""
