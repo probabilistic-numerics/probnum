@@ -1,0 +1,10 @@
+name: interactive-tutorials-env
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.6
+  - pip
+  - jupyterlab
+  - pip:
+    - -r file:docs/requirements.txt
+    - jupyterlab_latex
