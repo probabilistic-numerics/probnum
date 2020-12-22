@@ -148,6 +148,8 @@ class LinearSystem:
     # For testing and benchmarking
     solution: typing.Optional[typing.Union[np.ndarray, pnrv.RandomVariable]] = None
 
+    # TODO: Shape and type normalization when creating a LinearSystem
+
 
 @dataclasses.dataclass
 class QuadratureProblem:

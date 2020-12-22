@@ -193,7 +193,6 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         problem :
             Linear system to solve.
         """
-        # TODO: determine here depending on components what initialization to use.
         belief = self.prior
         solver_state = LinearSolverState(
             actions=[],

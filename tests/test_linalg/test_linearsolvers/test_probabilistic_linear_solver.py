@@ -64,6 +64,11 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             stopping_criterion=None,
         )
 
+        # Action and observation
+        cls.action = cls.rng.normal(size=cls.linsys.A.shape[1])
+        cls.observation = cls.rng.normal(size=cls.linsys.A.shape[0])
+
+        # Convergence
         cls.belief_converged = LinearSystemBelief(
             rvs.Normal(mean=_solution, cov=10 ** -12 * np.eye(cls.dim)),
             rvs.Constant(_A),

@@ -326,7 +326,7 @@ class LinearSymmetricGaussian(BeliefUpdate):
             return u * (v @ x) + v * (u @ x)
 
         def mm(x):
-            return u @ (v.T @ x) + v @ (u.T @ x)
+            return u[:, None] @ (v[None, :] @ x) + v[:, None] @ (u[None, :] @ x)
 
         return linops.LinearOperator(
             shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
@@ -342,7 +342,7 @@ class LinearSymmetricGaussian(BeliefUpdate):
             return Ws * (u @ x)
 
         def mm(x):
-            return Ws @ (u.T @ x)
+            return Ws[:, None] @ (u[None, :] @ x)
 
         return linops.LinearOperator(
             shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm

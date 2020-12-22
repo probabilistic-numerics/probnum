@@ -3,6 +3,7 @@ from typing import Optional
 
 import numpy as np
 
+import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
 from probnum.linalg.linearsolvers.belief_updates import (
     BeliefUpdate,
@@ -44,21 +45,40 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
     def test_return_argument_types(self):
         """Test whether a belief update returns a linear system belief and solver
         state."""
-        # Action and observation
-        action = self.rng.normal(size=self.linsys.A.shape[1])
-        observation = self.rng.normal(size=self.linsys.A.shape[0])
 
         for belief_update in self.belief_updates:
             with self.subTest():
                 belief, solver_state = belief_update(
                     problem=self.linsys,
                     belief=self.prior,
-                    action=action,
-                    observation=observation,
+                    action=self.action,
+                    observation=self.observation,
                     solver_state=self.solver_state,
                 )
                 self.assertIsInstance(belief, LinearSystemBelief)
                 self.assertIsInstance(solver_state, LinearSolverState)
+
+    def test_matrix_posterior_multiplication(self):
+        """Test whether multiplication with the posteriors over A and Ainv returns a
+        random variable with the correct shape."""
+        for belief_update in self.belief_updates:
+            with self.subTest():
+                belief, solver_state = belief_update(
+                    problem=self.linsys,
+                    belief=self.prior,
+                    action=self.action,
+                    observation=self.observation,
+                    solver_state=self.solver_state,
+                )
+                matshape = (self.linsys.A.shape[1], 5)
+                mat = self.rng.random(size=matshape)
+                Amat = belief.A @ mat
+                Ainvmat = belief.Ainv @ mat
+                self.assertIsInstance(Amat, rvs.Normal)
+                self.assertEqual(Amat.shape, (self.linsys.A.shape[0], matshape[1]))
+
+                self.assertIsInstance(Ainvmat, rvs.Normal)
+                self.assertEqual(Ainvmat.shape, (self.linsys.A.shape[0], matshape[1]))
 
 
 class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
