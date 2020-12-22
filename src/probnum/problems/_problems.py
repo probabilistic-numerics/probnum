@@ -6,10 +6,12 @@ import typing
 import numpy as np
 import scipy.sparse
 
+import probnum
 import probnum.filtsmooth as pnfs
 import probnum.linops as pnlo
 import probnum.random_variables as pnrv
 import probnum.type as pntp
+from probnum.utils import as_random_state
 
 
 @dataclasses.dataclass
@@ -149,6 +151,28 @@ class LinearSystem:
     solution: typing.Optional[typing.Union[np.ndarray, pnrv.RandomVariable]] = None
 
     # TODO: Shape and type normalization when creating a LinearSystem
+
+    @classmethod
+    def from_matrix(cls, A, random_state=None) -> "probnum.problems.LinearSystem":
+        """Generate a random linear system from a given matrix.
+
+        Randomly creates a linear system with a solution and right hand side for the
+        given matrix or linear operator.
+
+        Parameters
+        ----------
+        A :
+            System matrix for the random linear system.
+        random_state
+            Random state of the random variable. If None (or np.random), the global
+            :mod:`numpy.random` state is used. If integer, it is used to seed the local
+            :class:`~numpy.random.RandomState` instance.
+        """
+        rng = as_random_state(random_state)
+        solution = rng.normal(size=(A.shape[1], 1))
+        right_hand_side = A @ solution
+
+        return LinearSystem(A=A, solution=solution, b=right_hand_side)
 
 
 @dataclasses.dataclass

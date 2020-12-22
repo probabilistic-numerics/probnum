@@ -1,11 +1,11 @@
-"""Tests for functions generating random linear systems."""
+"""Tests for problems solved by probabilistic numerical methods."""
 
 import unittest
 
 import numpy as np
 
 from probnum.problems import LinearSystem
-from probnum.problems.zoo.linalg import random_linear_system, random_spd_matrix
+from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
 
@@ -16,7 +16,7 @@ class RandomLinearSystemTestCase(unittest.TestCase, NumpyAssertions):
         """Test resources."""
         self.rng = np.random.default_rng()
         self.rand_spd_mat = random_spd_matrix(dim=100)
-        self.random_linsys = random_linear_system(
+        self.random_linsys = LinearSystem.from_matrix(
             A=self.rand_spd_mat, random_state=self.rng
         )
 
@@ -24,7 +24,7 @@ class RandomLinearSystemTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_returns_linear_system(self):
         """Test whether a linear system object is returned."""
-        linsys = random_linear_system(A=self.rand_spd_mat, random_state=self.rng)
+        linsys = LinearSystem.from_matrix(A=self.rand_spd_mat, random_state=self.rng)
         self.assertIsInstance(linsys, LinearSystem)
 
     def test_matrix_is_unchanged(self):

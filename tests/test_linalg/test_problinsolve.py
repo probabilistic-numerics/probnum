@@ -8,13 +8,9 @@ import scipy.sparse.linalg
 
 from probnum import linalg, linops
 from probnum import random_variables as rvs
-from probnum.linalg import bayescg, problinsolve
+from probnum.linalg import problinsolve
 from probnum.problems import LinearSystem
-from probnum.problems.zoo.linalg import (
-    random_linear_system,
-    random_sparse_spd_matrix,
-    random_spd_matrix,
-)
+from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 from tests.testing import NumpyAssertions
 
 # pylint: disable="invalid-name"
@@ -30,12 +26,12 @@ class LinearSolverTests(unittest.TestCase, NumpyAssertions):
 
         # Symmetric positive definite matrices
         dim_spd = 100
-        cls.spd_system = random_linear_system(
+        cls.spd_system = LinearSystem.from_matrix(
             A=random_spd_matrix(dim=dim_spd, random_state=cls.rng),
             random_state=cls.rng,
         )
 
-        cls.sparse_spd_system = random_linear_system(
+        cls.sparse_spd_system = LinearSystem.from_matrix(
             A=random_sparse_spd_matrix(dim=dim_spd, density=0.01, random_state=cls.rng),
             random_state=cls.rng,
         )
@@ -64,7 +60,7 @@ class LinearSolverTests(unittest.TestCase, NumpyAssertions):
             / (2 * lengthscale ** 2)
             * (X_norm[:, None] + X_norm[None, :] - 2 * np.dot(X, X.T))
         ) + 10 ** -2 * np.eye(n)
-        cls.rbf_kernel_linear_system = random_linear_system(
+        cls.rbf_kernel_linear_system = LinearSystem.from_matrix(
             A=K_rbf, random_state=cls.rng
         )
 
