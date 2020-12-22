@@ -9,6 +9,9 @@ import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem
 from probnum.type import IntArgType, ScalarArgType
 
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["StoppingCriterion", "MaxIters", "Residual", "PosteriorContraction"]
+
 # pylint: disable="invalid-name,too-few-public-methods"
 
 
@@ -59,7 +62,7 @@ class StoppingCriterion:
         return self._stopping_criterion(problem, solver_state)
 
 
-class MaxIterStoppingCriterion(StoppingCriterion):
+class MaxIters(StoppingCriterion):
     """Maximum number of iterations.
 
     Stop when a maximum number of iterations is reached. If none is
@@ -90,7 +93,7 @@ class MaxIterStoppingCriterion(StoppingCriterion):
             return False
 
 
-class ResidualStoppingCriterion(StoppingCriterion):
+class Residual(StoppingCriterion):
     """Residual stopping criterion.
 
     Terminate when the norm of the residual :math:`r_{i} = A x_{i} - b` is
@@ -133,7 +136,7 @@ class ResidualStoppingCriterion(StoppingCriterion):
         return residual_norm <= self.atol or residual_norm <= self.rtol * b_norm
 
 
-class PosteriorStoppingCriterion(StoppingCriterion):
+class PosteriorContraction(StoppingCriterion):
     """Posterior contraction stopping criterion.
 
     Terminate when the uncertainty about the solution is sufficiently small, i.e. if it

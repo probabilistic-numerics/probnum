@@ -7,6 +7,9 @@ import numpy as np
 import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem
 
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["ObservationOperator", "MatrixMultObservation"]
+
 
 class ObservationOperator:
     """Observation operator of probabilistic linear solvers.

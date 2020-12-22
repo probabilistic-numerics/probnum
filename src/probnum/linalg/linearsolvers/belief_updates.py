@@ -6,6 +6,9 @@ import probnum  # pylint: disable="unused-import"
 import probnum.linops as linops
 import probnum.random_variables as rvs
 
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["BeliefUpdate", "LinearGaussianBeliefUpdate"]
+
 # pylint: disable="invalid-name"
 
 

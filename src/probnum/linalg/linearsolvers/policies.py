@@ -8,6 +8,9 @@ import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 from probnum.type import RandomStateArgType
 
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["Policy", "ConjugateDirectionsPolicy", "ExploreExploitPolicy"]
+
 # pylint: disable="invalid-name"
 
 

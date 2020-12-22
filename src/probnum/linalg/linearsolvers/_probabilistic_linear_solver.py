@@ -15,8 +15,8 @@ from probnum._probabilistic_numerical_method import (
 )
 from probnum.problems import LinearSystem
 
-from ._policies import Policy
-from ._stopping_criteria import StoppingCriterion
+from .policies import Policy
+from .stop_criteria import StoppingCriterion
 
 # pylint: disable="invalid-name"
 
