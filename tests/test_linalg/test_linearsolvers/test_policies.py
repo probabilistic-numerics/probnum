@@ -4,10 +4,10 @@
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import (
+from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
+from probnum.linalg.linearsolvers.policies import (
     ConjugateDirectionsPolicy,
     ExploreExploitPolicy,
-    LinearSolverState,
     Policy,
 )
 from tests.testing import NumpyAssertions
@@ -24,10 +24,11 @@ class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAsserti
         """Test resources for linear solver policies."""
 
         # Policies
-        def custom_policy(problem, solver_state, random_state):
-            return rvs.Normal(
+        def custom_policy(problem, belief, random_state, solver_state=None):
+            action = rvs.Normal(
                 np.zeros(self.dim), np.identity(self.dim), random_state=random_state
             ).sample()
+            return action, solver_state
 
         self.custom_policy = Policy(
             policy=custom_policy, is_deterministic=False, random_state=self.rng
@@ -45,7 +46,11 @@ class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAsserti
         """Test whether policies return a vector of length n."""
         for policy in self.policies:
             with self.subTest():
-                action = policy(problem=self.linsys, solver_state=self.solver_state)
+                action, _ = policy(
+                    problem=self.linsys,
+                    belief=self.prior,
+                    solver_state=self.solver_state,
+                )
                 self.assertIsInstance(
                     action,
                     np.ndarray,
@@ -67,15 +72,13 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
         over the inverse has the true inverse as a posterior mean."""
         Ainv = np.linalg.inv(self.linsys.A)
         x = self.rng.random(self.dim)
-        solver_state = LinearSolverState(
-            belief=(
-                rvs.Constant(x),
-                self.linsys.A,
-                rvs.Constant(Ainv),
-                rvs.Constant(self.linsys.b),
-            )
+        belief = LinearSystemBelief(
+            x=rvs.Constant(x),
+            A=self.linsys.A,
+            Ainv=rvs.Constant(Ainv),
+            b=rvs.Constant(self.linsys.b),
         )
-        action = self.conj_dir_policy(problem=self.linsys, solver_state=solver_state)
+        action, _ = self.conj_dir_policy(problem=self.linsys, belief=belief)
 
         self.assertAllClose(
             self.linsys.solution,

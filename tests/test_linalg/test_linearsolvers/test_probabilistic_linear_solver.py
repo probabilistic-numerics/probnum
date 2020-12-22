@@ -8,7 +8,7 @@ import scipy.sparse
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import LinearSolverState
+from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
@@ -52,26 +52,22 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         )
         x = rvs.Normal(mean=Ainv0.mean @ cls.linsys.b, cov=cov_op)
         b = rvs.Constant(cls.linsys.b)
-        cls.prior = (x, A0, Ainv0, b)
+        cls.prior = LinearSystemBelief(x, A0, Ainv0, b)
         cls.solver_state = LinearSolverState(
-            belief=cls.prior,
             actions=[],
             observations=[],
             iteration=0,
-            residual=cls.linsys.A @ cls.prior[0].mean - cls.linsys.b,
-            rayleigh_quotients=[],
+            residual=cls.linsys.A @ cls.prior.x.mean - cls.linsys.b,
+            log_rayleigh_quotients=[],
             has_converged=False,
             stopping_criterion=None,
         )
 
-        cls.solver_state_converged = LinearSolverState(
-            belief=(
-                rvs.Normal(mean=_solution, cov=10 ** -12 * np.eye(cls.dim)),
-                rvs.Constant(_A),
-                rvs.Constant(np.linalg.inv(_A)),
-                b,
-            ),
-            iteration=10,
+        cls.belief_converged = LinearSystemBelief(
+            rvs.Normal(mean=_solution, cov=10 ** -12 * np.eye(cls.dim)),
+            rvs.Constant(_A),
+            rvs.Constant(np.linalg.inv(_A)),
+            b,
         )
 
     def setUp(self) -> None:

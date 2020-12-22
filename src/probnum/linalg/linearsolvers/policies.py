@@ -118,13 +118,17 @@ class ConjugateDirectionsPolicy(Policy):
         belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
-        # Residual
-        if solver_state.residual is None:
-            solver_state.residual = problem.A @ belief.x.mean - problem.b
+        # Compute residual if necessary
+        residual, solver_state = _get_residual(
+            problem=problem, belief=belief, solver_state=solver_state
+        )
 
         # A-conjugate search direction / action (assuming exact arithmetic)
-        action = -belief.Ainv.mean @ solver_state.residual
-        solver_state.actions.append(action)
+        action = -belief.Ainv.mean @ residual
+
+        # Update solver state
+        if solver_state is not None:
+            solver_state.actions.append(action)
         return action, solver_state
 
 
@@ -156,13 +160,32 @@ class ExploreExploitPolicy(Policy):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
 
-        # Residual
-        if solver_state.residual is None:
-            solver_state.residual = problem.A @ belief.x.mean - problem.b
+        # Compute residual if necessary
+        residual, solver_state = _get_residual(
+            problem=problem, belief=belief, solver_state=solver_state
+        )
 
         # Explore - exploit action
-        action = rvs.Normal(
-            -belief.Ainv.mean @ solver_state.residual, belief.x.cov
-        ).sample()
-        solver_state.actions.append(action)
+        action = rvs.Normal(-belief.Ainv.mean @ residual, belief.x.cov).sample()
+
+        # Update solver state
+        if solver_state is not None:
+            solver_state.actions.append(action)
         return action, solver_state
+
+
+def _get_residual(
+    problem: LinearSystem,
+    belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+    solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+):
+    """Computes the residual :math:`Ax_i-b` if it has not been precomputed."""
+    if solver_state is None:
+        residual = problem.A @ belief.x.mean - problem.b
+    elif solver_state.residual is None:
+        residual = problem.A @ belief.x.mean - problem.b
+        solver_state.residual = residual
+    else:
+        residual = solver_state.residual
+
+    return residual, solver_state
