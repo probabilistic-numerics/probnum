@@ -11,11 +11,16 @@ See the notebooks below to learn more about how to use ProbNum's functionality f
 .. nbgallery::
    :maxdepth: 2
 
-   adaptive_steps_odefilter
-   uncertainties_odefilters
-   odesolvers_from_scratch
+   odes/adaptive_steps_odefilter
+   odes/uncertainties_odefilters
+   odes/odesolvers_from_scratch
 
 ----
 
-If you want to try out these tutorials for yourself, you can download the notebooks from the
+You can also interactively try out the |Tutorials| directly in the browser or
+by downloading the notebooks from the
 `GitHub repository <https://github.com/probabilistic-numerics/probnum/tree/master/docs/source/tutorials>`_.
+
+.. |Tutorials| image:: https://img.shields.io/badge/Tutorials-Jupyter-579ACA.svg?&logo=Jupyter&logoColor=white
+    :target: https://mybinder.org/v2/gh/probabilistic-numerics/probnum/master?filepath=docs%2Fsource%2Ftutorials
+    :alt: ProbNum's Tutorials
