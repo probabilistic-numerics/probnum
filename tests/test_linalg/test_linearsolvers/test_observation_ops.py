@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from probnum.linalg.linearsolvers import (
-    LinearSolverState,
+from probnum.linalg.linearsolvers import LinearSolverState
+from probnum.linalg.linearsolvers.observation_ops import (
     MatrixMultObservation,
     ObservationOperator,
 )

@@ -92,11 +92,11 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
     def test_is_deterministic(self):
         """Test whether the policy is deterministic."""
         self.assertTrue(self.conj_dir_policy.is_deterministic)
-        action1 = self.conj_dir_policy(
-            problem=self.linsys, solver_state=self.solver_state
+        action1, _ = self.conj_dir_policy(
+            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
         )
-        action2 = self.conj_dir_policy(
-            problem=self.linsys, solver_state=self.solver_state
+        action2, _ = self.conj_dir_policy(
+            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
         )
         self.assertTrue(
             np.all(action1 == action2),
@@ -110,11 +110,11 @@ class ExploreExploitPolicyTestCase(LinearSolverPolicyTestCase):
     def test_is_stochastic(self):
         """Test whether the policy behaves stochastically."""
         self.assertFalse(self.explore_exploit_policy.is_deterministic)
-        action1 = self.explore_exploit_policy(
-            problem=self.linsys, solver_state=self.solver_state
+        action1, _ = self.explore_exploit_policy(
+            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
         )
-        action2 = self.explore_exploit_policy(
-            problem=self.linsys, solver_state=self.solver_state
+        action2, _ = self.explore_exploit_policy(
+            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
         )
         self.assertFalse(
             np.all(action1 == action2),
