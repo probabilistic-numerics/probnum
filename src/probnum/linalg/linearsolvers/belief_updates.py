@@ -12,7 +12,7 @@ from probnum.problems import LinearSystem
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["BeliefUpdate", "LinearSymmetricGaussian"]
 
-# pylint: disable="invalid-name"
+# pylint: disable="invalid-name,too-many-arguments"
 
 
 class BeliefUpdate:
@@ -88,7 +88,9 @@ class BeliefUpdate:
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.RandomVariable:
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
         """Update the belief over the solution :math:`x` of the linear system."""
         raise NotImplementedError
 
@@ -99,7 +101,9 @@ class BeliefUpdate:
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.Normal:
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
         """Update the belief over the system matrix :math:`A`."""
         raise NotImplementedError
 
@@ -110,7 +114,9 @@ class BeliefUpdate:
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.Normal:
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
         """Update the belief over the inverse of the system matrix :math:`H=A^{-1}`."""
         raise NotImplementedError
 
@@ -119,13 +125,27 @@ class BeliefUpdate:
         problem: LinearSystem,
         belief_b: rvs.RandomVariable,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.RandomVariable:
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
         """Update the belief over the right hand side of the linear system."""
         raise NotImplementedError
 
 
 class LinearSymmetricGaussian(BeliefUpdate):
-    """Belief update assuming (symmetric) Gaussianity and linear observations."""
+    r"""
+    Belief update for a symmetric Gaussian prior and linear observations.
+
+    Updates the posterior beliefs over the quantities of interest of the linear system
+    under symmetric matrix-variate Gaussian prior(s) on :math:`A` and / or :math:`H`.
+    Observations are assumed to be linear
+
+    Parameters
+    ----------
+    noise_cov
+        Covariance matrix :math:`\Lambda` of the noise term :math:`E \sim \mathcal{
+        N}(0, \Lambda)` assumed for matrix evaluations `v \mapsto (A + E)v`.
+    """
 
     def __init__(
         self,
@@ -138,6 +158,7 @@ class LinearSymmetricGaussian(BeliefUpdate):
 
     def __call__(
         self,
+        problem: LinearSystem,
         belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
         action: np.ndarray,
         observation: np.ndarray,
@@ -147,65 +168,82 @@ class LinearSymmetricGaussian(BeliefUpdate):
         "probnum.linalg.linearsolvers.LinearSolverState",
     ]:
 
-        # Step size
-        _, solver_state = self.step_size(
-            action=action, observation=observation, solver_state=solver_state
-        )
-
-        # Rayleigh quotient
-        _, solver_state = self.log_rayleigh_quotient(
-            action=action, observation=observation, solver_state=solver_state
-        )
-
-        # Residual
-        _, solver_state = self.residual(
-            observation=observation, solver_state=solver_state
-        )
-
         # Belief updates
-        belief.x, solver_state = self.update_solution(
-            belief_x=belief.x,
-            action=action,
-            observation=observation,
-            solver_state=solver_state,
-        )
-        belief.A = self.update_matrix(
+        belief.A, solver_state = self.update_matrix(
+            problem=problem,
             belief_A=belief.A,
             action=action,
             observation=observation,
             solver_state=solver_state,
         )
-        belief.Ainv = self.update_inverse(
+        belief.Ainv, solver_state = self.update_inverse(
+            problem=problem,
             belief_Ainv=belief.Ainv,
             action=action,
             observation=observation,
             solver_state=solver_state,
         )
-        belief.b = self.update_rhs(belief_b=belief.b, solver_state=solver_state)
+        belief.b, solver_state = self.update_rhs(
+            problem=problem, belief_b=belief.b, solver_state=solver_state
+        )
+        belief.x, solver_state = self.update_solution(
+            problem=problem,
+            belief_x=belief.x,
+            action=action,
+            observation=observation,
+            solver_state=solver_state,
+        )
 
         return belief, solver_state
 
     def update_solution(
         self,
+        problem: LinearSystem,
         belief_x: rvs.RandomVariable,
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.RandomVariable:
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
 
-        # Compute step size
-        sy = action.T @ observation
-        step_size = -np.squeeze((action.T @ solver_state.residual) / sy)
+        # Current residual
+        try:
+            residual = solver_state.residual
+        except AttributeError:
+            residual = problem.A @ belief_x.mean - problem.b
+            solver_state.residual = residual
 
-        return belief_x + solver_state.step_sizes[-1] * action, solver_state
+        # Step size
+        step_size, solver_state = _step_size(
+            residual=residual,
+            action=action,
+            observation=observation,
+            solver_state=solver_state,
+        )
+        # Solution update
+        x = belief_x + step_size * action
+
+        # Update residual
+        _, solver_state = self._update_residual(
+            residual=residual,
+            step_size=step_size,
+            observation=observation,
+            solver_state=solver_state,
+        )
+
+        return x, solver_state
 
     def update_matrix(
         self,
+        problem: LinearSystem,
         belief_A: rvs.RandomVariable,
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.Normal:
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
         # Compute update terms
         Vs = belief_A.cov.A @ action
         delta_A = observation - belief_A.mean @ action
@@ -222,15 +260,20 @@ class LinearSymmetricGaussian(BeliefUpdate):
             belief_A.cov.A
         ) - self._matrix_model_covariance_factor_update_op(u=u_A, Ws=Vs)
 
-        return rvs.Normal(mean=A_mean, cov=linops.SymmetricKronecker(A_covfactor))
+        A = rvs.Normal(mean=A_mean, cov=linops.SymmetricKronecker(A_covfactor))
+
+        return A, solver_state
 
     def update_inverse(
         self,
+        problem: LinearSystem,
         belief_Ainv: rvs.RandomVariable,
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.Normal:
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
         # Compute update terms
         Wy = belief_Ainv.cov.A @ observation
         delta_Ainv = action - belief_Ainv.mean @ observation
@@ -247,29 +290,35 @@ class LinearSymmetricGaussian(BeliefUpdate):
             belief_Ainv.cov.A
         ) - self._matrix_model_covariance_factor_update_op(u=u_Ainv, Ws=Wy)
 
-        return rvs.Normal(mean=Ainv_mean, cov=linops.SymmetricKronecker(Ainv_covfactor))
+        Ainv = rvs.Normal(mean=Ainv_mean, cov=linops.SymmetricKronecker(Ainv_covfactor))
+
+        return Ainv, solver_state
 
     def update_rhs(
         self,
+        problem: LinearSystem,
         belief_b: rvs.RandomVariable,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> rvs.RandomVariable:
-        return belief_b
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
+        return belief_b, solver_state
 
-    def residual(
-        self, residual: np.ndarray, step_size: float, observation: np.ndarray
-    ) -> np.ndarray:
+    def _update_residual(
+        self,
+        residual: np.ndarray,
+        step_size: float,
+        observation: np.ndarray,
+        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+    ) -> Tuple[np.ndarray, "probnum.linalg.linearsolvers.LinearSolverState"]:
         """Update the residual :math:`r_i = Ax_i - b`."""
-        return residual + step_size * observation
+        # pylint: disable="no-self-use"
+        solver_state.residual = residual + step_size * observation
+        return solver_state.residual, solver_state
 
-    def log_rayleigh_quotient(
-        self, action_obs_innerprod: float, action: np.ndarray
-    ) -> float:
-        r"""Compute the log-Rayleigh quotient :math:`\ln R(A, s_i) = \ln(s_i^\top A
-        s_i) -\ln(s_i^\top s_i)` for the current action."""
-        return np.log(action_obs_innerprod) - np.log(action @ action)
-
-    def _matrix_model_mean_update_op(self, u, v):
+    def _matrix_model_mean_update_op(
+        self, u: np.ndarray, v: np.ndarray
+    ) -> linops.LinearOperator:
         """Linear operator implementing the symmetric rank 2 mean update (+= uv' +
         vu')."""
 
@@ -280,7 +329,9 @@ class LinearSymmetricGaussian(BeliefUpdate):
             shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
         )
 
-    def _matrix_model_covariance_factor_update_op(self, u, Ws):
+    def _matrix_model_covariance_factor_update_op(
+        self, u: np.ndarray, Ws: np.ndarray
+    ) -> linops.LinearOperator:
         """Linear operator implementing the symmetric rank 2 covariance factor downdate
         (-= Ws u^T)."""
 
@@ -290,3 +341,30 @@ class LinearSymmetricGaussian(BeliefUpdate):
         return linops.LinearOperator(
             shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
         )
+
+
+def _step_size(
+    residual: np.ndarray,
+    action: np.ndarray,
+    observation: np.ndarray,
+    solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+):
+    r"""Compute the step size :math:`\alpha` such that :math:`x_{i+1} = x_i +
+    \alpha_i s_i`, where :math:`s_i` is the current action."""
+    # Compute step size
+    action_obs_innerprod = action @ observation
+    step_size = -action @ residual / action_obs_innerprod
+
+    # Update solver state
+    solver_state.step_sizes.append(step_size)
+    solver_state.log_rayleigh_quotients.append(
+        _log_rayleigh_quotient(action_obs_innerprod=action_obs_innerprod, action=action)
+    )
+
+    return step_size, solver_state
+
+
+def _log_rayleigh_quotient(action_obs_innerprod: float, action: np.ndarray) -> float:
+    r"""Compute the log-Rayleigh quotient :math:`\ln R(A, s_i) = \ln(s_i^\top A
+    s_i) -\ln(s_i^\top s_i)` for the current action."""
+    return np.log(action_obs_innerprod) - np.log(action @ action)

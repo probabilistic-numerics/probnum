@@ -127,7 +127,7 @@ class ConjugateDirectionsTestCase(PolicyTestCase):
 
         self.assertAllClose(
             self.linsys.solution,
-            x + action.ravel(),
+            x + action,
         )
 
     def test_directions_are_conjugate(self):
@@ -157,5 +157,5 @@ class ThompsonSamplingTestCase(PolicyTestCase):
 
         self.assertAllClose(
             self.linsys.solution,
-            x + action.ravel(),
+            x + action,
         )
