@@ -128,13 +128,12 @@ class BeliefUpdate:
     ) -> Tuple[
         rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
     ]:
-        """Update the belief over the right hand side of the linear system."""
+        """Update the belief over the right hand side :math:`b` of the linear system."""
         raise NotImplementedError
 
 
 class LinearSymmetricGaussian(BeliefUpdate):
-    r"""
-    Belief update for a symmetric Gaussian prior and linear observations.
+    r"""Belief update for a symmetric Gaussian prior and linear observations.
 
     Updates the posterior beliefs over the quantities of interest of the linear system
     under symmetric matrix-variate Gaussian prior(s) on :math:`A` and / or :math:`H`.
@@ -144,7 +143,7 @@ class LinearSymmetricGaussian(BeliefUpdate):
     ----------
     noise_cov
         Covariance matrix :math:`\Lambda` of the noise term :math:`E \sim \mathcal{
-        N}(0, \Lambda)` assumed for matrix evaluations `v \mapsto (A + E)v`.
+        N}(0, \Lambda)` assumed for matrix evaluations :math:`v \mapsto (A + E)v`.
     """
 
     def __init__(
