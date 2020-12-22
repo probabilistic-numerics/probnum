@@ -26,9 +26,6 @@ class BeliefUpdate:
     belief_update
         Callable defining how to update the belief.
 
-    Examples
-    --------
-
     See Also
     --------
     LinearGaussianBeliefUpdate: Belief update given linear observations :math:`y=As`.
@@ -79,7 +76,7 @@ class BeliefUpdate:
         solver_state :
             Current state of the linear solver.
         """
-        return self._belief_update(belief, action, observation, solver_state)
+        return self._belief_update(problem, belief, action, observation, solver_state)
 
     def update_solution(
         self,
@@ -144,6 +141,10 @@ class LinearSymmetricGaussian(BeliefUpdate):
     noise_cov
         Covariance matrix :math:`\Lambda` of the noise term :math:`E \sim \mathcal{
         N}(0, \Lambda)` assumed for matrix evaluations :math:`v \mapsto (A + E)v`.
+
+    Examples
+    --------
+
     """
 
     def __init__(
@@ -322,10 +323,13 @@ class LinearSymmetricGaussian(BeliefUpdate):
         vu')."""
 
         def mv(x):
+            return u * (v @ x) + v * (u @ x)
+
+        def mm(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
 
         return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
+            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
         )
 
     def _matrix_model_covariance_factor_update_op(
@@ -335,10 +339,13 @@ class LinearSymmetricGaussian(BeliefUpdate):
         (-= Ws u^T)."""
 
         def mv(x):
+            return Ws * (u @ x)
+
+        def mm(x):
             return Ws @ (u.T @ x)
 
         return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
+            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
         )
 
 
