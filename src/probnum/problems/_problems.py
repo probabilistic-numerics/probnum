@@ -6,7 +6,7 @@ import typing
 import numpy as np
 import scipy.sparse
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 import probnum.filtsmooth as pnfs
 import probnum.linops as pnlo
 import probnum.random_variables as pnrv
@@ -124,7 +124,7 @@ class LinearSystem:
         System matrix or linear operator.
     b
         Right-hand side vector or matrix.
-    x
+    solution
         True solution to the problem. Used for testing and benchmarking.
 
     Examples
@@ -154,10 +154,8 @@ class LinearSystem:
 
     @classmethod
     def from_matrix(cls, A, random_state=None) -> "probnum.problems.LinearSystem":
-        """Generate a random linear system from a given matrix.
-
-        Randomly creates a linear system with a solution and right hand side for the
-        given matrix or linear operator.
+        """Generate a random linear system from a given (fixed) matrix or linear
+        operator.
 
         Parameters
         ----------
