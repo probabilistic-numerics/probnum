@@ -4,7 +4,7 @@
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
+from probnum.linalg.linearsolvers import LinearSystemBelief
 from probnum.linalg.linearsolvers.policies import (
     ConjugateDirectionsPolicy,
     ExploreExploitPolicy,
