@@ -80,6 +80,11 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
                 self.assertIsInstance(Ainvmat, rvs.Normal)
                 self.assertEqual(Ainvmat.shape, (self.linsys.A.shape[0], matshape[1]))
 
+    def test_multiple_actions_observations_update(self):
+        """Test whether a single update with multiple actions and observations is
+        identical to multiple sequential updates."""
+        # TODO
+
 
 class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
     """Test case for the linear symmetric Gaussian belief update."""
@@ -87,3 +92,33 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
     def setUp(self) -> None:
         """Test resources for the linear Gaussian belief update."""
         self.belief_updates = [LinearSymmetricGaussian()]
+
+    def test_symmetric_posterior_params(self):
+        """Test whether posterior parameters are symmetric."""
+
+        for belief_update in self.belief_updates:
+            with self.subTest():
+                belief, _ = belief_update(
+                    problem=self.linsys,
+                    belief=self.prior,
+                    action=self.action,
+                    observation=self.observation,
+                    solver_state=self.solver_state,
+                )
+                Ainv = belief.Ainv
+                Ainv_mean = Ainv.mean.todense()
+                Ainv_cov_A = Ainv.cov.A.todense()
+                Ainv_cov_B = Ainv.cov.B.todense()
+                self.assertAllClose(Ainv_mean, Ainv_mean.T, rtol=1e-6)
+                self.assertAllClose(Ainv_cov_A, Ainv_cov_B, rtol=1e-6)
+                self.assertAllClose(Ainv_cov_A, Ainv_cov_A.T, rtol=1e-6)
+
+    def test_matrix_posterior_computation(self):
+        """Test the posterior computation by the belief update against the theoretical
+        expressions."""
+        # TODO
+
+    def test_matrix_inverse_posterior_computation(self):
+        """Test the posterior computation by the belief update against the theoretical
+        expressions."""
+        # TODO

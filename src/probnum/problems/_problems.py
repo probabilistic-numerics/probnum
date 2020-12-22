@@ -122,7 +122,7 @@ class LinearSystem:
         System matrix or linear operator.
     b
         Right-hand side vector or matrix.
-    solution
+    x
         True solution to the problem. Used for testing and benchmarking.
 
     Examples
