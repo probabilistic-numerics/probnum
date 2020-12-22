@@ -90,12 +90,9 @@ class MaxIterations(StoppingCriterion):
         else:
             _maxiter = self.maxiter
 
-        if solver_state.iteration >= _maxiter:
-            warnings.warn(
-                "Iteration terminated. Solver reached the maximum number of iterations."
-            )
-            return True
-        else:
+        try:
+            return solver_state.iteration >= _maxiter
+        except AttributeError:
             return False
 
 
@@ -132,13 +129,10 @@ class Residual(StoppingCriterion):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         # Compute residual norm
-        if solver_state is None:
-            residual = problem.A @ belief.x.mean - problem.b
-        elif solver_state.residual is None:
-            residual = problem.A @ belief.x.mean - problem.b
-            solver_state.residual = residual
-        else:
+        try:
             residual = solver_state.residual
+        except AttributeError:
+            residual = problem.A @ belief.x.mean - problem.b
         residual_norm = np.linalg.norm(residual, ord=self.norm_ord)
 
         # Compare (relative) residual to tolerances

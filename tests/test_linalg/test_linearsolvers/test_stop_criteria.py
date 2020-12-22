@@ -25,7 +25,11 @@ class LinearSolverStoppingCriterionTestCase(
 
         # Stopping criteria
         def custom_stopping_criterion(problem, belief, solver_state=None):
-            return solver_state.iteration >= 100 or belief.Ainv.cov.trace() < 10 ** -3
+            _has_converged = belief.Ainv.cov.trace() < 10 ** -3
+            try:
+                return solver_state.iteration >= 100 or _has_converged
+            except AttributeError:
+                return _has_converged
 
         self.custom_stopcrit = StoppingCriterion(
             stopping_criterion=custom_stopping_criterion
@@ -51,6 +55,16 @@ class LinearSolverStoppingCriterionTestCase(
                     solver_state=self.solver_state,
                 )
                 self.assertIsInstance(has_converged, (bool, np.bool_))
+
+    def test_solver_state_none(self):
+        """Test whether all stopping criteria can be computed without a solver state."""
+        for stopcrit in self.stopping_criteria:
+            with self.subTest():
+                _ = stopcrit(
+                    problem=self.linsys,
+                    belief=self.prior,
+                    solver_state=None,
+                )
 
 
 class MaxIterationsTestCase(LinearSolverStoppingCriterionTestCase):

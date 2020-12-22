@@ -4,7 +4,7 @@
 import numpy as np
 
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import LinearSystemBelief
+from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
 from probnum.linalg.linearsolvers.policies import (
     ConjugateDirectionsPolicy,
     ExploreExploitPolicy,
@@ -62,6 +62,27 @@ class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAsserti
                     msg=f"Action returned by {policy.__class__.__name__} has shape"
                     f" {action.shape}.",
                 )
+
+    def test_solver_state_residual_is_none(self):
+        """Test whether policies return an action without a solver state or an empty
+        one."""
+        empty_solver_state = LinearSolverState(
+            actions=[],
+            observations=[],
+            iteration=10,
+            residual=None,
+            log_rayleigh_quotients=[],
+            has_converged=False,
+            stopping_criterion=None,
+        )
+        for policy in self.policies:
+            for sstate in [None, empty_solver_state]:
+                with self.subTest():
+                    action, _ = policy(
+                        problem=self.linsys,
+                        belief=self.prior,
+                        solver_state=sstate,
+                    )
 
 
 class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
