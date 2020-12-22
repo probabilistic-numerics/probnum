@@ -10,7 +10,5 @@ dependencies:
   - python>=3.6
   - pip
   - matplotlib
-  - jupyterlab
   - pip:
     - -e .
-    - jupyterlab_latex
