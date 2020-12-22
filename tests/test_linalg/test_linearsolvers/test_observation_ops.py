@@ -1,5 +1,7 @@
 """Tests for observation operators of probabilistic linear solvers."""
 
+from typing import Optional
+
 import numpy as np
 
 from probnum.linalg.linearsolvers import LinearSolverState
@@ -26,8 +28,12 @@ class ObservationOperatorTestCase(ProbabilisticLinearSolverTestCase, NumpyAssert
         self.solver_state.actions = [self.action]
 
         # Observation operators
-        def custom_obs(problem: LinearSystem, solver_state: LinearSolverState):
-            return solver_state.actions[-1] @ (problem.A @ solver_state.actions[-1])
+        def custom_obs(
+            problem: LinearSystem,
+            action: np.ndarray,
+            solver_state: Optional[LinearSolverState] = None,
+        ):
+            return action @ problem.A @ action, solver_state
 
         self.custom_obs = ObservationOperator(observation_op=custom_obs)
         self.matmult_obs = MatrixMultObservation()
@@ -37,8 +43,10 @@ class ObservationOperatorTestCase(ProbabilisticLinearSolverTestCase, NumpyAssert
         """Test whether observation operators return a vector."""
         for obs_op in self.observation_ops:
             with self.subTest():
-                observation = obs_op(
-                    problem=self.linsys, solver_state=self.solver_state
+                observation, _ = obs_op(
+                    problem=self.linsys,
+                    action=self.action,
+                    solver_state=self.solver_state,
                 )
                 self.assertIsInstance(
                     observation,
@@ -57,5 +65,6 @@ class MatrixMultObservationTestCase(ObservationOperatorTestCase):
         the system matrix."""
         A_copy = self.linsys.A.copy()  # in case evaluation of A is stochastic
         self.assertArrayEqual(
-            self.matmult_obs(self.linsys, self.solver_state), A_copy @ self.action
+            self.matmult_obs(self.linsys, self.action, self.solver_state)[0],
+            A_copy @ self.action,
         )

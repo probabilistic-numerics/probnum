@@ -1,12 +1,11 @@
 """Test cases for belief updates of probabilistic linear solvers."""
+from typing import Optional
 
 import numpy as np
 
-import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import (
+from probnum.linalg.linearsolvers.belief_updates import (
     BeliefUpdate,
     LinearGaussianBeliefUpdate,
-    LinearSolverState,
 )
 from tests.testing import NumpyAssertions
 
@@ -22,7 +21,14 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
         """Test resources for linear solver belief updates."""
 
         # Belief updates
-        def custom_belief_update(solver_state: LinearSolverState):
+        def custom_belief_update(
+            belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+            action: np.ndarray,
+            observation: np.ndarray,
+            solver_state: Optional[
+                "probnum.linalg.linearsolvers.LinearSolverState"
+            ] = None,
+        ):
             raise NotImplementedError
 
         self.custom_belief_update = BeliefUpdate(belief_update=custom_belief_update)

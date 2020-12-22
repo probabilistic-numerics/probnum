@@ -1,4 +1,5 @@
 """Belief updates for probabilistic linear solvers."""
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -31,20 +32,48 @@ class BeliefUpdate:
     LinearGaussianBeliefUpdate: Belief update given linear observations :math:`y=As`.
     """
 
-    def __init__(self, belief_update):
+    def __init__(
+        self,
+        belief_update: Callable[
+            [
+                "probnum.linalg.linearsolvers.LinearSystemBelief",
+                np.ndarray,
+                np.ndarray,
+                Optional["probnum.linalg.linearsolvers.LinearSolverState"],
+            ],
+            Tuple[
+                "probnum.linalg.linearsolvers.LinearSystemBelief",
+                "probnum.linalg.linearsolvers.LinearSolverState",
+            ],
+        ],
+    ):
         self._belief_update = belief_update
 
     def __call__(
-        self, solver_state: "probnum.linalg.linearsolvers.LinearSolverState"
-    ) -> "probnum.linalg.linearsolvers.LinearSolverState":
+        self,
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        action: np.ndarray,
+        observation: np.ndarray,
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[
+        "probnum.linalg.linearsolvers.LinearSystemBelief",
+        "probnum.linalg.linearsolvers.LinearSolverState",
+    ]:
         """Update belief over quantities of interest of the linear system.
 
         Parameters
         ----------
+        belief :
+            Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
+            linear system.
+        action :
+            Action of the solver to probe the linear system with.
+        observation :
+            Observation of the linear system for the given action.
         solver_state :
             Current state of the linear solver.
         """
-        return self._belief_update(solver_state)
+        return self._belief_update(belief, action, observation, solver_state)
 
     def update_solution(
         self, belief_x: rvs.RandomVariable, action: np.ndarray, observation: np.ndarray
@@ -83,11 +112,15 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
         super().__init__(belief_update=self.__call__)
 
     def __call__(
-        self, solver_state: "probnum.linalg.linearsolvers.LinearSolverState"
-    ) -> "probnum.linalg.linearsolvers.LinearSolverState":
-
-        action = solver_state.actions[-1]
-        observation = solver_state.observations[-1]
+        self,
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        action: np.ndarray,
+        observation: np.ndarray,
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[
+        "probnum.linalg.linearsolvers.LinearSystemBelief",
+        "probnum.linalg.linearsolvers.LinearSolverState",
+    ]:
 
         # Compute step size
         sy = action.T @ observation
@@ -99,29 +132,24 @@ class LinearGaussianBeliefUpdate(BeliefUpdate):
         )
         solver_state.log_rayleigh_quotients.append(log_rayleigh_quotient)
 
-        # Solution and residual update
-        belief_x = self.update_solution(
-            belief_x=solver_state.belief[0], action=action, step_size=step_size
+        # Belief updates
+        belief.x = self.update_solution(
+            belief_x=belief.x, action=action, step_size=step_size
         )
+        belief.A = self.update_matrix(
+            belief_A=belief.A, action=action, observation=observation
+        )
+        belief.Ainv = self.update_inverse(
+            belief_Ainv=belief.Ainv, action=action, observation=observation
+        )
+        belief.b = self.update_rhs(belief_b=belief.b)
+
+        # Update residual
         solver_state.residual = self.update_residual(
             residual=solver_state.residual, step_size=step_size, observation=observation
         )
 
-        # System matrix and inverse updates
-        belief_A = self.update_matrix(
-            belief_A=solver_state.belief[1], action=action, observation=observation
-        )
-        belief_Ainv = self.update_inverse(
-            belief_Ainv=solver_state.belief[2], action=action, observation=observation
-        )
-
-        # Update right hand side b
-        belief_b = self.update_rhs(belief_b=solver_state.belief[3])
-
-        # Update solver state with new beliefs
-        solver_state.belief = (belief_x, belief_A, belief_Ainv, belief_b)
-
-        return solver_state
+        return belief, solver_state
 
     def update_solution(
         self,

@@ -69,6 +69,9 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             rvs.Constant(np.linalg.inv(_A)),
             b,
         )
+        cls.solver_state_converged = LinearSolverState(
+            residual=cls.linsys.A @ cls.belief_converged.x.mean - cls.linsys.b
+        )
 
     def setUp(self) -> None:
         """Test resources for custom probabilistic linear solvers."""

@@ -1,7 +1,7 @@
 """Stopping criteria of probabilistic linear solvers."""
 
 import warnings
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from probnum.problems import LinearSystem
 from probnum.type import IntArgType, ScalarArgType
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["StoppingCriterion", "MaxIters", "Residual", "PosteriorContraction"]
+__all__ = ["StoppingCriterion", "MaxIterations", "Residual", "PosteriorContraction"]
 
 # pylint: disable="invalid-name,too-few-public-methods"
 
@@ -38,7 +38,8 @@ class StoppingCriterion:
         stopping_criterion: Callable[
             [
                 LinearSystem,
-                "probnum.linalg.linearsolvers.LinearSolverState",
+                "probnum.linalg.linearsolvers.LinearSystemBelief",
+                Optional["probnum.linalg.linearsolvers.LinearSolverState"],
             ],
             bool,
         ],
@@ -48,7 +49,8 @@ class StoppingCriterion:
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         """Evaluate whether the solver has converged.
 
@@ -56,13 +58,16 @@ class StoppingCriterion:
         ----------
         problem :
             Linear system to solve.
+        belief : Belief `(x, A, Ainv, b)` over the solution :math:`x`,
+                 the system matrix :math:`A`, its inverse :math:`H=A^{-1}` and the
+                 right hand side :math:`b`.
         solver_state :
             Current state of the linear solver.
         """
-        return self._stopping_criterion(problem, solver_state)
+        return self._stopping_criterion(problem, belief, solver_state)
 
 
-class MaxIters(StoppingCriterion):
+class MaxIterations(StoppingCriterion):
     """Maximum number of iterations.
 
     Stop when a maximum number of iterations is reached. If none is
@@ -77,7 +82,8 @@ class MaxIters(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         if self.maxiter is None:
             _maxiter = problem.A.shape[0] * 10
@@ -122,13 +128,17 @@ class Residual(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
-        # Compute residual
-        residual = solver_state.residual
-        if residual is None:
-            x, _, _, _ = solver_state.belief
-            residual = problem.A @ x.mean - problem.b
+        # Compute residual norm
+        if solver_state is None:
+            residual = problem.A @ belief.x.mean - problem.b
+        elif solver_state.residual is None:
+            residual = problem.A @ belief.x.mean - problem.b
+            solver_state.residual = residual
+        else:
+            residual = solver_state.residual
         residual_norm = np.linalg.norm(residual, ord=self.norm_ord)
 
         # Compare (relative) residual to tolerances
@@ -159,13 +169,13 @@ class PosteriorContraction(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         # Trace of the solution covariance
-        x, _, _, _ = solver_state.belief
         # TODO: replace this with (existing) more efficient trace computation; maybe an
         #  iterative update to the trace property of the linear operator
-        trace_sol_cov = x.cov.trace()
+        trace_sol_cov = belief.x.cov.trace()
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b)

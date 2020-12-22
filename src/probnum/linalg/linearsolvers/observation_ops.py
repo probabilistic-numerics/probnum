@@ -1,6 +1,6 @@
 """Observation operators of probabilistic linear solvers."""
 
-from typing import Callable
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -33,7 +33,12 @@ class ObservationOperator:
     def __init__(
         self,
         observation_op: Callable[
-            [LinearSystem, "probnum.linalg.linearsolvers.LinearSolverState"], np.ndarray
+            [
+                LinearSystem,
+                np.ndarray,
+                Optional["probnum.linalg.linearsolvers.LinearSolverState"],
+            ],
+            Tuple[np.ndarray, "probnum.linalg.linearsolvers.LinearSolverState"],
         ],
     ):
         self._observation_op = observation_op
@@ -41,18 +46,21 @@ class ObservationOperator:
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
-    ) -> np.ndarray:
+        action: np.ndarray,
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
         """Collect an observation about the linear system.
 
         Parameters
         ----------
         problem :
             Linear system to solve.
+        action :
+            Action of the solver to probe the linear system with.
         solver_state :
             Current state of the linear solver.
         """
-        return self._observation_op(problem, solver_state)
+        return self._observation_op(problem, action, solver_state)
 
 
 class MatrixMultObservation(ObservationOperator):
@@ -68,6 +76,7 @@ class MatrixMultObservation(ObservationOperator):
     def __call__(
         self,
         problem: LinearSystem,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
-    ) -> np.ndarray:
-        return problem.A @ solver_state.actions[-1]
+        action: np.ndarray,
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
+        return problem.A @ action, solver_state
