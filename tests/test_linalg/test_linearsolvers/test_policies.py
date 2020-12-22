@@ -6,9 +6,10 @@ import numpy as np
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
 from probnum.linalg.linearsolvers.policies import (
-    ConjugateDirectionsPolicy,
-    ExploreExploitPolicy,
+    ConjugateDirections,
+    ExploreExploit,
     Policy,
+    ThompsonSampling,
 )
 from tests.testing import NumpyAssertions
 
@@ -17,7 +18,7 @@ from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase
 # pylint: disable="invalid-name"
 
 
-class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
+class PolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
     """General test case for policies of probabilistic linear solvers."""
 
     def setUp(self) -> None:
@@ -33,12 +34,14 @@ class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAsserti
         self.custom_policy = Policy(
             policy=custom_policy, is_deterministic=False, random_state=self.rng
         )
-        self.conj_dir_policy = ConjugateDirectionsPolicy()
-        self.explore_exploit_policy = ExploreExploitPolicy(random_state=self.rng)
+        self.conj_dir_policy = ConjugateDirections()
+        self.thompson_sampling = ThompsonSampling(random_state=self.rng)
+        self.explore_exploit_policy = ExploreExploit(random_state=self.rng)
 
         self.policies = [
             self.custom_policy,
             self.conj_dir_policy,
+            self.thompson_sampling,
             self.explore_exploit_policy,
         ]
 
@@ -84,8 +87,29 @@ class LinearSolverPolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAsserti
                         solver_state=sstate,
                     )
 
+    def test_is_deterministic_or_stochastic(self):
+        """Test whether evaluating the policy is deterministic or stochastic."""
+        for policy in self.policies:
+            action1, _ = policy(
+                problem=self.linsys, belief=self.prior, solver_state=self.solver_state
+            )
+            action2, _ = policy(
+                problem=self.linsys, belief=self.prior, solver_state=self.solver_state
+            )
 
-class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
+            if policy.is_deterministic:
+                self.assertTrue(
+                    np.all(action1 == action2),
+                    msg="Policy returned two different actions for the same input.",
+                )
+            else:
+                self.assertFalse(
+                    np.all(action1 == action2),
+                    msg="Policy returned the same action for two subsequent evaluations.",
+                )
+
+
+class ConjugateDirectionsTestCase(PolicyTestCase):
     """Test case for the conjugate directions policy."""
 
     def test_true_inverse_solves_problem_in_one_step(self):
@@ -95,7 +119,7 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
         x = self.rng.random(self.dim)
         belief = LinearSystemBelief(
             x=rvs.Constant(x),
-            A=self.linsys.A,
+            A=rvs.Constant(self.linsys.A),
             Ainv=rvs.Constant(Ainv),
             b=rvs.Constant(self.linsys.b),
         )
@@ -110,34 +134,28 @@ class ConjugateDirectionsPolicyTestCase(LinearSolverPolicyTestCase):
         """Test whether the actions given by the policy are A-conjugate."""
         # TODO: use ProbabilisticLinearSolver's solve_iter function to test this
 
-    def test_is_deterministic(self):
-        """Test whether the policy is deterministic."""
-        self.assertTrue(self.conj_dir_policy.is_deterministic)
-        action1, _ = self.conj_dir_policy(
-            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
-        )
-        action2, _ = self.conj_dir_policy(
-            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
-        )
-        self.assertTrue(
-            np.all(action1 == action2),
-            msg="Policy returned two different actions for the same input.",
-        )
 
-
-class ExploreExploitPolicyTestCase(LinearSolverPolicyTestCase):
+class ExploreExploitTestCase(PolicyTestCase):
     """Test case for the explore-exploit policy."""
 
-    def test_is_stochastic(self):
-        """Test whether the policy behaves stochastically."""
-        self.assertFalse(self.explore_exploit_policy.is_deterministic)
-        action1, _ = self.explore_exploit_policy(
-            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
+
+class ThompsonSamplingTestCase(PolicyTestCase):
+    """Test case for the thompson sampling policy."""
+
+    def test_belief_equals_truth_solves_problem_in_one_step(self):
+        """Test whether the solver converges in one step to the solution, if the model
+        for the matrix, inverse and right hand side matches the truth."""
+        Ainv = np.linalg.inv(self.linsys.A)
+        x = self.rng.random(self.dim)
+        belief = LinearSystemBelief(
+            x=rvs.Constant(x),
+            A=rvs.Constant(self.linsys.A),
+            Ainv=rvs.Constant(Ainv),
+            b=rvs.Constant(self.linsys.b),
         )
-        action2, _ = self.explore_exploit_policy(
-            problem=self.linsys, belief=self.prior, solver_state=self.solver_state
-        )
-        self.assertFalse(
-            np.all(action1 == action2),
-            msg="Policy returned the same action for two subsequent evaluations.",
+        action, _ = self.thompson_sampling(problem=self.linsys, belief=belief)
+
+        self.assertAllClose(
+            self.linsys.solution,
+            x + action.ravel(),
         )

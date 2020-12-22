@@ -9,7 +9,12 @@ from probnum.problems import LinearSystem
 from probnum.type import RandomStateArgType
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["Policy", "ConjugateDirectionsPolicy", "ExploreExploitPolicy"]
+__all__ = [
+    "Policy",
+    "ConjugateDirections",
+    "ExploreExploit",
+    "ThompsonSampling",
+]
 
 # pylint: disable="invalid-name"
 
@@ -95,7 +100,7 @@ class Policy:
         return self._is_deterministic
 
 
-class ConjugateDirectionsPolicy(Policy):
+class ConjugateDirections(Policy):
     """Policy returning :math:`A`-conjugate directions.
 
     Returns an action given by :math:`s_i = -\\mathbb{E}[\\mathsf{H}]r_{i-1}` where
@@ -132,7 +137,48 @@ class ConjugateDirectionsPolicy(Policy):
         return action, solver_state
 
 
-class ExploreExploitPolicy(Policy):
+class ThompsonSampling(Policy):
+    r"""Maximize the expected reward with respect to a random sample from the belief.
+
+    Returns an action given by :math:`s_i = -H_ir_i`, where :math:`r = A_i x_i - b_i`
+    and :math:`(x_i, A_i, H_i, b_i)` are drawn from the current belief over the
+    corresponding linear system components. The resulting action is the exact step to
+    the solution of the linear system assuming :math:`H_i = A^{-1}`, :math:`A_i=A`, and
+    :math:`b_i=b`.
+
+    Parameters
+    ----------
+    random_state
+        Random state of the policy. If None (or :mod:`numpy.random`), the global
+        :mod:`numpy.random` state is used. If integer, it is used to seed the local
+        :class:`~numpy.random.RandomState` instance.
+    """
+
+    def __init__(self, random_state=None):
+        super().__init__(
+            policy=self.__call__, is_deterministic=False, random_state=random_state
+        )
+
+    def __call__(
+        self,
+        problem: LinearSystem,
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
+
+        # Sample from current belief
+        x_sample = belief.x.sample()
+        A_sample = belief.A.sample(1)[0]
+        Ainv_sample = belief.Ainv.sample(1)[0]
+        b_sample = belief.b.sample()
+
+        # A-conjugate search direction / action (assuming exact arithmetic)
+        action = -Ainv_sample @ (A_sample @ x_sample - b_sample)
+
+        return action, solver_state
+
+
+class ExploreExploit(Policy):
     """Policy trading off exploration and exploitation.
 
     Returns an action given by :math:`s_i \\sim \\mathcal{N}(s; -\\mathbb{E}[

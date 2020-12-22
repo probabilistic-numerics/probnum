@@ -1,6 +1,5 @@
 """Stopping criteria of probabilistic linear solvers."""
 
-import warnings
 from typing import Callable, Optional
 
 import numpy as np

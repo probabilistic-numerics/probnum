@@ -5,7 +5,7 @@ import numpy as np
 
 from probnum.linalg.linearsolvers.belief_updates import (
     BeliefUpdate,
-    LinearGaussianBeliefUpdate,
+    LinearSymmetricGaussian,
 )
 from tests.testing import NumpyAssertions
 
@@ -32,7 +32,7 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
             raise NotImplementedError
 
         self.custom_belief_update = BeliefUpdate(belief_update=custom_belief_update)
-        self.linear_gaussian_update = LinearGaussianBeliefUpdate()
+        self.linear_gaussian_update = LinearSymmetricGaussian()
 
 
 class LinearGaussianBeliefUpdateTestCase(BeliefUpdateTestCase):

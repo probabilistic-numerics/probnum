@@ -71,6 +71,9 @@ class LinearSolverState(PNMethodState):
     log_rayleigh_quotients
         Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
         s_i)`.
+    step_sizes
+        Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
+        steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
     has_converged
         Has the solver converged?
     stopping_criterion
@@ -83,6 +86,7 @@ class LinearSolverState(PNMethodState):
     iteration: int = 0
     residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
     log_rayleigh_quotients: Optional[List[float]] = None
+    step_sizes: Optional[List[float]] = None
     has_converged: bool = False
     stopping_criterion: Optional[List[StoppingCriterion]] = None
 
@@ -197,6 +201,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             iteration=0,
             residual=problem.A @ self.prior.x.mean - problem.b,
             log_rayleigh_quotients=[],
+            step_sizes=[],
             has_converged=False,
             stopping_criterion=None,
         )
@@ -270,14 +275,22 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
         while True:
             # Compute action via policy
-            action, solver_state = self.policy(problem, belief, solver_state)
+            action, solver_state = self.policy(
+                problem=problem, belief=belief, solver_state=solver_state
+            )
 
             # Make an observation of the linear system
-            observation, solver_state = self.observe(problem, action, solver_state)
+            observation, solver_state = self.observe(
+                problem=problem, action=action, solver_state=solver_state
+            )
 
             # Update the belief over the system matrix, its inverse and/or the solution
             belief, solver_state = self.update_belief(
-                belief, action, observation, solver_state
+                problem=problem,
+                belief=belief,
+                action=action,
+                observation=observation,
+                solver_state=solver_state,
             )
 
             yield belief, solver_state
@@ -330,5 +343,5 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     def _infer_belief_system_components(
         self, belief: LinearSystemBelief
     ) -> LinearSystemBelief:
-        """Compute the belief over all components of the linear system."""
+        """Compute the belief over all quantities of interest of the linear system."""
         raise NotImplementedError
