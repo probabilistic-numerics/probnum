@@ -6,6 +6,12 @@ import typing
 import numpy as np
 import scipy.sparse
 
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
 import probnum  # pylint: disable="unused-import"
 import probnum.filtsmooth as pnfs
 import probnum.linops as linops
@@ -117,7 +123,7 @@ class InitialValueProblem:
     solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class LinearSystem:
     r"""Linear system of equations.
 
@@ -181,10 +187,12 @@ class LinearSystem:
 
         # Check and normalize shapes
         if self.b.ndim == 1:
-            self.b = self.b.reshape(-1, 1)
+            # Reshape immutable object
+            object.__setattr__(self, "b", self.b.reshape(-1, 1))
         if self.solution is not None:
             if self.solution.ndim == 1:
-                self.solution = self.solution.reshape(-1, 1)
+                # Reshape immutable object
+                object.__setattr__(self, "solution", self.solution.reshape(-1, 1))
             if self.solution.ndim != 2:
                 raise ValueError("Solution must be two-dimensional.")
         if self.A.ndim != 2 or self.b.ndim != 2:
@@ -226,6 +234,15 @@ class LinearSystem:
         right_hand_side = A @ solution
 
         return LinearSystem(A=A, solution=solution, b=right_hand_side)
+
+    @cached_property
+    def shape(self) -> pntp.ShapeType:
+        """Shape of the linear system.
+
+        Defined as the shape of the system matrix :code:`(m, n)` and the
+        number of right hand sides :code:`(nrhs)`.
+        """
+        return self.A.shape + (self.b.shape[1],)
 
 
 @dataclasses.dataclass

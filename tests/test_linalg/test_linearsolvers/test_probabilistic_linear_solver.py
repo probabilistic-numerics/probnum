@@ -14,6 +14,38 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
 
+class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
+    """Test case for the belief over quantities of interest of the linear system."""
+
+    def test_dimension_mismatch_raises_value_error(self):
+        """Test whether mismatched components result in a ValueError."""
+
+        # A does not match b
+        with self.assertRaises(ValueError):
+            LinearSystemBelief()
+
+        # A does not match x
+        with self.assertRaises(ValueError):
+            LinearSystemBelief()
+
+        # x does not match b
+        with self.assertRaises(ValueError):
+            LinearSystemBelief()
+
+        # A does not match Ainv
+        with self.assertRaises(ValueError):
+            LinearSystemBelief()
+
+    def test_belief_is_two_dimensional(self):
+        """Check whether all beliefs over quantities of interest are 2 dimensional."""
+        belief = LinearSystemBelief()
+
+        self.assertEqual(belief.A.ndim, 2)
+        self.assertEqual(belief.Ainv.ndim, 2)
+        self.assertEqual(belief.x.ndim, 2)
+        self.assertEqual(belief.b.ndim, 2)
+
+
 class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
     """General test case for probabilistic linear solvers."""
 

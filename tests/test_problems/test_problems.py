@@ -36,7 +36,7 @@ class LinearSystemTestCase(unittest.TestCase, NumpyAssertions):
         # No solution does not raise error
         LinearSystem(A=A, b=b)
 
-    def test_wrong_dimension_mismatch_raises_value_error(self):
+    def test_dimension_mismatch_raises_value_error(self):
         """Test whether mismatched components result in a ValueError."""
         A = np.ones(shape=(8, 5))
 
@@ -80,6 +80,19 @@ class LinearSystemTestCase(unittest.TestCase, NumpyAssertions):
         # b.ndim == 3
         with self.assertRaises(ValueError):
             LinearSystem(A=A, b=b[:, None])
+
+    def test_shape_matches_system_components(self):
+        """Test whether the linear system shape matches the system components."""
+        m, n, nrhs = 8, 5, 2
+        A = np.ones((m, n))
+        b = np.ones((m, nrhs))
+        linsys = LinearSystem(A=A, b=b)
+        self.assertEqual(
+            linsys.shape,
+            (m, n, nrhs),
+            msg=f"Linear system shape {linsys.shape} does not match "
+            f"component shapes A : {A.shape}, b: {b.shape}",
+        )
 
 
 class RandomLinearSystemTestCase(unittest.TestCase, NumpyAssertions):
