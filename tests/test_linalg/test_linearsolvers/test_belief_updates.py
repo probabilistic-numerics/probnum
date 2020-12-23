@@ -31,7 +31,9 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
             observation: np.ndarray,
             solver_state: Optional[LinearSolverState] = None,
         ):
-            belief.x += action
+            # Richardson iteration
+            omega = 0.01
+            belief.x += omega * (problem.b - problem.A @ belief.x.mean)
 
             return belief, solver_state
 
@@ -80,10 +82,42 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
                 self.assertIsInstance(Ainvmat, rvs.Normal)
                 self.assertEqual(Ainvmat.shape, (self.linsys.A.shape[0], matshape[1]))
 
-    def test_multiple_actions_observations_update(self):
-        """Test whether a single update with multiple actions and observations is
-        identical to multiple sequential updates."""
-        # TODO
+    #
+    # def test_multiple_actions_observations_update(self):
+    #     """Test whether a single update with multiple actions and observations is
+    #     identical to multiple sequential updates."""
+    #     n_iterations = 5
+    #     actions = self.rng.normal(size=(self.linsys.shape[0], n_iterations))
+    #     observations = self.linsys.A @ actions
+    #
+    #     for belief_update in self.belief_updates:
+    #         with self.subTest():
+    #             belief_bulk, _ = belief_update(
+    #                 problem=self.linsys,
+    #                 belief=self.prior,
+    #                 action=actions,
+    #                 observation=observations,
+    #                 solver_state=self.solver_state,
+    #             )
+    #
+    #             belief_iter = self.prior
+    #             for i in range(n_iterations):
+    #                 belief_iter, _ = belief_update(
+    #                     problem=self.linsys,
+    #                     belief=belief_iter,
+    #                     action=actions[:, i][:, None],
+    #                     observation=observations[:, i][:, None],
+    #                     solver_state=self.solver_state,
+    #                 )
+    #
+    #             self.assertAllClose(
+    #                 belief_bulk.A.mean.todense(), belief_iter.A.mean.todense()
+    #             )
+    #             self.assertAllClose(
+    #                 belief_bulk.Ainv.mean.todense(), belief_iter.Ainv.mean.todense()
+    #             )
+    #             self.assertAllClose(belief_bulk.x.mean, belief_iter.x.mean)
+    #             self.assertAllClose(belief_bulk.b.mean, belief_iter.b.mean)
 
 
 class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
