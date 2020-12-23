@@ -1,0 +1,14 @@
+# Configuration file for interactive tutorials using binder.
+#
+# This file is used by binder to install dependencies necessary to run the Jupyter
+# notebook tutorials in the documentation.
+# See also: https://mybinder.readthedocs.io/en/latest/using/config_files.html
+name: interactive-tutorials-env
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.6
+  - pip
+  - matplotlib
+  - pip:
+    - -e .
