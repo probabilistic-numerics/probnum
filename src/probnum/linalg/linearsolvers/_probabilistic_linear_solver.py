@@ -27,8 +27,8 @@ class LinearSystemBelief:
     r"""Belief over quantities of interest of a linear system.
 
     Random variables :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})` modelling
-    the solution :math:`x`, the system matrix :math:`A`, its inverse :math:`H=A^{-1}`
-    and the right hand side :math:`b` of a linear system :math:`Ax=b`.
+    the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
+    :math:`H=A^{-1}` and the right hand side :math:`b` of a linear system :math:`Ax=b`.
 
     Parameters
     ----------
@@ -37,7 +37,7 @@ class LinearSystemBelief:
     A :
         Belief over the system matrix.
     Ainv :
-        Belief over the inverse of the system matrix.
+        Belief over the (pseudo-)inverse of the system matrix.
     b :
         Belief over the right hand side
     """

@@ -19,26 +19,53 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_dimension_mismatch_raises_value_error(self):
         """Test whether mismatched components result in a ValueError."""
+        m, n, nrhs = 5, 3, 2
+        A = rvs.Normal(mean=np.ones((m, n)), cov=np.eye(m * n))
+        Ainv = A
+        x = rvs.Normal(mean=np.zeros((m, nrhs)), cov=np.eye(m * nrhs))
+        b = rvs.Constant(np.ones((m, nrhs)))
 
         # A does not match b
         with self.assertRaises(ValueError):
-            LinearSystemBelief()
+            LinearSystemBelief(
+                A=A, Ainv=Ainv, x=x, b=rvs.Constant(np.ones((m + 1, nrhs)))
+            )
 
         # A does not match x
         with self.assertRaises(ValueError):
-            LinearSystemBelief()
+            LinearSystemBelief(
+                A=A,
+                Ainv=Ainv,
+                x=rvs.Normal(mean=np.zeros((n + 1, nrhs)), cov=np.eye((n + 1) * nrhs)),
+                b=b,
+            )
 
         # x does not match b
         with self.assertRaises(ValueError):
-            LinearSystemBelief()
+            LinearSystemBelief(
+                A=A,
+                Ainv=Ainv,
+                x=rvs.Normal(mean=np.zeros((n, nrhs + 1)), cov=np.eye(n * (nrhs + 1))),
+                b=b,
+            )
 
         # A does not match Ainv
         with self.assertRaises(ValueError):
-            LinearSystemBelief()
+            LinearSystemBelief(
+                A=A,
+                Ainv=rvs.Normal(mean=np.ones((m + 1, n)), cov=np.eye((m + 1) * n)),
+                x=x,
+                b=b,
+            )
 
     def test_belief_is_two_dimensional(self):
         """Check whether all beliefs over quantities of interest are 2 dimensional."""
-        belief = LinearSystemBelief()
+        m, n = 5, 3
+        A = rvs.Normal(mean=np.ones((m, n)), cov=np.eye(m * n))
+        Ainv = A
+        x = rvs.Normal(mean=np.zeros(m), cov=np.eye(m))
+        b = rvs.Constant(np.ones(m))
+        belief = LinearSystemBelief(A=A, Ainv=Ainv, x=x, b=b)
 
         self.assertEqual(belief.A.ndim, 2)
         self.assertEqual(belief.Ainv.ndim, 2)
