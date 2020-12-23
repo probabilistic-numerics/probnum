@@ -148,7 +148,9 @@ class LinearSystem:
     >>> lin_sys
     LinearSystem(A=array([[1., 0., 0.],
            [0., 1., 0.],
-           [0., 0., 1.]]), b=array([0, 1, 2]), solution=None)
+           [0., 0., 1.]]), b=array([[0],
+           [1],
+           [2]]), solution=None)
     """
 
     A: typing.Union[
