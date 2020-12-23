@@ -587,4 +587,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
         # TODO: can we avoid todense here and just return operator samples?
-        return self.dense_mean[None, :, :] + samples_scaled.T.reshape(-1, n, n)
+        return (
+            self.dense_mean[None, :, :] + samples_scaled.T.reshape(-1, n, n)
+        ).squeeze()

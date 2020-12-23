@@ -168,8 +168,8 @@ class ThompsonSampling(Policy):
 
         # Sample from current belief
         x_sample = belief.x.sample()
-        A_sample = belief.A.sample(1)[0]
-        Ainv_sample = belief.Ainv.sample(1)[0]
+        A_sample = belief.A.sample()
+        Ainv_sample = belief.Ainv.sample()
         b_sample = belief.b.sample()
 
         # A-conjugate search direction / action (assuming exact arithmetic)

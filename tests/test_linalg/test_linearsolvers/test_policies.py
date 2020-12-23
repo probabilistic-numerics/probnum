@@ -27,7 +27,7 @@ class PolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
         # Policies
         def custom_policy(problem, belief, random_state, solver_state=None):
             action = rvs.Normal(
-                np.zeros(self.dim), np.identity(self.dim), random_state=random_state
+                np.zeros((self.dim, 1)), np.eye(self.dim), random_state=random_state
             ).sample()
             return action, solver_state
 
@@ -46,7 +46,7 @@ class PolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
         ]
 
     def test_returns_vector(self):
-        """Test whether policies return a vector of length n."""
+        """Test whether policies return a (column) vector of length n."""
         for policy in self.policies:
             with self.subTest():
                 action, _ = policy(
@@ -61,7 +61,7 @@ class PolicyTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
                     "not an np.ndarray.",
                 )
                 self.assertTrue(
-                    action.shape == (self.linsys.A.shape[1],),
+                    action.shape == (self.linsys.A.shape[1], 1),
                     msg=f"Action returned by {policy.__class__.__name__} has shape"
                     f" {action.shape}.",
                 )
@@ -116,7 +116,7 @@ class ConjugateDirectionsTestCase(PolicyTestCase):
         """Test whether the solver converges in one step to the solution, if the model
         over the inverse has the true inverse as a posterior mean."""
         Ainv = np.linalg.inv(self.linsys.A)
-        x = self.rng.random(self.dim)
+        x = self.rng.random((self.dim, 1))
         belief = LinearSystemBelief(
             x=rvs.Constant(x),
             A=rvs.Constant(self.linsys.A),
@@ -146,7 +146,7 @@ class ThompsonSamplingTestCase(PolicyTestCase):
         """Test whether the solver converges in one step to the solution, if the model
         for the matrix, inverse and right hand side matches the truth."""
         Ainv = np.linalg.inv(self.linsys.A)
-        x = self.rng.random(self.dim)
+        x = self.rng.random((self.dim, 1))
         belief = LinearSystemBelief(
             x=rvs.Constant(x),
             A=rvs.Constant(self.linsys.A),

@@ -171,7 +171,7 @@ class LinearSolverTests(unittest.TestCase, NumpyAssertions):
                     A=self.poisson_linear_system.A, b=self.poisson_linear_system.b
                 )
                 self.assertAllClose(
-                    x.mean,
+                    x.mean.reshape(-1, 1),
                     self.poisson_linear_system.solution,
                     rtol=1e-5,
                     msg="Solution from probabilistic linear solver does"

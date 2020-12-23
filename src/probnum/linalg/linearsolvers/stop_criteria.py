@@ -132,10 +132,10 @@ class Residual(StoppingCriterion):
             residual = solver_state.residual
         except AttributeError:
             residual = problem.A @ belief.x.mean - problem.b
-        residual_norm = np.linalg.norm(residual, ord=self.norm_ord)
+        residual_norm = np.linalg.norm(residual.flatten(), ord=self.norm_ord)
 
         # Compare (relative) residual to tolerances
-        b_norm = np.linalg.norm(problem.b, ord=self.norm_ord)
+        b_norm = np.linalg.norm(problem.b.flatten(), ord=self.norm_ord)
         return residual_norm <= self.atol or residual_norm <= self.rtol * b_norm
 
 
@@ -171,7 +171,7 @@ class PosteriorContraction(StoppingCriterion):
         trace_sol_cov = belief.x.cov.trace()
 
         # Compare (relative) residual to tolerances
-        b_norm = np.linalg.norm(problem.b)
+        b_norm = np.linalg.norm(problem.b.flatten())
         return (
             np.abs(trace_sol_cov) <= self.atol ** 2
             or np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2

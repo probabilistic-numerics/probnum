@@ -162,12 +162,22 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 # TODO: check dimension of each realization in rv_sample
                 rv = rvs.Normal(mean=mean, cov=cov, random_state=1)
-                rv_sample = rv.sample(size=5)
+
                 if not np.isscalar(rv.mean):
+                    # Multiple samples
+                    rv_sample = rv.sample(size=5)
                     self.assertEqual(
                         rv_sample.shape[-rv.ndim :],
                         mean.shape,
                         msg="Realization shape does not match mean shape.",
+                    )
+
+                    # Single sample
+                    rv_sample_single = rv.sample()
+                    self.assertEqual(
+                        rv_sample_single.shape,
+                        mean.shape,
+                        msg="Shape of a single realization does not match mean shape.",
                     )
 
     def test_sample_zero_cov(self):

@@ -277,7 +277,7 @@ class LinearSymmetricGaussian(BeliefUpdate):
         # Compute update terms
         Wy = belief_Ainv.cov.A @ observation
         delta_Ainv = action - belief_Ainv.mean @ observation
-        u_Ainv = Wy / np.squeeze(observation.T @ Wy)
+        u_Ainv = Wy / (observation.T @ Wy)
         v_Ainv = delta_Ainv - 0.5 * (observation.T @ delta_Ainv) * u_Ainv
 
         # Rank 2 mean update (+= uv' + vu')
@@ -323,13 +323,10 @@ class LinearSymmetricGaussian(BeliefUpdate):
         vu')."""
 
         def mv(x):
-            return u * (v @ x) + v * (u @ x)
-
-        def mm(x):
-            return u[:, None] @ (v[None, :] @ x) + v[:, None] @ (u[None, :] @ x)
+            return u @ (v.T @ x) + v @ (u.T @ x)
 
         return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
+            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
         )
 
     def _matrix_model_covariance_factor_update_op(
@@ -339,13 +336,10 @@ class LinearSymmetricGaussian(BeliefUpdate):
         (-= Ws u^T)."""
 
         def mv(x):
-            return Ws * (u @ x)
-
-        def mm(x):
-            return Ws[:, None] @ (u[None, :] @ x)
+            return Ws @ (u.T @ x)
 
         return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
+            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
         )
 
 
@@ -354,12 +348,12 @@ def _step_size(
     action: np.ndarray,
     observation: np.ndarray,
     solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
-):
+) -> Tuple[float, "probnum.linalg.linearsolvers.LinearSolverState"]:
     r"""Compute the step size :math:`\alpha` such that :math:`x_{i+1} = x_i +
     \alpha_i s_i`, where :math:`s_i` is the current action."""
     # Compute step size
-    action_obs_innerprod = action @ observation
-    step_size = -action @ residual / action_obs_innerprod
+    action_obs_innerprod = action.T @ observation
+    step_size = (-action.T @ residual / action_obs_innerprod).item()
 
     # Update solver state
     solver_state.step_sizes.append(step_size)
@@ -373,4 +367,4 @@ def _step_size(
 def _log_rayleigh_quotient(action_obs_innerprod: float, action: np.ndarray) -> float:
     r"""Compute the log-Rayleigh quotient :math:`\ln R(A, s_i) = \ln(s_i^\top A
     s_i) -\ln(s_i^\top s_i)` for the current action."""
-    return np.log(action_obs_innerprod) - np.log(action @ action)
+    return (np.log(action_obs_innerprod) - np.log(action.T @ action)).item()

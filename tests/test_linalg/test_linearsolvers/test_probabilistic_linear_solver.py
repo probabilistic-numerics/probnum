@@ -101,10 +101,10 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         bWb = np.squeeze(Wb.T @ cls.linsys.b)
 
         def _mv(x):
-            return 0.5 * (bWb * Ainv0.cov.A @ x + (Wb @ x) * Wb)
+            return 0.5 * (bWb * Ainv0.cov.A @ x + (Wb.T @ x).squeeze() * Wb.squeeze())
 
         def _mm(X):
-            return 0.5 * (bWb * Ainv0.cov.A @ X + Wb[:, None] @ (Wb[:, None].T @ X))
+            return 0.5 * (bWb * Ainv0.cov.A @ X + Wb @ (Wb.T @ X))
 
         cov_op = linops.LinearOperator(
             shape=cls.linsys.A.shape, dtype=float, matvec=_mv, matmat=_mm
@@ -124,8 +124,8 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         )
 
         # Action and observation
-        cls.action = cls.rng.normal(size=cls.linsys.A.shape[1])
-        cls.observation = cls.rng.normal(size=cls.linsys.A.shape[0])
+        cls.action = cls.rng.normal(size=(cls.linsys.A.shape[1], 1))
+        cls.observation = cls.rng.normal(size=(cls.linsys.A.shape[0], 1))
 
         # Convergence
         cls.belief_converged = LinearSystemBelief(
