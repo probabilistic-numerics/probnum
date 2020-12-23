@@ -8,18 +8,21 @@ import scipy.sparse
 
 import probnum  # pylint: disable="unused-import"
 import probnum.filtsmooth as pnfs
-import probnum.linops as pnlo
-import probnum.random_variables as pnrv
+import probnum.linops as linops
+import probnum.random_variables as rvs
 import probnum.type as pntp
 from probnum.utils import as_random_state
+
+# pylint: disable="invalid-name"
 
 
 @dataclasses.dataclass
 class RegressionProblem:
     r"""Regression problem.
 
-    Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
-    Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
+    Fit a stochastic process to data, given a likelihood (realised by a
+    :obj:`DiscreteGaussian` transition). Solved by filters and smoothers in
+    :mod:`probnum.filtsmooth`.
 
     Parameters
     ----------
@@ -28,8 +31,8 @@ class RegressionProblem:
     locations
         Grid-points on which the observations were taken.
     likelihood
-        Likelihood of the observations; that is, relation between the latent process and the observed values.
-        Encodes for example noise.
+        Likelihood of the observations; that is, relation between the latent process and
+        the observed values. Encodes for example noise.
     solution
         Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
@@ -82,11 +85,14 @@ class InitialValueProblem:
     y0
         Initial value of the solution.
     df
-        Jacobian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
+        Jacobian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y`
+        variable.
     ddf
-        Hessian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
+        Hessian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y`
+        variable.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        Closed form, analytic solution to the problem. Used for testing and
+        benchmarking.
 
     Examples
     --------
@@ -142,15 +148,64 @@ class LinearSystem:
     A: typing.Union[
         np.ndarray,
         scipy.sparse.spmatrix,
-        pnlo.LinearOperator,
-        pnrv.RandomVariable,
+        linops.LinearOperator,
+        rvs.RandomVariable,
     ]
-    b: typing.Union[np.ndarray, pnrv.RandomVariable]
+    b: typing.Union[np.ndarray, rvs.RandomVariable]
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Union[np.ndarray, pnrv.RandomVariable]] = None
+    solution: typing.Optional[typing.Union[np.ndarray, rvs.RandomVariable]] = None
 
-    # TODO: Shape and type normalization when creating a LinearSystem
+    def __post_init__(self):
+        # Check types
+        linop_types = (
+            np.ndarray,
+            scipy.sparse.spmatrix,
+            scipy.sparse.linalg.LinearOperator,
+            rvs.RandomVariable,
+        )
+        vector_types = (np.ndarray, scipy.sparse.spmatrix, rvs.RandomVariable)
+        if not isinstance(self.A, linop_types):
+            raise TypeError(
+                "A must be either an array, a linear operator or a random variable."
+            )
+        if not isinstance(self.b, vector_types):
+            raise TypeError(
+                "The right hand side must be a (sparse) array or a random variable."
+            )
+        if self.solution is not None:
+            if not isinstance(self.solution, vector_types):
+                raise TypeError(
+                    "The solution must be a (sparse) array or a random variable."
+                )
+
+        # Check and normalize shapes
+        if self.b.ndim == 1:
+            self.b = self.b.reshape(-1, 1)
+        if self.solution is not None:
+            if self.solution.ndim == 1:
+                self.solution = self.solution.reshape(-1, 1)
+            if self.solution.ndim != 2:
+                raise ValueError("Solution must be two-dimensional.")
+        if self.A.ndim != 2 or self.b.ndim != 2:
+            raise ValueError("System components must be two-dimensional.")
+
+        # Check shape mismatch
+        def dim_mismatch_error(arg0, arg1, arg0_name, arg1_name):
+            return ValueError(
+                f"Dimension mismatch. The shapes of {arg0_name} : {arg0.shape} "
+                f"and {arg1_name} : {arg1.shape} must match."
+            )
+
+        if self.A.shape[0] != self.b.shape[0]:
+            raise dim_mismatch_error(self.A, self.b, "A", "b")
+
+        if self.solution is not None:
+            if self.A.shape[0] != self.solution.shape[0]:
+                raise dim_mismatch_error(self.A, self.solution, "A", "x")
+
+            if self.solution.shape[1] != self.b.shape[1]:
+                raise dim_mismatch_error(self.solution, self.b, "x", "b")
 
     @classmethod
     def from_matrix(cls, A, random_state=None) -> "probnum.problems.LinearSystem":
@@ -197,7 +252,8 @@ class QuadratureProblem:
     output_dim
         Output dimension of the integrand.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        Closed form, analytic solution to the problem. Used for testing and
+        benchmarking.
 
     Examples
     --------
@@ -225,5 +281,5 @@ class QuadratureProblem:
 
     # For testing and benchmarking
     solution: typing.Optional[
-        typing.Union[float, np.ndarray, pnrv.RandomVariable]
+        typing.Union[float, np.ndarray, rvs.RandomVariable]
     ] = None
