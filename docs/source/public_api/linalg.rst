@@ -38,7 +38,7 @@ Belief Updates
 
 Hyperparameter Optimization
 ---------------------------
-.. automodapi:: probnum.linalg.linearsolvers.param_optim
+.. automodapi:: probnum.linalg.linearsolvers.hyperparam_optim
     :no-heading:
     :headings: "*"
 

@@ -151,7 +151,7 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
     def test_matrix_posterior_computation(self):
         """Test the posterior computation of the belief update against the theoretical
         expressions."""
-        n = 100
+        # pylint : disable="too-many-locals"
         for n in [10, 50, 100]:
             with self.subTest():
                 A = random_spd_matrix(dim=n, random_state=self.rng)
@@ -213,7 +213,8 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                 self.assertAllClose(
                     V1,
                     belief.A.cov.A.todense(),
-                    msg="The posterior covariance factor for A does not match its definition.",
+                    msg="The posterior covariance factor for A does not match its "
+                    "definition.",
                 )
 
                 self.assertAllClose(
