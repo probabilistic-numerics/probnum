@@ -310,7 +310,7 @@ class LinearSymmetricGaussian(BeliefUpdate):
         residual: np.ndarray,
         step_size: float,
         observation: np.ndarray,
-        solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, "probnum.linalg.linearsolvers.LinearSolverState"]:
         """Update the residual :math:`r_i = Ax_i - b`."""
         # pylint: disable="no-self-use"
@@ -350,7 +350,7 @@ def _step_size(
     residual: np.ndarray,
     action: np.ndarray,
     observation: np.ndarray,
-    solver_state: "probnum.linalg.linearsolvers.LinearSolverState",
+    solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
 ) -> Tuple[float, "probnum.linalg.linearsolvers.LinearSolverState"]:
     r"""Compute the step size :math:`\alpha` such that :math:`x_{i+1} = x_i +
     \alpha_i s_i`, where :math:`s_i` is the current action."""
