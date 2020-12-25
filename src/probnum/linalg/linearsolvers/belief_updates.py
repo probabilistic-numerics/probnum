@@ -212,7 +212,8 @@ class LinearSymmetricGaussian(BeliefUpdate):
             residual = solver_state.residual
         except AttributeError:
             residual = problem.A @ belief_x.mean - problem.b
-            solver_state.residual = residual
+            if solver_state is not None:
+                solver_state.residual = residual
 
         # Step size
         step_size, solver_state = _step_size(
@@ -313,8 +314,10 @@ class LinearSymmetricGaussian(BeliefUpdate):
     ) -> Tuple[np.ndarray, "probnum.linalg.linearsolvers.LinearSolverState"]:
         """Update the residual :math:`r_i = Ax_i - b`."""
         # pylint: disable="no-self-use"
-        solver_state.residual = residual + step_size * observation
-        return solver_state.residual, solver_state
+        new_residual = residual + step_size * observation
+        if solver_state is not None:
+            solver_state.residual = new_residual
+        return new_residual, solver_state
 
     def _matrix_model_mean_update_op(
         self, u: np.ndarray, v: np.ndarray
@@ -356,10 +359,16 @@ def _step_size(
     step_size = (-action.T @ residual / action_obs_innerprod).item()
 
     # Update solver state
-    solver_state.step_sizes.append(step_size)
-    solver_state.log_rayleigh_quotients.append(
-        _log_rayleigh_quotient(action_obs_innerprod=action_obs_innerprod, action=action)
-    )
+    if solver_state is not None:
+        try:
+            solver_state.step_sizes.append(step_size)
+            solver_state.log_rayleigh_quotients.append(
+                _log_rayleigh_quotient(
+                    action_obs_innerprod=action_obs_innerprod, action=action
+                )
+            )
+        except AttributeError:
+            pass
 
     return step_size, solver_state
 

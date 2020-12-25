@@ -3,6 +3,7 @@ from typing import Optional
 
 import numpy as np
 
+import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
 from probnum.linalg.linearsolvers.belief_updates import (
@@ -10,6 +11,7 @@ from probnum.linalg.linearsolvers.belief_updates import (
     LinearSymmetricGaussian,
 )
 from probnum.problems import LinearSystem
+from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
 from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase
@@ -82,7 +84,6 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
                 self.assertIsInstance(Ainvmat, rvs.Normal)
                 self.assertEqual(Ainvmat.shape, (self.linsys.A.shape[0], matshape[1]))
 
-    #
     # def test_multiple_actions_observations_update(self):
     #     """Test whether a single update with multiple actions and observations is
     #     identical to multiple sequential updates."""
@@ -148,11 +149,81 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                 self.assertAllClose(Ainv_cov_A, Ainv_cov_A.T, rtol=1e-6)
 
     def test_matrix_posterior_computation(self):
-        """Test the posterior computation by the belief update against the theoretical
+        """Test the posterior computation of the belief update against the theoretical
         expressions."""
-        # TODO
+        n = 100
+        for n in [10, 50, 100]:
+            with self.subTest():
+                A = random_spd_matrix(dim=n, random_state=self.rng)
+                b = self.rng.normal(size=(n, 1))
+                linsys = LinearSystem(A, b)
 
-    def test_matrix_inverse_posterior_computation(self):
-        """Test the posterior computation by the belief update against the theoretical
-        expressions."""
-        # TODO
+                # Posterior mean and covariance factor
+                A0 = random_spd_matrix(dim=n, random_state=self.rng)
+                Ainv0 = random_spd_matrix(dim=n, random_state=self.rng)
+                V0 = random_spd_matrix(dim=n, random_state=self.rng)
+                W0 = random_spd_matrix(dim=n, random_state=self.rng)
+                prior_A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(V0))
+                prior_Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(W0))
+                s = self.rng.normal(size=(n, 1))
+                y = linsys.A @ s
+
+                def posterior_params(action, observation, prior_mean, prior_cov_factor):
+                    """Posterior parameters of the symmetric linear Gaussian model."""
+                    delta = observation - prior_mean @ action
+                    u = (
+                        prior_cov_factor
+                        @ action
+                        / (action.T @ prior_cov_factor @ action)
+                    )
+                    posterior_mean = (
+                        prior_mean
+                        + delta @ u.T
+                        + u @ delta.T
+                        - u @ action.T @ delta @ u.T
+                    )
+                    posterior_cov_factor = (
+                        prior_cov_factor - prior_cov_factor @ action @ u.T
+                    )
+                    return posterior_mean, posterior_cov_factor
+
+                A1, V1 = posterior_params(
+                    action=s, observation=y, prior_mean=A0, prior_cov_factor=V0
+                )
+                Ainv1, W1 = posterior_params(
+                    action=y, observation=s, prior_mean=Ainv0, prior_cov_factor=W0
+                )
+
+                # Computation via belief update
+                prior = LinearSystemBelief(
+                    x=prior_Ainv @ b,
+                    A=prior_A,
+                    Ainv=prior_Ainv,
+                    b=rvs.Constant(linsys.b),
+                )
+                belief, _ = LinearSymmetricGaussian()(
+                    problem=linsys, belief=prior, action=s, observation=y
+                )
+
+                self.assertAllClose(
+                    A1,
+                    belief.A.mean.todense(),
+                    msg="The posterior mean for A does not match its definition.",
+                )
+                self.assertAllClose(
+                    V1,
+                    belief.A.cov.A.todense(),
+                    msg="The posterior covariance factor for A does not match its definition.",
+                )
+
+                self.assertAllClose(
+                    Ainv1,
+                    belief.Ainv.mean.todense(),
+                    msg="The posterior mean for Ainv does not match its definition.",
+                )
+                self.assertAllClose(
+                    W1,
+                    belief.Ainv.cov.A.todense(),
+                    msg="The posterior covariance factor for Ainv does not match its "
+                    "definition.",
+                )
