@@ -28,8 +28,12 @@ class HyperparameterOptimizationTestCase(
 
     def setUp(self) -> None:
         """Test resources for linear solver hyperparameter optimization."""
-        self.actions = self.rng.normal(size=(self.linsys.A.shape[0], 3))
-        self.observations = self.linsys.A @ self.actions
+        self.iteration = 5
+        self.actions = [
+            col[:, None]
+            for col in self.rng.normal(size=(self.linsys.A.shape[0], self.iteration)).T
+        ]
+        self.observations = [self.linsys.A @ s for s in self.actions]
 
         self.hyperparam_optim_routines = [
             UncertaintyCalibration(method="gpkern"),
@@ -78,6 +82,36 @@ class UncertaintyCalibrationTestCase(HyperparameterOptimizationTestCase):
                     "inverse to each other.",
                 )
 
+    def test_calibration_after_one_iteration_returns_rayleigh_quotient(self):
+        """Test whether calibrating for one action and observation returns the Rayleigh
+        quotient as the uncertainty scale for A."""
+        rayleigh_quotient = np.exp(
+            np.log(self.actions[0].T @ self.observations[0])
+            - np.log(self.actions[0].T @ self.actions[0])
+        ).item()
+
+        for calib_routine in self.uncertainty_calibration_routines:
+            with self.subTest():
+                unc_scales, _, _ = calib_routine(
+                    problem=self.linsys,
+                    belief=self.prior,
+                    actions=[self.actions[0]],
+                    observations=[self.observations[0]],
+                    solver_state=None,
+                )
+            self.assertApproxEqual(rayleigh_quotient, unc_scales[0])
+
+    def test_unknown_calibration_procedure(self):
+        """Test whether an unknown calibration procedure raises a ValueError."""
+        with self.assertRaises(ValueError):
+            UncertaintyCalibration(method="non-existent")(
+                problem=self.linsys,
+                belief=self.prior,
+                actions=self.actions,
+                observations=self.observations,
+                solver_state=None,
+            )
+
 
 class OptimalNoiseScaleTestCase(HyperparameterOptimizationTestCase):
     """Test case for the optimization of the noise scale."""
@@ -85,7 +119,8 @@ class OptimalNoiseScaleTestCase(HyperparameterOptimizationTestCase):
     def setUp(self) -> None:
         """Test resources for noise scale optimization."""
         self.iteration = 5
-        self.actions = self.rng.normal(size=(self.linsys.A.shape[0], self.iteration))
-        self.observations = self.linsys.A @ self.actions + self.rng.normal(
-            size=(self.linsys.A.shape[0], self.iteration)
-        )
+        self.actions = [
+            col[:, None]
+            for col in self.rng.normal(size=(self.linsys.A.shape[0], self.iteration)).T
+        ]
+        self.observations = [self.linsys.A @ s for s in self.actions]

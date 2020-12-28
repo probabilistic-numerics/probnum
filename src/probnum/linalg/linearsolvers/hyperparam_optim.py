@@ -115,7 +115,7 @@ class UncertaintyCalibration(HyperparameterOptimization):
         if iteration == 1:
             # For too few iterations take the most recent Rayleigh quotient
             unc_scale_A = np.exp(log_rayleigh_quotients[-1])
-            unc_scale_Ainv = 1 / unc_scale_A
+            unc_scale_Ainv = np.exp(-log_rayleigh_quotients[-1])
         else:
             # Select calibration method
             if self.calib_method == "adhoc":
