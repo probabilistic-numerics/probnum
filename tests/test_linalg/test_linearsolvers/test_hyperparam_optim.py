@@ -1,18 +1,11 @@
 """Test cases for hyperparameter optimization of probabilistic linear solvers."""
-from typing import Optional
 
 import numpy as np
 
-import probnum.linops as linops
-import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import (
-    HyperparameterOptimization,
     OptimalNoiseScale,
     UncertaintyCalibration,
 )
-from probnum.problems import LinearSystem
-from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
 from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase

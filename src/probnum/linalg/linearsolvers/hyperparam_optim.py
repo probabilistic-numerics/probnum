@@ -251,10 +251,10 @@ class OptimalNoiseScale(HyperparameterOptimization):
             noise_scale_estimate = (
                 linop_tracearg.trace() / (problem.A.shape[0] * len(actions)) - 1
             )
-        except scipy.linalg.LinAlgError:
-            raise (
+        except scipy.linalg.LinAlgError as err:
+            raise scipy.linalg.LinAlgError(
                 "Matrix S'W_0S not invertible. Noise scale estimate may be inaccurate."
-            )
+            ) from err
 
         if noise_scale_estimate > 0:
             return noise_scale_estimate, belief, solver_state
