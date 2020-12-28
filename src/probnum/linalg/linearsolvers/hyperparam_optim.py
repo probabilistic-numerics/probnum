@@ -64,20 +64,21 @@ class UncertaintyCalibration(HyperparameterOptimization):
     """Calibrate uncertainty of the covariance class based on Rayleigh coefficients.
 
     A regression model for the log-Rayleigh coefficient is built based on the
-    collected observations. The degrees of freedom in the kernels of A and H are set
-    according to the predicted log-Rayleigh coefficient for the remaining unexplored
-    dimensions.
+    collected observations. The degrees of freedom in the covariance class of the
+    models for :math:`A` and :math:`H` are set according to the predicted
+    log-Rayleigh coefficient for the remaining unexplored dimensions.
 
     Parameters
     ----------
     method :
-        Type of calibration method to use based on the Rayleigh quotient. Available
-        calibration procedures are
-        ====================================  ==================
-         Most recent Rayleigh quotient         ``adhoc``
-         Weighted average                      ``weightedmean``
-         GP regression for kernel matrices     ``gpkern``
-        ====================================  ==================
+        If supplied calibrates the output via the given procedure or uncertainty
+        scale. Available calibration procedures are
+
+        ====================================  ================
+         Most recent Rayleigh quotient        ``adhoc``
+         Running (weighted) mean              ``weightedmean``
+         GP regression for kernel matrices    ``gpkern``
+        ====================================  ================
 
     Examples
     --------
