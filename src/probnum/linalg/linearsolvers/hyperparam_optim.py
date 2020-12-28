@@ -1,8 +1,10 @@
 """Hyperparameter optimization routines for probabilistic linear solvers."""
 
-from typing import Callable, Optional, Tuple
+from abc import ABC, abstractmethod
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
+import scipy
 
 import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem
@@ -10,46 +12,38 @@ from probnum.problems import LinearSystem
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["HyperparameterOptimization", "UncertaintyCalibration", "OptimalNoiseScale"]
 
+# pylint: disable="invalid-name"
 
-class HyperparameterOptimization:
+
+class HyperparameterOptimization(ABC):
     """Optimization of hyperparameters of probabilistic linear solvers."""
 
-    def __init__(
-        self,
-        hyperparam_optim: Callable[
-            [
-                LinearSystem,
-                "probnum.linalg.linearsolvers.LinearSystemBelief",
-                Optional["probnum.linalg.linearsolvers.LinearSolverState"],
-            ],
-            Tuple[
-                Tuple[np.ndarray, ...],
-                "probnum.linalg.linearsolvers.LinearSystemBelief",
-                Optional["probnum.linalg.linearsolvers.LinearSolverState"],
-            ],
-        ],
-    ):
-        self._hyperparam_optim = hyperparam_optim
-
+    @abstractmethod
     def __call__(
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        actions: List[np.ndarray],
+        observations: List[np.ndarray],
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
-        Tuple[np.ndarray, ...],
+        Tuple[Union[np.ndarray, float], ...],
         "probnum.linalg.linearsolvers.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
-        """Return an action based on the given problem and model.
+        """Optimized hyperparameters of the linear system model.
 
         Parameters
         ----------
         problem :
             Linear system to solve.
-        belief
-            Belief over the solution :math:`x`, the system matrix :math:`A`, its
-            inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
+        belief :
+            Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
+            linear system.
+        actions :
+            Actions of the solver to probe the linear system with.
+        observations :
+            Observations of the linear system for the given actions.
         solver_state :
             Current state of the linear solver.
 
@@ -63,171 +57,206 @@ class HyperparameterOptimization:
         solver_state :
             Updated solver state.
         """
-        return self._hyperparam_optim(problem, belief, solver_state)
+        raise NotImplementedError
 
 
 class UncertaintyCalibration(HyperparameterOptimization):
-    """Calibrate the uncertainty of the covariance class."""
+    """Calibrate uncertainty of the covariance class based on Rayleigh coefficients.
 
-    def __init__(self):
-        super().__init__(hyperparam_optim=self.__call__)
+    A regression model for the log-Rayleigh coefficient is built based on the
+    collected observations. The degrees of freedom in the kernels of A and H are set
+    according to the predicted log-Rayleigh coefficient for the remaining unexplored
+    dimensions.
+
+    Parameters
+    ----------
+    method :
+        Type of calibration method to use based on the Rayleigh quotient. Available
+        calibration procedures are
+        ====================================  ==================
+         Most recent Rayleigh quotient         ``adhoc``
+         Weighted average                      ``weightedmean``
+         GP regression for kernel matrices     ``gpkern``
+        ====================================  ==================
+
+    Examples
+    --------
+    """
+
+    def __init__(self, method: str = "gpkern"):
+        self.calib_method = method
+        super().__init__()
 
     def __call__(
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        actions: List[np.ndarray],
+        observations: List[np.ndarray],
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
-        Tuple[np.ndarray, ...],
+        Tuple[Union[np.ndarray, float], ...],
         "probnum.linalg.linearsolvers.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
-        """"""
-        raise NotImplementedError
+        iteration = len(actions)
+        log_rayleigh_quotients = None
+        if solver_state is not None:
+            if solver_state.log_rayleigh_quotients is not None:
+                log_rayleigh_quotients = solver_state.log_rayleigh_quotients
 
-    def _calibrate_uncertainty(
-        self, n: int, log_rayleigh_quotients: np.ndarray, method: str
-    ):
-        r"""Calibrate uncertainty based on the Rayleigh coefficients.
+        if log_rayleigh_quotients is None:
+            S = np.hstack(actions)
+            Y = np.hstack(observations)
+            log_rayleigh_quotients = np.log(np.einsum("nk,nk->k", S, Y)) - np.log(
+                np.einsum("nk,nk->k", S, S)
+            )
 
-        A regression model for the log-Rayleigh coefficient is built based on the
-        collected observations. The degrees of freedom in the kernels of A and H are set
-        according to the predicted log-Rayleigh coefficient for the remaining unexplored
-        dimensions.
-
-        Parameters
-        ----------
-        S : np.ndarray, shape=(n, k)
-            Array of search directions
-        sy : np.ndarray
-            Array of inner products :math:`s_i^\top As_i``
-        method : str
-            Type of calibration method to use based on the Rayleigh quotient. Available
-            calibration procedures are
-            ====================================  ==================
-             Most recent Rayleigh quotient         ``adhoc``
-             Running (weighted) mean               ``weightedmean``
-             GP regression for kernel matrices     ``gpkern``
-            ====================================  ==================
-
-        Returns
-        -------
-        phi : float
-            Uncertainty scale of the null space of span(S) for the A view
-        psi : float
-            Uncertainty scale of the null space of span(Y) for the Ainv view
-        """
-
-        # Rayleigh quotient
-        n_iterations = len(log_rayleigh_quotients)
-        iters = np.arange(n_iterations + 1)
-
-        # only calibrate if enough iterations for a regression model have been performed
-        if n_iterations > 1:
-            if method == "adhoc":
-                logR_pred = log_rayleigh_quotients[-1]
-            elif method == "weightedmean":
-                deprecation_rate = 0.9
-                logR_pred = log_rayleigh_quotients * np.repeat(
-                    deprecation_rate, n_iterations + 1
-                ) ** np.arange(n_iterations + 1)
-            elif method == "gpkern":
-                try:
-                    import GPy  # pylint: disable=import-outside-toplevel
-
-                    # GP mean function via Weyl's result on spectra of Gram matrices for
-                    # differentiable kernels
-                    # ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
-                    lnmap = GPy.core.Mapping(1, 1)
-                    lnmap.f = lambda n: np.log(n + 10 ** -16)
-                    lnmap.update_gradients = lambda a, b: None
-                    mf = GPy.mappings.Additive(
-                        GPy.mappings.Constant(1, 1, value=0),
-                        GPy.mappings.Compound(lnmap, GPy.mappings.Linear(1, 1)),
-                    )
-                    k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
-                    m = GPy.models.GPRegression(
-                        iters[:, None] + 1,
-                        log_rayleigh_quotients[:, None],
-                        kernel=k,
-                        mean_function=mf,
-                    )
-                    m.optimize(messages=False)
-
-                    # Predict Rayleigh quotient
-                    remaining_dims = np.arange(n_iterations, n)[:, None]
-                    logR_pred = m.predict(remaining_dims + 1)[0].ravel()
-                except ImportError as err:
-                    raise ImportError(
-                        "Cannot perform GP-based calibration without optional "
-                        "dependency GPy. Try installing GPy via `pip install GPy`."
-                    ) from err
+        if iteration == 1:
+            # For too few iterations take the most recent Rayleigh quotient
+            unc_scale_A = np.exp(log_rayleigh_quotients[-1])
+            unc_scale_Ainv = 1 / unc_scale_A
+        else:
+            # Select calibration method
+            if self.calib_method == "adhoc":
+                logR_pred = self._most_recent_log_rayleigh_quotient(
+                    log_rayleigh_quotients=log_rayleigh_quotients
+                )
+            elif self.calib_method == "weightedmean":
+                logR_pred = self._weighted_average_log_rayleigh_quotients(
+                    log_rayleigh_quotients=log_rayleigh_quotients, iteration=iteration
+                )
+            elif self.calib_method == "gpkern":
+                logR_pred = self._gp_regression_log_rayleigh_quotients(
+                    log_rayleigh_quotients=log_rayleigh_quotients,
+                    iteration=iteration,
+                    n=problem.A.shape[0],
+                )
             else:
                 raise ValueError("Calibration method not recognized.")
-
             # Set uncertainty scale (degrees of freedom in calibration covariance class)
-            Phi = (np.exp(np.mean(logR_pred))).item()
-            Psi = (np.exp(-np.mean(logR_pred))).item()
-        else:
-            # For too few iterations take the most recent Rayleigh quotient
-            Phi = np.exp(log_rayleigh_quotients[-1])
-            Psi = 1 / Phi
+            unc_scale_A = (np.exp(np.mean(logR_pred))).item()
+            unc_scale_Ainv = (np.exp(-np.mean(logR_pred))).item()
 
-        return Phi, Psi
+        return (unc_scale_A, unc_scale_Ainv), belief, solver_state
 
-    def _get_calibration_covariance_update_terms(self, phi=None, psi=None):
-        """For the calibration covariance class set the calibration update terms of the
-        covariance in the null spaces of span(S) and span(Y) based on the degrees of
-        freedom."""
-        # Search directions and observations as arrays
-        S = np.hstack(self.search_dir_list)
-        Y = np.hstack(self.obs_list)
+    def _most_recent_log_rayleigh_quotient(self, log_rayleigh_quotients: List[float]):
+        """Most recent log-Rayleigh quotient."""
+        return log_rayleigh_quotients[-1]
 
-        def get_null_space_map(V, unc_scale):
-            """Returns a function mapping to the null space of span(V), scaling with a
-            single degree of freedom and mapping back."""
+    def _weighted_average_log_rayleigh_quotients(
+        self, iteration: int, log_rayleigh_quotients: List[float]
+    ):
+        """Weighted average of log-Rayleigh quotients."""
+        deprecation_rate = 0.9
+        return log_rayleigh_quotients * np.repeat(
+            deprecation_rate, iteration
+        ) ** np.arange(iteration)
 
-            def null_space_proj(x):
-                try:
-                    VVinvVx = np.linalg.solve(V.T @ V, V.T @ x)
-                    return x - V @ VVinvVx
-                except np.linalg.LinAlgError:
-                    return np.zeros_like(x)
+    def _gp_regression_log_rayleigh_quotients(
+        self, iteration: int, n: int, log_rayleigh_quotients: List[float]
+    ):
+        r"""GP regression on log-Rayleigh quotients.
 
-            # For a scalar uncertainty scale projecting to the null space twice is
-            # equivalent to projecting once
-            return lambda y: unc_scale * null_space_proj(y)
+        Assumes the system matrix to be generated by a :math:`\nu`-times differentiable
+        kernel. By Weyl's theorem [1]_ the spectra of such kernel matrices approximately
+        decay as :math:`\mathcal{O}(n^{-\nu-\frac{1}{2}})`. Hence, the prior mean
+        function of the Gaussian process is chosen as :math:`\mu(n) = \log(
+        \theta_0' n^{-\theta_1}) = \theta_0 - \theta_1 \log(n)`.
 
-        # Compute calibration term in the A view as a linear operator with scaling from
-        # degrees of freedom
-        calibration_term_A = linops.LinearOperator(
-            shape=(self.n, self.n), matvec=get_null_space_map(V=S, unc_scale=phi)
-        )
+        References
+        ----------
+        .. [1] Weyl, Hermann. Das asymptotische Verteilungsgesetz der Eigenwerte
+           linearer partieller Differentialgleichungen (mit einer Anwendung auf die
+           Theorie der Hohlraumstrahlung). *Mathematische Annalen*, 71(4):441–479, 1912.
+        """
+        try:
+            import GPy  # pylint: disable=import-outside-toplevel
 
-        # Compute calibration term in the Ainv view as a linear operator with scaling
-        # from degrees of freedom
-        calibration_term_Ainv = linops.LinearOperator(
-            shape=(self.n, self.n), matvec=get_null_space_map(V=Y, unc_scale=psi)
-        )
+            iters = np.arange(iteration) + 1
+            # GP mean function via Weyl's result on spectra of Gram matrices for
+            # differentiable kernels
+            # ln(sigma(n)) ~= theta_0 - theta_1 ln(n)
+            lnmap = GPy.core.Mapping(1, 1)
+            lnmap.f = lambda n: np.log(n + np.finfo(np.float64).eps)
+            lnmap.update_gradients = lambda a, b: None
+            mf = GPy.mappings.Additive(
+                GPy.mappings.Constant(1, 1, value=0),
+                GPy.mappings.Compound(lnmap, GPy.mappings.Linear(1, 1)),
+            )
+            k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
+            m = GPy.models.GPRegression(
+                iters[:, None],
+                log_rayleigh_quotients[:, None],
+                kernel=k,
+                mean_function=mf,
+            )
+            m.optimize(messages=False)
 
-        return calibration_term_A, calibration_term_Ainv
+            # Predict Rayleigh quotient
+            remaining_dims = np.arange(iteration, n)[:, None] + 1
+            return m.predict(remaining_dims)[0].ravel()
+        except ImportError as err:
+            raise ImportError(
+                "Cannot perform GP-based calibration without optional "
+                "dependency GPy. Try installing GPy via `pip install GPy`."
+            ) from err
 
 
 class OptimalNoiseScale(HyperparameterOptimization):
-    """Estimate the noise level of a noisy linear system."""
+    r"""Estimate the noise level of a noisy linear system.
 
-    def __init__(self):
-        super().__init__(hyperparam_optim=self.__call__)
+    Computes the optimal noise scale maximizing the log-marginal likelihood.
+
+    Parameters
+    ----------
+    noise_scale
+        Initial guess for the noise scale :math:`\varepsilon^2` of the linear system.
+    """
+
+    def __init__(self, noise_scale=10 ** -2):
+        super().__init__()
 
     def __call__(
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        actions: List[np.ndarray],
+        observations: List[np.ndarray],
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
-        Tuple[np.ndarray, ...],
+        Tuple[Union[np.ndarray, float], ...],
         "probnum.linalg.linearsolvers.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
-        """"""
-        raise NotImplementedError
+        # Construct matrices of search directions and observations
+        S = np.hstack(actions)
+        Y = np.hstack(observations)
+
+        # Compute intermediate quantities
+        Delta0 = Y - self.A0_mean @ S
+        SW0S = S.T @ (self.A0_covfactor @ S)
+        try:
+            SW0SinvSDelta0 = scipy.linalg.solve(
+                SW0S, S.T @ Delta0, assume_a="pos"
+            )  # solves k x k system k times: O(k^4)
+            linop_rhs = Delta0.T @ (
+                2 * self.A0_covfactor.inv() @ Delta0 - S @ SW0SinvSDelta0
+            )
+            linop_tracearg = scipy.linalg.solve(
+                SW0S, linop_rhs, assume_a="pos"
+            )  # solves k x k system k times: O(k^4)
+
+            # Optimal noise scale with respect to the evidence
+            noise_scale_estimate = (
+                linop_tracearg.trace() / (problem.A.shape[0] * len(actions)) - 1
+            )
+        except scipy.linalg.LinAlgError:
+            raise (
+                "Matrix S'W_0S not invertible. Noise scale estimate may be inaccurate."
+            )
+
+        if noise_scale_estimate > 0:
+            return noise_scale_estimate, belief, solver_state
+        else:
+            return (0.0,), belief, solver_state

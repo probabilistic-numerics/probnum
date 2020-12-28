@@ -79,6 +79,8 @@ class LinearSystemBelief:
     # TODO: add different classmethods here to construct standard beliefs, i.e. from
     #  deterministic arguments (preconditioner), from a prior on the solution,
     #  from just an inverse prior, etc.
+    #  Alternatively create something like a Covariance class and LinearSolverCovariance
+    #  which has different variants (analogous to GP kernels)
 
     def from_x0(self, problem: LinearSystem, x0: np.ndarray) -> LinearSystem:
         """Create matrix prior means from an initial guess for the solution of the
