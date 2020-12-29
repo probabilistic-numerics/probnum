@@ -7,6 +7,7 @@ import numpy as np
 import scipy
 
 import probnum  # pylint: disable="unused-import
+import probnum.linops as linops
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -230,19 +231,35 @@ class OptimalNoiseScale(HyperparameterOptimization):
         "probnum.linalg.linearsolvers.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
-        # Construct matrices of search directions and observations
-        S = np.hstack(actions)
-        Y = np.hstack(observations)
 
+        raise NotImplementedError
+
+    @staticmethod
+    def _optimal_noise_scale_iterative(
+        previous_optimal_noise_scale: float,
+        problem: LinearSystem,
+        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        action: np.ndarray,
+        observation: np.ndarray,
+    ) -> float:
+        raise NotImplementedError
+
+    @staticmethod
+    def _optimal_noise_scale_batch(
+        problem: LinearSystem,
+        prior: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        actions: np.ndarray,
+        observations: np.ndarray,
+    ) -> float:
         # Compute intermediate quantities
-        Delta0 = Y - self.A0_mean @ S
-        SW0S = S.T @ (self.A0_covfactor @ S)
+        Delta0 = observations - prior.A.mean @ actions
+        SW0S = actions.T @ (prior.A.cov.A @ actions)
         try:
             SW0SinvSDelta0 = scipy.linalg.solve(
-                SW0S, S.T @ Delta0, assume_a="pos"
+                SW0S, actions.T @ Delta0, assume_a="pos"
             )  # solves k x k system k times: O(k^4)
             linop_rhs = Delta0.T @ (
-                2 * self.A0_covfactor.inv() @ Delta0 - S @ SW0SinvSDelta0
+                2 * prior.A.cov.A.inv() @ Delta0 - actions @ SW0SinvSDelta0
             )
             linop_tracearg = scipy.linalg.solve(
                 SW0S, linop_rhs, assume_a="pos"
@@ -250,7 +267,7 @@ class OptimalNoiseScale(HyperparameterOptimization):
 
             # Optimal noise scale with respect to the evidence
             noise_scale_estimate = (
-                linop_tracearg.trace() / (problem.A.shape[0] * len(actions)) - 1
+                linop_tracearg.trace() / (problem.A.shape[0] * actions.shape[1]) - 1
             )
         except scipy.linalg.LinAlgError as err:
             raise scipy.linalg.LinAlgError(
@@ -258,6 +275,6 @@ class OptimalNoiseScale(HyperparameterOptimization):
             ) from err
 
         if noise_scale_estimate > 0:
-            return noise_scale_estimate, belief, solver_state
+            return noise_scale_estimate
         else:
-            return (0.0,), belief, solver_state
+            return 0.0

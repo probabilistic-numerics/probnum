@@ -1,11 +1,14 @@
 """Test cases for hyperparameter optimization of probabilistic linear solvers."""
 
+from typing import Union
+
 import numpy as np
 
 from probnum.linalg.linearsolvers.hyperparam_optim import (
     OptimalNoiseScale,
     UncertaintyCalibration,
 )
+from probnum.problems import LinearSystem
 from tests.testing import NumpyAssertions
 
 from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase
@@ -117,3 +120,23 @@ class OptimalNoiseScaleTestCase(HyperparameterOptimizationTestCase):
             for col in self.rng.normal(size=(self.linsys.A.shape[0], self.iteration)).T
         ]
         self.observations = [self.linsys.A @ s for s in self.actions]
+
+    def test_iterative_and_batch_identical(self):
+        """Test whether computing the optimal scale for k observations in a batch
+        matches the recursive form of the optimal noise scale."""
+
+        # Batch computed optimal noise scale
+        noise_scale_batch = OptimalNoiseScale._optimal_noise_scale_batch(
+            problem=None,
+            prior=None,
+            actions=None,
+            observations=None,
+        )
+
+        # Iteratively computed optimal noise scale
+        noise_scale_iter = OptimalNoiseScale._optimal_noise_scale_iterative(
+            problem=None,
+            belief=None,
+            action=None,
+            observation=None,
+        )
