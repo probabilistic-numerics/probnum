@@ -8,7 +8,7 @@ import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
 from probnum.linalg.linearsolvers.belief_updates import (
     BeliefUpdate,
-    LinearSymmetricGaussian,
+    SymmetricGaussianBeliefLinearObservation,
 )
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
@@ -40,7 +40,7 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
             return belief, solver_state
 
         self.custom_belief_update = BeliefUpdate(belief_update=custom_belief_update)
-        self.linear_symmetric_gaussian = LinearSymmetricGaussian()
+        self.linear_symmetric_gaussian = SymmetricGaussianBeliefLinearObservation()
         self.belief_updates = [
             self.custom_belief_update,
             self.linear_symmetric_gaussian,
@@ -126,7 +126,7 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
 
     def setUp(self) -> None:
         """Test resources for the linear Gaussian belief update."""
-        self.belief_updates = [LinearSymmetricGaussian()]
+        self.belief_updates = [SymmetricGaussianBeliefLinearObservation()]
 
     def test_symmetric_posterior_params(self):
         """Test whether posterior parameters are symmetric."""
@@ -201,7 +201,7 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                     Ainv=prior_Ainv,
                     b=rvs.Constant(linsys.b),
                 )
-                belief, _ = LinearSymmetricGaussian()(
+                belief, _ = SymmetricGaussianBeliefLinearObservation()(
                     problem=linsys, belief=prior, action=s, observation=y
                 )
 

@@ -10,7 +10,7 @@ import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["BeliefUpdate", "LinearSymmetricGaussian"]
+__all__ = ["BeliefUpdate", "SymmetricGaussianBeliefLinearObservation"]
 
 # pylint: disable="invalid-name,too-many-arguments"
 
@@ -129,7 +129,15 @@ class BeliefUpdate:
         raise NotImplementedError
 
 
-class LinearSymmetricGaussian(BeliefUpdate):
+# TODO: implement specific belief update for the CG equivalence class (maybe as a
+#  subclass?) (and other
+#  linear system beliefs, where inference may be done more efficiently, e.g. when only
+#  a prior on the solution is specified.)
+class ConjugateGradientBeliefLinearObservation(BeliefUpdate):
+    pass
+
+
+class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
     r"""Belief update for a symmetric Gaussian prior and linear observations.
 
     Updates the posterior beliefs over the quantities of interest of the linear system

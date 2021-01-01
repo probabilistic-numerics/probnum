@@ -215,7 +215,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     observe :
         Observation process defining how information about the linear system is
         obtained.
-    update_belief :
+    belief_update :
         Operator updating the belief over the quantities of interest :math:`(x, A,
         A^{-1})` of the linear system.
     stopping_criteria :
@@ -265,14 +265,18 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         prior: LinearSystemBelief,
         policy: Policy,
         observe,
-        update_belief,
+        belief_update=None,
         stopping_criteria=Optional[List[StoppingCriterion]],
         optimize_hyperparams=None,
     ):
         # pylint: disable="too-many-arguments"
         self.policy = policy
         self.observe = observe
-        self.update_belief = update_belief
+        if belief_update is None:
+            raise NotImplementedError
+            # TODO select appropriate belief update based on prior and observation
+            #  operator
+        self.belief_update = belief_update
         self.stopping_criteria = stopping_criteria
         self.optimize_hyperparams = optimize_hyperparams
         super().__init__(
@@ -383,12 +387,23 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                 problem=problem, action=action, solver_state=solver_state
             )
 
+            # Optimize hyperparameters
+            if self.optimize_hyperparams is not None:
+                optimal_hyperparams, solver_state = self.optimize_hyperparams(
+                    problem=problem,
+                    belief=belief,
+                    action=action,
+                    observation=observation,
+                    solver_state=solver_state,
+                )
+
             # Update the belief over the system matrix, its inverse and/or the solution
-            belief, solver_state = self.update_belief(
+            belief, solver_state = self.belief_update(
                 problem=problem,
                 belief=belief,
                 action=action,
                 observation=observation,
+                hyperparameters=optimal_hyperparams,  # TODO: pass optimal hyperparameters here?
                 solver_state=solver_state,
             )
 
