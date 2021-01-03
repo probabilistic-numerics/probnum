@@ -190,11 +190,11 @@ class LinearSystem:
         # Check and normalize shapes
         if self.b.ndim == 1:
             # Reshape immutable object
-            object.__setattr__(self, "b", self.b.reshape(-1, 1))
+            object.__setattr__(self, "b", self.b.reshape((-1, 1)))
         if self.solution is not None:
             if self.solution.ndim == 1:
                 # Reshape immutable object
-                object.__setattr__(self, "solution", self.solution.reshape(-1, 1))
+                object.__setattr__(self, "solution", self.solution.reshape((-1, 1)))
             if self.solution.ndim != 2:
                 raise ValueError("Solution must be two-dimensional.")
         if self.A.ndim != 2 or self.b.ndim != 2:

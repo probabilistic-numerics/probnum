@@ -5,10 +5,16 @@ of interest of a linear system such as its solution, the matrix inverse
 or spectral information.
 """
 
-import dataclasses
 from typing import Union
 
 import numpy as np
+import scipy.linalg
+
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
@@ -20,7 +26,6 @@ __all__ = ["LinearSystemBelief", "WeakMeanCorrespondence"]
 # pylint: disable="invalid-name"
 
 
-@dataclasses.dataclass
 class LinearSystemBelief:
     r"""Belief over quantities of interest of a linear system.
 
@@ -47,17 +52,27 @@ class LinearSystemBelief:
     >>>
 
     """
-    x: rvs.RandomVariable
-    A: rvs.RandomVariable
-    Ainv: rvs.RandomVariable
-    b: rvs.RandomVariable
 
-    def __post_init__(self):
+    def __init__(
+        self,
+        x: rvs.RandomVariable,
+        A: rvs.RandomVariable,
+        Ainv: rvs.RandomVariable,
+        b: rvs.RandomVariable,
+    ):
+        self._x = x
+        self._A = A
+        self._Ainv = Ainv
+        self._b = b
+
+        self._check_attributes_and_reshape()
+
+    def _check_attributes_and_reshape(self):
         # Check and normalize shapes
         if self.b.ndim == 1:
-            self.b = self.b.reshape((-1, 1))
+            self.b.reshape((-1, 1))
         if self.x.ndim == 1:
-            self.x = self.x.reshape((-1, 1))
+            self.x.reshape((-1, 1))
         if self.x.ndim != 2:
             raise ValueError("Belief over solution must be two-dimensional.")
         if self.A.ndim != 2 or self.Ainv.ndim != 2 or self.b.ndim != 2:
@@ -82,16 +97,35 @@ class LinearSystemBelief:
         if self.A.shape != self.Ainv.shape:
             raise dim_mismatch_error(self.A, self.Ainv, "A", "Ainv")
 
+    @cached_property
+    def x(self) -> rvs.RandomVariable:
+        if self._x is None:
+            return self._induced_solution_belief(Ainv=self.Ainv, b=self.b)
+        else:
+            return self._x
+
+    @property
+    def Ainv(self) -> rvs.RandomVariable:
+        return self._Ainv
+
+    @property
+    def A(self) -> rvs.RandomVariable:
+        return self._A
+
+    @property
+    def b(self) -> rvs.RandomVariable:
+        return self._b
+
     # TODO: add different classmethods here to construct standard beliefs, i.e. from
     #  deterministic arguments (preconditioner), from a prior on the solution,
     #  from just an inverse prior, etc.
 
     @classmethod
     def from_solution(
-        self,
+        cls,
         x0: Union[np.ndarray, rvs.RandomVariable],
         problem: LinearSystem,
-    ) -> LinearSystem:
+    ) -> "LinearSystemBelief":
         """Construct a belief over the linear system from an approximate solution.
 
         Constructs a matrix-variate prior mean for :math:`H` from ``x0`` and ``b`` such
@@ -133,7 +167,7 @@ class LinearSystemBelief:
                 x0 = bb / bAb * problem.b
                 bx0 = bb ** 2 / bAb
 
-        # Construct prior mean of A and H
+        # Construct prior mean of A and Ainv
         alpha = 0.5 * bx0 / bb
 
         def _mv(v):
@@ -142,21 +176,31 @@ class LinearSystemBelief:
         def _mm(M):
             return (x0 - alpha * problem.b) @ (x0 - alpha * problem.b).T @ M
 
-        Ainv0_mean = linops.ScalarMult(
+        Ainv_mean = linops.ScalarMult(
             scalar=alpha, shape=problem.A.shape
         ) + 2 / bx0 * linops.LinearOperator(
             matvec=_mv, matmat=_mm, shape=problem.A.shape
         )
-        A0_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
+        Ainv_cov = linops.SymmetricKronecker(A=linops.Identity)
+        Ainv = rvs.Normal(mean=Ainv_mean, cov=Ainv_cov)
+
+        A_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
             alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
         ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
+        A_cov = linops.SymmetricKronecker(A=linops.Identity)
+        A = rvs.Normal(mean=A_mean, cov=A_cov)
 
-        # TODO: what covariance should be returned for this prior mean?
+        return cls(
+            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
+            Ainv=Ainv,
+            A=A,
+            b=rvs.Constant(support=problem.b),
+        )
 
     @classmethod
     def from_inverse(
-        self, Ainv0: Union[np.ndarray, rvs.RandomVariable]
-    ) -> LinearSystem:
+        cls, Ainv0: Union[np.ndarray, rvs.RandomVariable]
+    ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate inverse.
 
         Returns a belief over the linear system from an approximate inverse
@@ -165,13 +209,42 @@ class LinearSystemBelief:
         raise NotImplementedError
 
     @classmethod
-    def from_matrix(self, A0: Union[np.ndarray, rvs.RandomVariable]) -> LinearSystem:
+    def from_matrix(
+        cls, A0: Union[np.ndarray, rvs.RandomVariable]
+    ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate system matrix.
 
         Returns a belief over the linear system from an approximation of
         the system matrix :math:`A_0\approx A`.
         """
         raise NotImplementedError
+
+    @staticmethod
+    def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.Constant) -> rvs.Normal:
+        r"""Induced belief over the solution from a belief over the inverse.
+
+        Computes the induced random variable :math:`x=Hb` for :math:`H \sim \mathcal{N}(
+        H_0, W \otimes_s W)`, such that :math:`x \sim \mathcal{N}(\mu, \Sigma)` with
+        :math:`\mu=H_0b` and :math:`\Sigma=\frac{1}{2}(Wb^\top Wb + Wb b^\top W)`.
+
+        Parameters
+        ----------
+        Ainv :
+            Belief over the (pseudo-)inverse of the system matrix.
+        b :
+            Belief over the right hand side
+        """
+        Wb = Ainv.cov.A @ b
+        bWb = np.squeeze(Wb.T @ b)
+
+        def _mv(x):
+            return 0.5 * (bWb * Ainv.cov.A @ x + Wb @ (Wb.T @ x))
+
+        cov_op = linops.LinearOperator(
+            shape=Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
+        )
+
+        return rvs.Normal(mean=Ainv.mean @ b.mean, cov=cov_op)
 
 
 class WeakMeanCorrespondence(LinearSystemBelief):
@@ -185,21 +258,21 @@ class WeakMeanCorrespondence(LinearSystemBelief):
 
     For a scalar prior mean :math:`A_0 = H_0^{-1} = \alpha I`, when paired with a
     :class:`~probnum.linalg.linearsolvers.policies.ConjugateDirections`
-    policy and linear observations, this (prior) belief recovers *the method of
+    policy and linear observations, this (prior) belief recovers the *method of
     conjugate gradients*. [1]_
 
     For more details, see Wenger and Hennig, 2020. [1]_
 
     Parameters
     ----------
-    x :
-        Belief over the solution.
     A :
-        Belief over the system matrix.
-    Ainv :
-        Belief over the (pseudo-)inverse of the system matrix.
-    b :
-        Belief over the right hand side
+        System matrix :math:`A`.
+    Ainv0 :
+        Approximate matrix inverse :math:`H_0 \approx A^{-1}`.
+    actions :
+        Actions to probe the linear system with.
+    observations :
+        Observations of the linear system for the given actions.
     unc_scale_A :
         Uncertainty scaling :math:`\Phi` of the belief over the matrix in the unexplored
         space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
@@ -228,16 +301,75 @@ class WeakMeanCorrespondence(LinearSystemBelief):
     """
 
     def __init__(
-        self, x, A, Ainv, b, unc_scale_A: float = 0.0, unc_scale_Ainv: float = 0.0
+        self,
+        A,
+        Ainv0,
+        actions=None,
+        observations=None,
+        unc_scale_A: float = 0.0,
+        unc_scale_Ainv: float = 0.0,
     ):
+        self.A0 = A
+        self.Ainv0 = Ainv0
+        self.actions = (actions,)
+        self.observations = (observations,)
         self.unc_scale_A = unc_scale_A
         self.unc_scale_Ainv = unc_scale_Ainv
+
+        # Construct beliefs
+
         super().__init__(x=x, A=A, Ainv=Ainv, b=b)
 
-    def matvec_span_actions(self, s):
-        """"""
+    @cached_property
+    def _pseudo_inverse_actions(self) -> np.ndarray:
         raise NotImplementedError
 
-    def matvec_span_observations(self, y):
-        """"""
+    @cached_property
+    def _pseudo_inverse_observations(self) -> np.ndarray:
         raise NotImplementedError
+
+    def _matrix_covariance_factor(self):
+        """"""
+        # Ensure prior covariance class only acts in span(S) like A
+        def _matvec(x):
+            # First term of calibration covariance class: AS(S'AS)^{-1}S'A
+            return (Y * sy ** -1) @ (Y.T @ x.ravel())
+
+        A_covfactor0 = linops.LinearOperator(shape=self.A0.shape, matvec=_matvec)
+        return rvs.Normal(mean=self.A0, cov=linops.SymmetricKronecker(A=A_covfactor0))
+
+    def _inverse_covariance_factor(self):
+        """"""
+
+        def _matvec(x):
+            # Term in covariance class: A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}
+            # TODO: for efficiency ensure that we dont have to compute
+            #   (Y.T Y)^{-1} two times! For a scalar mean this is the same as in
+            #   the null space projection
+            #   Use cached pseudo inverse to do this if A0 /Ainv0 is scalar
+            YAinv0Y_inv_YAinv0x = np.linalg.solve(
+                Y.T @ (self.Ainv0 @ Y), Y.T @ (self.Ainv0 @ x)
+            )
+            return self.Ainv0 @ (Y @ YAinv0Y_inv_YAinv0x)
+
+        Ainv_covfactor0 = linops.LinearOperator(shape=self.Ainv0.shape, matvec=_matvec)
+
+    def _scaled_null_space_projection(
+        self, M: np.ndarray, scale: float
+    ) -> Union[np.ndarray, linops.LinearOperator]:
+        r"""Compute a scaled null space projection.
+
+        Returns a linear operator which maps to the null space of :math:`M \in
+        \mathbb{R}^{n \times k}` and applies a given scaling.
+        """
+        # Null space basis via SVD
+        # Complexity O(n^2k) for k <= n (Matrix Computations - Golub, Van Loan)
+        null_space_basis = scipy.linalg.null_space(M)
+        # TODO cache this using cached_property
+
+        def scaled_projection(x: np.ndarray):
+            return scale * null_space_basis @ null_space_basis.T @ x
+
+        return linops.LinearOperator(
+            shape=(M.shape[0], M.shape[0]), matvec=scaled_projection, dtype=float
+        )

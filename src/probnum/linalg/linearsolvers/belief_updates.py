@@ -177,6 +177,7 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
     ]:
 
         # Belief updates
+        # TODO beliefs should be immutable, create new one instead
         belief.A, solver_state = self.update_matrix(
             problem=problem,
             belief_A=belief.A,
