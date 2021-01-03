@@ -42,7 +42,7 @@ class LinearSystemBelief:
     Ainv :
         Belief over the (pseudo-)inverse of the system matrix.
     b :
-        Belief over the right hand side
+        Belief over the right hand side.
 
     Examples
     --------
@@ -99,26 +99,26 @@ class LinearSystemBelief:
 
     @cached_property
     def x(self) -> rvs.RandomVariable:
+        """Belief over the solution."""
         if self._x is None:
             return self._induced_solution_belief(Ainv=self.Ainv, b=self.b)
         else:
             return self._x
 
     @property
-    def Ainv(self) -> rvs.RandomVariable:
-        return self._Ainv
-
-    @property
     def A(self) -> rvs.RandomVariable:
+        """Belief over the system matrix."""
         return self._A
 
     @property
-    def b(self) -> rvs.RandomVariable:
-        return self._b
+    def Ainv(self) -> rvs.RandomVariable:
+        """Belief over the (pseudo-)inverse of the system matrix."""
+        return self._Ainv
 
-    # TODO: add different classmethods here to construct standard beliefs, i.e. from
-    #  deterministic arguments (preconditioner), from a prior on the solution,
-    #  from just an inverse prior, etc.
+    @property
+    def b(self) -> rvs.RandomVariable:
+        """Belief over the right hand side."""
+        return self._b
 
     @classmethod
     def from_solution(
@@ -128,9 +128,13 @@ class LinearSystemBelief:
     ) -> "LinearSystemBelief":
         """Construct a belief over the linear system from an approximate solution.
 
-        Constructs a matrix-variate prior mean for :math:`H` from ``x0`` and ``b`` such
+        Constructs a matrix-variate prior mean for :math:`H` from an initial
+        guess of the solution :math:`x0` and the right hand side :math:`b` such
         that :math:`H_0b = x_0`, :math:`H_0` symmetric positive definite and
-        :math:`A_0 = H_0^{-1}`.
+        :math:`A_0 = H_0^{-1}`. If
+
+        For a detailed construction see Proposition S5 of Wenger and Hennig,
+        2020. [#]_
 
         Parameters
         ----------
@@ -139,18 +143,13 @@ class LinearSystemBelief:
         problem :
             Linear system to solve.
 
-        Returns
-        -------
-        A0_mean :
-            Mean of the matrix-variate prior distribution on the system matrix
-            :math:`A`.
-        Ainv0_mean :
-            Mean of the matrix-variate prior distribution on the inverse of the system
-            matrix :math:`H = A^{-1}`.
+        References
+        ----------
+        .. [#] Wenger, J. and Hennig, P., Probabilistic Linear Solvers for
+               Machine Learning, *Advances in Neural Information Processing Systems (
+               NeurIPS)*, 2020
         """
-        # Check inner product between x0 and b; if negative or zero, choose better
-        # initialization
-
+        # If inner product <x0, b> is non-positive, choose better initialization.
         bx0 = np.squeeze(problem.b.T @ x0)
         bb = np.linalg.norm(problem.b) ** 2
         if bx0 < 0:
@@ -199,33 +198,127 @@ class LinearSystemBelief:
 
     @classmethod
     def from_inverse(
-        cls, Ainv0: Union[np.ndarray, rvs.RandomVariable]
+        cls,
+        Ainv0: Union[np.ndarray, rvs.RandomVariable, linops.LinearOperator],
+        problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate inverse.
 
         Returns a belief over the linear system from an approximate inverse
-        :math:`H_0\approx A^{-1}` such as a preconditioner.
+        :math:`H_0\approx A^{-1}` such as a preconditioner. This internally inverts
+        (the prior mean of) :math:`H_0`, which may be computationally costly.
+
+        Parameters
+        ----------
+        Ainv0 :
+            Approximate inverse of the system matrix.
+        problem :
+            Linear system to solve.
         """
-        raise NotImplementedError
+        if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
+            Ainv0 = rvs.Normal(mean=Ainv0, cov=Ainv0)
+
+        # Weak (symmetric) mean correspondence
+        try:
+            A0_mean = Ainv0.mean.inv()
+        except AttributeError as exc:
+            raise AttributeError(
+                "Cannot efficiently invert (prior mean of) Ainv. "
+                "Additionally, specify a prior (mean) of A"
+                "instead."
+            ) from exc
+        A0 = rvs.Normal(mean=A0_mean, cov=problem.A)
+
+        return cls(
+            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            Ainv=Ainv0,
+            A=A0,
+            b=problem.b,
+        )
 
     @classmethod
     def from_matrix(
-        cls, A0: Union[np.ndarray, rvs.RandomVariable]
+        cls,
+        A0: Union[np.ndarray, rvs.RandomVariable],
+        problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate system matrix.
 
         Returns a belief over the linear system from an approximation of
-        the system matrix :math:`A_0\approx A`.
+        the system matrix :math:`A_0\approx A`. This internally inverts (the prior mean
+        of) :math:`A_0`, which may be computationally costly.
+
+        Parameters
+        ----------
+        A0 :
+            Approximate system matrix.
+        problem :
+            Linear system to solve.
         """
-        raise NotImplementedError
+        if isinstance(A0, (np.ndarray, linops.LinearOperator)):
+            A0 = rvs.Normal(mean=A0, cov=A0)
+
+        # Weak (symmetric) mean correspondence
+        try:
+            Ainv0_mean = A0.mean.inv()
+        except AttributeError as exc:
+            raise AttributeError(
+                "Cannot efficiently invert (prior mean of) A. "
+                "Additionally, specify an inverse prior (mean) "
+                "instead."
+            ) from exc
+        Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=Ainv0_mean)
+
+        return cls(
+            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            Ainv=Ainv0,
+            A=A0,
+            b=problem.b,
+        )
+
+    @classmethod
+    def from_matrices(
+        cls,
+        A0: Union[np.ndarray, rvs.RandomVariable],
+        Ainv0: Union[np.ndarray, rvs.RandomVariable],
+        problem: LinearSystem,
+    ) -> "LinearSystemBelief":
+        r"""Construct a belief from an approximate system matrix and
+        corresponding inverse.
+
+        Returns a belief over the linear system from an approximation of
+        the system matrix :math:`A_0\approx A` and an approximate inverse
+        :math:`H_0\approx A^{-1}`.
+
+        Parameters
+        ----------
+        A0 :
+            Approximate system matrix.
+        Ainv0 :
+            Approximate inverse of the system matrix.
+        problem :
+            Linear system to solve.
+        """
+        if isinstance(A0, (np.ndarray, linops.LinearOperator)):
+            A0 = rvs.Normal(mean=A0, cov=A0)
+        if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
+            Ainv0 = rvs.Normal(mean=Ainv0, cov=Ainv0)
+
+        return cls(
+            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            Ainv=Ainv0,
+            A=A0,
+            b=problem.b,
+        )
 
     @staticmethod
-    def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.Constant) -> rvs.Normal:
+    def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.RandomVariable) -> rvs.Normal:
         r"""Induced belief over the solution from a belief over the inverse.
 
-        Computes the induced random variable :math:`x=Hb` for :math:`H \sim \mathcal{N}(
-        H_0, W \otimes_s W)`, such that :math:`x \sim \mathcal{N}(\mu, \Sigma)` with
-        :math:`\mu=H_0b` and :math:`\Sigma=\frac{1}{2}(Wb^\top Wb + Wb b^\top W)`.
+        Approximates the induced random variable :math:`x=Hb` for :math:`H \sim
+        \mathcal{N}(H_0, W \otimes_s W)`, such that :math:`x \sim \mathcal{N}(\mu,
+        \Sigma)` with :math:`\mu=\mathbb{E}[H]\mathbb{E}[b]` and :math:`\Sigma=\frac{
+        1}{2}(Wb^\top Wb + Wb b^\top W)`.
 
         Parameters
         ----------
@@ -234,8 +327,9 @@ class LinearSystemBelief:
         b :
             Belief over the right hand side
         """
-        Wb = Ainv.cov.A @ b
-        bWb = np.squeeze(Wb.T @ b)
+        b = rvs.asrandvar(b)
+        Wb = Ainv.cov.A @ b.mean
+        bWb = np.squeeze(Wb.T @ b.mean)
 
         def _mv(x):
             return 0.5 * (bWb * Ainv.cov.A @ x + Wb @ (Wb.T @ x))
