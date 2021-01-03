@@ -37,7 +37,7 @@ class StoppingCriterion:
         stopping_criterion: Callable[
             [
                 LinearSystem,
-                "probnum.linalg.linearsolvers.LinearSystemBelief",
+                "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
                 Optional["probnum.linalg.linearsolvers.LinearSolverState"],
             ],
             bool,
@@ -48,7 +48,7 @@ class StoppingCriterion:
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         """Evaluate whether the solver has converged.
@@ -81,7 +81,7 @@ class MaxIterations(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         if self.maxiter is None:
@@ -124,7 +124,7 @@ class Residual(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         # Compute residual norm
@@ -162,7 +162,7 @@ class PosteriorContraction(StoppingCriterion):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         # Trace of the solution covariance

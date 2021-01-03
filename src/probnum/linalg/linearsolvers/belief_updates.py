@@ -36,13 +36,13 @@ class BeliefUpdate:
         belief_update: Callable[
             [
                 LinearSystem,
-                "probnum.linalg.linearsolvers.LinearSystemBelief",
+                "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
                 np.ndarray,
                 np.ndarray,
                 Optional["probnum.linalg.linearsolvers.LinearSolverState"],
             ],
             Tuple[
-                "probnum.linalg.linearsolvers.LinearSystemBelief",
+                "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
                 "probnum.linalg.linearsolvers.LinearSolverState",
             ],
         ],
@@ -52,12 +52,12 @@ class BeliefUpdate:
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
-        "probnum.linalg.linearsolvers.LinearSystemBelief",
+        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         "probnum.linalg.linearsolvers.LinearSolverState",
     ]:
         """Update belief over quantities of interest of the linear system.
@@ -167,12 +167,12 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         action: np.ndarray,
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
-        "probnum.linalg.linearsolvers.LinearSystemBelief",
+        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         "probnum.linalg.linearsolvers.LinearSolverState",
     ]:
 

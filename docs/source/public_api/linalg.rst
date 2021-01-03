@@ -15,6 +15,13 @@ probnum.linalg.linearsolvers
     :headings: "-"
 
 
+(Prior) Beliefs
+---------------
+.. automodapi:: probnum.linalg.linearsolvers.beliefs
+    :no-heading:
+    :headings: "*"
+
+
 Policies
 --------
 .. automodapi:: probnum.linalg.linearsolvers.policies
@@ -29,16 +36,16 @@ Observation Operators
     :headings: "*"
 
 
-Belief Updates
---------------
-.. automodapi:: probnum.linalg.linearsolvers.belief_updates
+Hyperparameter Optimization
+---------------------------
+.. automodapi:: probnum.linalg.linearsolvers.hyperparam_optim
     :no-heading:
     :headings: "*"
 
 
-Hyperparameter Optimization
----------------------------
-.. automodapi:: probnum.linalg.linearsolvers.hyperparam_optim
+Belief Updates
+--------------
+.. automodapi:: probnum.linalg.linearsolvers.belief_updates
     :no-heading:
     :headings: "*"
 

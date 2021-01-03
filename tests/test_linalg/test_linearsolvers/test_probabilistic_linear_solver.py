@@ -8,7 +8,8 @@ import scipy.sparse
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import LinearSolverState, LinearSystemBelief
+from probnum.linalg.linearsolvers import LinearSolverState
+from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions

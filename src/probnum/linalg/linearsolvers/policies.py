@@ -52,7 +52,7 @@ class Policy:
         policy: Callable[
             [
                 LinearSystem,
-                "probnum.linalg.linearsolvers.LinearSystemBelief",
+                "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
                 RandomStateArgType,
                 Optional["probnum.linalg.linearsolvers.LinearSolverState"],
             ],
@@ -70,7 +70,7 @@ class Policy:
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
         """Return an action based on the given problem and model.
@@ -120,7 +120,7 @@ class ConjugateDirections(Policy):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
         # Compute residual if necessary
@@ -162,7 +162,7 @@ class ThompsonSampling(Policy):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
 
@@ -202,7 +202,7 @@ class ExploreExploit(Policy):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
 
@@ -222,7 +222,7 @@ class ExploreExploit(Policy):
 
 def _get_residual(
     problem: LinearSystem,
-    belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+    belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
     solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
 ):
     """Computes the residual :math:`Ax_i-b` if it has not been precomputed."""

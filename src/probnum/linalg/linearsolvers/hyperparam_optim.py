@@ -7,7 +7,6 @@ import numpy as np
 import scipy
 
 import probnum  # pylint: disable="unused-import
-import probnum.linops as linops
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -23,13 +22,13 @@ class HyperparameterOptimization(ABC):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         actions: List[np.ndarray],
         observations: List[np.ndarray],
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
         Tuple[Union[np.ndarray, float], ...],
-        "probnum.linalg.linearsolvers.LinearSystemBelief",
+        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
         """Optimized hyperparameters of the linear system model.
@@ -92,13 +91,13 @@ class UncertaintyCalibration(HyperparameterOptimization):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         actions: List[np.ndarray],
         observations: List[np.ndarray],
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
         Tuple[Union[np.ndarray, float], ...],
-        "probnum.linalg.linearsolvers.LinearSystemBelief",
+        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
         iteration = len(actions)
@@ -222,13 +221,13 @@ class OptimalNoiseScale(HyperparameterOptimization):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         actions: List[np.ndarray],
         observations: List[np.ndarray],
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
         Tuple[Union[np.ndarray, float], ...],
-        "probnum.linalg.linearsolvers.LinearSystemBelief",
+        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
 
@@ -238,7 +237,7 @@ class OptimalNoiseScale(HyperparameterOptimization):
     def _optimal_noise_scale_iterative(
         previous_optimal_noise_scale: float,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         action: np.ndarray,
         observation: np.ndarray,
     ) -> float:
@@ -247,7 +246,7 @@ class OptimalNoiseScale(HyperparameterOptimization):
     @staticmethod
     def _optimal_noise_scale_batch(
         problem: LinearSystem,
-        prior: "probnum.linalg.linearsolvers.LinearSystemBelief",
+        prior: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         actions: np.ndarray,
         observations: np.ndarray,
     ) -> float:
