@@ -87,8 +87,10 @@ class LinearSystemBelief:
     #  from just an inverse prior, etc.
 
     @classmethod
-    def from_solution_belief(
-        self, problem: LinearSystem, x0: Union[np.ndarray, rvs.RandomVariable]
+    def from_solution(
+        self,
+        x0: Union[np.ndarray, rvs.RandomVariable],
+        problem: LinearSystem,
     ) -> LinearSystem:
         """Construct a belief over the linear system from an approximate solution.
 
@@ -98,10 +100,10 @@ class LinearSystemBelief:
 
         Parameters
         ----------
-        problem :
-            Linear system to solve.
         x0 :
             Initial guess for the solution of the linear system.
+        problem :
+            Linear system to solve.
 
         Returns
         -------
@@ -152,10 +154,10 @@ class LinearSystemBelief:
         # TODO: what covariance should be returned for this prior mean?
 
     @classmethod
-    def from_inverse_belief(
-        self, Ainv: Union[np.ndarray, rvs.RandomVariable]
+    def from_inverse(
+        self, Ainv0: Union[np.ndarray, rvs.RandomVariable]
     ) -> LinearSystem:
-        """Construct a belief over the linear system from an approximate inverse.
+        r"""Construct a belief over the linear system from an approximate inverse.
 
         Returns a belief over the linear system from an approximate inverse
         :math:`H_0\approx A^{-1}` such as a preconditioner.
@@ -163,10 +165,8 @@ class LinearSystemBelief:
         raise NotImplementedError
 
     @classmethod
-    def from_matrix_belief(
-        self, Ainv: Union[np.ndarray, rvs.RandomVariable]
-    ) -> LinearSystem:
-        """Construct a belief over the linear system from an approximate system matrix.
+    def from_matrix(self, A0: Union[np.ndarray, rvs.RandomVariable]) -> LinearSystem:
+        r"""Construct a belief over the linear system from an approximate system matrix.
 
         Returns a belief over the linear system from an approximation of
         the system matrix :math:`A_0\approx A`.
@@ -175,20 +175,44 @@ class LinearSystemBelief:
 
 
 class WeakMeanCorrespondence(LinearSystemBelief):
-    r"""Belief enforcing weak (posterior) mean correspondence.
+    r"""Belief enforcing weak mean correspondence.
 
-    Belief over the linear system such that the expected value of the belief over the
-    system matrix and its inverse are inverse to each other on the space spanned by
-    the observations :math:`y_i`, i.e. :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for
-    all
-    :math:`y
-    \in \operatorname{span}(y_1, \dots, y_k)`.
+    Belief over the linear system such that the means over the matrix and its inverse
+    correspond and the covariance symmetric Kronecker factors act like :math:`A` and the
+    approximate inverse :math:`H_0` on the spaces spanned by the actions and
+    observations. On the respective orthogonal spaces the uncertainty over the matrix
+    and its inverse is determined by scaling parameters.
+
+    For a scalar prior mean :math:`A_0 = H_0^{-1} = \alpha I`, when paired with a
+    :class:`~probnum.linalg.linearsolvers.policies.ConjugateDirections`
+    policy and linear observations, this (prior) belief recovers *the method of
+    conjugate gradients*. [1]_
+
+    For more details, see Wenger and Hennig, 2020. [1]_
+
+    Parameters
+    ----------
+    x :
+        Belief over the solution.
+    A :
+        Belief over the system matrix.
+    Ainv :
+        Belief over the (pseudo-)inverse of the system matrix.
+    b :
+        Belief over the right hand side
+    unc_scale_A :
+        Uncertainty scaling :math:`\Phi` of the belief over the matrix in the unexplored
+        space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
+    unc_scale_A :
+        Uncertainty scaling :math:`\Psi` of the belief over the inverse in the
+        unexplored space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
 
     Notes
     -----
-    When paired with a :class:`~probnum.linalg.linearsolvers.policies.ConjugateDirections`
-    policy and linear observations, this (prior) belief recovers the method of
-    conjugate gradients [1]_.
+    This construction fulfills *weak posterior correspondence* [1]_ meaning on the space
+    spanned by the observations :math:`y_i` it holds that :math:`\mathbb{
+    E}[A]^{-1}y = \mathbb{E}[H]y` for all :math:`y \in \operatorname{span}(y_1,
+    \dots, y_k)`.
 
     References
     ----------
@@ -203,4 +227,17 @@ class WeakMeanCorrespondence(LinearSystemBelief):
     --------
     """
 
-    pass
+    def __init__(
+        self, x, A, Ainv, b, unc_scale_A: float = 0.0, unc_scale_Ainv: float = 0.0
+    ):
+        self.unc_scale_A = unc_scale_A
+        self.unc_scale_Ainv = unc_scale_Ainv
+        super().__init__(x=x, A=A, Ainv=Ainv, b=b)
+
+    def matvec_span_actions(self, s):
+        """"""
+        raise NotImplementedError
+
+    def matvec_span_observations(self, y):
+        """"""
+        raise NotImplementedError

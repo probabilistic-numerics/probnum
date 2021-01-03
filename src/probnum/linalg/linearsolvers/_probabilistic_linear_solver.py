@@ -78,8 +78,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     where :math:`A \\in \\mathbb{R}^{n \\times n}` and :math:`b \\in \\mathbb{R}^{n}`.
     They return a probability measure which quantifies uncertainty in the output arising
     from finite computational resources or stochastic input. This class unifies and
-    generalizes probabilistic linear solvers as described in the literature [1]_ [2]_
-    [3]_ [4]_.
+    generalizes probabilistic linear solvers as described in the literature. [1]_ [2]_
+    [3]_ [4]_
 
     Parameters
     ----------
