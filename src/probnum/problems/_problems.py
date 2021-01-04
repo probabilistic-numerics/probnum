@@ -211,7 +211,7 @@ class LinearSystem:
             raise dim_mismatch_error(self.A, self.b, "A", "b")
 
         if self.solution is not None:
-            if self.A.shape[0] != self.solution.shape[0]:
+            if self.A.shape[1] != self.solution.shape[0]:
                 raise dim_mismatch_error(self.A, self.solution, "A", "x")
 
             if self.solution.shape[1] != self.b.shape[1]:

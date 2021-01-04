@@ -127,7 +127,7 @@ class LinearSystemBelief:
         if A.shape[0] != b.shape[0]:
             raise dim_mismatch_error(A, b, "A", "b")
 
-        if A.shape[0] != x.shape[0]:
+        if A.shape[1] != x.shape[0]:
             raise dim_mismatch_error(A, x, "A", "x")
 
         if x.shape[1] != b.shape[1]:
@@ -189,6 +189,8 @@ class LinearSystemBelief:
                NeurIPS)*, 2020
         """
         # If inner product <x0, b> is non-positive, choose better initialization.
+        if x0.ndim < 2:
+            x0 = x0.reshape((-1, 1))
         bx0 = np.squeeze(problem.b.T @ x0)
         bb = np.linalg.norm(problem.b) ** 2
         if bx0 < 0:
@@ -219,13 +221,13 @@ class LinearSystemBelief:
         ) + 2 / bx0 * linops.LinearOperator(
             matvec=_mv, matmat=_mm, shape=problem.A.shape
         )
-        Ainv_cov = linops.SymmetricKronecker(A=linops.Identity)
+        Ainv_cov = linops.SymmetricKronecker(A=linops.Identity(shape=problem.A.shape))
         Ainv = rvs.Normal(mean=Ainv_mean, cov=Ainv_cov)
 
         A_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
             alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
         ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
-        A_cov = linops.SymmetricKronecker(A=linops.Identity)
+        A_cov = linops.SymmetricKronecker(A=linops.Identity(shape=problem.A.shape))
         A = rvs.Normal(mean=A_mean, cov=A_cov)
 
         return cls(
