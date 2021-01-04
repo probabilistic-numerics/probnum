@@ -74,7 +74,7 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
         m, n = 5, 3
         A = rvs.Normal(mean=np.ones((m, n)), cov=np.eye(m * n))
         Ainv = A
-        x = rvs.Normal(mean=np.zeros(m), cov=np.eye(m))
+        x = rvs.Normal(mean=np.zeros(n), cov=np.eye(n))
         b = rvs.Constant(np.ones(m))
         belief = LinearSystemBelief(A=A, Ainv=Ainv, x=x, b=b)
 
