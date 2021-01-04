@@ -5,7 +5,7 @@ of interest of a linear system such as its solution, the matrix inverse
 or spectral information.
 """
 
-from typing import Union
+from typing import Tuple, Union
 
 import numpy as np
 import scipy.linalg
@@ -21,16 +21,20 @@ import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["LinearSystemBelief", "WeakMeanCorrespondence"]
+__all__ = [
+    "LinearSystemBelief",
+    "WeakMeanCorrespondenceBelief",
+    "NoisyLinearSystemBelief",
+]
 
 # pylint: disable="invalid-name"
 
 
 class LinearSystemBelief:
-    r"""Belief over quantities of interest of a linear system.
+    """Belief over quantities of interest of a linear system.
 
-    Random variables :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})` modelling
-    the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
+    Random variables :math:`(\\mathsf{x}, \\mathsf{A}, \\mathsf{H}, \\mathsf{b})`
+    modelling the solution :math:`x`, the system matrix :math:`A`, its (pseudo-)inverse
     :math:`H=A^{-1}` and the right hand side :math:`b` of a linear system :math:`Ax=b`.
 
     Parameters
@@ -46,11 +50,28 @@ class LinearSystemBelief:
 
     Examples
     --------
-
     Construct a linear system belief from a preconditioner.
 
-    >>>
-
+    >>> import numpy as np
+    >>> from probnum.problems import LinearSystem
+    >>> from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
+    >>> # Linear System Ax=b
+    >>> linsys = LinearSystem(
+    ...     A=np.array([[7.5, 2.0, 1.0], [2.0, 2.0, 0.5], [1.0, 0.5, 5.5]]),
+    ...     b=np.array([1.0, 2.0, -3.0]),
+    ... )
+    >>> # Preconditioner, i.e. approximate inverse of A
+    >>> Ainv_approx = np.array(
+    ...     [[ 0.2,   -0.18, -0.015],
+    ...      [-0.18,   0.7,  -0.03],
+    ...      [-0.015, -0.03,  0.20]]
+    ... )
+    >>> # Prior belief induced by approximate inverse
+    >>> prior = LinearSystemBelief.from_inverse(Ainv0=Ainv_approx, problem=linsys)
+    >>> # Initial residual Ax0 - b
+    >>> residual = linsys.A @ prior.x.mean - linsys.b
+    >>> np.linalg.norm(residual)
+    0.19828956099603473
     """
 
     def __init__(
@@ -60,47 +81,65 @@ class LinearSystemBelief:
         Ainv: rvs.RandomVariable,
         b: rvs.RandomVariable,
     ):
-        self._x = x
-        self._A = A
-        self._Ainv = Ainv
-        self._b = b
 
-        self._check_attributes_and_reshape()
+        x, A, Ainv, b = self._reshape_2d(x=x, A=A, Ainv=Ainv, b=b)
+        self._check_shape_mismatch(x=x, A=A, Ainv=Ainv, b=b)
+        self._x = rvs.asrandvar(x)
+        self._A = rvs.asrandvar(A)
+        self._Ainv = rvs.asrandvar(Ainv)
+        self._b = rvs.asrandvar(b)
 
-    def _check_attributes_and_reshape(self):
-        # Check and normalize shapes
-        if self.b.ndim == 1:
-            self.b.reshape((-1, 1))
-        if self.x.ndim == 1:
-            self.x.reshape((-1, 1))
-        if self.x.ndim != 2:
+    @staticmethod
+    def _reshape_2d(
+        x: rvs.RandomVariable,
+        A: rvs.RandomVariable,
+        Ainv: rvs.RandomVariable,
+        b: rvs.RandomVariable,
+    ) -> Tuple[
+        rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable
+    ]:
+        """Reshape inputs to 2d matrices."""
+        if b.ndim == 1:
+            b = b.reshape((-1, 1))
+        if x.ndim == 1:
+            x = x.reshape((-1, 1))
+        if x.ndim != 2:
             raise ValueError("Belief over solution must be two-dimensional.")
-        if self.A.ndim != 2 or self.Ainv.ndim != 2 or self.b.ndim != 2:
+        if A.ndim != 2 or Ainv.ndim != 2 or b.ndim != 2:
             raise ValueError("Beliefs over system components must be two-dimensional.")
+        return x, A, Ainv, b
 
-        # Check shape mismatch
+    @staticmethod
+    def _check_shape_mismatch(
+        x: rvs.RandomVariable,
+        A: rvs.RandomVariable,
+        Ainv: rvs.RandomVariable,
+        b: rvs.RandomVariable,
+    ) -> None:
+        """Check whether shapes of arguments match."""
+
         def dim_mismatch_error(arg0, arg1, arg0_name, arg1_name):
             return ValueError(
                 f"Dimension mismatch. The shapes of {arg0_name} : {arg0.shape} "
                 f"and {arg1_name} : {arg1.shape} must match."
             )
 
-        if self.A.shape[0] != self.b.shape[0]:
-            raise dim_mismatch_error(self.A, self.b, "A", "b")
+        if A.shape[0] != b.shape[0]:
+            raise dim_mismatch_error(A, b, "A", "b")
 
-        if self.A.shape[0] != self.x.shape[0]:
-            raise dim_mismatch_error(self.A, self.x, "A", "x")
+        if A.shape[0] != x.shape[0]:
+            raise dim_mismatch_error(A, x, "A", "x")
 
-        if self.x.shape[1] != self.b.shape[1]:
-            raise dim_mismatch_error(self.x, self.b, "x", "b")
+        if x.shape[1] != b.shape[1]:
+            raise dim_mismatch_error(x, b, "x", "b")
 
-        if self.A.shape != self.Ainv.shape:
-            raise dim_mismatch_error(self.A, self.Ainv, "A", "Ainv")
+        if A.shape != Ainv.shape:
+            raise dim_mismatch_error(A, Ainv, "A", "Ainv")
 
     @cached_property
     def x(self) -> rvs.RandomVariable:
         """Belief over the solution."""
-        if self._x is None:
+        if self._x is None and self.Ainv is not None and self.b is not None:
             return self._induced_solution_belief(Ainv=self.Ainv, b=self.b)
         else:
             return self._x
@@ -205,8 +244,7 @@ class LinearSystemBelief:
         r"""Construct a belief over the linear system from an approximate inverse.
 
         Returns a belief over the linear system from an approximate inverse
-        :math:`H_0\approx A^{-1}` such as a preconditioner. This internally inverts
-        (the prior mean of) :math:`H_0`, which may be computationally costly.
+        :math:`H_0\approx A^{-1}` such as a preconditioner.
 
         Parameters
         ----------
@@ -216,18 +254,9 @@ class LinearSystemBelief:
             Linear system to solve.
         """
         if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=Ainv0)
+            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
-        # Weak (symmetric) mean correspondence
-        try:
-            A0_mean = Ainv0.mean.inv()
-        except AttributeError as exc:
-            raise AttributeError(
-                "Cannot efficiently invert (prior mean of) Ainv. "
-                "Additionally, specify a prior (mean) of A"
-                "instead."
-            ) from exc
-        A0 = rvs.Normal(mean=A0_mean, cov=problem.A)
+        A0 = rvs.Normal(mean=problem.A, cov=linops.SymmetricKronecker(A=problem.A))
 
         return cls(
             x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
@@ -245,8 +274,7 @@ class LinearSystemBelief:
         r"""Construct a belief over the linear system from an approximate system matrix.
 
         Returns a belief over the linear system from an approximation of
-        the system matrix :math:`A_0\approx A`. This internally inverts (the prior mean
-        of) :math:`A_0`, which may be computationally costly.
+        the system matrix :math:`A_0\approx A`.
 
         Parameters
         ----------
@@ -256,18 +284,10 @@ class LinearSystemBelief:
             Linear system to solve.
         """
         if isinstance(A0, (np.ndarray, linops.LinearOperator)):
-            A0 = rvs.Normal(mean=A0, cov=A0)
+            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
 
-        # Weak (symmetric) mean correspondence
-        try:
-            Ainv0_mean = A0.mean.inv()
-        except AttributeError as exc:
-            raise AttributeError(
-                "Cannot efficiently invert (prior mean of) A. "
-                "Additionally, specify an inverse prior (mean) "
-                "instead."
-            ) from exc
-        Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=Ainv0_mean)
+        Ainv0_mean = linops.Identity(shape=A0.shape)
+        Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=linops.SymmetricKronecker(A=Ainv0_mean))
 
         return cls(
             x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
@@ -300,9 +320,9 @@ class LinearSystemBelief:
             Linear system to solve.
         """
         if isinstance(A0, (np.ndarray, linops.LinearOperator)):
-            A0 = rvs.Normal(mean=A0, cov=A0)
+            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
         if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=Ainv0)
+            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
             x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
@@ -341,8 +361,8 @@ class LinearSystemBelief:
         return rvs.Normal(mean=Ainv.mean @ b.mean, cov=cov_op)
 
 
-class WeakMeanCorrespondence(LinearSystemBelief):
-    r"""Belief enforcing weak mean correspondence.
+class WeakMeanCorrespondenceBelief(LinearSystemBelief):
+    r"""Belief enforcing (weak) mean correspondence.
 
     Belief over the linear system such that the means over the matrix and its inverse
     correspond and the covariance symmetric Kronecker factors act like :math:`A` and the
@@ -467,3 +487,118 @@ class WeakMeanCorrespondence(LinearSystemBelief):
         return linops.LinearOperator(
             shape=(M.shape[0], M.shape[0]), matvec=scaled_projection, dtype=float
         )
+
+    @classmethod
+    def from_inverse(
+        cls,
+        Ainv0: Union[np.ndarray, rvs.RandomVariable, linops.LinearOperator],
+        problem: LinearSystem,
+    ) -> "WeakMeanCorrespondenceBelief":
+        r"""Construct a belief over the linear system from an approximate inverse.
+
+        Returns a belief over the linear system from an approximate inverse
+        :math:`H_0\approx A^{-1}` such as a preconditioner. This internally inverts
+        (the prior mean of) :math:`H_0`, which may be computationally costly.
+
+        Parameters
+        ----------
+        Ainv0 :
+            Approximate inverse of the system matrix.
+        problem :
+            Linear system to solve.
+        """
+        if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
+            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+
+        # Weak (symmetric) mean correspondence
+        try:
+            A0_mean = Ainv0.mean.inv()
+        except AttributeError as exc:
+            raise AttributeError(
+                "Cannot efficiently invert (prior mean of) Ainv. "
+                "Additionally, specify a prior (mean) of A"
+                "instead."
+            ) from exc
+        A0 = rvs.Normal(mean=A0_mean, cov=linops.SymmetricKronecker(A=problem.A))
+
+        return super().__init__(
+            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            Ainv=Ainv0,
+            A=A0,
+            b=problem.b,
+        )
+
+    @classmethod
+    def from_matrix(
+        cls,
+        A0: Union[np.ndarray, rvs.RandomVariable],
+        problem: LinearSystem,
+    ) -> "WeakMeanCorrespondenceBelief":
+        r"""Construct a belief over the linear system from an approximate system matrix.
+
+        Returns a belief over the linear system from an approximation of
+        the system matrix :math:`A_0\approx A`. This internally inverts (the prior mean
+        of) :math:`A_0`, which may be computationally costly.
+
+        Parameters
+        ----------
+        A0 :
+            Approximate system matrix.
+        problem :
+            Linear system to solve.
+        """
+        if isinstance(A0, (np.ndarray, linops.LinearOperator)):
+            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+
+        # Weak (symmetric) mean correspondence
+        try:
+            Ainv0_mean = A0.mean.inv()
+        except AttributeError as exc:
+            raise AttributeError(
+                "Cannot efficiently invert (prior mean of) A. "
+                "Additionally, specify an inverse prior (mean) "
+                "instead."
+            ) from exc
+        Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=linops.SymmetricKronecker(A=Ainv0_mean))
+
+        return cls(
+            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            Ainv=Ainv0,
+            A=A0,
+            b=problem.b,
+        )
+
+
+class NoisyLinearSystemBelief(LinearSystemBelief):
+    r"""Belief over a noise-corrupted linear system.
+
+    Parameters
+    ----------
+    x :
+        Belief over the solution.
+    A :
+        Belief over the system matrix.
+    Ainv :
+        Belief over the (pseudo-)inverse of the system matrix.
+    b :
+        Belief over the right hand side.
+    noise_scale :
+        Estimate for the scale of the noise on the system matrix.
+
+    """
+
+    def __init__(
+        self,
+        x: rvs.RandomVariable,
+        A: rvs.RandomVariable,
+        Ainv: rvs.RandomVariable,
+        b: rvs.RandomVariable,
+        noise_scale: float = None,
+    ):
+        self._noise_scale = noise_scale
+        super().__init__(x=x, A=A, Ainv=Ainv, b=b)
+
+    @property
+    def noise_scale(self) -> float:
+        """Estimate for the scale of the noise on the system matrix."""
+        return self._noise_scale

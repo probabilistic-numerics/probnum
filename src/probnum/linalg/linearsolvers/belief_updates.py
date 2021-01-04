@@ -9,6 +9,8 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 
+from .beliefs import LinearSystemBelief
+
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["BeliefUpdate", "SymmetricGaussianBeliefLinearObservation"]
 
@@ -178,29 +180,33 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
 
         # Belief updates
         # TODO beliefs should be immutable, create new one instead
-        belief.A, solver_state = self.update_matrix(
+        belief_A, solver_state = self.update_matrix(
             problem=problem,
             belief_A=belief.A,
             action=action,
             observation=observation,
             solver_state=solver_state,
         )
-        belief.Ainv, solver_state = self.update_inverse(
+        belief_Ainv, solver_state = self.update_inverse(
             problem=problem,
             belief_Ainv=belief.Ainv,
             action=action,
             observation=observation,
             solver_state=solver_state,
         )
-        belief.b, solver_state = self.update_rhs(
+        belief_b, solver_state = self.update_rhs(
             problem=problem, belief_b=belief.b, solver_state=solver_state
         )
-        belief.x, solver_state = self.update_solution(
+        belief_x, solver_state = self.update_solution(
             problem=problem,
             belief_x=belief.x,
             action=action,
             observation=observation,
             solver_state=solver_state,
+        )
+
+        belief = LinearSystemBelief(
+            x=belief_x, A=belief_A, Ainv=belief_Ainv, b=belief_b
         )
 
         return belief, solver_state
