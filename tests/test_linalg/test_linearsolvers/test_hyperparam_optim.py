@@ -1,14 +1,11 @@
 """Test cases for hyperparameter optimization of probabilistic linear solvers."""
 
-from typing import Union
-
 import numpy as np
 
 from probnum.linalg.linearsolvers.hyperparam_optim import (
     OptimalNoiseScale,
     UncertaintyCalibration,
 )
-from probnum.problems import LinearSystem
 from tests.testing import NumpyAssertions
 
 from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase

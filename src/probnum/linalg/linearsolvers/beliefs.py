@@ -167,12 +167,14 @@ class LinearSystemBelief:
         x0: Union[np.ndarray, rvs.RandomVariable],
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
-        """Construct a belief over the linear system from an approximate solution.
+        r"""Construct a belief over the linear system from an approximate solution.
 
         Constructs a matrix-variate prior mean for :math:`H` from an initial
         guess of the solution :math:`x0` and the right hand side :math:`b` such
         that :math:`H_0b = x_0`, :math:`H_0` symmetric positive definite and
-        :math:`A_0 = H_0^{-1}`. If
+        :math:`A_0 = H_0^{-1}`. If :math:`x_0^\top b \leq 0` the belief is initialized
+        with a better approximate solution :math:`x_1` with lower error :math:`\lVert
+        x_1 \rVert_A < \lVert x_0 \rVert_A`.
 
         For a detailed construction see Proposition S5 of Wenger and Hennig,
         2020. [#]_
@@ -217,10 +219,12 @@ class LinearSystemBelief:
             bb = np.linalg.norm(problem.b) ** 2
             # If inner product <x0, b> is non-positive, choose better initialization.
             if bx0 < -100 * np.finfo(float).eps:
+                # <x0, b> < 0
                 x0 = -x0
                 bx0 = -bx0
                 print("Better initialization found, setting x0 = - x0.")
             elif np.abs(bx0) < 100 * np.finfo(float).eps:
+                # <x0, b> = 0, b != 0
                 print("Better initialization found, setting x0 = (b'b/b'Ab) * b.")
                 bAb = np.squeeze(problem.b.T @ (problem.A @ problem.b))
                 x0 = bb / bAb * problem.b
