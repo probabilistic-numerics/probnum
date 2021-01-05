@@ -580,12 +580,10 @@ def gen_rows(csvrows):
 
 
 def csvindex_generate():
-    with contextlib.closing(
-        requests.get(SUITESPARSE_INDEX_URL, stream=True)
-    ) as response:
-        reader = csv.reader(response.iter_lines(), delimiter=",", quotechar='"')
+    with requests.get(SUITESPARSE_INDEX_URL, stream=True) as r:
+        lines = (line.decode("utf-8") for line in r.iter_lines())
         matid = 0
-        for line in reader:
+        for line in csv.reader(lines):
             matid += 1
             group = line[0]
             name = line[1]
