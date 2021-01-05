@@ -57,3 +57,7 @@ class SuiteSparseMatrixTestCase(unittest.TestCase, NumpyAssertions):
         self.assertTrue(len(matrices) > 0)
         for matrix in matrices:
             self.assertFalse(matrix.isspd)
+
+    def test_download_and_read_any_matrixformat(self):
+        for matrixformat in ("MM", "MAT", "RB"):
+            _ = suitesparse_matrix(matid=1438, download=True, matrixformat=matrixformat)

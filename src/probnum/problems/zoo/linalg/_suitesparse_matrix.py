@@ -3,7 +3,6 @@
 This implementation is based on Sudarshan Raghunathan's SSGETPY package
 (https://github.com/drdarshan/ssgetpy).
 """
-import contextlib
 import csv
 import dataclasses
 import datetime
@@ -16,6 +15,7 @@ import time
 from typing import Optional, Union
 
 import requests
+import scipy.io
 import scipy.sparse
 import tqdm.auto
 
@@ -50,10 +50,6 @@ def suitesparse_matrix(
     location :
     download :
 
-    See Also
-    --------
-    suitesparse_query : Query the SuiteSparse Matrix Collection.
-
     References
     ----------
     .. [1] Davis, TA and Hu, Y. The University of Florida sparse matrix
@@ -66,16 +62,21 @@ def suitesparse_matrix(
     --------
     Query the SuiteSparse Matrix Collection.
 
-    >>>
+    >>> suitesparse_matrix(group="Oberwolfach", rowbounds=(10, 20))
+    [_SuiteSparseMatrix(matid=1438, group='Oberwolfach', name='LF10', rows=18, cols=18, nonzeros=82, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem'), _SuiteSparseMatrix(matid=1440, group='Oberwolfach', name='LFAT5', rows=14, cols=14, nonzeros=46, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem')]
 
     Download a sparse matrix and create a linear system from it.
 
-    >>>
+    >>> import numpy as np
+    >>> sparse_mat = suitesparse_matrix(matid=1438, download=True)
+    >>> np.mean(sparse_mat > 0)
+    0.16049382716049382
     """
     # Query SuiteSparse Matrix collection
     matrices = _suitesparse_query(name_or_id, **kwargs)
 
     # Download Matrices
+    spmatrices = []
     if len(matrices) > 0:
         logger.info(
             "Found %d %s", len(matrices), "entry" if len(matrices) == 1 else "entries"
@@ -89,6 +90,27 @@ def suitesparse_matrix(
                     matrix.localpath(matrixformat, location, extract=True)[0],
                 )
                 matrix.download(matrixformat, location, extract=True)
+
+                # Read from file
+                destpath = matrix.localpath(matrixformat, location, extract=True)[0]
+                if matrixformat == "MM":
+                    mat = scipy.io.mmread(
+                        source=os.path.join(destpath, matrix.name + ".mtx")
+                    )
+                elif matrixformat == "MAT":
+                    mat = scipy.io.loadmat(file_name=destpath)
+                elif matrixformat == "RB":
+                    mat = scipy.io.hb_read(
+                        path_or_open_file=os.path.join(destpath, matrix.name + ".rb")
+                    )
+                else:
+                    raise ValueError("Format must be 'MM', 'MAT' or 'RB'")
+                spmatrices.append(mat)
+            if len(spmatrices) == 1:
+                return spmatrices[0]
+            else:
+                return spmatrices
+
     return matrices
 
 
@@ -231,7 +253,7 @@ class _SuiteSparseMatrix:
     def _defaultdestpath(self, matrixformat: str = "MM"):
         return os.path.join(SUITESPARSE_DIR, matrixformat, self.group)
 
-    def _localpath(
+    def localpath(
         self,
         matrixformat: str = "MM",
         destpath: Optional[str] = None,
@@ -294,7 +316,7 @@ class _SuiteSparseMatrix:
         # localdest is matrix file (.MAT or .TAR.GZ)
         # if extract = True, localdestpath is the directory
         # containing the unzipped matrix
-        localdestpath, localdest = self._localpath(matrixformat, destpath, extract)
+        localdestpath, localdest = self.localpath(matrixformat, destpath, extract)
 
         if not os.access(localdestpath, os.F_OK):
             # Create the destination path if necessary
