@@ -107,17 +107,42 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
         with self.assertRaises(ValueError):
             LinearSystemBelief(A=A, Ainv=Ainv, x=x, b=b[:, None])
 
+    def test_induced_solution_has_correct_distribution(self):
+        """Test whether the induced distribution over the solution from a belief over
+        the inverse is correct."""
+        Ainv0 = random_spd_matrix(dim=self.linsys.A.shape[0], random_state=self.rng)
+        W = random_spd_matrix(dim=self.linsys.A.shape[0], random_state=self.rng)
+        Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=W))
+
+        belief = LinearSystemBelief.from_inverse(Ainv0=Ainv, problem=self.linsys)
+
+        self.assertAllClose(
+            belief.x.mean,
+            belief.Ainv.mean @ self.linsys.b,
+            msg="Induced belief over the solution has an inconsistent mean.",
+        )
+        Wb = W @ self.linsys.b
+        bWb = (Wb.T @ self.linsys.b).item()
+        Sigma = 0.5 * (bWb * W + Wb @ Wb.T)
+        self.assertAllClose(
+            belief.x.cov.todense(),
+            Sigma,
+            msg="Induced belief over the solution has an inconsistent covariance.",
+        )
+
     def test_from_solution_array(self):
         """Test whether a linear system belief can be created from a solution estimate
         given as an array."""
         x0 = self.rng.normal(size=self.linsys.A.shape[1])
         LinearSystemBelief.from_solution(x0=x0, problem=self.linsys)
 
-    def test_induced_solution_has_correct_distribution(self):
-        """"""
-
     def test_from_solution_generates_consistent_inverse_belief(self):
-        """"""
+        """Test whether the belief for the inverse generated from a solution guess
+        matches the belief for the solution."""
+        x0 = self.rng.normal(size=(self.linsys.A.shape[1], 1))
+        belief = LinearSystemBelief.from_solution(x0=x0, problem=self.linsys)
+
+        self.assertAllClose(belief.x.mean, belief.Ainv.mean @ self.linsys.b)
 
     def test_from_solution_creates_better_initialization(self):
         """Test whether if possible, a better initial value x0' is constructed from
@@ -200,5 +225,5 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
         """"""
 
     def test_means_correspond_weakly(self):
-        """Test whether :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for all actions
+        r"""Test whether :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for all actions
         :math:`y`."""

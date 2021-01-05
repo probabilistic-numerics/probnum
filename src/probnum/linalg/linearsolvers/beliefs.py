@@ -70,8 +70,10 @@ class LinearSystemBelief:
     >>> prior = LinearSystemBelief.from_inverse(Ainv0=Ainv_approx, problem=linsys)
     >>> # Initial residual Ax0 - b
     >>> residual = linsys.A @ prior.x.mean - linsys.b
-    >>> np.linalg.norm(residual)
-    0.19828956099603473
+    >>> residual
+    array([[ 0.0825],
+           [ 0.0525],
+           [-0.1725]])
     """
 
     def __init__(
@@ -373,7 +375,7 @@ class LinearSystemBelief:
         """
         b = rvs.asrandvar(b)
         Wb = Ainv.cov.A @ b.mean
-        bWb = np.squeeze(Wb.T @ b.mean)
+        bWb = (Wb.T @ b.mean).item()
 
         def _mv(x):
             return 0.5 * (bWb * Ainv.cov.A @ x + Wb @ (Wb.T @ x))
