@@ -575,7 +575,7 @@ def getdtype(real, logical):
 
 def gen_rows(csvrows):
     """Creates a generator that returns a single row in the matrix database."""
-    reader = csv.reader(csvrows)
+    reader = csv.reader(csvrows, newline="")
     matid = 0
     for line in reader:
         matid += 1
