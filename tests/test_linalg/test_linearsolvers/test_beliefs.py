@@ -120,7 +120,55 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
         """"""
 
     def test_from_solution_creates_better_initialization(self):
-        """"""
+        """Test whether if possible, a better initial value x0' is constructed from
+        x0."""
+        # Linear System
+        linsys = LinearSystem(
+            A=np.array([[4, 2, -6, 4], [2, 2, -3, 1], [-6, -3, 13, 0], [4, 1, 0, 30]]),
+            solution=np.array([2, 0, -1, 2]),
+            b=np.array([22, 9, -25, 68]),
+        )
+
+        x0_list = []
+
+        # <b, x0> < 0
+        x0_list.append(-linsys.b)
+
+        # <b, x0> = 0, b != 0
+        x0_list.append(np.array([0.5, -1, 0, -1 / 34])[:, None])
+        self.assertAlmostEqual((x0_list[1].T @ linsys.b).item(), 0.0)
+
+        for x0 in x0_list:
+            with self.subTest():
+                belief = LinearSystemBelief.from_solution(x0=x0, problem=linsys)
+
+                self.assertGreater(
+                    (belief.x.mean.T @ linsys.b).item(),
+                    0.0,
+                    msg="Inner product <x0, b>="
+                    f"{(belief.x.mean.T @ linsys.b).item():.4f} is not positive.",
+                )
+                error_x0 = (
+                    (linsys.solution - x0).T @ linsys.A @ (linsys.solution - x0)
+                ).item()
+                error_x1 = (
+                    (linsys.solution - belief.x.mean).T
+                    @ linsys.A
+                    @ (linsys.solution - belief.x.mean)
+                ).item()
+                self.assertLess(
+                    error_x1,
+                    error_x0,
+                    msg="Initialization for the solution x0 is not better in A-norm "
+                    "than the user-specified one.",
+                )
+
+        # b = 0
+        linsys_homogeneous = LinearSystem(A=linsys.A, b=np.zeros_like(linsys.b))
+        belief = LinearSystemBelief.from_solution(
+            x0=np.ones_like(linsys.b), problem=linsys_homogeneous
+        )
+        self.assertAllClose(belief.x.mean, np.zeros_like(linsys.b))
 
     def test_from_matrix_array(self):
         """Test whether a linear system belief can be created from a system matrix
@@ -133,6 +181,13 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
         given as an array."""
         Ainv0 = self.rng.normal(size=self.linsys.A.shape)
         LinearSystemBelief.from_inverse(Ainv0=Ainv0, problem=self.linsys)
+
+    def test_from_matrices_arrays(self):
+        """Test whether a linear system belief can be created from an estimate of the
+        system matrix and its inverse given as an arrays."""
+        A0 = self.rng.normal(size=self.linsys.A.shape)
+        Ainv0 = self.rng.normal(size=self.linsys.A.shape)
+        LinearSystemBelief.from_matrices(A0=A0, Ainv0=Ainv0, problem=self.linsys)
 
 
 class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):

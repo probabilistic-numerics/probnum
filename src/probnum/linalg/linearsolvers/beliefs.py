@@ -188,54 +188,75 @@ class LinearSystemBelief:
                Machine Learning, *Advances in Neural Information Processing Systems (
                NeurIPS)*, 2020
         """
-        # If inner product <x0, b> is non-positive, choose better initialization.
         if x0.ndim < 2:
             x0 = x0.reshape((-1, 1))
-        bx0 = np.squeeze(problem.b.T @ x0)
-        bb = np.linalg.norm(problem.b) ** 2
-        if bx0 < 0:
-            x0 = -x0
-            bx0 = -bx0
-            print("Better initialization found, setting x0 = - x0.")
-        elif bx0 == 0:
-            if np.all(problem.b == np.zeros_like(problem.b)):
-                print("Right-hand-side is zero. Initializing with solution x0 = 0.")
-                x0 = problem.b
-            else:
+
+        # If b = 0, set x0 = 0
+        if np.all(problem.b == np.zeros_like(problem.b)):
+            print("Right-hand-side is zero. Initializing with solution x0 = 0.")
+            x0 = problem.b
+            A0 = linops.Identity(shape=problem.A.shape)
+            A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+            Ainv = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+
+            return cls(
+                x=rvs.Normal(
+                    mean=x0,
+                    cov=linops.ScalarMult(
+                        scalar=np.finfo(float).eps, shape=problem.A.shape
+                    ),
+                ),
+                Ainv=Ainv,
+                A=A,
+                b=rvs.Constant(support=problem.b),
+            )
+        else:
+            bx0 = (problem.b.T @ x0).item()
+            bb = np.linalg.norm(problem.b) ** 2
+            # If inner product <x0, b> is non-positive, choose better initialization.
+            if bx0 < -100 * np.finfo(float).eps:
+                x0 = -x0
+                bx0 = -bx0
+                print("Better initialization found, setting x0 = - x0.")
+            elif np.abs(bx0) < 100 * np.finfo(float).eps:
                 print("Better initialization found, setting x0 = (b'b/b'Ab) * b.")
                 bAb = np.squeeze(problem.b.T @ (problem.A @ problem.b))
                 x0 = bb / bAb * problem.b
                 bx0 = bb ** 2 / bAb
 
-        # Construct prior mean of A and Ainv
-        alpha = 0.5 * bx0 / bb
+            # Construct prior mean of A and Ainv
+            alpha = 0.5 * bx0 / bb
 
-        def _mv(v):
-            return (x0 - alpha * problem.b) * (x0 - alpha * problem.b).T @ v
+            def _mv(v):
+                return (x0 - alpha * problem.b) * (x0 - alpha * problem.b).T @ v
 
-        def _mm(M):
-            return (x0 - alpha * problem.b) @ (x0 - alpha * problem.b).T @ M
+            def _mm(M):
+                return (x0 - alpha * problem.b) @ (x0 - alpha * problem.b).T @ M
 
-        Ainv_mean = linops.ScalarMult(
-            scalar=alpha, shape=problem.A.shape
-        ) + 2 / bx0 * linops.LinearOperator(
-            matvec=_mv, matmat=_mm, shape=problem.A.shape
-        )
-        Ainv_cov = linops.SymmetricKronecker(A=linops.Identity(shape=problem.A.shape))
-        Ainv = rvs.Normal(mean=Ainv_mean, cov=Ainv_cov)
+            Ainv_mean = linops.ScalarMult(
+                scalar=alpha, shape=problem.A.shape
+            ) + 2 / bx0 * linops.LinearOperator(
+                matvec=_mv, matmat=_mm, shape=problem.A.shape
+            )
+            Ainv_cov = linops.SymmetricKronecker(
+                A=linops.Identity(shape=problem.A.shape)
+            )
+            Ainv = rvs.Normal(mean=Ainv_mean, cov=Ainv_cov)
 
-        A_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
-            alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
-        ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
-        A_cov = linops.SymmetricKronecker(A=linops.Identity(shape=problem.A.shape))
-        A = rvs.Normal(mean=A_mean, cov=A_cov)
+            A_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
+                alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
+            ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
+            A_cov = linops.SymmetricKronecker(A=linops.Identity(shape=problem.A.shape))
+            A = rvs.Normal(mean=A_mean, cov=A_cov)
 
-        return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
-            Ainv=Ainv,
-            A=A,
-            b=rvs.Constant(support=problem.b),
-        )
+            return cls(
+                x=rvs.Normal(
+                    mean=x0, cov=cls._induced_solution_cov(Ainv=Ainv, b=problem.b)
+                ),
+                Ainv=Ainv,
+                A=A,
+                b=rvs.Constant(support=problem.b),
+            )
 
     @classmethod
     def from_inverse(
@@ -334,6 +355,34 @@ class LinearSystemBelief:
         )
 
     @staticmethod
+    def _induced_solution_cov(
+        Ainv: rvs.Normal, b: rvs.RandomVariable
+    ) -> linops.LinearOperator:
+        r"""Induced covariance of the belief over the solution.
+
+        Approximates the covariance :math:`\Sigma` of the induced random variable
+        :math:`x=Hb` for :math:`H \sim \mathcal{N}(H_0, W \otimes_s W)` such that
+        :math:`\Sigma=\frac{1}{2}(Wb^\top Wb + Wb b^\top W)`.
+
+        Parameters
+        ----------
+        Ainv :
+            Belief over the (pseudo-)inverse of the system matrix.
+        b :
+            Belief over the right hand side
+        """
+        b = rvs.asrandvar(b)
+        Wb = Ainv.cov.A @ b.mean
+        bWb = np.squeeze(Wb.T @ b.mean)
+
+        def _mv(x):
+            return 0.5 * (bWb * Ainv.cov.A @ x + Wb @ (Wb.T @ x))
+
+        return linops.LinearOperator(
+            shape=Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
+        )
+
+    @staticmethod
     def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.RandomVariable) -> rvs.Normal:
         r"""Induced belief over the solution from a belief over the inverse.
 
@@ -350,17 +399,10 @@ class LinearSystemBelief:
             Belief over the right hand side
         """
         b = rvs.asrandvar(b)
-        Wb = Ainv.cov.A @ b.mean
-        bWb = np.squeeze(Wb.T @ b.mean)
-
-        def _mv(x):
-            return 0.5 * (bWb * Ainv.cov.A @ x + Wb @ (Wb.T @ x))
-
-        cov_op = linops.LinearOperator(
-            shape=Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
+        return rvs.Normal(
+            mean=Ainv.mean @ b.mean,
+            cov=LinearSystemBelief._induced_solution_cov(Ainv=Ainv, b=b),
         )
-
-        return rvs.Normal(mean=Ainv.mean @ b.mean, cov=cov_op)
 
 
 class WeakMeanCorrespondenceBelief(LinearSystemBelief):
