@@ -5,7 +5,7 @@ of interest of a linear system such as its solution, the matrix inverse
 or spectral information.
 """
 
-from typing import Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.linalg
@@ -430,19 +430,19 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     Parameters
     ----------
     A :
-        System matrix :math:`A`.
+        Approximate system matrix :math:`A_0 \approx A`.
     Ainv0 :
         Approximate matrix inverse :math:`H_0 \approx A^{-1}`.
+    phi :
+        Uncertainty scaling :math:`\Phi` of the belief over the matrix in the unexplored
+        space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
+    phi :
+        Uncertainty scaling :math:`\Psi` of the belief over the inverse in the
+        unexplored space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
     actions :
         Actions to probe the linear system with.
     observations :
         Observations of the linear system for the given actions.
-    unc_scale_A :
-        Uncertainty scaling :math:`\Phi` of the belief over the matrix in the unexplored
-        space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
-    unc_scale_A :
-        Uncertainty scaling :math:`\Psi` of the belief over the inverse in the
-        unexplored space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
 
     Notes
     -----
@@ -462,35 +462,64 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
     Examples
     --------
+    Belief recovering the method of conjugate gradients.
+
+    >>> from probnum.linalg.linearsolvers.beliefs import WeakMeanCorrespondenceBelief
+    >>> from probnum.linops import ScalarMult
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
+    >>> linsys = LinearSystem.from_matrix(A=random_spd_matrix(dim=10), random_state=42)
+    >>> prior = WeakMeanCorrespondenceBelief.from_scalar(alpha=2.5)
     """
 
     def __init__(
         self,
-        A,
-        Ainv0,
-        actions=None,
-        observations=None,
-        unc_scale_A: float = 0.0,
-        unc_scale_Ainv: float = 0.0,
+        A0: np.ndarray,
+        Ainv0: np.ndarray,
+        b: rvs.RandomVariable,
+        phi: float = 1.0,
+        psi: float = 1.0,
+        actions: Optional[List] = None,
+        observations: Optional[List] = None,
     ):
-        self.A0 = A
+        self.A0 = A0
         self.Ainv0 = Ainv0
-        self.actions = (actions,)
-        self.observations = (observations,)
-        self.unc_scale_A = unc_scale_A
-        self.unc_scale_Ainv = unc_scale_Ainv
+        self.unc_scale_A = phi
+        self.unc_scale_Ainv = psi
+        if actions is None or observations is None:
+            self.actions = None
+            self.observations = None
+            # For no actions taken, the uncertainty scales determine the overall
+            # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
+            A = rvs.Normal(mean=A0, cov=linops.ScalarMult(scalar=phi, shape=A0.shape))
+            Ainv = rvs.Normal(
+                mean=Ainv0,
+                cov=linops.ScalarMult(scalar=psi, shape=Ainv0.shape),
+            )
+        else:
+            self.actions = np.hstack(actions)
+            self.observations = np.hstack(observations)
+            A = rvs.Normal(mean=A0, cov=self._matrix_covariance_factor())
+            Ainv = rvs.Normal(mean=A0, cov=self._inverse_covariance_factor())
 
-        # Construct beliefs
-
-        super().__init__(x=x, A=A, Ainv=Ainv, b=b)
+        super().__init__(
+            x=super()._induced_solution_belief(Ainv=Ainv, b=b), Ainv=Ainv, A=A, b=b
+        )
 
     @cached_property
     def _pseudo_inverse_actions(self) -> np.ndarray:
-        raise NotImplementedError
+        r"""Computes S(S^\top S)^{-1}S = SS^\dagger, i.e. S times its pseudo-inverse."""
+        if self.actions is not None:
+            return self.actions @ np.linalg.pinv(a=self.actions).T
+        else:
+            raise NotImplementedError
 
     @cached_property
     def _pseudo_inverse_observations(self) -> np.ndarray:
-        raise NotImplementedError
+        r"""Computes Y(Y^\top Y)^{-1}Y = SS^\dagger, i.e. Y times its pseudo-inverse."""
+        if self.observations is not None:
+            return self.observations @ np.linalg.pinv(a=self.observations).T
+        else:
+            raise NotImplementedError
 
     def _matrix_covariance_factor(self):
         """"""
@@ -617,6 +646,12 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             A=A0,
             b=problem.b,
         )
+
+    @classmethod
+    def from_scalar(
+        cls, alpha: float, problem: LinearSystem
+    ) -> "WeakMeanCorrespondenceBelief":
+        raise NotImplementedError
 
 
 class NoisyLinearSystemBelief(LinearSystemBelief):
