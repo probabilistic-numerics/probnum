@@ -480,8 +480,8 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
     def __init__(
         self,
-        A0: np.ndarray,
-        Ainv0: np.ndarray,
+        A0: Union[np.ndarray, linops.LinearOperator],
+        Ainv0: Union[np.ndarray, linops.LinearOperator],
         b: rvs.RandomVariable,
         phi: float = 1.0,
         psi: float = 1.0,
@@ -536,22 +536,46 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
     @cached_property
     def _pseudo_inverse_actions(self) -> np.ndarray:
-        r"""Computes S(S^\top S)^{-1}S = SS^\dagger, i.e. S times its pseudo-inverse."""
+        r"""Computes the pseudo-inverse :math:`S^\dagger=(S^\top S)^{-1}S^\top` of the
+        observations."""
         if self.actions is not None:
-            return self.actions @ np.linalg.pinv(a=self.actions).T
+            return np.linalg.pinv(a=self.actions)
         else:
             raise NotImplementedError
 
     @cached_property
     def _pseudo_inverse_observations(self) -> np.ndarray:
-        r"""Computes Y(Y^\top Y)^{-1}Y = SS^\dagger, i.e. Y times its pseudo-inverse."""
+        r"""Computes the pseudo-inverse :math:`Y^\dagger=(Y^\top Y)^{-1}Y^\top` of the
+        observations."""
         if self.observations is not None:
-            return self.observations @ np.linalg.pinv(a=self.observations).T
+            return np.linalg.pinv(a=self.observations)
         else:
             raise NotImplementedError
 
-    def _matrix_covariance_factor(self):
-        """First term of calibration covariance class: :math:`Y(Y\top S)^{-1}Y^\top`.
+    def _cov_factor_inverse_observation_span(self) -> linops.LinearOperator:
+        """Term in covariance class :math:`A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}`"""
+
+        if isinstance(self.Ainv0, linops.ScalarMult):
+
+            def _matmat(x):
+                return self.Ainv0.scalar * self._projection_observation_span @ x
+
+        else:
+
+            def _matmat(x):
+                return (
+                    self.Ainv0
+                    @ self.observations
+                    @ np.linalg.solve(
+                        self.observations.T @ (self.Ainv0 @ self.observations),
+                        self.observations.T @ (self.Ainv0 @ x),
+                    )
+                )
+
+        return linops.LinearOperator(shape=self.Ainv0.shape, matmat=_matmat)
+
+    def _cov_factor_action_span(self) -> linops.LinearOperator:
+        """First term of calibration covariance class: :math:`Y(Y^\top S)^{-1}Y^\top`.
 
         Ensures the covariance factor satisfies :math:`W_0^A S = Y`. For linear
         observations this corresponds to the :math:`W_0^A` acts like :math:`A` on the
@@ -559,48 +583,22 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         """
         if self.assume_conjugate_actions:
 
-            def _matvec(x):
-                """Conjugate actions implying :math:`S^\top Y` is a diagonal matrix."""
+            def _matmat(x):
+                """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
+                matrix."""
                 return (self.observations * self.action_projections ** -1) @ (
-                    self.observations.T @ x.ravel()
+                    self.observations.T @ x
                 )
 
         else:
 
-            def _matvec(x):
+            def _matmat(x):
                 return self.observations @ np.linalg.solve(
                     self.actions.T @ self.observations,
                     self.observations.T @ x,
                 )
 
-        A_covfactor0 = linops.LinearOperator(shape=self.A0.shape, matvec=_matvec)
-        return rvs.Normal(mean=self.A0, cov=linops.SymmetricKronecker(A=A_covfactor0))
-
-    def _inverse_covariance_factor(self):
-        """Term in covariance class: A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}"""
-
-        if isinstance(self.Ainv0, linops.ScalarMult):
-
-            def _matvec(x):
-                # TODO: for efficiency ensure that we dont have to compute
-                #   (Y.T Y)^{-1} two times! For a scalar mean this is the same as in
-                #   the null space projection
-                #   Use cached pseudo inverse to do this if A0 /Ainv0 is scalar
-                raise NotImplementedError
-
-        else:
-
-            def _matvec(x):
-                YAinv0Y_inv_YAinv0x = np.linalg.solve(
-                    self.observations.T @ (self.Ainv0 @ self.observations),
-                    self.observations.T @ (self.Ainv0 @ x),
-                )
-                return self.Ainv0 @ (self.observations @ YAinv0Y_inv_YAinv0x)
-
-        Ainv_covfactor0 = linops.LinearOperator(shape=self.Ainv0.shape, matvec=_matvec)
-        return rvs.Normal(
-            mean=self.Ainv0, cov=linops.SymmetricKronecker(A=Ainv_covfactor0)
-        )
+            return linops.LinearOperator(shape=self.A0.shape, matmat=_matmat)
 
     def _scaled_null_space_projection(
         self, M: np.ndarray, scale: float
@@ -650,8 +648,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         except AttributeError as exc:
             raise AttributeError(
                 "Cannot efficiently invert (prior mean of) Ainv. "
-                "Additionally, specify a prior (mean) of A"
-                "instead."
+                "Additionally, specify a prior (mean) of A instead."
             ) from exc
         A0 = rvs.Normal(mean=A0_mean, cov=linops.SymmetricKronecker(A=problem.A))
 
@@ -690,8 +687,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         except AttributeError as exc:
             raise AttributeError(
                 "Cannot efficiently invert (prior mean of) A. "
-                "Additionally, specify an inverse prior (mean) "
-                "instead."
+                "Additionally, specify an inverse prior (mean) instead."
             ) from exc
         Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=linops.SymmetricKronecker(A=Ainv0_mean))
 

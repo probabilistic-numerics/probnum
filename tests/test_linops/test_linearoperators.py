@@ -29,6 +29,14 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
             linops.MatrixMult(np.array([[-1.5, 3], [0, -230]])),
             linops.LinearOperator(shape=(2, 2), matvec=mv),
             linops.Identity(shape=4),
+            linops.OrthogonalProjection(
+                subspace_basis=np.array([[0], [0.75]]),
+            ),
+            linops.OrthogonalProjection(
+                subspace_basis=np.array([[1], [0]]),
+                is_orthonormal=True,
+                innerprod_matrix=np.array([[0.5, 0], [0, 1.0]]),
+            ),
             linops.Kronecker(
                 A=linops.MatrixMult(np.array([[2, -3.5], [12, 6.5]])),
                 B=linops.Identity(shape=3),
