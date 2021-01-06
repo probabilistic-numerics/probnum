@@ -100,21 +100,21 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
             @ (self.innerprod_matrix @ X)
         )
 
-    def transpose(self):
+    def _transpose(self):
         if isinstance(self.innerprod_matrix, _linear_operator.Identity):
             return self
         else:
 
-            def _matmat(x):
+            def _matvec(x):
                 return (
                     self.innerprod_matrix
                     @ self.subspace_basis
-                    @ self._transformed_basis
-                    @ x
+                    @ (self._transformed_basis.T @ x)
                 )
 
             return _linear_operator.LinearOperator(
-                matmat=_matmat,
+                matvec=_matvec,
+                matmat=_matvec,
                 shape=self.shape,
                 dtype=float,
             )

@@ -535,7 +535,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         )
 
     def _cov_factor_inverse(self) -> linops.LinearOperator:
-        """Term in covariance class :math:`A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}`"""
+        """"""
 
         if isinstance(self.Ainv0, linops.ScalarMult):
 
@@ -557,9 +557,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         return linops.LinearOperator(shape=self.Ainv0.shape, matmat=_matmat)
 
     def _cov_factor_matrix(self) -> linops.LinearOperator:
-        """First term of calibration covariance class: :math:`Y(Y^\top S)^{-1}Y^\top`.
-
-        Ensures the covariance factor satisfies :math:`W_0^A S = Y`. For linear
+        """Ensures the covariance factor satisfies :math:`W_0^A S = Y`. For linear
         observations this corresponds to the :math:`W_0^A` acts like :math:`A` on the
         space spanned by the actions.
         """

@@ -351,7 +351,7 @@ class _ProductLinearOperator(
         self.B = B
         super().__init__(A=A, B=B)
 
-    def transpose(self):
+    def _transpose(self):
         return _ProductLinearOperator(A=self.B.T, B=self.A.T)
 
     def adjoint(self):
@@ -429,7 +429,7 @@ class ScalarMult(LinearOperator):
     def _matmat(self, X):
         return self.scalar * X
 
-    def transpose(self):
+    def _transpose(self):
         return self
 
     def adjoint(self):
@@ -481,7 +481,7 @@ class Identity(ScalarMult):
         # Initiator of super class
         super().__init__(shape=_shape, scalar=1.0)
 
-    def transpose(self):
+    def _transpose(self):
         return self
 
     def adjoint(self):
@@ -531,7 +531,7 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
     def _matmat(self, X):
         return self.A @ X
 
-    def transpose(self):
+    def _transpose(self):
         return MatrixMult(A=self.A.T)
 
     def adjoint(self):

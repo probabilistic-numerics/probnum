@@ -209,7 +209,7 @@ class Kronecker(_linear_operator.LinearOperator):
         Y = self.B.H.matmat(X.T)
         return self.A.H.matmat(Y.T).ravel()
 
-    def transpose(self):
+    def _transpose(self):
         # (A (x) B)^T = A^T (x) B^T
         return Kronecker(A=self.A.transpose(), B=self.B.transpose(), dtype=self.dtype)
 

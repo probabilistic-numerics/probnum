@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 
 from probnum import linops
+from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
 
@@ -13,10 +14,28 @@ class OrthogonalProjectionTestCase(unittest.TestCase, NumpyAssertions):
 
     def setUp(self) -> None:
         """Test resources for orthogonal projections."""
+        self.rng = np.random.default_rng(42)
         self.orthonormal_subspace_proj = linops.OrthogonalProjection(
             subspace_basis=1 / np.sqrt(5.0) * np.array([[2.0, 1.0], [-1.0, 2]]),
             is_orthonormal=True,
         )
+        self.subspace_innerprod_proj = linops.OrthogonalProjection(
+            subspace_basis=self.rng.normal(size=(10, 3)),
+            innerprod_matrix=random_spd_matrix(dim=10, random_state=self.rng),
+        )
+
+        self.projections = [
+            self.orthonormal_subspace_proj,
+            self.subspace_innerprod_proj,
+        ]
+
+    def test_projecting_twice_equals_projecting_once(self):
+        """Test whether applying a projection twice is identical to applying it once."""
+        for proj in self.projections:
+            with self.subTest():
+                Q = proj.todense()
+                QQ = proj @ proj.todense()
+                self.assertAllClose(Q, QQ, atol=10 ** -16)
 
     def test_eigvals_zero_or_one(self):
         """Test whether the eigenvalues of an orthogonal projection are zero or one."""
