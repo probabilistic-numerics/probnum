@@ -30,7 +30,7 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
 
     where :math:`A` is the matrix whose columns are the basis of :math:`U`.
 
-    See https://en.wikipedia.org/wiki/Projection_(linear_algebra) for more
+    See <https://en.wikipedia.org/wiki/Projection_(linear_algebra)> for more
     information.
 
     Parameters

@@ -29,6 +29,12 @@ class OrthogonalProjectionTestCase(unittest.TestCase, NumpyAssertions):
             self.subspace_innerprod_proj,
         ]
 
+    def test_shape_mismatch_raises_value_error(self):
+        """Test whether a mismatched shape of the basis and the matrix defining the
+        inner product raises a ValueError."""
+        with self.assertRaises(ValueError):
+            linops.OrthogonalProjection(np.ones((5, 2)), innerprod_matrix=np.eye(6))
+
     def test_projecting_twice_equals_projecting_once(self):
         """Test whether applying a projection twice is identical to applying it once."""
         for proj in self.projections:
