@@ -3,6 +3,7 @@
 import unittest
 
 import numpy as np
+import scipy.linalg
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
@@ -27,6 +28,7 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
         self.linsys = LinearSystem.from_matrix(
             A=random_spd_matrix(dim=10), random_state=self.rng
         )
+        self.belief_classes = [LinearSystemBelief, WeakMeanCorrespondenceBelief]
 
     def test_dimension_mismatch_raises_value_error(self):
         """Test whether mismatched components result in a ValueError."""
@@ -130,19 +132,24 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
             msg="Induced belief over the solution has an inconsistent covariance.",
         )
 
+    # Classmethod tests
     def test_from_solution_array(self):
         """Test whether a linear system belief can be created from a solution estimate
         given as an array."""
         x0 = self.rng.normal(size=self.linsys.A.shape[1])
-        LinearSystemBelief.from_solution(x0=x0, problem=self.linsys)
+        for belief_class in self.belief_classes:
+            with self.subTest():
+                belief_class.from_solution(x0=x0, problem=self.linsys)
 
     def test_from_solution_generates_consistent_inverse_belief(self):
         """Test whether the belief for the inverse generated from a solution guess
         matches the belief for the solution."""
         x0 = self.rng.normal(size=(self.linsys.A.shape[1], 1))
-        belief = LinearSystemBelief.from_solution(x0=x0, problem=self.linsys)
+        for belief_class in self.belief_classes:
+            with self.subTest():
+                belief = belief_class.from_solution(x0=x0, problem=self.linsys)
 
-        self.assertAllClose(belief.x.mean, belief.Ainv.mean @ self.linsys.b)
+                self.assertAllClose(belief.x.mean, belief.Ainv.mean @ self.linsys.b)
 
     def test_from_solution_creates_better_initialization(self):
         """Test whether if possible, a better initial value x0' is constructed from
@@ -212,18 +219,114 @@ class LinearSystemBeliefTestCase(unittest.TestCase, NumpyAssertions):
         system matrix and its inverse given as an arrays."""
         A0 = self.rng.normal(size=self.linsys.A.shape)
         Ainv0 = self.rng.normal(size=self.linsys.A.shape)
-        LinearSystemBelief.from_matrices(A0=A0, Ainv0=Ainv0, problem=self.linsys)
+        for belief_class in self.belief_classes:
+            with self.subTest():
+                belief_class.from_matrices(A0=A0, Ainv0=Ainv0, problem=self.linsys)
 
 
 class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
     """Test case for the weak mean correspondence belief."""
 
-    def test_from_matrix_satisfies_mean_correspondence(self):
-        """"""
-
-    def test_from_inverse_satisfies_mean_correspondence(self):
-        """"""
+    def setUp(self) -> None:
+        """Test resources for the weak mean correspondence belief."""
+        self.rng = np.random.default_rng(42)
+        self.linsys = LinearSystem.from_matrix(
+            A=random_spd_matrix(dim=10), random_state=self.rng
+        )
+        self.actions = self.rng.normal(size=(self.linsys.A.shape[1], 5))
+        self.observations = self.linsys.A @ self.actions
+        self.A0 = linops.ScalarMult(scalar=2.0, shape=self.linsys.A.shape)
+        self.Ainv0 = self.A0.inv()
+        self.phi = 2.0
+        self.psi = 0.25
+        self.belief = WeakMeanCorrespondenceBelief(
+            A0=self.A0,
+            Ainv0=self.Ainv0,
+            b=self.linsys.b,
+            phi=self.phi,
+            psi=self.psi,
+            actions=self.actions,
+            observations=self.observations,
+        )
 
     def test_means_correspond_weakly(self):
         r"""Test whether :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for all actions
         :math:`y`."""
+        self.assertAllClose(
+            np.linalg.solve(self.belief.A.mean.todense(), self.observations),
+            self.belief.Ainv.mean @ self.observations,
+        )
+
+    def test_system_matrix_uncertainty_in_action_span(self):
+        """Test whether the covariance factor W_0^A of the model for A acts like the
+        true A in the span of the actions, i.e. if W_0^A S = Y."""
+        self.assertAllClose(self.observations, self.belief.A.cov.A @ self.actions)
+
+    def test_inverse_uncertainty_in_observation_span(self):
+        """Test whether the covariance factor W_0^H of the model for Ainv acts like its
+        prior mean in the span of the observations, i.e. if W_0^H Y = H_0 Y."""
+        self.assertAllClose(
+            self.Ainv0 @ self.observations, self.belief.Ainv.cov.A @ self.observations
+        )
+
+    def test_uncertainty_action_null_space_is_phi(self):
+        r"""Test whether the uncertainty in the null space <S>^\perp is
+        given by the uncertainty scale parameter phi."""
+        action_null_space = scipy.linalg.null_space(self.actions.T)
+
+        self.assertAllClose(
+            action_null_space.T @ (self.belief.A.cov.A @ action_null_space),
+            self.phi * np.eye(self.actions.shape[1]),
+        )
+
+    def test_uncertainty_observation_null_space_is_psi(self):
+        r"""Test whether the uncertainty in the null space <Y>^\perp is
+        given by the uncertainty scale parameter psi."""
+        observation_null_space = scipy.linalg.null_space(self.observations.T)
+
+        self.assertAllClose(
+            observation_null_space.T
+            @ (self.belief.Ainv.cov.A @ observation_null_space),
+            self.psi * np.eye(self.observations.shape[1]),
+            atol=10 ** -16,
+        )
+
+    # Classmethod tests
+    def test_from_matrix_satisfies_mean_correspondence(self):
+        """Test whether for a belief constructed from an approximate system matrix, the
+        prior mean of the inverse model corresponds."""
+        A0 = linops.ScalarMult(scalar=5.0, shape=self.linsys.A.shape)
+        belief = WeakMeanCorrespondenceBelief.from_matrix(A0=A0, problem=self.linsys)
+        self.assertAllClose(belief.Ainv.mean.inv().todense(), belief.A.mean.todense())
+
+    def test_from_inverse_satisfies_mean_correspondence(self):
+        """Test whether for a belief constructed from an approximate inverse, the prior
+        mean of the system matrix model corresponds."""
+        Ainv0 = linops.ScalarMult(scalar=5.0, shape=self.linsys.A.shape)
+        belief = WeakMeanCorrespondenceBelief.from_inverse(
+            Ainv0=Ainv0, problem=self.linsys
+        )
+        self.assertAllClose(belief.Ainv.mean.inv().todense(), belief.A.mean.todense())
+
+    def test_belief_construction_inefficient_inversion_raises_error(self):
+        """Test whether when a belief is constructed and the prior means are given as
+        np.ndarrays, an error is raised."""
+        M = self.rng.normal(size=self.linsys.A.shape)
+        with self.assertRaises(TypeError):
+            WeakMeanCorrespondenceBelief.from_matrix(A0=M, problem=self.linsys)
+
+        with self.assertRaises(TypeError):
+            WeakMeanCorrespondenceBelief.from_inverse(Ainv0=M, problem=self.linsys)
+
+    def test_from_scalar(self):
+        """Test whether a linear system belief can be created from a scalar."""
+        WeakMeanCorrespondenceBelief.from_scalar(alpha=2.5, problem=self.linsys)
+
+    def test_from_scalar_nonpositive_raises_value_error(self):
+        """Test whether attempting to construct a weak mean correspondence belief from a
+        non-positive scalar results in a ValueError."""
+        for alpha in [-1.0, -10, 0.0, 0]:
+            with self.assertRaises(ValueError):
+                WeakMeanCorrespondenceBelief.from_scalar(
+                    alpha=alpha, problem=self.linsys
+                )

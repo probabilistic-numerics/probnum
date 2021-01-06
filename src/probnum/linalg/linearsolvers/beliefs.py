@@ -8,7 +8,6 @@ or spectral information.
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import scipy.linalg
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -254,7 +253,7 @@ class LinearSystemBelief:
             ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
             A = rvs.Normal(mean=A_mean, cov=linops.SymmetricKronecker(A=problem.A))
 
-            return cls(
+            return LinearSystemBelief(
                 x=rvs.Normal(
                     mean=x0, cov=cls._induced_solution_cov(Ainv=Ainv, b=problem.b)
                 ),
@@ -524,7 +523,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 mean=A0, cov=linops.SymmetricKronecker(self._cov_factor_matrix())
             )
             Ainv = rvs.Normal(
-                mean=A0,
+                mean=Ainv0,
                 cov=linops.SymmetricKronecker(self._cov_factor_inverse()),
             )
 
@@ -612,14 +611,15 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         """
         try:
             return cls(
-                A0=Ainv0.mean.inv(),  # Ensure (weak) mean correspondence
+                A0=Ainv0.inv(),  # Ensure (weak) mean correspondence
                 Ainv0=Ainv0,
                 b=problem.b,
             )
         except AttributeError as exc:
-            raise AttributeError(
+            raise TypeError(
                 "Cannot efficiently invert (prior mean of) Ainv. "
-                "Additionally, specify a prior (mean) of A instead."
+                "Additionally, specify a prior (mean) of A instead or wrap into"
+                "a linear operator with an .inv() function."
             ) from exc
 
     @classmethod
@@ -644,13 +644,14 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         try:
             return cls(
                 A0=A0,
-                Ainv0=A0.mean.inv(),  # Ensure (weak) mean correspondence
+                Ainv0=A0.inv(),  # Ensure (weak) mean correspondence
                 b=problem.b,
             )
         except AttributeError as exc:
-            raise AttributeError(
+            raise TypeError(
                 "Cannot efficiently invert (prior mean of) A. "
-                "Additionally, specify an inverse prior (mean) instead."
+                "Additionally, specify an inverse prior (mean) instead or wrap into"
+                "a linear operator with an .inv() function."
             ) from exc
 
     @classmethod
