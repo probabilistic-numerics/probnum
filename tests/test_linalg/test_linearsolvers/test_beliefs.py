@@ -320,8 +320,8 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
         )
 
     def test_conjugate_actions_covariance(self):
-        """Test whether the posterior covariance for conjugate actions matches a naively
-        computed one."""
+        """Test whether the covariance for conjugate actions matches a naively computed
+        one."""
         # Compute conjugate actions via Cholesky decomposition: S' = L^{-T}S
         actions = np.diag(self.rng.normal(size=self.linsys.A.shape[0]))[:, 0:5]
         chol = scipy.linalg.cholesky(self.linsys.A)
@@ -360,6 +360,35 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
             msg="Covariance factor of the A model does not match "
             "naively computed one.",
         )
+        self.assertAllClose(
+            belief.Ainv.cov.A.todense(),
+            W0_Ainv,
+            msg="Covariance factor of the Ainv model does not match "
+            "naively computed one.",
+        )
+
+    def test_dense_inverse_prior_mean(self):
+        """Teset whether the covariance for the inverse model with a dense prior mean
+        matches a naively computed one."""
+        Ainv0 = random_spd_matrix(dim=self.linsys.A.shape[0], random_state=self.rng)
+
+        belief = WeakMeanCorrespondenceBelief(
+            A0=self.A0,
+            Ainv0=Ainv0,
+            b=self.linsys.b,
+            phi=self.phi,
+            psi=self.psi,
+            actions=self.actions,
+            observations=self.observations,
+        )
+
+        W0_Ainv = Ainv0 @ linops.OrthogonalProjection(
+            subspace_basis=self.observations, innerprod_matrix=Ainv0
+        ).todense() + self.psi * (
+            np.eye(self.linsys.A.shape[0])
+            - linops.OrthogonalProjection(subspace_basis=self.observations).todense()
+        )
+
         self.assertAllClose(
             belief.Ainv.cov.A.todense(),
             W0_Ainv,

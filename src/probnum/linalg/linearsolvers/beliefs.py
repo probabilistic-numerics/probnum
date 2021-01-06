@@ -577,10 +577,19 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         if isinstance(self.Ainv0, linops.ScalarMult):
             observation_space_op = self.Ainv0.scalar * observation_proj
         else:
-            observation_space_op = self.Ainv0 @ linops.OrthogonalProjection(
-                subspace_basis=self.observations,
-                is_orthonormal=False,
-                innerprod_matrix=self.Ainv0,
+
+            def _matvec(x):
+                return self.Ainv0 @ (
+                    linops.OrthogonalProjection(
+                        subspace_basis=self.observations,
+                        is_orthonormal=False,
+                        innerprod_matrix=self.Ainv0,
+                    )
+                    @ x
+                )
+
+            observation_space_op = linops.LinearOperator(
+                shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
             )
 
         orthogonal_space_op = self.unc_scale_Ainv * (
