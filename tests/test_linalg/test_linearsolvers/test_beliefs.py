@@ -319,6 +319,54 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
             atol=10 ** -16,
         )
 
+    def test_conjugate_actions_covariance(self):
+        """Test whether the posterior covariance for conjugate actions matches a naively
+        computed one."""
+        # Compute conjugate actions via Cholesky decomposition: S' = L^{-T}S
+        actions = np.diag(self.rng.normal(size=self.linsys.A.shape[0]))[:, 0:5]
+        chol = scipy.linalg.cholesky(self.linsys.A)
+        conj_actions = scipy.linalg.solve_triangular(chol, actions)
+        observations = self.linsys.A @ conj_actions
+
+        # Naive covariance factors
+        W0_A = observations @ np.linalg.solve(
+            conj_actions.T @ observations, observations.T
+        ) + self.phi * (
+            np.eye(self.linsys.A.shape[0])
+            - linops.OrthogonalProjection(subspace_basis=conj_actions).todense()
+        )
+        W0_Ainv = (
+            self.psi * np.eye(self.linsys.A.shape[0])
+            + (self.Ainv0.scalar - self.psi)
+            * linops.OrthogonalProjection(subspace_basis=observations).todense()
+        )
+
+        belief = WeakMeanCorrespondenceBelief(
+            A0=self.A0,
+            Ainv0=self.Ainv0,
+            b=self.linsys.b,
+            phi=self.phi,
+            psi=self.psi,
+            actions=conj_actions,
+            observations=observations,
+            action_projection_innerprods=np.einsum(
+                "nk,nk->k", conj_actions, observations
+            ),
+        )
+
+        self.assertAllClose(
+            belief.A.cov.A.todense(),
+            W0_A,
+            msg="Covariance factor of the A model does not match "
+            "naively computed one.",
+        )
+        self.assertAllClose(
+            belief.Ainv.cov.A.todense(),
+            W0_Ainv,
+            msg="Covariance factor of the Ainv model does not match "
+            "naively computed one.",
+        )
+
     # Classmethod tests
     def test_from_matrix_satisfies_mean_correspondence(self):
         """Test whether for a belief constructed from an approximate system matrix, the

@@ -441,12 +441,10 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         Actions to probe the linear system with.
     observations :
         Observations of the linear system for the given actions.
-    action_projections :
-        Inner product(s) :math:`s_i^\top A s_i`. of actions :math:`s_i` in the geometry
-        given by :math:`A`.
-    assume_conjugate_actions :
-        Assume the actions are :math:`A`-conjugate, i.e. :math:`s_i^\top A s_j =0` for
-        :math:`i \neq j`.
+    action_projection_innerprods :
+        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
+        and observations. If a vector is passed, actions are assumed to be
+        :math:`A`-conjugate, i.e. :math:`s_i^\top A s_j =0` for :math:`i \neq j`.
 
     Notes
     -----
@@ -484,15 +482,12 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         psi: float = 1.0,
         actions: Optional[Union[List, np.ndarray]] = None,
         observations: Optional[Union[List, np.ndarray]] = None,
-        action_projections: Optional[Union[List, np.ndarray]] = None,
-        assume_conjugate_actions=False,
+        action_projection_innerprods: Optional[np.ndarray] = None,
     ):
         self.A0 = A0
         self.Ainv0 = Ainv0
         self.unc_scale_A = phi
         self.unc_scale_Ainv = psi
-        self.assume_conjugate_actions = assume_conjugate_actions
-        self.action_projections = np.asarray(action_projections)
         if actions is None or observations is None:
             self.actions = None
             self.observations = None
@@ -519,6 +514,10 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 if isinstance(observations, np.ndarray)
                 else np.hstack(observations)
             )
+            if action_projection_innerprods is not None:
+                self.action_projection_innerprods = action_projection_innerprods
+            else:
+                self.action_projection_innerprods = self.actions.T @ self.observations
             A = rvs.Normal(
                 mean=A0, cov=linops.SymmetricKronecker(self._cov_factor_matrix())
             )
@@ -539,12 +538,12 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         """
         action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
 
-        if self.assume_conjugate_actions:
+        if self.action_projection_innerprods.ndim == 1:
 
             def _matvec(x):
                 """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
                 matrix."""
-                return (self.observations * self.action_projections ** -1) @ (
+                return (self.observations * self.action_projection_innerprods ** -1) @ (
                     self.observations.T @ x
                 )
 
@@ -552,7 +551,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
             def _matvec(x):
                 return self.observations @ np.linalg.solve(
-                    self.actions.T @ self.observations,
+                    self.action_projection_innerprods,
                     self.observations.T @ x,
                 )
 
