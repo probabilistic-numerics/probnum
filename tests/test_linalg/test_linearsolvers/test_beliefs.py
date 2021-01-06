@@ -271,22 +271,50 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
 
     def test_uncertainty_action_null_space_is_phi(self):
         r"""Test whether the uncertainty in the null space <S>^\perp is
-        given by the uncertainty scale parameter phi."""
+        given by the uncertainty scale parameter phi for a scalar system matrix A."""
+        scalar_linsys = LinearSystem.from_matrix(
+            A=5.0 * np.eye(10), random_state=self.rng
+        )
+        belief = WeakMeanCorrespondenceBelief(
+            A0=self.A0,
+            Ainv0=self.Ainv0,
+            b=self.linsys.b,
+            phi=self.phi,
+            psi=self.psi,
+            actions=self.actions,
+            observations=scalar_linsys.A @ self.actions,
+        )
+
         action_null_space = scipy.linalg.null_space(self.actions.T)
 
         self.assertAllClose(
-            action_null_space.T @ (self.belief.A.cov.A @ action_null_space),
-            self.phi * np.eye(self.actions.shape[1]),
+            action_null_space.T @ (belief.A.cov.A @ action_null_space),
+            self.phi
+            * np.eye(
+                self.actions.shape[1],
+            ),
+            atol=10 ** -15,
+            rtol=10 ** -15,
         )
 
     def test_uncertainty_observation_null_space_is_psi(self):
         r"""Test whether the uncertainty in the null space <Y>^\perp is
-        given by the uncertainty scale parameter psi."""
+        given by the uncertainty scale parameter psi for a scalar prior mean."""
+        A0 = linops.ScalarMult(scalar=2.0, shape=self.linsys.A.shape)
+        belief = WeakMeanCorrespondenceBelief(
+            A0=A0,
+            Ainv0=A0.inv(),
+            b=self.linsys.b,
+            phi=self.phi,
+            psi=self.psi,
+            actions=self.actions,
+            observations=self.observations,
+        )
+
         observation_null_space = scipy.linalg.null_space(self.observations.T)
 
         self.assertAllClose(
-            observation_null_space.T
-            @ (self.belief.Ainv.cov.A @ observation_null_space),
+            observation_null_space.T @ (belief.Ainv.cov.A @ observation_null_space),
             self.psi * np.eye(self.observations.shape[1]),
             atol=10 ** -16,
         )
