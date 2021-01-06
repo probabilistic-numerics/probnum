@@ -534,25 +534,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             x=super()._induced_solution_belief(Ainv=Ainv, b=b), Ainv=Ainv, A=A, b=b
         )
 
-    @cached_property
-    def _pseudo_inverse_actions(self) -> np.ndarray:
-        r"""Computes the pseudo-inverse :math:`S^\dagger=(S^\top S)^{-1}S^\top` of the
-        observations."""
-        if self.actions is not None:
-            return np.linalg.pinv(a=self.actions)
-        else:
-            raise NotImplementedError
-
-    @cached_property
-    def _pseudo_inverse_observations(self) -> np.ndarray:
-        r"""Computes the pseudo-inverse :math:`Y^\dagger=(Y^\top Y)^{-1}Y^\top` of the
-        observations."""
-        if self.observations is not None:
-            return np.linalg.pinv(a=self.observations)
-        else:
-            raise NotImplementedError
-
-    def _cov_factor_inverse_observation_span(self) -> linops.LinearOperator:
+    def _cov_factor_inverse(self) -> linops.LinearOperator:
         """Term in covariance class :math:`A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}`"""
 
         if isinstance(self.Ainv0, linops.ScalarMult):
@@ -574,7 +556,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
         return linops.LinearOperator(shape=self.Ainv0.shape, matmat=_matmat)
 
-    def _cov_factor_action_span(self) -> linops.LinearOperator:
+    def _cov_factor_matrix(self) -> linops.LinearOperator:
         """First term of calibration covariance class: :math:`Y(Y^\top S)^{-1}Y^\top`.
 
         Ensures the covariance factor satisfies :math:`W_0^A S = Y`. For linear
@@ -599,26 +581,6 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 )
 
             return linops.LinearOperator(shape=self.A0.shape, matmat=_matmat)
-
-    def _scaled_null_space_projection(
-        self, M: np.ndarray, scale: float
-    ) -> Union[np.ndarray, linops.LinearOperator]:
-        r"""Compute a scaled null space projection.
-
-        Returns a linear operator which maps to the null space of :math:`M \in
-        \mathbb{R}^{n \times k}` and applies a given scaling.
-        """
-        # Null space basis via SVD
-        # Complexity O(n^2k) for k <= n (Matrix Computations - Golub, Van Loan)
-        null_space_basis = scipy.linalg.null_space(M)
-        # TODO cache this using cached_property
-
-        def scaled_projection(x: np.ndarray):
-            return scale * null_space_basis @ null_space_basis.T @ x
-
-        return linops.LinearOperator(
-            shape=(M.shape[0], M.shape[0]), matvec=scaled_projection, dtype=float
-        )
 
     @classmethod
     def from_inverse(

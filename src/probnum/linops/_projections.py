@@ -21,9 +21,16 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
     r"""Orthogonal Projection onto a subspace.
 
     Linear operator :math:`P:V \rightarrow V` projecting onto a subspace :math:`U
-    \subset V` such that :math:`P^2 = P`.
+    \subset V` such that :math:`P^2 = P`. For an inner product on :math:`V` given by a
+    symmetric positive definite matrix :math:`D`, the projection can be characterized as
 
-    See https://en.wikipedia.org/wiki/Projection_(linear_algebra)#Formulas for more
+    .. math::
+      P_Ax = \operatorname{argmin}_{y \in \operatorname{range}(A)}\lVert x - y
+      \rVert_D^2 = A(A^\top D A)^{-1}A^\top Dx
+
+    where :math:`A` is the matrix whose columns are the basis of :math:`U`.
+
+    See https://en.wikipedia.org/wiki/Projection_(linear_algebra) for more
     information.
 
     Parameters
@@ -68,10 +75,9 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
     def _transformed_basis(self):
         r"""Transformed basis of the subspace.
 
-        Compute the orthonormal basis :math:`A(A^\top D A)^{-1}` with
+        Compute the transformed basis :math:`A(A^\top D A)^{-1}` with
         respect to the inner product defined by the positive definite matrix
-        :math:`D`, where :math:`A` is the matrix whose columns are the basis of
-        :math:`U`."""
+        :math:`D`."""
         if self.is_orthonormal:
             return self.subspace_basis
         else:
