@@ -245,12 +245,14 @@ class LinearSystemBelief:
             ) + 2 / bx0 * linops.LinearOperator(
                 matvec=_mv, matmat=_mm, shape=problem.A.shape
             )
-            Ainv = rvs.Normal(mean=Ainv_mean, cov=Ainv_mean)
+            Ainv = rvs.Normal(
+                mean=Ainv_mean, cov=linops.SymmetricKronecker(A=Ainv_mean)
+            )
 
             A_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
                 alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
             ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
-            A = rvs.Normal(mean=A_mean, cov=problem.A)
+            A = rvs.Normal(mean=A_mean, cov=linops.SymmetricKronecker(A=problem.A))
 
             return cls(
                 x=rvs.Normal(
