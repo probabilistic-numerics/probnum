@@ -9,7 +9,6 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.beliefs import (
     LinearSystemBelief,
-    NoisyLinearSystemBelief,
     WeakMeanCorrespondenceBelief,
 )
 from probnum.problems import LinearSystem
