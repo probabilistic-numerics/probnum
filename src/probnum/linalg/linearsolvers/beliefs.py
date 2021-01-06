@@ -245,16 +245,12 @@ class LinearSystemBelief:
             ) + 2 / bx0 * linops.LinearOperator(
                 matvec=_mv, matmat=_mm, shape=problem.A.shape
             )
-            Ainv_cov = linops.SymmetricKronecker(
-                A=linops.Identity(shape=problem.A.shape)
-            )
-            Ainv = rvs.Normal(mean=Ainv_mean, cov=Ainv_cov)
+            Ainv = rvs.Normal(mean=Ainv_mean, cov=Ainv_mean)
 
             A_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
                 alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
             ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
-            A_cov = linops.SymmetricKronecker(A=linops.Identity(shape=problem.A.shape))
-            A = rvs.Normal(mean=A_mean, cov=A_cov)
+            A = rvs.Normal(mean=A_mean, cov=problem.A)
 
             return cls(
                 x=rvs.Normal(
@@ -314,7 +310,7 @@ class LinearSystemBelief:
             Linear system to solve.
         """
         if isinstance(A0, (np.ndarray, linops.LinearOperator)):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
 
         Ainv0_mean = linops.Identity(shape=A0.shape)
         Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=linops.SymmetricKronecker(A=Ainv0_mean))
@@ -350,7 +346,7 @@ class LinearSystemBelief:
             Linear system to solve.
         """
         if isinstance(A0, (np.ndarray, linops.LinearOperator)):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
         if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
             Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
@@ -523,47 +519,28 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 else np.hstack(observations)
             )
             A = rvs.Normal(
-                mean=A0, cov=linops.SymmetricKronecker(self._matrix_covariance_factor())
+                mean=A0, cov=linops.SymmetricKronecker(self._cov_factor_matrix())
             )
             Ainv = rvs.Normal(
                 mean=A0,
-                cov=linops.SymmetricKronecker(self._inverse_covariance_factor()),
+                cov=linops.SymmetricKronecker(self._cov_factor_inverse()),
             )
 
         super().__init__(
             x=super()._induced_solution_belief(Ainv=Ainv, b=b), Ainv=Ainv, A=A, b=b
         )
 
-    def _cov_factor_inverse(self) -> linops.LinearOperator:
-        """"""
-
-        if isinstance(self.Ainv0, linops.ScalarMult):
-
-            def _matmat(x):
-                return self.Ainv0.scalar * self._projection_observation_span @ x
-
-        else:
-
-            def _matmat(x):
-                return (
-                    self.Ainv0
-                    @ self.observations
-                    @ np.linalg.solve(
-                        self.observations.T @ (self.Ainv0 @ self.observations),
-                        self.observations.T @ (self.Ainv0 @ x),
-                    )
-                )
-
-        return linops.LinearOperator(shape=self.Ainv0.shape, matmat=_matmat)
-
     def _cov_factor_matrix(self) -> linops.LinearOperator:
-        """Ensures the covariance factor satisfies :math:`W_0^A S = Y`. For linear
-        observations this corresponds to the :math:`W_0^A` acts like :math:`A` on the
-        space spanned by the actions.
+        r"""Covariance factor of the system matrix model.
+
+        Computes the covariance factor :math:`W_0^A = Y(S^\top Y)^{-1}Y_^\top + P_{
+        S^\perp}\Phi P_{S^\perp}` as given in eqn. (3) of Wenger and Hennig, 2020.
         """
+        action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
+
         if self.assume_conjugate_actions:
 
-            def _matmat(x):
+            def _matvec(x):
                 """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
                 matrix."""
                 return (self.observations * self.action_projections ** -1) @ (
@@ -572,13 +549,45 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
         else:
 
-            def _matmat(x):
+            def _matvec(x):
                 return self.observations @ np.linalg.solve(
                     self.actions.T @ self.observations,
                     self.observations.T @ x,
                 )
 
-            return linops.LinearOperator(shape=self.A0.shape, matmat=_matmat)
+        action_space_op = linops.LinearOperator(
+            shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
+        )
+
+        orthogonal_space_op = self.unc_scale_A * (
+            linops.Identity(shape=self.A0.shape) - action_proj
+        )
+
+        return action_space_op + orthogonal_space_op
+
+    def _cov_factor_inverse(self) -> linops.LinearOperator:
+        r"""Covariance factor of the inverse model.
+
+        Computes the covariance factor :math:`W_0^H = A_0^{-1}Y(Y^\top A_0^{-1}Y)^{
+        -1}Y_^\top A_0^{-1} + P_{Y^\perp}\Psi P_{Y^\perp}` as given in eqn. (3) of
+        Wenger and Hennig, 2020.
+        """
+        observation_proj = linops.OrthogonalProjection(subspace_basis=self.observations)
+
+        if isinstance(self.Ainv0, linops.ScalarMult):
+            observation_space_op = self.Ainv0.scalar * observation_proj
+        else:
+            observation_space_op = self.Ainv0 @ linops.OrthogonalProjection(
+                subspace_basis=self.observations,
+                is_orthonormal=False,
+                innerprod_matrix=self.Ainv0,
+            )
+
+        orthogonal_space_op = self.unc_scale_Ainv * (
+            linops.Identity(shape=self.A0.shape) - observation_proj
+        )
+
+        return observation_space_op + orthogonal_space_op
 
     @classmethod
     def from_inverse(
@@ -599,25 +608,17 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         problem :
             Linear system to solve.
         """
-        if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
-
-        # Weak (symmetric) mean correspondence
         try:
-            A0_mean = Ainv0.mean.inv()
+            return cls(
+                A0=Ainv0.mean.inv(),  # Ensure (weak) mean correspondence
+                Ainv0=Ainv0,
+                b=problem.b,
+            )
         except AttributeError as exc:
             raise AttributeError(
                 "Cannot efficiently invert (prior mean of) Ainv. "
                 "Additionally, specify a prior (mean) of A instead."
             ) from exc
-        A0 = rvs.Normal(mean=A0_mean, cov=linops.SymmetricKronecker(A=problem.A))
-
-        return super().__init__(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
-            Ainv=Ainv0,
-            A=A0,
-            b=problem.b,
-        )
 
     @classmethod
     def from_matrix(
@@ -638,25 +639,17 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         problem :
             Linear system to solve.
         """
-        if isinstance(A0, (np.ndarray, linops.LinearOperator)):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
-
-        # Weak (symmetric) mean correspondence
         try:
-            Ainv0_mean = A0.mean.inv()
+            return cls(
+                A0=A0,
+                Ainv0=A0.mean.inv(),  # Ensure (weak) mean correspondence
+                b=problem.b,
+            )
         except AttributeError as exc:
             raise AttributeError(
                 "Cannot efficiently invert (prior mean of) A. "
                 "Additionally, specify an inverse prior (mean) instead."
             ) from exc
-        Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=linops.SymmetricKronecker(A=Ainv0_mean))
-
-        return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
-            Ainv=Ainv0,
-            A=A0,
-            b=problem.b,
-        )
 
     @classmethod
     def from_matrices(
