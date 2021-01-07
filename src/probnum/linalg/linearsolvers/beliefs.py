@@ -474,7 +474,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     >>> linsys = LinearSystem.from_matrix(random_spd_matrix(dim=5))
     >>> # Prior belief
     >>> prior = WeakMeanCorrespondenceBelief.from_scalar(alpha=2.5, problem=linsys)
-    >>> # Initial residual / gradient: Ax_0 - b
+    >>> # Initial residual / gradient: r0 = A x0 - b
     >>> residual = linsys.A @ prior.x.mean - linsys.b
     >>> residual
     array([[-72.19081319],
