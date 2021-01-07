@@ -15,7 +15,10 @@ from probnum._probabilistic_numerical_method import (
 )
 from probnum.problems import LinearSystem
 
+from .belief_updates import BeliefUpdate
 from .beliefs import LinearSystemBelief
+from .hyperparam_optim import HyperparameterOptimization
+from .observation_ops import ObservationOperator
 from .policies import Policy
 from .stop_criteria import StoppingCriterion
 
@@ -140,10 +143,10 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         self,
         prior: LinearSystemBelief,
         policy: Policy,
-        observe,
-        belief_update=None,
-        stopping_criteria=Optional[List[StoppingCriterion]],
-        optimize_hyperparams=None,
+        observe: ObservationOperator,
+        belief_update: Optional[BeliefUpdate] = None,
+        stopping_criteria: Optional[List[StoppingCriterion]] = None,
+        optimize_hyperparams: Optional[HyperparameterOptimization] = None,
     ):
         # pylint: disable="too-many-arguments"
         self.policy = policy
