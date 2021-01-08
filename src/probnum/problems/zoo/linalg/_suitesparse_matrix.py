@@ -16,13 +16,13 @@ def suitesparse_matrix(
     name: Optional[str] = None,
     matid: Optional[int] = None,
     group: Optional[str] = None,
-    rows: Optional[Union[Tuple[int], int]] = None,
-    cols: Optional[Union[Tuple[int], int]] = None,
-    nnz: Optional[Union[Tuple[int], int]] = None,
+    rows: Optional[Union[Tuple[int, int], int]] = None,
+    cols: Optional[Union[Tuple[int, int], int]] = None,
+    nnz: Optional[Union[Tuple[int, int], int]] = None,
     dtype: Optional[str] = None,
     isspd: Optional[bool] = None,
-    psym: Optional[Union[Tuple[float], float]] = None,
-    nsym: Optional[Union[Tuple[float], float]] = None,
+    psym: Optional[Union[Tuple[float, float], float]] = None,
+    nsym: Optional[Union[Tuple[float, float], float]] = None,
     is2d3d: Optional[bool] = None,
     kind: Optional[str] = None,
     query_only: bool = True,
@@ -45,11 +45,11 @@ def suitesparse_matrix(
     name :
         Name of the matrix.
     rows :
-        Number of rows.
+        Number of rows or tuple :code:`(min, max)` defining limits.
     cols :
-        Number of columns.
+        Number of columns or tuple :code:`(min, max)` defining limits.
     nnz  :
-        Number of non-zero elements.
+        Number of non-zero elements or tuple :code:`(min, max)` defining limits.
     dtype:
         Datatype of non-zero elements: `real`, `complex` or `binary`.
     is2d3d:
@@ -57,9 +57,11 @@ def suitesparse_matrix(
     isspd :
         Is this matrix symmetric, positive definite?
     psym :
-        Degree of symmetry of the matrix pattern.
+        Degree of symmetry of the matrix pattern or tuple :code:`(min, max)` defining
+        limits.
     nsym :
-        Degree of numerical symmetry of the matrix.
+        Degree of numerical symmetry of the matrix or tuple :code:`(min, max)` defining
+        limits.
     kind  :
         Information of the problem domain this matrix arises from.
     query_only :
