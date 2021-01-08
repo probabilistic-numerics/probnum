@@ -218,6 +218,11 @@ class OptimalNoiseScale(HyperparameterOptimization):
     def __init__(self, noise_scale=10 ** -2):
         super().__init__()
 
+    # TODO: maybe all classes without parameters for the init should have their call
+    #   function
+    #   as inits and be passed as simply "hyperparam_optim=OptimalNoiseScale, ..."?
+    #   they are then called as "hyperparam_optim.optimize()"?
+
     def __call__(
         self,
         problem: LinearSystem,
@@ -256,13 +261,13 @@ class OptimalNoiseScale(HyperparameterOptimization):
         try:
             SW0SinvSDelta0 = scipy.linalg.solve(
                 SW0S, actions.T @ Delta0, assume_a="pos"
-            )  # solves k x k system k times: O(k^4)
+            )  # solves k x k system k times: O(k^3)
             linop_rhs = Delta0.T @ (
                 2 * prior.A.cov.A.inv() @ Delta0 - actions @ SW0SinvSDelta0
             )
             linop_tracearg = scipy.linalg.solve(
                 SW0S, linop_rhs, assume_a="pos"
-            )  # solves k x k system k times: O(k^4)
+            )  # solves k x k system k times: O(k^3)
 
             # Optimal noise scale with respect to the evidence
             noise_scale_estimate = (
@@ -273,7 +278,4 @@ class OptimalNoiseScale(HyperparameterOptimization):
                 "Matrix S'W_0S not invertible. Noise scale estimate may be inaccurate."
             ) from err
 
-        if noise_scale_estimate > 0:
-            return noise_scale_estimate
-        else:
-            return 0.0
+        return noise_scale_estimate if noise_scale_estimate > 0.0 else 0.0

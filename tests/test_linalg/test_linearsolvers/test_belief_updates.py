@@ -1,14 +1,10 @@
 """Test cases for belief updates of probabilistic linear solvers."""
-from typing import Optional
-
-import numpy as np
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import LinearSolverState
 from probnum.linalg.linearsolvers.belief_updates import (
-    BeliefUpdate,
-    SymmetricGaussianBeliefLinearObservation,
+    SymMatrixNormalLinearObsBeliefUpdate,
 )
 from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
@@ -26,24 +22,8 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
     def setUp(self) -> None:
         """Test resources for linear solver belief updates."""
 
-        # Belief updates
-        def custom_belief_update(
-            problem: LinearSystem,
-            belief: LinearSystemBelief,
-            action: np.ndarray,
-            observation: np.ndarray,
-            solver_state: Optional[LinearSolverState] = None,
-        ):
-            # Richardson iteration
-            omega = 0.01
-            belief.x += omega * (problem.b - problem.A @ belief.x.mean)
-
-            return belief, solver_state
-
-        self.custom_belief_update = BeliefUpdate(belief_update=custom_belief_update)
-        self.linear_symmetric_gaussian = SymmetricGaussianBeliefLinearObservation()
+        self.linear_symmetric_gaussian = SymMatrixNormalLinearObsBeliefUpdate()
         self.belief_updates = [
-            self.custom_belief_update,
             self.linear_symmetric_gaussian,
         ]
 
@@ -127,7 +107,7 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
 
     def setUp(self) -> None:
         """Test resources for the linear Gaussian belief update."""
-        self.belief_updates = [SymmetricGaussianBeliefLinearObservation()]
+        self.belief_updates = [SymMatrixNormalLinearObsBeliefUpdate()]
 
     def test_symmetric_posterior_params(self):
         """Test whether posterior parameters are symmetric."""
@@ -202,7 +182,7 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                     Ainv=prior_Ainv,
                     b=rvs.Constant(linsys.b),
                 )
-                belief, _ = SymmetricGaussianBeliefLinearObservation()(
+                belief, _ = SymMatrixNormalLinearObsBeliefUpdate()(
                     problem=linsys, belief=prior, action=s, observation=y
                 )
 

@@ -1,4 +1,5 @@
 """Belief updates for probabilistic linear solvers."""
+import abc
 from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
@@ -12,44 +13,33 @@ from probnum.problems import LinearSystem
 from .beliefs import LinearSystemBelief
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["BeliefUpdate", "SymmetricGaussianBeliefLinearObservation"]
+__all__ = ["BeliefUpdate", "SymMatrixNormalLinearObsBeliefUpdate"]
 
 # pylint: disable="invalid-name,too-many-arguments"
 
 
-class BeliefUpdate:
+class BeliefUpdate(abc.ABC):
     """Belief update of a probabilistic linear solver.
 
     Computes a new belief over the quantities of interest of the linear system based
     on the current state of the linear solver.
 
-    Parameters
-    ----------
-    belief_update
-        Callable defining how to update the belief.
-
     See Also
     --------
-    LinearGaussianBeliefUpdate: Belief update given linear observations :math:`y=As`.
+    SymMatrixNormalLinearObsBeliefUpdate: Belief update given linear observations
+                                          :math:`y=As`.
     """
 
-    def __init__(
-        self,
-        belief_update: Callable[
-            [
-                LinearSystem,
-                "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
-                np.ndarray,
-                np.ndarray,
-                Optional["probnum.linalg.linearsolvers.LinearSolverState"],
-            ],
-            Tuple[
-                "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
-                "probnum.linalg.linearsolvers.LinearSolverState",
-            ],
-        ],
-    ):
-        self._belief_update = belief_update
+    def __init__(self, hyperparams: Optional[Tuple[np.ndarray]] = None):
+        self._hyperparams = hyperparams
+
+    @property
+    def hyperparameters(self) -> Tuple[np.ndarray]:
+        return self._hyperparams
+
+    @hyperparameters.setter
+    def hyperparameters(self, hyperparams: Tuple[np.ndarray]):
+        self._hyperparams = hyperparams
 
     def __call__(
         self,
@@ -78,7 +68,7 @@ class BeliefUpdate:
         solver_state :
             Current state of the linear solver.
         """
-        return self._belief_update(problem, belief, action, observation, solver_state)
+        raise NotImplementedError
 
     def update_solution(
         self,
@@ -131,16 +121,9 @@ class BeliefUpdate:
         raise NotImplementedError
 
 
-# TODO: implement specific belief update for the CG equivalence class (maybe as a
-#  subclass?) (and other
-#  linear system beliefs, where inference may be done more efficiently, e.g. when only
-#  a prior on the solution is specified.)
-class ConjugateGradientBeliefLinearObservation(BeliefUpdate):
-    pass
-
-
-class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
-    r"""Belief update for a symmetric Gaussian prior and linear observations.
+class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
+    r"""Belief update for a symmetric matrix-variate Normal prior and linear
+    observations.
 
     Updates the posterior beliefs over the quantities of interest of the linear system
     under symmetric matrix-variate Gaussian prior(s) on :math:`A` and / or :math:`H`.
@@ -164,7 +147,7 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
         ] = None,
     ):
         self.noise_cov = noise_cov
-        super().__init__(belief_update=self.__call__)
+        super().__init__()
 
     def __call__(
         self,
@@ -198,6 +181,7 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
         )
         belief_x, solver_state = self.update_solution(
             problem=problem,
+            belief_Ainv=belief_Ainv,
             belief_x=belief.x,
             action=action,
             observation=observation,
@@ -213,6 +197,7 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
     def update_solution(
         self,
         problem: LinearSystem,
+        belief_Ainv: rvs.RandomVariable,
         belief_x: rvs.RandomVariable,
         action: np.ndarray,
         observation: np.ndarray,
@@ -220,7 +205,31 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
     ) -> Tuple[
         rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
     ]:
+        if self.noise_cov is None:
+            return self._update_solution_noise_free_obs(
+                problem=problem,
+                belief_x=belief_x,
+                action=action,
+                observation=observation,
+                solver_state=solver_state,
+            )
+        else:
+            return self._update_solution_noisy_obs(
+                problem=problem, belief_Ainv=belief_Ainv, solver_state=solver_state
+            )
 
+    def _update_solution_noise_free_obs(
+        self,
+        problem: LinearSystem,
+        belief_x: rvs.RandomVariable,
+        action: np.ndarray,
+        observation: np.ndarray,
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
+        """Update belief over the solution assuming noise-free observations
+        :math:`y=As`."""
         # Current residual
         try:
             residual = solver_state.residual
@@ -246,8 +255,18 @@ class SymmetricGaussianBeliefLinearObservation(BeliefUpdate):
             observation=observation,
             solver_state=solver_state,
         )
-
         return x, solver_state
+
+    def _update_solution_noisy_obs(
+        self,
+        problem: LinearSystem,
+        belief_Ainv: rvs.RandomVariable,
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Tuple[
+        rvs.RandomVariable, Optional["probnum.linalg.linearsolvers.LinearSolverState"]
+    ]:
+        """Update belief over the solution given noisy observations :math:`y=(A+E)s`."""
+        return belief_Ainv @ problem.b, solver_state
 
     def update_matrix(
         self,
@@ -391,3 +410,11 @@ def _log_rayleigh_quotient(action_obs_innerprod: float, action: np.ndarray) -> f
     r"""Compute the log-Rayleigh quotient :math:`\ln R(A, s_i) = \ln(s_i^\top A
     s_i) -\ln(s_i^\top s_i)` for the current action."""
     return (np.log(action_obs_innerprod) - np.log(action.T @ action)).item()
+
+
+# TODO: implement specific belief update for the CG equivalence class (maybe as a
+#  subclass?) (and other
+#  linear system beliefs, where inference may be done more efficiently, e.g. when only
+#  a prior on the solution is specified.)
+class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
+    pass

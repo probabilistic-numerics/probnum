@@ -418,10 +418,10 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     observations. On the respective orthogonal spaces the uncertainty over the matrix
     and its inverse is determined by scaling parameters.
 
-    For a scalar prior mean :math:`A_0 = H_0^{-1} = \alpha I`, when paired with a
-    :class:`~probnum.linalg.linearsolvers.policies.ConjugateDirections`
+    For a scalar prior mean :math:`A_0 = H_0^{-1} = \alpha I` with :math:`\alpha > 0`,
+    a :class:`~probnum.linalg.linearsolvers.policies.ConjugateDirections`
     policy and linear observations, this (prior) belief recovers the *method of
-    conjugate gradients*. [1]_
+    conjugate gradients*.
 
     For more details, see Wenger and Hennig, 2020. [1]_
 
