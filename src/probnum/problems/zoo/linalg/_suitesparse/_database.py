@@ -1,4 +1,5 @@
 """SuiteSparse Database."""
+
 import csv
 import datetime
 import logging

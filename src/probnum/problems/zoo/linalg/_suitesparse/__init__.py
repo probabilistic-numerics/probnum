@@ -1,4 +1,8 @@
-"""Utility classes and functions for interfacing the SuiteSparse Matrix Collection."""
+"""Utility classes and functions for interfacing the SuiteSparse Matrix Collection.
+
+This implementation is based on Sudarshan Raghunathan's SSGETPY package
+(https://github.com/drdarshan/ssgetpy).
+"""
 
 import os
 

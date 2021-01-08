@@ -2,6 +2,8 @@
 
 import unittest
 
+import scipy.sparse
+
 from probnum.problems.zoo.linalg import suitesparse_matrix
 from tests.testing import NumpyAssertions
 
@@ -58,6 +60,11 @@ class SuiteSparseMatrixTestCase(unittest.TestCase, NumpyAssertions):
         for matrix in matrices:
             self.assertFalse(matrix.isspd)
 
-    def test_download_and_read_any_matrixformat(self):
-        for matrixformat in ("MM", "MAT", "RB"):
-            _ = suitesparse_matrix(matid=1438, download=True, matrixformat=matrixformat)
+    def test_download_and_read_any_matrixformat_to_spmatrix(self):
+        """Test whether a sparse scipy matrix is returned no matter what the format of
+        the downloaded sparse matrix is."""
+        for matrixformat in ("MM", "MAT"):
+            sparsemat = suitesparse_matrix(
+                matid=1438, query_only=False, matrixformat=matrixformat
+            )
+            self.assertIsInstance(sparsemat, scipy.sparse.spmatrix)

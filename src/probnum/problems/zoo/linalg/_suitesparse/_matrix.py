@@ -1,4 +1,5 @@
 """Class representing SuiteSparse Matrix Benchmark objects."""
+
 import dataclasses
 import gzip
 import os
@@ -66,7 +67,7 @@ class _SuiteSparseMatrix:
         Number of rows.
     cols :
         Number of columns.
-    nonzeros  :
+    nnz  :
         Number of non-zero elements.
     dtype:
         Datatype of non-zero elements: `real`, `complex` or `binary`.
@@ -96,7 +97,7 @@ class _SuiteSparseMatrix:
     name: str
     rows: int
     cols: int
-    nonzeros: int
+    nnz: int
     dtype: str
     is2d3d: bool
     isspd: bool

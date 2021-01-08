@@ -1,12 +1,8 @@
-"""Sparse matrices from the SuiteSparse Matrix Collection.
-
-This implementation is based on Sudarshan Raghunathan's SSGETPY package
-(https://github.com/drdarshan/ssgetpy).
-"""
+"""Sparse matrices from the SuiteSparse Matrix Collection."""
 
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import scipy.io
 import scipy.sparse
@@ -17,24 +13,62 @@ logger = logging.getLogger(__name__)
 
 
 def suitesparse_matrix(
-    name_or_id: Optional[Union[int, str]] = None,
+    name: Optional[str] = None,
+    matid: Optional[int] = None,
+    group: Optional[str] = None,
+    rows: Optional[Union[Tuple[int], int]] = None,
+    cols: Optional[Union[Tuple[int], int]] = None,
+    nnz: Optional[Union[Tuple[int], int]] = None,
+    dtype: Optional[str] = None,
+    isspd: Optional[bool] = None,
+    psym: Optional[Union[Tuple[float], float]] = None,
+    nsym: Optional[Union[Tuple[float], float]] = None,
+    is2d3d: Optional[bool] = None,
+    kind: Optional[str] = None,
+    query_only: bool = True,
     matrixformat: str = "MM",
     location: str = None,
-    download: bool = False,
-    **kwargs,
 ) -> scipy.sparse.spmatrix:
     """Sparse matrix from the SuiteSparse Matrix Collection.
 
     Download a sparse matrix benchmark from the `SuiteSparse Matrix Collection
     <https://sparse.tamu.edu/>`_. [1]_ [2]_
 
+    Any of the matrix properties used to query support partial matches.
+
     Parameters
     ----------
-    name_or_id :
-        Name or ID of the SuiteSparse matrix.
+    matid :
+        Unique identifier for the matrix in the database.
+    group :
+        Group the matrix belongs to.
+    name :
+        Name of the matrix.
+    rows :
+        Number of rows.
+    cols :
+        Number of columns.
+    nnz  :
+        Number of non-zero elements.
+    dtype:
+        Datatype of non-zero elements: `real`, `complex` or `binary`.
+    is2d3d:
+        Does this matrix come from a 2D or 3D discretization?
+    isspd :
+        Is this matrix symmetric, positive definite?
+    psym :
+        Degree of symmetry of the matrix pattern.
+    nsym :
+        Degree of numerical symmetry of the matrix.
+    kind  :
+        Information of the problem domain this matrix arises from.
+    query_only :
+        In :code:`query_only` mode information about the sparse matrices is returned
+        without download.
     matrixformat :
+        Format to download the matrices in. One of ("MM", "MAT").
     location :
-    download :
+        Location to download the matrices too.
 
     References
     ----------
@@ -54,7 +88,7 @@ def suitesparse_matrix(
     Download a sparse matrix and create a linear system from it.
 
     >>> import numpy as np
-    >>> sparse_mat = suitesparse_matrix(matid=1438, download=True)
+    >>> sparse_mat = suitesparse_matrix(matid=1438, query_only=False)
     >>> np.mean(sparse_mat > 0)
     0.16049382716049382
     """
@@ -67,7 +101,7 @@ def suitesparse_matrix(
         logger.info(
             "Found %d %s", len(matrices), "entry" if len(matrices) == 1 else "entries"
         )
-        if download:
+        if not query_only:
             for matrix in matrices:
                 logger.info(
                     "Downloading %s/%s to %s",
@@ -84,11 +118,11 @@ def suitesparse_matrix(
                         source=os.path.join(destpath, matrix.name + ".mtx")
                     )
                 elif matrixformat == "MAT":
-                    mat = scipy.io.loadmat(file_name=destpath)
-                elif matrixformat == "RB":
-                    mat = scipy.io.hb_read(
-                        path_or_open_file=os.path.join(destpath, matrix.name + ".rb")
-                    )
+                    mat = scipy.io.loadmat(file_name=destpath)["Problem"][0][0][2]
+                # elif matrixformat == "RB":
+                #     mat = scipy.io.hb_read(
+                #         path_or_open_file=os.path.join(destpath, matrix.name + ".rb")
+                #     )
                 else:
                     raise ValueError("Format must be 'MM', 'MAT' or 'RB'")
                 spmatrices.append(mat)
