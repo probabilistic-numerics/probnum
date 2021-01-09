@@ -61,7 +61,7 @@ class UncertaintyCalibrationTestCase(HyperparameterOptimizationTestCase):
         which are inverses to each other."""
         for calib_routine in self.uncertainty_calibration_routines:
             with self.subTest():
-                unc_scales, _, _ = calib_routine(
+                unc_scales, _ = calib_routine(
                     problem=self.linsys,
                     belief=self.prior,
                     actions=self.actions,
@@ -85,7 +85,7 @@ class UncertaintyCalibrationTestCase(HyperparameterOptimizationTestCase):
 
         for calib_routine in self.uncertainty_calibration_routines:
             with self.subTest():
-                unc_scales, _, _ = calib_routine(
+                unc_scales, _ = calib_routine(
                     problem=self.linsys,
                     belief=self.prior,
                     actions=[self.actions[0]],

@@ -263,8 +263,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                 try:
                     solver_state = belief.optimize_hyperparams(
                         problem=problem,
-                        actions=action,
-                        observations=observation,
+                        actions=[action],
+                        observations=[observation],
                         solver_state=solver_state,
                     )
                 except NotImplementedError:

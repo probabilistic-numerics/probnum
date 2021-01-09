@@ -6,11 +6,11 @@ import numpy as np
 
 import probnum
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers.beliefs._linear_system_belief import (
-    LinearSystemBelief,
-)
+from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import OptimalNoiseScale
 from probnum.problems import LinearSystem
+
+# pylint: disable="invalid-name"
 
 
 class NoisyLinearSystemBelief(LinearSystemBelief):

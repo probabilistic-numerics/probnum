@@ -7,11 +7,15 @@ import numpy as np
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers.beliefs._linear_system_belief import (
-    LinearSystemBelief,
+from probnum.linalg.linearsolvers.belief_updates import (
+    SymMatrixNormalLinearObsBeliefUpdate,
 )
+from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import UncertaintyCalibration
+from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
 from probnum.problems import LinearSystem
+
+# pylint: disable="invalid-name"
 
 
 class WeakMeanCorrespondenceBelief(LinearSystemBelief):
@@ -348,3 +352,29 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             return solver_state
         else:
             raise NotImplementedError
+
+    def update(
+        self,
+        problem: LinearSystem,
+        observation_op: "probnum.linalg.linearsolvers.observation_ops.ObservationOperator",
+        action: np.ndarray,
+        observation: np.ndarray,
+        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
+    ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
+        if isinstance(observation_op, MatrixMultObservation):
+            belief_update = SymMatrixNormalLinearObsBeliefUpdate(
+                problem=problem, belief=self, noise_cov=None
+            )
+        else:
+            raise NotImplementedError
+
+        (self._x, self._Ainv, self._A, self._b), solver_state = belief_update(
+            action=action, observation=observation
+        )
+        # TODO perform regular SymMatrixNormalLinearObsBeliefUpdate under the assumption
+        #   that W_A = A and W_Ainv = Ainv0, then add additional orthogonal term and
+        #   adjust prior covariance once at convergence.
+        # TODO Alternatively expose Matheron update term functions and call these
+        #  explicitly, then simply add prior to update random variable
+        # TODO finally once at the end construct a new WeakMeanPosteriorCorrespondence
+        #  belief with wrapped prior mean.
