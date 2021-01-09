@@ -9,8 +9,6 @@ import scipy.sparse
 
 from ._suitesparse._database import suitesparse_db_instance
 
-logger = logging.getLogger(__name__)
-
 
 def suitesparse_matrix(
     name: Optional[str] = None,
@@ -63,7 +61,7 @@ def suitesparse_matrix(
         Degree of numerical symmetry of the matrix or tuple :code:`(min, max)` defining
         limits.
     kind  :
-        Information of the problem domain this matrix arises from.
+        Problem domain this matrix arises from.
     query_only :
         In :code:`query_only` mode information about the sparse matrices is returned
         without download.
@@ -112,31 +110,18 @@ def suitesparse_matrix(
     )
 
     # Download Matrices
-    matrixformat = "MM"
-    spmatrices = []
-    if len(matrices) > 0:
-        logger.info(
-            "Found %d %s", len(matrices), "entry" if len(matrices) == 1 else "entries"
-        )
-        if not query_only:
-            for matrix in matrices:
-                logger.info(
-                    "Downloading %s/%s to %s",
-                    matrix.group,
-                    matrix.name,
-                    matrix.localpath(matrixformat, location, extract=True)[0],
-                )
-                matrix.download(matrixformat, location, extract=True)
+    if not query_only:
+        matrixformat = "MM"
+        spmatrices = []
 
-                # Read from file
-                destpath = matrix.localpath(matrixformat, location, extract=True)[0]
-                mat = scipy.io.mmread(
-                    source=os.path.join(destpath, matrix.name + ".mtx")
-                )
-                spmatrices.append(mat)
-            if len(spmatrices) == 1:
-                return spmatrices[0]
-            else:
-                return spmatrices
+        for matrix in matrices:
+            matrix.download(matrixformat, location, extract=True)
+
+            # Read from file
+            destpath = matrix.localpath(matrixformat, location, extract=True)[0]
+            mat = scipy.io.mmread(source=os.path.join(destpath, matrix.name + ".mtx"))
+            spmatrices.append(mat)
+
+        return spmatrices[0] if len(spmatrices) == 1 else spmatrices
 
     return matrices
