@@ -15,12 +15,10 @@ from probnum._probabilistic_numerical_method import (
 )
 from probnum.problems import LinearSystem
 
-from .belief_updates import BeliefUpdate
 from .beliefs import LinearSystemBelief
-from .hyperparam_optim import HyperparameterOptimization
 from .observation_ops import ObservationOperator
 from .policies import Policy
-from .stop_criteria import StoppingCriterion
+from .stop_criteria import MaxIterations, StoppingCriterion
 
 # pylint: disable="invalid-name"
 
@@ -91,7 +89,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         linear system.
     policy :
         Policy defining actions taken by the solver.
-    observe :
+    observation_op :
         Observation process defining how information about the linear system is
         obtained.
     belief_update :
@@ -143,21 +141,15 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         self,
         prior: LinearSystemBelief,
         policy: Policy,
-        observe: ObservationOperator,
-        belief_update: Optional[BeliefUpdate] = None,
-        stopping_criteria: Optional[List[StoppingCriterion]] = None,
-        optimize_hyperparams: Optional[HyperparameterOptimization] = None,
+        observation_op: ObservationOperator,
+        optimize_hyperparams: bool = True,
+        stopping_criteria: Optional[List[StoppingCriterion]] = MaxIterations(),
     ):
         # pylint: disable="too-many-arguments"
         self.policy = policy
-        self.observe = observe
-        if belief_update is None:
-            raise NotImplementedError
-            # TODO select appropriate belief update based on prior and observation
-            #  operator
-        self.belief_update = belief_update
-        self.stopping_criteria = stopping_criteria
+        self.observation_op = observation_op
         self.optimize_hyperparams = optimize_hyperparams
+        self.stopping_criteria = stopping_criteria
         super().__init__(
             prior=prior,
         )
@@ -262,27 +254,28 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             )
 
             # Make an observation of the linear system
-            observation, solver_state = self.observe(
+            observation, solver_state = self.observation_op(
                 problem=problem, action=action, solver_state=solver_state
             )
 
             # Optimize hyperparameters
-            if self.optimize_hyperparams is not None:
-                optimal_hyperparams, solver_state = self.optimize_hyperparams(
-                    problem=problem,
-                    belief=belief,
-                    action=action,
-                    observation=observation,
-                    solver_state=solver_state,
-                )
+            if self.optimize_hyperparams:
+                try:
+                    solver_state = belief.optimize_hyperparams(
+                        problem=problem,
+                        actions=action,
+                        observations=observation,
+                        solver_state=solver_state,
+                    )
+                except NotImplementedError:
+                    pass
 
             # Update the belief over the system matrix, its inverse and/or the solution
-            belief, solver_state = self.belief_update(
+            solver_state = belief.update(
                 problem=problem,
-                belief=belief,
+                observation_op=self.observation_op,
                 action=action,
                 observation=observation,
-                hyperparameters=optimal_hyperparams,  # TODO: pass optimal hyperparameters here?
                 solver_state=solver_state,
             )
 
@@ -319,7 +312,10 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             problem=problem, belief=belief, solver_state=solver_state
         )
 
-        for (belief, solver_state) in solve_iterator:
+        for (iter_belief, solver_state) in solve_iterator:
+
+            # Update belief
+            belief = iter_belief
 
             # Evaluate stopping criteria and update solver state
             _has_converged, solver_state = self.has_converged(
@@ -328,13 +324,4 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                 solver_state=solver_state,
             )
 
-        # Belief over solution, system matrix, its inverse and the right hand side
-        belief = self._infer_belief_system_components(belief=belief)
-
         return belief, solver_state
-
-    def _infer_belief_system_components(
-        self, belief: LinearSystemBelief
-    ) -> LinearSystemBelief:
-        """Compute the belief over all quantities of interest of the linear system."""
-        raise NotImplementedError

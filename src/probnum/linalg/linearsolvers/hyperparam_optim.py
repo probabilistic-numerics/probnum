@@ -28,7 +28,6 @@ class HyperparameterOptimization(ABC):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
         Tuple[Union[np.ndarray, float], ...],
-        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
         """Optimized hyperparameters of the linear system model.
@@ -71,8 +70,8 @@ class UncertaintyCalibration(HyperparameterOptimization):
     Parameters
     ----------
     method :
-        If supplied calibrates the output via the given procedure or uncertainty
-        scale. Available calibration procedures are
+        If supplied calibrates the output via the given calibration method. Available
+        procedures are
 
         ====================================  ================
          Most recent Rayleigh quotient        ``adhoc``
@@ -97,7 +96,6 @@ class UncertaintyCalibration(HyperparameterOptimization):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
         Tuple[Union[np.ndarray, float], ...],
-        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
         iteration = len(actions)
@@ -139,7 +137,7 @@ class UncertaintyCalibration(HyperparameterOptimization):
             unc_scale_A = (np.exp(np.mean(logR_pred))).item()
             unc_scale_Ainv = (np.exp(-np.mean(logR_pred))).item()
 
-        return (unc_scale_A, unc_scale_Ainv), belief, solver_state
+        return (unc_scale_A, unc_scale_Ainv), solver_state
 
     def _most_recent_log_rayleigh_quotient(self, log_rayleigh_quotients: List[float]):
         """Most recent log-Rayleigh quotient."""
@@ -208,20 +206,7 @@ class OptimalNoiseScale(HyperparameterOptimization):
     r"""Estimate the noise level of a noisy linear system.
 
     Computes the optimal noise scale maximizing the log-marginal likelihood.
-
-    Parameters
-    ----------
-    noise_scale
-        Initial guess for the noise scale :math:`\varepsilon^2` of the linear system.
     """
-
-    def __init__(self, noise_scale=10 ** -2):
-        super().__init__()
-
-    # TODO: maybe all classes without parameters for the init should have their call
-    #   function
-    #   as inits and be passed as simply "hyperparam_optim=OptimalNoiseScale, ..."?
-    #   they are then called as "hyperparam_optim.optimize()"?
 
     def __call__(
         self,
@@ -232,7 +217,6 @@ class OptimalNoiseScale(HyperparameterOptimization):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[
         Tuple[Union[np.ndarray, float], ...],
-        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
 
