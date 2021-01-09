@@ -1,7 +1,7 @@
 """Sparse matrices from the SuiteSparse Matrix Collection."""
 
 import os
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import scipy.io
 import scipy.sparse
@@ -25,7 +25,7 @@ def suitesparse_matrix(
     query_only: bool = True,
     max_results: int = 10,
     location: str = None,
-) -> Union[scipy.sparse.spmatrix, Tuple[scipy.sparse.spmatrix]]:
+) -> Union[scipy.sparse.spmatrix, List[scipy.sparse.spmatrix]]:
     """Sparse matrix from the SuiteSparse Matrix Collection.
 
     Download a sparse matrix benchmark from the `SuiteSparse Matrix Collection
@@ -83,7 +83,7 @@ def suitesparse_matrix(
 
     >>> from probnum.problems.zoo.linalg import suitesparse_matrix
     >>> suitesparse_matrix(group="Oberwolfach", rows=(10, 20))
-    [_SuiteSparseMatrix(matid=1438, group='Oberwolfach', name='LF10', rows=18, cols=18, nonzeros=82, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem'), _SuiteSparseMatrix(matid=1440, group='Oberwolfach', name='LFAT5', rows=14, cols=14, nonzeros=46, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem')]
+    [_SuiteSparseMatrix(matid=1438, group='Oberwolfach', name='LF10', rows=18, cols=18, nnz=82, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem'), _SuiteSparseMatrix(matid=1440, group='Oberwolfach', name='LFAT5', rows=14, cols=14, nnz=46, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem')]
 
     Download a sparse matrix and check its sparsity level.
 
