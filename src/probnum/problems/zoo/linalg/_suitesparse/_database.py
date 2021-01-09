@@ -119,6 +119,7 @@ class _SuiteSparseMatrixDataBase:
         # TODO: check for non-tuple
         if bounds[0] is not None:
             constraints.append("%s >= %d" % (field, bounds[0]))
+            # TODO make sure bounds are NOT converted to integer here
         if bounds[1] is not None:
             constraints.append("%s <= %d" % (field, bounds[1]))
         return " ( " + " AND ".join(constraints) + " ) "
