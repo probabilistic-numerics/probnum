@@ -4,7 +4,8 @@ import csv
 import datetime
 import logging
 import os
-from typing import Optional, Tuple, Union
+import sqlite3
+from typing import Iterator, Optional, Tuple, Union
 
 import requests
 
@@ -22,14 +23,12 @@ class _SuiteSparseMatrixDataBase:
     Parameters
     ----------
     database :
-        SQLite database file.
+        SQLite database location.
     matrix_table :
-        Table containing matrices.
+        Name of the table containing the matrices.
     """
 
     def __init__(self, database: str = SUITESPARSE_DB, matrix_table: str = "MATRICES"):
-        import sqlite3
-
         self.database = database
         self.matrix_table = matrix_table
         self.update_table = "update_table"
@@ -117,6 +116,7 @@ class _SuiteSparseMatrixDataBase:
         if bounds is None or (bounds[0] is None and bounds[1] is None):
             return None
         constraints = []
+        # TODO: check for non-tuple
         if bounds[0] is not None:
             constraints.append("%s >= %d" % (field, bounds[0]))
         if bounds[1] is not None:
@@ -196,7 +196,7 @@ class _SuiteSparseMatrixDataBase:
         )
 
 
-def _from_timestamp(timestamp):
+def _from_timestamp(timestamp: str):
     if hasattr(datetime.datetime, "fromisoformat"):
         return datetime.datetime.fromisoformat(timestamp)
     return datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
@@ -211,7 +211,7 @@ def getdtype(real, logical):
     return "binary" if logical else ("real" if real else "complex")
 
 
-def gen_rows(csvrows):
+def gen_rows(csvrows: Iterator[str]):
     """Creates a generator that returns a single row in the matrix database."""
     reader = csv.reader(csvrows)
     matid = 0
@@ -250,6 +250,7 @@ def csvindex_generate():
 os.makedirs(SUITESPARSE_DIR, exist_ok=True)
 suitesparse_db_instance = _SuiteSparseMatrixDataBase()
 
+# Refresh the database index if the last update was > 90 days ago
 if suitesparse_db_instance.nrows == 0 or (
     datetime.datetime.utcnow() - suitesparse_db_instance.last_update
 ) > datetime.timedelta(days=90):

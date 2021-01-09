@@ -24,6 +24,10 @@ class SuiteSparseMatrixTestCase(unittest.TestCase, NumpyAssertions):
                 )
             )
 
+    def tearDown(self) -> None:
+        """Tear down created resources."""
+        # TODO remove created database
+
     def test_search_by_id(self):
         m = suitesparse_matrix(matid=42)
         self.assertEqual(len(m), 1)

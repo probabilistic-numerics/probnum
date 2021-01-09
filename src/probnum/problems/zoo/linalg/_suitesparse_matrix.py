@@ -1,6 +1,5 @@
 """Sparse matrices from the SuiteSparse Matrix Collection."""
 
-import logging
 import os
 from typing import Optional, Tuple, Union
 
@@ -14,19 +13,19 @@ def suitesparse_matrix(
     name: Optional[str] = None,
     matid: Optional[int] = None,
     group: Optional[str] = None,
-    rows: Optional[Union[Tuple[int, int], int]] = None,
-    cols: Optional[Union[Tuple[int, int], int]] = None,
-    nnz: Optional[Union[Tuple[int, int], int]] = None,
+    rows: Optional[Union[Tuple[Union[int, None], Union[int, None]], int]] = None,
+    cols: Optional[Union[Tuple[Union[int, None], Union[int, None]], int]] = None,
+    nnz: Optional[Union[Tuple[Union[int, None], Union[int, None]], int]] = None,
     dtype: Optional[str] = None,
     isspd: Optional[bool] = None,
-    psym: Optional[Union[Tuple[float, float], float]] = None,
-    nsym: Optional[Union[Tuple[float, float], float]] = None,
+    psym: Optional[Union[Tuple[Union[float, None], Union[float, None]], float]] = None,
+    nsym: Optional[Union[Tuple[Union[float, Union[float, None]], float], float]] = None,
     is2d3d: Optional[bool] = None,
     kind: Optional[str] = None,
     query_only: bool = True,
     max_results: int = 10,
     location: str = None,
-) -> Union[scipy.sparse.spmatrix]:
+) -> Union[scipy.sparse.spmatrix, Tuple[scipy.sparse.spmatrix]]:
     """Sparse matrix from the SuiteSparse Matrix Collection.
 
     Download a sparse matrix benchmark from the `SuiteSparse Matrix Collection
@@ -82,17 +81,18 @@ def suitesparse_matrix(
     --------
     Query the SuiteSparse Matrix Collection.
 
+    >>> from probnum.problems.zoo.linalg import suitesparse_matrix
     >>> suitesparse_matrix(group="Oberwolfach", rows=(10, 20))
     [_SuiteSparseMatrix(matid=1438, group='Oberwolfach', name='LF10', rows=18, cols=18, nonzeros=82, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem'), _SuiteSparseMatrix(matid=1440, group='Oberwolfach', name='LFAT5', rows=14, cols=14, nonzeros=46, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem')]
 
-    Download a sparse matrix and create a linear system from it.
+    Download a sparse matrix and check its sparsity level.
 
     >>> import numpy as np
     >>> sparse_mat = suitesparse_matrix(matid=1438, query_only=False)
     >>> np.mean(sparse_mat > 0)
     0.16049382716049382
     """
-    # Query SuiteSparse Matrix collection
+    # Query the SuiteSparse Matrix collection
     matrices = suitesparse_db_instance.search(
         matid=matid,
         group=group,
