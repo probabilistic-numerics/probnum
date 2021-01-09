@@ -4,6 +4,7 @@ import csv
 import datetime
 import logging
 import os
+from typing import Optional, Tuple, Union
 
 import requests
 
@@ -133,16 +134,18 @@ class _SuiteSparseMatrixDataBase:
 
     def search(
         self,
-        matid=None,
-        group=None,
-        name=None,
-        rowbounds=None,
-        colbounds=None,
-        nzbounds=None,
-        dtype=None,
-        is2d3d=None,
-        isspd=None,
-        kind=None,
+        name: Optional[str] = None,
+        matid: Optional[int] = None,
+        group: Optional[str] = None,
+        rows: Optional[Union[Tuple[int, int], int]] = None,
+        cols: Optional[Union[Tuple[int, int], int]] = None,
+        nnz: Optional[Union[Tuple[int, int], int]] = None,
+        dtype: Optional[str] = None,
+        isspd: Optional[bool] = None,
+        psym: Optional[Union[Tuple[float, float], float]] = None,
+        nsym: Optional[Union[Tuple[float, float], float]] = None,
+        is2d3d: Optional[bool] = None,
+        kind: Optional[str] = None,
         limit=10,
     ):
 
@@ -151,12 +154,14 @@ class _SuiteSparseMatrixDataBase:
         mid_constraint = _SuiteSparseMatrixDataBase._is_constraint("id", matid)
         grp_constraint = _SuiteSparseMatrixDataBase._is_constraint("matrixgroup", group)
         nam_constraint = _SuiteSparseMatrixDataBase._like_constraint("name", name)
-        row_constraint = _SuiteSparseMatrixDataBase._sz_constraint("rows", rowbounds)
-        col_constraint = _SuiteSparseMatrixDataBase._sz_constraint("cols", colbounds)
-        nnz_constraint = _SuiteSparseMatrixDataBase._sz_constraint("nnz", nzbounds)
+        row_constraint = _SuiteSparseMatrixDataBase._sz_constraint("rows", rows)
+        col_constraint = _SuiteSparseMatrixDataBase._sz_constraint("cols", cols)
+        nnz_constraint = _SuiteSparseMatrixDataBase._sz_constraint("nnz", nnz)
         dty_constraint = _SuiteSparseMatrixDataBase._is_constraint("dtype", dtype)
         geo_constraint = _SuiteSparseMatrixDataBase._bool_constraint("is2d3d", is2d3d)
         spd_constraint = _SuiteSparseMatrixDataBase._bool_constraint("isspd", isspd)
+        psym_constraint = _SuiteSparseMatrixDataBase._sz_constraint("psym", psym)
+        nsym_constraint = _SuiteSparseMatrixDataBase._sz_constraint("nsym", nsym)
         knd_constraint = _SuiteSparseMatrixDataBase._like_constraint("kind", kind)
 
         constraints = list(
@@ -172,6 +177,8 @@ class _SuiteSparseMatrixDataBase:
                     dty_constraint,
                     geo_constraint,
                     spd_constraint,
+                    psym_constraint,
+                    nsym_constraint,
                     knd_constraint,
                 ),
             )

@@ -26,9 +26,9 @@ def suitesparse_matrix(
     is2d3d: Optional[bool] = None,
     kind: Optional[str] = None,
     query_only: bool = True,
-    matrixformat: str = "MM",
+    max_results: int = 10,
     location: str = None,
-) -> scipy.sparse.spmatrix:
+) -> Union[scipy.sparse.spmatrix]:
     """Sparse matrix from the SuiteSparse Matrix Collection.
 
     Download a sparse matrix benchmark from the `SuiteSparse Matrix Collection
@@ -67,8 +67,8 @@ def suitesparse_matrix(
     query_only :
         In :code:`query_only` mode information about the sparse matrices is returned
         without download.
-    matrixformat :
-        Format to download the matrices in. One of ("MM", "MAT").
+    max_results :
+        Maximum number of results to return from the database.
     location :
         Location to download the matrices too.
 
@@ -84,7 +84,7 @@ def suitesparse_matrix(
     --------
     Query the SuiteSparse Matrix Collection.
 
-    >>> suitesparse_matrix(group="Oberwolfach", rowbounds=(10, 20))
+    >>> suitesparse_matrix(group="Oberwolfach", rows=(10, 20))
     [_SuiteSparseMatrix(matid=1438, group='Oberwolfach', name='LF10', rows=18, cols=18, nonzeros=82, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem'), _SuiteSparseMatrix(matid=1440, group='Oberwolfach', name='LFAT5', rows=14, cols=14, nonzeros=46, dtype='real', is2d3d=1, isspd=1, psym=1.0, nsym=1.0, kind='model reduction problem')]
 
     Download a sparse matrix and create a linear system from it.
@@ -95,9 +95,24 @@ def suitesparse_matrix(
     0.16049382716049382
     """
     # Query SuiteSparse Matrix collection
-    matrices = _suitesparse_query(name_or_id, **kwargs)
+    matrices = suitesparse_db_instance.search(
+        matid=matid,
+        group=group,
+        name=name,
+        rows=rows,
+        cols=cols,
+        nnz=nnz,
+        dtype=dtype,
+        is2d3d=is2d3d,
+        isspd=isspd,
+        psym=psym,
+        nsym=nsym,
+        kind=kind,
+        limit=max_results,
+    )
 
     # Download Matrices
+    matrixformat = "MM"
     spmatrices = []
     if len(matrices) > 0:
         logger.info(
@@ -115,49 +130,13 @@ def suitesparse_matrix(
 
                 # Read from file
                 destpath = matrix.localpath(matrixformat, location, extract=True)[0]
-                if matrixformat == "MM":
-                    mat = scipy.io.mmread(
-                        source=os.path.join(destpath, matrix.name + ".mtx")
-                    )
-                elif matrixformat == "MAT":
-                    mat = scipy.io.loadmat(file_name=destpath)["Problem"][0][0][2]
-                # elif matrixformat == "RB":
-                #     mat = scipy.io.hb_read(
-                #         path_or_open_file=os.path.join(destpath, matrix.name + ".rb")
-                #     )
-                else:
-                    raise ValueError("Format must be 'MM', 'MAT' or 'RB'")
+                mat = scipy.io.mmread(
+                    source=os.path.join(destpath, matrix.name + ".mtx")
+                )
                 spmatrices.append(mat)
             if len(spmatrices) == 1:
                 return spmatrices[0]
             else:
                 return spmatrices
 
-        # TODO ensure that information passed in _SuiteSparseMatrix is not lost,
-        #  maybe by wrapping the sparse matrix into a special LinearOperator which has
-        #  properties symmetric, positive_definite, etc.?
-
     return matrices
-
-
-def _suitesparse_query(name_or_id: Optional[str] = None, **kwargs):
-    """Search for matrices with a given name pattern or numeric ID.
-
-    Optionally, limit search to matrices of a specific data type or with
-    the specified range of rows, columns and non-zero values.
-    """
-    if name_or_id is not None:
-        if isinstance(name_or_id, str):
-            if "/" in name_or_id:
-                group, name = name_or_id.split("/")
-                kwargs["group"] = group
-                if not name == "" and not name == "*":
-                    kwargs["name"] = name
-            else:
-                kwargs["name"] = name_or_id
-        elif isinstance(name_or_id, int):
-            kwargs["matid"] = name_or_id
-        else:
-            raise ValueError("First argument to search must be a string or an integer")
-
-    return suitesparse_db_instance.search(**kwargs)
