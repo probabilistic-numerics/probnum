@@ -184,7 +184,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
                 observation=self.observations,
             )
             # Solution estimate update
-            x_mean = self.belief.x.mean + step_size * self.actions
+            x_mean_update = step_size * self.actions
 
             # Update residual
             self._residual(
@@ -192,7 +192,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
                 step_size=step_size,
                 observation=self.observations,
             )
-            return x_mean, None
+            return x_mean_update, None
         else:
             raise NotImplementedError
 
@@ -214,7 +214,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
     ]:
         """Mean and covariance update terms for the system matrix."""
         u, v, Ws = self._matrix_model_update_components(
-            belief_matrix=self.belief.Ainv,
+            belief_matrix=self.belief.A,
             action=self.actions,
             observation=self.observations,
         )
@@ -230,8 +230,8 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
         """Updated Gaussian belief over the inverse of the system matrix
         :math:`H=A^{-1}`."""
         mean_update, cov_update = self.Ainv_update_terms
-        Ainv_mean = linops.aslinop(self.belief.A.mean) + mean_update
-        Ainv_covfactor = linops.aslinop(self.belief.A.cov.A) - cov_update
+        Ainv_mean = linops.aslinop(self.belief.Ainv.mean) + mean_update
+        Ainv_covfactor = linops.aslinop(self.belief.Ainv.cov.A) - cov_update
 
         return rvs.Normal(mean=Ainv_mean, cov=linops.SymmetricKronecker(Ainv_covfactor))
 
