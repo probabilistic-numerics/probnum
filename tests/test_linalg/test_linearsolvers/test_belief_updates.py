@@ -22,7 +22,11 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
     def setUp(self) -> None:
         """Test resources for linear solver belief updates."""
 
-        self.linear_symmetric_gaussian = SymMatrixNormalLinearObsBeliefUpdate()
+        self.linear_symmetric_gaussian = SymMatrixNormalLinearObsBeliefUpdate(
+            problem=self.linsys,
+            belief=self.prior,
+            solver_state=self.solver_state,
+        )
         self.belief_updates = [
             self.linear_symmetric_gaussian,
         ]
@@ -34,11 +38,8 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
         for belief_update in self.belief_updates:
             with self.subTest():
                 belief, solver_state = belief_update(
-                    problem=self.linsys,
-                    belief=self.prior,
                     action=self.action,
                     observation=self.observation,
-                    solver_state=self.solver_state,
                 )
                 self.assertIsInstance(belief, LinearSystemBelief)
                 self.assertIsInstance(solver_state, LinearSolverState)
@@ -49,11 +50,8 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
         for belief_update in self.belief_updates:
             with self.subTest():
                 belief, solver_state = belief_update(
-                    problem=self.linsys,
-                    belief=self.prior,
                     action=self.action,
                     observation=self.observation,
-                    solver_state=self.solver_state,
                 )
                 matshape = (self.linsys.A.shape[1], 5)
                 mat = self.rng.random(size=matshape)
@@ -107,7 +105,13 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
 
     def setUp(self) -> None:
         """Test resources for the linear Gaussian belief update."""
-        self.belief_updates = [SymMatrixNormalLinearObsBeliefUpdate()]
+        self.belief_updates = [
+            SymMatrixNormalLinearObsBeliefUpdate(
+                problem=self.linsys,
+                belief=self.prior,
+                solver_state=self.solver_state,
+            )
+        ]
 
     def test_symmetric_posterior_params(self):
         """Test whether posterior parameters are symmetric."""
@@ -115,11 +119,8 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
         for belief_update in self.belief_updates:
             with self.subTest():
                 belief, _ = belief_update(
-                    problem=self.linsys,
-                    belief=self.prior,
                     action=self.action,
                     observation=self.observation,
-                    solver_state=self.solver_state,
                 )
                 Ainv = belief.Ainv
                 Ainv_mean = Ainv.mean.todense()

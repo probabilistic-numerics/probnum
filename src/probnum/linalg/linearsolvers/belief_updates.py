@@ -53,7 +53,7 @@ class BeliefUpdate(abc.ABC):
     def __call__(
         self, action: np.ndarray, observation: np.ndarray
     ) -> Tuple[
-        Tuple[rvs.RandomVariable, ...],
+        "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
         """Update the belief over the quantities of interest of the linear system.
@@ -66,16 +66,25 @@ class BeliefUpdate(abc.ABC):
             Observation of the linear system for the given action.
         """
 
-        updated_beliefs = []
-        for belief_update in [self.solution, self.inverse, self.matrix, self.rhs]:
-            try:
-                updated_beliefs.append(
-                    belief_update(action=action, observation=observation)
-                )
-            except NotImplementedError:
-                updated_beliefs.append(None)
+        updated_belief = self.belief
+        try:
+            updated_belief.x = self.solution(action=action, observation=observation)
+        except NotImplementedError:
+            updated_belief.x = None
+        try:
+            updated_belief.Ainv = self.inverse(action=action, observation=observation)
+        except NotImplementedError:
+            updated_belief.Ainv = None
+        try:
+            updated_belief.A = self.matrix(action=action, observation=observation)
+        except NotImplementedError:
+            updated_belief.A = None
+        try:
+            updated_belief.b = self.rhs(action=action, observation=observation)
+        except NotImplementedError:
+            updated_belief.b = None
 
-        return tuple(updated_beliefs), self.solver_state
+        return updated_belief, self.solver_state
 
     def solution(
         self,
@@ -244,7 +253,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(NormalLinearObsBeliefUpdate):
                     self.solver_state.residual = residual
 
             # Step size
-            step_size, solver_state = self._step_size(
+            step_size = self._step_size(
                 residual=residual,
                 action=action,
                 observation=observation,
@@ -253,7 +262,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(NormalLinearObsBeliefUpdate):
             x = self.belief.x + step_size * action
 
             # Update residual
-            _, solver_state = self._residual(
+            self._residual(
                 residual=residual,
                 step_size=step_size,
                 observation=observation,
