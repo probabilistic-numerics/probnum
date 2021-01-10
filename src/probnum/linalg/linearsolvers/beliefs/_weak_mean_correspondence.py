@@ -8,7 +8,7 @@ import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.belief_updates import (
-    SymMatrixNormalLinearObsBeliefUpdate,
+    WeakMeanCorrLinearObsBeliefUpdate,
 )
 from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import UncertaintyCalibration
@@ -384,18 +384,46 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
         if isinstance(observation_op, MatrixMultObservation):
-            belief_update = SymMatrixNormalLinearObsBeliefUpdate(
+            belief_update = WeakMeanCorrLinearObsBeliefUpdate(
                 problem=problem, belief=self, actions=action, observations=observation
             )
+            # TODO given the assumption WS=Y this can be computed more efficiently
+            #   by implementing the update explicitly in
+            #   WeakMeanCorrLinearObsBeliefUpdate and making use of solver_state.actions
+
+            # TODO move this into WeakMeanCorrLinearObsBeliefUpdate (by making use of
+            #   the solver_state for the update ops?
+            # Update belief over A assuming WS=Y (Theorem 3, eqn. 1, Wenger2020)
+            A_mean_update, A_cov_update = belief_update.A_update_terms(
+                belief_A=rvs.Normal(
+                    mean=self.A.mean, cov=problem.A - self._A_cov_update_op
+                )
+            )
+            self._A_cov_update_op += A_cov_update
+
+            # Update belief over Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
+            Ainv_mean_update, Ainv_cov_update = belief_update.Ainv_update_terms(
+                belief_Ainv=rvs.Normal(
+                    mean=self.Ainv.mean, cov=self.Ainv0 - self._Ainv_cov_update_op
+                )
+            )
+            self._Ainv_cov_update_op += Ainv_cov_update
+
+            self._A = rvs.Normal(
+                mean=self.A.mean + A_mean_update,
+                cov=linops.SymmetricKronecker(
+                    self._cov_factor_matrix() - self._A_cov_update_op
+                ),
+            )
+            self._Ainv = rvs.Normal(
+                mean=self.Ainv.mean + Ainv_mean_update,
+                cov=linops.SymmetricKronecker(
+                    self._cov_factor_inverse() - self._Ainv_cov_update_op
+                ),
+            )
+            # Update belief over the solution
+            self._x = (super()._induced_solution_belief(Ainv=self.Ainv, b=self.b),)
+
+            return solver_state
         else:
             raise NotImplementedError
-
-        self._x, self._Ainv, self._A, self._b, solver_state = belief_update()
-        return solver_state
-        # TODO perform regular SymMatrixNormalLinearObsBeliefUpdate under the assumption
-        #   that W_A = A and W_Ainv = Ainv0, then add additional orthogonal term and
-        #   adjust prior covariance once at convergence.
-        # TODO Alternatively expose Matheron update term functions and call these
-        #  explicitly, then simply add prior to update random variable
-        # TODO finally once at the end construct a new WeakMeanPosteriorCorrespondence
-        #  belief with wrapped prior mean.
