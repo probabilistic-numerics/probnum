@@ -34,6 +34,10 @@ class BeliefUpdate(abc.ABC):
     belief :
         Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
         linear system.
+    actions :
+        Actions to probe the linear system with.
+    observations :
+        Observations of the linear system for the given actions.
     solver_state :
         Current state of the linear solver.
 
@@ -346,13 +350,30 @@ def _log_rayleigh_quotient(action_obs_innerprod: float, action: np.ndarray) -> f
     return (np.log(action_obs_innerprod) - np.log(action.T @ action)).item()
 
 
-# TODO: implement specific belief update for the CG equivalence class (maybe as a
-#  subclass?) (and other
-#  linear system beliefs, where inference may be done more efficiently, e.g. when only
-#  a prior on the solution is specified.)
 class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
-    """Belief update for the weak mean correspondence covariance class under linear
-    observations."""
+    r"""Belief update for the weak mean correspondence covariance class under linear
+    observations.
+
+    Parameters
+    ----------
+    problem :
+        Linear system to solve.
+    belief :
+        Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
+        linear system.
+    solver_state :
+        Current state of the linear solver.
+    noise_cov
+        Covariance matrix :math:`\Lambda` of the noise term :math:`E \sim \mathcal{
+        N}(0, \Lambda)` assumed for matrix evaluations :math:`v \mapsto (A + E)v`.
+
+    Examples
+    --------
+    Efficient updating of the solution covariance trace.
+
+    >>> from probnum.linalg.linearsolvers.belief_updates import WeakMeanCorrLinearObsBeliefUpdate
+    >>>
+    """
 
     def __init__(
         self,

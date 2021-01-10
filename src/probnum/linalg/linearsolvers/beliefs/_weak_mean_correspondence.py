@@ -75,6 +75,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     --------
     Belief recovering the method of conjugate gradients.
 
+    >>> import numpy as np
     >>> from probnum.linalg.linearsolvers.beliefs import WeakMeanCorrespondenceBelief
     >>> from probnum.linops import ScalarMult
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
@@ -384,14 +385,13 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
         if isinstance(observation_op, MatrixMultObservation):
             belief_update = SymMatrixNormalLinearObsBeliefUpdate(
-                problem=problem, belief=self, noise_cov=None, solver_state=solver_state
+                problem=problem, belief=self, actions=action, observations=observation
             )
         else:
             raise NotImplementedError
 
-        (self._x, self._Ainv, self._A, self._b), solver_state = belief_update(
-            action=action, observation=observation
-        )
+        self._x, self._Ainv, self._A, self._b, solver_state = belief_update()
+        return solver_state
         # TODO perform regular SymMatrixNormalLinearObsBeliefUpdate under the assumption
         #   that W_A = A and W_Ainv = Ainv0, then add additional orthogonal term and
         #   adjust prior covariance once at convergence.

@@ -419,6 +419,14 @@ class LinearSystemBelief:
 
         Parameters
         ----------
+        problem :
+            Linear system to solve.
+        actions :
+            Actions to probe the linear system with.
+        observations :
+            Observations of the linear system for the given actions.
+        solver_state :
+            Current state of the linear solver.
         """
         raise NotImplementedError
 
@@ -434,6 +442,14 @@ class LinearSystemBelief:
 
         Parameters
         ----------
+        problem :
+            Linear system to solve.
+        action :
+            Action to probe the linear system with.
+        observation :
+            Observation of the linear system for the given action.
+        solver_state :
+            Current state of the linear solver.
         """
         if isinstance(observation_op, MatrixMultObservation):
             belief_update = SymMatrixNormalLinearObsBeliefUpdate(

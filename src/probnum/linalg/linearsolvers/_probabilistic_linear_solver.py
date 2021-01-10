@@ -95,13 +95,10 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     observation_op :
         Observation process defining how information about the linear system is
         obtained.
-    belief_update :
-        Operator updating the belief over the quantities of interest :math:`(x, A,
-        A^{-1})` of the linear system.
     stopping_criteria :
         Stopping criteria determining when the solver has converged.
     optimize_hyperparams :
-        Function optimizing hyperparameters of the solver.
+        Whether to optimize the hyperparameters of the solver.
 
     References
     ----------
