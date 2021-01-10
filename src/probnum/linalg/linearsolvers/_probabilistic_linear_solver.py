@@ -45,6 +45,8 @@ class LinearSolverState(PNMethodState):
         Current iteration :math:`i` of the solver.
     residual
         Residual :math:`r_i = Ax_i - b` of the current solution.
+    action_obs_innerprods
+        Inner product(s) :math:`s_i^\top y_i` of actions and observations.
     log_rayleigh_quotients
         Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
         s_i)`.
@@ -62,6 +64,7 @@ class LinearSolverState(PNMethodState):
     """
     iteration: int = 0
     residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
+    action_obs_innerprods: Optional[List[float]] = None
     log_rayleigh_quotients: Optional[List[float]] = None
     step_sizes: Optional[List[float]] = None
     has_converged: bool = False

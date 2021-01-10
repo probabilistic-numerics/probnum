@@ -24,9 +24,7 @@ from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = [
-    "LinearSystemBelief",
-]
+__all__ = ["LinearSystemBelief"]
 
 # pylint: disable="invalid-name"
 
@@ -83,7 +81,6 @@ class LinearSystemBelief:
         A: rvs.RandomVariable,
         Ainv: rvs.RandomVariable,
         b: rvs.RandomVariable,
-        hyperparams: Optional[Tuple[np.ndarray, ...]] = None,
     ):
 
         x, A, Ainv, b = self._reshape_2d(x=x, A=A, Ainv=Ainv, b=b)
@@ -92,7 +89,6 @@ class LinearSystemBelief:
         self._A = rvs.asrandvar(A)
         self._Ainv = rvs.asrandvar(Ainv)
         self._b = rvs.asrandvar(b)
-        self._hyperparams = hyperparams
 
     @staticmethod
     def _reshape_2d(
@@ -163,16 +159,6 @@ class LinearSystemBelief:
     def b(self) -> rvs.RandomVariable:
         """Belief over the right hand side."""
         return self._b
-
-    @property
-    def hyperparams(self) -> Optional[Tuple[np.ndarray, ...]]:
-        """Hyperparameters of the belief."""
-        return self._hyperparams
-
-    @hyperparams.setter
-    def hyperparams(self, values: Tuple[np.ndarray, ...]):
-        """Set the hyperparameters of the belief."""
-        self._hyperparams = values
 
     @classmethod
     def from_solution(

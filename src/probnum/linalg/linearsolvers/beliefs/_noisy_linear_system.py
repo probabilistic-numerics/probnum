@@ -38,8 +38,17 @@ class NoisyLinearSystemBelief(LinearSystemBelief):
         b: rvs.RandomVariable,
         noise_scale: float = None,
     ):
-        self.noise_scale = noise_scale
+        self._noise_scale = noise_scale
         super().__init__(x=x, A=A, Ainv=Ainv, b=b)
+
+    @property
+    def noise_scale(self) -> float:
+        """Estimate for the scale of the noise on the system matrix."""
+        return self._noise_scale
+
+    @noise_scale.setter
+    def noise_scale(self, value: float):
+        self._noise_scale = value
 
     def optimize_hyperparams(
         self,

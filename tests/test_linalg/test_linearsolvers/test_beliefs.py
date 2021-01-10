@@ -348,9 +348,7 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
             psi=self.psi,
             actions=conj_actions,
             observations=observations,
-            action_projection_innerprods=np.einsum(
-                "nk,nk->k", conj_actions, observations
-            ),
+            action_obs_innerprods=np.einsum("nk,nk->k", conj_actions, observations),
         )
 
         self.assertAllClose(

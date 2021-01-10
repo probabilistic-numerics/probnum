@@ -50,7 +50,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         Actions to probe the linear system with.
     observations :
         Observations of the linear system for the given actions.
-    action_projection_innerprods :
+    action_obs_innerprods :
         Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
         and observations. If a vector is passed, actions are assumed to be
         :math:`A`-conjugate, i.e. :math:`s_i^\top A s_j =0` for :math:`i \neq j`.
@@ -102,14 +102,14 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         psi: float = 1.0,
         actions: Optional[Union[List, np.ndarray]] = None,
         observations: Optional[Union[List, np.ndarray]] = None,
-        action_projection_innerprods: Optional[np.ndarray] = None,
+        action_obs_innerprods: Optional[np.ndarray] = None,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ):
         self.A0 = A0
         self.Ainv0 = Ainv0
-        self.unc_scale_A = phi
-        self.unc_scale_Ainv = psi
         self.calibration_method = calibration_method
+        self._phi = phi
+        self._psi = psi
         if actions is None or observations is None:
             self.actions = None
             self.observations = None
@@ -118,13 +118,13 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             A = rvs.Normal(
                 mean=A0,
                 cov=linops.SymmetricKronecker(
-                    linops.ScalarMult(scalar=phi, shape=A0.shape)
+                    linops.ScalarMult(scalar=self.phi, shape=A0.shape)
                 ),
             )
             Ainv = rvs.Normal(
                 mean=Ainv0,
                 cov=linops.SymmetricKronecker(
-                    linops.ScalarMult(scalar=psi, shape=Ainv0.shape)
+                    linops.ScalarMult(scalar=self.psi, shape=Ainv0.shape)
                 ),
             )
         else:
@@ -136,10 +136,10 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 if isinstance(observations, np.ndarray)
                 else np.hstack(observations)
             )
-            if action_projection_innerprods is not None:
-                self.action_projection_innerprods = action_projection_innerprods
+            if action_obs_innerprods is not None:
+                self.action_obs_innerprods = action_obs_innerprods
             else:
-                self.action_projection_innerprods = self.actions.T @ self.observations
+                self.action_obs_innerprods = self.actions.T @ self.observations
             A = rvs.Normal(
                 mean=A0, cov=linops.SymmetricKronecker(self._cov_factor_matrix())
             )
@@ -149,8 +149,29 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             )
 
         super().__init__(
-            x=super()._induced_solution_belief(Ainv=Ainv, b=b), Ainv=Ainv, A=A, b=b
+            x=super()._induced_solution_belief(Ainv=Ainv, b=b),
+            Ainv=Ainv,
+            A=A,
+            b=b,
         )
+
+    @property
+    def phi(self) -> float:
+        """Uncertainty scale in the null space of the actions."""
+        return self._phi
+
+    @phi.setter
+    def phi(self, value: float):
+        self._phi = value
+
+    @property
+    def psi(self) -> float:
+        """Uncertainty scale in the null space of the observations."""
+        return self._psi
+
+    @psi.setter
+    def psi(self, value: float):
+        self._psi = value
 
     def _cov_factor_matrix(self) -> linops.LinearOperator:
         r"""Covariance factor of the system matrix model.
@@ -160,12 +181,12 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         """
         action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
 
-        if self.action_projection_innerprods.ndim == 1:
+        if self.action_obs_innerprods.ndim == 1:
 
             def _matvec(x):
                 """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
                 matrix."""
-                return (self.observations * self.action_projection_innerprods ** -1) @ (
+                return (self.observations * self.action_obs_innerprods ** -1) @ (
                     self.observations.T @ x
                 )
 
@@ -173,7 +194,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
             def _matvec(x):
                 return self.observations @ np.linalg.solve(
-                    self.action_projection_innerprods,
+                    self.action_obs_innerprods,
                     self.observations.T @ x,
                 )
 
@@ -181,7 +202,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
         )
 
-        orthogonal_space_op = self.unc_scale_A * (
+        orthogonal_space_op = self.phi * (
             linops.Identity(shape=self.A0.shape) - action_proj
         )
 
@@ -214,7 +235,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
             )
 
-        orthogonal_space_op = self.unc_scale_Ainv * (
+        orthogonal_space_op = self.psi * (
             linops.Identity(shape=self.A0.shape) - observation_proj
         )
 
@@ -347,8 +368,8 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 observations=observations,
                 solver_state=solver_state,
             )
-            self.unc_scale_A = phi
-            self.unc_scale_Ainv = psi
+            self.phi = phi
+            self.psi = psi
             return solver_state
         else:
             raise NotImplementedError
@@ -363,7 +384,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
         if isinstance(observation_op, MatrixMultObservation):
             belief_update = SymMatrixNormalLinearObsBeliefUpdate(
-                problem=problem, belief=self, noise_cov=None
+                problem=problem, belief=self, noise_cov=None, solver_state=solver_state
             )
         else:
             raise NotImplementedError
