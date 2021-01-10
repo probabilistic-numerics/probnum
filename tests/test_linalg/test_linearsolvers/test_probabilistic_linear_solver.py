@@ -24,36 +24,14 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         # Linear system
         cls.rng = np.random.default_rng()
         cls.dim = 10
-        _solution = cls.rng.normal(size=cls.dim)
         _A = random_spd_matrix(cls.dim, random_state=cls.rng)
-        cls.linsys = LinearSystem(A=_A, b=_A @ _solution, solution=_solution)
+        cls.linsys = LinearSystem.from_matrix(A=_A, random_state=cls.rng)
 
         # Prior and solver state
-        Ainv0 = rvs.Normal(
-            linops.ScalarMult(scalar=2.0, shape=(cls.dim, cls.dim)),
-            linops.SymmetricKronecker(linops.Identity(cls.dim)),
+        cls.prior = LinearSystemBelief.from_inverse(
+            Ainv0=linops.ScalarMult(scalar=2.0, shape=(cls.dim, cls.dim)),
+            problem=cls.linsys,
         )
-        A0 = rvs.Normal(
-            linops.ScalarMult(scalar=0.5, shape=(cls.dim, cls.dim)),
-            linops.SymmetricKronecker(linops.Identity(cls.dim)),
-        )
-        # Induced distribution on x via Ainv
-        # Exp(x) = Ainv b, Cov(x) = 1/2 (W b'Wb + Wbb'W)
-        Wb = Ainv0.cov.A @ cls.linsys.b
-        bWb = np.squeeze(Wb.T @ cls.linsys.b)
-
-        def _mv(x):
-            return 0.5 * (bWb * Ainv0.cov.A @ x + (Wb.T @ x).squeeze() * Wb.squeeze())
-
-        def _mm(X):
-            return 0.5 * (bWb * Ainv0.cov.A @ X + Wb @ (Wb.T @ X))
-
-        cov_op = linops.LinearOperator(
-            shape=cls.linsys.A.shape, dtype=float, matvec=_mv, matmat=_mm
-        )
-        x = rvs.Normal(mean=Ainv0.mean @ cls.linsys.b, cov=cov_op)
-        b = rvs.Constant(cls.linsys.b)
-        cls.prior = LinearSystemBelief(x, A0, Ainv0, b)
         cls.solver_state = LinearSolverState(
             actions=[],
             observations=[],
@@ -71,10 +49,10 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Convergence
         cls.belief_converged = LinearSystemBelief(
-            rvs.Normal(mean=_solution, cov=10 ** -12 * np.eye(cls.dim)),
+            rvs.Normal(mean=cls.linsys.solution, cov=10 ** -12 * np.eye(cls.dim)),
             rvs.Constant(_A),
             rvs.Constant(np.linalg.inv(_A)),
-            b,
+            cls.linsys.b,
         )
         cls.solver_state_converged = LinearSolverState(
             residual=cls.linsys.A @ cls.belief_converged.x.mean - cls.linsys.b
