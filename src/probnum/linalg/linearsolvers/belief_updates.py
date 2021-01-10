@@ -62,7 +62,7 @@ class BeliefUpdate(abc.ABC):
         self.solver_state = solver_state
 
     def __call__(
-        self, action: np.ndarray, observation: np.ndarray
+        self,
     ) -> Tuple[
         rvs.RandomVariable,
         rvs.RandomVariable,
@@ -70,15 +70,7 @@ class BeliefUpdate(abc.ABC):
         rvs.RandomVariable,
         Optional["probnum.linalg.linearsolvers.LinearSolverState"],
     ]:
-        """Update the belief over the quantities of interest of the linear system.
-
-        Parameters
-        ----------
-        action :
-            Action of the solver to probe the linear system with.
-        observation :
-            Observation of the linear system for the given action.
-        """
+        """Update the belief over the quantities of interest of the linear system."""
         return (
             self.x,
             self.Ainv,
@@ -88,30 +80,22 @@ class BeliefUpdate(abc.ABC):
         )
 
     @cached_property
-    def x(
-        self,
-    ) -> rvs.RandomVariable:
+    def x(self) -> rvs.RandomVariable:
         """Updated belief over the solution :math:`x` of the linear system."""
         raise NotImplementedError
 
     @cached_property
-    def A(
-        self,
-    ) -> rvs.RandomVariable:
+    def A(self) -> rvs.RandomVariable:
         """Updated belief over the system matrix :math:`A`."""
         raise NotImplementedError
 
     @cached_property
-    def Ainv(
-        self,
-    ) -> rvs.RandomVariable:
+    def Ainv(self) -> rvs.RandomVariable:
         """Updated belief over the inverse of the system matrix :math:`H=A^{-1}`."""
         raise NotImplementedError
 
     @cached_property
-    def b(
-        self,
-    ) -> rvs.RandomVariable:
+    def b(self) -> rvs.RandomVariable:
         """Updated belief over the right hand side :math:`b` of the linear system."""
         raise NotImplementedError
 
@@ -162,6 +146,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def x(self) -> rvs.Normal:
+        """Updated Gaussian belief over the solution :math:`x` of the linear system."""
         if self.noise_cov is None:
             x_mean_update, _ = self.x_update_terms
             return rvs.Normal(
@@ -175,14 +160,13 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
     def x_update_terms(
         self,
     ) -> Tuple[np.ndarray, Union[np.ndarray, linops.LinearOperator]]:
-        """
-        Computes the update terms for the mean and covariance of a quantity of
-        interest of the linear system based on the current belief and state of the linear
-        solver. Formally, for a prior belief :math:`q \sim \mathcal{N}(\mu, \Sigma)` over a
-        quantity of interest, compute the update terms :math:`\mu_{\text{update}(y)}` and
-        :math:`\Sigma_{\text{update}}(y)` given observations :math:`y`, such that :math:`q
-        \mid y \sim \mathcal{N}(\mu +\mu_{\text{update}}(y), \Sigma - \Sigma_{\text{
-        update}}(y))`.
+        r"""Mean and covariance update terms for the solution.
+
+        Formally, for a prior belief :math:`x \sim \mathcal{N}(\mu, \Sigma)`, computes
+        the update terms :math:`\mu_{\text{update}}(y)` and
+        :math:`\Sigma_{\text{update}}(y)` given observations :math:`y`, such that
+        :math:`x \mid y \sim \mathcal{N}(\mu +\mu_{\text{update}}(y), \Sigma -
+        \Sigma_{\text{update}}(y))`.
         """
         if self.noise_cov is None:
             # Current residual
@@ -214,6 +198,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def A(self) -> rvs.Normal:
+        """Updated Gaussian belief over the system matrix :math:`A`."""
         mean_update, cov_update = self.A_update_terms
         A_mean = linops.aslinop(self.belief.A.mean) + mean_update
         A_covfactor = linops.aslinop(self.belief.A.cov.A) - cov_update
@@ -227,6 +212,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
         Union[np.ndarray, linops.LinearOperator],
         Union[np.ndarray, linops.LinearOperator],
     ]:
+        """Mean and covariance update terms for the system matrix."""
         u, v, Ws = self._matrix_model_update_components(
             belief_matrix=self.belief.Ainv,
             action=self.actions,
@@ -241,18 +227,22 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def Ainv(self) -> rvs.Normal:
+        """Updated Gaussian belief over the inverse of the system matrix
+        :math:`H=A^{-1}`."""
         mean_update, cov_update = self.Ainv_update_terms
         Ainv_mean = linops.aslinop(self.belief.A.mean) + mean_update
         Ainv_covfactor = linops.aslinop(self.belief.A.cov.A) - cov_update
 
         return rvs.Normal(mean=Ainv_mean, cov=linops.SymmetricKronecker(Ainv_covfactor))
 
+    @cached_property
     def Ainv_update_terms(
         self,
     ) -> Tuple[
         Union[np.ndarray, linops.LinearOperator],
         Union[np.ndarray, linops.LinearOperator],
     ]:
+        """Mean and covariance update terms for the inverse."""
         u, v, Wy = self._matrix_model_update_components(
             belief_matrix=self.belief.Ainv,
             action=self.observations,
@@ -266,6 +256,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def b(self) -> Union[rvs.Normal, rvs.Constant]:
+        """Updated belief over the right hand side :math:`b` of the linear system."""
         return self.belief.b
 
     def _residual(

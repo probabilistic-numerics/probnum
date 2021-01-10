@@ -25,38 +25,24 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
         self.linear_symmetric_gaussian = SymMatrixNormalLinearObsBeliefUpdate(
             problem=self.linsys,
             belief=self.prior,
+            actions=self.action,
+            observations=self.observation,
             solver_state=self.solver_state,
         )
         self.belief_updates = [
             self.linear_symmetric_gaussian,
         ]
 
-    def test_return_argument_types(self):
-        """Test whether a belief update returns a linear system belief and solver
-        state."""
-
-        for belief_update in self.belief_updates:
-            with self.subTest():
-                belief, solver_state = belief_update(
-                    action=self.action,
-                    observation=self.observation,
-                )
-                self.assertIsInstance(belief, LinearSystemBelief)
-                self.assertIsInstance(solver_state, LinearSolverState)
-
     def test_matrix_posterior_multiplication(self):
         """Test whether multiplication with the posteriors over A and Ainv returns a
         random variable with the correct shape."""
         for belief_update in self.belief_updates:
             with self.subTest():
-                belief, solver_state = belief_update(
-                    action=self.action,
-                    observation=self.observation,
-                )
+                x, Ainv, A, b, solver_state = belief_update()
                 matshape = (self.linsys.A.shape[1], 5)
                 mat = self.rng.random(size=matshape)
-                Amat = belief.A @ mat
-                Ainvmat = belief.Ainv @ mat
+                Amat = A @ mat
+                Ainvmat = Ainv @ mat
                 self.assertIsInstance(Amat, rvs.Normal)
                 self.assertEqual(Amat.shape, (self.linsys.A.shape[0], matshape[1]))
 
@@ -109,6 +95,8 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
             SymMatrixNormalLinearObsBeliefUpdate(
                 problem=self.linsys,
                 belief=self.prior,
+                actions=self.action,
+                observations=self.observation,
                 solver_state=self.solver_state,
             )
         ]
@@ -118,11 +106,7 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
 
         for belief_update in self.belief_updates:
             with self.subTest():
-                belief, _ = belief_update(
-                    action=self.action,
-                    observation=self.observation,
-                )
-                Ainv = belief.Ainv
+                x, Ainv, A, b, _ = belief_update()
                 Ainv_mean = Ainv.mean.todense()
                 Ainv_cov_A = Ainv.cov.A.todense()
                 Ainv_cov_B = Ainv.cov.B.todense()
@@ -183,30 +167,36 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                     Ainv=prior_Ainv,
                     b=rvs.Constant(linsys.b),
                 )
-                belief, _ = SymMatrixNormalLinearObsBeliefUpdate()(
-                    problem=linsys, belief=prior, action=s, observation=y
-                )
+                (
+                    belief_x,
+                    belief_Ainv,
+                    belief_A,
+                    belief_b,
+                    _,
+                ) = SymMatrixNormalLinearObsBeliefUpdate(
+                    problem=linsys, belief=prior, actions=s, observations=y
+                )()
 
                 self.assertAllClose(
                     A1,
-                    belief.A.mean.todense(),
+                    belief_A.mean.todense(),
                     msg="The posterior mean for A does not match its definition.",
                 )
                 self.assertAllClose(
                     V1,
-                    belief.A.cov.A.todense(),
+                    belief_A.cov.A.todense(),
                     msg="The posterior covariance factor for A does not match its "
                     "definition.",
                 )
 
                 self.assertAllClose(
                     Ainv1,
-                    belief.Ainv.mean.todense(),
+                    belief_Ainv.mean.todense(),
                     msg="The posterior mean for Ainv does not match its definition.",
                 )
                 self.assertAllClose(
                     W1,
-                    belief.Ainv.cov.A.todense(),
+                    belief_Ainv.cov.A.todense(),
                     msg="The posterior covariance factor for Ainv does not match its "
                     "definition.",
                 )
