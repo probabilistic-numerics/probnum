@@ -450,7 +450,11 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
         if isinstance(observation_op, MatrixMultObservation):
             belief_update = WeakMeanCorrLinearObsBeliefUpdate(
-                problem=problem, belief=self, actions=action, observations=observation
+                problem=problem,
+                belief=self,
+                actions=action,
+                observations=observation,
+                solver_state=solver_state,
             )
         else:
             raise NotImplementedError

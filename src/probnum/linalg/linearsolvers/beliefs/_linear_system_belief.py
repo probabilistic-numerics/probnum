@@ -457,7 +457,11 @@ class LinearSystemBelief:
         """
         if isinstance(observation_op, MatrixMultObservation):
             belief_update = SymMatrixNormalLinearObsBeliefUpdate(
-                problem=problem, belief=self, actions=action, observations=observation
+                problem=problem,
+                belief=self,
+                actions=action,
+                observations=observation,
+                solver_state=solver_state,
             )
         else:
             raise NotImplementedError

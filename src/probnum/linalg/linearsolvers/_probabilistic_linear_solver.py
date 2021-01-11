@@ -13,12 +13,11 @@ from probnum._probabilistic_numerical_method import (
     PNMethodState,
     ProbabilisticNumericalMethod,
 )
+from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
+from probnum.linalg.linearsolvers.observation_ops import ObservationOperator
+from probnum.linalg.linearsolvers.policies import Policy
+from probnum.linalg.linearsolvers.stop_criteria import MaxIterations, StoppingCriterion
 from probnum.problems import LinearSystem
-
-from .beliefs import LinearSystemBelief
-from .observation_ops import ObservationOperator
-from .policies import Policy
-from .stop_criteria import MaxIterations, StoppingCriterion
 
 # pylint: disable="invalid-name"
 
@@ -120,23 +119,35 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
     Examples
     --------
-    Create a custom probabilistic linear solver from pre-defined components.
-
-    >>> from probnum.linalg.linearsolvers import ProbabilisticLinearSolver
-    >>> #pls = ProbabilisticLinearSolver()
-
     Define a linear system.
 
     >>> import numpy as np
     >>> import probnum as pn
+    >>> from probnum.problems import LinearSystem
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
-    >>> n = 20
+    >>> n = 10
     >>> A = random_spd_matrix(dim=n, random_state=1)
-    >>> b = np.random.rand(n)
+    >>> linsys = LinearSystem.from_matrix(A=A, random_state=1)
+
+    Create a custom probabilistic linear solver from pre-defined components.
+
+    >>> from probnum.linalg.linearsolvers import ProbabilisticLinearSolver
+    >>> from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
+    >>> from probnum.linalg.linearsolvers.policies import ConjugateDirections
+    >>> from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
+    >>> from probnum.linalg.linearsolvers.stop_criteria import MaxIterations, Residual
+    >>> # Custom probabilistic iterative solver
+    >>> pls = ProbabilisticLinearSolver(
+    ... prior=LinearSystemBelief.from_solution(np.zeros_like(linsys.b), problem=linsys),
+    ... policy=ConjugateDirections(),
+    ... observation_op=MatrixMultObservation(),
+    ... stopping_criteria=[MaxIterations(), Residual()],
+    ... )
 
     Solve the linear system using the custom solver.
 
-    >>> #sol, info = pls(A, b)
+    >>> belief, info = pls.solve(linsys)
+    >>> np.linalg.norm(A @ belief.x.mean - b)
     """
 
     def __init__(
@@ -176,6 +187,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             observations=[],
             iteration=0,
             residual=problem.A @ self.prior.x.mean - problem.b,
+            action_obs_innerprods=[],
             log_rayleigh_quotients=[],
             step_sizes=[],
             has_converged=False,
