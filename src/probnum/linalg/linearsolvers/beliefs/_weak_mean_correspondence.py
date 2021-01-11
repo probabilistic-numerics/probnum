@@ -78,6 +78,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     >>> import numpy as np
     >>> from probnum.linalg.linearsolvers.beliefs import WeakMeanCorrespondenceBelief
     >>> from probnum.linops import ScalarMult
+    >>> from probnum.problems import LinearSystem
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> # Linear system
     >>> np.random.seed(1)

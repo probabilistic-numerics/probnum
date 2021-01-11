@@ -425,11 +425,28 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
         )
 
     def _Ainv_covfactor_trace(self):
-        """Trace of the covariance factor of the inverse model.
+        r"""Trace of the covariance factor of the inverse model.
+
+        Implements the recursive trace update for the covariance factor of the inverse
+        model given by
+
+        .. math::
+            \tr(W_k^H) = tr(W_{k-1}^H) - \frac{1}{y_k^\top W_{k-1}^H y_k} \lVert W_{
+            k-1}^H y_k \rVert^2.
 
         See section S4.3 of Wenger and Hennig, 2020 for details.
         """
-        raise NotImplementedError
+        return Ainv_covfactor.trace() - 1 / yWy * (Wy.T @ Wy).item()
 
     def _x_cov_trace(self):
-        raise NotImplementedError
+        r"""Trace of the covariance of the solution.
+
+        Computes the trace of the covariance of the solution given by
+
+        .. math::
+            \tr(\operatorname{Cov}(x)) = \frac{1}{2}(b^\top W_k^H b \tr(W_k^H) +
+            \lVert W_k^H b \rVert^2)
+
+        See section S4.3 of Wenger and Hennig, 2020 for details.
+        """
+        return 0.5 * (bWb * Ainv_covfactor.trace() + (Wb.T @ Wb).item())
