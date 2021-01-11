@@ -1,6 +1,6 @@
 """Belief assuming weak correspondence between the means of the matrix models."""
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 import numpy as np
 

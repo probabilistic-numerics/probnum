@@ -327,23 +327,9 @@ class WeakMeanCorrLinearObsBeliefUpdateTestCase(ProbabilisticLinearSolverTestCas
     def test_means_correspond_weakly(self):
         r"""Test whether :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for all actions
         :math:`y`."""
-        belief = WeakMeanCorrespondenceBelief.from_scalar(
-            alpha=2.5, problem=self.linsys
-        )
-        actions = self.rng.normal(size=(self.linsys.A.shape[1], 5))
-        observations = self.linsys.A @ actions
-
-        for action, observation in zip(actions.T, observations.T):
-            belief.update(
-                problem=self.linsys,
-                observation_op=MatrixMultObservation(),
-                action=action,
-                observation=observation,
-            )
-
         self.assertAllClose(
-            np.linalg.solve(belief.A.mean, observations),
-            belief.Ainv.mean @ observations,
+            np.linalg.solve(self.updated_belief.A.mean, self.observations),
+            self.updated_belief.Ainv.mean @ self.observations,
         )
 
     def test_uncertainty_action_space_is_zero(self):

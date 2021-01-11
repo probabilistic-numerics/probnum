@@ -178,6 +178,14 @@ class LinearSolverTests(unittest.TestCase, NumpyAssertions):
                     + " not match scipy.sparse.linalg.spsolve.",
                 )
 
+    def test_posterior_means_symmetric(self):
+        """"""
+        pass
+
+    def test_posterior_means_positive_definite(self):
+        """"""
+        pass
+
 
 class ProbLinSolveTestCase(unittest.TestCase, NumpyAssertions):
     """Test case for the :func:`problinsolve` interface function."""
