@@ -379,12 +379,16 @@ class LinearSystemBelief:
         Wb = Ainv.cov.A @ b.mean
         bWb = (Wb.T @ b.mean).item()
 
-        def _mv(x):
-            return 0.5 * (bWb * Ainv.cov.A @ x + Wb @ (Wb.T @ x))
+        def _mv(v):
+            return 0.5 * (bWb * Ainv.cov.A @ v + Wb @ (Wb.T @ v))
 
-        return linops.LinearOperator(
+        x_cov = linops.LinearOperator(
             shape=Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
         )
+        # Efficient trace computation
+        x_cov.trace = lambda: 0.5 * (bWb * Ainv.cov.A.trace() + (Wb.T @ Wb).item())
+
+        return x_cov
 
     @staticmethod
     def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.RandomVariable) -> rvs.Normal:

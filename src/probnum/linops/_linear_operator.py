@@ -334,9 +334,6 @@ class _SumLinearOperator(
     def todense(self):
         return self.A.todense() + self.B.todense()
 
-    def inv(self):
-        return self.A.inv() + self.B.inv()
-
     def trace(self):
         return self.A.trace() + self.B.trace()
 

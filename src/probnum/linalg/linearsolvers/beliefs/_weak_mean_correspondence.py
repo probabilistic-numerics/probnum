@@ -446,47 +446,17 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         observation: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
+
+        # Update action and observations
+        self.actions = None  # TODO add action
+        self.observations = None  # TODO add observation
+
         if isinstance(observation_op, MatrixMultObservation):
             belief_update = WeakMeanCorrLinearObsBeliefUpdate(
                 problem=problem, belief=self, actions=action, observations=observation
             )
-            # TODO given the assumption WS=Y this can be computed more efficiently
-            #   by implementing the update explicitly in
-            #   WeakMeanCorrLinearObsBeliefUpdate and making use of solver_state.actions
-
-            # TODO move this into WeakMeanCorrLinearObsBeliefUpdate (by making use of
-            #   the solver_state for the update ops?
-            # Update belief over A assuming WS=Y (Theorem 3, eqn. 1, Wenger2020)
-            A_mean_update, A_cov_update = belief_update.A_update_terms(
-                belief_A=rvs.Normal(
-                    mean=self.A.mean, cov=problem.A - self._A_covfactor_update_op
-                )
-            )
-            self._A_covfactor_update_op += A_cov_update
-
-            # Update belief over Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
-            Ainv_mean_update, Ainv_cov_update = belief_update.Ainv_update_terms(
-                belief_Ainv=rvs.Normal(
-                    mean=self.Ainv.mean, cov=self.Ainv0 - self._Ainv_covfactor_update_op
-                )
-            )
-            self._Ainv_covfactor_update_op += Ainv_cov_update
-
-            self._A = rvs.Normal(
-                mean=self.A.mean + A_mean_update,
-                cov=linops.SymmetricKronecker(
-                    self._cov_factor_matrix() - self._A_covfactor_update_op
-                ),
-            )
-            self._Ainv = rvs.Normal(
-                mean=self.Ainv.mean + Ainv_mean_update,
-                cov=linops.SymmetricKronecker(
-                    self._cov_factor_inverse() - self._Ainv_covfactor_update_op
-                ),
-            )
-            # Update belief over the solution
-            self._x = (super()._induced_solution_belief(Ainv=self.Ainv, b=self.b),)
-
-            return solver_state
         else:
             raise NotImplementedError
+
+        self._x, self._Ainv, self._A, self._b, solver_state = belief_update()
+        return solver_state

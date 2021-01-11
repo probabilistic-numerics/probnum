@@ -166,7 +166,7 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
                 cov=self.belief._induced_solution_cov(Ainv=self.Ainv, b=self.b),
             )
         else:
-            return self.Ainv @ self.b
+            return self.belief._induced_solution_belief(Ainv=self.Ainv, b=self.b)
 
     def x_update_terms(
         self,
@@ -424,7 +424,54 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
             solver_state=solver_state,
         )
 
-    def _Ainv_covfactor_trace(self):
+    @cached_property
+    def A(self) -> rvs.Normal:
+        # Update belief over A assuming WS=Y
+        A_mean_update, A_cov_update = self.A_update_terms(
+            belief_A=rvs.Normal(
+                mean=self.belief.A.mean,
+                cov=self.problem.A - self.belief._A_covfactor_update_op,
+            )
+        )
+        self.belief._A_covfactor_update_op += A_cov_update
+
+        return rvs.Normal(
+            mean=self.A.mean + A_mean_update,
+            cov=linops.SymmetricKronecker(
+                # TODO supply precomputed innerprods (conjugacy assumption?)
+                self.belief._cov_factor_matrix(action_obs_innerprods=None)
+                - self.belief._A_covfactor_update_op
+            ),
+        )
+
+    @cached_property
+    def Ainv(self) -> rvs.Normal:
+        # Update belief over Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
+        u, v, Wy = self._matrix_model_update_components(
+            belief_matrix=self.belief.Ainv,
+            action=self.observations,
+            observation=self.actions,
+        )
+        # Rank 2 mean update (+= uv' + vu')
+        mean_update = self._matrix_model_mean_update_op(u=u, v=v)
+        # Rank 1 covariance Kronecker factor update (-= u(Wy)')
+        cov_update = self._matrix_model_covariance_factor_update_op(u=u, Ws=Wy)
+        self.belief._Ainv_covfactor_update_op += cov_update
+        Ainv_covfactor_op = (
+            self.belief._cov_factor_inverse() - self.belief._Ainv_covfactor_update_op
+        )
+
+        # Update trace efficiently
+        Ainv_covfactor_op.trace = lambda: self._Ainv_covfactor_trace(
+            y=self.observations, Wy=Wy
+        )
+
+        return rvs.Normal(
+            mean=self.Ainv.mean + mean_update,
+            cov=linops.SymmetricKronecker(Ainv_covfactor_op),
+        )
+
+    def _Ainv_covfactor_trace(self, y: np.ndarray, Wy: np.ndarray):
         r"""Trace of the covariance factor of the inverse model.
 
         Implements the recursive trace update for the covariance factor of the inverse
@@ -435,18 +482,12 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
             k-1}^H y_k \rVert^2.
 
         See section S4.3 of Wenger and Hennig, 2020 for details.
+
+        Parameters
+        ----------
+        y : Observation
+        Wy : Inverse model covariance factor applied to observation.
         """
-        return Ainv_covfactor.trace() - 1 / yWy * (Wy.T @ Wy).item()
-
-    def _x_cov_trace(self):
-        r"""Trace of the covariance of the solution.
-
-        Computes the trace of the covariance of the solution given by
-
-        .. math::
-            \tr(\operatorname{Cov}(x)) = \frac{1}{2}(b^\top W_k^H b \tr(W_k^H) +
-            \lVert W_k^H b \rVert^2)
-
-        See section S4.3 of Wenger and Hennig, 2020 for details.
-        """
-        return 0.5 * (bWb * Ainv_covfactor.trace() + (Wb.T @ Wb).item())
+        return (
+            self.belief.Ainv.cov.A.trace() - 1 / (y.T @ Wy).item() * (Wy.T @ Wy).item()
+        )
