@@ -61,8 +61,14 @@ class BeliefUpdate(abc.ABC):
     ):
         self.problem = problem
         self.belief = belief
-        self.actions = actions
-        self.observations = observations
+        if actions.ndim == 1:
+            self.actions = actions[:, None]
+        else:
+            self.actions = actions
+        if observations.ndim == 1:
+            self.observations = observations[:, None]
+        else:
+            self.observations = observations
         self._x = None
         self._Ainv = None
         self._A = None
@@ -331,10 +337,13 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
         vu')."""
 
         def mv(x):
+            return u * (v.T @ x) + v * (u.T @ x)
+
+        def mm(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
 
         return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
+            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
         )
 
     @staticmethod
@@ -345,10 +354,13 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
         (-= Ws u')."""
 
         def mv(x):
+            return Ws * (u.T @ x)
+
+        def mm(x):
             return Ws @ (u.T @ x)
 
         return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mv
+            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
         )
 
     def _step_size(
@@ -360,21 +372,26 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
         r"""Compute the step size :math:`\alpha` such that :math:`x_{i+1} = x_i +
         \alpha_i s_i`, where :math:`s_i` is the current action."""
         # Compute step size
-        action_obs_innerprod = action.T @ observation
+        if self.solver_state is not None:
+            try:
+                action_obs_innerprod = self.solver_state.action_obs_innerprods[
+                    self.solver_state.iteration
+                ]
+            except IndexError:
+                action_obs_innerprod = action.T @ observation
+        else:
+            action_obs_innerprod = action.T @ observation
         step_size = (-action.T @ residual / action_obs_innerprod).item()
 
         # Update solver state
         if self.solver_state is not None:
-            try:
-                self.solver_state.action_obs_innerprods.append(step_size)
-                self.solver_state.step_sizes.append(step_size)
-                self.solver_state.log_rayleigh_quotients.append(
-                    _log_rayleigh_quotient(
-                        action_obs_innerprod=action_obs_innerprod, action=action
-                    )
+            self.solver_state.action_obs_innerprods.append(action_obs_innerprod)
+            self.solver_state.step_sizes.append(step_size)
+            self.solver_state.log_rayleigh_quotients.append(
+                _log_rayleigh_quotient(
+                    action_obs_innerprod=action_obs_innerprod, action=action
                 )
-            except AttributeError:
-                pass
+            )
 
         return step_size
 
@@ -427,19 +444,29 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
     @cached_property
     def A(self) -> rvs.Normal:
         # Update belief over A assuming WS=Y
-        A_mean_update, A_cov_update = self.A_update_terms(
-            belief_A=rvs.Normal(
-                mean=self.belief.A.mean,
-                cov=self.problem.A - self.belief._A_covfactor_update_op,
-            )
-        )
-        self.belief._A_covfactor_update_op += A_cov_update
+        mean_update, covfactor_update = self.A_update_terms(belief_A=self.belief.A)
+        if self.belief._A_covfactor_update_op is not None:
+            self.belief._A_covfactor_update_op += covfactor_update
+        else:
+            self.belief._A_covfactor_update_op = covfactor_update
+
+        # Action observation inner products
+        if self.solver_state is not None:
+            try:
+                action_obs_innerprod = self.solver_state.action_obs_innerprods[
+                    self.solver_state.iteration
+                ]
+            except IndexError:
+                action_obs_innerprod = self.actions.T @ self.observations
+        else:
+            action_obs_innerprod = self.actions.T @ self.observations
 
         return rvs.Normal(
-            mean=self.A.mean + A_mean_update,
+            mean=linops.aslinop(self.belief.A.mean) + mean_update,
             cov=linops.SymmetricKronecker(
-                # TODO supply precomputed innerprods (conjugacy assumption?)
-                self.belief._cov_factor_matrix(action_obs_innerprods=None)
+                self.belief._cov_factor_matrix(
+                    action_obs_innerprods=action_obs_innerprod
+                )
                 - self.belief._A_covfactor_update_op
             ),
         )
@@ -455,20 +482,24 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
         # Rank 2 mean update (+= uv' + vu')
         mean_update = self._matrix_model_mean_update_op(u=u, v=v)
         # Rank 1 covariance Kronecker factor update (-= u(Wy)')
-        cov_update = self._matrix_model_covariance_factor_update_op(u=u, Ws=Wy)
-        self.belief._Ainv_covfactor_update_op += cov_update
-        Ainv_covfactor_op = (
+        covfactor_update = self._matrix_model_covariance_factor_update_op(u=u, Ws=Wy)
+        if self.belief._Ainv_covfactor_update_op is not None:
+            self.belief._Ainv_covfactor_update_op += covfactor_update
+        else:
+            self.belief._Ainv_covfactor_update_op = covfactor_update
+
+        covfactor_op = (
             self.belief._cov_factor_inverse() - self.belief._Ainv_covfactor_update_op
         )
 
         # Update trace efficiently
-        Ainv_covfactor_op.trace = lambda: self._Ainv_covfactor_trace(
+        covfactor_op.trace = lambda: self._Ainv_covfactor_trace(
             y=self.observations, Wy=Wy
         )
 
         return rvs.Normal(
-            mean=self.Ainv.mean + mean_update,
-            cov=linops.SymmetricKronecker(Ainv_covfactor_op),
+            mean=linops.aslinop(self.belief.Ainv.mean) + mean_update,
+            cov=linops.SymmetricKronecker(covfactor_op),
         )
 
     def _Ainv_covfactor_trace(self, y: np.ndarray, Wy: np.ndarray):

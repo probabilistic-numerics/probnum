@@ -53,6 +53,8 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
             Union[_linear_operator.LinearOperator, np.ndarray]
         ] = None,
     ):
+        if subspace_basis.ndim == 1:
+            subspace_basis = subspace_basis[:, None]
         self.subspace_basis = subspace_basis
         self.is_orthonormal = is_orthonormal
         _shape = (subspace_basis.shape[0], subspace_basis.shape[0])
@@ -80,6 +82,14 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
         :math:`D`."""
         if self.is_orthonormal:
             return self.subspace_basis
+        elif self.subspace_basis.shape[1] == 1:
+            return (
+                self.subspace_basis
+                / (
+                    self.subspace_basis.T
+                    @ (self.innerprod_matrix @ self.subspace_basis)
+                ).item()
+            )
         else:
             return np.linalg.solve(
                 self.subspace_basis.T @ (self.innerprod_matrix @ self.subspace_basis),

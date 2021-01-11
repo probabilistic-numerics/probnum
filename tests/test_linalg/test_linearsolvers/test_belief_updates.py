@@ -1,12 +1,18 @@
 """Test cases for belief updates of probabilistic linear solvers."""
 
+import numpy as np
+
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers import LinearSolverState
 from probnum.linalg.linearsolvers.belief_updates import (
     SymMatrixNormalLinearObsBeliefUpdate,
+    WeakMeanCorrLinearObsBeliefUpdate,
 )
-from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
+from probnum.linalg.linearsolvers.beliefs import (
+    LinearSystemBelief,
+    WeakMeanCorrespondenceBelief,
+)
+from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
@@ -21,7 +27,17 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
 
     def setUp(self) -> None:
         """Test resources for linear solver belief updates."""
+        self.weakmeancorr_prior = WeakMeanCorrespondenceBelief.from_inverse(
+            Ainv0=self.prior.Ainv.mean, problem=self.linsys
+        )
 
+        self.weakmeancorr = WeakMeanCorrLinearObsBeliefUpdate(
+            problem=self.linsys,
+            belief=self.weakmeancorr_prior,
+            actions=self.action,
+            observations=self.observation,
+            solver_state=self.solver_state,
+        )
         self.linear_symmetric_gaussian = SymMatrixNormalLinearObsBeliefUpdate(
             problem=self.linsys,
             belief=self.prior,
@@ -29,9 +45,7 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
             observations=self.observation,
             solver_state=self.solver_state,
         )
-        self.belief_updates = [
-            self.linear_symmetric_gaussian,
-        ]
+        self.belief_updates = [self.linear_symmetric_gaussian, self.weakmeancorr]
 
     def test_matrix_posterior_multiplication(self):
         """Test whether multiplication with the posteriors over A and Ainv returns a
@@ -86,11 +100,14 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
     #             self.assertAllClose(belief_bulk.b.mean, belief_iter.b.mean)
 
 
-class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
+class LinearSymmetricGaussianTestCase(ProbabilisticLinearSolverTestCase):
     """Test case for the linear symmetric Gaussian belief update."""
 
     def setUp(self) -> None:
         """Test resources for the linear Gaussian belief update."""
+        self.weakmeancorr_prior = WeakMeanCorrespondenceBelief.from_matrices(
+            A0=self.prior.A.mean, Ainv0=self.prior.Ainv.mean, problem=self.linsys
+        )
         self.belief_updates = [
             SymMatrixNormalLinearObsBeliefUpdate(
                 problem=self.linsys,
@@ -98,8 +115,26 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                 actions=self.action,
                 observations=self.observation,
                 solver_state=self.solver_state,
-            )
+            ),
+            WeakMeanCorrLinearObsBeliefUpdate(
+                problem=self.linsys,
+                belief=self.weakmeancorr_prior,
+                actions=self.action,
+                observations=self.observation,
+                solver_state=self.solver_state,
+            ),
         ]
+
+    @staticmethod
+    def posterior_params(action, observation, prior_mean, prior_cov_factor):
+        """Posterior parameters of the symmetric linear Gaussian model."""
+        delta = observation - prior_mean @ action
+        u = prior_cov_factor @ action / (action.T @ prior_cov_factor @ action)
+        posterior_mean = (
+            prior_mean + delta @ u.T + u @ delta.T - u @ action.T @ delta @ u.T
+        )
+        posterior_cov_factor = prior_cov_factor - prior_cov_factor @ action @ u.T
+        return posterior_mean, posterior_cov_factor
 
     def test_symmetric_posterior_params(self):
         """Test whether posterior parameters are symmetric."""
@@ -134,29 +169,10 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                 s = self.rng.normal(size=(n, 1))
                 y = linsys.A @ s
 
-                def posterior_params(action, observation, prior_mean, prior_cov_factor):
-                    """Posterior parameters of the symmetric linear Gaussian model."""
-                    delta = observation - prior_mean @ action
-                    u = (
-                        prior_cov_factor
-                        @ action
-                        / (action.T @ prior_cov_factor @ action)
-                    )
-                    posterior_mean = (
-                        prior_mean
-                        + delta @ u.T
-                        + u @ delta.T
-                        - u @ action.T @ delta @ u.T
-                    )
-                    posterior_cov_factor = (
-                        prior_cov_factor - prior_cov_factor @ action @ u.T
-                    )
-                    return posterior_mean, posterior_cov_factor
-
-                A1, V1 = posterior_params(
+                A1, V1 = self.posterior_params(
                     action=s, observation=y, prior_mean=A0, prior_cov_factor=V0
                 )
-                Ainv1, W1 = posterior_params(
+                Ainv1, W1 = self.posterior_params(
                     action=y, observation=s, prior_mean=Ainv0, prior_cov_factor=W0
                 )
 
@@ -167,36 +183,180 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
                     Ainv=prior_Ainv,
                     b=rvs.Constant(linsys.b),
                 )
-                (
-                    belief_x,
-                    belief_Ainv,
-                    belief_A,
-                    belief_b,
-                    _,
-                ) = SymMatrixNormalLinearObsBeliefUpdate(
-                    problem=linsys, belief=prior, actions=s, observations=y
-                )()
+                prior.update(
+                    problem=linsys,
+                    observation_op=MatrixMultObservation(),
+                    action=s,
+                    observation=y,
+                )
 
                 self.assertAllClose(
                     A1,
-                    belief_A.mean.todense(),
+                    prior.A.mean.todense(),
                     msg="The posterior mean for A does not match its definition.",
                 )
                 self.assertAllClose(
                     V1,
-                    belief_A.cov.A.todense(),
+                    prior.A.cov.A.todense(),
                     msg="The posterior covariance factor for A does not match its "
                     "definition.",
                 )
 
                 self.assertAllClose(
                     Ainv1,
-                    belief_Ainv.mean.todense(),
+                    prior.Ainv.mean.todense(),
                     msg="The posterior mean for Ainv does not match its definition.",
                 )
                 self.assertAllClose(
                     W1,
-                    belief_Ainv.cov.A.todense(),
+                    prior.Ainv.cov.A.todense(),
                     msg="The posterior covariance factor for Ainv does not match its "
                     "definition.",
                 )
+
+
+class WeakMeanCorrLinearObsBeliefUpdateTestCase(ProbabilisticLinearSolverTestCase):
+    """Test case for the linear symmetric Gaussian belief update."""
+
+    def setUp(self) -> None:
+        """Test resources for the weak mean correspondence belief update."""
+        self.updated_belief = WeakMeanCorrespondenceBelief.from_scalar(
+            alpha=2.5, problem=self.linsys
+        )
+        self.actions = self.rng.normal(size=(self.linsys.A.shape[1], 5))
+        self.observations = self.linsys.A @ self.actions
+
+        for action, observation in zip(self.actions.T, self.observations.T):
+            self.updated_belief.update(
+                problem=self.linsys,
+                observation_op=MatrixMultObservation(),
+                action=action,
+                observation=observation,
+            )
+
+    @staticmethod
+    def posterior_params(
+        action, observation, prior_mean, prior_cov_factor, unc_scale=1.0
+    ):
+        """Posterior parameters of the symmetric linear Gaussian model."""
+        delta = observation - prior_mean @ action
+        u = prior_cov_factor @ action / (action.T @ prior_cov_factor @ action).item()
+        posterior_mean = (
+            prior_mean + delta @ u.T + u @ delta.T - u @ action.T @ delta @ u.T
+        )
+        prior_cov_factor = prior_mean @ action @ action.T @ prior_mean / (
+            action.T @ prior_mean @ action
+        ).item() + unc_scale * (
+            np.eye(prior_mean.shape[0]) - action @ action.T / (action.T @ action).item()
+        )
+        posterior_cov_factor = prior_cov_factor - prior_cov_factor @ action @ u.T
+        return posterior_mean, posterior_cov_factor
+
+    def test_matrix_posterior_computation(self):
+        """Test the posterior computation of the belief update against the theoretical
+        expressions."""
+        # pylint : disable="too-many-locals"
+        for n in [10, 50, 100]:
+            with self.subTest():
+                A = random_spd_matrix(dim=n, random_state=self.rng)
+                b = self.rng.normal(size=(n, 1))
+                linsys = LinearSystem(A, b)
+
+                # Posterior mean and covariance factor
+                A0 = random_spd_matrix(dim=n, random_state=self.rng)
+                Ainv0 = random_spd_matrix(dim=n, random_state=self.rng)
+                phi = abs(self.rng.normal())
+                psi = 1 / phi
+                s = self.rng.normal(size=(n, 1))
+                y = linsys.A @ s
+
+                A1, V1 = self.posterior_params(
+                    action=s,
+                    observation=y,
+                    prior_mean=A0,
+                    prior_cov_factor=linsys.A,
+                    unc_scale=phi,
+                )
+                Ainv1, W1 = self.posterior_params(
+                    action=y,
+                    observation=s,
+                    prior_mean=Ainv0,
+                    prior_cov_factor=Ainv0,
+                    unc_scale=psi,
+                )
+
+                # Computation via belief update
+                prior = WeakMeanCorrespondenceBelief(
+                    A0=A0,
+                    Ainv0=Ainv0,
+                    b=linsys.b,
+                    phi=phi,
+                    psi=psi,
+                )
+                prior.update(
+                    problem=linsys,
+                    observation_op=MatrixMultObservation(),
+                    action=s,
+                    observation=y,
+                )
+
+                self.assertAllClose(
+                    A1,
+                    prior.A.mean.todense(),
+                    msg="The posterior mean for A does not match its definition.",
+                )
+                self.assertAllClose(
+                    V1,
+                    prior.A.cov.A.todense(),
+                    msg="The posterior covariance factor for A does not match its "
+                    "definition.",
+                )
+
+                self.assertAllClose(
+                    Ainv1,
+                    prior.Ainv.mean.todense(),
+                    msg="The posterior mean for Ainv does not match its definition.",
+                )
+                self.assertAllClose(
+                    W1,
+                    prior.Ainv.cov.A.todense(),
+                    msg="The posterior covariance factor for Ainv does not match its "
+                    "definition.",
+                )
+
+    def test_means_correspond_weakly(self):
+        r"""Test whether :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for all actions
+        :math:`y`."""
+        belief = WeakMeanCorrespondenceBelief.from_scalar(
+            alpha=2.5, problem=self.linsys
+        )
+        actions = self.rng.normal(size=(self.linsys.A.shape[1], 5))
+        observations = self.linsys.A @ actions
+
+        for action, observation in zip(actions.T, observations.T):
+            belief.update(
+                problem=self.linsys,
+                observation_op=MatrixMultObservation(),
+                action=action,
+                observation=observation,
+            )
+
+        self.assertAllClose(
+            np.linalg.solve(belief.A.mean, observations),
+            belief.Ainv.mean @ observations,
+        )
+
+    def test_uncertainty_action_space_is_zero(self):
+        """Test whether the uncertainty about the system matrix in the action span of
+        the already explored directions is zero."""
+        self.assertAllClose(
+            np.zeros(self.actions), self.updated_belief.A.cov @ self.actions
+        )
+
+    def test_uncertainty_observation_space_is_zero(self):
+        """Test whether the uncertainty about the inverse in the observation span of the
+        already made observations is zero."""
+        self.assertAllClose(
+            np.zeros(self.observations),
+            self.updated_belief.Ainv.cov @ self.observations,
+        )

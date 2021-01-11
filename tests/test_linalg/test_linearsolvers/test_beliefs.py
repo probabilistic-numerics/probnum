@@ -393,6 +393,27 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
             "naively computed one.",
         )
 
+    def test_no_data_prior(self):
+        """Test whether for no actions or observations the prior means and covariance
+        are correct."""
+        belief = WeakMeanCorrespondenceBelief(
+            A0=self.A0,
+            Ainv0=self.Ainv0,
+            b=self.linsys.b,
+            phi=self.phi,
+            psi=self.psi,
+        )
+        # Means
+        self.assertEqual(belief.A.mean, self.A0)
+        self.assertEqual(belief.Ainv.mean, self.Ainv0)
+
+        # Covariances
+        self.assertIsInstance(belief.A.cov.A, linops.ScalarMult)
+        self.assertEqual(belief.A.cov.A.scalar, self.phi)
+
+        self.assertIsInstance(belief.Ainv.cov.A, linops.ScalarMult)
+        self.assertEqual(belief.Ainv.cov.A.scalar, self.psi)
+
     # Classmethod tests
     def test_from_matrix_satisfies_mean_correspondence(self):
         """Test whether for a belief constructed from an approximate system matrix, the
@@ -432,3 +453,8 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
                 WeakMeanCorrespondenceBelief.from_scalar(
                     alpha=alpha, problem=self.linsys
                 )
+
+    # Hyperparameters
+    def test_uncertainty_calibration(self):
+        """"""
+        pass  # TODO

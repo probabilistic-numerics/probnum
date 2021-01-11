@@ -112,6 +112,8 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         self.calibration_method = calibration_method
         self._phi = phi
         self._psi = psi
+        self._A_covfactor_update_op = None
+        self._Ainv_covfactor_update_op = None
         if actions is None or observations is None:
             self.actions = None
             self.observations = None
@@ -124,45 +126,10 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 if isinstance(observations, np.ndarray)
                 else np.hstack(observations)
             )
-        A, Ainv = self._matrix_beliefs_from_actions_observations(
-            actions=actions,
-            observations=observations,
-            action_obs_innerprods=action_obs_innerprods,
+        cov_factor_A = self._cov_factor_matrix(
+            action_obs_innerprods=action_obs_innerprods
         )
-
-        super().__init__(
-            x=super()._induced_solution_belief(Ainv=Ainv, b=b),
-            Ainv=Ainv,
-            A=A,
-            b=b,
-        )
-
-    def _matrix_beliefs_from_actions_observations(
-        self,
-        actions: Union[List, np.ndarray],
-        observations: Union[List, np.ndarray],
-        action_obs_innerprods: Optional[np.ndarray] = None,
-    ) -> Tuple[rvs.Normal, rvs.Normal]:
-        """Prior belief over the system matrix and inverse given actions and
-        observations.
-
-        Constructs the prior beliefs over the matrix and inverse for the
-        covariance class outlined in eqn. (3) of Wenger and Hennig,
-        2020.
-        """
-        if actions is None or observations is None:
-            # For no actions taken, the uncertainty scales determine the overall
-            # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            cov_factor_A = linops.ScalarMult(scalar=self.phi, shape=self.A0.shape)
-            cov_factor_Ainv = linops.ScalarMult(scalar=self.psi, shape=self.Ainv0.shape)
-        else:
-            if action_obs_innerprods is None:
-                action_obs_innerprods = self.actions.T @ self.observations
-
-            cov_factor_A = self._cov_factor_matrix(
-                action_obs_innerprods=action_obs_innerprods
-            )
-            cov_factor_Ainv = self._cov_factor_inverse()
+        cov_factor_Ainv = self._cov_factor_inverse()
 
         A = rvs.Normal(
             mean=self.A0,
@@ -172,7 +139,13 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             mean=self.Ainv0,
             cov=linops.SymmetricKronecker(A=cov_factor_Ainv),
         )
-        return A, Ainv
+
+        super().__init__(
+            x=super()._induced_solution_belief(Ainv=Ainv, b=b),
+            Ainv=Ainv,
+            A=A,
+            b=b,
+        )
 
     @property
     def phi(self) -> float:
@@ -193,7 +166,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         self._psi = value
 
     def _cov_factor_matrix(
-        self, action_obs_innerprods: np.ndarray
+        self, action_obs_innerprods: Optional[np.ndarray] = None
     ) -> linops.LinearOperator:
         r"""Covariance factor of the system matrix model.
 
@@ -204,37 +177,44 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         ----------
         action_obs_innerprods :
             Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
-            and observations. If a vector is passed, actions are assumed to be
-            :math:`A`-conjugate, i.e. :math:`s_i^\top A s_j =0` for :math:`i \neq j`.
+            and observations. If a vector is passed, actions and observations are
+            assumed to be conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
         """
-        action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
-
-        if action_obs_innerprods.ndim == 1:
-
-            def _matvec(x):
-                """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
-                matrix."""
-                return (self.observations * action_obs_innerprods ** -1) @ (
-                    self.observations.T @ x
-                )
-
+        if self.actions is None or self.observations is None:
+            # For no actions taken, the uncertainty scales determine the overall
+            # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
+            return linops.ScalarMult(scalar=self.phi, shape=self.A0.shape)
         else:
+            if action_obs_innerprods is None:
+                action_obs_innerprods = self.actions.T @ self.observations
 
-            def _matvec(x):
-                return self.observations @ np.linalg.solve(
-                    action_obs_innerprods,
-                    self.observations.T @ x,
-                )
+            action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
 
-        action_space_op = linops.LinearOperator(
-            shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
-        )
+            if action_obs_innerprods.ndim == 1:
 
-        orthogonal_space_op = self.phi * (
-            linops.Identity(shape=self.A0.shape) - action_proj
-        )
+                def _matvec(x):
+                    """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
+                    matrix."""
+                    return (self.observations * action_obs_innerprods ** -1) @ (
+                        self.observations.T @ x
+                    )
 
-        return action_space_op + orthogonal_space_op
+            else:
+
+                def _matvec(x):
+                    return self.observations @ np.linalg.solve(
+                        action_obs_innerprods,
+                        self.observations.T @ x,
+                    )
+
+            action_space_op = linops.LinearOperator(
+                shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
+            )
+
+            orthogonal_space_op = self.phi * (
+                linops.Identity(shape=self.A0.shape) - action_proj
+            )
+            return action_space_op + orthogonal_space_op
 
     def _cov_factor_inverse(self) -> linops.LinearOperator:
         r"""Covariance factor of the inverse model.
@@ -243,31 +223,38 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         -1}Y_^\top A_0^{-1} + P_{Y^\perp}\Psi P_{Y^\perp}` as given in eqn. (3) of
         Wenger and Hennig, 2020.
         """
-        observation_proj = linops.OrthogonalProjection(subspace_basis=self.observations)
-
-        if isinstance(self.Ainv0, linops.ScalarMult):
-            observation_space_op = self.Ainv0.scalar * observation_proj
+        if self.actions is None or self.observations is None:
+            # For no actions taken, the uncertainty scales determine the overall
+            # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
+            return linops.ScalarMult(scalar=self.psi, shape=self.Ainv0.shape)
         else:
-
-            def _matvec(x):
-                return self.Ainv0 @ (
-                    linops.OrthogonalProjection(
-                        subspace_basis=self.observations,
-                        is_orthonormal=False,
-                        innerprod_matrix=self.Ainv0,
-                    )
-                    @ x
-                )
-
-            observation_space_op = linops.LinearOperator(
-                shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
+            observation_proj = linops.OrthogonalProjection(
+                subspace_basis=self.observations
             )
 
-        orthogonal_space_op = self.psi * (
-            linops.Identity(shape=self.A0.shape) - observation_proj
-        )
+            if isinstance(self.Ainv0, linops.ScalarMult):
+                observation_space_op = self.Ainv0.scalar * observation_proj
+            else:
 
-        return observation_space_op + orthogonal_space_op
+                def _matvec(x):
+                    return self.Ainv0 @ (
+                        linops.OrthogonalProjection(
+                            subspace_basis=self.observations,
+                            is_orthonormal=False,
+                            innerprod_matrix=self.Ainv0,
+                        )
+                        @ x
+                    )
+
+                observation_space_op = linops.LinearOperator(
+                    shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
+                )
+
+            orthogonal_space_op = self.psi * (
+                linops.Identity(shape=self.A0.shape) - observation_proj
+            )
+
+            return observation_space_op + orthogonal_space_op
 
     @classmethod
     def from_inverse(
@@ -448,8 +435,18 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
 
         # Update action and observations
-        self.actions = None  # TODO add action
-        self.observations = None  # TODO add observation
+        if action.ndim == 1:
+            action = action[:, None]
+        if observation.ndim == 1:
+            observation = observation[:, None]
+        if self.actions is None:
+            self.actions = action
+        else:
+            self.actions = np.hstack((self.actions, action))
+        if self.observations is None:
+            self.observations = observation
+        else:
+            self.observations = np.hstack((self.observations, observation))
 
         if isinstance(observation_op, MatrixMultObservation):
             belief_update = WeakMeanCorrLinearObsBeliefUpdate(

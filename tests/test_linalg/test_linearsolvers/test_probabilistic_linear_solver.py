@@ -37,6 +37,7 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
             observations=[],
             iteration=0,
             residual=cls.linsys.A @ cls.prior.x.mean - cls.linsys.b,
+            action_obs_innerprods=[],
             log_rayleigh_quotients=[],
             step_sizes=[],
             has_converged=False,

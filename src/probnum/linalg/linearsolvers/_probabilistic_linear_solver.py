@@ -46,7 +46,9 @@ class LinearSolverState(PNMethodState):
     residual
         Residual :math:`r_i = Ax_i - b` of the current solution.
     action_obs_innerprods
-        Inner product(s) :math:`s_i^\top y_i` of actions and observations.
+        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
+        and observations. If a vector, actions and observations are assumed to be
+        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
     log_rayleigh_quotients
         Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
         s_i)`.
@@ -278,6 +280,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                 observation=observation,
                 solver_state=solver_state,
             )
+
+            solver_state.iteration += 1
 
             yield belief, solver_state
 
