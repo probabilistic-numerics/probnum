@@ -25,13 +25,18 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
             return np.array([2 * v[0], v[0] + 3 * v[1]])
 
         self.mv = mv
+        matmul = linops.MatrixMult(np.array([[-1.5, 3], [0, -230]]))
+        orth_proj = linops.OrthogonalProjection(
+            subspace_basis=np.array([[0], [0.75]]),
+        )
         self.ops = [
-            linops.MatrixMult(np.array([[-1.5, 3], [0, -230]])),
+            matmul,
             linops.LinearOperator(shape=(2, 2), matvec=mv),
             linops.Identity(shape=4),
-            linops.OrthogonalProjection(
-                subspace_basis=np.array([[0], [0.75]]),
-            ),
+            linops.MatrixMult(np.array([[2.0, 0.1], [0.1, 5.0]]))
+            * linops.Identity(shape=2),
+            orth_proj,
+            2.4 * orth_proj,
             linops.OrthogonalProjection(
                 subspace_basis=np.array([[1], [0]]),
                 is_orthonormal=True,

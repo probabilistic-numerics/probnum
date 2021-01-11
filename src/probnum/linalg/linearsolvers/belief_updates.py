@@ -1,6 +1,6 @@
 """Belief updates for probabilistic linear solvers."""
 import abc
-from typing import Callable, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
@@ -386,8 +386,7 @@ def _log_rayleigh_quotient(action_obs_innerprod: float, action: np.ndarray) -> f
 
 
 class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
-    r"""Belief update for the weak mean correspondence covariance class under linear
-    observations.
+    r"""Weak mean correspondence belief update assuming linear observations.
 
     Parameters
     ----------
@@ -398,9 +397,6 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
         linear system.
     solver_state :
         Current state of the linear solver.
-    noise_cov
-        Covariance matrix :math:`\Lambda` of the noise term :math:`E \sim \mathcal{
-        N}(0, \Lambda)` assumed for matrix evaluations :math:`v \mapsto (A + E)v`.
 
     Examples
     --------
@@ -413,7 +409,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
     def __init__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
+        belief: "probnum.linalg.linearsolvers.beliefs.WeakMeanCorrespondenceBelief",
         actions: np.ndarray,
         observations: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
@@ -428,11 +424,12 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymMatrixNormalLinearObsBeliefUpdate):
             solver_state=solver_state,
         )
 
-    def _A_cov_trace_update(self):
+    def _Ainv_covfactor_trace(self):
+        """Trace of the covariance factor of the inverse model.
+
+        See section S4.3 of Wenger and Hennig, 2020 for details.
+        """
         raise NotImplementedError
 
-    def _Ainv_cov_trace_update(self):
-        raise NotImplementedError
-
-    def _x_cov_trace_update(self):
+    def _x_cov_trace(self):
         raise NotImplementedError

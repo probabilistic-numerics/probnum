@@ -377,6 +377,26 @@ class _ScaledLinearOperator(
         A, alpha = self.args
         return _ScaledLinearOperator(A.inv(), 1 / alpha)
 
+    # Properties
+    def rank(self):
+        A, alpha = self.args
+        if alpha == 0:
+            return 0
+        else:
+            return A.rank()
+
+    def eigvals(self):
+        A, alpha = self.args
+        return alpha * A.eigvals()
+
+    def det(self):
+        A, alpha = self.args
+        return alpha ** A.shape[0] * A.det()
+
+    def logabsdet(self):
+        A, alpha = self.args
+        return A.shape[0] * np.log(np.abs(alpha)) + A.logabsdet()
+
     def trace(self):
         A, alpha = self.args
         return alpha * A.trace()

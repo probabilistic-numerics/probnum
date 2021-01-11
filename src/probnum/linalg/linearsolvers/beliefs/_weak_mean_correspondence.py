@@ -1,6 +1,6 @@
 """Belief assuming weak correspondence between the means of the matrix models."""
 
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -36,7 +36,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
     Parameters
     ----------
-    A :
+    A0 :
         Approximate system matrix :math:`A_0 \approx A`.
     Ainv0 :
         Approximate matrix inverse :math:`H_0 \approx A^{-1}`.
@@ -114,20 +114,6 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         if actions is None or observations is None:
             self.actions = None
             self.observations = None
-            # For no actions taken, the uncertainty scales determine the overall
-            # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            A = rvs.Normal(
-                mean=A0,
-                cov=linops.SymmetricKronecker(
-                    linops.ScalarMult(scalar=self.phi, shape=A0.shape)
-                ),
-            )
-            Ainv = rvs.Normal(
-                mean=Ainv0,
-                cov=linops.SymmetricKronecker(
-                    linops.ScalarMult(scalar=self.psi, shape=Ainv0.shape)
-                ),
-            )
         else:
             self.actions = (
                 actions if isinstance(actions, np.ndarray) else np.hstack(actions)
@@ -137,17 +123,11 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 if isinstance(observations, np.ndarray)
                 else np.hstack(observations)
             )
-            if action_obs_innerprods is not None:
-                self.action_obs_innerprods = action_obs_innerprods
-            else:
-                self.action_obs_innerprods = self.actions.T @ self.observations
-            A = rvs.Normal(
-                mean=A0, cov=linops.SymmetricKronecker(self._cov_factor_matrix())
-            )
-            Ainv = rvs.Normal(
-                mean=Ainv0,
-                cov=linops.SymmetricKronecker(self._cov_factor_inverse()),
-            )
+        A, Ainv = self._matrix_beliefs_from_actions_observations(
+            actions=actions,
+            observations=observations,
+            action_obs_innerprods=action_obs_innerprods,
+        )
 
         super().__init__(
             x=super()._induced_solution_belief(Ainv=Ainv, b=b),
@@ -155,6 +135,43 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             A=A,
             b=b,
         )
+
+    def _matrix_beliefs_from_actions_observations(
+        self,
+        actions: Union[List, np.ndarray],
+        observations: Union[List, np.ndarray],
+        action_obs_innerprods: Optional[np.ndarray] = None,
+    ) -> Tuple[rvs.Normal, rvs.Normal]:
+        """Prior belief over the system matrix and inverse given actions and
+        observations.
+
+        Constructs the prior beliefs over the matrix and inverse for the
+        covariance class outlined in eqn. (3) of Wenger and Hennig,
+        2020.
+        """
+        if actions is None or observations is None:
+            # For no actions taken, the uncertainty scales determine the overall
+            # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
+            cov_factor_A = linops.ScalarMult(scalar=self.phi, shape=self.A0.shape)
+            cov_factor_Ainv = linops.ScalarMult(scalar=self.psi, shape=self.Ainv0.shape)
+        else:
+            if action_obs_innerprods is None:
+                action_obs_innerprods = self.actions.T @ self.observations
+
+            cov_factor_A = self._cov_factor_matrix(
+                action_obs_innerprods=action_obs_innerprods
+            )
+            cov_factor_Ainv = self._cov_factor_inverse()
+
+        A = rvs.Normal(
+            mean=self.A0,
+            cov=linops.SymmetricKronecker(A=cov_factor_A),
+        )
+        Ainv = rvs.Normal(
+            mean=self.Ainv0,
+            cov=linops.SymmetricKronecker(A=cov_factor_Ainv),
+        )
+        return A, Ainv
 
     @property
     def phi(self) -> float:
@@ -174,20 +191,29 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
     def psi(self, value: float):
         self._psi = value
 
-    def _cov_factor_matrix(self) -> linops.LinearOperator:
+    def _cov_factor_matrix(
+        self, action_obs_innerprods: np.ndarray
+    ) -> linops.LinearOperator:
         r"""Covariance factor of the system matrix model.
 
         Computes the covariance factor :math:`W_0^A = Y(S^\top Y)^{-1}Y_^\top + P_{
         S^\perp}\Phi P_{S^\perp}` as given in eqn. (3) of Wenger and Hennig, 2020.
+
+        Parameters
+        ----------
+        action_obs_innerprods :
+            Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
+            and observations. If a vector is passed, actions are assumed to be
+            :math:`A`-conjugate, i.e. :math:`s_i^\top A s_j =0` for :math:`i \neq j`.
         """
         action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
 
-        if self.action_obs_innerprods.ndim == 1:
+        if action_obs_innerprods.ndim == 1:
 
             def _matvec(x):
                 """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
                 matrix."""
-                return (self.observations * self.action_obs_innerprods ** -1) @ (
+                return (self.observations * action_obs_innerprods ** -1) @ (
                     self.observations.T @ x
                 )
 
@@ -195,7 +221,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
 
             def _matvec(x):
                 return self.observations @ np.linalg.solve(
-                    self.action_obs_innerprods,
+                    action_obs_innerprods,
                     self.observations.T @ x,
                 )
 
@@ -247,6 +273,8 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         cls,
         Ainv0: Union[np.ndarray, rvs.RandomVariable, linops.LinearOperator],
         problem: LinearSystem,
+        actions: Optional[np.ndarray] = None,
+        observations: Optional[np.ndarray] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief over the linear system from an approximate inverse.
 
@@ -260,12 +288,18 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
+        actions :
+            Actions to probe the linear system with.
+        observations :
+            Observations of the linear system for the given actions.
         """
         try:
             return cls(
                 A0=Ainv0.inv(),  # Ensure (weak) mean correspondence
                 Ainv0=Ainv0,
                 b=problem.b,
+                actions=actions,
+                observations=observations,
             )
         except AttributeError as exc:
             raise TypeError(
@@ -279,6 +313,8 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         cls,
         A0: Union[np.ndarray, rvs.RandomVariable],
         problem: LinearSystem,
+        actions: Optional[np.ndarray] = None,
+        observations: Optional[np.ndarray] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief over the linear system from an approximate system matrix.
 
@@ -292,12 +328,18 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             Approximate system matrix.
         problem :
             Linear system to solve.
+        actions :
+            Actions to probe the linear system with.
+        observations :
+            Observations of the linear system for the given actions.
         """
         try:
             return cls(
                 A0=A0,
                 Ainv0=A0.inv(),  # Ensure (weak) mean correspondence
                 b=problem.b,
+                actions=actions,
+                observations=observations,
             )
         except AttributeError as exc:
             raise TypeError(
@@ -312,6 +354,8 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         A0: Union[np.ndarray, rvs.RandomVariable],
         Ainv0: Union[np.ndarray, rvs.RandomVariable],
         problem: LinearSystem,
+        actions: Optional[np.ndarray] = None,
+        observations: Optional[np.ndarray] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
@@ -328,8 +372,14 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
+        actions :
+            Actions to probe the linear system with.
+        observations :
+            Observations of the linear system for the given actions.
         """
-        return cls(A0=A0, Ainv0=Ainv0, b=problem.b)
+        return cls(
+            A0=A0, Ainv0=Ainv0, b=problem.b, actions=actions, observations=observations
+        )
 
     @classmethod
     def from_scalar(
@@ -360,7 +410,19 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         observations: List[np.ndarray],
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
-        """Calibrate the uncertainty scales :math:`Phi` and :math:`Psi`."""
+        r"""Calibrate the uncertainty scales :math:`\Phi` and :math:`\Psi`.
+
+        Parameters
+        ----------
+        problem :
+            Linear system to solve.
+        actions :
+            Actions to probe the linear system with.
+        observations :
+            Observations of the linear system for the given actions.
+        solver_state :
+            Current state of the linear solver.
+        """
         if self.calibration_method is not None:
             (phi, psi), solver_state = self.calibration_method(
                 problem=problem,
@@ -396,29 +458,29 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             # Update belief over A assuming WS=Y (Theorem 3, eqn. 1, Wenger2020)
             A_mean_update, A_cov_update = belief_update.A_update_terms(
                 belief_A=rvs.Normal(
-                    mean=self.A.mean, cov=problem.A - self._A_cov_update_op
+                    mean=self.A.mean, cov=problem.A - self._A_covfactor_update_op
                 )
             )
-            self._A_cov_update_op += A_cov_update
+            self._A_covfactor_update_op += A_cov_update
 
             # Update belief over Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
             Ainv_mean_update, Ainv_cov_update = belief_update.Ainv_update_terms(
                 belief_Ainv=rvs.Normal(
-                    mean=self.Ainv.mean, cov=self.Ainv0 - self._Ainv_cov_update_op
+                    mean=self.Ainv.mean, cov=self.Ainv0 - self._Ainv_covfactor_update_op
                 )
             )
-            self._Ainv_cov_update_op += Ainv_cov_update
+            self._Ainv_covfactor_update_op += Ainv_cov_update
 
             self._A = rvs.Normal(
                 mean=self.A.mean + A_mean_update,
                 cov=linops.SymmetricKronecker(
-                    self._cov_factor_matrix() - self._A_cov_update_op
+                    self._cov_factor_matrix() - self._A_covfactor_update_op
                 ),
             )
             self._Ainv = rvs.Normal(
                 mean=self.Ainv.mean + Ainv_mean_update,
                 cov=linops.SymmetricKronecker(
-                    self._cov_factor_inverse() - self._Ainv_cov_update_op
+                    self._cov_factor_inverse() - self._Ainv_covfactor_update_op
                 ),
             )
             # Update belief over the solution
