@@ -36,7 +36,7 @@ class ODESolution(abc.ABC):
 
     # Not abstract, because providing interpolation could sometimes be tedious.
     def __call__(
-        self, t: float
+        self, t: typing.Union[float, list[float]]
     ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
         """Evaluate the time-continuous solution at time t.
 
@@ -61,8 +61,20 @@ class ODESolution(abc.ABC):
 
     def sample(
         self,
-        t: typing.Optional[float] = None,
+        t: typing.Optional[typing.Union[float, list[float]]] = None,
         size: typing.Optional[probnum.type.ShapeArgType] = (),
     ) -> np.ndarray:
-        """Sample from the ODE solution."""
+        """Sample from the ODE solution.
+
+        Parameters
+        ----------
+        t
+            Location / time at which to sample.
+            If nothing is specified, samples at the ODE-solver grid points are computed.
+            If it is a float, a sample of the ODE-solution at this time point is computed.
+            Similarly, if it is a list of floats (or an array), samples at the specified grid-points are returned.
+            This is not the same as computing i.i.d samples at the respective locations.
+        size
+            Number of samples.
+        """
         raise NotImplementedError("Sampling is not implemented.")
