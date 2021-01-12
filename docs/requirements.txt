@@ -1,0 +1,19 @@
+# Sphinx builds the documentation
+sphinx>=3.0,<=3.2.1
+
+# Sphinx dependencies
+Pygments>=2.6.1
+
+# Sphinx extensions
+sphinx-rtd-theme>=0.5.0
+sphinx-automodapi
+sphinx-autodoc-typehints
+sphinx-gallery
+
+# Markdown conversion
+m2r2
+
+# Jupyter notebooks
+nbsphinx>=0.6.1
+jupyter
+matplotlib
