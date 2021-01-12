@@ -60,12 +60,18 @@ class ContinuousEKFComponent(statespace.Transition):
         raise NotImplementedError
 
 
-class DiscreteEKFComponent(statespace.Transition):
+class DiscreteEKFComponent(statespace.DiscreteGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(self, disc_model):
         self.disc_model = disc_model
-        super().__init__()
+
+        # This inheritance enables things like "diffmatfun_cholesky"
+        super().__init__(
+            dynamicsfun=self.disc_model.dynamicsfun,
+            diffmatfun=self.disc_model.dynamicsfun,
+            jacobfun=self.disc_model.jacobfun,
+        )
 
     def transition_realization(self, real, start, **kwargs):
         return self.disc_model.transition_realization(real, start, **kwargs)
