@@ -246,6 +246,6 @@ def _read_dimension(transition, initrv):
     # relies on evaluating at zero, which is a dangerous endeavour and therefore,
     # this method is not used in Transition.dimension
     transitioned, _ = transition.transition_realization(
-        real=initrv.mean, start=0.0, stop=1.0
+        real=initrv.mean, start=0.0, stop=1.0, step=1.0
     )
     return len(transitioned.sample())
