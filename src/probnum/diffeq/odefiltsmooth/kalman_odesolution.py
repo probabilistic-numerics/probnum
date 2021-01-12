@@ -12,6 +12,12 @@ import probnum.utils
 
 from ..odesolution import ODESolution
 
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
 
 class KalmanODESolution(ODESolution):
     """Gaussian IVP filtering solution of an ODE problem.
@@ -83,12 +89,12 @@ class KalmanODESolution(ODESolution):
     def t(self) -> np.ndarray:
         return self.kalman_posterior.locations
 
-    @property
+    @cached_property
     def y(self) -> pnrv_list._RandomVariableList:
         y_rvs = [self.proj_to_y @ rv for rv in self.kalman_posterior.state_rvs]
         return pnrv_list._RandomVariableList(y_rvs)
 
-    @property
+    @cached_property
     def dy(self) -> pnrv_list._RandomVariableList:
         dy_rvs = [self.proj_to_dy @ rv for rv in self.kalman_posterior.state_rvs]
         return pnrv_list._RandomVariableList(dy_rvs)
