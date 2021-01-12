@@ -10,9 +10,10 @@ from . import transition as trans
 
 try:
     # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
+    from functools import cached_property, lru_cache
 except ImportError:
     from cached_property import cached_property
+    from lru_cache import lru_cache
 
 
 class DiscreteGaussian(trans.Transition):
@@ -120,6 +121,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = dynamicsmat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
+    @lru_cache
+    def diffmatfun_cholesky(self, t):
+        return np.linalg.cholesky(self.diffmatfun(t))
+
     @property
     def dimension(self):
         # risky to evaluate at zero, but works well
@@ -171,6 +176,10 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         self.dynamicsmat = dynamicsmat
         self.forcevec = forcevec
         self.diffmat = diffmat
+
+    @lru_cache
+    def diffmatfun_cholesky(self, t):
+        return self.diffmat_cholesky
 
     @cached_property
     def diffmat_cholesky(self):

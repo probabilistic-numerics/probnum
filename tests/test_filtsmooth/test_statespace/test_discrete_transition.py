@@ -70,6 +70,9 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
     some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
     start = 0.1 + 0.01 * np.random.rand()
 
+    random_mat = np.random.rand(TEST_NDIM, TEST_NDIM)
+    random_spdmat = random_mat @ random_mat + np.eye(TEST_NDIM)
+
     def setUp(self):
         def G(t):
             return np.arange(TEST_NDIM ** 2).reshape((TEST_NDIM, TEST_NDIM))
@@ -78,7 +81,7 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
             return np.ones(TEST_NDIM)
 
         def S(t):
-            return np.eye(TEST_NDIM)
+            return self.random_spdmat
 
         self.dtrans = pnfss.discrete_transition.DiscreteLinearGaussian(G, v, S)
 
@@ -104,6 +107,12 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
 
     def test_dimension(self):
         self.assertEqual(self.dtrans.dimension, TEST_NDIM)
+
+    def test_diffmatfun_cholesky(self):
+        self.assertAllClose(
+            self.dtrans.diffmatfun_cholesky(0),
+            np.linalg.cholesky(self.dtrans.diffmatfun(0)),
+        )
 
 
 class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
