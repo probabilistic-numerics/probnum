@@ -3,8 +3,6 @@
 This object is returned by ODESolver.solve().
 
 Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
-Contains the discrete time and function outputs. Provides dense output
-by being callable. Can function values can also be accessed by indexing.
 """
 import abc
 import typing
