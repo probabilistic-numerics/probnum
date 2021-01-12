@@ -36,7 +36,7 @@ class ODESolution(abc.ABC):
 
     # Not abstract, because providing interpolation could sometimes be tedious.
     def __call__(
-        self, t: typing.Union[float, list[float]]
+        self, t: typing.Union[float, typing.List[float]]
     ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
         """Evaluate the time-continuous solution at time t.
 
@@ -61,7 +61,7 @@ class ODESolution(abc.ABC):
 
     def sample(
         self,
-        t: typing.Optional[typing.Union[float, list[float]]] = None,
+        t: typing.Optional[typing.Union[float, typing.List[float]]] = None,
         size: typing.Optional[probnum.type.ShapeArgType] = (),
     ) -> np.ndarray:
         """Sample from the ODE solution.
