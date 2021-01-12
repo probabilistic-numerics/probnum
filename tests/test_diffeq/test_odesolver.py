@@ -17,6 +17,7 @@ class MockODESolution(ODESolution):
 
     @property
     def y(self):
+        # pylint: disable=invalid-overridden-method
         return self._y
 
 

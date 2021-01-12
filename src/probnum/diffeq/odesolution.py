@@ -13,6 +13,12 @@ import probnum._randomvariablelist as pnrv_list
 import probnum.random_variables as pnrv
 import probnum.type
 
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
 
 class ODESolution(abc.ABC):
     """ODE Solution interface."""
@@ -23,13 +29,13 @@ class ODESolution(abc.ABC):
         """Time points of the discrete-time solution."""
         raise NotImplementedError
 
-    @property
+    @cached_property
     @abc.abstractmethod
     def y(self) -> pnrv_list._RandomVariableList:
         """Discrete-time solution."""
         raise NotImplementedError
 
-    @property
+    @cached_property
     def dy(self) -> pnrv_list._RandomVariableList:
         """First derivative of the discrete-time solution."""
         raise NotImplementedError("The first derivative has not been implemented")
