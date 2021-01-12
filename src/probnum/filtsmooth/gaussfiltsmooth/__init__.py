@@ -5,4 +5,4 @@ from .kalmanposterior import KalmanPosterior
 from .stoppingcriterion import FixedPointStopping, StoppingCriterion
 from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
 from .unscentedtransform import UnscentedTransform
-from .utils import cholesky_prod, cholesky_sum_choleskies
+from .utils import cholesky_update

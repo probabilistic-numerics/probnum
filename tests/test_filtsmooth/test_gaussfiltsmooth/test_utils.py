@@ -1,8 +1,12 @@
 import unittest
 
+import probnum.filtsmooth as pnfs
 
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
+
+class TestCholeskyUpdates(unittest.TestCase):
+    def test_cholesky_sum_choleskies(self):
+
+        print(pnfs.cholesky_update)
         self.assertEqual(True, False)
 
 

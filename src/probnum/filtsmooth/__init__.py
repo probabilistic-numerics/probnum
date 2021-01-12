@@ -13,8 +13,7 @@ from .gaussfiltsmooth import (
     KalmanPosterior,
     StoppingCriterion,
     UnscentedTransform,
-    cholesky_prod,
-    cholesky_sum_choleskies,
+    cholesky_update,
 )
 
 # Public classes and functions. Order is reflected in documentation.
@@ -30,6 +29,5 @@ __all__ = [
     "IteratedKalman",
     "StoppingCriterion",
     "FixedPointStopping",
-    "cholesky_prod",
-    "cholesky_sum_choleskies",
+    "cholesky_update",
 ]
