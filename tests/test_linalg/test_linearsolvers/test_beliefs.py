@@ -458,3 +458,20 @@ class WeakMeanCorrespondenceBeliefTestCase(unittest.TestCase, NumpyAssertions):
     def test_uncertainty_calibration(self):
         """"""
         pass  # TODO
+
+    def test_uncertainty_calibration_error(self):
+        """Test if the available uncertainty calibration procedures affect the error of
+        the returned solution."""
+        # tol = 10 ** -6
+        # A, b, x_true = self.rbf_kernel_linear_system
+        #
+        # for calib_method in [None, 0, "adhoc", "weightedmean", "gpkern"]:
+        #     with self.subTest():
+        #         x_est, Ahat, Ainvhat, info = linalg.problinsolve(
+        #             A=A, b=b, calibration=calib_method
+        #         )
+        #         self.assertLessEqual(
+        #             (x_true - x_est.mean).T @ A @ (x_true - x_est.mean),
+        #             tol,
+        #             msg="Estimated solution not sufficiently close to true solution.",
+        #         )

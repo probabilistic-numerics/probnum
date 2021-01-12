@@ -79,4 +79,12 @@ class MatrixMultObservation(ObservationOperator):
         action: np.ndarray,
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
-        return problem.A @ action, solver_state
+
+        # Observation
+        observation = problem.A @ action
+
+        # Update solver state
+        if solver_state is not None:
+            solver_state.observations.append(observation)
+
+        return observation, solver_state

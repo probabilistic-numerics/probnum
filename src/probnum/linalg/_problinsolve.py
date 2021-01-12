@@ -14,11 +14,13 @@ import scipy.sparse
 
 import probnum.random_variables as rvs
 from probnum import linops, utils
-from probnum.linalg.linearsolvers.matrixbased import (
-    AsymmetricMatrixBasedSolver,
-    NoisySymmetricMatrixBasedSolver,
-    SymmetricMatrixBasedSolver,
+from probnum.linalg.linearsolvers import LinearSolverState, ProbabilisticLinearSolver
+from probnum.linalg.linearsolvers.beliefs import (
+    LinearSystemBelief,
+    NoisyLinearSystemBelief,
+    WeakMeanCorrespondenceBelief,
 )
+from probnum.problems import LinearSystem
 
 # Type aliases
 SquareLinOp = Union[
@@ -37,9 +39,14 @@ def problinsolve(
     maxiter: Optional[int] = None,
     atol: float = 10 ** -6,
     rtol: float = 10 ** -6,
-    callback: Optional[Callable] = None,
     **kwargs
-) -> Tuple["rvs.RandomVariable", "rvs.RandomVariable", "rvs.RandomVariable", Dict]:
+) -> Tuple[
+    "rvs.RandomVariable",
+    "rvs.RandomVariable",
+    "rvs.RandomVariable",
+    "rvs.RandomVariable",
+    LinearSolverState,
+]:
     """Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
     Probabilistic linear solvers infer solutions to problems of the form
@@ -95,11 +102,6 @@ def problinsolve(
         Absolute convergence tolerance.
     rtol :
         Relative convergence tolerance.
-    callback :
-        User-supplied function called after each iteration of the linear solver. It is
-        called as ``callback(x, s, y, alpha, resid, **kwargs)`` and can
-        be used to return quantities from the iteration. Note that depending on the
-        function supplied, this can slow down the solver considerably.
     kwargs : optional
         Optional keyword arguments passed onto the solver iteration.
 
@@ -112,17 +114,15 @@ def problinsolve(
         Posterior belief over the linear operator.
     Ainv :
         Posterior belief over the linear operator inverse :math:`H=A^{-1}`.
-    info :
-        Information on convergence of the solver.
+    b :
+        Posterior belief over the rhs.
+    state :
+        State of the linear solver at convergence.
 
     Raises
     ------
     ValueError
         If size mismatches detected or input matrices are not square.
-    LinAlgError
-        If the matrix ``A`` is singular.
-    LinAlgWarning
-        If an ill-conditioned input ``A`` is detected.
 
     Notes
     -----
@@ -151,77 +151,19 @@ def problinsolve(
     >>> n = 20
     >>> A = random_spd_matrix(dim=n, random_state=1)
     >>> b = np.random.rand(n)
-    >>> x, A, Ainv, info = problinsolve(A=A, b=b)
-    >>> print(info["iter"])
+    >>> x, _, _, _, info = problinsolve(A=A, b=b)
+    >>> info.iteration
     11
+    >>> info.residual
     """
+    linsys = LinearSystem(A=A, b=b)
+    belief = _init_prior_belief(A0=A0, Ainv0=Ainv0, x0=x0, assume_A=assume_A)
+    linear_solver = _init_solver(
+        linsys=linsys, belief=belief, atol=atol, rtol=rtol, maxiter=maxiter
+    )
+    belief, solver_state = linear_solver.solve(problem=linsys)
 
-    # Check linear system for type and dimension mismatch
-    _check_linear_system(A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x0)
-
-    # Check matrix assumptions for correctness
-    assume_A = assume_A.lower()
-    _assume_A_tmp = assume_A
-    for allowed_str in ["gen", "sym", "pos", "noise"]:
-        _assume_A_tmp = _assume_A_tmp.replace(allowed_str, "")
-    if _assume_A_tmp != "":
-        raise ValueError(
-            "Assumption '{}' contains unrecognized linear operator properties.".format(
-                assume_A
-            )
-        )
-
-    # Transform the linear system to an appropriate form
-    A, b, x0 = _preprocess_linear_system(A=A, b=b, x0=x0)
-
-    # Parameter initialization
-    n = A.shape[0]
-    nrhs = b.shape[1]
-    x = x0
-    info = {}
-
-    # Set convergence parameters
-    if maxiter is None:
-        maxiter = n * 10
-
-    if nrhs > 1:
-        # Iteratively solve for multiple right hand sides (with posteriors as new
-        # priors)
-        for i in range(nrhs):
-            if i > 0:
-                x = None  # Only use prior information on Ainv for multiple rhs
-            # Select and initialize solver
-            linear_solver = _init_solver(
-                A=A,
-                b=utils.as_colvec(b[:, i]),
-                A0=A0,
-                Ainv0=Ainv0,
-                x0=x,
-                assume_A=assume_A,
-            )
-
-            # Solve linear system
-            x, A0, Ainv0, info = linear_solver.solve(
-                maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs
-            )
-
-        # Return Ainv @ b for multiple rhs
-        x = Ainv0 @ b
-    else:
-        # Single right hand side
-        linear_solver = _init_solver(
-            A=A, b=b, A0=A0, Ainv0=Ainv0, x0=x, assume_A=assume_A
-        )
-
-        # Solve linear system
-        x, A0, Ainv0, info = linear_solver.solve(
-            maxiter=maxiter, atol=atol, rtol=rtol, callback=callback, **kwargs
-        )
-
-    # Check result and issue warnings (e.g. singular or ill-conditioned matrix)
-    _postprocess(info=info, A=A)
-
-    return x, A0, Ainv0, info
+    return belief.x, belief.A, belief.Ainv, belief.b, solver_state
 
 
 def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
@@ -272,145 +214,30 @@ def bayescg(A, b, x0=None, maxiter=None, atol=None, rtol=None, callback=None):
     raise NotImplementedError
 
 
-def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
-    """Check linear system compatibility.
+def _init_prior_belief(
+    A0: Optional[SquareLinOp] = None,
+    Ainv0: Optional[SquareLinOp] = None,
+    x0: Optional[RandomVecMat] = None,
+    assume_A: str = "sympos",
+) -> LinearSystemBelief:
+    """Initialize a prior belief over the linear system.
 
-    Raises an exception if the input arguments are not of the right type or not
-    compatible.
+    Automatically chooses an appropriate prior belief over the linear system components
+    based on the arguments given.
 
     Parameters
     ----------
-    A : array-like or LinearOperator, shape=(n,n)
-        A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
-        used internally.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
-    A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+    A0 :
         A square matrix, linear operator or random variable representing the prior
         belief over the linear operator :math:`A`.
-    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
+    Ainv0 :
         A square matrix, linear operator or random variable representing the prior
         belief over the inverse :math:`H=A^{-1}`.
-    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
+    x0 :
         Optional. Prior belief for the solution of the linear system. Will be ignored if
         ``Ainv0`` is given.
-
-    Raises
-    ------
-    ValueError
-        If type or size mismatches detected or inputs ``A`` and ``Ainv`` are not square.
-    """
-    # Check types
-    linop_types = (
-        np.ndarray,
-        scipy.sparse.spmatrix,
-        scipy.sparse.linalg.LinearOperator,
-        rvs.RandomVariable,
-    )
-    vector_types = (np.ndarray, scipy.sparse.spmatrix, rvs.RandomVariable)
-    if not isinstance(A, linop_types):
-        raise ValueError(
-            "A must be either an array, a linear operator or a random variable."
-        )
-    if not isinstance(b, vector_types):
-        raise ValueError(
-            "The right hand side must be a (sparse) array or a random variable."
-        )
-    if A0 is not None and not isinstance(A0, rvs.RandomVariable):
-        raise ValueError("The prior belief over A must be a random variable.")
-    if Ainv0 is not None and not isinstance(Ainv0, linop_types):
-        raise ValueError(
-            "The inverse of A must be either an array, a linear operator or "
-            "a random variable of either."
-        )
-    if x0 is not None and not isinstance(x0, vector_types):
-        raise ValueError("The initial guess for the solution must be a (sparse) array.")
-
-    # Prior distribution mismatch
-    if (
-        isinstance(A0, rvs.RandomVariable) or isinstance(Ainv0, rvs.RandomVariable)
-    ) and isinstance(x0, rvs.RandomVariable):
-        raise ValueError(
-            "Cannot specify distributions on the linear operator and the solution "
-            "simultaneously."
-        )
-
-    # Dimension mismatch
-    if A.shape[0] != b.shape[0]:
-        raise ValueError("Dimension mismatch. The dimensions of A and b must match.")
-    if Ainv0 is not None and A.shape != Ainv0.shape:
-        raise ValueError(
-            "Dimension mismatch. The dimensions of A and Ainv0 must match."
-        )
-    if A0 is not None and A.shape != A0.shape:
-        raise ValueError("Dimension mismatch. The dimensions of A and A0 must match.")
-    if x0 is not None and A.shape[1] != x0.shape[0]:
-        raise ValueError("Dimension mismatch. The dimensions of A and x0 must match.")
-
-    # Square matrices
-    if A.shape[0] != A.shape[1]:
-        raise ValueError("Matrix A must be square.")
-    if A0 is not None and A0.shape[0] != A0.shape[1]:
-        raise ValueError("A0 must be square.")
-    if Ainv0 is not None and Ainv0.shape[0] != Ainv0.shape[1]:
-        raise ValueError("The inverse of A must be square.")
-
-
-def _preprocess_linear_system(A, b, x0=None):
-    """Transform the linear system to an appropriate form.
-
-    Parameters
-    ----------
-    A : array-like or LinearOperator, shape=(n,n)
-        A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
-        used internally.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
-    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-        Optional. Prior belief for the solution of the linear system. Will be ignored if
-        ``Ainv0`` is given.
-
-    Returns
-    -------
-    A : RandomVariable, shape=(n,n)
-        Prior belief over the linear operator :math:`A`.
-    b : array-like, shape=(n,) or (n, nrhs)
-        Right-hand-side of the linear system.
-    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-        Optional. Prior belief for the solution of the linear system. Will be ignored if
-        ``Ainv0`` is given.
-    """
-    # Transform linear system to correct dimensions
-    if not isinstance(b, rvs.RandomVariable):
-        b = utils.as_colvec(b)  # (n,) -> (n, 1)
-    if x0 is not None:
-        x0 = utils.as_colvec(x0)  # (n,) -> (n, 1)
-
-    return A, b, x0
-
-
-def _init_solver(A, b, A0, Ainv0, x0, assume_A):
-    """Selects and initializes an appropriate instance of the probabilistic linear
-    solver based on the system properties and prior information given.
-
-    Parameters
-    ----------
-    A : array-like or LinearOperator, shape=(n,n)
-        A square linear operator (or matrix). Only matrix-vector products :math:`Av` are
-        used internally.
-    b : array_like, shape=(n,) or (n, nrhs)
-        Right-hand side vector or matrix in :math:`A x = b`.
-    A0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-        A square matrix, linear operator or random variable representing the prior
-        belief over the linear operator :math:`A`.
-    Ainv0 : array-like or LinearOperator or RandomVariable, shape=(n,n), optional
-        A square matrix, linear operator or random variable representing the prior
-        belief over the inverse :math:`H=A^{-1}`.
-    x0 : array-like, or RandomVariable, shape=(n,) or (n, nrhs)
-        Optional. Prior belief for the solution of the linear system. Will be ignored if
-        ``Ainv0`` is given.
-    assume_A : str
-        Assumptions on the linear operator, which can influence solver choice or
+    assume_A :
+        Assumptions on the linear operator which can influence solver choice and
         behavior. The available options are (combinations of)
 
         ====================  =========
@@ -420,11 +247,40 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
          (additive) noise     ``noise``
         ====================  =========
 
-    Returns
-    -------
-    linear_solver : ProbabilisticLinearSolver
-        A type of probabilistic linear solver implementing the solve method for linear
-        systems.
+
+    Raises
+    ------
+    ValueError
+        If type or size mismatches detected or inputs ``A`` and ``Ainv`` are not square.
+    """
+    # Check matrix assumptions for correctness
+    assume_A = assume_A.lower()
+    _assume_A_tmp = assume_A
+    for allowed_str in ["gen", "sym", "pos", "noise"]:
+        _assume_A_tmp = _assume_A_tmp.replace(allowed_str, "")
+    if _assume_A_tmp != "":
+        raise ValueError(
+            "Assumption '{}' contains unrecognized linear operator properties.".format(
+                assume_A
+            )
+        )
+
+    raise NotImplementedError
+
+
+def _init_solver(
+    linsys: LinearSystem,
+    belief: LinearSystemBelief,
+) -> ProbabilisticLinearSolver:
+    """Initialize a custom probabilistic linear solver.
+
+    Selects and initializes an appropriate instance of the probabilistic linear
+    solver based on the system properties and prior information given.
+
+    Parameters
+    ----------
+    linsys : Linear system to solve.
+    belief : (Prior) belief over the quantities of interest of the linear system.
     """
     # Choose matrix based view if not clear from arguments
     if (Ainv0 is not None or A0 is not None) and isinstance(x0, rvs.RandomVariable):
@@ -469,49 +325,3 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
             return AsymmetricMatrixBasedSolver(A=A, b=b, x0=x0)
         else:
             raise NotImplementedError
-
-
-def _postprocess(info, A):
-    """Postprocess the linear system and its solution.
-
-    Raises exceptions or warnings based on the properties of the linear system and the
-    solver iteration.
-
-    Parameters
-    ----------
-    info : dict
-        Convergence information output by a probabilistic linear solver.
-    A : array-like or LinearOperator, shape=(n,n)
-        A square linear operator (or matrix).
-
-    Raises
-    ------
-    LinAlgError
-        If the matrix ``A`` is singular.
-    LinAlgWarning
-        If an ill-conditioned system matrix ``A`` is detected.
-    """
-    rel_cond = info["rel_cond"]
-
-    # Get the correct machine epsilon for the precision used.
-    # if A.dtype.char in 'fF':  # single precision
-    #     lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='f')
-    # else:
-    #     lamch = scipy.linalg.get_lapack_funcs('lamch', dtype='d')
-    # machine_eps = lamch('E')
-    machine_eps = 10 ** -16
-
-    # Singular matrix
-    # # TODO: get info from solver
-    # if False:
-    #     raise scipy.linalg.LinAlgError("The system matrix A is singular.")
-    # Ill-conditioned matrix A
-    if rel_cond is not None and 1 / rel_cond < machine_eps:
-        warnings.warn(
-            (
-                "Ill-conditioned matrix detected (estimated rcond={:.6g}). "
-                "Results are likely inaccurate."
-            ).format(rel_cond),
-            scipy.linalg.LinAlgWarning,
-            stacklevel=3,
-        )

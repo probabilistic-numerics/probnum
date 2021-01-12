@@ -186,11 +186,11 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             return linops.ScalarMult(scalar=self.phi, shape=self.A0.shape)
         else:
             if action_obs_innerprods is None:
-                action_obs_innerprods = self.actions.T @ self.observations
+                action_obs_innerprods = np.squeeze(self.actions.T @ self.observations)
 
             action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
 
-            if action_obs_innerprods.ndim == 1:
+            if np.squeeze(action_obs_innerprods).ndim in (0, 1):
 
                 def _matvec(x):
                     """Conjugate actions implying :math:`S^{\top} Y` is a diagonal

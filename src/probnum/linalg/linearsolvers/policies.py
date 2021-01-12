@@ -175,6 +175,10 @@ class ThompsonSampling(Policy):
         # A-conjugate search direction / action (assuming exact arithmetic)
         action = -Ainv_sample @ (A_sample @ x_sample - b_sample)
 
+        # Update solver state
+        if solver_state is not None:
+            solver_state.actions.append(action)
+
         return action, solver_state
 
 

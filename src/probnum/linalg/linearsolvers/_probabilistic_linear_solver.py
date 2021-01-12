@@ -42,6 +42,10 @@ class LinearSolverState(PNMethodState):
         Collected observations :math:`y_i = A s_i`.
     iteration
         Current iteration :math:`i` of the solver.
+    has_converged
+        Has the solver converged?
+    stopping_criterion
+        Stopping criterion which caused termination of the solver.
     residual
         Residual :math:`r_i = Ax_i - b` of the current solution.
     action_obs_innerprods
@@ -54,10 +58,6 @@ class LinearSolverState(PNMethodState):
     step_sizes
         Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
         steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
-    has_converged
-        Has the solver converged?
-    stopping_criterion
-        Stopping criterion which caused termination of the solver.
 
     Examples
     --------
@@ -65,11 +65,11 @@ class LinearSolverState(PNMethodState):
     """
     iteration: int = 0
     residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
+    has_converged: bool = False
+    stopping_criterion: Optional[List[StoppingCriterion]] = None
     action_obs_innerprods: Optional[List[float]] = None
     log_rayleigh_quotients: Optional[List[float]] = None
     step_sizes: Optional[List[float]] = None
-    has_converged: bool = False
-    stopping_criterion: Optional[List[StoppingCriterion]] = None
 
 
 class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
@@ -182,7 +182,6 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         problem :
             Linear system to solve.
         """
-        belief = self.prior
         solver_state = LinearSolverState(
             actions=[],
             observations=[],
@@ -194,7 +193,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             has_converged=False,
             stopping_criterion=None,
         )
-        return belief, solver_state
+        return self.prior, solver_state
 
     def has_converged(
         self,
@@ -238,7 +237,9 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         problem: LinearSystem,
         belief: LinearSystemBelief,
         solver_state: LinearSolverState,
-    ) -> Generator[Tuple[LinearSystemBelief, LinearSolverState], None, None]:
+    ) -> Generator[
+        Tuple[LinearSystemBelief, np.ndarray, np.ndarray, LinearSolverState], None, None
+    ]:
         """Generator implementing the solver iteration.
 
         This function allows stepping through the solver iteration one step at a time.
@@ -258,6 +259,10 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         belief :
             Updated belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of
             the linear system.
+        action :
+            Action taken by the solver given by its policy.
+        observation :
+            Observation of the linear system for the corresponding action.
         solver_state :
             Updated state of the linear solver.
         """
@@ -296,7 +301,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
 
             solver_state.iteration += 1
 
-            yield belief, solver_state
+            yield belief, action, observation, solver_state
 
     def solve(
         self,
@@ -316,6 +321,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                  right hand side :math:`b`.
         solver_state : State of the solver at convergence.
         """
+        # TODO: multiple right hand sides
         # Setup
         belief, solver_state = self._init_belief_and_solver_state(problem=problem)
 
@@ -328,17 +334,16 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         solve_iterator = self.solve_iterator(
             problem=problem, belief=belief, solver_state=solver_state
         )
-        for (iter_belief, solver_state) in solve_iterator:
+        for (belief, _, _, solver_state) in solve_iterator:
 
             # Evaluate stopping criteria and update solver state
             _has_converged, solver_state = self.has_converged(
                 problem=problem,
-                belief=iter_belief,
+                belief=belief,
                 solver_state=solver_state,
             )
 
             if _has_converged:
-                belief = iter_belief
                 break
 
         return belief, solver_state

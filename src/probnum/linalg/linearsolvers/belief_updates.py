@@ -378,9 +378,9 @@ class SymMatrixNormalLinearObsBeliefUpdate(BeliefUpdate):
                     self.solver_state.iteration
                 ]
             except IndexError:
-                action_obs_innerprod = action.T @ observation
+                action_obs_innerprod = (action.T @ observation).item()
         else:
-            action_obs_innerprod = action.T @ observation
+            action_obs_innerprod = (action.T @ observation).item()
         step_size = (-action.T @ residual / action_obs_innerprod).item()
 
         # Update solver state

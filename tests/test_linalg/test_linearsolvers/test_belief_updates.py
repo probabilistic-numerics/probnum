@@ -138,7 +138,6 @@ class LinearSymmetricGaussianTestCase(ProbabilisticLinearSolverTestCase):
 
     def test_symmetric_posterior_params(self):
         """Test whether posterior parameters are symmetric."""
-
         for belief_update in self.belief_updates:
             with self.subTest():
                 x, Ainv, A, b, _ = belief_update()
@@ -212,6 +211,30 @@ class LinearSymmetricGaussianTestCase(ProbabilisticLinearSolverTestCase):
                     prior.Ainv.cov.A.todense(),
                     msg="The posterior covariance factor for Ainv does not match its "
                     "definition.",
+                )
+
+    def test_uncertainty_action_space_is_zero(self):
+        """Test whether the uncertainty about the system matrix in the action span of
+        the already explored directions is zero."""
+        for belief_update in self.belief_updates:
+            with self.subTest():
+                x, Ainv, A, b, _ = belief_update()
+                self.assertAllClose(
+                    np.zeros_like(self.action),
+                    A.cov.A @ self.action,
+                    atol=10 * np.finfo(float).eps,
+                )
+
+    def test_uncertainty_observation_space_is_zero(self):
+        """Test whether the uncertainty about the inverse in the observation span of the
+        already made observations is zero."""
+        for belief_update in self.belief_updates:
+            with self.subTest():
+                x, Ainv, A, b, _ = belief_update()
+                self.assertAllClose(
+                    np.zeros_like(self.observation),
+                    Ainv.cov.A @ self.observation,
+                    atol=10 * np.finfo(float).eps,
                 )
 
 
@@ -328,21 +351,23 @@ class WeakMeanCorrLinearObsBeliefUpdateTestCase(ProbabilisticLinearSolverTestCas
         r"""Test whether :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for all actions
         :math:`y`."""
         self.assertAllClose(
-            np.linalg.solve(self.updated_belief.A.mean, self.observations),
+            np.linalg.solve(self.updated_belief.A.mean.todense(), self.observations),
             self.updated_belief.Ainv.mean @ self.observations,
         )
 
-    def test_uncertainty_action_space_is_zero(self):
-        """Test whether the uncertainty about the system matrix in the action span of
-        the already explored directions is zero."""
-        self.assertAllClose(
-            np.zeros(self.actions), self.updated_belief.A.cov @ self.actions
-        )
-
-    def test_uncertainty_observation_space_is_zero(self):
-        """Test whether the uncertainty about the inverse in the observation span of the
-        already made observations is zero."""
-        self.assertAllClose(
-            np.zeros(self.observations),
-            self.updated_belief.Ainv.cov @ self.observations,
-        )
+    def test_iterative_covariance_trace_update(self):
+        """The solver's returned value for the trace must match the actual trace of the
+        solution covariance."""
+        # A, b, x_true = self.rbf_kernel_linear_system
+        #
+        # for calib_method in [None, 0, 1.0, "adhoc", "weightedmean", "gpkern"]:
+        #     with self.subTest():
+        #         x_est, Ahat, Ainvhat, info = linalg.problinsolve(
+        #             A=A, b=b, calibration=calib_method
+        #         )
+        #         self.assertAlmostEqual(
+        #             info["trace_sol_cov"],
+        #             x_est.cov.trace(),
+        #             msg="Iteratively computed trace not equal to trace of solution "
+        #             "covariance.",
+        #         )
