@@ -23,6 +23,16 @@ class TestCholeskyUpdate(unittest.TestCase, NumpyAssertions):
         expected = np.linalg.cholesky(self.H @ self.X1 @ self.H.T + self.X2)
         self.assertAllClose(received, expected)
 
+    def test_yields_cholesky_sum(self):
+        received = pnfs.cholesky_update(self.L1, self.L2)
+        expected = np.linalg.cholesky(self.X1 + self.X2)
+        self.assertAllClose(received, expected)
+
+    def test_yields_cholesky_prod(self):
+        received = pnfs.cholesky_update(self.H @ self.L1)
+        expected = np.linalg.cholesky(self.H @ self.X1 @ self.H.T)
+        self.assertAllClose(received, expected)
+
 
 if __name__ == "__main__":
     unittest.main()

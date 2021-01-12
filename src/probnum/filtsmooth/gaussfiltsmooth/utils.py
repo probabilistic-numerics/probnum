@@ -12,6 +12,7 @@ def cholesky_update(S1, S2=None):
     :math:`S_1` and :math:`S_2` do not even have to be square.
     """
     # doc might need a bit more explanation in the future
+    # perhaps some doctest or so?
     if S2 is not None:
         stacked_up = np.vstack((S1.T, S2.T))
     else:
