@@ -7,7 +7,7 @@ import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace
 
 
-class ContinuousEKFComponent(statespace.Transition):
+class ContinuousEKFComponent(statespace.SDE):
     """Continuous extended Kalman filter transition."""
 
     def __init__(self, non_linear_sde, num_steps):
@@ -15,7 +15,13 @@ class ContinuousEKFComponent(statespace.Transition):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
         self.non_linear_sde = non_linear_sde
         self.num_steps = num_steps
-        super().__init__()
+
+        # Discrete EKF is a subclass of DiscreteGaussian, so this choice of inheritance is for consistency
+        super().__init__(
+            driftfun=self.non_linear_sde.driftfun,
+            dispmatfun=self.non_linear_sde.dispmatfun,
+            jacobfun=self.non_linear_sde.jacobfun,
+        )
 
     def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
 

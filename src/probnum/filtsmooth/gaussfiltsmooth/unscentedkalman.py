@@ -12,7 +12,7 @@ from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform as ut
 from probnum.random_variables import Normal
 
 
-class ContinuousUKFComponent(statespace.Transition):
+class ContinuousUKFComponent(statespace.SDE):
     """Continuous unscented Kalman filter transition."""
 
     def __init__(
@@ -22,7 +22,13 @@ class ContinuousUKFComponent(statespace.Transition):
             raise TypeError("cont_model must be an SDE.")
         self.non_linear_sde = non_linear_sde
         self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
-        super().__init__()
+
+        # Discrete UKF is a subclass of DiscreteGaussian, so this choice of inheritance is for consistency
+        super().__init__(
+            driftfun=self.non_linear_sde.driftfun,
+            dispmatfun=self.non_linear_sde.dispmatfun,
+            jacobfun=self.non_linear_sde.jacobfun,
+        )
 
         raise NotImplementedError("Implementation incomplete.")
 
