@@ -66,6 +66,10 @@ class DiscreteGaussian(trans.Transition):
 
         raise NotImplementedError
 
+    @lru_cache
+    def diffmatfun_cholesky(self, t):
+        return np.linalg.cholesky(self.diffmatfun(t))
+
 
 class DiscreteLinearGaussian(DiscreteGaussian):
     """Discrete, linear Gaussian transition models of the form.
@@ -120,10 +124,6 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_crosscov = rv.cov @ dynamicsmat.T
         new_cov = dynamicsmat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
-
-    @lru_cache
-    def diffmatfun_cholesky(self, t):
-        return np.linalg.cholesky(self.diffmatfun(t))
 
     @property
     def dimension(self):

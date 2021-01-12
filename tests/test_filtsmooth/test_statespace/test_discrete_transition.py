@@ -16,12 +16,15 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
     )
     start = 0.1 + 0.01 * np.random.rand()
 
+    random_mat = np.random.rand(TEST_NDIM, TEST_NDIM)
+    random_spdmat = random_mat @ random_mat + np.eye(TEST_NDIM)
+
     def setUp(self):
         def g(t, x):
             return np.sin(x)
 
         def S(t):
-            return np.eye(TEST_NDIM)
+            return self.random_spdmat
 
         def dg(t, x):
             return np.cos(x)
@@ -60,6 +63,12 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
 
     def test_transition_realization(self):
         self.dtrans.transition_realization(self.some_rv.sample(), self.start)
+
+    def test_diffmatfun_cholesky(self):
+        self.assertAllClose(
+            self.dtrans.diffmatfun_cholesky(0),
+            np.linalg.cholesky(self.dtrans.diffmatfun(0)),
+        )
 
 
 class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
@@ -107,12 +116,6 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
 
     def test_dimension(self):
         self.assertEqual(self.dtrans.dimension, TEST_NDIM)
-
-    def test_diffmatfun_cholesky(self):
-        self.assertAllClose(
-            self.dtrans.diffmatfun_cholesky(0),
-            np.linalg.cholesky(self.dtrans.diffmatfun(0)),
-        )
 
 
 class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
