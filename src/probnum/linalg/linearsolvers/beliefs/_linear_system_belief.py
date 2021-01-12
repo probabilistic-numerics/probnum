@@ -137,7 +137,7 @@ class LinearSystemBelief:
         if A.shape != Ainv.shape:
             raise dim_mismatch_error(A, Ainv, "A", "Ainv")
 
-    @cached_property
+    @property
     def x(self) -> rvs.RandomVariable:
         """Belief over the solution."""
         if self._x is None and self.Ainv is not None and self.b is not None:

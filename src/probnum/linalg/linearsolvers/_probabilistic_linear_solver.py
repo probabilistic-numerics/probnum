@@ -147,7 +147,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     Solve the linear system using the custom solver.
 
     >>> belief, info = pls.solve(linsys)
-    >>> np.linalg.norm(A @ belief.x.mean - b)
+    >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b)
+    2.738786219876204e-05
     """
 
     def __init__(
@@ -327,17 +328,17 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         solve_iterator = self.solve_iterator(
             problem=problem, belief=belief, solver_state=solver_state
         )
-
         for (iter_belief, solver_state) in solve_iterator:
-
-            # Update belief
-            belief = iter_belief
 
             # Evaluate stopping criteria and update solver state
             _has_converged, solver_state = self.has_converged(
                 problem=problem,
-                belief=belief,
+                belief=iter_belief,
                 solver_state=solver_state,
             )
+
+            if _has_converged:
+                belief = iter_belief
+                break
 
         return belief, solver_state
