@@ -185,7 +185,7 @@ class ThompsonSampling(Policy):
 class ExploreExploit(Policy):
     """Policy trading off exploration and exploitation.
 
-    Returns an action given by :math:`s_i \\sim \\mathcal{N}(s; -\\mathbb{E}[
+    Returns an action given by :math:`s_i \\sim \\mathcal{N}(-\\mathbb{E}[
     \\mathsf{H}]r_{i-1}, \\mathbb{Cov}(\\mathsf{x})))` where :math:`r_{i-1} = A x_{i-1}
     - b` is the current residual and :math:`\\mathbb{Cov}(\\mathsf{x})` the
     uncertainty of the solution estimate.
