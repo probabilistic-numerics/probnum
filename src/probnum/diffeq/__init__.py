@@ -11,7 +11,14 @@ from .ode import (
     threebody,
     vanderpol,
 )
-from .odefiltsmooth import GaussianIVPFilter, ivp2ekf0, ivp2ekf1, ivp2ukf, probsolve_ivp
+from .odefiltsmooth import (
+    GaussianIVPFilter,
+    KalmanODESolution,
+    ivp2ekf0,
+    ivp2ekf1,
+    ivp2ukf,
+    probsolve_ivp,
+)
 from .odesolution import ODESolution
 from .odesolver import ODESolver
 from .steprule import AdaptiveSteps, ConstantSteps, StepRule
@@ -37,6 +44,7 @@ __all__ = [
     "ConstantSteps",
     "AdaptiveSteps",
     "ODESolution",
+    "KalmanODESolution",
 ]
 
 # Set correct module paths (for superclasses).
