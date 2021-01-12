@@ -11,6 +11,7 @@ from .gaussfiltsmooth import (
     IteratedKalman,
     Kalman,
     KalmanPosterior,
+    SquareRootKalman,
     StoppingCriterion,
     UnscentedTransform,
     cholesky_update,
@@ -19,6 +20,7 @@ from .gaussfiltsmooth import (
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "Kalman",
+    "SquareRootKalman",
     "ContinuousEKFComponent",
     "DiscreteEKFComponent",
     "ContinuousUKFComponent",
