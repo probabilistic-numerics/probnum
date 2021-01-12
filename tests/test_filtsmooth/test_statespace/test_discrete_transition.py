@@ -107,31 +107,51 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
 
 
 class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
-    def test_init_exceptions(self):
+    def setUp(self):
 
-        good_dynamicsmat = np.ones((TEST_NDIM, 4 * TEST_NDIM))
-        good_forcevec = np.ones(TEST_NDIM)
-        good_diffmat = np.ones((TEST_NDIM, TEST_NDIM))
+        self.good_dynamicsmat = np.ones((TEST_NDIM, 4 * TEST_NDIM))
+        self.good_forcevec = np.ones(TEST_NDIM)
+        self.good_diffmat = np.ones((TEST_NDIM, TEST_NDIM)) + np.eye(TEST_NDIM)
+
+    def test_init_exceptions(self):
 
         with self.subTest("Baseline should work"):
             pnfss.discrete_transition.DiscreteLinearGaussian(
-                good_dynamicsmat, good_forcevec, good_diffmat
+                self.good_dynamicsmat, self.good_forcevec, self.good_diffmat
             )
 
         with self.subTest("bad dynamics"):
             with self.assertRaises(TypeError):
                 pnfss.discrete_transition.DiscreteLTIGaussian(
-                    good_forcevec, good_forcevec, good_diffmat
+                    self.good_forcevec, self.good_forcevec, self.good_diffmat
                 )
 
         with self.subTest("bad force"):
             with self.assertRaises(TypeError):
                 pnfss.discrete_transition.DiscreteLTIGaussian(
-                    good_dynamicsmat, good_dynamicsmat, good_diffmat
+                    self.good_dynamicsmat, self.good_dynamicsmat, self.good_diffmat
                 )
 
         with self.subTest("bad diffusion"):
             with self.assertRaises(TypeError):
                 pnfss.discrete_transition.DiscreteLTIGaussian(
-                    good_dynamicsmat, good_forcevec, good_dynamicsmat
+                    self.good_dynamicsmat, self.good_forcevec, self.good_dynamicsmat
                 )
+
+    def test_diffmat_cholesky(self):
+        trans = pnfss.DiscreteLTIGaussian(
+            self.good_dynamicsmat, self.good_forcevec, self.good_diffmat
+        )
+
+        # Matrix square-root
+        self.assertAllClose(
+            trans.diffmat_cholesky @ trans.diffmat_cholesky.T, trans.diffmat
+        )
+
+        # Lower triangular
+        self.assertAllClose(trans.diffmat_cholesky, np.tril(trans.diffmat_cholesky))
+
+        # Nonnegative diagonal
+        self.assertAllClose(
+            np.diag(trans.diffmat_cholesky), np.abs(np.diag(trans.diffmat_cholesky))
+        )

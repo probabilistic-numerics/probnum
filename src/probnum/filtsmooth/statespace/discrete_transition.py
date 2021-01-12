@@ -8,6 +8,12 @@ from probnum.type import FloatArgType
 
 from . import transition as trans
 
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
 
 class DiscreteGaussian(trans.Transition):
     """Random variable transitions with additive Gaussian noise.
@@ -165,6 +171,10 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         self.dynamicsmat = dynamicsmat
         self.forcevec = forcevec
         self.diffmat = diffmat
+
+    @cached_property
+    def diffmat_cholesky(self):
+        return np.linalg.cholesky(self.diffmat)
 
 
 def _check_dimensions(dynamicsmat, forcevec, diffmat):
