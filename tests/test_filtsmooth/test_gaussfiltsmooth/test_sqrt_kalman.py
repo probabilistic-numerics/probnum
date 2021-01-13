@@ -27,6 +27,11 @@ def initrv():
 
 
 @pytest.fixture
+def info():
+    return car_tracking()[3]
+
+
+@pytest.fixture
 def random_rv4():
     covmat = random_spd_matrix(4)
     mean = np.random.rand(4)
@@ -79,6 +84,25 @@ def test_update(sqrt_kalman, kalman, random_rv4, random_data2):
     np.testing.assert_allclose(res1.cov_cholesky, res2.cov_cholesky)
     np.testing.assert_allclose(res1.cov, res2.cov)
     np.testing.assert_allclose(res1.mean, res2.mean)
+
+
+@pytest.fixture
+def times(dynmod, measmod, initrv, info):
+    delta_t = info["dt"]
+    return np.arange(0, 20, delta_t)
+
+
+@pytest.fixture
+def data(dynmod, measmod, initrv, times):
+    states, obs = pnfs.statespace.generate(dynmod, measmod, initrv, times)
+    return obs
+
+
+def test_filter(sqrt_kalman, kalman, data, times):
+    sol_sqrt = sqrt_kalman.filter(data, times)
+    sol_classic = kalman.filter(data, times)
+    np.testing.assert_allclose(sol_sqrt.state_rvs.mean, sol_classic.state_rvs.mean)
+    np.testing.assert_allclose(sol_sqrt.state_rvs.cov, sol_classic.state_rvs.cov)
 
 
 #
