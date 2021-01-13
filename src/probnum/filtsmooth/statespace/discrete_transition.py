@@ -66,7 +66,7 @@ class DiscreteGaussian(trans.Transition):
 
         raise NotImplementedError
 
-    @lru_cache
+    @lru_cache(maxsize=None)
     def diffmatfun_cholesky(self, t):
         return np.linalg.cholesky(self.diffmatfun(t))
 
@@ -177,7 +177,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         self.forcevec = forcevec
         self.diffmat = diffmat
 
-    @lru_cache
+    @lru_cache(maxsize=None)
     def diffmatfun_cholesky(self, t):
         return self.diffmat_cholesky
 
