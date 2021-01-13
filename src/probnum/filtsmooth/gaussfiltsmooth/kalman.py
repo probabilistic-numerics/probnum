@@ -8,6 +8,9 @@ from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
 
+from .extendedkalman import ContinuousEKFComponent
+from .unscentedkalman import ContinuousUKFComponent
+
 
 class Kalman(BayesFiltSmooth):
     """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers."""
@@ -213,7 +216,8 @@ class Kalman(BayesFiltSmooth):
         """
 
         # See Issue #300
-        if isinstance(self.dynamics_model, pnfss.LinearSDE) and not isinstance(
+        bad_options = (pnfss.LinearSDE, ContinuousEKFComponent, ContinuousUKFComponent)
+        if isinstance(self.dynamics_model, bad_options) and not isinstance(
             self.dynamics_model, pnfss.LTISDE
         ):
             raise ValueError("Continuous-discrete smoothing is not supported (yet).")
