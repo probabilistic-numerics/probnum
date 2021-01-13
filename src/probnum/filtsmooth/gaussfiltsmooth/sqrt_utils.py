@@ -51,7 +51,7 @@ def sqrt_kalman_update(measmat, meascov_cholesky, predcov_cholesky):
     """
     zeros = np.zeros(measmat.T.shape)
     blockmat = np.block(
-        ((meascov_cholesky, measmat @ predcov_cholesky), (zeros, predcov_cholesky))
+        [[meascov_cholesky, measmat @ predcov_cholesky], [zeros, predcov_cholesky]]
     ).T
     big_triu = np.linalg.qr(blockmat, mode="r")
 
@@ -81,11 +81,11 @@ def sqrt_smoothing_step(
     dim = len(dynamicsmat)
     zeros = np.zeros((dim, dim))
     blockmat = np.block(
-        (
-            (sqrtm_unsmoothed_cov_past.T @ dynamicsmat.T, sqrtm_unsmoothed_cov_past.T),
-            (diffmat_cholesky.T, zeros),
-            (zeros, sqrtm_smoothed_cov_future.T @ smoothing_gain.T),
-        )
+        [
+            [sqrtm_unsmoothed_cov_past.T @ dynamicsmat.T, sqrtm_unsmoothed_cov_past.T],
+            [diffmat_cholesky.T, zeros],
+            [zeros, sqrtm_smoothed_cov_future.T @ smoothing_gain.T],
+        ]
     )
     big_triu = np.linalg.qr(blockmat, mode="r")
     chol_unsmoothed_cov_past = big_triu[dim : 2 * dim, dim:]

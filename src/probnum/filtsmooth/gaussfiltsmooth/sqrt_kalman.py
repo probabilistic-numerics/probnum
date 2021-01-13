@@ -1,6 +1,10 @@
 """Square-root Gaussian filtering and smoothing."""
 
 import numpy as np
+import scipy.linalg
+
+import probnum.filtsmooth.statespace as pnfss
+import probnum.random_variables as pnrv
 
 from .extendedkalman import DiscreteEKFComponent
 from .kalman import Kalman
@@ -38,11 +42,11 @@ class SquareRootKalman(Kalman):
         elif isinstance(self.dynamics_model, DiscreteEKFComponent):
             self.dynamics_model.linearize(at_this_rv=randvar)
             disc_model = self.dynamics_model.linearized_model
-            A = disc_model.driftmatfun(start)
+            A = disc_model.dynamicsmatfun(start)
             s = disc_model.forcevecfun(start)
             L_Q = disc_model.diffmatfun_cholesky(start)
         else:  # must be discrete linear Gaussian model
-            A = self.dynamics_model.driftmatfun(start)
+            A = self.dynamics_model.dynamicsmatfun(start)
             s = self.dynamics_model.forcevecfun(start)
             L_Q = self.dynamics_model.diffmatfun_cholesky(start)
 
@@ -52,7 +56,10 @@ class SquareRootKalman(Kalman):
         new_mean = A @ old_mean + s
         new_cov_cholesky = cholesky_update(A @ old_cov_cholesky, L_Q)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
-        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky)
+        crosscov = randvar.cov @ A.T
+        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
+            "crosscov": crosscov
+        }
 
     def measure(self, time, randvar):
         if isinstance(self.measurement_model, DiscreteEKFComponent):
@@ -61,7 +68,7 @@ class SquareRootKalman(Kalman):
         else:
             disc_model = self.measurement_model
 
-        H = disc_model.driftmatfun(start)
+        H = disc_model.dynamicsmatfun(start)
         s = disc_model.forcevecfun(start)
         L_R = disc_model.diffmatfun_cholesky(start)
 
@@ -81,15 +88,20 @@ class SquareRootKalman(Kalman):
         else:
             disc_model = self.measurement_model
 
-        H = disc_model.driftmatfun(start)
-        s = disc_model.forcevecfun(start)
-        L_R = disc_model.diffmatfun_cholesky(start)
+        H = disc_model.dynamicsmatfun(time)
+        s = disc_model.forcevecfun(time)
+        L_R = disc_model.diffmatfun_cholesky(time)
+
         L_S, K, L_P = sqrt_kalman_update(H, L_R, predcov_cholesky)
 
-        res = data - H @ randvar.mean - s
+        measrv_mean = H @ randvar.mean + s
+
+        res = data - measrv_mean
         new_mean = randvar.mean + K @ res
         new_cov = L_P @ L_P.T
-        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P)
+
+        meas_rv = pnrv.Normal(measrv_mean, cov=L_S @ L_S.T, cov_cholesky=L_S)
+        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P), meas_rv, {}
 
     def smooth_step(
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
@@ -97,17 +109,17 @@ class SquareRootKalman(Kalman):
 
         if isinstance(self.dynamics_model, pnfss.LTISDE):
             disc_model = self.dynamics_model.discretise(stop - start)
-            A = disc_model.driftmat
+            A = disc_model.dynamicsmat
             s = disc_model.forcevec
             L_Q = disc_model.diffmat_cholesky
         elif isinstance(self.dynamics_model, DiscreteEKFComponent):
             self.dynamics_model.linearize(at_this_rv=randvar)
             disc_model = self.dynamics_model.linearized_model
-            A = disc_model.driftmatfun(start)
+            A = disc_model.dynamicsmatfun(start)
             s = disc_model.forcevecfun(start)
             L_Q = disc_model.diffmatfun_cholesky(start)
         else:  # must be discrete linear Gaussian model
-            A = self.dynamics_model.driftmatfun(start)
+            A = self.dynamics_model.dynamicsmatfun(start)
             s = self.dynamics_model.forcevecfun(start)
             L_Q = self.dynamics_model.diffmatfun_cholesky(start)
 
