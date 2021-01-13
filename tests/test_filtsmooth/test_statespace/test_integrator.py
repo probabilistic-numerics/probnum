@@ -67,7 +67,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         initrv = pnrv.Normal(mean, cov)
         rv, _ = self.sde.transition_rv(
-            rv=initrv, start=0.0, stop=STEP, diffusion=DIFFCONST
+            rv=initrv, start=0.0, stop=STEP, _diffusion=DIFFCONST
         )
         self.assertAllClose(AH_22_IBM @ initrv.mean, rv.mean, 1e-14)
         self.assertAllClose(
@@ -79,10 +79,10 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         initrv = pnrv.Normal(mean, cov)
         rv1, _ = self.sde.transition_rv(
-            rv=initrv, start=0.0, stop=STEP, diffusion=DIFFCONST
+            rv=initrv, start=0.0, stop=STEP, _diffusion=DIFFCONST
         )
         rv2, _ = self.sde.transition_rv_preconditioned(
-            rv=initrv, start=0.0, diffusion=DIFFCONST
+            rv=initrv, start=0.0, _diffusion=DIFFCONST
         )
         diff1 = np.abs(rv1.mean - rv2.mean)
         diff2 = np.abs(rv1.cov - rv2.cov)
@@ -96,7 +96,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         state = pnrv.Normal(mean, cov).sample()
         rv, _ = self.sde.transition_realization(
-            real=state, start=0.0, stop=STEP, diffusion=DIFFCONST
+            real=state, start=0.0, stop=STEP, _diffusion=DIFFCONST
         )
         self.assertAllClose(AH_22_IBM @ state, rv.mean, 1e-14)
         self.assertAllClose(QH_22_IBM, rv.cov, 1e-14)
@@ -105,10 +105,10 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         state = pnrv.Normal(mean, cov).sample()
         rv1, _ = self.sde.transition_realization(
-            real=state, start=0.0, stop=STEP, diffusion=DIFFCONST
+            real=state, start=0.0, stop=STEP, _diffusion=DIFFCONST
         )
         rv2, _ = self.sde.transition_realization_preconditioned(
-            real=state, start=0.0, diffusion=DIFFCONST
+            real=state, start=0.0, _diffusion=DIFFCONST
         )
         diff1 = np.abs(rv1.mean - rv2.mean)
         diff2 = np.abs(rv1.cov - rv2.cov)
@@ -127,13 +127,13 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
     def test_transition_rv(self):
         mean, cov = np.ones(self.ioup.dimension), np.eye(self.ioup.dimension)
         initrv = pnrv.Normal(mean, cov)
-        self.ioup.transition_rv(initrv, start=0.0, stop=STEP, diffusion=DIFFCONST)
+        self.ioup.transition_rv(initrv, start=0.0, stop=STEP, _diffusion=DIFFCONST)
 
     def test_transition_realization(self):
         mean, cov = np.ones(self.ioup.dimension), np.eye(self.ioup.dimension)
         real = pnrv.Normal(mean, cov).sample()
         self.ioup.transition_realization(
-            real, start=0.0, stop=STEP, diffusion=DIFFCONST
+            real, start=0.0, stop=STEP, _diffusion=DIFFCONST
         )
 
     def test_asymptotically_ibm(self):
@@ -147,19 +147,19 @@ class TestIOUP(unittest.TestCase, NumpyAssertions):
 
         mean, cov = np.ones(ibm.dimension), np.eye(ibm.dimension)
         rv = pnrv.Normal(mean, cov)
-        ibm_out, _ = ibm.transition_rv(rv, start=0.0, stop=STEP, diffusion=1.2345)
+        ibm_out, _ = ibm.transition_rv(rv, start=0.0, stop=STEP, _diffusion=1.2345)
         ioup_out, _ = ioup_speed0.transition_rv(
-            rv, start=0.0, stop=STEP, diffusion=1.2345
+            rv, start=0.0, stop=STEP, _diffusion=1.2345
         )
         self.assertAllClose(ibm_out.mean, ioup_out.mean)
         self.assertAllClose(ibm_out.cov, ioup_out.cov)
 
         real = rv.sample()
         ibm_out, _ = ibm.transition_realization(
-            real, start=0.0, stop=STEP, diffusion=DIFFCONST
+            real, start=0.0, stop=STEP, _diffusion=DIFFCONST
         )
         ioup_out, _ = ioup_speed0.transition_realization(
-            real, start=0.0, stop=STEP, diffusion=DIFFCONST
+            real, start=0.0, stop=STEP, _diffusion=DIFFCONST
         )
         self.assertAllClose(ibm_out.mean, ioup_out.mean)
         self.assertAllClose(ibm_out.cov, ioup_out.cov)
@@ -205,13 +205,13 @@ class TestMatern(unittest.TestCase, NumpyAssertions):
     def test_transition_rv(self):
         mean, cov = np.ones(self.mat1.dimension), np.eye(self.mat1.dimension)
         initrv = pnrv.Normal(mean, cov)
-        self.mat1.transition_rv(initrv, start=0.0, stop=STEP, diffusion=self.diffusion)
+        self.mat1.transition_rv(initrv, start=0.0, stop=STEP, _diffusion=self.diffusion)
 
     def test_transition_real(self):
         mean, cov = np.ones(self.mat1.dimension), np.eye(self.mat1.dimension)
         real = pnrv.Normal(mean, cov).sample()
         self.mat1.transition_realization(
-            real, start=0.0, stop=STEP, diffusion=self.diffusion
+            real, start=0.0, stop=STEP, _diffusion=self.diffusion
         )
 
 

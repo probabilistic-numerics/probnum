@@ -47,18 +47,18 @@ class DiscreteUKFComponent(statespace.Transition):
         self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
         super().__init__()
 
-    def transition_realization(self, real, start, diffusion=1.0, **kwargs):
+    def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
         return self.disc_model.transition_realization(
-            real, start, diffusion=diffusion, **kwargs
+            real, start, _diffusion=_diffusion, **kwargs
         )
 
-    def transition_rv(self, rv, start, linearise_at=None, diffusion=1.0, **kwargs):
+    def transition_rv(self, rv, start, linearise_at=None, _diffusion=1.0, **kwargs):
         compute_sigmapts_at = linearise_at if linearise_at is not None else rv
         sigmapts = self.ut.sigma_points(
             compute_sigmapts_at.mean, compute_sigmapts_at.cov
         )
         proppts = self.ut.propagate(start, sigmapts, self.disc_model.dynamicsfun)
-        meascov = diffusion * self.disc_model.diffmatfun(start)
+        meascov = _diffusion * self.disc_model.diffmatfun(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, meascov, rv.mean
         )

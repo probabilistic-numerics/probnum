@@ -45,7 +45,7 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        diffusion: Optional[float] = 1.0,
+        _diffusion: Optional[float] = 1.0,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Transition a realization of a random variable from time :math:`t` to time
@@ -70,7 +70,7 @@ class Transition(abc.ABC):
             End point :math:`t + \\Delta t`.
         step :
             Intermediate step-size. Optional, default is None.
-        diffusion :
+        _diffusion :
             Optional diffusion parameter for this transition. This field is usually used
             to update diffusions with calibrated versions thereof.
         linearise_at :
@@ -100,7 +100,7 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        diffusion: Optional[float] = 1.0,
+        _diffusion: Optional[float] = 1.0,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Applies the transition, assuming that the state is already preconditioned.
@@ -125,7 +125,7 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        diffusion: Optional[float] = 1.0,
+        _diffusion: Optional[float] = 1.0,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Transition a random variable from time :math:`t` to time
@@ -152,7 +152,7 @@ class Transition(abc.ABC):
             End point :math:`t + \\Delta t`.
         step :
             Intermediate step-size. Optional, default is None.
-        diffusion :
+        _diffusion :
             Optional diffusion parameter for this transition. This field is usually used
             to update diffusions with calibrated versions thereof.
         linearise_at :
@@ -182,7 +182,7 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        diffusion: Optional[float] = 1.0,
+        _diffusion: Optional[float] = 1.0,
         linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Applies the transition, assuming that the state is already preconditioned.

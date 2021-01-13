@@ -36,7 +36,7 @@ class SDE(transition.Transition):
         start,
         stop=None,
         step=None,
-        diffusion=1.0,
+        _diffusion=1.0,
         linearise_at=None,
     ):
         raise NotImplementedError
@@ -47,7 +47,7 @@ class SDE(transition.Transition):
         start,
         stop=None,
         step=None,
-        diffusion=1.0,
+        _diffusion=1.0,
         linearise_at=None,
     ):
         raise NotImplementedError
@@ -100,7 +100,7 @@ class LinearSDE(SDE):
         start,
         stop,
         step,
-        diffusion=1.0,
+        _diffusion=1.0,
         **kwargs,
     ):
 
@@ -113,10 +113,10 @@ class LinearSDE(SDE):
             self.driftfun,
             self.driftmatfun,
             self.dispmatfun,
-            diffusion=diffusion,
+            _diffusion=_diffusion,
         )
 
-    def transition_rv(self, rv, start, stop, step, diffusion=1.0, **kwargs):
+    def transition_rv(self, rv, start, stop, step, _diffusion=1.0, **kwargs):
 
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
@@ -132,7 +132,7 @@ class LinearSDE(SDE):
             self.driftfun,
             self.driftmatfun,
             self.dispmatfun,
-            diffusion=diffusion,
+            _diffusion=_diffusion,
         )
 
     @property
@@ -180,7 +180,7 @@ class LTISDE(LinearSDE):
         real,
         start,
         stop,
-        diffusion=1.0,
+        _diffusion=1.0,
         **kwargs,
     ):
 
@@ -188,7 +188,7 @@ class LTISDE(LinearSDE):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
         return discretised_model.transition_realization(
-            real, start, diffusion=diffusion
+            real, start, _diffusion=_diffusion
         )
 
     def transition_rv(
@@ -196,7 +196,7 @@ class LTISDE(LinearSDE):
         rv,
         start,
         stop,
-        diffusion=1.0,
+        _diffusion=1.0,
         **kwargs,
     ):
 
@@ -207,7 +207,7 @@ class LTISDE(LinearSDE):
             )
             raise TypeError(errormsg)
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_rv(rv, start, diffusion=diffusion)
+        return discretised_model.transition_rv(rv, start, _diffusion=_diffusion)
 
     def discretise(self, step):
         """Returns a discrete transition model (i.e. mild solution to SDE) using matrix
@@ -235,7 +235,7 @@ def linear_sde_statistics(
     driftfun,
     jacobfun,
     dispmatfun,
-    diffusion: Optional[float] = 1.0,
+    _diffusion: Optional[float] = 1.0,
 ):
     """Computes mean and covariance of SDE solution.
 
@@ -287,7 +287,7 @@ def linear_sde_statistics(
         driftfun=driftfun,
         jacobfun=jacobfun,
         dispmatfun=dispmatfun,
-        diffusion=diffusion,
+        _diffusion=_diffusion,
     )
     rk4_step = functools.partial(_rk4_step, step=step, fun=increment_fun)
 
@@ -309,7 +309,7 @@ def _rk4_step(mean, cov, time, step, fun):
 
 
 def _increment_fun(
-    time, mean, cov, driftfun, jacobfun, dispmatfun, diffusion: Optional[float] = 1.0
+    time, mean, cov, driftfun, jacobfun, dispmatfun, _diffusion: Optional[float] = 1.0
 ):
     """Euler step for closed form solutions of ODE defining mean and covariance of the
     closed-form transition.
@@ -324,7 +324,7 @@ def _increment_fun(
     cov_increment = (
         cov @ jacobian.T
         + jacobian @ cov.T
-        + diffusion * dispersion_matrix @ dispersion_matrix.T
+        + _diffusion * dispersion_matrix @ dispersion_matrix.T
     )
     return mean_increment, cov_increment
 

@@ -76,7 +76,7 @@ class Kalman(BayesFiltSmooth):
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
     def filter_step(
-        self, start, stop, current_rv, data, intermediate_step=None, diffusion=1.0
+        self, start, stop, current_rv, data, intermediate_step=None, _diffusion=1.0
     ):
         """A single filter step.
 
@@ -109,20 +109,20 @@ class Kalman(BayesFiltSmooth):
             stop,
             current_rv,
             intermediate_step=intermediate_step,
-            diffusion=diffusion,
+            _diffusion=_diffusion,
         )
         filtrv, info["meas_rv"], info["info_upd"] = self.update(
             stop, info["pred_rv"], data
         )
         return filtrv, info
 
-    def predict(self, start, stop, randvar, intermediate_step=None, diffusion=1.0):
+    def predict(self, start, stop, randvar, intermediate_step=None, _diffusion=1.0):
         return self.dynamics_model.transition_rv(
             randvar,
             start,
             stop=stop,
             step=intermediate_step,
-            diffusion=diffusion,
+            _diffusion=_diffusion,
         )
 
     def measure(self, time, randvar):
@@ -270,7 +270,7 @@ class Kalman(BayesFiltSmooth):
         start,
         stop,
         intermediate_step=None,
-        diffusion=1.0,
+        _diffusion=1.0,
     ):
         """A single smoother step.
 
@@ -300,7 +300,7 @@ class Kalman(BayesFiltSmooth):
                 start,
                 stop,
                 intermediate_step=intermediate_step,
-                diffusion=diffusion,
+                _diffusion=_diffusion,
             )
         else:
             return self._smooth_step_with_preconditioning(
@@ -309,7 +309,7 @@ class Kalman(BayesFiltSmooth):
                 start,
                 stop,
                 intermediate_step=intermediate_step,
-                diffusion=diffusion,
+                _diffusion=_diffusion,
             )
 
     def _smooth_step_classic(
@@ -319,7 +319,7 @@ class Kalman(BayesFiltSmooth):
         start,
         stop,
         intermediate_step=None,
-        diffusion=1.0,
+        _diffusion=1.0,
     ):
         """A single smoother step.
 
@@ -339,7 +339,11 @@ class Kalman(BayesFiltSmooth):
             Time-point of the already-smoothed RV.
         """
         predicted_rv, info = self.dynamics_model.transition_rv(
-            unsmoothed_rv, start, stop=stop, step=intermediate_step, diffusion=diffusion
+            unsmoothed_rv,
+            start,
+            stop=stop,
+            step=intermediate_step,
+            _diffusion=_diffusion,
         )
         crosscov = info["crosscov"]
         smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T
@@ -359,7 +363,7 @@ class Kalman(BayesFiltSmooth):
         start,
         stop,
         intermediate_step=None,
-        diffusion=1.0,
+        _diffusion=1.0,
     ):
         """A single smoother step.
 
@@ -384,7 +388,11 @@ class Kalman(BayesFiltSmooth):
         smoothed_rv = precon_inv @ smoothed_rv
 
         predicted_rv, info = self.dynamics_model.transition_rv_preconditioned(
-            unsmoothed_rv, start, stop=stop, step=intermediate_step, diffusion=diffusion
+            unsmoothed_rv,
+            start,
+            stop=stop,
+            step=intermediate_step,
+            _diffusion=_diffusion,
         )
         crosscov = info["crosscov"]
         smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T
