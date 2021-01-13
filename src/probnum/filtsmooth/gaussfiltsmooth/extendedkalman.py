@@ -109,7 +109,7 @@ class DiscreteEKFComponent(EKFComponent):
 
     @classmethod
     def from_ode(cls, ode, prior, evlvar, ek0_or_ek1=0):
-        # should be in DiscreteGaussian, not in here!
+        # should be in DiscreteGaussian, not in here? (N)
 
         spatialdim = prior.spatialdim
         h0 = prior.proj2coord(coord=0)

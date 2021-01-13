@@ -12,22 +12,38 @@ from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform as ut
 from probnum.random_variables import Normal
 
 
-class ContinuousUKFComponent(statespace.SDE):
+class UKFComponent(LinearizingTransition):
+    """Interface for unscented Kalman filtering components."""
+
+    def __init__(
+        self, non_linear_model, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
+    ):
+        super().__init__(non_linear_model=non_linear_model)
+        self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
+
+        # Determine the linearization.
+        # Will be constructed later.
+        self.sigma_points = None
+
+    def linearize(self, at_this_rv: pnrv.RandomVariable):
+        """Assembles the sigma-points."""
+        self.sigma_points = self.ut.sigma_points(at_this_rv.mean, at_this_rv.cov)
+
+
+class ContinuousUKFComponent(UKFComponent):
     """Continuous unscented Kalman filter transition."""
 
     def __init__(
-        self, non_linear_sde, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
+        self, non_linear_model, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
     ):
-        if not isinstance(non_linear_sde, statespace.SDE):
+        if not isinstance(non_linear_model, statespace.SDE):
             raise TypeError("cont_model must be an SDE.")
-        self.non_linear_sde = non_linear_sde
-        self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
-
-        # Discrete UKF is a subclass of DiscreteGaussian, so this choice of inheritance is for consistency
         super().__init__(
-            driftfun=self.non_linear_sde.driftfun,
-            dispmatfun=self.non_linear_sde.dispmatfun,
-            jacobfun=self.non_linear_sde.jacobfun,
+            non_linear_model,
+            dimension,
+            spread=spread,
+            priorpar=priorpar,
+            special_scale=special_scale,
         )
 
         raise NotImplementedError("Implementation incomplete.")
@@ -47,27 +63,28 @@ class DiscreteUKFComponent(statespace.DiscreteGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
-        self, disc_model, dimension, spread=1.0, priorpar=2.0, special_scale=0.0
+        self, non_linear_model, dimension, spread=1.0, priorpar=2.0, special_scale=0.0
     ):
-        self.disc_model = disc_model
-        self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
-
-        # This inheritance enables things like "diffmatfun_cholesky"
+        if not isinstance(non_linear_model, statespace.DiscreteGaussian):
+            raise TypeError("cont_model must be an SDE.")
         super().__init__(
-            dynamicsfun=self.disc_model.dynamicsfun,
-            diffmatfun=self.disc_model.dynamicsfun,
-            jacobfun=self.disc_model.jacobfun,
+            non_linear_model,
+            dimension,
+            spread=spread,
+            priorpar=priorpar,
+            special_scale=special_scale,
         )
 
     def transition_realization(self, real, start, **kwargs):
-        return self.disc_model.transition_realization(real, start, **kwargs)
+        return self.non_linear_model.transition_realization(real, start, **kwargs)
 
     def transition_rv(self, rv, start, linearise_at=None, **kwargs):
         compute_sigmapts_at = linearise_at if linearise_at is not None else rv
-        sigmapts = self.ut.sigma_points(
-            compute_sigmapts_at.mean, compute_sigmapts_at.cov
+        self.linearize(at_this_rv=compute_sigmapts_at)
+
+        proppts = self.ut.propagate(
+            start, self.sigma_points, self.disc_model.dynamicsfun
         )
-        proppts = self.ut.propagate(start, sigmapts, self.disc_model.dynamicsfun)
         meascov = self.disc_model.diffmatfun(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, meascov, rv.mean
