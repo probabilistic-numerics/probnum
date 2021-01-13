@@ -18,7 +18,7 @@ class SquareRootKalman(Kalman):
     def __init__(self, dynamics_model, measurement_model, initrv):
         """Check that the models are linear(ised)."""
         # EKF is acceptable, because of the Taylor linearisation.
-        # UKF would need downdates, which is not supported at the moment.
+        # UKF would need downdates, which is not supported (at the moment?).
 
         if not isinstance(
             dynamics_model,
@@ -109,6 +109,8 @@ class SquareRootKalman(Kalman):
     def smooth_step(
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
     ):
+
+        # this is still very messy...
 
         if isinstance(self.dynamics_model, pnfss.LTISDE):
             disc_model = self.dynamics_model.discretise(stop - start)
