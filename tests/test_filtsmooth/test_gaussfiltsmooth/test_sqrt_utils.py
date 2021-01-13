@@ -7,16 +7,26 @@ from tests.testing import NumpyAssertions
 
 
 @pytest.fixture
-def spdmat(d):
+def S1(d):
     return random_spd_matrix(dim=d)
 
 
-@pytest.mark.parametrize("d", [2, 3, 4])
-def test_cholesky_update(spdmat):
-    S1 = np.linalg.cholesky(spdmat)
-    S2 = np.linalg.cholesky(spdmat)
+@pytest.fixture
+def spdmat2(d):
+    return random_spd_matrix(dim=d)
+
+
+spdmat = random_spd_matrix(3)
+randmat = np.random.rand(3, 3)
+
+
+@pytest.mark.parametrize("S1", [spdmat, randmat @ spdmat])
+@pytest.mark.parametrize("S2", [spdmat, randmat @ spdmat])
+def test_cholesky_update_sum(S1, S2):
     S3 = pnfs.cholesky_update(S1, S2)
     np.testing.assert_allclose(S3 @ S3.T, S1 @ S1.T + S2 @ S2.T)
+    np.testing.assert_allclose(np.tril(S3), S3)
+    np.testing.assert_allclose(np.diag(S3), np.abs(np.diag(S3)))
 
 
 #
