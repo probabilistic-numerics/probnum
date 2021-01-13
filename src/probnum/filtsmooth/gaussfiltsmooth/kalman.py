@@ -2,6 +2,7 @@
 
 import numpy as np
 
+import probnum.filtsmooth.statespace as pnfss
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
@@ -210,6 +211,13 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
+
+        # See Issue #300
+        if isinstance(self.dynamics_model, pnfss.LinearSDE) and not isinstance(
+            self.dynamics_model, pnfss.LTISDE
+        ):
+            raise ValueError("Continuous-discrete smoothing is not supported (yet).")
+
         rv_list = self.smooth_list(
             filter_posterior,
             filter_posterior.locations,
@@ -322,14 +330,10 @@ class Kalman(BayesFiltSmooth):
         )
         crosscov = info["crosscov"]
         smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T
-        new_mean = unsmoothed_rv.mean + smoothing_gain @ (
-            smoothed_rv.mean - predicted_rv.mean
+        smoothed_rv = self._smoothing_update_linear_algebra(
+            unsmoothed_rv, smoothing_gain, smoothed_rv, predicted_rv
         )
-        new_cov = (
-            unsmoothed_rv.cov
-            + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
-        )
-        return Normal(new_mean, new_cov)
+        return smoothed_rv
 
     def _smooth_step_with_preconditioning(
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
@@ -361,6 +365,15 @@ class Kalman(BayesFiltSmooth):
         )
         crosscov = info["crosscov"]
         smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T
+        smoothed_rv = self._smoothing_update_linear_algebra(
+            unsmoothed_rv, smoothing_gain, smoothed_rv, predicted_rv
+        )
+        return self.dynamics_model.precon(stop - start) @ smoothed_rv
+
+    def _smoothing_update_linear_algebra(
+        self, unsmoothed_rv, smoothing_gain, smoothed_rv, predicted_rv
+    ):
+        """This is where the heavy lifting (aka matrix-matrix operations) is done."""
         new_mean = unsmoothed_rv.mean + smoothing_gain @ (
             smoothed_rv.mean - predicted_rv.mean
         )
@@ -368,4 +381,4 @@ class Kalman(BayesFiltSmooth):
             unsmoothed_rv.cov
             + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
         )
-        return self.dynamics_model.precon(stop - start) @ Normal(new_mean, new_cov)
+        return Normal(new_mean, new_cov)
