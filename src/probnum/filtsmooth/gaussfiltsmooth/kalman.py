@@ -44,7 +44,7 @@ class Kalman(BayesFiltSmooth):
         )
         return smooth_posterior
 
-    def filter(self, dataset, times, intermediate_step=None, linearise_at=None):
+    def filter(self, dataset, times, intermediate_step=None, _linearise_at=None):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
@@ -59,7 +59,7 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the filtered output
         """
-        # linearise_at is not used here, only in IteratedKalman.filter_step
+        # _linearise_at is not used here, only in IteratedKalman.filter_step
         # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
         filtrv = self.initrv

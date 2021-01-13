@@ -26,10 +26,10 @@ class ContinuousUKFComponent(statespace.Transition):
 
         raise NotImplementedError("Implementation incomplete.")
 
-    def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
+    def transition_realization(self, real, start, stop, _linearise_at=None, **kwargs):
         raise NotImplementedError("TODO")  # Issue  #234
 
-    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
+    def transition_rv(self, rv, start, stop, _linearise_at=None, **kwargs):
         raise NotImplementedError("TODO")  # Issue  #234
 
     @property
@@ -52,8 +52,8 @@ class DiscreteUKFComponent(statespace.Transition):
             real, start, _diffusion=_diffusion, **kwargs
         )
 
-    def transition_rv(self, rv, start, linearise_at=None, _diffusion=1.0, **kwargs):
-        compute_sigmapts_at = linearise_at if linearise_at is not None else rv
+    def transition_rv(self, rv, start, _linearise_at=None, _diffusion=1.0, **kwargs):
+        compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
         sigmapts = self.ut.sigma_points(
             compute_sigmapts_at.mean, compute_sigmapts_at.cov
         )

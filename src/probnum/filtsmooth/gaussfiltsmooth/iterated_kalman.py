@@ -80,11 +80,11 @@ class IteratedKalman(Kalman):
             start,
             stop,
             current_rv,
-            linearise_at=linearise_predict_at,
+            _linearise_at=linearise_predict_at,
             intermediate_step=intermediate_step,
         )
         upd_rv, meas_rv, info_upd = self.update(
-            stop, pred_rv, data, linearise_at=linearise_update_at
+            stop, pred_rv, data, _linearise_at=linearise_update_at
         )
 
         # Specify additional information to be returned
@@ -100,38 +100,42 @@ class IteratedKalman(Kalman):
         """Repeated filtering and smoothing using posterior linearisation."""
         posterior = self.filtsmooth(dataset, times, **kwargs)
         while self.stoppingcriterion.continue_filtsmooth_iteration(posterior):
-            posterior = self.filter(dataset, times, linearise_at=posterior)
+            posterior = self.filter(dataset, times, _linearise_at=posterior)
             posterior = self.smooth(posterior)
         return posterior
 
-    def predict(self, start, stop, randvar, linearise_at=None, intermediate_step=None):
+    def predict(self, start, stop, randvar, _linearise_at=None, intermediate_step=None):
         """(Possibly iterated) prediction step."""
         pred_rv, info_pred = self.dynamics_model.transition_rv(
-            randvar, start, stop=stop, linearise_at=linearise_at, step=intermediate_step
+            randvar,
+            start,
+            stop=stop,
+            _linearise_at=_linearise_at,
+            step=intermediate_step,
         )
         while self.stoppingcriterion.continue_predict_iteration(pred_rv, info_pred):
             pred_rv, info_pred = self.dynamics_model.transition_rv(
-                pred_rv, start, stop, linearise_at=pred_rv, step=intermediate_step
+                pred_rv, start, stop, _linearise_at=pred_rv, step=intermediate_step
             )
         return pred_rv, info_pred
 
-    def update(self, time, randvar, data, linearise_at=None):
+    def update(self, time, randvar, data, _linearise_at=None):
         """(Possibly iterated) update step."""
         upd_rv, meas_rv, info_upd = self._single_update(
-            time, randvar, data, linearise_at=linearise_at
+            time, randvar, data, _linearise_at=_linearise_at
         )
         while self.stoppingcriterion.continue_update_iteration(
             upd_rv, meas_rv, info_upd
         ):
             upd_rv, meas_rv, info_upd = self._single_update(
-                time, randvar, data, linearise_at=upd_rv
+                time, randvar, data, _linearise_at=upd_rv
             )
         return upd_rv, meas_rv, info_upd
 
-    def _single_update(self, time, randvar, data, linearise_at=None):
-        # like kalman.update but with an explicit linearise_at argument
+    def _single_update(self, time, randvar, data, _linearise_at=None):
+        # like kalman.update but with an explicit _linearise_at argument
         meas_rv, info = self.measurement_model.transition_rv(
-            randvar, time, linearise_at=linearise_at
+            randvar, time, _linearise_at=_linearise_at
         )
         crosscov = info["crosscov"]
         new_mean = randvar.mean + crosscov @ np.linalg.solve(

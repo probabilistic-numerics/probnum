@@ -37,7 +37,7 @@ class SDE(transition.Transition):
         stop=None,
         step=None,
         _diffusion=1.0,
-        linearise_at=None,
+        _linearise_at=None,
     ):
         raise NotImplementedError
 
@@ -48,7 +48,7 @@ class SDE(transition.Transition):
         stop=None,
         step=None,
         _diffusion=1.0,
-        linearise_at=None,
+        _linearise_at=None,
     ):
         raise NotImplementedError
 
