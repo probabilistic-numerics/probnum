@@ -54,15 +54,14 @@ def sqrt_kalman_update(measmat, meascov_cholesky, predcov_cholesky):
         [[meascov_cholesky, measmat @ predcov_cholesky], [zeros, predcov_cholesky]]
     ).T
     big_triu = np.linalg.qr(blockmat, mode="r")
-
     meas_dim = len(measmat)
     measured_triu = big_triu[:meas_dim, :meas_dim]
     measured_cholesky = triu_to_positive_tril(measured_triu)
-    postcov_triu = big_triu[meas_dim:, meas_dim:].T
+
+    postcov_triu = big_triu[meas_dim:, meas_dim:]
     postcov_cholesky = triu_to_positive_tril(postcov_triu)
-    kalman_gain = scipy.linalg.cho_solve(
-        (measured_cholesky, True), big_triu[:meas_dim, meas_dim:]
-    ).T
+    kalman_gain = big_triu[:meas_dim, meas_dim:].T @ np.linalg.inv(measured_triu.T)
+
     return measured_cholesky, kalman_gain, postcov_cholesky
 
 

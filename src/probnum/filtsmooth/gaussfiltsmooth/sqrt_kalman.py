@@ -98,12 +98,12 @@ class SquareRootKalman(Kalman):
         L_S, K, L_P = sqrt_kalman_update(H, L_R, predcov_cholesky)
 
         measrv_mean = H @ randvar.mean + s
-
         res = data - measrv_mean
         new_mean = randvar.mean + K @ res
         new_cov = L_P @ L_P.T
 
         meas_rv = pnrv.Normal(measrv_mean, cov=L_S @ L_S.T, cov_cholesky=L_S)
+
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P), meas_rv, {}
 
     def smooth_step(
