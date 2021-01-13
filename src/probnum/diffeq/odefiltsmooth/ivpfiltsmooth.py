@@ -1,13 +1,14 @@
 import numpy as np
 
 import probnum.filtsmooth as pnfs
-from probnum.diffeq import odesolver
-from probnum.diffeq.odesolution import ODESolution
 from probnum.random_variables import Normal
 
+from ..odesolver import ODESolver
+from .kalman_odesolution import KalmanODESolution
 
-class GaussianIVPFilter(odesolver.ODESolver):
-    """ODE solver that behaves like a Gaussian filter.
+
+class GaussianIVPFilter(ODESolver):
+    """ODE solver that uses a Gaussian filter.
 
     This is based on continuous-discrete Gaussian filtering.
 
@@ -75,13 +76,20 @@ class GaussianIVPFilter(odesolver.ODESolver):
 
         return filt_rv, err
 
-    def postprocess(self, times, rvs):
-        """Rescale covariances with sigma square estimate, (if specified) smooth the
-        estimate, return ODESolution."""
+    def rvlist_to_odesol(self, times, rvs):
+        """Create an ODESolution object."""
+
+        kalman_posterior = pnfs.KalmanPosterior(
+            times, rvs, self.gfilt, self.with_smoothing
+        )
+
+        return KalmanODESolution(kalman_posterior)
+
+    def postprocess(self, odesol):
+        """If specified (at initialisation), smooth the filter output."""
         if False:  # pylint: disable=using-constant-test
             # will become useful again for time-fixed diffusion models
             rvs = self._rescale(rvs)
-        odesol = super().postprocess(times, rvs)
         if self.with_smoothing is True:
             odesol = self._odesmooth(ode_solution=odesol)
         return odesol
@@ -105,16 +113,8 @@ class GaussianIVPFilter(odesolver.ODESolver):
         -------
         smoothed_solution: ODESolution
         """
-        ivp_filter_posterior = ode_solution._kalman_posterior
-        ivp_smoother_posterior = self.gfilt.smooth(ivp_filter_posterior)
-
-        smoothed_solution = ODESolution(
-            times=ivp_smoother_posterior.locations,
-            rvs=ivp_smoother_posterior.state_rvs,
-            solver=ode_solution._solver,
-        )
-
-        return smoothed_solution
+        smoothing_posterior = self.gfilt.smooth(ode_solution.kalman_posterior)
+        return KalmanODESolution(smoothing_posterior)
 
     def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
         """Estimate the local errors.

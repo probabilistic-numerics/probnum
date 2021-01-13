@@ -29,6 +29,7 @@ from pkg_resources import DistributionNotFound, get_distribution
 from . import (
     diffeq,
     filtsmooth,
+    kernels,
     linalg,
     linops,
     problems,
