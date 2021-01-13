@@ -7,9 +7,11 @@ based on a third degree fully symmetric rule.
 
 import numpy as np
 
-from probnum.filtsmooth import statespace
-from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform as ut
-from probnum.random_variables import Normal
+import probnum.filtsmooth.statespace as pnfss
+import probnum.random_variables as pnrv
+
+from .linearizing_transition import LinearizingTransition
+from .unscentedtransform import UnscentedTransform
 
 
 class UKFComponent(LinearizingTransition):
@@ -19,7 +21,7 @@ class UKFComponent(LinearizingTransition):
         self, non_linear_model, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
     ):
         super().__init__(non_linear_model=non_linear_model)
-        self.ut = ut.UnscentedTransform(dimension, spread, priorpar, special_scale)
+        self.ut = UnscentedTransform(dimension, spread, priorpar, special_scale)
 
         # Determine the linearization.
         # Will be constructed later.
@@ -36,7 +38,7 @@ class ContinuousUKFComponent(UKFComponent):
     def __init__(
         self, non_linear_model, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
     ):
-        if not isinstance(non_linear_model, statespace.SDE):
+        if not isinstance(non_linear_model, pnfss.SDE):
             raise TypeError("cont_model must be an SDE.")
         super().__init__(
             non_linear_model,
@@ -59,13 +61,13 @@ class ContinuousUKFComponent(UKFComponent):
         raise NotImplementedError
 
 
-class DiscreteUKFComponent(statespace.DiscreteGaussian):
+class DiscreteUKFComponent(UKFComponent):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
         self, non_linear_model, dimension, spread=1.0, priorpar=2.0, special_scale=0.0
     ):
-        if not isinstance(non_linear_model, statespace.DiscreteGaussian):
+        if not isinstance(non_linear_model, pnfss.DiscreteGaussian):
             raise TypeError("cont_model must be an SDE.")
         super().__init__(
             non_linear_model,
@@ -83,13 +85,13 @@ class DiscreteUKFComponent(statespace.DiscreteGaussian):
         self.linearize(at_this_rv=compute_sigmapts_at)
 
         proppts = self.ut.propagate(
-            start, self.sigma_points, self.disc_model.dynamicsfun
+            start, self.sigma_points, self.non_linear_model.dynamicsfun
         )
-        meascov = self.disc_model.diffmatfun(start)
+        meascov = self.non_linear_model.diffmatfun(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
-            proppts, sigmapts, meascov, rv.mean
+            proppts, self.sigma_points, meascov, rv.mean
         )
-        return Normal(mean, cov), {"crosscov": crosscov}
+        return pnrv.Normal(mean, cov), {"crosscov": crosscov}
 
     @property
     def dimension(self):
@@ -108,5 +110,5 @@ class DiscreteUKFComponent(statespace.DiscreteGaussian):
         def diff(t):
             return evlvar * np.eye(spatialdim)
 
-        disc_model = statespace.DiscreteGaussian(dyna, diff)
+        disc_model = pnfss.DiscreteGaussian(dyna, diff)
         return cls(disc_model, dimension=prior.dimension)

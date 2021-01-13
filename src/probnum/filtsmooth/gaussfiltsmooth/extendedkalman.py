@@ -20,18 +20,22 @@ class EKFComponent(LinearizingTransition):
         # Will be constructed later
         self.linearized_model = None
 
-    def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
-
-        compute_jacobian_at = (
-            linearise_at if linearise_at is not None else pnrv.Constant(real)
+    def transition_realization(
+        self, real, start, stop=None, step=None, linearise_at=None, **kwargs
+    ):
+        real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
+        return self.transition_rv(
+            real_as_rv, start, stop, step=step, linearise_at=linearise_at, **kwargs
         )
-        self.linearize(at_this_rv=compute_jacobian_at)
-        return self.linearized_model.transition_rv(rv=rv, start=start, stop=stop)
 
-    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
+    def transition_rv(
+        self, rv, start, stop=None, step=None, linearise_at=None, **kwargs
+    ):
         compute_jacobian_at = linearise_at if linearise_at is not None else rv
         self.linearize(at_this_rv=compute_jacobian_at)
-        return self.linearized_model.transition_rv(rv=rv, start=start, stop=stop)
+        return self.linearized_model.transition_rv(
+            rv=rv, start=start, stop=stop, step=step
+        )
 
 
 class ContinuousEKFComponent(EKFComponent):

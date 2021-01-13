@@ -303,9 +303,9 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_rv(initrv, 0.0, 1.0)
+                nonlinear_model.transition_rv(initrv, 0.0, 1.0, step=0.1)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_rv(initrv, 0.0, 1.0)
+            linearised_model.transition_rv(initrv, 0.0, 1.0, step=0.1)
 
     def test_transition_real(self):
         """transition_real() not possible for original model but for the linearised
@@ -316,6 +316,6 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_realization(initrv.mean, 0.0, 1.0)
+                nonlinear_model.transition_realization(initrv.mean, 0.0, 1.0, step=0.1)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_realization(initrv.mean, 0.0, 1.0)
+            linearised_model.transition_realization(initrv.mean, 0.0, 1.0, step=0.1)

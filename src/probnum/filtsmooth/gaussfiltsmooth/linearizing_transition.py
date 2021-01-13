@@ -18,6 +18,7 @@ class LinearizingTransition(pnfss.Transition, abc.ABC):
 
     def __init__(self, non_linear_model: pnfss.Transition):
         self.non_linear_model = non_linear_model
+        super().__init__()
 
     @abc.abstractmethod
     def transition_realization(
