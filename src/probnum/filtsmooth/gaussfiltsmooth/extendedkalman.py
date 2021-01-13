@@ -1,6 +1,8 @@
 """Gaussian filtering and smoothing based on making intractable quantities tractable
 through Taylor-method approximations, e.g. linearization."""
 
+import functools as ft
+
 import numpy as np
 
 import probnum.random_variables as pnrv
@@ -61,6 +63,9 @@ class ContinuousEKFComponent(statespace.SDE):
             dispmatfun=self.non_linear_sde.dispmatfun,
         )
 
+    def linearize(self, at_this_point):
+        pass
+
     @property
     def dimension(self):
         raise NotImplementedError
@@ -71,6 +76,8 @@ class DiscreteEKFComponent(statespace.DiscreteGaussian):
 
     def __init__(self, disc_model):
         self.disc_model = disc_model
+
+        self.linearized_model = None
 
         # This inheritance enables things like "diffmatfun_cholesky"
         super().__init__(
@@ -90,6 +97,15 @@ class DiscreteEKFComponent(statespace.DiscreteGaussian):
         crosscov = rv.cov @ jacob.T
         cpred = jacob @ crosscov + diffmat
         return pnrv.Normal(mpred, cpred), {"crosscov": crosscov}
+
+    def linearize(self, at_this_point):
+
+        # no partial bc. "x" need not be a keyword argument
+        def linearized_dynamics(t, x=at_this_point):
+            return self.jacobfun(t, x)
+
+        self.linearized_model = statespace.DiscreteLinearGaussian()
+        raise RuntimeError
 
     @property
     def dimension(self):
