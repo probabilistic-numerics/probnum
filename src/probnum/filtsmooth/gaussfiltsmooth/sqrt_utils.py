@@ -1,4 +1,11 @@
-"""Utility functions for square-root Gaussian filtering and smoothing."""
+"""Utility functions for square-root Gaussian filtering and smoothing.
+
+See
+    https://arxiv.org/pdf/1610.04397.pdf
+and
+    https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.1059&rep=rep1&type=pdf
+for information.
+"""
 
 import numpy as np
 
@@ -58,6 +65,10 @@ def sqrt_smoothing_step(L_P_unsmoothed_past, A, L_Q, L_P_smoothed_fut, G):
 
 
 def triu_to_positive_tril(triu_mat):
+    """Change an upper triangular matrix into a valid lower Cholesky factor.
+
+    Transpose and change the sign of the diagonals to '+' if necessary.
+    """
     tril_mat = triu_mat.T
     with_pos_diag = tril_mat @ np.diag(np.sign(np.diag(tril_mat)))
     return with_pos_diag
