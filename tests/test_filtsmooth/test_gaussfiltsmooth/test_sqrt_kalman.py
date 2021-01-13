@@ -1,3 +1,9 @@
+"""Tests for square-root Kalman filtering and smoothing.
+
+Check that the output matches the output of standard Kalman filtering
+and smoothing.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -116,25 +122,3 @@ def test_filtsmooth(sqrt_kalman, kalman, data, times):
     np.testing.assert_allclose(
         sol_sqrt.state_rvs.cov, sol_classic.state_rvs.cov, rtol=1e-2, atol=1e-12
     )
-
-
-#
-# def test_sqrt_kalman():
-#     dynmod, measmod, initrv, info = car_tracking()
-#     delta_t = info["dt"]
-#     tms = np.arange(0, 20, delta_t)
-#     states, obs = pnfs.statespace.generate(dynmod, measmod, initrv, tms)
-#     sqrt_kal = pnfs.SquareRootKalman(dynmod, measmod, initrv)
-#     kal = pnfs.Kalman(dynmod, measmod, initrv)
-#
-#     sol = sqrt_kal.filtsmooth(obs, tms)
-#     sol_old = kal.filtsmooth(obs, tms)
-#     H = np.eye(2, 4)
-#     pos = sol.state_rvs.mean @ H.T
-#     pos_old = sol_old.state_rvs.mean @ H.T
-#     #
-#     # print(obs)
-#     # print(pos - pos_old)
-#     # plt.plot(pos[:, 0], pos[:, 1])
-#     # plt.show()
-#     assert 1 == 0
