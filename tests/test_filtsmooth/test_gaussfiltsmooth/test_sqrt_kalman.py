@@ -51,6 +51,16 @@ def test_predict(sqrt_kalman, kalman, random_rv4):
     np.testing.assert_allclose(info1["crosscov"], info2["crosscov"])
 
 
+def test_measure(sqrt_kalman, kalman, random_rv4):
+    res1, info1 = sqrt_kalman.measure(1.0, random_rv4)
+    res2, info2 = kalman.measure(1.0, random_rv4)
+
+    np.testing.assert_allclose(res1.mean, res2.mean)
+    np.testing.assert_allclose(res1.cov, res2.cov)
+    np.testing.assert_allclose(res1.cov_cholesky, res2.cov_cholesky)
+    np.testing.assert_allclose(info1["crosscov"], info2["crosscov"])
+
+
 def test_sqrt_kalman():
     dynmod, measmod, initrv, info = car_tracking()
     delta_t = info["dt"]

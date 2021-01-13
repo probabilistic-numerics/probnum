@@ -68,9 +68,9 @@ class SquareRootKalman(Kalman):
         else:
             disc_model = self.measurement_model
 
-        H = disc_model.dynamicsmatfun(start)
-        s = disc_model.forcevecfun(start)
-        L_R = disc_model.diffmatfun_cholesky(start)
+        H = disc_model.dynamicsmatfun(time)
+        s = disc_model.forcevecfun(time)
+        L_R = disc_model.diffmatfun_cholesky(time)
 
         old_mean = randvar.mean
         old_cov_cholesky = randvar.cov_cholesky
@@ -78,7 +78,10 @@ class SquareRootKalman(Kalman):
         new_mean = H @ old_mean + s
         new_cov_cholesky = cholesky_update(H @ old_cov_cholesky, L_R)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
-        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky)
+        crosscov = randvar.cov @ H.T
+        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
+            "crosscov": crosscov
+        }
 
     def update(self, time, randvar, data):
         predcov_cholesky = randvar.cov_cholesky
