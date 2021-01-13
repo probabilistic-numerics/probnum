@@ -134,7 +134,7 @@ def probsolve_ivp(
 
     Returns
     -------
-    solution : ODESolution
+    solution : KalmanODESolution
         Solution of the ODE problem.
 
         Contains fields:
@@ -152,7 +152,7 @@ def probsolve_ivp(
     See Also
     --------
     GaussianIVPFilter : Solve IVPs with Gaussian filtering and smoothing
-    ODESolution : Solution of ODE problems
+    KalmanODESolution : Solution of ODE problems based on Gaussian filtering and smoothing.
 
     References
     ----------
