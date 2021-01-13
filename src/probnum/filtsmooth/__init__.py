@@ -11,6 +11,7 @@ from .gaussfiltsmooth import (
     IteratedKalman,
     Kalman,
     KalmanPosterior,
+    LinearizingTransition,
     SquareRootKalman,
     StoppingCriterion,
     UnscentedTransform,
@@ -21,6 +22,7 @@ from .gaussfiltsmooth import (
 __all__ = [
     "Kalman",
     "SquareRootKalman",
+    "LinearizingTransition",
     "ContinuousEKFComponent",
     "DiscreteEKFComponent",
     "ContinuousUKFComponent",

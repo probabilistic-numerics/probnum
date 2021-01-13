@@ -12,7 +12,7 @@ import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 
 
-class LinearisingTransition(pnfss.Transition, abc.ABC):
+class LinearizingTransition(pnfss.Transition, abc.ABC):
     """Take a non-linear transition and implement an approximation that supports
     transitioning RVs."""
 
