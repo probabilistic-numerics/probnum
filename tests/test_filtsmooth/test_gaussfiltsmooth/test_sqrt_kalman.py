@@ -105,6 +105,19 @@ def test_filter(sqrt_kalman, kalman, data, times):
     np.testing.assert_allclose(sol_sqrt.state_rvs.cov, sol_classic.state_rvs.cov)
 
 
+def test_filtsmooth(sqrt_kalman, kalman, data, times):
+    sol_sqrt = sqrt_kalman.filtsmooth(data, times)
+    sol_classic = kalman.filtsmooth(data, times)
+
+    # non-strict rtol parameter because there are many small values
+    np.testing.assert_allclose(
+        sol_sqrt.state_rvs.mean, sol_classic.state_rvs.mean, rtol=1e-2, atol=1e-12
+    )
+    np.testing.assert_allclose(
+        sol_sqrt.state_rvs.cov, sol_classic.state_rvs.cov, rtol=1e-2, atol=1e-12
+    )
+
+
 #
 # def test_sqrt_kalman():
 #     dynmod, measmod, initrv, info = car_tracking()
