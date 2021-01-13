@@ -1,4 +1,5 @@
 """Discrete transitions."""
+from functools import lru_cache
 from typing import Callable, Optional
 
 import numpy as np
@@ -10,10 +11,9 @@ from . import transition as trans
 
 try:
     # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property, lru_cache
+    from functools import cached_property
 except ImportError:
     from cached_property import cached_property
-    from lru_cache import lru_cache
 
 
 class DiscreteGaussian(trans.Transition):
