@@ -33,7 +33,7 @@ class IteratedKalman(Kalman):
         current_rv,
         data,
         previous_posterior=None,
-        intermediate_step=None,
+        _intermediate_step=None,
     ):
         """Filter step of iterated filter.
 
@@ -81,7 +81,7 @@ class IteratedKalman(Kalman):
             stop,
             current_rv,
             _linearise_at=linearise_predict_at,
-            intermediate_step=intermediate_step,
+            _intermediate_step=_intermediate_step,
         )
         upd_rv, meas_rv, info_upd = self.update(
             stop, pred_rv, data, _linearise_at=linearise_update_at
@@ -104,18 +104,20 @@ class IteratedKalman(Kalman):
             posterior = self.smooth(posterior)
         return posterior
 
-    def predict(self, start, stop, randvar, _linearise_at=None, intermediate_step=None):
+    def predict(
+        self, start, stop, randvar, _linearise_at=None, _intermediate_step=None
+    ):
         """(Possibly iterated) prediction step."""
         pred_rv, info_pred = self.dynamics_model.transition_rv(
             randvar,
             start,
             stop=stop,
             _linearise_at=_linearise_at,
-            step=intermediate_step,
+            step=_intermediate_step,
         )
         while self.stoppingcriterion.continue_predict_iteration(pred_rv, info_pred):
             pred_rv, info_pred = self.dynamics_model.transition_rv(
-                pred_rv, start, stop, _linearise_at=pred_rv, step=intermediate_step
+                pred_rv, start, stop, _linearise_at=pred_rv, step=_intermediate_step
             )
         return pred_rv, info_pred
 
