@@ -155,32 +155,36 @@ class Kernel(Generic[_InputType], abc.ABC):
         """
         # pylint: disable="too-many-boolean-expressions"
 
-        x0 = np.asarray(x0)
-        equal_inputs = False
-        if x1 is None:
-            x1 = x0
-            equal_inputs = True
-        else:
-            x1 = np.asarray(x1)
-
-        err_msg = (
-            f"Argument shapes x0.shape={x0.shape} and x1.shape="
-            f"{x1.shape} do not match kernel input dimension "
-            f"{self.input_dim}. Try passing either two vectors or two matrices with the"
-            f" second dimension equalling the kernel input dimension."
-        )
-
         # Check and promote shapes
+        x0 = np.asarray(x0)
         if x1 is None:
-
             if (
                 (x0.ndim == 0 and self.input_dim > 1)  # Scalar input
                 or (x0.ndim == 1 and x0.shape[0] != self.input_dim)  # Vector input
                 or (x0.ndim >= 2 and x0.shape[1] != self.input_dim)  # Matrix input
             ):
-                raise ValueError(err_msg)
-            equal_inputs = True
+                raise ValueError(
+                    "Argument shape x0.shape={x0.shape} does not match "
+                    "kernel input dimension."
+                )
+
+            # Determine correct shape for the kernel matrix as the output of __call__
+            kernshape = self._get_shape_kernelmatrix(
+                x0_shape=x0.shape, x1_shape=x0.shape
+            )
+
+            return np.atleast_2d(x0), None, kernshape
         else:
+            err_msg = (
+                f"Argument shapes x0.shape={x0.shape} and x1.shape="
+                f"{x1.shape} do not match kernel input dimension "
+                f"{self.input_dim}. Try passing either two vectors or two "
+                "matrices with the second dimension equal to the kernel input "
+                "dimension."
+            )
+
+            x1 = np.asarray(x1)
+
             # Promote unequal shapes
             if x0.ndim < 2 and x1.ndim == 2:
                 x0 = np.atleast_2d(x0)
@@ -203,12 +207,11 @@ class Kernel(Generic[_InputType], abc.ABC):
             ):
                 raise ValueError(err_msg)
 
-        # Determine correct shape for the kernel matrix as the output of __call__
-        kernshape = self._get_shape_kernelmatrix(x0_shape=x0.shape, x1_shape=x1.shape)
+            # Determine correct shape for the kernel matrix as the output of __call__
+            kernshape = self._get_shape_kernelmatrix(
+                x0_shape=x0.shape, x1_shape=x0.shape
+            )
 
-        if equal_inputs:
-            return np.atleast_2d(x0), None, kernshape
-        else:
             return np.atleast_2d(x0), np.atleast_2d(x1), kernshape
 
     def _get_shape_kernelmatrix(
