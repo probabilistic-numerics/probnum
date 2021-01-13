@@ -4,7 +4,7 @@ import numpy as np
 
 from .extendedkalman import DiscreteEKFComponent
 from .kalman import Kalman
-from .utils import cholesky_update
+from .sqrt_utils import cholesky_update
 
 
 # This class re-implements predict and measure,
@@ -72,37 +72,3 @@ class SquareRootKalman(Kalman):
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
     ):
         pass
-
-
-def square_root_update_matrices(L_R, H, L_C):
-
-    zeros = np.zeros(H.T.shape)
-    blockmat = np.block(((L_R, H @ L_C), (zeros, L_C))).T
-    big_R = np.linalg.qr(blockmat, mode="r")
-
-    size_small = len(H)
-
-    L_S = big_R[:size_small, :size_small].T
-    L_P = big_R[size_small:, size_small:].T
-    K = np.linalg.solve(L_S, big_R[:size_small, size_small:]).T
-
-    return L_S, K, L_P
-
-
-def square_root_smoothing_matrices(L_P_unsmoothed_past, A, L_Q, L_P_smoothed_fut, G):
-
-    zeros = np.zeros(A.shape)
-    blockmat = np.block(
-        (
-            (L_P_unsmoothed_past.T @ A.T, L_P_unsmoothed_past.T),
-            (L_Q.T, zeros),
-            (zeros, L_P_smoothed_fut.T @ G.T),
-        )
-    )
-    big_R = np.linalg.qr(blockmat, mode="r")
-
-    size_small = len(A)
-
-    L_P_smoothed = big_R[size_small : 2 * size_small, size_small:]
-
-    return L_P_smoothed
