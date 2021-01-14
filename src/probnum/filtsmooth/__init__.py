@@ -18,6 +18,9 @@ from .gaussfiltsmooth import (
     UKFComponent,
     UnscentedTransform,
     cholesky_update,
+    sqrt_kalman_update,
+    sqrt_smoothing_step,
+    triu_to_positive_tril,
 )
 
 # Public classes and functions. Order is reflected in documentation.
@@ -38,4 +41,7 @@ __all__ = [
     "StoppingCriterion",
     "FixedPointStopping",
     "cholesky_update",
+    "sqrt_kalman_update",
+    "sqrt_smoothing_step",
+    "triu_to_positive_tril",
 ]

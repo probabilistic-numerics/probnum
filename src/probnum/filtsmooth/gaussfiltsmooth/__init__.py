@@ -4,7 +4,12 @@ from .kalman import Kalman
 from .kalmanposterior import KalmanPosterior
 from .linearizing_transition import LinearizingTransition
 from .sqrt_kalman import SquareRootKalman
-from .sqrt_utils import cholesky_update
+from .sqrt_utils import (
+    cholesky_update,
+    sqrt_kalman_update,
+    sqrt_smoothing_step,
+    triu_to_positive_tril,
+)
 from .stoppingcriterion import FixedPointStopping, StoppingCriterion
 from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent, UKFComponent
 from .unscentedtransform import UnscentedTransform
