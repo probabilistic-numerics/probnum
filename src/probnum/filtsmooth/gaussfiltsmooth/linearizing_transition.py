@@ -10,6 +10,7 @@ import numpy as np
 
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
+import probnum.type as pntype
 
 
 # Naming may be an overfit to EKF, but the next more general name that admits UKF

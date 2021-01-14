@@ -1,5 +1,4 @@
 """Discrete transitions."""
-from functools import lru_cache
 from typing import Callable, Optional
 
 import numpy as np
@@ -11,8 +10,10 @@ from . import transition as trans
 
 try:
     # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property  # pylint-disable: ungrouped-imports
+    from functools import cached_property, lru_cache
 except ImportError:
+    from functools import lru_cache
+
     from cached_property import cached_property
 
 

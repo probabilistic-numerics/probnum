@@ -3,16 +3,16 @@
 Check that the output matches the output of standard Kalman filtering
 and smoothing.
 """
+# pylint: disable=redefined-outer-name
 
-import matplotlib.pyplot as plt
 import numpy as np
-import pytest
+import pytest  # pylint: disable=import-error
 
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 from probnum.problems.zoo.linalg import random_spd_matrix
 
-from .filtsmooth_testcases import car_tracking, pendulum
+from .filtsmooth_testcases import car_tracking
 
 np.random.seed(42)
 

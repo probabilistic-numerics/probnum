@@ -1,5 +1,5 @@
 import numpy as np
-import pytest
+import pytest  # pylint: disable=import-error
 
 import probnum.filtsmooth as pnfs
 from probnum.problems.zoo.linalg import random_spd_matrix
