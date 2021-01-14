@@ -1,6 +1,6 @@
 """Test fixtures for probabilistic linear solvers."""
 
-from typing import Optional
+from typing import Iterator, Optional
 
 import numpy as np
 import pytest
@@ -8,6 +8,7 @@ import pytest
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
     LinearSolverState,
+    ProbabilisticLinearSolver,
     beliefs,
     hyperparam_optim,
     observation_ops,
@@ -83,10 +84,15 @@ def custom_policy(
     solver_state: Optional[LinearSolverState] = None,
 ):
     action = rvs.Normal(
-        np.zeros((problem.A.shape[1], 1)),
-        np.eye(problem.A.shape[1]),
+        0.0,
+        1.0,
         random_state=random_state,
-    ).sample()
+    ).sample((problem.A.shape[1], 1))
+    action = action / np.linalg.norm(action)
+    try:
+        solver_state.actions.append(action)
+    except AttributeError:
+        pass
     return action, solver_state
 
 
@@ -120,7 +126,7 @@ def action(n: int, random_state: np.random.RandomState) -> np.ndarray:
 @pytest.fixture()
 def actions(n: int, num_iters: int, random_state: np.random.RandomState) -> list:
     """Action chosen by a policy."""
-    return list((random_state.normal(size=(n, num_iters))).T)
+    return [action[:, None] for action in (random_state.normal(size=(n, num_iters))).T]
 
 
 #########################
@@ -241,4 +247,72 @@ def solver_state_init(
         step_sizes=[],
         has_converged=False,
         stopping_criterion=None,
+    )
+
+
+@pytest.fixture()
+def prob_linear_solver(
+    prior: beliefs.LinearSystemBelief,
+    policy: policies.Policy,
+    observation_op: observation_ops.ObservationOperator,
+    stopcrit: stop_criteria.StoppingCriterion,
+):
+    """Custom probabilistic linear solvers."""
+    return ProbabilisticLinearSolver(
+        prior=prior,
+        policy=policy,
+        observation_op=observation_op,
+        stopping_criteria=[stop_criteria.MaxIterations(), stopcrit],
+    )
+
+
+@pytest.fixture()
+def solve_iterator(
+    prob_linear_solver: ProbabilisticLinearSolver,
+    linsys_spd: LinearSystem,
+    prior: beliefs.LinearSystemBelief,
+    solver_state_init: LinearSolverState,
+) -> Iterator:
+    """Solver iterators of custom probabilistic linear solvers."""
+    return prob_linear_solver.solve_iterator(
+        problem=linsys_spd, belief=prior, solver_state=solver_state_init
+    )
+
+
+@pytest.fixture()
+def conj_dir_method(
+    prior: beliefs.LinearSystemBelief, stopcrit: stop_criteria.StoppingCriterion, n: int
+):
+    """Probabilistic linear solvers which are conjugate direction methods."""
+    return ProbabilisticLinearSolver(
+        prior=prior,
+        policy=policies.ConjugateDirections(),
+        observation_op=observation_ops.MatVecObservation(),
+        stopping_criteria=[
+            stop_criteria.MaxIterations(maxiter=n),
+            stop_criteria.Residual(),
+            stopcrit,
+        ],
+    )
+
+
+@pytest.fixture(
+    params=[pytest.param(alpha, id=f"alpha{alpha}") for alpha in [0.01, 1.0, 3.5]]
+)
+def conj_grad_method(
+    request,
+    uncertainty_calibration: hyperparam_optim.UncertaintyCalibration,
+    linsys_spd: LinearSystem,
+):
+    """Probabilistic linear solvers which are conjugate gradient methods."""
+    return ProbabilisticLinearSolver(
+        prior=beliefs.WeakMeanCorrespondenceBelief.from_scalar(
+            alpha=request.param,
+            problem=linsys_spd,
+            calibration_method=uncertainty_calibration,
+        ),
+        policy=policies.ConjugateDirections(),
+        observation_op=observation_ops.MatVecObservation(),
+        optimize_hyperparams=True,
+        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
     )

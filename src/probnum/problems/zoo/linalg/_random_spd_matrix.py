@@ -3,6 +3,7 @@
 from typing import Optional, Sequence
 
 import numpy as np
+import scipy.sparse
 import scipy.stats
 
 import probnum.utils as _utils
@@ -93,7 +94,7 @@ def random_sparse_spd_matrix(
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
     random_state: Optional[RandomStateArgType] = None,
-) -> np.ndarray:
+) -> scipy.sparse.csr_matrix:
     """Random sparse symmetric positive definite matrix.
 
     Constructs a random sparse symmetric positive definite matrix for a given degree
@@ -138,7 +139,7 @@ def random_sparse_spd_matrix(
     random_state = _utils.as_random_state(random_state)
     if not 0 <= density <= 1:
         raise ValueError(f"Density must be between 0 and 1, but is {density}.")
-    chol = np.eye(dim)
+    sparse_chol = scipy.sparse.eye(dim, format="csr")
     num_off_diag_cholesky = int(0.5 * dim * (dim - 1))
     num_nonzero_entries = int(num_off_diag_cholesky * density)
 
@@ -148,11 +149,16 @@ def random_sparse_spd_matrix(
         idx_samples = random_state.choice(
             a=num_off_diag_cholesky, size=num_nonzero_entries, replace=False
         )
+        nonzero_entry_row_ids = entry_ids[0][idx_samples]
+        nonzero_entry_col_ids = entry_ids[1][idx_samples]
+        nonzero_entries = random_state.uniform(
+            low=chol_entry_min, high=chol_entry_max, size=num_nonzero_entries
+        )
         nonzero_entry_ids = (entry_ids[0][idx_samples], entry_ids[1][idx_samples])
 
         # Fill Cholesky factor
-        chol[nonzero_entry_ids] = random_state.uniform(
+        sparse_chol[nonzero_entry_ids] = random_state.uniform(
             low=chol_entry_min, high=chol_entry_max, size=num_nonzero_entries
         )
 
-    return chol @ chol.T
+    return sparse_chol @ sparse_chol.T

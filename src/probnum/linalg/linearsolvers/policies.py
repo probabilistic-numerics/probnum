@@ -5,6 +5,7 @@ import numpy as np
 
 import probnum  # pylint: disable="unused-import
 import probnum.random_variables as rvs
+import probnum.utils
 from probnum.problems import LinearSystem
 from probnum.type import RandomStateArgType
 
@@ -65,7 +66,7 @@ class Policy:
     ):
         self._policy = policy
         self._is_deterministic = is_deterministic
-        self.random_state = random_state
+        self.random_state = probnum.utils.as_random_state(random_state)
 
     def __call__(
         self,
@@ -166,6 +167,12 @@ class ThompsonSampling(Policy):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Tuple[np.ndarray, Optional["probnum.linalg.linearsolvers.LinearSolverState"]]:
 
+        # Set seeds
+        belief.x.random_state = self.random_state
+        belief.A.random_state = self.random_state
+        belief.Ainv.random_state = self.random_state
+        belief.b.random_state = self.random_state
+
         # Sample from current belief
         x_sample = belief.x.sample()
         A_sample = belief.A.sample()
@@ -216,7 +223,9 @@ class ExploreExploit(Policy):
         )
 
         # Explore - exploit action
-        action = rvs.Normal(-belief.Ainv.mean @ residual, belief.x.cov).sample()
+        action = rvs.Normal(
+            -belief.Ainv.mean @ residual, belief.x.cov, random_state=self.random_state
+        ).sample()
 
         # Update solver state
         if solver_state is not None:

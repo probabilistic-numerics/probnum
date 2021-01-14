@@ -263,6 +263,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         problem: LinearSystem,
         actions: Optional[np.ndarray] = None,
         observations: Optional[np.ndarray] = None,
+        calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief over the linear system from an approximate inverse.
 
@@ -288,6 +289,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 b=problem.b,
                 actions=actions,
                 observations=observations,
+                calibration_method=calibration_method,
             )
         except AttributeError as exc:
             raise TypeError(
@@ -303,6 +305,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         problem: LinearSystem,
         actions: Optional[np.ndarray] = None,
         observations: Optional[np.ndarray] = None,
+        calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief over the linear system from an approximate system matrix.
 
@@ -328,6 +331,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
                 b=problem.b,
                 actions=actions,
                 observations=observations,
+                calibration_method=calibration_method,
             )
         except AttributeError as exc:
             raise TypeError(
@@ -344,6 +348,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         problem: LinearSystem,
         actions: Optional[np.ndarray] = None,
         observations: Optional[np.ndarray] = None,
+        calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
@@ -366,12 +371,20 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             Observations of the linear system for the given actions.
         """
         return cls(
-            A0=A0, Ainv0=Ainv0, b=problem.b, actions=actions, observations=observations
+            A0=A0,
+            Ainv0=Ainv0,
+            b=problem.b,
+            actions=actions,
+            observations=observations,
+            calibration_method=calibration_method,
         )
 
     @classmethod
     def from_scalar(
-        cls, alpha: float, problem: LinearSystem
+        cls,
+        alpha: float,
+        problem: LinearSystem,
+        calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief over the linear system from a scalar.
 
@@ -389,7 +402,9 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             raise ValueError(f"Scalar parameter alpha={alpha:.4f} must be positive.")
         A0 = linops.ScalarMult(scalar=alpha, shape=problem.A.shape)
         Ainv0 = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape)
-        return cls.from_matrices(A0=A0, Ainv0=Ainv0, problem=problem)
+        return cls.from_matrices(
+            A0=A0, Ainv0=Ainv0, problem=problem, calibration_method=calibration_method
+        )
 
     def optimize_hyperparams(
         self,

@@ -37,7 +37,7 @@ def random_state(request) -> np.random.RandomState:
 
 
 @pytest.fixture()
-def A_spd(n: int, random_state: np.random.RandomState) -> np.ndarray:
+def spd_mat(n: int, random_state: np.random.RandomState) -> np.ndarray:
     """Random symmetric positive definite matrix of dimension :func:`n`, sampled from
     :func:`random_state`."""
     return random_spd_matrix(dim=n, random_state=random_state)
@@ -45,14 +45,23 @@ def A_spd(n: int, random_state: np.random.RandomState) -> np.ndarray:
 
 @pytest.fixture(
     params=[
-        pytest.param(density, id=f"density{density}") for density in (0.001, 0.01, 0.1)
+        pytest.param(sparsemat_density, id=f"density{sparsemat_density}")
+        for sparsemat_density in (0.001, 0.01, 0.1)
     ]
 )
-def A_sparse_spd(request, n: int, random_state: np.random.RandomState) -> np.ndarray:
+def sparsemat_density(request):
+    """Density of a sparse matrix defined by the fraction of nonzero entries."""
+    return request.param
+
+
+@pytest.fixture()
+def sparse_spd_mat(
+    sparsemat_density: float, n: int, random_state: np.random.RandomState
+) -> scipy.sparse.spmatrix:
     """Random sparse symmetric positive definite matrix of dimension :func:`n`, sampled
     from :func:`random_state`."""
     return random_sparse_spd_matrix(
-        dim=n, random_state=random_state, density=request.param
+        dim=n, random_state=random_state, density=sparsemat_density
     )
 
 
@@ -94,17 +103,17 @@ def linsys_poisson() -> LinearSystem:
 
 
 @pytest.fixture()
-def linsys_spd(A_spd, random_state: np.random.RandomState) -> LinearSystem:
+def linsys_spd(spd_mat, random_state: np.random.RandomState) -> LinearSystem:
     """Symmetric positive definite linear system."""
-    return LinearSystem.from_matrix(A=A_spd, random_state=random_state)
+    return LinearSystem.from_matrix(A=spd_mat, random_state=random_state)
 
 
 @pytest.fixture()
 def linsys_sparse_spd(
-    A_sparse_spd, random_state: np.random.RandomState
+    sparse_spd_mat, random_state: np.random.RandomState
 ) -> LinearSystem:
     """Sparse symmetric positive definite linear system."""
-    return LinearSystem.from_matrix(A=A_sparse_spd, random_state=random_state)
+    return LinearSystem.from_matrix(A=sparse_spd_mat, random_state=random_state)
 
 
 @pytest.fixture()

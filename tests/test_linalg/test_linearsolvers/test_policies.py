@@ -76,7 +76,36 @@ def test_ground_truth_belief_solves_problem_in_one_step(
     )
 
 
-def test_directions_are_conjugate():
-    """Test whether the actions given by the ConjugateDirections policy are
-    A-conjugate."""
-    # TODO: use ProbabilisticLinearSolver's solve_iter function to test this
+@pytest.mark.parametrize(
+    "policy",
+    [ThompsonSampling(random_state=1), ExploreExploit(random_state=1)],
+    indirect=True,
+)
+class TestStochasticPolicies:
+    """Tests for stochastic policies."""
+
+    def test_fixed_random_state(
+        self,
+        policy: Policy,
+        linsys_spd: LinearSystem,
+        prior: LinearSystemBelief,
+    ):
+        """Test whether a fixed random state produces reproducible results."""
+        action0, _ = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
+        action1, _ = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
+        np.testing.assert_allclose(
+            action0,
+            action1,
+            rtol=10 ** 2 * np.finfo(float).eps,
+            atol=10 ** 2 * np.finfo(float).eps,
+        )
+
+
+@pytest.mark.parametrize("policy", [ConjugateDirections()], indirect=True)
+class TestConjugateDirections:
+    """Tests for the conjugate directions policy."""
+
+    def test_directions_are_conjugate(self, policy):
+        """Test whether the actions given by the ConjugateDirections policy are
+        A-conjugate."""
+        # TODO: use ProbabilisticLinearSolver's solve_iter function to test this

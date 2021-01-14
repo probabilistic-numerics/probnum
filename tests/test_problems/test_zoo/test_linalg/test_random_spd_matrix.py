@@ -1,88 +1,79 @@
 """Tests for functions generating random spd matrices."""
 
-import unittest
-
 import numpy as np
+import pytest
+import scipy.sparse
 
-from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
-from tests.testing import NumpyAssertions
+from probnum.problems.zoo.linalg import random_spd_matrix
 
 
-class RandomSPDMatrixTestCase(unittest.TestCase, NumpyAssertions):
-    """Test case for random spd matrices as test problems."""
+class TestRandomSPDMatrix:
+    """Tests for functions generating random symmetric positive definite matrices."""
 
-    def setUp(self) -> None:
-        """Define parameters and define test problems."""
-        self.rng = np.random.default_rng(42)
-        self.dim_list = [2, 25, 100, 250]
-        self.spd_matrices = [
-            random_spd_matrix(dim=n, random_state=self.rng) for n in self.dim_list
-        ]
-        self.density = 0.01
-        self.sparse_spd_matrices = [
-            random_sparse_spd_matrix(dim=n, density=self.density, random_state=self.rng)
-            for n in self.dim_list
-        ]
-        self.matrices = self.spd_matrices + self.sparse_spd_matrices
-
-    def test_returns_ndarray(self):
-        """Test whether test problems return ndarrays."""
-        for mat in self.matrices:
-            with self.subTest():
-                self.assertIsInstance(mat, np.ndarray)
-
-    def test_dimension(self):
+    def test_dimension(self, spd_mat: np.ndarray, n: int):
         """Test whether matrix dimension matches specified dimension."""
-        for mat, dim in zip(self.matrices, self.dim_list + self.dim_list):
-            with self.subTest():
-                self.assertEqual(
-                    mat.shape[0], dim, msg="Matrix dimension does not match argument."
-                )
+        assert spd_mat.shape[0] == n, "Matrix dimension does not match argument."
 
-    def test_symmetric(self):
+    def test_symmetric(self, spd_mat: np.ndarray):
         """Test whether the matrix is symmetric."""
-        for mat in self.matrices:
-            with self.subTest():
-                self.assertArrayEqual(mat, mat.T, msg="Matrix is not symmetric.")
+        np.testing.assert_array_equal(spd_mat, spd_mat.T), "Matrix is not symmetric."
 
-    def test_positive_definite(self):
+    def test_positive_definite(self, spd_mat: np.ndarray):
         """Test whether the matrix is positive definite."""
-        for mat in self.matrices:
-            eigvals = np.linalg.eigvals(mat)
-            with self.subTest():
-                self.assertTrue(
-                    np.all(eigvals > 0.0), msg="Eigenvalues are not all positive."
-                )
-
-    def test_spectrum_matches_given(self):
-        """Test whether the spectrum of the test problem matches the provided
-        spectrum."""
-        dim = 10
-        spectrum = np.sort(self.rng.uniform(0.1, 1, size=dim))
-        spdmat = random_spd_matrix(dim=dim, spectrum=spectrum, random_state=self.rng)
-        eigvals = np.sort(np.linalg.eigvals(spdmat))
-        self.assertAllClose(
-            spectrum,
-            eigvals,
-            msg="Provided spectrum doesn't match actual.",
+        assert np.all(0 <= np.linalg.eigvalsh(spd_mat)), (
+            "Eigenvalues are not all " "positive."
         )
 
-    def test_negative_eigenvalues_throws_error(self):
-        """Test whether a non-positive spectrum throws an error."""
-        with self.assertRaises(ValueError):
-            random_spd_matrix(dim=3, spectrum=[-1, 1, 2], random_state=self.rng)
+    def test_spectrum_matches_given(self, n: int, random_state: np.random.RandomState):
+        """Test whether the spectrum of the test problem matches the provided
+        spectrum."""
+        spectrum = np.sort(random_state.uniform(0.1, 1, size=n))
+        spdmat = random_spd_matrix(dim=n, spectrum=spectrum, random_state=random_state)
+        eigvals = np.sort(np.linalg.eigvals(spdmat))
+        np.testing.assert_allclose(
+            spectrum,
+            eigvals,
+            err_msg="Provided spectrum doesn't match actual.",
+        )
 
-    def test_matrix_is_sparse(self):
+    def test_negative_eigenvalues_throws_error(
+        self, random_state: np.random.RandomState
+    ):
+        """Test whether a non-positive spectrum throws an error."""
+        with pytest.raises(ValueError):
+            random_spd_matrix(dim=3, spectrum=[-1, 1, 2], random_state=random_state)
+
+
+class TestRandomSparseSPDMatrix:
+    """Tests for functions generating random sparse symmetric positive definite
+    matrices."""
+
+    def test_dimension(self, sparse_spd_mat: scipy.sparse.spmatrix, n: int):
+        """Test whether matrix dimension matches specified dimension."""
+        assert sparse_spd_mat.shape[0] == n
+
+    def test_symmetric(self, sparse_spd_mat: scipy.sparse.spmatrix):
+        """Test whether the matrix is symmetric."""
+        np.testing.assert_array_equal(
+            sparse_spd_mat.todense(), sparse_spd_mat.T.todense()
+        ), "Matrix is not symmetric."
+
+    def test_positive_definite(self, sparse_spd_mat: scipy.sparse.spmatrix):
+        """Test whether the matrix is positive definite."""
+        assert np.all(0 <= np.linalg.eigvalsh(sparse_spd_mat.todense())), (
+            "Eigenvalues are not all " "positive."
+        )
+
+    def test_matrix_is_sparse(
+        self, sparse_spd_mat: scipy.sparse.spmatrix, sparsemat_density: float
+    ):
         """Test whether the matrix has a sufficient degree of sparsity."""
-        for sparsemat in self.sparse_spd_matrices:
-            with self.subTest():
-                emp_density = (
-                    np.sum(sparsemat != 0.0) - sparsemat.shape[0]
-                ) / sparsemat.shape[0] ** 2
-                self.assertLess(
-                    emp_density,
-                    self.density * 2,
-                    msg=f"Matrix has {emp_density}n "
-                    f"non-zero entries, which doesnt match the "
-                    f"given degree of sparsity.",
-                )
+        emp_density = (
+            np.sum(sparse_spd_mat != 0.0) - sparse_spd_mat.shape[0]
+        ) / sparse_spd_mat.shape[0] ** 2
+        assert (
+            (emp_density <= sparsemat_density * 2),
+            f"Matrix has {emp_density}n "
+            f"non-zero entries, which doesnt match the "
+            f"given degree of sparsity.",
+        )

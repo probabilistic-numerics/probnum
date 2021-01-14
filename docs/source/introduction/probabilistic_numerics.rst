@@ -12,7 +12,7 @@ In a Nutshell
 `Probabilistic numerics (PN) <http://probabilistic-numerics.org/>`_ aims to quantify uncertainty arising from
 intractable or incomplete numerical computation and from stochastic input. This new paradigm which has emerged at the
 intersection of computer science and numerical analysis treats a *numerical problem* as one of *statistical inference*
-instead. [#]_ [#]_
+instead. [#]_ [#]_ [#]_
 
 The probabilistic viewpoint provides a principled way to encode structural knowledge about a problem. By giving an
 explicit role to uncertainty from all sources, in particular from the computation itself, PN gives rise to new
@@ -41,5 +41,6 @@ points of value. The probabilistic interpretation of computation
 and finally it offers a principled approach of including numerical error in the *propagation of uncertainty through chains of computations*.
 
 
-.. [#] P. Hennig, M. A. Osborne, and M. Girolami. Probabilistic numerics and uncertainty in computations. Proc. R. Soc. A., 17, 2015.
-.. [#] C. J. Oates and T. J. Sullivan. A modern retrospective on probabilistic numerics. Stat. Comput., 29(6):1335–1351, 2019.
+.. [#] Hennig P., Osborne M. A., and Girolami M. Probabilistic numerics and uncertainty in computations. Proc. R. Soc. A., 17, 2015.
+.. [#] Oates, C. J. and Sullivan, T. J. A modern retrospective on probabilistic numerics. Stat. Comput., 29(6):1335–1351, 2019.
+.. [#] Cockayne, J., Oates, C. J., Sullivan, T. J., and Girolami, M. Bayesian probabilistic numerical methods. SIAM Review, 61(4), 756-789, 2019.

@@ -13,12 +13,6 @@ from probnum.problems import LinearSystem
 # pylint: disable="invalid-name"
 
 
-def test_returns_hyperparameter_tuple():
-    """Test whether a hyperparameter optimization procedures returns a tuple of
-    optimized hyperparameters."""
-    # TODO
-
-
 class TestUncertaintyCalibration:
     """Tests for the uncertainty calibration procedure."""
 
@@ -57,8 +51,7 @@ class TestUncertaintyCalibration:
         """Test whether calibrating for one action and observation returns the Rayleigh
         quotient as the uncertainty scale for A."""
         rayleigh_quotient = np.exp(
-            np.log(action.T @ matvec_observation)
-            - np.log(action.T @ matvec_observation)
+            np.log(action.T @ matvec_observation) - np.log(action.T @ action)
         ).item()
 
         unc_scales, _ = uncertainty_calibration(
@@ -78,6 +71,9 @@ class TestUncertaintyCalibration:
 
 class OptimalNoiseScaleTestCase:
     """Tests for the optimization of the noise scale."""
+
+    def test_learns_true_noise_scale(self):
+        pass
 
     def test_iterative_and_batch_identical(self):
         """Test whether computing the optimal scale for k observations in a batch

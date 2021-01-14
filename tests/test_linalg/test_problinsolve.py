@@ -85,23 +85,23 @@ def test_posterior_means_positive_definite(linsys_spd, linsolve):
     assert np.all(np.eigh(Ainv.mean) >= 0.0)
 
 
-def test_zero_rhs(A_spd, linsolve):
+def test_zero_rhs(spd_mat, linsolve):
     """Linear system with zero right hand side."""
-    b = np.zeros(A_spd.shape[0])
+    b = np.zeros(spd_mat.shape[0])
     tols = np.r_[np.logspace(np.log10(1e-10), np.log10(1e2), 7)]
 
     for tol in tols:
-        x, _, _, _ = linsolve(A=A_spd, b=b, atol=tol)
+        x, _, _, _ = linsolve(A=spd_mat, b=b, atol=tol)
         np.testing.assert_allclose(x.mean, 0, atol=np.finfo(float).eps)
 
 
-def test_multiple_rhs(A_spd, linsolve):
+def test_multiple_rhs(spd_mat, linsolve):
     """Linear system with matrix right hand side."""
-    B = np.random.rand(A_spd.shape[0], 5)
+    B = np.random.rand(spd_mat.shape[0], 5)
 
-    x, _, _, info = linsolve(A=A_spd, b=B)
+    x, _, _, info = linsolve(A=spd_mat, b=B)
     assert (x.shape == B.shape, "Shape of solution and right hand side do not match.")
-    np.testing.assert_allclose(x.mean, np.linalg.solve(A_spd, B))
+    np.testing.assert_allclose(x.mean, np.linalg.solve(spd_mat, B))
 
 
 def test_spd_system(linsys_spd, linsolve):
