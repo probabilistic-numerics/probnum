@@ -91,7 +91,7 @@ class ContinuousUKFComponent(UKFComponent):
 
 
 class DiscreteUKFComponent(UKFComponent):
-    """Discrete extended Kalman filter transition."""
+    """Discrete unscented Kalman filter transition."""
 
     def __init__(
         self,
