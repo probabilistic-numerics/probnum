@@ -12,10 +12,19 @@ import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 
 
+# Naming may be an overfit to EKF, but the next more general name that admits UKF
+# would be something like "ApproximateTransition" which says less than LinearizingTransition?
 class LinearizingTransition(pnfss.Transition, abc.ABC):
-    """Take a non-linear transition and implement an approximation that supports
-    transitioning RVs."""
+    """Approximation of a transition that makes transitioning RVs tractable.
 
+    Joint interface for extended Kalman filtering and unscented Kalman
+    filtering.
+    """
+
+    # the type-hint says `pnfss.Transition`
+    # though the subclasses either take `pnfss.SDE` (Continuous...)
+    # or `pnfss.DiscreteGaussian` (Discrete...).
+    # Should this be changed here then?
     def __init__(self, non_linear_model: pnfss.Transition):
         self.non_linear_model = non_linear_model
         super().__init__()
@@ -64,12 +73,19 @@ class LinearizingTransition(pnfss.Transition, abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def linearize(self, at_this_rv: pnrv.RandomVariable):
+    def linearize(self, at_this_rv: pnrv.RandomVariable) -> None:
         """Linearize the transition and make it tractable.
 
         For the EKF, it means assembling the Taylor approximation. For
         the UKF, this means assembling the sigma-points. For general
         quadrature filters, this means assembling the quadrature weights
         and nodes.
+
+        This operation changes self.linearized_model, and does not return anything.
         """
+        # No return value, because of semantics:
+        # Linearization makes the transition "tractable"
+        # but does not change the transition object.
+        # In principle, you could linearize once and transition RVs until
+        # the end of time. The object would be the same.
         raise NotImplementedError
