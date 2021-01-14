@@ -137,7 +137,7 @@ class DiscreteEKFComponent(EKFComponent):
         evlvar: pntype.FloatArgType,
         ek0_or_ek1: typing.Optional[pntype.IntArgType] = 0,
     ) -> "DiscreteEKFComponent":
-        # should be in DiscreteGaussian, not in here? (N)
+        # code is here, because we want the option of ek0-jacobians
 
         spatialdim = prior.spatialdim
         h0 = prior.proj2coord(coord=0)

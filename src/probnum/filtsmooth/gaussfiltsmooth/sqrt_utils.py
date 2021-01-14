@@ -8,15 +8,25 @@ See
 and
     https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.1059&rep=rep1&type=pdf
 for information.
+
+
+The functions in here are intendend to be rather low-level, which is why they
+take means and covariances as arguments, not random variables, etc..
+
+Matrices whose name starts with a capital `S`, i.e. `SQ`, or `SQ` are square-roots.
 """
 
+
+import typing
+
 import numpy as np
-import scipy.linalg
 
 
 # used for predict() and measure(), but more general than that,
 # so it has a more general name than the functions below.
-def cholesky_update(S1, S2=None):
+def cholesky_update(
+    S1: np.ndarray, S2: typing.Optional[np.ndarray] = None
+) -> np.ndarray:
     """Compute Cholesky update/factorization :math:`C C^\top = S_1 S_1^\top + S_2 S_2^\top`.
 
     This can be used in various ways.
@@ -34,11 +44,31 @@ def cholesky_update(S1, S2=None):
     return triu_to_positive_tril(upper_sqrtm)
 
 
-def sqrt_kalman_update(measmat, meascov_cholesky, predcov_cholesky):
-    """Computes the Kalman update in square-root form.
+# Perhaps `SR` can be made optional, too...
+def sqrt_kalman_update(
+    H: np.ndarray, SR: np.ndarray, SC: np.ndarray
+) -> (np.ndarray, np.ndarray, np.ndarray):
+    """Compute the Kalman update in square-root form.
+
+    Assumes a measurement model of the form
+
+        .. math::  x \\mapsto N(H x, R)
+
+    and acts only on the square-root of the predicted covariance.
 
     See Eq. 48 in
     https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.1059&rep=rep1&type=pdf.
+
+    Parameters
+    ----------
+    H
+        Linear(ised) observation matrix.
+    SR
+        Matrix square-root of the measurement diffusion matrix math:`R`, :math:`R=\sqrt{R} \sqrt{R}^\top.
+        Can, but does not have to be a Cholesky factor.
+    SC
+        Matrix square-root of the predicted covariance math:`C`, :math:`C=\sqrt{C} \sqrt{C}^\top.
+        Can, but does not have to be a Cholesky factor.
 
     Returns
     -------
@@ -49,52 +79,70 @@ def sqrt_kalman_update(measmat, meascov_cholesky, predcov_cholesky):
     postcov_cholesky
         Cholesky factor of the posterior covariance (i.e. after the update).
     """
-    zeros = np.zeros(measmat.T.shape)
-    blockmat = np.block(
-        [[meascov_cholesky, measmat @ predcov_cholesky], [zeros, predcov_cholesky]]
-    ).T
+    zeros = np.zeros(H.T.shape)
+    blockmat = np.block([[SR, H @ SC], [zeros, SC]]).T
     big_triu = np.linalg.qr(blockmat, mode="r")
-    meas_dim = len(measmat)
-    measured_triu = big_triu[:meas_dim, :meas_dim]
+    ndim_measurements = len(H)
+
+    measured_triu = big_triu[:ndim_measurements, :ndim_measurements]
     measured_cholesky = triu_to_positive_tril(measured_triu)
 
-    postcov_triu = big_triu[meas_dim:, meas_dim:]
+    postcov_triu = big_triu[ndim_measurements:, ndim_measurements:]
     postcov_cholesky = triu_to_positive_tril(postcov_triu)
-    kalman_gain = big_triu[:meas_dim, meas_dim:].T @ np.linalg.inv(measured_triu.T)
+    kalman_gain = big_triu[:ndim_measurements, ndim_measurements:].T @ np.linalg.inv(
+        measured_triu.T
+    )
 
     return measured_cholesky, kalman_gain, postcov_cholesky
 
 
 def sqrt_smoothing_step(
-    sqrtm_unsmoothed_cov_past,
-    dynamicsmat,
-    diffmat_cholesky,
-    sqrtm_smoothed_cov_future,
-    smoothing_gain,
-):
+    SC_past: np.ndarray,
+    A: np.ndarray,
+    SQ: np.ndarray,
+    SC_futu: np.ndarray,
+    G: np.ndarray,
+) -> np.ndarray:
     """Smoothing step in square-root form.
 
-    See Eq. 45 in
+    Assumes a prior dynamic model of the form
+
+        .. math:: x \\mapsto N(A x, Q).
+
+    For the mathematical justification of this step, see Eq. 45 in
     https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.1059&rep=rep1&type=pdf.
+
+    Parameters
+    ----------
+    SC_past
+        Square root of the filtered (not yet smoothed) covariance at time :math:`t_n`.
+    A
+        Dynamics matrix :math:`A`.
+    SQ
+        Square root of the diffusion matrix :math:`Q`, `Q=SQ SQ.T`.
+    SC_futu
+        Square root of the smoothed covariance at time :math:`t_{n+1}`.
+    G
+        Smoothing gain.
     """
-    dim = len(dynamicsmat)
+    dim = len(A)
     zeros = np.zeros((dim, dim))
     blockmat = np.block(
         [
-            [sqrtm_unsmoothed_cov_past.T @ dynamicsmat.T, sqrtm_unsmoothed_cov_past.T],
-            [diffmat_cholesky.T, zeros],
-            [zeros, sqrtm_smoothed_cov_future.T @ smoothing_gain.T],
+            [SC_past.T @ A.T, SC_past.T],
+            [SQ.T, zeros],
+            [zeros, SC_futu.T @ G.T],
         ]
     )
     big_triu = np.linalg.qr(blockmat, mode="r")
-    chol_unsmoothed_cov_past = big_triu[dim : 2 * dim, dim:]
-    return triu_to_positive_tril(chol_unsmoothed_cov_past)
+    SC = big_triu[dim : 2 * dim, dim:]
+    return triu_to_positive_tril(SC)
 
 
-def triu_to_positive_tril(triu_mat):
+def triu_to_positive_tril(triu_mat: np.ndarray) -> np.ndarray:
     """Change an upper triangular matrix into a valid lower Cholesky factor.
 
-    Transpose and change the sign of the diagonals to '+' if necessary.
+    Transpose, and change the sign of the diagonals to '+' if necessary.
     """
     tril_mat = triu_mat.T
     with_pos_diag = tril_mat @ np.diag(np.sign(np.diag(tril_mat)))

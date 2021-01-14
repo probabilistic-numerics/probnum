@@ -131,16 +131,14 @@ class SquareRootKalman(Kalman):
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
     ):
 
-        # this is still very messy...
-
-        A, s, L_Q = self._linear_dynamic_matrices(start, stop, unsmoothed_rv)
-
+        # I do not like that this prediction step is necessary...
         pred_rv, info = self.predict(start, stop, unsmoothed_rv)
         crosscov = info["crosscov"]
         smoothing_gain = scipy.linalg.cho_solve(
             (pred_rv.cov_cholesky, True), crosscov.T
         ).T
 
+        A, s, L_Q = self._linear_dynamic_matrices(start, stop, unsmoothed_rv)
         L_P = sqrt_smoothing_step(
             unsmoothed_rv.cov_cholesky, A, L_Q, smoothed_rv.cov_cholesky, smoothing_gain
         )
