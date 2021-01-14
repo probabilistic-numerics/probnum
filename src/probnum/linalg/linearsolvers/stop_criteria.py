@@ -166,8 +166,6 @@ class PosteriorContraction(StoppingCriterion):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> bool:
         # Trace of the solution covariance
-        # TODO: replace this with (existing) more efficient trace computation; maybe an
-        #  iterative update to the trace property of the linear operator
         trace_sol_cov = belief.x.cov.trace()
 
         # Compare (relative) residual to tolerances
