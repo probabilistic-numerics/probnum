@@ -63,15 +63,17 @@ class SquareRootKalman(Kalman):
         randvar: pnrv.Normal,
         **kwargs
     ) -> (pnrv.Normal, typing.Dict):
-        A, s, L_Q = self._linear_dynamic_matrices(start, stop, randvar)
+        dynamicsmat, forcevec, diffmat_cholesky = self._linear_dynamic_matrices(
+            start, stop, randvar
+        )
 
-        old_mean = randvar.mean
-        old_cov_cholesky = randvar.cov_cholesky
-
-        new_mean = A @ old_mean + s
-        new_cov_cholesky = cholesky_update(A @ old_cov_cholesky, L_Q)
+        new_mean = dynamicsmat @ randvar.mean + forcevec
+        new_cov_cholesky = cholesky_update(
+            dynamicsmat @ randvar.cov_cholesky, diffmat_cholesky
+        )
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
-        crosscov = randvar.cov @ A.T
+        crosscov = randvar.cov @ dynamicsmat.T
+
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
             "crosscov": crosscov
         }
@@ -79,34 +81,48 @@ class SquareRootKalman(Kalman):
     def measure(
         self, time: pntype.FloatArgType, randvar: pnrv.Normal
     ) -> (pnrv.Normal, typing.Dict):
-        H, s, L_R = self._linear_measurement_matrices(time, randvar)
-        old_mean = randvar.mean
-        old_cov_cholesky = randvar.cov_cholesky
+        dynamicsmat, forcevec, diffmat_cholesky = self._linear_measurement_matrices(
+            time, randvar
+        )
 
-        new_mean = H @ old_mean + s
-        new_cov_cholesky = cholesky_update(H @ old_cov_cholesky, L_R)
+        new_mean = dynamicsmat @ randvar.mean + forcevec
+        new_cov_cholesky = cholesky_update(
+            dynamicsmat @ randvar.cov_cholesky, diffmat_cholesky
+        )
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
-        crosscov = randvar.cov @ H.T
+        crosscov = randvar.cov @ dynamicsmat.T
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
             "crosscov": crosscov
         }
 
     def update(
         self, time: pntype.FloatArgType, randvar: pnrv.Normal, data: np.ndarray
-    ) -> (pnrv.Normal, typing.Dict):
-        predcov_cholesky = randvar.cov_cholesky
-        H, s, L_R = self._linear_measurement_matrices(time, randvar)
+    ) -> (pnrv.Normal, pnrv.Normal, typing.Dict):
 
-        L_S, K, L_P = sqrt_kalman_update(H, L_R, predcov_cholesky)
+        dynamicsmat, forcevec, diffmat_cholesky = self._linear_measurement_matrices(
+            time, randvar
+        )
 
-        measrv_mean = H @ randvar.mean + s
+        meascov_cholesky, kalman_gain, new_cov_cholesky = sqrt_kalman_update(
+            dynamicsmat, diffmat_cholesky, randvar.cov_cholesky
+        )
+
+        measrv_mean = dynamicsmat @ randvar.mean + forcevec
         res = data - measrv_mean
-        new_mean = randvar.mean + K @ res
-        new_cov = L_P @ L_P.T
+        new_mean = randvar.mean + kalman_gain @ res
+        new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
-        meas_rv = pnrv.Normal(measrv_mean, cov=L_S @ L_S.T, cov_cholesky=L_S)
+        meas_rv = pnrv.Normal(
+            measrv_mean,
+            cov=meascov_cholesky @ meascov_cholesky.T,
+            cov_cholesky=meascov_cholesky,
+        )
 
-        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P), meas_rv, {}
+        return (
+            pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky),
+            meas_rv,
+            {},
+        )
 
     def _linear_measurement_matrices(
         self, time: pntype.FloatArgType, randvar: pnrv.Normal
@@ -117,10 +133,10 @@ class SquareRootKalman(Kalman):
         else:
             disc_model = self.measurement_model
 
-        H = disc_model.dynamicsmatfun(time)
-        s = disc_model.forcevecfun(time)
-        L_R = disc_model.diffmatfun_cholesky(time)
-        return H, s, L_R
+        dynamicsmat = disc_model.dynamicsmatfun(time)
+        forcevec = disc_model.forcevecfun(time)
+        diffmat_cholesky = disc_model.diffmatfun_cholesky(time)
+        return dynamicsmat, forcevec, diffmat_cholesky
 
     def smooth_step(
         self,
@@ -131,23 +147,30 @@ class SquareRootKalman(Kalman):
         intermediate_step: typing.Optional[pntype.FloatArgType] = None,
     ):
 
-        # I do not like that this prediction step is necessary...
+        # I do not like that this prediction step is necessary.
+        # Very soon we should start caching predictions.
         pred_rv, info = self.predict(start, stop, unsmoothed_rv)
         crosscov = info["crosscov"]
         smoothing_gain = scipy.linalg.cho_solve(
             (pred_rv.cov_cholesky, True), crosscov.T
         ).T
 
-        A, s, L_Q = self._linear_dynamic_matrices(start, stop, unsmoothed_rv)
-        L_P = sqrt_smoothing_step(
-            unsmoothed_rv.cov_cholesky, A, L_Q, smoothed_rv.cov_cholesky, smoothing_gain
+        dynamicsmat, forcevec, diffmat_cholesky = self._linear_dynamic_matrices(
+            start, stop, unsmoothed_rv
+        )
+        new_cov_cholesky = sqrt_smoothing_step(
+            unsmoothed_rv.cov_cholesky,
+            dynamicsmat,
+            diffmat_cholesky,
+            smoothed_rv.cov_cholesky,
+            smoothing_gain,
         )
 
         new_mean = unsmoothed_rv.mean + smoothing_gain @ (
             smoothed_rv.mean - pred_rv.mean
         )
-        new_cov = L_P @ L_P.T
-        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P)
+        new_cov = new_cov_cholesky @ new_cov_cholesky.T
+        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky)
 
     def _linear_dynamic_matrices(
         self,
@@ -157,17 +180,17 @@ class SquareRootKalman(Kalman):
     ) -> (np.ndarray, np.ndarray, np.ndarray):
         if isinstance(self.dynamics_model, pnfss.LTISDE):
             disc_model = self.dynamics_model.discretise(stop - start)
-            A = disc_model.driftmat
-            s = disc_model.forcevec
-            L_Q = disc_model.diffmat_cholesky
+            dynamicsmat = disc_model.driftmat
+            forcevec = disc_model.forcevec
+            diffmat_cholesky = disc_model.diffmat_cholesky
         elif isinstance(self.dynamics_model, DiscreteEKFComponent):
             self.dynamics_model.linearize(at_this_rv=randvar)
             disc_model = self.dynamics_model.linearized_model
-            A = disc_model.dynamicsmatfun(start)
-            s = disc_model.forcevecfun(start)
-            L_Q = disc_model.diffmatfun_cholesky(start)
+            dynamicsmat = disc_model.dynamicsmatfun(start)
+            forcevec = disc_model.forcevecfun(start)
+            diffmat_cholesky = disc_model.diffmatfun_cholesky(start)
         else:  # must be discrete linear Gaussian model
-            A = self.dynamics_model.dynamicsmatfun(start)
-            s = self.dynamics_model.forcevecfun(start)
-            L_Q = self.dynamics_model.diffmatfun_cholesky(start)
-        return A, s, L_Q
+            dynamicsmat = self.dynamics_model.dynamicsmatfun(start)
+            forcevec = self.dynamics_model.forcevecfun(start)
+            diffmat_cholesky = self.dynamics_model.diffmatfun_cholesky(start)
+        return dynamicsmat, forcevec, diffmat_cholesky
