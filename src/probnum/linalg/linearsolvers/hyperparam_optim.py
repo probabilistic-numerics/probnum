@@ -84,7 +84,10 @@ class UncertaintyCalibration(HyperparameterOptimization):
     """
 
     def __init__(self, method: str = "gpkern"):
-        self.calib_method = method
+        if method in ["adhoc", "weightedmean", "gpkern"]:
+            self.calib_method = method
+        else:
+            raise ValueError("Calibration method not recognized.")
         super().__init__()
 
     def __call__(

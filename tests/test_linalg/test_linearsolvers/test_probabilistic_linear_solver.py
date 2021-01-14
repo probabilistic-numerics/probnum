@@ -12,7 +12,7 @@ from probnum.linalg.linearsolvers.beliefs import (
     LinearSystemBelief,
     WeakMeanCorrespondenceBelief,
 )
-from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
+from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.linalg.linearsolvers.policies import ConjugateDirections
 from probnum.linalg.linearsolvers.stop_criteria import MaxIterations, Residual
 from probnum.problems import LinearSystem
@@ -79,7 +79,7 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 x0=self.rng.normal(size=(dim_spd,)), problem=self.spd_system
             ),
             policy=ConjugateDirections(),
-            observation_op=MatrixMultObservation(),
+            observation_op=MatVecObservation(),
             stopping_criteria=[MaxIterations(), Residual()],
         )
 
@@ -167,7 +167,7 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 problem=self.spd_system,
             ),
             policy=ConjugateDirections(),
-            observation_op=MatrixMultObservation(),
+            observation_op=MatVecObservation(),
             stopping_criteria=[MaxIterations(), Residual()],
         )
 
@@ -195,7 +195,7 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 alpha=1.0, problem=self.spd_system
             ),
             policy=ConjugateDirections(),
-            observation_op=MatrixMultObservation(),
+            observation_op=MatVecObservation(),
             stopping_criteria=[MaxIterations(maxiter=maxiter), Residual(rtol=rtol)],
         )
 

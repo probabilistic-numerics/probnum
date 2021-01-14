@@ -20,7 +20,7 @@ import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.belief_updates import (
     SymMatrixNormalLinearObsBeliefUpdate,
 )
-from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
+from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -455,7 +455,7 @@ class LinearSystemBelief:
         solver_state :
             Current state of the linear solver.
         """
-        if isinstance(observation_op, MatrixMultObservation):
+        if isinstance(observation_op, MatVecObservation):
             belief_update = SymMatrixNormalLinearObsBeliefUpdate(
                 problem=problem,
                 belief=self,

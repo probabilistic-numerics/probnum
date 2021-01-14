@@ -12,7 +12,7 @@ from probnum.linalg.linearsolvers.belief_updates import (
 )
 from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import UncertaintyCalibration
-from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
+from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
@@ -448,7 +448,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         else:
             self.observations = np.hstack((self.observations, observation))
 
-        if isinstance(observation_op, MatrixMultObservation):
+        if isinstance(observation_op, MatVecObservation):
             belief_update = WeakMeanCorrLinearObsBeliefUpdate(
                 problem=problem,
                 belief=self,

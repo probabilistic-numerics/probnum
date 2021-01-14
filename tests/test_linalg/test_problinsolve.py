@@ -85,19 +85,6 @@ def test_posterior_means_positive_definite(linsys_spd, linsolve):
     assert np.all(np.eigh(Ainv.mean) >= 0.0)
 
 
-def test_spd_matrix(linsys_spd, linsolve):
-    """Random symmetric positive definite matrix."""
-    x, _, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
-
-    np.testing.assert_allclose(
-        x.mean,
-        linsys_spd.solution,
-        rtol=LINSOLVE_RELTOL,
-        atol=LINSOLVE_ABSTOL,
-        err_msg="Solution does not match true solution.",
-    )
-
-
 def test_zero_rhs(A_spd, linsolve):
     """Linear system with zero right hand side."""
     b = np.zeros(A_spd.shape[0])

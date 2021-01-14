@@ -15,6 +15,7 @@ probnum.linalg.linearsolvers
     :headings: "-"
 
 
+
 (Prior) Beliefs
 ---------------
 .. automodapi:: probnum.linalg.linearsolvers.beliefs

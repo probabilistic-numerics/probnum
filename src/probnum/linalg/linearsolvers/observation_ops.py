@@ -8,7 +8,7 @@ import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["ObservationOperator", "MatrixMultObservation"]
+__all__ = ["ObservationOperator", "MatVecObservation"]
 
 
 class ObservationOperator:
@@ -63,7 +63,7 @@ class ObservationOperator:
         return self._observation_op(problem, action, solver_state)
 
 
-class MatrixMultObservation(ObservationOperator):
+class MatVecObservation(ObservationOperator):
     r"""Matrix-vector product observations.
 
     Given an action :math:`s` collect an observation :math:`y` of the linear system by

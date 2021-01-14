@@ -12,7 +12,7 @@ from probnum.linalg.linearsolvers.beliefs import (
     LinearSystemBelief,
     WeakMeanCorrespondenceBelief,
 )
-from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
+from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
@@ -184,7 +184,7 @@ class LinearSymmetricGaussianTestCase(ProbabilisticLinearSolverTestCase):
                 )
                 prior.update(
                     problem=linsys,
-                    observation_op=MatrixMultObservation(),
+                    observation_op=MatVecObservation(),
                     action=s,
                     observation=y,
                 )
@@ -252,7 +252,7 @@ class WeakMeanCorrLinearObsBeliefUpdateTestCase(ProbabilisticLinearSolverTestCas
         for action, observation in zip(self.actions.T, self.observations.T):
             self.updated_belief.update(
                 problem=self.linsys,
-                observation_op=MatrixMultObservation(),
+                observation_op=MatVecObservation(),
                 action=action,
                 observation=observation,
             )
@@ -318,7 +318,7 @@ class WeakMeanCorrLinearObsBeliefUpdateTestCase(ProbabilisticLinearSolverTestCas
                 )
                 prior.update(
                     problem=linsys,
-                    observation_op=MatrixMultObservation(),
+                    observation_op=MatVecObservation(),
                     action=s,
                     observation=y,
                 )

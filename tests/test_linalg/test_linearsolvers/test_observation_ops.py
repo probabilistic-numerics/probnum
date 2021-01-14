@@ -3,7 +3,7 @@
 import numpy as np
 
 from probnum.linalg.linearsolvers.observation_ops import (
-    MatrixMultObservation,
+    MatVecObservation,
     ObservationOperator,
 )
 from probnum.problems import LinearSystem
@@ -37,6 +37,6 @@ def test_observation_is_matrix_vector_product(
     """Test whether the matmul observation operator returns a matrix-vector
     multiplication with the system matrix."""
     np.testing.assert_allclose(
-        MatrixMultObservation()(problem=linsys_spd, action=action)[0],
+        MatVecObservation()(problem=linsys_spd, action=action)[0],
         linsys_spd.A @ action,
     )

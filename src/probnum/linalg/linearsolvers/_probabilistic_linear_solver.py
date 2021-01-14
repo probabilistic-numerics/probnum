@@ -134,7 +134,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     >>> from probnum.linalg.linearsolvers import ProbabilisticLinearSolver
     >>> from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
     >>> from probnum.linalg.linearsolvers.policies import ConjugateDirections
-    >>> from probnum.linalg.linearsolvers.observation_ops import MatrixMultObservation
+    >>> from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
     >>> from probnum.linalg.linearsolvers.stop_criteria import MaxIterations, Residual
     >>> # Custom probabilistic iterative solver
     >>> pls = ProbabilisticLinearSolver(
