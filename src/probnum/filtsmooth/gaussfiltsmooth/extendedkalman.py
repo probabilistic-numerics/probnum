@@ -1,7 +1,6 @@
 """Gaussian filtering and smoothing based on making intractable quantities tractable
 through Taylor-method approximations, e.g. linearization."""
 
-import functools as ft
 import typing
 
 import numpy as np

@@ -69,36 +69,6 @@ class SquareRootKalman(Kalman):
             "crosscov": crosscov
         }
 
-    def _linear_dynamic_matrices(self, start, stop, randvar):
-        if isinstance(self.dynamics_model, pnfss.LTISDE):
-            disc_model = self.dynamics_model.discretise(stop - start)
-            A = disc_model.driftmat
-            s = disc_model.forcevec
-            L_Q = disc_model.diffmat_cholesky
-        elif isinstance(self.dynamics_model, DiscreteEKFComponent):
-            self.dynamics_model.linearize(at_this_rv=randvar)
-            disc_model = self.dynamics_model.linearized_model
-            A = disc_model.dynamicsmatfun(start)
-            s = disc_model.forcevecfun(start)
-            L_Q = disc_model.diffmatfun_cholesky(start)
-        else:  # must be discrete linear Gaussian model
-            A = self.dynamics_model.dynamicsmatfun(start)
-            s = self.dynamics_model.forcevecfun(start)
-            L_Q = self.dynamics_model.diffmatfun_cholesky(start)
-        return A, s, L_Q
-
-    def _linear_measurement_matrices(self, time, randvar):
-        if isinstance(self.measurement_model, DiscreteEKFComponent):
-            self.measurement_model.linearize(at_this_rv=randvar)
-            disc_model = self.measurement_model.linearized_model
-        else:
-            disc_model = self.measurement_model
-
-        H = disc_model.dynamicsmatfun(time)
-        s = disc_model.forcevecfun(time)
-        L_R = disc_model.diffmatfun_cholesky(time)
-        return H, s, L_R
-
     def measure(self, time, randvar):
         H, s, L_R = self._linear_measurement_matrices(time, randvar)
         old_mean = randvar.mean
@@ -127,6 +97,18 @@ class SquareRootKalman(Kalman):
 
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P), meas_rv, {}
 
+    def _linear_measurement_matrices(self, time, randvar):
+        if isinstance(self.measurement_model, DiscreteEKFComponent):
+            self.measurement_model.linearize(at_this_rv=randvar)
+            disc_model = self.measurement_model.linearized_model
+        else:
+            disc_model = self.measurement_model
+
+        H = disc_model.dynamicsmatfun(time)
+        s = disc_model.forcevecfun(time)
+        L_R = disc_model.diffmatfun_cholesky(time)
+        return H, s, L_R
+
     def smooth_step(
         self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
     ):
@@ -148,3 +130,21 @@ class SquareRootKalman(Kalman):
         )
         new_cov = L_P @ L_P.T
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P)
+
+    def _linear_dynamic_matrices(self, start, stop, randvar):
+        if isinstance(self.dynamics_model, pnfss.LTISDE):
+            disc_model = self.dynamics_model.discretise(stop - start)
+            A = disc_model.driftmat
+            s = disc_model.forcevec
+            L_Q = disc_model.diffmat_cholesky
+        elif isinstance(self.dynamics_model, DiscreteEKFComponent):
+            self.dynamics_model.linearize(at_this_rv=randvar)
+            disc_model = self.dynamics_model.linearized_model
+            A = disc_model.dynamicsmatfun(start)
+            s = disc_model.forcevecfun(start)
+            L_Q = disc_model.diffmatfun_cholesky(start)
+        else:  # must be discrete linear Gaussian model
+            A = self.dynamics_model.dynamicsmatfun(start)
+            s = self.dynamics_model.forcevecfun(start)
+            L_Q = self.dynamics_model.diffmatfun_cholesky(start)
+        return A, s, L_Q

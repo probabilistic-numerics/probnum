@@ -5,10 +5,13 @@ Examples include the unscented Kalman filter / RTS smoother which is
 based on a third degree fully symmetric rule.
 """
 
+import typing
+
 import numpy as np
 
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
+import probnum.type as pntype
 
 from .linearizing_transition import LinearizingTransition
 from .unscentedtransform import UnscentedTransform
@@ -18,8 +21,13 @@ class UKFComponent(LinearizingTransition):
     """Interface for unscented Kalman filtering components."""
 
     def __init__(
-        self, non_linear_model, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
-    ):
+        self,
+        non_linear_model: typing.Union[pnfss.SDE, pnfss.DiscreteGaussian],
+        dimension: pntype.IntArgType,
+        spread: typing.Optional[pntype.FloatArgType] = 1e-4,
+        priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
+        special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
+    ) -> None:
         super().__init__(non_linear_model=non_linear_model)
         self.ut = UnscentedTransform(dimension, spread, priorpar, special_scale)
 
@@ -27,8 +35,8 @@ class UKFComponent(LinearizingTransition):
         # Will be constructed later.
         self.sigma_points = None
 
-    def linearize(self, at_this_rv: pnrv.RandomVariable):
-        """Assembles the sigma-points."""
+    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+        """Assemble the sigma-points."""
         self.sigma_points = self.ut.sigma_points(at_this_rv.mean, at_this_rv.cov)
 
 
@@ -36,8 +44,13 @@ class ContinuousUKFComponent(UKFComponent):
     """Continuous unscented Kalman filter transition."""
 
     def __init__(
-        self, non_linear_model, dimension, spread=1e-4, priorpar=2.0, special_scale=0.0
-    ):
+        self,
+        non_linear_model: pnfss.SDE,
+        dimension: pntype.IntArgType,
+        spread: typing.Optional[pntype.FloatArgType] = 1e-4,
+        priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
+        special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
+    ) -> None:
         if not isinstance(non_linear_model, pnfss.SDE):
             raise TypeError("cont_model must be an SDE.")
         super().__init__(
@@ -48,16 +61,32 @@ class ContinuousUKFComponent(UKFComponent):
             special_scale=special_scale,
         )
 
-        raise NotImplementedError("Implementation incomplete.")
+        raise NotImplementedError(
+            "Implementation of the continuous UKF is incomplete. It cannot be used."
+        )
 
-    def transition_realization(self, real, start, stop, linearise_at=None, **kwargs):
+    def transition_realization(
+        self,
+        real: np.ndarray,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        linearise_at: typing.Optional[pnrv.Normal] = None,
+        **kwargs
+    ) -> (pnrv.Normal, typing.Dict):
         raise NotImplementedError("TODO")  # Issue  #234
 
-    def transition_rv(self, rv, start, stop, linearise_at=None, **kwargs):
+    def transition_rv(
+        self,
+        rv: pnrv.Normal,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        linearise_at: typing.Optional[pnrv.Normal] = None,
+        **kwargs
+    ) -> (pnrv.Normal, typing.Dict):
         raise NotImplementedError("TODO")  # Issue  #234
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
         raise NotImplementedError
 
 
@@ -65,8 +94,13 @@ class DiscreteUKFComponent(UKFComponent):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
-        self, non_linear_model, dimension, spread=1.0, priorpar=2.0, special_scale=0.0
-    ):
+        self,
+        non_linear_model: pnfss.DiscreteGaussian,
+        dimension: pntype.IntArgType,
+        spread: typing.Optional[pntype.FloatArgType] = 1e-4,
+        priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
+        special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
+    ) -> None:
         if not isinstance(non_linear_model, pnfss.DiscreteGaussian):
             raise TypeError("cont_model must be an SDE.")
         super().__init__(
@@ -77,10 +111,18 @@ class DiscreteUKFComponent(UKFComponent):
             special_scale=special_scale,
         )
 
-    def transition_realization(self, real, start, **kwargs):
+    def transition_realization(
+        self, real: np.ndarray, start: pntype.FloatArgType, **kwargs
+    ) -> (pnrv.Normal, typing.Dict):
         return self.non_linear_model.transition_realization(real, start, **kwargs)
 
-    def transition_rv(self, rv, start, linearise_at=None, **kwargs):
+    def transition_rv(
+        self,
+        rv: pnrv.Normal,
+        start: pntype.FloatArgType,
+        linearise_at: typing.Optional[pnrv.Normal] = None,
+        **kwargs
+    ) -> (pnrv.Normal, typing.Dict):
         compute_sigmapts_at = linearise_at if linearise_at is not None else rv
         self.linearize(at_this_rv=compute_sigmapts_at)
 
@@ -94,11 +136,16 @@ class DiscreteUKFComponent(UKFComponent):
         return pnrv.Normal(mean, cov), {"crosscov": crosscov}
 
     @property
-    def dimension(self):
+    def dimension(self) -> int:
         return self.ut.dimension
 
     @classmethod
-    def from_ode(cls, ode, prior, evlvar):
+    def from_ode(
+        cls,
+        ode: "probnum.diffeq.ODE",  # we don't want to import probnum.diffeq here
+        prior: pnfss.LinearSDE,
+        evlvar: pntype.FloatArgType,
+    ) -> "DiscreteUKFComponent":
 
         spatialdim = prior.spatialdim
         h0 = prior.proj2coord(coord=0)

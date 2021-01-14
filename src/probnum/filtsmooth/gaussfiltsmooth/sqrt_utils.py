@@ -14,6 +14,7 @@ The functions in here are intendend to be rather low-level, which is why they
 take means and covariances as arguments, not random variables, etc..
 
 Matrices whose name starts with a capital `S`, i.e. `SQ`, or `SQ` are square-roots.
+The short names are chosen, because the matrix-formula heavy functions seem more readable with super short names.
 """
 
 
