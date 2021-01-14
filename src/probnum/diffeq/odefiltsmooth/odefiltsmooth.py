@@ -281,62 +281,50 @@ def _string2prior(ivp, which_prior, **kwargs):
 
 def _string2ibm(ivp, which_prior, **kwargs):
 
-    if "diffconst" in kwargs.keys():
-        diffconst = kwargs["diffconst"]
-    else:
-        diffconst = 1.0
     if which_prior == "ibm1":
-        return pnfs.statespace.IBM(1, ivp.dimension, diffconst)
+        return pnfs.statespace.IBM(1, ivp.dimension)
     elif which_prior == "ibm2":
-        return pnfs.statespace.IBM(2, ivp.dimension, diffconst)
+        return pnfs.statespace.IBM(2, ivp.dimension)
     elif which_prior == "ibm3":
-        return pnfs.statespace.IBM(3, ivp.dimension, diffconst)
+        return pnfs.statespace.IBM(3, ivp.dimension)
     elif which_prior == "ibm4":
-        return pnfs.statespace.IBM(4, ivp.dimension, diffconst)
+        return pnfs.statespace.IBM(4, ivp.dimension)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
 def _string2ioup(ivp, which_prior, **kwargs):
 
-    if "diffconst" in kwargs.keys():
-        diffconst = kwargs["diffconst"]
-    else:
-        diffconst = 1.0
     if "driftspeed" in kwargs.keys():
         driftspeed = kwargs["driftspeed"]
     else:
         driftspeed = 1.0
     if which_prior == "ioup1":
-        return pnfs.statespace.IOUP(1, ivp.dimension, driftspeed, diffconst)
+        return pnfs.statespace.IOUP(1, ivp.dimension, driftspeed)
     elif which_prior == "ioup2":
-        return pnfs.statespace.IOUP(2, ivp.dimension, driftspeed, diffconst)
+        return pnfs.statespace.IOUP(2, ivp.dimension, driftspeed)
     elif which_prior == "ioup3":
-        return pnfs.statespace.IOUP(3, ivp.dimension, driftspeed, diffconst)
+        return pnfs.statespace.IOUP(3, ivp.dimension, driftspeed)
     elif which_prior == "ioup4":
-        return pnfs.statespace.IOUP(4, ivp.dimension, driftspeed, diffconst)
+        return pnfs.statespace.IOUP(4, ivp.dimension, driftspeed)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
 def _string2matern(ivp, which_prior, **kwargs):
 
-    if "diffconst" in kwargs.keys():
-        diffconst = kwargs["diffconst"]
-    else:
-        diffconst = 1.0
     if "lengthscale" in kwargs.keys():
         lengthscale = kwargs["lengthscale"]
     else:
         lengthscale = 1.0
     if which_prior == "matern32":
-        return pnfs.statespace.Matern(1, ivp.dimension, lengthscale, diffconst)
+        return pnfs.statespace.Matern(1, ivp.dimension, lengthscale)
     elif which_prior == "matern52":
-        return pnfs.statespace.Matern(2, ivp.dimension, lengthscale, diffconst)
+        return pnfs.statespace.Matern(2, ivp.dimension, lengthscale)
     elif which_prior == "matern72":
-        return pnfs.statespace.Matern(3, ivp.dimension, lengthscale, diffconst)
+        return pnfs.statespace.Matern(3, ivp.dimension, lengthscale)
     elif which_prior == "matern92":
-        return pnfs.statespace.Matern(4, ivp.dimension, lengthscale, diffconst)
+        return pnfs.statespace.Matern(4, ivp.dimension, lengthscale)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 

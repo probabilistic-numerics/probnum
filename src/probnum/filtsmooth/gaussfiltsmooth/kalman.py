@@ -24,7 +24,7 @@ class Kalman(BayesFiltSmooth):
             )
         super().__init__(dynamics_model, measurement_model, initrv)
 
-    def filtsmooth(self, dataset, times, intermediate_step=None):
+    def filtsmooth(self, dataset, times, _intermediate_step=None):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
@@ -41,14 +41,14 @@ class Kalman(BayesFiltSmooth):
         """
         dataset, times = np.asarray(dataset), np.asarray(times)
         filter_posterior = self.filter(
-            dataset, times, intermediate_step=intermediate_step
+            dataset, times, _intermediate_step=_intermediate_step
         )
         smooth_posterior = self.smooth(
-            filter_posterior, intermediate_step=intermediate_step
+            filter_posterior, _intermediate_step=_intermediate_step
         )
         return smooth_posterior
 
-    def filter(self, dataset, times, intermediate_step=None, linearise_at=None):
+    def filter(self, dataset, times, _intermediate_step=None, _linearise_at=None):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
@@ -63,7 +63,7 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the filtered output
         """
-        # linearise_at is not used here, only in IteratedKalman.filter_step
+        # _linearise_at is not used here, only in IteratedKalman.filter_step
         # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
         filtrv = self.initrv
@@ -74,12 +74,14 @@ class Kalman(BayesFiltSmooth):
                 stop=times[idx],
                 current_rv=filtrv,
                 data=dataset[idx - 1],
-                intermediate_step=intermediate_step,
+                _intermediate_step=_intermediate_step,
             )
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
-    def filter_step(self, start, stop, current_rv, data, intermediate_step=None):
+    def filter_step(
+        self, start, stop, current_rv, data, _intermediate_step=None, _diffusion=1.0
+    ):
         """A single filter step.
 
         Consists of a prediction step (t -> t+1) and an update step (at t+1).
@@ -107,19 +109,24 @@ class Kalman(BayesFiltSmooth):
         data = np.asarray(data)
         info = {}
         info["pred_rv"], info["info_pred"] = self.predict(
-            start, stop, current_rv, intermediate_step=intermediate_step
+            start,
+            stop,
+            current_rv,
+            _intermediate_step=_intermediate_step,
+            _diffusion=_diffusion,
         )
         filtrv, info["meas_rv"], info["info_upd"] = self.update(
             stop, info["pred_rv"], data
         )
         return filtrv, info
 
-    def predict(self, start, stop, randvar, intermediate_step=None):
+    def predict(self, start, stop, randvar, _intermediate_step=None, _diffusion=1.0):
         return self.dynamics_model.transition_rv(
             randvar,
             start,
             stop=stop,
-            step=intermediate_step,
+            step=_intermediate_step,
+            _diffusion=_diffusion,
         )
 
     def measure(self, time, randvar):
@@ -200,14 +207,14 @@ class Kalman(BayesFiltSmooth):
         )
         return filt_rv, meas_rv, info
 
-    def smooth(self, filter_posterior, intermediate_step=None):
+    def smooth(self, filter_posterior, _intermediate_step=None):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
 
         Parameters
         ----------
         filter_posterior : KalmanPosterior
             Posterior distribution obtained after filtering
-        intermediate_step :
+        _intermediate_step :
             Step-size to be taken by approximate transition methods.
         Returns
         -------
@@ -225,13 +232,13 @@ class Kalman(BayesFiltSmooth):
         rv_list = self.smooth_list(
             filter_posterior,
             filter_posterior.locations,
-            intermediate_step=intermediate_step,
+            _intermediate_step=_intermediate_step,
         )
         return KalmanPosterior(
             filter_posterior.locations, rv_list, self, with_smoothing=True
         )
 
-    def smooth_list(self, rv_list, locations, intermediate_step=None):
+    def smooth_list(self, rv_list, locations, _intermediate_step=None):
         """Apply smoothing to a list of RVs with desired final random variable.
 
         Specification of a final RV is useful to compute joint samples from a KalmanPosterior object,
@@ -244,7 +251,7 @@ class Kalman(BayesFiltSmooth):
             List of random variables to be smoothed.
         locations : array_like
             Locations of the random variables in rv_list.
-        intermediate_step :
+        _intermediate_step :
             Step-size to be taken by approximate transition methods.
 
         Returns
@@ -262,14 +269,20 @@ class Kalman(BayesFiltSmooth):
                 curr_rv,
                 start=locations[idx - 1],
                 stop=locations[idx],
-                intermediate_step=intermediate_step,
+                _intermediate_step=_intermediate_step,
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
 
     def smooth_step(
-        self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
+        self,
+        unsmoothed_rv,
+        smoothed_rv,
+        start,
+        stop,
+        _intermediate_step=None,
+        _diffusion=1.0,
     ):
         """A single smoother step.
 
@@ -289,7 +302,7 @@ class Kalman(BayesFiltSmooth):
             Time-point of the to-be-smoothed RV.
         stop : float
             Time-point of the already-smoothed RV.
-        intermediate_step :
+        _intermediate_step :
             Step-size to be taken by approximate transition methods.
         """
         if self.dynamics_model.precon is None:
@@ -298,7 +311,8 @@ class Kalman(BayesFiltSmooth):
                 smoothed_rv,
                 start,
                 stop,
-                intermediate_step=intermediate_step,
+                _intermediate_step=_intermediate_step,
+                _diffusion=_diffusion,
             )
         else:
             return self._smooth_step_with_preconditioning(
@@ -306,11 +320,18 @@ class Kalman(BayesFiltSmooth):
                 smoothed_rv,
                 start,
                 stop,
-                intermediate_step=intermediate_step,
+                _intermediate_step=_intermediate_step,
+                _diffusion=_diffusion,
             )
 
     def _smooth_step_classic(
-        self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
+        self,
+        unsmoothed_rv,
+        smoothed_rv,
+        start,
+        stop,
+        _intermediate_step=None,
+        _diffusion=1.0,
     ):
         """A single smoother step.
 
@@ -330,7 +351,11 @@ class Kalman(BayesFiltSmooth):
             Time-point of the already-smoothed RV.
         """
         predicted_rv, info = self.dynamics_model.transition_rv(
-            unsmoothed_rv, start, stop=stop, step=intermediate_step
+            unsmoothed_rv,
+            start,
+            stop=stop,
+            step=_intermediate_step,
+            _diffusion=_diffusion,
         )
         crosscov = info["crosscov"]
         smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T
@@ -340,7 +365,13 @@ class Kalman(BayesFiltSmooth):
         return smoothed_rv
 
     def _smooth_step_with_preconditioning(
-        self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
+        self,
+        unsmoothed_rv,
+        smoothed_rv,
+        start,
+        stop,
+        _intermediate_step=None,
+        _diffusion=1.0,
     ):
         """A single smoother step.
 
@@ -365,7 +396,11 @@ class Kalman(BayesFiltSmooth):
         smoothed_rv = precon_inv @ smoothed_rv
 
         predicted_rv, info = self.dynamics_model.transition_rv_preconditioned(
-            unsmoothed_rv, start, stop=stop, step=intermediate_step
+            unsmoothed_rv,
+            start,
+            stop=stop,
+            step=_intermediate_step,
+            _diffusion=_diffusion,
         )
         crosscov = info["crosscov"]
         smoothing_gain = np.linalg.solve(predicted_rv.cov.T, crosscov.T).T

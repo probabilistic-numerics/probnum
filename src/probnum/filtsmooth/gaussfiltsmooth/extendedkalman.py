@@ -29,12 +29,19 @@ class EKFComponent(LinearizingTransition):
         start: float,
         stop: typing.Optional[float] = None,
         step: typing.Optional[float] = None,
-        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
     ) -> (pnrv.Normal, typing.Dict):
 
         real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
         return self.transition_rv(
-            real_as_rv, start, stop, step=step, linearise_at=linearise_at
+            real_as_rv,
+            start,
+            stop,
+            step=step,
+            _linearise_at=_linearise_at,
+            _diffusion=_diffusion,
         )
 
     def transition_rv(
@@ -43,13 +50,15 @@ class EKFComponent(LinearizingTransition):
         start: float,
         stop: typing.Optional[float] = None,
         step: typing.Optional[float] = None,
-        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
     ) -> (pnrv.Normal, typing.Dict):
 
-        compute_jacobian_at = linearise_at if linearise_at is not None else rv
+        compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearize(at_this_rv=compute_jacobian_at)
         return self.linearized_model.transition_rv(
-            rv=rv, start=start, stop=stop, step=step
+            rv=rv, start=start, stop=stop, step=step, _diffusion=_diffusion
         )
 
 

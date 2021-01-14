@@ -70,7 +70,8 @@ class ContinuousUKFComponent(UKFComponent):
         real: np.ndarray,
         start: pntype.FloatArgType,
         stop: pntype.FloatArgType,
-        linearise_at: typing.Optional[pnrv.Normal] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
         **kwargs
     ) -> (pnrv.Normal, typing.Dict):
         raise NotImplementedError("TODO")  # Issue  #234
@@ -80,7 +81,8 @@ class ContinuousUKFComponent(UKFComponent):
         rv: pnrv.Normal,
         start: pntype.FloatArgType,
         stop: pntype.FloatArgType,
-        linearise_at: typing.Optional[pnrv.Normal] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
         **kwargs
     ) -> (pnrv.Normal, typing.Dict):
         raise NotImplementedError("TODO")  # Issue  #234
@@ -112,24 +114,27 @@ class DiscreteUKFComponent(UKFComponent):
         )
 
     def transition_realization(
-        self, real: np.ndarray, start: pntype.FloatArgType, **kwargs
+        self, real: np.ndarray, start: pntype.FloatArgType, _diffusion=1.0, **kwargs
     ) -> (pnrv.Normal, typing.Dict):
-        return self.non_linear_model.transition_realization(real, start, **kwargs)
+        return self.non_linear_model.transition_realization(
+            real, start, _diffusion=_diffusion, **kwargs
+        )
 
     def transition_rv(
         self,
         rv: pnrv.Normal,
         start: pntype.FloatArgType,
-        linearise_at: typing.Optional[pnrv.Normal] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
         **kwargs
     ) -> (pnrv.Normal, typing.Dict):
-        compute_sigmapts_at = linearise_at if linearise_at is not None else rv
+        compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
         self.linearize(at_this_rv=compute_sigmapts_at)
 
         proppts = self.ut.propagate(
             start, self.sigma_points, self.non_linear_model.dynamicsfun
         )
-        meascov = self.non_linear_model.diffmatfun(start)
+        meascov = _diffusion * self.non_linear_model.diffmatfun(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, self.sigma_points, meascov, rv.mean
         )

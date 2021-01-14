@@ -55,10 +55,10 @@ class DiscreteGaussian(trans.Transition):
         self.jacobfun = jacobfun if jacobfun is not None else if_no_jacobian
         super().__init__()
 
-    def transition_realization(self, real, start, **kwargs):
+    def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
 
         newmean = self.dynamicsfun(start, real)
-        newcov = self.diffmatfun(start)
+        newcov = _diffusion * self.diffmatfun(start)
         crosscov = np.zeros(newcov.shape)
         return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
 
@@ -111,13 +111,13 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             jacobfun=lambda t, x: dynamicsmatfun(t),
         )
 
-    def transition_rv(self, rv, start, **kwargs):
+    def transition_rv(self, rv, start, _diffusion=1.0, **kwargs):
 
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
 
         dynamicsmat = self.dynamicsmatfun(start)
-        diffmat = self.diffmatfun(start)
+        diffmat = _diffusion * self.diffmatfun(start)
         force = self.forcevecfun(start)
 
         new_mean = dynamicsmat @ rv.mean + force

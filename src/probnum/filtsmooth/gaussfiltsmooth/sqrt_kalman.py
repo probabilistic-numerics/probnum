@@ -61,6 +61,7 @@ class SquareRootKalman(Kalman):
         start: pntype.FloatArgType,
         stop: pntype.FloatArgType,
         randvar: pnrv.Normal,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
         **kwargs
     ) -> (pnrv.Normal, typing.Dict):
         dynamicsmat, forcevec, diffmat_cholesky = self._linear_dynamic_matrices(
@@ -69,7 +70,7 @@ class SquareRootKalman(Kalman):
 
         new_mean = dynamicsmat @ randvar.mean + forcevec
         new_cov_cholesky = cholesky_update(
-            dynamicsmat @ randvar.cov_cholesky, diffmat_cholesky
+            dynamicsmat @ randvar.cov_cholesky, np.sqrt(_diffusion) * diffmat_cholesky
         )
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
         crosscov = randvar.cov @ dynamicsmat.T
@@ -144,12 +145,13 @@ class SquareRootKalman(Kalman):
         smoothed_rv: pnrv.Normal,
         start: pntype.FloatArgType,
         stop: pntype.FloatArgType,
-        intermediate_step: typing.Optional[pntype.FloatArgType] = None,
+        _intermediate_step: typing.Optional[pntype.FloatArgType] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
     ):
 
         # I do not like that this prediction step is necessary.
         # Very soon we should start caching predictions.
-        pred_rv, info = self.predict(start, stop, unsmoothed_rv)
+        pred_rv, info = self.predict(start, stop, unsmoothed_rv, _diffusion=_diffusion)
         crosscov = info["crosscov"]
         smoothing_gain = scipy.linalg.cho_solve(
             (pred_rv.cov_cholesky, True), crosscov.T
@@ -161,7 +163,7 @@ class SquareRootKalman(Kalman):
         new_cov_cholesky = sqrt_smoothing_step(
             unsmoothed_rv.cov_cholesky,
             dynamicsmat,
-            diffmat_cholesky,
+            np.sqrt(_diffusion) * diffmat_cholesky,
             smoothed_rv.cov_cholesky,
             smoothing_gain,
         )
