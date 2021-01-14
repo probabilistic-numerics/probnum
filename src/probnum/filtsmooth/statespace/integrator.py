@@ -57,9 +57,7 @@ class Integrator:
 class IBM(Integrator, sde.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
-    def __init__(self, ordint, spatialdim, diffconst):
-        self.diffconst = diffconst
-
+    def __init__(self, ordint, spatialdim):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
@@ -85,7 +83,7 @@ class IBM(Integrator, sde.LTISDE):
     @property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
-        dispmat_1d[-1] = self.diffconst
+        dispmat_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
 
     @cached_property
@@ -118,9 +116,9 @@ class IBM(Integrator, sde.LTISDE):
         range = np.arange(0, self.ordint + 1)
         denominators = 2.0 * self.ordint + 1.0 - range[:, None] - range[None, :]
         diffmat_1d = 1.0 / denominators
-        return np.kron(np.eye(self.spatialdim), self.diffconst ** 2 * diffmat_1d)
+        return np.kron(np.eye(self.spatialdim), diffmat_1d)
 
-    def transition_rv(self, rv, start, stop, **kwargs):
+    def transition_rv(self, rv, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
@@ -129,25 +127,31 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(errormsg)
         step = stop - start
         rv = self.precon.inverse(step) @ rv
-        rv, info = self.transition_rv_preconditioned(rv, start)
+        rv, info = self.transition_rv_preconditioned(rv, start, _diffusion=_diffusion)
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ rv, info
 
-    def transition_rv_preconditioned(self, rv, start, **kwargs):
-        return self.equivalent_discretisation_preconditioned.transition_rv(rv, start)
+    def transition_rv_preconditioned(self, rv, start, _diffusion=1.0, **kwargs):
+        return self.equivalent_discretisation_preconditioned.transition_rv(
+            rv, start, _diffusion=_diffusion
+        )
 
-    def transition_realization(self, real, start, stop, **kwargs):
+    def transition_realization(self, real, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         real = self.precon.inverse(step) @ real
-        real, info = self.transition_realization_preconditioned(real, start)
+        real, info = self.transition_realization_preconditioned(
+            real, start, _diffusion=_diffusion
+        )
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ real, info
 
-    def transition_realization_preconditioned(self, real, start, **kwargs):
+    def transition_realization_preconditioned(
+        self, real, start, _diffusion=1.0, **kwargs
+    ):
         return self.equivalent_discretisation_preconditioned.transition_realization(
-            real, start
+            real, start, _diffusion=_diffusion
         )
 
     def discretise(self, step):
@@ -182,11 +186,9 @@ class IOUP(Integrator, sde.LTISDE):
         ordint: int,
         spatialdim: int,
         driftspeed: float,
-        diffconst: float,
     ):
         # Other than previously in ProbNum, we do not use preconditioning for IOUP by default.
         self.driftspeed = driftspeed
-        self.diffconst = diffconst
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
         sde.LTISDE.__init__(
@@ -210,7 +212,7 @@ class IOUP(Integrator, sde.LTISDE):
     @property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
-        dispmat_1d[-1] = self.diffconst
+        dispmat_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
 
 
@@ -222,12 +224,10 @@ class Matern(Integrator, sde.LTISDE):
         ordint: int,
         spatialdim: int,
         lengthscale: float,
-        diffconst: float,
     ):
 
         # Other than previously in ProbNum, we do not use preconditioning for Matern by default.
         self.lengthscale = lengthscale
-        self.diffconst = diffconst
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
         sde.LTISDE.__init__(
@@ -255,5 +255,5 @@ class Matern(Integrator, sde.LTISDE):
     @property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
-        dispmat_1d[-1] = self.diffconst
+        dispmat_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
