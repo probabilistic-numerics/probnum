@@ -12,35 +12,50 @@ import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 from probnum.problems.zoo.linalg import random_spd_matrix
 
-from .filtsmooth_testcases import car_tracking
+from .filtsmooth_testcases import car_tracking, pendulum
 
 np.random.seed(42)
 
 
 @pytest.fixture
-def dynmod():
-    return car_tracking()[0]
+def problem():
+    return car_tracking
 
 
 @pytest.fixture
-def measmod():
-    return car_tracking()[1]
+def d():
+    return 4
 
 
 @pytest.fixture
-def initrv():
-    return car_tracking()[2]
+def d2():
+    return 2
 
 
 @pytest.fixture
-def info():
-    return car_tracking()[3]
+def dynmod(problem):
+    return problem()[0]
 
 
 @pytest.fixture
-def random_rv4():
-    covmat = random_spd_matrix(4)
-    mean = np.random.rand(4)
+def measmod(problem):
+    return problem()[1]
+
+
+@pytest.fixture
+def initrv(problem):
+    return problem()[2]
+
+
+@pytest.fixture
+def info(problem):
+    return problem()[3]
+
+
+@pytest.fixture
+def random_rv4(d):
+    covmat = random_spd_matrix(d)
+    mean = np.random.rand(d)
     return pnrv.Normal(mean, covmat)
 
 
@@ -75,8 +90,8 @@ def test_measure(sqrt_kalman, kalman, random_rv4):
 
 
 @pytest.fixture
-def random_data2():
-    return np.random.rand(2)
+def random_data2(d2):
+    return np.random.rand(d2)
 
 
 def test_update(sqrt_kalman, kalman, random_rv4, random_data2):
