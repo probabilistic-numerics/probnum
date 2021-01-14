@@ -1,5 +1,7 @@
 """Square-root Gaussian filtering and smoothing."""
 
+import typing
+
 import numpy as np
 import scipy.linalg
 
@@ -15,23 +17,39 @@ from .sqrt_utils import cholesky_update, sqrt_kalman_update, sqrt_smoothing_step
 # because e.g. update and smoothing_step MUST be in here.
 # Therefore it seems better to do everything here.
 class SquareRootKalman(Kalman):
-    def __init__(self, dynamics_model, measurement_model, initrv):
+    def __init__(
+        self,
+        dynamics_model: typing.Union[
+            pnfss.LTISDE, pnfss.DiscreteLinearGaussian, DiscreteEKFComponent
+        ],
+        measurement_model: typing.Union[
+            pnfss.DiscreteLinearGaussian, DiscreteEKFComponent
+        ],
+        initrv: pnrv.Normal,
+    ) -> None:
         """Check that the models are linear(ised)."""
         # EKF is acceptable, because of the Taylor linearisation.
         # UKF would need downdates, which is not supported (at the moment?).
 
+        compatible_dynamics_models = (
+            pnfss.LTISDE,
+            pnfss.DiscreteLinearGaussian,
+            DiscreteEKFComponent,
+        )
         if not isinstance(
             dynamics_model,
-            (pnfss.LTISDE, pnfss.DiscreteLinearGaussian, DiscreteEKFComponent),
+            compatible_dynamics_models,
         ):
             errormsg = (
                 "The dynamics model must be able to reduce to a linear discrete model."
             )
             raise ValueError(errormsg)
 
-        if not isinstance(
-            measurement_model, (pnfss.DiscreteLinearGaussian, DiscreteEKFComponent)
-        ):
+        compatible_measurement_models = (
+            pnfss.DiscreteLinearGaussian,
+            DiscreteEKFComponent,
+        )
+        if not isinstance(measurement_model, compatible_measurement_models):
             errormsg = "The measurement model must be able to reduce to a linear discrete model."
             raise ValueError(errormsg)
 
