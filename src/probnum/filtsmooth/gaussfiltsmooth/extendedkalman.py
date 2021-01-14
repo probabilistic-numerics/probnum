@@ -28,10 +28,10 @@ class EKFComponent(LinearizingTransition):
         self,
         real: np.ndarray,
         start: float,
-        stop: Optional[float] = None,
-        step: Optional[float] = None,
-        linearise_at: Optional[RandomVariable] = None,
-    ) -> (pnrv.Normal, Dict):
+        stop: typing.Optional[float] = None,
+        step: typing.Optional[float] = None,
+        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+    ) -> (pnrv.Normal, typing.Dict):
 
         real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
         return self.transition_rv(
@@ -42,10 +42,10 @@ class EKFComponent(LinearizingTransition):
         self,
         rv: pnrv.Normal,
         start: float,
-        stop: Optional[float] = None,
-        step: Optional[float] = None,
-        linearise_at: Optional[RandomVariable] = None,
-    ) -> (pnrv.Normal, Dict):
+        stop: typing.Optional[float] = None,
+        step: typing.Optional[float] = None,
+        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+    ) -> (pnrv.Normal, typing.Dict):
 
         compute_jacobian_at = linearise_at if linearise_at is not None else rv
         self.linearize(at_this_rv=compute_jacobian_at)
@@ -134,9 +134,9 @@ class DiscreteEKFComponent(EKFComponent):
         cls,
         ode: "probnum.diffeq.ODE",  # we don't want to import probnum.diffeq here
         prior: pnfss.LinearSDE,
-        evlvar: pntype.FloatArgtype,
+        evlvar: pntype.FloatArgType,
         ek0_or_ek1: typing.Optional[pntype.IntArgType] = 0,
-    ) -> DiscreteEKFComponent:
+    ) -> "DiscreteEKFComponent":
         # should be in DiscreteGaussian, not in here? (N)
 
         spatialdim = prior.spatialdim
