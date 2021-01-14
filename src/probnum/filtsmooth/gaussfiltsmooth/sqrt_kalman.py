@@ -24,12 +24,16 @@ class SquareRootKalman(Kalman):
             dynamics_model,
             (pnfss.LTISDE, pnfss.DiscreteLinearGaussian, DiscreteEKFComponent),
         ):
-            raise ValueError
+            errormsg = (
+                "The dynamics model must be able to reduce to a linear discrete model."
+            )
+            raise ValueError(errormsg)
 
         if not isinstance(
             measurement_model, (pnfss.DiscreteLinearGaussian, DiscreteEKFComponent)
         ):
-            raise ValueError
+            errormsg = "The measurement model must be able to reduce to a linear discrete model."
+            raise ValueError(errormsg)
 
         super().__init__(dynamics_model, measurement_model, initrv)
 
