@@ -7,6 +7,7 @@ import scipy.linalg
 
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
+import probnum.type as pntype
 
 from .extendedkalman import DiscreteEKFComponent
 from .kalman import Kalman
@@ -55,7 +56,13 @@ class SquareRootKalman(Kalman):
 
         super().__init__(dynamics_model, measurement_model, initrv)
 
-    def predict(self, start, stop, randvar, **kwargs):
+    def predict(
+        self,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        randvar: pnrv.Normal,
+        **kwargs
+    ) -> (pnrv.Normal, typing.Dict):
         A, s, L_Q = self._linear_dynamic_matrices(start, stop, randvar)
 
         old_mean = randvar.mean
@@ -69,7 +76,9 @@ class SquareRootKalman(Kalman):
             "crosscov": crosscov
         }
 
-    def measure(self, time, randvar):
+    def measure(
+        self, time: pntype.FloatArgType, randvar: pnrv.Normal
+    ) -> (pnrv.Normal, typing.Dict):
         H, s, L_R = self._linear_measurement_matrices(time, randvar)
         old_mean = randvar.mean
         old_cov_cholesky = randvar.cov_cholesky
@@ -82,7 +91,9 @@ class SquareRootKalman(Kalman):
             "crosscov": crosscov
         }
 
-    def update(self, time, randvar, data):
+    def update(
+        self, time: pntype.FloatArgType, randvar: pnrv.Normal, data: np.ndarray
+    ) -> (pnrv.Normal, typing.Dict):
         predcov_cholesky = randvar.cov_cholesky
         H, s, L_R = self._linear_measurement_matrices(time, randvar)
 
@@ -97,7 +108,9 @@ class SquareRootKalman(Kalman):
 
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P), meas_rv, {}
 
-    def _linear_measurement_matrices(self, time, randvar):
+    def _linear_measurement_matrices(
+        self, time: pntype.FloatArgType, randvar: pnrv.Normal
+    ) -> (np.ndarray, np.ndarray, np.ndarray):
         if isinstance(self.measurement_model, DiscreteEKFComponent):
             self.measurement_model.linearize(at_this_rv=randvar)
             disc_model = self.measurement_model.linearized_model
@@ -110,7 +123,12 @@ class SquareRootKalman(Kalman):
         return H, s, L_R
 
     def smooth_step(
-        self, unsmoothed_rv, smoothed_rv, start, stop, intermediate_step=None
+        self,
+        unsmoothed_rv: pnrv.Normal,
+        smoothed_rv: pnrv.Normal,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        intermediate_step: typing.Optional[pntype.FloatArgType] = None,
     ):
 
         # I do not like that this prediction step is necessary...
@@ -131,7 +149,12 @@ class SquareRootKalman(Kalman):
         new_cov = L_P @ L_P.T
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=L_P)
 
-    def _linear_dynamic_matrices(self, start, stop, randvar):
+    def _linear_dynamic_matrices(
+        self,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        randvar: pnrv.Normal,
+    ) -> (np.ndarray, np.ndarray, np.ndarray):
         if isinstance(self.dynamics_model, pnfss.LTISDE):
             disc_model = self.dynamics_model.discretise(stop - start)
             A = disc_model.driftmat
