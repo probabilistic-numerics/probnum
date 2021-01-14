@@ -15,8 +15,8 @@ from .sqrt_utils import cholesky_update, sqrt_kalman_update, sqrt_smoothing_step
 
 
 # This class re-implements predict and measure and does not use Transition.transition_rv,
-# because e.g. update and smoothing_step MUST be in here.
-# Therefore it seems better to do everything here.
+# because this approach encapsulates the QR-updates in this class.
+# Also, update and smoothing_step MUST be in here.
 class SquareRootKalman(Kalman):
     def __init__(
         self,

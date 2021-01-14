@@ -28,7 +28,7 @@ import numpy as np
 def cholesky_update(
     S1: np.ndarray, S2: typing.Optional[np.ndarray] = None
 ) -> np.ndarray:
-    """Compute Cholesky update/factorization :math:`C C^\top = S_1 S_1^\top + S_2 S_2^\top`.
+    r"""Compute Cholesky update/factorization :math:`C C^\top = S_1 S_1^\top + S_2 S_2^\top`.
 
     This can be used in various ways.
     For example, :math:`S_1` and :math:`S_2` do not need to be Cholesky factors; any matrix square-root is sufficient.
@@ -49,7 +49,7 @@ def cholesky_update(
 def sqrt_kalman_update(
     H: np.ndarray, SR: np.ndarray, SC: np.ndarray
 ) -> (np.ndarray, np.ndarray, np.ndarray):
-    """Compute the Kalman update in square-root form.
+    r"""Compute the Kalman update in square-root form.
 
     Assumes a measurement model of the form
 
@@ -104,7 +104,7 @@ def sqrt_smoothing_step(
     SC_futu: np.ndarray,
     G: np.ndarray,
 ) -> np.ndarray:
-    """Smoothing step in square-root form.
+    r"""Smoothing step in square-root form.
 
     Assumes a prior dynamic model of the form
 
@@ -141,7 +141,7 @@ def sqrt_smoothing_step(
 
 
 def triu_to_positive_tril(triu_mat: np.ndarray) -> np.ndarray:
-    """Change an upper triangular matrix into a valid lower Cholesky factor.
+    r"""Change an upper triangular matrix into a valid lower Cholesky factor.
 
     Transpose, and change the sign of the diagonals to '+' if necessary.
     """

@@ -34,7 +34,8 @@ class LinearizingTransition(pnfss.Transition, abc.ABC):
         start: float,
         stop: typing.Optional[float] = None,
         step: typing.Optional[float] = None,
-        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
     ) -> (pnrv.RandomVariable, typing.Dict):
 
         raise NotImplementedError
@@ -45,7 +46,8 @@ class LinearizingTransition(pnfss.Transition, abc.ABC):
         start: float,
         stop: typing.Optional[float] = None,
         step: typing.Optional[float] = None,
-        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
     ) -> (pnrv.RandomVariable, typing.Dict):
         raise NotImplementedError
 
@@ -56,7 +58,8 @@ class LinearizingTransition(pnfss.Transition, abc.ABC):
         start: float,
         stop: typing.Optional[float] = None,
         step: typing.Optional[float] = None,
-        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
     ) -> (pnrv.RandomVariable, typing.Dict):
         raise NotImplementedError
 
@@ -66,7 +69,8 @@ class LinearizingTransition(pnfss.Transition, abc.ABC):
         start: float,
         stop: typing.Optional[float] = None,
         step: typing.Optional[float] = None,
-        linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
     ) -> (pnrv.RandomVariable, typing.Dict):
         raise NotImplementedError
 
