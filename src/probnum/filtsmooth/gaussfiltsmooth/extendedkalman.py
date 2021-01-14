@@ -2,11 +2,13 @@
 through Taylor-method approximations, e.g. linearization."""
 
 import functools as ft
+import typing
 
 import numpy as np
 
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
+import probnum.type as pntype
 
 from .linearizing_transition import LinearizingTransition
 
@@ -14,23 +16,37 @@ from .linearizing_transition import LinearizingTransition
 class EKFComponent(LinearizingTransition):
     """Interface for extended Kalman filtering components."""
 
-    def __init__(self, non_linear_model):
+    def __init__(
+        self, non_linear_model: typing.Union[pnfss.SDE, pnfss.DiscreteGaussian]
+    ) -> None:
         super().__init__(non_linear_model=non_linear_model)
 
         # Will be constructed later
         self.linearized_model = None
 
     def transition_realization(
-        self, real, start, stop=None, step=None, linearise_at=None, **kwargs
-    ):
+        self,
+        real: np.ndarray,
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (pnrv.Normal, Dict):
+
         real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
         return self.transition_rv(
-            real_as_rv, start, stop, step=step, linearise_at=linearise_at, **kwargs
+            real_as_rv, start, stop, step=step, linearise_at=linearise_at
         )
 
     def transition_rv(
-        self, rv, start, stop=None, step=None, linearise_at=None, **kwargs
-    ):
+        self,
+        rv: pnrv.Normal,
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        linearise_at: Optional[RandomVariable] = None,
+    ) -> (pnrv.Normal, Dict):
+
         compute_jacobian_at = linearise_at if linearise_at is not None else rv
         self.linearize(at_this_rv=compute_jacobian_at)
         return self.linearized_model.transition_rv(
@@ -41,7 +57,9 @@ class EKFComponent(LinearizingTransition):
 class ContinuousEKFComponent(EKFComponent):
     """Continuous extended Kalman filter transition."""
 
-    def __init__(self, non_linear_model, num_steps):
+    def __init__(
+        self, non_linear_model: pnfss.SDE, num_steps: pntype.IntArgType
+    ) -> None:
         if not isinstance(non_linear_model, pnfss.SDE):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
 
@@ -51,8 +69,8 @@ class ContinuousEKFComponent(EKFComponent):
         # see linear_sde_statics() below
         self.num_steps = num_steps
 
-    def linearize(self, at_this_rv: pnrv.RandomVariable):
-        """Linearises the drift function with a first order Taylor expansion."""
+    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+        """Linearize the drift function with a first order Taylor expansion."""
 
         g = self.non_linear_model.driftfun
         dg = self.non_linear_model.jacobfun
@@ -79,7 +97,7 @@ class ContinuousEKFComponent(EKFComponent):
 class DiscreteEKFComponent(EKFComponent):
     """Discrete extended Kalman filter transition."""
 
-    def __init__(self, non_linear_model):
+    def __init__(self, non_linear_model: pnfss.DiscreteGaussian) -> None:
         if not isinstance(non_linear_model, pnfss.DiscreteGaussian):
             raise TypeError(
                 "Discrete EKF transition requires a (non-linear) discrete Gaussian transition."
@@ -87,8 +105,8 @@ class DiscreteEKFComponent(EKFComponent):
 
         super().__init__(non_linear_model=non_linear_model)
 
-    def linearize(self, at_this_rv: pnrv.RandomVariable):
-        """Linearises the dynamics function with a first order Taylor expansion."""
+    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+        """Linearize the dynamics function with a first order Taylor expansion."""
 
         g = self.non_linear_model.dynamicsfun
         dg = self.non_linear_model.jacobfun
@@ -112,7 +130,13 @@ class DiscreteEKFComponent(EKFComponent):
         raise NotImplementedError
 
     @classmethod
-    def from_ode(cls, ode, prior, evlvar, ek0_or_ek1=0):
+    def from_ode(
+        cls,
+        ode: "probnum.diffeq.ODE",  # we don't want to import probnum.diffeq here
+        prior: pnfss.LinearSDE,
+        evlvar: pntype.FloatArgtype,
+        ek0_or_ek1: typing.Optional[pntype.IntArgType] = 0,
+    ) -> DiscreteEKFComponent:
         # should be in DiscreteGaussian, not in here? (N)
 
         spatialdim = prior.spatialdim

@@ -21,11 +21,9 @@ class LinearizingTransition(pnfss.Transition, abc.ABC):
     filtering.
     """
 
-    # the type-hint says `pnfss.Transition`
-    # though the subclasses either take `pnfss.SDE` (Continuous...)
-    # or `pnfss.DiscreteGaussian` (Discrete...).
-    # Should this be changed here then?
-    def __init__(self, non_linear_model: pnfss.Transition):
+    def __init__(
+        self, non_linear_model: typing.Union[pnfss.SDE, pnfss.DiscreteGaussian]
+    ) -> None:
         self.non_linear_model = non_linear_model
         super().__init__()
 
