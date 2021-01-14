@@ -14,6 +14,7 @@ LINSOLVE_ABSTOL = 10 ** -6
 
 def test_prior_information(linsolve):
     """The solver should automatically handle different types of prior information."""
+    # TODO
     pass
 
 

@@ -124,6 +124,7 @@ class ProbabilisticLinearSolverTestCase(unittest.TestCase, NumpyAssertions):
                 atol=10 ** -12,
             )
 
+    # TODO use pytest.xfail to mark this
     def test_solution_equivalence(self):
         """The iteratively computed solution should match the induced solution
         estimate: x_k = E[A^-1] b"""
