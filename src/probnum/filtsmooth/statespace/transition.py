@@ -45,7 +45,8 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        linearise_at: Optional[RandomVariable] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Transition a realization of a random variable from time :math:`t` to time
         :math:`t+\\Delta t`.
@@ -69,7 +70,10 @@ class Transition(abc.ABC):
             End point :math:`t + \\Delta t`.
         step :
             Intermediate step-size. Optional, default is None.
-        linearise_at :
+        _diffusion :
+            Optional diffusion parameter for this transition. This field is usually used
+            to update diffusions with calibrated versions thereof.
+        _linearise_at :
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
 
@@ -96,7 +100,8 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        linearise_at: Optional[RandomVariable] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Applies the transition, assuming that the state is already preconditioned.
 
@@ -120,7 +125,8 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        linearise_at: Optional[RandomVariable] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Transition a random variable from time :math:`t` to time
         :math:`t+\\Delta t`.
@@ -146,7 +152,10 @@ class Transition(abc.ABC):
             End point :math:`t + \\Delta t`.
         step :
             Intermediate step-size. Optional, default is None.
-        linearise_at :
+        _diffusion :
+            Optional diffusion parameter for this transition. This field is usually used
+            to update diffusions with calibrated versions thereof.
+        _linearise_at :
             For approximate transitions , for instance ContinuousEKFComponent,
             this argument overloads the state at which the Jacobian is computed.
 
@@ -173,7 +182,8 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
-        linearise_at: Optional[RandomVariable] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):
         """Applies the transition, assuming that the state is already preconditioned.
 
