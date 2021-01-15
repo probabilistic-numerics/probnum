@@ -13,8 +13,10 @@ from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
 
-@pytest.fixture(params=[pytest.param(n, id=f"dim{n}") for n in [5, 10, 50, 100]])
-def n(request) -> int:
+@pytest.fixture(
+    params=[pytest.param(n, id=f"dim{n}") for n in [5, 10, 50, 100]], name="n"
+)
+def fixture_n(request) -> int:
     """Number of columns of the system matrix.
 
     This is mostly used for test parameterization.
@@ -22,8 +24,11 @@ def n(request) -> int:
     return request.param
 
 
-@pytest.fixture(params=[pytest.param(seed, id=f"seed{seed}") for seed in range(3)])
-def random_state(request) -> np.random.RandomState:
+@pytest.fixture(
+    params=[pytest.param(seed, id=f"seed{seed}") for seed in range(3)],
+    name="random_state",
+)
+def fixture_random_state(request) -> np.random.RandomState:
     """Random states used to sample the test case input matrices.
 
     This is mostly used for test parameterization.
@@ -36,8 +41,8 @@ def random_state(request) -> np.random.RandomState:
 ############
 
 
-@pytest.fixture()
-def spd_mat(n: int, random_state: np.random.RandomState) -> np.ndarray:
+@pytest.fixture(name="spd_mat")
+def fixture_spd_mat(n: int, random_state: np.random.RandomState) -> np.ndarray:
     """Random symmetric positive definite matrix of dimension :func:`n`, sampled from
     :func:`random_state`."""
     return random_spd_matrix(dim=n, random_state=random_state)
@@ -47,15 +52,16 @@ def spd_mat(n: int, random_state: np.random.RandomState) -> np.ndarray:
     params=[
         pytest.param(sparsemat_density, id=f"density{sparsemat_density}")
         for sparsemat_density in (0.001, 0.01, 0.1)
-    ]
+    ],
+    name="sparsemat_density",
 )
-def sparsemat_density(request):
+def fixture_sparsemat_density(request):
     """Density of a sparse matrix defined by the fraction of nonzero entries."""
     return request.param
 
 
-@pytest.fixture()
-def sparse_spd_mat(
+@pytest.fixture(name="sparse_spd_mat")
+def fixture_sparse_spd_mat(
     sparsemat_density: float, n: int, random_state: np.random.RandomState
 ) -> scipy.sparse.spmatrix:
     """Random sparse symmetric positive definite matrix of dimension :func:`n`, sampled
@@ -75,12 +81,15 @@ def sparse_spd_mat(
             kernels.Matern,
             kernels.Polynomial,
         ]
-    ]
+    ],
+    name="kernel_mat",
 )
-def kernel_mat(kernel, n: int, random_state: np.random.RandomState) -> np.ndarray:
+def fixture_kernel_mat(
+    request, n: int, random_state: np.random.RandomState
+) -> np.ndarray:
     """Kernel matrix evaluated on a randomly drawn data set."""
     data = random_state.uniform(-1.0, 1.0, (n, 1))
-    kernel_mat = kernel(input_dim=1)(data)
+    kernel_mat = request.param(input_dim=1)(data)
     return kernel_mat
 
 
