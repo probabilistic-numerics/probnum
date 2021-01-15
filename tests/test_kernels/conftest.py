@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 import pytest
 
-from probnum import kernels
+import probnum.kernels as kernels
 
 
 @pytest.fixture(params=[pytest.param(seed, id=f"seed{seed}") for seed in range(1)])
