@@ -6,14 +6,14 @@ import numpy as np
 
 import probnum
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
+from probnum.linalg.linearsolvers.beliefs import SymmetricLinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import OptimalNoiseScale
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
 
 
-class NoisyLinearSystemBelief(LinearSystemBelief):
+class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
     r"""Belief over a noise-corrupted linear system.
 
     Parameters
@@ -32,10 +32,10 @@ class NoisyLinearSystemBelief(LinearSystemBelief):
 
     def __init__(
         self,
-        x: rvs.RandomVariable,
-        A: rvs.RandomVariable,
-        Ainv: rvs.RandomVariable,
-        b: rvs.RandomVariable,
+        x: rvs.Normal,
+        A: rvs.Normal,
+        Ainv: rvs.Normal,
+        b: rvs.Normal,
         noise_scale: float = None,
     ):
         self._noise_scale = noise_scale

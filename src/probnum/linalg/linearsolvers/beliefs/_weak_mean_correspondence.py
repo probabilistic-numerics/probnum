@@ -3,6 +3,7 @@
 from typing import List, Optional, Union
 
 import numpy as np
+import scipy.sparse
 
 import probnum
 import probnum.linops as linops
@@ -10,16 +11,19 @@ import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.belief_updates import (
     WeakMeanCorrLinearObsBeliefUpdate,
 )
-from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
+from probnum.linalg.linearsolvers.beliefs import SymmetricLinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import UncertaintyCalibration
 from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
 
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["WeakMeanCorrespondenceBelief"]
 
-class WeakMeanCorrespondenceBelief(LinearSystemBelief):
-    r"""Belief enforcing (weak) mean correspondence.
+
+class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
+    r"""Symmetric Gaussian belief enforcing weak mean correspondence.
 
     Belief over the linear system such that the means over the matrix and its inverse
     correspond and the covariance symmetric Kronecker factors act like :math:`A` and the
@@ -257,12 +261,28 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             return observation_space_op + orthogonal_space_op
 
     @classmethod
+    def from_solution(
+        cls,
+        x0: np.ndarray,
+        problem: LinearSystem,
+        check_for_better_x0: bool = True,
+    ) -> "WeakMeanCorrespondenceBelief":
+        _, Ainv0, A0 = cls._belief_means_from_solution(
+            x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
+        )
+        return cls(
+            Ainv0=Ainv0,
+            A0=A0,
+            b=rvs.asrandvar(problem.b),
+        )
+
+    @classmethod
     def from_inverse(
         cls,
-        Ainv0: Union[np.ndarray, rvs.RandomVariable, linops.LinearOperator],
+        Ainv0: Union[np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix],
         problem: LinearSystem,
-        actions: Optional[np.ndarray] = None,
-        observations: Optional[np.ndarray] = None,
+        actions: Optional[Union[np.ndarray, List]] = None,
+        observations: Optional[Union[np.ndarray, List]] = None,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief over the linear system from an approximate inverse.
@@ -286,7 +306,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             return cls(
                 A0=Ainv0.inv(),  # Ensure (weak) mean correspondence
                 Ainv0=Ainv0,
-                b=problem.b,
+                b=rvs.asrandvar(problem.b),
                 actions=actions,
                 observations=observations,
                 calibration_method=calibration_method,
@@ -294,17 +314,17 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         except AttributeError as exc:
             raise TypeError(
                 "Cannot efficiently invert (prior mean of) Ainv. "
-                "Additionally, specify a prior (mean) of A instead or wrap into"
+                "Additionally, specify a prior (mean) of A instead or wrap into "
                 "a linear operator with an .inv() function."
             ) from exc
 
     @classmethod
     def from_matrix(
         cls,
-        A0: Union[np.ndarray, rvs.RandomVariable],
+        A0: Union[np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix],
         problem: LinearSystem,
-        actions: Optional[np.ndarray] = None,
-        observations: Optional[np.ndarray] = None,
+        actions: Optional[Union[np.ndarray, List]] = None,
+        observations: Optional[Union[np.ndarray, List]] = None,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief over the linear system from an approximate system matrix.
@@ -328,7 +348,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
             return cls(
                 A0=A0,
                 Ainv0=A0.inv(),  # Ensure (weak) mean correspondence
-                b=problem.b,
+                b=rvs.asrandvar(problem.b),
                 actions=actions,
                 observations=observations,
                 calibration_method=calibration_method,
@@ -336,18 +356,26 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         except AttributeError as exc:
             raise TypeError(
                 "Cannot efficiently invert (prior mean of) A. "
-                "Additionally, specify an inverse prior (mean) instead or wrap into"
+                "Additionally, specify an inverse prior (mean) instead or wrap into "
                 "a linear operator with an .inv() function."
             ) from exc
 
     @classmethod
     def from_matrices(
         cls,
-        A0: Union[np.ndarray, rvs.RandomVariable],
-        Ainv0: Union[np.ndarray, rvs.RandomVariable],
+        A0: Union[
+            np.ndarray,
+            linops.LinearOperator,
+            scipy.sparse.spmatrix,
+        ],
+        Ainv0: Union[
+            np.ndarray,
+            linops.LinearOperator,
+            scipy.sparse.spmatrix,
+        ],
         problem: LinearSystem,
-        actions: Optional[np.ndarray] = None,
-        observations: Optional[np.ndarray] = None,
+        actions: Optional[Union[np.ndarray, List]] = None,
+        observations: Optional[Union[np.ndarray, List]] = None,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief from an approximate system matrix and
@@ -373,7 +401,7 @@ class WeakMeanCorrespondenceBelief(LinearSystemBelief):
         return cls(
             A0=A0,
             Ainv0=Ainv0,
-            b=problem.b,
+            b=rvs.asrandvar(problem.b),
             actions=actions,
             observations=observations,
             calibration_method=calibration_method,

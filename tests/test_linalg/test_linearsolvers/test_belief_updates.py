@@ -17,12 +17,10 @@ from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
-from .test_probabilistic_linear_solver import ProbabilisticLinearSolverTestCase
-
 # pylint: disable="invalid-name"
 
 
-class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
+class BeliefUpdateTestCase(NumpyAssertions):
     """General test case for belief updates of probabilistic linear solvers."""
 
     def setUp(self) -> None:
@@ -100,7 +98,7 @@ class BeliefUpdateTestCase(ProbabilisticLinearSolverTestCase, NumpyAssertions):
     #             self.assertAllClose(belief_bulk.b.mean, belief_iter.b.mean)
 
 
-class LinearSymmetricGaussianTestCase(ProbabilisticLinearSolverTestCase):
+class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
     """Test case for the linear symmetric Gaussian belief update."""
 
     def setUp(self) -> None:
@@ -238,7 +236,7 @@ class LinearSymmetricGaussianTestCase(ProbabilisticLinearSolverTestCase):
                 )
 
 
-class WeakMeanCorrLinearObsBeliefUpdateTestCase(ProbabilisticLinearSolverTestCase):
+class WeakMeanCorrLinearObsBeliefUpdateTestCase(BeliefUpdateTestCase):
     """Test case for the linear symmetric Gaussian belief update."""
 
     def setUp(self) -> None:

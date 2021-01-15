@@ -9,17 +9,15 @@ generalizing and recovering classic iterative methods are listed below.
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
 | **(Prior) Belief**                                | **Policy**                    | **Observation**             |    **Classic Iterative Method** |
 +===================================================+===============================+=============================+=================================+
-| :class:`.LinearSystemBelief`                      | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |     Conjugate Directions Method |
+| :class:`.SymmetricLinearSystemBelief`             | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |     Conjugate Directions Method |
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
 | :meth:`.WeakMeanCorrespondenceBelief.from_scalar` | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |  Conjugate Gradient Method (CG) |
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
 | :class:`.WeakMeanCorrespondenceBelief`            | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |               preconditioned CG |
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :class:`.LinearSystemBelief`                      | Unit vectors                  | :class:`.MatVecObservation` |            Gaussian Elimination |
+| :class:`.SymmetricLinearSystemBelief`             | Unit vectors                  | :class:`.MatVecObservation` |            Gaussian Elimination |
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :class:`.LinearSystemBelief`                      | :math:`s=x_k`                 | :math:`y=SAs`               | (randomized) Kaczmarz algorithm |
-+---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :class:`.LinearSystemBelief`                      | sparse                        | :math:`y=SAs`               |          :math:`L_1` sketching? |
+| :class:`.SymmetricLinearSystemBelief`             | :math:`s=x_k`                 | :math:`y=SAs`               | (randomized) Kaczmarz algorithm |
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
 """
 

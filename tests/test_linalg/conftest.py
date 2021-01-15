@@ -1,7 +1,7 @@
 """Test fixtures for the linalg subpackage."""
 
 import os
-from typing import Callable
+from typing import Callable, Union
 
 import numpy as np
 import pytest
@@ -9,8 +9,10 @@ import scipy.sparse
 
 import probnum
 import probnum.kernels as kernels
+import probnum.linops as linops
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
+from probnum.type import RandomStateArgType
 
 
 @pytest.fixture(
@@ -39,6 +41,43 @@ def fixture_random_state(request) -> np.random.RandomState:
 ############
 # Matrices #
 ############
+def random_data(n: int, p: int, random_state: RandomStateArgType = None):
+    """Generate a random n x p data matrix."""
+    return probnum.utils.as_random_state(random_state).uniform(-1.0, 1.0, (n, p))
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(mat, id=mat[0])
+        for mat in [
+            ("spd", random_spd_matrix(dim=100, random_state=1)),
+            (
+                "sparsespd",
+                random_sparse_spd_matrix(dim=1000, density=0.01, random_state=1),
+            ),
+            (
+                "expquad",
+                kernels.ExpQuad(input_dim=2)(random_data(n=10, p=2, random_state=1)),
+            ),
+            (
+                "ratquad",
+                kernels.RatQuad(input_dim=3)(random_data(n=50, p=3, random_state=1)),
+            ),
+            (
+                "matern",
+                kernels.Matern(input_dim=2)(random_data(n=100, p=2, random_state=1)),
+            ),
+            ("idop", linops.Identity(20)),
+            ("matop", linops.MatrixMult(random_spd_matrix(10, random_state=1))),
+        ]
+    ],
+    name="mat",
+)
+def fixture_mat(
+    request,
+) -> Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator]:
+    """(Sparse) matrix or linear operator."""
+    return request.param[1]
 
 
 @pytest.fixture(name="spd_mat")
@@ -88,7 +127,7 @@ def fixture_kernel_mat(
     request, n: int, random_state: np.random.RandomState
 ) -> np.ndarray:
     """Kernel matrix evaluated on a randomly drawn data set."""
-    data = random_state.uniform(-1.0, 1.0, (n, 1))
+    data = random_data(n=n, p=1, random_state=random_state)
     kernel_mat = request.param(input_dim=1)(data)
     return kernel_mat
 
@@ -96,6 +135,15 @@ def fixture_kernel_mat(
 ##################
 # Linear systems #
 ##################
+
+
+@pytest.fixture(name="linsys")
+def fixture_linsys(
+    mat: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator],
+    random_state: np.random.RandomState,
+) -> LinearSystem:
+    """Random linear system."""
+    return LinearSystem.from_matrix(A=mat, random_state=random_state)
 
 
 @pytest.fixture()

@@ -98,8 +98,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         else:
             dtype = np.dtype(np.float_)
 
-        if not isinstance(mean, linops.LinearOperator):
+        if isinstance(mean, np.ndarray):
             mean = mean.astype(dtype, order="C", casting="safe", subok=True, copy=False)
+        elif isinstance(mean, scipy.sparse.spmatrix):
+            mean = mean.astype(dtype, casting="safe", copy=False)
         else:
             # TODO: Implement casting for linear operators
             if mean.dtype != dtype:
@@ -108,8 +110,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     f"but a linear operator does not implement type casting."
                 )
 
-        if not isinstance(cov, linops.LinearOperator):
+        if isinstance(cov, np.ndarray):
             cov = cov.astype(dtype, order="C", casting="safe", subok=True, copy=False)
+        elif isinstance(cov, scipy.sparse.spmatrix):
+            cov = cov.astype(dtype, casting="safe", copy=False)
         else:
             # TODO: Implement casting for linear operators
             if cov.dtype != dtype:

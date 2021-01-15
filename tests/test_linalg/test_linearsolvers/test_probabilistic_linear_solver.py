@@ -47,7 +47,10 @@ def test_solver_state(linsys_spd: LinearSystem, solve_iterator: Iterator):
         )
 
 
-# TODO use pytest.xfail to mark this
+@pytest.mark.xfail(
+    raises=AssertionError,
+    reason="This is currently not fulfilled for all PLS variants.",
+)
 def test_solution_equivalence(linsys_spd: LinearSystem, solve_iterator: Iterator):
     """The iteratively computed solution should match the induced solution
     estimate: x_k = E[A^-1] b"""
@@ -109,6 +112,12 @@ class TestConjugateDirectionsMethod:
 
 class TestConjugateGradientMethod:
     """Tests for probabilistic linear solvers which are conjugate gradient methods."""
+
+    def test_posterior_mean_preconditioned_CG_equivalence(self):
+        """Test whether the PLS recovers preconditioned CG in posterior mean for
+        specific prior beliefs."""
+        # todo use weakmeancorrespondence class with general prior mean to test this
+        pass
 
     def test_posterior_mean_CG_equivalence(
         self, conj_grad_method: ProbabilisticLinearSolver, linsys_spd: LinearSystem

@@ -91,6 +91,13 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
             return obj
 
+    def astype(self, dtype):
+        """Cast a :class:`LinearOperator` to a specified ``dtype``."""
+        if dtype == self.dtype:
+            return self
+        else:
+            raise NotImplementedError
+
     # Overload arithmetic operators to give access to newly implemented functions (e.g.
     # todense())
     def __rmul__(self, x):

@@ -5,6 +5,7 @@ from typing import Iterator, Optional
 import numpy as np
 import pytest
 
+import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
     LinearSolverState,
@@ -16,7 +17,7 @@ from probnum.linalg.linearsolvers import (
     stop_criteria,
 )
 from probnum.problems import LinearSystem
-from probnum.problems.zoo.linalg import random_spd_matrix
+from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
 
 @pytest.fixture(
@@ -34,18 +35,72 @@ def fixture_num_iters(request) -> int:
 
 
 ###################
-# (Prior Beliefs) #
+# (Prior) Beliefs #
 ###################
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(bc, id=bc.__name__)
+        for bc in [
+            beliefs.LinearSystemBelief,
+            beliefs.SymmetricLinearSystemBelief,
+            beliefs.WeakMeanCorrespondenceBelief,
+            beliefs.NoisyLinearSystemBelief,
+        ]
+    ],
+    name="belief_class",
+)
+def fixture_belief_class(request):
+    """A linear system belief class."""
+    return request.param
+
+
+@pytest.fixture(name="belief")
+def fixture_belief(belief_class, mat, linsys):
+    """Linear system beliefs."""
+    return belief_class.from_inverse(Ainv0=mat, problem=linsys)
 
 
 @pytest.fixture(name="prior")
 def fixture_prior(
     linsys_spd: LinearSystem, n: int, random_state: np.random.RandomState
-) -> beliefs.LinearSystemBelief:
-    """Prior belief over the linear system."""
-    return beliefs.LinearSystemBelief.from_matrices(
+) -> beliefs.SymmetricLinearSystemBelief:
+    """Symmetric normal prior belief over the linear system."""
+    return beliefs.SymmetricLinearSystemBelief.from_matrices(
         A0=random_spd_matrix(dim=n, random_state=random_state),
         Ainv0=random_spd_matrix(dim=n, random_state=random_state),
+        problem=linsys_spd,
+    )
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(inv, id=inv[0])
+        for inv in [
+            ("scalar", lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n))),
+            (
+                "spd",
+                lambda n: linops.MatrixMult(A=random_spd_matrix(n, random_state=42)),
+            ),
+            (
+                "sparse",
+                lambda n: linops.MatrixMult(
+                    A=random_sparse_spd_matrix(n, density=0.1, random_state=42)
+                ),
+            ),
+        ]
+    ],
+    name="weakmeancorr_belief",
+)
+def fixture_weakmeancorr_belief(
+    request, n: int, linsys_spd: LinearSystem, actions: list, matvec_observations: list
+):
+    """Symmetric Gaussian weak mean correspondence belief."""
+    return beliefs.WeakMeanCorrespondenceBelief.from_inverse(
+        Ainv0=request.param[1](n),
+        actions=actions,
+        observations=matvec_observations,
         problem=linsys_spd,
     )
 
@@ -65,6 +120,7 @@ def scalar_weakmeancorr_prior(
 
 @pytest.fixture()
 def belief_groundtruth(linsys_spd: LinearSystem) -> beliefs.LinearSystemBelief:
+    """Belief equalling the true solution of the linear system."""
     return beliefs.LinearSystemBelief(
         x=rvs.Constant(linsys_spd.solution),
         A=rvs.Constant(linsys_spd.A),
@@ -84,6 +140,7 @@ def custom_policy(
     random_state: np.random.RandomState,
     solver_state: Optional[LinearSolverState] = None,
 ):
+    """Custom stochastic linear solver policy."""
     action = rvs.Normal(
         0.0,
         1.0,
@@ -178,6 +235,7 @@ def matvec_observations(actions: np.ndarray, linsys_spd: LinearSystem) -> list:
     name="calibration_method",
 )
 def fixture_calibration_method(request) -> str:
+    """Names of available uncertainty calibration methods."""
     return request.param
 
 
@@ -185,6 +243,7 @@ def fixture_calibration_method(request) -> str:
 def fixture_uncertainty_calibration(
     calibration_method: str,
 ) -> hyperparam_optim.UncertaintyCalibration:
+    """Uncertainty calibration method for probabilistic linear solvers."""
     return hyperparam_optim.UncertaintyCalibration(method=calibration_method)
 
 
@@ -203,6 +262,7 @@ def custom_stopping_criterion(
     belief: beliefs.LinearSystemBelief,
     solver_state: Optional[LinearSolverState] = None,
 ):
+    """Custom stopping criterion of a probabilistic linear solver."""
     _has_converged = (
         np.ones((1, belief.A.shape[0]))
         @ (belief.Ainv @ np.ones((belief.A.shape[0], 1)))
@@ -244,6 +304,7 @@ def fixture_stopcrit(request) -> stop_criteria.StoppingCriterion:
 def fixture_solver_state_init(
     linsys_spd: LinearSystem, prior: beliefs.LinearSystemBelief
 ) -> LinearSolverState:
+    """Initial solver state of a probabilistic linear solver."""
     return LinearSolverState(
         actions=[],
         observations=[],

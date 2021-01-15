@@ -7,6 +7,7 @@ system such as its solution, the matrix inverse.
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
+import scipy.sparse
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -17,9 +18,6 @@ except ImportError:
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers.belief_updates import (
-    SymMatrixNormalLinearObsBeliefUpdate,
-)
 from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 
@@ -85,10 +83,10 @@ class LinearSystemBelief:
 
         x, A, Ainv, b = self._reshape_2d(x=x, A=A, Ainv=Ainv, b=b)
         self._check_shape_mismatch(x=x, A=A, Ainv=Ainv, b=b)
-        self._x = rvs.asrandvar(x)
-        self._A = rvs.asrandvar(A)
-        self._Ainv = rvs.asrandvar(Ainv)
-        self._b = rvs.asrandvar(b)
+        self._x = x
+        self._A = A
+        self._Ainv = Ainv
+        self._b = b
 
     @staticmethod
     def _reshape_2d(
@@ -163,7 +161,7 @@ class LinearSystemBelief:
     @classmethod
     def from_solution(
         cls,
-        x0: Union[np.ndarray, rvs.RandomVariable],
+        x0: np.ndarray,
         problem: LinearSystem,
         check_for_better_x0: bool = True,
     ) -> "LinearSystemBelief":
@@ -195,6 +193,47 @@ class LinearSystemBelief:
                Machine Learning, *Advances in Neural Information Processing Systems (
                NeurIPS)*, 2020
         """
+        x0, Ainv0, A0 = cls._belief_means_from_solution(
+            x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
+        )
+        return cls(
+            x=rvs.asrandvar(x0),
+            Ainv=rvs.asrandvar(Ainv0),
+            A=rvs.asrandvar(A0),
+            b=rvs.asrandvar(problem.b),
+        )
+
+    @staticmethod
+    def _belief_means_from_solution(
+        x0: np.ndarray,
+        problem: LinearSystem,
+        check_for_better_x0: bool = True,
+    ) -> Tuple[
+        np.ndarray,
+        Union[np.ndarray, linops.LinearOperator],
+        Union[np.ndarray, linops.LinearOperator],
+    ]:
+        """Construct means for the belief from an approximate solution.
+
+        Constructs matrices :math:`H_0` and :math:`A_0` such
+        that :math:`H_0b = x_0`, :math:`H_0` symmetric positive definite and
+        :math:`A_0 = H_0^{-1}`. If :code:`check_for_better_x0=True` and
+        :math:`x_0^\top b \leq 0` the construction is done for a better approximate
+        solution :math:`x_1` with lower error :math:`\lVert x_1 \rVert_A < \lVert x_0
+        \rVert_A`.
+
+        Parameters
+        ----------
+        x0 : Initial guess for the solution of the linear system.
+        problem : Linear system to solve.
+        check_for_better_x0 : Choose a better initial guess for the solution if possible.
+
+        Returns
+        -------
+        x0 : Approximate solution of the linear system.
+        Ainv0 : Approximate system matrix inverse.
+        A0 : Approximate system matrix.
+        """
         if x0.ndim < 2:
             x0 = x0.reshape((-1, 1))
 
@@ -202,20 +241,8 @@ class LinearSystemBelief:
         if check_for_better_x0 and np.all(problem.b == np.zeros_like(problem.b)):
             x0 = problem.b
             A0 = linops.Identity(shape=problem.A.shape)
-            A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
-            Ainv = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+            Ainv0 = A0
 
-            return cls(
-                x=rvs.Normal(
-                    mean=x0,
-                    cov=linops.ScalarMult(
-                        scalar=np.finfo(float).eps, shape=problem.A.shape
-                    ),
-                ),
-                Ainv=Ainv,
-                A=A,
-                b=rvs.Constant(support=problem.b),
-            )
         else:
             bx0 = (problem.b.T @ x0).item()
             bb = np.linalg.norm(problem.b) ** 2
@@ -239,33 +266,24 @@ class LinearSystemBelief:
             def _mm(M):
                 return (x0 - alpha * problem.b) @ (x0 - alpha * problem.b).T @ M
 
-            Ainv_mean = linops.ScalarMult(
+            Ainv0 = linops.ScalarMult(
                 scalar=alpha, shape=problem.A.shape
             ) + 2 / bx0 * linops.LinearOperator(
                 matvec=_mv, matmat=_mm, shape=problem.A.shape
             )
-            Ainv = rvs.Normal(
-                mean=Ainv_mean, cov=linops.SymmetricKronecker(A=Ainv_mean)
-            )
 
-            A_mean = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
+            A0 = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
                 alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
             ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
-            A = rvs.Normal(mean=A_mean, cov=linops.SymmetricKronecker(A=problem.A))
 
-            return LinearSystemBelief(
-                x=rvs.Normal(
-                    mean=x0, cov=cls._induced_solution_cov(Ainv=Ainv, b=problem.b)
-                ),
-                Ainv=Ainv,
-                A=A,
-                b=rvs.Constant(support=problem.b),
-            )
+        return x0, Ainv0, A0
 
     @classmethod
     def from_inverse(
         cls,
-        Ainv0: Union[np.ndarray, rvs.RandomVariable, linops.LinearOperator],
+        Ainv0: Union[
+            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
+        ],
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate inverse.
@@ -280,22 +298,19 @@ class LinearSystemBelief:
         problem :
             Linear system to solve.
         """
-        if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
-
-        A0 = rvs.Normal(mean=problem.A, cov=linops.SymmetricKronecker(A=problem.A))
-
         return cls(
             x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
-            Ainv=Ainv0,
-            A=A0,
-            b=problem.b,
+            Ainv=rvs.asrandvar(Ainv0),
+            A=rvs.asrandvar(problem.A),
+            b=rvs.asrandvar(problem.b),
         )
 
     @classmethod
     def from_matrix(
         cls,
-        A0: Union[np.ndarray, rvs.RandomVariable],
+        A0: Union[
+            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
+        ],
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate system matrix.
@@ -310,24 +325,24 @@ class LinearSystemBelief:
         problem :
             Linear system to solve.
         """
-        if isinstance(A0, (np.ndarray, linops.LinearOperator)):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
-
-        Ainv0_mean = linops.Identity(shape=A0.shape)
-        Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=linops.SymmetricKronecker(A=Ainv0_mean))
+        Ainv0 = linops.Identity(shape=A0.shape)
 
         return cls(
             x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
-            Ainv=Ainv0,
-            A=A0,
-            b=problem.b,
+            Ainv=rvs.asrandvar(Ainv0),
+            A=rvs.asrandvar(A0),
+            b=rvs.asrandvar(problem.b),
         )
 
     @classmethod
     def from_matrices(
         cls,
-        A0: Union[np.ndarray, rvs.RandomVariable],
-        Ainv0: Union[np.ndarray, rvs.RandomVariable],
+        A0: Union[
+            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
+        ],
+        Ainv0: Union[
+            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
+        ],
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief from an approximate system matrix and
@@ -346,58 +361,22 @@ class LinearSystemBelief:
         problem :
             Linear system to solve.
         """
-        if isinstance(A0, (np.ndarray, linops.LinearOperator)):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
-        if isinstance(Ainv0, (np.ndarray, linops.LinearOperator)):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
-
         return cls(
             x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
-            Ainv=Ainv0,
-            A=A0,
-            b=problem.b,
+            Ainv=rvs.asrandvar(Ainv0),
+            A=rvs.asrandvar(A0),
+            b=rvs.asrandvar(problem.b),
         )
 
     @staticmethod
-    def _induced_solution_cov(
-        Ainv: rvs.Normal, b: rvs.RandomVariable
-    ) -> linops.LinearOperator:
-        r"""Induced covariance of the belief over the solution.
-
-        Approximates the covariance :math:`\Sigma` of the induced random variable
-        :math:`x=Hb` for :math:`H \sim \mathcal{N}(H_0, W \otimes_s W)` such that
-        :math:`\Sigma=\frac{1}{2}(Wb^\top Wb + Wb b^\top W)`.
-
-        Parameters
-        ----------
-        Ainv :
-            Belief over the (pseudo-)inverse of the system matrix.
-        b :
-            Belief over the right hand side
-        """
-        b = rvs.asrandvar(b)
-        Wb = Ainv.cov.A @ b.mean
-        bWb = (Wb.T @ b.mean).item()
-
-        def _mv(v):
-            return 0.5 * (bWb * Ainv.cov.A @ v + Wb @ (Wb.T @ v))
-
-        x_cov = linops.LinearOperator(
-            shape=Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
-        )
-        # Efficient trace computation
-        x_cov.trace = lambda: 0.5 * (bWb * Ainv.cov.A.trace() + (Wb.T @ Wb).item())
-
-        return x_cov
-
-    @staticmethod
-    def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.RandomVariable) -> rvs.Normal:
+    def _induced_solution_belief(
+        Ainv: rvs.RandomVariable, b: rvs.RandomVariable
+    ) -> rvs.RandomVariable:
         r"""Induced belief over the solution from a belief over the inverse.
 
-        Approximates the induced random variable :math:`x=Hb` for :math:`H \sim
-        \mathcal{N}(H_0, W \otimes_s W)`, such that :math:`x \sim \mathcal{N}(\mu,
-        \Sigma)` with :math:`\mu=\mathbb{E}[H]\mathbb{E}[b]` and :math:`\Sigma=\frac{
-        1}{2}(Wb^\top Wb + Wb b^\top W)`.
+        Computes the induced belief over the solution given by (an approximation
+        to) the random variable :math:`x=Hb`. This assumes independence between
+        :math:`H` and :math:`b`.
 
         Parameters
         ----------
@@ -406,11 +385,7 @@ class LinearSystemBelief:
         b :
             Belief over the right hand side
         """
-        b = rvs.asrandvar(b)
-        return rvs.Normal(
-            mean=Ainv.mean @ b.mean,
-            cov=LinearSystemBelief._induced_solution_cov(Ainv=Ainv, b=b),
-        )
+        return Ainv @ b
 
     def optimize_hyperparams(
         self,
@@ -455,16 +430,4 @@ class LinearSystemBelief:
         solver_state :
             Current state of the linear solver.
         """
-        if isinstance(observation_op, MatVecObservation):
-            belief_update = SymMatrixNormalLinearObsBeliefUpdate(
-                problem=problem,
-                belief=self,
-                actions=action,
-                observations=observation,
-                solver_state=solver_state,
-            )
-        else:
-            raise NotImplementedError
-
-        self._x, self._Ainv, self._A, self._b, solver_state = belief_update()
-        return solver_state
+        raise NotImplementedError
