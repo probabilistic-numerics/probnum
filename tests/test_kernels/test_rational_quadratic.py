@@ -1,16 +1,12 @@
 """Test cases for the rational quadratic kernel."""
 
-import probnum.kernels as kerns
+import pytest
 
-from .test_kernel import KernelTestCase
+from probnum import kernels
 
 
-class RationalQuadraticTestCase(KernelTestCase):
-    """Test case for rational quadratic kernels."""
-
-    def test_nonpositive_alpha_raises_exception(self):
-        """Check whether a non-positive alpha parameter raises a ValueError."""
-        for alpha in [-1, -1.0, 0.0, 0]:
-            with self.subTest():
-                with self.assertRaises(ValueError):
-                    kerns.RatQuad(input_dim=1, alpha=alpha)
+@pytest.mark.parametrize("alpha", [-1, -1.0, 0.0, 0])
+def test_nonpositive_alpha_raises_exception(alpha):
+    """Check whether a non-positive alpha parameter raises a ValueError."""
+    with pytest.raises(ValueError):
+        kernels.RatQuad(input_dim=1, alpha=alpha)

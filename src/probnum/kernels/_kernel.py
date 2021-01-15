@@ -124,7 +124,7 @@ class Kernel(Generic[_InputType], abc.ABC):
         self,
         x0: _InputType,
         x1: Optional[_InputType] = None,
-    ) -> Tuple[np.ndarray, Union[np.ndarray, None], ShapeType]:
+    ) -> Tuple[np.ndarray, Optional[np.ndarray], ShapeType]:
         """Check and transform inputs of the covariance function.
 
         Checks the shape of the inputs to the covariance function and
