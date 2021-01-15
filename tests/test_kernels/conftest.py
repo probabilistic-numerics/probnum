@@ -8,8 +8,11 @@ import pytest
 import probnum.kernels as kernels
 
 
-@pytest.fixture(params=[pytest.param(seed, id=f"seed{seed}") for seed in range(1)])
-def random_state(request):
+@pytest.fixture(
+    params=[pytest.param(seed, id=f"seed{seed}") for seed in range(1)],
+    name="random_state",
+)
+def fixture_random_state(request):
     """Random state(s) used for test parameterization."""
     return np.random.RandomState(seed=request.param)
 
@@ -17,9 +20,10 @@ def random_state(request):
 @pytest.fixture(
     params=[
         pytest.param(num_data, id=f"ndata{num_data}") for num_data in [1, 2, 10, 100]
-    ]
+    ],
+    name="num_data",
 )
-def num_data(request) -> int:
+def fixture_num_data(request) -> int:
     """Size of the dataset."""
     return request.param
 
@@ -27,9 +31,10 @@ def num_data(request) -> int:
 @pytest.fixture(
     params=[
         pytest.param(input_dim, id=f"indim{input_dim}") for input_dim in [1, 10, 100]
-    ]
+    ],
+    name="input_dim",
 )
-def input_dim(request) -> int:
+def fixture_input_dim(request) -> int:
     """Input dimension of the covariance function."""
     return request.param
 
@@ -45,8 +50,8 @@ def output_dim(request) -> int:
 
 
 # Datasets
-@pytest.fixture()
-def x0(
+@pytest.fixture(name="x0")
+def fixture_x0(
     num_data: int, input_dim: int, random_state: np.random.RandomState
 ) -> np.ndarray:
     """Random data from a standard normal distribution."""
@@ -56,9 +61,10 @@ def x0(
 @pytest.fixture(
     params=[
         pytest.param(num_data, id=f"ndata{num_data}") for num_data in [None, 10, 2, 1]
-    ]
+    ],
+    name="x1",
 )
-def x1(
+def fixture_x1(
     request, input_dim: int, random_state: np.random.RandomState
 ) -> Optional[np.ndarray]:
     """Random data from a standard normal distribution."""
@@ -92,9 +98,10 @@ def x0_1d(input_dim: int, random_state: np.random.RandomState) -> np.ndarray:
             (kernels.Matern, {"lengthscale": 2.5, "nu": 7.0}),
             (kernels.Matern, {"lengthscale": 3.0, "nu": np.inf}),
         ]
-    ]
+    ],
+    name="kernel",
 )
-def kernel(request, input_dim: int) -> kernels.Kernel:
+def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
     """Kernel / covariance function."""
     return request.param[0](**request.param[1], input_dim=input_dim)
 
