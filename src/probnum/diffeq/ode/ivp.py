@@ -23,8 +23,8 @@ class IVP(ODE):
     fit into the probabilistic framework as well. That is,
     the initial value is a RandomVariable object with some
     distribution that reflects the prior belief over the initial
-    value. To recover "classical" initial values one can use the
-    Constant distribution.
+    value. To recover "classical" initial values one can use a
+    Constant random variable.
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ class IVP(ODE):
         RandomVariable that  describes the belief over the initial
         value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use the Constant distribution.
+        use a :class:`~probnum.random_variables.Constant` random variable.
         Implementation depends on the mean of this RandomVariable,
         so please only use RandomVariable objects with available
         means, e.g. Constants or Normals.

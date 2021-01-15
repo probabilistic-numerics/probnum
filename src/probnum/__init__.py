@@ -11,6 +11,8 @@ diffeq
     Probabilistic solvers for ordinary differential equations.
 filtsmooth
     Bayesian filtering and smoothing.
+kernels
+    Kernels / covariance functions.
 linalg
     Probabilistic numerical linear algebra.
 linops
@@ -30,6 +32,7 @@ from pkg_resources import DistributionNotFound, get_distribution
 from . import (
     diffeq,
     filtsmooth,
+    kernels,
     linalg,
     linops,
     problems,

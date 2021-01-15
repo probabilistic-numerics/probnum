@@ -55,6 +55,7 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
 
    public_api/diffeq
    public_api/filtsmooth
+   public_api/kernels
    public_api/linalg
    public_api/linops
    public_api/problems
