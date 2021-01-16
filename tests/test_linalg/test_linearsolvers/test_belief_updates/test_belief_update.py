@@ -9,19 +9,18 @@ from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
 
-pytestmark = pytest.mark.usefixtures("belief_update")
+pytestmark = pytest.mark.usefixtures("linobs_belief_update")
 
 
-@pytest.mark.usefixtures("belief_update")
 def test_matrix_posterior_multiplication(
     n: int,
-    belief_update: BeliefUpdate,
+    linobs_belief_update: BeliefUpdate,
     linsys_spd: LinearSystem,
     random_state: np.random.RandomState,
 ):
     """Test whether multiplication with the posteriors over A and Ainv returns a random
     variable with the correct shape."""
-    x, Ainv, A, b, solver_state = belief_update()
+    x, Ainv, A, b, solver_state = linobs_belief_update()
     matshape = (n, 5)
     mat = random_state.random(size=matshape)
     Amat = A @ mat

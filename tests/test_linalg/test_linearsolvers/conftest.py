@@ -309,9 +309,9 @@ def fixture_uncertainty_calibration(
             ),
         ]
     ],
-    name="belief_update",
+    name="linobs_belief_update",
 )
-def fixture_belief_update(
+def fixture_linobs_belief_update(
     request,
     n: int,
     random_state: np.random.RandomState,
@@ -323,7 +323,7 @@ def fixture_belief_update(
         linops.MatrixMult(random_spd_matrix(dim=n, random_state=random_state)),
         problem=linsys_spd,
     )
-    """Belief update."""
+    """Belief update for linear observations."""
     return request.param[2](
         problem=linsys_spd,
         belief=belief,
