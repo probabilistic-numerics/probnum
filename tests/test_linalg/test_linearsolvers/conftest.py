@@ -10,6 +10,7 @@ import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers import (
     LinearSolverState,
     ProbabilisticLinearSolver,
+    belief_updates,
     beliefs,
     hyperparam_optim,
     observation_ops,
@@ -72,6 +73,46 @@ def fixture_prior(
         Ainv0=random_spd_matrix(dim=n, random_state=random_state),
         problem=linsys_spd,
     )
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(inv, id=inv[0])
+        for inv in [
+            (
+                "weakmeancorr_scalar",
+                beliefs.WeakMeanCorrespondenceBelief,
+                lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n)),
+            ),
+            (
+                "symmnormal_dense",
+                beliefs.SymmetricLinearSystemBelief,
+                lambda n: rvs.Normal(
+                    mean=random_spd_matrix(n, random_state=42),
+                    cov=linops.SymmetricKronecker(
+                        A=random_spd_matrix(n, random_state=1)
+                    ),
+                ),
+            ),
+            (
+                "symmnormal_sparse",
+                beliefs.SymmetricLinearSystemBelief,
+                lambda n: rvs.Normal(
+                    mean=random_sparse_spd_matrix(n, density=0.01, random_state=42),
+                    cov=linops.SymmetricKronecker(
+                        A=random_sparse_spd_matrix(n, density=0.01, random_state=1)
+                    ),
+                ),
+            ),
+        ]
+    ],
+    name="symm_belief",
+)
+def fixture_symm_belief(
+    request, n: int, linsys_spd: LinearSystem
+) -> beliefs.SymmetricLinearSystemBelief:
+    """Symmetric normal linear system belief."""
+    return request.param[1].from_inverse(Ainv0=request.param[2](n), problem=linsys_spd)
 
 
 @pytest.fixture(
@@ -250,6 +291,87 @@ def fixture_uncertainty_calibration(
 ##################
 # Belief Updates #
 ##################
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(bel_upd, id=bel_upd[0])
+        for bel_upd in [
+            (
+                "symmlin",
+                beliefs.SymmetricLinearSystemBelief,
+                belief_updates.SymmetricNormalLinearObsBeliefUpdate,
+            ),
+            (
+                "weakmeancorrlin",
+                beliefs.WeakMeanCorrespondenceBelief,
+                belief_updates.WeakMeanCorrLinearObsBeliefUpdate,
+            ),
+        ]
+    ],
+    name="belief_update",
+)
+def fixture_belief_update(
+    request,
+    n: int,
+    random_state: np.random.RandomState,
+    linsys_spd: LinearSystem,
+    action: np.ndarray,
+    matvec_observation: np.ndarray,
+) -> belief_updates.BeliefUpdate:
+    belief = request.param[1].from_inverse(
+        linops.MatrixMult(random_spd_matrix(dim=n, random_state=random_state)),
+        problem=linsys_spd,
+    )
+    """Belief update."""
+    return request.param[2](
+        problem=linsys_spd,
+        belief=belief,
+        actions=action,
+        observations=matvec_observation,
+    )
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(noise_cov, id=f"noise{noise_cov}")
+        for noise_cov in [None, 10 ** -6, 0.01, 10]
+    ],
+    name="symmlin_belief_update",
+)
+def fixture_symmlin_belief_update(
+    request,
+    n: int,
+    linsys_spd: LinearSystem,
+    symm_belief: beliefs.SymmetricLinearSystemBelief,
+    action: np.ndarray,
+    matvec_observation: np.ndarray,
+) -> belief_updates.SymmetricNormalLinearObsBeliefUpdate:
+    """Belief update for the symmetric normal belief and linear observations."""
+    return belief_updates.SymmetricNormalLinearObsBeliefUpdate(
+        problem=linsys_spd,
+        belief=symm_belief,
+        actions=action,
+        observations=matvec_observation,
+        noise_cov=request.param,
+    )
+
+
+@pytest.fixture(name="weakmeancorrlin_belief_update")
+def fixture_weakmeancorrlin_belief_update(
+    n: int,
+    linsys_spd: LinearSystem,
+    weakmeancorr_belief: beliefs.WeakMeanCorrespondenceBelief,
+    action: np.ndarray,
+    matvec_observation: np.ndarray,
+) -> belief_updates.WeakMeanCorrLinearObsBeliefUpdate:
+    """Belief update for the weak mean correspondence belief and linear observations."""
+    return belief_updates.WeakMeanCorrLinearObsBeliefUpdate(
+        problem=linsys_spd,
+        belief=weakmeancorr_belief,
+        actions=action,
+        observations=matvec_observation,
+    )
 
 
 #####################
