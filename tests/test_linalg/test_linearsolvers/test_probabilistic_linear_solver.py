@@ -136,7 +136,7 @@ class TestConjugateGradientMethod:
 
         def callback_iterates_CG(xk):
             cg_iterates.append(
-                np.eye(np.shape(linsys_spd.A)[0]) @ xk
+                np.eye(np.shape(linsys_spd.A)[0]) @ xk[:, None]
             )  # identity hack to actually save different iterations
 
         x0 = conj_grad_method.prior.x.mean
@@ -148,7 +148,7 @@ class TestConjugateGradientMethod:
             maxiter=conj_grad_method.stopping_criteria[0].maxiter,
             callback=callback_iterates_CG,
         )
-        cg_iters_arr = np.array([x0.squeeze()] + cg_iterates).T
+        cg_iters_arr = np.hstack([x0] + cg_iterates)
 
         # Probabilistic linear solver
         pls_iterates = []
@@ -157,7 +157,16 @@ class TestConjugateGradientMethod:
             solve_iterator
         ):
             pls_iterates.append(belief.x.mean)
+            has_converged, solver_state = conj_grad_method.has_converged(
+                problem=linsys_spd, belief=belief, solver_state=solver_state
+            )
+            if has_converged:
+                break
 
         pls_iters_arr = np.hstack([x0] + pls_iterates)
-        np.testing.assert_allclose(belief.x.mean, x_cg, rtol=10 ** -12)
-        np.testing.assert_allclose(pls_iters_arr, cg_iters_arr, rtol=10 ** -12)
+        np.testing.assert_allclose(
+            belief.x.mean, x_cg[:, None], atol=10 ** -6, rtol=10 ** -6
+        )
+        np.testing.assert_allclose(
+            pls_iters_arr, cg_iters_arr, atol=10 ** -6, rtol=10 ** -6
+        )
