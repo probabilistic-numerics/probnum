@@ -8,6 +8,8 @@ import probnum.linops as linops
 from probnum.linalg.linearsolvers.beliefs import WeakMeanCorrespondenceBelief
 from probnum.problems import LinearSystem
 
+pytestmark = pytest.mark.filterwarnings("ignore::scipy.sparse.SparseEfficiencyWarning")
+
 
 def test_means_correspond_weakly(
     weakmeancorr_belief: WeakMeanCorrespondenceBelief,

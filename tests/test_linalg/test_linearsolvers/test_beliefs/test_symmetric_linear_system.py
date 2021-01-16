@@ -1,10 +1,12 @@
 """Tests for the symmetric normal linear system belief."""
-
 import numpy as np
+import pytest
 
 import probnum.linops as linops
 from probnum.linalg.linearsolvers.beliefs import SymmetricLinearSystemBelief
 from probnum.problems import LinearSystem
+
+pytestmark = pytest.mark.filterwarnings("ignore::scipy.sparse.SparseEfficiencyWarning")
 
 
 def test_induced_solution_has_correct_distribution(

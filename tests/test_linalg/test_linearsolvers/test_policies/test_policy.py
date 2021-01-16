@@ -24,13 +24,10 @@ def test_policy_returns_vector(
         belief=prior,
         solver_state=None,
     )
-    assert (
-        isinstance(action, np.ndarray),
-        f"Action {action} returned by {policy.__class__.__name__} is "
-        "not an np.ndarray.",
-    )
-    assert (
-        (action.shape == (linsys_spd.A.shape[1], 1)),
+    assert isinstance(
+        action, np.ndarray
+    ), f"Action {action} returned by {policy.__class__.__name__} is not an np.ndarray."
+    assert action.shape == (linsys_spd.A.shape[1], 1), (
         f"Action returned by {policy.__class__.__name__} has shape" f" {action.shape}.",
     )
 
@@ -43,15 +40,13 @@ def test_is_deterministic_or_stochastic(
     action2, _ = policy(problem=linsys_spd, belief=prior, solver_state=None)
 
     if policy.is_deterministic:
-        assert (
-            np.all(action1 == action2),
-            "Policy returned two different actions for the same input.",
-        )
+        assert np.all(
+            action1 == action2
+        ), "Policy returned two different actions for the same input."
     else:
-        assert (
-            np.all(action1 == action2),
-            "Policy returned the same action for two subsequent evaluations.",
-        )
+        assert not np.all(
+            action1 == action2
+        ), "Policy returned the same action for two subsequent evaluations."
 
 
 @pytest.mark.parametrize(
@@ -99,13 +94,3 @@ class TestStochasticPolicies:
             rtol=10 ** 2 * np.finfo(float).eps,
             atol=10 ** 2 * np.finfo(float).eps,
         )
-
-
-@pytest.mark.parametrize("policy", [ConjugateDirections()], indirect=True)
-class TestConjugateDirections:
-    """Tests for the conjugate directions policy."""
-
-    def test_directions_are_conjugate(self, policy):
-        """Test whether the actions given by the ConjugateDirections policy are
-        A-conjugate."""
-        # TODO: use ProbabilisticLinearSolver's solve_iter function to test this

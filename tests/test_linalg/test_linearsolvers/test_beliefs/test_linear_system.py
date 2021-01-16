@@ -141,8 +141,7 @@ def test_from_solution_creates_better_initialization(belief_class: LinearSystemB
 
     for x0 in x0_list:
         belief = belief_class.from_solution(x0=x0, problem=linsys)
-        assert (
-            (belief.x.mean.T @ linsys.b).item() > 0.0,
+        assert (belief.x.mean.T @ linsys.b).item() > 0.0, (
             "Inner product <x0, b>="
             f"{(belief.x.mean.T @ linsys.b).item():.4f} is not positive.",
         )
@@ -152,8 +151,7 @@ def test_from_solution_creates_better_initialization(belief_class: LinearSystemB
             @ linsys.A
             @ (linsys.solution - belief.x.mean)
         ).item()
-        assert (
-            error_x1 < error_x0,
+        assert error_x1 < error_x0, (
             "Initialization for the solution x0 is not better in A-norm "
             "than the user-specified one.",
         )
