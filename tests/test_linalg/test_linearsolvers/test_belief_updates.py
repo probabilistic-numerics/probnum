@@ -5,7 +5,7 @@ import numpy as np
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.belief_updates import (
-    SymMatrixNormalLinearObsBeliefUpdate,
+    SymmetricNormalLinearObsBeliefUpdate,
     WeakMeanCorrLinearObsBeliefUpdate,
 )
 from probnum.linalg.linearsolvers.beliefs import (
@@ -36,7 +36,7 @@ class BeliefUpdateTestCase(NumpyAssertions):
             observations=self.observation,
             solver_state=self.solver_state,
         )
-        self.linear_symmetric_gaussian = SymMatrixNormalLinearObsBeliefUpdate(
+        self.linear_symmetric_gaussian = SymmetricNormalLinearObsBeliefUpdate(
             problem=self.linsys,
             belief=self.prior,
             actions=self.action,
@@ -107,7 +107,7 @@ class LinearSymmetricGaussianTestCase(BeliefUpdateTestCase):
             A0=self.prior.A.mean, Ainv0=self.prior.Ainv.mean, problem=self.linsys
         )
         self.belief_updates = [
-            SymMatrixNormalLinearObsBeliefUpdate(
+            SymmetricNormalLinearObsBeliefUpdate(
                 problem=self.linsys,
                 belief=self.prior,
                 actions=self.action,

@@ -5,9 +5,9 @@ of interest of a linear system such as its solution, the matrix inverse
 or spectral information.
 """
 
-from ._linear_system_belief import LinearSystemBelief
+from ._linear_system import LinearSystemBelief
 from ._noisy_linear_system import NoisyLinearSystemBelief
-from ._symmetric_normal_belief import SymmetricLinearSystemBelief
+from ._symmetric_linear_system import SymmetricLinearSystemBelief
 from ._weak_mean_correspondence import WeakMeanCorrespondenceBelief
 
 # Public classes and functions. Order is reflected in documentation.

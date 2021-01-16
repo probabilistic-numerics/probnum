@@ -7,8 +7,9 @@ equivalent to applying it once.
 from typing import Optional, Union
 
 import numpy as np
+import scipy.linalg
 
-from . import _linear_operator
+from ._linear_operator import Identity, LinearOperator
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -17,7 +18,7 @@ except ImportError:
     from cached_property import cached_property
 
 
-class OrthogonalProjection(_linear_operator.LinearOperator):
+class OrthogonalProjection(LinearOperator):
     r"""Orthogonal Projection onto a subspace.
 
     Linear operator :math:`P:V \rightarrow V` projecting onto a subspace :math:`U
@@ -37,7 +38,8 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
     ----------
     subspace_basis :
         *shape=(n, k)* -- Matrix whose columns define the basis of the subspace to
-        project on.
+        project on. If :math:`k >= n` an orthonormal basis of the range of
+        `subspace_basis` is computed using SVD.
     is_orthonormal :
         Is the basis of the subspace orthonormal?
     innerprod_matrix :
@@ -49,17 +51,20 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
         self,
         subspace_basis: np.ndarray,
         is_orthonormal=False,
-        innerprod_matrix: Optional[
-            Union[_linear_operator.LinearOperator, np.ndarray]
-        ] = None,
+        innerprod_matrix: Optional[Union[LinearOperator, np.ndarray]] = None,
     ):
         if subspace_basis.ndim == 1:
             subspace_basis = subspace_basis[:, None]
-        self.subspace_basis = subspace_basis
-        self.is_orthonormal = is_orthonormal
+        if subspace_basis.shape[1] >= subspace_basis.shape[0]:
+            # Not a basis but a spanning set of the subspace
+            self.is_orthonormal = True
+            self.subspace_basis = scipy.linalg.orth(subspace_basis)
+        else:
+            self.is_orthonormal = is_orthonormal
+            self.subspace_basis = subspace_basis
         _shape = (subspace_basis.shape[0], subspace_basis.shape[0])
         if innerprod_matrix is None:
-            innerprod_matrix = _linear_operator.Identity(shape=_shape)
+            innerprod_matrix = Identity(shape=_shape)
         if not (
             innerprod_matrix.shape[0]
             == innerprod_matrix.shape[1]
@@ -97,21 +102,23 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
             ).T
 
     def _matvec(self, x):
-        return (
-            self.subspace_basis
-            @ self._transformed_basis.T
-            @ (self.innerprod_matrix @ x)
-        )
+        if (
+            isinstance(self.innerprod_matrix, Identity)
+            and self.subspace_basis.shape[1] >= self.subspace_basis.shape[0]
+        ):
+            return x
+        else:
+            return (
+                self.subspace_basis
+                @ self._transformed_basis.T
+                @ (self.innerprod_matrix @ x)
+            )
 
     def _matmat(self, X):
-        return (
-            self.subspace_basis
-            @ self._transformed_basis.T
-            @ (self.innerprod_matrix @ X)
-        )
+        return self._matvec(X)
 
     def _transpose(self):
-        if isinstance(self.innerprod_matrix, _linear_operator.Identity):
+        if isinstance(self.innerprod_matrix, Identity):
             return self
         else:
 
@@ -122,7 +129,7 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
                     @ (self._transformed_basis.T @ x)
                 )
 
-            return _linear_operator.LinearOperator(
+            return LinearOperator(
                 matvec=_matvec,
                 matmat=_matvec,
                 shape=self.shape,
@@ -149,7 +156,7 @@ class OrthogonalProjection(_linear_operator.LinearOperator):
         return -np.inf if self.rank() != self.shape else 0.0
 
     def trace(self):
-        if isinstance(self.innerprod_matrix, _linear_operator.Identity):
+        if isinstance(self.innerprod_matrix, Identity):
             return self.rank()
         else:
             return super().trace()

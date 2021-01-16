@@ -6,11 +6,16 @@ import numpy as np
 
 import probnum
 import probnum.random_variables as rvs
-from probnum.linalg.linearsolvers.beliefs import SymmetricLinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import OptimalNoiseScale
 from probnum.problems import LinearSystem
 
+from ._symmetric_linear_system import SymmetricLinearSystemBelief
+
 # pylint: disable="invalid-name"
+
+
+# Public classes and functions. Order is reflected in documentation.
+__all__ = ["NoisyLinearSystemBelief"]
 
 
 class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):

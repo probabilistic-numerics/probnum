@@ -1,62 +1,15 @@
-"""Hyperparameter optimization routines for probabilistic linear solvers."""
-
-from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import scipy
 
-import probnum  # pylint: disable="unused-import
+import probnum
+from probnum.linalg.linearsolvers.hyperparam_optim._hyperparameter_optimization import (
+    HyperparameterOptimization,
+)
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["HyperparameterOptimization", "UncertaintyCalibration", "OptimalNoiseScale"]
-
-# pylint: disable="invalid-name"
-
-
-class HyperparameterOptimization(ABC):
-    """Optimization of hyperparameters of probabilistic linear solvers."""
-
-    @abstractmethod
-    def __call__(
-        self,
-        problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
-        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> Tuple[
-        Tuple[Union[np.ndarray, float], ...],
-        Optional["probnum.linalg.linearsolvers.LinearSolverState"],
-    ]:
-        """Optimized hyperparameters of the linear system model.
-
-        Parameters
-        ----------
-        problem :
-            Linear system to solve.
-        belief :
-            Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
-            linear system.
-        actions :
-            Actions of the solver to probe the linear system with.
-        observations :
-            Observations of the linear system for the given actions.
-        solver_state :
-            Current state of the linear solver.
-
-        Returns
-        -------
-        optimal_hyperparams
-            Optimized hyperparameters.
-        belief
-            Updated belief over the solution :math:`x`, the system matrix :math:`A`, its
-            inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
-        solver_state :
-            Updated solver state.
-        """
-        raise NotImplementedError
+__all__ = ["UncertaintyCalibration"]
 
 
 class UncertaintyCalibration(HyperparameterOptimization):
@@ -104,10 +57,9 @@ class UncertaintyCalibration(HyperparameterOptimization):
         iteration = len(actions)
         log_rayleigh_quotients = None
         if solver_state is not None:
-            if solver_state.log_rayleigh_quotients is not None:
-                log_rayleigh_quotients = solver_state.log_rayleigh_quotients
+            log_rayleigh_quotients = solver_state.log_rayleigh_quotients
 
-        if log_rayleigh_quotients is None:
+        if log_rayleigh_quotients is None or not log_rayleigh_quotients:
             S = np.hstack(actions)
             Y = np.hstack(observations)
             log_rayleigh_quotients = np.log(np.einsum("nk,nk->k", S, Y)) - np.log(
@@ -203,66 +155,3 @@ class UncertaintyCalibration(HyperparameterOptimization):
                 "Cannot perform GP-based calibration without optional "
                 "dependency GPy. Try installing GPy via `pip install GPy`."
             ) from err
-
-
-class OptimalNoiseScale(HyperparameterOptimization):
-    r"""Estimate the noise level of a noisy linear system.
-
-    Computes the optimal noise scale maximizing the log-marginal likelihood.
-    """
-
-    def __call__(
-        self,
-        problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
-        solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
-    ) -> Tuple[
-        Tuple[Union[np.ndarray, float], ...],
-        Optional["probnum.linalg.linearsolvers.LinearSolverState"],
-    ]:
-
-        raise NotImplementedError
-
-    @staticmethod
-    def _optimal_noise_scale_iterative(
-        previous_optimal_noise_scale: float,
-        problem: LinearSystem,
-        belief: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
-        action: np.ndarray,
-        observation: np.ndarray,
-    ) -> float:
-        raise NotImplementedError
-
-    @staticmethod
-    def _optimal_noise_scale_batch(
-        problem: LinearSystem,
-        prior: "probnum.linalg.linearsolvers.beliefs.LinearSystemBelief",
-        actions: np.ndarray,
-        observations: np.ndarray,
-    ) -> float:
-        # Compute intermediate quantities
-        Delta0 = observations - prior.A.mean @ actions
-        SW0S = actions.T @ (prior.A.cov.A @ actions)
-        try:
-            SW0SinvSDelta0 = scipy.linalg.solve(
-                SW0S, actions.T @ Delta0, assume_a="pos"
-            )  # solves k x k system k times: O(k^3)
-            linop_rhs = Delta0.T @ (
-                2 * prior.A.cov.A.inv() @ Delta0 - actions @ SW0SinvSDelta0
-            )
-            linop_tracearg = scipy.linalg.solve(
-                SW0S, linop_rhs, assume_a="pos"
-            )  # solves k x k system k times: O(k^3)
-
-            # Optimal noise scale with respect to the evidence
-            noise_scale_estimate = (
-                linop_tracearg.trace() / (problem.A.shape[0] * actions.shape[1]) - 1
-            )
-        except scipy.linalg.LinAlgError as err:
-            raise scipy.linalg.LinAlgError(
-                "Matrix S'W_0S not invertible. Noise scale estimate may be inaccurate."
-            ) from err
-
-        return noise_scale_estimate if noise_scale_estimate > 0.0 else 0.0

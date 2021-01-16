@@ -9,11 +9,12 @@ import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.belief_updates import (
-    SymMatrixNormalLinearObsBeliefUpdate,
+    SymmetricNormalLinearObsBeliefUpdate,
 )
-from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
 from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
+
+from ._linear_system import LinearSystemBelief
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["SymmetricLinearSystemBelief"]
@@ -238,7 +239,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         solver_state: Optional["probnum.linalg.linearsolvers.LinearSolverState"] = None,
     ) -> Optional["probnum.linalg.linearsolvers.LinearSolverState"]:
         if isinstance(observation_op, MatVecObservation):
-            belief_update = SymMatrixNormalLinearObsBeliefUpdate(
+            belief_update = SymmetricNormalLinearObsBeliefUpdate(
                 problem=problem,
                 belief=self,
                 actions=action,

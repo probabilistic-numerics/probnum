@@ -74,7 +74,7 @@ def test_posterior_covariance_posdef(
         (belief, action, observation, solver_state) = next(solve_iterator)
 
         # Check positive definiteness
-        eps = 10 ** 5 * np.finfo(float).eps
+        eps = 10 ** 6 * np.finfo(float).eps
         assert np.all(
             0 <= scipy.linalg.eigvalsh(belief.A.cov.A.todense()) + eps
         ), "Covariance of A not positive semi-definite."
@@ -90,6 +90,7 @@ class TestConjugateDirectionsMethod:
         self,
         conj_dir_method: ProbabilisticLinearSolver,
         linsys_spd: LinearSystem,
+        n: int,
         random_state: np.random.RandomState,
     ):
         """Search directions should remain A-conjugate up to machine precision, i.e.
@@ -104,8 +105,7 @@ class TestConjugateDirectionsMethod:
         np.testing.assert_allclose(
             np.diag(np.diag(inner_prods)),
             inner_prods,
-            atol=1e-5,
-            rtol=1e-5,
+            atol=1e-6 * n,
             err_msg="Search directions from solver are not A-conjugate.",
         )
 

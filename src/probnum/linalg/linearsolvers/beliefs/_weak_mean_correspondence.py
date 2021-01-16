@@ -11,10 +11,11 @@ import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.belief_updates import (
     WeakMeanCorrLinearObsBeliefUpdate,
 )
-from probnum.linalg.linearsolvers.beliefs import SymmetricLinearSystemBelief
 from probnum.linalg.linearsolvers.hyperparam_optim import UncertaintyCalibration
 from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
+
+from ._symmetric_linear_system import SymmetricLinearSystemBelief
 
 # pylint: disable="invalid-name"
 
