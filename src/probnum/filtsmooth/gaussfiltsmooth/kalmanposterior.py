@@ -26,24 +26,25 @@ class KalmanPosterior(FiltSmoothPosterior):
         Filter/smoother used to compute the discrete-time estimates.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter, with_smoothing):
-        self._locations = np.asarray(locations)
+    def __init__(self, gauss_filter, with_smoothing):
         self.gauss_filter = gauss_filter
-        self._state_rvs = _RandomVariableList(state_rvs)
         self._with_smoothing = with_smoothing
+        self._locations = []
+        self._state_rvs = []
 
     def append(self, time, rv):
-        raise NotImplementedError
+        self._locations.append(time)
+        self._state_rvs.append(rv)
 
     @property
     def locations(self):
         """:obj:`np.ndarray`: Locations / times of the discrete observations"""
-        return self._locations
+        return np.array(self._locations)
 
     @property
     def state_rvs(self):
         """:obj:`list` of :obj:`RandomVariable`: Discrete-time posterior state estimates"""
-        return self._state_rvs
+        return _RandomVariableList(self._state_rvs)
 
     def __call__(self, t):
         """Evaluate the time-continuous posterior at location `t`

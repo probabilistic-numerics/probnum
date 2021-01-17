@@ -9,6 +9,7 @@ from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
 
 from .extendedkalman import ContinuousEKFComponent
+from .kalmanposterior import KalmanPosterior
 from .unscentedkalman import ContinuousUKFComponent
 
 
@@ -67,7 +68,8 @@ class Kalman(BayesFiltSmooth):
         # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
         filtrv = self.initrv
-        rvs = [filtrv]
+        kpost = KalmanPosterior(gauss_filter=self, with_smoothing=False)
+        kpost.append(times[0], filtrv)
         for idx in range(1, len(times)):
             filtrv, _ = self.filter_step(
                 start=times[idx - 1],
@@ -76,8 +78,8 @@ class Kalman(BayesFiltSmooth):
                 data=dataset[idx - 1],
                 _intermediate_step=_intermediate_step,
             )
-            rvs.append(filtrv)
-        return KalmanPosterior(times, rvs, self, with_smoothing=False)
+            kpost.append(times[idx], filtrv)
+        return kpost
 
     def filter_step(
         self, start, stop, current_rv, data, _intermediate_step=None, _diffusion=1.0
@@ -234,9 +236,9 @@ class Kalman(BayesFiltSmooth):
             filter_posterior.locations,
             _intermediate_step=_intermediate_step,
         )
-        return KalmanPosterior(
-            filter_posterior.locations, rv_list, self, with_smoothing=True
-        )
+        filter_posterior._state_rvs = rv_list
+        filter_posterior._with_smoothing = True
+        return filter_posterior
 
     def smooth_list(self, rv_list, locations, _intermediate_step=None):
         """Apply smoothing to a list of RVs with desired final random variable.
