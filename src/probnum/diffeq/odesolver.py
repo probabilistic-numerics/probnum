@@ -56,7 +56,10 @@ class ODESolver(ABC):
 
     @abstractmethod
     def initialise(self):
-        """Returns t0 and y0 (for the solver, which might be different to ivp.y0)"""
+        # The docs use "knows" because there might be more info than just
+        # the initial conditions in the initialised solution.
+        """Returns an ODESolution object that is almost empty, but "knows" initial
+        conditions."""
         raise NotImplementedError
 
     @abstractmethod
