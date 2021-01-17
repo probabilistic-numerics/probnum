@@ -25,7 +25,8 @@ class ODESolution(abc.ABC):
 
     # We use "t" and "y" here instead of "time" and "rv"
     # because this notation seems more intuitive for ODE solvers.
-    def append(self, t, y):
+    def append(self, t: float, y: pnrv.RandomVariable):
+        """Append a current state to the list of solution states."""
         raise NotImplementedError
 
     @property
