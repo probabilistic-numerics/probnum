@@ -35,12 +35,12 @@ class GaussianIVPFilter(ODESolver):
         self.sigma_squared_mle = 1.0
         self.gfilt = gaussfilt
         self.with_smoothing = with_smoothing
-        self.kpost = pnfs.KalmanPosterior(gaussfilt, with_smoothing)
         super().__init__(ivp=ivp, order=gaussfilt.dynamics_model.ordint)
 
     def initialize(self):
-        odesol = KalmanODESolution(self.kpost)
-        return odesol, self.ivp.t0, self.kpost.gauss_filter.initrv
+        kpost = pnfs.KalmanPosterior(self.gfilt, self.with_smoothing)
+        odesol = KalmanODESolution(kpost)
+        return odesol, self.ivp.t0, self.gfilt.initrv
 
     def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
