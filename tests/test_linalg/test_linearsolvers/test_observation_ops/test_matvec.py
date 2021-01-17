@@ -1,11 +1,11 @@
 """Tests for the matrix vector product observation."""
 import numpy as np
-from problems import LinearSystem
 
 from probnum.linalg.linearsolvers.observation_ops import (
     MatVecObservation,
     ObservationOperator,
 )
+from probnum.problems import LinearSystem
 
 
 def test_observation_is_matrix_vector_product(
