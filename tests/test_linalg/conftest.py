@@ -112,7 +112,7 @@ def fixture_sparse_spd_mat(
 
 @pytest.fixture(
     params=[
-        pytest.param(kernel, id=str(kernel))
+        pytest.param(kernel, id=kernel.__name__)
         for kernel in [
             kernels.Linear,
             kernels.ExpQuad,

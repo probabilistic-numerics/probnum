@@ -17,6 +17,7 @@ import numbers
 from typing import Iterable, Tuple, Union
 
 import numpy as np
+import scipy.sparse
 
 ########################################################################################
 # API Types
@@ -63,3 +64,10 @@ RandomStateArgType = Union[None, int, np.random.RandomState, np.random.Generator
 """Type of a public API argument for supplying a random number generator. Values of this
 type should always be converted into :class:`RandomStateType` using the function
 :func:`probnum.utils.as_random_state` before further internal processing."""
+
+MatrixArgType = Union[
+    np.ndarray,
+    scipy.sparse.spmatrix,
+    "probnum.linops.LinearOperator",
+    "probnum.random_variables.RandomVariable",
+]

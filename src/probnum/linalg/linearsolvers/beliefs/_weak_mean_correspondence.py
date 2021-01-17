@@ -59,6 +59,9 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
         Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
         and observations. If a vector is passed, actions are assumed to be
         :math:`A`-conjugate, i.e. :math:`s_i^\top A s_j =0` for :math:`i \neq j`.
+    calibration_method :
+        Uncertainty calibration method to automatically set the uncertainty in the null
+        spaces given by :math:`\Phi` and :math:`\Psi`.
 
     Notes
     -----
@@ -89,7 +92,7 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
     >>> np.random.seed(1)
     >>> linsys = LinearSystem.from_matrix(random_spd_matrix(dim=5))
     >>> # Prior belief
-    >>> prior = WeakMeanCorrespondenceBelief.from_scalar(alpha=2.5, problem=linsys)
+    >>> prior = WeakMeanCorrespondenceBelief.from_scalar(scalar=2.5, problem=linsys)
     >>> # Initial residual / gradient: r0 = A x0 - b
     >>> residual = linsys.A @ prior.x.mean - linsys.b
     >>> residual
@@ -302,6 +305,9 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
             Actions to probe the linear system with.
         observations :
             Observations of the linear system for the given actions.
+        calibration_method :
+            Uncertainty calibration method to automatically set the uncertainty in the null
+            spaces given by :math:`\Phi` and :math:`\Psi`.
         """
         try:
             return cls(
@@ -344,6 +350,9 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
             Actions to probe the linear system with.
         observations :
             Observations of the linear system for the given actions.
+        calibration_method :
+            Uncertainty calibration method to automatically set the uncertainty in the
+            null spaces given by :math:`\Phi` and :math:`\Psi`.
         """
         try:
             return cls(
@@ -398,6 +407,9 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
             Actions to probe the linear system with.
         observations :
             Observations of the linear system for the given actions.
+        calibration_method :
+            Uncertainty calibration method to automatically set the uncertainty in the
+            null spaces given by :math:`\Phi` and :math:`\Psi`.
         """
         return cls(
             A0=A0,
@@ -411,7 +423,7 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
     @classmethod
     def from_scalar(
         cls,
-        alpha: float,
+        scalar: float,
         problem: LinearSystem,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
@@ -422,15 +434,18 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
 
         Parameters
         ----------
-        alpha :
+        scalar :
             Scalar parameter defining prior mean(s) of matrix models.
         problem :
             Linear system to solve.
+        calibration_method :
+            Uncertainty calibration method to automatically set the uncertainty in the
+            null spaces given by :math:`\Phi` and :math:`\Psi`.
         """
-        if alpha <= 0.0:
-            raise ValueError(f"Scalar parameter alpha={alpha:.4f} must be positive.")
-        A0 = linops.ScalarMult(scalar=alpha, shape=problem.A.shape)
-        Ainv0 = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape)
+        if scalar <= 0.0:
+            raise ValueError(f"Scalar parameter alpha={scalar:.4f} must be positive.")
+        A0 = linops.ScalarMult(scalar=scalar, shape=problem.A.shape)
+        Ainv0 = linops.ScalarMult(scalar=1 / scalar, shape=problem.A.shape)
         return cls.from_matrices(
             A0=A0, Ainv0=Ainv0, problem=problem, calibration_method=calibration_method
         )

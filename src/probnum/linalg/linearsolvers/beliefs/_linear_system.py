@@ -20,6 +20,7 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
+from probnum.type import MatrixArgType
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["LinearSystemBelief"]
@@ -281,9 +282,7 @@ class LinearSystemBelief:
     @classmethod
     def from_inverse(
         cls,
-        Ainv0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
-        ],
+        Ainv0: MatrixArgType,
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate inverse.
@@ -308,9 +307,7 @@ class LinearSystemBelief:
     @classmethod
     def from_matrix(
         cls,
-        A0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
-        ],
+        A0: MatrixArgType,
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief over the linear system from an approximate system matrix.
@@ -337,12 +334,8 @@ class LinearSystemBelief:
     @classmethod
     def from_matrices(
         cls,
-        A0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
-        ],
-        Ainv0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
-        ],
+        A0: MatrixArgType,
+        Ainv0: MatrixArgType,
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
         r"""Construct a belief from an approximate system matrix and
@@ -367,6 +360,28 @@ class LinearSystemBelief:
             A=rvs.asrandvar(A0),
             b=rvs.asrandvar(problem.b),
         )
+
+    @classmethod
+    def from_scalar(
+        cls,
+        scalar: float,
+        problem: LinearSystem,
+    ) -> "LinearSystemBelief":
+        r"""Construct a belief over the linear system from a scalar.
+
+        Returns a belief over the linear system assuming scalar prior means
+        :math:`A_0 = H_0^{-1} = \alpha I` for the system matrix and inverse model.
+
+        Parameters
+        ----------
+        scalar :
+            Scalar parameter defining prior mean(s) of matrix models.
+        problem :
+            Linear system to solve.
+        """
+        A0 = linops.ScalarMult(scalar=scalar, shape=problem.A.shape)
+        Ainv0 = linops.ScalarMult(scalar=1 / scalar, shape=problem.A.shape)
+        return cls.from_matrices(A0=A0, Ainv0=Ainv0, problem=problem)
 
     @staticmethod
     def _induced_solution_belief(

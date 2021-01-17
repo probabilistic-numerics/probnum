@@ -278,7 +278,7 @@ def test_from_inverse_satisfies_mean_correspondence(linsys: LinearSystem):
 @pytest.mark.parametrize("alpha", [10 ** -16, 1.0, 10])
 def test_from_scalar(alpha: float, linsys: LinearSystem):
     """Test whether a linear system belief can be created from a scalar."""
-    WeakMeanCorrespondenceBelief.from_scalar(alpha=alpha, problem=linsys)
+    WeakMeanCorrespondenceBelief.from_scalar(scalar=alpha, problem=linsys)
 
 
 @pytest.mark.parametrize("alpha", [-1.0, -10, 0.0, 0])
@@ -286,7 +286,7 @@ def test_from_scalar_nonpositive_raises_value_error(alpha: float, linsys: Linear
     """Test whether attempting to construct a weak mean correspondence belief from a
     non-positive scalar results in a ValueError."""
     with pytest.raises(ValueError):
-        WeakMeanCorrespondenceBelief.from_scalar(alpha=alpha, problem=linsys)
+        WeakMeanCorrespondenceBelief.from_scalar(scalar=alpha, problem=linsys)
 
 
 # Hyperparameters

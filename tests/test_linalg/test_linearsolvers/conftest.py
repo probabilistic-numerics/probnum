@@ -155,7 +155,7 @@ def scalar_weakmeancorr_prior(
 ) -> beliefs.WeakMeanCorrespondenceBelief:
     """Scalar weak mean correspondence belief."""
     return beliefs.WeakMeanCorrespondenceBelief.from_scalar(
-        alpha=scalar, problem=linsys_spd
+        scalar=scalar, problem=linsys_spd
     )
 
 
@@ -491,18 +491,18 @@ def conj_dir_method(
 )
 def conj_grad_method(
     request,
-    uncertainty_calibration: hyperparam_optim.UncertaintyCalibration,
+    # uncertainty_calibration: hyperparam_optim.UncertaintyCalibration,
     linsys_spd: LinearSystem,
 ):
     """Probabilistic linear solvers which are conjugate gradient methods."""
     return ProbabilisticLinearSolver(
         prior=beliefs.WeakMeanCorrespondenceBelief.from_scalar(
-            alpha=request.param,
+            scalar=request.param,
             problem=linsys_spd,
-            calibration_method=uncertainty_calibration,
+            # calibration_method=uncertainty_calibration,
         ),
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVecObservation(),
-        optimize_hyperparams=True,
+        optimize_hyperparams=False,
         stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
     )

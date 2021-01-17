@@ -127,7 +127,7 @@ def random_sparse_spd_matrix(
     --------
     >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
     >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=42)
-    >>> sparsemat
+    >>> sparsemat.toarray()
     array([[1.        , 0.        , 0.        , 0.        , 0.        ],
            [0.        , 1.        , 0.        , 0.        , 0.        ],
            [0.        , 0.        , 1.        , 0.        , 0.24039507],
@@ -148,11 +148,6 @@ def random_sparse_spd_matrix(
         entry_ids = np.mask_indices(n=dim, mask_func=np.tril, k=-1)
         idx_samples = random_state.choice(
             a=num_off_diag_cholesky, size=num_nonzero_entries, replace=False
-        )
-        nonzero_entry_row_ids = entry_ids[0][idx_samples]
-        nonzero_entry_col_ids = entry_ids[1][idx_samples]
-        nonzero_entries = random_state.uniform(
-            low=chol_entry_min, high=chol_entry_max, size=num_nonzero_entries
         )
         nonzero_entry_ids = (entry_ids[0][idx_samples], entry_ids[1][idx_samples])
 

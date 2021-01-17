@@ -109,17 +109,28 @@ class TestConjugateDirectionsMethod:
             err_msg="Search directions from solver are not A-conjugate.",
         )
 
+    def test_convergence_in_at_most_n_iterations(
+        self,
+        conj_dir_method: ProbabilisticLinearSolver,
+        linsys_spd: LinearSystem,
+        n: int,
+    ):
+        """Test whether the PLS takes at most n iterations, i.e. the convergence
+        property of conjugate direction methods in exact arithmetic."""
+        _, solver_state = conj_dir_method.solve(linsys_spd)
+        assert solver_state.iteration <= n
+
 
 class TestConjugateGradientMethod:
     """Tests for probabilistic linear solvers which are conjugate gradient methods."""
 
-    def test_posterior_mean_preconditioned_CG_equivalence(self):
+    def test_preconditioned_CG_equivalence(self):
         """Test whether the PLS recovers preconditioned CG in posterior mean for
         specific prior beliefs."""
         # todo use weakmeancorrespondence class with general prior mean to test this
         pass
 
-    def test_posterior_mean_CG_equivalence(
+    def test_CG_equivalence(
         self, conj_grad_method: ProbabilisticLinearSolver, linsys_spd: LinearSystem
     ):
         """The probabilistic linear solver(s) should recover CG iterates as a posterior

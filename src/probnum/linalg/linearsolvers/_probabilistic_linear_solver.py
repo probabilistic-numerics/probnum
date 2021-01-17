@@ -140,7 +140,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     >>> pls = ProbabilisticLinearSolver(
     ... prior=LinearSystemBelief.from_solution(np.zeros_like(linsys.b), problem=linsys),
     ... policy=ConjugateDirections(),
-    ... observation_op=MatrixMultObservation(),
+    ... observation_op=MatVecObservation(),
     ... stopping_criteria=[MaxIterations(), Residual()],
     ... )
 
@@ -242,7 +242,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     ]:
         """Generator implementing the solver iteration.
 
-        This function allows stepping through the solver iteration one step at a time.
+        This function allows stepping through the solver iteration one step at a time
+        and exposes the internal solver state.
 
         Parameters
         ----------
@@ -322,6 +323,8 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         solver_state : State of the solver at convergence.
         """
         # TODO: multiple right hand sides
+        # Generally solve multiple right hand sides via multiple actions update
+        # if not possible, use posterior as prior.
         # Setup
         belief, solver_state = self._init_belief_and_solver_state(problem=problem)
 

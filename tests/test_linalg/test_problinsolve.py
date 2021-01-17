@@ -22,9 +22,7 @@ def test_prior_dimension_mismatch(linsolve):
     """Test whether the probabilistic linear solver throws an exception for priors with
     mismatched dimensions."""
     A = np.zeros(shape=[3, 3])
-    with pytest.raises(
-        ValueError, msg="Invalid input formats should raise a ValueError."
-    ):
+    with pytest.raises(ValueError):
         # A inverse not square
         problinsolve(
             A=A,
@@ -47,9 +45,7 @@ def test_system_dimension_mismatch(linsolve):
     A = np.zeros(shape=[3, 3])
     b = np.zeros(shape=[4])
     x0 = np.zeros(shape=[1])
-    with pytest.raises(
-        ValueError, msg="Invalid input formats should raise a ValueError."
-    ):
+    with pytest.raises(ValueError):
         # A, b dimension mismatch
         linsolve(A=A, b=b)
         # A, x0 dimension mismatch
@@ -64,8 +60,8 @@ def test_system_dimension_mismatch(linsolve):
 
 def test_randvar_output(linsys_spd, linsolve):
     """Probabilistic linear solvers output random variables."""
-    x, A, Ainv, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
-    for rv in [x, A, Ainv]:
+    x, A, Ainv, b, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
+    for rv in [x, A, Ainv, b]:
         assert isinstance(
             rv, rvs.RandomVariable
         ), "Output of probabilistic linear solver is not a random variable."
@@ -73,16 +69,16 @@ def test_randvar_output(linsys_spd, linsolve):
 
 def test_posterior_means_symmetric(linsys_spd, linsolve):
     """Test whether the posterior means of the matrix models are symmetric."""
-    _, A, Ainv, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
-    np.testing.assert_allclose(A.mean, A.mean.T)
-    np.testing.assert_allclose(Ainv.mean, Ainv.mean.T)
+    _, A, Ainv, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
+    np.testing.assert_allclose(A.mean.todense(), A.mean.T.todense())
+    np.testing.assert_allclose(Ainv.mean.todense(), Ainv.mean.T.todense())
 
 
 def test_posterior_means_positive_definite(linsys_spd, linsolve):
     """Test whether the posterior means of the matrix models are positive definite."""
-    _, A, Ainv, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
-    assert np.all(np.eigh(A.mean) >= 0.0)
-    assert np.all(np.eigh(Ainv.mean) >= 0.0)
+    _, A, Ainv, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
+    assert np.all(np.linalg.eigh(A.mean.todense())[0] >= 0.0)
+    assert np.all(np.linalg.eigh(Ainv.mean.todense())[0] >= 0.0)
 
 
 def test_zero_rhs(spd_mat, linsolve):
@@ -91,7 +87,7 @@ def test_zero_rhs(spd_mat, linsolve):
     tols = np.r_[np.logspace(np.log10(1e-10), np.log10(1e2), 7)]
 
     for tol in tols:
-        x, _, _, _ = linsolve(A=spd_mat, b=b, atol=tol)
+        x, _, _, _, _ = linsolve(A=spd_mat, b=b, atol=tol)
         np.testing.assert_allclose(x.mean, 0, atol=np.finfo(float).eps)
 
 
@@ -99,14 +95,14 @@ def test_multiple_rhs(spd_mat, linsolve):
     """Linear system with matrix right hand side."""
     B = np.random.rand(spd_mat.shape[0], 5)
 
-    x, _, _, info = linsolve(A=spd_mat, b=B)
+    x, _, _, _, _ = linsolve(A=spd_mat, b=B)
     assert (x.shape == B.shape, "Shape of solution and right hand side do not match.")
     np.testing.assert_allclose(x.mean, np.linalg.solve(spd_mat, B))
 
 
 def test_spd_system(linsys_spd, linsolve):
     """Random symmetric positive definite linear system."""
-    x, _, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
+    x, _, _, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
     np.testing.assert_allclose(
         x.mean,
         linsys_spd.solution,
@@ -118,7 +114,7 @@ def test_spd_system(linsys_spd, linsolve):
 
 def test_sparse_spd_system(linsys_sparse_spd, linsolve):
     """Random sparse symmetric positive definite linear system."""
-    x, _, _, _ = linsolve(A=linsys_sparse_spd.A, b=linsys_sparse_spd.b)
+    x, _, _, _, _ = linsolve(A=linsys_sparse_spd.A, b=linsys_sparse_spd.b)
     np.testing.assert_allclose(
         x.mean,
         linsys_sparse_spd.solution,
@@ -130,7 +126,7 @@ def test_sparse_spd_system(linsys_sparse_spd, linsolve):
 
 def test_sparse_poisson_system(linsys_poisson, linsolve):
     """(Sparse) linear system from Poisson PDE with boundary conditions."""
-    x, _, _, _ = linsolve(A=linsys_poisson.A, b=linsys_poisson.b)
+    x, _, _, _, _ = linsolve(A=linsys_poisson.A, b=linsys_poisson.b)
     np.testing.assert_allclose(
         x.mean,
         linsys_poisson.solution,
@@ -142,7 +138,7 @@ def test_sparse_poisson_system(linsys_poisson, linsolve):
 
 def test_kernel_matrix_system(linsys_kernel, linsolve):
     """Linear system with a kernel matrix."""
-    x, _, _, _ = linsolve(A=linsys_kernel.A, b=linsys_kernel.b)
+    x, _, _, _, _ = linsolve(A=linsys_kernel.A, b=linsys_kernel.b)
     np.testing.assert_allclose(
         x.mean,
         linsys_kernel.solution,

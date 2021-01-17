@@ -13,6 +13,7 @@ from probnum.linalg.linearsolvers.belief_updates import (
 )
 from probnum.linalg.linearsolvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
+from probnum.type import MatrixArgType
 
 from ._linear_system import LinearSystemBelief
 
@@ -106,9 +107,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
     @classmethod
     def from_inverse(
         cls,
-        Ainv0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.Normal
-        ],
+        Ainv0: MatrixArgType,
         problem: LinearSystem,
     ) -> "SymmetricLinearSystemBelief":
         if not isinstance(Ainv0, rvs.Normal):
@@ -126,9 +125,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
     @classmethod
     def from_matrix(
         cls,
-        A0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
-        ],
+        A0: MatrixArgType,
         problem: LinearSystem,
     ) -> "SymmetricLinearSystemBelief":
         if not isinstance(A0, rvs.Normal):
@@ -147,12 +144,8 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
     @classmethod
     def from_matrices(
         cls,
-        A0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
-        ],
-        Ainv0: Union[
-            np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix, rvs.RandomVariable
-        ],
+        A0: MatrixArgType,
+        Ainv0: MatrixArgType,
         problem: LinearSystem,
     ) -> "SymmetricLinearSystemBelief":
         if not isinstance(A0, rvs.Normal):
