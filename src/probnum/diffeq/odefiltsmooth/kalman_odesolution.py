@@ -74,6 +74,8 @@ class KalmanODESolution(ODESolution):
     """
 
     def __init__(self, kalman_posterior):
+
+        # All the information is stored in the Kalman posterior.
         self.kalman_posterior = kalman_posterior
 
         # Pre-compute projection matrices.
