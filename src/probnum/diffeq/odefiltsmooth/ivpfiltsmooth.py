@@ -38,7 +38,7 @@ class GaussianIVPFilter(ODESolver):
         self.kpost = pnfs.KalmanPosterior(gaussfilt, with_smoothing)
         super().__init__(ivp=ivp, order=gaussfilt.dynamics_model.ordint)
 
-    def initialise(self):
+    def initialize(self):
         odesol = KalmanODESolution(self.kpost)
         return odesol, self.ivp.t0, self.kpost.gauss_filter.initrv
 

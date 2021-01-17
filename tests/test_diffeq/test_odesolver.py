@@ -29,7 +29,7 @@ class MockODESolution(ODESolution):
 class MockODESolver(ODESolver):
     """Euler method as an ODE solver."""
 
-    def initialise(self):
+    def initialize(self):
         odesol = MockODESolution()
         return odesol, self.ivp.t0, self.ivp.initrv
 

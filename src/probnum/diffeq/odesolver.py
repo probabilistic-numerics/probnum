@@ -22,7 +22,7 @@ class ODESolver(ABC):
         steprule : :class:`StepRule`
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
-        odesol, t, current_rv = self.initialise()  # "almost empty" ODE solution
+        odesol, t, current_rv = self.initialize()  # "almost empty" ODE solution
         odesol.append(t, current_rv)
         stepsize = steprule.firststep
 
@@ -53,11 +53,8 @@ class ODESolver(ABC):
         return odesol
 
     @abstractmethod
-    def initialise(self):
-        # The docs use "knows" because there might be more info than just
-        # the initial conditions in the initialised solution.
-        """Returns an ODESolution object that is almost empty, but "knows" initial
-        conditions."""
+    def initialize(self):
+        """Returns an empty ODESolution object as well as suitable t0 and y0."""
         raise NotImplementedError
 
     @abstractmethod
@@ -65,12 +62,6 @@ class ODESolver(ABC):
         """Every ODE solver needs a step() method that returns a new random variable and
         an error estimate."""
         raise NotImplementedError
-
-    #
-    # @abstractmethod
-    # def rvlist_to_odesol(self, times, rvs):
-    #     """Create an ODESolution object."""
-    #     raise NotImplementedError
 
     def postprocess(self, odesol):
         """Process the ODESolution object before returning."""
