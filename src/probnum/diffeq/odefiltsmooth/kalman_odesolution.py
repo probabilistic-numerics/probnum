@@ -85,6 +85,9 @@ class KalmanODESolution(ODESolution):
             coord=1
         )
 
+    def append(self, t, y):
+        raise NotImplementedError
+
     @property
     def t(self) -> np.ndarray:
         return self.kalman_posterior.locations

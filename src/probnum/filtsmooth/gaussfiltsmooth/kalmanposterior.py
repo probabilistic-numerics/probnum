@@ -32,6 +32,9 @@ class KalmanPosterior(FiltSmoothPosterior):
         self._state_rvs = _RandomVariableList(state_rvs)
         self._with_smoothing = with_smoothing
 
+    def append(self, time, rv):
+        raise NotImplementedError
+
     @property
     def locations(self):
         """:obj:`np.ndarray`: Locations / times of the discrete observations"""

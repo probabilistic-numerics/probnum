@@ -6,6 +6,10 @@ class FiltSmoothPosterior(ABC):
     """Posterior Distribution over States after Filtering/Smoothing."""
 
     @abstractmethod
+    def append(self, time, rv):
+        raise NotImplementedError
+
+    @abstractmethod
     def __call__(self, location):
         """Evaluate the time-continuous posterior for a given location.
 

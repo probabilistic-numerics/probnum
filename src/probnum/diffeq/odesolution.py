@@ -23,6 +23,11 @@ except ImportError:
 class ODESolution(abc.ABC):
     """ODE Solution interface."""
 
+    # We use "t" and "y" here instead of "time" and "rv"
+    # because this notation seems more intuitive for ODE solvers.
+    def append(self, t, y):
+        raise NotImplementedError
+
     @property
     @abc.abstractmethod
     def t(self) -> np.ndarray:
