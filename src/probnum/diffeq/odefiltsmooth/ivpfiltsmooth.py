@@ -32,13 +32,15 @@ class GaussianIVPFilter(ODESolver):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
             )
-        self.gfilt = gaussfilt
         self.sigma_squared_mle = 1.0
+        self.gfilt = gaussfilt
         self.with_smoothing = with_smoothing
+        self.kpost = pnfs.KalmanPosterior(gaussfilt, with_smoothing)
         super().__init__(ivp=ivp, order=gaussfilt.dynamics_model.ordint)
 
     def initialise(self):
-        return self.ivp.t0, self.gfilt.initrv
+        odesol = KalmanODESolution(self.kpost)
+        return odesol, self.ivp.t0, self.kpost.gauss_filter.initrv
 
     def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
@@ -76,14 +78,15 @@ class GaussianIVPFilter(ODESolver):
 
         return filt_rv, err
 
-    def rvlist_to_odesol(self, times, rvs):
-        """Create an ODESolution object."""
-
-        kalman_posterior = pnfs.KalmanPosterior(
-            times, rvs, self.gfilt, self.with_smoothing
-        )
-
-        return KalmanODESolution(kalman_posterior)
+    #
+    # def rvlist_to_odesol(self, times, rvs):
+    #     """Create an ODESolution object."""
+    #
+    #     kalman_posterior = pnfs.KalmanPosterior(
+    #         times, rvs, self.gfilt, self.with_smoothing
+    #     )
+    #
+    #     return KalmanODESolution(kalman_posterior)
 
     def postprocess(self, odesol):
         """If specified (at initialisation), smooth the filter output."""

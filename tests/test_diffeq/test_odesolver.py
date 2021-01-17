@@ -7,9 +7,14 @@ from probnum.random_variables import Constant
 
 
 class MockODESolution(ODESolution):
-    def __init__(self, t, y):
-        self._t = t
-        self._y = y
+    def __init__(self):
+
+        self._t = []
+        self._y = []
+
+    def append(self, t, y):
+        self._t.append(t)
+        self._y.append(y)
 
     @property
     def t(self):
@@ -25,7 +30,8 @@ class MockODESolver(ODESolver):
     """Euler method as an ODE solver."""
 
     def initialise(self):
-        return self.ivp.t0, self.ivp.initrv
+        odesol = MockODESolution()
+        return odesol, self.ivp.t0, self.ivp.initrv
 
     def step(self, start, stop, current):
         h = stop - start
@@ -35,9 +41,6 @@ class MockODESolver(ODESolver):
             Constant(xnew),
             np.nan,
         )  # return nan as error estimate to ensure that it is not used
-
-    def rvlist_to_odesol(self, times, rvs):
-        return MockODESolution(times, rvs)
 
 
 class ODESolverTestCase(unittest.TestCase):

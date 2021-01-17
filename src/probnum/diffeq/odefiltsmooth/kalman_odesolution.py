@@ -73,7 +73,7 @@ class KalmanODESolution(ODESolution):
     [0.69875089]
     """
 
-    def __init__(self, kalman_posterior: pnfs.KalmanPosterior):
+    def __init__(self, kalman_posterior):
         self.kalman_posterior = kalman_posterior
 
         # Pre-compute projection matrices.
@@ -86,7 +86,7 @@ class KalmanODESolution(ODESolution):
         )
 
     def append(self, t, y):
-        raise NotImplementedError
+        self.kalman_posterior.append(t, y)
 
     @property
     def t(self) -> np.ndarray:

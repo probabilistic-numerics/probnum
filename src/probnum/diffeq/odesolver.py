@@ -22,8 +22,8 @@ class ODESolver(ABC):
         steprule : :class:`StepRule`
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
-        t, current_rv = self.initialise()
-        times, rvs = [t], [current_rv]
+        odesol, t, current_rv = self.initialise()  # "almost empty" ODE solution
+        odesol.append(t, current_rv)
         stepsize = steprule.firststep
 
         while t < self.ivp.tmax:
@@ -42,15 +42,13 @@ class ODESolver(ABC):
                 )
                 t = t_new
                 current_rv = proposed_rv
-                times.append(t)
-                rvs.append(current_rv)
+                odesol.append(t, current_rv)
 
             suggested_stepsize = steprule.suggest(
                 stepsize, internal_norm, localconvrate=self.order + 1
             )
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
 
-        odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         odesol = self.postprocess(odesol)
         return odesol
 
@@ -68,10 +66,11 @@ class ODESolver(ABC):
         an error estimate."""
         raise NotImplementedError
 
-    @abstractmethod
-    def rvlist_to_odesol(self, times, rvs):
-        """Create an ODESolution object."""
-        raise NotImplementedError
+    #
+    # @abstractmethod
+    # def rvlist_to_odesol(self, times, rvs):
+    #     """Create an ODESolution object."""
+    #     raise NotImplementedError
 
     def postprocess(self, odesol):
         """Process the ODESolution object before returning."""
