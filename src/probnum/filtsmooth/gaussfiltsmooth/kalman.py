@@ -224,7 +224,7 @@ class Kalman(BayesFiltSmooth):
             Posterior distribution of the smoothed output
         """
 
-        # See Issue #300
+        # Continuous-time filtering not supported. See Issue #300
         bad_options = (pnfss.LinearSDE, ContinuousEKFComponent, ContinuousUKFComponent)
         if isinstance(self.dynamics_model, bad_options) and not isinstance(
             self.dynamics_model, pnfss.LTISDE
@@ -236,8 +236,10 @@ class Kalman(BayesFiltSmooth):
             filter_posterior.locations,
             _intermediate_step=_intermediate_step,
         )
-        filter_posterior._state_rvs = rv_list
-        filter_posterior._with_smoothing = True
+
+        # Update posterior
+        filter_posterior.state_rvs = rv_list
+        filter_posterior.with_smoothing = True
         return filter_posterior
 
     def smooth_list(self, rv_list, locations, _intermediate_step=None):
