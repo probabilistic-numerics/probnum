@@ -5,14 +5,18 @@ Interface for Runge-Kutta, ODEFilter.
 
 from abc import ABC, abstractmethod
 
+import probnum.random_variables as pnrv
+
+from .odesolution import ODESolution
+
 
 class ODESolver(ABC):
-    """Interface for ODESolver."""
+    """Interface for ODE solvers."""
 
     def __init__(self, ivp, order):
         self.ivp = ivp
         self.order = order  # e.g.: RK45 has order=5, IBM(q) has order=q
-        self.num_steps = 0
+        self.num_steps = 0  # move to ODESolution?
 
     def solve(self, steprule):
         """Solve an IVP.
@@ -53,25 +57,34 @@ class ODESolver(ABC):
         return odesol
 
     @abstractmethod
-    def initialize(self):
-        """Returns an empty ODESolution object as well as suitable t0 and y0."""
+    def initialize(self) -> (ODESolution, float, pnrv.RandomVariable):
+        """Return an empty ODESolution object as well as suitable t0 and y0.
+
+        Required for implementation of ODE solvers.
+
+        These values might be different for different solvers.
+        For instance, the y0 that is used for the ODE filters, is a stack
+        (y0, dy0, ddy0, ...) and the ODESolution is a KalmanODESolution object.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def step(self, start, stop, current, **kwargs):
-        """Every ODE solver needs a step() method that returns a new random variable and
-        an error estimate."""
+    def step(
+        self, start: float, stop: float, current: pnrv.RandomVariable, **kwargs
+    ) -> (pnrv.RandomVariable, float):
+        """Implement an ODE solver by implementing a step() method."""
         raise NotImplementedError
 
-    def postprocess(self, odesol):
-        """Process the ODESolution object before returning."""
+    def postprocess(self, odesol: ODESolution) -> ODESolution:
+        """Process the ODESolution object before returning.
+
+        Optional.
+        """
         return odesol
 
-    def method_callback(self, time, current_guess, current_error):
-        """Optional callback.
-
-        Can be overwritten. Do this as soon as it is clear that the
-        current guess is accepted, but before storing it. No return. For
-        example: tune hyperparameters (sigma).
-        """
+    def method_callback(
+        self, time: float, current_guess: pnrv.RandomVariable, current_error: float
+    ) -> None:
+        """Callback that is carried out after accepting the current random variable but
+        before storing it."""
         pass

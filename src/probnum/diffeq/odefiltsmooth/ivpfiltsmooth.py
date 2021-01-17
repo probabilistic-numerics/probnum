@@ -78,16 +78,6 @@ class GaussianIVPFilter(ODESolver):
 
         return filt_rv, err
 
-    #
-    # def rvlist_to_odesol(self, times, rvs):
-    #     """Create an ODESolution object."""
-    #
-    #     kalman_posterior = pnfs.KalmanPosterior(
-    #         times, rvs, self.gfilt, self.with_smoothing
-    #     )
-    #
-    #     return KalmanODESolution(kalman_posterior)
-
     def postprocess(self, odesol):
         """If specified (at initialisation), smooth the filter output."""
         if False:  # pylint: disable=using-constant-test
