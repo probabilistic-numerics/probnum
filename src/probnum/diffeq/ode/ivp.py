@@ -22,7 +22,7 @@ class IVP(ODE):
     Since we use them for probabilistic ODE solvers these functions
     fit into the probabilistic framework as well. That is,
     the initial value is a RandomVariable object with some
-    distribution that reflects the prior belief over the initial
+    distribution that reflects the prior belief about the initial
     value. To recover "classical" initial values one can use a
     Constant random variable.
 
@@ -31,7 +31,7 @@ class IVP(ODE):
     timespan : (float, float)
         Time span of IVP.
     initrv : RandomVariable,
-        RandomVariable that  describes the belief over the initial
+        RandomVariable that  describes the belief about the initial
         value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
         use a :class:`~probnum.random_variables.Constant` random variable.

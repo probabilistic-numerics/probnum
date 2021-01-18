@@ -17,7 +17,7 @@ def bayescg(
     """Bayesian conjugate gradient method.
 
     In the setting where :math:`A` is a symmetric positive-definite matrix, this solver
-    takes prior information on the solution and outputs a posterior belief over
+    takes prior information on the solution and outputs a posterior belief about
     :math:`x`. This code implements the method described in Cockayne et al. [1]_.
 
     Parameters

@@ -89,7 +89,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
     Parameters
     ----------
     prior :
-        Prior belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
+        Prior belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of the
         linear system.
     policy :
         Policy defining actions taken by the solver.
@@ -258,7 +258,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
         Returns
         -------
         belief :
-            Updated belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of
+            Updated belief about the quantities of interest :math:`(x, A, A^{-1}, b)` of
             the linear system.
         action :
             Action taken by the solver given by its policy.
@@ -291,7 +291,7 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                 except NotImplementedError:
                     pass
 
-            # Update the belief over the system matrix, its inverse and/or the solution
+            # Update the belief about the system matrix, its inverse and/or the solution
             solver_state = belief.update(
                 problem=problem,
                 observation_op=self.observation_op,

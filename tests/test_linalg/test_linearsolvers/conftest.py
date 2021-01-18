@@ -67,7 +67,7 @@ def fixture_belief(belief_class, mat, linsys):
 def fixture_prior(
     linsys_spd: LinearSystem, n: int, random_state: np.random.RandomState
 ) -> beliefs.SymmetricLinearSystemBelief:
-    """Symmetric normal prior belief over the linear system."""
+    """Symmetric normal prior belief about the linear system."""
     return beliefs.SymmetricLinearSystemBelief.from_matrices(
         A0=random_spd_matrix(dim=n, random_state=random_state),
         Ainv0=random_spd_matrix(dim=n, random_state=random_state),

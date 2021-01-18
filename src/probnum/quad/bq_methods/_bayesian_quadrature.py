@@ -5,7 +5,7 @@ class BayesianQuadrature:
     """Bayesian quadrature.
 
     Bayesian quadrature methods build a model for the integrand via function
-    evaluations and return a belief over the value of the integral on a given
+    evaluations and return a belief about the value of the integral on a given
     domain with respect to the specified measure.
 
     Parameters

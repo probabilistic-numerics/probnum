@@ -63,7 +63,7 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def x(self) -> rvs.Normal:
-        """Updated Gaussian belief over the solution :math:`x` of the linear system."""
+        """Updated Gaussian belief about the solution :math:`x` of the linear system."""
         if self.noise_cov is None:
             x_mean_update, _ = self.x_update_terms(belief_x=self.belief.x)
             return rvs.Normal(
@@ -119,7 +119,7 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def A(self) -> rvs.Normal:
-        """Updated Gaussian belief over the system matrix :math:`A`."""
+        """Updated Gaussian belief about the system matrix :math:`A`."""
         mean_update, cov_update = self.A_update_terms(belief_A=self.belief.A)
         A_mean = linops.aslinop(self.belief.A.mean) + mean_update
         A_covfactor = linops.aslinop(self.belief.A.cov.A) - cov_update
@@ -159,7 +159,7 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def Ainv(self) -> rvs.Normal:
-        """Updated Gaussian belief over the inverse of the system matrix
+        """Updated Gaussian belief about the inverse of the system matrix
         :math:`H=A^{-1}`."""
         mean_update, cov_update = self.Ainv_update_terms(belief_Ainv=self.belief.Ainv)
         Ainv_mean = linops.aslinop(self.belief.Ainv.mean) + mean_update
@@ -198,7 +198,7 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     @cached_property
     def b(self) -> Union[rvs.Normal, rvs.Constant]:
-        """Updated belief over the right hand side :math:`b` of the linear system."""
+        """Updated belief about the right hand side :math:`b` of the linear system."""
         return self.belief.b
 
     def _residual(

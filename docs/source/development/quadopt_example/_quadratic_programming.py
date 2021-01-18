@@ -197,13 +197,13 @@ class ProbabilisticQuadraticOptimizer:
     Parameters
     ----------
     fun_params_prior :
-        Prior belief over the parameters of the latent quadratic function.
+        Prior belief about the parameters of the latent quadratic function.
     policy :
         Callable returning a new action to probe the problem.
     observation_operator :
         Callable implementing the observation process of the problem.
     belief_update :
-        Belief update function updating the belief over the parameters of the quadratic given
+        Belief update function updating the belief about the parameters of the quadratic given
         an action and observation of the problem.
     stopping_criteria :
         Stopping criteria to determine when to stop the optimization.
@@ -393,7 +393,7 @@ class ProbabilisticQuadraticOptimizer:
         return x_opt, fun_opt, self.fun_params, info
 
     def belief_optimum(self) -> Tuple[float, rvs.RandomVariable]:
-        """Compute the belief over the optimum and optimal function value.
+        """Compute the belief about the optimum and optimal function value.
 
         Returns
         -------

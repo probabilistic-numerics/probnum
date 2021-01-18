@@ -83,9 +83,9 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
         noise_A: Optional[rvs.Normal] = None,
         noise_b: Optional[rvs.Normal] = None,
     ) -> "NoisyLinearSystemBelief":
-        r"""Construct a belief over the linear system from an approximate inverse.
+        r"""Construct a belief about the linear system from an approximate inverse.
 
-        Returns a belief over the linear system from an approximate inverse
+        Returns a belief about the linear system from an approximate inverse
         :math:`H_0\approx A^{-1}` such as a preconditioner. By default this internally
         inverts (the prior mean of) :math:`H_0`, which may be computationally costly.
 
@@ -132,9 +132,9 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
         noise_A: Optional[rvs.Normal] = None,
         noise_b: Optional[rvs.Normal] = None,
     ) -> "NoisyLinearSystemBelief":
-        r"""Construct a belief over the linear system from an approximate system matrix.
+        r"""Construct a belief about the linear system from an approximate system matrix.
 
-        Returns a belief over the linear system from an approximation of
+        Returns a belief about the linear system from an approximation of
         the system matrix :math:`A_0\approx A`. This internally inverts (the prior mean
         of) :math:`A_0`, which may be computationally costly.
 
@@ -185,7 +185,7 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
 
-        Returns a belief over the linear system from an approximation of
+        Returns a belief about the linear system from an approximation of
         the system matrix :math:`A_0\approx A` and an approximate inverse
         :math:`H_0\approx A^{-1}`.
 

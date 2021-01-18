@@ -164,7 +164,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
 
     @staticmethod
     def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.RandomVariable) -> rvs.Normal:
-        r"""Induced belief over the solution from a belief over the inverse.
+        r"""Induced belief about the solution from a belief about the inverse.
 
         Approximates the induced random variable :math:`x=Hb` for :math:`H \sim
         \mathcal{N}(H_0, W \otimes_s W)`, such that :math:`x \sim \mathcal{N}(\mu,
@@ -188,7 +188,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
     def _induced_solution_cov(
         Ainv: rvs.Normal, b: rvs.RandomVariable
     ) -> linops.LinearOperator:
-        r"""Induced covariance of the belief over the solution.
+        r"""Induced covariance of the belief about the solution.
 
         Approximates the covariance :math:`\Sigma` of the induced random variable
         :math:`x=Hb` for :math:`H \sim \mathcal{N}(H_0, W \otimes_s W)` such that

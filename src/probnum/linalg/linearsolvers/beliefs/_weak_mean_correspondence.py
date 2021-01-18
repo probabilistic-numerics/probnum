@@ -46,10 +46,10 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
     Ainv0 :
         Approximate matrix inverse :math:`H_0 \approx A^{-1}`.
     phi :
-        Uncertainty scaling :math:`\Phi` of the belief over the matrix in the unexplored
+        Uncertainty scaling :math:`\Phi` of the belief about the matrix in the unexplored
         action space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
     psi :
-        Uncertainty scaling :math:`\Psi` of the belief over the inverse in the
+        Uncertainty scaling :math:`\Psi` of the belief about the inverse in the
         unexplored observation space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
     actions :
         Actions to probe the linear system with.
@@ -289,9 +289,9 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
         observations: Optional[Union[np.ndarray, List]] = None,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
-        r"""Construct a belief over the linear system from an approximate inverse.
+        r"""Construct a belief about the linear system from an approximate inverse.
 
-        Returns a belief over the linear system from an approximate inverse
+        Returns a belief about the linear system from an approximate inverse
         :math:`H_0\approx A^{-1}` such as a preconditioner. By default this internally
         inverts (the prior mean of) :math:`H_0`, which may be computationally costly.
 
@@ -334,9 +334,9 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
         observations: Optional[Union[np.ndarray, List]] = None,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
-        r"""Construct a belief over the linear system from an approximate system matrix.
+        r"""Construct a belief about the linear system from an approximate system matrix.
 
-        Returns a belief over the linear system from an approximation of
+        Returns a belief about the linear system from an approximation of
         the system matrix :math:`A_0\approx A`. This internally inverts (the prior mean
         of) :math:`A_0`, which may be computationally costly.
 
@@ -391,7 +391,7 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
 
-        Returns a belief over the linear system from an approximation of
+        Returns a belief about the linear system from an approximation of
         the system matrix :math:`A_0\approx A` and an approximate inverse
         :math:`H_0\approx A^{-1}`.
 
@@ -427,9 +427,9 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
         problem: LinearSystem,
         calibration_method: Optional[UncertaintyCalibration] = None,
     ) -> "WeakMeanCorrespondenceBelief":
-        r"""Construct a belief over the linear system from a scalar.
+        r"""Construct a belief about the linear system from a scalar.
 
-        Returns a belief over the linear system assuming scalar prior means
+        Returns a belief about the linear system assuming scalar prior means
         :math:`A_0 = H_0^{-1} = \alpha I` for the system matrix and inverse model.
 
         Parameters

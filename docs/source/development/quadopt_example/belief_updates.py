@@ -1,4 +1,4 @@
-"""Update the belief over the parameters with observations in a 1D quadratic
+"""Update the belief about the parameters with observations in a 1D quadratic
 optimization problem."""
 
 from typing import Union
@@ -16,7 +16,7 @@ def gaussian_belief_update(
     observation: FloatArgType,
     noise_cov: Union[np.ndarray, linops.LinearOperator],
 ) -> rvs.RandomVariable:
-    """Update the belief over the parameters with an observation.
+    """Update the belief about the parameters with an observation.
 
     Parameters
     ----------

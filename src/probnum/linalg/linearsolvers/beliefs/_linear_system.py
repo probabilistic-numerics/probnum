@@ -1,7 +1,7 @@
 """Linear system belief.
 
-Base class defining a belief over the quantities of interest of a linear
-system such as its solution, the matrix inverse.
+Base class defining a belief about the quantities of interest of a
+linear system such as its solution, the matrix inverse.
 """
 
 from typing import List, Optional, Tuple, Union
@@ -166,7 +166,7 @@ class LinearSystemBelief:
         problem: LinearSystem,
         check_for_better_x0: bool = True,
     ) -> "LinearSystemBelief":
-        r"""Construct a belief over the linear system from an approximate solution.
+        r"""Construct a belief about the linear system from an approximate solution.
 
         Constructs a matrix-variate prior mean for :math:`H` from an initial
         guess of the solution :math:`x0` and the right hand side :math:`b` such
@@ -288,9 +288,9 @@ class LinearSystemBelief:
         Ainv0: MatrixArgType,
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
-        r"""Construct a belief over the linear system from an approximate inverse.
+        r"""Construct a belief about the linear system from an approximate inverse.
 
-        Returns a belief over the linear system from an approximate inverse
+        Returns a belief about the linear system from an approximate inverse
         :math:`H_0\approx A^{-1}` such as a preconditioner.
 
         Parameters
@@ -313,9 +313,9 @@ class LinearSystemBelief:
         A0: MatrixArgType,
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
-        r"""Construct a belief over the linear system from an approximate system matrix.
+        r"""Construct a belief about the linear system from an approximate system matrix.
 
-        Returns a belief over the linear system from an approximation of
+        Returns a belief about the linear system from an approximation of
         the system matrix :math:`A_0\approx A`.
 
         Parameters
@@ -344,7 +344,7 @@ class LinearSystemBelief:
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
 
-        Returns a belief over the linear system from an approximation of
+        Returns a belief about the linear system from an approximation of
         the system matrix :math:`A_0\approx A` and an approximate inverse
         :math:`H_0\approx A^{-1}`.
 
@@ -370,9 +370,9 @@ class LinearSystemBelief:
         scalar: float,
         problem: LinearSystem,
     ) -> "LinearSystemBelief":
-        r"""Construct a belief over the linear system from a scalar.
+        r"""Construct a belief about the linear system from a scalar.
 
-        Returns a belief over the linear system assuming scalar prior means
+        Returns a belief about the linear system assuming scalar prior means
         :math:`A_0 = H_0^{-1} = \alpha I` for the system matrix and inverse model.
 
         Parameters
@@ -390,9 +390,9 @@ class LinearSystemBelief:
     def _induced_solution_belief(
         Ainv: rvs.RandomVariable, b: rvs.RandomVariable
     ) -> rvs.RandomVariable:
-        r"""Induced belief over the solution from a belief over the inverse.
+        r"""Induced belief about the solution from a belief about the inverse.
 
-        Computes the induced belief over the solution given by (an approximation
+        Computes the induced belief about the solution given by (an approximation
         to) the random variable :math:`x=Hb`. This assumes independence between
         :math:`H` and :math:`b`.
 

@@ -51,7 +51,7 @@ class HyperparameterOptimization(ABC):
         optimal_hyperparams
             Optimized hyperparameters.
         belief
-            Updated belief over the solution :math:`x`, the system matrix :math:`A`, its
+            Updated belief about the solution :math:`x`, the system matrix :math:`A`, its
             inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
         solver_state :
             Updated solver state.

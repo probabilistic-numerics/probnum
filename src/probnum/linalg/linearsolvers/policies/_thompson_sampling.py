@@ -14,7 +14,7 @@ class ThompsonSampling(Policy):
     r"""Maximize the expected reward with respect to a random sample from the belief.
 
     Returns an action given by :math:`s_i = -H_ir_i`, where :math:`r = A_i x_i - b_i`
-    and :math:`(x_i, A_i, H_i, b_i)` are drawn from the current belief over the
+    and :math:`(x_i, A_i, H_i, b_i)` are drawn from the current belief about the
     corresponding linear system components. The resulting action is the exact step to
     the solution of the linear system assuming :math:`H_i = A^{-1}`, :math:`A_i=A`, and
     :math:`b_i=b`.

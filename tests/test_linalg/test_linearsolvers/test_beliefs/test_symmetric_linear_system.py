@@ -12,13 +12,13 @@ pytestmark = pytest.mark.filterwarnings("ignore::scipy.sparse.SparseEfficiencyWa
 def test_induced_solution_has_correct_distribution(
     linsys_spd: LinearSystem, symm_belief: SymmetricLinearSystemBelief
 ):
-    """Test whether the induced distribution over the solution from a belief over the
+    """Test whether the induced distribution over the solution from a belief about the
     inverse is correct."""
 
     np.testing.assert_allclose(
         symm_belief.x.mean,
         symm_belief.Ainv.mean @ linsys_spd.b,
-        err_msg="Induced belief over the solution has an inconsistent mean.",
+        err_msg="Induced belief about the solution has an inconsistent mean.",
     )
     W = symm_belief.Ainv.cov.A
     Wb = W @ linsys_spd.b
@@ -27,5 +27,5 @@ def test_induced_solution_has_correct_distribution(
     np.testing.assert_allclose(
         symm_belief.x.cov.todense(),
         Sigma.todense(),
-        err_msg="Induced belief over the solution has an inconsistent covariance.",
+        err_msg="Induced belief about the solution has an inconsistent covariance.",
     )

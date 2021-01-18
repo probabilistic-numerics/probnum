@@ -56,7 +56,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
 
     @cached_property
     def A(self) -> rvs.Normal:
-        # Update belief over A assuming WS=Y
+        # Update belief about A assuming WS=Y
         mean_update, covfactor_update = self.A_update_terms(belief_A=self.belief.A)
         if self.belief._A_covfactor_update_op is not None:
             self.belief._A_covfactor_update_op += covfactor_update
@@ -86,7 +86,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
 
     @cached_property
     def Ainv(self) -> rvs.Normal:
-        # Update belief over Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
+        # Update belief about Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
         u, v, Wy = self._matrix_model_update_components(
             belief_matrix=self.belief.Ainv,
             action=self.observations,
