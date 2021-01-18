@@ -19,10 +19,15 @@ from probnum.type import RandomStateArgType
     params=[pytest.param(n, id=f"dim{n}") for n in [5, 10, 50, 100]], name="n"
 )
 def fixture_n(request) -> int:
-    """Number of columns of the system matrix.
+    """Number of columns of the system matrix."""
+    return request.param
 
-    This is mostly used for test parameterization.
-    """
+
+@pytest.fixture(
+    params=[pytest.param(nrhs, id=f"nrhs{nrhs}") for nrhs in [1, 2, 10]], name="nrhs"
+)
+def fixture_nrhs(request) -> int:
+    """Number of columns of the right hand side of the linear system."""
     return request.param
 
 
@@ -31,10 +36,7 @@ def fixture_n(request) -> int:
     name="random_state",
 )
 def fixture_random_state(request) -> np.random.RandomState:
-    """Random states used to sample the test case input matrices.
-
-    This is mostly used for test parameterization.
-    """
+    """Random states used to sample the test case input matrices."""
     return np.random.RandomState(seed=request.param)
 
 
@@ -160,21 +162,36 @@ def linsys_poisson() -> LinearSystem:
 
 
 @pytest.fixture()
-def linsys_spd(spd_mat, random_state: np.random.RandomState) -> LinearSystem:
+def linsys_spd(
+    spd_mat: np.ndarray, random_state: np.random.RandomState
+) -> LinearSystem:
     """Symmetric positive definite linear system."""
     return LinearSystem.from_matrix(A=spd_mat, random_state=random_state)
 
 
 @pytest.fixture()
+def linsys_spd_multiple_rhs(
+    spd_mat: np.ndarray, n: int, nrhs: int, random_state: np.random.RandomState
+) -> LinearSystem:
+    """Symmetric positive definite linear system with multiple right hand sides."""
+    matrix_solution = random_state.normal(size=(n, nrhs))
+    return LinearSystem(
+        A=spd_mat, solution=matrix_solution, b=spd_mat @ matrix_solution
+    )
+
+
+@pytest.fixture()
 def linsys_sparse_spd(
-    sparse_spd_mat, random_state: np.random.RandomState
+    sparse_spd_mat: scipy.sparse.spmatrix, random_state: np.random.RandomState
 ) -> LinearSystem:
     """Sparse symmetric positive definite linear system."""
     return LinearSystem.from_matrix(A=sparse_spd_mat, random_state=random_state)
 
 
 @pytest.fixture()
-def linsys_kernel(kernel_mat, random_state: np.random.RandomState) -> LinearSystem:
+def linsys_kernel(
+    kernel_mat: np.ndarray, random_state: np.random.RandomState
+) -> LinearSystem:
     """Linear system with a kernel matrix."""
     return LinearSystem.from_matrix(A=kernel_mat, random_state=random_state)
 

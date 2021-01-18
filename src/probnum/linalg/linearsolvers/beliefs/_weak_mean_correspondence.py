@@ -292,8 +292,8 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
         r"""Construct a belief over the linear system from an approximate inverse.
 
         Returns a belief over the linear system from an approximate inverse
-        :math:`H_0\approx A^{-1}` such as a preconditioner. This internally inverts
-        (the prior mean of) :math:`H_0`, which may be computationally costly.
+        :math:`H_0\approx A^{-1}` such as a preconditioner. By default this internally
+        inverts (the prior mean of) :math:`H_0`, which may be computationally costly.
 
         Parameters
         ----------

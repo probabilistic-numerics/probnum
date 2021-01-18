@@ -24,16 +24,6 @@ class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
             ),
         ]
 
-    def test_vec2svec_dimension(self):
-        """Check faulty dimension for Q."""
-        for n in [-1, 0, 1.1, np.inf, np.nan]:
-            with self.subTest():
-                with self.assertRaises(
-                    ValueError,
-                    msg="Invalid input dimension n should raise a ValueError.",
-                ):
-                    linops.Svec(dim=n)
-
     def test_symmetrize(self):
         """The Symmetrize operators should symmetrize vectors and columns of
         matrices."""

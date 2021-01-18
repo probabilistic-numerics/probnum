@@ -322,9 +322,6 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
                  right hand side :math:`b`.
         solver_state : State of the solver at convergence.
         """
-        # TODO: multiple right hand sides
-        # Generally solve multiple right hand sides via multiple actions update
-        # if not possible, use posterior as prior.
         # Setup
         belief, solver_state = self._init_belief_and_solver_state(problem=problem)
 

@@ -10,6 +10,7 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.linearsolvers.beliefs import (
     LinearSystemBelief,
+    NoisyLinearSystemBelief,
     WeakMeanCorrespondenceBelief,
 )
 from probnum.problems import LinearSystem
@@ -171,9 +172,9 @@ def test_from_matrix(
 ):
     """Test whether a linear system belief can be created from a system matrix estimate
     given as an array, sparse matrix or linear operator."""
-    if (belief_class is WeakMeanCorrespondenceBelief) and not isinstance(
-        mat, linops.LinearOperator
-    ):
+    if (
+        belief_class in (WeakMeanCorrespondenceBelief, NoisyLinearSystemBelief)
+    ) and not isinstance(mat, linops.LinearOperator):
         with pytest.raises(TypeError):
             # Inefficient belief construction via explicit inversion raises error
             belief_class.from_matrix(A0=mat, problem=linsys)
@@ -188,10 +189,11 @@ def test_from_inverse(
 ):
     """Test whether a linear system belief can be created from an inverse estimate given
     as an array, sparse matrix or linear operator."""
-    if (belief_class is WeakMeanCorrespondenceBelief) and not isinstance(
-        mat, linops.LinearOperator
-    ):
+    if (
+        belief_class in (WeakMeanCorrespondenceBelief, NoisyLinearSystemBelief)
+    ) and not isinstance(mat, linops.LinearOperator):
         with pytest.raises(TypeError):
+            # Inefficient belief construction via explicit inversion raises error
             belief_class.from_inverse(Ainv0=mat, problem=linsys)
     else:
         belief_class.from_inverse(Ainv0=mat, problem=linsys)

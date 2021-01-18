@@ -174,10 +174,7 @@ class LinearSystemBelief:
         :math:`A_0 = H_0^{-1}`. If :code:`check_for_better_x0=True` and
         :math:`x_0^\top b \leq 0` the belief is initialized with a better approximate
         solution :math:`x_1` with lower error :math:`\lVert x_1 \rVert_A < \lVert x_0
-        \rVert_A`.
-
-        For a detailed construction see Proposition S5 of Wenger and Hennig,
-        2020. [#]_
+        \rVert_A`. [#]_
 
         Parameters
         ----------
@@ -225,15 +222,21 @@ class LinearSystemBelief:
 
         Parameters
         ----------
-        x0 : Initial guess for the solution of the linear system.
-        problem : Linear system to solve.
-        check_for_better_x0 : Choose a better initial guess for the solution if possible.
+        x0 :
+            Initial guess for the solution of the linear system.
+        problem :
+            Linear system to solve.
+        check_for_better_x0 :
+            Choose a better initial guess for the solution if possible.
 
         Returns
         -------
-        x0 : Approximate solution of the linear system.
-        Ainv0 : Approximate system matrix inverse.
-        A0 : Approximate system matrix.
+        x0 :
+            Approximate solution of the linear system.
+        Ainv0 :
+            Approximate system matrix inverse.
+        A0 :
+            Approximate system matrix.
         """
         if x0.ndim < 2:
             x0 = x0.reshape((-1, 1))

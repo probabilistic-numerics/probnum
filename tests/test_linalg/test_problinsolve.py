@@ -1,10 +1,13 @@
 """Tests for probabilistic linear solvers."""
 
+from typing import Callable
+
 import numpy as np
 import pytest
 
 from probnum import random_variables as rvs
 from probnum.linalg import problinsolve
+from probnum.problems import LinearSystem
 
 LINSOLVE_RELTOL = 10 ** -6
 LINSOLVE_ABSTOL = 10 ** -6
@@ -12,13 +15,13 @@ LINSOLVE_ABSTOL = 10 ** -6
 # pylint: disable="invalid-name"
 
 
-def test_prior_information(linsolve):
+def test_prior_information(linsolve: Callable):
     """The solver should automatically handle different types of prior information."""
     # TODO
     pass
 
 
-def test_prior_dimension_mismatch(linsolve):
+def test_prior_dimension_mismatch(linsolve: Callable):
     """Test whether the probabilistic linear solver throws an exception for priors with
     mismatched dimensions."""
     A = np.zeros(shape=[3, 3])
@@ -39,7 +42,7 @@ def test_prior_dimension_mismatch(linsolve):
         )
 
 
-def test_system_dimension_mismatch(linsolve):
+def test_system_dimension_mismatch(linsolve: Callable):
     """Test whether linear solvers throw an exception for input with mismatched
     dimensions."""
     A = np.zeros(shape=[3, 3])
@@ -58,7 +61,7 @@ def test_system_dimension_mismatch(linsolve):
         )
 
 
-def test_randvar_output(linsys_spd, linsolve):
+def test_randvar_output(linsys_spd: LinearSystem, linsolve: Callable):
     """Probabilistic linear solvers output random variables."""
     x, A, Ainv, b, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
     for rv in [x, A, Ainv, b]:
@@ -67,21 +70,23 @@ def test_randvar_output(linsys_spd, linsolve):
         ), "Output of probabilistic linear solver is not a random variable."
 
 
-def test_posterior_means_symmetric(linsys_spd, linsolve):
+def test_posterior_means_symmetric(linsys_spd: LinearSystem, linsolve: Callable):
     """Test whether the posterior means of the matrix models are symmetric."""
     _, A, Ainv, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
     np.testing.assert_allclose(A.mean.todense(), A.mean.T.todense())
     np.testing.assert_allclose(Ainv.mean.todense(), Ainv.mean.T.todense())
 
 
-def test_posterior_means_positive_definite(linsys_spd, linsolve):
+def test_posterior_means_positive_definite(
+    linsys_spd: LinearSystem, linsolve: Callable
+):
     """Test whether the posterior means of the matrix models are positive definite."""
     _, A, Ainv, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
     assert np.all(np.linalg.eigh(A.mean.todense())[0] >= 0.0)
     assert np.all(np.linalg.eigh(Ainv.mean.todense())[0] >= 0.0)
 
 
-def test_zero_rhs(spd_mat, linsolve):
+def test_zero_rhs(spd_mat: np.ndarray, linsolve: Callable):
     """Linear system with zero right hand side."""
     b = np.zeros(spd_mat.shape[0])
     tols = np.r_[np.logspace(np.log10(1e-10), np.log10(1e2), 7)]
@@ -91,16 +96,21 @@ def test_zero_rhs(spd_mat, linsolve):
         np.testing.assert_allclose(x.mean, 0, atol=np.finfo(float).eps)
 
 
-def test_multiple_rhs(spd_mat, linsolve):
+@pytest.mark.xfail(
+    reason="The induced belief on x is not yet implemented for multiple rhs. "
+    "github #302",
+)
+def test_multiple_rhs(linsys_spd_multiple_rhs: LinearSystem, linsolve: Callable):
     """Linear system with matrix right hand side."""
-    B = np.random.rand(spd_mat.shape[0], 5)
+    x, _, _, _, _ = linsolve(A=linsys_spd_multiple_rhs.A, b=linsys_spd_multiple_rhs.b)
+    assert (
+        x.shape == linsys_spd_multiple_rhs.b.shape,
+        "Shape of solution and right hand side do not match.",
+    )
+    np.testing.assert_allclose(x.mean, linsys_spd_multiple_rhs.solution)
 
-    x, _, _, _, _ = linsolve(A=spd_mat, b=B)
-    assert (x.shape == B.shape, "Shape of solution and right hand side do not match.")
-    np.testing.assert_allclose(x.mean, np.linalg.solve(spd_mat, B))
 
-
-def test_spd_system(linsys_spd, linsolve):
+def test_spd_system(linsys_spd: LinearSystem, linsolve: Callable):
     """Random symmetric positive definite linear system."""
     x, _, _, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
     np.testing.assert_allclose(
@@ -112,7 +122,7 @@ def test_spd_system(linsys_spd, linsolve):
     )
 
 
-def test_sparse_spd_system(linsys_sparse_spd, linsolve):
+def test_sparse_spd_system(linsys_sparse_spd: LinearSystem, linsolve: Callable):
     """Random sparse symmetric positive definite linear system."""
     x, _, _, _, _ = linsolve(A=linsys_sparse_spd.A, b=linsys_sparse_spd.b)
     np.testing.assert_allclose(
@@ -124,7 +134,7 @@ def test_sparse_spd_system(linsys_sparse_spd, linsolve):
     )
 
 
-def test_sparse_poisson_system(linsys_poisson, linsolve):
+def test_sparse_poisson_system(linsys_poisson: LinearSystem, linsolve: Callable):
     """(Sparse) linear system from Poisson PDE with boundary conditions."""
     x, _, _, _, _ = linsolve(A=linsys_poisson.A, b=linsys_poisson.b)
     np.testing.assert_allclose(
@@ -136,7 +146,7 @@ def test_sparse_poisson_system(linsys_poisson, linsolve):
     )
 
 
-def test_kernel_matrix_system(linsys_kernel, linsolve):
+def test_kernel_matrix_system(linsys_kernel: LinearSystem, linsolve: Callable):
     """Linear system with a kernel matrix."""
     x, _, _, _, _ = linsolve(A=linsys_kernel.A, b=linsys_kernel.b)
     np.testing.assert_allclose(

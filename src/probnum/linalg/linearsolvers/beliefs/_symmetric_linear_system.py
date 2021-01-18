@@ -35,8 +35,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         \mathsf{A} &\sim \mathcal{N}(A_0, W_0^{\mathsf{A}} \otimes_s W_0^{\mathsf{A}})\\
         \mathsf{H} &\sim \mathcal{N}(H_0, W_0^{\mathsf{H}} \otimes_s W_0^{\mathsf{H}})
 
-    via :class:`~probnum.linops.SymmetricKronecker` product
-    structured covariances. [#]_
+    via :class:`~probnum.linops.SymmetricKronecker` product structured covariances. [#]_
 
     Parameters
     ----------
@@ -111,14 +110,15 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         problem: LinearSystem,
     ) -> "SymmetricLinearSystemBelief":
         if not isinstance(Ainv0, rvs.Normal):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
-
-        A0 = rvs.Normal(mean=problem.A, cov=linops.SymmetricKronecker(A=problem.A))
+            Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        else:
+            Ainv = Ainv0
+        A = rvs.Normal(mean=problem.A, cov=linops.SymmetricKronecker(A=problem.A))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
-            Ainv=Ainv0,
-            A=A0,
+            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
+            Ainv=Ainv,
+            A=A,
             b=rvs.asrandvar(problem.b),
         )
 
@@ -129,15 +129,17 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         problem: LinearSystem,
     ) -> "SymmetricLinearSystemBelief":
         if not isinstance(A0, rvs.Normal):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
+            A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
+        else:
+            A = A0
 
-        Ainv0_mean = linops.Identity(shape=A0.shape)
-        Ainv0 = rvs.Normal(mean=Ainv0_mean, cov=linops.SymmetricKronecker(A=Ainv0_mean))
+        Ainv0 = linops.Identity(shape=A0.shape)
+        Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
-            Ainv=Ainv0,
-            A=A0,
+            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
+            Ainv=Ainv,
+            A=A,
             b=rvs.asrandvar(problem.b),
         )
 
@@ -199,18 +201,23 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         b :
             Belief over the right hand side
         """
+        # TODO extend this to the case of multiple right hand sides, where the
+        #  covariance is given by Prop S4 of Wenger and Hennig, 2020:
+        #  \Sigma = 1/2 (W \otimes BWB + WB \boxtimes B'W)
         b = rvs.asrandvar(b)
         Wb = Ainv.cov.A @ b.mean
-        bWb = (Wb.T @ b.mean).item()
+        bWb = Wb.T @ b.mean
 
         def _mv(v):
-            return 0.5 * (bWb * Ainv.cov.A @ v + Wb @ (Wb.T @ v))
+            return 0.5 * (bWb.item() * Ainv.cov.A @ v + Wb @ (Wb.T @ v))
 
         x_cov = linops.LinearOperator(
             shape=Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
         )
         # Efficient trace computation
-        x_cov.trace = lambda: 0.5 * (bWb * Ainv.cov.A.trace() + (Wb.T @ Wb).item())
+        x_cov.trace = lambda: 0.5 * (
+            Ainv.cov.A.trace() * np.trace(bWb) + np.trace(Wb.T @ Wb)
+        )
 
         return x_cov
 

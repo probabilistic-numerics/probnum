@@ -12,7 +12,7 @@ Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate o
 :class:`~probnum.linops.LinearOperator` instances.
 """
 
-from ._kronecker import Kronecker, Svec, SymmetricKronecker, Symmetrize, Vec
+from ._kronecker import BoxProduct, Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import Identity, LinearOperator, MatrixMult, ScalarMult
 from ._projections import OrthogonalProjection
 from ._utils import aslinop
@@ -26,10 +26,9 @@ __all__ = [
     "MatrixMult",
     "OrthogonalProjection",
     "Kronecker",
+    "BoxProduct",
     "SymmetricKronecker",
     "Symmetrize",
-    "Vec",
-    "Svec",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -42,9 +41,8 @@ MatrixMult.__module__ = "probnum.linops"
 OrthogonalProjection.__module__ = "probnum.linops"
 
 Kronecker.__module__ = "probnum.linops"
-Svec.__module__ = "probnum.linops"
+BoxProduct.__module__ = "probnum.linops"
 SymmetricKronecker.__module__ = "probnum.linops"
 Symmetrize.__module__ = "probnum.linops"
-Vec.__module__ = "probnum.linops"
 
 aslinop.__module__ = "probnum.linops"

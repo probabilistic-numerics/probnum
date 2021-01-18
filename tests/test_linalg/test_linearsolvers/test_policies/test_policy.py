@@ -71,6 +71,24 @@ def test_ground_truth_belief_solves_problem_in_one_step(
     )
 
 
+@pytest.mark.xfail(
+    reason="The induced belief on x is not yet implemented for multiple rhs. "
+    "github #302",
+)
+def test_multiple_rhs(
+    policy: Policy,
+    linsys_spd_multiple_rhs: LinearSystem,
+    symm_belief_multiple_rhs: LinearSystemBelief,
+):
+    """Test whether the policy returns multiple actions for multiple right hand sides of
+    the linear system."""
+    actions, _ = policy(
+        problem=linsys_spd_multiple_rhs, belief=symm_belief_multiple_rhs
+    )
+
+    assert actions.shape == symm_belief_multiple_rhs.x.shape
+
+
 @pytest.mark.parametrize(
     "policy",
     [ThompsonSampling(random_state=1), ExploreExploit(random_state=1)],
