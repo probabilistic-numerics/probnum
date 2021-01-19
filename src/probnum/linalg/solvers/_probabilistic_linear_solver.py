@@ -490,6 +490,8 @@ class ProbabilisticLinearSolver(
                 problem=problem, belief=belief, solver_state=solver_state
             )
 
+        solver_state.belief = belief
+
         while True:
             # Compute action via policy
             action, solver_state = self.policy(
