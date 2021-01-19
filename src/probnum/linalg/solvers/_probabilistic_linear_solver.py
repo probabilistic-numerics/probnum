@@ -189,7 +189,9 @@ class ProbabilisticLinearSolver(
         if belief_update is not None:
             self.belief_update = belief_update
         else:
-            self.belief_update = self._init_belief_update()
+            self.belief_update = self._init_belief_update(
+                belief=prior, observation_op=observation_op
+            )
         self.stopping_criteria = stopping_criteria
         super().__init__(
             prior=prior,
@@ -222,7 +224,14 @@ class ProbabilisticLinearSolver(
     ) -> Type[belief_updates.BeliefUpdate]:
         """Choose a belief update for the provided belief and observation operator.
 
-        Selects an appropriate belief update for the
+        Selects an appropriate belief update for the given belief and observation
+        operator.
+
+        Parameters
+        ----------
+        belief :
+            Belief about the linear system.
+        observation_op :
         """
         if isinstance(belief, beliefs.SymmetricLinearSystemBelief):
             if isinstance(observation_op, observation_ops.MatVecObservation):
