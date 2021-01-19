@@ -71,7 +71,7 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
 
     See Also
     --------
-    ~probnum.linalg.linearsolvers.ProbabilisticLinearSolver : Compose a custom
+    ~probnum.linalg.solvers.ProbabilisticLinearSolver : Compose a custom
         probabilistic linear solver.
     """
 

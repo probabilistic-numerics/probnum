@@ -2,12 +2,10 @@
 
 from typing import Optional, Tuple
 
-import scipy.sparse
-
 import probnum
 import probnum.random_variables as rvs
 from probnum import linops
-from probnum.linalg.linearsolvers import (
+from probnum.linalg.solvers import (
     LinearSolverState,
     ProbabilisticLinearSolver,
     beliefs,
@@ -144,163 +142,16 @@ def problinsolve(
     1.0691148648343433e-06
     """
     linsys = LinearSystem(A=A, b=b)
-    prior_belief = _init_prior_belief(
-        linsys=linsys, A0=A0, Ainv0=Ainv0, x0=x0, assume_linsys=assume_linsys
-    )
-    linear_solver = _init_solver(
-        prior_belief=prior_belief, atol=atol, rtol=rtol, maxiter=maxiter
+    linear_solver = ProbabilisticLinearSolver.from_problem(
+        linsys=linsys,
+        assume_linsys=assume_linsys,
+        A0=A0,
+        Ainv0=Ainv0,
+        x0=x0,
+        atol=atol,
+        rtol=rtol,
+        maxiter=maxiter,
     )
     belief, solver_state = linear_solver.solve(problem=linsys)
 
     return belief.x, belief.A, belief.Ainv, belief.b, solver_state
-
-
-def _init_prior_belief(
-    linsys: LinearSystem,
-    A0: Optional[MatrixArgType] = None,
-    Ainv0: Optional[MatrixArgType] = None,
-    x0: MatrixArgType = None,
-    assume_linsys: str = "sympos",
-) -> beliefs.LinearSystemBelief:
-    """Initialize a prior belief about the linear system.
-
-    Automatically chooses an appropriate prior belief about the linear system components
-    based on the arguments given.
-
-    Parameters
-    ----------
-    linsys :
-        Linear system to solve.
-    A0 :
-        A square matrix, linear operator or random variable representing the prior
-        belief about the linear operator :math:`A`.
-    Ainv0 :
-        A square matrix, linear operator or random variable representing the prior
-        belief about the inverse :math:`H=A^{-1}`.
-    x0 :
-        Optional. Prior belief for the solution of the linear system. Will be ignored if
-        ``Ainv0`` is given.
-    assume_linsys :
-        Assumptions on the linear system which can influence solver choice and
-        behavior. The available options are (combinations of)
-
-        =========================  =========
-         generic matrix            ``gen``
-         symmetric matrix          ``sym``
-         positive definite matrix  ``pos``
-         (additive) noise          ``noise``
-        =========================  =========
-
-
-    Raises
-    ------
-    ValueError
-        If type or size mismatches detected or inputs ``A`` and ``Ainv`` are not square.
-    """
-    # Check matrix assumptions for correctness
-    assume_linsys = assume_linsys.lower()
-    _assume_A_tmp = assume_linsys
-    for allowed_str in ["gen", "sym", "pos", "noise"]:
-        _assume_A_tmp = _assume_A_tmp.replace(allowed_str, "")
-    if _assume_A_tmp != "":
-        raise ValueError(
-            "Assumption '{}' contains unrecognized linear operator properties.".format(
-                assume_linsys
-            )
-        )
-
-    # Choose matrix based view if not clear from arguments
-    if (Ainv0 is not None or A0 is not None) and isinstance(x0, rvs.RandomVariable):
-        x0 = None
-
-    # Extract information from system and priors
-    # System matrix is symmetric
-    if isinstance(A0, rvs.RandomVariable):
-        if isinstance(A0.cov, linops.SymmetricKronecker) and "sym" not in assume_linsys:
-            assume_linsys += "sym"
-    if isinstance(Ainv0, rvs.RandomVariable):
-        if (
-            isinstance(Ainv0.cov, linops.SymmetricKronecker)
-            and "sym" not in assume_linsys
-        ):
-            assume_linsys += "sym"
-    # System matrix or right hand side is stochastic
-    if (
-        isinstance(linsys.A, rvs.RandomVariable)
-        or isinstance(linsys.b, rvs.RandomVariable)
-        and "noise" not in assume_linsys
-    ):
-        assume_linsys += "noise"
-
-    # Choose belief class
-    belief_class = beliefs.LinearSystemBelief
-    if "sym" in assume_linsys and "pos" in assume_linsys:
-        if "noise" in assume_linsys:
-            belief_class = beliefs.NoisyLinearSystemBelief
-        else:
-            belief_class = beliefs.WeakMeanCorrespondenceBelief
-    elif "sym" in assume_linsys and "pos" not in assume_linsys:
-        belief_class = beliefs.SymmetricLinearSystemBelief
-
-    # Instantiate belief from available prior information
-    if x0 is None and A0 is not None and Ainv0 is not None:
-        return belief_class.from_matrices(A0=A0, Ainv0=Ainv0, problem=linsys)
-    elif Ainv0 is not None:
-        return belief_class.from_inverse(Ainv0=Ainv0, problem=linsys)
-    elif A0 is not None:
-        return belief_class.from_matrix(A0=A0, problem=linsys)
-    elif x0 is not None:
-        return belief_class.from_solution(x0=x0, problem=linsys)
-    else:
-        return belief_class.from_scalar(scalar=1.0, problem=linsys)
-
-
-def _init_solver(
-    prior_belief: beliefs.LinearSystemBelief,
-    maxiter: int,
-    atol: float,
-    rtol: float,
-) -> ProbabilisticLinearSolver:
-    """Initialize a custom probabilistic linear solver.
-
-    Selects and initializes an appropriate instance of the probabilistic linear
-    solver based on the prior information given.
-
-    Parameters
-    ----------
-    prior_belief :
-        Prior belief about the quantities of interest of the linear system.
-    maxiter :
-        Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is the
-        dimension of :math:`A`.
-    atol :
-        Absolute convergence tolerance.
-    rtol :
-        Relative convergence tolerance.
-    """
-
-    observation_op = observation_ops.MatVecObservation()
-    stopping_criteria = [stop_criteria.MaxIterations(maxiter=maxiter)]
-    if isinstance(
-        prior_belief,
-        (beliefs.SymmetricLinearSystemBelief, beliefs.WeakMeanCorrespondenceBelief),
-    ):
-        policy = policies.ConjugateDirections()
-        stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-    elif isinstance(prior_belief, beliefs.NoisyLinearSystemBelief):
-        policy = policies.ExploreExploit()
-        stopping_criteria.append(
-            stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
-        )
-    elif isinstance(prior_belief, beliefs.LinearSystemBelief):
-        policy = policies.ConjugateDirections()
-        stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-    else:
-        raise ValueError("Unknown prior belief class.")
-
-    return ProbabilisticLinearSolver(
-        prior=prior_belief,
-        policy=policy,
-        observation_op=observation_op,
-        stopping_criteria=stopping_criteria,
-    )
