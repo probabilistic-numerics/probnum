@@ -235,7 +235,7 @@ class ProbabilisticLinearSolver(
     @classmethod
     def from_problem(
         cls,
-        linsys: LinearSystem,
+        problem: LinearSystem,
         assume_linsys: str = "sympos",
         A0: Optional[MatrixArgType] = None,
         Ainv0: Optional[MatrixArgType] = None,
@@ -253,7 +253,7 @@ class ProbabilisticLinearSolver(
 
         Parameters
         ----------
-        linsys :
+        problem :
             Linear system to solve.
         assume_linsys :
             Assumptions on the linear system which can influence solver choice and
@@ -314,8 +314,8 @@ class ProbabilisticLinearSolver(
                 assume_linsys += "sym"
         # System matrix or right hand side is stochastic
         if (
-            isinstance(linsys.A, rvs.RandomVariable)
-            or isinstance(linsys.b, rvs.RandomVariable)
+            isinstance(problem.A, rvs.RandomVariable)
+            or isinstance(problem.b, rvs.RandomVariable)
             and "noise" not in assume_linsys
         ):
             assume_linsys += "noise"
@@ -332,15 +332,15 @@ class ProbabilisticLinearSolver(
 
         # Instantiate a prior belief from available prior information
         if x0 is None and A0 is not None and Ainv0 is not None:
-            prior = belief_class.from_matrices(A0=A0, Ainv0=Ainv0, problem=linsys)
+            prior = belief_class.from_matrices(A0=A0, Ainv0=Ainv0, problem=problem)
         elif Ainv0 is not None:
-            prior = belief_class.from_inverse(Ainv0=Ainv0, problem=linsys)
+            prior = belief_class.from_inverse(Ainv0=Ainv0, problem=problem)
         elif A0 is not None:
-            prior = belief_class.from_matrix(A0=A0, problem=linsys)
+            prior = belief_class.from_matrix(A0=A0, problem=problem)
         elif x0 is not None:
-            prior = belief_class.from_solution(x0=x0, problem=linsys)
+            prior = belief_class.from_solution(x0=x0, problem=problem)
         else:
-            prior = belief_class.from_scalar(scalar=1.0, problem=linsys)
+            prior = belief_class.from_scalar(scalar=1.0, problem=problem)
 
         return cls.from_prior(prior=prior, maxiter=maxiter, atol=atol, rtol=rtol)
 

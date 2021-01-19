@@ -143,7 +143,7 @@ def problinsolve(
     """
     linsys = LinearSystem(A=A, b=b)
     linear_solver = ProbabilisticLinearSolver.from_problem(
-        linsys=linsys,
+        problem=linsys,
         assume_linsys=assume_linsys,
         A0=A0,
         Ainv0=Ainv0,
