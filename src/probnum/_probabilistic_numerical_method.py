@@ -2,52 +2,50 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple, Union
+from typing import Generic, List, Optional, Tuple, TypeVar
 
-import probnum  # pylint: disable="unused-import"
-from probnum.problems import (
-    InitialValueProblem,
-    LinearSystem,
-    QuadratureProblem,
-    RegressionProblem,
-)
-
-ProblemType = Union[
-    InitialValueProblem, LinearSystem, QuadratureProblem, RegressionProblem
-]
-BeliefType = Union[
-    Tuple[
-        Union[
-            "probnum.random_variables.RandomVariable",
-            # "probnum.random_processes.RandomProcess",
-        ],
-        ...,
-    ],
-    "probnum.linalg.linearsolvers.LinearSystemBelief",
-]
+ProblemType = TypeVar("ProblemType")
+BeliefType = TypeVar("BeliefType")
 
 
 @dataclasses.dataclass
-class PNMethodState(ABC):
-    """State of a probabilistic numerical method.
-
-    The state of a PN method contains miscellaneous quantities computed during a
-    run of a probabilistic numerical method. The state is passed between the
-    different components of the method.
+class PNMethodData(ABC):
+    """Data collected by a probabilistic numerical method.
 
     Parameters
     ----------
     actions
-        Performed actions of the solver.
+        Performed actions.
     observations
-        Collected observations of the solver.
+        Collected observations of the problem.
     """
 
     actions: Optional[List] = None
     observations: Optional[List] = None
 
 
-class ProbabilisticNumericalMethod(ABC):
+@dataclasses.dataclass
+class PNMethodState(ABC, Generic[BeliefType]):
+    """State of a probabilistic numerical method.
+
+    The state of a PN method contains the belief about the quantities of
+    interest of the numerical problem -- such as the solution -- and the data
+    collected by the method. The state is passed between different components of the
+    algorithm and can be used to reuse miscellaneous computed quantities.
+
+    Parameters
+    ----------
+    belief
+        Belief about the quantities of interest of the numerical problem.
+    data
+        Collected data from the numerical problem.
+    """
+
+    belief: Optional[BeliefType] = None
+    data: Optional[PNMethodData] = None
+
+
+class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     """Probabilistic numerical methods.
 
     An abstract base class defining the implementation of a probabilistic numerical

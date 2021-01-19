@@ -10,6 +10,7 @@ import numpy as np
 
 import probnum.random_variables as rvs
 from probnum._probabilistic_numerical_method import (
+    PNMethodData,
     PNMethodState,
     ProbabilisticNumericalMethod,
 )
@@ -23,7 +24,29 @@ from probnum.problems import LinearSystem
 
 
 @dataclasses.dataclass
-class LinearSolverState(PNMethodState):
+class BeliefUpdateState(PNMethodData):
+    r"""Quantities computed for the belief update of a linear solver.
+
+    Parameters
+    ----------
+    action_obs_innerprods
+        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
+        and observations. If a vector, actions and observations are assumed to be
+        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
+    log_rayleigh_quotients
+        Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
+        s_i)`.
+    step_sizes
+        Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
+        steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
+    """
+    action_obs_innerprods: Optional[List[float]] = None
+    log_rayleigh_quotients: Optional[List[float]] = None
+    step_sizes: Optional[List[float]] = None
+
+
+@dataclasses.dataclass
+class LinearSolverState(PNMethodState[LinearSystemBelief]):
     r"""State of a probabilistic linear solver.
 
     The solver state contains miscellaneous quantities computed during an iteration
@@ -36,10 +59,10 @@ class LinearSolverState(PNMethodState):
 
     Parameters
     ----------
-    actions
-        Performed actions :math:`s_i`.
-    observations
-        Collected observations :math:`y_i = A s_i`.
+    belief
+        Belief over the quantities of the linear system.
+    data
+        Collected data about the linear system.
     iteration
         Current iteration :math:`i` of the solver.
     has_converged
@@ -48,16 +71,8 @@ class LinearSolverState(PNMethodState):
         Stopping criterion which caused termination of the solver.
     residual
         Residual :math:`r_i = Ax_i - b` of the current solution.
-    action_obs_innerprods
-        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
-        and observations. If a vector, actions and observations are assumed to be
-        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
-    log_rayleigh_quotients
-        Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
-        s_i)`.
-    step_sizes
-        Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
-        steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
+    belief_update_state
+        State of the belief update containing precomputed quantities for efficiency.
 
     Examples
     --------
@@ -67,12 +82,12 @@ class LinearSolverState(PNMethodState):
     residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
     has_converged: bool = False
     stopping_criterion: Optional[List[StoppingCriterion]] = None
-    action_obs_innerprods: Optional[List[float]] = None
-    log_rayleigh_quotients: Optional[List[float]] = None
-    step_sizes: Optional[List[float]] = None
+    belief_update_state: Optional[BeliefUpdateState] = None
 
 
-class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
+class ProbabilisticLinearSolver(
+    ProbabilisticNumericalMethod[LinearSystem, LinearSystemBelief]
+):
     """Compose a custom probabilistic linear solver.
 
     Class implementing probabilistic linear solvers. Such (iterative) solvers infer
@@ -278,6 +293,13 @@ class ProbabilisticLinearSolver(ProbabilisticNumericalMethod):
             observation, solver_state = self.observation_op(
                 problem=problem, action=action, solver_state=solver_state
             )
+
+            # TODO precompute quantities for the belief update potentially used in
+            #  hyperparameter optimization.
+            # TODO Data class PolicyState, ObservationState, BeliefUpdateState as
+            #  attribute of SolverState
+            # TODO belief as attribute of solver state
+            solver_state.belief_state = self.belief_update.precompute_state()
 
             # Optimize hyperparameters
             if self.optimize_hyperparams:
