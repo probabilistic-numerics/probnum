@@ -8,12 +8,10 @@ import scipy.sparse
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.belief_updates import WeakMeanCorrLinearObsBeliefUpdate
 from probnum.linalg.solvers.hyperparam_optim import UncertaintyCalibration
-from probnum.linalg.solvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 
-from ._symmetric_linear_system import SymmetricLinearSystemBelief
+from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 
 # pylint: disable="invalid-name"
 
@@ -21,7 +19,7 @@ from ._symmetric_linear_system import SymmetricLinearSystemBelief
 __all__ = ["WeakMeanCorrespondenceBelief"]
 
 
-class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
+class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
     r"""Symmetric Gaussian belief enforcing weak mean correspondence.
 
     Belief over the linear system such that the means over the matrix and its inverse
@@ -447,74 +445,3 @@ class WeakMeanCorrespondenceBelief(SymmetricLinearSystemBelief):
         return cls.from_matrices(
             A0=A0, Ainv0=Ainv0, problem=problem, calibration_method=calibration_method
         )
-
-    def optimize_hyperparams(
-        self,
-        problem: LinearSystem,
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Optional["probnum.linalg.solvers.LinearSolverState"]:
-        r"""Calibrate the uncertainty scales :math:`\Phi` and :math:`\Psi`.
-
-        Parameters
-        ----------
-        problem :
-            Linear system to solve.
-        actions :
-            Actions to probe the linear system with.
-        observations :
-            Observations of the linear system for the given actions.
-        solver_state :
-            Current state of the linear solver.
-        """
-        if self.calibration_method is not None:
-            (phi, psi), solver_state = self.calibration_method(
-                problem=problem,
-                belief=self,
-                actions=actions,
-                observations=observations,
-                solver_state=solver_state,
-            )
-            self.phi = phi
-            self.psi = psi
-            return solver_state
-        else:
-            raise NotImplementedError
-
-    def update(
-        self,
-        problem: LinearSystem,
-        observation_op: "probnum.linalg.solvers.observation_ops.ObservationOperator",
-        action: np.ndarray,
-        observation: np.ndarray,
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Optional["probnum.linalg.solvers.LinearSolverState"]:
-
-        # Update action and observations
-        if action.ndim == 1:
-            action = action[:, None]
-        if observation.ndim == 1:
-            observation = observation[:, None]
-        if self.actions is None:
-            self.actions = action
-        else:
-            self.actions = np.hstack((self.actions, action))
-        if self.observations is None:
-            self.observations = observation
-        else:
-            self.observations = np.hstack((self.observations, observation))
-
-        if isinstance(observation_op, MatVecObservation):
-            belief_update = WeakMeanCorrLinearObsBeliefUpdate(
-                problem=problem,
-                belief=self,
-                actions=action,
-                observations=observation,
-                solver_state=solver_state,
-            )
-        else:
-            raise NotImplementedError
-
-        self._x, self._Ainv, self._A, self._b, solver_state = belief_update()
-        return solver_state

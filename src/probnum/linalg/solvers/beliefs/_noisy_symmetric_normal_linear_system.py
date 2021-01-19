@@ -11,16 +11,16 @@ from probnum.linalg.solvers.hyperparam_optim import OptimalNoiseScale
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
-from ._symmetric_linear_system import SymmetricLinearSystemBelief
+from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 
 # pylint: disable="invalid-name"
 
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["NoisyLinearSystemBelief"]
+__all__ = ["NoisySymmetricNormalLinearSystemBelief"]
 
 
-class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
+class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
     r"""Belief over a noise-corrupted linear system.
 
     Parameters
@@ -58,7 +58,7 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
         x0: np.ndarray,
         problem: LinearSystem,
         check_for_better_x0: bool = True,
-    ) -> "NoisyLinearSystemBelief":
+    ) -> "NoisySymmetricNormalLinearSystemBelief":
 
         x0, Ainv0, A0 = cls._belief_means_from_solution(
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
@@ -82,7 +82,7 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
         problem: LinearSystem,
         noise_A: Optional[rvs.Normal] = None,
         noise_b: Optional[rvs.Normal] = None,
-    ) -> "NoisyLinearSystemBelief":
+    ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief about the linear system from an approximate inverse.
 
         Returns a belief about the linear system from an approximate inverse
@@ -131,7 +131,7 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
         problem: LinearSystem,
         noise_A: Optional[rvs.Normal] = None,
         noise_b: Optional[rvs.Normal] = None,
-    ) -> "NoisyLinearSystemBelief":
+    ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief about the linear system from an approximate system matrix.
 
         Returns a belief about the linear system from an approximation of
@@ -181,7 +181,7 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
         problem: LinearSystem,
         noise_A: Optional[rvs.Normal] = None,
         noise_b: Optional[rvs.Normal] = None,
-    ) -> "NoisyLinearSystemBelief":
+    ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
 
@@ -215,24 +215,3 @@ class NoisyLinearSystemBelief(SymmetricLinearSystemBelief):
             noise_A=noise_A,
             noise_b=noise_b,
         )
-
-    def optimize_hyperparams(
-        self,
-        problem: LinearSystem,
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Optional["probnum.linalg.solvers.LinearSolverState"]:
-        """Estimate the noise level of a noisy linear system.
-
-        Computes the optimal noise scale maximizing the log-marginal
-        likelihood.
-        """
-        self.noise_scale, solver_state = OptimalNoiseScale()(
-            problem=problem,
-            belief=self,
-            actions=actions,
-            observations=observations,
-            solver_state=solver_state,
-        )
-        return solver_state

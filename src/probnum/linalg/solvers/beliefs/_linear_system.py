@@ -18,7 +18,6 @@ except ImportError:
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -404,48 +403,3 @@ class LinearSystemBelief:
             Belief over the right hand side
         """
         return Ainv @ b
-
-    def optimize_hyperparams(
-        self,
-        problem: LinearSystem,
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Optional["probnum.linalg.solvers.LinearSolverState"]:
-        """Optimize the hyperparameters of the belief class given observations.
-
-        Parameters
-        ----------
-        problem :
-            Linear system to solve.
-        actions :
-            Actions to probe the linear system with.
-        observations :
-            Observations of the linear system for the given actions.
-        solver_state :
-            Current state of the linear solver.
-        """
-        raise NotImplementedError
-
-    def update(
-        self,
-        problem: LinearSystem,
-        observation_op: "probnum.linalg.solvers.observation_ops.ObservationOperator",
-        action: np.ndarray,
-        observation: np.ndarray,
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Optional["probnum.linalg.solvers.LinearSolverState"]:
-        """Update the belief given observations.
-
-        Parameters
-        ----------
-        problem :
-            Linear system to solve.
-        action :
-            Action to probe the linear system with.
-        observation :
-            Observation of the linear system for the given action.
-        solver_state :
-            Current state of the linear solver.
-        """
-        raise NotImplementedError

@@ -49,7 +49,7 @@ class RegressionProblem:
     >>> rp = RegressionProblem(observations=obs, locations=loc)
     >>> rp
     RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], likelihood=None, solution=None)
-    >>> rp.observations
+    >>> rp.observation
     [11.4123, -15.5123]
     """
 

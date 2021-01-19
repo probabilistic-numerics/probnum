@@ -6,20 +6,22 @@ or spectral information.
 """
 
 from ._linear_system import LinearSystemBelief
-from ._noisy_linear_system import NoisyLinearSystemBelief
-from ._symmetric_linear_system import SymmetricLinearSystemBelief
+from ._noisy_symmetric_normal_linear_system import (
+    NoisySymmetricNormalLinearSystemBelief,
+)
+from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 from ._weak_mean_correspondence import WeakMeanCorrespondenceBelief
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "LinearSystemBelief",
-    "SymmetricLinearSystemBelief",
+    "SymmetricNormalLinearSystemBelief",
     "WeakMeanCorrespondenceBelief",
-    "NoisyLinearSystemBelief",
+    "NoisySymmetricNormalLinearSystemBelief",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearSystemBelief.__module__ = "probnum.linalg.solvers.beliefs"
-SymmetricLinearSystemBelief.__module__ = "probnum.linalg.solvers.beliefs"
+SymmetricNormalLinearSystemBelief.__module__ = "probnum.linalg.solvers.beliefs"
 WeakMeanCorrespondenceBelief.__module__ = "probnum.linalg.solvers.beliefs"
-NoisyLinearSystemBelief.__module__ = "probnum.linalg.solvers.beliefs"
+NoisySymmetricNormalLinearSystemBelief.__module__ = "probnum.linalg.solvers.beliefs"

@@ -3,14 +3,14 @@ import numpy as np
 import pytest
 
 import probnum.linops as linops
-from probnum.linalg.solvers.beliefs import SymmetricLinearSystemBelief
+from probnum.linalg.solvers.beliefs import SymmetricNormalLinearSystemBelief
 from probnum.problems import LinearSystem
 
 pytestmark = pytest.mark.filterwarnings("ignore::scipy.sparse.SparseEfficiencyWarning")
 
 
 def test_induced_solution_has_correct_distribution(
-    linsys_spd: LinearSystem, symm_belief: SymmetricLinearSystemBelief
+    linsys_spd: LinearSystem, symm_belief: SymmetricNormalLinearSystemBelief
 ):
     """Test whether the induced distribution over the solution from a belief about the
     inverse is correct."""

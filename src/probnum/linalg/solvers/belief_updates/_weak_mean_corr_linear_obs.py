@@ -70,9 +70,9 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
                     self.solver_state.iteration
                 ]
             except IndexError:
-                action_obs_innerprod = self.actions.T @ self.observations
+                action_obs_innerprod = self.action.T @ self.observation
         else:
-            action_obs_innerprod = self.actions.T @ self.observations
+            action_obs_innerprod = self.action.T @ self.observation
 
         return rvs.Normal(
             mean=linops.aslinop(self.belief.A.mean) + mean_update,
@@ -89,8 +89,8 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
         # Update belief about Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
         u, v, Wy = self._matrix_model_update_components(
             belief_matrix=self.belief.Ainv,
-            action=self.observations,
-            observation=self.actions,
+            action=self.observation,
+            observation=self.action,
         )
         # Rank 2 mean update (+= uv' + vu')
         mean_update = self._matrix_model_mean_update_op(u=u, v=v)
@@ -107,7 +107,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
 
         # Update trace efficiently
         covfactor_op.trace = lambda: self._Ainv_covfactor_trace(
-            y=self.observations, Wy=Wy
+            y=self.observation, Wy=Wy
         )
 
         return rvs.Normal(

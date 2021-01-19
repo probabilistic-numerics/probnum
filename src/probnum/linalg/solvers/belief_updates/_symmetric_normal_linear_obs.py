@@ -101,17 +101,17 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
             # Step size
             step_size = self._step_size(
                 residual=residual,
-                action=self.actions,
-                observation=self.observations,
+                action=self.action,
+                observation=self.observation,
             )
             # Solution estimate update
-            x_mean_update = step_size * self.actions
+            x_mean_update = step_size * self.action
 
             # Update residual
             self._residual(
                 residual=residual,
                 step_size=step_size,
-                observation=self.observations,
+                observation=self.observation,
             )
             return x_mean_update, None
         else:
@@ -147,8 +147,8 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
         """
         u, v, Ws = self._matrix_model_update_components(
             belief_matrix=belief_A,
-            action=self.actions,
-            observation=self.observations,
+            action=self.action,
+            observation=self.observation,
         )
         # Rank 2 mean update (+= uv' + vu')
         mean_update = self._matrix_model_mean_update_op(u=u, v=v)
@@ -187,8 +187,8 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
         """
         u, v, Wy = self._matrix_model_update_components(
             belief_matrix=belief_Ainv,
-            action=self.observations,
-            observation=self.actions,
+            action=self.observation,
+            observation=self.action,
         )
         # Rank 2 mean update (+= uv' + vu')
         mean_update = self._matrix_model_mean_update_op(u=u, v=v)

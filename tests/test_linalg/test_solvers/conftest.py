@@ -45,9 +45,9 @@ def fixture_num_iters(request) -> int:
         pytest.param(bc, id=bc.__name__)
         for bc in [
             beliefs.LinearSystemBelief,
-            beliefs.SymmetricLinearSystemBelief,
+            beliefs.SymmetricNormalLinearSystemBelief,
             beliefs.WeakMeanCorrespondenceBelief,
-            beliefs.NoisyLinearSystemBelief,
+            beliefs.NoisySymmetricNormalLinearSystemBelief,
         ]
     ],
     name="belief_class",
@@ -66,9 +66,9 @@ def fixture_belief(belief_class, mat, linsys):
 @pytest.fixture(name="prior")
 def fixture_prior(
     linsys_spd: LinearSystem, n: int, random_state: np.random.RandomState
-) -> beliefs.SymmetricLinearSystemBelief:
+) -> beliefs.SymmetricNormalLinearSystemBelief:
     """Symmetric normal prior belief about the linear system."""
-    return beliefs.SymmetricLinearSystemBelief.from_matrices(
+    return beliefs.SymmetricNormalLinearSystemBelief.from_matrices(
         A0=random_spd_matrix(dim=n, random_state=random_state),
         Ainv0=random_spd_matrix(dim=n, random_state=random_state),
         problem=linsys_spd,
@@ -86,7 +86,7 @@ def fixture_prior(
             ),
             (
                 "symmnormal_dense",
-                beliefs.SymmetricLinearSystemBelief,
+                beliefs.SymmetricNormalLinearSystemBelief,
                 lambda n: rvs.Normal(
                     mean=random_spd_matrix(n, random_state=42),
                     cov=linops.SymmetricKronecker(
@@ -96,7 +96,7 @@ def fixture_prior(
             ),
             (
                 "symmnormal_sparse",
-                beliefs.SymmetricLinearSystemBelief,
+                beliefs.SymmetricNormalLinearSystemBelief,
                 lambda n: rvs.Normal(
                     mean=random_sparse_spd_matrix(n, density=0.01, random_state=42),
                     cov=linops.SymmetricKronecker(
@@ -110,7 +110,7 @@ def fixture_prior(
 )
 def fixture_symm_belief(
     request, n: int, linsys_spd: LinearSystem
-) -> beliefs.SymmetricLinearSystemBelief:
+) -> beliefs.SymmetricNormalLinearSystemBelief:
     """Symmetric normal linear system belief."""
     return request.param[1].from_inverse(Ainv0=request.param[2](n), problem=linsys_spd)
 
@@ -126,7 +126,7 @@ def fixture_symm_belief(
             ),
             (
                 "symmnormal_dense",
-                beliefs.SymmetricLinearSystemBelief,
+                beliefs.SymmetricNormalLinearSystemBelief,
                 lambda n: rvs.Normal(
                     mean=random_spd_matrix(n, random_state=42),
                     cov=linops.SymmetricKronecker(
@@ -136,7 +136,7 @@ def fixture_symm_belief(
             ),
             (
                 "symmnormal_sparse",
-                beliefs.SymmetricLinearSystemBelief,
+                beliefs.SymmetricNormalLinearSystemBelief,
                 lambda n: rvs.Normal(
                     mean=random_sparse_spd_matrix(n, density=0.01, random_state=42),
                     cov=linops.SymmetricKronecker(
@@ -150,7 +150,7 @@ def fixture_symm_belief(
 )
 def fixture_symm_belief_multiple_rhs(
     request, n: int, linsys_spd_multiple_rhs: LinearSystem
-) -> beliefs.SymmetricLinearSystemBelief:
+) -> beliefs.SymmetricNormalLinearSystemBelief:
     """Symmetric normal linear system beliefs modelling multiple right hand sides."""
     return request.param[1].from_inverse(
         Ainv0=request.param[2](n), problem=linsys_spd_multiple_rhs
@@ -341,7 +341,7 @@ def fixture_uncertainty_calibration(
         for bel_upd in [
             (
                 "symmlin",
-                beliefs.SymmetricLinearSystemBelief,
+                beliefs.SymmetricNormalLinearSystemBelief,
                 belief_updates.SymmetricNormalLinearObsBeliefUpdate,
             ),
             (
@@ -385,7 +385,7 @@ def fixture_symmlin_belief_update(
     request,
     n: int,
     linsys_spd: LinearSystem,
-    symm_belief: beliefs.SymmetricLinearSystemBelief,
+    symm_belief: beliefs.SymmetricNormalLinearSystemBelief,
     action: np.ndarray,
     matvec_observation: np.ndarray,
 ) -> belief_updates.SymmetricNormalLinearObsBeliefUpdate:

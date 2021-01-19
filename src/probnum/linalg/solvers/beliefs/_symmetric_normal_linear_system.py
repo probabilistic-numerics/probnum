@@ -3,25 +3,22 @@
 from typing import List, Optional, Union
 
 import numpy as np
-import scipy.sparse
 
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.belief_updates import SymmetricNormalLinearObsBeliefUpdate
-from probnum.linalg.solvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
 from ._linear_system import LinearSystemBelief
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["SymmetricLinearSystemBelief"]
+__all__ = ["SymmetricNormalLinearSystemBelief"]
 
 # pylint: disable="invalid-name"
 
 
-class SymmetricLinearSystemBelief(LinearSystemBelief):
+class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
     r"""Gaussian belief encoding symmetry of the system matrix and its inverse.
 
     Normally distributed random variables  :math:`(\mathsf{x}, \mathsf{A},
@@ -67,7 +64,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         x0: np.ndarray,
         problem: LinearSystem,
         check_for_better_x0: bool = True,
-    ) -> "SymmetricLinearSystemBelief":
+    ) -> "SymmetricNormalLinearSystemBelief":
         x0, Ainv0, A0 = cls._belief_means_from_solution(
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
@@ -106,7 +103,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         cls,
         Ainv0: MatrixArgType,
         problem: LinearSystem,
-    ) -> "SymmetricLinearSystemBelief":
+    ) -> "SymmetricNormalLinearSystemBelief":
         if not isinstance(Ainv0, rvs.Normal):
             Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
         else:
@@ -125,7 +122,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         cls,
         A0: MatrixArgType,
         problem: LinearSystem,
-    ) -> "SymmetricLinearSystemBelief":
+    ) -> "SymmetricNormalLinearSystemBelief":
         if not isinstance(A0, rvs.Normal):
             A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
         else:
@@ -147,7 +144,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         A0: MatrixArgType,
         Ainv0: MatrixArgType,
         problem: LinearSystem,
-    ) -> "SymmetricLinearSystemBelief":
+    ) -> "SymmetricNormalLinearSystemBelief":
         if not isinstance(A0, rvs.Normal):
             A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
         if not isinstance(Ainv0, rvs.Normal):
@@ -179,7 +176,7 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         b = rvs.asrandvar(b)
         return rvs.Normal(
             mean=Ainv.mean @ b.mean,
-            cov=SymmetricLinearSystemBelief._induced_solution_cov(Ainv=Ainv, b=b),
+            cov=SymmetricNormalLinearSystemBelief._induced_solution_cov(Ainv=Ainv, b=b),
         )
 
     @staticmethod
@@ -218,34 +215,3 @@ class SymmetricLinearSystemBelief(LinearSystemBelief):
         )
 
         return x_cov
-
-    def optimize_hyperparams(
-        self,
-        problem: LinearSystem,
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Optional["probnum.linalg.solvers.LinearSolverState"]:
-        raise NotImplementedError
-
-    def update(
-        self,
-        problem: LinearSystem,
-        observation_op: "probnum.linalg.solvers.observation_ops.ObservationOperator",
-        action: np.ndarray,
-        observation: np.ndarray,
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Optional["probnum.linalg.solvers.LinearSolverState"]:
-        if isinstance(observation_op, MatVecObservation):
-            belief_update = SymmetricNormalLinearObsBeliefUpdate(
-                problem=problem,
-                belief=self,
-                actions=action,
-                observations=observation,
-                solver_state=solver_state,
-            )
-        else:
-            raise NotImplementedError
-
-        self._x, self._Ainv, self._A, self._b, solver_state = belief_update()
-        return solver_state

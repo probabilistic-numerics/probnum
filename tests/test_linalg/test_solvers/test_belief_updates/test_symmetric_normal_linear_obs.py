@@ -6,7 +6,7 @@ import pytest
 
 import probnum.linops as linops
 from probnum.linalg.solvers.belief_updates import SymmetricNormalLinearObsBeliefUpdate
-from probnum.linalg.solvers.beliefs import SymmetricLinearSystemBelief
+from probnum.linalg.solvers.beliefs import SymmetricNormalLinearSystemBelief
 from probnum.problems import LinearSystem
 
 pytestmark = [
