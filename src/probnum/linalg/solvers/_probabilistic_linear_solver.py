@@ -490,6 +490,15 @@ class ProbabilisticLinearSolver(
             else:
                 belief = self.prior
 
+        # Setup
+        if solver_state is None:
+            solver_state = self._init_solver_state(problem)
+
+            # Evaluate stopping criteria for the prior
+            _has_converged, solver_state = self.has_converged(
+                problem=problem, belief=belief, solver_state=solver_state
+            )
+
         while True:
             # Compute action via policy
             action, solver_state = self.policy(
@@ -532,7 +541,17 @@ class ProbabilisticLinearSolver(
 
             solver_state.iteration += 1
 
+            # Evaluate stopping criteria and update solver state
+            _has_converged, solver_state = self.has_converged(
+                problem=problem,
+                belief=belief,
+                solver_state=solver_state,
+            )
+
             yield belief, action, observation, solver_state
+
+            if _has_converged:
+                break
 
     def solve(
         self,
@@ -552,29 +571,12 @@ class ProbabilisticLinearSolver(
                  right hand side :math:`b`.
         solver_state : State of the solver at convergence.
         """
-        # Setup
-        solver_state = self._init_solver_state(problem=problem)
-        belief = self.prior
-
-        # Evaluate stopping criteria for the prior
-        _has_converged, solver_state = self.has_converged(
-            problem=problem, belief=belief, solver_state=solver_state
-        )
 
         # Solver iteration
-        solve_iterator = self.solve_iterator(
-            problem=problem, belief=belief, solver_state=solver_state
-        )
-        for (belief, _, _, solver_state) in solve_iterator:
+        belief = None
+        solver_state = None
 
-            # Evaluate stopping criteria and update solver state
-            _has_converged, solver_state = self.has_converged(
-                problem=problem,
-                belief=belief,
-                solver_state=solver_state,
-            )
-
-            if _has_converged:
-                break
+        for (belief, _, _, solver_state) in self.solve_iterator(problem):
+            pass
 
         return belief, solver_state
