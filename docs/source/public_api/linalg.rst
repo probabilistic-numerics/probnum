@@ -7,10 +7,10 @@ probnum.linalg
     :headings: "="
 
 
-probnum.linalg.linearsolvers
-============================
+probnum.linalg.solvers
+======================
 
-.. automodapi:: probnum.linalg.linearsolvers
+.. automodapi:: probnum.linalg.solvers
     :no-heading:
     :headings: "-"
 
@@ -18,41 +18,41 @@ probnum.linalg.linearsolvers
 
 (Prior) Beliefs
 ---------------
-.. automodapi:: probnum.linalg.linearsolvers.beliefs
+.. automodapi:: probnum.linalg.solvers.beliefs
     :no-heading:
     :headings: "*"
 
 
 Policies
 --------
-.. automodapi:: probnum.linalg.linearsolvers.policies
+.. automodapi:: probnum.linalg.solvers.policies
     :no-heading:
     :headings: "*"
 
 
 Observation Operators
 ---------------------
-.. automodapi:: probnum.linalg.linearsolvers.observation_ops
+.. automodapi:: probnum.linalg.solvers.observation_ops
     :no-heading:
     :headings: "*"
 
 
 Hyperparameter Optimization
 ---------------------------
-.. automodapi:: probnum.linalg.linearsolvers.hyperparam_optim
+.. automodapi:: probnum.linalg.solvers.hyperparam_optim
     :no-heading:
     :headings: "*"
 
 
 Belief Updates
 --------------
-.. automodapi:: probnum.linalg.linearsolvers.belief_updates
+.. automodapi:: probnum.linalg.solvers.belief_updates
     :no-heading:
     :headings: "*"
 
 
 Stopping Criteria
 -----------------
-.. automodapi:: probnum.linalg.linearsolvers.stop_criteria
+.. automodapi:: probnum.linalg.solvers.stop_criteria
     :no-heading:
     :headings: "*"

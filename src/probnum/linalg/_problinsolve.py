@@ -2,17 +2,8 @@
 
 from typing import Optional, Tuple
 
-import probnum
 import probnum.random_variables as rvs
-from probnum import linops
-from probnum.linalg.solvers import (
-    LinearSolverState,
-    ProbabilisticLinearSolver,
-    beliefs,
-    observation_ops,
-    policies,
-    stop_criteria,
-)
+from probnum.linalg.solvers import LinearSolverState, ProbabilisticLinearSolver
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -141,6 +132,8 @@ def problinsolve(
     >>> np.linalg.norm(solver_state.residual)
     1.0691148648343433e-06
     """
+    # pylint: disable=invalid-name,too-many-arguments
+
     linsys = LinearSystem(A=A, b=b)
     linear_solver = ProbabilisticLinearSolver.from_problem(
         problem=linsys,
