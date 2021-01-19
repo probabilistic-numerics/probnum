@@ -525,7 +525,7 @@ class ProbabilisticLinearSolver(
 
             # Optimize hyperparameters
             if self.hyperparam_optim is not None:
-                hyperparams, solver_state = belief.optimize_hyperparams(
+                hyperparams, solver_state = self.hyperparam_optim.optimize(
                     problem=problem,
                     actions=solver_state.data.action,
                     observations=solver_state.data.observation,

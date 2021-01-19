@@ -165,40 +165,18 @@ class BeliefUpdate(abc.ABC):
         """
         raise NotImplementedError
 
-    def __call__(
-        self,
-    ) -> Tuple[
-        rvs.RandomVariable,
-        rvs.RandomVariable,
-        rvs.RandomVariable,
-        rvs.RandomVariable,
-        Optional["probnum.linalg.solvers.LinearSolverState"],
-    ]:
-        """Update the belief about the quantities of interest of the linear system."""
-        return (
-            self.x,
-            self.Ainv,
-            self.A,
-            self.b,
-            self.solver_state,
-        )
-
-    @cached_property
     def x(self) -> rvs.RandomVariable:
         """Updated belief about the solution :math:`x` of the linear system."""
         raise NotImplementedError
 
-    @cached_property
     def A(self) -> rvs.RandomVariable:
         """Updated belief about the system matrix :math:`A`."""
         raise NotImplementedError
 
-    @cached_property
     def Ainv(self) -> rvs.RandomVariable:
         """Updated belief about the inverse of the system matrix :math:`H=A^{-1}`."""
         raise NotImplementedError
 
-    @cached_property
     def b(self) -> rvs.RandomVariable:
         """Updated belief about the right hand side :math:`b` of the linear system."""
         raise NotImplementedError

@@ -14,7 +14,6 @@ except ImportError:
 
 import probnum  # pylint: disable="unused-import"
 import probnum.filtsmooth as pnfs
-import probnum.linops as linops
 import probnum.random_variables as rvs
 import probnum.type as pntp
 from probnum.utils import as_random_state
@@ -144,8 +143,8 @@ class LinearSystem:
     >>> import numpy as np
     >>> A = np.eye(3)
     >>> b = np.arange(3)
-    >>> lin_sys = LinearSystem(A, b)
-    >>> lin_sys
+    >>> linsys = LinearSystem(A, b)
+    >>> linsys
     LinearSystem(A=array([[1., 0., 0.],
            [0., 1., 0.],
            [0., 0., 1.]]), b=array([[0],
@@ -153,12 +152,7 @@ class LinearSystem:
            [2]]), solution=None)
     """
 
-    A: typing.Union[
-        np.ndarray,
-        scipy.sparse.spmatrix,
-        linops.LinearOperator,
-        rvs.RandomVariable,
-    ]
+    A: pntp.MatrixArgType
     b: typing.Union[np.ndarray, rvs.RandomVariable]
 
     # For testing and benchmarking
