@@ -494,12 +494,12 @@ class ProbabilisticLinearSolver(
         if solver_state is None:
             solver_state = self._init_solver_state(problem)
 
+        solver_state.belief = belief
+
         # Evaluate stopping criteria for the prior
         _has_converged, solver_state = self.has_converged(
             problem=problem, belief=belief, solver_state=solver_state
         )
-
-        solver_state.belief = belief
 
         while True:
             # Compute action via policy
