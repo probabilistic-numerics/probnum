@@ -1,5 +1,6 @@
 """Belief over a linear system with noise-corrupted system matrix."""
 
+import dataclasses
 from typing import Optional, Union
 
 import numpy as np
@@ -19,6 +20,7 @@ from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 __all__ = ["LinearSystemNoise", "NoisySymmetricNormalLinearSystemBelief"]
 
 
+@dataclasses.dataclass
 class LinearSystemNoise(PNMethodHyperparams):
     """Additive Gaussian noise on the system matrix and right hand side.
 
@@ -61,6 +63,11 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
     ):
         self._noise = noise
         super().__init__(x=x, A=A, Ainv=Ainv, b=b)
+
+    @property
+    def noise(self):
+        """Additive Gaussian noise on the system matrix and right hand side."""
+        return self._noise
 
     @classmethod
     def from_solution(

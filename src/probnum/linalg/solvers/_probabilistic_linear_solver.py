@@ -4,7 +4,7 @@ Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
 import dataclasses
-from typing import Generator, List, Optional, Tuple, Type, Union
+from typing import Generator, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -27,6 +27,21 @@ from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
 # pylint: disable="invalid-name"
+
+
+@dataclasses.dataclass
+class LinearSolverData(PNMethodData[np.ndarray, Union[float, np.ndarray]]):
+    """Data about the linear system collected by a probabilistic linear solver.
+
+    Parameters
+    ----------
+    actions
+        Performed actions of the linear solver.
+    observations
+        Collected observations of the linear system.
+    """
+
+    pass
 
 
 @dataclasses.dataclass

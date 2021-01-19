@@ -1,6 +1,6 @@
 """Gaussian linear system belief encoding symmetry of the system matrix."""
 
-from typing import List, Optional, Union
+from typing import Union
 
 import numpy as np
 

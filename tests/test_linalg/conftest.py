@@ -10,6 +10,7 @@ import scipy.sparse
 import probnum
 import probnum.kernels as kernels
 import probnum.linops as linops
+import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 from probnum.type import RandomStateArgType
@@ -194,6 +195,23 @@ def linsys_kernel(
 ) -> LinearSystem:
     """Linear system with a kernel matrix."""
     return LinearSystem.from_matrix(A=kernel_mat, random_state=random_state)
+
+
+@pytest.fixture()
+def linsys_noise(
+    spd_mat: np.ndarray, n: int, random_state: np.random.RandomState
+) -> LinearSystem:
+    """Linear system corrupted by additive zero-mean iid Gaussian noise."""
+    solution = random_state.normal(size=(n, 1))
+    b = spd_mat @ solution
+    eps_sq = 10 ** -4
+    return LinearSystem(
+        A=rvs.Normal(
+            spd_mat,
+            linops.SymmetricKronecker(linops.ScalarMult(scalar=eps_sq, shape=(n, n))),
+        ),
+        b=rvs.Normal(b, linops.Identity(shape=n)),
+    )
 
 
 ###################################################

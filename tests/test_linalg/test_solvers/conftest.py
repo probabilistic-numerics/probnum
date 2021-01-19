@@ -8,6 +8,7 @@ import pytest
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers import (
+    LinearSolverData,
     LinearSolverState,
     ProbabilisticLinearSolver,
     belief_updates,
@@ -231,7 +232,7 @@ def custom_policy(
     ).sample((problem.A.shape[1], 1))
     action = action / np.linalg.norm(action)
     try:
-        solver_state.actions.append(action)
+        solver_state.data.actions.append(action)
     except AttributeError:
         pass
     return action, solver_state
@@ -395,7 +396,9 @@ def fixture_symmlin_belief_update(
         belief=symm_belief,
         actions=action,
         observations=matvec_observation,
-        noise_cov=request.param,
+        noise=beliefs.LinearSystemNoise(
+            A=rvs.Normal(np.zeros(shape=(n, 1)), request.param)
+        ),
     )
 
 
@@ -470,13 +473,12 @@ def fixture_solver_state_init(
 ) -> LinearSolverState:
     """Initial solver state of a probabilistic linear solver."""
     return LinearSolverState(
-        actions=[],
-        observations=[],
+        LinearSolverData(actions=[], observations=[]),
         iteration=0,
         residual=linsys_spd.A @ prior.x.mean - linsys_spd.b,
-        action_obs_innerprods=[],
-        log_rayleigh_quotients=[],
-        step_sizes=[],
+        belief_update_state=belief_updates.BeliefUpdateState(
+            action_obs_innerprods=[], log_rayleigh_quotients=[], step_sizes=[]
+        ),
         has_converged=False,
         stopping_criterion=None,
     )
@@ -545,6 +547,6 @@ def conj_grad_method(
         ),
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVecObservation(),
-        optimize_hyperparams=False,
+        hyperparameter_optim=False,
         stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
     )

@@ -1,5 +1,6 @@
 """Belief assuming weak correspondence between the means of the matrix models."""
 
+import dataclasses
 from typing import List, Optional, Union
 
 import numpy as np
@@ -8,6 +9,7 @@ import scipy.sparse
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
+from probnum._probabilistic_numerical_method import PNMethodHyperparams
 from probnum.linalg.solvers.hyperparam_optim import UncertaintyCalibration
 from probnum.problems import LinearSystem
 
@@ -16,7 +18,25 @@ from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 # pylint: disable="invalid-name"
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["WeakMeanCorrespondenceBelief"]
+__all__ = ["WeakMeanCorrespondenceBelief", "UncertaintyScales"]
+
+
+@dataclasses.dataclass
+class UncertaintyScales(PNMethodHyperparams):
+    r"""Uncertainty scales of the system matrix and inverse model.
+
+    Parameters
+    ----------
+    Phi :
+        Uncertainty scaling :math:`\Phi` of the belief about the matrix in the unexplored
+        action space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
+    Psi :
+        Uncertainty scaling :math:`\Psi` of the belief about the inverse in the
+        unexplored observation space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
+    """
+
+    Phi: Optional[float] = None
+    Psi: Optional[float] = None
 
 
 class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
@@ -41,12 +61,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         Approximate system matrix :math:`A_0 \approx A`.
     Ainv0 :
         Approximate matrix inverse :math:`H_0 \approx A^{-1}`.
-    phi :
-        Uncertainty scaling :math:`\Phi` of the belief about the matrix in the unexplored
-        action space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
-    psi :
-        Uncertainty scaling :math:`\Psi` of the belief about the inverse in the
-        unexplored observation space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
+    uncertainty_scales :
+        Uncertainty scales of the system matrix and inverse model in the respective
+        null spaces of the actions and observations.
     actions :
         Actions to probe the linear system with.
     observations :
@@ -104,8 +121,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         A0: Union[np.ndarray, linops.LinearOperator],
         Ainv0: Union[np.ndarray, linops.LinearOperator],
         b: rvs.RandomVariable,
-        phi: float = 1.0,
-        psi: float = 1.0,
+        uncertainty_scales: UncertaintyScales = UncertaintyScales(Phi=1.0, Psi=1.0),
         actions: Optional[Union[List, np.ndarray]] = None,
         observations: Optional[Union[List, np.ndarray]] = None,
         action_obs_innerprods: Optional[np.ndarray] = None,
@@ -114,8 +130,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         self.A0 = A0
         self.Ainv0 = Ainv0
         self.calibration_method = calibration_method
-        self._phi = phi
-        self._psi = psi
+        self._uncertainty_scales = uncertainty_scales
         self._A_covfactor_update_op = None
         self._Ainv_covfactor_update_op = None
         if actions is None or observations is None:
@@ -152,22 +167,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         )
 
     @property
-    def phi(self) -> float:
-        """Uncertainty scale in the null space of the actions."""
-        return self._phi
-
-    @phi.setter
-    def phi(self, value: float):
-        self._phi = value
-
-    @property
-    def psi(self) -> float:
-        """Uncertainty scale in the null space of the observations."""
-        return self._psi
-
-    @psi.setter
-    def psi(self, value: float):
-        self._psi = value
+    def uncertainty_scales(self) -> UncertaintyScales:
+        """Uncertainty scales of the system matrix and inverse model."""
+        return self._uncertainty_scales
 
     def _cov_factor_matrix(
         self, action_obs_innerprods: Optional[np.ndarray] = None
@@ -187,7 +189,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         if self.actions is None or self.observations is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            return linops.ScalarMult(scalar=self.phi, shape=self.A0.shape)
+            return linops.ScalarMult(
+                scalar=self.uncertainty_scales.Phi, shape=self.A0.shape
+            )
         else:
             if action_obs_innerprods is None:
                 action_obs_innerprods = np.squeeze(self.actions.T @ self.observations)
@@ -215,7 +219,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
             )
 
-            orthogonal_space_op = self.phi * (
+            orthogonal_space_op = self.uncertainty_scales.Phi * (
                 linops.Identity(shape=self.A0.shape) - action_proj
             )
             return action_space_op + orthogonal_space_op
@@ -230,7 +234,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         if self.actions is None or self.observations is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            return linops.ScalarMult(scalar=self.psi, shape=self.Ainv0.shape)
+            return linops.ScalarMult(
+                scalar=self.uncertainty_scales.Psi, shape=self.Ainv0.shape
+            )
         else:
             observation_proj = linops.OrthogonalProjection(
                 subspace_basis=self.observations
@@ -254,7 +260,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                     shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
                 )
 
-            orthogonal_space_op = self.psi * (
+            orthogonal_space_op = self.uncertainty_scales.Psi * (
                 linops.Identity(shape=self.A0.shape) - observation_proj
             )
 

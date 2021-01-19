@@ -6,11 +6,13 @@ from typing import Generic, List, Optional, Tuple, TypeVar
 
 ProblemType = TypeVar("ProblemType")
 BeliefType = TypeVar("BeliefType")
+ActionType = TypeVar("ActionType")
+ObservationType = TypeVar("ObservationType")
 
 
 @dataclasses.dataclass
-class PNMethodData(ABC):
-    """Data collected by a probabilistic numerical method.
+class PNMethodData(ABC, Generic[ActionType, ObservationType]):
+    """Data about the numerical problem collected by a probabilistic numerical method.
 
     Parameters
     ----------
@@ -20,13 +22,15 @@ class PNMethodData(ABC):
         Collected observations of the problem.
     """
 
-    actions: Optional[List] = None
-    observations: Optional[List] = None
+    actions: Optional[List[ActionType]] = None
+    observations: Optional[List[ObservationType]] = None
 
 
 @dataclasses.dataclass
 class PNMethodHyperparams(ABC):
     """Hyperparameters of a probabilistic numerical method."""
+
+    pass
 
 
 @dataclasses.dataclass
