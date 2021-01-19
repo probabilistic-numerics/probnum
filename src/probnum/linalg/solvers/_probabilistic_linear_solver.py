@@ -484,20 +484,20 @@ class ProbabilisticLinearSolver(
         solver_state :
             Updated state of the linear solver.
         """
+        # Setup
         if belief is None:
             if solver_state is not None:
                 belief = solver_state.belief
             else:
                 belief = self.prior
 
-        # Setup
         if solver_state is None:
             solver_state = self._init_solver_state(problem)
 
-            # Evaluate stopping criteria for the prior
-            _has_converged, solver_state = self.has_converged(
-                problem=problem, belief=belief, solver_state=solver_state
-            )
+        # Evaluate stopping criteria for the prior
+        _has_converged, solver_state = self.has_converged(
+            problem=problem, belief=belief, solver_state=solver_state
+        )
 
         while True:
             # Compute action via policy
