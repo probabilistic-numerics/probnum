@@ -37,13 +37,26 @@ from . import (
     random_variables,
     utils,
 )
-from ._probabilistic_numerical_method import PNMethodState, ProbabilisticNumericalMethod
+from ._probabilistic_numerical_method import (
+    PNMethodData,
+    PNMethodHyperparams,
+    PNMethodState,
+    ProbabilisticNumericalMethod,
+)
 from .random_variables import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["asrandvar", "PNMethodState", "ProbabilisticNumericalMethod"]
+__all__ = [
+    "asrandvar",
+    "PNMethodData",
+    "PNMethodHyperparams",
+    "PNMethodState",
+    "ProbabilisticNumericalMethod",
+]
 
 # Set correct module paths. Corrects links and module paths in documentation.
+PNMethodData.__module__ = "probnum"
+PNMethodHyperparams.__module__ = "probnum"
 PNMethodState.__module__ = "probnum"
 ProbabilisticNumericalMethod.__module__ = "probnum"
 

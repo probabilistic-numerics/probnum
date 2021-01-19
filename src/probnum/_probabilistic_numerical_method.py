@@ -25,6 +25,11 @@ class PNMethodData(ABC):
 
 
 @dataclasses.dataclass
+class PNMethodHyperparams(ABC):
+    """Hyperparameters of a probabilistic numerical method."""
+
+
+@dataclasses.dataclass
 class PNMethodState(ABC, Generic[BeliefType]):
     """State of a probabilistic numerical method.
 

@@ -287,24 +287,3 @@ def test_from_scalar_nonpositive_raises_value_error(alpha: float, linsys: Linear
     non-positive scalar results in a ValueError."""
     with pytest.raises(ValueError):
         WeakMeanCorrespondenceBelief.from_scalar(scalar=alpha, problem=linsys)
-
-
-# Hyperparameters
-def test_uncertainty_calibration():
-    """"""
-    pass  # TODO
-
-
-def test_uncertainty_calibration_error(calibration_method: str, conj_grad_method):
-    """Test if the available uncertainty calibration procedures affect the error of the
-    returned solution."""
-    pass
-    # tol = 10 ** -6
-    #
-    # x_est, Ahat, Ainvhat, info = conj_grad_method(
-    #     A=A, b=b, calibration=calibration_method
-    # )
-    # assert(
-    #     ((x_true - x_est.mean).T @ A @ (x_true - x_est.mean)).item() <= tol,
-    #     "Estimated solution not sufficiently close to true solution.",
-    # )

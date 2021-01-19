@@ -1,13 +1,12 @@
 """Belief over a linear system with noise-corrupted system matrix."""
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 
-import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.hyperparam_optim import OptimalNoiseScale
+from probnum._probabilistic_numerical_method import PNMethodHyperparams
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -17,7 +16,22 @@ from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["NoisySymmetricNormalLinearSystemBelief"]
+__all__ = ["LinearSystemNoise", "NoisySymmetricNormalLinearSystemBelief"]
+
+
+class LinearSystemNoise(PNMethodHyperparams):
+    """Additive Gaussian noise on the system matrix and right hand side.
+
+    Parameters
+    ----------
+    A :
+        Noise on the system matrix.
+    b :
+        Noise on the right hand side.
+    """
+
+    A: Optional[rvs.Normal] = None
+    b: Optional[rvs.Normal] = None
 
 
 class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
@@ -33,10 +47,8 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         Belief over the (pseudo-)inverse of the system matrix.
     b :
         Belief over the right hand side.
-    noise_A :
-        Belief over the noise on the system matrix.
-    noise_b :
-        Belief over the noise on the right hand side.
+    noise :
+        Noise on the system matrix and right hand side.
     """
 
     def __init__(
@@ -45,11 +57,9 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         A: rvs.Normal,
         Ainv: rvs.Normal,
         b: Union[rvs.Constant, rvs.Normal],
-        noise_A: Optional[rvs.Normal] = None,
-        noise_b: Optional[rvs.Normal] = None,
+        noise: Optional[LinearSystemNoise] = None,
     ):
-        self._noise_A = noise_A
-        self._noise_b = noise_b
+        self._noise = noise
         super().__init__(x=x, A=A, Ainv=Ainv, b=b)
 
     @classmethod
@@ -58,9 +68,10 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         x0: np.ndarray,
         problem: LinearSystem,
         check_for_better_x0: bool = True,
+        noise: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
 
-        x0, Ainv0, A0 = cls._belief_means_from_solution(
+        x0, Ainv0, A0, b0 = cls._belief_means_from_solution(
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
         Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
@@ -72,7 +83,8 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             ),
             Ainv=Ainv,
             A=A,
-            b=rvs.asrandvar(problem.b),
+            b=rvs.asrandvar(b0),
+            noise=noise,
         )
 
     @classmethod
@@ -80,8 +92,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         cls,
         Ainv0: MatrixArgType,
         problem: LinearSystem,
-        noise_A: Optional[rvs.Normal] = None,
-        noise_b: Optional[rvs.Normal] = None,
+        noise: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief about the linear system from an approximate inverse.
 
@@ -95,10 +106,8 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
-        noise_A :
-            Belief over the noise on the system matrix.
-        noise_b :
-            Belief over the noise on the right hand side.
+        noise :
+            Noise on the system matrix and right hand side.
         """
         if not isinstance(Ainv0, rvs.Normal):
             Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
@@ -120,8 +129,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
-            noise_A=noise_A,
-            noise_b=noise_b,
+            noise=noise,
         )
 
     @classmethod
@@ -129,8 +137,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         cls,
         A0: MatrixArgType,
         problem: LinearSystem,
-        noise_A: Optional[rvs.Normal] = None,
-        noise_b: Optional[rvs.Normal] = None,
+        noise: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief about the linear system from an approximate system matrix.
 
@@ -144,10 +151,8 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Approximate system matrix.
         problem :
             Linear system to solve.
-        noise_A :
-            Belief over the noise on the system matrix.
-        noise_b :
-            Belief over the noise on the right hand side.
+        noise :
+            Noise on the system matrix and right hand side.
         """
         if not isinstance(A0, rvs.Normal):
             A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
@@ -169,8 +174,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
-            noise_A=noise_A,
-            noise_b=noise_b,
+            noise=noise,
         )
 
     @classmethod
@@ -179,8 +183,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         A0: MatrixArgType,
         Ainv0: MatrixArgType,
         problem: LinearSystem,
-        noise_A: Optional[rvs.Normal] = None,
-        noise_b: Optional[rvs.Normal] = None,
+        noise: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
@@ -197,10 +200,8 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
-        noise_A :
-            Belief over the noise on the system matrix.
-        noise_b :
-            Belief over the noise on the right hand side.
+        noise :
+            Noise on the system matrix and right hand side.
         """
         if not isinstance(A0, rvs.Normal):
             A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
@@ -212,6 +213,5 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv=Ainv0,
             A=A0,
             b=rvs.asrandvar(problem.b),
-            noise_A=noise_A,
-            noise_b=noise_b,
+            noise=noise,
         )

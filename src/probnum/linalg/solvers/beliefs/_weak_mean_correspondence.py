@@ -267,13 +267,13 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         problem: LinearSystem,
         check_for_better_x0: bool = True,
     ) -> "WeakMeanCorrespondenceBelief":
-        _, Ainv0, A0 = cls._belief_means_from_solution(
+        _, Ainv0, A0, b0 = cls._belief_means_from_solution(
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
         return cls(
             Ainv0=Ainv0,
             A0=A0,
-            b=rvs.asrandvar(problem.b),
+            b=rvs.asrandvar(b0),
         )
 
     @classmethod

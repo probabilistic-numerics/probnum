@@ -43,21 +43,21 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
 
     """
 
-    def __init__(
+    def update(
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         actions: np.ndarray,
         observations: np.ndarray,
-        noise_cov: Optional[np.ndarray] = None,
+        hyperparams: Optional[np.ndarray] = None,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ):
         self.noise_cov = noise_cov
         super().__init__(
             problem=problem,
             belief=belief,
-            actions=actions,
-            observations=observations,
+            action=action,
+            observation=observation,
             solver_state=solver_state,
         )
 

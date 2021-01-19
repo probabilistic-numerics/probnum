@@ -512,23 +512,12 @@ class ProbabilisticLinearSolver(
                 problem=problem, action=action, solver_state=solver_state
             )
 
-            # TODO remove this and make any potentially useful quantity a
-            #  cached_property in the solver_state and invalidate the cache in the
-            #  belief update?
-            solver_state.belief_state = self.belief_update.precompute(
-                problem=problem,
-                belief=belief,
-                action=solver_state.action,
-                observation=solver_state.observation,
-                solver_state=solver_state,
-            )
-
             # Optimize hyperparameters
             if self.hyperparam_optim is not None:
                 hyperparams, solver_state = self.hyperparam_optim.optimize(
                     problem=problem,
-                    actions=solver_state.data.action,
-                    observations=solver_state.data.observation,
+                    actions=solver_state.data.actions,
+                    observations=solver_state.data.observations,
                     solver_state=solver_state,
                 )
 

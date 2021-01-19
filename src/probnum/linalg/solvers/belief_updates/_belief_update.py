@@ -14,8 +14,6 @@ import dataclasses
 
 import probnum  # pylint: disable="unused-import"
 import probnum.linops as linops
-import probnum.random_variables as rvs
-from probnum._probabilistic_numerical_method import PNMethodData
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
@@ -38,11 +36,19 @@ class BeliefUpdateTerms:
 
 
 @dataclasses.dataclass
-class BeliefUpdateState(PNMethodData):
+class BeliefUpdateState:
     r"""Quantities computed for the belief update of a linear solver.
 
     Parameters
     ----------
+    x
+        Belief update term for the solution.
+    A
+        Belief update term for the system matrix.
+    Ainv
+        Belief update term for the inverse.
+    b
+        Belief update term for the right hand side.
     action_obs_innerprods
         Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
         and observations. If a vector, actions and observations are assumed to be
@@ -54,10 +60,10 @@ class BeliefUpdateState(PNMethodData):
         Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
         steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
     """
-    x_update: Optional[BeliefUpdateTerms] = None
-    A_update: Optional[BeliefUpdateTerms] = None
-    Ainv_update: Optional[BeliefUpdateTerms] = None
-    b_update: Optional[BeliefUpdateTerms] = None
+    x: Optional[BeliefUpdateTerms] = None
+    A: Optional[BeliefUpdateTerms] = None
+    Ainv: Optional[BeliefUpdateTerms] = None
+    b: Optional[BeliefUpdateTerms] = None
     action_obs_innerprods: Optional[List[float]] = None
     log_rayleigh_quotients: Optional[List[float]] = None
     step_sizes: Optional[List[float]] = None
@@ -69,76 +75,11 @@ class BeliefUpdate(abc.ABC):
     Computes the updated beliefs over quantities of interest of a linear system after
     making observations about the system given a prior belief.
 
-    Parameters
-    ----------
-    problem :
-        Linear system to solve.
-    belief :
-        Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
-        linear system.
-    action :
-        Action(s) to probe the linear system with.
-    observation :
-        Observation(s) of the linear system for the given action(s).
-    solver_state :
-        Current state of the linear solver.
-
     See Also
     --------
     SymMatrixNormalLinearObsBeliefUpdate: Belief update given a symmetric
         matrix-variate normal belief and linear observations.
     """
-
-    def __init__(
-        self,
-        problem: LinearSystem,
-        belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        action: np.ndarray,
-        observation: np.ndarray,
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ):
-        self.problem = problem
-        self.belief = belief
-        if action.ndim == 1:
-            self.action = action[:, None]
-        else:
-            self.action = action
-        if observation.ndim == 1:
-            self.observation = observation[:, None]
-        else:
-            self.observation = observation
-        self._x = None
-        self._Ainv = None
-        self._A = None
-        self._b = None
-        self.solver_state = solver_state
-
-    def precompute(
-        self,
-        problem: LinearSystem,
-        belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        action: np.ndarray,
-        observation: np.ndarray,
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[BeliefUpdateState, Optional["probnum.linalg.solvers.LinearSolverState"]]:
-        """Pre-compute quantities for the belief update.
-
-        This function pre-computes necessary quantities for the belief update. This is
-        useful to efficiently perform hyperparameter optimization prior to actually
-        performing the update.
-
-        Parameters
-        ----------
-        problem
-        belief
-        action
-        observation
-        solver_state
-
-        Returns
-        -------
-        """
-        raise NotImplementedError
 
     def update(
         self,
@@ -146,6 +87,7 @@ class BeliefUpdate(abc.ABC):
         belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
+        hyperparams: Optional["probnum.PNMethodHyperparams"] = None,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> Tuple[
         LinearSystemBelief, Optional["probnum.linalg.solvers.LinearSolverState"]
@@ -160,23 +102,9 @@ class BeliefUpdate(abc.ABC):
             Action to probe the linear system with.
         observation :
             Observation of the linear system for the given action.
+        hyperparams :
+            Hyperparameters of the belief.
         solver_state :
             Current state of the linear solver.
         """
-        raise NotImplementedError
-
-    def x(self) -> rvs.RandomVariable:
-        """Updated belief about the solution :math:`x` of the linear system."""
-        raise NotImplementedError
-
-    def A(self) -> rvs.RandomVariable:
-        """Updated belief about the system matrix :math:`A`."""
-        raise NotImplementedError
-
-    def Ainv(self) -> rvs.RandomVariable:
-        """Updated belief about the inverse of the system matrix :math:`H=A^{-1}`."""
-        raise NotImplementedError
-
-    def b(self) -> rvs.RandomVariable:
-        """Updated belief about the right hand side :math:`b` of the linear system."""
         raise NotImplementedError

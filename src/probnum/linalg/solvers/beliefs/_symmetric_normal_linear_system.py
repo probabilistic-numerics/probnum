@@ -65,7 +65,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         problem: LinearSystem,
         check_for_better_x0: bool = True,
     ) -> "SymmetricNormalLinearSystemBelief":
-        x0, Ainv0, A0 = cls._belief_means_from_solution(
+        x0, Ainv0, A0, b0 = cls._belief_means_from_solution(
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
 
@@ -83,7 +83,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
                 ),
                 Ainv=Ainv,
                 A=A,
-                b=rvs.asrandvar(problem.b),
+                b=rvs.asrandvar(b0),
             )
         else:
             Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
@@ -95,7 +95,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
                 ),
                 Ainv=Ainv,
                 A=A,
-                b=rvs.asrandvar(problem.b),
+                b=rvs.asrandvar(b0),
             )
 
     @classmethod

@@ -190,14 +190,14 @@ class LinearSystemBelief:
                Machine Learning, *Advances in Neural Information Processing Systems (
                NeurIPS)*, 2020
         """
-        x0, Ainv0, A0 = cls._belief_means_from_solution(
+        x0, Ainv0, A0, b0 = cls._belief_means_from_solution(
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
         return cls(
             x=rvs.asrandvar(x0),
             Ainv=rvs.asrandvar(Ainv0),
             A=rvs.asrandvar(A0),
-            b=rvs.asrandvar(problem.b),
+            b=rvs.asrandvar(b0),
         )
 
     @staticmethod
@@ -209,6 +209,7 @@ class LinearSystemBelief:
         np.ndarray,
         Union[np.ndarray, linops.LinearOperator],
         Union[np.ndarray, linops.LinearOperator],
+        np.ndarray,
     ]:
         """Construct means for the belief from an approximate solution.
 
@@ -236,19 +237,27 @@ class LinearSystemBelief:
             Approximate system matrix inverse.
         A0 :
             Approximate system matrix.
+        b0 :
+            Approximate right hand side
         """
         if x0.ndim < 2:
             x0 = x0.reshape((-1, 1))
 
+        # Instantiate belief over right hand side via sample in stochastic case
+        if isinstance(problem.b, rvs.RandomVariable):
+            b0 = problem.b.sample()
+        else:
+            b0 = problem.b
+
         # If b = 0, set x0 = 0
-        if check_for_better_x0 and np.all(problem.b == np.zeros_like(problem.b)):
-            x0 = problem.b
+        if check_for_better_x0 and np.all(b0 == np.zeros_like(b0)):
+            x0 = b0
             A0 = linops.Identity(shape=problem.A.shape)
             Ainv0 = A0
 
         else:
-            bx0 = (problem.b.T @ x0).item()
-            bb = np.linalg.norm(problem.b) ** 2
+            bx0 = (b0.T @ x0).item()
+            bb = np.linalg.norm(b0) ** 2
             # If inner product <x0, b> is non-positive, choose better initialization.
             if check_for_better_x0 and bx0 < -100 * np.finfo(float).eps:
                 # <x0, b> < 0
@@ -256,18 +265,19 @@ class LinearSystemBelief:
                 bx0 = -bx0
             elif check_for_better_x0 and np.abs(bx0) < 100 * np.finfo(float).eps:
                 # <x0, b> = 0, b != 0
-                bAb = np.squeeze(problem.b.T @ (problem.A @ problem.b))
-                x0 = bb / bAb * problem.b
-                bx0 = bb ** 2 / bAb
+                if not isinstance(problem.A, rvs.RandomVariable):
+                    bAb = (b0.T @ (problem.A @ b0)).item()
+                    x0 = bb / bAb * b0
+                    bx0 = bb ** 2 / bAb
 
             # Construct prior mean of A and Ainv
             alpha = 0.5 * bx0 / bb
 
             def _mv(v):
-                return (x0 - alpha * problem.b) * (x0 - alpha * problem.b).T @ v
+                return (x0 - alpha * b0) * (x0 - alpha * b0).T @ v
 
             def _mm(M):
-                return (x0 - alpha * problem.b) @ (x0 - alpha * problem.b).T @ M
+                return (x0 - alpha * b0) @ (x0 - alpha * b0).T @ M
 
             Ainv0 = linops.ScalarMult(
                 scalar=alpha, shape=problem.A.shape
@@ -276,10 +286,10 @@ class LinearSystemBelief:
             )
 
             A0 = linops.ScalarMult(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
-                alpha * np.squeeze((x0 - alpha * problem.b).T @ x0)
+                alpha * np.squeeze((x0 - alpha * b0).T @ x0)
             ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
 
-        return x0, Ainv0, A0
+        return x0, Ainv0, A0, b0
 
     @classmethod
     def from_inverse(
