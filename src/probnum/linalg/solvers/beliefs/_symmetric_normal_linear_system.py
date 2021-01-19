@@ -157,61 +157,41 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
             b=rvs.asrandvar(problem.b),
         )
 
-    @staticmethod
-    def _induced_solution_belief(Ainv: rvs.Normal, b: rvs.RandomVariable) -> rvs.Normal:
+    def _induced_solution_belief(self) -> rvs.Normal:
         r"""Induced belief about the solution from a belief about the inverse.
 
         Approximates the induced random variable :math:`x=Hb` for :math:`H \sim
         \mathcal{N}(H_0, W \otimes_s W)`, such that :math:`x \sim \mathcal{N}(\mu,
         \Sigma)` with :math:`\mu=\mathbb{E}[H]\mathbb{E}[b]` and :math:`\Sigma=\frac{
         1}{2}(Wb^\top Wb + Wb b^\top W)`.
-
-        Parameters
-        ----------
-        Ainv :
-            Belief over the (pseudo-)inverse of the system matrix.
-        b :
-            Belief over the right hand side
         """
-        b = rvs.asrandvar(b)
         return rvs.Normal(
-            mean=Ainv.mean @ b.mean,
-            cov=SymmetricNormalLinearSystemBelief._induced_solution_cov(Ainv=Ainv, b=b),
+            mean=self.Ainv.mean @ self.b.mean,
+            cov=self._induced_solution_cov(),
         )
 
-    @staticmethod
-    def _induced_solution_cov(
-        Ainv: rvs.Normal, b: rvs.RandomVariable
-    ) -> linops.LinearOperator:
+    def _induced_solution_cov(self) -> Union[np.ndarray, linops.LinearOperator]:
         r"""Induced covariance of the belief about the solution.
 
         Approximates the covariance :math:`\Sigma` of the induced random variable
         :math:`x=Hb` for :math:`H \sim \mathcal{N}(H_0, W \otimes_s W)` such that
         :math:`\Sigma=\frac{1}{2}(Wb^\top Wb + Wb b^\top W)`.
-
-        Parameters
-        ----------
-        Ainv :
-            Belief over the (pseudo-)inverse of the system matrix.
-        b :
-            Belief over the right hand side
         """
         # TODO extend this to the case of multiple right hand sides, where the
         #  covariance is given by Prop S4 of Wenger and Hennig, 2020:
         #  \Sigma = 1/2 (W \otimes BWB + WB \boxtimes B'W)
-        b = rvs.asrandvar(b)
-        Wb = Ainv.cov.A @ b.mean
-        bWb = Wb.T @ b.mean
+        Wb = self.Ainv.cov.A @ self.b.mean
+        bWb = Wb.T @ self.b.mean
 
         def _mv(v):
-            return 0.5 * (bWb.item() * Ainv.cov.A @ v + Wb @ (Wb.T @ v))
+            return 0.5 * (bWb.item() * self.Ainv.cov.A @ v + Wb @ (Wb.T @ v))
 
         x_cov = linops.LinearOperator(
-            shape=Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
+            shape=self.Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
         )
         # Efficient trace computation
         x_cov.trace = lambda: 0.5 * (
-            Ainv.cov.A.trace() * np.trace(bWb) + np.trace(Wb.T @ Wb)
+            self.Ainv.cov.A.trace() * np.trace(bWb) + np.trace(Wb.T @ Wb)
         )
 
         return x_cov

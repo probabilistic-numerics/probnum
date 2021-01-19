@@ -6,7 +6,16 @@ import numpy as np
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.belief_updates._belief_update import BeliefUpdate
+from probnum.linalg.solvers.belief_updates._belief_update import (
+    BeliefUpdate,
+    BeliefUpdateState,
+    BeliefUpdateTerms,
+)
+from probnum.linalg.solvers.beliefs import (
+    LinearSystemNoise,
+    NoisySymmetricNormalLinearSystemBelief,
+    SymmetricNormalLinearSystemBelief,
+)
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -21,23 +30,6 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
     under symmetric matrix-variate Gaussian prior(s) on :math:`A` and / or :math:`H`.
     Observations are assumed to be linear
 
-    Parameters
-    ----------
-    problem :
-        Linear system to solve.
-    belief :
-        Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
-        linear system.
-    actions :
-        Actions to probe the linear system with.
-    observations :
-        Observations of the linear system for the given actions.
-    solver_state :
-        Current state of the linear solver.
-    noise_cov :
-        Covariance matrix :math:`\Lambda` of the noise term :math:`E \sim \mathcal{
-        N}(0, \Lambda)` assumed for matrix evaluations :math:`v \mapsto (A + E)v`.
-
     Examples
     --------
 
@@ -49,34 +41,76 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         actions: np.ndarray,
         observations: np.ndarray,
-        hyperparams: Optional[np.ndarray] = None,
+        hyperparams: LinearSystemNoise = LinearSystemNoise(A_eps=None, b_eps=None),
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ):
-        self.noise_cov = noise_cov
-        super().__init__(
-            problem=problem,
-            belief=belief,
-            action=action,
-            observation=observation,
+    ) -> SymmetricNormalLinearSystemBelief:
+
+        # Compute update terms
+
+        # Construct updated beliefs
+        A_updated = None
+        Ainv_updated = None
+        b_updated = None
+        x_updated = self._updated_belief_x(
+            belief_x=belief.x,
+            updated_belief_Ainv=Ainv_updated,
+            updated_belief_b=b_updated,
+            noise=hyperparams,
             solver_state=solver_state,
         )
 
-    @cached_property
-    def x(self) -> rvs.Normal:
-        """Updated Gaussian belief about the solution :math:`x` of the linear system."""
-        if self.noise_cov is None:
-            x_mean_update, _ = self.x_update_terms(belief_x=self.belief.x)
-            return rvs.Normal(
-                mean=self.belief.x.mean + x_mean_update,
-                cov=self.belief._induced_solution_cov(Ainv=self.Ainv, b=self.b),
+        if hyperparams.A_eps is None and hyperparams.b_eps is None:
+            return SymmetricNormalLinearSystemBelief(
+                x=x_updated,
+                Ainv=Ainv_updated,
+                A=A_updated,
+                b=b_updated,
             )
-        else:
-            return self.belief._induced_solution_belief(Ainv=self.Ainv, b=self.b)
 
-    def x_update_terms(
+        else:
+            return NoisySymmetricNormalLinearSystemBelief(
+                x=x_updated,
+                Ainv=Ainv_updated,
+                A=A_updated,
+                b=b_updated,
+                noise=hyperparams,
+            )
+
+    def _updated_belief_x(
         self,
         belief_x: rvs.Normal,
-    ) -> Tuple[np.ndarray, Union[np.ndarray, linops.LinearOperator]]:
+        updated_belief_Ainv: rvs.Normal,
+        updated_belief_b: Union[rvs.Constant, rvs.Normal],
+        noise: LinearSystemNoise,
+        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"],
+    ) -> Tuple[
+        Optional[Union[np.ndarray, rvs.Normal]],
+        Optional["probnum.linalg.solvers.LinearSolverState"],
+    ]:
+        """Updated Gaussian belief about the solution :math:`x` of the linear system."""
+        if noise.A_eps is None and noise.b_eps is None:
+            update_terms_x, solver_state = self._update_terms_x(
+                belief_x=belief_x,
+                updated_belief_Ainv=updated_belief_Ainv,
+                updated_belief_b=updated_belief_b,
+                noise=noise,
+                solver_state=solver_state,
+            )
+            return belief_x.mean + update_terms_x.mean, solver_state
+        else:
+            return None, solver_state
+
+    def _update_terms_x(
+        self,
+        belief_x: rvs.Normal,
+        updated_belief_Ainv: rvs.Normal,
+        updated_belief_b: Union[rvs.Constant, rvs.Normal],
+        noise: LinearSystemNoise,
+        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"],
+    ) -> Tuple[
+        BeliefUpdateTerms,
+        Optional["probnum.linalg.solvers.LinearSolverState"],
+    ]:
         r"""Mean and covariance update terms for the solution.
 
         For a prior belief :math:`\mathsf{x} \sim \mathcal{N}(\mu, \Sigma)`, computes
@@ -84,19 +118,10 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
         :math:`\Sigma_{\text{update}}(y)` given observations :math:`y`, such that
         :math:`\mathsf{x} \mid y \sim \mathcal{N}(\mu +\mu_{\text{update}}(y), \Sigma -
         \Sigma_{\text{update}}(y))`.
-
-        Parameters
-        ----------
-        belief_x : Belief over the solution of the linear system.
         """
-        if self.noise_cov is None:
+        if noise.A_eps is None and noise.b_eps is None:
             # Current residual
-            try:
-                residual = self.solver_state.residual
-            except AttributeError:
-                residual = self.problem.A @ belief_x.mean - self.problem.b
-                if self.solver_state is not None:
-                    self.solver_state.residual = residual
+            residual = solver_state.residual
 
             # Step size
             step_size = self._step_size(
@@ -199,7 +224,7 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
     @cached_property
     def b(self) -> Union[rvs.Normal, rvs.Constant]:
         """Updated belief about the right hand side :math:`b` of the linear system."""
-        return self.belief.b
+        return self.belief.error_b
 
     def _residual(
         self,

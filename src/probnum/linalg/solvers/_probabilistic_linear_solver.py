@@ -8,6 +8,13 @@ from typing import Generator, List, Optional, Tuple, Union
 
 import numpy as np
 
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
+
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum._probabilistic_numerical_method import (
@@ -30,18 +37,22 @@ from probnum.type import MatrixArgType
 
 
 @dataclasses.dataclass
-class LinearSolverData(PNMethodData[np.ndarray, Union[float, np.ndarray]]):
-    """Data about the linear system collected by a probabilistic linear solver.
+class LinearSolverInfo:
+    """Information on the solve by the probabilistic numerical method.
 
     Parameters
     ----------
-    actions
-        Performed actions of the linear solver.
-    observations
-        Collected observations of the linear system.
+    iteration
+        Current iteration :math:`i` of the solver.
+    has_converged
+        Has the solver converged?
+    stopping_criterion
+        Stopping criterion which caused termination of the solver.
     """
 
-    pass
+    iteration: int = 0
+    has_converged: bool = False
+    stopping_criterion: Optional[List[stop_criteria.StoppingCriterion]] = None
 
 
 @dataclasses.dataclass
@@ -58,18 +69,23 @@ class LinearSolverState(PNMethodState[beliefs.LinearSystemBelief]):
 
     Parameters
     ----------
+    problem
+        Linear system to be solved.
     belief
         Belief over the quantities of the linear system.
     data
         Collected data about the linear system.
-    iteration
-        Current iteration :math:`i` of the solver.
-    has_converged
-        Has the solver converged?
-    stopping_criterion
-        Stopping criterion which caused termination of the solver.
+    info
+        Information about the convergence of the linear solver
     residual
-        Residual :math:`r_i = Ax_i - b` of the current solution.
+        Residual :math:`r_i = Ax_i - b` of the solution estimate.
+    action_obs_innerprods
+        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
+        and observations. If a vector, actions and observations are assumed to be
+        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
+    log_rayleigh_quotients
+        Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
+        s_i)`.
     belief_update_state
         State of the belief update containing precomputed quantities for efficiency.
 
@@ -77,11 +93,38 @@ class LinearSolverState(PNMethodState[beliefs.LinearSystemBelief]):
     --------
 
     """
-    iteration: int = 0
+    info: Optional[LinearSolverInfo] = None
     residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
-    has_converged: bool = False
-    stopping_criterion: Optional[List[stop_criteria.StoppingCriterion]] = None
+    action_obs_innerprods: Optional[np.ndarray] = None
+    log_rayleigh_quotients: Optional[np.ndarray] = None
     belief_update_state: Optional[belief_updates.BeliefUpdateState] = None
+
+    @cached_property
+    def residual(self) -> np.ndarray:
+        r"""Residual :math:`r_i = Ax_i - b` of the solution estimate."""
+        return self.problem.A @ self.belief.x.mean - self.problem.b
+
+    @cached_property
+    def action_obs_innerprods(self) -> np.ndarray:
+        r"""Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
+        and observations.
+
+        If a vector, actions and observations are assumed to be
+        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
+        """
+        return np.squeeze(
+            np.hstack(self.data.actions).T @ np.hstack(self.data.observations)
+        )
+
+    @cached_property
+    def log_rayleigh_quotients(self) -> np.ndarray:
+        r"""Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(
+        s_i^\top s_i)`."""
+        if self.action_obs_innerprods.ndim == 2:
+            return np.log()
+        # TODO update iteratively to save computation
+        # TODO subclass this class, provide efficient implementations and instantiate
+        #   the data classes in the solver.
 
 
 class ProbabilisticLinearSolver(
@@ -206,10 +249,10 @@ class ProbabilisticLinearSolver(
             Linear system to solve.
         """
         return LinearSolverState(
+            problem=problem,
             belief=self.prior,
             data=PNMethodData(actions=[], observations=[]),
             iteration=0,
-            residual=problem.A @ self.prior.x.mean - problem.b,
             belief_update_state=belief_updates.BeliefUpdateState(
                 action_obs_innerprods=[], log_rayleigh_quotients=[], step_sizes=[]
             ),

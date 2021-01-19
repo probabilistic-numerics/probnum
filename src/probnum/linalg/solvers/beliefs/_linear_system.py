@@ -138,8 +138,10 @@ class LinearSystemBelief:
     @cached_property
     def x(self) -> rvs.RandomVariable:
         """Belief over the solution."""
-        if self._x is None and self.Ainv is not None and self.b is not None:
-            return self._induced_solution_belief(Ainv=self.Ainv, b=self.b)
+        if self._x is None:
+            return self._induced_solution_belief()
+        elif isinstance(self._x, np.ndarray):
+            return rvs.Normal(mean=self._x, cov=self._induced_solution_cov())
         else:
             return self._x
 
@@ -395,21 +397,19 @@ class LinearSystemBelief:
         Ainv0 = linops.ScalarMult(scalar=1 / scalar, shape=problem.A.shape)
         return cls.from_matrices(A0=A0, Ainv0=Ainv0, problem=problem)
 
-    @staticmethod
-    def _induced_solution_belief(
-        Ainv: rvs.RandomVariable, b: rvs.RandomVariable
-    ) -> rvs.RandomVariable:
+    def _induced_solution_belief(self) -> rvs.RandomVariable:
         r"""Induced belief about the solution from a belief about the inverse.
 
         Computes the induced belief about the solution given by (an approximation
         to) the random variable :math:`x=Hb`. This assumes independence between
         :math:`H` and :math:`b`.
-
-        Parameters
-        ----------
-        Ainv :
-            Belief over the (pseudo-)inverse of the system matrix.
-        b :
-            Belief over the right hand side
         """
-        return Ainv @ b
+        return self.Ainv @ self.b
+
+    def _induced_solution_cov(self) -> Union[np.ndarray, linops.LinearOperator]:
+        r"""Induced covariance of the belief about the solution.
+
+        Approximates the covariance of the induced random variable :math:`x=Hb`. This
+        assumes independence between :math:`H` and :math:`b`.
+        """
+        raise NotImplementedError

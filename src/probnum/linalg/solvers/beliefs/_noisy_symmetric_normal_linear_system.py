@@ -26,14 +26,14 @@ class LinearSystemNoise(PNMethodHyperparams):
 
     Parameters
     ----------
-    A :
+    A_eps :
         Noise on the system matrix.
-    b :
+    b_eps :
         Noise on the right hand side.
     """
 
-    A: Optional[rvs.Normal] = None
-    b: Optional[rvs.Normal] = None
+    A_eps: Optional[rvs.Normal] = None
+    b_eps: Optional[rvs.Normal] = None
 
 
 class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
@@ -59,7 +59,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         A: rvs.Normal,
         Ainv: rvs.Normal,
         b: Union[rvs.Constant, rvs.Normal],
-        noise: Optional[LinearSystemNoise] = None,
+        noise: LinearSystemNoise = LinearSystemNoise(A_eps=None, b_eps=None),
     ):
         self._noise = noise
         super().__init__(x=x, A=A, Ainv=Ainv, b=b)

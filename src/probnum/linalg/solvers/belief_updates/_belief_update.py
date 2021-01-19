@@ -1,6 +1,6 @@
 """Abstract base class for belief updates for probabilistic linear solvers."""
 import abc
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -49,13 +49,6 @@ class BeliefUpdateState:
         Belief update term for the inverse.
     b
         Belief update term for the right hand side.
-    action_obs_innerprods
-        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
-        and observations. If a vector, actions and observations are assumed to be
-        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
-    log_rayleigh_quotients
-        Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
-        s_i)`.
     step_sizes
         Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
         steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
@@ -64,8 +57,6 @@ class BeliefUpdateState:
     A: Optional[BeliefUpdateTerms] = None
     Ainv: Optional[BeliefUpdateTerms] = None
     b: Optional[BeliefUpdateTerms] = None
-    action_obs_innerprods: Optional[List[float]] = None
-    log_rayleigh_quotients: Optional[List[float]] = None
     step_sizes: Optional[List[float]] = None
 
 

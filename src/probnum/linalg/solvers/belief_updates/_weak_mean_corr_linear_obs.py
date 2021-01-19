@@ -57,7 +57,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
     @cached_property
     def A(self) -> rvs.Normal:
         # Update belief about A assuming WS=Y
-        mean_update, covfactor_update = self.A_update_terms(belief_A=self.belief.A)
+        mean_update, covfactor_update = self.A_update_terms(belief_A=self.belief.A_eps)
         if self.belief._A_covfactor_update_op is not None:
             self.belief._A_covfactor_update_op += covfactor_update
         else:
@@ -75,7 +75,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
             action_obs_innerprod = self.action.T @ self.observation
 
         return rvs.Normal(
-            mean=linops.aslinop(self.belief.A.mean) + mean_update,
+            mean=linops.aslinop(self.belief.A_eps.mean) + mean_update,
             cov=linops.SymmetricKronecker(
                 self.belief._cov_factor_matrix(
                     action_obs_innerprods=action_obs_innerprod
@@ -133,5 +133,6 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
         Wy : Inverse model covariance factor applied to observation.
         """
         return (
-            self.belief.Ainv.cov.A.trace() - 1 / (y.T @ Wy).item() * (Wy.T @ Wy).item()
+            self.belief.Ainv.cov.A_eps.trace()
+            - 1 / (y.T @ Wy).item() * (Wy.T @ Wy).item()
         )
