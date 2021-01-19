@@ -22,6 +22,11 @@ from probnum.problems import LinearSystem
 __all__ = ["SymmetricNormalLinearObsBeliefUpdate"]
 
 
+class _SymmetricNormalLinearObsBeliefUpdateState(BeliefUpdateState):
+
+    pass
+
+
 class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
     r"""Belief update for a symmetric matrix-variate Normal belief and linear
     observations.
