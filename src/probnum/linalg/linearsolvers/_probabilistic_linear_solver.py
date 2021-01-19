@@ -14,7 +14,15 @@ from probnum._probabilistic_numerical_method import (
     PNMethodState,
     ProbabilisticNumericalMethod,
 )
-from probnum.linalg.linearsolvers.beliefs import LinearSystemBelief
+from probnum.linalg.linearsolvers.belief_updates import (
+    BeliefUpdate,
+    SymmetricNormalLinearObsBeliefUpdate,
+    WeakMeanCorrLinearObsBeliefUpdate,
+)
+from probnum.linalg.linearsolvers.beliefs import (
+    LinearSystemBelief,
+    SymmetricLinearSystemBelief,
+)
 from probnum.linalg.linearsolvers.observation_ops import ObservationOperator
 from probnum.linalg.linearsolvers.policies import Policy
 from probnum.linalg.linearsolvers.stop_criteria import MaxIterations, StoppingCriterion
@@ -172,43 +180,56 @@ class ProbabilisticLinearSolver(
         policy: Policy,
         observation_op: ObservationOperator,
         optimize_hyperparams: bool = True,
+        belief_update: BeliefUpdate = None,
         stopping_criteria: Optional[List[StoppingCriterion]] = MaxIterations(),
     ):
         # pylint: disable="too-many-arguments"
         self.policy = policy
         self.observation_op = observation_op
         self.optimize_hyperparams = optimize_hyperparams
+        if belief_update is not None:
+            self.belief_update = belief_update
+        else:
+            self.belief_update = self._init_belief_update()
         self.stopping_criteria = stopping_criteria
         super().__init__(
             prior=prior,
         )
 
-    def _init_belief_and_solver_state(
-        self, problem: LinearSystem
-    ) -> Tuple[LinearSystemBelief, LinearSolverState]:
-        """Initialize the belief and solver state.
-
-        Constructs the initial belief and solver state depending on the given
-        components. This has the benefit that only needed quantities are computed
-        during the solver iteration.
+    def _init_solver_state(self, problem: LinearSystem) -> LinearSolverState:
+        """Initialize the solver state.
 
         Parameters
         ----------
         problem :
             Linear system to solve.
         """
-        solver_state = LinearSolverState(
-            actions=[],
-            observations=[],
+        return LinearSolverState(
+            belief=self.prior,
+            data=PNMethodData(actions=[], observations=[]),
             iteration=0,
             residual=problem.A @ self.prior.x.mean - problem.b,
-            action_obs_innerprods=[],
-            log_rayleigh_quotients=[],
-            step_sizes=[],
+            belief_update_state=BeliefUpdateState(
+                action_obs_innerprods=[], log_rayleigh_quotients=[], step_sizes=[]
+            ),
             has_converged=False,
             stopping_criterion=None,
         )
-        return self.prior, solver_state
+
+    def _init_belief_update(
+        self, belief: LinearSystemBelief, observation_op: ObservationOperator
+    ) -> BeliefUpdate:
+        """Choose a belief update for the provided belief and observation operator.
+
+        Selects an appropriate belief update for the
+        """
+        if isinstance(belief, SymmetricLinearSystemBelief):
+            if isinstance(observation_op, MatVecObservation):
+                return SymmetricNormalLinearObsBeliefUpdate
+        elif isinstance(belief, WeakMeanCorrLinearObsBeliefUpdate):
+            return WeakMeanCorrLinearObsBeliefUpdate
+
+        raise NotImplementedError
 
     def has_converged(
         self,
@@ -286,7 +307,7 @@ class ProbabilisticLinearSolver(
         while True:
             # Compute action via policy
             action, solver_state = self.policy(
-                problem=problem, belief=belief, solver_state=solver_state
+                problem=problem, belief=solver_state.belief, solver_state=solver_state
             )
 
             # Make an observation of the linear system
@@ -296,27 +317,26 @@ class ProbabilisticLinearSolver(
 
             # TODO precompute quantities for the belief update potentially used in
             #  hyperparameter optimization.
-            # TODO Data class PolicyState, ObservationState, BeliefUpdateState as
-            #  attribute of SolverState
-            # TODO belief as attribute of solver state
-            solver_state.belief_state = self.belief_update.precompute_state()
+            solver_state.belief_state = self.belief_update.precompute(
+                problem=problem,
+                solver_state=solver_state,
+            )
 
             # Optimize hyperparameters
             if self.optimize_hyperparams:
                 try:
                     solver_state = belief.optimize_hyperparams(
                         problem=problem,
-                        actions=[action],
-                        observations=[observation],
+                        actions=solver_state.data.actions,
+                        observations=solver_state.data.observations,
                         solver_state=solver_state,
                     )
                 except NotImplementedError:
                     pass
 
             # Update the belief about the system matrix, its inverse and/or the solution
-            solver_state = belief.update(
+            belief, solver_state = self.belief_update(
                 problem=problem,
-                observation_op=self.observation_op,
                 action=action,
                 observation=observation,
                 solver_state=solver_state,
@@ -345,7 +365,8 @@ class ProbabilisticLinearSolver(
         solver_state : State of the solver at convergence.
         """
         # Setup
-        belief, solver_state = self._init_belief_and_solver_state(problem=problem)
+        solver_state = self._init_solver_state(problem=problem)
+        belief = self.prior
 
         # Evaluate stopping criteria for the prior
         _has_converged, solver_state = self.has_converged(

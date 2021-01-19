@@ -138,9 +138,7 @@ class TestConjugateGradientMethod:
         solve_iterator = conj_grad_method.solve_iterator(
             problem=linsys_spd,
             belief=conj_grad_method.prior,
-            solver_state=conj_grad_method._init_belief_and_solver_state(
-                problem=linsys_spd
-            )[1],
+            solver_state=conj_grad_method._init_solver_state(problem=linsys_spd)[1],
         )
         # Conjugate gradient method
         cg_iterates = []
