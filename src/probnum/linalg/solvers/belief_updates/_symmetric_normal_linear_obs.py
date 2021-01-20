@@ -1,4 +1,10 @@
-from functools import cached_property
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
+import dataclasses
 from typing import Optional, Tuple, Union
 
 import numpy as np
@@ -7,9 +13,7 @@ import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers.belief_updates._belief_update import (
-    BeliefUpdate,
-    BeliefUpdateState,
-    BeliefUpdateTerms,
+    LinearSolverBeliefUpdate,
 )
 from probnum.linalg.solvers.beliefs import (
     LinearSystemNoise,
@@ -19,21 +23,76 @@ from probnum.linalg.solvers.beliefs import (
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["SymmetricNormalLinearObsBeliefUpdate"]
+__all__ = [
+    "SymmetricNormalLinearObsBeliefUpdate",
+    "LinearSolverBeliefUpdateTerms",
+]
 
 
-class _SymmetricNormalLinearObsBeliefUpdateState(BeliefUpdateState):
+@dataclasses.dataclass
+class LinearSolverBeliefUpdateTerms:
+    r"""Belief update terms for a quantity of interest.
 
-    pass
+    Collects the belief update terms for a quantity of interest of a linear
+    system, i.e. additive terms for the mean and covariance (factors).
+    """
+    mean: Optional[linops.LinearOperator] = None
+    cov: Optional[linops.LinearOperator] = None
+    covfactors: Optional[Tuple[linops.LinearOperator, ...]] = None
 
 
-class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
+@dataclasses.dataclass
+class SymmetricNormalLinearObsBeliefUpdateState(LinearSolverBeliefUpdateState):
+    r"""Quantities computed for the belief update of a linear solver.
+
+    This state assumes a symmetric matrix-variate Normal belief and linear
+    observations.
+
+    Parameters
+    ----------
+    problem
+        Linear system to be solved.
+    belief
+        Belief over the quantities of the linear system.
+    actions
+        Performed actions.
+    observations
+        Collected observations of the problem.
+    residual
+        Residual :math:`r = A x_i- b` of the solution estimate
+        :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`.
+    action_obs_innerprods
+        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
+        and observations. If a vector, actions and observations are assumed to be
+        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
+    log_rayleigh_quotients
+        Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
+        s_i)`.
+    step_sizes
+        Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
+        steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
+    x
+        Belief update term for the solution.
+    A
+        Belief update term for the system matrix.
+    Ainv
+        Belief update term for the inverse.
+    b
+        Belief update term for the right hand side.
+    """
+    x: Optional[LinearSolverBeliefUpdateTerms] = None
+    A: Optional[LinearSolverBeliefUpdateTerms] = None
+    Ainv: Optional[LinearSolverBeliefUpdateTerms] = None
+    b: Optional[LinearSolverBeliefUpdateTerms] = None
+
+
+class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
     r"""Belief update for a symmetric matrix-variate Normal belief and linear
     observations.
 
     Updates the posterior beliefs over the quantities of interest of the linear system
     under symmetric matrix-variate Gaussian prior(s) on :math:`A` and / or :math:`H`.
-    Observations are assumed to be linear
+    Observations are assumed to be linear.
 
     Examples
     --------
@@ -63,6 +122,8 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
             noise=hyperparams,
             solver_state=solver_state,
         )
+
+        # Clear cache of state attributes which were not explicitly updated
 
         if hyperparams.A_eps is None and hyperparams.b_eps is None:
             return SymmetricNormalLinearSystemBelief(
@@ -113,7 +174,7 @@ class SymmetricNormalLinearObsBeliefUpdate(BeliefUpdate):
         noise: LinearSystemNoise,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"],
     ) -> Tuple[
-        BeliefUpdateTerms,
+        LinearSolverBeliefUpdateTerms,
         Optional["probnum.linalg.solvers.LinearSolverState"],
     ]:
         r"""Mean and covariance update terms for the solution.

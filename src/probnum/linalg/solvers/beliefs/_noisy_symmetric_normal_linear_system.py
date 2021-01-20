@@ -7,7 +7,7 @@ import numpy as np
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum._probabilistic_numerical_method import PNMethodHyperparams
+from probnum import PNMethodHyperparams
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 

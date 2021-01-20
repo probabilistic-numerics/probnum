@@ -6,10 +6,9 @@ from typing import List, Optional, Union
 import numpy as np
 import scipy.sparse
 
-import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum._probabilistic_numerical_method import PNMethodHyperparams
+from probnum import PNMethodHyperparams
 from probnum.linalg.solvers.hyperparam_optim import UncertaintyCalibration
 from probnum.problems import LinearSystem
 

@@ -14,14 +14,9 @@ try:
 except ImportError:
     from cached_property import cached_property
 
-
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum._probabilistic_numerical_method import (
-    PNMethodData,
-    PNMethodState,
-    ProbabilisticNumericalMethod,
-)
+from probnum import ProbabilisticNumericalMethod
 from probnum.linalg.solvers import (
     belief_updates,
     beliefs,
@@ -30,101 +25,11 @@ from probnum.linalg.solvers import (
     policies,
     stop_criteria,
 )
+from probnum.linalg.solvers._state import LinearSolverInfo, LinearSolverState
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
 # pylint: disable="invalid-name"
-
-
-@dataclasses.dataclass
-class LinearSolverInfo:
-    """Information on the solve by the probabilistic numerical method.
-
-    Parameters
-    ----------
-    iteration
-        Current iteration :math:`i` of the solver.
-    has_converged
-        Has the solver converged?
-    stopping_criterion
-        Stopping criterion which caused termination of the solver.
-    """
-
-    iteration: int = 0
-    has_converged: bool = False
-    stopping_criterion: Optional[List[stop_criteria.StoppingCriterion]] = None
-
-
-@dataclasses.dataclass
-class LinearSolverState(PNMethodState[beliefs.LinearSystemBelief]):
-    r"""State of a probabilistic linear solver.
-
-    The solver state contains miscellaneous quantities computed during an iteration
-    of a probabilistic linear solver. The solver state is passed between the
-    different components of the solver and may be used by them.
-
-    For example the residual :math:`r_i = Ax_i - b` can (depending on the prior) be
-    updated more efficiently than in :math:`\mathcal{O}(n^2)` and is therefore part
-    of the solver state and passed to the stopping criteria.
-
-    Parameters
-    ----------
-    problem
-        Linear system to be solved.
-    belief
-        Belief over the quantities of the linear system.
-    data
-        Collected data about the linear system.
-    info
-        Information about the convergence of the linear solver
-    residual
-        Residual :math:`r_i = Ax_i - b` of the solution estimate.
-    action_obs_innerprods
-        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
-        and observations. If a vector, actions and observations are assumed to be
-        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
-    log_rayleigh_quotients
-        Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
-        s_i)`.
-    belief_update_state
-        State of the belief update containing precomputed quantities for efficiency.
-
-    Examples
-    --------
-
-    """
-    info: Optional[LinearSolverInfo] = None
-    residual: Optional[Union[np.ndarray, rvs.RandomVariable]] = None
-    action_obs_innerprods: Optional[np.ndarray] = None
-    log_rayleigh_quotients: Optional[np.ndarray] = None
-    belief_update_state: Optional[belief_updates.BeliefUpdateState] = None
-
-    @cached_property
-    def residual(self) -> np.ndarray:
-        r"""Residual :math:`r_i = Ax_i - b` of the solution estimate."""
-        return self.problem.A @ self.belief.x.mean - self.problem.b
-
-    @cached_property
-    def action_obs_innerprods(self) -> np.ndarray:
-        r"""Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
-        and observations.
-
-        If a vector, actions and observations are assumed to be
-        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
-        """
-        return np.squeeze(
-            np.hstack(self.data.actions).T @ np.hstack(self.data.observations)
-        )
-
-    @cached_property
-    def log_rayleigh_quotients(self) -> np.ndarray:
-        r"""Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(
-        s_i^\top s_i)`."""
-        if self.action_obs_innerprods.ndim == 2:
-            return np.log()
-        # TODO update iteratively to save computation
-        # TODO subclass this class, provide efficient implementations and instantiate
-        #   the data classes in the solver.
 
 
 class ProbabilisticLinearSolver(
@@ -155,8 +60,9 @@ class ProbabilisticLinearSolver(
         obtained.
     stopping_criteria :
         Stopping criteria determining when the solver has converged.
-    optimize_hyperparams :
-        Whether to optimize the hyperparameters of the solver.
+    hyperparameter_optim :
+        Hyperparameter optimization method or boolean flag whether to optimize
+        hyperparameters or not.
 
     References
     ----------
@@ -216,7 +122,7 @@ class ProbabilisticLinearSolver(
         hyperparameter_optim: Union[
             hyperparam_optim.HyperparameterOptimization, bool
         ] = True,
-        belief_update: Optional[belief_updates.BeliefUpdate] = None,
+        belief_update: Optional[belief_updates.LinearSolverBeliefUpdate] = None,
         stopping_criteria: Optional[
             List[stop_criteria.StoppingCriterion]
         ] = stop_criteria.MaxIterations(),
@@ -249,15 +155,19 @@ class ProbabilisticLinearSolver(
             Linear system to solve.
         """
         return LinearSolverState(
-            problem=problem,
-            belief=self.prior,
-            data=PNMethodData(actions=[], observations=[]),
-            iteration=0,
-            belief_update_state=belief_updates.BeliefUpdateState(
-                action_obs_innerprods=[], log_rayleigh_quotients=[], step_sizes=[]
+            info=LinearSolverInfo(
+                iteration=0,
+                has_converged=False,
+                stopping_criterion=None,
             ),
-            has_converged=False,
-            stopping_criterion=None,
+            belief_update_state=belief_updates.LinearSolverBeliefUpdateState(
+                problem=problem,
+                belief=self.prior,
+                actions=[],
+                observations=[],
+                log_rayleigh_quotients=None,
+                step_sizes=None,
+            ),
         )
 
     def _init_hyperparameter_optim(
@@ -285,7 +195,7 @@ class ProbabilisticLinearSolver(
         self,
         belief: beliefs.LinearSystemBelief,
         observation_op: observation_ops.ObservationOperator,
-    ) -> belief_updates.BeliefUpdate:
+    ) -> belief_updates.LinearSolverBeliefUpdate:
         """Choose a belief update for the given belief and observation operator."""
         if isinstance(belief, beliefs.SymmetricNormalLinearSystemBelief):
             if isinstance(observation_op, observation_ops.MatVecObservation):
@@ -560,6 +470,13 @@ class ProbabilisticLinearSolver(
         )
 
         while True:
+            # todo use two solver states here? prev and new to allow incremental
+            #  updating of properties of the solver state without losing old cached
+            #  ones; alternatively always add any potentially used quantities to the
+            #  solver state and depending on the prior - observation process combo
+            #  pass all update functions in one step after the observation functions
+            #  These can be defined in the belief update for example, but must implement
+            #  anything used by potential uncertainty calibration.
             # Compute action via policy
             action, solver_state = self.policy(
                 problem=problem, belief=solver_state.belief, solver_state=solver_state
@@ -569,6 +486,11 @@ class ProbabilisticLinearSolver(
             observation, solver_state = self.observation_op(
                 problem=problem, action=action, solver_state=solver_state
             )
+
+            # Precompute reused quantities
+            # TODO pass functions which lazily precompute any used quantities (and are
+            #  explicitly defined per belief update) to the solver state
+            new_solver_state = belief_update.precompute()
 
             # Optimize hyperparameters
             if self.hyperparam_optim is not None:
@@ -590,7 +512,7 @@ class ProbabilisticLinearSolver(
 
             solver_state.iteration += 1
 
-            # Evaluate stopping criteria and update solver state
+            # Evaluate stopping criteria
             _has_converged, solver_state = self.has_converged(
                 problem=problem,
                 belief=belief,

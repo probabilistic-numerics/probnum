@@ -26,20 +26,10 @@ finite computational resources and stochastic input.
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from . import (
-    diffeq,
-    filtsmooth,
-    kernels,
-    linalg,
-    linops,
-    problems,
-    quad,
-    random_variables,
-    utils,
-)
 from ._probabilistic_numerical_method import (
-    PNMethodData,
+    PNMethodBeliefUpdateState,
     PNMethodHyperparams,
+    PNMethodInfo,
     PNMethodState,
     ProbabilisticNumericalMethod,
 )
@@ -48,14 +38,16 @@ from .random_variables import asrandvar
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandvar",
-    "PNMethodData",
     "PNMethodHyperparams",
+    "PNMethodInfo",
+    "PNMethodBeliefUpdateState",
     "PNMethodState",
     "ProbabilisticNumericalMethod",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-PNMethodData.__module__ = "probnum"
+PNMethodBeliefUpdateState.__module__ = "probnum"
+PNMethodInfo.__module__ = "probnum"
 PNMethodHyperparams.__module__ = "probnum"
 PNMethodState.__module__ = "probnum"
 ProbabilisticNumericalMethod.__module__ = "probnum"

@@ -6,22 +6,7 @@ from typing import Generic, List, Optional, Tuple, TypeVar
 
 ProblemType = TypeVar("ProblemType")
 BeliefType = TypeVar("BeliefType")
-
-
-@dataclasses.dataclass
-class PNMethodData(ABC):
-    """Data about the numerical problem collected by a probabilistic numerical method.
-
-    Parameters
-    ----------
-    actions
-        Performed actions.
-    observations
-        Collected observations of the problem.
-    """
-
-    actions: Optional[List] = None
-    observations: Optional[List] = None
+ProblemDataType = TypeVar("ProblemDataType")
 
 
 @dataclasses.dataclass
@@ -32,29 +17,35 @@ class PNMethodHyperparams(ABC):
 
 
 @dataclasses.dataclass
+class PNMethodInfo(ABC):
+    """Information about the solve performed by the probabilistic numerical method."""
+
+    pass
+
+
+@dataclasses.dataclass
 class PNMethodState(ABC, Generic[BeliefType]):
     """State of a probabilistic numerical method.
 
-    The state of a PN method contains the belief about the quantities of
-    interest of the numerical problem -- such as the solution -- and the data
-    collected by the method. The state is passed between different components of the
-    algorithm and can be used to reuse miscellaneous computed quantities.
+    The state is passed between different components of the
+    algorithm and can be used to efficiently reuse already computed quantities.
 
     Parameters
     ----------
-    problem
-        Numerical problem to be solved.
-    belief
-        Belief about the quantities of interest of the numerical problem.
-    data
-        Collected data from the numerical problem.
     info
         Information about the solve.
+    problem :
+        Numerical problem to be solved.
+    belief :
+        Belief over the quantities of interest.
+    data :
+        Data collected about the numerical problem.
     """
 
-    problem: Optional[ProblemType] = None
-    belief: Optional[BeliefType] = None
-    data: Optional[PNMethodData] = None
+    info: PNMethodInfo
+    problem: ProblemType
+    belief: BeliefType
+    data: ProblemDataType
 
 
 class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
@@ -95,5 +86,11 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
         self,
         problem: ProblemType,
     ) -> Tuple[BeliefType, PNMethodState]:
-        """Solve the given numerical problem."""
+        """Solve the given numerical problem.
+
+        Parameters
+        ----------
+        problem :
+            Numerical problem to be solved.
+        """
         raise NotImplementedError

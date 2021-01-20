@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.belief_updates import BeliefUpdate
+from probnum.linalg.solvers.belief_updates import LinearSolverBeliefUpdate
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
@@ -14,7 +14,7 @@ pytestmark = pytest.mark.usefixtures("linobs_belief_update")
 
 def test_matrix_posterior_multiplication(
     n: int,
-    linobs_belief_update: BeliefUpdate,
+    linobs_belief_update: LinearSolverBeliefUpdate,
     linsys_spd: LinearSystem,
     random_state: np.random.RandomState,
 ):

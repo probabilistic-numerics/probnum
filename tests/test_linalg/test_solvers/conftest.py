@@ -2,6 +2,7 @@
 
 from typing import Iterator, Optional
 
+import linalg.solvers.belief_updates._state
 import numpy as np
 import pytest
 
@@ -361,7 +362,7 @@ def fixture_linobs_belief_update(
     linsys_spd: LinearSystem,
     action: np.ndarray,
     matvec_observation: np.ndarray,
-) -> belief_updates.BeliefUpdate:
+) -> belief_updates.LinearSolverBeliefUpdate:
     belief = request.param[1].from_inverse(
         linops.MatrixMult(random_spd_matrix(dim=n, random_state=random_state)),
         problem=linsys_spd,
@@ -476,7 +477,7 @@ def fixture_solver_state_init(
         LinearSolverData(actions=[], observations=[]),
         iteration=0,
         residual=linsys_spd.A @ prior.x.mean - linsys_spd.b,
-        belief_update_state=belief_updates.BeliefUpdateState(
+        belief_update_state=linalg.solvers.belief_updates._state.LinearSolverBeliefUpdateState(
             action_obs_innerprods=[], log_rayleigh_quotients=[], step_sizes=[]
         ),
         has_converged=False,
