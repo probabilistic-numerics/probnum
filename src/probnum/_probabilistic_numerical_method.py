@@ -16,38 +16,6 @@ class PNMethodHyperparams(ABC):
     pass
 
 
-@dataclasses.dataclass
-class PNMethodInfo(ABC):
-    """Information about the solve performed by the probabilistic numerical method."""
-
-    pass
-
-
-@dataclasses.dataclass
-class PNMethodState(ABC, Generic[BeliefType]):
-    """State of a probabilistic numerical method.
-
-    The state is passed between different components of the
-    algorithm and can be used to efficiently reuse already computed quantities.
-
-    Parameters
-    ----------
-    info
-        Information about the solve.
-    problem :
-        Numerical problem to be solved.
-    belief :
-        Belief over the quantities of interest.
-    data :
-        Data collected about the numerical problem.
-    """
-
-    info: PNMethodInfo
-    problem: ProblemType
-    belief: BeliefType
-    data: ProblemDataType
-
-
 class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     """Probabilistic numerical methods.
 

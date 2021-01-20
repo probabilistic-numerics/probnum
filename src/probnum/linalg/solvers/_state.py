@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -21,7 +21,7 @@ __all__ = ["LinearSolverInfo", "LinearSolverState"]
 
 
 @dataclasses.dataclass
-class LinearSolverInfo(PNMethodInfo):
+class LinearSolverInfo:
     """Information on the solve by the probabilistic numerical method.
 
     Parameters
@@ -65,7 +65,7 @@ class LinearSolverData:
 
 
 @dataclasses.dataclass
-class LinearSolverState(PNMethodState):
+class LinearSolverState:
     r"""State of a probabilistic linear solver.
 
     The solver state contains miscellaneous quantities computed during an iteration
@@ -180,3 +180,71 @@ class LinearSolverState(PNMethodState):
             raise NotImplementedError
         else:
             return self._step_sizes(self.problem, self.belief, self.data)
+
+    # Symmetric linear observations
+
+    @cached_property
+    def residA(self) -> np.ndarray:
+        r"""Residual :math:`\Delta_i = y_i - A_{i-1}s_i` where :math:`A_{i-1}` is the
+        expected value of the model for the system matrix."""
+        if self._residA is None:
+            return (
+                self.data.observations[self.info.iteration]
+                - self.belief.A.mean @ self.data.actions[self.info.iteration]
+            )
+        else:
+            return self._residA(self.belief, self.data)
+
+    @cached_property
+    def residA_action(self) -> float:
+        r"""Inner product :math:`\Delta_i^\top s_i` between residual and action."""
+        if self._residA_action is None:
+            return self.residA @ self.data.actions[self.info.iteration]
+        else:
+            return self._residA_action(self.belief, self.data)
+
+    @cached_property
+    def residAinv(self) -> np.ndarray:
+        r"""Residual :math:`\Delta_i = s_i - H_{i-1}y_i` where :math:`H_{i-1}` is the
+        expected value of the model for the inverse."""
+        if self._residAinv is None:
+            return (
+                self.data.actions[self.info.iteration]
+                - self.belief.Ainv.mean @ self.data.observations[self.info.iteration]
+            )
+        else:
+            return self._residAinv(self.belief, self.data)
+
+    @cached_property
+    def covfactorA_action(self) -> np.ndarray:
+        r"""Uncertainty about the matrix along the current action.
+
+        Computes the matrix-vector product :math:`W_{i-1}s_i` between the covariance
+        factor of the matrix model and the current action.
+        """
+        if self._covfactorA_action is None:
+            return self.belief.A.cov.A @ self.data.actions[self.info.iteration]
+        else:
+            return self._covfactorA_action(self.belief, self.data)
+
+    @cached_property
+    def action_covfactorA_action(self) -> float:
+        r"""Inner product :math:`s_i^\top W_{i-1} s_i` of the current action
+        with respect to the covariance factor :math:`W_{i-1}` of the matrix model."""
+        if self._action_covfactorA_action is None:
+            return self.data.actions[self.info.iteration] @ self.covfactorA_action
+        else:
+            return self._action_covfactorA_action(self.belief, self.data)
+
+    # Noisy solver
+
+    @cached_property
+    def sq_resid_norm_gram(self) -> float:
+        r"""Squared norm of the residual :math:`\Delta_i G_{i-1} \Delta_i` with
+        respect to the Gramian :math:`G_{i-1}`."""
+        if self._sq_resid_norm_gram is None:
+            delta_covfactorA_delta = self.residA.T @ self.belief.A.cov.A @ self.residA
+            return (
+                2 * delta_covfactorA_delta / self.action_covfactorA_action
+                - (self.residA_action / self.action_covfactorA_action) ** 2
+            )

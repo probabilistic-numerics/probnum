@@ -487,10 +487,10 @@ class ProbabilisticLinearSolver(
                 problem=problem, action=action, solver_state=solver_state
             )
 
-            # Precompute reused quantities
-            # TODO pass functions which lazily precompute any used quantities (and are
-            #  explicitly defined per belief update) to the solver state
-            new_solver_state = belief_update.precompute()
+            # Lazily update data-dependent state components for efficiency
+            solver_state = belief_update.update_solver_state(
+                action=action, observation=observation, solver_state=solver_state
+            )
 
             # Optimize hyperparameters
             if self.hyperparam_optim is not None:
@@ -502,7 +502,7 @@ class ProbabilisticLinearSolver(
                 )
 
             # Update the belief about the system matrix, its inverse and/or the solution
-            belief, solver_state = self.belief_update.update(
+            belief, solver_state = self.belief_update.update_belief(
                 problem=problem,
                 action=action,
                 observation=observation,
