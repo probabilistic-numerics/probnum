@@ -65,6 +65,19 @@ class LinearSolverData:
 
 
 @dataclasses.dataclass
+class LinearSolverMiscQuantities:
+    r"""Miscellaneous (cached) quantities.
+
+    Used to efficiently select an action, optimize hyperparameters and to update the
+    belief.
+
+    This class is intended to be subclassed to store any quantities which are reused
+    multiple times within the linear solver and thus can be cached within the current
+    iteration.
+    """
+
+
+@dataclasses.dataclass
 class LinearSolverState:
     r"""State of a probabilistic linear solver.
 
@@ -87,6 +100,10 @@ class LinearSolverState:
         Belief over the quantities of the linear system.
     data
         Performed actions and collected observations of the linear system.
+    misc
+        Miscellaneous (cached) quantities to efficiently select an action,
+        optimize hyperparameters and to update the belief.
+
     residual
         Residual :math:`r = A x_i- b` of the solution estimate
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`.
