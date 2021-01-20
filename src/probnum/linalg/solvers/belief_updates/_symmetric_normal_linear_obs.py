@@ -5,17 +5,21 @@ except ImportError:
     from cached_property import cached_property
 
 import dataclasses
-from typing import Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.belief_updates._belief_update import (
-    LinearSolverBeliefUpdate,
+from probnum.linalg.solvers import belief_updates
+from probnum.linalg.solvers._state import (
+    LinearSolverData,
+    LinearSolverMiscQuantities,
+    LinearSolverState,
 )
 from probnum.linalg.solvers.beliefs import (
+    LinearSystemBelief,
     LinearSystemNoise,
     NoisySymmetricNormalLinearSystemBelief,
     SymmetricNormalLinearSystemBelief,
@@ -23,70 +27,113 @@ from probnum.linalg.solvers.beliefs import (
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = [
-    "SymmetricNormalLinearObsBeliefUpdate",
-    "LinearSolverBeliefUpdateTerms",
-]
+__all__ = ["SymmetricNormalLinearObsBeliefUpdate"]
 
 
 @dataclasses.dataclass
-class LinearSolverBeliefUpdateTerms:
-    r"""Belief update terms for a quantity of interest.
+class _SymmetricNormalLinearObsMatrixBeliefUpdateState:
+    r"""Quantities used in the belief update of a quantity of interest.
 
     Collects the belief update terms for a quantity of interest of a linear
     system, i.e. additive terms for the mean and covariance (factors).
     """
-    mean: Optional[linops.LinearOperator] = None
-    cov: Optional[linops.LinearOperator] = None
-    covfactors: Optional[Tuple[linops.LinearOperator, ...]] = None
+
+    def __init__(
+        self,
+        belief: rvs.Normal,
+        action: np.ndarray,
+        observation: np.ndarray,
+        mean_update_term_old: Optional[Union[linops.LinearOperator, np.ndarray]] = None,
+        covfactor_update_terms_old: Optional[
+            Tuple[Union[linops.LinearOperator, np.ndarray], ...]
+        ] = None,
+    ):
+        self.belief = belief
+        self.action = action
+        self.observation = observation
+        self._mean_update_term_old = mean_update_term_old
+        self._covfactor_update_terms_old = covfactor_update_terms_old
+
+    @cached_property
+    def delta(self) -> np.ndarray:
+        r"""Residual :math:`\Delta` between observation and prediction."""
+        return self.observation - self.belief.mean @ self.action
+
+    @cached_property
+    def delta_action(self) -> float:
+        r"""Inner product :math:`\Delta^\top s` between residual and action."""
+        return self.delta.T @ self.action
+
+    @cached_property
+    def covfactor_action(self) -> np.ndarray:
+        r"""Uncertainty about the matrix along the current action.
+
+        Computes the matrix-vector product :math:`W_{i-1}s_i` between the covariance
+        factor of the matrix model and the current action.
+        """
+        return self.belief.cov.A @ self.action
+
+    @cached_property
+    def action_covfactor_action(self) -> float:
+        r"""Inner product :math:`s_i^\top W_{i-1} s_i` of the current action
+        with respect to the covariance factor :math:`W_{i-1}` of the matrix model."""
+        return self.action.T @ self.covfactor_action
+
+    @cached_property
+    def mean_update_op(self) -> linops.LinearOperator:
+        r"""Rank 2 update term for the mean of the matrix model."""
+        u = self.covfactor_action / self.action_covfactor_action
+        v = self.delta - 0.5 * self.delta_action * u
+
+        def mv(x):
+            return u * (v.T @ x) + v * (u.T @ x)
+
+        def mm(x):
+            return u @ (v.T @ x) + v @ (u.T @ x)
+
+        return linops.LinearOperator(
+            shape=(self.action.shape[0], self.action.shape[0]), matvec=mv, matmat=mm
+        )
+
+    @cached_property
+    def covfactor_update_ops(self) -> Tuple[linops.LinearOperator, ...]:
+        r"""Rank 1 downdate term(s) for the covariance factors of the matrix model."""
+        u = self.covfactor_action / self.action_covfactor_action
+
+        def mv(x):
+            return self.covfactor_action * (u.T @ x)
+
+        def mm(x):
+            return self.covfactor_action @ (u.T @ x)
+
+        return (
+            linops.LinearOperator(
+                shape=(self.action.shape[0], self.action.shape[0]), matvec=mv, matmat=mm
+            ),
+        )
+
+    @cached_property
+    def mean_update_batch(self) -> linops.LinearOperator:
+        """Mean update term for all actions and observations."""
+        if self._mean_update_term_old is None:
+            return self.mean_update_op
+        return self._mean_update_term_old + self.mean_update_op
+
+    @cached_property
+    def covfactor_updates_batch(self) -> Tuple[linops.LinearOperator, ...]:
+        """Covariance factor update term for all actions and observations."""
+        if self._covfactor_update_terms_old is None:
+            return self.covfactor_update_ops
+        return tuple(
+            map(
+                lambda x, y: x + y,
+                self._mean_update_term_old,
+                self.covfactor_update_ops,
+            )
+        )
 
 
-@dataclasses.dataclass
-class SymmetricNormalLinearObsBeliefUpdateState(LinearSolverBeliefUpdateState):
-    r"""Quantities computed for the belief update of a linear solver.
-
-    This state assumes a symmetric matrix-variate Normal belief and linear
-    observations.
-
-    Parameters
-    ----------
-    problem
-        Linear system to be solved.
-    belief
-        Belief over the quantities of the linear system.
-    actions
-        Performed actions.
-    observations
-        Collected observations of the problem.
-    residual
-        Residual :math:`r = A x_i- b` of the solution estimate
-        :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`.
-    action_obs_innerprods
-        Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
-        and observations. If a vector, actions and observations are assumed to be
-        conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
-    log_rayleigh_quotients
-        Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(s_i^\top
-        s_i)`.
-    step_sizes
-        Step sizes :math:`\alpha_i` of the solver viewed as a quadratic optimizer taking
-        steps :math:`x_{i+1} = x_i + \alpha_i s_i`.
-    x
-        Belief update term for the solution.
-    A
-        Belief update term for the system matrix.
-    Ainv
-        Belief update term for the inverse.
-    b
-        Belief update term for the right hand side.
-    """
-    x: Optional[LinearSolverBeliefUpdateTerms] = None
-    A: Optional[LinearSolverBeliefUpdateTerms] = None
-    Ainv: Optional[LinearSolverBeliefUpdateTerms] = None
-    b: Optional[LinearSolverBeliefUpdateTerms] = None
-
-
-class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
+class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpdate):
     r"""Belief update for a symmetric matrix-variate Normal belief and linear
     observations.
 
@@ -98,6 +145,51 @@ class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
     --------
 
     """
+
+    def update_solver_state(
+        self,
+        action: np.ndarray,
+        observation: np.ndarray,
+        solver_state: Optional[LinearSolverState],
+    ) -> LinearSolverState:
+        """Perform a lazy update of the linear solver state."""
+        if solver_state is None:
+            # TODO init solver state
+            pass
+        else:
+            return LinearSolverState(
+                problem=solver_state.problem,
+                belief=solver_state.belief,
+                data=solver_state.data,
+                info=solver_state.info,
+                misc=LinearSolverMiscQuantities(
+                    iteration=solver_state.info.iteration,
+                    problem=solver_state.problem,
+                    belief=solver_state.belief,
+                    data=solver_state.data,
+                    residual=self._residual_fun(
+                        residual=solver_state.misc.residual, observation=observation
+                    )
+                    if self.noise is None
+                    else None,
+                    step_sizes=None,
+                ),
+            )
+
+    def update_belief(self):
+        pass
+
+    @staticmethod
+    def _residual_fun(
+        residual: np.ndarray,
+        observation: np.ndarray,
+    ) -> Optional[Callable[[LinearSolverMiscQuantities], np.ndarray]]:
+        """Update the residual :math:`r_i = Ax_i - b`."""
+
+        def _residual(misc_quantities: LinearSolverMiscQuantities):
+            return residual + misc_quantities.step_sizes[-1] * observation
+
+        return _residual
 
     def update(
         self,

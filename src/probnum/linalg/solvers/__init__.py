@@ -22,12 +22,25 @@ generalizing and recovering classic iterative methods are listed below.
 """
 
 from ._probabilistic_linear_solver import ProbabilisticLinearSolver
-from ._state import LinearSolverInfo, LinearSolverState
+from ._state import (
+    LinearSolverData,
+    LinearSolverInfo,
+    LinearSolverMiscQuantities,
+    LinearSolverState,
+)
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["ProbabilisticLinearSolver", "LinearSolverState", "LinearSolverInfo"]
+__all__ = [
+    "ProbabilisticLinearSolver",
+    "LinearSolverInfo",
+    "LinearSolverData",
+    "LinearSolverMiscQuantities",
+    "LinearSolverState",
+]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticLinearSolver.__module__ = "probnum.linalg.solvers"
-LinearSolverState.__module__ = "probnum.linalg.solvers"
 LinearSolverInfo.__module__ = "probnum.linalg.solvers"
+LinearSolverData.__module__ = "probnum.linalg.solvers"
+LinearSolverMiscQuantities.__module__ = "probnum.linalg.solvers"
+LinearSolverState.__module__ = "probnum.linalg.solvers"

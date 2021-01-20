@@ -2,7 +2,6 @@
 
 from typing import Iterator, Optional
 
-import linalg.solvers.belief_updates._state
 import numpy as np
 import pytest
 
@@ -474,14 +473,8 @@ def fixture_solver_state_init(
 ) -> LinearSolverState:
     """Initial solver state of a probabilistic linear solver."""
     return LinearSolverState(
-        LinearSolverData(actions=[], observations=[]),
-        iteration=0,
-        residual=linsys_spd.A @ prior.x.mean - linsys_spd.b,
-        belief_update_state=linalg.solvers.belief_updates._state.LinearSolverBeliefUpdateState(
-            action_obs_innerprods=[], log_rayleigh_quotients=[], step_sizes=[]
-        ),
-        has_converged=False,
-        stopping_criterion=None,
+        info=LinearSolverInfo(),
+        data=LinearSolverData(actions=[], observations=[]),
     )
 
 

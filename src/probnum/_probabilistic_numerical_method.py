@@ -6,7 +6,7 @@ from typing import Generic, List, Optional, Tuple, TypeVar
 
 ProblemType = TypeVar("ProblemType")
 BeliefType = TypeVar("BeliefType")
-ProblemDataType = TypeVar("ProblemDataType")
+StateType = TypeVar("StateType")
 
 
 @dataclasses.dataclass
@@ -53,7 +53,7 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     def solve(
         self,
         problem: ProblemType,
-    ) -> Tuple[BeliefType, PNMethodState]:
+    ) -> Tuple[BeliefType, StateType]:
         """Solve the given numerical problem.
 
         Parameters

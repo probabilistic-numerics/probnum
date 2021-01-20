@@ -155,19 +155,9 @@ class ProbabilisticLinearSolver(
             Linear system to solve.
         """
         return LinearSolverState(
-            info=LinearSolverInfo(
-                iteration=0,
-                has_converged=False,
-                stopping_criterion=None,
-            ),
-            belief_update_state=belief_updates.LinearSolverBeliefUpdateState(
-                problem=problem,
-                belief=self.prior,
-                actions=[],
-                observations=[],
-                log_rayleigh_quotients=None,
-                step_sizes=None,
-            ),
+            problem=problem,
+            belief=self.prior,
+            data=LinearSolverData(actions=[], observations=[]),
         )
 
     def _init_hyperparameter_optim(
@@ -470,13 +460,7 @@ class ProbabilisticLinearSolver(
         )
 
         while True:
-            # todo use two solver states here? prev and new to allow incremental
-            #  updating of properties of the solver state without losing old cached
-            #  ones; alternatively always add any potentially used quantities to the
-            #  solver state and depending on the prior - observation process combo
-            #  pass all update functions in one step after the observation functions
-            #  These can be defined in the belief update for example, but must implement
-            #  anything used by potential uncertainty calibration.
+
             # Compute action via policy
             action, solver_state = self.policy(
                 problem=problem, belief=solver_state.belief, solver_state=solver_state
