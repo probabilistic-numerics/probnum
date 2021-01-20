@@ -127,7 +127,12 @@ class LinearSolverMiscQuantities:
         log_rayleigh_quotients: Optional[
             Callable[[LinearSystem, LinearSolverData], np.ndarray]
         ] = None,
-        # TODO belief update states for x, A, Ainv, b here?
+        # TODO Ideas :
+        #   - initialize from previous object to make updates to lists easy (via
+        #     from_* constructor?
+        #   - Make misc contain four belief update objects which define the updates and
+        #     lazily perform the update which may depend on a yet to be filled
+        #     hyperparameter in the belief.
     ):
         self._iteration = iteration
         self._problem = problem

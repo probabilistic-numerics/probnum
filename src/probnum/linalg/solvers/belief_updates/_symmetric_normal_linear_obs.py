@@ -43,6 +43,7 @@ class _SymmetricNormalLinearObsMatrixBeliefUpdateState:
         belief: rvs.Normal,
         action: np.ndarray,
         observation: np.ndarray,
+        hyperparams,
         mean_update_term_old: Optional[Union[linops.LinearOperator, np.ndarray]] = None,
         covfactor_update_terms_old: Optional[
             Tuple[Union[linops.LinearOperator, np.ndarray], ...]
@@ -126,10 +127,18 @@ class _SymmetricNormalLinearObsMatrixBeliefUpdateState:
             return self.covfactor_update_ops
         return tuple(
             map(
-                lambda x, y: x + y,
+                lambda x, y: x - y,
                 self._mean_update_term_old,
                 self.covfactor_update_ops,
             )
+        )
+
+    @cached_property
+    def updated_belief(self) -> rvs.Normal:
+        """Updated belief for the matrix model."""
+        return rvs.Normal(
+            mean=self.mean_update_batch,
+            cov=linops.SymmetricKronecker(self.covfactor_update_batch),
         )
 
 
@@ -176,8 +185,17 @@ class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpda
                 ),
             )
 
-    def update_belief(self):
-        pass
+    def update_belief(self, solver_state: Optional[LinearSolverState]):
+        if solver_state is None:
+            # TODO init solver state
+            pass
+        else:
+            return LinearSystemBelief(
+                x=solver_state.misc.x.updated_belief,
+                Ainv=solver_state.misc.Ainv.updated_belief,
+                A=solver_state.misc.A.updated_belief,
+                b=solver_state.misc.b.updated_belief,
+            )
 
     @staticmethod
     def _residual_fun(
@@ -301,85 +319,6 @@ class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpda
             raise NotImplementedError
 
     @cached_property
-    def A(self) -> rvs.Normal:
-        """Updated Gaussian belief about the system matrix :math:`A`."""
-        mean_update, cov_update = self.A_update_terms(belief_A=self.belief.A)
-        A_mean = linops.aslinop(self.belief.A.mean) + mean_update
-        A_covfactor = linops.aslinop(self.belief.A.cov.A) - cov_update
-
-        return rvs.Normal(mean=A_mean, cov=linops.SymmetricKronecker(A_covfactor))
-
-    def A_update_terms(
-        self,
-        belief_A: rvs.Normal,
-    ) -> Tuple[
-        Union[np.ndarray, linops.LinearOperator],
-        Union[np.ndarray, linops.LinearOperator],
-    ]:
-        r"""Mean and covariance update terms for the system matrix.
-
-        For a prior belief :math:`\mathsf{A} \sim \mathcal{N}(A_0, W \otimes_s W)`,
-        computes the update terms :math:`A_{\text{update}}(y)` and
-        :math:`W_{\text{update}}(y)` given observations :math:`y`, such that
-        :math:`\mathsf{A} \mid y \sim \mathcal{N}\big(A_0 +A_{\text{update}}(y), (W -
-        W_{\text{update}}(y)) \otimes_s (W - W_{\text{update}}(y))\big)`.
-
-        Parameters
-        ----------
-        belief_A : Belief over the system matrix.
-        """
-        u, v, Ws = self._matrix_model_update_components(
-            belief_matrix=belief_A,
-            action=self.action,
-            observation=self.observation,
-        )
-        # Rank 2 mean update (+= uv' + vu')
-        mean_update = self._matrix_model_mean_update_op(u=u, v=v)
-        # Rank 1 covariance Kronecker factor update (-= u(Ws)')
-        cov_update = self._matrix_model_covariance_factor_update_op(u=u, Ws=Ws)
-
-        return mean_update, cov_update
-
-    @cached_property
-    def Ainv(self) -> rvs.Normal:
-        """Updated Gaussian belief about the inverse of the system matrix
-        :math:`H=A^{-1}`."""
-        mean_update, cov_update = self.Ainv_update_terms(belief_Ainv=self.belief.Ainv)
-        Ainv_mean = linops.aslinop(self.belief.Ainv.mean) + mean_update
-        Ainv_covfactor = linops.aslinop(self.belief.Ainv.cov.A) - cov_update
-
-        return rvs.Normal(mean=Ainv_mean, cov=linops.SymmetricKronecker(Ainv_covfactor))
-
-    def Ainv_update_terms(
-        self, belief_Ainv: rvs.Normal
-    ) -> Tuple[
-        Union[np.ndarray, linops.LinearOperator],
-        Union[np.ndarray, linops.LinearOperator],
-    ]:
-        r"""Mean and covariance update terms for the inverse.
-
-        For a prior belief :math:`\mathsf{H} \sim \mathcal{N}(H_0, W \otimes_s W)`,
-        computes the update terms :math:`H_{\text{update}}(y)` and
-        :math:`W_{\text{update}}(y)` given observations :math:`y`, such that
-        :math:`\mathsf{H} \mid y \sim \mathcal{N}\big(H_0 +H_{\text{update}}(y), (W -
-        W_{\text{update}}(y)) \otimes_s (W - W_{\text{update}}(y))\big)`.
-
-        Parameters
-        ----------
-        belief_Ainv : Belief over the inverse.
-        """
-        u, v, Wy = self._matrix_model_update_components(
-            belief_matrix=belief_Ainv,
-            action=self.observation,
-            observation=self.action,
-        )
-        # Rank 2 mean update (+= uv' + vu')
-        mean_update = self._matrix_model_mean_update_op(u=u, v=v)
-        # Rank 1 covariance Kronecker factor update (-= u(Wy)')
-        cov_update = self._matrix_model_covariance_factor_update_op(u=u, Ws=Wy)
-        return mean_update, cov_update
-
-    @cached_property
     def b(self) -> Union[rvs.Normal, rvs.Constant]:
         """Updated belief about the right hand side :math:`b` of the linear system."""
         return self.belief.error_b
@@ -395,55 +334,6 @@ class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpda
         if self.solver_state is not None:
             self.solver_state.residual = new_residual
         return new_residual
-
-    @staticmethod
-    def _matrix_model_update_components(
-        belief_matrix: rvs.RandomVariable,
-        action: np.ndarray,
-        observation: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        r"""Computes the components :math:`u=Ws(s^\top Ws)^{-1}` and :math:`v=\Delta
-        - \frac{1}{2}(y^\top \Delta) u` of the update."""
-        Ws = belief_matrix.cov.A @ action
-        delta_A = observation - belief_matrix.mean @ action
-        u = Ws / (action.T @ Ws)
-        v = delta_A - 0.5 * (action.T @ delta_A) * u
-
-        return u, v, Ws
-
-    @staticmethod
-    def _matrix_model_mean_update_op(
-        u: np.ndarray, v: np.ndarray
-    ) -> linops.LinearOperator:
-        """Linear operator implementing the symmetric rank 2 mean update (+= uv' +
-        vu')."""
-
-        def mv(x):
-            return u * (v.T @ x) + v * (u.T @ x)
-
-        def mm(x):
-            return u @ (v.T @ x) + v @ (u.T @ x)
-
-        return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
-        )
-
-    @staticmethod
-    def _matrix_model_covariance_factor_update_op(
-        u: np.ndarray, Ws: np.ndarray
-    ) -> linops.LinearOperator:
-        """Linear operator implementing the symmetric rank 2 covariance factor downdate
-        (-= Ws u')."""
-
-        def mv(x):
-            return Ws * (u.T @ x)
-
-        def mm(x):
-            return Ws @ (u.T @ x)
-
-        return linops.LinearOperator(
-            shape=(u.shape[0], u.shape[0]), matvec=mv, matmat=mm
-        )
 
     def _step_size(
         self,
@@ -476,9 +366,3 @@ class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpda
             )
 
         return step_size
-
-
-def _log_rayleigh_quotient(action_obs_innerprod: float, action: np.ndarray) -> float:
-    r"""Compute the log-Rayleigh quotient :math:`\ln R(A, s_i) = \ln(s_i^\top A
-    s_i) -\ln(s_i^\top s_i)` for the current action."""
-    return (np.log(action_obs_innerprod) - np.log(action.T @ action)).item()
