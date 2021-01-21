@@ -11,13 +11,38 @@ except ImportError:
     from cached_property import cached_property
 
 import probnum  # pylint: disable="unused-import"
+import probnum.random_variables as rvs
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["LinearSolverBeliefUpdate"]
+__all__ = ["LinearSolverBeliefUpdate", "LinearSolverBeliefUpdateState"]
 
 # pylint: disable="invalid-name,too-many-arguments"
+
+
+class LinearSolverBeliefUpdateState(abc.ABC):
+    r"""Belief update state.
+
+    State containing quantities which are used during the belief update of a
+    probabilistic linear solver.
+    """
+
+    def __init__(
+        self,
+        problem: LinearSystem,
+        qoi_prior: rvs.RandomVariable,
+        qoi_belief: rvs.RandomVariable,
+        action: np.ndarray,
+        observation: np.ndarray,
+        prev_state: Optional["LinearSolverBeliefUpdateState"] = None,
+    ):
+        self.problem = problem
+        self.qoi_prior = qoi_prior
+        self.qoi_belief = qoi_belief
+        self.action = action
+        self.observation = observation
+        self.prev_state = prev_state
 
 
 class LinearSolverBeliefUpdate(abc.ABC):

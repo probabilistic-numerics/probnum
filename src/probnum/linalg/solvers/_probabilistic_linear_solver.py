@@ -463,7 +463,9 @@ class ProbabilisticLinearSolver(
 
             # Compute action via policy
             action, solver_state = self.policy(
-                problem=problem, belief=solver_state.belief, solver_state=solver_state
+                problem=problem,
+                belief=solver_state._belief_mat,
+                solver_state=solver_state,
             )
 
             # Make an observation of the linear system

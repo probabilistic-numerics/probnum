@@ -22,18 +22,18 @@ def test_solver_state(linsys_spd: LinearSystem, solve_iterator: Iterator):
         )
 
         # Actions
-        np.testing.assert_allclose(solver_state.action[-1], action)
+        np.testing.assert_allclose(solver_state._action[-1], action)
 
         # Observations
-        np.testing.assert_allclose(solver_state.observation[-1], observation)
+        np.testing.assert_allclose(solver_state._observation[-1], observation)
 
         # Action - observation inner product
         np.testing.assert_allclose(
             solver_state.action_obs_innerprods,
             np.einsum(
                 "nk,nk->k",
-                np.hstack(solver_state.action),
-                np.hstack(solver_state.observation),
+                np.hstack(solver_state._action),
+                np.hstack(solver_state._observation),
             ),
         )
 
@@ -96,7 +96,7 @@ class TestConjugateDirectionsMethod:
         """Search directions should remain A-conjugate up to machine precision, i.e.
         s_i^T A s_j = 0 for i != j."""
         _, solver_state = conj_dir_method.solve(linsys_spd)
-        actions = np.hstack(solver_state.action)
+        actions = np.hstack(solver_state._action)
 
         # Compute pairwise inner products in A-space
         inner_prods = actions.T @ linsys_spd.A @ actions

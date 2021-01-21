@@ -43,5 +43,5 @@ class ConjugateDirections(Policy):
 
         # Update solver state
         if solver_state is not None:
-            solver_state.action.append(action)
+            solver_state._action.append(action)
         return action, solver_state

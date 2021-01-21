@@ -30,18 +30,17 @@ class OptimalNoiseScale(HyperparameterOptimization):
         Tuple[Union[np.ndarray, float], ...],
         Optional["probnum.linalg.solvers.LinearSolverState"],
     ]:
-
+        # TODO initialize solver state if None
         raise NotImplementedError
 
     @staticmethod
     def _optimal_noise_scale_iterative(
-        previous_optimal_noise_scale: float,
-        problem: LinearSystem,
-        belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        action: np.ndarray,
-        observation: np.ndarray,
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> float:
-        raise NotImplementedError
+        n = solver_state.problem.A.shape[0]
+        k = solver_state.info.iteration
+        sum_delta_invgram_delta = solver_state.misc.A.sum_delta_invgram_delta
+        return np.maximum(0.0, sum_delta_invgram_delta / (n * k) - 1)
 
     @staticmethod
     def _optimal_noise_scale_batch(
