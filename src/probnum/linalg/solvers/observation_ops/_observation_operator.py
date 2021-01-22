@@ -38,7 +38,7 @@ class ObservationOperator:
                 np.ndarray,
                 Optional["probnum.linalg.solvers.LinearSolverState"],
             ],
-            Tuple[np.ndarray, "probnum.linalg.solvers.LinearSolverState"],
+            np.ndarray,
         ],
     ):
         self._observation_op = observation_op
@@ -48,7 +48,7 @@ class ObservationOperator:
         problem: LinearSystem,
         action: np.ndarray,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[np.ndarray, Optional["probnum.linalg.solvers.LinearSolverState"]]:
+    ) -> np.ndarray:
         """Collect an observation about the linear system.
 
         Parameters

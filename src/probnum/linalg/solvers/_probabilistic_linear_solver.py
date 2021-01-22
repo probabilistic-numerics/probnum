@@ -18,7 +18,6 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum import ProbabilisticNumericalMethod
 from probnum.linalg.solvers import (
-    LinearSolverState,
     belief_updates,
     beliefs,
     hyperparam_optim,
@@ -26,6 +25,7 @@ from probnum.linalg.solvers import (
     policies,
     stop_criteria,
 )
+from probnum.linalg.solvers._state import LinearSolverInfo, LinearSolverState
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -370,8 +370,10 @@ class ProbabilisticLinearSolver(
         for stopping_criterion in self.stopping_criteria:
             _has_converged = stopping_criterion(problem, belief, solver_state)
             if _has_converged:
-                solver_state.has_converged = True
-                solver_state.stopping_criterion = stopping_criterion.__class__.__name__
+                solver_state.info = LinearSolverInfo(
+                    has_converged=True,
+                    stopping_criterion=stopping_criterion.__class__.__name__,
+                )
                 return True, solver_state
         return False, solver_state
 
@@ -437,14 +439,14 @@ class ProbabilisticLinearSolver(
         while True:
 
             # Compute action via policy
-            action, solver_state = self.policy(
+            action = self.policy(
                 problem=solver_state.problem,
                 belief=solver_state.belief,
                 solver_state=solver_state,
             )
 
             # Make an observation of the linear system
-            observation, solver_state = self.observation_op(
+            observation = self.observation_op(
                 problem=solver_state.problem,
                 action=action,
                 solver_state=solver_state,
@@ -458,7 +460,7 @@ class ProbabilisticLinearSolver(
             # Optimize hyperparameters
             if self.optimize_hyperparams:
 
-                hyperparams, solver_state = belief.hyperparams.optimize(
+                hyperparams = belief.hyperparams.optimize(
                     problem=solver_state.problem,
                     actions=solver_state.data.actions,
                     observations=solver_state.data.observations,

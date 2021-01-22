@@ -3,7 +3,8 @@ from typing import Optional, Tuple
 import numpy as np
 
 import probnum
-from probnum.linalg.solvers.policies._policy import Policy, _get_residual
+from probnum.linalg.solvers._state import LinearSolverState
+from probnum.linalg.solvers.policies._policy import Policy
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -32,16 +33,12 @@ class ConjugateDirections(Policy):
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[np.ndarray, Optional["probnum.linalg.solvers.LinearSolverState"]]:
-        # Compute residual if necessary
-        residual, solver_state = _get_residual(
-            problem=problem, belief=belief, solver_state=solver_state
-        )
+    ) -> np.ndarray:
+
+        if solver_state is None:
+            solver_state = LinearSolverState(problem=problem, belief=belief)
 
         # A-conjugate search direction / action (assuming exact arithmetic)
-        action = -belief.Ainv.mean @ residual
+        action = -belief.Ainv.mean @ solver_state.misc.residual
 
-        # Update solver state
-        if solver_state is not None:
-            solver_state._action.append(action)
-        return action, solver_state
+        return action

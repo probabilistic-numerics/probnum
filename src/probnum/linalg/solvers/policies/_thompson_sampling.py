@@ -37,13 +37,16 @@ class ThompsonSampling(Policy):
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[np.ndarray, Optional["probnum.linalg.solvers.LinearSolverState"]]:
+    ) -> np.ndarray:
 
-        # Set seeds
-        belief.x.random_state = self.random_state
-        belief.A.random_state = self.random_state
-        belief.Ainv.random_state = self.random_state
-        belief.b.random_state = self.random_state
+        # if solver_state is None:
+        #     solver_state = LinearSolverState(problem=problem, belief=belief)
+
+        # # Set seeds
+        # belief.x.random_state = self.random_state
+        # belief.A.random_state = self.random_state
+        # belief.Ainv.random_state = self.random_state
+        # belief.b.random_state = self.random_state
 
         # Sample from current belief
         x_sample = belief.x.sample()
@@ -54,8 +57,4 @@ class ThompsonSampling(Policy):
         # A-conjugate search direction / action (assuming exact arithmetic)
         action = -Ainv_sample @ (A_sample @ x_sample - b_sample)
 
-        # Update solver state
-        if solver_state is not None:
-            solver_state.actions.append(action)
-
-        return action, solver_state
+        return action

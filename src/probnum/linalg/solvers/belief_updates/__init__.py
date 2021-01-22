@@ -15,6 +15,7 @@ __all__ = [
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearSolverBeliefUpdate.__module__ = "probnum.linalg.solvers.belief_updates"
 LinearSolverBeliefUpdateState.__module__ = "probnum.linalg.solvers.belief_updates"
+
 SymmetricNormalLinearObsBeliefUpdate.__module__ = (
     "probnum.linalg.solvers.belief_updates"
 )

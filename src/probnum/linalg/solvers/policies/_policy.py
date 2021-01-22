@@ -51,7 +51,7 @@ class Policy:
                 RandomStateArgType,
                 Optional["probnum.linalg.solvers.LinearSolverState"],
             ],
-            Tuple[np.ndarray, Optional["probnum.linalg.solvers.LinearSolverState"]],
+            np.ndarray,
         ],
         is_deterministic: bool,
         random_state: RandomStateArgType = None,
@@ -65,7 +65,7 @@ class Policy:
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[np.ndarray, Optional["probnum.linalg.solvers.LinearSolverState"]]:
+    ) -> np.ndarray:
         """Return an action based on the given problem and model.
 
         Parameters
@@ -82,8 +82,6 @@ class Policy:
         -------
         action :
             Action chosen by the policy.
-        solver_state :
-            Updated solver state.
         """
         return self._policy(problem, belief, self.random_state, solver_state)
 
@@ -91,20 +89,3 @@ class Policy:
     def is_deterministic(self) -> bool:
         """Is the policy a deterministic function of its arguments or stochastic?"""
         return self._is_deterministic
-
-
-def _get_residual(
-    problem: LinearSystem,
-    belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-    solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-):
-    """Computes the residual :math:`Ax_i-b` if it has not been precomputed."""
-    if solver_state is None:
-        residual = problem.A @ belief.x.mean - problem.b
-    elif solver_state.residual is None:
-        residual = problem.A @ belief.x.mean - problem.b
-        solver_state.residual = residual
-    else:
-        residual = solver_state.residual
-
-    return residual, solver_state

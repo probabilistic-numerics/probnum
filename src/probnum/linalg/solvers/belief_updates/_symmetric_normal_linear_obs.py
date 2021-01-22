@@ -36,13 +36,13 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
         hyperparams: Optional["probnum.PNMethodHyperparams"] = None,
         prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
     ):
-        self.hyperparams = hyperparams
         super().__init__(
             problem=problem,
             prior=prior,
             belief=belief,
             action=action,
             observation=observation,
+            hyperparams=hyperparams,
             prev_state=prev_state,
         )
 
@@ -83,7 +83,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
 
     def updated_belief(
         self, noise: Optional[LinearSystemNoise] = None
-    ) -> Optional[rvs.Normal, np.ndarray]:
+    ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
         if noise is None and self.prev_state is not None:
             return self.prev_state.residual + self.step_size * self.observation
@@ -228,16 +228,16 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
     def updated_belief(self, hyperparams: LinearSystemNoise = None) -> rvs.Normal:
         """Updated belief for the matrix model."""
         if hyperparams is None:
-            mean = self.qoi_belief.mean + self.mean_update_batch
-            cov = self.qoi_belief.cov - linops.SymmetricKronecker(
+            mean = self.qoi_prior.mean + self.mean_update_batch
+            cov = self.qoi_prior.cov - linops.SymmetricKronecker(
                 self.covfactor_updates_batch[0]
             )
         elif isinstance(hyperparams.A_eps, linops.ScalarMult):
             eps_sq = hyperparams.A_eps.cov.A.scalar
-            mean = self.qoi_belief.mean + self.mean_update_batch / (1 + eps_sq)
+            mean = self.qoi_prior.mean + self.mean_update_batch / (1 + eps_sq)
 
             cov = linops.SymmetricKronecker(
-                self.qoi_belief.cov.A - self.covfactor_updates_batch[0] / (1 + eps_sq)
+                self.qoi_prior.cov.A - self.covfactor_updates_batch[0] / (1 + eps_sq)
             ) + linops.SymmetricKronecker(
                 eps_sq / (1 + eps_sq) * self.covfactor_updates_batch[1]
             )

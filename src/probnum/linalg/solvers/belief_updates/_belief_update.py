@@ -1,6 +1,6 @@
 """Abstract base class for belief updates for probabilistic linear solvers."""
 import abc
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -12,12 +12,16 @@ except ImportError:
 
 import probnum  # pylint: disable="unused-import"
 import probnum.random_variables as rvs
-from probnum.linalg.solvers import LinearSolverData, LinearSolverState
+from probnum.linalg.solvers._state import LinearSolverData, LinearSolverState
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["LinearSolverBeliefUpdate", "LinearSolverBeliefUpdateState"]
+__all__ = [
+    "LinearSolverBeliefUpdate",
+    "LinearSolverBeliefUpdateState",
+    "LinearSolverSolutionBeliefUpdateState",
+]
 
 # pylint: disable="invalid-name,too-many-arguments"
 

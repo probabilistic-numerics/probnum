@@ -1,16 +1,16 @@
 import dataclasses
 from typing import List, Optional
 
-import numpy as np
-
-import probnum
-
 try:
     # functools.cached_property is only available in Python >=3.8
     from functools import cached_property
 except ImportError:
     from cached_property import cached_property
 
+
+import numpy as np
+
+import probnum
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -82,6 +82,10 @@ class LinearSolverMiscQuantities:
 
     Parameters
     ----------
+    problem
+        Linear system to be solved.
+    belief
+        (Updated) belief over the quantities of interest of the linear system.
     x
         Quantities used to update the belief about the solution.
     A
@@ -91,10 +95,30 @@ class LinearSolverMiscQuantities:
     b
         Quantities used to update the belief about the right hand side.
     """
-    x: "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
-    A: "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
-    Ainv: "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
-    b: "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
+
+    def __init__(
+        self,
+        problem: LinearSystem,
+        belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
+        x: Optional[
+            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+        ] = None,
+        A: Optional[
+            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+        ] = None,
+        Ainv: Optional[
+            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+        ] = None,
+        b: Optional[
+            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+        ] = None,
+    ):
+        self.problem = problem
+        self.belief = belief
+        self.x = x
+        self.A = A
+        self.Ainv = Ainv
+        self.b = b
 
     @classmethod
     def from_new_data(
@@ -105,6 +129,8 @@ class LinearSolverMiscQuantities:
     ):
         """Create new miscellaneous cached quantities from new data."""
         return cls(
+            problem=prev.problem,
+            belief=prev.belief,
             x=type(prev.x).from_new_data(
                 action=action, observation=observation, prev_state=prev.x
             ),
@@ -118,6 +144,15 @@ class LinearSolverMiscQuantities:
                 action=action, observation=observation, prev_state=prev.b
             ),
         )
+
+    @cached_property
+    def residual(self) -> np.ndarray:
+        r"""Residual :math:`r = A x_i- b` of the solution estimate
+        :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
+        try:
+            return self.x.residual
+        except AttributeError:
+            return self.problem.A @ self.belief.x.mean - self.problem.b
 
 
 @dataclasses.dataclass
@@ -153,44 +188,25 @@ class LinearSolverState:
     def __init__(
         self,
         problem: LinearSystem,
-        prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        belief_update: "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdate",
+        prior: Optional["probnum.linalg.solvers.beliefs.LinearSystemBelief"] = None,
         data: Optional[LinearSolverData] = None,
         info: Optional[LinearSolverInfo] = None,
         misc: Optional[LinearSolverMiscQuantities] = None,
     ):
 
         self.problem = problem
-        self.prior = prior
-        if data is None:
-            self.data = LinearSolverData(actions=[], observations=[])
-        else:
-            self.data = data
-        if belief is None:
-            self.belief = prior
-        else:
-            self.belief = belief
-        self.belief_update = belief_update
-        if info is None:
-            self.info = LinearSolverInfo()
-        else:
-            self.info = info
-        if misc is None:
-            (
-                x_belief_update_state,
-                A_belief_update_state,
-                Ainv_belief_update_state,
-                b_belief_update_state,
-            ) = belief_update.init_belief_update_states()
-            self.misc = LinearSolverMiscQuantities(
-                x=x_belief_update_state,
-                A=A_belief_update_state,
-                Ainv=Ainv_belief_update_state,
-                b=b_belief_update_state,
-            )
-        else:
-            self.misc = misc
+        self.belief = belief
+        self.data = (
+            data if data is not None else LinearSolverData(actions=[], observations=[])
+        )
+        self.prior = prior if prior is not None else belief
+        self.info = info if info is not None else LinearSolverInfo()
+        self.misc = (
+            misc
+            if misc is not None
+            else LinearSolverMiscQuantities(problem=problem, belief=belief)
+        )
 
     @classmethod
     def from_new_data(
@@ -213,7 +229,6 @@ class LinearSolverState:
             prior=prev_state.prior,
             data=data,
             belief=prev_state.belief,
-            belief_update=prev_state.belief_update,
             info=prev_state.info,
             misc=misc,
         )

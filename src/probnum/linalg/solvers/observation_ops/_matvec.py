@@ -27,13 +27,6 @@ class MatVecObservation(ObservationOperator):
         problem: LinearSystem,
         action: np.ndarray,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[np.ndarray, Optional["probnum.linalg.solvers.LinearSolverState"]]:
+    ) -> np.ndarray:
 
-        # Observation
-        observation = problem.A @ action
-
-        # Update solver state
-        if solver_state is not None:
-            solver_state.observations.append(observation)
-
-        return observation, solver_state
+        return problem.A @ action
