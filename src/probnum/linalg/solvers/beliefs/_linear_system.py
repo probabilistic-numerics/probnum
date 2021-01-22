@@ -75,10 +75,10 @@ class LinearSystemBelief:
 
     def __init__(
         self,
-        x: rvs.RandomVariable,
         A: rvs.RandomVariable,
         Ainv: rvs.RandomVariable,
         b: rvs.RandomVariable,
+        x: Optional[rvs.RandomVariable] = None,
     ):
 
         x, A, Ainv, b = self._reshape_2d(x=x, A=A, Ainv=Ainv, b=b)
@@ -100,10 +100,11 @@ class LinearSystemBelief:
         """Reshape inputs to 2d matrices."""
         if b.ndim == 1:
             b = b.reshape((-1, 1))
-        if x.ndim == 1:
-            x = x.reshape((-1, 1))
-        if x.ndim != 2:
-            raise ValueError("Belief over solution must be two-dimensional.")
+        if x is not None:
+            if x.ndim == 1:
+                x = x.reshape((-1, 1))
+            if x.ndim != 2:
+                raise ValueError("Belief over solution must be two-dimensional.")
         if A.ndim != 2 or Ainv.ndim != 2 or b.ndim != 2:
             raise ValueError("Beliefs over system components must be two-dimensional.")
         return x, A, Ainv, b
@@ -126,11 +127,12 @@ class LinearSystemBelief:
         if A.shape[0] != b.shape[0]:
             raise dim_mismatch_error(A, b, "A", "b")
 
-        if A.shape[1] != x.shape[0]:
-            raise dim_mismatch_error(A, x, "A", "x")
+        if x is not None:
+            if A.shape[1] != x.shape[0]:
+                raise dim_mismatch_error(A, x, "A", "x")
 
-        if x.shape[1] != b.shape[1]:
-            raise dim_mismatch_error(x, b, "x", "b")
+            if x.shape[1] != b.shape[1]:
+                raise dim_mismatch_error(x, b, "x", "b")
 
         if A.shape != Ainv.shape:
             raise dim_mismatch_error(A, Ainv, "A", "Ainv")

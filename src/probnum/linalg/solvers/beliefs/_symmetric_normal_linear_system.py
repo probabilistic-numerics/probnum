@@ -1,6 +1,6 @@
 """Gaussian linear system belief encoding symmetry of the system matrix."""
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 
@@ -51,10 +51,10 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
 
     def __init__(
         self,
-        x: rvs.Normal,
         A: rvs.Normal,
         Ainv: rvs.Normal,
         b: Union[rvs.Constant, rvs.Normal],
+        x: Optional[rvs.Normal] = None,
     ):
         super().__init__(x=x, Ainv=Ainv, A=A, b=b)
 
@@ -90,9 +90,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
             A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
 
             return cls(
-                x=rvs.Normal(
-                    mean=x0, cov=cls._induced_solution_cov(Ainv=Ainv, b=problem.b)
-                ),
+                x=None,
                 Ainv=Ainv,
                 A=A,
                 b=rvs.asrandvar(b0),
@@ -111,7 +109,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         A = rvs.Normal(mean=problem.A, cov=linops.SymmetricKronecker(A=problem.A))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
+            x=None,
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
@@ -132,7 +130,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
+            x=None,
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
@@ -151,7 +149,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
             Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            x=None,
             Ainv=Ainv0,
             A=A0,
             b=rvs.asrandvar(problem.b),

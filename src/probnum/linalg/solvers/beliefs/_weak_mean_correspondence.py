@@ -159,7 +159,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         )
 
         super().__init__(
-            x=super()._induced_solution_belief(Ainv=Ainv, b=b),
+            x=None,
             Ainv=Ainv,
             A=A,
             b=b,

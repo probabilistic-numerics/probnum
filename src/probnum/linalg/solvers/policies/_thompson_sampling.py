@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, Tuple
 
 import numpy as np
@@ -39,22 +40,21 @@ class ThompsonSampling(Policy):
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> np.ndarray:
 
-        # if solver_state is None:
-        #     solver_state = LinearSolverState(problem=problem, belief=belief)
+        # Set seeds
+        if self.random_state != belief.x.random_state:
+            x = copy.copy(belief.x)
+            A = copy.copy(belief.A)
+            Ainv = copy.copy(belief.Ainv)
+            b = copy.copy(belief.b)
 
-        # # Set seeds
-        # belief.x.random_state = self.random_state
-        # belief.A.random_state = self.random_state
-        # belief.Ainv.random_state = self.random_state
-        # belief.b.random_state = self.random_state
+            x.random_state = self.random_state
+            A.random_state = self.random_state
+            Ainv.random_state = self.random_state
+            b.random_state = self.random_state
+        else:
+            x, A, Ainv, b = belief.x, belief.A, belief.Ainv, belief.b
 
-        # Sample from current belief
-        x_sample = belief.x.sample()
-        A_sample = belief.A.sample()
-        Ainv_sample = belief.Ainv.sample()
-        b_sample = belief.b.sample()
-
-        # A-conjugate search direction / action (assuming exact arithmetic)
-        action = -Ainv_sample @ (A_sample @ x_sample - b_sample)
+        # A-conjugate action under sampled belief
+        action = -Ainv.sample() @ (A.sample() @ x.sample() - b.sample())
 
         return action

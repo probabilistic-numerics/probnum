@@ -231,11 +231,8 @@ def custom_policy(
         random_state=random_state,
     ).sample((problem.A.shape[1], 1))
     action = action / np.linalg.norm(action)
-    try:
-        solver_state.data.actions.append(action)
-    except AttributeError:
-        pass
-    return action, solver_state
+
+    return action
 
 
 @pytest.fixture(

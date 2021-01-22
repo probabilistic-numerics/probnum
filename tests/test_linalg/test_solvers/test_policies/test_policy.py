@@ -19,7 +19,7 @@ def test_policy_returns_vector(
     policy: Policy, linsys_spd: LinearSystem, prior: LinearSystemBelief
 ):
     """Test whether stochastic policies return a (column) vector of length n."""
-    action, _ = policy(
+    action = policy(
         problem=linsys_spd,
         belief=prior,
         solver_state=None,
@@ -36,8 +36,8 @@ def test_is_deterministic_or_stochastic(
     policy: Policy, linsys_spd: LinearSystem, prior: LinearSystemBelief
 ):
     """Test whether evaluating the policy is deterministic or stochastic."""
-    action1, _ = policy(problem=linsys_spd, belief=prior, solver_state=None)
-    action2, _ = policy(problem=linsys_spd, belief=prior, solver_state=None)
+    action1 = policy(problem=linsys_spd, belief=prior, solver_state=None)
+    action2 = policy(problem=linsys_spd, belief=prior, solver_state=None)
 
     if policy.is_deterministic:
         assert np.all(
@@ -63,7 +63,7 @@ def test_ground_truth_belief_solves_problem_in_one_step(
 ):
     """Test whether the returned action is the step to the solution, if the model for
     the matrix, inverse and right hand side matches the truth."""
-    action, _ = policy(problem=linsys_spd, belief=belief_groundtruth)
+    action = policy(problem=linsys_spd, belief=belief_groundtruth)
 
     np.testing.assert_allclose(
         linsys_spd.solution,
@@ -82,9 +82,7 @@ def test_multiple_rhs(
 ):
     """Test whether the policy returns multiple actions for multiple right hand sides of
     the linear system."""
-    actions, _ = policy(
-        problem=linsys_spd_multiple_rhs, belief=symm_belief_multiple_rhs
-    )
+    actions = policy(problem=linsys_spd_multiple_rhs, belief=symm_belief_multiple_rhs)
 
     assert actions.shape == symm_belief_multiple_rhs.x.shape
 
@@ -102,10 +100,15 @@ class TestStochasticPolicies:
         policy: Policy,
         linsys_spd: LinearSystem,
         prior: LinearSystemBelief,
+        random_state: np.random.RandomState,
     ):
         """Test whether a fixed random state produces reproducible results."""
-        action0, _ = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
-        action1, _ = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
+        action0 = type(policy)(random_state=random_state)(
+            problem=linsys_spd, belief=prior
+        )
+        action1 = type(policy)(random_state=random_state)(
+            problem=linsys_spd, belief=prior
+        )
         np.testing.assert_allclose(
             action0,
             action1,
