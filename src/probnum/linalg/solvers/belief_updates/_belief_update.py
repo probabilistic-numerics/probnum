@@ -12,12 +12,7 @@ except ImportError:
 
 import probnum  # pylint: disable="unused-import"
 import probnum.random_variables as rvs
-from probnum.linalg.solvers import (
-    LinearSolverData,
-    LinearSolverInfo,
-    LinearSolverMiscQuantities,
-    LinearSolverState,
-)
+from probnum.linalg.solvers import LinearSolverData, LinearSolverState
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
@@ -151,12 +146,17 @@ class LinearSolverBeliefUpdate(abc.ABC):
                 belief_update=self,
             )
 
-        return (
-            LinearSystemBelief(
-                x=solver_state.misc.x.updated_belief(hyperparams=hyperparams),
-                Ainv=solver_state.misc.Ainv.updated_belief(hyperparams=hyperparams),
-                A=solver_state.misc.A.updated_belief(hyperparams=hyperparams),
-                b=solver_state.misc.b.updated_belief(hyperparams=hyperparams),
-            ),
-            solver_state,
+        # Update belief (using optimized hyperparameters)
+        updated_belief = LinearSystemBelief(
+            x=solver_state.misc.x.updated_belief(hyperparams=hyperparams),
+            Ainv=solver_state.misc.Ainv.updated_belief(hyperparams=hyperparams),
+            A=solver_state.misc.A.updated_belief(hyperparams=hyperparams),
+            b=solver_state.misc.b.updated_belief(hyperparams=hyperparams),
         )
+
+        # Create new solver state from updated belief
+        updated_solver_state = LinearSolverState.from_updated_belief(
+            updated_belief=updated_belief, prev_state=solver_state
+        )
+
+        return updated_belief, updated_solver_state

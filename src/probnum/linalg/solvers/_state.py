@@ -1,10 +1,9 @@
 import dataclasses
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 import numpy as np
 
 import probnum
-from probnum.linalg.solvers import beliefs, stop_criteria
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -39,7 +38,9 @@ class LinearSolverInfo:
 
     iteration: int = 0
     has_converged: bool = False
-    stopping_criterion: Optional[List[stop_criteria.StoppingCriterion]] = None
+    stopping_criterion: Optional[
+        List["probnum.linalg.solvers.stop_criteria.StoppingCriterion"]
+    ] = None
 
 
 @dataclasses.dataclass
@@ -152,18 +153,24 @@ class LinearSolverState:
     def __init__(
         self,
         problem: LinearSystem,
-        prior: beliefs.LinearSystemBelief,
-        data: LinearSolverData,
-        belief: beliefs.LinearSystemBelief,
+        prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
+        belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         belief_update: "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdate",
+        data: Optional[LinearSolverData] = None,
         info: Optional[LinearSolverInfo] = None,
         misc: Optional[LinearSolverMiscQuantities] = None,
     ):
 
         self.problem = problem
         self.prior = prior
-        self.data = data
-        self.belief = belief
+        if data is None:
+            self.data = LinearSolverData(actions=[], observations=[])
+        else:
+            self.data = data
+        if belief is None:
+            self.belief = prior
+        else:
+            self.belief = belief
         self.belief_update = belief_update
         if info is None:
             self.info = LinearSolverInfo()
@@ -210,3 +217,12 @@ class LinearSolverState:
             info=prev_state.info,
             misc=misc,
         )
+
+    @classmethod
+    def from_updated_belief(
+        cls,
+        updated_belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
+        prev_state: "LinearSolverState",
+    ):
+        """Create a new solver state from an updated belief."""
+        raise NotImplementedError

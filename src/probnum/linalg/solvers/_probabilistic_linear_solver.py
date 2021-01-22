@@ -18,6 +18,7 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum import ProbabilisticNumericalMethod
 from probnum.linalg.solvers import (
+    LinearSolverState,
     belief_updates,
     beliefs,
     hyperparam_optim,
@@ -25,7 +26,6 @@ from probnum.linalg.solvers import (
     policies,
     stop_criteria,
 )
-from probnum.linalg.solvers._state import LinearSolverInfo, LinearSolverState
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -420,7 +420,12 @@ class ProbabilisticLinearSolver(
                 belief = self.prior
 
         if solver_state is None:
-            solver_state = self._init_solver_state(problem)
+            solver_state = LinearSolverState(
+                problem=problem,
+                prior=self.prior,
+                belief=belief,
+                # Todo
+            )
 
         solver_state.belief = belief
 
@@ -463,7 +468,7 @@ class ProbabilisticLinearSolver(
                 hyperparams = belief.hyperparams
 
             # Update the belief over the quantities of interest
-            belief, solver_state = self.belief_update.update_belief(
+            belief, solver_state = belief.update(
                 problem=problem,
                 action=action,
                 observation=observation,
@@ -471,14 +476,14 @@ class ProbabilisticLinearSolver(
                 solver_state=solver_state,
             )
 
-            solver_state.iteration += 1  # TODO move into belief update
-
             # Evaluate stopping criteria
             _has_converged, solver_state = self.has_converged(
                 problem=problem,
                 belief=belief,
                 solver_state=solver_state,
             )
+
+            solver_state.info.iteration += 1
 
             yield belief, action, observation, solver_state
 

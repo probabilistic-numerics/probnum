@@ -9,8 +9,10 @@ import scipy.sparse
 
 import probnum
 import probnum.kernels as kernels
+import probnum.linalg
 import probnum.linops as linops
 import probnum.random_variables as rvs
+import probnum.utils
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 from probnum.type import RandomStateArgType

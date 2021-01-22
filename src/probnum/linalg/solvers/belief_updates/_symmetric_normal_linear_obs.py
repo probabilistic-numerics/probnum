@@ -12,12 +12,7 @@ import numpy as np
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers import belief_updates, beliefs
-from probnum.linalg.solvers._state import (
-    LinearSolverData,
-    LinearSolverMiscQuantities,
-    LinearSolverState,
-)
+from probnum.linalg.solvers import belief_updates
 from probnum.linalg.solvers.beliefs import LinearSystemBelief, LinearSystemNoise
 from probnum.problems import LinearSystem
 
@@ -70,7 +65,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
     def residual(self) -> np.ndarray:
         r"""Residual :math:`r = A x_i- b` of the solution estimate
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
-        if self.is_noisy or self._prev_state is None:
+        if self.hyperparams is not None or self._prev_state is None:
             return self.problem.A @ self.belief.x.mean - self.problem.b
         else:
             return self.prev_state.residual + self.step_size * self.observation
@@ -79,7 +74,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
     def step_size(self) -> np.ndarray:
         r"""Step size :math:`\alpha_i` of the solver viewed as a quadratic optimizer
         taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
-        if not self.is_noisy:
+        if self.hyperparams is None:
             return (
                 -self.action.T @ self.prev_state.residual / self.action_observation
             ).item()
