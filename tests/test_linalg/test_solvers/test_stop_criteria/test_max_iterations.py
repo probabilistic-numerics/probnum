@@ -11,7 +11,7 @@ def test_stop_if_iter_larger_or_equal_than_maxiter(
     stopcrit: StoppingCriterion,
     linsys_spd: LinearSystem,
     prior: LinearSystemBelief,
-    solver_state_init,
+    solver_state_init: "probnum.linalg.solvers import LinearSolverState",
     maxiter: int,
 ):
     """Test if stopping criterion returns true for iteration >= maxiter."""
@@ -20,4 +20,4 @@ def test_stop_if_iter_larger_or_equal_than_maxiter(
         belief=prior,
         solver_state=solver_state_init,
     )
-    assert has_converged == (solver_state_init.iteration >= maxiter)
+    assert has_converged == (solver_state_init.info.iteration >= maxiter)

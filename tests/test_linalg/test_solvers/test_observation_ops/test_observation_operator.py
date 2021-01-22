@@ -12,7 +12,7 @@ def test_observation_is_vector_or_float(
     observation_op: ObservationOperator, action: np.ndarray, linsys_spd: LinearSystem
 ):
     """Test whether observation operators return a vector."""
-    observation, _ = observation_op(
+    observation = observation_op(
         problem=linsys_spd,
         action=action,
         solver_state=None,

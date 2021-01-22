@@ -1,6 +1,7 @@
 from typing import Optional
 
 import probnum
+from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.stop_criteria._stopping_criterion import StoppingCriterion
 from probnum.problems import LinearSystem
 from probnum.type import IntArgType
@@ -32,7 +33,7 @@ class MaxIterations(StoppingCriterion):
         else:
             _maxiter = self.maxiter
 
-        try:
-            return solver_state.iteration >= _maxiter
-        except AttributeError:
-            return False
+        if solver_state is None:
+            solver_state = LinearSolverState(problem=problem, belief=belief)
+
+        return solver_state.info.iteration >= _maxiter

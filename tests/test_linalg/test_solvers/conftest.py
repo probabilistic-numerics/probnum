@@ -470,7 +470,8 @@ def fixture_solver_state_init(
 ) -> LinearSolverState:
     """Initial solver state of a probabilistic linear solver."""
     return LinearSolverState(
-        info=LinearSolverInfo(),
+        problem=linsys_spd,
+        belief=prior,
         data=LinearSolverData(actions=[], observations=[]),
     )
 

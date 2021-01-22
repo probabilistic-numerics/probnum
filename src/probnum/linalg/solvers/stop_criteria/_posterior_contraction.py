@@ -41,7 +41,7 @@ class PosteriorContraction(StoppingCriterion):
         trace_sol_cov = belief.x.cov.trace()
 
         # Compare (relative) residual to tolerances
-        b_norm = np.linalg.norm(problem.b.flatten())
+        b_norm = np.linalg.norm(np.squeeze(belief.b.mean))
         return (
             np.abs(trace_sol_cov) <= self.atol ** 2
             or np.abs(trace_sol_cov) <= (self.rtol * b_norm) ** 2

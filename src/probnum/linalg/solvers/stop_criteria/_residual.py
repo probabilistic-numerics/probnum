@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 
 import probnum
+from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.stop_criteria._stopping_criterion import StoppingCriterion
 from probnum.problems import LinearSystem
 from probnum.type import ScalarArgType
@@ -43,12 +44,13 @@ class Residual(StoppingCriterion):
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> bool:
+        if solver_state is None:
+            solver_state = LinearSolverState(problem=problem, belief=belief)
+
         # Compute residual norm
-        try:
-            residual = solver_state.residual
-        except AttributeError:
-            residual = problem.A @ belief.x.mean - problem.b
-        residual_norm = np.linalg.norm(residual.flatten(), ord=self.norm_ord)
+        residual_norm = np.linalg.norm(
+            solver_state.misc.residual.flatten(), ord=self.norm_ord
+        )
 
         # Compare (relative) residual to tolerances
         b_norm = np.linalg.norm(problem.b.flatten(), ord=self.norm_ord)
