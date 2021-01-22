@@ -12,7 +12,7 @@ import numpy as np
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.linalg.solvers import belief_updates
+from probnum.linalg.solvers import belief_updates, beliefs
 from probnum.linalg.solvers._state import (
     LinearSolverData,
     LinearSolverMiscQuantities,
@@ -34,20 +34,18 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
     def __init__(
         self,
         problem: LinearSystem,
-        qoi_prior: rvs.Normal,
-        qoi_belief: rvs.Normal,
+        prior: LinearSystemBelief,
+        belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
-        noise: LinearSystemNoise,
-        prev_state: Optional[
-            "_SolutionSymmetricNormalLinearObsBeliefUpdateState"
-        ] = None,
+        hyperparams: Optional["probnum.PNMethodHyperparams"] = None,
+        prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
     ):
-        self.noise = noise
+        self.hyperparams = hyperparams
         super().__init__(
             problem=problem,
-            qoi_prior=qoi_prior,
-            qoi_belief=qoi_belief,
+            prior=prior,
+            belief=belief,
             action=action,
             observation=observation,
             prev_state=prev_state,
@@ -72,26 +70,31 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
     def residual(self) -> np.ndarray:
         r"""Residual :math:`r = A x_i- b` of the solution estimate
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
-        if self.noise is None and self.prev_state is not None:
-            return self.prev_state.residual + self.step_size * self.observation
+        if self.is_noisy or self._prev_state is None:
+            return self.problem.A @ self.belief.x.mean - self.problem.b
         else:
-            return self.problem.A @ self.qoi_belief.mean - self.problem.b
+            return self.prev_state.residual + self.step_size * self.observation
 
     @cached_property
     def step_size(self) -> np.ndarray:
         r"""Step size :math:`\alpha_i` of the solver viewed as a quadratic optimizer
         taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
-        return (
-            -self.action.T @ self.prev_state.residual / self.action_observation
-        ).item()
-
-    def updated_belief(self) -> np.ndarray:
-        """Updated belief about the solution."""
-        if self.noise is None and self.prev_state is not None:
-            mean = self.prev_state.residual + self.step_size * self.observation
-            raise NotImplementedError
+        if not self.is_noisy:
+            return (
+                -self.action.T @ self.prev_state.residual / self.action_observation
+            ).item()
         else:
             raise NotImplementedError
+
+    def updated_belief(
+        self, noise: Optional[LinearSystemNoise] = None
+    ) -> Optional[rvs.Normal, np.ndarray]:
+        """Updated belief about the solution."""
+        if noise is None and self.prev_state is not None:
+            return self.prev_state.residual + self.step_size * self.observation
+        else:
+            # Belief is induced from inverse and rhs
+            return None
 
 
 @dataclasses.dataclass
@@ -106,19 +109,27 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
 
     def __init__(
         self,
+        qoi: str,
         problem: LinearSystem,
-        qoi_prior: rvs.Normal,
-        qoi_belief: rvs.Normal,
+        prior: LinearSystemBelief,
+        belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
-        noise: LinearSystemNoise,
         prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
     ):
-        self.noise = noise
+        if qoi == "A":
+            self.qoi_prior = prior.A
+            self.qoi_belief = belief.A
+        elif qoi == "Ainv":
+            self.qoi_prior = prior.Ainv
+            self.qoi_belief = belief.Ainv
+        else:
+            raise ValueError("Unknown matrix quantity of interest.")
+
         super().__init__(
             problem=problem,
-            qoi_prior=qoi_prior,
-            qoi_belief=qoi_belief,
+            prior=prior,
+            belief=belief,
             action=action,
             observation=observation,
             prev_state=prev_state,
@@ -176,15 +187,9 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
         def mm(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
 
-        mean_update_op = linops.LinearOperator(
+        return linops.LinearOperator(
             shape=(self.action.shape[0], self.action.shape[0]), matvec=mv, matmat=mm
         )
-
-        if self.noise is None:
-            return mean_update_op
-        else:
-            eps_sq = self.noise.A_eps.cov.A.scalar
-            return 1 / (1 + eps_sq) * mean_update_op
 
     @cached_property
     def covfactor_update_ops(self) -> Tuple[linops.LinearOperator, ...]:
@@ -203,15 +208,7 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
             matvec=mv,
             matmat=mm,
         )
-
-        if self.noise is None:
-            return (covfactor_update_op,)
-        else:
-            eps_sq = self.noise.A_eps.cov.A.scalar
-            return (
-                covfactor_update_op / (1 + eps_sq),
-                eps_sq / (1 + eps_sq) * covfactor_update_op,
-            )
+        return covfactor_update_op, covfactor_update_op
 
     @cached_property
     def mean_update_batch(self) -> linops.LinearOperator:
@@ -233,51 +230,60 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
             )
         )
 
-    @cached_property
-    def updated_belief(self) -> rvs.Normal:
+    def updated_belief(self, hyperparams: LinearSystemNoise = None) -> rvs.Normal:
         """Updated belief for the matrix model."""
-        mean = self.qoi_belief.mean + self.mean_update_batch
-        if self.noise is None:
+        if hyperparams is None:
+            mean = self.qoi_belief.mean + self.mean_update_batch
             cov = self.qoi_belief.cov - linops.SymmetricKronecker(
                 self.covfactor_updates_batch[0]
             )
-        else:
+        elif isinstance(hyperparams.A_eps, linops.ScalarMult):
+            eps_sq = hyperparams.A_eps.cov.A.scalar
+            mean = self.qoi_belief.mean + self.mean_update_batch / (1 + eps_sq)
+
             cov = linops.SymmetricKronecker(
-                self.qoi_belief.cov.A - self.covfactor_updates_batch[0]
-            ) + linops.SymmetricKronecker(self.covfactor_updates_batch[1])
+                self.qoi_belief.cov.A - self.covfactor_updates_batch[0] / (1 + eps_sq)
+            ) + linops.SymmetricKronecker(
+                eps_sq / (1 + eps_sq) * self.covfactor_updates_batch[1]
+            )
+        else:
+            raise NotImplementedError(
+                "Belief updated for general noise not yet implemented."
+            )
         return rvs.Normal(mean=mean, cov=cov)
 
 
 @dataclasses.dataclass
-class _RightHandSideSymmetricNormalLinearObsBeliefUpdateState:
+class _RightHandSideSymmetricNormalLinearObsBeliefUpdateState(
+    belief_updates.LinearSolverBeliefUpdateState
+):
     r"""Quantities used in the belief update of the right hand side."""
 
     def __init__(
         self,
         problem: LinearSystem,
-        qoi_prior: rvs.Normal,
-        qoi_belief: rvs.Normal,
+        prior: LinearSystemBelief,
+        belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
-        noise: LinearSystemNoise,
         prev_state: Optional[
             "_RightHandSideSymmetricNormalLinearObsBeliefUpdateState"
         ] = None,
     ):
-        self.noise = noise
         super().__init__(
             problem=problem,
-            qoi_prior=qoi_prior,
-            qoi_belief=qoi_belief,
+            prior=prior,
+            belief=belief,
             action=action,
             observation=observation,
             prev_state=prev_state,
         )
 
-    @cached_property
-    def updated_belief(self) -> Union[rvs.Constant, rvs.Normal]:
+    def updated_belief(
+        self, hyperparams: LinearSystemNoise = None
+    ) -> Union[rvs.Constant, rvs.Normal]:
         """Updated belief for the right hand side."""
-        if self.noise is None:
+        if hyperparams is None:
             return rvs.asrandvar(self.problem.b)
         else:
             raise NotImplementedError
@@ -295,54 +301,3 @@ class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpda
     --------
 
     """
-
-    def update_solver_state(
-        self,
-        action: np.ndarray,
-        observation: np.ndarray,
-        solver_state: Optional[LinearSolverState],
-    ) -> LinearSolverState:
-        """Perform a lazy update of the linear solver state."""
-        if solver_state is None:
-            # TODO init solver state
-            pass
-        else:
-            data = LinearSolverData(
-                actions=solver_state.data.actions + [action],
-                observations=solver_state.data.observations + [observation],
-            )
-            state_x = _SolutionSymmetricNormalLinearObsBeliefUpdateState(
-                problem=solver_state.problem,
-                qoi_prior=solver_state.prior.x,
-                qoi_belief=solver_state.belief.x,
-                action=action,
-                observation=observation,
-                noise=None,  # TODO
-                prev_state=solver_state.misc.x,
-            )
-
-            return LinearSolverState(
-                problem=solver_state.problem,
-                prior=solver_state.prior,
-                belief=solver_state.belief,
-                data=data,
-                info=solver_state.info,
-                misc=LinearSolverMiscQuantities(
-                    x=state_x,
-                    A=state_A,
-                    Ainv=state_Ainv,
-                    b=state_b,
-                ),
-            )
-
-    def update_belief(self, solver_state: Optional[LinearSolverState]):
-        if solver_state is None:
-            # TODO init solver state
-            pass
-        else:
-            return LinearSystemBelief(
-                x=solver_state.misc.x.updated_belief,
-                Ainv=solver_state.misc.Ainv.updated_belief,
-                A=solver_state.misc.A.updated_belief,
-                b=solver_state.misc.b.updated_belief,
-            )

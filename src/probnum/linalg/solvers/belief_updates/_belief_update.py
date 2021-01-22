@@ -12,6 +12,12 @@ except ImportError:
 
 import probnum  # pylint: disable="unused-import"
 import probnum.random_variables as rvs
+from probnum.linalg.solvers import (
+    LinearSolverData,
+    LinearSolverInfo,
+    LinearSolverMiscQuantities,
+    LinearSolverState,
+)
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
@@ -26,23 +32,66 @@ class LinearSolverBeliefUpdateState(abc.ABC):
 
     State containing quantities which are used during the belief update of a
     probabilistic linear solver.
+
+    Parameters
+    ----------
+    problem :
+        Linear system to solve.
+    prior :
+        Prior belief about the quantities of interest.
+    belief :
+        Current belief about the quantities of interest.
+    action :
+        Action taken by the solver given by its policy.
+    observation :
+        Observation of the linear system for the corresponding action.
+    prev_state :
+        Previous belief update state prior to the new observation.
     """
 
     def __init__(
         self,
         problem: LinearSystem,
-        qoi_prior: rvs.RandomVariable,
-        qoi_belief: rvs.RandomVariable,
+        prior: LinearSystemBelief,
+        belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
+        hyperparams: Optional["probnum.PNMethodHyperparams"] = None,
         prev_state: Optional["LinearSolverBeliefUpdateState"] = None,
     ):
+
         self.problem = problem
-        self.qoi_prior = qoi_prior
-        self.qoi_belief = qoi_belief
+        self.prior = prior
+        self.belief = belief
         self.action = action
         self.observation = observation
+        self.hyperparams = hyperparams
         self.prev_state = prev_state
+
+    @classmethod
+    def from_new_data(
+        cls,
+        action: np.ndarray,
+        observation: np.ndarray,
+        prev_state: "LinearSolverBeliefUpdateState",
+    ):
+        """Create a new belief update state from a previous one and newly observed
+        data."""
+        return cls(
+            problem=prev_state.problem,
+            prior=prev_state.prior,
+            belief=prev_state.belief,
+            action=action,
+            observation=observation,
+            hyperparams=prev_state.hyperparams,
+            prev_state=prev_state,
+        )
+
+    def updated_belief(
+        self, hyperparams: Optional["probnum.PNMethodHyperparams"] = None
+    ) -> rvs.RandomVariable:
+        """Updated belief about the quantity of interest."""
+        raise NotImplementedError
 
 
 class LinearSolverBeliefUpdate(abc.ABC):
@@ -57,7 +106,14 @@ class LinearSolverBeliefUpdate(abc.ABC):
         matrix-variate normal belief and linear observations.
     """
 
-    def update(
+    def __init__(self, prior_class, observation_op_type):
+        pass
+
+    def init_belief_update_states(self) -> Tuple[LinearSolverBeliefUpdateState, ...]:
+        """Initialize the belief update states for the quantities of interest."""
+        raise NotImplementedError
+
+    def update_belief(
         self,
         problem: LinearSystem,
         belief: LinearSystemBelief,
@@ -83,4 +139,24 @@ class LinearSolverBeliefUpdate(abc.ABC):
         solver_state :
             Current state of the linear solver.
         """
-        raise NotImplementedError
+        if solver_state is None:
+            solver_state = LinearSolverState(
+                problem=problem,
+                prior=belief,
+                belief=belief,
+                data=LinearSolverData(
+                    actions=[action],
+                    observations=[observation],
+                ),
+                belief_update=self,
+            )
+
+        return (
+            LinearSystemBelief(
+                x=solver_state.misc.x.updated_belief(hyperparams=hyperparams),
+                Ainv=solver_state.misc.Ainv.updated_belief(hyperparams=hyperparams),
+                A=solver_state.misc.A.updated_belief(hyperparams=hyperparams),
+                b=solver_state.misc.b.updated_belief(hyperparams=hyperparams),
+            ),
+            solver_state,
+        )

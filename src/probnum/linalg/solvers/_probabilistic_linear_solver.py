@@ -119,9 +119,7 @@ class ProbabilisticLinearSolver(
         prior: beliefs.LinearSystemBelief,
         policy: policies.Policy,
         observation_op: observation_ops.ObservationOperator,
-        hyperparameter_optim: Union[
-            hyperparam_optim.HyperparameterOptimization, bool
-        ] = True,
+        optimize_hyperparams: bool = True,
         belief_update: Optional[belief_updates.LinearSolverBeliefUpdate] = None,
         stopping_criteria: Optional[
             List[stop_criteria.StoppingCriterion]
@@ -130,71 +128,43 @@ class ProbabilisticLinearSolver(
         # pylint: disable="too-many-arguments"
         self.policy = policy
         self.observation_op = observation_op
-        self.hyperparam_optim = self._init_hyperparameter_optim(
-            hyperparameter_optim=hyperparameter_optim,
-            belief=prior,
-            observation_op=observation_op,
-        )
         if belief_update is not None:
             self.belief_update = belief_update
         else:
-            self.belief_update = self._init_belief_update(
-                belief=prior, observation_op=observation_op
-            )
+            raise NotImplementedError  # TODO
+        self.optimize_hyperparams = optimize_hyperparams
         self.stopping_criteria = stopping_criteria
         super().__init__(
             prior=prior,
         )
 
-    def _init_solver_state(self, problem: LinearSystem) -> LinearSolverState:
-        """Initialize the solver state.
-
-        Parameters
-        ----------
-        problem :
-            Linear system to solve.
-        """
-        return LinearSolverState(
-            problem=problem,
-            belief=self.prior,
-            data=LinearSolverData(actions=[], observations=[]),
-        )
-
-    def _init_hyperparameter_optim(
-        self,
-        hyperparameter_optim: Union[hyperparam_optim.HyperparameterOptimization, bool],
-        belief: beliefs.LinearSystemBelief,
-        observation_op: observation_ops.ObservationOperator,
-    ) -> Optional[hyperparam_optim.HyperparameterOptimization]:
-        """Choose a hyperparameter optimization routine for the given belief and
-        observation operator."""
-        if isinstance(
-            hyperparameter_optim, hyperparam_optim.HyperparameterOptimization
-        ):
-            return hyperparameter_optim
-        if hyperparam_optim:
-            if isinstance(belief, beliefs.WeakMeanCorrespondenceBelief):
-                if isinstance(observation_op, observation_ops.MatVecObservation):
-                    return hyperparam_optim.UncertaintyCalibration()
-            if isinstance(belief, beliefs.NoisySymmetricNormalLinearSystemBelief):
-                if isinstance(observation_op, observation_ops.MatVecObservation):
-                    return hyperparam_optim.OptimalNoiseScale()
-        return None
-
-    def _init_belief_update(
-        self,
-        belief: beliefs.LinearSystemBelief,
-        observation_op: observation_ops.ObservationOperator,
-    ) -> belief_updates.LinearSolverBeliefUpdate:
-        """Choose a belief update for the given belief and observation operator."""
-        if isinstance(belief, beliefs.SymmetricNormalLinearSystemBelief):
-            if isinstance(observation_op, observation_ops.MatVecObservation):
-                return belief_updates.SymmetricNormalLinearObsBeliefUpdate()
-        elif isinstance(belief, beliefs.WeakMeanCorrespondenceBelief):
-            if isinstance(observation_op, observation_ops.MatVecObservation):
-                return belief_updates.WeakMeanCorrLinearObsBeliefUpdate()
-
-        raise NotImplementedError
+    # def _init_belief_update(
+    #     self,
+    #     belief: beliefs.LinearSystemBelief,
+    #     observation_op: observation_ops.ObservationOperator,
+    #     hyperparameter_optim: Union[hyperparam_optim.HyperparameterOptimization, bool],
+    # ) -> Tuple[
+    #     belief_updates.LinearSolverBeliefUpdate,
+    #     Optional[hyperparam_optim.HyperparameterOptimization],
+    # ]:
+    #     """Choose a belief update for the given belief and observation operator."""
+    #     if isinstance(belief, beliefs.NoisySymmetricNormalLinearSystemBelief):
+    #         if hyperparameter_optim is True:
+    #             hyperparameter_optim = hyperparam_optim.OptimalNoiseScale()
+    #     if isinstance(belief, beliefs.SymmetricNormalLinearSystemBelief):
+    #         if isinstance(observation_op, observation_ops.MatVecObservation):
+    #             belief_update_type = belief_updates.SymmetricNormalLinearObsBeliefUpdate
+    #
+    #             return belief_update_type, hyperparameter_optim
+    #     elif isinstance(belief, beliefs.WeakMeanCorrespondenceBelief):
+    #         if isinstance(observation_op, observation_ops.MatVecObservation):
+    #             belief_update_type = belief_updates.WeakMeanCorrLinearObsBeliefUpdate
+    #             if hyperparameter_optim is True:
+    #                 hyperparameter_optim = hyperparam_optim.OptimalNoiseScale()
+    #
+    #             return belief_update_type, hyperparameter_optim
+    #
+    #     raise NotImplementedError
 
     @classmethod
     def from_problem(
@@ -463,31 +433,36 @@ class ProbabilisticLinearSolver(
 
             # Compute action via policy
             action, solver_state = self.policy(
-                problem=problem,
-                belief=solver_state._belief_mat,
+                problem=solver_state.problem,
+                belief=solver_state.belief,
                 solver_state=solver_state,
             )
 
             # Make an observation of the linear system
             observation, solver_state = self.observation_op(
-                problem=problem, action=action, solver_state=solver_state
+                problem=solver_state.problem,
+                action=action,
+                solver_state=solver_state,
             )
 
-            # Lazily update data-dependent state components for efficiency
-            solver_state = belief_update.update_solver_state(
-                action=action, observation=observation, solver_state=solver_state
+            # Lazily update and cache data-dependent state components
+            solver_state = LinearSolverState.from_new_data(
+                action=action, observation=observation, prev_state=solver_state
             )
 
             # Optimize hyperparameters
-            if self.hyperparam_optim is not None:
-                hyperparams, solver_state = self.hyperparam_optim.optimize(
-                    problem=problem,
+            if self.optimize_hyperparams:
+
+                hyperparams, solver_state = belief.hyperparams.optimize(
+                    problem=solver_state.problem,
                     actions=solver_state.data.actions,
                     observations=solver_state.data.observations,
                     solver_state=solver_state,
                 )
+            else:
+                hyperparams = belief.hyperparams
 
-            # Update the belief about the system matrix, its inverse and/or the solution
+            # Update the belief over the quantities of interest
             belief, solver_state = self.belief_update.update_belief(
                 problem=problem,
                 action=action,
@@ -496,7 +471,7 @@ class ProbabilisticLinearSolver(
                 solver_state=solver_state,
             )
 
-            solver_state.iteration += 1
+            solver_state.iteration += 1  # TODO move into belief update
 
             # Evaluate stopping criteria
             _has_converged, solver_state = self.has_converged(
