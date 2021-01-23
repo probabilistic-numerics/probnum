@@ -9,7 +9,22 @@ from probnum.random_variables import Normal
 
 
 class Kalman(BayesFiltSmooth):
-    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers."""
+    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
+
+    Parameters
+    ----------
+    dynamics_model
+        Prior dynamics. Usually an LTISDE object or an Integrator, but LinearSDE, ContinuousEKFComponent,
+        or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
+        If an integrator, `K=spatialdim*(ordint+1)` for some spatialdim and ordint.
+    measurement_model
+        Measurement model. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
+        This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ``live''.
+        For 2-dimensional observations, `L=2`.
+        If an DiscreteLTIGaussian, the measurement matrix is :math:`L \times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \times L` dimensional.
+    initrv
+        Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
+    """
 
     def __init__(self, dynamics_model, measurement_model, initrv):
         """Check that the initial distribution is Gaussian."""
