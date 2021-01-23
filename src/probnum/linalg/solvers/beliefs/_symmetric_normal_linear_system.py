@@ -7,10 +7,9 @@ import numpy as np
 import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
+from probnum.linalg.solvers.beliefs._linear_system import LinearSystemBelief
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
-
-from ._linear_system import LinearSystemBelief
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["SymmetricNormalLinearSystemBelief"]
@@ -42,11 +41,31 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         Belief over the (pseudo-)inverse of the system matrix.
     b :
         Belief over the right hand side.
+    hyperparams :
+        Hyperparameters of the belief class.
 
     References
     ----------
     .. [#] Hennig, P., Probabilistic Interpretation of Linear Solvers, *SIAM Journal on
            Optimization*, 2015, 25, 234-260
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum.problems import LinearSystem
+    >>> from probnum.problems.zoo.linalg import random_spd_matrix
+    >>> from probnum.linalg.solvers.beliefs import SymmetricNormalLinearSystemBelief
+    >>> # Linear system with symmetric system matrix
+    >>> np.random.seed(1)
+    >>> dim = 10
+    >>> linsys = LinearSystem.from_matrix(random_spd_matrix(dim))
+    >>> # Solution guess
+    >>> x0 = np.random.uniform(size=(dim, 1))
+    >>> # Prior belief
+    >>> belief = SymmetricNormalLinearSystemBelief.from_solution(x0, linsys)
+    >>> # Induced symmetric prior on A^{-1}
+    >>> type(belief.Ainv.cov)
+    <class 'probnum.linops.SymmetricKronecker'>
     """
 
     def __init__(
@@ -55,8 +74,11 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         Ainv: rvs.Normal,
         b: Union[rvs.Constant, rvs.Normal],
         x: Optional[rvs.Normal] = None,
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
+        ] = None,
     ):
-        super().__init__(x=x, Ainv=Ainv, A=A, b=b)
+        super().__init__(x=x, Ainv=Ainv, A=A, b=b, hyperparams=hyperparams)
 
     @classmethod
     def from_solution(

@@ -1,3 +1,5 @@
+"""State of a probabilistic linear solver."""
+
 import dataclasses
 from typing import List, Optional
 
@@ -12,6 +14,8 @@ import numpy as np
 
 import probnum
 from probnum.problems import LinearSystem
+
+# pylint: disable="invalid-name"
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -39,7 +43,7 @@ class LinearSolverInfo:
     iteration: int = 0
     has_converged: bool = False
     stopping_criterion: Optional[
-        List["probnum.linalg.solvers.stop_criteria.StoppingCriterion"]
+        "probnum.linalg.solvers.stop_criteria.StoppingCriterion"
     ] = None
 
 
@@ -101,18 +105,20 @@ class LinearSolverMiscQuantities:
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         x: Optional[
-            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
         ] = None,
         A: Optional[
-            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
         ] = None,
         Ainv: Optional[
-            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
         ] = None,
         b: Optional[
-            "probnum.linalg.solvers.belief_updates" ".LinearSolverBeliefUpdateState"
+            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
         ] = None,
     ):
+        # pylint: disable="too-many-arguments"
+
         self.problem = problem
         self.belief = belief
         self.x = x
@@ -128,21 +134,31 @@ class LinearSolverMiscQuantities:
         prev: "LinearSolverMiscQuantities",
     ):
         """Create new miscellaneous cached quantities from new data."""
+        new_belief_update_states = {}
+        for key, prev_belief_update_state in {
+            "x": prev.x,
+            "A": prev.A,
+            "Ainv": prev.Ainv,
+            "b": prev.b,
+        }.items():
+            if prev_belief_update_state is None:
+                new_belief_update_states[key] = None
+            else:
+                new_belief_update_states[key] = type(
+                    prev_belief_update_state
+                ).from_new_data(
+                    action=action,
+                    observation=observation,
+                    prev_state=prev_belief_update_state,
+                )
+
         return cls(
             problem=prev.problem,
             belief=prev.belief,
-            x=type(prev.x).from_new_data(
-                action=action, observation=observation, prev_state=prev.x
-            ),
-            A=type(prev.A).from_new_data(
-                action=action, observation=observation, prev_state=prev.A
-            ),
-            Ainv=type(prev.Ainv).from_new_data(
-                action=action, observation=observation, prev_state=prev.Ainv
-            ),
-            b=type(prev.b).from_new_data(
-                action=action, observation=observation, prev_state=prev.b
-            ),
+            x=new_belief_update_states["x"],
+            A=new_belief_update_states["A"],
+            Ainv=new_belief_update_states["Ainv"],
+            b=new_belief_update_states["b"],
         )
 
     @cached_property
@@ -194,6 +210,7 @@ class LinearSolverState:
         info: Optional[LinearSolverInfo] = None,
         misc: Optional[LinearSolverMiscQuantities] = None,
     ):
+        # pylint: disable="too-many-arguments"
 
         self.problem = problem
         self.belief = belief
@@ -215,7 +232,17 @@ class LinearSolverState:
         observation: np.ndarray,
         prev_state: "LinearSolverState",
     ):
-        """Create a new solver state from a previous one and newly observed data."""
+        """Create a new solver state from a previous one and newly observed data.
+
+        Parameters
+        ----------
+        action :
+            Action taken by the solver given by its policy.
+        observation :
+            Observation of the linear system for the corresponding action.
+        prev_state :
+            Previous linear solver state prior to observing new data.
+        """
         data = LinearSolverData(
             actions=prev_state.data.actions + [action],
             observations=prev_state.data.observations + [observation],
@@ -239,7 +266,16 @@ class LinearSolverState:
         updated_belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         prev_state: "LinearSolverState",
     ):
-        """Create a new solver state from an updated belief."""
+        """Create a new solver state from an updated belief.
+
+        Parameters
+        ----------
+        updated_belief :
+            Updated belief over the quantities of interest after observing data.
+        prev_state :
+            Previous linear solver state updated with new data, but prior to the
+            belief update.
+        """
 
         return cls(
             problem=prev_state.problem,

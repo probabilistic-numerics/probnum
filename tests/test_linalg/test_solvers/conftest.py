@@ -9,6 +9,8 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers import (
     LinearSolverData,
+    LinearSolverInfo,
+    LinearSolverMiscQuantities,
     LinearSolverState,
     ProbabilisticLinearSolver,
     belief_updates,
@@ -61,7 +63,7 @@ def fixture_belief_class(request):
 @pytest.fixture(name="belief")
 def fixture_belief(belief_class, mat, linsys):
     """Linear system beliefs."""
-    return belief_class.from_inverse(Ainv0=mat, problem=linsys)
+    return belief_class.from_inverse(Ainv0=linops.aslinop(mat), problem=linsys)
 
 
 @pytest.fixture(name="prior")
@@ -298,7 +300,7 @@ def matvec_observation(action: np.ndarray, linsys_spd: LinearSystem) -> np.ndarr
 
 
 @pytest.fixture()
-def matvec_observations(actions: np.ndarray, linsys_spd: LinearSystem) -> list:
+def matvec_observations(actions: list, linsys_spd: LinearSystem) -> list:
     """Matrix-vector product observations for a given set of actions."""
     return list((linsys_spd.A @ np.array(actions).T).T)
 
@@ -455,13 +457,35 @@ def custom_stopping_criterion(
     name="stopcrit",
 )
 def fixture_stopcrit(request) -> stop_criteria.StoppingCriterion:
-    """Observation operators of linear solvers."""
+    """Stopping criteria of linear solvers."""
     return request.param
 
 
-################################
-# Probabilistic Linear Solvers #
-################################
+#####################################
+# Probabilistic Linear Solver State #
+#####################################
+
+
+@pytest.fixture(name="solver_info")
+def fixture_solver_info(num_iters: int, stopcrit: stop_criteria.StoppingCriterion):
+    """Convergence information of a linear solver."""
+    return LinearSolverInfo(
+        iteration=num_iters,
+        has_converged=True,
+        stopping_criterion=stopcrit,
+    )
+
+
+@pytest.fixture
+def solver_data(actions: list, matvec_observations: list):
+    """Data collected by a linear solver."""
+    return LinearSolverData(actions=actions, observations=matvec_observations)
+
+
+@pytest.fixture
+def solver_misc_quantities(linsys: LinearSystem, belief: beliefs.LinearSystemBelief):
+    """Miscellaneous quantities computed (and cached) by a linear solver."""
+    return LinearSolverMiscQuantities(problem=linsys, belief=belief)
 
 
 @pytest.fixture(name="solver_state_init")
@@ -472,8 +496,12 @@ def fixture_solver_state_init(
     return LinearSolverState(
         problem=linsys_spd,
         belief=prior,
-        data=LinearSolverData(actions=[], observations=[]),
     )
+
+
+################################
+# Probabilistic Linear Solvers #
+################################
 
 
 @pytest.fixture(name="prob_linear_solver")
@@ -539,6 +567,5 @@ def conj_grad_method(
         ),
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVecObservation(),
-        hyperparameter_optim=False,
         stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
     )

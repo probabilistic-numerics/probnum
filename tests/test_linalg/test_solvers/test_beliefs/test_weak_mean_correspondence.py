@@ -5,10 +5,8 @@ import pytest
 import scipy.linalg
 
 import probnum.linops as linops
-from probnum.linalg.solvers.beliefs import (
-    UncertaintyScales,
-    WeakMeanCorrespondenceBelief,
-)
+from probnum.linalg.solvers.beliefs import WeakMeanCorrespondenceBelief
+from probnum.linalg.solvers.hyperparams import UncertaintyUnexploredSpace
 from probnum.problems import LinearSystem
 
 pytestmark = pytest.mark.filterwarnings("ignore::scipy.sparse.SparseEfficiencyWarning")
@@ -82,7 +80,7 @@ def test_uncertainty_action_null_space_is_phi(
         A0=scalar_linsys.A,
         Ainv0=scalar_linsys.A.inv(),
         b=scalar_linsys.b,
-        uncertainty_scales=UncertaintyScales(
+        uncertainty_scales=UncertaintyUnexploredSpace(
             Phi=phi, Psi=1 / phi if phi != 0.0 else 0.0
         ),
         actions=actions,
@@ -119,7 +117,7 @@ def test_uncertainty_observation_null_space_is_psi(
         A0=scalar_linsys.A,
         Ainv0=scalar_linsys.A.inv(),
         b=scalar_linsys.b,
-        uncertainty_scales=UncertaintyScales(
+        uncertainty_scales=UncertaintyUnexploredSpace(
             Phi=1 / psi if psi != 0.0 else 0.0, Psi=psi
         ),
         actions=actions,
@@ -150,7 +148,7 @@ def test_no_data_prior(
         A0=A0,
         Ainv0=Ainv0,
         b=linsys.b,
-        uncertainty_scales=UncertaintyScales(Phi=phi, Psi=psi),
+        uncertainty_scales=UncertaintyUnexploredSpace(Phi=phi, Psi=psi),
     )
     # Means
     if isinstance(A0, scipy.sparse.spmatrix):
@@ -237,7 +235,7 @@ def test_conjugate_actions_covariance(
         A0=linsys_spd.A,
         Ainv0=Ainv0,
         b=linsys_spd.b,
-        uncertainty_scales=UncertaintyScales(Phi=phi, Psi=psi),
+        uncertainty_scales=UncertaintyUnexploredSpace(Phi=phi, Psi=psi),
         actions=conj_actions,
         observations=observations,
         action_obs_innerprods=np.einsum("nk,nk->k", conj_actions, observations),

@@ -3,8 +3,7 @@
 Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 """
 
-import dataclasses
-from typing import Generator, List, Optional, Tuple, Union
+from typing import Generator, List, Optional, Tuple
 
 import numpy as np
 
@@ -101,10 +100,11 @@ class ProbabilisticLinearSolver(
     >>> from probnum.linalg.solvers.stop_criteria import MaxIterations, Residual
     >>> # Custom probabilistic iterative solver
     >>> pls = ProbabilisticLinearSolver(
-    ... prior=LinearSystemBelief.from_solution(np.zeros_like(linsys.b), problem=linsys),
-    ... policy=ConjugateDirections(),
-    ... observation_op=MatVecObservation(),
-    ... stopping_criteria=[MaxIterations(), Residual()],
+    ...     prior=LinearSystemBelief.from_solution(np.zeros_like(linsys.b),
+    ...                                            problem=linsys),
+    ...     policy=ConjugateDirections(),
+    ...     observation_op=MatVecObservation(),
+    ...     stopping_criteria=[MaxIterations(), Residual()],
     ... )
 
     Solve the linear system using the custom solver.
@@ -508,10 +508,12 @@ class ProbabilisticLinearSolver(
 
         Returns
         -------
-        belief : Posterior belief `(x, A, Ainv, b)` over the solution :math:`x`,
-                 the system matrix :math:`A`, its inverse :math:`H=A^{-1}` and the
-                 right hand side :math:`b`.
-        solver_state : State of the solver at convergence.
+        belief :
+            Posterior belief `(x, A, Ainv, b)` over the solution :math:`x`,
+            the system matrix :math:`A`, its inverse :math:`H=A^{-1}` and the
+            right hand side :math:`b`.
+        solver_state :
+            State of the solver at convergence.
         """
 
         # Solver iteration

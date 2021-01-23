@@ -90,6 +90,7 @@ class LinearSystemBelief:
         self._A = A
         self._Ainv = Ainv
         self._b = b
+        self._hyperparams = hyperparams
 
     @staticmethod
     def _reshape_2d(
@@ -324,7 +325,7 @@ class LinearSystemBelief:
             Linear system to solve.
         """
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            x=None,
             Ainv=rvs.asrandvar(Ainv0),
             A=rvs.asrandvar(problem.A),
             b=rvs.asrandvar(problem.b),
@@ -351,7 +352,7 @@ class LinearSystemBelief:
         Ainv0 = linops.Identity(shape=A0.shape)
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            x=None,
             Ainv=rvs.asrandvar(Ainv0),
             A=rvs.asrandvar(A0),
             b=rvs.asrandvar(problem.b),
@@ -381,7 +382,7 @@ class LinearSystemBelief:
             Linear system to solve.
         """
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            x=None,
             Ainv=rvs.asrandvar(Ainv0),
             A=rvs.asrandvar(A0),
             b=rvs.asrandvar(problem.b),

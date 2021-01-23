@@ -22,3 +22,10 @@ class UncertaintyUnexploredSpace(LinearSolverHyperparams):
 
     Phi: Optional[float] = None
     Psi: Optional[float] = None
+
+    def __post_init__(self):
+        if self.Phi < 0.0 or self.Psi < 0.0:
+            raise ValueError(
+                "Uncertainty scales must be non-negative, but are "
+                f"Phi={self.Phi} and Psi={self.Psi}"
+            )

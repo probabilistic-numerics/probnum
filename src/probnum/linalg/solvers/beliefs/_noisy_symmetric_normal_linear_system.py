@@ -6,11 +6,12 @@ import numpy as np
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
+from probnum.linalg.solvers.beliefs._symmetric_normal_linear_system import (
+    SymmetricNormalLinearSystemBelief,
+)
 from probnum.linalg.solvers.hyperparams import LinearSystemNoise
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
-
-from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 
 # pylint: disable="invalid-name"
 
@@ -34,17 +35,26 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         Belief over the right hand side.
     hyperparams :
         Noise on the system matrix and right hand side.
+
+    Examples
+    --------
+
     """
 
     def __init__(
         self,
-        x: rvs.Normal,
         A: rvs.Normal,
         Ainv: rvs.Normal,
         b: Union[rvs.Constant, rvs.Normal],
+        x: Optional[rvs.Normal] = None,
         hyperparams: LinearSystemNoise = LinearSystemNoise(A_eps=None, b_eps=None),
     ):
         super().__init__(x=x, A=A, Ainv=Ainv, b=b, hyperparams=hyperparams)
+
+    @property
+    def hyperparams(self) -> Optional[LinearSystemNoise]:
+        """Additive Gaussian noise on the system matrix and / or right hand side."""
+        return super().hyperparams
 
     @classmethod
     def from_solution(
@@ -62,9 +72,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
 
         return cls(
-            x=rvs.Normal(
-                mean=x0, cov=cls._induced_solution_cov(Ainv=Ainv, b=problem.b)
-            ),
+            x=x0,
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(b0),
@@ -109,7 +117,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
+            x=None,
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
@@ -154,7 +162,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv, b=problem.b),
+            x=None,
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
@@ -193,7 +201,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
-            x=cls._induced_solution_belief(Ainv=Ainv0, b=problem.b),
+            x=None,
             Ainv=Ainv0,
             A=A0,
             b=rvs.asrandvar(problem.b),
