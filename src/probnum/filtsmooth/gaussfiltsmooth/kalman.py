@@ -44,6 +44,7 @@ class Kalman(BayesFiltSmooth):
             Data set that is filtered.
         times : array_like, shape (N,)
             Temporal locations of the data points.
+            The zeroth element in times and dataset is the location of the initial random variable.
 
         Returns
         -------
@@ -68,6 +69,7 @@ class Kalman(BayesFiltSmooth):
             Data set that is filtered.
         times : array_like, shape (N,)
             Temporal locations of the data points.
+            The zeroth element in times and dataset is the location of the initial random variable.
 
         Returns
         -------
