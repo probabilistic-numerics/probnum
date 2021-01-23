@@ -308,6 +308,22 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdateState(
             raise NotImplementedError
 
 
+class _RightHandSideSymmetricNormalLinearObsBeliefUpdate:
+    pass
+
+
+class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate:
+    pass
+
+
+class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate:
+    pass
+
+
+class _SolutionSymmetricNormalLinearObsBeliefUpdate:
+    pass
+
+
 class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpdate):
     r"""Belief update for a symmetric matrix-variate Normal belief and linear
     observations.
@@ -318,26 +334,22 @@ class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpda
 
     Parameters
     ----------
-    x_belief_update_state_type :
-    A_belief_update_state_type :
-    Ainv_belief_update_state_type :
-    b_belief_update_state_type :
+    x_belief_update_type :
+    A_belief_update_type :
+    Ainv_belief_update_type :
+    b_belief_update_type :
     """
 
     def __init__(
         self,
-        x_belief_update_state_type=_SolutionSymmetricNormalLinearObsBeliefUpdateState,
-        A_belief_update_state_type=partial(
-            _MatrixSymmetricNormalLinearObsBeliefUpdateState, qoi="A"
-        ),
-        Ainv_belief_update_state_type=partial(
-            _MatrixSymmetricNormalLinearObsBeliefUpdateState, qoi="Ainv"
-        ),
-        b_belief_update_state_type=_RightHandSideSymmetricNormalLinearObsBeliefUpdateState,
+        x_belief_update_type=_SolutionSymmetricNormalLinearObsBeliefUpdate,
+        A_belief_update_type=_SystemMatrixSymmetricNormalLinearObsBeliefUpdate,
+        Ainv_belief_update_type=_InverseMatrixSymmetricNormalLinearObsBeliefUpdate,
+        b_belief_update_type=_RightHandSideSymmetricNormalLinearObsBeliefUpdate,
     ):
         super().__init__(
-            x_belief_update_state_type=x_belief_update_state_type,
-            A_belief_update_state_type=A_belief_update_state_type,
-            Ainv_belief_update_state_type=Ainv_belief_update_state_type,
-            b_belief_update_state_type=b_belief_update_state_type,
+            x_belief_update_type=x_belief_update_type,
+            A_belief_update_type=A_belief_update_type,
+            Ainv_belief_update_type=Ainv_belief_update_type,
+            b_belief_update_type=b_belief_update_type,
         )
