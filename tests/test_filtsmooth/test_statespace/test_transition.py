@@ -26,7 +26,7 @@ class TestGenerate(unittest.TestCase):
         states, obs = pnfss.generate(mocktrans, mocktrans, initrv, times)
         self.assertEqual(states.shape[0], len(times))
         self.assertEqual(states.shape[1], TEST_NDIM)
-        self.assertEqual(obs.shape[0], len(times) - 1)
+        self.assertEqual(obs.shape[0], len(times))
         self.assertEqual(obs.shape[1], TEST_NDIM)
 
 

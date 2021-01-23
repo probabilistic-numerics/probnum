@@ -81,7 +81,8 @@ class Kalman(BayesFiltSmooth):
         dataset, times = np.asarray(dataset), np.asarray(times)
         rvs = []
 
-        # initial update
+        # initial update: since start=stop, prediction will not change the RV.
+        # This is relied on here but may lead to future problems.
         filtrv, _ = self.filter_step(
             start=times[0],
             stop=times[0],
