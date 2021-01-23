@@ -4,27 +4,24 @@ import numpy as np
 import pytest
 
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.belief_updates import LinearSolverBeliefUpdate
+from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
 
-pytestmark = pytest.mark.usefixtures("linobs_belief_update")
-
 
 def test_matrix_posterior_multiplication(
     n: int,
-    linobs_belief_update: LinearSolverBeliefUpdate,
+    normal_lin_updated_belief: LinearSystemBelief,
     linsys_spd: LinearSystem,
     random_state: np.random.RandomState,
 ):
     """Test whether multiplication with the posteriors over A and Ainv returns a random
     variable with the correct shape."""
-    x, Ainv, A, b, solver_state = linobs_belief_update()
     matshape = (n, 5)
     mat = random_state.random(size=matshape)
-    Amat = A @ mat
-    Ainvmat = Ainv @ mat
+    Amat = normal_lin_updated_belief.A @ mat
+    Ainvmat = normal_lin_updated_belief.Ainv @ mat
     assert isinstance(Amat, rvs.Normal)
     assert Amat.shape == (n, matshape[1])
 

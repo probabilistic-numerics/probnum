@@ -98,7 +98,7 @@ class ProbabilisticLinearSolver(
     >>> from probnum.linalg.solvers.policies import ConjugateDirections
     >>> from probnum.linalg.solvers.observation_ops import MatVecObservation
     >>> from probnum.linalg.solvers.stop_criteria import MaxIterations, Residual
-    >>> # Custom probabilistic iterative solver
+    >>> # Composition of a custom probabilistic linear solver
     >>> pls = ProbabilisticLinearSolver(
     ...     prior=LinearSystemBelief.from_solution(np.zeros_like(linsys.b),
     ...                                            problem=linsys),
@@ -119,10 +119,10 @@ class ProbabilisticLinearSolver(
         prior: beliefs.LinearSystemBelief,
         policy: policies.Policy,
         observation_op: observation_ops.ObservationOperator,
+        belief_update: Optional[belief_updates.LinearSolverBeliefUpdate],
         hyperparam_optim_method: Optional[
             hyperparam_optim.HyperparameterOptimization
         ] = None,
-        belief_update: Optional[belief_updates.LinearSolverBeliefUpdate] = None,
         stopping_criteria: Optional[
             List[stop_criteria.StoppingCriterion]
         ] = stop_criteria.MaxIterations(),
@@ -130,43 +130,12 @@ class ProbabilisticLinearSolver(
         # pylint: disable="too-many-arguments"
         self.policy = policy
         self.observation_op = observation_op
-        if belief_update is not None:
-            self.belief_update = belief_update
-        else:
-            raise NotImplementedError  # TODO
+        self.belief_update = belief_update
         self.hyperparam_optim_method = hyperparam_optim_method
         self.stopping_criteria = stopping_criteria
         super().__init__(
             prior=prior,
         )
-
-    # def _init_belief_update(
-    #     self,
-    #     belief: beliefs.LinearSystemBelief,
-    #     observation_op: observation_ops.ObservationOperator,
-    #     hyperparameter_optim: Union[hyperparam_optim.HyperparameterOptimization, bool],
-    # ) -> Tuple[
-    #     belief_updates.LinearSolverBeliefUpdate,
-    #     Optional[hyperparam_optim.HyperparameterOptimization],
-    # ]:
-    #     """Choose a belief update for the given belief and observation operator."""
-    #     if isinstance(belief, beliefs.NoisySymmetricNormalLinearSystemBelief):
-    #         if hyperparameter_optim is True:
-    #             hyperparameter_optim = hyperparam_optim.OptimalNoiseScale()
-    #     if isinstance(belief, beliefs.SymmetricNormalLinearSystemBelief):
-    #         if isinstance(observation_op, observation_ops.MatVecObservation):
-    #             belief_update_type = belief_updates.SymmetricNormalLinearObsBeliefUpdate
-    #
-    #             return belief_update_type, hyperparameter_optim
-    #     elif isinstance(belief, beliefs.WeakMeanCorrespondenceBelief):
-    #         if isinstance(observation_op, observation_ops.MatVecObservation):
-    #             belief_update_type = belief_updates.WeakMeanCorrLinearObsBeliefUpdate
-    #             if hyperparameter_optim is True:
-    #                 hyperparameter_optim = hyperparam_optim.OptimalNoiseScale()
-    #
-    #             return belief_update_type, hyperparameter_optim
-    #
-    #     raise NotImplementedError
 
     @classmethod
     def from_problem(
@@ -281,22 +250,27 @@ class ProbabilisticLinearSolver(
         return cls.from_prior(prior=prior, maxiter=maxiter, atol=atol, rtol=rtol)
 
     @classmethod
-    def from_prior(
+    def from_prior_observation_op(
         cls,
         prior: beliefs.LinearSystemBelief,
+        observation_op: observation_ops.ObservationOperator = observation_ops.MatVecObservation(),
         maxiter: Optional[int] = None,
         atol: float = 10 ** -6,
         rtol: float = 10 ** -6,
     ) -> "ProbabilisticLinearSolver":
-        """Initialize a custom probabilistic linear solver from a prior belief.
+        """Initialize a custom probabilistic linear solver from a prior belief and a
+        observation process.
 
         Composes and initializes an appropriate instance of the probabilistic linear
-        solver based on the prior information given.
+        solver based on the prior information given and the observation process.
 
         Parameters
         ----------
         prior :
             Prior belief about the quantities of interest of the linear system.
+        observation_op :
+            Observation operator defining how information about the linear system is
+            obtained.
         maxiter :
             Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is
             the dimension of :math:`A`.
@@ -311,34 +285,34 @@ class ProbabilisticLinearSolver(
             If an unknown or incompatible prior belief class is passed.
         """
 
-        observation_op = observation_ops.MatVecObservation()
         stopping_criteria = [stop_criteria.MaxIterations(maxiter=maxiter)]
-        if isinstance(
-            prior,
-            (
-                beliefs.SymmetricNormalLinearSystemBelief,
-                beliefs.WeakMeanCorrespondenceBelief,
-            ),
-        ):
-            policy = policies.ConjugateDirections()
-            stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-        elif isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
-            policy = policies.ExploreExploit()
-            stopping_criteria.append(
-                stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
-            )
-        elif isinstance(prior, beliefs.LinearSystemBelief):
-            policy = policies.ConjugateDirections()
-            stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-        else:
-            raise ValueError("Unknown or incompatible prior belief class.")
+        if isinstance(observation_op, observation_ops.MatVecObservation):
+            if isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
+                policy = policies.ConjugateDirections()
+                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
+                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate()
+            elif isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
+                policy = policies.ConjugateDirections()
+                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
+                belief_update = belief_updates.WeakMeanCorrLinearObsBeliefUpdate()
+            elif isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
+                policy = policies.ExploreExploit()
+                stopping_criteria.append(
+                    stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
+                )
+                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate()
+            else:
+                raise ValueError("Unknown or incompatible prior belief class.")
 
-        return cls(
-            prior=prior,
-            policy=policy,
-            observation_op=observation_op,
-            stopping_criteria=stopping_criteria,
-        )
+            return cls(
+                prior=prior,
+                policy=policy,
+                observation_op=observation_op,
+                belief_update=belief_update,
+                stopping_criteria=stopping_criteria,
+            )
+        else:
+            raise ValueError("Unknown or incompatible observation operator.")
 
     def has_converged(
         self,
@@ -365,7 +339,7 @@ class ProbabilisticLinearSolver(
         solver_state :
             Updated state of the solver.
         """
-        if solver_state.has_converged:
+        if solver_state.info.has_converged:
             return True, solver_state
 
         # Check stopping criteria
@@ -428,10 +402,9 @@ class ProbabilisticLinearSolver(
                 problem=problem,
                 prior=self.prior,
                 belief=belief,
-                # Todo
             )
-
-        solver_state.belief = belief
+        else:
+            solver_state.belief = belief
 
         # Evaluate stopping criteria for the prior
         _has_converged, solver_state = self.has_converged(
@@ -483,8 +456,8 @@ class ProbabilisticLinearSolver(
 
             # Evaluate stopping criteria
             _has_converged, solver_state = self.has_converged(
-                problem=problem,
-                belief=belief,
+                problem=solver_state.problem,
+                belief=solver_state.belief,
                 solver_state=solver_state,
             )
 
@@ -499,7 +472,7 @@ class ProbabilisticLinearSolver(
         self,
         problem: LinearSystem,
     ) -> Tuple[beliefs.LinearSystemBelief, LinearSolverState]:
-        """Solve the linear system.
+        r"""Solve the linear system.
 
         Parameters
         ----------
@@ -509,14 +482,12 @@ class ProbabilisticLinearSolver(
         Returns
         -------
         belief :
-            Posterior belief `(x, A, Ainv, b)` over the solution :math:`x`,
-            the system matrix :math:`A`, its inverse :math:`H=A^{-1}` and the
-            right hand side :math:`b`.
+            Posterior belief :math:`(\mathsf{x}, \mathsf{A}, \mathsf{H}, \mathsf{b})`
+            over the solution :math:`x`, the system matrix :math:`A`, its inverse
+            :math:`H=A^{-1}` and the right hand side :math:`b`.
         solver_state :
             State of the solver at convergence.
         """
-
-        # Solver iteration
         belief = None
         solver_state = None
 

@@ -351,27 +351,29 @@ def fixture_uncertainty_calibration(
             ),
         ]
     ],
-    name="linobs_belief_update",
+    name="normal_lin_updated_belief",
 )
-def fixture_linobs_belief_update(
+def fixture_normal_lin_updated_belief(
     request,
     n: int,
     random_state: np.random.RandomState,
     linsys_spd: LinearSystem,
     action: np.ndarray,
     matvec_observation: np.ndarray,
-) -> belief_updates.LinearSolverBeliefUpdate:
+) -> beliefs.LinearSystemBelief:
+    """Belief update for a Gaussian prior and linear observations."""
     belief = request.param[1].from_inverse(
         linops.MatrixMult(random_spd_matrix(dim=n, random_state=random_state)),
         problem=linsys_spd,
     )
-    """Belief update for linear observations."""
-    return request.param[2](
+    belief_update = request.param[2]()
+
+    return belief_update.update_belief(
         problem=linsys_spd,
         belief=belief,
-        actions=action,
-        observations=matvec_observation,
-    )
+        action=action,
+        observation=matvec_observation,
+    )[0]
 
 
 @pytest.fixture(

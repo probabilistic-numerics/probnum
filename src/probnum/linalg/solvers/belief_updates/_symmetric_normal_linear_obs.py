@@ -5,6 +5,7 @@ except ImportError:
     from cached_property import cached_property
 
 import dataclasses
+from functools import partial
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -86,10 +87,10 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
             raise NotImplementedError
 
     def updated_belief(
-        self, noise: Optional[LinearSystemNoise] = None
+        self, hyperparams: Optional[LinearSystemNoise] = None
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
-        if noise is None and self.prev_state is not None:
+        if hyperparams is None and self.prev_state is not None:
             return self.prev_state.residual + self.step_size * self.observation
         else:
             # Belief is induced from inverse and rhs
@@ -114,6 +115,7 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
         belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
+        hyperparams: Optional[LinearSolverHyperparams] = None,
         prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
     ):
         if qoi == "A":
@@ -131,6 +133,7 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
             belief=belief,
             action=action,
             observation=observation,
+            hyperparams=hyperparams,
             prev_state=prev_state,
         )
 
@@ -152,6 +155,12 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
         factor of the matrix model and the current action.
         """
         return self.qoi_belief.cov.A @ self.action
+
+    @cached_property
+    def sqnorm_covfactor_action(self) -> float:
+        r"""Squared norm :math:`\lVert W_{i-1}s_i\rVert^2` of the covariance factor
+        applied to the action."""
+        return (self.covfactor_action.T @ self.covfactor_action).item()
 
     @cached_property
     def action_covfactor_action(self) -> float:
@@ -232,13 +241,15 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
     def updated_belief(self, hyperparams: LinearSystemNoise = None) -> rvs.Normal:
         """Updated belief for the matrix model."""
         if hyperparams is None:
-            mean = self.qoi_prior.mean + self.mean_update_batch
-            cov = self.qoi_prior.cov - linops.SymmetricKronecker(
-                self.covfactor_updates_batch[0]
+            mean = linops.aslinop(self.qoi_prior.mean) + self.mean_update_batch
+            cov = linops.SymmetricKronecker(
+                self.qoi_prior.cov.A - self.covfactor_updates_batch[0]
             )
         elif isinstance(hyperparams.A_eps, linops.ScalarMult):
             eps_sq = hyperparams.A_eps.cov.A.scalar
-            mean = self.qoi_prior.mean + self.mean_update_batch / (1 + eps_sq)
+            mean = linops.aslinop(self.qoi_prior.mean) + self.mean_update_batch / (
+                1 + eps_sq
+            )
 
             cov = linops.SymmetricKronecker(
                 self.qoi_prior.cov.A - self.covfactor_updates_batch[0] / (1 + eps_sq)
@@ -247,7 +258,7 @@ class _MatrixSymmetricNormalLinearObsBeliefUpdateState(
             )
         else:
             raise NotImplementedError(
-                "Belief updated for general noise not yet implemented."
+                "Belief updated for general noise not implemented."
             )
         return rvs.Normal(mean=mean, cov=cov)
 
@@ -265,6 +276,7 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdateState(
         belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
+        hyperparams: Optional[LinearSolverHyperparams] = None,
         prev_state: Optional[
             "_RightHandSideSymmetricNormalLinearObsBeliefUpdateState"
         ] = None,
@@ -275,6 +287,7 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdateState(
             belief=belief,
             action=action,
             observation=observation,
+            hyperparams=hyperparams,
             prev_state=prev_state,
         )
 
@@ -296,7 +309,28 @@ class SymmetricNormalLinearObsBeliefUpdate(belief_updates.LinearSolverBeliefUpda
     under symmetric matrix-variate Gaussian prior(s) on :math:`A` and / or :math:`H`.
     Observations are assumed to be linear.
 
-    Examples
-    --------
-
+    Parameters
+    ----------
+    x_belief_update_state_type :
+    A_belief_update_state_type :
+    Ainv_belief_update_state_type :
+    b_belief_update_state_type :
     """
+
+    def __init__(
+        self,
+        x_belief_update_state_type=_SolutionSymmetricNormalLinearObsBeliefUpdateState,
+        A_belief_update_state_type=partial(
+            _MatrixSymmetricNormalLinearObsBeliefUpdateState, qoi="A"
+        ),
+        Ainv_belief_update_state_type=partial(
+            _MatrixSymmetricNormalLinearObsBeliefUpdateState, qoi="Ainv"
+        ),
+        b_belief_update_state_type=_RightHandSideSymmetricNormalLinearObsBeliefUpdateState,
+    ):
+        super().__init__(
+            x_belief_update_state_type=x_belief_update_state_type,
+            A_belief_update_state_type=A_belief_update_state_type,
+            Ainv_belief_update_state_type=Ainv_belief_update_state_type,
+            b_belief_update_state_type=b_belief_update_state_type,
+        )

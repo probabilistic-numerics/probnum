@@ -1,5 +1,7 @@
+"""Belief update for the weak mean correspondence belief given linear observations."""
+
 from functools import cached_property
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -8,6 +10,15 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
     SymmetricNormalLinearObsBeliefUpdate,
+    _MatrixSymmetricNormalLinearObsBeliefUpdateState,
+)
+from probnum.linalg.solvers.beliefs import (
+    LinearSystemBelief,
+    WeakMeanCorrespondenceBelief,
+)
+from probnum.linalg.solvers.hyperparams import (
+    LinearSolverHyperparams,
+    UncertaintyUnexploredSpace,
 )
 from probnum.problems import LinearSystem
 
@@ -15,55 +26,49 @@ from probnum.problems import LinearSystem
 __all__ = ["WeakMeanCorrLinearObsBeliefUpdate"]
 
 
-class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
-    r"""Weak mean correspondence belief update assuming linear observations.
-
-    Parameters
-    ----------
-    problem :
-        Linear system to solve.
-    belief :
-        Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
-        linear system.
-    solver_state :
-        Current state of the linear solver.
-
-    Examples
-    --------
-    Efficient updating of the solution covariance trace.
-
-    >>> from probnum.linalg.solvers.belief_updates import WeakMeanCorrLinearObsBeliefUpdate
-    >>>
-    """
+class _SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState(
+    _MatrixSymmetricNormalLinearObsBeliefUpdateState
+):
+    """Weak mean correspondence belief update for the system matrix."""
 
     def __init__(
         self,
         problem: LinearSystem,
-        belief: "probnum.linalg.solvers.beliefs.WeakMeanCorrespondenceBelief",
-        actions: np.ndarray,
-        observations: np.ndarray,
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
+        prior: WeakMeanCorrespondenceBelief,
+        belief: WeakMeanCorrespondenceBelief,
+        action: np.ndarray,
+        observation: np.ndarray,
+        hyperparams: Optional[LinearSolverHyperparams] = None,
+        prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
     ):
-
         super().__init__(
+            qoi="A",
             problem=problem,
+            prior=prior,
             belief=belief,
-            actions=actions,
-            observations=observations,
-            hyperparams=None,
-            solver_state=solver_state,
+            action=action,
+            observation=observation,
+            hyperparams=hyperparams,
+            prev_state=prev_state,
         )
 
-    @cached_property
-    def A(self) -> rvs.Normal:
-        # Update belief about A assuming WS=Y
-        mean_update, covfactor_update = self.A_update_terms(belief_A=self.belief.A_eps)
-        if self.belief._A_covfactor_update_op is not None:
-            self.belief._A_covfactor_update_op += covfactor_update
-        else:
-            self.belief._A_covfactor_update_op = covfactor_update
+    # TODO use assumptions WS = Y and WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
+    # @cached_property
+    # def covfactor_action(self) -> np.ndarray:
+    #     return self.qoi_belief.cov.A @ self.action
+    #
+    # @cached_property
+    # def action_covfactor_action(self) -> float:
+    #     return self.action.T @ self.covfactor_action
+
+    def updated_belief(
+        self, hyperparams: UncertaintyUnexploredSpace = None
+    ) -> rvs.Normal:
+        """Updated belief for the system matrix."""
 
         # Action observation inner products
+        # TODO group all precomputed quantities in LinearSolverMiscQuantities
+        #   and move all belief update related functions back into belief update.
         if self.solver_state is not None:
             try:
                 action_obs_innerprod = self.solver_state.action_obs_innerprods[
@@ -73,66 +78,88 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
                 action_obs_innerprod = self.action.T @ self.observation
         else:
             action_obs_innerprod = self.action.T @ self.observation
-
-        return rvs.Normal(
-            mean=linops.aslinop(self.belief.A_eps.mean) + mean_update,
-            cov=linops.SymmetricKronecker(
-                self.belief._cov_factor_matrix(
-                    action_obs_innerprods=action_obs_innerprod
-                )
-                - self.belief._A_covfactor_update_op
-            ),
-        )
-
-    @cached_property
-    def Ainv(self) -> rvs.Normal:
-        # Update belief about Ainv assuming WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
-        u, v, Wy = self._matrix_model_update_components(
-            belief_matrix=self.belief.Ainv,
-            action=self.observation,
-            observation=self.action,
-        )
-        # Rank 2 mean update (+= uv' + vu')
-        mean_update = self._matrix_model_mean_update_op(u=u, v=v)
-        # Rank 1 covariance Kronecker factor update (-= u(Wy)')
-        covfactor_update = self._matrix_model_covariance_factor_update_op(u=u, Ws=Wy)
-        if self.belief._Ainv_covfactor_update_op is not None:
-            self.belief._Ainv_covfactor_update_op += covfactor_update
-        else:
-            self.belief._Ainv_covfactor_update_op = covfactor_update
-
+        # TODO
         covfactor_op = (
-            self.belief._cov_factor_inverse() - self.belief._Ainv_covfactor_update_op
+            self.belief._cov_factor_matrix(action_obs_innerprods=action_obs_innerprod)
+            - self.covfactor_updates_batch[0]
         )
 
-        # Update trace efficiently
-        covfactor_op.trace = lambda: self._Ainv_covfactor_trace(
-            y=self.observation, Wy=Wy
+        mean = linops.aslinop(self.prior.A.mean) + self.mean_update_batch
+        cov = linops.SymmetricKronecker(covfactor_op)
+        return rvs.Normal(mean=mean, cov=cov)
+
+
+class _InverseMatrixWeakMeanCorrLinearObsBeliefUpdateState(
+    _MatrixSymmetricNormalLinearObsBeliefUpdateState
+):
+    """Weak mean correspondence belief update for the inverse."""
+
+    def __init__(
+        self,
+        problem: LinearSystem,
+        prior: WeakMeanCorrespondenceBelief,
+        belief: WeakMeanCorrespondenceBelief,
+        action: np.ndarray,
+        observation: np.ndarray,
+        hyperparams: Optional[LinearSolverHyperparams] = None,
+        prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
+    ):
+        super().__init__(
+            qoi="Ainv",
+            problem=problem,
+            prior=prior,
+            belief=belief,
+            action=action,
+            observation=observation,
+            hyperparams=hyperparams,
+            prev_state=prev_state,
         )
 
-        return rvs.Normal(
-            mean=linops.aslinop(self.belief.Ainv.mean) + mean_update,
-            cov=linops.SymmetricKronecker(covfactor_op),
+    def updated_belief(
+        self, hyperparams: UncertaintyUnexploredSpace = None
+    ) -> rvs.Normal:
+        """Updated belief for the inverse."""
+        # Empirical prior with scaled uncertainty in null space of observations
+
+        # TODO
+        covfactor_op = (
+            self.belief._cov_factor_inverse(hyperparams=hyperparams)
+            - self.covfactor_updates_batch[0]
         )
 
-    def _Ainv_covfactor_trace(self, y: np.ndarray, Wy: np.ndarray):
-        r"""Trace of the covariance factor of the inverse model.
-
-        Implements the recursive trace update for the covariance factor of the inverse
-        model given by
-
-        .. math::
-            \tr(W_k^H) = tr(W_{k-1}^H) - \frac{1}{y_k^\top W_{k-1}^H y_k} \lVert W_{
-            k-1}^H y_k \rVert^2.
-
-        See section S4.3 of Wenger and Hennig, 2020 for details.
-
-        Parameters
-        ----------
-        y : Observation
-        Wy : Inverse model covariance factor applied to observation.
-        """
-        return (
-            self.belief.Ainv.cov.A_eps.trace()
-            - 1 / (y.T @ Wy).item() * (Wy.T @ Wy).item()
+        # Recursive trace update (See Section S4.3 of Wenger and Hennig, 2020)
+        covfactor_op.trace = (
+            self.belief.Ainv.cov.A.trace()
+            - self.sqnorm_covfactor_action / self.action_covfactor_action
         )
+
+        mean = linops.aslinop(self.prior.Ainv.mean) + self.mean_update_batch
+        cov = linops.SymmetricKronecker(covfactor_op)
+        return rvs.Normal(mean=mean, cov=cov)
+
+
+class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
+    r"""Weak mean correspondence belief update assuming linear observations."""
+
+    def __init__(self):
+        super().__init__(
+            A_belief_update_state_type=_SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState,
+            Ainv_belief_update_state_type=_InverseMatrixWeakMeanCorrLinearObsBeliefUpdateState,
+        )
+
+    def update_belief(
+        self,
+        problem: LinearSystem,
+        belief: LinearSystemBelief,
+        action: np.ndarray,
+        observation: np.ndarray,
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
+        ] = None,
+        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
+    ) -> Tuple[
+        LinearSystemBelief, Optional["probnum.linalg.solvers.LinearSolverState"]
+    ]:
+        pass
+        # TODO modify empirical prior with actions and observations here in solver
+        #  state??

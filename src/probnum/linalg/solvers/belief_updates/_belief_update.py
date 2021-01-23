@@ -1,6 +1,6 @@
 """Abstract base class for belief updates for probabilistic linear solvers."""
 import abc
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 
 import numpy as np
 
@@ -17,7 +17,13 @@ from probnum.linalg.solvers._state import (
     LinearSolverMiscQuantities,
     LinearSolverState,
 )
-from probnum.linalg.solvers.beliefs import LinearSystemBelief
+from probnum.linalg.solvers.beliefs import (
+    LinearSystemBelief,
+    NoisySymmetricNormalLinearSystemBelief,
+    SymmetricNormalLinearSystemBelief,
+    WeakMeanCorrespondenceBelief,
+)
+from probnum.linalg.solvers.observation_ops import MatVecObservation
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -58,7 +64,9 @@ class LinearSolverBeliefUpdateState(abc.ABC):
         belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
-        hyperparams: Optional["probnum.PNMethodHyperparams"] = None,
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
+        ] = None,
         prev_state: Optional["LinearSolverBeliefUpdateState"] = None,
     ):
 
@@ -90,7 +98,10 @@ class LinearSolverBeliefUpdateState(abc.ABC):
         )
 
     def updated_belief(
-        self, hyperparams: Optional["probnum.PNMethodHyperparams"] = None
+        self,
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
+        ] = None,
     ) -> rvs.RandomVariable:
         """Updated belief about the quantity of interest."""
         raise NotImplementedError
@@ -108,12 +119,17 @@ class LinearSolverBeliefUpdate(abc.ABC):
         matrix-variate normal belief and linear observations.
     """
 
-    def __init__(self, prior_class, observation_op_type):
-        pass
-
-    def init_belief_update_states(self) -> Tuple[LinearSolverBeliefUpdateState, ...]:
-        """Initialize the belief update states for the quantities of interest."""
-        raise NotImplementedError
+    def __init__(
+        self,
+        x_belief_update_state_type: Type[LinearSolverBeliefUpdateState],
+        A_belief_update_state_type: Type[LinearSolverBeliefUpdateState],
+        Ainv_belief_update_state_type: Type[LinearSolverBeliefUpdateState],
+        b_belief_update_state_type: Type[LinearSolverBeliefUpdateState],
+    ):
+        self._x_update_state_type = x_belief_update_state_type
+        self._A_update_state_type = A_belief_update_state_type
+        self._Ainv_update_state_type = Ainv_belief_update_state_type
+        self._b_update_state_type = b_belief_update_state_type
 
     def update_belief(
         self,
@@ -121,8 +137,10 @@ class LinearSolverBeliefUpdate(abc.ABC):
         belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
-        hyperparams: Optional["probnum.PNMethodHyperparams"] = None,
-        solver_state: Optional["probnum.PNMethodState"] = None,
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
+        ] = None,
+        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> Tuple[
         LinearSystemBelief, Optional["probnum.linalg.solvers.LinearSolverState"]
     ]:
@@ -142,6 +160,23 @@ class LinearSolverBeliefUpdate(abc.ABC):
             Current state of the linear solver.
         """
         if solver_state is None:
+
+            update_states = {}
+            for key, update_state_types in {
+                "x": self._x_update_state_type,
+                "A": self._A_update_state_type,
+                "Ainv": self._Ainv_update_state_type,
+                "b": self._b_update_state_type,
+            }.items():
+                update_states[key] = update_state_types(
+                    problem=problem,
+                    prior=belief,
+                    belief=belief,
+                    action=action,
+                    observation=observation,
+                    hyperparams=hyperparams,
+                )
+
             solver_state = LinearSolverState(
                 problem=problem,
                 prior=belief,
@@ -151,10 +186,12 @@ class LinearSolverBeliefUpdate(abc.ABC):
                     observations=[observation],
                 ),
                 misc=LinearSolverMiscQuantities(
-                    x=None,
-                    A=None,
-                    Ainv=None,
-                    b=None,  # todo  determine in init
+                    problem=problem,
+                    belief=belief,
+                    x=update_states["x"],
+                    A=update_states["A"],
+                    Ainv=update_states["Ainv"],
+                    b=update_states["b"],
                 ),
             )
 
