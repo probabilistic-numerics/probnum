@@ -14,6 +14,7 @@ import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers import belief_updates
+from probnum.linalg.solvers._state import LinearSolverMiscQuantities
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.linalg.solvers.hyperparams import (
     LinearSolverHyperparams,
@@ -23,6 +24,12 @@ from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = ["SymmetricNormalLinearObsBeliefUpdate"]
+
+
+@dataclasses.dataclass
+class _SymmetricNormalLinearObsMiscQuantities(LinearSolverMiscQuantities):
+    # TODO
+    pass
 
 
 @dataclasses.dataclass
