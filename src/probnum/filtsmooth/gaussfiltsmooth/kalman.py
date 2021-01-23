@@ -79,14 +79,24 @@ class Kalman(BayesFiltSmooth):
         # _linearise_at is not used here, only in IteratedKalman.filter_step
         # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
-        filtrv = self.initrv
-        rvs = [filtrv]
+        rvs = []
+
+        # initial update
+        filtrv, _ = self.filter_step(
+            start=times[0],
+            stop=times[0],
+            current_rv=self.initrv,
+            data=dataset[0],
+            _intermediate_step=_intermediate_step,
+        )
+        rvs.append(filtrv)
+        print(dataset.shape, times.shape)
         for idx in range(1, len(times)):
             filtrv, _ = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 current_rv=filtrv,
-                data=dataset[idx - 1],
+                data=dataset[idx],
                 _intermediate_step=_intermediate_step,
             )
             rvs.append(filtrv)
