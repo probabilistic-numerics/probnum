@@ -79,6 +79,9 @@ class LinearSystemBelief:
         Ainv: rvs.RandomVariable,
         b: rvs.RandomVariable,
         x: Optional[rvs.RandomVariable] = None,
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
+        ] = None,
     ):
 
         x, A, Ainv, b = self._reshape_2d(x=x, A=A, Ainv=Ainv, b=b)
@@ -136,6 +139,13 @@ class LinearSystemBelief:
 
         if A.shape != Ainv.shape:
             raise dim_mismatch_error(A, Ainv, "A", "Ainv")
+
+    @property
+    def hyperparams(
+        self,
+    ) -> Optional["probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"]:
+        """Hyperparameters of the linear system belief."""
+        return self._hyperparams
 
     @cached_property
     def x(self) -> rvs.RandomVariable:

@@ -119,7 +119,9 @@ class ProbabilisticLinearSolver(
         prior: beliefs.LinearSystemBelief,
         policy: policies.Policy,
         observation_op: observation_ops.ObservationOperator,
-        optimize_hyperparams: bool = True,
+        hyperparam_optim_method: Optional[
+            hyperparam_optim.HyperparameterOptimization
+        ] = None,
         belief_update: Optional[belief_updates.LinearSolverBeliefUpdate] = None,
         stopping_criteria: Optional[
             List[stop_criteria.StoppingCriterion]
@@ -132,7 +134,7 @@ class ProbabilisticLinearSolver(
             self.belief_update = belief_update
         else:
             raise NotImplementedError  # TODO
-        self.optimize_hyperparams = optimize_hyperparams
+        self.hyperparam_optim_method = hyperparam_optim_method
         self.stopping_criteria = stopping_criteria
         super().__init__(
             prior=prior,
@@ -458,10 +460,11 @@ class ProbabilisticLinearSolver(
             )
 
             # Optimize hyperparameters
-            if self.optimize_hyperparams:
+            if self.hyperparam_optim_method is not None:
 
-                hyperparams = belief.hyperparams.optimize(
+                hyperparams = self.hyperparam_optim_method(
                     problem=solver_state.problem,
+                    belief=solver_state.belief,
                     actions=solver_state.data.actions,
                     observations=solver_state.data.observations,
                     solver_state=solver_state,

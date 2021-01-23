@@ -1,15 +1,14 @@
 """Belief assuming weak correspondence between the means of the matrix models."""
 
-import dataclasses
 from typing import List, Optional, Union
 
 import numpy as np
 import scipy.sparse
 
+import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum import PNMethodHyperparams
-from probnum.linalg.solvers.hyperparam_optim import UncertaintyCalibration
+from probnum.linalg.solvers.hyperparams import UncertaintyUnexploredSpace
 from probnum.problems import LinearSystem
 
 from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
@@ -17,25 +16,7 @@ from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 # pylint: disable="invalid-name"
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["WeakMeanCorrespondenceBelief", "UncertaintyScales"]
-
-
-@dataclasses.dataclass
-class UncertaintyScales(PNMethodHyperparams):
-    r"""Uncertainty scales of the system matrix and inverse model.
-
-    Parameters
-    ----------
-    Phi :
-        Uncertainty scaling :math:`\Phi` of the belief about the matrix in the unexplored
-        action space :math:`\operatorname{span}(s_1, \dots, s_k)^\perp`.
-    Psi :
-        Uncertainty scaling :math:`\Psi` of the belief about the inverse in the
-        unexplored observation space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
-    """
-
-    Phi: Optional[float] = None
-    Psi: Optional[float] = None
+__all__ = ["WeakMeanCorrespondenceBelief"]
 
 
 class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
@@ -120,16 +101,19 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         A0: Union[np.ndarray, linops.LinearOperator],
         Ainv0: Union[np.ndarray, linops.LinearOperator],
         b: rvs.RandomVariable,
-        uncertainty_scales: UncertaintyScales = UncertaintyScales(Phi=1.0, Psi=1.0),
+        uncertainty_scales: UncertaintyUnexploredSpace = UncertaintyUnexploredSpace(
+            Phi=1.0, Psi=1.0
+        ),
         actions: Optional[Union[List, np.ndarray]] = None,
         observations: Optional[Union[List, np.ndarray]] = None,
         action_obs_innerprods: Optional[np.ndarray] = None,
-        calibration_method: Optional[UncertaintyCalibration] = None,
+        calibration_method: Optional[
+            "probnum.linalg.solvers.hyperparam_optim.UncertaintyCalibration"
+        ] = None,
     ):
         self.A0 = A0
         self.Ainv0 = Ainv0
         self.calibration_method = calibration_method
-        self._uncertainty_scales = uncertainty_scales
         self._A_covfactor_update_op = None
         self._Ainv_covfactor_update_op = None
         if actions is None or observations is None:
@@ -158,15 +142,10 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             cov=linops.SymmetricKronecker(A=cov_factor_Ainv),
         )
 
-        super().__init__(
-            x=None,
-            Ainv=Ainv,
-            A=A,
-            b=b,
-        )
+        super().__init__(x=None, Ainv=Ainv, A=A, b=b, hyperparams=uncertainty_scales)
 
     @property
-    def uncertainty_scales(self) -> UncertaintyScales:
+    def hyperparams(self) -> UncertaintyUnexploredSpace:
         """Uncertainty scales of the system matrix and inverse model."""
         return self._uncertainty_scales
 
@@ -188,9 +167,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         if self.actions is None or self.observations is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            return linops.ScalarMult(
-                scalar=self.uncertainty_scales.Phi, shape=self.A0.shape
-            )
+            return linops.ScalarMult(scalar=self.hyperparams.Phi, shape=self.A0.shape)
         else:
             if action_obs_innerprods is None:
                 action_obs_innerprods = np.squeeze(self.actions.T @ self.observations)
@@ -218,7 +195,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
             )
 
-            orthogonal_space_op = self.uncertainty_scales.Phi * (
+            orthogonal_space_op = self.hyperparams.Phi * (
                 linops.Identity(shape=self.A0.shape) - action_proj
             )
             return action_space_op + orthogonal_space_op
@@ -234,7 +211,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
             return linops.ScalarMult(
-                scalar=self.uncertainty_scales.Psi, shape=self.Ainv0.shape
+                scalar=self.hyperparams.Psi, shape=self.Ainv0.shape
             )
         else:
             observation_proj = linops.OrthogonalProjection(
@@ -259,7 +236,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                     shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
                 )
 
-            orthogonal_space_op = self.uncertainty_scales.Psi * (
+            orthogonal_space_op = self.hyperparams.Psi * (
                 linops.Identity(shape=self.A0.shape) - observation_proj
             )
 
@@ -288,7 +265,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         problem: LinearSystem,
         actions: Optional[Union[np.ndarray, List]] = None,
         observations: Optional[Union[np.ndarray, List]] = None,
-        calibration_method: Optional[UncertaintyCalibration] = None,
+        calibration_method: Optional[
+            "probnum.linalg.solvers.hyperparam_optim.UncertaintyCalibration"
+        ] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief about the linear system from an approximate inverse.
 
@@ -333,7 +312,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         problem: LinearSystem,
         actions: Optional[Union[np.ndarray, List]] = None,
         observations: Optional[Union[np.ndarray, List]] = None,
-        calibration_method: Optional[UncertaintyCalibration] = None,
+        calibration_method: Optional[
+            "probnum.linalg.solvers.hyperparam_optim.UncertaintyCalibration"
+        ] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief about the linear system from an approximate system matrix.
 
@@ -387,7 +368,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         problem: LinearSystem,
         actions: Optional[Union[np.ndarray, List]] = None,
         observations: Optional[Union[np.ndarray, List]] = None,
-        calibration_method: Optional[UncertaintyCalibration] = None,
+        calibration_method: Optional[
+            "probnum.linalg.solvers.hyperparam_optim.UncertaintyCalibration"
+        ] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
@@ -426,7 +409,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         cls,
         scalar: float,
         problem: LinearSystem,
-        calibration_method: Optional[UncertaintyCalibration] = None,
+        calibration_method: Optional[
+            "probnum.linalg.solvers.hyperparam_optim.UncertaintyCalibration"
+        ] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief about the linear system from a scalar.
 

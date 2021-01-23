@@ -240,4 +240,12 @@ class LinearSolverState:
         prev_state: "LinearSolverState",
     ):
         """Create a new solver state from an updated belief."""
-        raise NotImplementedError
+
+        return cls(
+            problem=prev_state.problem,
+            prior=prev_state.prior,
+            data=prev_state.data,
+            belief=updated_belief,
+            info=prev_state.info,
+            misc=prev_state.misc,
+        )

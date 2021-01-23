@@ -1,19 +1,11 @@
 """Probabilistic Numerical Methods."""
 
-import dataclasses
 from abc import ABC, abstractmethod
-from typing import Generic, List, Optional, Tuple, TypeVar
+from typing import Generic, Tuple, TypeVar
 
 ProblemType = TypeVar("ProblemType")
 BeliefType = TypeVar("BeliefType")
 StateType = TypeVar("StateType")
-
-
-@dataclasses.dataclass
-class PNMethodHyperparams(ABC):
-    """Hyperparameters of a probabilistic numerical method."""
-
-    pass
 
 
 class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):

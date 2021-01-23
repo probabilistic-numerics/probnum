@@ -13,7 +13,11 @@ import probnum
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers import belief_updates
-from probnum.linalg.solvers.beliefs import LinearSystemBelief, LinearSystemNoise
+from probnum.linalg.solvers.beliefs import LinearSystemBelief
+from probnum.linalg.solvers.hyperparams import (
+    LinearSolverHyperparams,
+    LinearSystemNoise,
+)
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -33,7 +37,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdateState(
         belief: LinearSystemBelief,
         action: np.ndarray,
         observation: np.ndarray,
-        hyperparams: Optional["probnum.PNMethodHyperparams"] = None,
+        hyperparams: Optional[LinearSolverHyperparams] = None,
         prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
     ):
         super().__init__(

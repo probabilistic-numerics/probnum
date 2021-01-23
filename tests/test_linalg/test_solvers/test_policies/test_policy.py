@@ -100,15 +100,10 @@ class TestStochasticPolicies:
         policy: Policy,
         linsys_spd: LinearSystem,
         prior: LinearSystemBelief,
-        random_state: np.random.RandomState,
     ):
         """Test whether a fixed random state produces reproducible results."""
-        action0 = type(policy)(random_state=random_state)(
-            problem=linsys_spd, belief=prior
-        )
-        action1 = type(policy)(random_state=random_state)(
-            problem=linsys_spd, belief=prior
-        )
+        action0 = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
+        action1 = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
         np.testing.assert_allclose(
             action0,
             action1,

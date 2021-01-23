@@ -26,21 +26,16 @@ finite computational resources and stochastic input.
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from ._probabilistic_numerical_method import (
-    PNMethodHyperparams,
-    ProbabilisticNumericalMethod,
-)
+from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from .random_variables import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "asrandvar",
-    "PNMethodHyperparams",
     "ProbabilisticNumericalMethod",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-PNMethodHyperparams.__module__ = "probnum"
 ProbabilisticNumericalMethod.__module__ = "probnum"
 
 try:

@@ -15,10 +15,16 @@ probnum.linalg.solvers
     :headings: "-"
 
 
-
 (Prior) Beliefs
 ---------------
 .. automodapi:: probnum.linalg.solvers.beliefs
+    :no-heading:
+    :headings: "*"
+
+
+Hyperparameters
+---------------
+.. automodapi:: probnum.linalg.solvers.hyperparams
     :no-heading:
     :headings: "*"
 

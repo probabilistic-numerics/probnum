@@ -50,7 +50,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
             belief=belief,
             actions=actions,
             observations=observations,
-            noise_cov=None,
+            hyperparams=None,
             solver_state=solver_state,
         )
 

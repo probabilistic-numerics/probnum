@@ -41,20 +41,14 @@ class ThompsonSampling(Policy):
     ) -> np.ndarray:
 
         # Set seeds
-        if self.random_state != belief.x.random_state:
-            x = copy.copy(belief.x)
-            A = copy.copy(belief.A)
-            Ainv = copy.copy(belief.Ainv)
-            b = copy.copy(belief.b)
-
-            x.random_state = self.random_state
-            A.random_state = self.random_state
-            Ainv.random_state = self.random_state
-            b.random_state = self.random_state
-        else:
-            x, A, Ainv, b = belief.x, belief.A, belief.Ainv, belief.b
+        belief.x.random_state = self.random_state
+        belief.A.random_state = self.random_state
+        belief.Ainv.random_state = self.random_state
+        belief.b.random_state = self.random_state
 
         # A-conjugate action under sampled belief
-        action = -Ainv.sample() @ (A.sample() @ x.sample() - b.sample())
+        action = -belief.Ainv.sample() @ (
+            belief.A.sample() @ belief.x.sample() - belief.b.sample()
+        )
 
         return action

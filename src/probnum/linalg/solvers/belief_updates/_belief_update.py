@@ -1,6 +1,6 @@
 """Abstract base class for belief updates for probabilistic linear solvers."""
 import abc
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -12,7 +12,11 @@ except ImportError:
 
 import probnum  # pylint: disable="unused-import"
 import probnum.random_variables as rvs
-from probnum.linalg.solvers._state import LinearSolverData, LinearSolverState
+from probnum.linalg.solvers._state import (
+    LinearSolverData,
+    LinearSolverMiscQuantities,
+    LinearSolverState,
+)
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
@@ -20,7 +24,6 @@ from probnum.problems import LinearSystem
 __all__ = [
     "LinearSolverBeliefUpdate",
     "LinearSolverBeliefUpdateState",
-    "LinearSolverSolutionBeliefUpdateState",
 ]
 
 # pylint: disable="invalid-name,too-many-arguments"
@@ -147,7 +150,12 @@ class LinearSolverBeliefUpdate(abc.ABC):
                     actions=[action],
                     observations=[observation],
                 ),
-                belief_update=self,
+                misc=LinearSolverMiscQuantities(
+                    x=None,
+                    A=None,
+                    Ainv=None,
+                    b=None,  # todo  determine in init
+                ),
             )
 
         # Update belief (using optimized hyperparameters)

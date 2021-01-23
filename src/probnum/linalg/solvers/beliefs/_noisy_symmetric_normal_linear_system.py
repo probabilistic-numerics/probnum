@@ -1,13 +1,12 @@
 """Belief over a linear system with noise-corrupted system matrix."""
 
-import dataclasses
 from typing import Optional, Union
 
 import numpy as np
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum import PNMethodHyperparams
+from probnum.linalg.solvers.hyperparams import LinearSystemNoise
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -17,23 +16,7 @@ from ._symmetric_normal_linear_system import SymmetricNormalLinearSystemBelief
 
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["LinearSystemNoise", "NoisySymmetricNormalLinearSystemBelief"]
-
-
-@dataclasses.dataclass
-class LinearSystemNoise(PNMethodHyperparams):
-    """Additive Gaussian noise on the system matrix and right hand side.
-
-    Parameters
-    ----------
-    A_eps :
-        Noise on the system matrix.
-    b_eps :
-        Noise on the right hand side.
-    """
-
-    A_eps: Optional[rvs.Normal] = None
-    b_eps: Optional[rvs.Normal] = None
+__all__ = ["NoisySymmetricNormalLinearSystemBelief"]
 
 
 class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
@@ -49,7 +32,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         Belief over the (pseudo-)inverse of the system matrix.
     b :
         Belief over the right hand side.
-    noise :
+    hyperparams :
         Noise on the system matrix and right hand side.
     """
 
@@ -59,15 +42,9 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         A: rvs.Normal,
         Ainv: rvs.Normal,
         b: Union[rvs.Constant, rvs.Normal],
-        noise: LinearSystemNoise = LinearSystemNoise(A_eps=None, b_eps=None),
+        hyperparams: LinearSystemNoise = LinearSystemNoise(A_eps=None, b_eps=None),
     ):
-        self._noise = noise
-        super().__init__(x=x, A=A, Ainv=Ainv, b=b)
-
-    @property
-    def noise(self):
-        """Additive Gaussian noise on the system matrix and right hand side."""
-        return self._noise
+        super().__init__(x=x, A=A, Ainv=Ainv, b=b, hyperparams=hyperparams)
 
     @classmethod
     def from_solution(
@@ -75,7 +52,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         x0: np.ndarray,
         problem: LinearSystem,
         check_for_better_x0: bool = True,
-        noise: Optional[LinearSystemNoise] = None,
+        hyperparams: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
 
         x0, Ainv0, A0, b0 = cls._belief_means_from_solution(
@@ -91,7 +68,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(b0),
-            noise=noise,
+            hyperparams=hyperparams,
         )
 
     @classmethod
@@ -99,7 +76,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         cls,
         Ainv0: MatrixArgType,
         problem: LinearSystem,
-        noise: Optional[LinearSystemNoise] = None,
+        hyperparams: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief about the linear system from an approximate inverse.
 
@@ -113,7 +90,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
-        noise :
+        hyperparams :
             Noise on the system matrix and right hand side.
         """
         if not isinstance(Ainv0, rvs.Normal):
@@ -136,7 +113,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
-            noise=noise,
+            hyperparams=hyperparams,
         )
 
     @classmethod
@@ -144,7 +121,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         cls,
         A0: MatrixArgType,
         problem: LinearSystem,
-        noise: Optional[LinearSystemNoise] = None,
+        hyperparams: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief about the linear system from an approximate system matrix.
 
@@ -158,7 +135,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Approximate system matrix.
         problem :
             Linear system to solve.
-        noise :
+        hyperparams :
             Noise on the system matrix and right hand side.
         """
         if not isinstance(A0, rvs.Normal):
@@ -181,7 +158,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv=Ainv,
             A=A,
             b=rvs.asrandvar(problem.b),
-            noise=noise,
+            hyperparams=hyperparams,
         )
 
     @classmethod
@@ -190,7 +167,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         A0: MatrixArgType,
         Ainv0: MatrixArgType,
         problem: LinearSystem,
-        noise: Optional[LinearSystemNoise] = None,
+        hyperparams: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
@@ -207,7 +184,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
-        noise :
+        hyperparams :
             Noise on the system matrix and right hand side.
         """
         if not isinstance(A0, rvs.Normal):
@@ -220,5 +197,5 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv=Ainv0,
             A=A0,
             b=rvs.asrandvar(problem.b),
-            noise=noise,
+            hyperparams=hyperparams,
         )
