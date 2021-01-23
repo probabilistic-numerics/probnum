@@ -9,7 +9,22 @@ from probnum.random_variables import Normal
 
 
 class Kalman(BayesFiltSmooth):
-    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers."""
+    """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
+
+    Parameters
+    ----------
+    dynamics_model
+        Prior dynamics. Usually an LTISDE object or an Integrator, but LinearSDE, ContinuousEKFComponent,
+        or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
+        If an integrator, `K=spatialdim(ordint+1)` for some spatialdim and ordint.
+    measurement_model
+        Measurement model. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
+        This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
+        For 2-dimensional observations, `L=2`.
+        If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
+    initrv
+        Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
+    """
 
     def __init__(self, dynamics_model, measurement_model, initrv):
         """Check that the initial distribution is Gaussian."""
@@ -29,6 +44,7 @@ class Kalman(BayesFiltSmooth):
             Data set that is filtered.
         times : array_like, shape (N,)
             Temporal locations of the data points.
+            The zeroth element in times and dataset is the location of the initial random variable.
 
         Returns
         -------
@@ -53,6 +69,7 @@ class Kalman(BayesFiltSmooth):
             Data set that is filtered.
         times : array_like, shape (N,)
             Temporal locations of the data points.
+            The zeroth element in times and dataset is the location of the initial random variable.
 
         Returns
         -------
@@ -62,14 +79,20 @@ class Kalman(BayesFiltSmooth):
         # _linearise_at is not used here, only in IteratedKalman.filter_step
         # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
-        filtrv = self.initrv
-        rvs = [filtrv]
+        rvs = []
+
+        # initial update: since start=stop, prediction will not change the RV.
+        # This is relied on here but may lead to future problems.
+        filtrv, *_ = self.update(times[0], self.initrv, dataset[0])
+
+        rvs.append(filtrv)
+        print(dataset.shape, times.shape)
         for idx in range(1, len(times)):
             filtrv, _ = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 current_rv=filtrv,
-                data=dataset[idx - 1],
+                data=dataset[idx],
                 _intermediate_step=_intermediate_step,
             )
             rvs.append(filtrv)

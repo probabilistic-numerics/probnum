@@ -40,7 +40,7 @@ class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
         normaliser = np.sqrt(self.states[1:, :2].size)
         filtrmse = np.linalg.norm(filtms[1:, :2] - self.states[1:, :2]) / normaliser
         smoormse = np.linalg.norm(smooms[1:, :2] - self.states[1:, :2]) / normaliser
-        obs_rmse = np.linalg.norm(self.obs - self.states[1:, :2]) / normaliser
+        obs_rmse = np.linalg.norm(self.obs[1:] - self.states[1:, :2]) / normaliser
 
         if VISUALISE is True:
             plt.title(
@@ -85,12 +85,12 @@ class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
 
         self.assertEqual(filtms[1:].shape, self.states[1:].shape)
         self.assertEqual(smooms[1:].shape, self.states[1:].shape)
-        self.assertEqual(self.obs.shape, self.states[1:].shape)
+        self.assertEqual(self.obs[1:].shape, self.states[1:].shape)
 
         normaliser = np.sqrt(self.states[1:].size)
         filtrmse = np.linalg.norm(filtms[1:] - self.states[1:]) / normaliser
         smoormse = np.linalg.norm(smooms[1:] - self.states[1:]) / normaliser
-        obs_rmse = np.linalg.norm(self.obs - self.states[1:]) / normaliser
+        obs_rmse = np.linalg.norm(self.obs[1:] - self.states[1:]) / normaliser
 
         if VISUALISE is True:
             plt.title(
