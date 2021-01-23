@@ -16,12 +16,12 @@ class Kalman(BayesFiltSmooth):
     dynamics_model
         Prior dynamics. Usually an LTISDE object or an Integrator, but LinearSDE, ContinuousEKFComponent,
         or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
-        If an integrator, `K=spatialdim*(ordint+1)` for some spatialdim and ordint.
+        If an integrator, `K=spatialdim(ordint+1)` for some spatialdim and ordint.
     measurement_model
         Measurement model. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
-        This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ``live''.
+        This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
         For 2-dimensional observations, `L=2`.
-        If an DiscreteLTIGaussian, the measurement matrix is :math:`L \times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \times L` dimensional.
+        If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
     initrv
         Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
     """
@@ -83,13 +83,8 @@ class Kalman(BayesFiltSmooth):
 
         # initial update: since start=stop, prediction will not change the RV.
         # This is relied on here but may lead to future problems.
-        filtrv, _ = self.filter_step(
-            start=times[0],
-            stop=times[0],
-            current_rv=self.initrv,
-            data=dataset[0],
-            _intermediate_step=_intermediate_step,
-        )
+        filtrv, *_ = self.update(times[0], self.initrv, dataset[0])
+
         rvs.append(filtrv)
         print(dataset.shape, times.shape)
         for idx in range(1, len(times)):
