@@ -38,6 +38,6 @@ class ConjugateDirections(Policy):
             solver_state = LinearSolverState(problem=problem, belief=belief)
 
         # A-conjugate search direction / action (assuming exact arithmetic)
-        action = -belief.Ainv.mean @ solver_state.misc.residual
+        action = -belief.Ainv.mean @ solver_state.cache.residual
 
         return LinearSolverAction(A=action)

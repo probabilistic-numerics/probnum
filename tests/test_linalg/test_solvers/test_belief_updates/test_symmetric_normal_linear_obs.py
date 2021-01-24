@@ -6,44 +6,42 @@ import pytest
 
 import probnum.linops as linops
 from probnum.linalg.solvers.belief_updates import SymmetricNormalLinearObsBeliefUpdate
-from probnum.linalg.solvers.beliefs import SymmetricNormalLinearSystemBelief
+from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
-
-pytestmark = [
-    pytest.mark.usefixtures("symmlin_belief_update"),
-    pytest.mark.usefixtures("linobs_belief_update"),
-]
 
 
 def posterior_params(
-    action: np.ndarray,
-    observation: np.ndarray,
+    action_vec: np.ndarray,
+    observation_vec: np.ndarray,
     prior_mean: Union[np.ndarray, linops.LinearOperator],
     prior_cov_factor: Union[np.ndarray, linops.LinearOperator],
 ):
     """Posterior parameters of the symmetric linear Gaussian model."""
-    delta = observation - prior_mean @ action
-    u = prior_cov_factor @ action / (action.T @ (prior_cov_factor @ action))
+    delta = observation_vec - prior_mean @ action_vec
+    u = prior_cov_factor @ action_vec / (action_vec.T @ (prior_cov_factor @ action_vec))
     posterior_mean = (
         linops.aslinop(prior_mean).todense()
         + delta @ u.T
         + u @ delta.T
-        - u @ action.T @ delta @ u.T
+        - u @ action_vec.T @ delta @ u.T
     )
     posterior_cov_factor = (
-        linops.aslinop(prior_cov_factor).todense() - prior_cov_factor @ action @ u.T
+        linops.aslinop(prior_cov_factor).todense() - prior_cov_factor @ action_vec @ u.T
     )
     return posterior_mean, posterior_cov_factor
 
 
 def test_symmetric_posterior_params(
-    symmlin_belief_update: SymmetricNormalLinearObsBeliefUpdate,
+    symlin_updated_belief: LinearSystemBelief,
 ):
     """Test whether posterior parameters are symmetric."""
-    A = symmlin_belief_update.A
-    Ainv = symmlin_belief_update.Ainv
 
-    for linop in [A.mean, A.cov.A, Ainv.mean, Ainv.cov.A]:
+    for linop in [
+        symlin_updated_belief.A.mean,
+        symlin_updated_belief.A.cov.A,
+        symlin_updated_belief.Ainv.mean,
+        symlin_updated_belief.Ainv.cov.A,
+    ]:
         mat = linop.todense()
         np.testing.assert_allclose(mat, mat.T, rtol=10 ** 6 * np.finfo(float).eps)
 

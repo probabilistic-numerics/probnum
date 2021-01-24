@@ -5,11 +5,11 @@ import pytest
 
 from probnum.linalg.solvers import (
     LinearSolverCache,
-    LinearSolverData,
     LinearSolverInfo,
     LinearSolverState,
 )
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
+from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservation
 
 
 class TestLinearSolverInfo:
@@ -26,35 +26,24 @@ class TestLinearSolverInfo:
             assert solver_info.stopping_criterion is None
 
 
-class TestLinearSolverData:
-    """Tests for the objects storing the data collected by a linear solver."""
-
-    def test_data_arrays(self, solver_data: LinearSolverData):
-        """Test whether the linear solver data is correctly converted to arrays."""
-        assert np.all(solver_data.actions_arr == np.hstack(solver_data.actions))
-        assert np.all(
-            solver_data.observations_arr == np.hstack(solver_data.observations)
-        )
-
-
-class TestLinearSolverMiscQuantities:
+class TestLinearSolverCache:
     """Tests for the miscellaneous (cached) quantities stored for efficiency."""
 
     def test_from_new_data_clears_cached_residual(
         self,
-        action: np.ndarray,
-        matvec_observation: np.ndarray,
-        solver_misc_quantities: LinearSolverCache,
+        action: LinearSolverAction,
+        matvec_observation: LinearSolverObservation,
+        solver_cache: LinearSolverCache,
     ):
         """Test whether adding new data clears cached property 'residual'."""
-        solver_misc_quantities_new = LinearSolverCache.from_new_data(
+        solver_cache_new = LinearSolverCache.from_new_data(
             action=action,
             observation=matvec_observation,
-            prev_cache=solver_misc_quantities,
+            prev_cache=solver_cache,
         )
 
         with pytest.raises(KeyError):
-            _ = solver_misc_quantities_new.__dict__["residual"]
+            _ = solver_cache_new.__dict__["residual"]
 
 
 class TestLinearSolverState:
@@ -66,7 +55,7 @@ class TestLinearSolverState:
         """Tests whether updating a solver state with new data preserves the cached
         residual."""
         # Cache residual
-        _ = solver_state_init.misc.residual
+        _ = solver_state_init.cache.residual
 
         # Updated state
         new_state = LinearSolverState.from_updated_belief(
@@ -74,5 +63,5 @@ class TestLinearSolverState:
         )
 
         # Check for existence of cached residual and compare
-        assert "residual" in new_state.misc.__dict__.keys()
-        assert np.all(solver_state_init.misc.residual == new_state.misc.residual)
+        assert "residual" in new_state.cache.__dict__.keys()
+        assert np.all(solver_state_init.cache.residual == new_state.cache.residual)

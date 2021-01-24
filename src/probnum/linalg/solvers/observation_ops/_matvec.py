@@ -1,11 +1,9 @@
 """Matrix-vector product observations of a linear system."""
 from typing import Optional, Tuple
 
-import numpy as np
-
 import probnum
 import probnum.random_variables as rvs
-from probnum.linalg.solvers.data import LinearSolverObservation
+from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservation
 from probnum.linalg.solvers.observation_ops._observation_operator import (
     ObservationOperator,
 )
@@ -30,7 +28,7 @@ class MatVecObservation(ObservationOperator):
     def __call__(
         self,
         problem: LinearSystem,
-        action: np.ndarray,
+        action: LinearSolverAction,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> LinearSolverObservation:
 
@@ -44,4 +42,4 @@ class MatVecObservation(ObservationOperator):
         else:
             obs_b = problem.b
 
-        return LinearSolverObservation(A=obs_A @ action, b=obs_b)
+        return LinearSolverObservation(A=obs_A @ action.A, b=obs_b)

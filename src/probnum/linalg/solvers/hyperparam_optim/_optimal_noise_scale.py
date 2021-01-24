@@ -39,7 +39,7 @@ class OptimalNoiseScale(HyperparameterOptimization):
     ) -> float:
         n = solver_state.problem.A.shape[0]
         k = solver_state.info.iteration
-        sum_delta_invgram_delta = solver_state.misc.A.sum_delta_invgram_delta
+        sum_delta_invgram_delta = solver_state.cache.A.sum_delta_invgram_delta
         return np.maximum(0.0, sum_delta_invgram_delta / (n * k) - 1)
 
     @staticmethod

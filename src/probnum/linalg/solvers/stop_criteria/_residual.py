@@ -49,7 +49,7 @@ class Residual(StoppingCriterion):
 
         # Compute residual norm
         residual_norm = np.linalg.norm(
-            solver_state.misc.residual.flatten(), ord=self.norm_ord
+            solver_state.cache.residual.flatten(), ord=self.norm_ord
         )
 
         # Compare (relative) residual to tolerances

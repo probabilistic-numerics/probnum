@@ -21,10 +21,6 @@ from probnum.linalg.solvers.belief_updates import (
     LinearSolverQoIBeliefUpdate,
 )
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
-from probnum.linalg.solvers.hyperparams import (
-    LinearSolverHyperparams,
-    LinearSystemNoise,
-)
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
@@ -37,6 +33,27 @@ __all__ = ["SymmetricNormalLinearObsBeliefUpdate"]
 class _SymmetricNormalLinearObsCache(LinearSolverCache):
     """Cached quantities assuming symmetric matrix-variate normal priors and linear
     observations."""
+
+    def __init__(
+        self,
+        problem: LinearSystem,
+        belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSystemNoise"
+        ] = None,
+        action: Optional["probnum.linalg.solvers.LinearSolverAction"] = None,
+        observation: Optional["probnum.linalg.solvers.LinearSolverObservation"] = None,
+        prev_cache: Optional["_SymmetricNormalLinearObsCache"] = None,
+    ):
+        # pylint: disable="too-many-arguments"
+        super().__init__(
+            problem=problem,
+            belief=belief,
+            hyperparams=hyperparams,
+            action=action,
+            observation=observation,
+            prev_cache=prev_cache,
+        )
 
     @cached_property
     def action_observation(self) -> float:
@@ -60,7 +77,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         s_i^\top s_i)`."""
         log_rayleigh_quotient = (
             np.log(self.action_observation)
-            - np.log((self.action.T @ self.action)).item()
+            - np.log((self.action.A.T @ self.action.A)).item()
         )
         if self.prev_cache is None:
             return [log_rayleigh_quotient]
@@ -73,15 +90,15 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         if self.hyperparams is not None or self.prev_cache is None:
             return self.problem.A @ self.belief.x.mean - self.problem.b
         else:
-            return self.prev_cache.residual + self.step_size * self.observation
+            return self.prev_cache.residual + self.step_size * self.observation.A
 
     @cached_property
     def step_size(self) -> np.ndarray:
         r"""Step size :math:`\alpha_i` of the solver viewed as a quadratic optimizer
         taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
-        if self.hyperparams is None and self.prev_cache is not None:
+        if self.hyperparams is None:
             return (
-                -self.action.T @ self.prev_cache.residual / self.action_observation
+                -self.action.A.T @ self.prev_cache.residual / self.action_observation
             ).item()
         else:
             raise NotImplementedError
@@ -90,25 +107,25 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def deltaA(self) -> np.ndarray:
         r"""Residual :math:`\Delta^A_i = y_i - A_{i-1}s_i` between observation and
         prediction."""
-        return self.observation - self.belief.A.mean @ self.action
+        return self.observation.A - self.belief.A.mean @ self.action.A
 
     @cached_property
     def deltaH(self) -> np.ndarray:
         r"""Residual :math:`\Delta^H_i = s_i - H_{i-1}y_i` between inverse
         observation and prediction."""
-        return self.action - self.belief.Ainv.mean @ self.observation
+        return self.action.A - self.belief.Ainv.mean @ self.observation.A
 
     @cached_property
     def deltaA_action(self) -> float:
         r"""Inner product :math:`(\Delta^A)^\top s` between matrix residual and
         action."""
-        return self.deltaA.T @ self.action
+        return self.deltaA.T @ self.action.A
 
     @cached_property
     def deltaH_observation(self) -> float:
         r"""Inner product :math:`(\Delta^H)^\top y` between inverse residual and
         observation."""
-        return self.deltaH.T @ self.observation
+        return self.deltaH.T @ self.observation.A
 
     @cached_property
     def covfactorA_action(self) -> np.ndarray:
@@ -117,7 +134,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         Computes the matrix-vector product :math:`W^A_{i-1}s_i` between the covariance
         factor of the matrix model and the current action.
         """
-        return self.belief.A.cov.A @ self.action
+        return self.belief.A.cov.A @ self.action.A
 
     @cached_property
     def covfactorH_observation(self) -> np.ndarray:
@@ -126,7 +143,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         Computes the matrix-vector product :math:`W^H_{i-1}y_i` between the covariance
         factor of the inverse model and the current observation.
         """
-        return self.belief.Ainv.cov.A @ self.observation
+        return self.belief.Ainv.cov.A @ self.observation.A
 
     @cached_property
     def sqnorm_covfactorA_action(self) -> float:
@@ -144,13 +161,13 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def action_covfactorA_action(self) -> float:
         r"""Inner product :math:`s_i^\top W^A_{i-1} s_i` of the current action
         with respect to the covariance factor :math:`W_{i-1}` of the matrix model."""
-        return self.action.T @ self.covfactorA_action
+        return self.action.A.T @ self.covfactorA_action
 
     @cached_property
     def observation_covfactorH_observation(self) -> float:
         r"""Inner product :math:`y_i^\top W^H_{i-1} y_i` of the current observation
         with respect to the covariance factor :math:`W^H_{i-1}` of the inverse model."""
-        return self.observation.T @ self.covfactorH_observation
+        return self.observation.A.T @ self.covfactorH_observation
 
     @cached_property
     def delta_invcovfactorA_delta(self) -> float:
@@ -178,7 +195,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         v = self.deltaA - 0.5 * self.deltaA_action * u
 
         return linops.LinearOperator(
-            shape=(self.action.shape[0], self.action.shape[0]),
+            shape=self.belief.A.shape,
             matvec=lambda x: u * (v.T @ x) + v * (u.T @ x),
             matmat=lambda x: u @ (v.T @ x) + v @ (u.T @ x),
         )
@@ -190,7 +207,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         v = self.deltaH - 0.5 * self.deltaH_observation * u
 
         return linops.LinearOperator(
-            shape=(self.action.shape[0], self.action.shape[0]),
+            shape=self.belief.Ainv.shape,
             matvec=lambda x: u * (v.T @ x) + v * (u.T @ x),
             matmat=lambda x: u @ (v.T @ x) + v @ (u.T @ x),
         )
@@ -201,7 +218,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         u = self.covfactorA_action / self.action_covfactorA_action
 
         covfactor_update_op = linops.LinearOperator(
-            shape=(self.action.shape[0], self.action.shape[0]),
+            shape=self.belief.A.shape,
             matvec=lambda x: self.covfactorA_action * (u.T @ x),
             matmat=lambda x: self.covfactorA_action @ (u.T @ x),
         )
@@ -213,7 +230,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         u = self.covfactorH_observation / self.observation_covfactorH_observation
 
         covfactor_update_op = linops.LinearOperator(
-            shape=(self.action.shape[0], self.action.shape[0]),
+            shape=self.belief.Ainv.shape,
             matvec=lambda x: self.covfactorH_observation * (u.T @ x),
             matmat=lambda x: self.covfactorH_observation @ (u.T @ x),
         )
@@ -222,14 +239,14 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     @cached_property
     def meanA_update_batch(self) -> linops.LinearOperator:
         """Matrix model mean update term for all actions and observations."""
-        if self.prev_cache is None:
+        if self.prev_cache.action is None:
             return self.meanA_update_op
         return self.prev_cache.meanA_update_batch + self.meanA_update_op
 
     @cached_property
     def meanH_update_batch(self) -> linops.LinearOperator:
         """Inverse model mean update term for all actions and observations."""
-        if self.prev_cache is None:
+        if self.prev_cache.action is None:
             return self.meanH_update_op
         return self.prev_cache.meanH_update_batch + self.meanH_update_op
 
@@ -237,7 +254,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def covfactorA_update_batch(self) -> Tuple[linops.LinearOperator, ...]:
         """Matrix model covariance factor downdate term for all actions and
         observations."""
-        if self.prev_cache is None:
+        if self.prev_cache.action is None:
             return self.covfactorA_update_ops
         return tuple(
             map(
@@ -251,7 +268,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def covfactorH_update_batch(self) -> Tuple[linops.LinearOperator, ...]:
         """Inverse model covariance factor downdate term for all actions and
         observations."""
-        if self.prev_cache is None:
+        if self.prev_cache.action is None:
             return self.covfactorH_update_ops
         return tuple(
             map(
@@ -263,27 +280,71 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
 
 
 class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
-    pass
+    """Belief update for the system matrix assuming symmetrix matrix-variate normal
+    priors and linear observations."""
 
-
-class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
-    def __call__(self, hyperparams: LinearSystemNoise = None) -> rvs.Normal:
+    def __call__(
+        self,
+        hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
+    ) -> rvs.Normal:
         """Updated belief for the matrix model."""
         if hyperparams is None:
-            mean = linops.aslinop(self.qoi_prior.mean) + self.mean_update_batch
+            mean = (
+                linops.aslinop(self.prior.A.mean)
+                + solver_state.cache.meanA_update_batch
+            )
             cov = linops.SymmetricKronecker(
-                self.qoi_prior.cov.A - self.covfactor_updates_batch[0]
+                self.prior.A.cov.A - solver_state.cache.covfactorA_update_batch[0]
             )
         elif isinstance(hyperparams.A_eps, linops.ScalarMult):
             eps_sq = hyperparams.A_eps.cov.A.scalar
-            mean = linops.aslinop(self.qoi_prior.mean) + self.mean_update_batch / (
-                1 + eps_sq
-            )
+            mean = linops.aslinop(
+                self.prior.A.mean
+            ) + solver_state.cache.meanA_update_batch / (1 + eps_sq)
 
             cov = linops.SymmetricKronecker(
-                self.qoi_prior.cov.A - self.covfactor_updates_batch[0] / (1 + eps_sq)
+                self.prior.A.cov.A
+                - solver_state.cache.covfactorA_update_batch[0] / (1 + eps_sq)
             ) + linops.SymmetricKronecker(
-                eps_sq / (1 + eps_sq) * self.covfactor_updates_batch[1]
+                eps_sq / (1 + eps_sq) * solver_state.cache.covfactorA_update_batch[1]
+            )
+        else:
+            raise NotImplementedError(
+                "Belief updated for general noise not implemented."
+            )
+        return rvs.Normal(mean=mean, cov=cov)
+
+
+class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
+    """Belief update for the inverse assuming symmetrix matrix-variate normal priors and
+    linear observations."""
+
+    def __call__(
+        self,
+        hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
+    ) -> rvs.Normal:
+        """Updated belief for the matrix model."""
+        if hyperparams is None:
+            mean = (
+                linops.aslinop(self.prior.Ainv.mean)
+                + solver_state.cache.meanH_update_batch
+            )
+            cov = linops.SymmetricKronecker(
+                self.prior.Ainv.cov.A - solver_state.cache.covfactorH_update_batch[0]
+            )
+        elif isinstance(hyperparams.A_eps, linops.ScalarMult):
+            eps_sq = hyperparams.A_eps.cov.A.scalar
+            mean = linops.aslinop(
+                self.prior.Ainv.mean
+            ) + solver_state.cache.meanH_update_batch / (1 + eps_sq)
+
+            cov = linops.SymmetricKronecker(
+                self.prior.Ainv.cov.A
+                - solver_state.cache.covfactorH_update_batch[0] / (1 + eps_sq)
+            ) + linops.SymmetricKronecker(
+                eps_sq / (1 + eps_sq) * solver_state.cache.covfactorH_update_batch[1]
             )
         else:
             raise NotImplementedError(
@@ -293,20 +354,33 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
 
 
 class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
+    """Belief update for the solution assuming symmetric matrix-variate normal priors
+    and linear observations."""
+
     def __call__(
-        self, hyperparams: Optional[LinearSystemNoise] = None
+        self,
+        hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
-        if hyperparams is None and self.prev_state is not None:
-            return self.prev_state.residual + self.step_size * self.observation
+        if hyperparams is None and solver_state is not None:
+            return (
+                solver_state.cache.residual
+                + solver_state.cache.step_size * solver_state.cache.observation.A
+            )
         else:
             # Belief is induced from inverse and rhs
             return None
 
 
 class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
+    """Belief update for the right hand side assuming symmetric matrix-variate normal
+    priors and linear observations."""
+
     def __call__(
-        self, hyperparams: LinearSystemNoise = None
+        self,
+        hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Union[rvs.Constant, rvs.Normal]:
         """Updated belief for the right hand side."""
         if hyperparams is None:
@@ -331,6 +405,7 @@ class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
         self,
         problem: LinearSystem,
         prior: LinearSystemBelief,
+        cache_type=_SymmetricNormalLinearObsCache,
         x_belief_update_type=_SolutionSymmetricNormalLinearObsBeliefUpdate,
         A_belief_update_type=_SystemMatrixSymmetricNormalLinearObsBeliefUpdate,
         Ainv_belief_update_type=_InverseMatrixSymmetricNormalLinearObsBeliefUpdate,
@@ -339,6 +414,7 @@ class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
         super().__init__(
             problem=problem,
             prior=prior,
+            cache_type=cache_type,
             x_belief_update_type=x_belief_update_type,
             A_belief_update_type=A_belief_update_type,
             Ainv_belief_update_type=Ainv_belief_update_type,

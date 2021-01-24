@@ -10,7 +10,8 @@ import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
     SymmetricNormalLinearObsBeliefUpdate,
-    _MatrixSymmetricNormalLinearObsBeliefUpdateState,
+    _InverseMatrixSymmetricNormalLinearObsBeliefUpdate,
+    _SystemMatrixSymmetricNormalLinearObsBeliefUpdate,
 )
 from probnum.linalg.solvers.beliefs import (
     LinearSystemBelief,
@@ -27,30 +28,9 @@ __all__ = ["WeakMeanCorrLinearObsBeliefUpdate"]
 
 
 class _SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState(
-    _MatrixSymmetricNormalLinearObsBeliefUpdateState
+    _SystemMatrixSymmetricNormalLinearObsBeliefUpdate
 ):
     """Weak mean correspondence belief update for the system matrix."""
-
-    def __init__(
-        self,
-        problem: LinearSystem,
-        prior: WeakMeanCorrespondenceBelief,
-        belief: WeakMeanCorrespondenceBelief,
-        action: np.ndarray,
-        observation: np.ndarray,
-        hyperparams: Optional[LinearSolverHyperparams] = None,
-        prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
-    ):
-        super().__init__(
-            qoi="A",
-            problem=problem,
-            prior=prior,
-            belief=belief,
-            action=action,
-            observation=observation,
-            hyperparams=hyperparams,
-            prev_state=prev_state,
-        )
 
     # TODO use assumptions WS = Y and WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
     # @cached_property
@@ -61,8 +41,13 @@ class _SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState(
     # def action_covfactor_action(self) -> float:
     #     return self.action.T @ self.covfactor_action
 
-    def updated_belief(
-        self, hyperparams: UncertaintyUnexploredSpace = None
+    def __call__(
+        self,
+        belief: WeakMeanCorrespondenceBelief,
+        action: np.ndarray,
+        observation: np.ndarray,
+        hyperparams: Optional[UncertaintyUnexploredSpace] = None,
+        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> rvs.Normal:
         """Updated belief for the system matrix."""
 
@@ -90,33 +75,17 @@ class _SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState(
 
 
 class _InverseMatrixWeakMeanCorrLinearObsBeliefUpdateState(
-    _MatrixSymmetricNormalLinearObsBeliefUpdateState
+    _InverseMatrixSymmetricNormalLinearObsBeliefUpdate
 ):
     """Weak mean correspondence belief update for the inverse."""
 
-    def __init__(
+    def __call__(
         self,
-        problem: LinearSystem,
-        prior: WeakMeanCorrespondenceBelief,
         belief: WeakMeanCorrespondenceBelief,
         action: np.ndarray,
         observation: np.ndarray,
-        hyperparams: Optional[LinearSolverHyperparams] = None,
-        prev_state: Optional["_MatrixSymmetricNormalLinearObsBeliefUpdateState"] = None,
-    ):
-        super().__init__(
-            qoi="Ainv",
-            problem=problem,
-            prior=prior,
-            belief=belief,
-            action=action,
-            observation=observation,
-            hyperparams=hyperparams,
-            prev_state=prev_state,
-        )
-
-    def updated_belief(
-        self, hyperparams: UncertaintyUnexploredSpace = None
+        hyperparams: Optional[UncertaintyUnexploredSpace] = None,
+        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> rvs.Normal:
         """Updated belief for the inverse."""
         # Empirical prior with scaled uncertainty in null space of observations
@@ -141,18 +110,19 @@ class _InverseMatrixWeakMeanCorrLinearObsBeliefUpdateState(
 class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
     r"""Weak mean correspondence belief update assuming linear observations."""
 
-    def __init__(self):
+    def __init__(self, problem: LinearSystem, prior: LinearSystemBelief):
         super().__init__(
-            A_belief_update_state_type=_SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState,
-            Ainv_belief_update_state_type=_InverseMatrixWeakMeanCorrLinearObsBeliefUpdateState,
+            problem=problem,
+            prior=prior,
+            A_belief_update_type=_SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState,
+            Ainv_belief_update_type=_InverseMatrixWeakMeanCorrLinearObsBeliefUpdateState,
         )
 
-    def update_belief(
+    def __init__(
         self,
-        problem: LinearSystem,
         belief: LinearSystemBelief,
-        action: np.ndarray,
-        observation: np.ndarray,
+        action: "probnum.linalg.solvers.data.LinearSolverAction",
+        observation: "probnum.linalg.solvers.data.LinearSolverObservation",
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
         ] = None,

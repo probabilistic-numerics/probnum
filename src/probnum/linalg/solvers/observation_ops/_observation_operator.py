@@ -1,11 +1,9 @@
 """Base class for observation operators of probabilistic linear solvers."""
 
-from typing import Callable, Optional, Tuple
-
-import numpy as np
+from typing import Callable, Optional
 
 import probnum  # pylint: disable="unused-import
-from probnum.linalg.solvers.data import LinearSolverObservation
+from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservation
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -36,7 +34,7 @@ class ObservationOperator:
         observation_op: Callable[
             [
                 LinearSystem,
-                np.ndarray,
+                LinearSolverAction,
                 Optional["probnum.linalg.solvers.LinearSolverState"],
             ],
             LinearSolverObservation,
@@ -47,7 +45,7 @@ class ObservationOperator:
     def __call__(
         self,
         problem: LinearSystem,
-        action: np.ndarray,
+        action: LinearSolverAction,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> LinearSolverObservation:
         """Collect an observation about the linear system.

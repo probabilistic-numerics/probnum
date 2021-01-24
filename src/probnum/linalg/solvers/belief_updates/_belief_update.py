@@ -38,26 +38,15 @@ class LinearSolverQoIBeliefUpdate(abc.ABC):
 
     def __call__(
         self,
-        belief: LinearSystemBelief,
-        action: LinearSolverAction,
-        observation: LinearSolverObservation,
-        hyperparams: Optional[
-            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
-        ] = None,
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
+        hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
+        solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.RandomVariable:
         """Update the belief about the quantity of interest given observations.
 
         Parameters
         ----------
-        belief :
-            Belief over the quantities of interest
         hyperparams :
             Hyperparameters of the belief.
-        action :
-            Action to probe the linear system with.
-        observation :
-            Observation of the linear system for the given action.
         solver_state :
             Current state of the linear solver.
         """
@@ -90,13 +79,15 @@ class LinearSolverBeliefUpdate(abc.ABC):
         self,
         problem: LinearSystem,
         prior: LinearSystemBelief,
+        cache_type: Type[LinearSolverCache],
         x_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
         A_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
         Ainv_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
         b_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
     ):
-        self.problem = problem
-        self.prior = prior
+        self._problem = problem
+        self._prior = prior
+        self._cache_type = cache_type
         self._x_belief_update = x_belief_update_type(problem=problem, prior=prior)
         self._A_belief_update = A_belief_update_type(problem=problem, prior=prior)
         self._Ainv_belief_update = Ainv_belief_update_type(problem=problem, prior=prior)
@@ -132,46 +123,38 @@ class LinearSolverBeliefUpdate(abc.ABC):
         if solver_state is None:
 
             solver_state = LinearSolverState(
-                problem=self.problem,
-                prior=self.prior,
+                problem=self._problem,
+                prior=self._prior,
                 belief=belief,
                 data=LinearSolverData(
                     actions=[action],
                     observations=[observation],
                 ),
-                misc=LinearSolverCache(
-                    problem=self.problem,
-                    belief=belief,
+                cache=self._cache_type.from_new_data(
+                    action=action,
+                    observation=observation,
+                    prev_cache=self._cache_type(
+                        problem=self._problem,
+                        belief=self._prior,
+                    ),
                 ),
             )
 
         # Update belief (using optimized hyperparameters)
         updated_belief = LinearSystemBelief(
             x=self._x_belief_update(
-                belief=belief,
-                action=action,
-                observation=observation,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
             Ainv=self._Ainv_belief_update(
-                belief=belief,
-                action=action,
-                observation=observation,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
             A=self._A_belief_update(
-                belief=belief,
-                action=action,
-                observation=observation,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
             b=self._b_belief_update(
-                belief=belief,
-                action=action,
-                observation=observation,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
