@@ -1,6 +1,6 @@
 """Probabilistic linear solvers.
 
-Implementation of components of probabilistic linear solvers. The
+Compositional implementation of probabilistic linear solvers. The
 classes and methods in this subpackage allow the creation of custom
 iterative methods for the solution of linear systems. Some combinations
 generalizing and recovering classic iterative methods are listed below.
@@ -22,25 +22,19 @@ generalizing and recovering classic iterative methods are listed below.
 """
 
 from ._probabilistic_linear_solver import ProbabilisticLinearSolver
-from ._state import (
-    LinearSolverData,
-    LinearSolverInfo,
-    LinearSolverMiscQuantities,
-    LinearSolverState,
-)
+from ._state import LinearSolverCache, LinearSolverInfo, LinearSolverState
+from .data import LinearSolverAction, LinearSolverData, LinearSolverObservation
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "ProbabilisticLinearSolver",
     "LinearSolverInfo",
-    "LinearSolverData",
-    "LinearSolverMiscQuantities",
+    "LinearSolverCache",
     "LinearSolverState",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 ProbabilisticLinearSolver.__module__ = "probnum.linalg.solvers"
 LinearSolverInfo.__module__ = "probnum.linalg.solvers"
-LinearSolverData.__module__ = "probnum.linalg.solvers"
-LinearSolverMiscQuantities.__module__ = "probnum.linalg.solvers"
+LinearSolverCache.__module__ = "probnum.linalg.solvers"
 LinearSolverState.__module__ = "probnum.linalg.solvers"

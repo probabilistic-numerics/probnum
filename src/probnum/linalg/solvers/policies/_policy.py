@@ -51,7 +51,7 @@ class Policy:
                 RandomStateArgType,
                 Optional["probnum.linalg.solvers.LinearSolverState"],
             ],
-            np.ndarray,
+            "probnum.linalg.solvers.LinearSolverAction",
         ],
         is_deterministic: bool,
         random_state: RandomStateArgType = None,
@@ -65,7 +65,7 @@ class Policy:
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> np.ndarray:
+    ) -> "probnum.linalg.solvers.LinearSolverAction":
         """Return an action based on the given problem and model.
 
         Parameters
@@ -77,11 +77,6 @@ class Policy:
             inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
         solver_state :
             Current state of the linear solver.
-
-        Returns
-        -------
-        action :
-            Action chosen by the policy.
         """
         return self._policy(problem, belief, self.random_state, solver_state)
 

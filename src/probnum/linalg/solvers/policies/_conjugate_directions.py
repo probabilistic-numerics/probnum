@@ -1,9 +1,8 @@
-from typing import Optional, Tuple
-
-import numpy as np
+from typing import Optional
 
 import probnum
 from probnum.linalg.solvers._state import LinearSolverState
+from probnum.linalg.solvers.data import LinearSolverAction
 from probnum.linalg.solvers.policies._policy import Policy
 from probnum.problems import LinearSystem
 
@@ -33,7 +32,7 @@ class ConjugateDirections(Policy):
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> np.ndarray:
+    ) -> LinearSolverAction:
 
         if solver_state is None:
             solver_state = LinearSolverState(problem=problem, belief=belief)
@@ -41,4 +40,4 @@ class ConjugateDirections(Policy):
         # A-conjugate search direction / action (assuming exact arithmetic)
         action = -belief.Ainv.mean @ solver_state.misc.residual
 
-        return action
+        return LinearSolverAction(A=action)

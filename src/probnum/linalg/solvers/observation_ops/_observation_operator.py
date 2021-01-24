@@ -5,6 +5,7 @@ from typing import Callable, Optional, Tuple
 import numpy as np
 
 import probnum  # pylint: disable="unused-import
+from probnum.linalg.solvers.data import LinearSolverObservation
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -38,7 +39,7 @@ class ObservationOperator:
                 np.ndarray,
                 Optional["probnum.linalg.solvers.LinearSolverState"],
             ],
-            np.ndarray,
+            LinearSolverObservation,
         ],
     ):
         self._observation_op = observation_op
@@ -48,7 +49,7 @@ class ObservationOperator:
         problem: LinearSystem,
         action: np.ndarray,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> np.ndarray:
+    ) -> LinearSolverObservation:
         """Collect an observation about the linear system.
 
         Parameters

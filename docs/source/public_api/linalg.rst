@@ -29,6 +29,13 @@ Hyperparameters
     :headings: "*"
 
 
+Problem Data
+------------
+.. automodapi:: probnum.linalg.solvers.data
+    :no-heading:
+    :headings: "*"
+
+
 Policies
 --------
 .. automodapi:: probnum.linalg.solvers.policies

@@ -1,7 +1,9 @@
 """State of a probabilistic linear solver."""
 
 import dataclasses
-from typing import List, Optional
+from typing import Optional
+
+from probnum.linalg.solvers.data import LinearSolverData
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -20,8 +22,7 @@ from probnum.problems import LinearSystem
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "LinearSolverInfo",
-    "LinearSolverData",
-    "LinearSolverMiscQuantities",
+    "LinearSolverCache",
     "LinearSolverState",
 ]
 
@@ -48,36 +49,8 @@ class LinearSolverInfo:
 
 
 @dataclasses.dataclass
-class LinearSolverData:
-    r"""Data about a numerical problem.
-
-    Actions and observations collected by a probabilistic linear solver via
-    its observation process.
-
-    Parameters
-    ----------
-    actions
-        Performed actions.
-    observations
-        Collected observations of the problem.
-    """
-    actions: List
-    observations: List
-
-    @cached_property
-    def actions_arr(self) -> np.ndarray:
-        """Array of performed actions."""
-        return np.hstack(self.actions)
-
-    @cached_property
-    def observations_arr(self) -> np.ndarray:
-        """Array of performed observations."""
-        return np.hstack(self.observations)
-
-
-@dataclasses.dataclass
-class LinearSolverMiscQuantities:
-    r"""Miscellaneous (cached) quantities.
+class LinearSolverCache:
+    r"""Miscellaneous cached quantities.
 
     Used to efficiently select an action, optimize hyperparameters and to update the
     belief. This class is intended to be subclassed to store any quantities which are
@@ -90,85 +63,53 @@ class LinearSolverMiscQuantities:
         Linear system to be solved.
     belief
         (Updated) belief over the quantities of interest of the linear system.
-    x
-        Quantities used to update the belief about the solution.
-    A
-        Quantities used to update the belief about the system matrix.
-    Ainv
-        Quantities used to update the belief about the inverse.
-    b
-        Quantities used to update the belief about the right hand side.
+    hyperparams
+    action
+    observation
+    prev_cache
     """
 
     def __init__(
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        x: Optional[
-            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
+        hyperparams: Optional[
+            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
         ] = None,
-        A: Optional[
-            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
-        ] = None,
-        Ainv: Optional[
-            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
-        ] = None,
-        b: Optional[
-            "probnum.linalg.solvers.belief_updates.LinearSolverBeliefUpdateState"
-        ] = None,
+        action: Optional["probnum.linalg.solvers.LinearSolverAction"] = None,
+        observation: Optional["probnum.linalg.solvers.LinearSolverObservation"] = None,
+        prev_cache: Optional["LinearSolverCache"] = None,
     ):
         # pylint: disable="too-many-arguments"
 
         self.problem = problem
         self.belief = belief
-        self.x = x
-        self.A = A
-        self.Ainv = Ainv
-        self.b = b
-
-    @classmethod
-    def from_new_data(
-        cls,
-        action: np.ndarray,
-        observation: np.ndarray,
-        prev: "LinearSolverMiscQuantities",
-    ):
-        """Create new miscellaneous cached quantities from new data."""
-        new_belief_update_states = {}
-        for key, prev_belief_update_state in {
-            "x": prev.x,
-            "A": prev.A,
-            "Ainv": prev.Ainv,
-            "b": prev.b,
-        }.items():
-            if prev_belief_update_state is None:
-                new_belief_update_states[key] = None
-            else:
-                new_belief_update_states[key] = type(
-                    prev_belief_update_state
-                ).from_new_data(
-                    action=action,
-                    observation=observation,
-                    prev_state=prev_belief_update_state,
-                )
-
-        return cls(
-            problem=prev.problem,
-            belief=prev.belief,
-            x=new_belief_update_states["x"],
-            A=new_belief_update_states["A"],
-            Ainv=new_belief_update_states["Ainv"],
-            b=new_belief_update_states["b"],
-        )
+        self.hyperparams = hyperparams
+        self.action = action
+        self.observation = observation
+        self.prev_cache = prev_cache
 
     @cached_property
     def residual(self) -> np.ndarray:
         r"""Residual :math:`r = A x_i- b` of the solution estimate
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
-        try:
-            return self.x.residual
-        except AttributeError:
-            return self.problem.A @ self.belief.x.mean - self.problem.b
+        return self.problem.A @ self.belief.x.mean - self.problem.b
+
+    @classmethod
+    def from_new_data(
+        cls,
+        action: Optional["probnum.linalg.solvers.LinearSolverAction"],
+        observation: Optional["probnum.linalg.solvers.LinearSolverObservation"],
+        prev_cache: "LinearSolverCache",
+    ):
+        """Create new cached quantities from new data."""
+        return cls(
+            problem=prev_cache.problem,
+            belief=prev_cache.belief,
+            action=action,
+            observation=observation,
+            prev_cache=prev_cache,
+        )
 
 
 @dataclasses.dataclass
@@ -187,7 +128,7 @@ class LinearSolverState:
     ----------
 
     info
-        Information about the convergence of the linear solver
+        Information about the convergence of the linear solver.
     problem
         Linear system to be solved.
     prior
@@ -208,7 +149,7 @@ class LinearSolverState:
         prior: Optional["probnum.linalg.solvers.beliefs.LinearSystemBelief"] = None,
         data: Optional[LinearSolverData] = None,
         info: Optional[LinearSolverInfo] = None,
-        misc: Optional[LinearSolverMiscQuantities] = None,
+        misc: Optional[LinearSolverCache] = None,
     ):
         # pylint: disable="too-many-arguments"
 
@@ -222,7 +163,7 @@ class LinearSolverState:
         self.misc = (
             misc
             if misc is not None
-            else LinearSolverMiscQuantities(problem=problem, belief=belief)
+            else LinearSolverCache(problem=problem, belief=belief)
         )
 
     @classmethod
@@ -247,8 +188,8 @@ class LinearSolverState:
             actions=prev_state.data.actions + [action],
             observations=prev_state.data.observations + [observation],
         )
-        misc = LinearSolverMiscQuantities.from_new_data(
-            action=action, observation=observation, prev=prev_state.misc
+        misc = LinearSolverCache.from_new_data(
+            action=action, observation=observation, prev_cache=prev_state.misc
         )
 
         return cls(

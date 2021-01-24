@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+import probnum.linops as linops
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.linalg.solvers.policies import (
     ConjugateDirections,
@@ -15,21 +16,21 @@ from probnum.problems import LinearSystem
 # pylint: disable="invalid-name"
 
 
-def test_policy_returns_vector(
+def test_policy_returns_array(
     policy: Policy, linsys_spd: LinearSystem, prior: LinearSystemBelief
 ):
-    """Test whether stochastic policies return a (column) vector of length n."""
+    """Test whether policies return an array or linear operator."""
     action = policy(
         problem=linsys_spd,
         belief=prior,
         solver_state=None,
     )
-    assert isinstance(
-        action, np.ndarray
-    ), f"Action {action} returned by {policy.__class__.__name__} is not an np.ndarray."
-    assert action.shape == (linsys_spd.A.shape[1], 1), (
-        f"Action returned by {policy.__class__.__name__} has shape" f" {action.shape}.",
-    )
+    if action.A is not None:
+        assert isinstance(action.A, np.ndarray)
+    if action.b is not None:
+        assert isinstance(action.b, np.ndarray)
+    if action.proj is not None:
+        assert isinstance(action.proj, (np.ndarray, linops.LinearOperator))
 
 
 def test_is_deterministic_or_stochastic(
@@ -40,12 +41,12 @@ def test_is_deterministic_or_stochastic(
     action2 = policy(problem=linsys_spd, belief=prior, solver_state=None)
 
     if policy.is_deterministic:
-        assert np.all(
+        assert (
             action1 == action2
         ), "Policy returned two different actions for the same input."
     else:
-        assert not np.all(
-            action1 == action2
+        assert (
+            action1 != action2
         ), "Policy returned the same action for two subsequent evaluations."
 
 
@@ -67,7 +68,7 @@ def test_ground_truth_belief_solves_problem_in_one_step(
 
     np.testing.assert_allclose(
         linsys_spd.solution,
-        belief_groundtruth.x.mean + action,
+        belief_groundtruth.x.mean + action.A,
     )
 
 
@@ -82,9 +83,9 @@ def test_multiple_rhs(
 ):
     """Test whether the policy returns multiple actions for multiple right hand sides of
     the linear system."""
-    actions = policy(problem=linsys_spd_multiple_rhs, belief=symm_belief_multiple_rhs)
+    action = policy(problem=linsys_spd_multiple_rhs, belief=symm_belief_multiple_rhs)
 
-    assert actions.shape == symm_belief_multiple_rhs.x.shape
+    assert action.A.shape == symm_belief_multiple_rhs.x.shape
 
 
 @pytest.mark.parametrize(
@@ -105,8 +106,15 @@ class TestStochasticPolicies:
         action0 = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
         action1 = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
         np.testing.assert_allclose(
-            action0,
-            action1,
+            action0.A,
+            action1.A,
             rtol=10 ** 2 * np.finfo(float).eps,
             atol=10 ** 2 * np.finfo(float).eps,
         )
+        if action0.b is not None:
+            np.testing.assert_allclose(
+                action0.b,
+                action1.b,
+                rtol=10 ** 2 * np.finfo(float).eps,
+                atol=10 ** 2 * np.finfo(float).eps,
+            )

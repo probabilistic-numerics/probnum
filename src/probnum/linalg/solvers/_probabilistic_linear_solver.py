@@ -25,6 +25,7 @@ from probnum.linalg.solvers import (
     stop_criteria,
 )
 from probnum.linalg.solvers._state import LinearSolverInfo, LinearSolverState
+from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservation
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -359,7 +360,12 @@ class ProbabilisticLinearSolver(
         belief: Optional[beliefs.LinearSystemBelief] = None,
         solver_state: Optional[LinearSolverState] = None,
     ) -> Generator[
-        Tuple[beliefs.LinearSystemBelief, np.ndarray, np.ndarray, LinearSolverState],
+        Tuple[
+            beliefs.LinearSystemBelief,
+            LinearSolverAction,
+            LinearSolverObservation,
+            LinearSolverState,
+        ],
         None,
         None,
     ]:
@@ -446,8 +452,8 @@ class ProbabilisticLinearSolver(
                 hyperparams = belief.hyperparams
 
             # Update the belief over the quantities of interest
-            belief, solver_state = belief.update(
-                problem=problem,
+            belief, solver_state = self.belief_update(
+                belief=belief,
                 action=action,
                 observation=observation,
                 hyperparams=hyperparams,

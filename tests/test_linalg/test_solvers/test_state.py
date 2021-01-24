@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 
 from probnum.linalg.solvers import (
+    LinearSolverCache,
     LinearSolverData,
     LinearSolverInfo,
-    LinearSolverMiscQuantities,
     LinearSolverState,
 )
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
@@ -44,11 +44,13 @@ class TestLinearSolverMiscQuantities:
         self,
         action: np.ndarray,
         matvec_observation: np.ndarray,
-        solver_misc_quantities: LinearSolverMiscQuantities,
+        solver_misc_quantities: LinearSolverCache,
     ):
         """Test whether adding new data clears cached property 'residual'."""
-        solver_misc_quantities_new = LinearSolverMiscQuantities.from_new_data(
-            action=action, observation=matvec_observation, prev=solver_misc_quantities
+        solver_misc_quantities_new = LinearSolverCache.from_new_data(
+            action=action,
+            observation=matvec_observation,
+            prev_cache=solver_misc_quantities,
         )
 
         with pytest.raises(KeyError):

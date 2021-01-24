@@ -8,7 +8,7 @@ from probnum.problems import LinearSystem
 # pylint: disable="invalid-name"
 
 
-def test_observation_is_vector_or_float(
+def test_observation_array(
     observation_op: ObservationOperator, action: np.ndarray, linsys_spd: LinearSystem
 ):
     """Test whether observation operators return a vector."""
@@ -17,7 +17,5 @@ def test_observation_is_vector_or_float(
         action=action,
         solver_state=None,
     )
-    assert isinstance(observation, (np.ndarray, float, np.float_)), (
-        f"Observation {observation} returned by {observation_op.__class__.__name__} "
-        f"is not an np.ndarray."
-    )
+    assert isinstance(observation.A, np.ndarray)
+    assert isinstance(observation.b, np.ndarray)

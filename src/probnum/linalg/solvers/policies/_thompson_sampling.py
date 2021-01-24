@@ -1,9 +1,8 @@
 import copy
-from typing import Optional, Tuple
-
-import numpy as np
+from typing import Optional
 
 import probnum
+from probnum.linalg.solvers.data import LinearSolverAction
 from probnum.linalg.solvers.policies._policy import Policy
 from probnum.problems import LinearSystem
 
@@ -38,7 +37,7 @@ class ThompsonSampling(Policy):
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> np.ndarray:
+    ) -> LinearSolverAction:
 
         # Set seeds
         belief.x.random_state = self.random_state
@@ -51,4 +50,4 @@ class ThompsonSampling(Policy):
             belief.A.sample() @ belief.x.sample() - belief.b.sample()
         )
 
-        return action
+        return LinearSolverAction(A=action)

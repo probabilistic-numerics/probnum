@@ -8,9 +8,9 @@ import pytest
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers import (
+    LinearSolverCache,
     LinearSolverData,
     LinearSolverInfo,
-    LinearSolverMiscQuantities,
     LinearSolverState,
     ProbabilisticLinearSolver,
     belief_updates,
@@ -216,47 +216,8 @@ def belief_groundtruth(linsys_spd: LinearSystem) -> beliefs.LinearSystemBelief:
 
 
 ############
-# Policies #
+# Data #
 ############
-
-
-def custom_policy(
-    problem: LinearSystem,
-    belief: beliefs.LinearSystemBelief,
-    random_state: np.random.RandomState,
-    solver_state: Optional[LinearSolverState] = None,
-):
-    """Custom stochastic linear solver policy."""
-    action = rvs.Normal(
-        0.0,
-        1.0,
-        random_state=random_state,
-    ).sample((problem.A.shape[1], 1))
-    action = action / np.linalg.norm(action)
-
-    return action
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(policy, id=policy_name)
-        for (policy_name, policy) in zip(
-            ["conjugatedirs", "thompson", "exploreexploit", "custom"],
-            [
-                policies.ConjugateDirections(),
-                policies.ThompsonSampling(random_state=1),
-                policies.ExploreExploit(random_state=1),
-                policies.Policy(
-                    policy=custom_policy, is_deterministic=False, random_state=1
-                ),
-            ],
-        )
-    ],
-    name="policy",
-)
-def fixture_policy(request) -> policies.Policy:
-    """Policies of linear solvers returning an action."""
-    return request.param
 
 
 @pytest.fixture(name="action")
@@ -271,26 +232,6 @@ def fixture_actions(
 ) -> list:
     """Action chosen by a policy."""
     return [action[:, None] for action in (random_state.normal(size=(n, num_iters))).T]
-
-
-#########################
-# Observation Operators #
-#########################
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(observation_op, id=observation_op_name)
-        for (observation_op_name, observation_op) in zip(
-            ["matvec"],
-            [observation_ops.MatVecObservation()],
-        )
-    ],
-    name="observation_op",
-)
-def fixture_observation_op(request) -> observation_ops.ObservationOperator:
-    """Observation operators of linear solvers."""
-    return request.param
 
 
 @pytest.fixture()
@@ -487,7 +428,7 @@ def solver_data(actions: list, matvec_observations: list):
 @pytest.fixture
 def solver_misc_quantities(linsys: LinearSystem, belief: beliefs.LinearSystemBelief):
     """Miscellaneous quantities computed (and cached) by a linear solver."""
-    return LinearSolverMiscQuantities(problem=linsys, belief=belief)
+    return LinearSolverCache(problem=linsys, belief=belief)
 
 
 @pytest.fixture(name="solver_state_init")
