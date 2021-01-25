@@ -113,9 +113,15 @@ class LinearSolverCache:
         prev_cache: "LinearSolverCache",
     ):
         """Create new cached quantities from new data."""
+        if prev_cache.data is None:
+            actions = [action]
+            observations = [observation]
+        else:
+            actions = prev_cache.data.actions + [action]
+            observations = prev_cache.data.observations + [observation]
         data = LinearSolverData(
-            actions=prev_cache.data.actions + [action],
-            observations=prev_cache.data.observations + [observation],
+            actions=actions,
+            observations=observations,
         )
         return cls(
             problem=prev_cache.problem,

@@ -102,10 +102,14 @@ class LinearSolverData:
         """Array of performed actions."""
         ActionsArr = namedtuple("ActionsArr", ["A", "b"])
 
-        return ActionsArr(
-            np.hstack([action.A for action in self.actions]),
-            np.hstack([action.b for action in self.actions]),
-        )
+        arr_A = np.hstack([action.A for action in self.actions])
+        arr_b = np.hstack([action.b for action in self.actions])
+
+        if arr_A[0] is None:
+            arr_A = np.array([[None]])
+        if arr_b[0] is None:
+            arr_b = np.array([[None]])
+        return ActionsArr(A=arr_A, b=arr_b)
 
     @cached_property
     def observations_arr(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -113,6 +117,27 @@ class LinearSolverData:
         side."""
         ObservationsArr = namedtuple("ObservationsArr", ["A", "b"])
         return ObservationsArr(
-            np.hstack([observation.A for observation in self.observations]),
-            np.hstack([observation.b for observation in self.observations]),
+            A=np.hstack([observation.A for observation in self.observations]),
+            b=np.hstack([observation.b for observation in self.observations]),
+        )
+
+    @classmethod
+    def from_arrays(
+        cls,
+        actions_arr: Tuple[np.ndarray, np.ndarray],
+        observations_arr: Tuple[np.ndarray, np.ndarray],
+    ):
+        """Create a linear solver data object from actions and observations given as
+        tuples of arrays."""
+        return cls(
+            actions=[
+                LinearSolverAction(A=actions_arr[0][:, i], b=actions_arr[1][:, i])
+                for i in range(actions_arr[0].shape[1])
+            ],
+            observations=[
+                LinearSolverObservation(
+                    A=observations_arr[0][:, i], b=observations_arr[1][:, i]
+                )
+                for i in range(observations_arr[0].shape[1])
+            ],
         )

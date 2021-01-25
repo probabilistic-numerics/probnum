@@ -207,3 +207,34 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             b=rvs.asrandvar(problem.b),
             hyperparams=hyperparams,
         )
+
+    def _induced_solution_cov(self) -> Union[np.ndarray, linops.LinearOperator]:
+        if self.hyperparams.b_eps is None:
+            Vb = self.Ainv.cov.A.A @ self.b.mean
+            bVb = (Vb.T @ self.b.mean).item()
+
+            Wb = self.Ainv.cov.B.A @ self.b.mean
+            bWb = (Wb.T @ self.b.mean).item()
+
+            def _mv(vec):
+                return 0.5 * (
+                    bVb * self.Ainv.cov.A.A @ vec
+                    + bWb * self.Ainv.cov.B.A @ vec
+                    + Vb @ (Vb.T @ vec)
+                    + Wb @ (Wb.T @ vec)
+                )
+
+            x_cov = linops.LinearOperator(
+                shape=self.Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
+            )
+            # Efficient trace computation
+            x_cov.trace = lambda: 0.5 * (
+                self.Ainv.cov.A.A.trace() * bVb
+                + self.Ainv.cov.B.A.trace() * bWb
+                + (Vb.T @ Vb).item()
+                + (Wb.T @ Wb).item()
+            )
+
+            return x_cov
+        else:
+            raise NotImplementedError

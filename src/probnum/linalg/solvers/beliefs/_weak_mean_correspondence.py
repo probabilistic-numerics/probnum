@@ -11,6 +11,7 @@ import probnum.random_variables as rvs
 from probnum.linalg.solvers.beliefs._symmetric_normal_linear_system import (
     SymmetricNormalLinearSystemBelief,
 )
+from probnum.linalg.solvers.data import LinearSolverData
 from probnum.linalg.solvers.hyperparams import UncertaintyUnexploredSpace
 from probnum.problems import LinearSystem
 
@@ -45,10 +46,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
     uncertainty_scales :
         Uncertainty scales of the system matrix and inverse model in the respective
         null spaces of the actions and observations.
-    actions :
-        Actions to probe the linear system with.
-    observations :
-        Observations of the linear system for the given actions.
+    data :
+        Actions and observations of the linear system.
     action_obs_innerprods :
         Inner product(s) :math:`(S^\top Y)_{ij} = s_i^\top y_j` of actions
         and observations. If a vector is passed, actions are assumed to be
@@ -102,26 +101,15 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         uncertainty_scales: UncertaintyUnexploredSpace = UncertaintyUnexploredSpace(
             Phi=1.0, Psi=1.0
         ),
-        actions: Optional[Union[List, np.ndarray]] = None,
-        observations: Optional[Union[List, np.ndarray]] = None,
+        data: Optional[LinearSolverData] = None,
         action_obs_innerprods: Optional[np.ndarray] = None,
     ):
         self.A0 = A0
         self.Ainv0 = Ainv0
         self._A_covfactor_update_op = None
         self._Ainv_covfactor_update_op = None
-        if actions is None or observations is None:
-            self.actions = None
-            self.observations = None
-        else:
-            self.actions = (
-                actions if isinstance(actions, np.ndarray) else np.hstack(actions)
-            )
-            self.observations = (
-                observations
-                if isinstance(observations, np.ndarray)
-                else np.hstack(observations)
-            )
+        self.data = data
+
         cov_factor_A = self._cov_factor_matrix(
             uncertainty_scales=uncertainty_scales,
             action_obs_innerprods=action_obs_innerprods,
@@ -161,31 +149,35 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             and observations. If a vector is passed, actions and observations are
             assumed to be conjugate, i.e. :math:`s_i^\top y_j =0` for :math:`i \neq j`.
         """
-        if self.actions is None or self.observations is None:
+        if self.data is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
             return linops.ScalarMult(scalar=uncertainty_scales.Phi, shape=self.A0.shape)
         else:
             if action_obs_innerprods is None:
-                action_obs_innerprods = np.squeeze(self.actions.T @ self.observations)
+                action_obs_innerprods = np.squeeze(
+                    self.data.actions_arr.A.T @ self.data.observations_arr.A
+                )
 
-            action_proj = linops.OrthogonalProjection(subspace_basis=self.actions)
+            action_proj = linops.OrthogonalProjection(
+                subspace_basis=self.data.actions_arr.A
+            )
 
             if np.squeeze(action_obs_innerprods).ndim in (0, 1):
 
                 def _matvec(x):
                     """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
                     matrix."""
-                    return (self.observations * action_obs_innerprods ** -1) @ (
-                        self.observations.T @ x
-                    )
+                    return (
+                        self.data.observations_arr.A * action_obs_innerprods ** -1
+                    ) @ (self.data.observations_arr.A.T @ x)
 
             else:
 
                 def _matvec(x):
-                    return self.observations @ np.linalg.solve(
+                    return self.data.observations_arr.A @ np.linalg.solve(
                         action_obs_innerprods,
-                        self.observations.T @ x,
+                        self.data.observations_arr.A.T @ x,
                     )
 
             action_space_op = linops.LinearOperator(
@@ -212,7 +204,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             Uncertainty scales of the system matrix and inverse model in the respective
             null spaces of the actions and observations.
         """
-        if self.actions is None or self.observations is None:
+        if self.data is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
             return linops.ScalarMult(
@@ -220,7 +212,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             )
         else:
             observation_proj = linops.OrthogonalProjection(
-                subspace_basis=self.observations
+                subspace_basis=self.data.observations_arr.A
             )
 
             if isinstance(self.Ainv0, linops.ScalarMult):
@@ -230,7 +222,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 def _matvec(x):
                     return self.Ainv0 @ (
                         linops.OrthogonalProjection(
-                            subspace_basis=self.observations,
+                            subspace_basis=self.data.observations_arr.A,
                             is_orthonormal=False,
                             innerprod_matrix=self.Ainv0,
                         )
@@ -274,8 +266,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         cls,
         Ainv0: Union[np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix],
         problem: LinearSystem,
-        actions: Optional[Union[np.ndarray, List]] = None,
-        observations: Optional[Union[np.ndarray, List]] = None,
+        data: Optional[LinearSolverData] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief about the linear system from an approximate inverse.
 
@@ -289,10 +280,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
-        actions :
-            Actions to probe the linear system with.
-        observations :
-            Observations of the linear system for the given actions.
+        data :
+            Actions and observations of the linear system.
         """
         try:
             A0 = Ainv0.inv()
@@ -307,8 +296,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             A0=A0,  # Ensure (weak) mean correspondence
             Ainv0=Ainv0,
             b=rvs.asrandvar(problem.b),
-            actions=actions,
-            observations=observations,
+            data=data,
         )
 
     @classmethod
@@ -316,8 +304,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         cls,
         A0: Union[np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix],
         problem: LinearSystem,
-        actions: Optional[Union[np.ndarray, List]] = None,
-        observations: Optional[Union[np.ndarray, List]] = None,
+        data: Optional[LinearSolverData] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief about the linear system from an approximate system matrix.
 
@@ -331,10 +318,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             Approximate system matrix.
         problem :
             Linear system to solve.
-        actions :
-            Actions to probe the linear system with.
-        observations :
-            Observations of the linear system for the given actions.
+        data :
+            Actions and observations of the linear system.
         """
         try:
             Ainv0 = A0.inv()
@@ -348,8 +333,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             A0=A0,
             Ainv0=Ainv0,  # Ensure (weak) mean correspondence
             b=rvs.asrandvar(problem.b),
-            actions=actions,
-            observations=observations,
+            data=data,
         )
 
     @classmethod
@@ -366,8 +350,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             scipy.sparse.spmatrix,
         ],
         problem: LinearSystem,
-        actions: Optional[Union[np.ndarray, List]] = None,
-        observations: Optional[Union[np.ndarray, List]] = None,
+        data: Optional[LinearSolverData] = None,
     ) -> "WeakMeanCorrespondenceBelief":
         r"""Construct a belief from an approximate system matrix and
         corresponding inverse.
@@ -384,18 +367,10 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             Approximate inverse of the system matrix.
         problem :
             Linear system to solve.
-        actions :
-            Actions to probe the linear system with.
-        observations :
-            Observations of the linear system for the given actions.
+        data :
+            Actions and observations of the linear system.
         """
-        return cls(
-            A0=A0,
-            Ainv0=Ainv0,
-            b=rvs.asrandvar(problem.b),
-            actions=actions,
-            observations=observations,
-        )
+        return cls(A0=A0, Ainv0=Ainv0, b=rvs.asrandvar(problem.b), data=data)
 
     @classmethod
     def from_scalar(
@@ -414,9 +389,6 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             Scalar parameter defining prior mean(s) of matrix models.
         problem :
             Linear system to solve.
-        calibration_method :
-            Uncertainty calibration method to automatically set the uncertainty in the
-            null spaces given by :math:`\Phi` and :math:`\Psi`.
         """
         if scalar <= 0.0:
             raise ValueError(f"Scalar parameter alpha={scalar:.4f} must be positive.")

@@ -307,7 +307,7 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
-        """Updated belief for the matrix model."""
+        """Updated belief for the matrix."""
         if hyperparams is None:
             mean = (
                 linops.aslinop(self.prior.A.mean)
@@ -344,7 +344,7 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
-        """Updated belief for the matrix model."""
+        """Updated belief for the inverse matrix."""
         if hyperparams is None:
             mean = (
                 linops.aslinop(self.prior.Ainv.mean)
@@ -403,6 +403,8 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
     ) -> Union[rvs.Constant, rvs.Normal]:
         """Updated belief for the right hand side."""
         if hyperparams is None:
+            return rvs.asrandvar(self.problem.b)
+        elif hyperparams.b_eps is None:
             return rvs.asrandvar(self.problem.b)
         else:
             raise NotImplementedError

@@ -6,6 +6,7 @@ import scipy.linalg
 
 import probnum.linops as linops
 from probnum.linalg.solvers.beliefs import WeakMeanCorrespondenceBelief
+from probnum.linalg.solvers.data import LinearSolverData, LinearSolverObservation
 from probnum.linalg.solvers.hyperparams import UncertaintyUnexploredSpace
 from probnum.problems import LinearSystem
 
@@ -14,50 +15,47 @@ pytestmark = pytest.mark.filterwarnings("ignore::scipy.sparse.SparseEfficiencyWa
 
 def test_means_correspond_weakly(
     weakmeancorr_belief: WeakMeanCorrespondenceBelief,
-    actions: list,
-    matvec_observations: list,
+    solver_data: LinearSolverData,
     linsys_spd: LinearSystem,
 ):
     r"""Test whether :math:`\mathbb{E}[A]^{-1}y = \mathbb{E}[H]y` for all actions
     :math:`y`."""
     np.testing.assert_allclose(
         np.linalg.solve(
-            weakmeancorr_belief.A.mean.todense(), np.hstack(matvec_observations)
+            weakmeancorr_belief.A.mean.todense(), solver_data.observations_arr.A
         ),
-        weakmeancorr_belief.Ainv.mean @ np.hstack(matvec_observations),
+        weakmeancorr_belief.Ainv.mean @ solver_data.observations_arr.A,
     )
 
 
 def test_system_matrix_uncertainty_in_action_span(
     weakmeancorr_belief: WeakMeanCorrespondenceBelief,
-    actions: list,
-    matvec_observations: list,
+    solver_data: LinearSolverData,
     linsys_spd: LinearSystem,
     n: int,
 ):
     """Test whether the covariance factor W_0^A of the model for A acts like the
     true A in the span of the actions, i.e. if W_0^A S = Y."""
     np.testing.assert_allclose(
-        np.hstack(matvec_observations),
-        weakmeancorr_belief.A.cov.A @ np.hstack(actions),
+        solver_data.observations_arr.A,
+        weakmeancorr_belief.A.cov.A @ solver_data.actions_arr.A,
     )
 
 
 def test_inverse_uncertainty_in_observation_span(
     weakmeancorr_belief: WeakMeanCorrespondenceBelief,
-    actions: list,
-    matvec_observations: list,
+    solver_data: LinearSolverData,
     linsys_spd: LinearSystem,
     n: int,
 ):
     """Test whether the covariance factor W_0^H of the model for Ainv acts like its
     prior mean in the span of the observations, i.e. if W_0^H Y = H_0 Y."""
-    if n <= len(actions):
+    if n <= len(solver_data):
         pytest.skip("Action null space may be trivial.")
 
     np.testing.assert_allclose(
-        weakmeancorr_belief.Ainv.mean @ np.hstack(matvec_observations),
-        weakmeancorr_belief.Ainv.cov.A @ np.hstack(matvec_observations),
+        weakmeancorr_belief.Ainv.mean @ solver_data.observations_arr.A,
+        weakmeancorr_belief.Ainv.cov.A @ solver_data.observations_arr.A,
     )
 
 
@@ -65,12 +63,13 @@ def test_inverse_uncertainty_in_observation_span(
 def test_uncertainty_action_null_space_is_phi(
     phi: float,
     n: int,
-    actions: list,
+    num_iters: int,
+    solver_data: LinearSolverData,
     random_state: np.random.RandomState,
 ):
     r"""Test whether the uncertainty in the null space <S>^\perp is
     given by the uncertainty scale parameter phi for a scalar system matrix A."""
-    if n <= len(actions):
+    if n <= len(solver_data):
         pytest.skip("Action null space may be trivial.")
 
     scalar_linsys = LinearSystem.from_matrix(
@@ -83,15 +82,20 @@ def test_uncertainty_action_null_space_is_phi(
         uncertainty_scales=UncertaintyUnexploredSpace(
             Phi=phi, Psi=1 / phi if phi != 0.0 else 0.0
         ),
-        actions=actions,
-        observations=scalar_linsys.A @ np.hstack(actions),
+        data=LinearSolverData.from_arrays(
+            actions_arr=solver_data.actions_arr,
+            observations_arr=(
+                scalar_linsys.A @ solver_data.actions_arr.A,
+                np.repeat(scalar_linsys.b, num_iters, axis=1),
+            ),
+        ),
     )
 
-    action_null_space = scipy.linalg.null_space(np.hstack(actions).T)
+    action_null_space = scipy.linalg.null_space(solver_data.actions_arr.A.T)
 
     np.testing.assert_allclose(
         action_null_space.T @ (belief.A.cov.A @ action_null_space),
-        phi * np.eye(n - len(actions)),
+        phi * np.eye(n - len(solver_data)),
         atol=10 ** -15,
         rtol=10 ** -15,
     )
@@ -101,18 +105,18 @@ def test_uncertainty_action_null_space_is_phi(
 def test_uncertainty_observation_null_space_is_psi(
     psi: float,
     n: int,
-    actions: list,
+    solver_data: LinearSolverData,
     random_state: np.random.RandomState,
 ):
     r"""Test whether the uncertainty in the null space <Y>^\perp is
     given by the uncertainty scale parameter psi for a scalar prior mean."""
-    if n <= len(actions):
+    if n <= len(solver_data):
         pytest.skip("Observation null space may be trivial.")
 
     scalar_linsys = LinearSystem.from_matrix(
         A=linops.ScalarMult(scalar=2.5, shape=(n, n)), random_state=random_state
     )
-    observations = scalar_linsys.A @ np.hstack(actions)
+    observations = scalar_linsys.A @ solver_data.actions_arr.A
     belief = WeakMeanCorrespondenceBelief(
         A0=scalar_linsys.A,
         Ainv0=scalar_linsys.A.inv(),
@@ -120,15 +124,14 @@ def test_uncertainty_observation_null_space_is_psi(
         uncertainty_scales=UncertaintyUnexploredSpace(
             Phi=1 / psi if psi != 0.0 else 0.0, Psi=psi
         ),
-        actions=actions,
-        observations=observations,
+        data=solver_data,
     )
 
     observation_null_space = scipy.linalg.null_space(observations.T)
 
     np.testing.assert_allclose(
         observation_null_space.T @ (belief.Ainv.cov.A @ observation_null_space),
-        psi * np.eye(n - len(actions)),
+        psi * np.eye(n - len(solver_data)),
         atol=10 ** -15,
         rtol=10 ** -15,
     )
@@ -172,19 +175,18 @@ def test_no_data_prior(
 def test_inverse_nonscalar_prior_mean(
     n: int,
     weakmeancorr_belief: WeakMeanCorrespondenceBelief,
-    actions: list,
-    matvec_observations: list,
+    solver_data: LinearSolverData,
     linsys_spd: LinearSystem,
 ):
     """Test whether the covariance for the inverse model with a non-scalar prior mean
     matches a naively computed one."""
     W0_Ainv = weakmeancorr_belief.Ainv0 @ linops.OrthogonalProjection(
-        subspace_basis=np.hstack(matvec_observations),
+        subspace_basis=solver_data.observations_arr.A,
         innerprod_matrix=weakmeancorr_belief.Ainv0,
     ).todense() + (
         np.eye(n)
         - linops.OrthogonalProjection(
-            subspace_basis=np.hstack(matvec_observations)
+            subspace_basis=solver_data.observations_arr.A
         ).todense()
     )
 
@@ -204,13 +206,13 @@ def test_conjugate_actions_covariance(
     phi: float,
     psi: float,
     n: int,
-    actions: list,
+    solver_data: LinearSolverData,
     linsys_spd: LinearSystem,
 ):
     """Test whether the covariance for conjugate actions matches a naively computed
     one."""
     # Compute conjugate actions via Cholesky decomposition: S' = L^{-T}S
-    orth_actions = scipy.linalg.orth(np.hstack(actions))
+    orth_actions = scipy.linalg.orth(solver_data.actions_arr.A)
     chol = scipy.linalg.cholesky(linsys_spd.A, lower=False)
     conj_actions = scipy.linalg.solve_triangular(chol, orth_actions, lower=False)
     observations = linsys_spd.A @ conj_actions
@@ -236,8 +238,9 @@ def test_conjugate_actions_covariance(
         Ainv0=Ainv0,
         b=linsys_spd.b,
         uncertainty_scales=UncertaintyUnexploredSpace(Phi=phi, Psi=psi),
-        actions=conj_actions,
-        observations=observations,
+        data=LinearSolverData.from_arrays(
+            actions_arr=(conj_actions, None), observations_arr=(observations, None)
+        ),
         action_obs_innerprods=np.einsum("nk,nk->k", conj_actions, observations),
     )
 

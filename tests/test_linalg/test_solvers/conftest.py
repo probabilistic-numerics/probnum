@@ -171,13 +171,29 @@ def solver_data(
 ################
 
 
-@pytest.fixture(name="solver_info")
-def fixture_solver_info(num_iters: int, stopcrit: stop_criteria.StoppingCriterion):
+@pytest.fixture(
+    params=[
+        pytest.param(stopcrit, id=stopcrit_name)
+        for (stopcrit_name, stopcrit) in zip(
+            ["maxiter", "residual", "uncertainty"],
+            [
+                stop_criteria.MaxIterations(),
+                stop_criteria.Residual(),
+                stop_criteria.PosteriorContraction(),
+            ],
+        )
+    ],
+    name="solver_info",
+)
+def fixture_solver_info(
+    request,
+    num_iters: int,
+):
     """Convergence information of a linear solver."""
     return LinearSolverInfo(
         iteration=num_iters,
         has_converged=True,
-        stopping_criterion=stopcrit,
+        stopping_criterion=request.param,
     )
 
 

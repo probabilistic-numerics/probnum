@@ -201,17 +201,15 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         #  covariance is given by Prop S4 of Wenger and Hennig, 2020:
         #  \Sigma = 1/2 (W \otimes BWB + WB \boxtimes B'W)
         Wb = self.Ainv.cov.A @ self.b.mean
-        bWb = Wb.T @ self.b.mean
+        bWb = (Wb.T @ self.b.mean).item()
 
-        def _mv(v):
-            return 0.5 * (bWb.item() * self.Ainv.cov.A @ v + Wb @ (Wb.T @ v))
+        def _mv(vec):
+            return 0.5 * (bWb * self.Ainv.cov.A @ vec + Wb @ (Wb.T @ vec))
 
         x_cov = linops.LinearOperator(
             shape=self.Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
         )
         # Efficient trace computation
-        x_cov.trace = lambda: 0.5 * (
-            self.Ainv.cov.A.trace() * np.trace(bWb) + np.trace(Wb.T @ Wb)
-        )
+        x_cov.trace = lambda: 0.5 * (self.Ainv.cov.A.trace() * bWb + (Wb.T @ Wb).item())
 
         return x_cov

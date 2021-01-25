@@ -6,6 +6,7 @@ import pytest
 import probnum.linops as linops
 import probnum.random_variables as rvs
 from probnum.linalg.solvers import beliefs
+from probnum.linalg.solvers.data import LinearSolverData
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
@@ -74,13 +75,16 @@ def fixture_symm_belief_multiple_rhs(
     name="weakmeancorr_belief",
 )
 def fixture_weakmeancorr_belief(
-    request, n: int, linsys_spd: LinearSystem, actions: list, matvec_observations: list
+    request,
+    n: int,
+    num_iters: int,
+    linsys_spd: LinearSystem,
+    solver_data: LinearSolverData,
 ):
     """Symmetric Gaussian weak mean correspondence belief."""
     return beliefs.WeakMeanCorrespondenceBelief.from_inverse(
         Ainv0=request.param[1](n),
-        actions=actions,
-        observations=matvec_observations,
+        data=solver_data,
         problem=linsys_spd,
     )
 
