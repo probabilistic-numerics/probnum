@@ -90,13 +90,17 @@ class LinearSolverCache:
         self.prev_cache = prev_cache
 
     @property
-    def action(self) -> "probnum.linalg.solvers.LinearSolverAction":
+    def action(self) -> Optional["probnum.linalg.solvers.LinearSolverAction"]:
         r"""Most recent action of the linear solver."""
+        if self.data is None:
+            return None
         return self.data.actions[-1]
 
     @property
-    def observation(self) -> "probnum.linalg.solvers.LinearSolverObservation":
+    def observation(self) -> Optional["probnum.linalg.solvers.LinearSolverObservation"]:
         r"""Most recent action of the linear solver."""
+        if self.data is None:
+            return None
         return self.data.observations[-1]
 
     @cached_property

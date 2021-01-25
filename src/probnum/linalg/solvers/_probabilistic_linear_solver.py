@@ -248,7 +248,9 @@ class ProbabilisticLinearSolver(
         else:
             prior = belief_class.from_scalar(scalar=1.0, problem=problem)
 
-        return cls.from_prior(prior=prior, maxiter=maxiter, atol=atol, rtol=rtol)
+        return cls.from_prior_observation_op(
+            prior=prior, maxiter=maxiter, atol=atol, rtol=rtol
+        )
 
     @classmethod
     def from_prior_observation_op(
@@ -288,20 +290,27 @@ class ProbabilisticLinearSolver(
 
         stopping_criteria = [stop_criteria.MaxIterations(maxiter=maxiter)]
         if isinstance(observation_op, observation_ops.MatVecObservation):
-            if isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
+            if isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
                 policy = policies.ConjugateDirections()
                 stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate()
-            elif isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
-                policy = policies.ConjugateDirections()
-                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-                belief_update = belief_updates.WeakMeanCorrLinearObsBeliefUpdate()
+                belief_update = belief_updates.WeakMeanCorrLinearObsBeliefUpdate(
+                    prior=prior
+                )
             elif isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
                 policy = policies.ExploreExploit()
                 stopping_criteria.append(
                     stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
                 )
-                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate()
+                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate(
+                    prior=prior
+                )
+            elif isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
+                policy = policies.ConjugateDirections()
+                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
+                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate(
+                    prior=prior
+                )
+
             else:
                 raise ValueError("Unknown or incompatible prior belief class.")
 
@@ -408,6 +417,7 @@ class ProbabilisticLinearSolver(
                 problem=problem,
                 prior=self.prior,
                 belief=belief,
+                cache=self.belief_update.cache_type(problem=problem, belief=belief),
             )
         else:
             solver_state.belief = belief
@@ -448,10 +458,11 @@ class ProbabilisticLinearSolver(
                     solver_state=solver_state,
                 )
             else:
-                hyperparams = belief.hyperparams
+                hyperparams = self.prior.hyperparams
 
             # Update the belief over the quantities of interest
             belief, solver_state = self.belief_update(
+                problem=problem,
                 belief=belief,
                 action=action,
                 observation=observation,

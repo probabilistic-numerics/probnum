@@ -30,14 +30,13 @@ class LinearSolverQoIBeliefUpdate(abc.ABC):
 
     def __init__(
         self,
-        problem: LinearSystem,
         prior: LinearSystemBelief,
     ):
-        self.problem = problem
         self.prior = prior
 
     def __call__(
         self,
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.RandomVariable:
@@ -45,6 +44,8 @@ class LinearSolverQoIBeliefUpdate(abc.ABC):
 
         Parameters
         ----------
+        problem :
+            Linear system to solve.
         hyperparams :
             Hyperparameters of the belief.
         solver_state :
@@ -61,8 +62,6 @@ class LinearSolverBeliefUpdate(abc.ABC):
 
     Parameters
     ---------
-    problem :
-        Linear system to be solved.
     prior :
     x_belief_update_type :
     A_belief_update_type :
@@ -77,7 +76,6 @@ class LinearSolverBeliefUpdate(abc.ABC):
 
     def __init__(
         self,
-        problem: LinearSystem,
         prior: LinearSystemBelief,
         cache_type: Type[LinearSolverCache],
         x_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
@@ -85,16 +83,16 @@ class LinearSolverBeliefUpdate(abc.ABC):
         Ainv_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
         b_belief_update_type: Type[LinearSolverQoIBeliefUpdate],
     ):
-        self._problem = problem
         self._prior = prior
-        self._cache_type = cache_type
-        self._x_belief_update = x_belief_update_type(problem=problem, prior=prior)
-        self._A_belief_update = A_belief_update_type(problem=problem, prior=prior)
-        self._Ainv_belief_update = Ainv_belief_update_type(problem=problem, prior=prior)
-        self._b_belief_update = b_belief_update_type(problem=problem, prior=prior)
+        self.cache_type = cache_type
+        self._x_belief_update = x_belief_update_type(prior=prior)
+        self._A_belief_update = A_belief_update_type(prior=prior)
+        self._Ainv_belief_update = Ainv_belief_update_type(prior=prior)
+        self._b_belief_update = b_belief_update_type(prior=prior)
 
     def __call__(
         self,
+        problem: LinearSystem,
         belief: LinearSystemBelief,
         action: LinearSolverAction,
         observation: LinearSolverObservation,
@@ -109,6 +107,8 @@ class LinearSolverBeliefUpdate(abc.ABC):
 
         Parameters
         ----------
+        problem :
+            Linear system to solve.
         belief :
             Belief over the quantities of interest
         hyperparams :
@@ -123,38 +123,42 @@ class LinearSolverBeliefUpdate(abc.ABC):
         if solver_state is None:
 
             solver_state = LinearSolverState(
-                problem=self._problem,
+                problem=problem,
                 prior=self._prior,
                 belief=belief,
                 data=LinearSolverData(
                     actions=[action],
                     observations=[observation],
                 ),
-                cache=self._cache_type.from_new_data(
+                cache=self.cache_type.from_new_data(
                     action=action,
                     observation=observation,
-                    prev_cache=self._cache_type(
-                        problem=self._problem,
+                    prev_cache=self.cache_type(
+                        problem=problem,
                         belief=self._prior,
                     ),
                 ),
             )
 
         # Update belief (using optimized hyperparameters)
-        updated_belief = LinearSystemBelief(
+        updated_belief = type(self._prior)(
             x=self._x_belief_update(
+                problem=problem,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
             Ainv=self._Ainv_belief_update(
+                problem=problem,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
             A=self._A_belief_update(
+                problem=problem,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
             b=self._b_belief_update(
+                problem=problem,
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),

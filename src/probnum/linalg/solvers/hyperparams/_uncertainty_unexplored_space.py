@@ -20,8 +20,8 @@ class UncertaintyUnexploredSpace(LinearSolverHyperparams):
         unexplored observation space :math:`\operatorname{span}(y_1, \dots, y_k)^\perp`.
     """
 
-    Phi: Optional[float] = None
-    Psi: Optional[float] = None
+    Phi: float = 1.0
+    Psi: float = 1.0
 
     def __post_init__(self):
         if self.Phi < 0.0 or self.Psi < 0.0:

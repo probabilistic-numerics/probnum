@@ -21,6 +21,7 @@ from probnum.linalg.solvers.belief_updates import (
     LinearSolverQoIBeliefUpdate,
 )
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
+from probnum.linalg.solvers.hyperparams import LinearSystemNoise
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
@@ -63,6 +64,8 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def action_observation_innerprod_list(self) -> List[float]:
         """Inner products :math:`s_i^\top y_i` between action and observation pairs."""
         if self.prev_cache is None:
+            if self.data is None:
+                return []
             return [self.action_observation]
         else:
             return self.prev_cache.action_observation_innerprod_list + [
@@ -171,7 +174,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         return (self.covfactorA_action.T @ self.covfactorA_action).item()
 
     @cached_property
-    def sqnorm_covfactorH_action(self) -> float:
+    def sqnorm_covfactorH_observation(self) -> float:
         r"""Squared norm :math:`\lVert W^H_{i-1}y_i\rVert^2` of the inverse covariance
         factor applied to the current observation."""
         return (self.covfactorH_observation.T @ self.covfactorH_observation).item()
@@ -258,14 +261,14 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     @cached_property
     def meanA_update_batch(self) -> linops.LinearOperator:
         """Matrix model mean update term for all actions and observations."""
-        if self.prev_cache.action is None:
+        if self.prev_cache.data is None:
             return self.meanA_update_op
         return self.prev_cache.meanA_update_batch + self.meanA_update_op
 
     @cached_property
     def meanH_update_batch(self) -> linops.LinearOperator:
         """Inverse model mean update term for all actions and observations."""
-        if self.prev_cache.action is None:
+        if self.prev_cache.data is None:
             return self.meanH_update_op
         return self.prev_cache.meanH_update_batch + self.meanH_update_op
 
@@ -273,7 +276,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def covfactorA_update_batch(self) -> Tuple[linops.LinearOperator, ...]:
         """Matrix model covariance factor downdate term for all actions and
         observations."""
-        if self.prev_cache.action is None:
+        if self.prev_cache.data is None:
             return self.covfactorA_update_ops
         return tuple(
             map(
@@ -287,7 +290,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def covfactorH_update_batch(self) -> Tuple[linops.LinearOperator, ...]:
         """Inverse model covariance factor downdate term for all actions and
         observations."""
-        if self.prev_cache.action is None:
+        if self.prev_cache.data is None:
             return self.covfactorH_update_ops
         return tuple(
             map(
@@ -304,11 +307,12 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
 
     def __call__(
         self,
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
         """Updated belief for the matrix."""
-        if hyperparams is None:
+        if hyperparams is None or not isinstance(hyperparams, LinearSystemNoise):
             mean = (
                 linops.aslinop(self.prior.A.mean)
                 + solver_state.cache.meanA_update_batch
@@ -341,11 +345,12 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
 
     def __call__(
         self,
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
         """Updated belief for the inverse matrix."""
-        if hyperparams is None:
+        if hyperparams is None or not isinstance(hyperparams, LinearSystemNoise):
             mean = (
                 linops.aslinop(self.prior.Ainv.mean)
                 + solver_state.cache.meanH_update_batch
@@ -378,11 +383,14 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
 
     def __call__(
         self,
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
-        if hyperparams is None and solver_state is not None:
+        if (
+            hyperparams is None or not isinstance(hyperparams, LinearSystemNoise)
+        ) and solver_state is not None:
             return (
                 solver_state.cache.residual
                 + solver_state.cache.step_size * solver_state.cache.observation.A
@@ -398,14 +406,15 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
 
     def __call__(
         self,
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Union[rvs.Constant, rvs.Normal]:
         """Updated belief for the right hand side."""
-        if hyperparams is None:
-            return rvs.asrandvar(self.problem.b)
+        if hyperparams is None or not isinstance(hyperparams, LinearSystemNoise):
+            return rvs.asrandvar(problem.b)
         elif hyperparams.b_eps is None:
-            return rvs.asrandvar(self.problem.b)
+            return rvs.asrandvar(problem.b)
         else:
             raise NotImplementedError
 
@@ -424,7 +433,6 @@ class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
 
     def __init__(
         self,
-        problem: LinearSystem,
         prior: LinearSystemBelief,
         cache_type=_SymmetricNormalLinearObsCache,
         x_belief_update_type=_SolutionSymmetricNormalLinearObsBeliefUpdate,
@@ -433,7 +441,6 @@ class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
         b_belief_update_type=_RightHandSideSymmetricNormalLinearObsBeliefUpdate,
     ):
         super().__init__(
-            problem=problem,
             prior=prior,
             cache_type=cache_type,
             x_belief_update_type=x_belief_update_type,
