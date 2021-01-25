@@ -41,8 +41,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSystemNoise"
         ] = None,
-        action: Optional["probnum.linalg.solvers.LinearSolverAction"] = None,
-        observation: Optional["probnum.linalg.solvers.LinearSolverObservation"] = None,
+        data: Optional["probnum.linalg.solvers.data.LinearSolverData"] = None,
         prev_cache: Optional["_SymmetricNormalLinearObsCache"] = None,
     ):
         # pylint: disable="too-many-arguments"
@@ -50,8 +49,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
             problem=problem,
             belief=belief,
             hyperparams=hyperparams,
-            action=action,
-            observation=observation,
+            data=data,
             prev_cache=prev_cache,
         )
 
@@ -62,26 +60,47 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         return (self.action.A.T @ self.observation.A).item()
 
     @cached_property
-    def action_observation_innerprods(self) -> List[float]:
+    def action_observation_innerprod_list(self) -> List[float]:
         """Inner products :math:`s_i^\top y_i` between action and observation pairs."""
         if self.prev_cache is None:
             return [self.action_observation]
         else:
-            return self.prev_cache.action_observation_innerprods + [
+            return self.prev_cache.action_observation_innerprod_list + [
                 self.action_observation
             ]
 
     @cached_property
-    def log_rayleigh_quotients(self) -> List[float]:
-        r"""Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(
-        s_i^\top s_i)`."""
-        log_rayleigh_quotient = (
+    def log_rayleigh_quotient(self) -> float:
+        r"""Log-Rayleigh quotient :math:`\ln R(A, s_i) = \ln(s_i^\top y_i) - \ln (
+        s_i^\top s_i)` of the current action and observation."""
+        return (
             np.log(self.action_observation)
             - np.log((self.action.A.T @ self.action.A)).item()
         )
+
+    @cached_property
+    def log_rayleigh_quotient_list(self) -> List[float]:
+        r"""Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(
+        s_i^\top s_i)`."""
         if self.prev_cache is None:
-            return [log_rayleigh_quotient]
-        return self.prev_cache.log_rayleigh_quotients + [log_rayleigh_quotient]
+            if len(self.data) == 1:
+                return [self.log_rayleigh_quotient]
+            else:
+                return list(
+                    np.log(
+                        np.einsum(
+                            "nk,nk->k",
+                            self.data.actions_arr.A,
+                            self.data.observations_arr.A,
+                        )
+                    )
+                    - np.log(
+                        np.einsum(
+                            "nk,nk->k", self.data.actions_arr.A, self.data.actions_arr.A
+                        )
+                    )
+                )
+        return self.prev_cache.log_rayleigh_quotient_list + [self.log_rayleigh_quotient]
 
     @cached_property
     def residual(self) -> np.ndarray:

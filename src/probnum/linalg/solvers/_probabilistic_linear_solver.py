@@ -444,8 +444,7 @@ class ProbabilisticLinearSolver(
                 hyperparams = self.hyperparam_optim_method(
                     problem=solver_state.problem,
                     belief=solver_state.belief,
-                    actions=solver_state.data.actions,
-                    observations=solver_state.data.observations,
+                    data=solver_state.data,
                     solver_state=solver_state,
                 )
             else:

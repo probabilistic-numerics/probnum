@@ -5,16 +5,12 @@ from typing import Iterator
 import numpy as np
 import pytest
 
-import probnum.linops as linops
-import probnum.random_variables as rvs
 from probnum.linalg.solvers import (
     LinearSolverCache,
     LinearSolverInfo,
     LinearSolverState,
     ProbabilisticLinearSolver,
-    belief_updates,
     beliefs,
-    hyperparam_optim,
     observation_ops,
     policies,
     stop_criteria,
@@ -25,7 +21,6 @@ from probnum.linalg.solvers.data import (
     LinearSolverObservation,
 )
 from probnum.problems import LinearSystem
-from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
 
 @pytest.fixture(
@@ -35,188 +30,8 @@ from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_mat
     name="num_iters",
 )
 def fixture_num_iters(request) -> int:
-    """Number of iterations of the linear solver.
-
-    This is mostly used for test parameterization.
-    """
+    """Number of iterations of a linear solver."""
     return request.param
-
-
-###################
-# (Prior) Beliefs #
-###################
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(bc, id=bc.__name__)
-        for bc in [
-            beliefs.LinearSystemBelief,
-            beliefs.SymmetricNormalLinearSystemBelief,
-            beliefs.WeakMeanCorrespondenceBelief,
-            beliefs.NoisySymmetricNormalLinearSystemBelief,
-        ]
-    ],
-    name="belief_class",
-)
-def fixture_belief_class(request):
-    """A linear system belief class."""
-    return request.param
-
-
-@pytest.fixture(name="belief")
-def fixture_belief(belief_class, mat, linsys):
-    """Linear system beliefs."""
-    return belief_class.from_inverse(Ainv0=linops.aslinop(mat), problem=linsys)
-
-
-@pytest.fixture(name="prior")
-def fixture_prior(
-    linsys_spd: LinearSystem, n: int, random_state: np.random.RandomState
-) -> beliefs.SymmetricNormalLinearSystemBelief:
-    """Symmetric normal prior belief about the linear system."""
-    return beliefs.SymmetricNormalLinearSystemBelief.from_matrices(
-        A0=random_spd_matrix(dim=n, random_state=random_state),
-        Ainv0=random_spd_matrix(dim=n, random_state=random_state),
-        problem=linsys_spd,
-    )
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(inv, id=inv[0])
-        for inv in [
-            (
-                "weakmeancorr_scalar",
-                beliefs.WeakMeanCorrespondenceBelief,
-                lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n)),
-            ),
-            (
-                "symmnormal_dense",
-                beliefs.SymmetricNormalLinearSystemBelief,
-                lambda n: rvs.Normal(
-                    mean=random_spd_matrix(n, random_state=42),
-                    cov=linops.SymmetricKronecker(
-                        A=random_spd_matrix(n, random_state=1)
-                    ),
-                ),
-            ),
-            (
-                "symmnormal_sparse",
-                beliefs.SymmetricNormalLinearSystemBelief,
-                lambda n: rvs.Normal(
-                    mean=random_sparse_spd_matrix(n, density=0.01, random_state=42),
-                    cov=linops.SymmetricKronecker(
-                        A=random_sparse_spd_matrix(n, density=0.01, random_state=1)
-                    ),
-                ),
-            ),
-        ]
-    ],
-    name="symm_belief",
-)
-def fixture_symm_belief(
-    request, n: int, linsys_spd: LinearSystem
-) -> beliefs.SymmetricNormalLinearSystemBelief:
-    """Symmetric normal linear system belief."""
-    return request.param[1].from_inverse(Ainv0=request.param[2](n), problem=linsys_spd)
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(inv, id=inv[0])
-        for inv in [
-            (
-                "weakmeancorr_scalar",
-                beliefs.WeakMeanCorrespondenceBelief,
-                lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n)),
-            ),
-            (
-                "symmnormal_dense",
-                beliefs.SymmetricNormalLinearSystemBelief,
-                lambda n: rvs.Normal(
-                    mean=random_spd_matrix(n, random_state=42),
-                    cov=linops.SymmetricKronecker(
-                        A=random_spd_matrix(n, random_state=1)
-                    ),
-                ),
-            ),
-            (
-                "symmnormal_sparse",
-                beliefs.SymmetricNormalLinearSystemBelief,
-                lambda n: rvs.Normal(
-                    mean=random_sparse_spd_matrix(n, density=0.01, random_state=42),
-                    cov=linops.SymmetricKronecker(
-                        A=random_sparse_spd_matrix(n, density=0.01, random_state=1)
-                    ),
-                ),
-            ),
-        ]
-    ],
-    name="symm_belief_multiple_rhs",
-)
-def fixture_symm_belief_multiple_rhs(
-    request, n: int, linsys_spd_multiple_rhs: LinearSystem
-) -> beliefs.SymmetricNormalLinearSystemBelief:
-    """Symmetric normal linear system beliefs modelling multiple right hand sides."""
-    return request.param[1].from_inverse(
-        Ainv0=request.param[2](n), problem=linsys_spd_multiple_rhs
-    )
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(inv, id=inv[0])
-        for inv in [
-            ("scalar", lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n))),
-            (
-                "spd",
-                lambda n: linops.MatrixMult(A=random_spd_matrix(n, random_state=42)),
-            ),
-            (
-                "sparse",
-                lambda n: linops.MatrixMult(
-                    A=random_sparse_spd_matrix(n, density=0.1, random_state=42)
-                ),
-            ),
-        ]
-    ],
-    name="weakmeancorr_belief",
-)
-def fixture_weakmeancorr_belief(
-    request, n: int, linsys_spd: LinearSystem, actions: list, matvec_observations: list
-):
-    """Symmetric Gaussian weak mean correspondence belief."""
-    return beliefs.WeakMeanCorrespondenceBelief.from_inverse(
-        Ainv0=request.param[1](n),
-        actions=actions,
-        observations=matvec_observations,
-        problem=linsys_spd,
-    )
-
-
-@pytest.fixture(
-    params=[pytest.param(scalar, id=f"alpha{scalar}") for scalar in [0.1, 1.0, 10]]
-)
-def scalar_weakmeancorr_prior(
-    scalar: float,
-    linsys_spd: LinearSystem,
-) -> beliefs.WeakMeanCorrespondenceBelief:
-    """Scalar weak mean correspondence belief."""
-    return beliefs.WeakMeanCorrespondenceBelief.from_scalar(
-        scalar=scalar, problem=linsys_spd
-    )
-
-
-@pytest.fixture()
-def belief_groundtruth(linsys_spd: LinearSystem) -> beliefs.LinearSystemBelief:
-    """Belief equalling the true solution of the linear system."""
-    return beliefs.LinearSystemBelief(
-        x=rvs.Constant(linsys_spd.solution),
-        A=rvs.Constant(linsys_spd.A),
-        Ainv=rvs.Constant(np.linalg.inv(linsys_spd.A)),
-        b=rvs.Constant(linsys_spd.b),
-    )
 
 
 ############
@@ -257,34 +72,9 @@ def solver_data(
     return LinearSolverData(actions=actions, observations=matvec_observations)
 
 
-###############################
-# Hyperparameter Optimization #
-###############################
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(calibration_method, id=calibration_method)
-        for calibration_method in ["adhoc", "weightedmean", "gpkern"]
-    ],
-    name="calibration_method",
-)
-def fixture_calibration_method(request) -> str:
-    """Names of available uncertainty calibration methods."""
-    return request.param
-
-
-@pytest.fixture(name="uncertainty_calibration")
-def fixture_uncertainty_calibration(
-    calibration_method: str,
-) -> hyperparam_optim.UncertaintyCalibration:
-    """Uncertainty calibration method for probabilistic linear solvers."""
-    return hyperparam_optim.UncertaintyCalibration(method=calibration_method)
-
-
-#####################################
-# Probabilistic Linear Solver State #
-#####################################
+################
+# Solver State #
+################
 
 
 @pytest.fixture(name="solver_info")

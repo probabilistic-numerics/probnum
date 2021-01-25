@@ -3,6 +3,10 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 
 import probnum
+from probnum.linalg.solvers._state import LinearSolverState
+from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
+    _SymmetricNormalLinearObsCache,
+)
 from probnum.linalg.solvers.hyperparam_optim._hyperparameter_optimization import (
     HyperparameterOptimization,
 )
@@ -47,43 +51,39 @@ class UncertaintyCalibration(HyperparameterOptimization):
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
+        data: "probnum.linalg.solvers.data.LinearSolverData",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[
-        Tuple[Union[np.ndarray, float], ...],
-        Optional["probnum.linalg.solvers.LinearSolverState"],
-    ]:
-        iteration = len(actions)
-        log_rayleigh_quotients = None
-        if solver_state is not None:
-            log_rayleigh_quotients = solver_state.log_rayleigh_quotients
+    ) -> "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams":
 
-        if log_rayleigh_quotients is None or not log_rayleigh_quotients:
-            S = np.hstack(actions)
-            Y = np.hstack(observations)
-            log_rayleigh_quotients = np.log(np.einsum("nk,nk->k", S, Y)) - np.log(
-                np.einsum("nk,nk->k", S, S)
+        if solver_state is None:
+            solver_state = LinearSolverState(
+                problem=problem,
+                belief=belief,
+                data=data,
+                cache=_SymmetricNormalLinearObsCache(
+                    problem=problem, belief=belief, data=data
+                ),
             )
 
-        if iteration == 1:
+        if solver_state.info.iteration == 1:
             # For too few iterations take the most recent Rayleigh quotient
-            unc_scale_A = np.exp(log_rayleigh_quotients[-1])
-            unc_scale_Ainv = np.exp(-log_rayleigh_quotients[-1])
+            unc_scale_A = np.exp(solver_state.cache.log_rayleigh_quotient)
+            unc_scale_Ainv = np.exp(-solver_state.cache.log_rayleigh_quotient)
         else:
             # Select calibration method
             if self.calib_method == "adhoc":
                 logR_pred = self._most_recent_log_rayleigh_quotient(
-                    log_rayleigh_quotients=log_rayleigh_quotients
+                    log_rayleigh_quotients=solver_state.cache.log_rayleigh_quotient_list
                 )
             elif self.calib_method == "weightedmean":
                 logR_pred = self._weighted_average_log_rayleigh_quotients(
-                    log_rayleigh_quotients=log_rayleigh_quotients, iteration=iteration
+                    log_rayleigh_quotients=solver_state.cache.log_rayleigh_quotient_list,
+                    iteration=solver_state.info.iteration,
                 )
             elif self.calib_method == "gpkern":
                 logR_pred = self._gp_regression_log_rayleigh_quotients(
-                    log_rayleigh_quotients=log_rayleigh_quotients,
-                    iteration=iteration,
+                    log_rayleigh_quotients=solver_state.cache.log_rayleigh_quotient_list,
+                    iteration=solver_state.info.iteration,
                     n=problem.A.shape[0],
                 )
             else:
@@ -141,7 +141,7 @@ class UncertaintyCalibration(HyperparameterOptimization):
             k = GPy.kern.RBF(input_dim=1, lengthscale=1, variance=1)
             m = GPy.models.GPRegression(
                 iters[:, None],
-                log_rayleigh_quotients[:, None],
+                np.array(log_rayleigh_quotients)[:, None],
                 kernel=k,
                 mean_function=mf,
             )

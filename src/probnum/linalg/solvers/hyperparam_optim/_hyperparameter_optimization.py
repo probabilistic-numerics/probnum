@@ -23,13 +23,9 @@ class HyperparameterOptimization(ABC):
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        actions: List[np.ndarray],
-        observations: List[np.ndarray],
+        data: "probnum.linalg.solvers.data.LinearSolverData",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> Tuple[
-        Tuple[Union[np.ndarray, float], ...],
-        Optional["probnum.linalg.solvers.LinearSolverState"],
-    ]:
+    ) -> "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams":
         """Optimized hyperparameters of the linear system model.
 
         Parameters
@@ -39,21 +35,9 @@ class HyperparameterOptimization(ABC):
         belief :
             Belief over the quantities of interest :math:`(x, A, A^{-1}, b)` of the
             linear system.
-        actions :
-            Actions of the solver to probe the linear system with.
-        observations :
-            Observations of the linear system for the given actions.
+        data :
+            Actions and corresponding observations of the probabilistic linear solver.
         solver_state :
             Current state of the linear solver.
-
-        Returns
-        -------
-        optimal_hyperparams
-            Optimized hyperparameters.
-        belief
-            Updated belief about the solution :math:`x`, the system matrix :math:`A`, its
-            inverse :math:`H=A^{-1}` and the right hand side :math:`b`.
-        solver_state :
-            Updated solver state.
         """
         raise NotImplementedError

@@ -78,8 +78,14 @@ class LinearSolverData:
         actions: List[LinearSolverAction],
         observations: List[LinearSolverObservation],
     ):
+        if len(actions) != len(observations):
+            raise ValueError("Actions and observations must have the same length.")
         self._actions = actions
         self._observations = observations
+
+    def __len__(self):
+        """Amount of data collected."""
+        return len(self._actions)
 
     @property
     def actions(self) -> List[LinearSolverAction]:

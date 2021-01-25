@@ -64,9 +64,11 @@ class LinearSolverCache:
     belief
         (Updated) belief over the quantities of interest of the linear system.
     hyperparams
-    action
-    observation
+        Hyperparameters of the linear solver.
+    data
+        Performed actions and collected observations of the linear system.
     prev_cache
+        Cached quantities from the previous iteration.
     """
 
     def __init__(
@@ -76,8 +78,7 @@ class LinearSolverCache:
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
         ] = None,
-        action: Optional["probnum.linalg.solvers.LinearSolverAction"] = None,
-        observation: Optional["probnum.linalg.solvers.LinearSolverObservation"] = None,
+        data: Optional[LinearSolverData] = None,
         prev_cache: Optional["LinearSolverCache"] = None,
     ):
         # pylint: disable="too-many-arguments"
@@ -85,9 +86,18 @@ class LinearSolverCache:
         self.problem = problem
         self.belief = belief
         self.hyperparams = hyperparams
-        self.action = action
-        self.observation = observation
+        self.data = data
         self.prev_cache = prev_cache
+
+    @property
+    def action(self) -> "probnum.linalg.solvers.LinearSolverAction":
+        r"""Most recent action of the linear solver."""
+        return self.data.actions[-1]
+
+    @property
+    def observation(self) -> "probnum.linalg.solvers.LinearSolverObservation":
+        r"""Most recent action of the linear solver."""
+        return self.data.observations[-1]
 
     @cached_property
     def residual(self) -> np.ndarray:
@@ -103,11 +113,14 @@ class LinearSolverCache:
         prev_cache: "LinearSolverCache",
     ):
         """Create new cached quantities from new data."""
+        data = LinearSolverData(
+            actions=prev_cache.data.actions + [action],
+            observations=prev_cache.data.observations + [observation],
+        )
         return cls(
             problem=prev_cache.problem,
             belief=prev_cache.belief,
-            action=action,
-            observation=observation,
+            data=data,
             prev_cache=prev_cache,
         )
 
@@ -159,11 +172,15 @@ class LinearSolverState:
             data if data is not None else LinearSolverData(actions=[], observations=[])
         )
         self.prior = prior if prior is not None else belief
-        self.info = info if info is not None else LinearSolverInfo()
+        self.info = (
+            info
+            if info is not None
+            else LinearSolverInfo(iteration=len(self.data.actions))
+        )
         self.cache = (
             cache
             if cache is not None
-            else LinearSolverCache(problem=problem, belief=belief)
+            else LinearSolverCache(problem=problem, belief=belief, data=self.data)
         )
 
     @classmethod
@@ -184,10 +201,6 @@ class LinearSolverState:
         prev_state :
             Previous linear solver state prior to observing new data.
         """
-        data = LinearSolverData(
-            actions=prev_state.data.actions + [action],
-            observations=prev_state.data.observations + [observation],
-        )
         cache = type(prev_state.cache).from_new_data(
             action=action, observation=observation, prev_cache=prev_state.cache
         )
@@ -195,7 +208,7 @@ class LinearSolverState:
         return cls(
             problem=prev_state.problem,
             prior=prev_state.prior,
-            data=data,
+            data=cache.data,
             belief=prev_state.belief,
             info=prev_state.info,
             cache=cache,
