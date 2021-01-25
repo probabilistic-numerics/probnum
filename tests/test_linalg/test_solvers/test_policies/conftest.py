@@ -31,11 +31,12 @@ def custom_policy(
     params=[
         pytest.param(policy, id=policy_name)
         for (policy_name, policy) in zip(
-            ["conjugatedirs", "thompson", "exploreexploit", "custom"],
+            ["conjugatedirs", "thompson", "exploreexploit", "maxnormcol", "custom"],
             [
                 policies.ConjugateDirections(),
                 policies.ThompsonSampling(random_state=1),
                 policies.ExploreExploit(random_state=1),
+                policies.MaxSupNormColumn(),
                 policies.Policy(
                     policy=custom_policy, is_deterministic=False, random_state=1
                 ),
@@ -47,3 +48,9 @@ def custom_policy(
 def fixture_policy(request) -> policies.Policy:
     """Policies of linear solvers returning an action."""
     return request.param
+
+
+@pytest.fixture
+def maxsupnormcol_policy() -> policies.MaxSupNormColumn:
+    """Maximum column supremum-norm policy."""
+    return policies.MaxSupNormColumn()

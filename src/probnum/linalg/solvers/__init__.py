@@ -15,9 +15,7 @@ generalizing and recovering classic iterative methods are listed below.
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
 | :class:`.WeakMeanCorrespondenceBelief`            | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |               preconditioned CG |
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :class:`.SymmetricLinearSystemBelief`             | Unit vectors                  | :class:`.MatVecObservation` |            Gaussian Elimination |
-+---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :class:`.SymmetricLinearSystemBelief`             | :math:`s=x_k`                 | :math:`y=SAs`               | (randomized) Kaczmarz algorithm |
+| :class:`.SymmetricLinearSystemBelief`             | :class:`.MaxSupNormColumn`    | :class:`.MatVecObservation` |            Gaussian Elimination |
 +---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
 """
 

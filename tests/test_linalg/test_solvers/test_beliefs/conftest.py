@@ -14,81 +14,6 @@ from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_mat
 
 @pytest.fixture(
     params=[
-        pytest.param(bc, id=bc.__name__)
-        for bc in [
-            beliefs.LinearSystemBelief,
-            beliefs.SymmetricNormalLinearSystemBelief,
-            beliefs.WeakMeanCorrespondenceBelief,
-            beliefs.NoisySymmetricNormalLinearSystemBelief,
-        ]
-    ],
-    name="belief_class",
-)
-def fixture_belief_class(request):
-    """A linear system belief class."""
-    return request.param
-
-
-@pytest.fixture(name="belief")
-def fixture_belief(belief_class, mat, linsys):
-    """Linear system beliefs."""
-    return belief_class.from_inverse(Ainv0=linops.aslinop(mat), problem=linsys)
-
-
-@pytest.fixture(name="prior")
-def fixture_prior(
-    linsys_spd: LinearSystem, n: int, random_state: np.random.RandomState
-) -> beliefs.SymmetricNormalLinearSystemBelief:
-    """Symmetric normal prior belief about the linear system."""
-    return beliefs.SymmetricNormalLinearSystemBelief.from_matrices(
-        A0=random_spd_matrix(dim=n, random_state=random_state),
-        Ainv0=random_spd_matrix(dim=n, random_state=random_state),
-        problem=linsys_spd,
-    )
-
-
-@pytest.fixture(
-    params=[
-        pytest.param(inv, id=inv[0])
-        for inv in [
-            (
-                "weakmeancorr_scalar",
-                beliefs.WeakMeanCorrespondenceBelief,
-                lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n)),
-            ),
-            (
-                "symmnormal_dense",
-                beliefs.SymmetricNormalLinearSystemBelief,
-                lambda n: rvs.Normal(
-                    mean=random_spd_matrix(n, random_state=42),
-                    cov=linops.SymmetricKronecker(
-                        A=random_spd_matrix(n, random_state=1)
-                    ),
-                ),
-            ),
-            (
-                "symmnormal_sparse",
-                beliefs.SymmetricNormalLinearSystemBelief,
-                lambda n: rvs.Normal(
-                    mean=random_sparse_spd_matrix(n, density=0.01, random_state=42),
-                    cov=linops.SymmetricKronecker(
-                        A=random_sparse_spd_matrix(n, density=0.01, random_state=1)
-                    ),
-                ),
-            ),
-        ]
-    ],
-    name="symm_belief",
-)
-def fixture_symm_belief(
-    request, n: int, linsys_spd: LinearSystem
-) -> beliefs.SymmetricNormalLinearSystemBelief:
-    """Symmetric normal linear system belief."""
-    return request.param[1].from_inverse(Ainv0=request.param[2](n), problem=linsys_spd)
-
-
-@pytest.fixture(
-    params=[
         pytest.param(inv, id=inv[0])
         for inv in [
             (
@@ -170,15 +95,4 @@ def scalar_weakmeancorr_prior(
     """Scalar weak mean correspondence belief."""
     return beliefs.WeakMeanCorrespondenceBelief.from_scalar(
         scalar=scalar, problem=linsys_spd
-    )
-
-
-@pytest.fixture()
-def belief_groundtruth(linsys_spd: LinearSystem) -> beliefs.LinearSystemBelief:
-    """Belief equalling the true solution of the linear system."""
-    return beliefs.LinearSystemBelief(
-        x=rvs.Constant(linsys_spd.solution),
-        A=rvs.Constant(linsys_spd.A),
-        Ainv=rvs.Constant(np.linalg.inv(linsys_spd.A)),
-        b=rvs.Constant(linsys_spd.b),
     )
