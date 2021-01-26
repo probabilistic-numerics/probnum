@@ -156,3 +156,15 @@ def test_kernel_matrix_system(linsys_kernel: LinearSystem, linsolve: Callable):
         atol=LINSOLVE_ABSTOL,
         err_msg="Solution does not match true solution.",
     )
+
+
+def test_iid_noise_system(linsys_iid_noise: LinearSystem, linsolve: Callable):
+    """Linear system with additive noise on the system matrix and right hand side."""
+    x, _, _, _, _ = linsolve(A=linsys_iid_noise.A, b=linsys_iid_noise.b)
+    np.testing.assert_allclose(
+        x.mean,
+        linsys_iid_noise.solution,
+        rtol=LINSOLVE_RELTOL,
+        atol=LINSOLVE_ABSTOL,
+        err_msg="Solution does not match true solution.",
+    )

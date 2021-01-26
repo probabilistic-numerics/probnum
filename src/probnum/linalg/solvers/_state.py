@@ -85,7 +85,10 @@ class LinearSolverCache:
 
         self.problem = problem
         self.belief = belief
-        self.hyperparams = hyperparams
+        if hyperparams is None:
+            self.hyperparams = belief.hyperparams
+        else:
+            self.hyperparams = hyperparams
         self.data = data
         self.prev_cache = prev_cache
 

@@ -162,6 +162,7 @@ class LinearSolverBeliefUpdate(abc.ABC):
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
+            hyperparams=hyperparams,
         )
 
         # Create new solver state from updated belief

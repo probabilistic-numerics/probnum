@@ -199,20 +199,28 @@ def linsys_kernel(
     return LinearSystem.from_matrix(A=kernel_mat, random_state=random_state)
 
 
-@pytest.fixture()
-def linsys_noise(
-    spd_mat: np.ndarray, n: int, random_state: np.random.RandomState
+@pytest.fixture(
+    params=[
+        pytest.param(eps_sq, id=f"eps_sq{eps_sq}")
+        for eps_sq in [0.0, 10 ** -16, 10 ** -8, 10 ** -4, 10 ** -2, 10 ** -1]
+    ],
+    name="linsys_iid_noise",
+)
+def fixture_linsys_iid_noise(
+    request, spd_mat: np.ndarray, n: int, random_state: np.random.RandomState
 ) -> LinearSystem:
     """Linear system corrupted by additive zero-mean iid Gaussian noise."""
     solution = random_state.normal(size=(n, 1))
     b = spd_mat @ solution
-    eps_sq = 10 ** -4
     return LinearSystem(
         A=rvs.Normal(
             spd_mat,
-            linops.SymmetricKronecker(linops.ScalarMult(scalar=eps_sq, shape=(n, n))),
+            linops.SymmetricKronecker(
+                linops.ScalarMult(scalar=request.param, shape=(n, n))
+            ),
         ),
-        b=rvs.Normal(b, linops.Identity(shape=n)),
+        b=rvs.Normal(b, linops.ScalarMult(scalar=request.param, shape=(n, n))),
+        solution=solution,
     )
 
 

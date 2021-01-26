@@ -47,8 +47,24 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         Ainv: rvs.Normal,
         b: Union[rvs.Constant, rvs.Normal],
         x: Optional[rvs.Normal] = None,
-        hyperparams: LinearSystemNoise = LinearSystemNoise(A_eps=None, b_eps=None),
+        hyperparams: LinearSystemNoise = None,
     ):
+        if hyperparams is None:
+            eps_sq = 10 ** -2
+            n = A.shape[0]
+            hyperparams = LinearSystemNoise(
+                A_eps=rvs.Normal(
+                    np.zeros((n, n)),
+                    linops.SymmetricKronecker(
+                        A=linops.ScalarMult(scalar=eps_sq, shape=(n, n)), dtype=A.dtype
+                    ),
+                ),
+                b_eps=rvs.Normal(
+                    np.zeros((n, 1)),
+                    linops.ScalarMult(scalar=eps_sq, shape=(n, n)),
+                ),
+            )
+
         super().__init__(x=x, A=A, Ainv=Ainv, b=b, hyperparams=hyperparams)
 
     @property
@@ -209,7 +225,10 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         )
 
     def _induced_solution_cov(self) -> Union[np.ndarray, linops.LinearOperator]:
-        if self.hyperparams.b_eps is None:
+
+        if isinstance(self.Ainv.cov, linops.SymmetricKronecker):
+            return super()._induced_solution_cov()
+        else:
             Vb = self.Ainv.cov.A.A @ self.b.mean
             bVb = (Vb.T @ self.b.mean).item()
 
@@ -235,6 +254,6 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
                 + (Wb.T @ Wb).item()
             )
 
+            # TODO add correct covariance term from b here
             return x_cov
-        else:
-            raise NotImplementedError
+            # raise NotImplementedError

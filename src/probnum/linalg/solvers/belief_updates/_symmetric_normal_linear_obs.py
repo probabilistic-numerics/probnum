@@ -20,7 +20,10 @@ from probnum.linalg.solvers.belief_updates import (
     LinearSolverBeliefUpdate,
     LinearSolverQoIBeliefUpdate,
 )
-from probnum.linalg.solvers.beliefs import LinearSystemBelief
+from probnum.linalg.solvers.beliefs import (
+    LinearSystemBelief,
+    SymmetricNormalLinearSystemBelief,
+)
 from probnum.linalg.solvers.hyperparams import LinearSystemNoise
 from probnum.problems import LinearSystem
 
@@ -109,7 +112,11 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def residual(self) -> np.ndarray:
         r"""Residual :math:`r = A x_i- b` of the solution estimate
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
-        if self.hyperparams is not None or self.prev_cache is None:
+        if isinstance(self.hyperparams, LinearSystemNoise):
+            return (
+                self.problem.A.sample() @ self.belief.x.mean - self.problem.b.sample()
+            )
+        elif self.prev_cache is None:
             return self.problem.A @ self.belief.x.mean - self.problem.b
         else:
             return self.prev_cache.residual + self.step_size * self.observation.A
@@ -320,15 +327,16 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
             cov = linops.SymmetricKronecker(
                 self.prior.A.cov.A - solver_state.cache.covfactorA_update_batch[0]
             )
-        elif isinstance(hyperparams.A_eps, linops.ScalarMult):
+        elif isinstance(hyperparams.A_eps.cov.A, linops.ScalarMult):
             eps_sq = hyperparams.A_eps.cov.A.scalar
-            mean = linops.aslinop(
-                self.prior.A.mean
-            ) + solver_state.cache.meanA_update_batch / (1 + eps_sq)
+            mean = (
+                linops.aslinop(self.prior.A.mean)
+                + 1 / (1 + eps_sq) * solver_state.cache.meanA_update_batch
+            )
 
             cov = linops.SymmetricKronecker(
                 self.prior.A.cov.A
-                - solver_state.cache.covfactorA_update_batch[0] / (1 + eps_sq)
+                - 1 / (1 + eps_sq) * solver_state.cache.covfactorA_update_batch[0]
             ) + linops.SymmetricKronecker(
                 eps_sq / (1 + eps_sq) * solver_state.cache.covfactorA_update_batch[1]
             )
@@ -358,15 +366,16 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
             cov = linops.SymmetricKronecker(
                 self.prior.Ainv.cov.A - solver_state.cache.covfactorH_update_batch[0]
             )
-        elif isinstance(hyperparams.A_eps, linops.ScalarMult):
+        elif isinstance(hyperparams.A_eps.cov.A, linops.ScalarMult):
             eps_sq = hyperparams.A_eps.cov.A.scalar
-            mean = linops.aslinop(
-                self.prior.Ainv.mean
-            ) + solver_state.cache.meanH_update_batch / (1 + eps_sq)
+            mean = (
+                linops.aslinop(self.prior.Ainv.mean)
+                + 1 / (1 + eps_sq) * solver_state.cache.meanH_update_batch
+            )
 
             cov = linops.SymmetricKronecker(
                 self.prior.Ainv.cov.A
-                - solver_state.cache.covfactorH_update_batch[0] / (1 + eps_sq)
+                - 1 / (1 + eps_sq) * solver_state.cache.covfactorH_update_batch[0]
             ) + linops.SymmetricKronecker(
                 eps_sq / (1 + eps_sq) * solver_state.cache.covfactorH_update_batch[1]
             )
@@ -416,7 +425,11 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
         elif hyperparams.b_eps is None:
             return rvs.asrandvar(problem.b)
         else:
-            raise NotImplementedError
+            # TODO replace this with Gaussian inference
+            return (
+                solver_state.belief.b * solver_state.info.iteration
+                + solver_state.cache.observation.b
+            ) / (solver_state.info.iteration + 1)
 
 
 class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
@@ -433,7 +446,7 @@ class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):
 
     def __init__(
         self,
-        prior: LinearSystemBelief,
+        prior: SymmetricNormalLinearSystemBelief,
         cache_type=_SymmetricNormalLinearObsCache,
         x_belief_update_type=_SolutionSymmetricNormalLinearObsBeliefUpdate,
         A_belief_update_type=_SystemMatrixSymmetricNormalLinearObsBeliefUpdate,
