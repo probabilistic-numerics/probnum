@@ -18,6 +18,7 @@ from typing import Iterable, Tuple, Union
 
 import numpy as np
 import scipy.sparse
+import scipy.sparse.linalg
 
 ########################################################################################
 # API Types
@@ -66,8 +67,5 @@ type should always be converted into :class:`RandomStateType` using the function
 :func:`probnum.utils.as_random_state` before further internal processing."""
 
 MatrixArgType = Union[
-    np.ndarray,
-    scipy.sparse.spmatrix,
-    "probnum.linops.LinearOperator",
-    "probnum.random_variables.RandomVariable",
+    np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator
 ]

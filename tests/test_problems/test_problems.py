@@ -6,7 +6,7 @@ import numpy as np
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum.problems import LinearSystem
+from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
@@ -104,7 +104,7 @@ class LinearSystemTestCase(unittest.TestCase, NumpyAssertions):
             cov=linops.SymmetricKronecker(linops.ScalarMult(scalar=2.0, shape=(n, n))),
         )
         b = rvs.Normal(mean=np.zeros((n, 1)), cov=np.eye(n))
-        linsys_rand = LinearSystem(A=A, b=b)
+        linsys_rand = NoisyLinearSystem.from_randvars(A=A, b=b)
         sample_size = (3,)
         linsys_samples = linsys_rand.sample(size=sample_size)
         assert linsys_samples.shape == sample_size

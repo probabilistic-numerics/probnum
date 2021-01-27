@@ -3,6 +3,7 @@
 from ._problems import (
     InitialValueProblem,
     LinearSystem,
+    NoisyLinearSystem,
     QuadratureProblem,
     RegressionProblem,
 )
@@ -11,6 +12,7 @@ __all__ = [
     "RegressionProblem",
     "InitialValueProblem",
     "LinearSystem",
+    "NoisyLinearSystem",
     "QuadratureProblem",
 ]
 
@@ -18,4 +20,5 @@ __all__ = [
 RegressionProblem.__module__ = "probnum.problems"
 InitialValueProblem.__module__ = "probnum.problems"
 LinearSystem.__module__ = "probnum.problems"
+NoisyLinearSystem.__module__ = "probnum.problems"
 QuadratureProblem.__module__ = "probnum.problems"

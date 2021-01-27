@@ -6,6 +6,7 @@ from functools import cached_property
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
+import scipy
 
 import probnum.linops as linops
 
@@ -21,21 +22,21 @@ class LinearSolverAction:
 
     Parameters
     ----------
-    A :
+    actA :
         Action to observe the system matrix.
-    b :
+    actb :
         Action to observe the right hand side.
     proj :
         Linear projection operator to a (low-dimensional) subspace.
     """
-    A: np.ndarray
-    b: Optional[np.ndarray] = None
+    actA: np.ndarray
+    actb: Optional[np.ndarray] = None
     proj: Optional[Union[linops.LinearOperator, np.ndarray]] = None
 
     def __eq__(self, other):
         return (
-            np.all(self.A == other.A)
-            and np.all(self.b == other.b)
+            np.all(self.actA == other.actA)
+            and np.all(self.actb == other.actb)
             and np.all(self.proj == other.proj)
         )
 
@@ -46,16 +47,27 @@ class LinearSolverObservation:
 
     Parameters
     ----------
+    obsA :
+        Observation of the system matrix for a given action.
+    obsb :
+        Observation of the right hand side for a given action.
     A :
-        Observation of the system matrix.
+        Observed system matrix or linear operator.
     b :
-        Observation of the right hand side.
+        Observed right hand side.
     """
-    A: np.ndarray
-    b: np.ndarray
+    obsA: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator]
+    obsb: np.ndarray
+    A: Optional[Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator]]
+    b: Optional[np.ndarray]
 
     def __eq__(self, other):
-        return np.all(self.A == other.A) and np.all(self.b == other.b)
+        return (
+            np.all(self.obsA == other.obsA)
+            and np.all(self.obsb == other.obsb)
+            and np.all(self.A == other.A)
+            and np.all(self.b == other.b)
+        )
 
 
 @dataclasses.dataclass

@@ -121,7 +121,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
     @classmethod
     def from_inverse(
         cls,
-        Ainv0: MatrixArgType,
+        Ainv0: Union[MatrixArgType, rvs.RandomVariable],
         problem: LinearSystem,
     ) -> "SymmetricNormalLinearSystemBelief":
         if not isinstance(Ainv0, rvs.Normal):
@@ -140,7 +140,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
     @classmethod
     def from_matrix(
         cls,
-        A0: MatrixArgType,
+        A0: Union[MatrixArgType, rvs.RandomVariable],
         problem: LinearSystem,
     ) -> "SymmetricNormalLinearSystemBelief":
         if not isinstance(A0, rvs.Normal):
@@ -161,8 +161,8 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
     @classmethod
     def from_matrices(
         cls,
-        A0: MatrixArgType,
-        Ainv0: MatrixArgType,
+        A0: Union[MatrixArgType, rvs.RandomVariable],
+        Ainv0: Union[MatrixArgType, rvs.RandomVariable],
         problem: LinearSystem,
     ) -> "SymmetricNormalLinearSystemBelief":
         if not isinstance(A0, rvs.Normal):

@@ -42,4 +42,4 @@ class MatVecObservation(ObservationOperator):
         else:
             obs_b = problem.b
 
-        return LinearSolverObservation(A=obs_A @ action.A, b=obs_b)
+        return LinearSolverObservation(obsA=problem.A @ action.A, obsb=obsb)

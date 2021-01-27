@@ -14,6 +14,7 @@ from probnum.linalg.solvers.beliefs._symmetric_normal_linear_system import (
 from probnum.linalg.solvers.data import LinearSolverData
 from probnum.linalg.solvers.hyperparams import UncertaintyUnexploredSpace
 from probnum.problems import LinearSystem
+from probnum.type import MatrixArgType
 
 # pylint: disable="invalid-name"
 
@@ -95,8 +96,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
 
     def __init__(
         self,
-        A0: Union[np.ndarray, linops.LinearOperator],
-        Ainv0: Union[np.ndarray, linops.LinearOperator],
+        A0: MatrixArgType,
+        Ainv0: MatrixArgType,
         b: Union[rvs.Constant, np.ndarray],
         uncertainty_scales: UncertaintyUnexploredSpace = UncertaintyUnexploredSpace(
             Phi=1.0, Psi=1.0
@@ -264,7 +265,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
     @classmethod
     def from_inverse(
         cls,
-        Ainv0: Union[np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix],
+        Ainv0: MatrixArgType,
         problem: LinearSystem,
         data: Optional[LinearSolverData] = None,
     ) -> "WeakMeanCorrespondenceBelief":
@@ -302,7 +303,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
     @classmethod
     def from_matrix(
         cls,
-        A0: Union[np.ndarray, linops.LinearOperator, scipy.sparse.spmatrix],
+        A0: MatrixArgType,
         problem: LinearSystem,
         data: Optional[LinearSolverData] = None,
     ) -> "WeakMeanCorrespondenceBelief":
@@ -339,16 +340,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
     @classmethod
     def from_matrices(
         cls,
-        A0: Union[
-            np.ndarray,
-            linops.LinearOperator,
-            scipy.sparse.spmatrix,
-        ],
-        Ainv0: Union[
-            np.ndarray,
-            linops.LinearOperator,
-            scipy.sparse.spmatrix,
-        ],
+        A0: MatrixArgType,
+        Ainv0: MatrixArgType,
         problem: LinearSystem,
         data: Optional[LinearSolverData] = None,
     ) -> "WeakMeanCorrespondenceBelief":

@@ -1,7 +1,7 @@
 """Definitions of problems currently solved by probabilistic numerical methods."""
 
 import dataclasses
-import typing
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse
@@ -15,7 +15,13 @@ except ImportError:
 import probnum  # pylint: disable="unused-import"
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as rvs
-import probnum.type as pntp
+from probnum.type import (
+    FloatArgType,
+    MatrixArgType,
+    RandomStateArgType,
+    ShapeArgType,
+    ShapeType,
+)
 from probnum.utils import as_random_state
 
 # pylint: disable="invalid-name"
@@ -58,12 +64,10 @@ class RegressionProblem:
     # Optional, because it should be specifiable without explicit likelihood info.
     # 'DiscreteGaussian' is currently in 'statespace', but can be used to define general
     # Likelihood functions; see #282
-    likelihood: typing.Optional[pnfs.statespace.DiscreteGaussian] = None
+    likelihood: Optional[pnfs.statespace.DiscreteGaussian] = None
 
     # For testing and benchmarking
-    solution: typing.Optional[
-        typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
-    ] = None
+    solution: Optional[Callable[[np.ndarray], Union[float, np.ndarray]]] = None
 
 
 @dataclasses.dataclass
@@ -111,18 +115,18 @@ class InitialValueProblem:
     0.09
     """
 
-    f: typing.Callable[[float, np.ndarray], np.ndarray]
+    f: Callable[[float, np.ndarray], np.ndarray]
     t0: float
     tmax: float
-    y0: typing.Union[pntp.FloatArgType, np.ndarray]
-    df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
-    ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+    y0: Union[FloatArgType, np.ndarray]
+    df: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
+    ddf: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+    solution: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class LinearSystem:
     r"""Linear system of equations.
 
@@ -152,11 +156,10 @@ class LinearSystem:
            [2]]), solution=None)
     """
 
-    A: pntp.MatrixArgType
-    b: typing.Union[np.ndarray, rvs.RandomVariable]
-
+    A: MatrixArgType
+    b: np.ndarray
     # For testing and benchmarking
-    solution: typing.Optional[typing.Union[np.ndarray, rvs.RandomVariable]] = None
+    solution: Optional[np.ndarray] = None
 
     def __post_init__(self):
         # Check types
@@ -214,12 +217,8 @@ class LinearSystem:
     @classmethod
     def from_matrix(
         cls,
-        A: typing.Union[
-            np.ndarray,
-            scipy.sparse.spmatrix,
-            scipy.sparse.linalg.LinearOperator,
-        ],
-        random_state: typing.Optional[pntp.RandomStateArgType] = None,
+        A: MatrixArgType,
+        random_state: Optional[RandomStateArgType] = None,
     ) -> "probnum.problems.LinearSystem":
         """Generate a random linear system from a given (fixed) matrix or linear
         operator.
@@ -239,8 +238,8 @@ class LinearSystem:
 
         return LinearSystem(A=A, solution=solution, b=right_hand_side)
 
-    @cached_property
-    def shape(self) -> pntp.ShapeType:
+    @property
+    def shape(self) -> ShapeType:
         """Shape of the linear system.
 
         Defined as the shape of the system matrix :code:`(m, n)` and the
@@ -248,12 +247,47 @@ class LinearSystem:
         """
         return self.A.shape + (self.b.shape[1],)
 
+
+@dataclasses.dataclass
+class NoisyLinearSystem(LinearSystem):
+    r"""Noise-corrupted linear system.
+
+    Compute :math:`x` from :math:`Ax=b`, where :math:`A` and :math:`b` are only known up
+    to zero-mean additive noise. Solved by probabilistic linear solvers in
+    :mod:`probnum.linalg`
+
+    Parameters
+    ----------
+    sample :
+        Callable jointly drawing a linear system instance.
+    shape :
+        Shape :code:`(m, n, nrhs)` of the linear system.
+    A :
+        Latent system matrix or linear operator.
+    b :
+        Latent right-hand side.
+    solution :
+        True solution to the problem. Used for testing and benchmarking.
+    """
+
+    def __init__(
+        self,
+        sample: Callable[[ShapeArgType], Union[np.ndarray, Tuple]],
+        shape: ShapeArgType,
+        A: MatrixArgType = None,
+        b: MatrixArgType = None,
+        solution: Optional[np.ndarray] = None,
+    ):
+        self._sample = sample
+        self._shape = shape
+        super().__init__(A=A, b=b, solution=solution)
+
     def sample(
-        self, size: pntp.ShapeArgType = ()
-    ) -> typing.Union[
+        self, size: ShapeArgType = ()
+    ) -> Union[
         np.ndarray,
-        typing.Tuple[
-            typing.Union[
+        Tuple[
+            Union[
                 np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator
             ],
             np.ndarray,
@@ -269,21 +303,51 @@ class LinearSystem:
         size :
             Size of the drawn sample of realizations.
         """
-        if isinstance(self.A, rvs.RandomVariable):
-            A_samples = self.A.sample(size=size)
-        else:
-            A_samples = rvs.asrandvar(self.A).sample(size=size)
-        if isinstance(self.b, rvs.RandomVariable):
-            b_samples = self.b.sample(size=size)
-        else:
-            b_samples = rvs.asrandvar(self.b).sample(size=size)
+        if self._sample is not None:
+            return self._sample(size)
+        raise NotImplementedError
 
-        if size == ():
-            return A_samples, b_samples
-        samples = np.empty(size, dtype=object)
-        samples[:] = list(zip([Ai for Ai in A_samples], [bi for bi in b_samples]))
+    @classmethod
+    def from_randvars(
+        cls,
+        A: rvs.RandomVariable,
+        b: rvs.RandomVariable,
+        solution: Optional[np.ndarray] = None,
+    ):
+        """Create a noisy linear system from random variables.
 
-        return samples
+        Parameters
+        ----------
+        A :
+            System matrix or linear operator.
+        b :
+            Right-hand side.
+        solution :
+            True solution to the problem. Used for testing and benchmarking.
+        """
+
+        def _sample(size: ShapeArgType) -> Union[np.ndarray, Tuple]:
+            A_samples = A.sample(size=size)
+            b_samples = b.sample(size=size)
+
+            if size == ():
+                return A_samples, b_samples
+            samples = np.empty(size, dtype=object)
+            samples[:] = list(zip([Ai for Ai in A_samples], [bi for bi in b_samples]))
+
+            return samples
+
+        return cls(
+            A=A.mean,
+            b=b.mean,
+            sample=_sample,
+            shape=A.shape + (b.shape[0],),
+            solution=solution,
+        )
+
+    @property
+    def shape(self) -> ShapeType:
+        return self._shape
 
 
 @dataclasses.dataclass
@@ -332,12 +396,10 @@ class QuadratureProblem:
     [1.0, 1.0]
     """
 
-    integrand: typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
-    lower_bd: typing.Union[pntp.FloatArgType, np.ndarray]
-    upper_bd: typing.Union[pntp.FloatArgType, np.ndarray]
-    output_dim: typing.Optional[int] = 1
+    integrand: Callable[[np.ndarray], Union[float, np.ndarray]]
+    lower_bd: Union[FloatArgType, np.ndarray]
+    upper_bd: Union[FloatArgType, np.ndarray]
+    output_dim: Optional[int] = 1
 
     # For testing and benchmarking
-    solution: typing.Optional[
-        typing.Union[float, np.ndarray, rvs.RandomVariable]
-    ] = None
+    solution: Optional[Union[float, np.ndarray, rvs.RandomVariable]] = None
