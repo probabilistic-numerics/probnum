@@ -134,7 +134,7 @@ class LinearSystem:
     A
         System matrix or linear operator.
     b
-        Right-hand side vector or matrix.
+        Right-hand side.
     solution
         True solution to the problem. Used for testing and benchmarking.
 
@@ -212,14 +212,22 @@ class LinearSystem:
                 raise dim_mismatch_error(self.solution, self.b, "x", "b")
 
     @classmethod
-    def from_matrix(cls, A, random_state=None) -> "probnum.problems.LinearSystem":
+    def from_matrix(
+        cls,
+        A: typing.Union[
+            np.ndarray,
+            scipy.sparse.spmatrix,
+            scipy.sparse.linalg.LinearOperator,
+        ],
+        random_state: typing.Optional[pntp.RandomStateArgType] = None,
+    ) -> "probnum.problems.LinearSystem":
         """Generate a random linear system from a given (fixed) matrix or linear
         operator.
 
         Parameters
         ----------
         A :
-            System matrix for the random linear system.
+            System matrix for the linear system.
         random_state
             Random state of the random variable. If None (or np.random), the global
             :mod:`numpy.random` state is used. If integer, it is used to seed the local
@@ -239,6 +247,43 @@ class LinearSystem:
         number of right hand sides :code:`(nrhs)`.
         """
         return self.A.shape + (self.b.shape[1],)
+
+    def sample(
+        self, size: pntp.ShapeArgType = ()
+    ) -> typing.Union[
+        np.ndarray,
+        typing.Tuple[
+            typing.Union[
+                np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator
+            ],
+            np.ndarray,
+        ],
+    ]:
+        """Draw realizations of the (noisy) linear system.
+
+        Returns an array of tuples defining linear systems drawn from the noisy linear
+        system.
+
+        Parameters
+        ----------
+        size :
+            Size of the drawn sample of realizations.
+        """
+        if isinstance(self.A, rvs.RandomVariable):
+            A_samples = self.A.sample(size=size)
+        else:
+            A_samples = rvs.asrandvar(self.A).sample(size=size)
+        if isinstance(self.b, rvs.RandomVariable):
+            b_samples = self.b.sample(size=size)
+        else:
+            b_samples = rvs.asrandvar(self.b).sample(size=size)
+
+        if size == ():
+            return A_samples, b_samples
+        samples = np.empty(size, dtype=object)
+        samples[:] = list(zip([Ai for Ai in A_samples], [bi for bi in b_samples]))
+
+        return samples
 
 
 @dataclasses.dataclass

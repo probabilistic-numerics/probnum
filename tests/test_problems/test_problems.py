@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 
 import probnum.linops as linops
+import probnum.random_variables as rvs
 from probnum.problems import LinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
@@ -93,6 +94,26 @@ class LinearSystemTestCase(unittest.TestCase, NumpyAssertions):
             msg=f"Linear system shape {linsys.shape} does not match "
             f"component shapes A : {A.shape}, b: {b.shape}",
         )
+
+    def test_sample_noisy_system_has_correct_dimensions(self):
+        """Test whether sampling from a noisy linear system returns an array of tuples
+        defining linear systems."""
+        n = 5
+        A = rvs.Normal(
+            mean=linops.Identity(n),
+            cov=linops.SymmetricKronecker(linops.ScalarMult(scalar=2.0, shape=(n, n))),
+        )
+        b = rvs.Normal(mean=np.zeros((n, 1)), cov=np.eye(n))
+        linsys_rand = LinearSystem(A=A, b=b)
+        sample_size = (3,)
+        linsys_samples = linsys_rand.sample(size=sample_size)
+        assert linsys_samples.shape == sample_size
+        assert linsys_samples[0][0].shape == A.shape
+        assert linsys_samples[0][1].shape == b.shape
+
+        linsys_single_sample = linsys_rand.sample()
+        assert linsys_single_sample[0].shape == A.shape
+        assert linsys_single_sample[1].shape == b.shape
 
 
 class RandomLinearSystemTestCase(unittest.TestCase, NumpyAssertions):
