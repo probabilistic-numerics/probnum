@@ -58,8 +58,8 @@ class LinearSolverObservation:
     """
     obsA: Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator]
     obsb: np.ndarray
-    A: Optional[Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator]]
-    b: Optional[np.ndarray]
+    A: Optional[Union[np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator]] = None
+    b: Optional[np.ndarray] = None
 
     def __eq__(self, other):
         return (
@@ -112,25 +112,25 @@ class LinearSolverData:
     @cached_property
     def actions_arr(self) -> Tuple[np.ndarray, np.ndarray]:
         """Array of performed actions."""
-        ActionsArr = namedtuple("ActionsArr", ["A", "b"])
+        ActionsArr = namedtuple("ActionsArr", ["actA", "actb"])
 
-        arr_A = np.hstack([action.A for action in self.actions])
-        arr_b = np.hstack([action.b for action in self.actions])
+        arr_actA = np.hstack([action.actA for action in self.actions])
+        arr_actb = np.hstack([action.actb for action in self.actions])
 
-        if arr_A[0] is None:
-            arr_A = np.array([[None]])
-        if arr_b[0] is None:
-            arr_b = np.array([[None]])
-        return ActionsArr(A=arr_A, b=arr_b)
+        if arr_actA[0] is None:
+            arr_actA = np.array([[None]])
+        if arr_actb[0] is None:
+            arr_actb = np.array([[None]])
+        return ActionsArr(actA=arr_actA, actb=arr_actb)
 
     @cached_property
     def observations_arr(self) -> Tuple[np.ndarray, np.ndarray]:
         """Tuple of arrays of performed observations of the system matrix and right hand
         side."""
-        ObservationsArr = namedtuple("ObservationsArr", ["A", "b"])
+        ObservationsArr = namedtuple("ObservationsArr", ["obsA", "obsb"])
         return ObservationsArr(
-            A=np.hstack([observation.A for observation in self.observations]),
-            b=np.hstack([observation.b for observation in self.observations]),
+            obsA=np.hstack([observation.obsA for observation in self.observations]),
+            obsb=np.hstack([observation.obsb for observation in self.observations]),
         )
 
     @classmethod
@@ -143,12 +143,12 @@ class LinearSolverData:
         tuples of arrays."""
         return cls(
             actions=[
-                LinearSolverAction(A=actions_arr[0][:, i], b=actions_arr[1][:, i])
+                LinearSolverAction(actA=actions_arr[0][:, i], actb=actions_arr[1][:, i])
                 for i in range(actions_arr[0].shape[1])
             ],
             observations=[
                 LinearSolverObservation(
-                    A=observations_arr[0][:, i], b=observations_arr[1][:, i]
+                    obsA=observations_arr[0][:, i], obsb=observations_arr[1][:, i]
                 )
                 for i in range(observations_arr[0].shape[1])
             ],

@@ -24,7 +24,7 @@ def custom_policy(
     ).sample((problem.A.shape[1], 1))
     action = action / np.linalg.norm(action)
 
-    return LinearSolverAction(A=action)
+    return LinearSolverAction(actA=action)
 
 
 @pytest.fixture(

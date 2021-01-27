@@ -61,7 +61,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def action_observation(self) -> float:
         r"""Inner product :math:`s_i^\top y_i` between the current action and
         observation."""
-        return (self.action.A.T @ self.observation.A).item()
+        return (self.action.actA.T @ self.observation.obsA).item()
 
     @cached_property
     def action_observation_innerprod_list(self) -> List[float]:
@@ -81,7 +81,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         s_i^\top s_i)` of the current action and observation."""
         return (
             np.log(self.action_observation)
-            - np.log((self.action.A.T @ self.action.A)).item()
+            - np.log((self.action.actA.T @ self.action.actA)).item()
         )
 
     @cached_property
@@ -123,7 +123,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         elif self.prev_cache is None:
             return self.problem.A @ self.belief.x.mean - self.problem.b
         else:
-            return self.prev_cache.residual + self.step_size * self.observation.A
+            return self.prev_cache.residual + self.step_size * self.observation.obsA
 
     @cached_property
     def step_size(self) -> np.ndarray:
@@ -131,12 +131,12 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
         if self.hyperparams is None:
             return (
-                -self.action.A.T @ self.prev_cache.residual / self.action_observation
+                -self.action.actA.T @ self.prev_cache.residual / self.action_observation
             ).item()
         elif isinstance(self.hyperparams.A_eps.cov.A, linops.ScalarMult):
             eps_sq = self.hyperparams.A_eps.cov.A.scalar
             return (
-                -self.action.A.T @ self.prev_cache.residual / self.action_observation
+                -self.action.actA.T @ self.prev_cache.residual / self.action_observation
             ).item() / (1 + eps_sq)
 
         else:
@@ -146,25 +146,25 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def deltaA(self) -> np.ndarray:
         r"""Residual :math:`\Delta^A_i = y_i - A_{i-1}s_i` between observation and
         prediction."""
-        return self.observation.A - self.belief.A.mean @ self.action.A
+        return self.observation.obsA - self.belief.A.mean @ self.action.actA
 
     @cached_property
     def deltaH(self) -> np.ndarray:
         r"""Residual :math:`\Delta^H_i = s_i - H_{i-1}y_i` between inverse
         observation and prediction."""
-        return self.action.A - self.belief.Ainv.mean @ self.observation.A
+        return self.action.actA - self.belief.Ainv.mean @ self.observation.obsA
 
     @cached_property
     def deltaA_action(self) -> float:
         r"""Inner product :math:`(\Delta^A)^\top s` between matrix residual and
         action."""
-        return self.deltaA.T @ self.action.A
+        return self.deltaA.T @ self.action.actA
 
     @cached_property
     def deltaH_observation(self) -> float:
         r"""Inner product :math:`(\Delta^H)^\top y` between inverse residual and
         observation."""
-        return self.deltaH.T @ self.observation.A
+        return self.deltaH.T @ self.observation.obsA
 
     @cached_property
     def covfactorA_action(self) -> np.ndarray:
@@ -173,7 +173,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         Computes the matrix-vector product :math:`W^A_{i-1}s_i` between the covariance
         factor of the matrix model and the current action.
         """
-        return self.belief.A.cov.A @ self.action.A
+        return self.belief.A.cov.A @ self.action.actA
 
     @cached_property
     def covfactorH_observation(self) -> np.ndarray:
@@ -182,7 +182,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         Computes the matrix-vector product :math:`W^H_{i-1}y_i` between the covariance
         factor of the inverse model and the current observation.
         """
-        return self.belief.Ainv.cov.A @ self.observation.A
+        return self.belief.Ainv.cov.A @ self.observation.obsA
 
     @cached_property
     def sqnorm_covfactorA_action(self) -> float:
@@ -200,13 +200,13 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def action_covfactorA_action(self) -> float:
         r"""Inner product :math:`s_i^\top W^A_{i-1} s_i` of the current action
         with respect to the covariance factor :math:`W_{i-1}` of the matrix model."""
-        return self.action.A.T @ self.covfactorA_action
+        return self.action.actA.T @ self.covfactorA_action
 
     @cached_property
     def observation_covfactorH_observation(self) -> float:
         r"""Inner product :math:`y_i^\top W^H_{i-1} y_i` of the current observation
         with respect to the covariance factor :math:`W^H_{i-1}` of the inverse model."""
-        return self.observation.A.T @ self.covfactorH_observation
+        return self.observation.obsA.T @ self.covfactorH_observation
 
     @cached_property
     def delta_invcovfactorA_delta(self) -> float:
@@ -414,7 +414,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
             ):
                 return (
                     solver_state.cache.residual
-                    + solver_state.cache.step_size * solver_state.cache.observation.A
+                    + solver_state.cache.step_size * solver_state.cache.observation.obsA
                 )
         else:
             # Belief is induced from inverse and rhs
@@ -440,7 +440,7 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
             # TODO replace this with Gaussian inference
             return (
                 solver_state.belief.b * solver_state.info.iteration
-                + solver_state.cache.observation.b
+                + solver_state.cache.observation.obsb
             ) / (solver_state.info.iteration + 1)
 
 

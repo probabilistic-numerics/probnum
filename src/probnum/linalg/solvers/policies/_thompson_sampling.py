@@ -50,4 +50,4 @@ class ThompsonSampling(Policy):
             belief.A.sample() @ belief.x.sample() - belief.b.sample()
         )
 
-        return LinearSolverAction(A=action)
+        return LinearSolverAction(actA=action)

@@ -136,7 +136,7 @@ def fixture_symm_belief(
 @pytest.fixture(name="action")
 def fixture_action(n: int, random_state: np.random.RandomState) -> LinearSolverAction:
     """Action chosen by a policy."""
-    return LinearSolverAction(A=random_state.normal(size=(n, 1)))
+    return LinearSolverAction(actA=random_state.normal(size=(n, 1)))
 
 
 @pytest.fixture()
@@ -144,7 +144,7 @@ def matvec_observation(
     action: LinearSolverAction, linsys_spd: LinearSystem
 ) -> LinearSolverObservation:
     """Matrix-vector product observation for a given action."""
-    return LinearSolverObservation(A=linsys_spd.A @ action.A, b=linsys_spd.b)
+    return LinearSolverObservation(obsA=linsys_spd.A @ action.actA, obsb=linsys_spd.b)
 
 
 @pytest.fixture
@@ -156,11 +156,11 @@ def solver_data(
 ):
     """Data collected by a linear solver."""
     actions = [
-        LinearSolverAction(A=s[:, None])
+        LinearSolverAction(actA=s[:, None])
         for s in (random_state.normal(size=(n, num_iters))).T
     ]
     matvec_observations = [
-        LinearSolverObservation(A=linsys_spd.A @ action.A, b=linsys_spd.b)
+        LinearSolverObservation(obsA=linsys_spd.A @ action.actA, obsb=linsys_spd.b)
         for action in actions
     ]
     return LinearSolverData(actions=actions, observations=matvec_observations)
@@ -256,7 +256,7 @@ def conj_dir_method(
     return ProbabilisticLinearSolver(
         prior=prior,
         policy=policies.ConjugateDirections(),
-        observation_op=observation_ops.MatVecObservation(),
+        observation_op=observation_ops.MatVec(),
         stopping_criteria=[
             stop_criteria.MaxIterations(maxiter=n),
             stop_criteria.Residual(),
@@ -281,6 +281,6 @@ def conj_grad_method(
             # calibration_method=uncertainty_calibration,
         ),
         policy=policies.ConjugateDirections(),
-        observation_op=observation_ops.MatVecObservation(),
+        observation_op=observation_ops.MatVec(),
         stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
     )

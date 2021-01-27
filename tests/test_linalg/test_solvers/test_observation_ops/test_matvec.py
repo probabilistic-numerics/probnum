@@ -2,10 +2,7 @@
 import numpy as np
 
 from probnum.linalg.solvers.data import LinearSolverAction
-from probnum.linalg.solvers.observation_ops import (
-    MatVecObservation,
-    ObservationOperator,
-)
+from probnum.linalg.solvers.observation_ops import MatVec, ObservationOperator
 from probnum.problems import LinearSystem
 
 
@@ -16,9 +13,9 @@ def test_observation_is_matrix_vector_product(
 ):
     """Test whether the matmul observation operator returns a matrix-vector
     multiplication with the system matrix."""
-    observation = MatVecObservation()(problem=linsys_spd, action=action)
+    observation = MatVec()(problem=linsys_spd, action=action)
     np.testing.assert_allclose(
-        observation.A,
-        linsys_spd.A @ action.A,
+        observation.obsA,
+        linsys_spd.A @ action.actA,
     )
-    assert np.all(observation.b == linsys_spd.b)
+    assert np.all(observation.obsb == linsys_spd.b)

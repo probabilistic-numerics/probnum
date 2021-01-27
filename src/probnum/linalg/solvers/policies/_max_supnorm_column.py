@@ -43,4 +43,4 @@ class MaxSupNormColumn(Policy):
         # Unit vector
         unitvec = np.eye(N=solver_state.problem.A.shape[1], M=1, k=-maxnorm_idx)
 
-        return LinearSolverAction(A=unitvec)
+        return LinearSolverAction(actA=unitvec)

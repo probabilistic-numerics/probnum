@@ -25,8 +25,8 @@ def test_policy_returns_array(
         belief=prior,
         solver_state=None,
     )
-    if action.A is not None:
-        assert isinstance(action.A, np.ndarray)
+    if action.actA is not None:
+        assert isinstance(action.actA, np.ndarray)
     if action.b is not None:
         assert isinstance(action.b, np.ndarray)
     if action.proj is not None:
@@ -68,7 +68,7 @@ def test_ground_truth_belief_solves_problem_in_one_step(
 
     np.testing.assert_allclose(
         linsys_spd.solution,
-        belief_groundtruth.x.mean + action.A,
+        belief_groundtruth.x.mean + action.actA,
     )
 
 
@@ -85,7 +85,7 @@ def test_multiple_rhs(
     the linear system."""
     action = policy(problem=linsys_spd_multiple_rhs, belief=symm_belief_multiple_rhs)
 
-    assert action.A.shape == symm_belief_multiple_rhs.x.shape
+    assert action.actA.shape == symm_belief_multiple_rhs.x.shape
 
 
 @pytest.mark.parametrize(

@@ -49,7 +49,8 @@ def test_calibration_after_one_iteration_returns_rayleigh_quotient(
     """Test whether calibrating for one action and observation returns the Rayleigh
     quotient as the uncertainty scale for A."""
     rayleigh_quotient = np.exp(
-        np.log(action.A.T @ matvec_observation.A) - np.log(action.A.T @ action.A)
+        np.log(action.actA.T @ matvec_observation.obsA)
+        - np.log(action.actA.T @ action.actA)
     ).item()
 
     unc_scales, _ = uncertainty_calibration(

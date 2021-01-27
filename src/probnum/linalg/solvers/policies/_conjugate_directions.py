@@ -40,4 +40,4 @@ class ConjugateDirections(Policy):
         # A-conjugate search direction / action (assuming exact arithmetic)
         action = -belief.Ainv.mean @ solver_state.cache.residual
 
-        return LinearSolverAction(A=action)
+        return LinearSolverAction(actA=action)

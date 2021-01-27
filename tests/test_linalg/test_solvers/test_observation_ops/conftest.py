@@ -10,7 +10,7 @@ from probnum.linalg.solvers import observation_ops
         pytest.param(observation_op, id=observation_op_name)
         for (observation_op_name, observation_op) in zip(
             ["matvec"],
-            [observation_ops.MatVecObservation()],
+            [observation_ops.MatVec()],
         )
     ],
     name="observation_op",

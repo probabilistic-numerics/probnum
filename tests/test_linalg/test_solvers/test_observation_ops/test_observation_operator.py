@@ -17,5 +17,5 @@ def test_observation_array(
         action=action,
         solver_state=None,
     )
-    assert isinstance(observation.A, np.ndarray)
-    assert isinstance(observation.b, np.ndarray)
+    assert isinstance(observation.obsA, np.ndarray)
+    assert isinstance(observation.obsb, np.ndarray)

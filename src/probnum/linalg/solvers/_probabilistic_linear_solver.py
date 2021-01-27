@@ -97,14 +97,14 @@ class ProbabilisticLinearSolver(
     >>> from probnum.linalg.solvers import ProbabilisticLinearSolver
     >>> from probnum.linalg.solvers.beliefs import LinearSystemBelief
     >>> from probnum.linalg.solvers.policies import ConjugateDirections
-    >>> from probnum.linalg.solvers.observation_ops import MatVecObservation
+    >>> from probnum.linalg.solvers.observation_ops import MatVec
     >>> from probnum.linalg.solvers.stop_criteria import MaxIterations, Residual
     >>> # Composition of a custom probabilistic linear solver
     >>> pls = ProbabilisticLinearSolver(
     ...     prior=LinearSystemBelief.from_solution(np.zeros_like(linsys.b),
     ...                                            problem=linsys),
     ...     policy=ConjugateDirections(),
-    ...     observation_op=MatVecObservation(),
+    ...     observation_op=MatVec(),
     ...     stopping_criteria=[MaxIterations(), Residual()],
     ... )
 
@@ -226,10 +226,14 @@ class ProbabilisticLinearSolver(
         ):
             assume_linsys += "noise"
 
+        # Observation operator
+        observation_op = observation_ops.MatVec()
+
         # Choose belief class
         belief_class = beliefs.LinearSystemBelief
         if "sym" in assume_linsys and "pos" in assume_linsys:
             if "noise" in assume_linsys:
+                observation_op = observation_ops.SampleMatvec()
                 belief_class = beliefs.NoisySymmetricNormalLinearSystemBelief
             else:
                 belief_class = beliefs.WeakMeanCorrespondenceBelief
@@ -249,14 +253,18 @@ class ProbabilisticLinearSolver(
             prior = belief_class.from_scalar(scalar=1.0, problem=problem)
 
         return cls.from_prior_observation_op(
-            prior=prior, maxiter=maxiter, atol=atol, rtol=rtol
+            prior=prior,
+            observation_op=observation_op,
+            maxiter=maxiter,
+            atol=atol,
+            rtol=rtol,
         )
 
     @classmethod
     def from_prior_observation_op(
         cls,
         prior: beliefs.LinearSystemBelief,
-        observation_op: observation_ops.ObservationOperator = observation_ops.MatVecObservation(),
+        observation_op: observation_ops.ObservationOperator = observation_ops.MatVec(),
         maxiter: Optional[int] = None,
         atol: float = 10 ** -6,
         rtol: float = 10 ** -6,
@@ -289,19 +297,11 @@ class ProbabilisticLinearSolver(
         """
 
         stopping_criteria = [stop_criteria.MaxIterations(maxiter=maxiter)]
-        if isinstance(observation_op, observation_ops.MatVecObservation):
+        if isinstance(observation_op, observation_ops.MatVec):
             if isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
                 policy = policies.ConjugateDirections()
                 stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
                 belief_update = belief_updates.WeakMeanCorrLinearObsBeliefUpdate(
-                    prior=prior
-                )
-            elif isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
-                policy = policies.ConjugateDirections()
-                stopping_criteria.append(
-                    stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
-                )
-                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate(
                     prior=prior
                 )
             elif isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
@@ -310,19 +310,30 @@ class ProbabilisticLinearSolver(
                 belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate(
                     prior=prior
                 )
+            else:
+                raise ValueError("Unknown or incompatible prior belief class.")
+        elif isinstance(observation_op, observation_ops.SampleMatvec):
+            if isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
+                policy = policies.ConjugateDirections()
+                stopping_criteria.append(
+                    stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
+                )
+                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate(
+                    prior=prior
+                )
 
             else:
                 raise ValueError("Unknown or incompatible prior belief class.")
-
-            return cls(
-                prior=prior,
-                policy=policy,
-                observation_op=observation_op,
-                belief_update=belief_update,
-                stopping_criteria=stopping_criteria,
-            )
         else:
             raise ValueError("Unknown or incompatible observation operator.")
+
+        return cls(
+            prior=prior,
+            policy=policy,
+            observation_op=observation_op,
+            belief_update=belief_update,
+            stopping_criteria=stopping_criteria,
+        )
 
     def has_converged(
         self,
