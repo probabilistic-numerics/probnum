@@ -297,7 +297,7 @@ class ProbabilisticLinearSolver(
                     prior=prior
                 )
             elif isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
-                policy = policies.ExploreExploit()
+                policy = policies.ConjugateDirections()
                 stopping_criteria.append(
                     stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
                 )

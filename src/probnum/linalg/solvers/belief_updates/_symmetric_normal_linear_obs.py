@@ -114,7 +114,8 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
         if isinstance(self.hyperparams, LinearSystemNoise):
             return (
-                self.problem.A.sample() @ self.belief.x.mean - self.problem.b.sample()
+                rvs.asrandvar(self.problem.A).sample() @ self.belief.x.mean
+                - rvs.asrandvar(self.problem.b).sample()
             )
         elif self.prev_cache is None:
             return self.problem.A @ self.belief.x.mean - self.problem.b
@@ -129,6 +130,12 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
             return (
                 -self.action.A.T @ self.prev_cache.residual / self.action_observation
             ).item()
+        elif isinstance(self.hyperparams.A_eps.cov.A, linops.ScalarMult):
+            eps_sq = self.hyperparams.A_eps.cov.A.scalar
+            return (
+                -self.action.A.T @ self.prev_cache.residual / self.action_observation
+            ).item() / (1 + eps_sq)
+
         else:
             raise NotImplementedError
 
@@ -399,18 +406,12 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
         """Updated belief about the solution."""
         if solver_state is not None:
 
-            if hyperparams is None or not isinstance(hyperparams, LinearSystemNoise):
+            if hyperparams is None or isinstance(
+                hyperparams.A_eps.cov.A, linops.ScalarMult
+            ):
                 return (
                     solver_state.cache.residual
                     + solver_state.cache.step_size * solver_state.cache.observation.A
-                )
-            elif isinstance(hyperparams.A_eps.cov.A, linops.ScalarMult):
-                eps_sq = hyperparams.A_eps.cov.A.scalar
-                return (
-                    solver_state.cache.residual
-                    + solver_state.cache.step_size
-                    / (1 + eps_sq)
-                    * solver_state.cache.observation.A
                 )
         else:
             # Belief is induced from inverse and rhs
