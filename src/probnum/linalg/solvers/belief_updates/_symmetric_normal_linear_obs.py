@@ -113,10 +113,13 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         r"""Residual :math:`r = A x_i- b` of the solution estimate
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
         if isinstance(self.hyperparams, LinearSystemNoise):
-            return (
-                rvs.asrandvar(self.problem.A).sample() @ self.belief.x.mean
-                - rvs.asrandvar(self.problem.b).sample()
-            )
+            if isinstance(self.problem.A, linops.LinearOperator):
+                A = self.problem.A
+            elif isinstance(self.problem.A, rvs.RandomVariable):
+                A = self.problem.A.sample()
+            else:
+                raise NotImplementedError
+            return A @ self.belief.x.mean - rvs.asrandvar(self.problem.b).sample()
         elif self.prev_cache is None:
             return self.problem.A @ self.belief.x.mean - self.problem.b
         else:
