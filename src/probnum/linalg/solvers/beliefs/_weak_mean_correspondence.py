@@ -157,11 +157,11 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         else:
             if action_obs_innerprods is None:
                 action_obs_innerprods = np.squeeze(
-                    self.data.actions_arr.A.T @ self.data.observations_arr.A
+                    self.data.actions_arr.actA.T @ self.data.observations_arr.obsA
                 )
 
             action_proj = linops.OrthogonalProjection(
-                subspace_basis=self.data.actions_arr.A
+                subspace_basis=self.data.actions_arr.actA
             )
 
             if np.squeeze(action_obs_innerprods).ndim in (0, 1):
@@ -170,15 +170,15 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                     """Conjugate actions implying :math:`S^{\top} Y` is a diagonal
                     matrix."""
                     return (
-                        self.data.observations_arr.A * action_obs_innerprods ** -1
-                    ) @ (self.data.observations_arr.A.T @ x)
+                        self.data.observations_arr.obsA * action_obs_innerprods ** -1
+                    ) @ (self.data.observations_arr.obsA.T @ x)
 
             else:
 
                 def _matvec(x):
-                    return self.data.observations_arr.A @ np.linalg.solve(
+                    return self.data.observations_arr.obsA @ np.linalg.solve(
                         action_obs_innerprods,
-                        self.data.observations_arr.A.T @ x,
+                        self.data.observations_arr.obsA.T @ x,
                     )
 
             action_space_op = linops.LinearOperator(
@@ -213,7 +213,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             )
         else:
             observation_proj = linops.OrthogonalProjection(
-                subspace_basis=self.data.observations_arr.A
+                subspace_basis=self.data.observations_arr.obsA
             )
 
             if isinstance(self.Ainv0, linops.ScalarMult):
@@ -223,7 +223,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 def _matvec(x):
                     return self.Ainv0 @ (
                         linops.OrthogonalProjection(
-                            subspace_basis=self.data.observations_arr.A,
+                            subspace_basis=self.data.observations_arr.obsA,
                             is_orthonormal=False,
                             innerprod_matrix=self.Ainv0,
                         )

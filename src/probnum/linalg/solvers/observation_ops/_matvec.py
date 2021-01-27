@@ -39,8 +39,8 @@ class MatVec(ObservationOperator):
 class SampleMatVec(ObservationOperator):
     r"""Matrix-vector product observation of a noisy linear system.
 
-    Observe a noisy linear system by drawing a sample linear problem and multiplying
-    with the system matrix :math:`y=As`.
+    Observe a noisy linear system by drawing a sample linear problem :math:`(A +E,
+    b + \epsilon)` and multiplying with the system matrix :math:`y=(A +E) s`.
     """
 
     def __init__(self):

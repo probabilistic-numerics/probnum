@@ -96,13 +96,15 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
                     np.log(
                         np.einsum(
                             "nk,nk->k",
-                            self.data.actions_arr.A,
-                            self.data.observations_arr.A,
+                            self.data.actions_arr.actA,
+                            self.data.observations_arr.obsA,
                         )
                     )
                     - np.log(
                         np.einsum(
-                            "nk,nk->k", self.data.actions_arr.A, self.data.actions_arr.A
+                            "nk,nk->k",
+                            self.data.actions_arr.actA,
+                            self.data.actions_arr.actA,
                         )
                     )
                 )

@@ -22,9 +22,9 @@ def test_means_correspond_weakly(
     :math:`y`."""
     np.testing.assert_allclose(
         np.linalg.solve(
-            weakmeancorr_belief.A.mean.todense(), solver_data.observations_arr.A
+            weakmeancorr_belief.A.mean.todense(), solver_data.observations_arr.obsA
         ),
-        weakmeancorr_belief.Ainv.mean @ solver_data.observations_arr.A,
+        weakmeancorr_belief.Ainv.mean @ solver_data.observations_arr.obsA,
     )
 
 
@@ -37,8 +37,8 @@ def test_system_matrix_uncertainty_in_action_span(
     """Test whether the covariance factor W_0^A of the model for A acts like the
     true A in the span of the actions, i.e. if W_0^A S = Y."""
     np.testing.assert_allclose(
-        solver_data.observations_arr.A,
-        weakmeancorr_belief.A.cov.A @ solver_data.actions_arr.A,
+        solver_data.observations_arr.obsA,
+        weakmeancorr_belief.A.cov.A @ solver_data.actions_arr.actA,
     )
 
 
@@ -54,8 +54,8 @@ def test_inverse_uncertainty_in_observation_span(
         pytest.skip("Action null space may be trivial.")
 
     np.testing.assert_allclose(
-        weakmeancorr_belief.Ainv.mean @ solver_data.observations_arr.A,
-        weakmeancorr_belief.Ainv.cov.A @ solver_data.observations_arr.A,
+        weakmeancorr_belief.Ainv.mean @ solver_data.observations_arr.obsA,
+        weakmeancorr_belief.Ainv.cov.A @ solver_data.observations_arr.obsA,
     )
 
 
@@ -85,13 +85,13 @@ def test_uncertainty_action_null_space_is_phi(
         data=LinearSolverData.from_arrays(
             actions_arr=solver_data.actions_arr,
             observations_arr=(
-                scalar_linsys.A @ solver_data.actions_arr.A,
+                scalar_linsys.A @ solver_data.actions_arr.actA,
                 np.repeat(scalar_linsys.b, num_iters, axis=1),
             ),
         ),
     )
 
-    action_null_space = scipy.linalg.null_space(solver_data.actions_arr.A.T)
+    action_null_space = scipy.linalg.null_space(solver_data.actions_arr.actA.T)
 
     np.testing.assert_allclose(
         action_null_space.T @ (belief.A.cov.A @ action_null_space),
@@ -116,7 +116,7 @@ def test_uncertainty_observation_null_space_is_psi(
     scalar_linsys = LinearSystem.from_matrix(
         A=linops.ScalarMult(scalar=2.5, shape=(n, n)), random_state=random_state
     )
-    observations = scalar_linsys.A @ solver_data.actions_arr.A
+    observations = scalar_linsys.A @ solver_data.actions_arr.actA
     belief = WeakMeanCorrespondenceBelief(
         A0=scalar_linsys.A,
         Ainv0=scalar_linsys.A.inv(),
@@ -181,12 +181,12 @@ def test_inverse_nonscalar_prior_mean(
     """Test whether the covariance for the inverse model with a non-scalar prior mean
     matches a naively computed one."""
     W0_Ainv = weakmeancorr_belief.Ainv0 @ linops.OrthogonalProjection(
-        subspace_basis=solver_data.observations_arr.A,
+        subspace_basis=solver_data.observations_arr.obsA,
         innerprod_matrix=weakmeancorr_belief.Ainv0,
     ).todense() + (
         np.eye(n)
         - linops.OrthogonalProjection(
-            subspace_basis=solver_data.observations_arr.A
+            subspace_basis=solver_data.observations_arr.obsA
         ).todense()
     )
 
@@ -212,7 +212,7 @@ def test_conjugate_actions_covariance(
     """Test whether the covariance for conjugate actions matches a naively computed
     one."""
     # Compute conjugate actions via Cholesky decomposition: S' = L^{-T}S
-    orth_actions = scipy.linalg.orth(solver_data.actions_arr.A)
+    orth_actions = scipy.linalg.orth(solver_data.actions_arr.actA)
     chol = scipy.linalg.cholesky(linsys_spd.A, lower=False)
     conj_actions = scipy.linalg.solve_triangular(chol, orth_actions, lower=False)
     observations = linsys_spd.A @ conj_actions

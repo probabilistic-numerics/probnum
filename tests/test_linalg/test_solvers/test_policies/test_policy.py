@@ -27,8 +27,8 @@ def test_policy_returns_array(
     )
     if action.actA is not None:
         assert isinstance(action.actA, np.ndarray)
-    if action.b is not None:
-        assert isinstance(action.b, np.ndarray)
+    if action.actb is not None:
+        assert isinstance(action.actb, np.ndarray)
     if action.proj is not None:
         assert isinstance(action.proj, (np.ndarray, linops.LinearOperator))
 
@@ -106,15 +106,15 @@ class TestStochasticPolicies:
         action0 = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
         action1 = type(policy)(random_state=1)(problem=linsys_spd, belief=prior)
         np.testing.assert_allclose(
-            action0.A,
-            action1.A,
+            action0.actA,
+            action1.actA,
             rtol=10 ** 2 * np.finfo(float).eps,
             atol=10 ** 2 * np.finfo(float).eps,
         )
-        if action0.b is not None:
+        if action0.actb is not None:
             np.testing.assert_allclose(
-                action0.b,
-                action1.b,
+                action0.actb,
+                action1.actb,
                 rtol=10 ** 2 * np.finfo(float).eps,
                 atol=10 ** 2 * np.finfo(float).eps,
             )
