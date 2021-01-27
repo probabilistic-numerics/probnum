@@ -121,6 +121,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
         else:
             Ainv = Ainv0
+            Ainv0 = Ainv.mean
 
         try:
             A0 = Ainv0.inv()
@@ -166,6 +167,7 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
         else:
             A = A0
+            A0 = A.mean
 
         try:
             Ainv0 = A0.inv()
