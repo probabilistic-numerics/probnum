@@ -23,3 +23,15 @@ def fixture_uncertainty_calibration(
 ) -> hyperparam_optim.UncertaintyCalibration:
     """Uncertainty calibration method for probabilistic linear solvers."""
     return hyperparam_optim.UncertaintyCalibration(method=calibration_method)
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(iterative, id=iterative[0])
+        for iterative in [("iter", True), ("batch", False)]
+    ],
+    name="optimal_noise_scale",
+)
+def fixture_optimal_noise_scale(request) -> hyperparam_optim.OptimalNoiseScale:
+    """Computes the optimal noise scale of a noisy linear system."""
+    return hyperparam_optim.OptimalNoiseScale(iterative=request.param[1])

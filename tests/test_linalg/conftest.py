@@ -13,7 +13,7 @@ import probnum.linalg
 import probnum.linops as linops
 import probnum.random_variables as rvs
 import probnum.utils
-from probnum.problems import LinearSystem
+from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 from probnum.type import RandomStateArgType
 
@@ -201,25 +201,33 @@ def linsys_kernel(
 
 @pytest.fixture(
     params=[
-        pytest.param(eps_sq, id=f"eps_sq{eps_sq}")
-        for eps_sq in [0.0, 10 ** -16, 10 ** -8, 10 ** -4, 10 ** -2, 10 ** -1]
+        pytest.param(eps, id=f"eps{eps}")
+        for eps in [0.0, 10 ** -16, 10 ** -8, 10 ** -4, 10 ** -2, 10 ** -1]
     ],
-    name="linsys_iid_noise",
+    name="eps",
 )
+def fixture_eps(request) -> float:
+    r"""Noise scale :math:`\varepsilon^2` of a noisy linear system."""
+    return request.param
+
+
 def fixture_linsys_iid_noise(
-    request, spd_mat: np.ndarray, n: int, random_state: np.random.RandomState
-) -> LinearSystem:
+    eps: float, spd_mat: np.ndarray, n: int, random_state: np.random.RandomState
+) -> NoisyLinearSystem:
     """Linear system corrupted by additive zero-mean iid Gaussian noise."""
     solution = random_state.normal(size=(n, 1))
     b = spd_mat @ solution
-    return LinearSystem(
+    return NoisyLinearSystem.from_randvars(
         A=rvs.Normal(
-            spd_mat,
-            linops.SymmetricKronecker(
-                linops.ScalarMult(scalar=request.param, shape=(n, n))
-            ),
+            mean=spd_mat,
+            cov=linops.SymmetricKronecker(linops.ScalarMult(scalar=eps, shape=(n, n))),
+            random_state=random_state,
         ),
-        b=rvs.Normal(b, linops.ScalarMult(scalar=request.param, shape=(n, n))),
+        b=rvs.Normal(
+            mean=b,
+            cov=linops.ScalarMult(scalar=eps ** 2, shape=(n, n)),
+            random_state=random_state,
+        ),
         solution=solution,
     )
 

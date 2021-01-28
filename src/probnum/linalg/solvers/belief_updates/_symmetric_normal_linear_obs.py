@@ -11,6 +11,7 @@ import dataclasses
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
+import scipy.sparse
 
 import probnum
 import probnum.linops as linops
@@ -211,21 +212,23 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         return self.observation.obsA.T @ self.covfactorH_observation
 
     @cached_property
-    def delta_invcovfactorA_delta(self) -> float:
+    def deltaA_invcovfactorA_deltaA(self) -> float:
         r"""Inner product :math:`\Delta_i (W^A_{i-1})^{-1} \Delta_i` of the residual
         with respect to the inverse of the covariance factor."""
-        return self.deltaA.T @ np.linalg.solve(self.belief.A.cov.A, self.deltaA)
+        return (
+            self.deltaA.T @ scipy.sparse.linalg.cg(self.belief.A.cov.A, self.deltaA)[0]
+        ).item()
 
     @cached_property
-    def sum_delta_invgram_delta(self) -> float:
+    def sum_deltaA_invgramA_deltaA(self) -> float:
         r"""Sum of inner products :math:`\Delta^A_i G^A_{i-1}^{-1} \Delta^A_i` of the
         matrix residual and the inverse Gram matrix."""
         if self.prev_cache is None:
             prev_sum_delta_invgram_delta = 0.0
         else:
-            prev_sum_delta_invgram_delta = self.prev_cache.sum_delta_invgram_delta
+            prev_sum_delta_invgram_delta = self.prev_cache.sum_deltaA_invgramA_deltaA
         return prev_sum_delta_invgram_delta + (
-            2 * self.delta_invcovfactorA_delta / self.action_covfactorA_action
+            2 * self.deltaA_invcovfactorA_deltaA / self.action_covfactorA_action
             - (self.deltaA_action / self.action_covfactorA_action) ** 2
         )
 

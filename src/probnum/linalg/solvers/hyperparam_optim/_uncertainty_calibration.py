@@ -27,17 +27,13 @@ class UncertaintyCalibration(HyperparameterOptimization):
     Parameters
     ----------
     method :
-        If supplied calibrates the output via the given calibration method. Available
-        procedures are
+        Type of calibration method to use. Available choices are
 
         ====================================  ================
          Most recent Rayleigh quotient        ``adhoc``
          Running (weighted) mean              ``weightedmean``
          GP regression for kernel matrices    ``gpkern``
         ====================================  ================
-
-    Examples
-    --------
     """
 
     def __init__(self, method: str = "gpkern"):

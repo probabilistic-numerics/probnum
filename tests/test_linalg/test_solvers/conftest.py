@@ -22,7 +22,7 @@ from probnum.linalg.solvers.data import (
     LinearSolverData,
     LinearSolverObservation,
 )
-from probnum.problems import LinearSystem
+from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
 
 
@@ -128,9 +128,34 @@ def fixture_symm_belief(
     return request.param[1].from_inverse(Ainv0=request.param[2](n), problem=linsys_spd)
 
 
-############
-# Data #
-############
+##################
+# Linear Systems #
+##################
+
+
+@pytest.fixture(name="linsys_matnoise")
+def fixture_linsys_matnoise(
+    eps: float,
+    linsys_spd: LinearSystem,
+    random_state: np.random.RandomState,
+    prior: beliefs.LinearSystemBelief,
+) -> NoisyLinearSystem:
+    r"""Linear system with noise-corrupted matrix :math:`A + E` such that :math:`E
+    \sim \mathcal{N}(0, \varepsilon^2 W_0 \otimes_s W_0)`"""
+    return NoisyLinearSystem.from_randvars(
+        A=rvs.Normal(
+            mean=linsys_spd.A,
+            cov=linops.SymmetricKronecker(eps * prior.A.cov.A),
+            random_state=random_state,
+        ),
+        b=rvs.asrandvar(linsys_spd.b),
+        solution=linsys_spd.solution,
+    )
+
+
+################
+# Problem Data #
+################
 
 
 @pytest.fixture(name="action")
@@ -162,6 +187,29 @@ def solver_data(
     matvec_observations = [
         LinearSolverObservation(obsA=linsys_spd.A @ action.actA, obsb=linsys_spd.b)
         for action in actions
+    ]
+    return LinearSolverData(actions=actions, observations=matvec_observations)
+
+
+@pytest.fixture
+def noisy_solver_data(
+    n: int,
+    num_iters: int,
+    linsys_matnoise: NoisyLinearSystem,
+    random_state: np.random.RandomState,
+):
+    """Data collected by a linear solver on a noisy problem."""
+    actions = [
+        LinearSolverAction(actA=s[:, None])
+        for s in (random_state.normal(size=(n, num_iters))).T
+    ]
+    sampled_systems = linsys_matnoise.sample(size=len(actions))
+    matvec_observations = [
+        LinearSolverObservation(
+            obsA=action_system_pair[1][0] @ action_system_pair[0].actA,
+            obsb=action_system_pair[1][1],
+        )
+        for action_system_pair in zip(actions, sampled_systems)
     ]
     return LinearSolverData(actions=actions, observations=matvec_observations)
 
