@@ -53,7 +53,7 @@ def both_filters(problem):
     dynmod, measmod, initrv, *_ = problem
     sqrt_kalman = pnfs.SquareRootKalman(dynmod, measmod, initrv)
     kalman = pnfs.Kalman(dynmod, measmod, initrv)
-    return (sqrt_kalman, kalman)
+    return sqrt_kalman, kalman
 
 
 @pytest.fixture
