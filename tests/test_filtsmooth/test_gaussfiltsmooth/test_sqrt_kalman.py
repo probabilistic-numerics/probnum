@@ -39,6 +39,7 @@ def problem():
 
 @pytest.fixture
 def random_rv(problem):
+    """Create some RV that can be used for tests in predict() and update()."""
     d_dynamics = problem[-2]
     covmat = random_spd_matrix(d_dynamics)
     mean = np.random.rand(d_dynamics)
@@ -47,6 +48,8 @@ def random_rv(problem):
 
 @pytest.fixture
 def both_filters(problem):
+    """Assemble a Sqrt-Kalman filter and a classical kalman filter on the same
+    problem."""
     dynmod, measmod, initrv, *_ = problem
     sqrt_kalman = pnfs.SquareRootKalman(dynmod, measmod, initrv)
     kalman = pnfs.Kalman(dynmod, measmod, initrv)
@@ -55,12 +58,14 @@ def both_filters(problem):
 
 @pytest.fixture
 def random_observations(problem):
+    """Create some random observations to use in testing update()"""
     dim_obs = problem[-1]
     return np.random.rand(dim_obs)
 
 
 @pytest.fixture
 def times_data(problem):
+    """Generate data set to test filter() and filtsmooth()."""
     dynmod, measmod, initrv, info, *_ = problem
     delta_t = info["dt"]
 
@@ -70,6 +75,7 @@ def times_data(problem):
 
 
 def test_predict(both_filters, random_rv):
+    """Assert the outcomes of predict() are identical for both filters."""
     sqrt_kalman, kalman = both_filters
     res1, info1 = sqrt_kalman.predict(0.0, 1.0, random_rv)
     res2, info2 = kalman.predict(0.0, 1.0, random_rv)
@@ -81,6 +87,7 @@ def test_predict(both_filters, random_rv):
 
 
 def test_measure(both_filters, random_rv):
+    """Assert the outcomes of measure() are identical for both filters."""
     sqrt_kalman, kalman = both_filters
 
     res1, info1 = sqrt_kalman.measure(1.0, random_rv)
@@ -93,6 +100,7 @@ def test_measure(both_filters, random_rv):
 
 
 def test_update(both_filters, random_rv, random_observations):
+    """Assert the outcomes of update() are identical for both filters."""
     sqrt_kalman, kalman = both_filters
     res1, meas_rv1, _ = sqrt_kalman.update(1.0, random_rv, random_observations)
     res2, meas_rv2, _ = kalman.update(1.0, random_rv, random_observations)
@@ -107,6 +115,7 @@ def test_update(both_filters, random_rv, random_observations):
 
 
 def test_filter(both_filters, times_data):
+    """Assert the outcomes of filter() are identical for both filters."""
     times, data = times_data
     sqrt_kalman, kalman = both_filters
     sol_sqrt = sqrt_kalman.filter(data, times)
@@ -116,6 +125,8 @@ def test_filter(both_filters, times_data):
 
 
 def test_filtsmooth(both_filters, times_data):
+    """Assert the outcomes of filtsmooth() are identical for both filters."""
+
     times, data = times_data
     sqrt_kalman, kalman = both_filters
     sol_sqrt = sqrt_kalman.filtsmooth(data, times)
