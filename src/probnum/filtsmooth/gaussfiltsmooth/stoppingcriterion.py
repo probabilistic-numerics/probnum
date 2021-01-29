@@ -15,15 +15,18 @@ class StoppingCriterion:
         if self.iterations > self.maxit:
             errormsg = f"Maximum number of iterations (N={self.maxit}) reached."
             raise RuntimeError(errormsg)
-
-        normalisation = self.atol + self.rtol * reference
-        magnitude = np.mean((error / normalisation) ** 2)
+        magnitude = self.evaluate_error(error=error, reference=reference)
         if magnitude > 1:
             self.iterations += 1
             return False
         else:
             self.iterations = 0
             return True
+
+    def evaluate_error(self, error, reference):
+        normalisation = self.atol + self.rtol * reference
+        magnitude = np.mean((error / normalisation) ** 2)
+        return magnitude
 
 
 #
