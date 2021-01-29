@@ -32,22 +32,6 @@ def predict_via_transition(
     )
 
 
-# Fill in the below soon:
-#
-# def predict_sqrt(
-#     dynamics_model,
-#     start,
-#     stop,
-#     rv,
-#     _intermediate_step=None,
-#     _linearise_at=None,
-#     _diffusion=1.0,
-# ) -> (pnrv.RandomVariable, typing.Dict):
-#     """Compute prediction in square-root form under the assumption that the system is
-#     linear."""
-#     raise NotImplementedError("TBD.")
-#
-
 ########################################################################################################################
 # Measure choices
 ########################################################################################################################
