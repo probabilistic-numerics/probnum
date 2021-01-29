@@ -32,19 +32,21 @@ def predict_via_transition(
     )
 
 
-def predict_sqrt(
-    dynamics_model,
-    start,
-    stop,
-    rv,
-    _intermediate_step=None,
-    _linearise_at=None,
-    _diffusion=1.0,
-) -> (pnrv.RandomVariable, typing.Dict):
-    """Compute prediction in square-root form under the assumption that the system is
-    linear."""
-    raise NotImplementedError("TBD.")
-
+# Fill in the below soon:
+#
+# def predict_sqrt(
+#     dynamics_model,
+#     start,
+#     stop,
+#     rv,
+#     _intermediate_step=None,
+#     _linearise_at=None,
+#     _diffusion=1.0,
+# ) -> (pnrv.RandomVariable, typing.Dict):
+#     """Compute prediction in square-root form under the assumption that the system is
+#     linear."""
+#     raise NotImplementedError("TBD.")
+#
 
 ########################################################################################################################
 # Measure choices
@@ -64,15 +66,17 @@ def measure_via_transition(
     )
 
 
-def measure_sqrt(
-    measurement_model,
-    rv,
-    time,
-    _linearise_at=None,
-) -> (pnrv.RandomVariable, typing.Dict):
-    """Compute measurement in square-root form under the assumption that the system is
-    linear."""
-    raise NotImplementedError("TBD.")
+# Fill in the below soon:
+#
+# def measure_sqrt(
+#     measurement_model,
+#     rv,
+#     time,
+#     _linearise_at=None,
+# ) -> (pnrv.RandomVariable, typing.Dict):
+#     """Compute measurement in square-root form under the assumption that the system is
+#     linear."""
+#     raise NotImplementedError("TBD.")
 
 
 ########################################################################################################################
@@ -110,18 +114,20 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
     return updated_rv
 
 
-def update_joseph(
-    measurement_model, rv, time, data
-) -> (pnrv.RandomVariable, typing.Dict):
-    """Compute a classic Kalman update in Joseph form."""
-    raise NotImplementedError("TBD.")
-
-
-def update_sqrt(
-    measurement_model, rv, time, data
-) -> (pnrv.RandomVariable, typing.Dict):
-    """Compute a classic Kalman update in square-root form."""
-    raise NotImplementedError("TBD.")
+# Fill in the below soon:
+#
+# def update_joseph(
+#     measurement_model, rv, time, data
+# ) -> (pnrv.RandomVariable, typing.Dict):
+#     """Compute a classic Kalman update in Joseph form."""
+#     raise NotImplementedError("TBD.")
+#
+#
+# def update_sqrt(
+#     measurement_model, rv, time, data
+# ) -> (pnrv.RandomVariable, typing.Dict):
+#     """Compute a classic Kalman update in square-root form."""
+#     raise NotImplementedError("TBD.")
 
 
 # Maybe this can be done more cleanly with a decorator.
@@ -215,25 +221,27 @@ def rts_smooth_step_classic(
     return pnrv.Normal(new_mean, new_cov), {}
 
 
-def rts_smooth_step_joseph(
-    unsmoothed_rv,
-    predicted_rv,
-    smoothed_rv,
-    smoothing_gain,
-    dynamics_model=None,
-    start=None,
-    stop=None,
-) -> (pnrv.RandomVariable, typing.Dict):
-    raise NotImplementedError("TBD.")
-
-
-def rts_smooth_step_sqrt(
-    unsmoothed_rv,
-    predicted_rv,
-    smoothed_rv,
-    smoothing_gain,
-    dynamics_model=None,
-    start=None,
-    stop=None,
-) -> (pnrv.RandomVariable, typing.Dict):
-    raise NotImplementedError("TBD.")
+# Fill in the below soon:
+#
+# def rts_smooth_step_joseph(
+#     unsmoothed_rv,
+#     predicted_rv,
+#     smoothed_rv,
+#     smoothing_gain,
+#     dynamics_model=None,
+#     start=None,
+#     stop=None,
+# ) -> (pnrv.RandomVariable, typing.Dict):
+#     raise NotImplementedError("TBD.")
+#
+#
+# def rts_smooth_step_sqrt(
+#     unsmoothed_rv,
+#     predicted_rv,
+#     smoothed_rv,
+#     smoothing_gain,
+#     dynamics_model=None,
+#     start=None,
+#     stop=None,
+# ) -> (pnrv.RandomVariable, typing.Dict):
+#     raise NotImplementedError("TBD.")
