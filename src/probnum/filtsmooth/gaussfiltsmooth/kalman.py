@@ -10,6 +10,7 @@ from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
 
 from .kalman_utils import (
+    measure_via_transition,
     predict_via_transition,
     rts_smooth_step_classic,
     update_classic,
@@ -30,6 +31,7 @@ class Kalman(BayesFiltSmooth):
         measurement_model,
         initrv,
         predict=predict_via_transition,
+        measure=measure_via_transition,
         update=update_classic,
         smooth_step=rts_smooth_step_classic,
     ):
@@ -37,6 +39,7 @@ class Kalman(BayesFiltSmooth):
         self.measurement_model = measurement_model
         self.initrv = initrv
         self.predict = ft.partial(predict, dynamics_model=dynamics_model)
+        self.measure = ft.partial(measure, measurement_model=measurement_model)
         self.update = ft.partial(update, measurement_model=measurement_model)
         self.smooth_step = smooth_step
 

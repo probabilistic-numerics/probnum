@@ -160,6 +160,7 @@ def rts_smooth_step_with_precon(
     smoothed_rv = precon_inv @ smoothed_rv
     smoothing_gain = np.nan
     print("What needs to happen to the smoothing gain???")
+    assert True is False
 
     # Undo preconditioning
     updated_rv = smooth_step_fun(
