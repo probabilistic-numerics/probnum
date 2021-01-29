@@ -31,12 +31,12 @@ class IteratedKalman(Kalman):
             _intermediate_step=_intermediate_step,
             _linearise_at=None,
         )
-        err = np.array(self.current_results) - np.array(self.previous_results)
         self.current_results = []
         self.previous_results = []
-        while not self.stoppingcriterion.terminate(
-            error=err, reference=self.current_results
-        ):
+
+        err = np.array(self.current_results) - np.array(self.previous_results)
+        ref = np.array(self.current_results)
+        while not self.stoppingcriterion.terminate(error=err, reference=ref):
             posterior = self.filtsmooth(
                 dataset=dataset,
                 times=times,
@@ -44,6 +44,7 @@ class IteratedKalman(Kalman):
                 _linearise_at=posterior,
             )
             err = np.array(self.current_results) - np.array(self.previous_results)
+            ref = np.array(self.current_results)
             self.current_results = []
             self.previous_results = []
         return posterior
@@ -58,8 +59,6 @@ class IteratedKalman(Kalman):
         _linearise_at=None,
         _diffusion=1.0,
     ):
-        if _linearise_at is None:
-            raise RuntimeError("Posterior linearisation expected.")
 
         filt_rv, info = self.kalman.filter_step(
             start=start,
@@ -78,3 +77,4 @@ class IteratedKalman(Kalman):
         new_mean = filt_rv.mean
         self.current_results.append(new_mean)
         self.previous_results.append(old_mean)
+        return filt_rv, info

@@ -7,6 +7,7 @@ from .gaussfiltsmooth import (
     ContinuousUKFComponent,
     DiscreteEKFComponent,
     DiscreteUKFComponent,
+    IteratedKalman,
     Kalman,
     KalmanPosterior,
     StoppingCriterion,
@@ -18,6 +19,7 @@ from .gaussfiltsmooth import (
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "Kalman",
+    "IteratedKalman",
     "ContinuousEKFComponent",
     "DiscreteEKFComponent",
     "ContinuousUKFComponent",

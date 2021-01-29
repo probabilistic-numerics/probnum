@@ -54,24 +54,44 @@ class Kalman(BayesFiltSmooth):
         smooth_posterior = self.smooth(filter_posterior)
         return smooth_posterior
 
-    def filter(self, dataset, times, _intermediate_step=None, _linearise_at=None):
+    def filter(self, dataset, times, _intermediate_step=None, _previous_posterior=None):
         # _linearise_at is not used here, only in IteratedKalman.filter_step
         # which is overwritten by IteratedKalman
         dataset, times = np.asarray(dataset), np.asarray(times)
         rvs = []
 
-        filtrv, *_ = self.update(rv=self.initrv, time=times[0], data=dataset[0])
+        _linearise_at = (
+            None if _previous_posterior is None else _previous_posterior(times[0])
+        )
+        filtrv, *_ = self.update(
+            rv=self.initrv, time=times[0], data=dataset[0], _linearise_at=_linearise_at
+        )
 
         rvs.append(filtrv)
         for idx in range(1, len(times)):
-            filtrv, _ = self.filter_step(
-                start=times[idx - 1],
-                stop=times[idx],
-                current_rv=filtrv,
-                data=dataset[idx],
-                _linearise_at=_linearise_at,
-                _intermediate_step=_intermediate_step,
+            _linearise_at = (
+                None if _previous_posterior is None else _previous_posterior(times[0])
             )
+
+            if _previous_posterior is not None:
+                filtrv, _ = self.filter_step(
+                    start=times[idx - 1],
+                    stop=times[idx],
+                    current_rv=filtrv,
+                    data=dataset[idx],
+                    _linearise_at=_previous_posterior(times[idx]),
+                    _intermediate_step=_intermediate_step,
+                )
+
+            else:
+                filtrv, _ = self.filter_step(
+                    start=times[idx - 1],
+                    stop=times[idx],
+                    current_rv=filtrv,
+                    data=dataset[idx],
+                    _intermediate_step=_intermediate_step,
+                )
+
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 

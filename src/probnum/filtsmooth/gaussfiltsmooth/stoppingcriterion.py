@@ -18,10 +18,10 @@ class StoppingCriterion:
         magnitude = self.evaluate_error(error=error, reference=reference)
         if magnitude > 1:
             self.iterations += 1
-            return False
+            return True
         else:
             self.iterations = 0
-            return True
+            return False
 
     def evaluate_error(self, error, reference):
         normalisation = self.atol + self.rtol * reference

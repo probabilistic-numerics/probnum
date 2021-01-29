@@ -148,7 +148,7 @@ def pendulum():
     dynamod = pnfs.statespace.DiscreteGaussian(f, lambda t: q, df)
     measmod = pnfs.statespace.DiscreteGaussian(h, lambda t: r, dh)
     initrv = Normal(initmean, initcov)
-    return dynamod, measmod, initrv, {"dt": delta_t}
+    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
 
 
 class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):

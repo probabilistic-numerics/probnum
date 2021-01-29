@@ -1,68 +1,73 @@
-# import unittest
-#
-# from probnum.filtsmooth.gaussfiltsmooth import IteratedKalman, Kalman, StoppingCriterion
-#
-# from .filtsmooth_testcases import OrnsteinUhlenbeckCDTestCase
-#
-#
-# class MockStoppingCriterion(StoppingCriterion):
-#     """Mock object that does 5 iterations of each predict, update and filtsmooth."""
-#
-#     def __init__(self, max_num_updates=5):
-#         super().__init__(
-#             max_num_predicts_per_step=max_num_updates,
-#             max_num_updates_per_step=max_num_updates,
-#             max_num_filtsmooth_iterations=max_num_updates,
-#         )
-#
-#     def continue_predict_iteration(self, pred_rv=None, info_pred=None):
-#         """Do we continue iterating the update step of the filter?"""
-#         if self.num_predict_iterations >= self.max_num_predicts_per_step:
-#             return False
-#         self.num_predict_iterations += 1
-#         return True
-#
-#     def continue_filtsmooth_iteration(self, kalman_posterior=None):
-#         """If implemented, iterated_filtsmooth() is unlocked."""
-#         if self.num_filtsmooth_iterations >= self.max_num_filtsmooth_iterations:
-#             return False
-#         self.num_filtsmooth_iterations += 1
-#         return True
-#
-#     def continue_update_iteration(self, upd_rv=None, meas_rv=None, info_upd=None):
-#         """When do we stop iterating the filter steps.
-#
-#         Default is true. If, e.g. IEKF is wanted, overwrite with
-#         something that does not always return True.
-#         """
-#         if self.num_update_iterations >= self.max_num_updates_per_step:
-#             return False
-#         self.num_update_iterations += 1
-#         return True
-#
-#
-# class TestIteratedKalman(OrnsteinUhlenbeckCDTestCase):
-#     def setUp(self):
-#         super().setup_ornsteinuhlenbeck()
-#         kalman = Kalman(self.dynmod, self.measmod, self.initrv)
-#         self.max_updates = 5
-#         self.method = IteratedKalman(
-#             kalman,
-#             stoppingcriterion=MockStoppingCriterion(max_num_updates=self.max_updates),
-#         )
-#
-#     def test_filter_step(self):
-#         self.assertEqual(self.method.stoppingcriterion.num_predict_iterations, 0)
-#         self.assertEqual(self.method.stoppingcriterion.num_update_iterations, 0)
-#         self.method.filter_step(start=0.0, stop=1.0, current_rv=self.initrv, data=0.0)
-#         self.assertEqual(self.method.stoppingcriterion.num_predict_iterations, 5)
-#         self.assertEqual(self.method.stoppingcriterion.num_update_iterations, 5)
-#
-#     def test_iterated_filtsmooth(self):
-#         self.assertEqual(self.method.stoppingcriterion.num_filtsmooth_iterations, 0)
-#         self.method.iterated_filtsmooth(self.obs, self.tms)
-#         self.assertEqual(self.method.stoppingcriterion.num_filtsmooth_iterations, 5)
-#
-#
-# if __name__ == "__main__":
-#     unittest.main()
+import numpy as np
+import pytest
+
+import probnum.filtsmooth as pnfs
+import probnum.filtsmooth.statespace as pnfss
+
+from .filtsmooth_testcases import pendulum
+
+
+@pytest.fixture
+def problem():
+    """Car tracking problem."""
+    return pendulum()
+
+
+@pytest.fixture
+def update():
+    """The usual Kalman update.
+
+    Yields Kalman filter.
+    """
+    return pnfs.update_classic
+
+
+@pytest.fixture
+def update():
+    """Iterated classical update.
+
+    Yields I(E/U)KF depending on the approximate measurement model.
+    """
+    stopcrit = pnfs.StoppingCriterion()
+    return pnfs.iterate_update(pnfs.update_classic, stopcrit=stopcrit)
+
+
+@pytest.fixture
+def kalman(problem, update):
+    """Create a Kalman object."""
+    dynmod, measmod, initrv, info = problem
+    dynmod = pnfs.DiscreteEKFComponent(dynmod)
+    measmod = pnfs.DiscreteEKFComponent(measmod)
+    kalman = pnfs.Kalman(dynmod, measmod, initrv)
+    return pnfs.IteratedKalman(kalman)
+
+
+@pytest.fixture
+def data(problem):
+    """Create artificial data."""
+    dynmod, measmod, initrv, info = problem
+    times = np.arange(0, info["tmax"], info["dt"])
+    states, obs = pnfss.generate(
+        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
+    )
+    return obs, times, states
+
+
+def test_rmse_filt_smooth(kalman, data):
+    """Assert that smoothing beats filtering beats nothing."""
+    obs, times, truth = data
+
+    filter_posterior = kalman.filter(obs, times)
+    smooth_posterior = kalman.smooth(filter_posterior)
+    iterated_posterior = kalman.iterated_filtsmooth(obs, times)
+
+    filtms = filter_posterior.state_rvs.mean
+    smooms = smooth_posterior.state_rvs.mean
+    iterms = iterated_posterior.state_rvs.mean
+
+    filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
+    smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))
+    iterms_rmse = np.mean(np.abs(iterms[:, :2] - truth[:, :2]))
+    obs_rmse = np.mean(np.abs(obs - truth[:, :2]))
+
+    assert iterms_rmse < smooms_rmse < filtms_rmse < obs_rmse
