@@ -9,33 +9,45 @@ from .filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 
 @pytest.fixture
 def problem():
+    """Car tracking problem."""
     return car_tracking()
 
 
 @pytest.fixture
 def problem():
+    """Ornstein-Uhlenbeck problem."""
     return ornstein_uhlenbeck()
 
 
 @pytest.fixture
 def update():
+    """The usual Kalman update.
+
+    Yields Kalman filter.
+    """
     return pnfs.update_classic
 
 
 @pytest.fixture
 def update():
+    """Iterated classical update.
+
+    Yields I(E/U)KF depending on the approximate measurement model.
+    """
     stopcrit = pnfs.StoppingCriterion()
     return pnfs.iterate_update(pnfs.update_classic, stopcrit=stopcrit)
 
 
 @pytest.fixture
 def kalman(problem, update):
+    """Create a Kalman object."""
     dynmod, measmod, initrv, info = problem
     return pnfs.Kalman(dynmod, measmod, initrv)
 
 
 @pytest.fixture
 def data(problem):
+    """Create artificial data."""
     dynmod, measmod, initrv, info = problem
     times = np.arange(0, info["tmax"], info["dt"])
     states, obs = pnfss.generate(
@@ -45,8 +57,7 @@ def data(problem):
 
 
 def test_rmse_filt_smooth(kalman, data):
-    """Check that smoothing RMSE is better than filtering RMSE is better than
-    observation RMSE."""
+    """Assert that smoothing beats filtering beats nothing."""
     obs, times, truth = data
 
     filter_posterior = kalman.filter(obs, times)
