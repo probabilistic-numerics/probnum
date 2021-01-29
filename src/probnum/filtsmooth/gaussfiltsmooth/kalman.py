@@ -1,5 +1,7 @@
 """Gaussian filtering and smoothing."""
 
+import functools as ft
+
 import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
@@ -13,26 +15,29 @@ from .kalman_utils import (
     update_classic,
 )
 
+#
+#
+# def iterated_filtsmooth(
+#     kalman, stoppingcriterion, dataset, times, _intermediate_step=None
+# ):
+#     raise RuntimeError("TBD.")
 
-def iterated_filtsmooth(
-    kalman, stoppingcriterion, dataset, times, _intermediate_step=None
-):
-    raise RuntimeError("TBD.")
 
-
-class NewKalman(BayesFiltSmooth):
+class Kalman(BayesFiltSmooth):
     def __init__(
         self,
         dynamics_model,
+        measurement_model,
         initrv,
         predict=predict_via_transition,
         update=update_classic,
         smooth_step=rts_smooth_step_classic,
     ):
         self.dynamics_model = dynamics_model
+        self.measurement_model = measurement_model
         self.initrv = initrv
-        self.predict = predict
-        self.update = update
+        self.predict = ft.partial(predict, dynamics_model=dynamics_model)
+        self.update = ft.partial(update, measurement_model=measurement_model)
         self.smooth_step = smooth_step
 
     def filtsmooth(self, dataset, times, _intermediate_step=None, _linearise_at=None):
@@ -52,12 +57,9 @@ class NewKalman(BayesFiltSmooth):
         dataset, times = np.asarray(dataset), np.asarray(times)
         rvs = []
 
-        # initial update: since start=stop, prediction will not change the RV.
-        # This is relied on here but may lead to future problems.
-        filtrv, *_ = self.update(times[0], self.initrv, dataset[0])
+        filtrv, *_ = self.update(rv=self.initrv, time=times[0], data=dataset[0])
 
         rvs.append(filtrv)
-        print(dataset.shape, times.shape)
         for idx in range(1, len(times)):
             filtrv, _ = self.filter_step(
                 start=times[idx - 1],
@@ -75,14 +77,14 @@ class NewKalman(BayesFiltSmooth):
         data = np.asarray(data)
         info = {}
         info["pred_rv"], info["info_pred"] = self.predict(
-            start,
-            stop,
-            current_rv,
+            start=start,
+            stop=stop,
+            rv=current_rv,
             _intermediate_step=_intermediate_step,
             _diffusion=_diffusion,
         )
         filtrv, info["meas_rv"], info["info_upd"] = self.update(
-            stop, info["pred_rv"], data
+            rv=info["pred_rv"], time=stop, data=data
         )
         return filtrv, info
 
@@ -101,18 +103,26 @@ class NewKalman(BayesFiltSmooth):
         out_rvs = [curr_rv]
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
-            curr_rv = self.smooth_step(
-                unsmoothed_rv,
-                curr_rv,
+
+            # Intermediate prediction
+            predicted_rv, info = self.predict(
+                rv=unsmoothed_rv,
                 start=locations[idx - 1],
                 stop=locations[idx],
+            )
+            crosscov = info["crosscov"]
+            smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
+
+            # Actual smoothing step
+            curr_rv, _ = self.smooth_step(
+                unsmoothed_rv, predicted_rv, curr_rv, smoothing_gain
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
 
 
-class Kalman(BayesFiltSmooth):
+class Kalman_(BayesFiltSmooth):
     """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
 
     Parameters
@@ -190,7 +200,6 @@ class Kalman(BayesFiltSmooth):
         filtrv, *_ = self.update(times[0], self.initrv, dataset[0])
 
         rvs.append(filtrv)
-        print(dataset.shape, times.shape)
         for idx in range(1, len(times)):
             filtrv, _ = self.filter_step(
                 start=times[idx - 1],

@@ -92,12 +92,12 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     def _predict_to_loc(self, loc):
         """Predict states at location `loc` from the closest, previous state."""
-        prev_idx = (self.locations < loc).sum() - 1
-        prev_loc = self.locations[prev_idx]
-        prev_rv = self.state_rvs[prev_idx]
+        previous_idx = (self.locations < loc).sum() - 1
+        previous_loc = self.locations[previous_idx]
+        previous_rv = self.state_rvs[previous_idx]
 
         pred_rv, _ = self.gauss_filter.predict(
-            start=prev_loc, stop=loc, randvar=prev_rv
+            rv=previous_rv, start=previous_loc, stop=loc
         )
         return pred_rv
 
@@ -106,8 +106,20 @@ class KalmanPosterior(FiltSmoothPosterior):
         next_idx = (self.locations < loc).sum()
         next_loc = self.locations[next_idx]
         next_rv = self._state_rvs[next_idx]
-        smoothed_rv = self.gauss_filter.smooth_step(pred_rv, next_rv, loc, next_loc)
-        return smoothed_rv
+
+        # Intermediate prediction
+        predicted_future_rv, info = self.gauss_filter.predict(
+            rv=pred_rv,
+            start=loc,
+            stop=next_loc,
+        )
+        crosscov = info["crosscov"]
+        smoothing_gain = crosscov @ np.linalg.inv(predicted_future_rv.cov)
+
+        curr_rv, _ = self.smooth_step(
+            pred_rv, predicted_future_rv, next_rv, smoothing_gain
+        )
+        return curr_rv
 
     def __len__(self):
         return len(self.locations)
@@ -144,8 +156,18 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = random_vars[idx - 1]
-            curr_rv = self.gauss_filter.smooth_step(
-                unsmoothed_rv, curr_rv, start=locations[idx - 1], stop=locations[idx]
+
+            # Intermediate prediction
+            predicted_rv, info = self.gauss_filter.predict(
+                rv=unsmoothed_rv,
+                start=locations[idx - 1],
+                stop=locations[idx],
+            )
+            crosscov = info["crosscov"]
+            smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
+
+            curr_rv, _ = self.gauss_filter.smooth_step(
+                unsmoothed_rv, predicted_rv, curr_rv, smoothing_gain
             )
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)

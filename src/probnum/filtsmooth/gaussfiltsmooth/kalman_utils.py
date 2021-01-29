@@ -6,7 +6,9 @@ import numpy as np
 
 import probnum.random_variables as pnrv
 
+########################################################################################################################
 # Prediction choices
+########################################################################################################################
 
 
 def predict_via_transition(
@@ -21,11 +23,11 @@ def predict_via_transition(
     """Compute the prediction under the assumption that the transition is available in
     closed form."""
     return dynamics_model.transition_rv(
-        rv,
-        start,
-        stop,
+        rv=rv,
+        start=start,
+        stop=stop,
         step=_intermediate_step,
-        _linearise_at=None,
+        _linearise_at=_linearise_at,
         _diffusion=_diffusion,
     )
 
@@ -44,7 +46,9 @@ def predict_sqrt(
     raise NotImplementedError("TBD.")
 
 
+########################################################################################################################
 # Measure choices
+########################################################################################################################
 
 
 def measure_via_transition(
@@ -55,7 +59,9 @@ def measure_via_transition(
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the measurement under the assumption that the transition is available in
     closed form."""
-    return measurement_model.transition_rv(rv, start=time, _linearise_at=_linearise_at)
+    return measurement_model.transition_rv(
+        rv=rv, start=time, _linearise_at=_linearise_at
+    )
 
 
 def measure_sqrt(
@@ -69,7 +75,9 @@ def measure_sqrt(
     raise NotImplementedError("TBD.")
 
 
+########################################################################################################################
 # Update choices
+########################################################################################################################
 
 
 def update_classic(
@@ -81,13 +89,16 @@ def update_classic(
     update.
     """
     meas_rv, info = measure_via_transition(
-        measurement_model, rv, time, _linearise_at=_linearise_at
+        measurement_model=measurement_model,
+        rv=rv,
+        time=time,
+        _linearise_at=_linearise_at,
     )
     crosscov = info["crosscov"]
     new_mean = rv.mean + crosscov @ np.linalg.solve(meas_rv.cov, data - meas_rv.mean)
     new_cov = rv.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
     filt_rv = pnrv.Normal(new_mean, new_cov)
-    return filt_rv
+    return filt_rv, meas_rv, {}
 
 
 def update_joseph(
@@ -123,20 +134,23 @@ def iterated_update(update_fun, atol, rtol, measurement_model, rv, time, data):
     pass
 
 
+########################################################################################################################
 # Smoothing choices
+########################################################################################################################
 
 # Maybe this can be done more cleanly with a decorator.
 # For the time being I think this is sufficiently clean though.
 def rts_smooth_step_with_precon(
     smooth_step_fun,
-    dynamics_model,
+    precon,
+    precon_inv,
     unsmoothed_rv,
     predicted_rv,
     smoothed_rv,
     smoothing_gain,
-    start,
-    stop,
-    _diffusion=1.0,
+    dynamics_model=None,
+    start=None,
+    stop=None,
 ):
     """Execute a smoothing step with preconditioning.
 
@@ -147,36 +161,40 @@ def rts_smooth_step_with_precon(
     >>> rts_smooth_step_joseph_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_joseph)
     >>> rts_smooth_step_sqrt_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_sqrt)
     """
-    pass
+    # Assemble preconditioners
+    dt = stop - start
+    precon = dynamics_model.precon(dt)
+    precon_inv = dynamics_model.precon.inverse(dt)
 
-
-def rts_smooth_step_classic_with_precon(
-    dynamics_model,
-    unsmoothed_rv,
-    predicted_rv,
-    smoothed_rv,
-    smoothing_gain,
-    start,
-    stop,
-    _diffusion=1.0,
-) -> (pnrv.RandomVariable, typing.Dict):
-    precon_inv = dynamics_model.precon.inverse(stop - start)
+    # Pull RVs/matrices into preconditioned space
     unsmoothed_rv = precon_inv @ unsmoothed_rv
+    predicted_rv = precon_inv @ predicted_rv
     smoothed_rv = precon_inv @ smoothed_rv
+    smoothing_gain = np.nan
+    print("What needs to happen to the smoothing gain???")
 
-    # call other function here
-    pass
+    # Undo preconditioning
+    updated_rv = smooth_step_fun(
+        unsmoothed_rv,
+        predicted_rv,
+        smoothed_rv,
+        smoothing_gain,
+        dynamics_model=None,
+        start=None,
+        stop=None,
+    )
+    new_rv = precon @ updated_rv
+    return new_rv, {}
 
 
 def rts_smooth_step_classic(
-    dynamics_model,
     unsmoothed_rv,
     predicted_rv,
     smoothed_rv,
     smoothing_gain,
-    start,
-    stop,
-    _diffusion=1.0,
+    dynamics_model=None,
+    start=None,
+    stop=None,
 ) -> (pnrv.RandomVariable, typing.Dict):
     new_mean = unsmoothed_rv.mean + smoothing_gain @ (
         smoothed_rv.mean - predicted_rv.mean
@@ -185,30 +203,28 @@ def rts_smooth_step_classic(
         unsmoothed_rv.cov
         + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
     )
-    return pnrv.Normal(new_mean, new_cov)
+    return pnrv.Normal(new_mean, new_cov), {}
 
 
 def rts_smooth_step_joseph(
-    dynamics_model,
     unsmoothed_rv,
     predicted_rv,
     smoothed_rv,
     smoothing_gain,
-    start,
-    stop,
-    _diffusion=1.0,
+    dynamics_model=None,
+    start=None,
+    stop=None,
 ) -> (pnrv.RandomVariable, typing.Dict):
     raise NotImplementedError("TBD.")
 
 
 def rts_smooth_step_sqrt(
-    dynamics_model,
     unsmoothed_rv,
     predicted_rv,
     smoothed_rv,
     smoothing_gain,
-    start,
-    stop,
-    _diffusion=1.0,
+    dynamics_model=None,
+    start=None,
+    stop=None,
 ) -> (pnrv.RandomVariable, typing.Dict):
     raise NotImplementedError("TBD.")
