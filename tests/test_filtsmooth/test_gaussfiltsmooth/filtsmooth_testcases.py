@@ -52,7 +52,7 @@ def car_tracking():
         dynamicsmat=measmat, forcevec=np.zeros(2), diffmat=measdiff
     )
     initrv = Normal(mean, cov)
-    return dynmod, measmod, initrv, {"dt": delta_t}
+    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
 
 
 class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
@@ -91,7 +91,7 @@ def ornstein_uhlenbeck():
         dynamicsmat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
-    return dynmod, measmod, initrv, {"dt": delta_t}
+    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
 
 
 class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
