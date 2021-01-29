@@ -113,7 +113,7 @@ def pendulum():
     # I tried multiple seeds, they all work equally well.
     np.random.seed(12345)
 
-    delta_t = 0.0075
+    delta_t = 0.03
     var = 0.32 ** 2
     g = 9.81
 

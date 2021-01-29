@@ -53,6 +53,22 @@ def both_filters(problem):
     return (sqrt_kalman, kalman)
 
 
+@pytest.fixture
+def random_observations(problem):
+    dim_obs = problem[-1]
+    return np.random.rand(dim_obs)
+
+
+@pytest.fixture
+def times_data(problem):
+    dynmod, measmod, initrv, info, *_ = problem
+    delta_t = info["dt"]
+
+    times = np.arange(0, 5, delta_t)
+    states, obs = pnfs.statespace.generate(dynmod, measmod, initrv, times)
+    return times, obs
+
+
 def test_predict(both_filters, random_rv):
     sqrt_kalman, kalman = both_filters
     res1, info1 = sqrt_kalman.predict(0.0, 1.0, random_rv)
@@ -76,12 +92,6 @@ def test_measure(both_filters, random_rv):
     np.testing.assert_allclose(info1["crosscov"], info2["crosscov"])
 
 
-@pytest.fixture
-def random_observations(problem):
-    dim_obs = problem[-1]
-    return np.random.rand(dim_obs)
-
-
 def test_update(both_filters, random_rv, random_observations):
     sqrt_kalman, kalman = both_filters
     res1, meas_rv1, _ = sqrt_kalman.update(1.0, random_rv, random_observations)
@@ -94,16 +104,6 @@ def test_update(both_filters, random_rv, random_observations):
     np.testing.assert_allclose(res1.cov_cholesky, res2.cov_cholesky)
     np.testing.assert_allclose(res1.cov, res2.cov)
     np.testing.assert_allclose(res1.mean, res2.mean)
-
-
-@pytest.fixture
-def times_data(problem):
-    dynmod, measmod, initrv, info, *_ = problem
-    delta_t = info["dt"]
-
-    times = np.arange(0, 20, delta_t)
-    states, obs = pnfs.statespace.generate(dynmod, measmod, initrv, times)
-    return times, obs
 
 
 def test_filter(both_filters, times_data):
