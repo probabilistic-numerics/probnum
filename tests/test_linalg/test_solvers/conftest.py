@@ -128,6 +128,40 @@ def fixture_symm_belief(
     return request.param[1].from_inverse(Ainv0=request.param[2](n), problem=linsys_spd)
 
 
+@pytest.fixture(
+    params=[
+        pytest.param(inv, id=inv[0])
+        for inv in [
+            ("scalar", lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n))),
+            (
+                "spd",
+                lambda n: linops.MatrixMult(A=random_spd_matrix(n, random_state=42)),
+            ),
+            (
+                "sparse",
+                lambda n: linops.MatrixMult(
+                    A=random_sparse_spd_matrix(n, density=0.1, random_state=42)
+                ),
+            ),
+        ]
+    ],
+    name="weakmeancorr_belief",
+)
+def fixture_weakmeancorr_belief(
+    request,
+    n: int,
+    num_iters: int,
+    linsys_spd: LinearSystem,
+    solver_data: LinearSolverData,
+):
+    """Symmetric Gaussian weak mean correspondence belief."""
+    return beliefs.WeakMeanCorrespondenceBelief.from_inverse(
+        Ainv0=request.param[1](n),
+        data=solver_data,
+        problem=linsys_spd,
+    )
+
+
 ##################
 # Linear Systems #
 ##################
@@ -271,7 +305,7 @@ def fixture_solver_state_init(
 def fixture_prob_linear_solver(
     prior: beliefs.LinearSystemBelief,
     policy: policies.Policy,
-    observation_op: observation_ops.ObservationOperator,
+    observation_op: observation_ops.ObservationOp,
     stopcrit: stop_criteria.StoppingCriterion,
 ):
     """Custom probabilistic linear solvers."""

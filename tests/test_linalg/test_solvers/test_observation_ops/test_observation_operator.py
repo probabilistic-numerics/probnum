@@ -2,14 +2,14 @@
 
 import numpy as np
 
-from probnum.linalg.solvers.observation_ops import ObservationOperator
+from probnum.linalg.solvers.observation_ops import ObservationOp
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"
 
 
 def test_observation_array(
-    observation_op: ObservationOperator, action: np.ndarray, linsys_spd: LinearSystem
+    observation_op: ObservationOp, action: np.ndarray, linsys_spd: LinearSystem
 ):
     """Test whether observation operators return a vector."""
     observation = observation_op(

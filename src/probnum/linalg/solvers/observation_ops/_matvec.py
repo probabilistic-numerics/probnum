@@ -3,9 +3,7 @@ from typing import Optional, Tuple
 
 import probnum
 from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservation
-from probnum.linalg.solvers.observation_ops._observation_operator import (
-    ObservationOperator,
-)
+from probnum.linalg.solvers.observation_ops._observation_operator import ObservationOp
 from probnum.problems import LinearSystem, NoisyLinearSystem
 
 # pylint: disable="invalid-name"
@@ -14,7 +12,7 @@ from probnum.problems import LinearSystem, NoisyLinearSystem
 __all__ = ["MatVec", "SampleMatVec"]
 
 
-class MatVec(ObservationOperator):
+class MatVec(ObservationOp):
     r"""Matrix-vector product observations.
 
     Given an action :math:`s` collect an observation :math:`y` of the linear system by
@@ -36,7 +34,7 @@ class MatVec(ObservationOperator):
         )
 
 
-class SampleMatVec(ObservationOperator):
+class SampleMatVec(ObservationOp):
     r"""Matrix-vector product observation of a noisy linear system.
 
     Observe a noisy linear system by drawing a sample linear problem :math:`(A +E,

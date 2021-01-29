@@ -6,17 +6,17 @@ iterative methods for the solution of linear systems. Some combinations
 generalizing and recovering classic iterative methods are listed below.
 
 
-+---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| **(Prior) Belief**                                | **Policy**                    | **Observation**             |    **Classic Iterative Method** |
-+===================================================+===============================+=============================+=================================+
-| :class:`.SymmetricLinearSystemBelief`             | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |     Conjugate Directions Method |
-+---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :meth:`.WeakMeanCorrespondenceBelief.from_scalar` | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |  Conjugate Gradient Method (CG) |
-+---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :class:`.WeakMeanCorrespondenceBelief`            | :class:`.ConjugateDirections` | :class:`.MatVecObservation` |               preconditioned CG |
-+---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
-| :class:`.SymmetricLinearSystemBelief`             | :class:`.MaxSupNormColumn`    | :class:`.MatVecObservation` |            Gaussian Elimination |
-+---------------------------------------------------+-------------------------------+-----------------------------+---------------------------------+
++---------------------------------------------------+-------------------------------+------------------+---------------------------------+
+| **(Prior) Belief**                                | **Policy**                    | **Observation**  |    **Classic Iterative Method** |
++===================================================+===============================+==================+=================================+
+| :class:`.SymmetricLinearSystemBelief`             | :class:`.ConjugateDirections` | :class:`.MatVec` |     Conjugate Directions Method |
++---------------------------------------------------+-------------------------------+------------------+---------------------------------+
+| :meth:`.WeakMeanCorrespondenceBelief.from_scalar` | :class:`.ConjugateDirections` | :class:`.MatVec` |  Conjugate Gradient Method (CG) |
++---------------------------------------------------+-------------------------------+------------------+---------------------------------+
+| :meth:`.WeakMeanCorrespondenceBelief.from_inverse`| :class:`.ConjugateDirections` | :class:`.MatVec` |               preconditioned CG |
++---------------------------------------------------+-------------------------------+------------------+---------------------------------+
+| :class:`.SymmetricLinearSystemBelief`             | :class:`.MaxSupNormColumn`    | :class:`.MatVec` |            Gaussian Elimination |
++---------------------------------------------------+-------------------------------+------------------+---------------------------------+
 """
 
 from ._probabilistic_linear_solver import ProbabilisticLinearSolver

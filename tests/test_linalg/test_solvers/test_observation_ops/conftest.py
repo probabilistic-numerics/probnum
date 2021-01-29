@@ -15,6 +15,6 @@ from probnum.linalg.solvers import observation_ops
     ],
     name="observation_op",
 )
-def fixture_observation_op(request) -> observation_ops.ObservationOperator:
+def fixture_observation_op(request) -> observation_ops.ObservationOp:
     """Observation operators of linear solvers."""
     return request.param

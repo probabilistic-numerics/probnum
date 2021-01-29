@@ -2,12 +2,12 @@
 import numpy as np
 
 from probnum.linalg.solvers.data import LinearSolverAction
-from probnum.linalg.solvers.observation_ops import MatVec, ObservationOperator
+from probnum.linalg.solvers.observation_ops import MatVec, ObservationOp
 from probnum.problems import LinearSystem
 
 
 def test_observation_is_matrix_vector_product(
-    observation_op: ObservationOperator,
+    observation_op: ObservationOp,
     action: LinearSolverAction,
     linsys_spd: LinearSystem,
 ):

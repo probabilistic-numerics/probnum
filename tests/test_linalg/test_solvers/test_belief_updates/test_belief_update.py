@@ -1,9 +1,11 @@
 """Test cases for belief updates of probabilistic linear solvers."""
 
+from typing import Tuple
+
 import numpy as np
-import pytest
 
 import probnum.random_variables as rvs
+from probnum.linalg.solvers import LinearSolverState
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
@@ -12,7 +14,7 @@ from probnum.problems import LinearSystem
 
 def test_matrix_posterior_multiplication(
     n: int,
-    symlin_updated_belief: LinearSystemBelief,
+    symlin_updated_belief: Tuple[LinearSystemBelief, LinearSolverState],
     linsys_spd: LinearSystem,
     random_state: np.random.RandomState,
 ):
@@ -20,8 +22,8 @@ def test_matrix_posterior_multiplication(
     variable with the correct shape."""
     matshape = (n, 5)
     mat = random_state.random(size=matshape)
-    Amat = symlin_updated_belief.A @ mat
-    Ainvmat = symlin_updated_belief.Ainv @ mat
+    Amat = symlin_updated_belief[0].A @ mat
+    Ainvmat = symlin_updated_belief[0].Ainv @ mat
     assert isinstance(Amat, rvs.Normal)
     assert Amat.shape == (n, matshape[1])
 

@@ -31,6 +31,8 @@ from probnum.type import MatrixArgType
 
 # pylint: disable="invalid-name"
 
+__all__ = ["ProbabilisticLinearSolver"]
+
 
 class ProbabilisticLinearSolver(
     ProbabilisticNumericalMethod[LinearSystem, beliefs.LinearSystemBelief]
@@ -119,7 +121,7 @@ class ProbabilisticLinearSolver(
         self,
         prior: beliefs.LinearSystemBelief,
         policy: policies.Policy,
-        observation_op: observation_ops.ObservationOperator,
+        observation_op: observation_ops.ObservationOp,
         belief_update: Optional[belief_updates.LinearSolverBeliefUpdate],
         hyperparam_optim_method: Optional[
             hyperparam_optim.HyperparameterOptimization
@@ -264,7 +266,7 @@ class ProbabilisticLinearSolver(
     def from_prior_observation_op(
         cls,
         prior: beliefs.LinearSystemBelief,
-        observation_op: observation_ops.ObservationOperator = observation_ops.MatVec(),
+        observation_op: observation_ops.ObservationOp = observation_ops.MatVec(),
         maxiter: Optional[int] = None,
         atol: float = 10 ** -6,
         rtol: float = 10 ** -6,
@@ -312,7 +314,7 @@ class ProbabilisticLinearSolver(
                 )
             else:
                 raise ValueError("Unknown or incompatible prior belief class.")
-        elif isinstance(observation_op, observation_ops.SampleMatvec):
+        elif isinstance(observation_op, observation_ops.SampleMatVec):
             if isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
                 policy = policies.ConjugateDirections()
                 stopping_criteria.append(

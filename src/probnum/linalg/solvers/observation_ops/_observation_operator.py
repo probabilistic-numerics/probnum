@@ -7,10 +7,10 @@ from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservat
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["ObservationOperator"]
+__all__ = ["ObservationOp"]
 
 
-class ObservationOperator:
+class ObservationOp:
     """Observation operator of probabilistic linear solvers.
 
     Defines the way observations about the linear system are collected for a given

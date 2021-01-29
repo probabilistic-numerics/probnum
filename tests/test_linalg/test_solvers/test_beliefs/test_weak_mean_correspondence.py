@@ -33,10 +33,11 @@ def test_system_matrix_uncertainty_in_action_span(
     solver_data: LinearSolverData,
     linsys_spd: LinearSystem,
     n: int,
+    num_iters: int,
 ):
     """Test whether the covariance factor W_0^A of the model for A acts like the
     true A in the span of the actions, i.e. if W_0^A S = Y."""
-    if n <= len(solver_data):
+    if n <= num_iters:
         pytest.skip("Action null space may be trivial.")
 
     np.testing.assert_allclose(
@@ -50,10 +51,11 @@ def test_inverse_uncertainty_in_observation_span(
     solver_data: LinearSolverData,
     linsys_spd: LinearSystem,
     n: int,
+    num_iters: int,
 ):
     """Test whether the covariance factor W_0^H of the model for Ainv acts like its
     prior mean in the span of the observations, i.e. if W_0^H Y = H_0 Y."""
-    if n <= len(solver_data):
+    if n <= num_iters:
         pytest.skip("Observation null space may be trivial.")
 
     np.testing.assert_allclose(
@@ -72,15 +74,15 @@ def test_uncertainty_action_null_space_is_phi(
 ):
     r"""Test whether the uncertainty in the null space <S>^\perp is
     given by the uncertainty scale parameter phi for a scalar system matrix A."""
-    if n <= len(solver_data):
+    if n <= num_iters:
         pytest.skip("Action null space may be trivial.")
 
     scalar_linsys = LinearSystem.from_matrix(
         A=linops.ScalarMult(scalar=2.5, shape=(n, n)), random_state=random_state
     )
     belief = WeakMeanCorrespondenceBelief(
-        A0=scalar_linsys.A,
-        Ainv0=scalar_linsys.A.inv(),
+        A=scalar_linsys.A,
+        Ainv=scalar_linsys.A.inv(),
         b=scalar_linsys.b,
         uncertainty_scales=UncertaintyUnexploredSpace(
             Phi=phi, Psi=1 / phi if phi != 0.0 else 0.0
@@ -114,7 +116,7 @@ def test_uncertainty_observation_null_space_is_psi(
 ):
     r"""Test whether the uncertainty in the null space <Y>^\perp is
     given by the uncertainty scale parameter psi for a scalar prior mean."""
-    if n <= len(solver_data):
+    if n <= num_iters:
         pytest.skip("Observation null space may be trivial.")
 
     scalar_linsys = LinearSystem.from_matrix(
@@ -129,8 +131,8 @@ def test_uncertainty_observation_null_space_is_psi(
     )
 
     belief = WeakMeanCorrespondenceBelief(
-        A0=scalar_linsys.A,
-        Ainv0=scalar_linsys.A.inv(),
+        A=scalar_linsys.A,
+        Ainv=scalar_linsys.A.inv(),
         b=scalar_linsys.b,
         uncertainty_scales=UncertaintyUnexploredSpace(
             Phi=1 / psi if psi != 0.0 else 0.0, Psi=psi
@@ -161,8 +163,8 @@ def test_no_data_prior(
     A0 = linsys.A
     Ainv0 = linops.Identity(shape=linsys.A.shape)
     belief = WeakMeanCorrespondenceBelief(
-        A0=A0,
-        Ainv0=Ainv0,
+        A=A0,
+        Ainv=Ainv0,
         b=linsys.b,
         uncertainty_scales=UncertaintyUnexploredSpace(Phi=phi, Psi=psi),
     )
@@ -247,8 +249,8 @@ def test_conjugate_actions_covariance(
     )
 
     belief = WeakMeanCorrespondenceBelief(
-        A0=linsys_spd.A,
-        Ainv0=Ainv0,
+        A=linsys_spd.A,
+        Ainv=Ainv0,
         b=linsys_spd.b,
         uncertainty_scales=UncertaintyUnexploredSpace(Phi=phi, Psi=psi),
         data=LinearSolverData.from_arrays(

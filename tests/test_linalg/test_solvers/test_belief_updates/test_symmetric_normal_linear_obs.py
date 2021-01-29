@@ -1,11 +1,10 @@
 """Test case for the symmetric normal belief update under linear observations."""
-from typing import Union
+from typing import Tuple, Union
 
 import numpy as np
-import pytest
 
 import probnum.linops as linops
-from probnum.linalg.solvers.belief_updates import SymmetricNormalLinearObsBeliefUpdate
+from probnum.linalg.solvers import LinearSolverState
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem
 
@@ -32,15 +31,15 @@ def posterior_params(
 
 
 def test_symmetric_posterior_params(
-    symlin_updated_belief: LinearSystemBelief,
+    symlin_updated_belief: Tuple[LinearSystemBelief, LinearSolverState],
 ):
     """Test whether posterior parameters are symmetric."""
 
     for linop in [
-        symlin_updated_belief.A.mean,
-        symlin_updated_belief.A.cov.A,
-        symlin_updated_belief.Ainv.mean,
-        symlin_updated_belief.Ainv.cov.A,
+        symlin_updated_belief[0].A.mean,
+        symlin_updated_belief[0].A.cov.A,
+        symlin_updated_belief[0].Ainv.mean,
+        symlin_updated_belief[0].Ainv.cov.A,
     ]:
         mat = linop.todense()
         np.testing.assert_allclose(mat, mat.T, rtol=10 ** 6 * np.finfo(float).eps)
@@ -51,74 +50,74 @@ def test_matrix_posterior_computation(
     linsys_spd: LinearSystem,
     action: np.ndarray,
     matvec_observation: np.ndarray,
-    linobs_belief_update: SymmetricNormalLinearObsBeliefUpdate,
+    symlin_updated_belief: Tuple[LinearSystemBelief, LinearSolverState],
 ):
     """Test the posterior computation of the belief update against the theoretical
     expressions."""
 
-    belief = linobs_belief_update.belief
+    prior = symlin_updated_belief[1].prior
+    updated_belief = symlin_updated_belief[0]
 
     # Posterior mean and covariance factor
     A_mean_updated, A_covfactor_updated = posterior_params(
-        action=action,
-        observation=matvec_observation,
-        prior_mean=belief.A.mean,
-        prior_cov_factor=belief.A.cov.A,
+        action_vec=action.actA,
+        observation_vec=matvec_observation.obsA,
+        prior_mean=prior.A.mean,
+        prior_cov_factor=prior.A.cov.A,
     )
     Ainv_mean_updated, Ainv_covfactor_updated = posterior_params(
-        action=matvec_observation,
-        observation=action,
-        prior_mean=belief.Ainv.mean,
-        prior_cov_factor=belief.Ainv.cov.A,
+        action_vec=matvec_observation.obsA,
+        observation_vec=action.actA,
+        prior_mean=prior.Ainv.mean,
+        prior_cov_factor=prior.Ainv.cov.A,
     )
 
     np.testing.assert_allclose(
         A_mean_updated,
-        linobs_belief_update.A.mean.todense(),
+        updated_belief.A.mean.todense(),
         err_msg="The posterior mean for A does not match its definition.",
     )
     np.testing.assert_allclose(
         A_covfactor_updated,
-        linobs_belief_update.A.cov.A.todense(),
+        updated_belief.A.cov.A.todense(),
         err_msg="The posterior covariance factor for A does not match its "
         "definition.",
     )
 
     np.testing.assert_allclose(
         Ainv_mean_updated,
-        linobs_belief_update.Ainv.mean.todense(),
+        updated_belief.Ainv.mean.todense(),
         err_msg="The posterior mean for Ainv does not match its definition.",
     )
     np.testing.assert_allclose(
         Ainv_covfactor_updated,
-        linobs_belief_update.Ainv.cov.A.todense(),
+        updated_belief.Ainv.cov.A.todense(),
         err_msg="The posterior covariance factor for Ainv does not match its "
         "definition.",
     )
 
 
 def test_uncertainty_action_space_is_zero(
-    symmlin_belief_update: SymmetricNormalLinearObsBeliefUpdate, action: np.ndarray
+    symlin_updated_belief: Tuple[LinearSystemBelief, LinearSolverState],
+    action: np.ndarray,
 ):
     """Test whether the uncertainty about the system matrix in the action span of the
     already explored directions is zero."""
-    A = symmlin_belief_update.A
     np.testing.assert_allclose(
-        np.zeros_like(action),
-        A.cov.A @ action,
+        np.zeros_like(action.actA),
+        symlin_updated_belief[0].A.cov.A @ action.actA,
         atol=10 ** 3 * np.finfo(float).eps,
     )
 
 
 def test_uncertainty_observation_space_is_zero(
-    symmlin_belief_update: SymmetricNormalLinearObsBeliefUpdate,
+    symlin_updated_belief: Tuple[LinearSystemBelief, LinearSolverState],
     matvec_observation: np.ndarray,
 ):
     """Test whether the uncertainty about the inverse in the observation span of the
     already made observations is zero."""
-    Ainv = symmlin_belief_update.Ainv
     np.testing.assert_allclose(
-        np.zeros_like(matvec_observation),
-        Ainv.cov.A @ matvec_observation,
+        np.zeros_like(matvec_observation.obsA),
+        symlin_updated_belief[0].Ainv.cov.A @ matvec_observation.obsA,
         atol=10 ** 3 * np.finfo(float).eps,
     )
