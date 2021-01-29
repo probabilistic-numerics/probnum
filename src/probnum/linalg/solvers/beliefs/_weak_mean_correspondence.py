@@ -93,42 +93,52 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
            [-61.94224112],
            [ 29.72231145]])
     """
-
+    # TODO move logic here into the "from_*" constructors and have the same interface as
+    #   LinearSystemBelief. This makes the belief update more consistent and allows for
+    #   WeakMeanCorrespondenceBeliefs with updated prior mean, which exist!
     def __init__(
         self,
-        A0: MatrixArgType,
-        Ainv0: MatrixArgType,
-        b: Union[rvs.Constant, np.ndarray],
+        A: Union[rvs.Normal, MatrixArgType],
+        Ainv: Union[rvs.Normal, MatrixArgType],
+        b: Union[rvs.Constant, rvs.Normal],
+        x: Optional[rvs.Normal] = None,
         uncertainty_scales: UncertaintyUnexploredSpace = UncertaintyUnexploredSpace(
             Phi=1.0, Psi=1.0
         ),
         data: Optional[LinearSolverData] = None,
         action_obs_innerprods: Optional[np.ndarray] = None,
     ):
-        self.A0 = A0
-        self.Ainv0 = Ainv0
-        self._A_covfactor_update_op = None
-        self._Ainv_covfactor_update_op = None
         self.data = data
 
-        cov_factor_A = self._cov_factor_matrix(
-            uncertainty_scales=uncertainty_scales,
-            action_obs_innerprods=action_obs_innerprods,
-        )
-        cov_factor_Ainv = self._cov_factor_inverse(
-            uncertainty_scales=uncertainty_scales
-        )
+        if isinstance(A, (np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator)):
+            self.A0 = A
+            cov_factor_A = self._cov_factor_matrix(
+                uncertainty_scales=uncertainty_scales,
+                action_obs_innerprods=action_obs_innerprods,
+            )
+            A = rvs.Normal(
+                mean=self.A0,
+                cov=linops.SymmetricKronecker(A=cov_factor_A),
+            )
+        else:
+            self.A0 = A.mean
 
-        A = rvs.Normal(
-            mean=self.A0,
-            cov=linops.SymmetricKronecker(A=cov_factor_A),
-        )
-        Ainv = rvs.Normal(
-            mean=self.Ainv0,
-            cov=linops.SymmetricKronecker(A=cov_factor_Ainv),
-        )
+        if isinstance(Ainv, (np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator)):
+            self.Ainv0 = Ainv
+            cov_factor_Ainv = self._cov_factor_inverse(
+                uncertainty_scales=uncertainty_scales
+            )
 
-        super().__init__(x=None, Ainv=Ainv, A=A, b=b, hyperparams=uncertainty_scales)
+            Ainv = rvs.Normal(
+                mean=self.Ainv0,
+                cov=linops.SymmetricKronecker(A=cov_factor_Ainv),
+            )
+        else:
+            self.Ainv0 = Ainv.mean
+
+        super().__init__(
+            x=x, Ainv=Ainv, A=A, b=rvs.asrandvar(b), hyperparams=uncertainty_scales
+        )
 
     def _cov_factor_matrix(
         self,
@@ -213,7 +223,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             )
         else:
             observation_proj = linops.OrthogonalProjection(
-                subspace_basis=self.data.observations_arr.obsA
+                subspace_basis=self.data.observations_arr.obsA, is_orthonormal=False
             )
 
             if isinstance(self.Ainv0, linops.ScalarMult):
@@ -257,8 +267,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
         return cls(
-            Ainv0=Ainv0,
-            A0=A0,
+            Ainv=Ainv0,
+            A=A0,
             b=rvs.asrandvar(b0),
         )
 
@@ -285,7 +295,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             Actions and observations of the linear system.
         """
         try:
-            A0 = Ainv0.inv()
+            A0 = Ainv0.inv()  # Ensure (weak) mean correspondence
         except AttributeError as exc:
             raise TypeError(
                 "Cannot efficiently invert (prior mean of) Ainv. "
@@ -293,10 +303,10 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 "a linear operator with an .inv() function."
             ) from exc
 
-        return cls(
-            A0=A0,  # Ensure (weak) mean correspondence
+        return cls.from_matrices(
+            A0=A0,
             Ainv0=Ainv0,
-            b=rvs.asrandvar(problem.b),
+            problem=problem,
             data=data,
         )
 
@@ -323,17 +333,17 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             Actions and observations of the linear system.
         """
         try:
-            Ainv0 = A0.inv()
+            Ainv0 = A0.inv()  # Ensure (weak) mean correspondence
         except AttributeError as exc:
             raise TypeError(
                 "Cannot efficiently invert (prior mean of) A. "
                 "Additionally, specify an inverse prior (mean) instead or wrap into "
                 "a linear operator with an .inv() function."
             ) from exc
-        return cls(
+        return cls.from_matrices(
             A0=A0,
-            Ainv0=Ainv0,  # Ensure (weak) mean correspondence
-            b=rvs.asrandvar(problem.b),
+            Ainv0=Ainv0,
+            problem=problem,
             data=data,
         )
 
@@ -363,7 +373,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         data :
             Actions and observations of the linear system.
         """
-        return cls(A0=A0, Ainv0=Ainv0, b=rvs.asrandvar(problem.b), data=data)
+        return cls(A=A0, Ainv=Ainv0, b=rvs.asrandvar(problem.b), data=data)
 
     @classmethod
     def from_scalar(

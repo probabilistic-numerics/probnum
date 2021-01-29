@@ -50,19 +50,11 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         hyperparams: LinearSystemNoise = None,
     ):
         if hyperparams is None:
-            eps_sq = 10 ** -2
+            eps = 10 ** -2
             n = A.shape[0]
             hyperparams = LinearSystemNoise(
-                A_eps=rvs.Normal(
-                    np.zeros((n, n)),
-                    linops.SymmetricKronecker(
-                        A=linops.ScalarMult(scalar=eps_sq, shape=(n, n)), dtype=A.dtype
-                    ),
-                ),
-                b_eps=rvs.Normal(
-                    np.zeros((n, 1)),
-                    linops.ScalarMult(scalar=eps_sq, shape=(n, n)),
-                ),
+                epsA_cov=linops.SymmetricKronecker(A=eps * A.cov.A, dtype=A.dtype),
+                epsb_cov=linops.ScalarMult(scalar=eps, shape=(n, n)),
             )
 
         super().__init__(x=x, A=A, Ainv=Ainv, b=b, hyperparams=hyperparams)

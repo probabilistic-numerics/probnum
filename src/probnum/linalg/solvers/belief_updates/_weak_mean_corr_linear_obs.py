@@ -1,6 +1,12 @@
 """Belief update for the weak mean correspondence belief given linear observations."""
 import dataclasses
-from typing import Optional, Tuple, Type
+from typing import Optional, Tuple
+
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
 
 import numpy as np
 
@@ -16,7 +22,6 @@ from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
 )
 from probnum.linalg.solvers.beliefs import (
     LinearSystemBelief,
-    SymmetricNormalLinearSystemBelief,
     WeakMeanCorrespondenceBelief,
 )
 from probnum.linalg.solvers.data import (
@@ -53,6 +58,14 @@ class _WeakMeanCorrLinearObsCache(_SymmetricNormalLinearObsCache):
             data=data,
             prev_cache=prev_cache,
         )
+
+    @cached_property
+    def step_size(self) -> np.ndarray:
+        r"""Step size :math:`\alpha_i` of the solver viewed as a quadratic optimizer
+        taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
+        return (
+            -self.action.actA.T @ self.prev_cache.residual / self.action_observation
+        ).item()
 
     # TODO use assumptions WS = Y and WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
     # @cached_property
@@ -132,15 +145,16 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
     def __call__(
         self,
         problem: LinearSystem,
-        belief: LinearSystemBelief,
+        belief: WeakMeanCorrespondenceBelief,
         action: LinearSolverAction,
         observation: LinearSolverObservation,
         hyperparams: Optional[
-            "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
+            "probnum.linalg.solvers.hyperparams.UncertaintyUnexploredSpace"
         ] = None,
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
     ) -> Tuple[
-        LinearSystemBelief, Optional["probnum.linalg.solvers.LinearSolverState"]
+        WeakMeanCorrespondenceBelief,
+        Optional["probnum.linalg.solvers.LinearSolverState"],
     ]:
         if solver_state is None:
 
@@ -165,9 +179,9 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
         # Update empirical prior with new observations and uncertainty scale
         # TODO what about non-conjugate actions??
         self.prior = WeakMeanCorrespondenceBelief(
-            A0=solver_state.prior.A0,
-            Ainv0=solver_state.prior.Ainv0,
-            b=solver_state.problem.b,
+            A=solver_state.prior.A0,
+            Ainv=solver_state.prior.Ainv0,
+            b=rvs.asrandvar(solver_state.problem.b),
             uncertainty_scales=hyperparams,
             data=solver_state.data,
             action_obs_innerprods=np.array(
@@ -177,7 +191,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
         solver_state.prior = self.prior
 
         # Update belief (using optimized hyperparameters)
-        updated_belief = SymmetricNormalLinearSystemBelief(
+        updated_belief = WeakMeanCorrespondenceBelief(
             x=self._x_belief_update(
                 problem=problem,
                 hyperparams=hyperparams,
@@ -198,6 +212,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
                 hyperparams=hyperparams,
                 solver_state=solver_state,
             ),
+            uncertainty_scales=hyperparams,
         )
 
         # Create new solver state from updated belief

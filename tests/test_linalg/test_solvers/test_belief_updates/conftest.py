@@ -24,11 +24,13 @@ from probnum.problems.zoo.linalg import random_spd_matrix
                 "symlin",
                 beliefs.SymmetricNormalLinearSystemBelief,
                 belief_updates.SymmetricNormalLinearObsBeliefUpdate,
+                None,
             ),
             (
                 "weakmeancorrlin",
                 beliefs.WeakMeanCorrespondenceBelief,
                 belief_updates.WeakMeanCorrLinearObsBeliefUpdate,
+                hyperparams.UncertaintyUnexploredSpace(Phi=1.0, Psi=1.0),
             ),
         ]
     ],
@@ -47,12 +49,14 @@ def fixture_symlin_updated_belief(
         linops.MatrixMult(random_spd_matrix(dim=n, random_state=random_state)),
         problem=linsys_spd,
     )
-    belief_update = request.param[2](problem=linsys_spd, prior=belief)
+    belief_update = request.param[2](prior=belief)
 
     return belief_update(
+        problem=linsys_spd,
         belief=belief,
         action=action,
         observation=matvec_observation,
+        hyperparams=request.param[3],
     )[0]
 
 

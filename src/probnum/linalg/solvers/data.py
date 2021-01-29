@@ -99,6 +99,16 @@ class LinearSolverData:
         """Amount of data collected."""
         return len(self._actions)
 
+    def __eq__(self, other):
+        return np.all(
+            [act0 == act1 for (act0, act1) in zip(self.actions, other.actions)]
+        ) and np.all(
+            [
+                obs0 == obs1
+                for (obs0, obs1) in zip(self.observations, other.observations)
+            ]
+        )
+
     @property
     def actions(self) -> List[LinearSolverAction]:
         """Performed actions by the linear solver."""
@@ -118,9 +128,9 @@ class LinearSolverData:
         arr_actb = np.hstack([action.actb for action in self.actions])
 
         if arr_actA[0] is None:
-            arr_actA = np.array([[None]])
+            arr_actA = None
         if arr_actb[0] is None:
-            arr_actb = np.array([[None]])
+            arr_actb = None
         return ActionsArr(actA=arr_actA, actb=arr_actb)
 
     @cached_property
@@ -143,12 +153,20 @@ class LinearSolverData:
         tuples of arrays."""
         return cls(
             actions=[
-                LinearSolverAction(actA=actions_arr[0][:, i], actb=actions_arr[1][:, i])
+                LinearSolverAction(
+                    actA=actions_arr[0][:, i, np.newaxis],
+                    actb=None
+                    if actions_arr[1] is None
+                    else actions_arr[1][:, i, np.newaxis],
+                )
                 for i in range(actions_arr[0].shape[1])
             ],
             observations=[
                 LinearSolverObservation(
-                    obsA=observations_arr[0][:, i], obsb=observations_arr[1][:, i]
+                    obsA=observations_arr[0][:, i, np.newaxis],
+                    obsb=None
+                    if observations_arr[1] is None
+                    else observations_arr[1][:, i, np.newaxis],
                 )
                 for i in range(observations_arr[0].shape[1])
             ],

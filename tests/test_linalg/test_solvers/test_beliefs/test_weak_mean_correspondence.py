@@ -36,6 +36,9 @@ def test_system_matrix_uncertainty_in_action_span(
 ):
     """Test whether the covariance factor W_0^A of the model for A acts like the
     true A in the span of the actions, i.e. if W_0^A S = Y."""
+    if n <= len(solver_data):
+        pytest.skip("Action null space may be trivial.")
+
     np.testing.assert_allclose(
         solver_data.observations_arr.obsA,
         weakmeancorr_belief.A.cov.A @ solver_data.actions_arr.actA,
@@ -51,7 +54,7 @@ def test_inverse_uncertainty_in_observation_span(
     """Test whether the covariance factor W_0^H of the model for Ainv acts like its
     prior mean in the span of the observations, i.e. if W_0^H Y = H_0 Y."""
     if n <= len(solver_data):
-        pytest.skip("Action null space may be trivial.")
+        pytest.skip("Observation null space may be trivial.")
 
     np.testing.assert_allclose(
         weakmeancorr_belief.Ainv.mean @ solver_data.observations_arr.obsA,
@@ -105,6 +108,7 @@ def test_uncertainty_action_null_space_is_phi(
 def test_uncertainty_observation_null_space_is_psi(
     psi: float,
     n: int,
+    num_iters: int,
     solver_data: LinearSolverData,
     random_state: np.random.RandomState,
 ):
@@ -116,7 +120,14 @@ def test_uncertainty_observation_null_space_is_psi(
     scalar_linsys = LinearSystem.from_matrix(
         A=linops.ScalarMult(scalar=2.5, shape=(n, n)), random_state=random_state
     )
-    observations = scalar_linsys.A @ solver_data.actions_arr.actA
+    scalar_system_solver_data = LinearSolverData.from_arrays(
+        actions_arr=solver_data.actions_arr,
+        observations_arr=(
+            scalar_linsys.A @ solver_data.actions_arr.actA,
+            np.repeat(scalar_linsys.b, num_iters, axis=1),
+        ),
+    )
+
     belief = WeakMeanCorrespondenceBelief(
         A0=scalar_linsys.A,
         Ainv0=scalar_linsys.A.inv(),
@@ -124,10 +135,12 @@ def test_uncertainty_observation_null_space_is_psi(
         uncertainty_scales=UncertaintyUnexploredSpace(
             Phi=1 / psi if psi != 0.0 else 0.0, Psi=psi
         ),
-        data=solver_data,
+        data=scalar_system_solver_data,
     )
 
-    observation_null_space = scipy.linalg.null_space(observations.T)
+    observation_null_space = scipy.linalg.null_space(
+        scalar_system_solver_data.observations_arr.obsA.T
+    )
 
     np.testing.assert_allclose(
         observation_null_space.T @ (belief.Ainv.cov.A @ observation_null_space),

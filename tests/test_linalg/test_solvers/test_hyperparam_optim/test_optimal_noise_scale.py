@@ -7,21 +7,21 @@ from probnum.linalg.solvers.hyperparam_optim import OptimalNoiseScale
 from probnum.problems import NoisyLinearSystem
 
 
-def test_learns_true_noise_scale(
-    eps: float,
-    linsys_matnoise: NoisyLinearSystem,
-    optimal_noise_scale: OptimalNoiseScale,
-    prior: LinearSystemBelief,
-    noisy_solver_data: LinearSolverData,
-):
+def test_noise_scale_nonnegative(optimal_noise_scale: float):
+    """Test whether the estimated noise scale is non-negative."""
+    assert optimal_noise_scale >= 0.0
+
+
+@pytest.mark.parametrize("eps", [0.0], indirect=True)
+def test_noise_free_matrix(eps: float, optimal_noise_scale: float):
+    """Test whether in the exact case zero noise is estimated."""
+    assert optimal_noise_scale == pytest.approx(0.0)
+
+
+def test_recovers_true_noise_scale(eps: float, optimal_noise_scale: float):
     """Test whether given enough observations the true noise scale of the system is
     found."""
-    noiseA = optimal_noise_scale(
-        problem=linsys_matnoise, belief=prior, data=noisy_solver_data
-    )
-    eps_est = noiseA.epsA_cov.A.args[1]
-
-    assert eps_est == pytest.approx(eps)
+    assert optimal_noise_scale == pytest.approx(eps)
 
 
 def test_iterative_and_batch_identical(

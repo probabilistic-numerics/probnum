@@ -412,18 +412,10 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
-        if solver_state is not None:
-
-            if hyperparams is None or isinstance(
-                hyperparams.A_eps.cov.A, linops.ScalarMult
-            ):
-                return (
-                    solver_state.cache.residual
-                    + solver_state.cache.step_size * solver_state.cache.observation.obsA
-                )
-        else:
-            # Belief is induced from inverse and rhs
-            return None
+        return (
+            solver_state.cache.residual
+            + solver_state.cache.step_size * solver_state.cache.observation.obsA
+        )
 
 
 class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):

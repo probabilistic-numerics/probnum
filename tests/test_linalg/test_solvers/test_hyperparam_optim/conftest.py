@@ -2,7 +2,13 @@
 
 import pytest
 
-from probnum.linalg.solvers import hyperparam_optim
+from probnum.linalg.solvers.beliefs import LinearSystemBelief
+from probnum.linalg.solvers.data import LinearSolverData
+from probnum.linalg.solvers.hyperparam_optim import (
+    OptimalNoiseScale,
+    UncertaintyCalibration,
+)
+from probnum.problems import NoisyLinearSystem
 
 
 @pytest.fixture(
@@ -20,9 +26,9 @@ def fixture_calibration_method(request) -> str:
 @pytest.fixture(name="uncertainty_calibration")
 def fixture_uncertainty_calibration(
     calibration_method: str,
-) -> hyperparam_optim.UncertaintyCalibration:
+) -> UncertaintyCalibration:
     """Uncertainty calibration method for probabilistic linear solvers."""
-    return hyperparam_optim.UncertaintyCalibration(method=calibration_method)
+    return UncertaintyCalibration(method=calibration_method)
 
 
 @pytest.fixture(
@@ -32,6 +38,15 @@ def fixture_uncertainty_calibration(
     ],
     name="optimal_noise_scale",
 )
-def fixture_optimal_noise_scale(request) -> hyperparam_optim.OptimalNoiseScale:
+def fixture_optimal_noise_scale(
+    request,
+    eps: float,
+    linsys_matnoise: NoisyLinearSystem,
+    prior: LinearSystemBelief,
+    noisy_solver_data: LinearSolverData,
+) -> float:
     """Computes the optimal noise scale of a noisy linear system."""
-    return hyperparam_optim.OptimalNoiseScale(iterative=request.param[1])
+    noiseA = OptimalNoiseScale(iterative=request.param[1])(
+        problem=linsys_matnoise, belief=prior, data=noisy_solver_data
+    )
+    return noiseA.epsA_cov.A.args[1]
