@@ -7,13 +7,17 @@ from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
 
-from .kalman_utils import predict_via_transition, smooth_step_classic, update_classic
+from .kalman_utils import (
+    predict_via_transition,
+    rts_smooth_step_classic,
+    update_classic,
+)
 
 
 def iterated_filtsmooth(
     kalman, stoppingcriterion, dataset, times, _intermediate_step=None
 ):
-    pass
+    raise RuntimeError("TBD.")
 
 
 class NewKalman(BayesFiltSmooth):
@@ -23,7 +27,7 @@ class NewKalman(BayesFiltSmooth):
         initrv,
         predict=predict_via_transition,
         update=update_classic,
-        smooth_step=smooth_step_classic,
+        smooth_step=rts_smooth_step_classic,
     ):
         self.dynamics_model = dynamics_model
         self.initrv = initrv
@@ -31,11 +35,39 @@ class NewKalman(BayesFiltSmooth):
         self.update = update
         self.smooth_step = smooth_step
 
-    def filtsmooth(self, dataset, times, _intermediate_step=None):
-        raise RuntimeError("Do.")
+    def filtsmooth(self, dataset, times, _intermediate_step=None, _linearise_at=None):
+        dataset, times = np.asarray(dataset), np.asarray(times)
+        filter_posterior = self.filter(
+            dataset,
+            times,
+            _intermediate_step=_intermediate_step,
+            _linearise_at=_linearise_at,
+        )
+        smooth_posterior = self.smooth(filter_posterior)
+        return smooth_posterior
 
     def filter(self, dataset, times, _intermediate_step=None, _linearise_at=None):
-        raise RuntimeError("Do.")
+        # _linearise_at is not used here, only in IteratedKalman.filter_step
+        # which is overwritten by IteratedKalman
+        dataset, times = np.asarray(dataset), np.asarray(times)
+        rvs = []
+
+        # initial update: since start=stop, prediction will not change the RV.
+        # This is relied on here but may lead to future problems.
+        filtrv, *_ = self.update(times[0], self.initrv, dataset[0])
+
+        rvs.append(filtrv)
+        print(dataset.shape, times.shape)
+        for idx in range(1, len(times)):
+            filtrv, _ = self.filter_step(
+                start=times[idx - 1],
+                stop=times[idx],
+                current_rv=filtrv,
+                data=dataset[idx],
+                _intermediate_step=_intermediate_step,
+            )
+            rvs.append(filtrv)
+        return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
     def filter_step(
         self, start, stop, current_rv, data, _intermediate_step=None, _diffusion=1.0
@@ -54,11 +86,30 @@ class NewKalman(BayesFiltSmooth):
         )
         return filtrv, info
 
-    def smooth(self, filter_posterior, _intermediate_step=None):
-        raise RuntimeError("Do.")
+    def smooth(self, filter_posterior):
+        rv_list = self.smooth_list(
+            filter_posterior,
+            filter_posterior.locations,
+        )
+        return KalmanPosterior(
+            filter_posterior.locations, rv_list, self, with_smoothing=True
+        )
 
-    def smooth_list(self, rv_list, locations, _intermediate_step=None):
-        raise RuntimeError("Do.")
+    def smooth_list(self, rv_list, locations):
+        final_rv = rv_list[-1]
+        curr_rv = final_rv
+        out_rvs = [curr_rv]
+        for idx in reversed(range(1, len(locations))):
+            unsmoothed_rv = rv_list[idx - 1]
+            curr_rv = self.smooth_step(
+                unsmoothed_rv,
+                curr_rv,
+                start=locations[idx - 1],
+                stop=locations[idx],
+            )
+            out_rvs.append(curr_rv)
+        out_rvs.reverse()
+        return _RandomVariableList(out_rvs)
 
 
 class Kalman(BayesFiltSmooth):
