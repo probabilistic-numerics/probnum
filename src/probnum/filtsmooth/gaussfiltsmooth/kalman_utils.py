@@ -66,19 +66,6 @@ def measure_via_transition(
     )
 
 
-# Fill in the below soon:
-#
-# def measure_sqrt(
-#     measurement_model,
-#     rv,
-#     time,
-#     _linearise_at=None,
-# ) -> (pnrv.RandomVariable, typing.Dict):
-#     """Compute measurement in square-root form under the assumption that the system is
-#     linear."""
-#     raise NotImplementedError("TBD.")
-
-
 ########################################################################################################################
 # Update choices
 ########################################################################################################################
@@ -114,25 +101,10 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
     return updated_rv
 
 
-# Fill in the below soon:
-#
-# def update_joseph(
-#     measurement_model, rv, time, data
-# ) -> (pnrv.RandomVariable, typing.Dict):
-#     """Compute a classic Kalman update in Joseph form."""
-#     raise NotImplementedError("TBD.")
-#
-#
-# def update_sqrt(
-#     measurement_model, rv, time, data
-# ) -> (pnrv.RandomVariable, typing.Dict):
-#     """Compute a classic Kalman update in square-root form."""
-#     raise NotImplementedError("TBD.")
-
-
 # Maybe this can be done more cleanly with a decorator.
-# For the time being I think this is sufficiently clean though.
-def iterated_update(update_fun, atol, rtol, measurement_model, rv, time, data):
+def iterated_update(
+    update_fun, stopcrit, measurement_model, rv, time, data, _linearise_at=None
+):
     """Turn an update_*() function into an iterated update.
 
     This iteration is continued until it reaches a fixed-point (as measured with atol and rtol).
@@ -141,12 +113,29 @@ def iterated_update(update_fun, atol, rtol, measurement_model, rv, time, data):
     Examples
     --------
     >>> import functools as ft
-    >>> # All the below can be used inside a "Kalman" object.
-    >>> iterated_update_classic = ft.partial(iterated_update, update_fun=update_classic)
-    >>> iterated_update_joseph = ft.partial(iterated_update, update_fun=update_joseph)
-    >>> iterated_update_sqrt = ft.partial(iterated_update, update_fun=update_sqrt)
+    >>>
+    >>> stopcrit = StoppingCriterion(atol=1e-2, rtol=1e-4, maxit=1000)
+    >>> iterated_update_classic = ft.partial(iterated_update, update_fun=update_classic, stopcrit=stopcrit)
     """
-    pass
+    current_rv, meas_rv, info = update_fun(
+        measurement_model=measurement_model,
+        rv=rv,
+        time=time,
+        data=data,
+        _linearise_at=_linearise_at,
+    )
+    new_mean = current_rv.mean
+    old_mean = np.inf * np.ones(current_rv.mean.shape)
+    while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
+        old_mean = new_mean
+        current_rv, meas_rv, info = update_fun(
+            measurement_model=measurement_model,
+            rv=current_rv,
+            time=time,
+            data=data,
+        )
+        new_mean = current_rv.mean
+    return current_rv, meas_rv, info
 
 
 ########################################################################################################################
@@ -219,29 +208,3 @@ def rts_smooth_step_classic(
         + smoothing_gain @ (smoothed_rv.cov - predicted_rv.cov) @ smoothing_gain.T
     )
     return pnrv.Normal(new_mean, new_cov), {}
-
-
-# Fill in the below soon:
-#
-# def rts_smooth_step_joseph(
-#     unsmoothed_rv,
-#     predicted_rv,
-#     smoothed_rv,
-#     smoothing_gain,
-#     dynamics_model=None,
-#     start=None,
-#     stop=None,
-# ) -> (pnrv.RandomVariable, typing.Dict):
-#     raise NotImplementedError("TBD.")
-#
-#
-# def rts_smooth_step_sqrt(
-#     unsmoothed_rv,
-#     predicted_rv,
-#     smoothed_rv,
-#     smoothing_gain,
-#     dynamics_model=None,
-#     start=None,
-#     stop=None,
-# ) -> (pnrv.RandomVariable, typing.Dict):
-#     raise NotImplementedError("TBD.")

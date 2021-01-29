@@ -5,20 +5,19 @@ import numpy as np
 class StoppingCriterion:
     """Stop iteration if absolute and relative tolerance are reached."""
 
-    def __init__(self, atol, rtol, maxit=1000):
+    def __init__(self, atol=1e-3, rtol=1e-6, maxit=1000):
         self.atol = atol
         self.rtol = rtol
         self.maxit = maxit
         self.iterations = 0
 
-    def __call__(self, new, old, reference):
+    def terminate(self, error, reference):
         if self.iterations > self.maxit:
             errormsg = f"Maximum number of iterations (N={self.maxit}) reached."
             raise RuntimeError(errormsg)
 
-        difference = new - old
         normalisation = self.atol + self.rtol * reference
-        magnitude = np.mean((difference / normalisation) ** 2)
+        magnitude = np.mean((error / normalisation) ** 2)
         if magnitude > 1:
             self.iterations += 1
             return False
