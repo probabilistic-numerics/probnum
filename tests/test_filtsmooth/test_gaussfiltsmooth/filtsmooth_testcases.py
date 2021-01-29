@@ -218,7 +218,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[:, 0] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[:, 0] - comp) / normaliser
-        obs_rmse = np.linalg.norm(obs[:, 0] - comp[1:]) / normaliser
+        obs_rmse = np.linalg.norm(obs[:, 0] - comp) / normaliser
 
         # If desired, visualise.
         if VISUALISE:
