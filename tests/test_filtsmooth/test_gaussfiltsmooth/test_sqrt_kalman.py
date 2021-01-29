@@ -68,8 +68,9 @@ def times_data(problem):
     """Generate data set to test filter() and filtsmooth()."""
     dynmod, measmod, initrv, info, *_ = problem
     delta_t = info["dt"]
+    tmax = info["dt"]
 
-    times = np.arange(0, 5, delta_t)
+    times = np.arange(0, tmax, delta_t)
     states, obs = pnfs.statespace.generate(dynmod, measmod, initrv, times)
     return times, obs
 

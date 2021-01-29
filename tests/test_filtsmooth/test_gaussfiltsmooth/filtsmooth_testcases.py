@@ -91,7 +91,7 @@ def ornstein_uhlenbeck():
         dynamicsmat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
-    return dynmod, measmod, initrv, {"dt": delta_t}
+    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
 
 
 class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
@@ -100,7 +100,8 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
     def setup_ornsteinuhlenbeck(self):
         self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
         self.delta_t = info["dt"]
-        self.tms = np.arange(0, 20, self.delta_t)
+        self.tmax = info["tmax"]
+        self.tms = np.arange(0, self.tmax, self.delta_t)
         self.states, self.obs = pnfs.statespace.generate(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
@@ -113,7 +114,7 @@ def pendulum():
     # I tried multiple seeds, they all work equally well.
     np.random.seed(12345)
 
-    delta_t = 0.03
+    delta_t = 0.0075
     var = 0.32 ** 2
     g = 9.81
 
@@ -148,7 +149,7 @@ def pendulum():
     dynamod = pnfs.statespace.DiscreteGaussian(f, lambda t: q, df)
     measmod = pnfs.statespace.DiscreteGaussian(h, lambda t: r, dh)
     initrv = Normal(initmean, initcov)
-    return dynamod, measmod, initrv, {"dt": delta_t}
+    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
 
 
 class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
@@ -199,7 +200,8 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         # Set up test problem
         dynamod, measmod, initrv, info = pendulum()
         delta_t = info["dt"]
-        tms = np.arange(0, 4, delta_t)
+        tmax = info["tmax"]
+        tms = np.arange(0, tmax, delta_t)
         states, obs = pnfs.statespace.generate(dynamod, measmod, initrv, tms)
 
         # Linearise problem
