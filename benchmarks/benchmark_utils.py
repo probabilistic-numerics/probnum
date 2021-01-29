@@ -1,4 +1,4 @@
-"""Reocurring constants and methods for benchmarking functions."""
+"""Recurring constants and methods for benchmarking functions."""
 
 import numpy as np
 
