@@ -48,10 +48,10 @@ class GaussianIVPFilter(ODESolver):
         diffmat = discrete_dynamics.diffmat
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv)
+        pred_rv, _ = self.gfilt.predict(rv=current_rv, start=t, stop=t_new)
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
+        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
 
         # 3. Estimate the diffusion (sigma squared)
         self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
@@ -60,7 +60,7 @@ class GaussianIVPFilter(ODESolver):
             pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * diffmat
         )
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
+        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
 
         # 4. Update
         zero_data = 0.0

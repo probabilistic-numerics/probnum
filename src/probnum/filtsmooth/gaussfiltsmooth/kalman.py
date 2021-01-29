@@ -10,6 +10,7 @@ from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
 
 from .kalman_utils import (
+    condition_state_on_measurement,
     predict_via_transition,
     rts_smooth_step_classic,
     update_classic,

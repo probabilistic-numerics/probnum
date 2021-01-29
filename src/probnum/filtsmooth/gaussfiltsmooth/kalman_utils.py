@@ -95,10 +95,19 @@ def update_classic(
         _linearise_at=_linearise_at,
     )
     crosscov = info["crosscov"]
-    new_mean = rv.mean + crosscov @ np.linalg.solve(meas_rv.cov, data - meas_rv.mean)
-    new_cov = rv.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
-    filt_rv = pnrv.Normal(new_mean, new_cov)
-    return filt_rv, meas_rv, {}
+    updated_rv = condition_state_on_measurement(
+        pred_rv=rv, meas_rv=meas_rv, crosscov=crosscov, data=data
+    )
+    return updated_rv, meas_rv, {}
+
+
+def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
+    new_mean = pred_rv.mean + crosscov @ np.linalg.solve(
+        meas_rv.cov, data - meas_rv.mean
+    )
+    new_cov = pred_rv.cov - crosscov @ np.linalg.solve(meas_rv.cov, crosscov.T)
+    updated_rv = pnrv.Normal(new_mean, new_cov)
+    return updated_rv
 
 
 def update_joseph(
