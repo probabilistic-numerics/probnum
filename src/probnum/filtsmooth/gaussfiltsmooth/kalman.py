@@ -7,6 +7,59 @@ from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 from probnum.random_variables import Normal
 
+from .kalman_utils import predict_via_transition, smooth_step_classic, update_classic
+
+
+def iterated_filtsmooth(
+    kalman, stoppingcriterion, dataset, times, _intermediate_step=None
+):
+    pass
+
+
+class NewKalman(BayesFiltSmooth):
+    def __init__(
+        self,
+        dynamics_model,
+        initrv,
+        predict=predict_via_transition,
+        update=update_classic,
+        smooth_step=smooth_step_classic,
+    ):
+        self.dynamics_model = dynamics_model
+        self.initrv = initrv
+        self.predict = predict
+        self.update = update
+        self.smooth_step = smooth_step
+
+    def filtsmooth(self, dataset, times, _intermediate_step=None):
+        raise RuntimeError("Do.")
+
+    def filter(self, dataset, times, _intermediate_step=None, _linearise_at=None):
+        raise RuntimeError("Do.")
+
+    def filter_step(
+        self, start, stop, current_rv, data, _intermediate_step=None, _diffusion=1.0
+    ):
+        data = np.asarray(data)
+        info = {}
+        info["pred_rv"], info["info_pred"] = self.predict(
+            start,
+            stop,
+            current_rv,
+            _intermediate_step=_intermediate_step,
+            _diffusion=_diffusion,
+        )
+        filtrv, info["meas_rv"], info["info_upd"] = self.update(
+            stop, info["pred_rv"], data
+        )
+        return filtrv, info
+
+    def smooth(self, filter_posterior, _intermediate_step=None):
+        raise RuntimeError("Do.")
+
+    def smooth_list(self, rv_list, locations, _intermediate_step=None):
+        raise RuntimeError("Do.")
+
 
 class Kalman(BayesFiltSmooth):
     """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.
