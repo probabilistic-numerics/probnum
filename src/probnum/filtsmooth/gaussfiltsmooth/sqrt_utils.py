@@ -53,7 +53,7 @@ def sqrt_kalman_update(
 
     Assumes a measurement model of the form
 
-        .. math::  x \\mapsto N(H x, R)
+        .. math::  x \mapsto N(H x, R)
 
     and acts only on the square-root of the predicted covariance.
 
@@ -65,10 +65,10 @@ def sqrt_kalman_update(
     H
         Linear(ised) observation matrix.
     SR
-        Matrix square-root of the measurement diffusion matrix math:`R`, :math:`R=\sqrt{R} \sqrt{R}^\top.
+        Matrix square-root of the measurement diffusion matrix math:`R`, :math:`R=\sqrt{R} \sqrt{R}^\top`.
         Can, but does not have to be a Cholesky factor.
     SC
-        Matrix square-root of the predicted covariance math:`C`, :math:`C=\sqrt{C} \sqrt{C}^\top.
+        Matrix square-root of the predicted covariance math:`C`, :math:`C=\sqrt{C} \sqrt{C}^\top`.
         Can, but does not have to be a Cholesky factor.
 
     Returns

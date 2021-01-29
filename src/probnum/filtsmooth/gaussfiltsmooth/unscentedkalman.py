@@ -9,6 +9,7 @@ import typing
 
 import numpy as np
 
+import probnum.diffeq  # for type annotation in DiscreteEKFComponent.from_ode
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 import probnum.type as pntype

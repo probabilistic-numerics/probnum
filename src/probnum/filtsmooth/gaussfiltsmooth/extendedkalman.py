@@ -5,6 +5,7 @@ import typing
 
 import numpy as np
 
+import probnum.diffeq  # for type annotation in DiscreteEKFComponent.from_ode
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 import probnum.type as pntype
@@ -141,9 +142,9 @@ class DiscreteEKFComponent(EKFComponent):
     def from_ode(
         cls,
         ode: "probnum.diffeq.ODE",  # we don't want to import probnum.diffeq here
-        prior: pnfss.LinearSDE,
-        evlvar: pntype.FloatArgType,
-        ek0_or_ek1: typing.Optional[pntype.IntArgType] = 0,
+        prior: "pnfss.LinearSDE",
+        evlvar: "pntype.FloatArgType",
+        ek0_or_ek1: typing.Optional["pntype.IntArgType"] = 0,
     ) -> "DiscreteEKFComponent":
         # code is here, because we want the option of ek0-jacobians
 
