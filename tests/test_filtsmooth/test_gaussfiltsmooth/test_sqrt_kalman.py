@@ -20,28 +20,26 @@ np.random.seed(42)
 @pytest.fixture
 def problem():
     """Car-tracking problem."""
-    return car_tracking
+    problem = car_tracking()
+    dim_prior = len(problem[1].dynamicsmat)
+    dim_obs = len(problem[1].dynamicsmat)
+    return problem, dim_prior, dim_obs
 
 
 @pytest.fixture
-def d_dynamics(problem):
-    """Dimension of the dynamics model of given problem."""
-    return len(problem()[0].dynamicsmat)
+def problem():
+    """Pendulum problem."""
+    dyn, meas, init, info = pendulum()
+    dyn = pnfs.DiscreteEKFComponent(dyn)
+    meas = pnfs.DiscreteEKFComponent(meas)
+    dim_prior = 2
+    dim_obs = 1
+    return dyn, meas, init, info, dim_prior, dim_obs
 
 
 @pytest.fixture
-def d_measurements(problem):
-    """Dimension of the measurement model of given problem."""
-    return len(problem()[1].dynamicsmat)
-
-
-@pytest.fixture
-def info(problem):
-    return problem()[3]
-
-
-@pytest.fixture
-def random_rv(d_dynamics):
+def random_rv(problem):
+    d_dynamics = problem[-2]
     covmat = random_spd_matrix(d_dynamics)
     mean = np.random.rand(d_dynamics)
     return pnrv.Normal(mean, covmat)
@@ -49,7 +47,7 @@ def random_rv(d_dynamics):
 
 @pytest.fixture
 def both_filters(problem):
-    dynmod, measmod, initrv, _ = problem()
+    dynmod, measmod, initrv, *_ = problem
     sqrt_kalman = pnfs.SquareRootKalman(dynmod, measmod, initrv)
     kalman = pnfs.Kalman(dynmod, measmod, initrv)
     return (sqrt_kalman, kalman)
@@ -79,8 +77,9 @@ def test_measure(both_filters, random_rv):
 
 
 @pytest.fixture
-def random_observations(d_measurements):
-    return np.random.rand(d_measurements)
+def random_observations(problem):
+    dim_obs = problem[-1]
+    return np.random.rand(dim_obs)
 
 
 def test_update(both_filters, random_rv, random_observations):
@@ -99,7 +98,7 @@ def test_update(both_filters, random_rv, random_observations):
 
 @pytest.fixture
 def times_data(problem):
-    dynmod, measmod, initrv, info = problem()
+    dynmod, measmod, initrv, info, *_ = problem
     delta_t = info["dt"]
 
     times = np.arange(0, 20, delta_t)
