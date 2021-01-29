@@ -11,6 +11,8 @@ from .gaussfiltsmooth import (
     KalmanPosterior,
     StoppingCriterion,
     UnscentedTransform,
+    iterate_update,
+    update_classic,
 )
 
 # Public classes and functions. Order is reflected in documentation.
@@ -24,4 +26,6 @@ __all__ = [
     "FiltSmoothPosterior",
     "KalmanPosterior",
     "StoppingCriterion",
+    "update_classic",
+    "iterate_update",
 ]

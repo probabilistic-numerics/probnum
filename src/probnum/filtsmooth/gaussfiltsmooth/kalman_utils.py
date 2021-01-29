@@ -1,5 +1,6 @@
 """Prediction, update, and smoothing implementations for the Kalman filter/smoother."""
 
+import functools as ft
 import typing
 
 import numpy as np
@@ -85,8 +86,17 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
     return updated_rv
 
 
-# Maybe this can be done more cleanly with a decorator.
-def iterated_update(
+# Basically a decorator (but not quite?).
+def iterate_update(update_fun, stopcrit):
+    """"""
+
+    def new_update_fun(*args, **kwargs):
+        return _iterated_update(update_fun, stopcrit, *args, **kwargs)
+
+    return new_update_fun
+
+
+def _iterated_update(
     update_fun, stopcrit, measurement_model, rv, time, data, _linearise_at=None
 ):
     """Turn an update_*() function into an iterated update.

@@ -18,7 +18,18 @@ def problem():
 
 
 @pytest.fixture
-def kalman(problem):
+def update():
+    return pnfs.update_classic
+
+
+@pytest.fixture
+def update():
+    stopcrit = pnfs.StoppingCriterion()
+    return pnfs.iterate_update(pnfs.update_classic, stopcrit=stopcrit)
+
+
+@pytest.fixture
+def kalman(problem, update):
     dynmod, measmod, initrv, info = problem
     return pnfs.Kalman(dynmod, measmod, initrv)
 
