@@ -46,7 +46,7 @@ def test_terminate_tolerance(stopcrit, d1, d2):
 
 def test_terminate_maxit(stopcrit, d1, d2, maxit):
     """Iteration must throw an exception if maximum number of iterations is reached."""
-    # error is large
+    # error is large, which does not really matter...
     y1 = np.random.rand(d1, d2)
     y2 = 2 * y1.copy() + 3
     stopcrit.iterations = maxit + 1

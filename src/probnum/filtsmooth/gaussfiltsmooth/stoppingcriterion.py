@@ -12,6 +12,12 @@ class StoppingCriterion:
         self.iterations = 0
 
     def do_not_terminate_yet(self, error, reference):
+        """Decide whether the stopping criterion is satisfied.
+
+        If the error is small (with respect to atol, rtol and the
+        reference), return False. Else, return true. Throw a runtime
+        error if the maximum number of iterations is reached.
+        """
         if self.iterations > self.maxit:
             errormsg = f"Maximum number of iterations (N={self.maxit}) reached."
             raise RuntimeError(errormsg)
@@ -24,6 +30,7 @@ class StoppingCriterion:
             return False
 
     def evaluate_error(self, error, reference):
+        """Compute the normalised error."""
         normalisation = self.atol + self.rtol * reference
         magnitude = np.sqrt(np.mean((error / normalisation) ** 2))
         return magnitude
