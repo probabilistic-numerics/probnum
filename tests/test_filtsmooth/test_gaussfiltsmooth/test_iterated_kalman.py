@@ -44,15 +44,14 @@ def update():
     return pnfs.update_classic
 
 
-#
-# @pytest.fixture
-# def update():
-#     """Iterated classical update.
-#
-#     Yields I(E/U)KF depending on the approximate measurement model.
-#     """
-#     stopcrit = pnfs.StoppingCriterion()
-#     return pnfs.iterate_update(pnfs.update_classic, stopcrit=stopcrit)
+@pytest.fixture
+def update():
+    """Iterated classical update.
+
+    Yields I(E/U)KF depending on the approximate measurement model.
+    """
+    stopcrit = pnfs.StoppingCriterion()
+    return pnfs.iterate_update(pnfs.update_classic, stopcrit=stopcrit)
 
 
 @pytest.fixture
@@ -62,9 +61,6 @@ def kalman(problem, update):
     kalman = pnfs.Kalman(dynmod, measmod, initrv)
     stopcrit = pnfs.StoppingCriterion(atol=1e-3, rtol=1e-6, maxit=10)
     return pnfs.IteratedKalman(kalman, stopcrit=stopcrit)
-
-
-import matplotlib.pyplot as plt
 
 
 def test_rmse_filt_smooth(kalman, problem):
@@ -79,19 +75,18 @@ def test_rmse_filt_smooth(kalman, problem):
     smooms = smooth_posterior.state_rvs.mean
     iterms = iterated_posterior.state_rvs.mean
 
-    plt.plot(times, filtms[:, 0], "*-", label="filt", alpha=0.5)
-    plt.plot(times, smooms[:, 0], "x-", label="smoo", alpha=0.5)
-    plt.plot(times, iterms[:, 0], "o-", label="iter", alpha=0.5)
-    plt.plot(times, truth, "-", label="iter", alpha=1, color="black")
-    plt.legend()
-    plt.show()
+    if filtms.ndim == 1:
+        filtms = filtms.reshape((-1, 1))
+        smooms = smooms.reshape((-1, 1))
+        iterms = iterms.reshape((-1, 1))
 
-    print(filtms[:, 1])
-    print(smooms[:, 1])
-    print(iterms[:, 1])
-    assert False
-    filtms_rmse = np.mean(np.abs(filtms[:, :1] - truth[:, :1]))
-    smooms_rmse = np.mean(np.abs(smooms[:, :1] - truth[:, :1]))
-    iterms_rmse = np.mean(np.abs(iterms[:, :1] - truth[:, :1]))
+    if truth.ndim == 1:
+        truth = truth.reshape((-1, 1))
+
+    # Compare only zeroth component
+    # for compatibility with all test cases
+    filtms_rmse = np.mean(np.abs(filtms[:, 0] - truth[:, 0]))
+    smooms_rmse = np.mean(np.abs(smooms[:, 0] - truth[:, 0]))
+    iterms_rmse = np.mean(np.abs(iterms[:, 0] - truth[:, 0]))
 
     assert iterms_rmse < smooms_rmse < filtms_rmse
