@@ -60,11 +60,13 @@ class ProbabilisticLinearSolver(
     observation_op :
         Observation process defining how information about the linear system is
         obtained.
+    hyperparam_optim_method :
+        Hyperparameter optimization method.
+    belief_update :
+        Belief update defining how to update the QoI beliefs given new observations.
     stopping_criteria :
         Stopping criteria determining when the solver has converged.
-    hyperparameter_optim :
-        Hyperparameter optimization method or boolean flag whether to optimize
-        hyperparameters or not.
+
 
     References
     ----------
@@ -120,22 +122,35 @@ class ProbabilisticLinearSolver(
     def __init__(
         self,
         prior: beliefs.LinearSystemBelief,
-        policy: policies.Policy,
         observation_op: observation_ops.ObservationOp,
-        belief_update: Optional[belief_updates.LinearSolverBeliefUpdate],
+        policy: Optional[policies.Policy] = None,
         hyperparam_optim_method: Optional[
             hyperparam_optim.HyperparameterOptimization
         ] = None,
-        stopping_criteria: Optional[
-            List[stop_criteria.StoppingCriterion]
-        ] = stop_criteria.MaxIterations(),
+        belief_update: Optional[belief_updates.LinearSolverBeliefUpdate] = None,
+        stopping_criteria: Optional[List[stop_criteria.StoppingCriterion]] = None,
     ):
         # pylint: disable="too-many-arguments"
-        self.policy = policy
         self.observation_op = observation_op
-        self.belief_update = belief_update
+        if policy is None:
+            self.policy = self._select_default_policy(
+                prior=prior, observation_op=observation_op
+            )
+        else:
+            self.policy = policy
+        if belief_update is None:
+            self.belief_update = self._select_default_belief_update(
+                prior=prior, observation_op=observation_op
+            )
+        else:
+            self.belief_update = belief_update
         self.hyperparam_optim_method = hyperparam_optim_method
-        self.stopping_criteria = stopping_criteria
+        if stopping_criteria is None:
+            self.stopping_criteria = self._select_default_stopping_criteria(
+                prior=prior, observation_op=observation_op
+            )
+        else:
+            self.stopping_criteria = stopping_criteria
         super().__init__(
             prior=prior,
         )
@@ -298,43 +313,124 @@ class ProbabilisticLinearSolver(
             If an unknown or incompatible prior belief class is passed.
         """
 
-        stopping_criteria = [stop_criteria.MaxIterations(maxiter=maxiter)]
-        if isinstance(observation_op, observation_ops.MatVec):
-            if isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
-                policy = policies.ConjugateDirections()
-                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-                belief_update = belief_updates.WeakMeanCorrLinearObsBeliefUpdate(
-                    prior=prior
-                )
-            elif isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
-                policy = policies.ConjugateDirections()
-                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
-                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate(
-                    prior=prior
-                )
-            else:
-                raise ValueError("Unknown or incompatible prior belief class.")
-        elif isinstance(observation_op, observation_ops.SampleMatVec):
-            if isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
-                policy = policies.ConjugateDirections()
-                stopping_criteria.append(
-                    stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
-                )
-                belief_update = belief_updates.SymmetricNormalLinearObsBeliefUpdate(
-                    prior=prior
-                )
-
-            else:
-                raise ValueError("Unknown or incompatible prior belief class.")
-        else:
-            raise ValueError("Unknown or incompatible observation operator.")
-
+        policy = cls._select_default_policy(prior=prior, observation_op=observation_op)
+        belief_update = cls._select_default_belief_update(
+            prior=prior, observation_op=observation_op
+        )
+        stopping_criteria = cls._select_default_stopping_criteria(
+            prior=prior,
+            observation_op=observation_op,
+            maxiter=maxiter,
+            atol=atol,
+            rtol=rtol,
+        )
         return cls(
             prior=prior,
             policy=policy,
             observation_op=observation_op,
             belief_update=belief_update,
             stopping_criteria=stopping_criteria,
+        )
+
+    @staticmethod
+    def _select_default_policy(
+        prior: beliefs.LinearSystemBelief,
+        observation_op: observation_ops.ObservationOp,
+    ) -> policies.Policy:
+        """Select a default policy from a prior belief and observation operator.
+
+        Parameters
+        ----------
+        prior :
+            Prior belief about the quantities of interest of the linear system.
+        observation_op :
+            Observation operator defining how information about the linear system is
+            obtained.
+        """
+        if isinstance(observation_op, observation_ops.MatVec):
+            if isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
+                return policies.ConjugateDirections()
+            elif isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
+                return policies.ConjugateDirections()
+        elif isinstance(observation_op, observation_ops.SampleMatVec):
+            if isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
+                return policies.ConjugateDirections()
+        raise ValueError(
+            "No default policy available for this prior and observation "
+            "operator combination."
+        )
+
+    @staticmethod
+    def _select_default_belief_update(
+        prior: beliefs.LinearSystemBelief,
+        observation_op: observation_ops.ObservationOp,
+    ) -> belief_updates.LinearSolverBeliefUpdate:
+        """Select a default belief update from a prior belief and observation operator.
+
+        Parameters
+        ----------
+        prior :
+            Prior belief about the quantities of interest of the linear system.
+        observation_op :
+            Observation operator defining how information about the linear system is
+            obtained.
+        """
+        if isinstance(observation_op, observation_ops.MatVec):
+            if isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
+                return belief_updates.WeakMeanCorrLinearObsBeliefUpdate(prior=prior)
+            elif isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
+                return belief_updates.SymmetricNormalLinearObsBeliefUpdate(prior=prior)
+        elif isinstance(observation_op, observation_ops.SampleMatVec):
+            if isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
+                return belief_updates.SymmetricNormalLinearObsBeliefUpdate(prior=prior)
+        raise ValueError(
+            "No default belief update available for this prior and observation "
+            "operator combination."
+        )
+
+    @staticmethod
+    def _select_default_stopping_criteria(
+        prior: beliefs.LinearSystemBelief,
+        observation_op: observation_ops.ObservationOp,
+        maxiter: Optional[int] = None,
+        atol: float = 10 ** -6,
+        rtol: float = 10 ** -6,
+    ) -> List[stop_criteria.StoppingCriterion]:
+        """Select default stopping criteria from a prior belief and observation
+        operator.
+
+        Parameters
+        ----------
+        prior :
+            Prior belief about the quantities of interest of the linear system.
+        observation_op :
+            Observation operator defining how information about the linear system is
+            obtained.
+        maxiter :
+            Maximum number of iterations. Defaults to :math:`10n`, where :math:`n` is
+            the dimension of :math:`A`.
+        atol :
+            Absolute convergence tolerance.
+        rtol :
+            Relative convergence tolerance.
+        """
+        stopping_criteria = [stop_criteria.MaxIterations(maxiter=maxiter)]
+        if isinstance(observation_op, observation_ops.MatVec):
+            if isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
+                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
+                return stopping_criteria
+            elif isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
+                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
+                return stopping_criteria
+        elif isinstance(observation_op, observation_ops.SampleMatVec):
+            if isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):
+                stopping_criteria.append(
+                    stop_criteria.PosteriorContraction(atol=atol, rtol=rtol)
+                )
+                return stopping_criteria
+        raise ValueError(
+            "No default stopping criteria available for this prior and observation "
+            "operator combination."
         )
 
     def has_converged(
@@ -430,7 +526,9 @@ class ProbabilisticLinearSolver(
                 problem=problem,
                 prior=self.prior,
                 belief=belief,
-                cache=self.belief_update.cache_type(problem=problem, belief=belief),
+                cache=self.belief_update.cache_type(
+                    problem=problem, prior=self.prior, belief=belief
+                ),
             )
         else:
             solver_state.belief = belief

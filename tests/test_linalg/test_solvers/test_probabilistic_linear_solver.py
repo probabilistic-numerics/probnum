@@ -11,76 +11,84 @@ from probnum.linalg.solvers import ProbabilisticLinearSolver
 from probnum.problems import LinearSystem
 
 
-def test_solver_state(linsys_spd: LinearSystem, solve_iterator: Iterator):
-    """Test whether the solver state is consistent with the iteration."""
-    for i in range(10):
-        (belief, action, observation, solver_state) = next(solve_iterator)
+class TestSolverState:
+    """Test cases for the linear solver state."""
 
-        # Iteration
-        assert solver_state.iteration == i + 1, (
-            "Solver state iteration does " "not match iterations performed."
-        )
+    def test_solver_state(self, linsys_spd: LinearSystem, solve_iterator: Iterator):
+        """Test whether the solver state is consistent with the iteration."""
+        for i in range(10):
+            (belief, action, observation, solver_state) = next(solve_iterator)
 
-        # Actions
-        np.testing.assert_allclose(solver_state._action[-1], action)
+            # Iteration
+            assert (
+                solver_state.info.iteration == i + 1
+            ), "Solver state iteration does not match iterations performed."
 
-        # Observations
-        np.testing.assert_allclose(solver_state._observation[-1], observation)
+            # Actions
+            assert solver_state.cache.action == action
 
-        # Action - observation inner product
-        np.testing.assert_allclose(
-            solver_state.action_obs_innerprods,
-            np.einsum(
-                "nk,nk->k",
-                np.hstack(solver_state._action),
-                np.hstack(solver_state._observation),
-            ),
-        )
+            # Observations
+            assert solver_state.cache.observation == observation
 
-        # Residual
-        np.testing.assert_allclose(
-            solver_state.residual,
-            linsys_spd.A @ belief.x.mean - linsys_spd.b,
-            rtol=10 ** -6,
-            atol=10 ** -10,
-            err_msg="Residual in solver_state does not match actual residual.",
-        )
+            # Action - observation inner product
+            np.testing.assert_allclose(
+                np.array(solver_state.cache.action_observation_innerprod_list),
+                np.einsum(
+                    "nk,nk->k",
+                    solver_state.data.actions_arr.actA,
+                    solver_state.data.observations_arr.obsA,
+                ),
+            )
 
-
-@pytest.mark.xfail(
-    raises=AssertionError,
-    reason="This is currently not fulfilled for all PLS variants.",
-)
-def test_solution_equivalence(linsys_spd: LinearSystem, solve_iterator: Iterator):
-    """The iteratively computed solution should match the induced solution
-    estimate: x_k = E[A^-1] b"""
-    for i in range(10):
-        (belief, action, observation, solver_state) = next(solve_iterator)
-        # E[x] = E[A^-1] b
-        np.testing.assert_allclose(
-            belief.x.mean,
-            belief.Ainv.mean @ linsys_spd.b,
-            rtol=1e-5,
-            err_msg="Solution from matrix-based probabilistic linear solver "
-            "does not match the estimated inverse, i.e. x != Ainv @ b ",
-        )
+            # Residual
+            np.testing.assert_allclose(
+                solver_state.cache.residual,
+                linsys_spd.A @ belief.x.mean - linsys_spd.b,
+                rtol=10 ** -6,
+                atol=10 ** -10,
+                err_msg="Residual in solver_state does not match actual residual.",
+            )
 
 
-def test_posterior_covariance_posdef(
-    linsys_spd: LinearSystem, solve_iterator: Iterator
-):
-    """Posterior covariances of the output beliefs must be positive (semi-) definite."""
-    for i in range(10):
-        (belief, action, observation, solver_state) = next(solve_iterator)
+class TestProbabilisticLinearSolver:
+    """Test cases for probabilistic linear solvers."""
 
-        # Check positive definiteness
-        eps = 10 ** 6 * np.finfo(float).eps
-        assert np.all(
-            0 <= scipy.linalg.eigvalsh(belief.A.cov.A.todense()) + eps
-        ), "Covariance of A not positive semi-definite."
-        assert np.all(
-            0 <= scipy.linalg.eigvalsh(belief.Ainv.cov.A.todense()) + eps
-        ), "Covariance of Ainv not positive semi-definite."
+    @pytest.mark.xfail(
+        raises=AssertionError,
+        reason="This is currently not fulfilled for all PLS variants.",
+    )
+    def test_solution_equivalence(
+        self, linsys_spd: LinearSystem, solve_iterator: Iterator
+    ):
+        """The iteratively computed solution should match the induced solution
+        estimate: x_k = E[A^-1] b"""
+        for i in range(10):
+            (belief, action, observation, solver_state) = next(solve_iterator)
+            # E[x] = E[A^-1] b
+            np.testing.assert_allclose(
+                belief.x.mean,
+                belief.Ainv.mean @ linsys_spd.b,
+                rtol=1e-5,
+                err_msg="Solution from matrix-based probabilistic linear solver "
+                "does not match the estimated inverse, i.e. x != Ainv @ b ",
+            )
+
+    def test_posterior_covariance_posdef(
+        self, linsys_spd: LinearSystem, solve_iterator: Iterator
+    ):
+        """Posterior covariances of the output beliefs must be positive (semi-)
+        definite."""
+        for i in range(10):
+            (belief, action, observation, solver_state) = next(solve_iterator)
+
+            # Check positive definiteness
+            eps = 10 ** 6 * np.finfo(float).eps
+            assert np.all(
+                0 <= scipy.linalg.eigvalsh(belief.A.cov.A.todense()) + eps
+            ), "Covariance of A not positive semi-definite."
+            assert np.all(
+                0 <= scipy.linalg.eigvalsh(belief.Ainv.cov.A.todense()) + eps
+            ), "Covariance of Ainv not positive semi-definite."
 
 
 class TestConjugateDirectionsMethod:
@@ -96,7 +104,7 @@ class TestConjugateDirectionsMethod:
         """Search directions should remain A-conjugate up to machine precision, i.e.
         s_i^T A s_j = 0 for i != j."""
         _, solver_state = conj_dir_method.solve(linsys_spd)
-        actions = np.hstack(solver_state._action)
+        actions = solver_state.data.actions_arr.actA
 
         # Compute pairwise inner products in A-space
         inner_prods = actions.T @ linsys_spd.A @ actions
@@ -118,7 +126,7 @@ class TestConjugateDirectionsMethod:
         """Test whether the PLS takes at most n iterations, i.e. the convergence
         property of conjugate direction methods in exact arithmetic."""
         _, solver_state = conj_dir_method.solve(linsys_spd)
-        assert solver_state.iteration <= n
+        assert solver_state.info.iteration <= n
 
 
 class TestConjugateGradientMethod:
@@ -138,7 +146,6 @@ class TestConjugateGradientMethod:
         solve_iterator = conj_grad_method.solve_iterator(
             problem=linsys_spd,
             belief=conj_grad_method.prior,
-            solver_state=conj_grad_method._init_solver_state(problem=linsys_spd)[1],
         )
         # Conjugate gradient method
         cg_iterates = []

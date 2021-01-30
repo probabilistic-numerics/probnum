@@ -282,7 +282,7 @@ def fixture_solver_info(
 @pytest.fixture
 def solver_cache(linsys: LinearSystem, belief: beliefs.LinearSystemBelief):
     """Miscellaneous quantities computed (and cached) by a linear solver."""
-    return LinearSolverCache(problem=linsys, belief=belief)
+    return LinearSolverCache(problem=linsys, prior=belief, belief=belief)
 
 
 @pytest.fixture(name="solver_state_init")
@@ -301,19 +301,29 @@ def fixture_solver_state_init(
 ################################
 
 
+@pytest.fixture(
+    params=[
+        pytest.param(obs_op[1], id=obs_op[0])
+        for obs_op in [
+            ("matvec", observation_ops.MatVec()),
+            # ("matvec", observation_ops.SampleMatVec()),
+        ]
+    ],
+    name="observation_op",
+)
+def fixture_observation_op(request):
+    return request.param
+
+
 @pytest.fixture(name="prob_linear_solver")
 def fixture_prob_linear_solver(
     prior: beliefs.LinearSystemBelief,
-    policy: policies.Policy,
     observation_op: observation_ops.ObservationOp,
-    stopcrit: stop_criteria.StoppingCriterion,
 ):
     """Custom probabilistic linear solvers."""
     return ProbabilisticLinearSolver(
         prior=prior,
-        policy=policy,
         observation_op=observation_op,
-        stopping_criteria=[stop_criteria.MaxIterations(), stopcrit],
     )
 
 
@@ -322,28 +332,20 @@ def solve_iterator(
     prob_linear_solver: ProbabilisticLinearSolver,
     linsys_spd: LinearSystem,
     prior: beliefs.LinearSystemBelief,
-    solver_state_init: LinearSolverState,
 ) -> Iterator:
     """Solver iterators of custom probabilistic linear solvers."""
-    return prob_linear_solver.solve_iterator(
-        problem=linsys_spd, belief=prior, solver_state=solver_state_init
-    )
+    return prob_linear_solver.solve_iterator(problem=linsys_spd, belief=prior)
 
 
 @pytest.fixture()
 def conj_dir_method(
-    prior: beliefs.LinearSystemBelief, stopcrit: stop_criteria.StoppingCriterion, n: int
+    prior: beliefs.LinearSystemBelief,
 ):
     """Probabilistic linear solvers which are conjugate direction methods."""
     return ProbabilisticLinearSolver(
         prior=prior,
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVec(),
-        stopping_criteria=[
-            stop_criteria.MaxIterations(maxiter=n),
-            stop_criteria.Residual(),
-            stopcrit,
-        ],
     )
 
 
