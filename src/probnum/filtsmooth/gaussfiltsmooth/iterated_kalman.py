@@ -10,71 +10,38 @@ from .stoppingcriterion import StoppingCriterion
 class IteratedKalman(Kalman):
     """Iterated filter/smoother based on posterior linearisation."""
 
-    def __init__(self, kalman, stoppingcriterion=None):
+    def __init__(self, kalman, stopcrit=None):
         self.kalman = kalman
-        if stoppingcriterion is None:
-            self.stoppingcriterion = StoppingCriterion()
+        if stopcrit is None:
+            self.stopcrit = StoppingCriterion()
         else:
-            self.stoppingcriterion = stoppingcriterion
+            self.stopcrit = stopcrit
 
         self.current_results = []
         self.previous_results = []
 
         super().__init__(kalman.dynamics_model, kalman.measurement_model, kalman.initrv)
 
-    def iterated_filtsmooth(
-        self, dataset, times, _intermediate_step=None, _linearise_at=None
-    ):
-        posterior = self.filtsmooth(
+    def iterated_filtsmooth(self, dataset, times, _intermediate_step=None):
+        old_posterior = self.filtsmooth(
             dataset=dataset,
             times=times,
             _intermediate_step=_intermediate_step,
-            _linearise_at=None,
+            _previous_posterior=None,
         )
-        self.current_results = []
-        self.previous_results = []
+        new_posterior = old_posterior
 
-        err = np.array(self.current_results) - np.array(self.previous_results)
-        ref = np.array(self.current_results)
-        while not self.stoppingcriterion.terminate(error=err, reference=ref):
-            posterior = self.filtsmooth(
+        normalised_error = np.inf
+
+        while normalised_error > 1:
+            old_posterior = new_posterior
+            new_posterior = self.filtsmooth(
                 dataset=dataset,
                 times=times,
                 _intermediate_step=_intermediate_step,
-                _linearise_at=posterior,
+                _previous_posterior=old_posterior,
             )
-            err = np.array(self.current_results) - np.array(self.previous_results)
-            ref = np.array(self.current_results)
-            self.current_results = []
-            self.previous_results = []
-        return posterior
-
-    def filter_step(
-        self,
-        start,
-        stop,
-        current_rv,
-        data,
-        _intermediate_step=None,
-        _linearise_at=None,
-        _diffusion=1.0,
-    ):
-
-        filt_rv, info = self.kalman.filter_step(
-            start=start,
-            stop=stop,
-            current_rv=current_rv,
-            data=data,
-            _intermediate_step=_intermediate_step,
-            _linearise_at=_linearise_at,
-            _diffusion=_diffusion,
-        )
-        old_mean = (
-            _linearise_at.mean
-            if _linearise_at is not None
-            else np.zeros(filt_rv.mean.shape)
-        )
-        new_mean = filt_rv.mean
-        self.current_results.append(new_mean)
-        self.previous_results.append(old_mean)
-        return filt_rv, info
+            difference = new_posterior.state_rvs.mean - old_posterior.state_rvs.mean
+            reference = old_posterior.state_rvs.mean
+            normalised_error = self.stopcrit.evaluate_error(difference, reference)
+        return new_posterior

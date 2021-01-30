@@ -16,13 +16,6 @@ from .kalman_utils import (
     update_classic,
 )
 
-#
-#
-# def iterated_filtsmooth(
-#     kalman, stoppingcriterion, dataset, times, _intermediate_step=None
-# ):
-#     raise RuntimeError("TBD.")
-
 
 class Kalman(BayesFiltSmooth):
     def __init__(
@@ -43,55 +36,54 @@ class Kalman(BayesFiltSmooth):
         self.update = ft.partial(update, measurement_model=measurement_model)
         self.smooth_step = smooth_step
 
-    def filtsmooth(self, dataset, times, _intermediate_step=None, _linearise_at=None):
+    def filtsmooth(
+        self, dataset, times, _intermediate_step=None, _previous_posterior=None
+    ):
         dataset, times = np.asarray(dataset), np.asarray(times)
         filter_posterior = self.filter(
             dataset,
             times,
             _intermediate_step=_intermediate_step,
-            _linearise_at=_linearise_at,
+            _previous_posterior=_previous_posterior,
         )
         smooth_posterior = self.smooth(filter_posterior)
         return smooth_posterior
 
     def filter(self, dataset, times, _intermediate_step=None, _previous_posterior=None):
-        # _linearise_at is not used here, only in IteratedKalman.filter_step
-        # which is overwritten by IteratedKalman
+
         dataset, times = np.asarray(dataset), np.asarray(times)
         rvs = []
 
-        _linearise_at = (
+        _linearise_update_at = (
             None if _previous_posterior is None else _previous_posterior(times[0])
         )
         filtrv, *_ = self.update(
-            rv=self.initrv, time=times[0], data=dataset[0], _linearise_at=_linearise_at
+            rv=self.initrv,
+            time=times[0],
+            data=dataset[0],
+            _linearise_at=_linearise_update_at,
         )
 
         rvs.append(filtrv)
         for idx in range(1, len(times)):
-            _linearise_at = (
-                None if _previous_posterior is None else _previous_posterior(times[0])
+            _linearise_predict_at = (
+                None
+                if _previous_posterior is None
+                else _previous_posterior(times[idx - 1])
+            )
+            _linearise_update_at = (
+                None if _previous_posterior is None else _previous_posterior(times[idx])
             )
 
-            if _previous_posterior is not None:
-                filtrv, _ = self.filter_step(
-                    start=times[idx - 1],
-                    stop=times[idx],
-                    current_rv=filtrv,
-                    data=dataset[idx],
-                    _linearise_at=_previous_posterior(times[idx]),
-                    _intermediate_step=_intermediate_step,
-                )
-
-            else:
-                filtrv, _ = self.filter_step(
-                    start=times[idx - 1],
-                    stop=times[idx],
-                    current_rv=filtrv,
-                    data=dataset[idx],
-                    _intermediate_step=_intermediate_step,
-                )
-
+            filtrv, _ = self.filter_step(
+                start=times[idx - 1],
+                stop=times[idx],
+                current_rv=filtrv,
+                data=dataset[idx],
+                _linearise_predict_at=_linearise_predict_at,
+                _linearise_update_at=_linearise_update_at,
+                _intermediate_step=_intermediate_step,
+            )
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
 
@@ -102,7 +94,8 @@ class Kalman(BayesFiltSmooth):
         current_rv,
         data,
         _intermediate_step=None,
-        _linearise_at=None,
+        _linearise_predict_at=None,
+        _linearise_update_at=None,
         _diffusion=1.0,
     ):
         data = np.asarray(data)
@@ -112,10 +105,14 @@ class Kalman(BayesFiltSmooth):
             stop=stop,
             rv=current_rv,
             _intermediate_step=_intermediate_step,
+            _linearise_at=_linearise_predict_at,
             _diffusion=_diffusion,
         )
         filtrv, info["meas_rv"], info["info_upd"] = self.update(
-            rv=info["pred_rv"], time=stop, data=data
+            rv=info["pred_rv"],
+            time=stop,
+            data=data,
+            _linearise_at=_linearise_update_at,
         )
         return filtrv, info
 

@@ -3,8 +3,9 @@ import unittest
 
 import numpy as np
 
+import probnum.diffeq as pnd  # ODE problem as test function
 import probnum.filtsmooth as pnfs
-from probnum.random_variables import Normal
+from probnum.random_variables import Constant, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [
@@ -149,6 +150,26 @@ def pendulum():
     measmod = pnfs.statespace.DiscreteGaussian(h, lambda t: r, dh)
     initrv = Normal(initmean, initcov)
     return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
+
+
+def logistic_ode():
+
+    # Below is for consistency with pytest & unittest.
+    # Without a seed, unittest passes but pytest fails.
+    # I tried multiple seeds, they all work equally well.
+    np.random.seed(12345)
+    delta_t = 0.2
+    tmax = 2
+
+    logistic = pnd.logistic((0, tmax), initrv=Constant(0.1), params=(6, 1))
+    dynamod = pnfs.statespace.IBM(ordint=3, spatialdim=1)
+    measmod = pnfs.DiscreteEKFComponent.from_ode(logistic, dynamod, 0.0, ek0_or_ek1=1)
+
+    initmean = np.array([0.1, 0, 0.0, 0.0])
+    initcov = np.diag([0.0, 1.0, 1.0, 1.0])
+    initrv = Normal(initmean, initcov)
+
+    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": tmax, "ode": logistic}
 
 
 class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):

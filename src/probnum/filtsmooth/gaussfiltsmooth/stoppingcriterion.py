@@ -25,7 +25,7 @@ class StoppingCriterion:
 
     def evaluate_error(self, error, reference):
         normalisation = self.atol + self.rtol * reference
-        magnitude = np.mean((error / normalisation) ** 2)
+        magnitude = np.sqrt(np.mean((error / normalisation) ** 2))
         return magnitude
 
 
