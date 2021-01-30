@@ -114,11 +114,8 @@ class KalmanPosterior(FiltSmoothPosterior):
             stop=next_loc,
         )
         crosscov = info["crosscov"]
-        smoothing_gain = crosscov @ np.linalg.inv(predicted_future_rv.cov)
 
-        curr_rv, _ = self.smooth_step(
-            pred_rv, predicted_future_rv, next_rv, smoothing_gain
-        )
+        curr_rv, _ = self.smooth_step(pred_rv, predicted_future_rv, next_rv, crosscov)
         return curr_rv
 
     def __len__(self):
@@ -164,10 +161,9 @@ class KalmanPosterior(FiltSmoothPosterior):
                 stop=locations[idx],
             )
             crosscov = info["crosscov"]
-            smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
 
             curr_rv, _ = self.gauss_filter.smooth_step(
-                unsmoothed_rv, predicted_rv, curr_rv, smoothing_gain
+                unsmoothed_rv, predicted_rv, curr_rv, crosscov
             )
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)

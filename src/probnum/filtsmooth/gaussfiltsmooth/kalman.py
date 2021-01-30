@@ -203,11 +203,10 @@ class Kalman(BayesFiltSmooth):
                 stop=locations[idx],
             )
             crosscov = info["crosscov"]
-            smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
 
             # Actual smoothing step
             curr_rv, _ = self.smooth_step(
-                unsmoothed_rv, predicted_rv, curr_rv, smoothing_gain
+                unsmoothed_rv, predicted_rv, curr_rv, crosscov
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()

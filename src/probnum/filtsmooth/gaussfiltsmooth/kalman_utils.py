@@ -2,6 +2,7 @@
 
 import functools as ft
 import typing
+import warnings
 
 import numpy as np
 
@@ -139,31 +140,32 @@ def _iterated_update(
 # Smoothing choices
 ########################################################################################################################
 
-# Maybe this can be done more cleanly with a decorator.
-# For the time being I think this is sufficiently clean though.
-def rts_smooth_step_with_precon(
-    smooth_step_fun,
-    precon,
-    precon_inv,
-    unsmoothed_rv,
-    predicted_rv,
-    smoothed_rv,
-    smoothing_gain,
-    dynamics_model=None,
-    start=None,
-    stop=None,
-):
-    """Execute a smoothing step with preconditioning.
+
+def rts_with_precon(smooth_step_fun):
+    """Make a smoothing step respect preconditioning.
 
     Currently, this is only available for IBM() integrators.
 
     Examples
     --------
     >>> import functools as ft
-    >>> rts_smooth_step_classic_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_classic)
-    >>> rts_smooth_step_joseph_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_joseph)
-    >>> rts_smooth_step_sqrt_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_sqrt)
+    >>> rts_smooth_step_classic_with_precon = rts_with_precon(rts_smooth_step_classic)
     """
+    return ft.partial(_rts_smooth_step_with_precon, smooth_step_fun=smooth_step_fun)
+
+
+def _rts_smooth_step_with_precon(
+    smooth_step_fun,
+    unsmoothed_rv,
+    predicted_rv,
+    smoothed_rv,
+    crosscov,
+    dynamics_model=None,
+    start=None,
+    stop=None,
+):
+    """Execute a smoothing step with preconditioning."""
+
     # Assemble preconditioners
     dt = stop - start
     precon = dynamics_model.precon(dt)
@@ -173,16 +175,14 @@ def rts_smooth_step_with_precon(
     unsmoothed_rv = precon_inv @ unsmoothed_rv
     predicted_rv = precon_inv @ predicted_rv
     smoothed_rv = precon_inv @ smoothed_rv
-    smoothing_gain = np.nan
-    print("What needs to happen to the smoothing gain???")
-    assert True is False
+    crosscov = precon_inv @ crosscov @ precon_inv.T
 
-    # Undo preconditioning
+    # Carry out the smoothing step
     updated_rv = smooth_step_fun(
         unsmoothed_rv,
         predicted_rv,
         smoothed_rv,
-        smoothing_gain,
+        crosscov,
         dynamics_model=None,
         start=None,
         stop=None,
@@ -195,11 +195,12 @@ def rts_smooth_step_classic(
     unsmoothed_rv,
     predicted_rv,
     smoothed_rv,
-    smoothing_gain,
+    crosscov,
     dynamics_model=None,
     start=None,
     stop=None,
 ) -> (pnrv.RandomVariable, typing.Dict):
+    smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
     new_mean = unsmoothed_rv.mean + smoothing_gain @ (
         smoothed_rv.mean - predicted_rv.mean
     )

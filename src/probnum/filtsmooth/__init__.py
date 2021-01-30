@@ -16,7 +16,7 @@ from .gaussfiltsmooth import (
     measure_via_transition,
     predict_via_transition,
     rts_smooth_step_classic,
-    rts_smooth_step_with_precon,
+    rts_with_precon,
     update_classic,
 )
 
@@ -37,6 +37,6 @@ __all__ = [
     "update_classic",
     "condition_state_on_measurement",
     "iterate_update",
-    "rts_smooth_step_with_precon",
+    "rts_with_precon",
     "rts_smooth_step_classic",
 ]
