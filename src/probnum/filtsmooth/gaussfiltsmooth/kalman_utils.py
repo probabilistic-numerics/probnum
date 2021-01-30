@@ -152,7 +152,11 @@ def rts_with_precon(smooth_step_fun):
     >>> import functools as ft
     >>> rts_smooth_step_classic_with_precon = rts_with_precon(rts_smooth_step_classic)
     """
-    return ft.partial(_rts_smooth_step_with_precon, smooth_step_fun=smooth_step_fun)
+
+    def new_smoothing_function(*args, **kwargs):
+        return _rts_smooth_step_with_precon(smooth_step_fun, *args, **kwargs)
+
+    return new_smoothing_function
 
 
 def _rts_smooth_step_with_precon(
@@ -179,14 +183,14 @@ def _rts_smooth_step_with_precon(
     crosscov = precon_inv @ crosscov @ precon_inv.T
 
     # Carry out the smoothing step
-    updated_rv = smooth_step_fun(
+    updated_rv, _ = smooth_step_fun(
         unsmoothed_rv,
         predicted_rv,
         smoothed_rv,
         crosscov,
-        dynamics_model=None,
-        start=None,
-        stop=None,
+        dynamics_model=dynamics_model,
+        start=start,
+        stop=stop,
     )
     new_rv = precon @ updated_rv
     return new_rv, {}
