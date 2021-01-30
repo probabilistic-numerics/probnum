@@ -8,7 +8,7 @@ from .stoppingcriterion import StoppingCriterion
 
 
 class IteratedKalman(Kalman):
-    """Iterated filter/smoother based on posterior linearisation."""
+    """Iterated Gaussian filter/smoother based on posterior linearisation."""
 
     def __init__(self, kalman, stopcrit=None):
         self.kalman = kalman
@@ -23,6 +23,12 @@ class IteratedKalman(Kalman):
         super().__init__(kalman.dynamics_model, kalman.measurement_model, kalman.initrv)
 
     def iterated_filtsmooth(self, dataset, times, _intermediate_step=None):
+        """Compute an iterated smoothing estimate with posterior linearisation.
+
+        If the extended Kalman filter is used, this yields the IEKS. In
+        any case, the result is an approximation to the maximum-a-
+        posteriori estimate.
+        """
         old_posterior = self.filtsmooth(
             dataset=dataset,
             times=times,

@@ -7,6 +7,8 @@ import numpy as np
 
 import probnum.random_variables as pnrv
 
+from .stoppingcriterion import StoppingCriterion
+
 ########################################################################################################################
 # Prediction choices
 ########################################################################################################################
@@ -86,9 +88,10 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
     return updated_rv
 
 
-# Basically a decorator (but not quite?).
-def iterate_update(update_fun, stopcrit):
-    """"""
+def iterate_update(update_fun, stopcrit=None):
+    """Iterated update decorator."""
+    if stopcrit is None:
+        stopcrit = StoppingCriterion()
 
     def new_update_fun(*args, **kwargs):
         return _iterated_update(update_fun, stopcrit, *args, **kwargs)
@@ -151,6 +154,8 @@ def rts_smooth_step_with_precon(
     stop=None,
 ):
     """Execute a smoothing step with preconditioning.
+
+    Currently, this is only available for IBM() integrators.
 
     Examples
     --------
