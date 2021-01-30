@@ -1,13 +1,11 @@
 """Gaussian filtering and smoothing."""
 
-import functools as ft
 
 import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
-from probnum.random_variables import Normal
 
 # default options at initialisation
 from .kalman_utils import (
@@ -63,10 +61,12 @@ class Kalman(BayesFiltSmooth):
             measurement_model, *args, **kwargs
         )
         self.update = lambda *args, **kwargs: update(measurement_model, *args, **kwargs)
-        # self.predict = ft.partial(predict, dynamics_model=dynamics_model)
-        # self.measure = ft.partial(measure, measurement_model=measurement_model)
-        # self.update = ft.partial(update, measurement_model=measurement_model)
         self.smooth_step = smooth_step
+        super().__init__(
+            dynamics_model=dynamics_model,
+            measurement_model=measurement_model,
+            initrv=initrv,
+        )
 
     def iterated_filtsmooth(
         self, dataset, times, stopcrit=None, _intermediate_step=None

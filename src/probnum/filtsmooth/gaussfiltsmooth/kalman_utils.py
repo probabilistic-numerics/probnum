@@ -1,8 +1,6 @@
 """Prediction, update, and smoothing implementations for the Kalman filter/smoother."""
 
-import functools as ft
 import typing
-import warnings
 
 import numpy as np
 
