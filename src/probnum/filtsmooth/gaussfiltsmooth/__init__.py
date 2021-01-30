@@ -1,5 +1,4 @@
 from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
-from .iterated_kalman import IteratedKalman
 from .kalman import Kalman
 from .kalman_utils import (
     condition_state_on_measurement,

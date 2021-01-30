@@ -58,18 +58,19 @@ def update():
 def kalman(problem, update):
     """Create a Kalman object."""
     dynmod, measmod, initrv, info, *_ = problem
-    kalman = pnfs.Kalman(dynmod, measmod, initrv)
-    stopcrit = pnfs.StoppingCriterion(atol=1e-3, rtol=1e-6, maxit=10)
-    return pnfs.IteratedKalman(kalman, stopcrit=stopcrit)
+    return pnfs.Kalman(dynmod, measmod, initrv)
 
 
 def test_rmse_filt_smooth(kalman, problem):
     """Assert that smoothing beats filtering beats nothing."""
     *_, obs, times, truth = problem
 
+    stopcrit = pnfs.StoppingCriterion(atol=1e-3, rtol=1e-6, maxit=10)
+
     filter_posterior = kalman.filter(obs, times)
     smooth_posterior = kalman.smooth(filter_posterior)
-    iterated_posterior = kalman.iterated_filtsmooth(obs, times)
+
+    iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
 
     filtms = filter_posterior.state_rvs.mean
     smooms = smooth_posterior.state_rvs.mean

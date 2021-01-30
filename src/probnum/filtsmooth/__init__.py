@@ -7,7 +7,6 @@ from .gaussfiltsmooth import (
     ContinuousUKFComponent,
     DiscreteEKFComponent,
     DiscreteUKFComponent,
-    IteratedKalman,
     Kalman,
     KalmanPosterior,
     StoppingCriterion,
@@ -25,7 +24,6 @@ from .gaussfiltsmooth import (
 __all__ = [
     "BayesFiltSmooth",
     "Kalman",
-    "IteratedKalman",
     "ContinuousEKFComponent",
     "DiscreteEKFComponent",
     "ContinuousUKFComponent",

@@ -16,6 +16,7 @@ from .kalman_utils import (
     rts_smooth_step_classic,
     update_classic,
 )
+from .stoppingcriterion import StoppingCriterion
 
 
 class Kalman(BayesFiltSmooth):
@@ -61,6 +62,43 @@ class Kalman(BayesFiltSmooth):
         self.measure = ft.partial(measure, measurement_model=measurement_model)
         self.update = ft.partial(update, measurement_model=measurement_model)
         self.smooth_step = smooth_step
+
+    def iterated_filtsmooth(
+        self, dataset, times, stopcrit=None, _intermediate_step=None
+    ):
+        """Compute an iterated smoothing estimate with repeated posterior linearisation.
+
+        If the extended Kalman filter is used, this yields the IEKS. In
+        any case, the result is an approximation to the maximum-a-
+        posteriori estimate.
+        """
+
+        if stopcrit is None:
+            stopcrit = StoppingCriterion()
+
+        # Initialise iterated smoother
+        old_posterior = self.filtsmooth(
+            dataset=dataset,
+            times=times,
+            _intermediate_step=_intermediate_step,
+            _previous_posterior=None,
+        )
+        new_posterior = old_posterior
+        normalised_error = np.inf
+
+        # Iterate until a fixed point is reached
+        while normalised_error > 1:
+            old_posterior = new_posterior
+            new_posterior = self.filtsmooth(
+                dataset=dataset,
+                times=times,
+                _intermediate_step=_intermediate_step,
+                _previous_posterior=old_posterior,
+            )
+            difference = new_posterior.state_rvs.mean - old_posterior.state_rvs.mean
+            reference = old_posterior.state_rvs.mean
+            normalised_error = stopcrit.evaluate_error(difference, reference)
+        return new_posterior
 
     def filtsmooth(
         self, dataset, times, _intermediate_step=None, _previous_posterior=None
