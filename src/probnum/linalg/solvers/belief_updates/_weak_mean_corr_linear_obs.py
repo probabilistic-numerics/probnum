@@ -73,7 +73,7 @@ class _WeakMeanCorrLinearObsCache(_SymmetricNormalLinearObsCache):
         covfactorA = linops.aslinop(self.problem.A)
         if self.prev_cache is not None:
             if self.prev_cache.data is not None:
-                covfactorA += self.prev_cache.covfactorA_update_batch
+                covfactorA += self.prev_cache.covfactorA_update_batch[0]
         return covfactorA @ self.action.actA
 
     @cached_property
@@ -82,7 +82,7 @@ class _WeakMeanCorrLinearObsCache(_SymmetricNormalLinearObsCache):
         covfactorH = linops.aslinop(self.prior.Ainv.mean)
         if self.prev_cache is not None:
             if self.prev_cache.data is not None:
-                covfactorH += self.prev_cache.covfactorH_update_batch
+                covfactorH += self.prev_cache.covfactorH_update_batch[0]
         return covfactorH @ self.observation.obsA
 
 

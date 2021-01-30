@@ -1,5 +1,6 @@
 """Tests for the implementation of a generic probabilistic linear solver."""
 
+import copy
 from typing import Iterator
 
 import numpy as np
@@ -17,7 +18,10 @@ class TestSolverState:
     def test_solver_state(self, linsys_spd: LinearSystem, solve_iterator: Iterator):
         """Test whether the solver state is consistent with the iteration."""
         for i in range(10):
-            (belief, action, observation, solver_state) = next(solve_iterator)
+            try:
+                belief, action, observation, solver_state = next(solve_iterator)
+            except StopIteration:
+                break
 
             # Iteration
             assert (
@@ -39,6 +43,10 @@ class TestSolverState:
                     solver_state.data.observations_arr.obsA,
                 ),
             )
+
+            # Belief
+            assert belief == solver_state.belief
+            assert solver_state.cache.belief == solver_state.belief
 
             # Residual
             np.testing.assert_allclose(
@@ -63,7 +71,11 @@ class TestProbabilisticLinearSolver:
         """The iteratively computed solution should match the induced solution
         estimate: x_k = E[A^-1] b"""
         for i in range(10):
-            (belief, action, observation, solver_state) = next(solve_iterator)
+            try:
+                belief, action, observation, solver_state = next(solve_iterator)
+            except StopIteration:
+                break
+
             # E[x] = E[A^-1] b
             np.testing.assert_allclose(
                 belief.x.mean,
@@ -79,7 +91,10 @@ class TestProbabilisticLinearSolver:
         """Posterior covariances of the output beliefs must be positive (semi-)
         definite."""
         for i in range(10):
-            (belief, action, observation, solver_state) = next(solve_iterator)
+            try:
+                belief, action, observation, solver_state = next(solve_iterator)
+            except StopIteration:
+                break
 
             # Check positive definiteness
             eps = 10 ** 6 * np.finfo(float).eps
@@ -132,11 +147,51 @@ class TestConjugateDirectionsMethod:
 class TestConjugateGradientMethod:
     """Tests for probabilistic linear solvers which are conjugate gradient methods."""
 
-    def test_preconditioned_CG_equivalence(self):
+    def test_preconditioned_CG_equivalence(
+        self,
+        precond_conj_grad_method: ProbabilisticLinearSolver,
+        linsys_spd: LinearSystem,
+    ):
         """Test whether the PLS recovers preconditioned CG in posterior mean for
         specific prior beliefs."""
-        # todo use weakmeancorrespondence class with general prior mean to test this
-        pass
+        solve_iterator = precond_conj_grad_method.solve_iterator(
+            problem=linsys_spd,
+            belief=precond_conj_grad_method.prior,
+        )
+        # Conjugate gradient method
+        cg_iterates = []
+
+        def callback_iterates_CG(xk):
+            cg_iterates.append(copy.copy(xk[:, None]))
+
+        x0 = precond_conj_grad_method.prior.x.mean
+        x_cg, _ = scipy.sparse.linalg.cg(
+            A=linsys_spd.A,
+            b=linsys_spd.b,
+            M=precond_conj_grad_method.prior.Ainv.mean,
+            x0=x0,
+            tol=precond_conj_grad_method.stopping_criteria[1].rtol,
+            atol=precond_conj_grad_method.stopping_criteria[1].atol,
+            maxiter=precond_conj_grad_method.stopping_criteria[0].maxiter,
+            callback=callback_iterates_CG,
+        )
+        cg_iters_arr = np.hstack([x0] + cg_iterates)
+
+        # Probabilistic linear solver
+        pls_iterates = []
+        belief = None
+        for (belief, action, observation, solver_state) in solve_iterator:
+            pls_iterates.append(belief.x.mean)
+
+        pls_iters_arr = np.hstack([x0] + pls_iterates)
+
+        # Compare iterates
+        np.testing.assert_allclose(
+            belief.x.mean, x_cg[:, None], atol=10 ** -4, rtol=10 ** -4
+        )
+        np.testing.assert_allclose(
+            pls_iters_arr, cg_iters_arr, atol=10 ** -4, rtol=10 ** -4
+        )
 
     def test_CG_equivalence(
         self, conj_grad_method: ProbabilisticLinearSolver, linsys_spd: LinearSystem
@@ -151,9 +206,7 @@ class TestConjugateGradientMethod:
         cg_iterates = []
 
         def callback_iterates_CG(xk):
-            cg_iterates.append(
-                np.eye(np.shape(linsys_spd.A)[0]) @ xk[:, None]
-            )  # identity hack to actually save different iterations
+            cg_iterates.append(copy.copy(xk[:, None]))
 
         x0 = conj_grad_method.prior.x.mean
         x_cg, _ = scipy.sparse.linalg.cg(
@@ -161,6 +214,7 @@ class TestConjugateGradientMethod:
             b=linsys_spd.b,
             x0=x0,
             tol=conj_grad_method.stopping_criteria[1].rtol,
+            atol=conj_grad_method.stopping_criteria[1].atol,
             maxiter=conj_grad_method.stopping_criteria[0].maxiter,
             callback=callback_iterates_CG,
         )
@@ -169,28 +223,23 @@ class TestConjugateGradientMethod:
         # Probabilistic linear solver
         pls_iterates = []
         belief = None
-        for ind, (belief, action, observation, solver_state) in enumerate(
-            solve_iterator
-        ):
+        for (belief, action, observation, solver_state) in solve_iterator:
             pls_iterates.append(belief.x.mean)
-            has_converged, solver_state = conj_grad_method.has_converged(
-                problem=linsys_spd, belief=belief, solver_state=solver_state
-            )
-            if has_converged:
-                break
 
         pls_iters_arr = np.hstack([x0] + pls_iterates)
+
+        # Compare iterates
         np.testing.assert_allclose(
-            belief.x.mean, x_cg[:, None], atol=10 ** -6, rtol=10 ** -6
+            belief.x.mean, x_cg[:, None], atol=10 ** -4, rtol=10 ** -4
         )
         np.testing.assert_allclose(
-            pls_iters_arr, cg_iters_arr, atol=10 ** -6, rtol=10 ** -6
+            pls_iters_arr, cg_iters_arr, atol=10 ** -4, rtol=10 ** -4
         )
 
 
 class TestHyperparameterOptimization:
     def test_uncertainty_calibration_error(
-        self, calibration_method: str, conj_grad_method
+        self, conj_grad_method: ProbabilisticLinearSolver
     ):
         """Test if the available uncertainty calibration procedures affect the error of
         the returned solution."""

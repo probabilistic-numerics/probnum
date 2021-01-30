@@ -350,14 +350,51 @@ def conj_dir_method(
 
 
 @pytest.fixture(
-    params=[pytest.param(alpha, id=f"alpha{alpha}") for alpha in [0.01, 1.0, 3.5]]
+    params=[
+        pytest.param(precond_type, id=precond_type)
+        for precond_type in [
+            "scalar",
+            "jacobi",
+        ]
+    ]
+)
+def preconditioner(
+    precond_type: str, linsys_spd: LinearSystem, random_state: np.random.RandomState
+) -> linops.LinearOperator:
+    """Preconditioner for a linear system."""
+    if precond_type == "scalar":
+        return linops.ScalarMult(scalar=5.0, shape=linsys_spd.A.shape)
+    elif precond_type == "jacobi":
+        return linops.DiagMult(diagonal=np.diag(linsys_spd.A))
+
+
+@pytest.fixture()
+def precond_conj_grad_method(
+    preconditioner: linops.LinearOperator,
+    linsys_spd: LinearSystem,
+):
+    """Probabilistic linear solvers which generalize the preconditioned conjugate
+    gradient method."""
+    return ProbabilisticLinearSolver(
+        prior=beliefs.WeakMeanCorrespondenceBelief.from_inverse(
+            Ainv0=preconditioner,
+            problem=linsys_spd,
+        ),
+        policy=policies.ConjugateDirections(),
+        observation_op=observation_ops.MatVec(),
+        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
+    )
+
+
+@pytest.fixture(
+    params=[pytest.param(alpha, id=f"alpha{alpha}") for alpha in [1.0, 3.5, 100.0]]
 )
 def conj_grad_method(
     request,
     # uncertainty_calibration: hyperparam_optim.UncertaintyCalibration,
     linsys_spd: LinearSystem,
 ):
-    """Probabilistic linear solvers which are conjugate gradient methods."""
+    """Probabilistic linear solvers which generalize the conjugate gradient method."""
     return ProbabilisticLinearSolver(
         prior=beliefs.WeakMeanCorrespondenceBelief.from_scalar(
             scalar=request.param,

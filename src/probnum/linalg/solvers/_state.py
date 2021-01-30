@@ -250,6 +250,7 @@ class LinearSolverState:
             Previous linear solver state updated with new data, but prior to the
             belief update.
         """
+        prev_state.cache.belief = updated_belief
 
         return cls(
             problem=prev_state.problem,

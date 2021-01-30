@@ -13,7 +13,7 @@ Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate o
 """
 
 from ._kronecker import BoxProduct, Kronecker, SymmetricKronecker, Symmetrize
-from ._linear_operator import Identity, LinearOperator, MatrixMult, ScalarMult
+from ._linear_operator import DiagMult, Identity, LinearOperator, MatrixMult, ScalarMult
 from ._projections import OrthogonalProjection
 from ._utils import aslinop
 
@@ -23,6 +23,7 @@ __all__ = [
     "LinearOperator",
     "Identity",
     "ScalarMult",
+    "DiagMult",
     "MatrixMult",
     "OrthogonalProjection",
     "Kronecker",
@@ -36,6 +37,7 @@ LinearOperator.__module__ = "probnum.linops"
 
 Identity.__module__ = "probnum.linops"
 ScalarMult.__module__ = "probnum.linops"
+DiagMult.__module__ = "probnum.linops"
 MatrixMult.__module__ = "probnum.linops"
 
 OrthogonalProjection.__module__ = "probnum.linops"

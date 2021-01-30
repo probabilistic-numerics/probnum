@@ -33,6 +33,8 @@ class LinearOperatorTestCase(unittest.TestCase, NumpyAssertions):
             matmul,
             linops.LinearOperator(shape=(2, 2), matvec=mv),
             linops.Identity(shape=4),
+            linops.DiagMult(diagonal=np.array([2.0, -3.4])),
+            linops.DiagMult(diagonal=np.array([0.0, 6.4])),
             linops.MatrixMult(np.array([[2.0, 0.1], [0.1, 5.0]]))
             * linops.Identity(shape=2),
             orth_proj,
@@ -120,7 +122,7 @@ class LinearOperatorFunctionsTestCase(LinearOperatorTestCase):
                     A = op.todense()
                     Ainvop = op.inv()
                     self.assertAllClose(Ainvop.todense(), np.linalg.inv(A))
-                except (NotImplementedError, AttributeError):
+                except (NotImplementedError, AttributeError, np.linalg.LinAlgError):
                     pass
 
     def test_cond_dense(self):

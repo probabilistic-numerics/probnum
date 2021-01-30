@@ -99,13 +99,13 @@ class ProbabilisticLinearSolver(
     Create a custom probabilistic linear solver from pre-defined components.
 
     >>> from probnum.linalg.solvers import ProbabilisticLinearSolver
-    >>> from probnum.linalg.solvers.beliefs import LinearSystemBelief
+    >>> from probnum.linalg.solvers.beliefs import SymmetricNormalLinearSystemBelief
     >>> from probnum.linalg.solvers.policies import ConjugateDirections
     >>> from probnum.linalg.solvers.observation_ops import MatVec
     >>> from probnum.linalg.solvers.stop_criteria import MaxIterations, Residual
     >>> # Composition of a custom probabilistic linear solver
     >>> pls = ProbabilisticLinearSolver(
-    ...     prior=LinearSystemBelief.from_solution(np.zeros_like(linsys.b),
+    ...     prior=SymmetricNormalLinearSystemBelief.from_solution(np.zeros_like(linsys.b),
     ...                                            problem=linsys),
     ...     policy=ConjugateDirections(),
     ...     observation_op=MatVec(),
@@ -114,9 +114,9 @@ class ProbabilisticLinearSolver(
 
     Solve the linear system using the custom solver.
 
-    >>> belief, info = pls.solve(linsys)
+    >>> belief, solver_state = pls.solve(linsys)
     >>> np.linalg.norm(linsys.A @ belief.x.mean - linsys.b)
-    2.738786219876204e-05
+    2.738786219837142e-05
     """
 
     def __init__(
@@ -438,7 +438,7 @@ class ProbabilisticLinearSolver(
         problem: LinearSystem,
         belief: beliefs.LinearSystemBelief,
         solver_state: LinearSolverState,
-    ) -> Tuple[bool, LinearSolverState]:
+    ) -> bool:
         """Check whether the solver has converged.
 
         Parameters
@@ -455,22 +455,20 @@ class ProbabilisticLinearSolver(
         -------
         has_converged :
             True if the method has converged.
-        solver_state :
-            Updated state of the solver.
         """
         if solver_state.info.has_converged:
-            return True, solver_state
+            return True
 
         # Check stopping criteria
         for stopping_criterion in self.stopping_criteria:
             _has_converged = stopping_criterion(problem, belief, solver_state)
             if _has_converged:
-                solver_state.info = LinearSolverInfo(
-                    has_converged=True,
-                    stopping_criterion=stopping_criterion.__class__.__name__,
+                solver_state.info.has_converged = True
+                solver_state.info.stopping_criterion = (
+                    stopping_criterion.__class__.__name__
                 )
-                return True, solver_state
-        return False, solver_state
+                return True
+        return False
 
     def solve_iterator(
         self,
@@ -534,7 +532,7 @@ class ProbabilisticLinearSolver(
             solver_state.belief = belief
 
         # Evaluate stopping criteria for the prior
-        _has_converged, solver_state = self.has_converged(
+        _has_converged = self.has_converged(
             problem=problem, belief=belief, solver_state=solver_state
         )
 
@@ -582,7 +580,7 @@ class ProbabilisticLinearSolver(
             )
 
             # Evaluate stopping criteria
-            _has_converged, solver_state = self.has_converged(
+            _has_converged = self.has_converged(
                 problem=solver_state.problem,
                 belief=solver_state.belief,
                 solver_state=solver_state,

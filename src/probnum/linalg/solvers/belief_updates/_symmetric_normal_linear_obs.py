@@ -415,8 +415,8 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
         return (
-            solver_state.cache.residual
-            + solver_state.cache.step_size * solver_state.cache.observation.obsA
+            solver_state.cache.belief.x.mean
+            + solver_state.cache.step_size * solver_state.cache.action.actA
         )
 
 

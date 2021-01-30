@@ -57,7 +57,7 @@ class UncertaintyCalibration(HyperparameterOptimization):
                 belief=belief,
                 data=data,
                 cache=_SymmetricNormalLinearObsCache(
-                    problem=problem, belief=belief, data=data
+                    problem=problem, prior=belief, belief=belief, data=data
                 ),
             )
 
