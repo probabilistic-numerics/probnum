@@ -82,6 +82,18 @@ def dynamics_model(ordint, spatialdim):
     return dynamics_model
 
 
+@pytest.fixture
+def dynamics_model(ordint, spatialdim):
+    dynamics_model = pnfss.IOUP(ordint, spatialdim, driftspeed=1.0)
+    return dynamics_model
+
+
+@pytest.fixture
+def dynamics_model(ordint, spatialdim):
+    dynamics_model = pnfss.Matern(ordint, spatialdim, lengthscale=1.0)
+    return dynamics_model
+
+
 def test_rts_smooth_step(
     dynamics_model, unsmoothed_rv, smoothed_rv, predicted_rv, crosscov, dt
 ):
