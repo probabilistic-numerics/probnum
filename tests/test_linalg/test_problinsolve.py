@@ -5,12 +5,13 @@ from typing import Callable
 import numpy as np
 import pytest
 
+import probnum.linops as linops
 from probnum import random_variables as rvs
 from probnum.linalg import problinsolve
 from probnum.problems import LinearSystem
 
-LINSOLVE_RELTOL = 10 ** -6
-LINSOLVE_ABSTOL = 10 ** -6
+LINSOLVE_RELTOL = 10 ** -5
+LINSOLVE_ABSTOL = 10 ** -5
 
 # pylint: disable="invalid-name"
 
@@ -26,18 +27,11 @@ def test_prior_dimension_mismatch(linsolve: Callable):
     mismatched dimensions."""
     A = np.zeros(shape=[3, 3])
     with pytest.raises(ValueError):
-        # A inverse not square
-        problinsolve(
-            A=A,
-            b=np.zeros(A.shape[0]),
-            Ainv0=np.zeros([2, 3]),
-            x0=np.zeros(shape=[A.shape[1]]),
-        )
         # A, Ainv dimension mismatch
         problinsolve(
             A=A,
             b=np.zeros(A.shape[0]),
-            Ainv0=np.zeros([2, 2]),
+            Ainv0=linops.aslinop(np.eye(2)),
             x0=np.zeros(shape=[A.shape[1]]),
         )
 

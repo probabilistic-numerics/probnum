@@ -359,12 +359,12 @@ def conj_dir_method(
     ]
 )
 def preconditioner(
-    precond_type: str, linsys_spd: LinearSystem, random_state: np.random.RandomState
+    request, linsys_spd: LinearSystem, random_state: np.random.RandomState
 ) -> linops.LinearOperator:
     """Preconditioner for a linear system."""
-    if precond_type == "scalar":
+    if request.param == "scalar":
         return linops.ScalarMult(scalar=5.0, shape=linsys_spd.A.shape)
-    elif precond_type == "jacobi":
+    elif request.param == "jacobi":
         return linops.DiagMult(diagonal=np.diag(linsys_spd.A))
 
 
@@ -391,7 +391,6 @@ def precond_conj_grad_method(
 )
 def conj_grad_method(
     request,
-    # uncertainty_calibration: hyperparam_optim.UncertaintyCalibration,
     linsys_spd: LinearSystem,
 ):
     """Probabilistic linear solvers which generalize the conjugate gradient method."""
@@ -399,7 +398,6 @@ def conj_grad_method(
         prior=beliefs.WeakMeanCorrespondenceBelief.from_scalar(
             scalar=request.param,
             problem=linsys_spd,
-            # calibration_method=uncertainty_calibration,
         ),
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVec(),

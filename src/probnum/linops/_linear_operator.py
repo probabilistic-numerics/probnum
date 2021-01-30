@@ -541,7 +541,7 @@ class DiagMult(LinearOperator):
         return self.diagonal * x.squeeze()
 
     def _matmat(self, X):
-        return self.diagonal[:, np.newaxis] @ X
+        return X * self.diagonal[:, np.newaxis]
 
     def _transpose(self):
         return self

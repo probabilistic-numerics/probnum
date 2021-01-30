@@ -10,6 +10,10 @@ from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
 from probnum.linalg.solvers.hyperparam_optim._hyperparameter_optimization import (
     HyperparameterOptimization,
 )
+from probnum.linalg.solvers.hyperparams import (
+    LinearSolverHyperparams,
+    UncertaintyUnexploredSpace,
+)
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
@@ -49,7 +53,7 @@ class UncertaintyCalibration(HyperparameterOptimization):
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         data: "probnum.linalg.solvers.data.LinearSolverData",
         solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
-    ) -> "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams":
+    ) -> LinearSolverHyperparams:
 
         if solver_state is None:
             solver_state = LinearSolverState(
@@ -88,7 +92,7 @@ class UncertaintyCalibration(HyperparameterOptimization):
             unc_scale_A = (np.exp(np.mean(logR_pred))).item()
             unc_scale_Ainv = (np.exp(-np.mean(logR_pred))).item()
 
-        return (unc_scale_A, unc_scale_Ainv), solver_state
+        return UncertaintyUnexploredSpace(Phi=unc_scale_A, Psi=unc_scale_Ainv)
 
     def _most_recent_log_rayleigh_quotient(self, log_rayleigh_quotients: List[float]):
         """Most recent log-Rayleigh quotient."""
@@ -100,8 +104,8 @@ class UncertaintyCalibration(HyperparameterOptimization):
         """Weighted average of log-Rayleigh quotients."""
         deprecation_rate = 0.9
         return log_rayleigh_quotients * np.repeat(
-            deprecation_rate, iteration
-        ) ** np.arange(iteration)
+            deprecation_rate, iteration + 1
+        ) ** np.arange(iteration + 1)
 
     def _gp_regression_log_rayleigh_quotients(
         self, iteration: int, n: int, log_rayleigh_quotients: List[float]
@@ -123,7 +127,7 @@ class UncertaintyCalibration(HyperparameterOptimization):
         try:
             import GPy  # pylint: disable=import-outside-toplevel
 
-            iters = np.arange(iteration) + 1
+            iters = np.arange(iteration + 1) + 1
             # GP mean function via Weyl's result on spectra of Gram matrices for
             # differentiable kernels
             # ln(sigma(n)) ~= theta_0 - theta_1 ln(n)

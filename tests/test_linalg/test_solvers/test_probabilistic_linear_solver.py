@@ -235,22 +235,3 @@ class TestConjugateGradientMethod:
         np.testing.assert_allclose(
             pls_iters_arr, cg_iters_arr, atol=10 ** -4, rtol=10 ** -4
         )
-
-
-class TestHyperparameterOptimization:
-    def test_uncertainty_calibration_error(
-        self, conj_grad_method: ProbabilisticLinearSolver
-    ):
-        """Test if the available uncertainty calibration procedures affect the error of
-        the returned solution."""
-        # TODO
-        pass
-        # tol = 10 ** -6
-        #
-        # x_est, Ahat, Ainvhat, info = conj_grad_method(
-        #     A=A, b=b, calibration=calibration_method
-        # )
-        # assert(
-        #     ((x_true - x_est.mean).T @ A @ (x_true - x_est.mean)).item() <= tol,
-        #     "Estimated solution not sufficiently close to true solution.",
-        # )

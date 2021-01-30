@@ -243,10 +243,7 @@ class ProbabilisticLinearSolver(
         ):
             assume_linsys += "noise"
 
-        # Observation operator
-        observation_op = observation_ops.MatVec()
-
-        # Choose belief class
+        # Select belief class
         belief_class = beliefs.LinearSystemBelief
         if "sym" in assume_linsys and "pos" in assume_linsys:
             if "noise" in assume_linsys:
@@ -268,6 +265,9 @@ class ProbabilisticLinearSolver(
             prior = belief_class.from_solution(x0=x0, problem=problem)
         else:
             prior = belief_class.from_scalar(scalar=1.0, problem=problem)
+
+        # Select observation operator
+        observation_op = observation_ops.MatVec()
 
         return cls.from_prior_observation_op(
             prior=prior,

@@ -92,7 +92,9 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         r"""Log-Rayleigh quotients :math:`\ln R(A, s_i) = \ln(s_i^\top A s_i)-\ln(
         s_i^\top s_i)`."""
         if self.prev_cache is None:
-            if len(self.data) == 1:
+            if self.data is None:
+                return []
+            elif len(self.data) == 1:
                 return [self.log_rayleigh_quotient]
             else:
                 return list(

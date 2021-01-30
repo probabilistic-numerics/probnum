@@ -93,9 +93,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
            [-61.94224112],
            [ 29.72231145]])
     """
-    # TODO move logic here into the "from_*" constructors and have the same interface as
-    #   LinearSystemBelief. This makes the belief update more consistent and allows for
-    #   WeakMeanCorrespondenceBeliefs with updated prior mean, which exist!
+
     def __init__(
         self,
         A: Union[rvs.Normal, MatrixArgType],

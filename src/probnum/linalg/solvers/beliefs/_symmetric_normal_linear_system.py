@@ -80,6 +80,19 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
     ):
         super().__init__(x=x, Ainv=Ainv, A=A, b=b, hyperparams=hyperparams)
 
+    @staticmethod
+    def _check_shape_mismatch(
+        x: rvs.RandomVariable,
+        A: rvs.RandomVariable,
+        Ainv: rvs.RandomVariable,
+        b: rvs.RandomVariable,
+    ) -> None:
+        LinearSystemBelief._check_shape_mismatch(x=x, A=A, Ainv=Ainv, b=b)
+        if A.shape[0] != A.shape[1]:
+            raise ValueError("A must be a square matrix or random variable.")
+        if Ainv.shape[0] != Ainv.shape[1]:
+            raise ValueError("Ainv must be a square matrix or random variable.")
+
     @classmethod
     def from_solution(
         cls,
