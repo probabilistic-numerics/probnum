@@ -7,8 +7,8 @@ import pytest
 
 import probnum.linops as linops
 from probnum import random_variables as rvs
-from probnum.linalg import problinsolve
 from probnum.problems import LinearSystem
+from probnum.type import MatrixArgType
 
 LINSOLVE_RELTOL = 10 ** -5
 LINSOLVE_ABSTOL = 10 ** -5
@@ -16,10 +16,14 @@ LINSOLVE_ABSTOL = 10 ** -5
 # pylint: disable="invalid-name"
 
 
-def test_prior_information(linsolve: Callable):
-    """The solver should automatically handle different types of prior information."""
-    # TODO
-    pass
+def test_preconditioner(
+    linsys_spd: LinearSystem, preconditioner: MatrixArgType, linsolve: Callable
+):
+    """The solver should be able to take a preconditioner."""
+    x, _, _, _, state = linsolve(A=linsys_spd.A, b=linsys_spd.b, Ainv0=preconditioner)
+    np.testing.assert_allclose(
+        x.mean, linsys_spd.solution, atol=LINSOLVE_ABSTOL, rtol=LINSOLVE_RELTOL
+    )
 
 
 def test_prior_dimension_mismatch(linsolve: Callable):
@@ -28,7 +32,7 @@ def test_prior_dimension_mismatch(linsolve: Callable):
     A = np.zeros(shape=[3, 3])
     with pytest.raises(ValueError):
         # A, Ainv dimension mismatch
-        problinsolve(
+        linsolve(
             A=A,
             b=np.zeros(A.shape[0]),
             Ainv0=linops.aslinop(np.eye(2)),

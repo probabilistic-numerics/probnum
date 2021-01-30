@@ -349,25 +349,6 @@ def conj_dir_method(
     )
 
 
-@pytest.fixture(
-    params=[
-        pytest.param(precond_type, id=precond_type)
-        for precond_type in [
-            "scalar",
-            "jacobi",
-        ]
-    ]
-)
-def preconditioner(
-    request, linsys_spd: LinearSystem, random_state: np.random.RandomState
-) -> linops.LinearOperator:
-    """Preconditioner for a linear system."""
-    if request.param == "scalar":
-        return linops.ScalarMult(scalar=5.0, shape=linsys_spd.A.shape)
-    elif request.param == "jacobi":
-        return linops.DiagMult(diagonal=np.diag(linsys_spd.A))
-
-
 @pytest.fixture()
 def precond_conj_grad_method(
     preconditioner: linops.LinearOperator,

@@ -15,7 +15,7 @@ import probnum.random_variables as rvs
 import probnum.utils
 from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
-from probnum.type import RandomStateArgType
+from probnum.type import MatrixArgType, RandomStateArgType
 
 
 @pytest.fixture(
@@ -232,9 +232,33 @@ def fixture_linsys_iid_noise(
     )
 
 
-###################################################
+###################
+# Preconditioning #
+###################
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(precond_type, id=precond_type)
+        for precond_type in [
+            "scalar",
+            "jacobi",
+        ]
+    ]
+)
+def preconditioner(
+    request, linsys_spd: LinearSystem, random_state: np.random.RandomState
+) -> MatrixArgType:
+    """Preconditioner for a linear system."""
+    if request.param == "scalar":
+        return linops.ScalarMult(scalar=5.0, shape=linsys_spd.A.shape)
+    elif request.param == "jacobi":
+        return linops.DiagMult(diagonal=np.diag(linsys_spd.A))
+
+
+################################
 # Probabilistic linear solvers #
-###################################################
+################################
 
 
 @pytest.fixture(
