@@ -12,12 +12,17 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 
 @pytest.fixture
 def ordint():
+    return 0
+
+
+@pytest.fixture
+def ordint():
     return 1
 
 
 @pytest.fixture
 def ordint():
-    return 4
+    return 6
 
 
 @pytest.fixture
@@ -68,7 +73,7 @@ def dt():
 
 @pytest.fixture
 def dt():
-    return 0.01 + 0.01 * np.random.rand()
+    return 1e-3 + 1e-3 * np.random.rand()
 
 
 @pytest.fixture
@@ -80,6 +85,7 @@ def dynamics_model(ordint, spatialdim):
 def test_rts_smooth_step(
     dynamics_model, unsmoothed_rv, smoothed_rv, predicted_rv, crosscov, dt
 ):
+    """Assert that preconditioning does not affect the outcome of the smoothing step."""
     smooth_without = pnfs.rts_smooth_step_classic
     smooth_with = pnfs.rts_with_precon(smooth_without)
 
@@ -105,4 +111,3 @@ def test_rts_smooth_step(
     )
 
     np.testing.assert_allclose(result_with.mean, result_without.mean)
-    pass
