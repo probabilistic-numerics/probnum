@@ -84,10 +84,11 @@ class Kalman(BayesFiltSmooth):
             _previous_posterior=None,
         )
         new_posterior = old_posterior
-        normalised_error = np.inf
-
-        # Iterate until a fixed point is reached
-        while normalised_error > 1:
+        new_mean = new_posterior.state_rvs.mean
+        old_mean = np.inf * np.ones(new_mean.shape)
+        while stopcrit.do_not_terminate_yet(
+            error=new_mean - old_mean, reference=new_mean
+        ):
             old_posterior = new_posterior
             new_posterior = self.filtsmooth(
                 dataset=dataset,
@@ -95,9 +96,8 @@ class Kalman(BayesFiltSmooth):
                 _intermediate_step=_intermediate_step,
                 _previous_posterior=old_posterior,
             )
-            difference = new_posterior.state_rvs.mean - old_posterior.state_rvs.mean
-            reference = old_posterior.state_rvs.mean
-            normalised_error = stopcrit.evaluate_error(difference, reference)
+            new_mean = new_posterior.state_rvs.mean
+            old_mean = old_posterior.state_rvs.mean
         return new_posterior
 
     def filtsmooth(

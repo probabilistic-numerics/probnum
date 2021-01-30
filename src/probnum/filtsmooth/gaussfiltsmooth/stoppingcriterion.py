@@ -11,7 +11,7 @@ class StoppingCriterion:
         self.maxit = maxit
         self.iterations = 0
 
-    def terminate(self, error, reference):
+    def do_not_terminate_yet(self, error, reference):
         if self.iterations > self.maxit:
             errormsg = f"Maximum number of iterations (N={self.maxit}) reached."
             raise RuntimeError(errormsg)
