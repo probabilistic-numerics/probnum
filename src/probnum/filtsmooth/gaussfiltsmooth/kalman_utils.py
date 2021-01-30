@@ -81,6 +81,7 @@ def update_classic(
 
 
 def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
+    """Condition a Gaussian random variable on an observation."""
     new_mean = pred_rv.mean + crosscov @ np.linalg.solve(
         meas_rv.cov, data - meas_rv.mean
     )
@@ -200,6 +201,7 @@ def rts_smooth_step_classic(
     start=None,
     stop=None,
 ) -> (pnrv.RandomVariable, typing.Dict):
+    """Compute a classical Rauch-Tung-Striebel smoothing step."""
     smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
     new_mean = unsmoothed_rv.mean + smoothing_gain @ (
         smoothed_rv.mean - predicted_rv.mean
