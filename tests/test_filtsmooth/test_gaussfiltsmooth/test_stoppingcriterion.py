@@ -31,7 +31,9 @@ def test_continue(stopcrit, d1, d2):
     """Iteration must not terminate if error is large and maxit is not reached."""
     y1 = np.random.rand(d1, d2)
     y2 = 2 * y1.copy() + 3
+    current_iterations = stopcrit.iterations
     assert stopcrit.do_not_terminate_yet(y1 - y2, y2) is True
+    assert stopcrit.iterations == current_iterations + 1
 
 
 def test_terminate_tolerance(stopcrit, d1, d2):
@@ -39,10 +41,11 @@ def test_terminate_tolerance(stopcrit, d1, d2):
     y1 = np.random.rand(d1, d2)
     y2 = y1.copy() + 1e-8
     assert stopcrit.do_not_terminate_yet(y1 - y2, y2) is False
+    assert stopcrit.iterations == 0
 
 
 def test_terminate_maxit(stopcrit, d1, d2, maxit):
-    """Iteration must terminate if error is small."""
+    """Iteration must throw an exception if maximum number of iterations is reached."""
     # error is large
     y1 = np.random.rand(d1, d2)
     y2 = 2 * y1.copy() + 3
