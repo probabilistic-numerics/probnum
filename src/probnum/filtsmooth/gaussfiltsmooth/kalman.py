@@ -58,9 +58,14 @@ class Kalman(BayesFiltSmooth):
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
-        self.predict = ft.partial(predict, dynamics_model=dynamics_model)
-        self.measure = ft.partial(measure, measurement_model=measurement_model)
-        self.update = ft.partial(update, measurement_model=measurement_model)
+        self.predict = lambda *args, **kwargs: predict(dynamics_model, *args, **kwargs)
+        self.measure = lambda *args, **kwargs: measure(
+            measurement_model, *args, **kwargs
+        )
+        self.update = lambda *args, **kwargs: update(measurement_model, *args, **kwargs)
+        # self.predict = ft.partial(predict, dynamics_model=dynamics_model)
+        # self.measure = ft.partial(measure, measurement_model=measurement_model)
+        # self.update = ft.partial(update, measurement_model=measurement_model)
         self.smooth_step = smooth_step
 
     def iterated_filtsmooth(
