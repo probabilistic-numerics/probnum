@@ -89,8 +89,8 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 
         # Choose some 'sufficiently positive' constant
         # that worked in the present example
-        self.assertGreater(np.linalg.norm(diff1), 1e-2)
-        self.assertGreater(np.linalg.norm(diff2), 1e-2)
+        self.assertGreater(np.linalg.norm(diff1), 1e-3)
+        self.assertGreater(np.linalg.norm(diff2), 1e-3)
 
     def test_transition_realization(self):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
@@ -115,8 +115,8 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 
         # Choose some 'sufficiently positive' constant
         # that worked in the present example
-        self.assertGreater(np.linalg.norm(diff1), 1e-2)
-        self.assertGreater(np.linalg.norm(diff2), 1e-2)
+        self.assertGreater(np.linalg.norm(diff1), 1e-3)
+        self.assertGreater(np.linalg.norm(diff2), 1e-3)
 
 
 class TestIOUP(unittest.TestCase, NumpyAssertions):
