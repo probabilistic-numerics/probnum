@@ -44,6 +44,7 @@ class _WeakMeanCorrLinearObsCache(_SymmetricNormalLinearObsCache):
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
+        prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSystemNoise"
         ] = None,
@@ -53,6 +54,7 @@ class _WeakMeanCorrLinearObsCache(_SymmetricNormalLinearObsCache):
         # pylint: disable="too-many-arguments"
         super().__init__(
             problem=problem,
+            prior=prior,
             belief=belief,
             hyperparams=hyperparams,
             data=data,
@@ -61,20 +63,27 @@ class _WeakMeanCorrLinearObsCache(_SymmetricNormalLinearObsCache):
 
     @cached_property
     def step_size(self) -> np.ndarray:
-        r"""Step size :math:`\alpha_i` of the solver viewed as a quadratic optimizer
-        taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
         return (
             -self.action.actA.T @ self.prev_cache.residual / self.action_observation
         ).item()
 
-    # TODO use assumptions WS = Y and WY=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
-    # @cached_property
-    # def covfactorA_action(self) -> np.ndarray:
-    #     return self.qoi_belief.cov.A @ self.action
-    #
-    # @cached_property
-    # def action_covfactorA_action(self) -> float:
-    #     return self.action.T @ self.covfactor_action
+    @cached_property
+    def covfactorA_action(self) -> np.ndarray:
+        # Uses W_0S = Y (Theorem 3, eqn. 1+2, Wenger2020)
+        covfactorA = linops.aslinop(self.problem.A)
+        if self.prev_cache is not None:
+            if self.prev_cache.data is not None:
+                covfactorA += self.prev_cache.covfactorA_update_batch
+        return covfactorA @ self.action.actA
+
+    @cached_property
+    def covfactorH_observation(self) -> np.ndarray:
+        # Uses W_0Y=H_0Y (Theorem 3, eqn. 1+2, Wenger2020)
+        covfactorH = linops.aslinop(self.prior.Ainv.mean)
+        if self.prev_cache is not None:
+            if self.prev_cache.data is not None:
+                covfactorH += self.prev_cache.covfactorH_update_batch
+        return covfactorH @ self.observation.obsA
 
 
 class _SystemMatrixWeakMeanCorrLinearObsBeliefUpdateState(
@@ -171,6 +180,7 @@ class WeakMeanCorrLinearObsBeliefUpdate(SymmetricNormalLinearObsBeliefUpdate):
                     observation=observation,
                     prev_cache=self.cache_type(
                         problem=problem,
+                        prior=self._prior,
                         belief=self._prior,
                     ),
                 ),

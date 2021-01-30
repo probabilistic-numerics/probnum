@@ -140,6 +140,7 @@ class LinearSolverBeliefUpdate(abc.ABC):
                     observation=observation,
                     prev_cache=self.cache_type(
                         problem=problem,
+                        prior=self._prior,
                         belief=self._prior,
                     ),
                 ),

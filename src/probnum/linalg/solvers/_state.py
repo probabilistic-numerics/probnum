@@ -61,6 +61,8 @@ class LinearSolverCache:
     ----------
     problem
         Linear system to be solved.
+    prior
+        Prior belief over the quantities of interest of the linear system.
     belief
         (Updated) belief over the quantities of interest of the linear system.
     hyperparams
@@ -74,6 +76,7 @@ class LinearSolverCache:
     def __init__(
         self,
         problem: LinearSystem,
+        prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
@@ -84,6 +87,7 @@ class LinearSolverCache:
         # pylint: disable="too-many-arguments"
 
         self.problem = problem
+        self.prior = prior
         self.belief = belief
         if hyperparams is None:
             self.hyperparams = belief.hyperparams
@@ -132,6 +136,7 @@ class LinearSolverCache:
         )
         return cls(
             problem=prev_cache.problem,
+            prior=prev_cache.prior,
             belief=prev_cache.belief,
             data=data,
             prev_cache=prev_cache,
@@ -193,7 +198,9 @@ class LinearSolverState:
         self.cache = (
             cache
             if cache is not None
-            else LinearSolverCache(problem=problem, belief=belief, data=self.data)
+            else LinearSolverCache(
+                problem=problem, prior=self.prior, belief=belief, data=self.data
+            )
         )
 
     @classmethod

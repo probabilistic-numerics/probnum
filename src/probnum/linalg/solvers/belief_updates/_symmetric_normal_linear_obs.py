@@ -43,6 +43,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
+        prior: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSystemNoise"
         ] = None,
@@ -52,6 +53,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         # pylint: disable="too-many-arguments"
         super().__init__(
             problem=problem,
+            prior=prior,
             belief=belief,
             hyperparams=hyperparams,
             data=data,
@@ -202,7 +204,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     @cached_property
     def action_covfactorA_action(self) -> float:
         r"""Inner product :math:`s_i^\top W^A_{i-1} s_i` of the current action
-        with respect to the covariance factor :math:`W_{i-1}` of the matrix model."""
+        with respect to the covariance factor :math:`W^A_{i-1}` of the matrix model."""
         return self.action.actA.T @ self.covfactorA_action
 
     @cached_property
