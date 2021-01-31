@@ -36,10 +36,12 @@ def posterior(kalman, problem):
     return kalman.filter(obs, times)
 
 
-@pytest.fixture
-def posterior(kalman, problem):
-    *_, obs, times, states = problem
-    return kalman.filtsmooth(obs, times)
+#
+# @pytest.fixture
+# def posterior(kalman, problem):
+#     *_, obs, times, states = problem
+#     return kalman.filtsmooth(obs, times)
+#
 
 
 def test_len(posterior):
@@ -89,78 +91,26 @@ def test_call_interpolation(posterior):
     assert isinstance(out_rv, pnrv.Normal)
 
 
-class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
-    def setUp(self):
-        super().setup_cartracking()
-        self.method = Kalman(self.dynmod, self.measmod, self.initrv)
-        self.posterior = self.method.filter(self.obs, self.tms)
+def test_call_to_discrete(posterior):
+    """Called at a grid point, the respective disrete solution is returned."""
 
-    #
-    # def test_len(self):
-    #     self.assertTrue(len(self.posterior) > 0)
-    #     self.assertEqual(len(self.posterior.locations), len(self.posterior))
-    #     self.assertEqual(len(self.posterior.state_rvs), len(self.posterior))
-    #
-    # def test_locations(self):
-    #     self.assertArrayEqual(
-    #         self.posterior.locations, np.sort(self.posterior.locations)
-    #     )
-    #
-    #     self.assertApproxEqual(self.posterior.locations[0], self.tms[0])
-    #     self.assertApproxEqual(self.posterior.locations[-1], self.tms[-1])
-    #
-    # def test_getitem(self):
-    #     self.assertArrayEqual(self.posterior[0].mean, self.posterior.state_rvs[0].mean)
-    #     self.assertArrayEqual(self.posterior[0].cov, self.posterior.state_rvs[0].cov)
-    #
-    #     self.assertArrayEqual(
-    #         self.posterior[-1].mean, self.posterior.state_rvs[-1].mean
-    #     )
-    #     self.assertArrayEqual(self.posterior[-1].cov, self.posterior.state_rvs[-1].cov)
-    #
-    #     self.assertArrayEqual(self.posterior[:].mean, self.posterior.state_rvs[:].mean)
-    #     self.assertArrayEqual(self.posterior[:].cov, self.posterior.state_rvs[:].cov)
-    #
-    # def test_state_rvs(self):
-    #     self.assertTrue(isinstance(self.posterior.state_rvs, _RandomVariableList))
-    #
-    #     self.assertEqual(len(self.posterior.state_rvs[0].shape), 1)
-    #     self.assertEqual(self.posterior.state_rvs[-1].shape, self.initrv.shape)
-    #
-    # def test_call_error_if_small(self):
-    #     self.assertLess(-0.5, self.tms[0])
-    #     with self.assertRaises(ValueError):
-    #         self.posterior(-0.5)
-    #
-    # def test_call_vectorisation(self):
-    #     locs = np.arange(0, 1, 20)
-    #     evals = self.posterior(locs)
-    #     self.assertEqual(len(evals), len(locs))
+    first_point = posterior.locations[0]
+    np.testing.assert_allclose(posterior(first_point).mean, posterior[0].mean)
+    np.testing.assert_allclose(posterior(first_point).cov, posterior[0].cov)
 
-    def test_call_interpolation(self):
-        self.assertLess(self.tms[0], 9.88)
-        self.assertGreater(self.tms[-1], 9.88)
-        self.assertTrue(9.88 not in self.tms)
-        self.posterior(9.88)
+    final_point = posterior.locations[-1]
+    np.testing.assert_allclose(posterior(final_point).mean, posterior[-1].mean)
+    np.testing.assert_allclose(posterior(final_point).cov, posterior[-1].cov)
 
-    def test_call_to_discrete(self):
-        self.assertEqual(self.tms[0], 0)
-        self.assertArrayEqual(self.posterior(0.0).mean, self.posterior[0].mean)
-        self.assertArrayEqual(self.posterior(0.0).cov, self.posterior[0].cov)
+    mid_point = posterior.locations[4]
+    np.testing.assert_allclose(posterior(mid_point).mean, posterior[4].mean)
+    np.testing.assert_allclose(posterior(mid_point).cov, posterior[4].cov)
 
-        self.assertEqual(self.tms[-1], 19.8)
-        self.assertArrayEqual(self.posterior(19.8).mean, self.posterior[-1].mean)
-        self.assertArrayEqual(self.posterior(19.8).cov, self.posterior[-1].cov)
 
-        self.assertArrayEqual(self.posterior(self.tms[2]).mean, self.posterior[2].mean)
-        self.assertArrayEqual(self.posterior(self.tms[5]).mean, self.posterior[5].mean)
-        self.assertArrayEqual(
-            self.posterior(self.tms[10]).mean, self.posterior[10].mean
-        )
-
-    def test_call_extrapolation(self):
-        self.assertGreater(30, self.tms[-1])
-        self.posterior(30)
+def test_call_extrapolation(posterior):
+    assert posterior.locations[-1] < 30.0
+    out_rv = posterior(30.0)
+    assert isinstance(out_rv, pnrv.Normal)
 
 
 class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
