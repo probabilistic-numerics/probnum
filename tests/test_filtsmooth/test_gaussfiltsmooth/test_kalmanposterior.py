@@ -26,37 +26,46 @@ def problem():
 
 @pytest.fixture
 def kalman(problem):
+    """Standard Kalman filter."""
     dynmod, measmod, initrv, *_ = problem
     return pnfs.Kalman(dynmod, measmod, initrv)
 
 
 @pytest.fixture
 def posterior(kalman, problem):
+    """Kalman filtering posterior."""
     *_, obs, times, states = problem
     return kalman.filter(obs, times)
 
 
-#
-# @pytest.fixture
-# def posterior(kalman, problem):
-#     *_, obs, times, states = problem
-#     return kalman.filtsmooth(obs, times)
-#
+# This will raise a warning for the extrapolation test...
+@pytest.fixture
+def posterior(kalman, problem):
+    """Kalman smoothing posterior.
+
+    Careful: this does not sample well.
+    """
+    *_, obs, times, states = problem
+    return kalman.filtsmooth(obs, times)
 
 
 def test_len(posterior):
+    """__len__ performs as expected."""
     assert len(posterior) > 0
     assert len(posterior.locations) == len(posterior)
     assert len(posterior.state_rvs) == len(posterior)
 
 
 def test_locations(posterior, problem):
+    """Locations are stored correctly."""
     *_, obs, times, states = problem
     np.testing.assert_allclose(posterior.locations, np.sort(posterior.locations))
     np.testing.assert_allclose(posterior.locations, times)
 
 
 def test_getitem(posterior):
+    """Getitem performs as expected."""
+
     np.testing.assert_allclose(posterior[0].mean, posterior.state_rvs[0].mean)
     np.testing.assert_allclose(posterior[0].cov, posterior.state_rvs[0].cov)
 
@@ -68,23 +77,28 @@ def test_getitem(posterior):
 
 
 def test_state_rvs(posterior):
+    """RVs are stored correctly."""
+
     assert isinstance(posterior.state_rvs, _RandomVariableList)
     assert len(posterior.state_rvs[0].shape) == 1
 
 
 def test_call_error_if_small(posterior):
+    """Evaluating in the past of the data raises an error."""
     assert -0.5 < posterior.locations[0]
     with pytest.raises(ValueError):
         posterior(-0.5)
 
 
 def test_call_vectorisation(posterior):
+    """Evaluation allows vector inputs."""
     locs = np.arange(0, 1, 20)
     evals = posterior(locs)
     assert len(evals) == len(locs)
 
 
 def test_call_interpolation(posterior):
+    """Interpolation is possible and returns a Normal RV."""
     assert posterior.locations[0] < 9.88 < posterior.locations[-1]
     assert 9.88 not in posterior.locations
     out_rv = posterior(9.88)
@@ -108,82 +122,57 @@ def test_call_to_discrete(posterior):
 
 
 def test_call_extrapolation(posterior):
+    """Extrapolation is possible and returns a Normal RV."""
     assert posterior.locations[-1] < 30.0
     out_rv = posterior(30.0)
     assert isinstance(out_rv, pnrv.Normal)
 
 
-class TestKalmanPosteriorSampling(CarTrackingDDTestCase, NumpyAssertions):
-    # There is no check as to whether the samples make sense...
-    def setUp(self):
-        super().setup_cartracking()
-        self.method = Kalman(self.dynmod, self.measmod, self.initrv)
-        self.posterior = self.method.filter(self.obs, self.tms)
+@pytest.fixture
+def size():
+    return 2
 
-    def test_output_shape(self):
-        loc_inputs = [
-            None,
-            self.posterior.locations[[2, 3]],
-            np.arange(0.0, 0.5, 0.025),
-        ]
-        dim = (self.method.dynamics_model.dimension,)
-        single_sample_shapes = [
-            (len(self.posterior), self.method.dynamics_model.dimension),
-            (2, self.method.dynamics_model.dimension),
-            (len(loc_inputs[-1]), self.method.dynamics_model.dimension),
-        ]
 
-        for size in [(), (5,), (2, 3, 4)]:
-            for loc, loc_shape in zip(loc_inputs, single_sample_shapes):
-                with self.subTest(size=size, loc=loc):
-                    sample = self.posterior.sample(locations=loc, size=size)
-                    if size == ():
-                        self.assertEqual(sample.shape, loc_shape)
-                    else:
-                        self.assertEqual(sample.shape, size + loc_shape)
+@pytest.fixture
+def size():
+    return (3,)
 
-    def test_sampling_all_locations_multiple_samples(self):
-        five_samples = self.posterior.sample(size=5)
 
-        chi_squared = np.array(
-            [
-                chi_squared_statistic(
-                    sample, self.posterior[:].mean, self.posterior[:].cov
-                )
-                for sample in five_samples
-            ]
-        ).mean()
-        self.assertLess(chi_squared, 10.0)
-        self.assertLess(0.1, chi_squared)
+@pytest.fixture
+def locs(posterior):
+    return None
 
-    def test_sampling_two_locations_multiple_samples(self):
-        locs = self.posterior.locations[[2, 3]]
-        five_samples = self.posterior.sample(locations=locs, size=5)
 
-        chi_squared = np.array(
-            [
-                chi_squared_statistic(
-                    sample,
-                    self.posterior[:].mean[[2, 3]],
-                    self.posterior[:].cov[[2, 3]],
-                )
-                for sample in five_samples
-            ]
-        ).mean()
-        self.assertLess(chi_squared, 10.0)
-        self.assertLess(0.1, chi_squared)
+@pytest.fixture
+def locs(posterior):
+    return posterior.locations[[2, 3]]
 
-    def test_sampling_many_locations_multiple_samples(self):
-        locs = np.arange(0.0, 0.5, 0.025)
-        five_samples = self.posterior.sample(locations=locs, size=5)
 
-        chi_squared = np.array(
-            [
-                chi_squared_statistic(
-                    sample, self.posterior(locs).mean, self.posterior(locs).cov
-                )
-                for sample in five_samples
-            ]
-        ).mean()
-        self.assertLess(chi_squared, 10.0)
-        self.assertLess(0.1, chi_squared)
+@pytest.fixture
+def locs():
+    return np.arange(0, 0.5, 0.025)
+
+
+@pytest.fixture
+def samples(posterior, locs, size):
+    return posterior.sample(locations=locs, size=size)
+
+
+def test_sampling_shapes(samples, posterior, locs, size):
+    """Shape of the returned samples matches expectation."""
+    if isinstance(size, int):
+        size = (size,)
+    expected_size = (*size, *posterior(locs).mean.shape)
+    assert samples.shape == expected_size
+
+
+def test_sampling_chi_squared(samples, posterior, locs, size):
+    """Returned samples are approximately Gaussian."""
+
+    # what is computed below in here???
+    all_chi_squareds = [
+        chi_squared_statistic(sample, posterior(locs).mean, posterior(locs).cov)
+        for sample in samples
+    ]
+    chi_squared = np.mean(all_chi_squareds)
+    assert 0.1 < chi_squared < 10.0
