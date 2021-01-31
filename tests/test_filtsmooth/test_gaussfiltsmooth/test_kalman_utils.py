@@ -99,7 +99,7 @@ def test_rts_smooth_step(
 ):
     """Assert that preconditioning does not affect the outcome of the smoothing step."""
     smooth_without = pnfs.rts_smooth_step_classic
-    smooth_with = pnfs.rts_with_precon(smooth_without)
+    smooth_with = pnfs.rts_add_precon(smooth_without)
 
     start = np.random.rand()
     stop = start + dt

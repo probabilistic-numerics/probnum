@@ -5,8 +5,8 @@ from .kalman_utils import (
     iterate_update,
     measure_via_transition,
     predict_via_transition,
+    rts_add_precon,
     rts_smooth_step_classic,
-    rts_with_precon,
     update_classic,
 )
 from .kalmanposterior import KalmanPosterior

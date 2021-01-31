@@ -146,15 +146,14 @@ def _iterated_update(
 ########################################################################################################################
 
 
-def rts_with_precon(smooth_step_fun):
-    """Make a smoothing step respect preconditioning.
+def rts_add_precon(smooth_step_fun):
+    """Make a RTS smoothing step respect preconditioning.
 
-    Currently, this is only available for IBM() integrators.
+    This is only available for Integrators.
 
     Examples
     --------
-    >>> import functools as ft
-    >>> rts_smooth_step_classic_with_precon = rts_with_precon(rts_smooth_step_classic)
+    >>> step_with_precon = rts_add_precon(rts_smooth_step_classic)
     """
 
     def new_smoothing_function(*args, **kwargs):
