@@ -5,10 +5,9 @@ import probnum.filtsmooth as pnfs
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.filtsmooth.gaussfiltsmooth import Kalman
-from tests.testing import NumpyAssertions, chi_squared_statistic
+from tests.testing import chi_squared_statistic
 
-from .filtsmooth_testcases import CarTrackingDDTestCase, car_tracking
+from .filtsmooth_testcases import car_tracking
 
 
 @pytest.fixture
@@ -130,12 +129,12 @@ def test_call_extrapolation(posterior):
 
 @pytest.fixture
 def size():
-    return 2
+    return 10
 
 
 @pytest.fixture
 def size():
-    return (3,)
+    return (12,)
 
 
 @pytest.fixture
@@ -154,7 +153,12 @@ def locs():
 
 
 @pytest.fixture
-def samples(posterior, locs, size):
+def seed():
+    return 42
+
+
+@pytest.fixture
+def samples(posterior, locs, size, seed):
     return posterior.sample(locations=locs, size=size)
 
 
