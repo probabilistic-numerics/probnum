@@ -26,7 +26,7 @@ from probnum.linalg.solvers.beliefs import (
     SymmetricNormalLinearSystemBelief,
 )
 from probnum.linalg.solvers.hyperparams import LinearSystemNoise
-from probnum.problems import LinearSystem
+from probnum.problems import LinearSystem, NoisyLinearSystem
 
 # pylint: disable="invalid-name"
 
@@ -119,14 +119,9 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def residual(self) -> np.ndarray:
         r"""Residual :math:`r = A x_i- b` of the solution estimate
         :math:`x_i=\mathbb{E}[\mathsf{x}]` at iteration :math:`i`."""
-        if isinstance(self.hyperparams, LinearSystemNoise):
-            if isinstance(self.problem.A, linops.LinearOperator):
-                A = self.problem.A
-            elif isinstance(self.problem.A, rvs.RandomVariable):
-                A = self.problem.A.sample()
-            else:
-                raise NotImplementedError
-            return A @ self.belief.x.mean - rvs.asrandvar(self.problem.b).sample()
+        if isinstance(self.problem, NoisyLinearSystem):
+            A, b = self.problem.sample()
+            return A @ self.belief.x.mean - b
         elif self.prev_cache is None:
             return self.problem.A @ self.belief.x.mean - self.problem.b
         else:
@@ -136,18 +131,20 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
     def step_size(self) -> np.ndarray:
         r"""Step size :math:`\alpha_i` of the solver viewed as a quadratic optimizer
         taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
-        if self.hyperparams is None:
+        if isinstance(self.problem, NoisyLinearSystem):
+            if isinstance(self.hyperparams.epsA_cov.A, linops.ScalarMult):
+                eps_sq = self.hyperparams.epsA_cov.A.scalar ** 2
+                return (
+                    -self.action.actA.T
+                    @ self.prev_cache.residual
+                    / self.action_observation
+                ).item() / (1 + eps_sq)
+            else:
+                raise NotImplementedError
+        else:
             return (
                 -self.action.actA.T @ self.prev_cache.residual / self.action_observation
             ).item()
-        elif isinstance(self.hyperparams.A_eps.cov.A, linops.ScalarMult):
-            eps_sq = self.hyperparams.A_eps.cov.A.scalar
-            return (
-                -self.action.actA.T @ self.prev_cache.residual / self.action_observation
-            ).item() / (1 + eps_sq)
-
-        else:
-            raise NotImplementedError
 
     @cached_property
     def deltaA(self) -> np.ndarray:
@@ -180,7 +177,12 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         Computes the matrix-vector product :math:`W^A_{i-1}s_i` between the covariance
         factor of the matrix model and the current action.
         """
-        return self.belief.A.cov.A @ self.action.actA
+        if isinstance(self.belief.A.cov, linops.SymmetricKronecker):
+            covfactor = self.belief.A.cov.A
+        else:
+            # Covariance is a sum of symmetric Kronecker products in noisy case
+            covfactor = self.belief.A.cov.A.A
+        return covfactor @ self.action.actA
 
     @cached_property
     def covfactorH_observation(self) -> np.ndarray:
@@ -189,7 +191,13 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         Computes the matrix-vector product :math:`W^H_{i-1}y_i` between the covariance
         factor of the inverse model and the current observation.
         """
-        return self.belief.Ainv.cov.A @ self.observation.obsA
+        if isinstance(self.belief.Ainv.cov, linops.SymmetricKronecker):
+            covfactor = self.belief.Ainv.cov.A
+        else:
+            # Covariance is a sum of symmetric Kronecker products in noisy case
+            covfactor = self.belief.Ainv.cov.A.A
+
+        return covfactor @ self.observation.obsA
 
     @cached_property
     def sqnorm_covfactorA_action(self) -> float:
@@ -333,12 +341,32 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
 
     def __call__(
         self,
-        problem: LinearSystem,
+        problem: Union[LinearSystem, NoisyLinearSystem],
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
         """Updated belief for the matrix."""
-        if hyperparams is None or not isinstance(hyperparams, LinearSystemNoise):
+        if isinstance(problem, NoisyLinearSystem):
+            if isinstance(hyperparams.epsA_cov.A, linops.ScalarMult):
+                eps_sq = hyperparams.epsA_cov.A.scalar ** 2
+                mean = (
+                    linops.aslinop(self.prior.A.mean)
+                    + 1 / (1 + eps_sq) * solver_state.cache.meanA_update_batch
+                )
+
+                cov = linops.SymmetricKronecker(
+                    self.prior.A.cov.A
+                    - 1 / (1 + eps_sq) * solver_state.cache.covfactorA_update_batch[0]
+                ) + linops.SymmetricKronecker(
+                    eps_sq
+                    / (1 + eps_sq)
+                    * solver_state.cache.covfactorA_update_batch[1]
+                )
+            else:
+                raise NotImplementedError(
+                    "Belief updated for general noise not implemented."
+                )
+        else:
             mean = (
                 linops.aslinop(self.prior.A.mean)
                 + solver_state.cache.meanA_update_batch
@@ -346,23 +374,7 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
             cov = linops.SymmetricKronecker(
                 self.prior.A.cov.A - solver_state.cache.covfactorA_update_batch[0]
             )
-        elif isinstance(hyperparams.A_eps.cov.A, linops.ScalarMult):
-            eps_sq = hyperparams.A_eps.cov.A.scalar
-            mean = (
-                linops.aslinop(self.prior.A.mean)
-                + 1 / (1 + eps_sq) * solver_state.cache.meanA_update_batch
-            )
 
-            cov = linops.SymmetricKronecker(
-                self.prior.A.cov.A
-                - 1 / (1 + eps_sq) * solver_state.cache.covfactorA_update_batch[0]
-            ) + linops.SymmetricKronecker(
-                eps_sq / (1 + eps_sq) * solver_state.cache.covfactorA_update_batch[1]
-            )
-        else:
-            raise NotImplementedError(
-                "Belief updated for general noise not implemented."
-            )
         return rvs.Normal(mean=mean, cov=cov)
 
 
@@ -372,12 +384,32 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
 
     def __call__(
         self,
-        problem: LinearSystem,
+        problem: Union[LinearSystem, NoisyLinearSystem],
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
         """Updated belief for the inverse matrix."""
-        if hyperparams is None or not isinstance(hyperparams, LinearSystemNoise):
+        if isinstance(problem, NoisyLinearSystem):
+            if isinstance(hyperparams.epsA_cov.A, linops.ScalarMult):
+                eps_sq = hyperparams.epsA_cov.A.scalar ** 2
+                mean = (
+                    linops.aslinop(self.prior.Ainv.mean)
+                    + 1 / (1 + eps_sq) * solver_state.cache.meanH_update_batch
+                )
+
+                cov = linops.SymmetricKronecker(
+                    self.prior.Ainv.cov.A
+                    - 1 / (1 + eps_sq) * solver_state.cache.covfactorH_update_batch[0]
+                ) + linops.SymmetricKronecker(
+                    eps_sq
+                    / (1 + eps_sq)
+                    * solver_state.cache.covfactorH_update_batch[1]
+                )
+            else:
+                raise NotImplementedError(
+                    "Belief updated for general noise not implemented."
+                )
+        else:
             mean = (
                 linops.aslinop(self.prior.Ainv.mean)
                 + solver_state.cache.meanH_update_batch
@@ -385,23 +417,7 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
             cov = linops.SymmetricKronecker(
                 self.prior.Ainv.cov.A - solver_state.cache.covfactorH_update_batch[0]
             )
-        elif isinstance(hyperparams.A_eps.cov.A, linops.ScalarMult):
-            eps_sq = hyperparams.A_eps.cov.A.scalar
-            mean = (
-                linops.aslinop(self.prior.Ainv.mean)
-                + 1 / (1 + eps_sq) * solver_state.cache.meanH_update_batch
-            )
 
-            cov = linops.SymmetricKronecker(
-                self.prior.Ainv.cov.A
-                - 1 / (1 + eps_sq) * solver_state.cache.covfactorH_update_batch[0]
-            ) + linops.SymmetricKronecker(
-                eps_sq / (1 + eps_sq) * solver_state.cache.covfactorH_update_batch[1]
-            )
-        else:
-            raise NotImplementedError(
-                "Belief updated for general noise not implemented."
-            )
         return rvs.Normal(mean=mean, cov=cov)
 
 
@@ -411,7 +427,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
 
     def __call__(
         self,
-        problem: LinearSystem,
+        problem: Union[LinearSystem, NoisyLinearSystem],
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
@@ -428,21 +444,19 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
 
     def __call__(
         self,
-        problem: LinearSystem,
+        problem: Union[LinearSystem, NoisyLinearSystem],
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Union[rvs.Constant, rvs.Normal]:
         """Updated belief for the right hand side."""
-        if hyperparams is None or not isinstance(hyperparams, LinearSystemNoise):
-            return rvs.asrandvar(problem.b)
-        elif hyperparams.b_eps is None:
-            return rvs.asrandvar(problem.b)
-        else:
+        if isinstance(problem, NoisyLinearSystem):
             # TODO replace this with Gaussian inference
             return (
                 solver_state.belief.b * solver_state.info.iteration
                 + solver_state.cache.observation.obsb
             ) / (solver_state.info.iteration + 1)
+        else:
+            return rvs.asrandvar(problem.b)
 
 
 class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):

@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 import probnum.random_variables as rvs
 from probnum.linalg.solvers import LinearSolverState, ProbabilisticLinearSolver
-from probnum.problems import LinearSystem
+from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.type import MatrixArgType
 
 
@@ -133,8 +133,11 @@ def problinsolve(
     1.0691148648343433e-06
     """
     # pylint: disable=invalid-name,too-many-arguments
+    if "noise" in assume_linsys:
+        linsys = NoisyLinearSystem.from_randvars(A=rvs.asrandvar(A), b=rvs.asrandvar(b))
+    else:
+        linsys = LinearSystem(A=A, b=b)
 
-    linsys = LinearSystem(A=A, b=b)
     linear_solver = ProbabilisticLinearSolver.from_problem(
         problem=linsys,
         assume_linsys=assume_linsys,

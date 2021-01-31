@@ -13,6 +13,7 @@ from probnum.linalg.solvers import (
     LinearSolverState,
     ProbabilisticLinearSolver,
     beliefs,
+    hyperparams,
     observation_ops,
     policies,
     stop_criteria,
@@ -162,6 +163,28 @@ def fixture_weakmeancorr_belief(
     )
 
 
+@pytest.fixture(
+    params=[
+        pytest.param(prior_params, id=f"alpha{prior_params[0]}_eps{prior_params[1]}")
+        for prior_params in [(1.0, 0.0), (10.0, 0.01), (2.0, 1.0)]
+    ],
+    name="prior_noise",
+)
+def fixture_prior_noise(
+    request, linsys_noise: NoisyLinearSystem, random_state: np.random.RandomState
+):
+    """Prior for noisy linear systems."""
+    return beliefs.NoisySymmetricNormalLinearSystemBelief.from_inverse(
+        Ainv0=linops.ScalarMult(scalar=request.param[0], shape=linsys_noise.A.shape),
+        problem=linsys_noise,
+        hyperparams=hyperparams.LinearSystemNoise(
+            epsA_cov=linops.SymmetricKronecker(
+                linops.ScalarMult(scalar=request.param[1], shape=linsys_noise.A.shape)
+            )
+        ),
+    )
+
+
 ##################
 # Linear Systems #
 ##################
@@ -185,6 +208,27 @@ def fixture_linsys_matnoise(
         b=rvs.asrandvar(linsys_spd.b),
         solution=linsys_spd.solution,
     )
+
+
+############
+# Policies #
+############
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(policy, id=policy[0])
+        for policy in [
+            ("conjdir", policies.ConjugateDirections()),
+            ("thompson", policies.ThompsonSampling()),
+            ("exploreexploit", policies.ExploreExploit()),
+        ]
+    ],
+    name="policy_noise",
+)
+def fixture_policy_noise(request):
+    """Policy of a noisy linear solver returning actions."""
+    return request.param[1]
 
 
 ################
@@ -383,4 +427,20 @@ def conj_grad_method(
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVec(),
         stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
+    )
+
+
+@pytest.fixture()
+def noisy_solver(
+    prior_noise: beliefs.LinearSystemBelief, policy_noise: policies.Policy
+):
+    """Probabilistic solvers for noisy linear systems."""
+    return ProbabilisticLinearSolver(
+        prior=prior_noise,
+        policy=policy_noise,
+        observation_op=observation_ops.SampleMatVec(),
+        stopping_criteria=[
+            stop_criteria.MaxIterations(),
+            stop_criteria.PosteriorContraction(),
+        ],
     )

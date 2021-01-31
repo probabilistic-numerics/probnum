@@ -9,7 +9,7 @@ import scipy.linalg
 import scipy.sparse.linalg
 
 from probnum.linalg.solvers import ProbabilisticLinearSolver
-from probnum.problems import LinearSystem
+from probnum.problems import LinearSystem, NoisyLinearSystem
 
 
 class TestSolverState:
@@ -230,8 +230,21 @@ class TestConjugateGradientMethod:
 
         # Compare iterates
         np.testing.assert_allclose(
-            belief.x.mean, x_cg[:, None], atol=10 ** -4, rtol=10 ** -4
+            belief.x.mean, x_cg[:, None], atol=10 ** -5, rtol=10 ** -5
         )
         np.testing.assert_allclose(
-            pls_iters_arr, cg_iters_arr, atol=10 ** -4, rtol=10 ** -4
+            pls_iters_arr, cg_iters_arr, atol=10 ** -5, rtol=10 ** -5
+        )
+
+
+class TestNoisySolver:
+    """Test cases for linear solvers on noisy linear systems."""
+
+    def test_noisy_linear_system(
+        self, linsys_noise: NoisyLinearSystem, noisy_solver: ProbabilisticLinearSolver
+    ):
+        """Test whether various different noise-corrupted linear systems are solved."""
+        belief, solver_state = noisy_solver.solve(problem=linsys_noise)
+        np.testing.assert_allclose(
+            linsys_noise.solution, belief.x.mean, atol=10 ** -5, rtol=10 ** -5
         )

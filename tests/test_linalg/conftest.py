@@ -232,6 +232,35 @@ def fixture_linsys_iid_noise(
     )
 
 
+@pytest.fixture(
+    params=[
+        pytest.param(linsys_noise, id=linsys_noise[0])
+        for linsys_noise in [
+            (
+                "mat_iid",
+                rvs.Normal(
+                    mean=random_spd_matrix(dim=10, random_state=1),
+                    cov=linops.SymmetricKronecker(
+                        linops.ScalarMult(scalar=10 ** -2, shape=(10, 10))
+                    ),
+                ),
+                rvs.Constant(np.ones((10, 1))),
+            ),
+        ]
+    ],
+    name="linsys_noise",
+)
+def fixture_linsys_noise(request):
+    """A noise-corrupted linear system."""
+    return NoisyLinearSystem.from_randvars(
+        A=request.param[1],
+        b=request.param[2],
+        solution=scipy.sparse.linalg.cg(
+            A=request.param[1].mean, b=request.param[2].mean
+        )[0],
+    )
+
+
 ###################
 # Preconditioning #
 ###################
