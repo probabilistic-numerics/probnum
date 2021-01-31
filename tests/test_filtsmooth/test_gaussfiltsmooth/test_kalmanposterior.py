@@ -3,6 +3,7 @@ import pytest
 
 import probnum.filtsmooth as pnfs
 import probnum.filtsmooth.statespace as pnfss
+import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.gaussfiltsmooth import Kalman
 from tests.testing import NumpyAssertions, chi_squared_statistic
@@ -64,6 +65,30 @@ def test_getitem(posterior):
     np.testing.assert_allclose(posterior[:].cov, posterior.state_rvs[:].cov)
 
 
+def test_state_rvs(posterior):
+    assert isinstance(posterior.state_rvs, _RandomVariableList)
+    assert len(posterior.state_rvs[0].shape) == 1
+
+
+def test_call_error_if_small(posterior):
+    assert -0.5 < posterior.locations[0]
+    with pytest.raises(ValueError):
+        posterior(-0.5)
+
+
+def test_call_vectorisation(posterior):
+    locs = np.arange(0, 1, 20)
+    evals = posterior(locs)
+    assert len(evals) == len(locs)
+
+
+def test_call_interpolation(posterior):
+    assert posterior.locations[0] < 9.88 < posterior.locations[-1]
+    assert 9.88 not in posterior.locations
+    out_rv = posterior(9.88)
+    assert isinstance(out_rv, pnrv.Normal)
+
+
 class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
     def setUp(self):
         super().setup_cartracking()
@@ -95,22 +120,22 @@ class TestKalmanPosterior(CarTrackingDDTestCase, NumpyAssertions):
     #
     #     self.assertArrayEqual(self.posterior[:].mean, self.posterior.state_rvs[:].mean)
     #     self.assertArrayEqual(self.posterior[:].cov, self.posterior.state_rvs[:].cov)
-
-    def test_state_rvs(self):
-        self.assertTrue(isinstance(self.posterior.state_rvs, _RandomVariableList))
-
-        self.assertEqual(len(self.posterior.state_rvs[0].shape), 1)
-        self.assertEqual(self.posterior.state_rvs[-1].shape, self.initrv.shape)
-
-    def test_call_error_if_small(self):
-        self.assertLess(-0.5, self.tms[0])
-        with self.assertRaises(ValueError):
-            self.posterior(-0.5)
-
-    def test_call_vectorisation(self):
-        locs = np.arange(0, 1, 20)
-        evals = self.posterior(locs)
-        self.assertEqual(len(evals), len(locs))
+    #
+    # def test_state_rvs(self):
+    #     self.assertTrue(isinstance(self.posterior.state_rvs, _RandomVariableList))
+    #
+    #     self.assertEqual(len(self.posterior.state_rvs[0].shape), 1)
+    #     self.assertEqual(self.posterior.state_rvs[-1].shape, self.initrv.shape)
+    #
+    # def test_call_error_if_small(self):
+    #     self.assertLess(-0.5, self.tms[0])
+    #     with self.assertRaises(ValueError):
+    #         self.posterior(-0.5)
+    #
+    # def test_call_vectorisation(self):
+    #     locs = np.arange(0, 1, 20)
+    #     evals = self.posterior(locs)
+    #     self.assertEqual(len(evals), len(locs))
 
     def test_call_interpolation(self):
         self.assertLess(self.tms[0], 9.88)

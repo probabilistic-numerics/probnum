@@ -115,7 +115,9 @@ class KalmanPosterior(FiltSmoothPosterior):
         )
         crosscov = info["crosscov"]
 
-        curr_rv, _ = self.smooth_step(pred_rv, predicted_future_rv, next_rv, crosscov)
+        curr_rv, _ = self.gauss_filter.smooth_step(
+            pred_rv, predicted_future_rv, next_rv, crosscov
+        )
         return curr_rv
 
     def __len__(self):
