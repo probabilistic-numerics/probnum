@@ -89,7 +89,19 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
 
 
 def iterate_update(update_fun, stopcrit=None):
-    """Iterated update decorator."""
+    """Iterated update decorator.
+
+    Examples
+    --------
+    >>> import functools as ft
+    >>>
+    >>> # default stopping
+    >>> iter_upd_default = iterate_update(update_classic)
+    >>>
+    >>> # Custom stopping
+    >>> stopcrit = StoppingCriterion(atol=1e-12, rtol=1e-14, maxit=1000)
+    >>> iter_upd_custom = iterate_update(update_fun=update_classic, stopcrit=stopcrit)
+    """
     if stopcrit is None:
         stopcrit = StoppingCriterion()
 
@@ -104,15 +116,9 @@ def _iterated_update(
 ):
     """Turn an update_*() function into an iterated update.
 
-    This iteration is continued until it reaches a fixed-point (as measured with atol and rtol).
-    Using this inside `Kalman` yields the iterated (extended/unscented/...) Kalman filter.
-
-    Examples
-    --------
-    >>> import functools as ft
-    >>>
-    >>> stopcrit = StoppingCriterion(atol=1e-2, rtol=1e-4, maxit=1000)
-    >>> iterated_update_classic = ft.partial(iterated_update, update_fun=update_classic, stopcrit=stopcrit)
+    This iteration is continued until it reaches a fixed-point (as
+    measured with atol and rtol). Using this inside `Kalman` yields the
+    iterated (extended/unscented/...) Kalman filter.
     """
     current_rv, meas_rv, info = update_fun(
         measurement_model=measurement_model,
