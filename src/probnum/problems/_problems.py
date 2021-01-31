@@ -167,9 +167,8 @@ class LinearSystem:
             np.ndarray,
             scipy.sparse.spmatrix,
             scipy.sparse.linalg.LinearOperator,
-            rvs.RandomVariable,
         )
-        vector_types = (np.ndarray, scipy.sparse.spmatrix, rvs.RandomVariable)
+        vector_types = (np.ndarray, scipy.sparse.spmatrix)
         if not isinstance(self.A, linop_types):
             raise TypeError(
                 "A must be either an array, a linear operator or a random variable."
@@ -325,6 +324,7 @@ class NoisyLinearSystem(LinearSystem):
         solution :
             True solution to the problem. Used for testing and benchmarking.
         """
+        b = b.reshape(newshape=(b.shape[0], 1))
 
         def _sample(size: ShapeArgType) -> Union[np.ndarray, Tuple]:
             A_samples = A.sample(size=size)

@@ -56,8 +56,8 @@ class LinearSystemTestCase(unittest.TestCase, NumpyAssertions):
             )
 
     def test_system_is_two_dimensional(self):
-        """Check whether all components of the system are (reshaped to) 2D arrays,
-        linear operators or 2D random variables."""
+        """Check whether all components of the system are (reshaped to) 2D arrays or
+        linear operators."""
         linsys = LinearSystem(A=linops.Identity(5), solution=np.ones(5), b=np.ones(5))
 
         self.assertEqual(linsys.A.ndim, 2)
@@ -95,26 +95,6 @@ class LinearSystemTestCase(unittest.TestCase, NumpyAssertions):
             f"component shapes A : {A.shape}, b: {b.shape}",
         )
 
-    def test_sample_noisy_system_has_correct_dimensions(self):
-        """Test whether sampling from a noisy linear system returns an array of tuples
-        defining linear systems."""
-        n = 5
-        A = rvs.Normal(
-            mean=linops.Identity(n),
-            cov=linops.SymmetricKronecker(linops.ScalarMult(scalar=2.0, shape=(n, n))),
-        )
-        b = rvs.Normal(mean=np.zeros((n, 1)), cov=np.eye(n))
-        linsys_rand = NoisyLinearSystem.from_randvars(A=A, b=b)
-        sample_size = (3,)
-        linsys_samples = linsys_rand.sample(size=sample_size)
-        assert linsys_samples.shape == sample_size
-        assert linsys_samples[0][0].shape == A.shape
-        assert linsys_samples[0][1].shape == b.shape
-
-        linsys_single_sample = linsys_rand.sample()
-        assert linsys_single_sample[0].shape == A.shape
-        assert linsys_single_sample[1].shape == b.shape
-
 
 class RandomLinearSystemTestCase(unittest.TestCase, NumpyAssertions):
     """Test case for the generation of random linear systems."""
@@ -143,3 +123,27 @@ class RandomLinearSystemTestCase(unittest.TestCase, NumpyAssertions):
         self.assertArrayEqual(
             self.random_linsys.A @ self.random_linsys.solution, self.random_linsys.b
         )
+
+
+class TestNoisyLinearSystem:
+    """Tests for noisy linear systems."""
+
+    def test_sample_noisy_system_has_correct_dimensions(self):
+        """Test whether sampling from a noisy linear system returns an array of tuples
+        defining linear systems."""
+        n = 5
+        A = rvs.Normal(
+            mean=linops.Identity(n),
+            cov=linops.SymmetricKronecker(linops.ScalarMult(scalar=2.0, shape=(n, n))),
+        )
+        b = rvs.Normal(mean=np.zeros(n), cov=np.eye(n))
+        linsys_rand = NoisyLinearSystem.from_randvars(A=A, b=b)
+        sample_size = (3,)
+        linsys_samples = linsys_rand.sample(size=sample_size)
+        assert linsys_samples.shape == sample_size
+        assert linsys_samples[0][0].shape == A.shape
+        assert linsys_samples[0][1].shape == (b.shape[0], 1)
+
+        linsys_single_sample = linsys_rand.sample()
+        assert linsys_single_sample[0].shape == A.shape
+        assert linsys_single_sample[1].shape == (b.shape[0], 1)

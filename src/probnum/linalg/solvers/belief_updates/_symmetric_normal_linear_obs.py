@@ -341,7 +341,7 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
 
     def __call__(
         self,
-        problem: Union[LinearSystem, NoisyLinearSystem],
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
@@ -384,7 +384,7 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
 
     def __call__(
         self,
-        problem: Union[LinearSystem, NoisyLinearSystem],
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> rvs.Normal:
@@ -427,7 +427,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
 
     def __call__(
         self,
-        problem: Union[LinearSystem, NoisyLinearSystem],
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
@@ -444,7 +444,7 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
 
     def __call__(
         self,
-        problem: Union[LinearSystem, NoisyLinearSystem],
+        problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Union[rvs.Constant, rvs.Normal]:

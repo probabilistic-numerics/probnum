@@ -577,14 +577,14 @@ class ProbabilisticLinearSolver(
                 solver_state=solver_state,
             )
 
+            solver_state.info.iteration += 1
+
             # Evaluate stopping criteria
             _has_converged = self.has_converged(
                 problem=solver_state.problem,
                 belief=solver_state.belief,
                 solver_state=solver_state,
             )
-
-            solver_state.info.iteration += 1
 
             yield belief, action, observation, solver_state
 
