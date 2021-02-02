@@ -5,12 +5,12 @@ from .ode import (
     ODE,
     fitzhughnagumo,
     logistic,
+    lorenz,
     lotkavolterra,
     rigidbody,
     seir,
     threebody,
     vanderpol,
-    lorenz
 )
 from .odefiltsmooth import (
     GaussianIVPFilter,
