@@ -3,8 +3,6 @@
 Contains the discrete time and function outputs. Provides dense output
 by being callable. Can function values can also be accessed by indexing.
 """
-from warnings import warn
-
 import numpy as np
 
 import probnum.random_variables as rvs

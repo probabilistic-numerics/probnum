@@ -219,6 +219,7 @@ class Kalman(BayesFiltSmooth):
         """A single filter step.
 
         Consists of a prediction step (t -> t+1) and an update step (at t+1).
+
         Parameters
         ----------
         start : float
