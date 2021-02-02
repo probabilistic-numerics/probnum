@@ -498,8 +498,8 @@ def threebody_rhs(t, y, params):
     return np.array([y1_dot, y2_dot, y1p, y2p])
 
 
-def lorenz(timespan, initrv, params=(10, 28, 8/3)):
-    """Initial value problem (IVP) based on the Lorenz system.
+def lorenz(timespan, initrv, params=(10, 28, 8 / 3)):
+    r"""Initial value problem (IVP) based on the Lorenz system.
 
     The Lorenz system is defined through
 
@@ -509,7 +509,7 @@ def lorenz(timespan, initrv, params=(10, 28, 8/3)):
         \begin{pmatrix}
             a(y_2 - y_1) \\
             y_1(b-y_3) - y_2 \\
-            y_1y_2 - cy_3    
+            y_1y_2 - cy_3
         \end{pmatrix}
 
     for some parameters :math:`(a, b, c)`.

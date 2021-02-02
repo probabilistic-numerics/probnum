@@ -68,7 +68,7 @@ class TestConvenienceFunction(unittest.TestCase):
         self.assertIsInstance(lg3, ivp.IVP)
 
     def test_threebody(self):
-        """Test the Van der Pol ODE convenience function."""
+        """Test the three-body ODE convenience function."""
         rv = Constant(np.array([1.0, 1.0]))
         lg1 = ivp_examples.threebody(self.tspan, rv)
         lg2 = ivp_examples.threebody(self.tspan, rv, params=(0.012277471,))
@@ -77,6 +77,15 @@ class TestConvenienceFunction(unittest.TestCase):
         self.assertIsInstance(lg1, ivp.IVP)
         self.assertIsInstance(lg2, ivp.IVP)
         self.assertIsInstance(lg3, ivp.IVP)
+
+    def test_lorenz(self):
+        """"Test the Lorenz model ODE conveniencefunction. """
+        rv = Constant(np.array([1.0, 1.0, 1.0]))
+        lg1 = ivp_examples.lorenz(self.tspan, rv)
+        lg2 = ivp_examples.lorenz(self.tspan, rv, params=(10, 28, 8 / 3,))
+
+        self.assertIsInstance(lg1, ivp.IVP)
+        self.assertIsInstance(lg2, ivp.IVP)
 
 
 class TestRHSEvaluation(unittest.TestCase, NumpyAssertions):
@@ -124,6 +133,12 @@ class TestRHSEvaluation(unittest.TestCase, NumpyAssertions):
     def test_threebody_rhs(self):
         rv = Constant(np.ones(4))
         lg1 = ivp_examples.threebody(self.tspan, rv)
+
+        self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
+
+    def test_lorenz_rhs(self):
+        rv = Constant(np.ones(3))
+        lg1 = ivp_examples.lorenz(self.tspan, rv)
 
         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
 
@@ -222,6 +237,23 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
     def test_vanderpol_jacobian(self):
         rv = Constant(np.array([1.0, 1.0]))
         lg1 = ivp_examples.vanderpol(self.tspan, rv)
+        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
+        random_point = 1 + np.random.rand(lg1.dimension)
+        fd_approx = (
+            0.5
+            * 1e11
+            * (
+                lg1(0.1, random_point + 1e-11 * random_direction)
+                - lg1(0.1, random_point - 1e-11 * random_direction)
+            )
+        )
+        self.assertAllClose(
+            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+        )
+
+    def test_lorenz_jacobian(self):
+        rv = Constant(np.array([1.0, 1.0, 1.0]))
+        lg1 = ivp_examples.lorenz(self.tspan, rv)
         random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (

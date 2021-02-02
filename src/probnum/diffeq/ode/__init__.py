@@ -7,6 +7,7 @@ from .ivp_examples import (
     seir,
     threebody,
     vanderpol,
+    lorenz
 )
 from .ode import ODE
 
@@ -20,4 +21,5 @@ __all__ = [
     "vanderpol",
     "threebody",
     "lotkavolterra",
+    "lorenz"
 ]

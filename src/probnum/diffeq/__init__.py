@@ -10,6 +10,7 @@ from .ode import (
     seir,
     threebody,
     vanderpol,
+    lorenz
 )
 from .odefiltsmooth import (
     GaussianIVPFilter,
@@ -34,6 +35,7 @@ __all__ = [
     "rigidbody",
     "vanderpol",
     "threebody",
+    "lorenz",
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",
