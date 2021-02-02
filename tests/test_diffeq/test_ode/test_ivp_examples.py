@@ -79,7 +79,7 @@ class TestConvenienceFunction(unittest.TestCase):
         self.assertIsInstance(lg3, ivp.IVP)
 
     def test_lorenz(self):
-        """"Test the Lorenz model ODE conveniencefunction. """
+        """Test the Lorenz model ODE convenience function. """
         rv = Constant(np.array([1.0, 1.0, 1.0]))
         lg1 = ivp_examples.lorenz(self.tspan, rv)
         lg2 = ivp_examples.lorenz(self.tspan, rv, params=(10, 28, 8 / 3,))
