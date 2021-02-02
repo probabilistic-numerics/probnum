@@ -117,6 +117,27 @@ class Kalman(BayesFiltSmooth):
     def filtsmooth(
         self, dataset, times, _intermediate_step=None, _previous_posterior=None
     ):
+        """Apply Gaussian filtering and smoothing to a data set.
+
+        Parameters
+        ----------
+        dataset : array_like, shape (N, M)
+            Data set that is filtered.
+        times : array_like, shape (N,)
+            Temporal locations of the data points.
+            The zeroth element in times and dataset is the location of the initial random variable.
+        _intermediate_step
+            Step-size to solve the moment equations with. Optional. Only required for LinearSDE priors (not for LTI SDE priors).
+        _previous_posterior: KalmanPosterior
+            If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
+            This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
+
+
+        Returns
+        -------
+        KalmanPosterior
+            Posterior distribution of the filtered output
+        """
         dataset, times = np.asarray(dataset), np.asarray(times)
         filter_posterior = self.filter(
             dataset,
@@ -128,7 +149,26 @@ class Kalman(BayesFiltSmooth):
         return smooth_posterior
 
     def filter(self, dataset, times, _intermediate_step=None, _previous_posterior=None):
+        """Apply Gaussian filtering (no smoothing!) to a data set.
 
+        Parameters
+        ----------
+        dataset : array_like, shape (N, M)
+            Data set that is filtered.
+        times : array_like, shape (N,)
+            Temporal locations of the data points.
+            The zeroth element in times and dataset is the location of the initial random variable.
+        _intermediate_step
+            Step-size to solve the moment equations with. Optional. Only required for LinearSDE priors (not for LTI SDE priors).
+        _previous_posterior: KalmanPosterior
+            If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
+            This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
+
+        Returns
+        -------
+        KalmanPosterior
+            Posterior distribution of the filtered output
+        """
         dataset, times = np.asarray(dataset), np.asarray(times)
         rvs = []
 
@@ -176,6 +216,37 @@ class Kalman(BayesFiltSmooth):
         _linearise_update_at=None,
         _diffusion=1.0,
     ):
+        """A single filter step.
+
+        Consists of a prediction step (t -> t+1) and an update step (at t+1).
+        Parameters
+        ----------
+        start : float
+            Predict FROM this time point.
+        stop : float
+            Predict TO this time point.
+        current_rv : RandomVariable
+            Predict based on this random variable. For instance, this can be the result
+            of a previous call to filter_step.
+        data : array_like
+            Compute the update based on this data.
+        _intermediate_step
+            Intermediate step to be taken inside the prediction.
+        _linearise_predict_at
+            Linearise the prediction step at this RV. Used for iterated filtering and smoothing.
+        _linearise_update_at
+            Linearise the update step at this RV. Used for iterated filtering and smoothing.
+        _diffusion
+            Custom diffusion for the underlying Wiener process. Used in calibration.
+
+        Returns
+        -------
+        RandomVariable
+            Resulting filter estimate after the single step.
+        dict
+            Additional information provided by predict() and update().
+            Contains keys `pred_rv`, `info_pred`, `meas_rv`, `info_upd`.
+        """
         data = np.asarray(data)
         info = {}
         info["pred_rv"], info["info_pred"] = self.predict(
@@ -195,6 +266,18 @@ class Kalman(BayesFiltSmooth):
         return filtrv, info
 
     def smooth(self, filter_posterior):
+        """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
+
+        Parameters
+        ----------
+        filter_posterior : KalmanPosterior
+            Posterior distribution obtained after filtering
+
+        Returns
+        -------
+        KalmanPosterior
+            Posterior distribution of the smoothed output
+        """
         rv_list = self.smooth_list(
             filter_posterior,
             filter_posterior.locations,
@@ -204,6 +287,21 @@ class Kalman(BayesFiltSmooth):
         )
 
     def smooth_list(self, rv_list, locations):
+        """Apply smoothing to a list of RVs.
+
+        Parameters
+        ----------
+        rv_list : _RandomVariableList or array_like
+            List of random variables to be smoothed.
+        locations : array_like
+            Locations of the random variables in rv_list.
+
+        Returns
+        -------
+        _RandomVariableList
+            List of smoothed random variables.
+        """
+
         final_rv = rv_list[-1]
         curr_rv = final_rv
         out_rvs = [curr_rv]
