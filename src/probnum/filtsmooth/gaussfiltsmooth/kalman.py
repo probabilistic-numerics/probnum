@@ -53,6 +53,12 @@ class Kalman(BayesFiltSmooth):
         update=update_classic,
         smooth_step=rts_smooth_step_classic,
     ):
+
+        if not issubclass(type(initrv), Normal):
+            raise ValueError(
+                "Gaussian filters/smoothers need initial "
+                "random variables with Normal distribution."
+            )
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
