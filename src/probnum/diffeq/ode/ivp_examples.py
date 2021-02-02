@@ -112,13 +112,13 @@ def fitzhughnagumo(timespan, initrv, params=(0.0, 0.08, 0.07, 1.25)):
         :math:`2 \times 2`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float, float), optional
-        Parameters :math:`(a, b, c, d)` for the logistic IVP.
+        Parameters :math:`(a, b, c, d)` for the FitzHugh-Nagumo IVP.
         Default is :math:`(a, b, c, d)=(0.0, 0.08, 0.07, 1.25)`.
 
     Returns
     -------
     IVP
-        IVP object describing the logistic IVP with the prescribed
+        IVP object describing the FitzHugh-Nagumo IVP with the prescribed
         configuration.
     """
 
@@ -173,13 +173,14 @@ def lotkavolterra(timespan, initrv, params=(0.5, 0.05, 0.5, 0.05)):
         :math:`2 \times 2`-dimensional covariance matrix.
         To replicate "classical" initial values use the Constant distribution.
     params : (float, float, float, float), optional
-        Parameters :math:`(a, b, c, d)` for the logistic IVP.
+        Parameters :math:`(a, b, c, d)` for the Lotka-Volterra IVP.
         Default is :math:`(a, b, c, d)=(0.5, 0.05, 0.5, 0.05)`.
 
     Returns
     -------
     IVP
-        IVP object describing the logistic IVP with the prescribed
+        IVP object describing the Lotka-Volterra
+        IVP with the prescribed
         configuration.
     """
 
@@ -495,3 +496,65 @@ def threebody_rhs(t, y, params):
     y1p = y1 + 2.0 * y2_dot - mp * (y1 + mu) / d1 - mu * (y1 - mp) / d2
     y2p = y2 - 2.0 * y1_dot - mp * y2 / d1 - mu * y2 / d2
     return np.array([y1_dot, y2_dot, y1p, y2p])
+
+
+def lorenz(timespan, initrv, params=(10, 28, 8/3)):
+    """Initial value problem (IVP) based on the Lorenz system.
+
+    The Lorenz system is defined through
+
+    .. math::
+
+        f(t, y) =
+        \begin{pmatrix}
+            a(y_2 - y_1) \\
+            y_1(b-y_3) - y_2 \\
+            y_1y_2 - cy_3    
+        \end{pmatrix}
+
+    for some parameters :math:`(a, b, c)`.
+    Default is :math:`(a, b, c)=(10, 28, 2.667)`.
+    This implementation includes the Jacobian :math:`J_f` of :math:`f`.
+
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    initrv : RandomVariable,
+        *(shape=(3, ))* -- Vector-valued RandomVariable that describes the belief
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`3`-dimensional mean vector and
+        :math:`3 \times 3`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
+    params : (float, float, float, float), optional
+        Parameters :math:`(a, b, c)` for the Lorenz system.
+        Default is :math:`(a, b, c)=(10, 28, 2.667)`.
+
+    Returns
+    -------
+    IVP
+        IVP object describing the Lorenz system IVP with the prescribed
+        configuration.
+    """
+
+    def rhs(t, y):
+        return lor_rhs(t, y, params)
+
+    def jac(t, y):
+        return lor_jac(t, y, params)
+
+    return IVP(timespan, initrv, rhs, jac)
+
+
+def lor_rhs(t, y, params):
+    """RHS for Lorenz system."""
+    a, b, c = params
+    y1, y2, y3 = y
+    return np.array([a * (y2 - y1), y1 * (b - y3) - y2, y1 * y2 - c * y3])
+
+
+def lor_jac(t, y, params):
+    """Jacobian for Lorenz system."""
+    a, b, c = params
+    y1, y2, y3 = y
+    return np.array([[-a, a, 0], [b - y3, -1, -y1], [y2, y1, -c]])
