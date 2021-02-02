@@ -32,7 +32,7 @@ def test_continue(stopcrit, d1, d2):
     y1 = np.random.rand(d1, d2)
     y2 = 2 * y1.copy() + 3
     current_iterations = stopcrit.iterations
-    assert stopcrit.do_not_terminate_yet(y1 - y2, y2) is True
+    assert stopcrit.terminate(y1 - y2, y2) is False
     assert stopcrit.iterations == current_iterations + 1
 
 
@@ -40,7 +40,7 @@ def test_terminate_tolerance(stopcrit, d1, d2):
     """Iteration must terminate if error is small."""
     y1 = np.random.rand(d1, d2)
     y2 = y1.copy() + 1e-8
-    assert stopcrit.do_not_terminate_yet(y1 - y2, y2) is False
+    assert stopcrit.terminate(y1 - y2, y2) is True
     assert stopcrit.iterations == 0
 
 
@@ -51,4 +51,4 @@ def test_terminate_maxit(stopcrit, d1, d2, maxit):
     y2 = 2 * y1.copy() + 3
     stopcrit.iterations = maxit + 1
     with pytest.raises(RuntimeError):
-        stopcrit.do_not_terminate_yet(y1 - y2, y2)
+        stopcrit.terminate(y1 - y2, y2)

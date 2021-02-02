@@ -3,6 +3,7 @@
 
 import numpy as np
 
+import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
@@ -54,7 +55,7 @@ class Kalman(BayesFiltSmooth):
         use_smooth_step=rts_smooth_step_classic,
     ):
 
-        if not issubclass(type(initrv), Normal):
+        if not issubclass(type(initrv), pnrv.Normal):
             raise ValueError(
                 "Gaussian filters/smoothers need initial "
                 "random variables with Normal distribution."
@@ -101,9 +102,7 @@ class Kalman(BayesFiltSmooth):
         new_posterior = old_posterior
         new_mean = new_posterior.state_rvs.mean
         old_mean = np.inf * np.ones(new_mean.shape)
-        while stopcrit.do_not_terminate_yet(
-            error=new_mean - old_mean, reference=new_mean
-        ):
+        while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
             old_posterior = new_posterior
             new_posterior = self.filtsmooth(
                 dataset=dataset,
