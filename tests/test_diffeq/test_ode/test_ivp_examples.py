@@ -8,7 +8,7 @@ from tests.testing import NumpyAssertions
 
 
 class TestConvenienceFunction(unittest.TestCase):
-    """Test case for correct object initialization"""
+    """Test case for correct object initialization."""
 
     def setUp(self):
         self.tspan = (0.0, 4.212)
@@ -79,17 +79,25 @@ class TestConvenienceFunction(unittest.TestCase):
         self.assertIsInstance(lg3, ivp.IVP)
 
     def test_lorenz(self):
-        """Test the Lorenz model ODE convenience function. """
+        """Test the Lorenz model ODE convenience function."""
         rv = Constant(np.array([1.0, 1.0, 1.0]))
         lg1 = ivp_examples.lorenz(self.tspan, rv)
-        lg2 = ivp_examples.lorenz(self.tspan, rv, params=(10, 28, 8 / 3,))
+        lg2 = ivp_examples.lorenz(
+            self.tspan,
+            rv,
+            params=(
+                10,
+                28,
+                8 / 3,
+            ),
+        )
 
         self.assertIsInstance(lg1, ivp.IVP)
         self.assertIsInstance(lg2, ivp.IVP)
 
 
 class TestRHSEvaluation(unittest.TestCase, NumpyAssertions):
-    """Test cases that check the evaluation of IVP vector fields"""
+    """Test cases that check the evaluation of IVP vector fields."""
 
     def setUp(self):
         self.tspan = (0.0, 4.212)
@@ -144,7 +152,7 @@ class TestRHSEvaluation(unittest.TestCase, NumpyAssertions):
 
 
 class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
-    """Test cases that check Jacobians of IVPs against finite differences"""
+    """Test cases that check Jacobians of IVPs against finite differences."""
 
     def setUp(self):
         self.tspan = (0.0, 4.212)
