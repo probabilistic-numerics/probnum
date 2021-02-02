@@ -147,12 +147,10 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         real = self.precon.inverse(step) @ real
-        (
-            real,
-            info,
-        ) = self.equivalent_discretisation_preconditioned.transition_realization(
+        out = self.equivalent_discretisation_preconditioned.transition_realization(
             real, start, _diffusion=_diffusion
         )
+        real, info = out
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ real, info
 
