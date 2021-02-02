@@ -534,6 +534,8 @@ class ProbabilisticLinearSolver(
             problem=problem, belief=belief, solver_state=solver_state
         )
 
+        yield belief, None, None, solver_state
+
         while True:
 
             # Compute action via policy
