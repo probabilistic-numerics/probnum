@@ -15,7 +15,7 @@ except ImportError:
 
 import probnum.linops as linops
 import probnum.random_variables as rvs
-from probnum import ProbabilisticNumericalMethod
+from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from probnum.linalg.solvers import (
     belief_updates,
     beliefs,

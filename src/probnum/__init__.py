@@ -26,6 +26,17 @@ finite computational resources and stochastic input.
 
 from pkg_resources import DistributionNotFound, get_distribution
 
+from . import (
+    diffeq,
+    filtsmooth,
+    kernels,
+    linalg,
+    linops,
+    problems,
+    quad,
+    random_variables,
+    utils,
+)
 from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from .random_variables import asrandvar
 
