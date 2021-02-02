@@ -48,10 +48,10 @@ class Kalman(BayesFiltSmooth):
         dynamics_model,
         measurement_model,
         initrv,
-        predict=predict_via_transition,
-        measure=measure_via_transition,
-        update=update_classic,
-        smooth_step=rts_smooth_step_classic,
+        use_predict=predict_via_transition,
+        use_measure=measure_via_transition,
+        use_update=update_classic,
+        use_smooth_step=rts_smooth_step_classic,
     ):
 
         if not issubclass(type(initrv), Normal):
@@ -62,12 +62,16 @@ class Kalman(BayesFiltSmooth):
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
-        self.predict = lambda *args, **kwargs: predict(dynamics_model, *args, **kwargs)
-        self.measure = lambda *args, **kwargs: measure(
+        self.predict = lambda *args, **kwargs: use_predict(
+            dynamics_model, *args, **kwargs
+        )
+        self.measure = lambda *args, **kwargs: use_measure(
             measurement_model, *args, **kwargs
         )
-        self.update = lambda *args, **kwargs: update(measurement_model, *args, **kwargs)
-        self.smooth_step = smooth_step
+        self.update = lambda *args, **kwargs: use_update(
+            measurement_model, *args, **kwargs
+        )
+        self.smooth_step = use_smooth_step
         super().__init__(
             dynamics_model=dynamics_model,
             measurement_model=measurement_model,
