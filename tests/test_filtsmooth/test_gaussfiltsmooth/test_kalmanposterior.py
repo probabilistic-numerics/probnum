@@ -37,7 +37,6 @@ def posterior(kalman, problem):
     return kalman.filter(obs, times)
 
 
-# This will raise a warning for the extrapolation test...
 @pytest.fixture
 def posterior(kalman, problem):
     """Kalman smoothing posterior.

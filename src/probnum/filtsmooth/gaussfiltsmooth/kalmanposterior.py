@@ -85,9 +85,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             else:
                 return pred_rv
 
-        # else: t > self.locations[-1]:
-        if self._with_smoothing:
-            warn("`smoothed=True` is ignored for extrapolation.")
+        # else: t > self.locations[-1], which case we just predict.
         return self._predict_to_loc(t)
 
     def _predict_to_loc(self, loc):

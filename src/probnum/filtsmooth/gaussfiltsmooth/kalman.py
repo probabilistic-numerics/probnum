@@ -278,8 +278,6 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
-        if filter_posterior.with_smoothing is True:
-            raise ValueError("Smoothing has already been applied to this posterior.")
         rv_list = self.smooth_list(
             filter_posterior,
             filter_posterior.locations,

@@ -62,7 +62,7 @@ def kalman(problem, update):
 
 
 def test_rmse_filt_smooth(kalman, problem):
-    """Assert that smoothing beats filtering beats nothing."""
+    """Assert that iterated smoothing beats smoothing beats filtering."""
     *_, obs, times, truth = problem
 
     stopcrit = pnfs.StoppingCriterion(atol=1e-3, rtol=1e-6, maxit=10)
