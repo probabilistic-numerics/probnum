@@ -86,7 +86,6 @@ class Kalman(BayesFiltSmooth):
         filtrv, *_ = self.update(times[0], self.initrv, dataset[0])
 
         rvs.append(filtrv)
-        print(dataset.shape, times.shape)
         for idx in range(1, len(times)):
             filtrv, _ = self.filter_step(
                 start=times[idx - 1],
