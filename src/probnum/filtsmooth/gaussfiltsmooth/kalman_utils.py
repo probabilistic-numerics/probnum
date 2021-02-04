@@ -103,8 +103,8 @@ def measure_sqrt(
 
 
 def update_classic(
-    measurement_model, rv, time, data, _linearise_at=None
-) -> (pnrv.RandomVariable, pnrv.RandomVariable, typing.Dict):
+    measurement_model, data, rv, time, _linearise_at=None
+) -> (pnrv.RandomVariable, typing.Dict):
     """Compute a classic Kalman update.
 
     This is a combination of a call to measure_*() and a Gaussian
@@ -120,7 +120,7 @@ def update_classic(
     updated_rv = condition_state_on_measurement(
         pred_rv=rv, meas_rv=meas_rv, crosscov=crosscov, data=data
     )
-    return updated_rv, meas_rv, {}
+    return updated_rv, {"meas_rv": meas_rv}
 
 
 def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
@@ -134,8 +134,8 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
 
 
 def update_sqrt(
-    measurement_model, rv, time, data, _linearise_at=None
-) -> (pnrv.RandomVariable, pnrv.RandomVariable, typing.Dict):
+    measurement_model, data, rv, time, _linearise_at=None
+) -> (pnrv.RandomVariable, typing.Dict):
     r"""Compute the Kalman update in square-root form.
 
     Assumes a measurement model of the form
@@ -173,7 +173,7 @@ def update_sqrt(
     new_mean = rv.mean + kalman_gain @ (data - meas_mean)
     new_cov = postcov_cholesky @ postcov_cholesky.T
     new_rv = pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=postcov_cholesky)
-    return new_rv, meas_rv, {}
+    return new_rv, {"meas_rv": meas_rv}
 
 
 def iterate_update(update_fun, stopcrit=None):
@@ -200,7 +200,7 @@ def iterate_update(update_fun, stopcrit=None):
 
 
 def _iterated_update(
-    update_fun, stopcrit, measurement_model, rv, time, data, _linearise_at=None
+    update_fun, stopcrit, measurement_model, data, rv, time, _linearise_at=None
 ):
     """Turn an update_*() function into an iterated update.
 
@@ -208,25 +208,25 @@ def _iterated_update(
     measured with atol and rtol). Using this inside `Kalman` yields the
     iterated (extended/unscented/...) Kalman filter.
     """
-    current_rv, meas_rv, info = update_fun(
+    current_rv, info = update_fun(
         measurement_model=measurement_model,
+        data=data,
         rv=rv,
         time=time,
-        data=data,
         _linearise_at=_linearise_at,
     )
     new_mean = current_rv.mean
     old_mean = np.inf * np.ones(current_rv.mean.shape)
     while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
         old_mean = new_mean
-        current_rv, meas_rv, info = update_fun(
+        current_rv, info = update_fun(
             measurement_model=measurement_model,
+            data=data,
             rv=current_rv,
             time=time,
-            data=data,
         )
         new_mean = current_rv.mean
-    return current_rv, meas_rv, info
+    return current_rv, info
 
 
 ########################################################################################################################

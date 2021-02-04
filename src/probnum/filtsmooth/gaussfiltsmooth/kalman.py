@@ -178,9 +178,9 @@ class Kalman(BayesFiltSmooth):
             None if _previous_posterior is None else _previous_posterior(times[0])
         )
         filtrv, *_ = self.update(
+            data=dataset[0],
             rv=self.initrv,
             time=times[0],
-            data=dataset[0],
             _linearise_at=_linearise_update_at,
         )
 
@@ -260,7 +260,8 @@ class Kalman(BayesFiltSmooth):
             _linearise_at=_linearise_predict_at,
             _diffusion=_diffusion,
         )
-        filtrv, info["meas_rv"], info["info_upd"] = self.update(
+
+        filtrv, info["info_upd"] = self.update(
             rv=info["pred_rv"],
             time=stop,
             data=data,

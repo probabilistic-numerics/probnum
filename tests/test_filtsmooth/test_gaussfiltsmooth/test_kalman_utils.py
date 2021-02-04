@@ -173,8 +173,8 @@ def test_measure(measurement_model, rv1):
 def test_update(measurement_model, rv1, spatialdim):
     data = np.random.rand(spatialdim)
     start = np.random.rand()
-    result_classic, _, _ = pnfs.update_classic(measurement_model, rv1, start, data)
-    result_sqrt, _, _ = pnfs.update_sqrt(measurement_model, rv1, start, data)
+    result_classic, _ = pnfs.update_classic(measurement_model, data, rv1, start)
+    result_sqrt, _ = pnfs.update_sqrt(measurement_model, data, rv1, start)
 
     np.testing.assert_allclose(result_classic.mean, result_sqrt.mean)
     np.testing.assert_allclose(result_classic.cov, result_sqrt.cov)
