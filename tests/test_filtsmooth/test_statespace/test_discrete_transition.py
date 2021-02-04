@@ -97,8 +97,8 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
         expected = self.G(self.start)
         self.assertAllClose(received, expected)
 
-    def test_forcevector(self):
-        received = self.dtrans.forcevecfun(self.start)
+    def test_shift_vec(self):
+        received = self.dtrans.shift_vec_fun(self.start)
         expected = self.v(self.start)
         self.assertAllClose(received, expected)
 
@@ -110,18 +110,18 @@ class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
     def test_init_exceptions(self):
 
         good_dynamicsmat = np.ones((TEST_NDIM, 4 * TEST_NDIM))
-        good_forcevec = np.ones(TEST_NDIM)
+        good_shift_vec = np.ones(TEST_NDIM)
         good_diffmat = np.ones((TEST_NDIM, TEST_NDIM))
 
         with self.subTest("Baseline should work"):
             pnfss.discrete_transition.DiscreteLinearGaussian(
-                good_dynamicsmat, good_forcevec, good_diffmat
+                good_dynamicsmat, good_shift_vec, good_diffmat
             )
 
         with self.subTest("bad dynamics"):
             with self.assertRaises(TypeError):
                 pnfss.discrete_transition.DiscreteLTIGaussian(
-                    good_forcevec, good_forcevec, good_diffmat
+                    good_shift_vec, good_shift_vec, good_diffmat
                 )
 
         with self.subTest("bad force"):
@@ -133,5 +133,5 @@ class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
         with self.subTest("bad diffusion"):
             with self.assertRaises(TypeError):
                 pnfss.discrete_transition.DiscreteLTIGaussian(
-                    good_dynamicsmat, good_forcevec, good_dynamicsmat
+                    good_dynamicsmat, good_shift_vec, good_dynamicsmat
                 )

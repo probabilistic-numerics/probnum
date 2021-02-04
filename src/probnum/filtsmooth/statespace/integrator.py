@@ -89,10 +89,10 @@ class IBM(Integrator, sde.LTISDE):
     @cached_property
     def equivalent_discretisation_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
-        empty_force = np.zeros(self.spatialdim * (self.ordint + 1))
+        empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
         return discrete_transition.DiscreteLTIGaussian(
             dynamicsmat=self._dynamicsmat,
-            forcevec=empty_force,
+            shift_vec=empty_shift,
             diffmat=self._diffmat,
         )
 
@@ -172,9 +172,9 @@ class IBM(Integrator, sde.LTISDE):
             @ self.equivalent_discretisation_preconditioned.diffmat
             @ self.precon(step).T
         )
-        zero_force = np.zeros(len(dynamicsmat))
+        zero_shift = np.zeros(len(dynamicsmat))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=dynamicsmat, forcevec=zero_force, diffmat=diffmat
+            dynamicsmat=dynamicsmat, shift_vec=zero_shift, diffmat=diffmat
         )
 
 

@@ -81,7 +81,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     ----------
     state_trans_mat_fun : callable
         Dynamics function :math:`G=G(t)`. Signature: ``dynamatfct(t)``.
-    forcefct : callable
+    shift_vec_fun : callable
         Force function :math:`v=v(t)`. Signature: ``forcefct(t)``.
     diffmatfct : callable
         Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
@@ -95,16 +95,16 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     def __init__(
         self,
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
-        forcevecfun: Callable[[FloatArgType], np.ndarray],
+        shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
     ):
 
         self.state_trans_mat_fun = state_trans_mat_fun
-        self.forcevecfun = forcevecfun
+        self.shift_vec_fun = shift_vec_fun
 
         super().__init__(
             state_trans_fun=lambda t, x: (
-                self.state_trans_mat_fun(t) @ x + self.forcevecfun(t)
+                self.state_trans_mat_fun(t) @ x + self.shift_vec_fun(t)
             ),
             proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
@@ -117,9 +117,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
         state_trans_mat = self.state_trans_mat_fun(start)
         diffmat = _diffusion * self.proc_noise_cov_mat_fun(start)
-        force = self.forcevecfun(start)
+        shift = self.shift_vec_fun(start)
 
-        new_mean = state_trans_mat @ rv.mean + force
+        new_mean = state_trans_mat @ rv.mean + shift
         new_crosscov = rv.cov @ state_trans_mat.T
         new_cov = state_trans_mat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
@@ -145,7 +145,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     ----------
     dynamat :
         Dynamics matrix :math:`G`.
-    forcevec :
+    shift_vec :
         Force vector :math:`v`.
     diffmat :
         Diffusion matrix :math:`S`.
@@ -162,42 +162,42 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     """
 
     def __init__(
-        self, dynamicsmat: np.ndarray, forcevec: np.ndarray, diffmat: np.ndarray
+        self, dynamicsmat: np.ndarray, shift_vec: np.ndarray, diffmat: np.ndarray
     ):
-        _check_dimensions(dynamicsmat, forcevec, diffmat)
+        _check_dimensions(dynamicsmat, shift_vec, diffmat)
 
         super().__init__(
             lambda t: dynamicsmat,
-            lambda t: forcevec,
+            lambda t: shift_vec,
             lambda t: diffmat,
         )
 
         self.dynamicsmat = dynamicsmat
-        self.forcevec = forcevec
+        self.shift_vec = shift_vec
         self.diffmat = diffmat
 
 
-def _check_dimensions(dynamicsmat, forcevec, diffmat):
+def _check_dimensions(dynamicsmat, shift_vec, diffmat):
     if dynamicsmat.ndim != 2:
         raise TypeError(
             f"dynamat.ndim=2 expected. dynamat.ndim={dynamicsmat.ndim} received."
         )
-    if forcevec.ndim != 1:
+    if shift_vec.ndim != 1:
         raise TypeError(
-            f"forcevec.ndim=1 expected. forcevec.ndim={forcevec.ndim} received."
+            f"shift_vec.ndim=1 expected. shift_vec.ndim={shift_vec.ndim} received."
         )
     if diffmat.ndim != 2:
         raise TypeError(
             f"diffmat.ndim=2 expected. diffmat.ndim={diffmat.ndim} received."
         )
     if (
-        dynamicsmat.shape[0] != forcevec.shape[0]
-        or forcevec.shape[0] != diffmat.shape[0]
+        dynamicsmat.shape[0] != shift_vec.shape[0]
+        or shift_vec.shape[0] != diffmat.shape[0]
         or diffmat.shape[0] != diffmat.shape[1]
     ):
         raise TypeError(
             f"Dimension of dynamat, forcevec and diffmat do not align. "
             f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
-            f"Received: dynamat.shape={dynamicsmat.shape}, forcevec.shape={forcevec.shape}, "
+            f"Received: dynamat.shape={dynamicsmat.shape}, forcevec.shape={shift_vec.shape}, "
             f"diffmat.shape={diffmat.shape}."
         )
