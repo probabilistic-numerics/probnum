@@ -81,7 +81,7 @@ class DiscreteEKFComponent(statespace.Transition):
         )
 
     def transition_rv(self, rv, start, _linearise_at=None, _diffusion=1.0, **kwargs):
-        diffmat = self.disc_model.diffmatfun(start)
+        diffmat = self.disc_model.proc_noise_cov_mat_fun(start)
         compute_jacobian_at = (
             _linearise_at.mean if _linearise_at is not None else rv.mean
         )

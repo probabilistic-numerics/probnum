@@ -58,7 +58,7 @@ class DiscreteUKFComponent(statespace.Transition):
             compute_sigmapts_at.mean, compute_sigmapts_at.cov
         )
         proppts = self.ut.propagate(start, sigmapts, self.disc_model.state_trans_fun)
-        meascov = _diffusion * self.disc_model.diffmatfun(start)
+        meascov = _diffusion * self.disc_model.proc_noise_cov_mat_fun(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, sigmapts, meascov, rv.mean
         )

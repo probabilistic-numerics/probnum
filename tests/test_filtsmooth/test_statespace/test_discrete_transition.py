@@ -37,8 +37,8 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         expected = self.g(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
-    def test_diffusionmatrix(self):
-        received = self.dtrans.diffmatfun(self.start)
+    def test_proc_noise_cov(self):
+        received = self.dtrans.proc_noise_cov_mat_fun(self.start)
         expected = self.S(self.start)
         self.assertAllClose(received, expected)
 

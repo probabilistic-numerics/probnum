@@ -21,7 +21,7 @@ class DiscreteGaussian(trans.Transition):
     ----------
     state_trans_fun :
         Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
-    diffmatfun :
+    proc_noise_cov_mat_fun :
         Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
     jacobfun :
         Jacobian of the dynamics function :math:`g`, :math:`Jg=Jg(t, x)`.
@@ -36,11 +36,11 @@ class DiscreteGaussian(trans.Transition):
     def __init__(
         self,
         state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        diffmatfun: Callable[[FloatArgType], np.ndarray],
+        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
         jacobfun: Optional[Callable[[FloatArgType, np.ndarray], np.ndarray]] = None,
     ):
         self.state_trans_fun = state_trans_fun
-        self.diffmatfun = diffmatfun
+        self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
 
         def if_no_jacobian(t, x):
             raise NotImplementedError
@@ -51,7 +51,7 @@ class DiscreteGaussian(trans.Transition):
     def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
 
         newmean = self.state_trans_fun(start, real)
-        newcov = _diffusion * self.diffmatfun(start)
+        newcov = _diffusion * self.proc_noise_cov_mat_fun(start)
         crosscov = np.zeros(newcov.shape)
         return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
 
@@ -88,7 +88,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         self,
         dynamicsmatfun: Callable[[FloatArgType], np.ndarray],
         forcevecfun: Callable[[FloatArgType], np.ndarray],
-        diffmatfun: Callable[[FloatArgType], np.ndarray],
+        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
     ):
 
         self.dynamicsmatfun = dynamicsmatfun
@@ -98,7 +98,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             state_trans_fun=lambda t, x: (
                 self.dynamicsmatfun(t) @ x + self.forcevecfun(t)
             ),
-            diffmatfun=diffmatfun,
+            proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
             jacobfun=lambda t, x: dynamicsmatfun(t),
         )
 
@@ -108,7 +108,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
 
         dynamicsmat = self.dynamicsmatfun(start)
-        diffmat = _diffusion * self.diffmatfun(start)
+        diffmat = _diffusion * self.proc_noise_cov_mat_fun(start)
         force = self.forcevecfun(start)
 
         new_mean = dynamicsmat @ rv.mean + force
