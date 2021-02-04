@@ -86,7 +86,7 @@ class DiscreteEKFComponent(statespace.Transition):
             _linearise_at.mean if _linearise_at is not None else rv.mean
         )
         jacob = self.disc_model.jacobfun(start, compute_jacobian_at)
-        mpred = self.disc_model.dynamicsfun(start, rv.mean)
+        mpred = self.disc_model.state_trans_fun(start, rv.mean)
         crosscov = rv.cov @ jacob.T
         cpred = jacob @ crosscov + _diffusion * diffmat
         return pnrv.Normal(mpred, cpred), {"crosscov": crosscov}

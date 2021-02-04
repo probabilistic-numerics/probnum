@@ -33,7 +33,7 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         self.dg = dg
 
     def test_dynamics(self):
-        received = self.dtrans.dynamicsfun(self.start, self.some_rv.mean)
+        received = self.dtrans.state_trans_fun(self.start, self.some_rv.mean)
         expected = self.g(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
