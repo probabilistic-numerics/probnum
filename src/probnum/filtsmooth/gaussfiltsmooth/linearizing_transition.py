@@ -8,23 +8,21 @@ import typing
 
 import numpy as np
 
-import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 import probnum.type as pntype
+from probnum.filtsmooth import statespace
 
 
 # Naming may be an overfit to EKF, but the next more general name that admits UKF
 # would be something like "ApproximateTransition" which says less than LinearizingTransition?
-class LinearizingTransition(pnfss.Transition, abc.ABC):
+class LinearizingTransition(statespace.Transition, abc.ABC):
     """Approximation of a transition that makes transitioning RVs tractable.
 
     Joint interface for extended Kalman filtering and unscented Kalman
     filtering.
     """
 
-    def __init__(
-        self, non_linear_model: typing.Union[pnfss.SDE, pnfss.DiscreteGaussian]
-    ) -> None:
+    def __init__(self, non_linear_model) -> None:
         self.non_linear_model = non_linear_model
         super().__init__()
 
