@@ -93,7 +93,7 @@ class IBM(Integrator, sde.LTISDE):
         return discrete_transition.DiscreteLTIGaussian(
             dynamicsmat=self._dynamicsmat,
             shift_vec=empty_shift,
-            diffmat=self._diffmat,
+            proc_noise_cov_mat=self._proc_noise_cov_mat,
         )
 
     @cached_property
@@ -111,12 +111,12 @@ class IBM(Integrator, sde.LTISDE):
         return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
     @cached_property
-    def _diffmat(self):
+    def _proc_noise_cov_mat(self):
         # Optimised with broadcasting
         range = np.arange(0, self.ordint + 1)
         denominators = 2.0 * self.ordint + 1.0 - range[:, None] - range[None, :]
-        diffmat_1d = 1.0 / denominators
-        return np.kron(np.eye(self.spatialdim), diffmat_1d)
+        proc_noise_cov_mat_1d = 1.0 / denominators
+        return np.kron(np.eye(self.spatialdim), proc_noise_cov_mat_1d)
 
     def transition_rv(self, rv, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(rv, pnrv.Normal):
@@ -167,14 +167,16 @@ class IBM(Integrator, sde.LTISDE):
             @ self.equivalent_discretisation_preconditioned.dynamicsmat
             @ self.precon.inverse(step)
         )
-        diffmat = (
+        proc_noise_cov_mat = (
             self.precon(step)
-            @ self.equivalent_discretisation_preconditioned.diffmat
+            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
             @ self.precon(step).T
         )
         zero_shift = np.zeros(len(dynamicsmat))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=dynamicsmat, shift_vec=zero_shift, diffmat=diffmat
+            dynamicsmat=dynamicsmat,
+            shift_vec=zero_shift,
+            proc_noise_cov_mat=proc_noise_cov_mat,
         )
 
 

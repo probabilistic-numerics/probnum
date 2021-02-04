@@ -147,7 +147,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         Dynamics matrix :math:`G`.
     shift_vec :
         Force vector :math:`v`.
-    diffmat :
+    proc_noise_cov_mat :
         Diffusion matrix :math:`S`.
 
     Raises
@@ -162,22 +162,25 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     """
 
     def __init__(
-        self, dynamicsmat: np.ndarray, shift_vec: np.ndarray, diffmat: np.ndarray
+        self,
+        dynamicsmat: np.ndarray,
+        shift_vec: np.ndarray,
+        proc_noise_cov_mat: np.ndarray,
     ):
-        _check_dimensions(dynamicsmat, shift_vec, diffmat)
+        _check_dimensions(dynamicsmat, shift_vec, proc_noise_cov_mat)
 
         super().__init__(
             lambda t: dynamicsmat,
             lambda t: shift_vec,
-            lambda t: diffmat,
+            lambda t: proc_noise_cov_mat,
         )
 
         self.dynamicsmat = dynamicsmat
         self.shift_vec = shift_vec
-        self.diffmat = diffmat
+        self.proc_noise_cov_mat = proc_noise_cov_mat
 
 
-def _check_dimensions(dynamicsmat, shift_vec, diffmat):
+def _check_dimensions(dynamicsmat, shift_vec, proc_noise_cov_mat):
     if dynamicsmat.ndim != 2:
         raise TypeError(
             f"dynamat.ndim=2 expected. dynamat.ndim={dynamicsmat.ndim} received."
@@ -186,18 +189,18 @@ def _check_dimensions(dynamicsmat, shift_vec, diffmat):
         raise TypeError(
             f"shift_vec.ndim=1 expected. shift_vec.ndim={shift_vec.ndim} received."
         )
-    if diffmat.ndim != 2:
+    if proc_noise_cov_mat.ndim != 2:
         raise TypeError(
-            f"diffmat.ndim=2 expected. diffmat.ndim={diffmat.ndim} received."
+            f"proc_noise_cov_mat.ndim=2 expected. proc_noise_cov_mat.ndim={proc_noise_cov_mat.ndim} received."
         )
     if (
         dynamicsmat.shape[0] != shift_vec.shape[0]
-        or shift_vec.shape[0] != diffmat.shape[0]
-        or diffmat.shape[0] != diffmat.shape[1]
+        or shift_vec.shape[0] != proc_noise_cov_mat.shape[0]
+        or proc_noise_cov_mat.shape[0] != proc_noise_cov_mat.shape[1]
     ):
         raise TypeError(
             f"Dimension of dynamat, forcevec and diffmat do not align. "
             f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
             f"Received: dynamat.shape={dynamicsmat.shape}, forcevec.shape={shift_vec.shape}, "
-            f"diffmat.shape={diffmat.shape}."
+            f"proc_noise_cov_mat.shape={proc_noise_cov_mat.shape}."
         )
