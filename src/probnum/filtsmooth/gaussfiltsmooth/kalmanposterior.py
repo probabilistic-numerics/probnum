@@ -3,8 +3,6 @@
 Contains the discrete time and function outputs. Provides dense output
 by being callable. Can function values can also be accessed by indexing.
 """
-from warnings import warn
-
 import numpy as np
 
 import probnum.random_variables as rvs
@@ -85,9 +83,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             else:
                 return pred_rv
 
-        # else: t > self.locations[-1]:
-        if self._with_smoothing:
-            warn("`smoothed=True` is ignored for extrapolation.")
+        # else: t > self.locations[-1], which case we just predict.
         return self._predict_to_loc(t)
 
     def _predict_to_loc(self, loc):
@@ -114,10 +110,9 @@ class KalmanPosterior(FiltSmoothPosterior):
             stop=next_loc,
         )
         crosscov = info["crosscov"]
-        smoothing_gain = crosscov @ np.linalg.inv(predicted_future_rv.cov)
 
-        curr_rv, _ = self.smooth_step(
-            pred_rv, predicted_future_rv, next_rv, smoothing_gain
+        curr_rv, _ = self.gauss_filter.smooth_step(
+            pred_rv, predicted_future_rv, next_rv, crosscov
         )
         return curr_rv
 
@@ -164,10 +159,9 @@ class KalmanPosterior(FiltSmoothPosterior):
                 stop=locations[idx],
             )
             crosscov = info["crosscov"]
-            smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
 
             curr_rv, _ = self.gauss_filter.smooth_step(
-                unsmoothed_rv, predicted_rv, curr_rv, smoothing_gain
+                unsmoothed_rv, predicted_rv, curr_rv, crosscov
             )
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)

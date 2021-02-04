@@ -1,11 +1,12 @@
 """Prediction, update, and smoothing implementations for the Kalman filter/smoother."""
 
-import functools as ft
 import typing
 
 import numpy as np
 
 import probnum.random_variables as pnrv
+
+from .stoppingcriterion import StoppingCriterion
 
 ########################################################################################################################
 # Prediction choices
@@ -78,6 +79,7 @@ def update_classic(
 
 
 def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
+    """Condition a Gaussian random variable on an observation."""
     new_mean = pred_rv.mean + crosscov @ np.linalg.solve(
         meas_rv.cov, data - meas_rv.mean
     )
@@ -86,9 +88,22 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
     return updated_rv
 
 
-# Basically a decorator (but not quite?).
-def iterate_update(update_fun, stopcrit):
-    """"""
+def iterate_update(update_fun, stopcrit=None):
+    """Iterated update decorator.
+
+    Examples
+    --------
+    >>> import functools as ft
+    >>>
+    >>> # default stopping
+    >>> iter_upd_default = iterate_update(update_classic)
+    >>>
+    >>> # Custom stopping
+    >>> stopcrit = StoppingCriterion(atol=1e-12, rtol=1e-14, maxit=1000)
+    >>> iter_upd_custom = iterate_update(update_fun=update_classic, stopcrit=stopcrit)
+    """
+    if stopcrit is None:
+        stopcrit = StoppingCriterion()
 
     def new_update_fun(*args, **kwargs):
         return _iterated_update(update_fun, stopcrit, *args, **kwargs)
@@ -101,15 +116,9 @@ def _iterated_update(
 ):
     """Turn an update_*() function into an iterated update.
 
-    This iteration is continued until it reaches a fixed-point (as measured with atol and rtol).
-    Using this inside `Kalman` yields the iterated (extended/unscented/...) Kalman filter.
-
-    Examples
-    --------
-    >>> import functools as ft
-    >>>
-    >>> stopcrit = StoppingCriterion(atol=1e-2, rtol=1e-4, maxit=1000)
-    >>> iterated_update_classic = ft.partial(iterated_update, update_fun=update_classic, stopcrit=stopcrit)
+    This iteration is continued until it reaches a fixed-point (as
+    measured with atol and rtol). Using this inside `Kalman` yields the
+    iterated (extended/unscented/...) Kalman filter.
     """
     current_rv, meas_rv, info = update_fun(
         measurement_model=measurement_model,
@@ -136,29 +145,35 @@ def _iterated_update(
 # Smoothing choices
 ########################################################################################################################
 
-# Maybe this can be done more cleanly with a decorator.
-# For the time being I think this is sufficiently clean though.
-def rts_smooth_step_with_precon(
+
+def rts_add_precon(smooth_step_fun):
+    """Make a RTS smoothing step respect preconditioning.
+
+    This is only available for Integrators.
+
+    Examples
+    --------
+    >>> step_with_precon = rts_add_precon(rts_smooth_step_classic)
+    """
+
+    def new_smoothing_function(*args, **kwargs):
+        return _rts_smooth_step_with_precon(smooth_step_fun, *args, **kwargs)
+
+    return new_smoothing_function
+
+
+def _rts_smooth_step_with_precon(
     smooth_step_fun,
-    precon,
-    precon_inv,
     unsmoothed_rv,
     predicted_rv,
     smoothed_rv,
-    smoothing_gain,
+    crosscov,
     dynamics_model=None,
     start=None,
     stop=None,
 ):
-    """Execute a smoothing step with preconditioning.
+    """Execute a smoothing step with preconditioning."""
 
-    Examples
-    --------
-    >>> import functools as ft
-    >>> rts_smooth_step_classic_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_classic)
-    >>> rts_smooth_step_joseph_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_joseph)
-    >>> rts_smooth_step_sqrt_with_precon = ft.partial(rts_smooth_step_with_precon, smooth_step_fun=rts_smooth_step_sqrt)
-    """
     # Assemble preconditioners
     dt = stop - start
     precon = dynamics_model.precon(dt)
@@ -168,19 +183,17 @@ def rts_smooth_step_with_precon(
     unsmoothed_rv = precon_inv @ unsmoothed_rv
     predicted_rv = precon_inv @ predicted_rv
     smoothed_rv = precon_inv @ smoothed_rv
-    smoothing_gain = np.nan
-    print("What needs to happen to the smoothing gain???")
-    assert True is False
+    crosscov = precon_inv @ crosscov @ precon_inv.T
 
-    # Undo preconditioning
-    updated_rv = smooth_step_fun(
+    # Carry out the smoothing step
+    updated_rv, _ = smooth_step_fun(
         unsmoothed_rv,
         predicted_rv,
         smoothed_rv,
-        smoothing_gain,
-        dynamics_model=None,
-        start=None,
-        stop=None,
+        crosscov,
+        dynamics_model=dynamics_model,
+        start=start,
+        stop=stop,
     )
     new_rv = precon @ updated_rv
     return new_rv, {}
@@ -190,11 +203,13 @@ def rts_smooth_step_classic(
     unsmoothed_rv,
     predicted_rv,
     smoothed_rv,
-    smoothing_gain,
+    crosscov,
     dynamics_model=None,
     start=None,
     stop=None,
 ) -> (pnrv.RandomVariable, typing.Dict):
+    """Compute a classical Rauch-Tung-Striebel smoothing step."""
+    smoothing_gain = crosscov @ np.linalg.inv(predicted_rv.cov)
     new_mean = unsmoothed_rv.mean + smoothing_gain @ (
         smoothed_rv.mean - predicted_rv.mean
     )

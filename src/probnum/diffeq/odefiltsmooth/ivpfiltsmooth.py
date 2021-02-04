@@ -64,8 +64,8 @@ class GaussianIVPFilter(ODESolver):
 
         # 4. Update
         zero_data = 0.0
-        filt_rv = self.gfilt.condition_state_on_measurement(
-            pred_rv, meas_rv, zero_data, info["crosscov"]
+        filt_rv = pnfs.condition_state_on_measurement(
+            pred_rv, meas_rv, info["crosscov"], zero_data
         )
 
         # 5. Error estimate
@@ -132,7 +132,7 @@ class GaussianIVPFilter(ODESolver):
             Statistics and Computing, 2019.
         """
         local_pred_rv = Normal(pred_rv.mean, calibrated_proc_noise_cov)
-        local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv)
+        local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
         error = local_meas_rv.cov.diagonal()
         return np.sqrt(error)
 

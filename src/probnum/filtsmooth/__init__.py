@@ -7,19 +7,23 @@ from .gaussfiltsmooth import (
     ContinuousUKFComponent,
     DiscreteEKFComponent,
     DiscreteUKFComponent,
-    IteratedKalman,
     Kalman,
     KalmanPosterior,
     StoppingCriterion,
     UnscentedTransform,
+    condition_state_on_measurement,
     iterate_update,
+    measure_via_transition,
+    predict_via_transition,
+    rts_add_precon,
+    rts_smooth_step_classic,
     update_classic,
 )
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
+    "BayesFiltSmooth",
     "Kalman",
-    "IteratedKalman",
     "ContinuousEKFComponent",
     "DiscreteEKFComponent",
     "ContinuousUKFComponent",
@@ -28,6 +32,11 @@ __all__ = [
     "FiltSmoothPosterior",
     "KalmanPosterior",
     "StoppingCriterion",
+    "predict_via_transition",
+    "measure_via_transition",
     "update_classic",
+    "condition_state_on_measurement",
     "iterate_update",
+    "rts_add_precon",
+    "rts_smooth_step_classic",
 ]
