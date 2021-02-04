@@ -3,8 +3,9 @@ import unittest
 
 import numpy as np
 
+import probnum.diffeq as pnd  # ODE problem as test function
 import probnum.filtsmooth as pnfs
-from probnum.random_variables import Normal
+from probnum.random_variables import Constant, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [
@@ -52,7 +53,7 @@ def car_tracking():
         state_trans_mat=measmat, shift_vec=np.zeros(2), proc_noise_cov_mat=measdiff
     )
     initrv = Normal(mean, cov)
-    return dynmod, measmod, initrv, {"dt": delta_t}
+    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
 
 
 class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
@@ -93,7 +94,7 @@ def ornstein_uhlenbeck():
         proc_noise_cov_mat=r * np.eye(1),
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
-    return dynmod, measmod, initrv, {"dt": delta_t}
+    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
 
 
 class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
@@ -150,7 +151,27 @@ def pendulum():
     dynamod = pnfs.statespace.DiscreteGaussian(f, lambda t: q, df)
     measmod = pnfs.statespace.DiscreteGaussian(h, lambda t: r, dh)
     initrv = Normal(initmean, initcov)
-    return dynamod, measmod, initrv, {"dt": delta_t}
+    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
+
+
+def logistic_ode():
+
+    # Below is for consistency with pytest & unittest.
+    # Without a seed, unittest passes but pytest fails.
+    # I tried multiple seeds, they all work equally well.
+    np.random.seed(12345)
+    delta_t = 0.2
+    tmax = 2
+
+    logistic = pnd.logistic((0, tmax), initrv=Constant(0.1), params=(6, 1))
+    dynamod = pnfs.statespace.IBM(ordint=3, spatialdim=1)
+    measmod = pnfs.DiscreteEKFComponent.from_ode(logistic, dynamod, 0.0, ek0_or_ek1=1)
+
+    initmean = np.array([0.1, 0, 0.0, 0.0])
+    initcov = np.diag([0.0, 1.0, 1.0, 1.0])
+    initrv = Normal(initmean, initcov)
+
+    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": tmax, "ode": logistic}
 
 
 class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):

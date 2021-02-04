@@ -24,6 +24,16 @@ class Integrator:
     def __init__(self, ordint, spatialdim):
         self.ordint = ordint
         self.spatialdim = spatialdim
+        self.precon = None  # to be set later
+
+    def setup_precon(self):
+        # This can not be done in the init, due to the order in which
+        # IBM, IOUP, and Matern initialise their superclasses.
+        # Integrator needs to be initialised before LTISDE,
+        # in which case via LTISDE, self.precon is set to None
+        # To make up for this, we call this function here explicitly
+        # after the calls to the superclasses' init.
+        self.precon = NordsieckLikeCoordinates.from_order(self.ordint, self.spatialdim)
 
     def proj2coord(self, coord: int) -> np.ndarray:
         """Projection matrix to :math:`i` th coordinates.
@@ -67,8 +77,7 @@ class IBM(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
-
-        self.precon = NordsieckLikeCoordinates.from_order(ordint, spatialdim)
+        self.setup_precon()
 
     @property
     def _driftmat(self):
@@ -127,32 +136,23 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(errormsg)
         step = stop - start
         rv = self.precon.inverse(step) @ rv
-        rv, info = self.transition_rv_preconditioned(rv, start, _diffusion=_diffusion)
-        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
-        return self.precon(step) @ rv, info
-
-    def transition_rv_preconditioned(self, rv, start, _diffusion=1.0, **kwargs):
-        return self.equivalent_discretisation_preconditioned.transition_rv(
+        rv, info = self.equivalent_discretisation_preconditioned.transition_rv(
             rv, start, _diffusion=_diffusion
         )
+        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
+        return self.precon(step) @ rv, info
 
     def transition_realization(self, real, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         real = self.precon.inverse(step) @ real
-        real, info = self.transition_realization_preconditioned(
+        out = self.equivalent_discretisation_preconditioned.transition_realization(
             real, start, _diffusion=_diffusion
         )
+        real, info = out
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ real, info
-
-    def transition_realization_preconditioned(
-        self, real, start, _diffusion=1.0, **kwargs
-    ):
-        return self.equivalent_discretisation_preconditioned.transition_realization(
-            real, start, _diffusion=_diffusion
-        )
 
     def discretise(self, step):
         """Equivalent discretisation of the process.
@@ -199,6 +199,7 @@ class IOUP(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
+        self.setup_precon()
 
     @property
     def _driftmat(self):
@@ -228,7 +229,6 @@ class Matern(Integrator, sde.LTISDE):
         lengthscale: float,
     ):
 
-        # Other than previously in ProbNum, we do not use preconditioning for Matern by default.
         self.lengthscale = lengthscale
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
@@ -238,6 +238,7 @@ class Matern(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
+        self.setup_precon()
 
     @property
     def _driftmat(self):

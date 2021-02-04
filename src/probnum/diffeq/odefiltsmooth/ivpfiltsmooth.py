@@ -48,10 +48,10 @@ class GaussianIVPFilter(ODESolver):
         proc_noise_cov = discrete_dynamics.proc_noise_cov_mat
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv)
+        pred_rv, _ = self.gfilt.predict(rv=current_rv, start=t, stop=t_new)
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
+        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
 
         # 3. Estimate the diffusion (sigma squared)
         self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
@@ -60,12 +60,12 @@ class GaussianIVPFilter(ODESolver):
             pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * proc_noise_cov
         )
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
+        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
 
         # 4. Update
         zero_data = 0.0
-        filt_rv = self.gfilt.condition_state_on_measurement(
-            pred_rv, meas_rv, zero_data, info["crosscov"]
+        filt_rv = pnfs.condition_state_on_measurement(
+            pred_rv, meas_rv, info["crosscov"], zero_data
         )
 
         # 5. Error estimate
@@ -132,7 +132,7 @@ class GaussianIVPFilter(ODESolver):
             Statistics and Computing, 2019.
         """
         local_pred_rv = Normal(pred_rv.mean, calibrated_proc_noise_cov)
-        local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv)
+        local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
         error = local_meas_rv.cov.diagonal()
         return np.sqrt(error)
 
