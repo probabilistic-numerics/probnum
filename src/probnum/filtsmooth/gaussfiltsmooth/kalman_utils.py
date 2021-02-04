@@ -4,6 +4,7 @@ import typing
 
 import numpy as np
 
+import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 
 from .extendedkalman import DiscreteEKFComponent
@@ -35,6 +36,29 @@ def predict_via_transition(
     )
 
 
+def predict_sqrt(
+    dynamics_model,
+    start,
+    stop,
+    rv,
+    _intermediate_step=None,
+    _linearise_at=None,
+    _diffusion=1.0,
+) -> (pnrv.RandomVariable, typing.Dict):
+    """Compute the prediction in square-root form."""
+    H, SR, shift = linear_system_matrices(
+        dynamics_model, rv, start, stop, _linearise_at
+    )
+
+    new_mean = H @ rv.mean + shift
+    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, SR)
+    new_cov = new_cov_cholesky @ new_cov_cholesky.T
+    crosscov = rv.cov @ H.T
+    return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
+        "crosscov": crosscov
+    }
+
+
 ########################################################################################################################
 # Measure choices
 ########################################################################################################################
@@ -53,6 +77,26 @@ def measure_via_transition(
     )
 
 
+def measure_sqrt(
+    measurement_model,
+    rv,
+    time,
+    _linearise_at=None,
+) -> (pnrv.RandomVariable, typing.Dict):
+    """Compute the prediction in square-root form."""
+    H, SR, shift = linear_system_matrices(
+        measurement_model, rv, time, None, _linearise_at
+    )
+
+    new_mean = H @ rv.mean + shift
+    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, SR)
+    new_cov = new_cov_cholesky @ new_cov_cholesky.T
+    crosscov = rv.cov @ H.T
+    return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
+        "crosscov": crosscov
+    }
+
+
 ########################################################################################################################
 # Update choices
 ########################################################################################################################
@@ -60,7 +104,7 @@ def measure_via_transition(
 
 def update_classic(
     measurement_model, rv, time, data, _linearise_at=None
-) -> (pnrv.RandomVariable, typing.Dict):
+) -> (pnrv.RandomVariable, pnrv.RandomVariable, typing.Dict):
     """Compute a classic Kalman update.
 
     This is a combination of a call to measure_*() and a Gaussian
@@ -89,10 +133,9 @@ def condition_state_on_measurement(pred_rv, meas_rv, crosscov, data):
     return updated_rv
 
 
-# Perhaps `SR` can be made optional, too...
-def sqrt_kalman_update(
+def update_sqrt(
     measurement_model, rv, time, data, _linearise_at=None
-) -> (pnrv.RandomVariable, typing.Dict):
+) -> (pnrv.RandomVariable, pnrv.RandomVariable, typing.Dict):
     r"""Compute the Kalman update in square-root form.
 
     Assumes a measurement model of the form
@@ -104,18 +147,9 @@ def sqrt_kalman_update(
     See Eq. 48 in
     https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.1059&rep=rep1&type=pdf.
     """
-    if isinstance(measurement_model, DiscreteEKFComponent):
-        compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
-
-        measurement_model.linearize(compute_jacobian_at)
-        H = measurement_model.linearized_model.state_trans_mat_fun(time)
-        SR = measurement_model.linearized_model.proc_noise_cov_cholesky_fun(time)
-        shift = measurement_model.linearized_model.shift_vec_fun(time)
-    else:
-        H = measurement_model.state_trans_mat_fun(time)
-        SR = measurement_model.proc_noise_cov_cholesky_fun(time)
-        shift = measurement_model.shift_vec_fun(time)
-
+    H, SR, shift = linear_system_matrices(
+        measurement_model, rv, time, None, _linearise_at
+    )
     SC = rv.cov_cholesky
 
     zeros = np.zeros(H.T.shape)
@@ -274,6 +308,58 @@ def rts_smooth_step_classic(
     return pnrv.Normal(new_mean, new_cov), {}
 
 
+def rts_smooth_step_sqrt(
+    unsmoothed_rv,
+    predicted_rv,
+    smoothed_rv,
+    crosscov,
+    dynamics_model=None,
+    start=None,
+    stop=None,
+) -> (pnrv.RandomVariable, typing.Dict):
+    r"""Smoothing step in square-root form.
+
+    Assumes a prior dynamic model of the form
+
+        .. math:: x \\mapsto N(A x, Q).
+
+    For the mathematical justification of this step, see Eq. 45 in
+    https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.1059&rep=rep1&type=pdf.
+    """
+    A, SQ, shift = linear_system_matrices(dynamics_model, None, start, stop, None)
+    SC_past = unsmoothed_rv.cov_cholesky
+    SC_futu = smoothed_rv.cov_cholesky
+    G = crosscov @ np.linalg.inv(predicted_rv.cov)
+
+    dim = len(A)
+    zeros = np.zeros((dim, dim))
+    blockmat = np.block(
+        [
+            [SC_past.T @ A.T, SC_past.T],
+            [SQ.T, zeros],
+            [zeros, SC_futu.T @ G.T],
+        ]
+    )
+    big_triu = np.linalg.qr(blockmat, mode="r")
+    SC = big_triu[dim : 2 * dim, dim:]
+    return triu_to_positive_tril(SC)
+
+
+def linear_system_matrices(model, rv, start, stop, _linearise_at):
+    """Extract the linear system matrices from Transition objects in order to apply
+    square-root steps."""
+    if isinstance(model, pnfss.LTISDE):
+        model = model.discretise(stop - start)
+    elif isinstance(model, DiscreteEKFComponent):
+        compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
+        model.linearize(compute_jacobian_at)
+        model = model.linearized_model
+    H = model.state_trans_mat_fun(start)
+    SR = model.proc_noise_cov_cholesky_fun(start)
+    shift = model.shift_vec_fun(start)
+    return H, SR, shift
+
+
 # used for predict() and measure(), but more general than that,
 # so it has a more general name than the functions below.
 def cholesky_update(
@@ -291,52 +377,9 @@ def cholesky_update(
     if S2 is not None:
         stacked_up = np.vstack((S1.T, S2.T))
     else:
-        stacked_up = np.vstack((S1.T))
+        stacked_up = np.vstack(S1.T)
     upper_sqrtm = np.linalg.qr(stacked_up, mode="r")
     return triu_to_positive_tril(upper_sqrtm)
-
-
-def sqrt_smoothing_step(
-    SC_past: np.ndarray,
-    A: np.ndarray,
-    SQ: np.ndarray,
-    SC_futu: np.ndarray,
-    G: np.ndarray,
-) -> np.ndarray:
-    r"""Smoothing step in square-root form.
-
-    Assumes a prior dynamic model of the form
-
-        .. math:: x \\mapsto N(A x, Q).
-
-    For the mathematical justification of this step, see Eq. 45 in
-    https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.1059&rep=rep1&type=pdf.
-
-    Parameters
-    ----------
-    SC_past
-        Square root of the filtered (not yet smoothed) covariance at time :math:`t_n`.
-    A
-        Dynamics matrix :math:`A`.
-    SQ
-        Square root of the diffusion matrix :math:`Q`, `Q=SQ SQ.T`.
-    SC_futu
-        Square root of the smoothed covariance at time :math:`t_{n+1}`.
-    G
-        Smoothing gain.
-    """
-    dim = len(A)
-    zeros = np.zeros((dim, dim))
-    blockmat = np.block(
-        [
-            [SC_past.T @ A.T, SC_past.T],
-            [SQ.T, zeros],
-            [zeros, SC_futu.T @ G.T],
-        ]
-    )
-    big_triu = np.linalg.qr(blockmat, mode="r")
-    SC = big_triu[dim : 2 * dim, dim:]
-    return triu_to_positive_tril(SC)
 
 
 def triu_to_positive_tril(triu_mat: np.ndarray) -> np.ndarray:
