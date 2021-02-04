@@ -68,12 +68,12 @@ def crosscov(ordint, spatialdim):
 
 @pytest.fixture
 def dt():
-    return 0.1 + 0.1 * np.random.rand()
+    return 1e1 + 1e1 * np.random.rand()
 
 
 @pytest.fixture
 def dt():
-    return 1e-2 + 1e-2 * np.random.rand()
+    return 1e-1 + 1e-1 * np.random.rand()
 
 
 @pytest.fixture
