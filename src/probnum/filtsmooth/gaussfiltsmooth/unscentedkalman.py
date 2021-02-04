@@ -9,7 +9,6 @@ import typing
 
 import numpy as np
 
-import probnum.diffeq  # for type annotation in DiscreteEKFComponent.from_ode
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 import probnum.type as pntype
@@ -23,7 +22,7 @@ class UKFComponent(LinearizingTransition):
 
     def __init__(
         self,
-        non_linear_model: typing.Union[pnfss.SDE, pnfss.DiscreteGaussian],
+        non_linear_model,
         dimension: pntype.IntArgType,
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
@@ -46,7 +45,7 @@ class ContinuousUKFComponent(UKFComponent):
 
     def __init__(
         self,
-        non_linear_model: pnfss.SDE,
+        non_linear_model,
         dimension: pntype.IntArgType,
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
@@ -98,7 +97,7 @@ class DiscreteUKFComponent(UKFComponent):
 
     def __init__(
         self,
-        non_linear_model: pnfss.DiscreteGaussian,
+        non_linear_model,
         dimension: pntype.IntArgType,
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
@@ -148,10 +147,10 @@ class DiscreteUKFComponent(UKFComponent):
     @classmethod
     def from_ode(
         cls,
-        ode: "probnum.diffeq.ODE",  # we don't want to import probnum.diffeq here
-        prior: pnfss.LinearSDE,
-        evlvar: pntype.FloatArgType,
-    ) -> "DiscreteUKFComponent":
+        ode,
+        prior,
+        evlvar,
+    ):
 
         spatialdim = prior.spatialdim
         h0 = prior.proj2coord(coord=0)
