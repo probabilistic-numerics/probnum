@@ -19,7 +19,7 @@ class DiscreteGaussian(trans.Transition):
 
     Parameters
     ----------
-    dynamicsfun :
+    state_trans_fun :
         Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
     diffmatfun :
         Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
@@ -35,11 +35,11 @@ class DiscreteGaussian(trans.Transition):
 
     def __init__(
         self,
-        dynamicsfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         diffmatfun: Callable[[FloatArgType], np.ndarray],
         jacobfun: Optional[Callable[[FloatArgType, np.ndarray], np.ndarray]] = None,
     ):
-        self.dynamicsfun = dynamicsfun
+        self.state_trans_fun = state_trans_fun
         self.diffmatfun = diffmatfun
 
         def if_no_jacobian(t, x):
@@ -50,7 +50,7 @@ class DiscreteGaussian(trans.Transition):
 
     def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
 
-        newmean = self.dynamicsfun(start, real)
+        newmean = self.state_trans_fun(start, real)
         newcov = _diffusion * self.diffmatfun(start)
         crosscov = np.zeros(newcov.shape)
         return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
@@ -95,7 +95,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         self.forcevecfun = forcevecfun
 
         super().__init__(
-            dynamicsfun=lambda t, x: (self.dynamicsmatfun(t) @ x + self.forcevecfun(t)),
+            state_trans_fun=lambda t, x: (
+                self.dynamicsmatfun(t) @ x + self.forcevecfun(t)
+            ),
             diffmatfun=diffmatfun,
             jacobfun=lambda t, x: dynamicsmatfun(t),
         )
