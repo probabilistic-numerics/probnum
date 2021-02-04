@@ -144,16 +144,16 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     Parameters
     ----------
     state_trans_mat :
-        Dynamics matrix :math:`G`.
+        State transition matrix :math:`G`.
     shift_vec :
-        Force vector :math:`v`.
+        Shift vector :math:`v`.
     proc_noise_cov_mat :
-        Diffusion matrix :math:`S`.
+        Process noise covariance matrix :math:`S`.
 
     Raises
     ------
     TypeError
-        If dynamat, forcevec and diffmat have incompatible shapes.
+        If state_trans_mat, shift_vec and proc_noise_cov_mat have incompatible shapes.
 
     See Also
     --------

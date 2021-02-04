@@ -61,7 +61,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 
     def test_discretise(self):
         discrete_model = self.sde.discretise(step=STEP)
-        self.assertAllClose(discrete_model.dynamicsmat, AH_22_IBM, 1e-14)
+        self.assertAllClose(discrete_model.state_trans_mat, AH_22_IBM, 1e-14)
 
     def test_transition_rv(self):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
