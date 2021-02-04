@@ -36,17 +36,17 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         self.dg = dg
 
     def test_dynamics(self):
-        received = self.dtrans.dynamicsfun(self.start, self.some_rv.mean)
+        received = self.dtrans.state_trans_fun(self.start, self.some_rv.mean)
         expected = self.g(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
-    def test_diffusionmatrix(self):
-        received = self.dtrans.diffmatfun(self.start)
+    def test_proc_noise_cov(self):
+        received = self.dtrans.proc_noise_cov_mat_fun(self.start)
         expected = self.S(self.start)
         self.assertAllClose(received, expected)
 
     def test_jacobian(self):
-        received = self.dtrans.jacobfun(self.start, self.some_rv.mean)
+        received = self.dtrans.jacob_state_trans_fun(self.start, self.some_rv.mean)
         expected = self.dg(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
@@ -54,7 +54,7 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         """Calling a Jacobian when nothing is provided throws an Exception."""
         dtrans_no_jacob = pnfss.discrete_transition.DiscreteGaussian(self.g, self.S)
         with self.assertRaises(NotImplementedError):
-            dtrans_no_jacob.jacobfun(self.start, self.some_rv.mean)
+            dtrans_no_jacob.jacob_state_trans_fun(self.start, self.some_rv.mean)
 
     def test_transition_rv(self):
 
@@ -104,13 +104,13 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
             with self.assertRaises(TypeError):
                 self.dtrans.transition_rv(self.some_nongaussian_rv, self.start)
 
-    def test_dynamicsmatrix(self):
-        received = self.dtrans.dynamicsmatfun(self.start)
+    def test_state_trans_mat(self):
+        received = self.dtrans.state_trans_mat_fun(self.start)
         expected = self.G(self.start)
         self.assertAllClose(received, expected)
 
-    def test_forcevector(self):
-        received = self.dtrans.forcevecfun(self.start)
+    def test_shift_vec(self):
+        received = self.dtrans.shift_vec_fun(self.start)
         expected = self.v(self.start)
         self.assertAllClose(received, expected)
 

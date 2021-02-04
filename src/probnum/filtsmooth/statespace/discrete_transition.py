@@ -18,22 +18,21 @@ except ImportError:
 
 
 class DiscreteGaussian(trans.Transition):
-    """Random variable transitions with additive Gaussian noise.
+    """Discrete transitions with additive Gaussian noise.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(g(t_i, x_i), S(t_i))
 
-    for some (potentially non-linear) dynamics :math:`g` and diffusion matrix :math:`S`.
-    This is used for, but not restricted to time-series.
+    for some (potentially non-linear) dynamics :math:`g` and process noise covariance matrix :math:`S`.
 
     Parameters
     ----------
-    dynamicsfun :
-        Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
-    diffmatfun :
-        Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
-    jacobfun :
-        Jacobian of the dynamics function :math:`g`, :math:`Jg=Jg(t, x)`.
-        Signature: ``jacfct(t, x)``.
+    state_trans_fun :
+        State transition function :math:`g=g(t, x)`. Signature: ``state_trans_fun(t, x)``.
+    proc_noise_cov_mat_fun :
+        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
+    jacob_state_trans_fun :
+        Jacobian of the state transition function :math:`g`, :math:`Jg=Jg(t, x)`.
+        Signature: ``jacob_state_trans_fun(t, x)``.
 
     See Also
     --------
@@ -43,23 +42,31 @@ class DiscreteGaussian(trans.Transition):
 
     def __init__(
         self,
-        dynamicsfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        diffmatfun: Callable[[FloatArgType], np.ndarray],
-        jacobfun: Optional[Callable[[FloatArgType, np.ndarray], np.ndarray]] = None,
+        state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
+        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
+        jacob_state_trans_fun: Optional[
+            Callable[[FloatArgType, np.ndarray], np.ndarray]
+        ] = None,
     ):
-        self.dynamicsfun = dynamicsfun
-        self.diffmatfun = diffmatfun
+        self.state_trans_fun = state_trans_fun
+        self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
 
         def if_no_jacobian(t, x):
             raise NotImplementedError
 
-        self.jacobfun = jacobfun if jacobfun is not None else if_no_jacobian
+        self.jacob_state_trans_fun = (
+            jacob_state_trans_fun
+            if jacob_state_trans_fun is not None
+            else if_no_jacobian
+        )
         super().__init__()
 
     def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
 
-        newmean = self.dynamicsfun(start, real)
-        newcov = _diffusion * self.diffmatfun(start)
+        newmean = self.state_trans_fun(start, real)
+        newcov = _diffusion * self.proc_noise_cov_mat_fun(start)
+
+        # This is not correct?
         crosscov = np.zeros(newcov.shape)
         return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
 
@@ -83,12 +90,12 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     Parameters
     ----------
-    dynamatfct : callable
-        Dynamics function :math:`G=G(t)`. Signature: ``dynamatfct(t)``.
-    forcefct : callable
-        Force function :math:`v=v(t)`. Signature: ``forcefct(t)``.
-    diffmatfct : callable
-        Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
+    state_trans_mat_fun : callable
+        State transition matrix function :math:`G=G(t)`. Signature: ``state_trans_mat_fun(t)``.
+    shift_vec_fun : callable
+        Shift vector function :math:`v=v(t)`. Signature: ``shift_vec_fun(t)``.
+    proc_noise_cov_mat_fun : callable
+        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
 
     See Also
     --------
@@ -98,18 +105,20 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def __init__(
         self,
-        dynamicsmatfun: Callable[[FloatArgType], np.ndarray],
-        forcevecfun: Callable[[FloatArgType], np.ndarray],
-        diffmatfun: Callable[[FloatArgType], np.ndarray],
+        state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
+        shift_vec_fun: Callable[[FloatArgType], np.ndarray],
+        proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
     ):
 
-        self.dynamicsmatfun = dynamicsmatfun
-        self.forcevecfun = forcevecfun
+        self.state_trans_mat_fun = state_trans_mat_fun
+        self.shift_vec_fun = shift_vec_fun
 
         super().__init__(
-            dynamicsfun=lambda t, x: (self.dynamicsmatfun(t) @ x + self.forcevecfun(t)),
-            diffmatfun=diffmatfun,
-            jacobfun=lambda t, x: dynamicsmatfun(t),
+            state_trans_fun=lambda t, x: (
+                self.state_trans_mat_fun(t) @ x + self.shift_vec_fun(t)
+            ),
+            proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
+            jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
 
     def transition_rv(self, rv, start, _diffusion=1.0, **kwargs):
@@ -117,13 +126,13 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
 
-        dynamicsmat = self.dynamicsmatfun(start)
-        diffmat = _diffusion * self.diffmatfun(start)
-        force = self.forcevecfun(start)
+        state_trans_mat = self.state_trans_mat_fun(start)
+        diffmat = _diffusion * self.proc_noise_cov_mat_fun(start)
+        shift = self.shift_vec_fun(start)
 
-        new_mean = dynamicsmat @ rv.mean + force
-        new_crosscov = rv.cov @ dynamicsmat.T
-        new_cov = dynamicsmat @ new_crosscov + diffmat
+        new_mean = state_trans_mat @ rv.mean + shift
+        new_crosscov = rv.cov @ state_trans_mat.T
+        new_cov = state_trans_mat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
     @property
@@ -132,7 +141,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # remove this -- the dimension of discrete transitions is not clear!
         # input dim != output dim is possible...
         # See issue #266
-        return len(self.dynamicsmatfun(0.0).T)
+        return len(self.state_trans_mat_fun(0.0).T)
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
@@ -145,17 +154,17 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
 
     Parameters
     ----------
-    dynamat :
-        Dynamics matrix :math:`G`.
-    forcevec :
-        Force vector :math:`v`.
-    diffmat :
-        Diffusion matrix :math:`S`.
+    state_trans_mat :
+        State transition matrix :math:`G`.
+    shift_vec :
+        Shift vector :math:`v`.
+    proc_noise_cov_mat :
+        Process noise covariance matrix :math:`S`.
 
     Raises
     ------
     TypeError
-        If dynamat, forcevec and diffmat have incompatible shapes.
+        If state_trans_mat, shift_vec and proc_noise_cov_mat have incompatible shapes.
 
     See Also
     --------
@@ -164,19 +173,22 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     """
 
     def __init__(
-        self, dynamicsmat: np.ndarray, forcevec: np.ndarray, diffmat: np.ndarray
+        self,
+        state_trans_mat: np.ndarray,
+        shift_vec: np.ndarray,
+        proc_noise_cov_mat: np.ndarray,
     ):
-        _check_dimensions(dynamicsmat, forcevec, diffmat)
+        _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
 
         super().__init__(
-            lambda t: dynamicsmat,
-            lambda t: forcevec,
-            lambda t: diffmat,
+            lambda t: state_trans_mat,
+            lambda t: shift_vec,
+            lambda t: proc_noise_cov_mat,
         )
 
-        self.dynamicsmat = dynamicsmat
-        self.forcevec = forcevec
-        self.diffmat = diffmat
+        self.state_trans_mat = state_trans_mat
+        self.shift_vec = shift_vec
+        self.proc_noise_cov_mat = proc_noise_cov_mat
 
     @lru_cache(maxsize=None)
     def diffmatfun_cholesky(self, t):
@@ -187,27 +199,27 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         return np.linalg.cholesky(self.diffmat)
 
 
-def _check_dimensions(dynamicsmat, forcevec, diffmat):
-    if dynamicsmat.ndim != 2:
+def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
+    if state_trans_mat.ndim != 2:
         raise TypeError(
-            f"dynamat.ndim=2 expected. dynamat.ndim={dynamicsmat.ndim} received."
+            f"dynamat.ndim=2 expected. dynamat.ndim={state_trans_mat.ndim} received."
         )
-    if forcevec.ndim != 1:
+    if shift_vec.ndim != 1:
         raise TypeError(
-            f"forcevec.ndim=1 expected. forcevec.ndim={forcevec.ndim} received."
+            f"shift_vec.ndim=1 expected. shift_vec.ndim={shift_vec.ndim} received."
         )
-    if diffmat.ndim != 2:
+    if proc_noise_cov_mat.ndim != 2:
         raise TypeError(
-            f"diffmat.ndim=2 expected. diffmat.ndim={diffmat.ndim} received."
+            f"proc_noise_cov_mat.ndim=2 expected. proc_noise_cov_mat.ndim={proc_noise_cov_mat.ndim} received."
         )
     if (
-        dynamicsmat.shape[0] != forcevec.shape[0]
-        or forcevec.shape[0] != diffmat.shape[0]
-        or diffmat.shape[0] != diffmat.shape[1]
+        state_trans_mat.shape[0] != shift_vec.shape[0]
+        or shift_vec.shape[0] != proc_noise_cov_mat.shape[0]
+        or proc_noise_cov_mat.shape[0] != proc_noise_cov_mat.shape[1]
     ):
         raise TypeError(
             f"Dimension of dynamat, forcevec and diffmat do not align. "
             f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
-            f"Received: dynamat.shape={dynamicsmat.shape}, forcevec.shape={forcevec.shape}, "
-            f"diffmat.shape={diffmat.shape}."
+            f"Received: dynamat.shape={state_trans_mat.shape}, forcevec.shape={shift_vec.shape}, "
+            f"proc_noise_cov_mat.shape={proc_noise_cov_mat.shape}."
         )

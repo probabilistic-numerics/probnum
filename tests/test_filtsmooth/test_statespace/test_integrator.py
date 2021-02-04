@@ -61,7 +61,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
 
     def test_discretise(self):
         discrete_model = self.sde.discretise(step=STEP)
-        self.assertAllClose(discrete_model.dynamicsmat, AH_22_IBM, 1e-14)
+        self.assertAllClose(discrete_model.state_trans_mat, AH_22_IBM, 1e-14)
 
     def test_transition_rv(self):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
@@ -74,24 +74,6 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
             AH_22_IBM @ initrv.cov @ AH_22_IBM.T + QH_22_IBM, rv.cov, 1e-14
         )
 
-    def test_transition_rv_preconditioned(self):
-        """Check that if the flag is set, the result is different!"""
-        mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
-        initrv = pnrv.Normal(mean, cov)
-        rv1, _ = self.sde.transition_rv(
-            rv=initrv, start=0.0, stop=STEP, _diffusion=DIFFCONST
-        )
-        rv2, _ = self.sde.transition_rv_preconditioned(
-            rv=initrv, start=0.0, _diffusion=DIFFCONST
-        )
-        diff1 = np.abs(rv1.mean - rv2.mean)
-        diff2 = np.abs(rv1.cov - rv2.cov)
-
-        # Choose some 'sufficiently positive' constant
-        # that worked in the present example
-        self.assertGreater(np.linalg.norm(diff1), 1e-2)
-        self.assertGreater(np.linalg.norm(diff2), 1e-2)
-
     def test_transition_realization(self):
         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
         state = pnrv.Normal(mean, cov).sample()
@@ -100,23 +82,6 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         )
         self.assertAllClose(AH_22_IBM @ state, rv.mean, 1e-14)
         self.assertAllClose(QH_22_IBM, rv.cov, 1e-14)
-
-    def test_transition_realization_preconditioned(self):
-        mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
-        state = pnrv.Normal(mean, cov).sample()
-        rv1, _ = self.sde.transition_realization(
-            real=state, start=0.0, stop=STEP, _diffusion=DIFFCONST
-        )
-        rv2, _ = self.sde.transition_realization_preconditioned(
-            real=state, start=0.0, _diffusion=DIFFCONST
-        )
-        diff1 = np.abs(rv1.mean - rv2.mean)
-        diff2 = np.abs(rv1.cov - rv2.cov)
-
-        # Choose some 'sufficiently positive' constant
-        # that worked in the present example
-        self.assertGreater(np.linalg.norm(diff1), 1e-2)
-        self.assertGreater(np.linalg.norm(diff2), 1e-2)
 
 
 class TestIOUP(unittest.TestCase, NumpyAssertions):
