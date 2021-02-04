@@ -20,12 +20,12 @@ class DiscreteGaussian(trans.Transition):
     Parameters
     ----------
     state_trans_fun :
-        Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
+        State transition function :math:`g=g(t, x)`. Signature: ``state_trans_fun(t, x)``.
     proc_noise_cov_mat_fun :
-        Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
+        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
     jacob_state_trans_fun :
-        Jacobian of the dynamics function :math:`g`, :math:`Jg=Jg(t, x)`.
-        Signature: ``jacfct(t, x)``.
+        Jacobian of the state transition function :math:`g`, :math:`Jg=Jg(t, x)`.
+        Signature: ``jacob_state_trans_fun(t, x)``.
 
     See Also
     --------
@@ -80,11 +80,11 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     Parameters
     ----------
     state_trans_mat_fun : callable
-        Dynamics function :math:`G=G(t)`. Signature: ``dynamatfct(t)``.
+        State transition matrix function :math:`G=G(t)`. Signature: ``state_trans_mat_fun(t)``.
     shift_vec_fun : callable
-        Force function :math:`v=v(t)`. Signature: ``forcefct(t)``.
-    diffmatfct : callable
-        Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
+        Shift vector function :math:`v=v(t)`. Signature: ``shift_vec_fun(t)``.
+    proc_noise_cov_mat_fun : callable
+        Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
 
     See Also
     --------
@@ -143,7 +143,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
 
     Parameters
     ----------
-    dynamat :
+    state_trans_mat :
         Dynamics matrix :math:`G`.
     shift_vec :
         Force vector :math:`v`.
@@ -163,27 +163,27 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
 
     def __init__(
         self,
-        dynamicsmat: np.ndarray,
+        state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         proc_noise_cov_mat: np.ndarray,
     ):
-        _check_dimensions(dynamicsmat, shift_vec, proc_noise_cov_mat)
+        _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
 
         super().__init__(
-            lambda t: dynamicsmat,
+            lambda t: state_trans_mat,
             lambda t: shift_vec,
             lambda t: proc_noise_cov_mat,
         )
 
-        self.dynamicsmat = dynamicsmat
+        self.state_trans_mat = state_trans_mat
         self.shift_vec = shift_vec
         self.proc_noise_cov_mat = proc_noise_cov_mat
 
 
-def _check_dimensions(dynamicsmat, shift_vec, proc_noise_cov_mat):
-    if dynamicsmat.ndim != 2:
+def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
+    if state_trans_mat.ndim != 2:
         raise TypeError(
-            f"dynamat.ndim=2 expected. dynamat.ndim={dynamicsmat.ndim} received."
+            f"dynamat.ndim=2 expected. dynamat.ndim={state_trans_mat.ndim} received."
         )
     if shift_vec.ndim != 1:
         raise TypeError(
@@ -194,13 +194,13 @@ def _check_dimensions(dynamicsmat, shift_vec, proc_noise_cov_mat):
             f"proc_noise_cov_mat.ndim=2 expected. proc_noise_cov_mat.ndim={proc_noise_cov_mat.ndim} received."
         )
     if (
-        dynamicsmat.shape[0] != shift_vec.shape[0]
+        state_trans_mat.shape[0] != shift_vec.shape[0]
         or shift_vec.shape[0] != proc_noise_cov_mat.shape[0]
         or proc_noise_cov_mat.shape[0] != proc_noise_cov_mat.shape[1]
     ):
         raise TypeError(
             f"Dimension of dynamat, forcevec and diffmat do not align. "
             f"Expected: dynamat.shape=(N,*), forcevec.shape=(N,), diffmat.shape=(N, N).     "
-            f"Received: dynamat.shape={dynamicsmat.shape}, forcevec.shape={shift_vec.shape}, "
+            f"Received: dynamat.shape={state_trans_mat.shape}, forcevec.shape={shift_vec.shape}, "
             f"proc_noise_cov_mat.shape={proc_noise_cov_mat.shape}."
         )

@@ -91,13 +91,13 @@ class IBM(Integrator, sde.LTISDE):
         """Discretised IN THE PRECONDITIONED SPACE."""
         empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=self._dynamicsmat,
+            state_trans_mat=self._state_trans_mat,
             shift_vec=empty_shift,
             proc_noise_cov_mat=self._proc_noise_cov_mat,
         )
 
     @cached_property
-    def _dynamicsmat(self):
+    def _state_trans_mat(self):
         # Loop, but cached anyway
         driftmat_1d = np.array(
             [
@@ -162,9 +162,9 @@ class IBM(Integrator, sde.LTISDE):
         interface. Not used for transition_rv, etc..
         """
 
-        dynamicsmat = (
+        state_trans_mat = (
             self.precon(step)
-            @ self.equivalent_discretisation_preconditioned.dynamicsmat
+            @ self.equivalent_discretisation_preconditioned.state_trans_mat
             @ self.precon.inverse(step)
         )
         proc_noise_cov_mat = (
@@ -172,9 +172,9 @@ class IBM(Integrator, sde.LTISDE):
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
             @ self.precon(step).T
         )
-        zero_shift = np.zeros(len(dynamicsmat))
+        zero_shift = np.zeros(len(state_trans_mat))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=dynamicsmat,
+            state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,
         )
