@@ -147,7 +147,7 @@ def locs(posterior):
 
 
 @pytest.fixture
-def locs():
+def locs(posterior):
     return np.arange(0, 0.5, 0.025)
 
 
