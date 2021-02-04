@@ -10,12 +10,11 @@ from . import transition as trans
 
 
 class DiscreteGaussian(trans.Transition):
-    """Random variable transitions with additive Gaussian noise.
+    """Discrete transitions with additive Gaussian noise.
 
     .. math:: x_{i+1} \\sim \\mathcal{N}(g(t_i, x_i), S(t_i))
 
-    for some (potentially non-linear) dynamics :math:`g` and diffusion matrix :math:`S`.
-    This is used for, but not restricted to time-series.
+    for some (potentially non-linear) dynamics :math:`g` and process noise covariance matrix :math:`S`.
 
     Parameters
     ----------
