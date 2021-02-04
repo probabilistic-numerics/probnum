@@ -43,7 +43,7 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(received, expected)
 
     def test_jacobian(self):
-        received = self.dtrans.jacobfun(self.start, self.some_rv.mean)
+        received = self.dtrans.jacob_state_trans_fun(self.start, self.some_rv.mean)
         expected = self.dg(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
@@ -51,7 +51,7 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
         """Calling a Jacobian when nothing is provided throws an Exception."""
         dtrans_no_jacob = pnfss.discrete_transition.DiscreteGaussian(self.g, self.S)
         with self.assertRaises(NotImplementedError):
-            dtrans_no_jacob.jacobfun(self.start, self.some_rv.mean)
+            dtrans_no_jacob.jacob_state_trans_fun(self.start, self.some_rv.mean)
 
     def test_transition_rv(self):
 

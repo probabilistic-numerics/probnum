@@ -23,7 +23,7 @@ class DiscreteGaussian(trans.Transition):
         Dynamics function :math:`g=g(t, x)`. Signature: ``dynafct(t, x)``.
     proc_noise_cov_mat_fun :
         Diffusion matrix function :math:`S=S(t)`. Signature: ``diffmatfct(t)``.
-    jacobfun :
+    jacob_state_trans_fun :
         Jacobian of the dynamics function :math:`g`, :math:`Jg=Jg(t, x)`.
         Signature: ``jacfct(t, x)``.
 
@@ -37,7 +37,9 @@ class DiscreteGaussian(trans.Transition):
         self,
         state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
-        jacobfun: Optional[Callable[[FloatArgType, np.ndarray], np.ndarray]] = None,
+        jacob_state_trans_fun: Optional[
+            Callable[[FloatArgType, np.ndarray], np.ndarray]
+        ] = None,
     ):
         self.state_trans_fun = state_trans_fun
         self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
@@ -45,7 +47,11 @@ class DiscreteGaussian(trans.Transition):
         def if_no_jacobian(t, x):
             raise NotImplementedError
 
-        self.jacobfun = jacobfun if jacobfun is not None else if_no_jacobian
+        self.jacob_state_trans_fun = (
+            jacob_state_trans_fun
+            if jacob_state_trans_fun is not None
+            else if_no_jacobian
+        )
         super().__init__()
 
     def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
@@ -99,7 +105,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
                 self.dynamicsmatfun(t) @ x + self.forcevecfun(t)
             ),
             proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
-            jacobfun=lambda t, x: dynamicsmatfun(t),
+            jacob_state_trans_fun=lambda t, x: dynamicsmatfun(t),
         )
 
     def transition_rv(self, rv, start, _diffusion=1.0, **kwargs):
