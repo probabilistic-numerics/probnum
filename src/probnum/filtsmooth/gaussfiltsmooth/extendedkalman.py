@@ -5,7 +5,6 @@ import typing
 
 import numpy as np
 
-import probnum.diffeq  # for type annotation in DiscreteEKFComponent.from_ode
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 import probnum.type as pntype
@@ -16,9 +15,7 @@ from .linearizing_transition import LinearizingTransition
 class EKFComponent(LinearizingTransition):
     """Interface for extended Kalman filtering components."""
 
-    def __init__(
-        self, non_linear_model: typing.Union[pnfss.SDE, pnfss.DiscreteGaussian]
-    ) -> None:
+    def __init__(self, non_linear_model) -> None:
         super().__init__(non_linear_model=non_linear_model)
 
         # Will be constructed later
@@ -66,9 +63,7 @@ class EKFComponent(LinearizingTransition):
 class ContinuousEKFComponent(EKFComponent):
     """Continuous extended Kalman filter transition."""
 
-    def __init__(
-        self, non_linear_model: pnfss.SDE, num_steps: pntype.IntArgType
-    ) -> None:
+    def __init__(self, non_linear_model, num_steps: pntype.IntArgType) -> None:
         if not isinstance(non_linear_model, pnfss.SDE):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
 
@@ -106,7 +101,7 @@ class ContinuousEKFComponent(EKFComponent):
 class DiscreteEKFComponent(EKFComponent):
     """Discrete extended Kalman filter transition."""
 
-    def __init__(self, non_linear_model: pnfss.DiscreteGaussian) -> None:
+    def __init__(self, non_linear_model) -> None:
         if not isinstance(non_linear_model, pnfss.DiscreteGaussian):
             raise TypeError(
                 "Discrete EKF transition requires a (non-linear) discrete Gaussian transition."
@@ -141,11 +136,11 @@ class DiscreteEKFComponent(EKFComponent):
     @classmethod
     def from_ode(
         cls,
-        ode: "probnum.diffeq.ODE",  # we don't want to import probnum.diffeq here
-        prior: "pnfss.LinearSDE",
-        evlvar: "pntype.FloatArgType",
-        ek0_or_ek1: typing.Optional["pntype.IntArgType"] = 0,
-    ) -> "DiscreteEKFComponent":
+        ode,
+        prior,
+        evlvar,
+        ek0_or_ek1=0,
+    ):
         # code is here, because we want the option of ek0-jacobians
 
         spatialdim = prior.spatialdim
