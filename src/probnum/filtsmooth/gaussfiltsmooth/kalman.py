@@ -253,9 +253,9 @@ class Kalman(BayesFiltSmooth):
         data = np.asarray(data)
         info = {}
         info["pred_rv"], info["info_pred"] = self.predict(
+            rv=current_rv,
             start=start,
             stop=stop,
-            rv=current_rv,
             _intermediate_step=_intermediate_step,
             _linearise_at=_linearise_predict_at,
             _diffusion=_diffusion,

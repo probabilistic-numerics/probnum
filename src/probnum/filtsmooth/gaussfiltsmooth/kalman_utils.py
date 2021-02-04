@@ -17,9 +17,9 @@ from .stoppingcriterion import StoppingCriterion
 
 def predict_via_transition(
     dynamics_model,
+    rv,
     start,
     stop,
-    rv,
     _intermediate_step=None,
     _linearise_at=None,
     _diffusion=1.0,
@@ -38,9 +38,9 @@ def predict_via_transition(
 
 def predict_sqrt(
     dynamics_model,
+    rv,
     start,
     stop,
-    rv,
     _intermediate_step=None,
     _linearise_at=None,
     _diffusion=1.0,

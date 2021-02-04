@@ -95,7 +95,7 @@ def test_rts_smooth_step_precon(dynamics_model, rv1, rv2, dt):
 
     start = np.random.rand()
     stop = start + dt
-    predicted_rv, info = pnfs.predict_sqrt(dynamics_model, start, stop, rv1)
+    predicted_rv, info = pnfs.predict_sqrt(dynamics_model, rv1, start, stop)
 
     result_with, _ = smooth_with(
         rv1,
@@ -124,7 +124,7 @@ def test_rts_smooth_step(dynamics_model, rv1, rv2, dt):
 
     start = np.random.rand()
     stop = start + dt
-    predicted_rv, info = pnfs.predict_sqrt(dynamics_model, start, stop, rv1)
+    predicted_rv, info = pnfs.predict_sqrt(dynamics_model, rv1, start, stop)
 
     result_with, _ = pnfs.rts_smooth_step_classic(
         rv1,
@@ -153,8 +153,8 @@ def test_predict(dynamics_model, rv1, dt):
 
     start = np.random.rand()
     stop = start + dt
-    result_classic, _ = pnfs.predict_via_transition(dynamics_model, start, stop, rv1)
-    result_sqrt, _ = pnfs.predict_sqrt(dynamics_model, start, stop, rv1)
+    result_classic, _ = pnfs.predict_via_transition(dynamics_model, rv1, start, stop)
+    result_sqrt, _ = pnfs.predict_sqrt(dynamics_model, rv1, start, stop)
 
     np.testing.assert_allclose(result_classic.mean, result_sqrt.mean)
     np.testing.assert_allclose(result_classic.cov, result_sqrt.cov)
