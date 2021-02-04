@@ -58,6 +58,8 @@ class DiscreteGaussian(trans.Transition):
 
         newmean = self.state_trans_fun(start, real)
         newcov = _diffusion * self.proc_noise_cov_mat_fun(start)
+
+        # This is not correct?
         crosscov = np.zeros(newcov.shape)
         return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
 
