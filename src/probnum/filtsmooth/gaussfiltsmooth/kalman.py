@@ -329,7 +329,13 @@ class Kalman(BayesFiltSmooth):
 
             # Actual smoothing step
             curr_rv, _ = self.smooth_step(
-                unsmoothed_rv, predicted_rv, curr_rv, crosscov
+                unsmoothed_rv,
+                predicted_rv,
+                curr_rv,
+                crosscov,
+                dynamics_model=self.dynamics_model,
+                start=locations[idx - 1],
+                stop=locations[idx],
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()

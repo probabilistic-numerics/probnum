@@ -30,6 +30,44 @@ def update():
 
 @pytest.fixture
 def update():
+    """The usual Kalman update.
+
+    Yields Kalman filter.
+    """
+    return pnfs.update_sqrt
+
+
+@pytest.fixture
+def predict():
+    return pnfs.predict_via_transition
+
+
+@pytest.fixture
+def predict():
+    return pnfs.predict_sqrt
+
+
+@pytest.fixture
+def measure():
+    return pnfs.measure_via_transition
+
+
+@pytest.fixture
+def measure():
+    return pnfs.measure_sqrt
+
+
+@pytest.fixture
+def update():
+    """The usual Kalman update.
+
+    Yields Kalman filter.
+    """
+    return pnfs.update_sqrt
+
+
+@pytest.fixture
+def update():
     """Iterated classical update.
 
     Yields I(E/U)KF depending on the approximate measurement model.
@@ -39,10 +77,28 @@ def update():
 
 
 @pytest.fixture
-def kalman(problem, update):
+def smooth_step():
+    return pnfs.rts_smooth_step_classic
+
+
+@pytest.fixture
+def smooth_step():
+    return pnfs.rts_smooth_step_sqrt
+
+
+@pytest.fixture
+def kalman(problem, predict, measure, update, smooth_step):
     """Create a Kalman object."""
     dynmod, measmod, initrv, info = problem
-    return pnfs.Kalman(dynmod, measmod, initrv)
+    return pnfs.Kalman(
+        dynmod,
+        measmod,
+        initrv,
+        use_predict=predict,
+        use_measure=measure,
+        use_update=update,
+        use_smooth_step=smooth_step,
+    )
 
 
 @pytest.fixture
