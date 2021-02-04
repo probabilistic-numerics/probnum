@@ -39,30 +39,8 @@ class LinearizingTransition(statespace.Transition, abc.ABC):
 
         raise NotImplementedError
 
-    def transition_realization_preconditioned(
-        self,
-        real: np.ndarray,
-        start: float,
-        stop: typing.Optional[float] = None,
-        step: typing.Optional[float] = None,
-        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
-        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
-    ) -> (pnrv.RandomVariable, typing.Dict):
-        raise NotImplementedError
-
     @abc.abstractmethod
     def transition_rv(
-        self,
-        rv: pnrv.RandomVariable,
-        start: float,
-        stop: typing.Optional[float] = None,
-        step: typing.Optional[float] = None,
-        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
-        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
-    ) -> (pnrv.RandomVariable, typing.Dict):
-        raise NotImplementedError
-
-    def transition_rv_preconditioned(
         self,
         rv: pnrv.RandomVariable,
         start: float,
