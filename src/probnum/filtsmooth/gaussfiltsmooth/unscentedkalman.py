@@ -9,9 +9,9 @@ import typing
 
 import numpy as np
 
-import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 import probnum.type as pntype
+from probnum.filtsmooth import statespace
 
 from .linearizing_transition import LinearizingTransition
 from .unscentedtransform import UnscentedTransform
@@ -51,7 +51,7 @@ class ContinuousUKFComponent(UKFComponent):
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
     ) -> None:
-        if not isinstance(non_linear_model, pnfss.SDE):
+        if not isinstance(non_linear_model, statespace.SDE):
             raise TypeError("cont_model must be an SDE.")
         super().__init__(
             non_linear_model,
@@ -103,7 +103,7 @@ class DiscreteUKFComponent(UKFComponent):
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
     ) -> None:
-        if not isinstance(non_linear_model, pnfss.DiscreteGaussian):
+        if not isinstance(non_linear_model, statespace.DiscreteGaussian):
             raise TypeError("cont_model must be an SDE.")
         super().__init__(
             non_linear_model,
@@ -162,5 +162,5 @@ class DiscreteUKFComponent(UKFComponent):
         def diff(t):
             return evlvar * np.eye(spatialdim)
 
-        disc_model = pnfss.DiscreteGaussian(dyna, diff)
+        disc_model = statespace.DiscreteGaussian(dyna, diff)
         return cls(disc_model, dimension=prior.dimension)

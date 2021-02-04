@@ -5,9 +5,9 @@ import typing
 
 import numpy as np
 
-import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 import probnum.type as pntype
+from probnum.filtsmooth import statespace
 
 from .linearizing_transition import LinearizingTransition
 
@@ -64,7 +64,7 @@ class ContinuousEKFComponent(EKFComponent):
     """Continuous extended Kalman filter transition."""
 
     def __init__(self, non_linear_model, num_steps: pntype.IntArgType) -> None:
-        if not isinstance(non_linear_model, pnfss.SDE):
+        if not isinstance(non_linear_model, statespace.SDE):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
 
         super().__init__(non_linear_model=non_linear_model)
@@ -87,7 +87,7 @@ class ContinuousEKFComponent(EKFComponent):
         def driftmatfun(t):
             return dg(t, x0)
 
-        self.linearized_model = pnfss.LinearSDE(
+        self.linearized_model = statespace.LinearSDE(
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
             dispmatfun=self.non_linear_model.dispmatfun,
@@ -102,7 +102,7 @@ class DiscreteEKFComponent(EKFComponent):
     """Discrete extended Kalman filter transition."""
 
     def __init__(self, non_linear_model) -> None:
-        if not isinstance(non_linear_model, pnfss.DiscreteGaussian):
+        if not isinstance(non_linear_model, statespace.DiscreteGaussian):
             raise TypeError(
                 "Discrete EKF transition requires a (non-linear) discrete Gaussian transition."
             )
@@ -123,7 +123,7 @@ class DiscreteEKFComponent(EKFComponent):
         def dynamicsmatfun(t):
             return dg(t, x0)
 
-        self.linearized_model = pnfss.DiscreteLinearGaussian(
+        self.linearized_model = statespace.DiscreteLinearGaussian(
             state_trans_mat_fun=dynamicsmatfun,
             shift_vec_fun=forcevecfun,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
@@ -166,5 +166,5 @@ class DiscreteEKFComponent(EKFComponent):
         else:
             raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
 
-        discrete_model = pnfss.DiscreteGaussian(dyna, diff, jaco)
+        discrete_model = statespace.DiscreteGaussian(dyna, diff, jaco)
         return cls(discrete_model)
