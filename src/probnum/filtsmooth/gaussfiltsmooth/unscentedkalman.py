@@ -133,10 +133,9 @@ class DiscreteUKFComponent(UKFComponent):
         self.linearize(at_this_rv=compute_sigmapts_at)
 
         proppts = self.ut.propagate(
-            start, self.sigma_points, self.non_linear_model.dynamicsfun
+            start, self.sigma_points, self.non_linear_model.state_trans_fun
         )
-        proppts = self.ut.propagate(start, sigmapts, self.disc_model.state_trans_fun)
-        meascov = _diffusion * self.disc_model.proc_noise_cov_mat_fun(start)
+        meascov = _diffusion * self.non_linear_model.proc_noise_cov_mat_fun(start)
         mean, cov, crosscov = self.ut.estimate_statistics(
             proppts, self.sigma_points, meascov, rv.mean
         )

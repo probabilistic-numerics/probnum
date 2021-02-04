@@ -117,8 +117,8 @@ class DiscreteEKFComponent(EKFComponent):
     def linearize(self, at_this_rv: pnrv.Normal) -> None:
         """Linearize the dynamics function with a first order Taylor expansion."""
 
-        g = self.non_linear_model.dynamicsfun
-        dg = self.non_linear_model.jacobfun
+        g = self.non_linear_model.state_trans_fun
+        dg = self.non_linear_model.jacob_state_trans_fun
 
         x0 = at_this_rv.mean
 
@@ -129,9 +129,9 @@ class DiscreteEKFComponent(EKFComponent):
             return dg(t, x0)
 
         self.linearized_model = pnfss.DiscreteLinearGaussian(
-            dynamicsmatfun=dynamicsmatfun,
-            forcevecfun=forcevecfun,
-            diffmatfun=self.non_linear_model.diffmatfun,
+            state_trans_mat_fun=dynamicsmatfun,
+            shift_vec_fun=forcevecfun,
+            proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
         )
 
     @property

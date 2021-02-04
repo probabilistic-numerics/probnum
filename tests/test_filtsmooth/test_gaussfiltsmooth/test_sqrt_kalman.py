@@ -91,8 +91,8 @@ def test_measure(both_filters, random_rv):
     """Assert the outcomes of measure() are identical for both filters."""
     sqrt_kalman, kalman = both_filters
 
-    res1, info1 = sqrt_kalman.measure(1.0, random_rv)
-    res2, info2 = kalman.measure(1.0, random_rv)
+    res1, info1 = sqrt_kalman.measure(random_rv, 1.0)
+    res2, info2 = kalman.measure(random_rv, 1.0)
 
     np.testing.assert_allclose(res1.mean, res2.mean)
     np.testing.assert_allclose(res1.cov, res2.cov)
@@ -103,8 +103,8 @@ def test_measure(both_filters, random_rv):
 def test_update(both_filters, random_rv, random_observations):
     """Assert the outcomes of update() are identical for both filters."""
     sqrt_kalman, kalman = both_filters
-    res1, meas_rv1, _ = sqrt_kalman.update(1.0, random_rv, random_observations)
-    res2, meas_rv2, _ = kalman.update(1.0, random_rv, random_observations)
+    res1, meas_rv1, _ = sqrt_kalman.update(random_rv, 1.0, random_observations)
+    res2, meas_rv2, _ = kalman.update(random_rv, 1.0, random_observations)
 
     np.testing.assert_allclose(meas_rv1.cov, meas_rv2.cov)
     np.testing.assert_allclose(meas_rv1.cov_cholesky, meas_rv2.cov_cholesky)

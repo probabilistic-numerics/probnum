@@ -66,8 +66,8 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
 
     def test_diffmatfun_cholesky(self):
         self.assertAllClose(
-            self.dtrans.diffmatfun_cholesky(0),
-            np.linalg.cholesky(self.dtrans.diffmatfun(0)),
+            self.dtrans.proc_noise_cov_cholesky_fun(0),
+            np.linalg.cholesky(self.dtrans.proc_noise_cov_mat_fun(0)),
         )
 
 
@@ -157,13 +157,17 @@ class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
 
         # Matrix square-root
         self.assertAllClose(
-            trans.diffmat_cholesky @ trans.diffmat_cholesky.T, trans.diffmat
+            trans.proc_noise_cov_cholesky @ trans.proc_noise_cov_cholesky.T,
+            trans.proc_noise_cov_mat,
         )
 
         # Lower triangular
-        self.assertAllClose(trans.diffmat_cholesky, np.tril(trans.diffmat_cholesky))
+        self.assertAllClose(
+            trans.proc_noise_cov_cholesky, np.tril(trans.proc_noise_cov_cholesky)
+        )
 
         # Nonnegative diagonal
         self.assertAllClose(
-            np.diag(trans.diffmat_cholesky), np.abs(np.diag(trans.diffmat_cholesky))
+            np.diag(trans.proc_noise_cov_cholesky),
+            np.abs(np.diag(trans.proc_noise_cov_cholesky)),
         )

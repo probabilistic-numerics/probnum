@@ -75,8 +75,8 @@ class DiscreteGaussian(trans.Transition):
         raise NotImplementedError
 
     @lru_cache(maxsize=None)
-    def diffmatfun_cholesky(self, t):
-        return np.linalg.cholesky(self.diffmatfun(t))
+    def proc_noise_cov_cholesky_fun(self, t):
+        return np.linalg.cholesky(self.proc_noise_cov_mat_fun(t))
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
@@ -195,8 +195,8 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         return self.diffmat_cholesky
 
     @cached_property
-    def diffmat_cholesky(self):
-        return np.linalg.cholesky(self.diffmat)
+    def proc_noise_cov_cholesky(self):
+        return np.linalg.cholesky(self.proc_noise_cov_mat)
 
 
 def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
