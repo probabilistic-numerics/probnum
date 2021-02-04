@@ -92,8 +92,8 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
             with self.assertRaises(TypeError):
                 self.dtrans.transition_rv(self.some_nongaussian_rv, self.start)
 
-    def test_dynamicsmatrix(self):
-        received = self.dtrans.dynamicsmatfun(self.start)
+    def test_state_trans_mat(self):
+        received = self.dtrans.state_trans_mat_fun(self.start)
         expected = self.G(self.start)
         self.assertAllClose(received, expected)
 

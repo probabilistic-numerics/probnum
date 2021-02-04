@@ -79,7 +79,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     Parameters
     ----------
-    dynamatfct : callable
+    state_trans_mat_fun : callable
         Dynamics function :math:`G=G(t)`. Signature: ``dynamatfct(t)``.
     forcefct : callable
         Force function :math:`v=v(t)`. Signature: ``forcefct(t)``.
@@ -94,20 +94,20 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def __init__(
         self,
-        dynamicsmatfun: Callable[[FloatArgType], np.ndarray],
+        state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
     ):
 
-        self.dynamicsmatfun = dynamicsmatfun
+        self.state_trans_mat_fun = state_trans_mat_fun
         self.forcevecfun = forcevecfun
 
         super().__init__(
             state_trans_fun=lambda t, x: (
-                self.dynamicsmatfun(t) @ x + self.forcevecfun(t)
+                self.state_trans_mat_fun(t) @ x + self.forcevecfun(t)
             ),
             proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
-            jacob_state_trans_fun=lambda t, x: dynamicsmatfun(t),
+            jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
 
     def transition_rv(self, rv, start, _diffusion=1.0, **kwargs):
@@ -115,13 +115,13 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
 
-        dynamicsmat = self.dynamicsmatfun(start)
+        state_trans_mat = self.state_trans_mat_fun(start)
         diffmat = _diffusion * self.proc_noise_cov_mat_fun(start)
         force = self.forcevecfun(start)
 
-        new_mean = dynamicsmat @ rv.mean + force
-        new_crosscov = rv.cov @ dynamicsmat.T
-        new_cov = dynamicsmat @ new_crosscov + diffmat
+        new_mean = state_trans_mat @ rv.mean + force
+        new_crosscov = rv.cov @ state_trans_mat.T
+        new_cov = state_trans_mat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
     @property
@@ -130,7 +130,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # remove this -- the dimension of discrete transitions is not clear!
         # input dim != output dim is possible...
         # See issue #266
-        return len(self.dynamicsmatfun(0.0).T)
+        return len(self.state_trans_mat_fun(0.0).T)
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
