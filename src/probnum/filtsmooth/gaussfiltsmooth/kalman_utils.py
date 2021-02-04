@@ -342,10 +342,16 @@ def rts_smooth_step_sqrt(
     )
     big_triu = np.linalg.qr(blockmat, mode="r")
     SC = big_triu[dim : 2 * dim, dim:]
+
     new_cov_cholesky = triu_to_positive_tril(SC)
     new_cov = new_cov_cholesky @ new_cov_cholesky.T
     new_mean = unsmoothed_rv.mean + G @ (smoothed_rv.mean - predicted_rv.mean)
     return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
+
+
+########################################################################################################################
+# Helper functions
+########################################################################################################################
 
 
 def linear_system_matrices(model, rv, start, stop, _linearise_at):

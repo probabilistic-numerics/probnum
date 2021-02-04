@@ -192,7 +192,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
 
     @lru_cache(maxsize=None)
     def diffmatfun_cholesky(self, t):
-        return self.diffmat_cholesky
+        return self.proc_noise_cov_cholesky
 
     @cached_property
     def proc_noise_cov_cholesky(self):
