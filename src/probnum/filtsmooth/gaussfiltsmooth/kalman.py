@@ -3,9 +3,9 @@
 
 import numpy as np
 
-import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
+from probnum.filtsmooth import statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
@@ -283,9 +283,13 @@ class Kalman(BayesFiltSmooth):
         """
 
         # See Issue #300
-        bad_options = (pnfss.LinearSDE, ContinuousEKFComponent, ContinuousUKFComponent)
+        bad_options = (
+            statespace.LinearSDE,
+            ContinuousEKFComponent,
+            ContinuousUKFComponent,
+        )
         if isinstance(self.dynamics_model, bad_options) and not isinstance(
-            self.dynamics_model, pnfss.LTISDE
+            self.dynamics_model, statespace.LTISDE
         ):
             raise ValueError("Continuous-discrete smoothing is not supported (yet).")
 

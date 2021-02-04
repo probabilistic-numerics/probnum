@@ -4,8 +4,8 @@ import typing
 
 import numpy as np
 
-import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
+from probnum.filtsmooth import statespace
 
 from .extendedkalman import DiscreteEKFComponent
 from .stoppingcriterion import StoppingCriterion
@@ -357,7 +357,7 @@ def rts_smooth_step_sqrt(
 def linear_system_matrices(model, rv, start, stop, _linearise_at):
     """Extract the linear system matrices from Transition objects in order to apply
     square-root steps."""
-    if isinstance(model, pnfss.LTISDE):
+    if isinstance(model, statespace.LTISDE):
         model = model.discretise(stop - start)
     elif isinstance(model, DiscreteEKFComponent):
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
