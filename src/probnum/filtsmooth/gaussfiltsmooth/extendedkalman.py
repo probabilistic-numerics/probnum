@@ -32,6 +32,9 @@ class EKFComponent(LinearizingTransition):
         **kwargs
     ) -> (pnrv.Normal, typing.Dict):
 
+        # Do we want the EKF to linearise first and then transition the real,
+        # or try to call the non-linear transition if possible?
+        # There is no right or wrong, but what is the desired behaviour?
         real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
         return self.transition_rv(
             real_as_rv,
@@ -141,7 +144,7 @@ class DiscreteEKFComponent(EKFComponent):
         evlvar,
         ek0_or_ek1=0,
     ):
-        # code is here, because we want the option of ek0-jacobians
+        # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
 
         spatialdim = prior.spatialdim
         h0 = prior.proj2coord(coord=0)

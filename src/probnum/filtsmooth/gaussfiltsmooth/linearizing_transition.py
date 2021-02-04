@@ -52,19 +52,19 @@ class LinearizingTransition(statespace.Transition, abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def linearize(self, at_this_rv: pnrv.RandomVariable) -> None:
+    def linearize(self, at_this_rv: pnrv.RandomVariable):
         """Linearize the transition and make it tractable.
 
         For the EKF, it means assembling the Taylor approximation. For
         the UKF, this means assembling the sigma-points. For general
         quadrature filters, this means assembling the quadrature weights
         and nodes.
-
-        This operation changes self.linearized_model, and does not return anything.
         """
         # No return value, because of semantics:
         # Linearization makes the transition "tractable"
         # but does not change the transition object.
         # In principle, you could linearize once and transition RVs until
         # the end of time. The object would be the same.
+        # Also, the UKF.linearize() merely assembles the sigma points, but does
+        # not yield a standalone transition.
         raise NotImplementedError

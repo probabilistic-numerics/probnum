@@ -52,21 +52,6 @@ def rv2(ordint, spatialdim):
 
 
 @pytest.fixture
-def rv3(ordint, spatialdim):
-    dim = spatialdim * (ordint + 1)
-    mean = np.random.rand(dim)
-    cov = random_spd_matrix(dim)
-    return pnrv.Normal(mean, cov)
-
-
-@pytest.fixture
-def crosscov(ordint, spatialdim):
-    dim = spatialdim * (ordint + 1)
-    crosscov = np.random.rand(dim, dim)
-    return crosscov
-
-
-@pytest.fixture
 def dt():
     return 2.0 + 2.0 * np.random.rand()
 
@@ -94,7 +79,15 @@ def dynamics_model(ordint, spatialdim):
     return dynamics_model
 
 
-def test_rts_smooth_step_precon(dynamics_model, rv1, rv2, rv3, crosscov, dt):
+@pytest.fixture
+def measurement_model(ordint, spatialdim):
+    H = np.random.rand(spatialdim, spatialdim * (ordint + 1))
+    s = np.random.rand(spatialdim)
+    Q = random_spd_matrix(spatialdim)
+    return pnfss.DiscreteLTIGaussian(H, s, Q)
+
+
+def test_rts_smooth_step_precon(dynamics_model, rv1, rv2, dt):
     """Assert that preconditioning does not affect the outcome of the smoothing step."""
 
     smooth_without = pnfs.rts_smooth_step_classic
@@ -102,20 +95,22 @@ def test_rts_smooth_step_precon(dynamics_model, rv1, rv2, rv3, crosscov, dt):
 
     start = np.random.rand()
     stop = start + dt
+    predicted_rv, info = pnfs.predict_sqrt(dynamics_model, start, stop, rv1)
+
     result_with, _ = smooth_with(
         rv1,
-        rv3,
+        predicted_rv,
         rv2,
-        crosscov,
+        info["crosscov"],
         dynamics_model=dynamics_model,
         start=start,
         stop=stop,
     )
     result_without, _ = smooth_without(
         rv1,
-        rv3,
+        predicted_rv,
         rv2,
-        crosscov,
+        info["crosscov"],
         dynamics_model=dynamics_model,
         start=start,
         stop=stop,
@@ -163,14 +158,6 @@ def test_predict(dynamics_model, rv1, dt):
 
     np.testing.assert_allclose(result_classic.mean, result_sqrt.mean)
     np.testing.assert_allclose(result_classic.cov, result_sqrt.cov)
-
-
-@pytest.fixture
-def measurement_model(ordint, spatialdim):
-    H = np.random.rand(spatialdim, spatialdim * (ordint + 1))
-    s = np.random.rand(spatialdim)
-    Q = random_spd_matrix(spatialdim)
-    return pnfss.DiscreteLTIGaussian(H, s, Q)
 
 
 def test_measure(measurement_model, rv1):
