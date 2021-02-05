@@ -9,10 +9,10 @@ from probnum.problems import LinearSystem
 from probnum.type import ScalarArgType
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["Residual"]
+__all__ = ["ResidualNorm"]
 
 
-class Residual(StoppingCriterion):
+class ResidualNorm(StoppingCriterion):
     """Residual stopping criterion.
 
     Terminate when the norm of the residual :math:`r_{i} = A x_{i} - b` is

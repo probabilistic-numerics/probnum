@@ -102,14 +102,14 @@ class ProbabilisticLinearSolver(
     >>> from probnum.linalg.solvers.beliefs import SymmetricNormalLinearSystemBelief
     >>> from probnum.linalg.solvers.policies import ConjugateDirections
     >>> from probnum.linalg.solvers.observation_ops import MatVec
-    >>> from probnum.linalg.solvers.stop_criteria import MaxIterations, Residual
+    >>> from probnum.linalg.solvers.stop_criteria import MaxIterations, ResidualNorm
     >>> # Composition of a custom probabilistic linear solver
     >>> pls = ProbabilisticLinearSolver(
     ...     prior=SymmetricNormalLinearSystemBelief.from_solution(np.zeros_like(linsys.b),
     ...                                            problem=linsys),
     ...     policy=ConjugateDirections(),
     ...     observation_op=MatVec(),
-    ...     stopping_criteria=[MaxIterations(), Residual()],
+    ...     stopping_criteria=[MaxIterations(), ResidualNorm()],
     ... )
 
     Solve the linear system using the custom solver.
@@ -415,10 +415,14 @@ class ProbabilisticLinearSolver(
         stopping_criteria = [stop_criteria.MaxIterations(maxiter=maxiter)]
         if isinstance(observation_op, observation_ops.MatVec):
             if isinstance(prior, beliefs.WeakMeanCorrespondenceBelief):
-                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
+                stopping_criteria.append(
+                    stop_criteria.ResidualNorm(atol=atol, rtol=rtol)
+                )
                 return stopping_criteria
             elif isinstance(prior, beliefs.SymmetricNormalLinearSystemBelief):
-                stopping_criteria.append(stop_criteria.Residual(atol=atol, rtol=rtol))
+                stopping_criteria.append(
+                    stop_criteria.ResidualNorm(atol=atol, rtol=rtol)
+                )
                 return stopping_criteria
         elif isinstance(observation_op, observation_ops.SampleMatVec):
             if isinstance(prior, beliefs.NoisySymmetricNormalLinearSystemBelief):

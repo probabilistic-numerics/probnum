@@ -304,7 +304,7 @@ def noisy_solver_data(
             ["maxiter", "residual", "uncertainty"],
             [
                 stop_criteria.MaxIterations(),
-                stop_criteria.Residual(),
+                stop_criteria.ResidualNorm(),
                 stop_criteria.PosteriorContraction(),
             ],
         )
@@ -407,7 +407,7 @@ def precond_conj_grad_method(
         ),
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVec(),
-        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
+        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.ResidualNorm()],
     )
 
 
@@ -426,7 +426,7 @@ def conj_grad_method(
         ),
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVec(),
-        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
+        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.ResidualNorm()],
     )
 
 

@@ -32,7 +32,7 @@ def custom_stopping_criterion(
             ["maxiter", "residual", "uncertainty", "custom"],
             [
                 stop_criteria.MaxIterations(),
-                stop_criteria.Residual(),
+                stop_criteria.ResidualNorm(),
                 stop_criteria.PosteriorContraction(),
                 stop_criteria.StoppingCriterion(
                     stopping_criterion=custom_stopping_criterion

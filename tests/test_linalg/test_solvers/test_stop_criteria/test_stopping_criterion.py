@@ -6,7 +6,7 @@ import pytest
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.linalg.solvers.stop_criteria import (
     PosteriorContraction,
-    Residual,
+    ResidualNorm,
     StoppingCriterion,
 )
 from probnum.problems import LinearSystem
@@ -40,7 +40,7 @@ def test_solver_state_none(
 @pytest.mark.parametrize(
     "stopcrit",
     [
-        Residual(),
+        ResidualNorm(),
         PosteriorContraction(),
     ],
     indirect=True,

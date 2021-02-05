@@ -91,7 +91,7 @@ def test_uncertainty_calibration_error(
         hyperparam_optim_method=uncertainty_calibration,
         policy=policies.ConjugateDirections(),
         observation_op=observation_ops.MatVec(),
-        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.Residual()],
+        stopping_criteria=[stop_criteria.MaxIterations(), stop_criteria.ResidualNorm()],
     )
 
     belief, solver_state = pls.solve(linsys_spd)
