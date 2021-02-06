@@ -17,7 +17,7 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
     start = 0.1 + 0.01 * np.random.rand()
 
     random_mat = np.random.rand(TEST_NDIM, TEST_NDIM)
-    random_spdmat = random_mat @ random_mat + np.eye(TEST_NDIM)
+    random_spdmat = random_mat @ random_mat + 2 * np.eye(TEST_NDIM)
 
     def setUp(self):
         def g(t, x):
