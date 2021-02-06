@@ -20,6 +20,7 @@ class EKFComponent(statespace.Transition, abc.ABC):
 
         # Will be constructed later
         self.linearized_model = None
+        super().__init__()
 
     def transition_realization(
         self,

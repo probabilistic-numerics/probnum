@@ -34,6 +34,7 @@ class UKFComponent(statespace.Transition, abc.ABC):
         # Determine the linearization.
         # Will be constructed later.
         self.sigma_points = None
+        super().__init__()
 
     def assemble_sigma_points(self, at_this_rv: pnrv.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
