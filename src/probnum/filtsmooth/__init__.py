@@ -10,7 +10,6 @@ from .gaussfiltsmooth import (
     EKFComponent,
     Kalman,
     KalmanPosterior,
-    LinearizingTransition,
     StoppingCriterion,
     UKFComponent,
     UnscentedTransform,
@@ -34,7 +33,6 @@ from .gaussfiltsmooth import (
 __all__ = [
     "BayesFiltSmooth",
     "Kalman",
-    "LinearizingTransition",
     "EKFComponent",
     "ContinuousEKFComponent",
     "DiscreteEKFComponent",

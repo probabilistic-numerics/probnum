@@ -1,6 +1,7 @@
 """Gaussian filtering and smoothing based on making intractable quantities tractable
 through Taylor-method approximations, e.g. linearization."""
 
+import abc
 import typing
 
 import numpy as np
@@ -9,14 +10,13 @@ import probnum.random_variables as pnrv
 import probnum.type as pntype
 from probnum.filtsmooth import statespace
 
-from .linearizing_transition import LinearizingTransition
 
-
-class EKFComponent(LinearizingTransition):
+class EKFComponent(statespace.Transition, abc.ABC):
     """Interface for extended Kalman filtering components."""
 
     def __init__(self, non_linear_model) -> None:
-        super().__init__(non_linear_model=non_linear_model)
+
+        self.non_linear_model = non_linear_model
 
         # Will be constructed later
         self.linearized_model = None
@@ -57,10 +57,15 @@ class EKFComponent(LinearizingTransition):
     ) -> (pnrv.Normal, typing.Dict):
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
-        self.linearize(at_this_rv=compute_jacobian_at)
+        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
         return self.linearized_model.transition_rv(
             rv=rv, start=start, stop=stop, step=step, _diffusion=_diffusion
         )
+
+    @abc.abstractmethod
+    def linearize(self, at_this_rv: pnrv.RandomVariable) -> statespace.Transition:
+        """Linearize the transition and make it tractable."""
+        raise NotImplementedError
 
 
 class ContinuousEKFComponent(EKFComponent):
@@ -90,7 +95,7 @@ class ContinuousEKFComponent(EKFComponent):
         def driftmatfun(t):
             return dg(t, x0)
 
-        self.linearized_model = statespace.LinearSDE(
+        return statespace.LinearSDE(
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
             dispmatfun=self.non_linear_model.dispmatfun,
@@ -126,7 +131,7 @@ class DiscreteEKFComponent(EKFComponent):
         def dynamicsmatfun(t):
             return dg(t, x0)
 
-        self.linearized_model = statespace.DiscreteLinearGaussian(
+        return statespace.DiscreteLinearGaussian(
             state_trans_mat_fun=dynamicsmatfun,
             shift_vec_fun=forcevecfun,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,

@@ -5,6 +5,7 @@ Examples include the unscented Kalman filter / RTS smoother which is
 based on a third degree fully symmetric rule.
 """
 
+import abc
 import typing
 
 import numpy as np
@@ -13,11 +14,10 @@ import probnum.random_variables as pnrv
 import probnum.type as pntype
 from probnum.filtsmooth import statespace
 
-from .linearizing_transition import LinearizingTransition
 from .unscentedtransform import UnscentedTransform
 
 
-class UKFComponent(LinearizingTransition):
+class UKFComponent(statespace.Transition, abc.ABC):
     """Interface for unscented Kalman filtering components."""
 
     def __init__(
@@ -28,16 +28,16 @@ class UKFComponent(LinearizingTransition):
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
     ) -> None:
-        super().__init__(non_linear_model=non_linear_model)
+        self.non_linear_model = non_linear_model
         self.ut = UnscentedTransform(dimension, spread, priorpar, special_scale)
 
         # Determine the linearization.
         # Will be constructed later.
         self.sigma_points = None
 
-    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+    def assemble_sigma_points(self, at_this_rv: pnrv.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
-        self.sigma_points = self.ut.sigma_points(at_this_rv.mean, at_this_rv.cov)
+        return self.ut.sigma_points(at_this_rv.mean, at_this_rv.cov)
 
 
 class ContinuousUKFComponent(UKFComponent):
@@ -129,7 +129,7 @@ class DiscreteUKFComponent(UKFComponent):
         **kwargs
     ) -> (pnrv.Normal, typing.Dict):
         compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
-        self.linearize(at_this_rv=compute_sigmapts_at)
+        self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
 
         proppts = self.ut.propagate(
             start, self.sigma_points, self.non_linear_model.state_trans_fun

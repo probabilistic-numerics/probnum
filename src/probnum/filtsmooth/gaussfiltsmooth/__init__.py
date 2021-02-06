@@ -17,7 +17,6 @@ from .kalman_utils import (
     update_sqrt,
 )
 from .kalmanposterior import KalmanPosterior
-from .linearizing_transition import LinearizingTransition
 from .stoppingcriterion import StoppingCriterion
 from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent, UKFComponent
 from .unscentedtransform import UnscentedTransform
