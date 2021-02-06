@@ -51,7 +51,7 @@ def predict_sqrt(
     )
 
     new_mean = H @ rv.mean + shift
-    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, SR)
+    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, np.sqrt(_diffusion) * SR)
     new_cov = new_cov_cholesky @ new_cov_cholesky.T
     crosscov = rv.cov @ H.T
     return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
