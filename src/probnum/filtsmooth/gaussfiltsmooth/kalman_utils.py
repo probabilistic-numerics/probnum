@@ -83,7 +83,7 @@ def measure_sqrt(
     time,
     _linearise_at=None,
 ) -> (pnrv.RandomVariable, typing.Dict):
-    """Compute the prediction in square-root form."""
+    """Compute the measurement in square-root form."""
     H, SR, shift = linear_system_matrices(
         measurement_model, rv, time, None, _linearise_at
     )
