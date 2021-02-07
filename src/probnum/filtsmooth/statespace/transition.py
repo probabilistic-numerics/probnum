@@ -11,15 +11,15 @@ __all__ = ["Transition", "generate"]
 
 
 class Transition(abc.ABC):
-    """Markov transition rules in discrete or continuous time.
+    """Markov transition kernel implementations in discrete or continuous time.
 
-    In continuous time, this is a Markov process and described by a
+    In continuous time, this is a Markov process and described by the solution of a
     stochastic differential equation (SDE)
 
     .. math:: d x_t = f(t, x_t) d t + d w_t
 
-    driven by a Wiener process :math:`w`. In discrete time, it is defined by
-    a transformation
+    driven by a Wiener process :math:`w`. In discrete time, it is a Markov chain and
+    described by a transformation
 
     .. math:: x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t).
 
@@ -150,6 +150,32 @@ class Transition(abc.ABC):
         :meth:`forward_realization`
             Apply transition to a realization of a random variable.
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def backward_realization(
+        self,
+        real: np.ndarray,
+        rv_past: "RandomVariable",
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
+    ):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def backward_rv(
+        self,
+        rv_futu: "RandomVariable",
+        rv_past: "RandomVariable",
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
+    ):
         raise NotImplementedError
 
     @property
