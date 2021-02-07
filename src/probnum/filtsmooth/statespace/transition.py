@@ -101,6 +101,7 @@ class Transition(abc.ABC):
         start: float,
         stop: Optional[float] = None,
         step: Optional[float] = None,
+        with_gain: Optional[bool] = False,
         _diffusion: Optional[float] = 1.0,
         _linearise_at: Optional[RandomVariable] = None,
     ) -> (RandomVariable, Dict):

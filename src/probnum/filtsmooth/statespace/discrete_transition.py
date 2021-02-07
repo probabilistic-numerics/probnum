@@ -7,6 +7,11 @@ import probnum.random_variables as pnrv
 from probnum.type import FloatArgType
 
 from . import transition as trans
+from .discrete_transition_utils import (
+    backward_realization_classic,
+    backward_rv_classic,
+    forward_rv_classic,
+)
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -66,19 +71,16 @@ class DiscreteGaussian(trans.Transition):
         newmean = self.state_trans_fun(start, real)
         newcov = _diffusion * self.proc_noise_cov_mat_fun(start)
 
-        # This is not correct?
-        crosscov = np.zeros(newcov.shape)
-        return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
+        return pnrv.Normal(newmean, newcov), {}
 
     def forward_rv(self, rv, start, **kwargs):
-
-        raise NotImplementedError
+        raise NotImplementedError("Not available")
 
     def backward_realization(self, real, rv_past, start, _diffusion=1.0, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError("Not available")
 
     def backward_rv(self, rv_futu, rv_past, start, _diffusion=1.0, **kwargs):
-        raise NotImplementedError
+        raise NotImplementedError("Not available")
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
@@ -114,11 +116,11 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
-        use_forward_rv=NotImplemented,
-        use_backward_realization=NotImplemented,
-        use_backward_rv=NotImplemented,
-        use_forward_rv_and_backward_realization=NotImplemented,
-        use_forward_rv_and_backward_rv=NotImplemented,
+        use_forward_rv=forward_rv_classic,
+        use_backward_realization=backward_realization_classic,
+        use_backward_rv=backward_rv_classic,
+        use_forward_rv_and_backward_realization=None,
+        use_forward_rv_and_backward_rv=None,
     ):
         # The choice of backward implementation without forward implementation
         # i.e. backward_rv (and not forward_rv_and_backward...) is not really
@@ -136,19 +138,45 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
 
-    def forward_rv(self, rv, start, _diffusion=1.0, **kwargs):
+        self._forward_rv_impl = use_forward_rv
+        self._backward_realization_impl = use_backward_realization
+        self._backward_rv_impl = use_backward_rv
+        self._forward_rv_backward_realization_impl = (
+            use_forward_rv_and_backward_realization
+        )
+        self._forward_rv_backward_rv_impl = use_forward_rv_and_backward_rv
+
+    def forward_rv(self, rv, start, with_gain=False, _diffusion=1.0, **kwargs):
 
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")
 
-        state_trans_mat = self.state_trans_mat_fun(start)
-        diffmat = _diffusion * self.proc_noise_cov_mat_fun(start)
-        shift = self.shift_vec_fun(start)
+        return self._forward_rv_impl(
+            discrete_transition=self,
+            rv=rv,
+            time=start,
+            with_gain=with_gain,
+            _diffusion=_diffusion,
+        )
 
-        new_mean = state_trans_mat @ rv.mean + shift
-        new_crosscov = rv.cov @ state_trans_mat.T
-        new_cov = state_trans_mat @ new_crosscov + diffmat
-        return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
+    def forward_realization(self, real, start, _diffusion=1.0, **kwargs):
+
+        zero_cov = np.zeros((len(real), len(real)))
+        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+
+        return self.forward_rv(
+            rv=real_as_rv, start=start, _diffusion=_diffusion, **kwargs
+        )
+        #
+        #
+        # state_trans_mat = self.state_trans_mat_fun(start)
+        # diffmat = _diffusion * self.proc_noise_cov_mat_fun(start)
+        # shift = self.shift_vec_fun(start)
+        #
+        # new_mean = state_trans_mat @ rv.mean + shift
+        # new_crosscov = rv.cov @ state_trans_mat.T
+        # new_cov = state_trans_mat @ new_crosscov + diffmat
+        # return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
 
     def backward_realization(self, real, rv_past, start, _diffusion=1.0, **kwargs):
         raise NotImplementedError

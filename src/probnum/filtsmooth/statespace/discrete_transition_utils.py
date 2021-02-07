@@ -13,6 +13,10 @@ import probnum.random_variables as pnrv
 ########################################################################################################################
 # Forward implementations (think: predictions)
 # All sorts of ways of computing m = A m + z; C = A C At + Q
+# The signature of a forward method is
+#
+#   forward_rv_*(transition, rv, time, with_gain=False, _diffusion=1.0) -> (RV, dict)
+#
 ########################################################################################################################
 
 
@@ -21,7 +25,7 @@ def forward_rv_classic(
     rv,
     time,
     with_gain=False,
-    _linearise_at=None,
+    _diffusion=1.0,
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the forward propagation in square-root form."""
     H = discrete_transition.state_trans_mat_fun(time)
@@ -30,7 +34,7 @@ def forward_rv_classic(
 
     new_mean = H @ rv.mean + shift
     crosscov = rv.cov @ H.T
-    new_cov = H @ crosscov + R
+    new_cov = H @ crosscov + _diffusion * R
     info = {"crosscov": crosscov}
     if with_gain:
         gain = crosscov @ np.linalg.inv(new_cov)
@@ -43,7 +47,7 @@ def forward_rv_sqrt(
     rv,
     time,
     with_gain=False,
-    _linearise_at=None,
+    _diffusion=1.0,
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the forward propagation in square-root form."""
     H = discrete_transition.state_trans_mat_fun(time)
@@ -51,7 +55,7 @@ def forward_rv_sqrt(
     shift = discrete_transition.shift_vec_fun(time)
 
     new_mean = H @ rv.mean + shift
-    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, SR)
+    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, np.sqrt(_diffusion) * SR)
     new_cov = new_cov_cholesky @ new_cov_cholesky.T
     crosscov = rv.cov @ H.T
     info = {"crosscov": crosscov}
@@ -66,14 +70,14 @@ def forward_rv_sqrt(
 ########################################################################################################################
 
 
-def backward_realization(realization, rv_future, rv_past, gain):
+def backward_realization_classic(realization, rv_future, rv_past, gain):
     new_mean = rv_past.mean + gain @ (realization - rv_future.mean)
     new_cov = rv_past.cov - gain @ rv_future @ gain.T
     updated_rv = pnrv.Normal(new_mean, new_cov)
     return updated_rv
 
 
-def backward_rv(rv_attained, rv_future, rv_past, crosscov_past_future):
+def backward_rv_classic(rv_attained, rv_future, rv_past, crosscov_past_future):
     # Plain smoothing update
     smoothing_gain = crosscov_past_future @ np.linalg.inv(rv_future.cov)
     new_mean = rv_past.mean + smoothing_gain @ (rv_attained.mean - rv_future.mean)

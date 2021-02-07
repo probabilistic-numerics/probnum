@@ -11,8 +11,8 @@ from .discrete_transition import (
     DiscreteLTIGaussian,
 )
 from .discrete_transition_utils import (
-    backward_realization,
-    backward_rv,
+    backward_realization_classic,
+    backward_rv_classic,
     cholesky_update,
     forward_rv_and_backward_realization_sqrt,
     forward_rv_and_backward_rv_sqrt,
@@ -50,8 +50,8 @@ __all__ = [
     "generate",
     "forward_rv_sqrt",
     "forward_rv_classic",
-    "backward_realization",
-    "backward_rv",
+    "backward_realization_classic",
+    "backward_rv_classic",
     "forward_rv_and_backward_realization_sqrt",
     "forward_rv_and_backward_rv_sqrt",
     "cholesky_update",
