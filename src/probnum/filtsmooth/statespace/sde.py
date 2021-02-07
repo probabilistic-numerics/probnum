@@ -30,7 +30,7 @@ class SDE(transition.Transition):
         self.jacobfun = jacobfun
         super().__init__()
 
-    def transition_realization(
+    def forward_realization(
         self,
         real,
         start,
@@ -41,7 +41,7 @@ class SDE(transition.Transition):
     ):
         raise NotImplementedError
 
-    def transition_rv(
+    def forward_rv(
         self,
         rv,
         start,
@@ -94,7 +94,7 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: driftmatfun(t)),
         )
 
-    def transition_realization(
+    def forward_realization(
         self,
         real,
         start,
@@ -116,7 +116,7 @@ class LinearSDE(SDE):
             _diffusion=_diffusion,
         )
 
-    def transition_rv(self, rv, start, stop, step, _diffusion=1.0, **kwargs):
+    def forward_rv(self, rv, start, stop, step, _diffusion=1.0, **kwargs):
 
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
@@ -175,7 +175,7 @@ class LTISDE(LinearSDE):
         self.forcevec = forcevec
         self.dispmat = dispmat
 
-    def transition_realization(
+    def forward_realization(
         self,
         real,
         start,
@@ -187,11 +187,9 @@ class LTISDE(LinearSDE):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_realization(
-            real, start, _diffusion=_diffusion
-        )
+        return discretised_model.forward_realization(real, start, _diffusion=_diffusion)
 
-    def transition_rv(
+    def forward_rv(
         self,
         rv,
         start,
@@ -207,7 +205,7 @@ class LTISDE(LinearSDE):
             )
             raise TypeError(errormsg)
         discretised_model = self.discretise(step=stop - start)
-        return discretised_model.transition_rv(rv, start, _diffusion=_diffusion)
+        return discretised_model.forward_rv(rv, start, _diffusion=_diffusion)
 
     def discretise(self, step):
         """Returns a discrete transition model (i.e. mild solution to SDE) using matrix

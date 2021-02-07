@@ -59,10 +59,10 @@ class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
     def test_transition_rv(self):
 
         with self.assertRaises(NotImplementedError):
-            self.dtrans.transition_rv(self.some_rv, self.start)
+            self.dtrans.forward_rv(self.some_rv, self.start)
 
     def test_transition_realization(self):
-        self.dtrans.transition_realization(self.some_rv.sample(), self.start)
+        self.dtrans.forward_realization(self.some_rv.sample(), self.start)
 
     def test_diffmatfun_cholesky(self):
         self.assertAllClose(
@@ -102,7 +102,7 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
 
         with self.subTest("Non-Normal-RV-exception"):
             with self.assertRaises(TypeError):
-                self.dtrans.transition_rv(self.some_nongaussian_rv, self.start)
+                self.dtrans.forward_rv(self.some_nongaussian_rv, self.start)
 
     def test_state_trans_mat(self):
         received = self.dtrans.state_trans_mat_fun(self.start)

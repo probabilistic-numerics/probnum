@@ -127,7 +127,7 @@ class IBM(Integrator, sde.LTISDE):
         proc_noise_cov_mat_1d = 1.0 / denominators
         return np.kron(np.eye(self.spatialdim), proc_noise_cov_mat_1d)
 
-    def transition_rv(self, rv, start, stop, _diffusion=1.0, **kwargs):
+    def forward_rv(self, rv, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(rv, pnrv.Normal):
             errormsg = (
                 "Closed form transitions in LTI SDE models is only "
@@ -136,18 +136,18 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(errormsg)
         step = stop - start
         rv = self.precon.inverse(step) @ rv
-        rv, info = self.equivalent_discretisation_preconditioned.transition_rv(
+        rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
             rv, start, _diffusion=_diffusion
         )
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ rv, info
 
-    def transition_realization(self, real, start, stop, _diffusion=1.0, **kwargs):
+    def forward_realization(self, real, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         real = self.precon.inverse(step) @ real
-        out = self.equivalent_discretisation_preconditioned.transition_realization(
+        out = self.equivalent_discretisation_preconditioned.forward_realization(
             real, start, _diffusion=_diffusion
         )
         real, info = out
@@ -159,7 +159,7 @@ class IBM(Integrator, sde.LTISDE):
 
         Overwrites matrix-fraction decomposition in the super-class.
         Only present for user's convenience and to maintain a clean
-        interface. Not used for transition_rv, etc..
+        interface. Not used for forward_rv, etc..
         """
 
         state_trans_mat = (

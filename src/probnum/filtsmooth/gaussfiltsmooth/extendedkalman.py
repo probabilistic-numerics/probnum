@@ -22,7 +22,7 @@ class EKFComponent(statespace.Transition, abc.ABC):
         self.linearized_model = None
         super().__init__()
 
-    def transition_realization(
+    def forward_realization(
         self,
         real: np.ndarray,
         start: float,
@@ -37,7 +37,7 @@ class EKFComponent(statespace.Transition, abc.ABC):
         # or try to call the non-linear transition if possible?
         # There is no right or wrong, but what is the desired behaviour?
         real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
-        return self.transition_rv(
+        return self.forward_rv(
             real_as_rv,
             start,
             stop,
@@ -46,7 +46,7 @@ class EKFComponent(statespace.Transition, abc.ABC):
             _diffusion=_diffusion,
         )
 
-    def transition_rv(
+    def forward_rv(
         self,
         rv: pnrv.Normal,
         start: float,
@@ -59,7 +59,7 @@ class EKFComponent(statespace.Transition, abc.ABC):
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
-        return self.linearized_model.transition_rv(
+        return self.linearized_model.forward_rv(
             rv=rv, start=start, stop=stop, step=step, _diffusion=_diffusion
         )
 

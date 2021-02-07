@@ -61,7 +61,7 @@ class DiscreteGaussian(trans.Transition):
         )
         super().__init__()
 
-    def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
+    def forward_realization(self, real, start, _diffusion=1.0, **kwargs):
 
         newmean = self.state_trans_fun(start, real)
         newcov = _diffusion * self.proc_noise_cov_mat_fun(start)
@@ -70,7 +70,7 @@ class DiscreteGaussian(trans.Transition):
         crosscov = np.zeros(newcov.shape)
         return pnrv.Normal(newmean, newcov), {"crosscov": crosscov}
 
-    def transition_rv(self, rv, start, **kwargs):
+    def forward_rv(self, rv, start, **kwargs):
 
         raise NotImplementedError
 
@@ -121,7 +121,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
 
-    def transition_rv(self, rv, start, _diffusion=1.0, **kwargs):
+    def forward_rv(self, rv, start, _diffusion=1.0, **kwargs):
 
         if not isinstance(rv, pnrv.Normal):
             raise TypeError(f"Normal RV expected, but {type(rv)} received.")

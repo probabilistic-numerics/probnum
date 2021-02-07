@@ -26,7 +26,7 @@ def predict_via_transition(
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the prediction under the assumption that the transition is available in
     closed form."""
-    return dynamics_model.transition_rv(
+    return dynamics_model.forward_rv(
         rv=rv,
         start=start,
         stop=stop,
@@ -72,9 +72,7 @@ def measure_via_transition(
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the measurement under the assumption that the transition is available in
     closed form."""
-    return measurement_model.transition_rv(
-        rv=rv, start=time, _linearise_at=_linearise_at
-    )
+    return measurement_model.forward_rv(rv=rv, start=time, _linearise_at=_linearise_at)
 
 
 def measure_sqrt(

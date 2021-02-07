@@ -66,7 +66,7 @@ class ContinuousUKFComponent(UKFComponent):
             "Implementation of the continuous UKF is incomplete. It cannot be used."
         )
 
-    def transition_realization(
+    def forward_realization(
         self,
         real: np.ndarray,
         start: pntype.FloatArgType,
@@ -77,7 +77,7 @@ class ContinuousUKFComponent(UKFComponent):
     ) -> (pnrv.Normal, typing.Dict):
         raise NotImplementedError("TODO")  # Issue  #234
 
-    def transition_rv(
+    def forward_rv(
         self,
         rv: pnrv.Normal,
         start: pntype.FloatArgType,
@@ -114,14 +114,14 @@ class DiscreteUKFComponent(UKFComponent):
             special_scale=special_scale,
         )
 
-    def transition_realization(
+    def forward_realization(
         self, real: np.ndarray, start: pntype.FloatArgType, _diffusion=1.0, **kwargs
     ) -> (pnrv.Normal, typing.Dict):
-        return self.non_linear_model.transition_realization(
+        return self.non_linear_model.forward_realization(
             real, start, _diffusion=_diffusion, **kwargs
         )
 
-    def transition_rv(
+    def forward_rv(
         self,
         rv: pnrv.Normal,
         start: pntype.FloatArgType,

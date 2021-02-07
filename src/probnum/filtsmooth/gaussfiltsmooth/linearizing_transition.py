@@ -27,7 +27,7 @@
 #         super().__init__()
 #
 #     @abc.abstractmethod
-#     def transition_realization(
+#     def forward_realization(
 #         self,
 #         real: np.ndarray,
 #         start: float,
@@ -40,7 +40,7 @@
 #         raise NotImplementedError
 #
 #     @abc.abstractmethod
-#     def transition_rv(
+#     def forward_rv(
 #         self,
 #         rv: pnrv.RandomVariable,
 #         start: float,

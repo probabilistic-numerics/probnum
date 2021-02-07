@@ -39,7 +39,7 @@ class Transition(abc.ABC):
         self.precon = None
 
     @abc.abstractmethod
-    def transition_realization(
+    def forward_realization(
         self,
         real: np.ndarray,
         start: float,
@@ -55,7 +55,7 @@ class Transition(abc.ABC):
 
         .. math:: x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t = r) .
 
-        This is different to :meth:`transition_rv` which computes the parametrization
+        This is different to :meth:`forward_rv` which computes the parametrization
         of :math:`x_{t + \\Delta t}` based on the parametrization of :math:`x_t`.
 
         Nb: Think of transition as a verb, i.e. this method "transitions" a realization of a random variable.
@@ -89,13 +89,13 @@ class Transition(abc.ABC):
 
         See Also
         --------
-        :meth:`transition_rv`
+        :meth:`forward_rv`
             Apply transition to a random variable.
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def transition_rv(
+    def forward_rv(
         self,
         rv: "RandomVariable",
         start: float,
@@ -112,7 +112,7 @@ class Transition(abc.ABC):
         .. math:: x_{t + \\Delta t} \\sim p(x_{t + \\Delta t}  | x_t) .
 
         This returns a random variable where the parametrization depends on the paramtrization of :math:`x_t`.
-        This is different to :meth:`transition_rv` which computes the parametrization
+        This is different to :meth:`forward_rv` which computes the parametrization
         of :math:`x_{t + \\Delta t}` based on a realization of :math:`x_t`.
 
         Nb: Think of transition as a verb, i.e. this method "transitions" a random variable.
@@ -147,7 +147,7 @@ class Transition(abc.ABC):
 
         See Also
         --------
-        :meth:`transition_realization`
+        :meth:`forward_realization`
             Apply transition to a realization of a random variable.
         """
         raise NotImplementedError
@@ -194,18 +194,18 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
 
     # initial observation point
     states[0] = initrv.sample()
-    next_obs_rv, _ = measmod.transition_realization(real=states[0], start=times[0])
+    next_obs_rv, _ = measmod.forward_realization(real=states[0], start=times[0])
     obs[0] = next_obs_rv.sample()
 
     # all future points
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
         step = (stop - start) / num_steps
-        next_state_rv, _ = dynmod.transition_realization(
+        next_state_rv, _ = dynmod.forward_realization(
             real=states[idx - 1], start=start, stop=stop, step=step
         )
         states[idx] = next_state_rv.sample()
-        next_obs_rv, _ = measmod.transition_realization(real=states[idx], start=stop)
+        next_obs_rv, _ = measmod.forward_realization(real=states[idx], start=stop)
         obs[idx] = next_obs_rv.sample()
     return states, obs
 
@@ -215,7 +215,7 @@ def _read_dimension(transition, initrv):
     implemented everywhere."""
     # relies on evaluating at zero, which is a dangerous endeavour and therefore,
     # this method is not used in Transition.dimension
-    transitioned, _ = transition.transition_realization(
+    transitioned, _ = transition.forward_realization(
         real=initrv.mean, start=0.0, stop=1.0, step=1.0
     )
     return len(transitioned.sample())

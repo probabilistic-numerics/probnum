@@ -32,13 +32,11 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
 
     def test_transition_realization(self):
         with self.assertRaises(NotImplementedError):
-            self.sde.transition_realization(
-                self.some_rv.sample(), self.start, self.stop
-            )
+            self.sde.forward_realization(self.some_rv.sample(), self.start, self.stop)
 
     def test_transition_rv(self):
         with self.assertRaises(NotImplementedError):
-            self.sde.transition_rv(self.some_rv, self.start, self.stop)
+            self.sde.forward_rv(self.some_rv, self.start, self.stop)
 
     def test_drift(self):
         expected = self.f(self.start, self.some_rv.mean)
@@ -85,14 +83,14 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
 
     def test_transition_realization(self):
 
-        _ = self.sde.transition_realization(
+        _ = self.sde.forward_realization(
             self.some_rv.sample(), self.start, self.stop, step=self.rk_step
         )
 
     def test_transition_rv(self):
 
         with self.assertRaises(TypeError):
-            self.sde.transition_rv(
+            self.sde.forward_rv(
                 self.some_nongaussian_rv,
                 self.start,
                 self.stop,
@@ -100,7 +98,7 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
             )
 
         with self.subTest("Output attainable"):
-            _ = self.sde.transition_rv(
+            _ = self.sde.forward_rv(
                 self.some_rv, self.start, self.stop, step=self.rk_step
             )
 
@@ -140,19 +138,19 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
 
         with self.subTest("NormalRV exception"):
             with self.assertRaises(TypeError):
-                self.sde.transition_rv(
+                self.sde.forward_rv(
                     self.some_nongaussian_rv,
                     self.start,
                     self.stop,
                 )
 
         with self.subTest("Output attainable"):
-            _ = self.sde.transition_rv(self.some_rv, self.start, self.stop)
+            _ = self.sde.forward_rv(self.some_rv, self.start, self.stop)
 
     def test_transition_realization(self):
 
         with self.subTest("Output attainable"):
-            _ = self.sde.transition_realization(
+            _ = self.sde.forward_realization(
                 self.some_rv.sample(),
                 self.start,
                 self.stop,

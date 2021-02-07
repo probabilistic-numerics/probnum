@@ -187,17 +187,16 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     linearising_component_car = NotImplemented
 
     def test_transition_rv(self):
-        """transition_rv() not possible for original model but for the linearised
-        model."""
+        """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = pendulum()
         linearised_model = self.linearising_component_pendulum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_rv(initrv, 0.0)
+                nonlinear_model.forward_rv(initrv, 0.0)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_rv(initrv, 0.0)
+            linearised_model.forward_rv(initrv, 0.0)
 
     def test_exactness_linear_model(self):
         """Applied to a linear model, the results should be unchanged."""
@@ -208,8 +207,8 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         with self.subTest("Different objects"):
             self.assertNotIsInstance(linear_model, type(linearised_model))
 
-        received, info1 = linear_model.transition_rv(initrv, 0.0)
-        expected, info2 = linearised_model.transition_rv(initrv, 0.0)
+        received, info1 = linear_model.forward_rv(initrv, 0.0)
+        expected, info2 = linearised_model.forward_rv(initrv, 0.0)
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
         rtol, atol = 1e-10, 1e-10
@@ -320,17 +319,16 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
     linearising_component_benes_daum = NotImplemented
 
     def test_transition_rv(self):
-        """transition_rv() not possible for original model but for the linearised
-        model."""
+        """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = benes_daum()
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_rv(initrv, 0.0, 1.0, step=0.1)
+                nonlinear_model.forward_rv(initrv, 0.0, 1.0, step=0.1)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_rv(initrv, 0.0, 1.0, step=0.1)
+            linearised_model.forward_rv(initrv, 0.0, 1.0, step=0.1)
 
     def test_transition_real(self):
         """transition_real() not possible for original model but for the linearised
@@ -341,6 +339,6 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_realization(initrv.mean, 0.0, 1.0, step=0.1)
+                nonlinear_model.forward_realization(initrv.mean, 0.0, 1.0, step=0.1)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_realization(initrv.mean, 0.0, 1.0, step=0.1)
+            linearised_model.forward_realization(initrv.mean, 0.0, 1.0, step=0.1)
