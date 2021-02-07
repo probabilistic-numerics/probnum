@@ -1,7 +1,12 @@
-"""Discrete-time transition implementations.
+"""Discrete-time transition implementations (for linear transitions).
 
 All sorts of implementations for implementing discrete-time updates,
-including predictions, updates, smoothings, and more.
+including predictions, updates, smoothing steps, and more.
+
+Implementations happen on a random variable level. That means that
+only `forward_rv_*` and `backward_rv_*` implementations are provided.
+Their respective realisation implementations are obtained by turning
+the realisation into a Normal RV with zero covariance.
 """
 
 import typing
@@ -11,11 +16,13 @@ import numpy as np
 import probnum.random_variables as pnrv
 
 ########################################################################################################################
+#
 # Forward implementations (think: predictions)
+#
 # All sorts of ways of computing m = A m + z; C = A C At + Q
 # The signature of a forward method is
 #
-#   forward_rv_*(transition, rv, time, with_gain=False, _diffusion=1.0) -> (RV, dict)
+#   forward_rv_*(discrete_transition, rv, t, compute_gain=False, _diffusion=1.0) -> (RV, dict)
 #
 ########################################################################################################################
 
@@ -23,20 +30,20 @@ import probnum.random_variables as pnrv
 def forward_rv_classic(
     discrete_transition,
     rv,
-    time,
-    with_gain=False,
+    t,
+    compute_gain=False,
     _diffusion=1.0,
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the forward propagation in square-root form."""
-    H = discrete_transition.state_trans_mat_fun(time)
-    R = discrete_transition.proc_noise_cov_mat_fun(time)
-    shift = discrete_transition.shift_vec_fun(time)
+    H = discrete_transition.state_trans_mat_fun(t)
+    R = discrete_transition.proc_noise_cov_mat_fun(t)
+    shift = discrete_transition.shift_vec_fun(t)
 
     new_mean = H @ rv.mean + shift
     crosscov = rv.cov @ H.T
     new_cov = H @ crosscov + _diffusion * R
     info = {"crosscov": crosscov}
-    if with_gain:
+    if compute_gain:
         gain = crosscov @ np.linalg.inv(new_cov)
         info["gain"] = gain
     return pnrv.Normal(new_mean, cov=new_cov), info
@@ -45,108 +52,84 @@ def forward_rv_classic(
 def forward_rv_sqrt(
     discrete_transition,
     rv,
-    time,
-    with_gain=False,
+    t,
+    compute_gain=False,
     _diffusion=1.0,
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the forward propagation in square-root form."""
-    H = discrete_transition.state_trans_mat_fun(time)
-    SR = discrete_transition.proc_noise_cov_cholesky_fun(time)
-    shift = discrete_transition.shift_vec_fun(time)
+    H = discrete_transition.state_trans_mat_fun(t)
+    SR = discrete_transition.proc_noise_cov_cholesky_fun(t)
+    shift = discrete_transition.shift_vec_fun(t)
 
     new_mean = H @ rv.mean + shift
     new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, np.sqrt(_diffusion) * SR)
     new_cov = new_cov_cholesky @ new_cov_cholesky.T
     crosscov = rv.cov @ H.T
     info = {"crosscov": crosscov}
-    if with_gain:
+    if compute_gain:
         gain = crosscov @ np.linalg.inv(new_cov)
         info["gain"] = gain
     return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), info
 
 
-########################################################################################################################
-# Backward implementations (think: updates and smoothing)
-########################################################################################################################
+# #######################################################################################################################
+#
+# Backward implementations (think: updates)
+#
+# The signature of a backward method is
+#
+#   backward_rv_*(attained_rv, rv, forwarded_rv=None, gain=None, discrete_transition=None, t=None, _diffusion=None) -> (RV, dict)
+#
+# where as much as possible out of `forwarded_rv` and `gain` are reused,
+# and if either one is not provided, they are computed via discrete_transition.forward_rv(rv, t, _diffusion).
+# #######################################################################################################################
 
 
-def backward_realization_classic(realization, rv_future, rv_past, gain):
-    new_mean = rv_past.mean + gain @ (realization - rv_future.mean)
-    new_cov = rv_past.cov - gain @ rv_future @ gain.T
-    updated_rv = pnrv.Normal(new_mean, new_cov)
-    return updated_rv
+def backward_rv_classic(
+    attained_rv,
+    rv,
+    forwarded_rv=None,
+    gain=None,
+    discrete_transition=None,
+    t=None,
+    _diffusion=None,
+):
 
+    if forwarded_rv is None or gain is None:
+        forwarded_rv, info = discrete_transition.forward_rv(
+            rv, t=t, compute_gain=True, _diffusion=_diffusion
+        )
+        gain = info["gain"]
 
-def backward_rv_classic(rv_attained, rv_future, rv_past, crosscov_past_future):
-    # Plain smoothing update
-    smoothing_gain = crosscov_past_future @ np.linalg.inv(rv_future.cov)
-    new_mean = rv_past.mean + smoothing_gain @ (rv_attained.mean - rv_future.mean)
-    new_cov = (
-        rv_past.cov
-        + smoothing_gain @ (rv_attained.cov - rv_future.cov) @ smoothing_gain.T
-    )
+    new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)
+    new_cov = rv.cov + gain @ (attained_rv.cov - forwarded_rv.cov) @ gain.T
     return pnrv.Normal(new_mean, new_cov), {}
 
 
-########################################################################################################################
-# Forward-backward combos (think: full smoothing updates)
-########################################################################################################################
+def backward_rv_sqrt(
+    attained_rv,
+    rv,
+    forwarded_rv=None,
+    gain=None,
+    discrete_transition=None,
+    t=None,
+    dt=None,
+    _diffusion=None,
+):  # forwarded_rv is ignored in square-root smoothing.
 
-
-def forward_rv_and_backward_realization_sqrt(
-    discrete_transition, realization, rv, time
-):
-
-    # Square-root Kalman update: measure and condition in one.
-    # Computes its own gain.
-
-    # Read off matrices
-    H = discrete_transition.state_trans_mat_fun(time)
-    SR = discrete_transition.proc_noise_cov_cholesky_fun(time)
-    shift = discrete_transition.shift_vec_fun(time)
-    SC = rv.cov_cholesky
-
-    # QR-decomposition
-    zeros = np.zeros(H.T.shape)
-    blockmat = np.block([[SR, H @ SC], [zeros, SC]]).T
-    big_triu = np.linalg.qr(blockmat, mode="r")
-
-    # Extract relevant info
-    ndim_measurements = len(H)
-    measured_triu = big_triu[:ndim_measurements, :ndim_measurements]
-    measured_cholesky = triu_to_positive_tril(measured_triu)
-    postcov_triu = big_triu[ndim_measurements:, ndim_measurements:]
-    postcov_cholesky = triu_to_positive_tril(postcov_triu)
-    gain = big_triu[:ndim_measurements, ndim_measurements:].T @ np.linalg.inv(
-        measured_triu.T
-    )
-
-    # Compute "measured" RV
-    meas_mean = H @ rv.mean + shift
-    meas_cov = measured_cholesky @ measured_cholesky
-    meas_rv = pnrv.Normal(meas_mean, cov=meas_cov, cov_cholesky=measured_cholesky)
-    info = {"meas_rv": meas_rv}
-
-    # Update RV
-    new_mean = rv.mean + gain @ (realization - meas_mean)
-    new_cov = postcov_cholesky @ postcov_cholesky.T
-    new_rv = pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=postcov_cholesky)
-    return new_rv, info
-
-
-def forward_rv_and_backward_rv_sqrt(
-    discrete_transition, rv_attained, rv_past, time, gain
-):
-    # Like *_and_backward_realization, but since we need to incorporate
-    # the rv_attained.cov, the gain must be provided, too.
-    # Does its own forward_rv in principle (except for the gain-info just discussed).
+    # Smoothing updates need the gain from the beginning on
+    if np.linalg.norm(rv.cov) > 0 and gain is None:
+        _, info = discrete_transition.forward_rv(
+            rv, t=t, dt=dt, compute_gain=True, _diffusion=_diffusion
+        )
+        gain = info["gain"]
 
     H = discrete_transition.state_trans_mat_fun(time)
     SR = discrete_transition.proc_noise_cov_cholesky_fun(time)
     shift = discrete_transition.shift_vec_fun(time)
 
-    SC_past = rv_past.cov_cholesky
-    SC_attained = rv_attained.cov_cholesky
+    SC_past = rv.cov_cholesky
+    SC_attained = attained_rv.cov_cholesky
 
     dim = len(A)
     zeros = np.zeros((dim, dim))
@@ -160,11 +143,10 @@ def forward_rv_and_backward_rv_sqrt(
     big_triu = np.linalg.qr(blockmat, mode="r")
     SC = big_triu[dim : 2 * dim, dim:]
 
-    #  Perhaps extract meas_rv here, and provide it in info?
+    if gain is None:
+        gain = big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T)
 
-    new_mean = unsmoothed_rv.mean + gain @ (
-        smoothed_rv.mean - H @ unsmoothed_rv.mean - shift
-    )
+    new_mean = rv.mean + gain @ (attained_rv.mean - H @ rv.mean - shift)
     new_cov_cholesky = triu_to_positive_tril(SC)
     new_cov = new_cov_cholesky @ new_cov_cholesky.T
     return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
@@ -199,6 +181,7 @@ def triu_to_positive_tril(triu_mat: np.ndarray) -> np.ndarray:
     r"""Change an upper triangular matrix into a valid lower Cholesky factor.
 
     Transpose, and change the sign of the diagonals to '+' if necessary.
+    The name of the function is leaned on `np.triu` and `np.tril`.
     """
     tril_mat = triu_mat.T
     with_pos_diag = tril_mat @ np.diag(np.sign(np.diag(tril_mat)))
