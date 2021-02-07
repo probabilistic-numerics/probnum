@@ -155,7 +155,8 @@ class Transition(abc.ABC):
     @abc.abstractmethod
     def backward_realization(
         self,
-        real: np.ndarray,
+        realization: np.ndarray,
+        rv_futu: "RandomVariable",
         rv_past: "RandomVariable",
         start: float,
         stop: Optional[float] = None,
@@ -168,7 +169,32 @@ class Transition(abc.ABC):
     @abc.abstractmethod
     def backward_rv(
         self,
+        rv_attained: "RandomVariable",
         rv_futu: "RandomVariable",
+        rv_past: "RandomVariable",
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
+    ):
+        raise NotImplementedError
+
+    def forward_rv_and_backward_realization(
+        self,
+        realization: np.ndarray,
+        rv_past: "RandomVariable",
+        start: float,
+        stop: Optional[float] = None,
+        step: Optional[float] = None,
+        _diffusion: Optional[float] = 1.0,
+        _linearise_at: Optional[RandomVariable] = None,
+    ):
+        raise NotImplementedError
+
+    def forward_rv_and_backward_rv(
+        self,
+        realization: np.ndarray,
         rv_past: "RandomVariable",
         start: float,
         stop: Optional[float] = None,
