@@ -59,13 +59,13 @@ class DiscreteGaussian(trans.Transition):
         self.state_trans_fun = state_trans_fun
         self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
 
-        def if_no_jacobian(t, x):
+        def dummy_if_no_jacobian(t, x):
             raise NotImplementedError
 
         self.jacob_state_trans_fun = (
             jacob_state_trans_fun
             if jacob_state_trans_fun is not None
-            else if_no_jacobian
+            else dummy_if_no_jacobian
         )
         super().__init__(input_dim=input_dim, output_dim=output_dim)
 
