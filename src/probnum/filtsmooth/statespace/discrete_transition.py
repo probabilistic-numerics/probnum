@@ -53,6 +53,8 @@ class DiscreteGaussian(trans.Transition):
         jacob_state_trans_fun: Optional[
             Callable[[FloatArgType, np.ndarray], np.ndarray]
         ] = None,
+        input_dim=None,
+        output_dim=None,
     ):
         self.state_trans_fun = state_trans_fun
         self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
@@ -65,22 +67,47 @@ class DiscreteGaussian(trans.Transition):
             if jacob_state_trans_fun is not None
             else if_no_jacobian
         )
-        super().__init__()
+        super().__init__(input_dim=input_dim, output_dim=output_dim)
 
-    def forward_realization(self, real, start, _diffusion=1.0, **kwargs):
+    def forward_realization(
+        self, real, t, _compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
+    ):
 
         newmean = self.state_trans_fun(start, real)
         newcov = _diffusion * self.proc_noise_cov_mat_fun(start)
 
         return pnrv.Normal(newmean, newcov), {}
 
-    def forward_rv(self, rv, start, **kwargs):
+    def forward_rv(
+        self, rv, t, _compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
+    ):
+
         raise NotImplementedError("Not available")
 
-    def backward_realization(self, real, rv_past, start, _diffusion=1.0, **kwargs):
+    def backward_realization(
+        self,
+        real_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+        **kwargs,
+    ):
         raise NotImplementedError("Not available")
 
-    def backward_rv(self, rv_futu, rv_past, start, _diffusion=1.0, **kwargs):
+    def backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+        **kwargs,
+    ):
         raise NotImplementedError("Not available")
 
     @lru_cache(maxsize=None)
@@ -117,6 +144,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
+        input_dim=None,
+        output_dim=None,
         use_forward_rv=forward_rv_classic,
         use_backward_rv=backward_rv_classic,
     ):
@@ -130,6 +159,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             ),
             proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
+            input_dim=input_dim,
+            output_dim=output_dim,
         )
 
         self._forward_rv_impl = use_forward_rv
