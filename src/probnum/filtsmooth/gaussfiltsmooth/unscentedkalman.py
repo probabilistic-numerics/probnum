@@ -88,6 +88,30 @@ class ContinuousUKFComponent(UKFComponent):
     ) -> (pnrv.Normal, typing.Dict):
         raise NotImplementedError("TODO")  # Issue  #234
 
+    def backward_realization(
+        self,
+        real,
+        rv_past,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ):
+        raise NotImplementedError
+
+    def backward_rv(
+        self,
+        rv_futu,
+        rv_past,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ):
+        raise NotImplementedError
+
     @property
     def dimension(self) -> int:
         raise NotImplementedError
@@ -140,6 +164,30 @@ class DiscreteUKFComponent(UKFComponent):
             proppts, self.sigma_points, meascov, rv.mean
         )
         return pnrv.Normal(mean, cov), {"crosscov": crosscov}
+
+    def backward_realization(
+        self,
+        real,
+        rv_past,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ):
+        raise NotImplementedError
+
+    def backward_rv(
+        self,
+        rv_futu,
+        rv_past,
+        start: pntype.FloatArgType,
+        stop: pntype.FloatArgType,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ):
+        raise NotImplementedError
 
     @property
     def dimension(self) -> int:

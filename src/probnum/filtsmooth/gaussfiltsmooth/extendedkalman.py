@@ -63,6 +63,32 @@ class EKFComponent(statespace.Transition, abc.ABC):
             rv=rv, start=start, stop=stop, step=step, _diffusion=_diffusion
         )
 
+    def backward_realization(
+        self,
+        real,
+        rv_past,
+        start: float,
+        stop: typing.Optional[float] = None,
+        step: typing.Optional[float] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ):
+        raise NotImplementedError
+
+    def backward_rv(
+        self,
+        rv_futu,
+        rv_past,
+        start: float,
+        stop: typing.Optional[float] = None,
+        step: typing.Optional[float] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ):
+        raise NotImplementedError
+
     @abc.abstractmethod
     def linearize(self, at_this_rv: pnrv.RandomVariable) -> statespace.Transition:
         """Linearize the transition and make it tractable."""
