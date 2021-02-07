@@ -114,7 +114,16 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
+        use_forward_rv=NotImplemented,
+        use_backward_realization=NotImplemented,
+        use_backward_rv=NotImplemented,
+        use_forward_rv_and_backward_realization=NotImplemented,
+        use_forward_rv_and_backward_rv=NotImplemented,
     ):
+        # The choice of backward implementation without forward implementation
+        # i.e. backward_rv (and not forward_rv_and_backward...) is not really
+        # a choice, because there is only one way (classical Kalman/RTS updates).
+        # In the future, there may be other updates, e.g. information filter forms.
 
         self.state_trans_mat_fun = state_trans_mat_fun
         self.shift_vec_fun = shift_vec_fun

@@ -190,7 +190,7 @@ class Transition(abc.ABC):
         _diffusion: Optional[float] = 1.0,
         _linearise_at: Optional[RandomVariable] = None,
     ):
-        raise NotImplementedError
+        raise NotImplementedError("Fill default behaviour here!")
 
     def forward_rv_and_backward_rv(
         self,
@@ -202,7 +202,7 @@ class Transition(abc.ABC):
         _diffusion: Optional[float] = 1.0,
         _linearise_at: Optional[RandomVariable] = None,
     ):
-        raise NotImplementedError
+        raise NotImplementedError("Fill default behaviour here!")
 
     @property
     def dimension(self) -> int:

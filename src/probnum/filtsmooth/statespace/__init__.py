@@ -10,6 +10,16 @@ from .discrete_transition import (
     DiscreteLinearGaussian,
     DiscreteLTIGaussian,
 )
+from .discrete_transition_utils import (
+    backward_realization,
+    backward_rv,
+    cholesky_update,
+    forward_rv_and_backward_realization_sqrt,
+    forward_rv_and_backward_rv_sqrt,
+    forward_rv_classic,
+    forward_rv_sqrt,
+    triu_to_positive_tril,
+)
 from .integrator import IBM, IOUP, Integrator, Matern
 from .preconditioner import NordsieckLikeCoordinates, Preconditioner
 from .sde import (
@@ -38,4 +48,12 @@ __all__ = [
     "linear_sde_statistics",
     "matrix_fraction_decomposition",
     "generate",
+    "forward_rv_sqrt",
+    "forward_rv_classic",
+    "backward_realization",
+    "backward_rv",
+    "forward_rv_and_backward_realization_sqrt",
+    "forward_rv_and_backward_rv_sqrt",
+    "cholesky_update",
+    "triu_to_positive_tril",
 ]
