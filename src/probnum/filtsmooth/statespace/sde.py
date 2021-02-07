@@ -25,13 +25,12 @@ class SDE(transition.Transition):
         driftfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         dispmatfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         jacobfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        input_dim=None,
-        output_dim=None,
+        dimension=None,
     ):
         self.driftfun = driftfun
         self.dispmatfun = dispmatfun
         self.jacobfun = jacobfun
-        super().__init__(input_dim=input_dim, output_dim=output_dim)
+        super().__init__(input_dim=dimension, output_dim=dimension)
 
     def forward_realization(
         self, real, t, dt=None, _compute_gain=False, _diffusion=1.0
@@ -94,6 +93,7 @@ class LinearSDE(SDE):
         driftmatfun: Callable[[FloatArgType], np.ndarray],
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         dispmatfun: Callable[[FloatArgType], np.ndarray],
+        dimension=None,
     ):
         self.driftmatfun = driftmatfun
         self.forcevecfun = forcevecfun
@@ -101,6 +101,7 @@ class LinearSDE(SDE):
             driftfun=(lambda t, x: driftmatfun(t) @ x + forcevecfun(t)),
             dispmatfun=dispmatfun,
             jacobfun=(lambda t, x: driftmatfun(t)),
+            dimension=dimension,
         )
 
     def forward_realization(
@@ -168,12 +169,6 @@ class LinearSDE(SDE):
     ):
         raise NotImplementedError
 
-    @property
-    def dimension(self):
-        """Spatial dimension (utility attribute)."""
-        # risky to evaluate at zero, but usually works
-        return len(self.driftmatfun(0.0))
-
 
 class LTISDE(LinearSDE):
     """Linear time-invariant continuous Markov models of the form.
@@ -199,10 +194,12 @@ class LTISDE(LinearSDE):
 
     def __init__(self, driftmat: np.ndarray, forcevec: np.ndarray, dispmat: np.ndarray):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
+        dimension = len(driftmat)
         super().__init__(
             (lambda t: driftmat),
             (lambda t: forcevec),
             (lambda t: dispmat),
+            dimension=dimension,
         )
         self.driftmat = driftmat
         self.forcevec = forcevec
