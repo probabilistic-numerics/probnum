@@ -7,7 +7,12 @@ import probnum.random_variables as pnrv
 from probnum.type import FloatArgType
 
 from . import transition as trans
-from .discrete_transition_utils import backward_rv_classic, forward_rv_classic
+from .discrete_transition_utils import (
+    backward_rv_classic,
+    backward_rv_sqrt,
+    forward_rv_classic,
+    forward_rv_sqrt,
+)
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -212,6 +217,8 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         proc_noise_cov_mat: np.ndarray,
+        use_forward_rv=forward_rv_classic,
+        use_backward_rv=backward_rv_classic,
     ):
         _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
 
@@ -219,6 +226,8 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
             lambda t: state_trans_mat,
             lambda t: shift_vec,
             lambda t: proc_noise_cov_mat,
+            use_forward_rv=use_forward_rv,
+            use_backward_rv=use_backward_rv,
         )
 
         self.state_trans_mat = state_trans_mat

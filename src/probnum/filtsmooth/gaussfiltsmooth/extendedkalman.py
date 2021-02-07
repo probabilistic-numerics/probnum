@@ -14,7 +14,10 @@ from probnum.filtsmooth import statespace
 class EKFComponent(statespace.Transition, abc.ABC):
     """Interface for extended Kalman filtering components."""
 
-    def __init__(self, non_linear_model) -> None:
+    def __init__(
+        self,
+        non_linear_model,
+    ) -> None:
 
         self.non_linear_model = non_linear_model
 
@@ -136,13 +139,21 @@ class ContinuousEKFComponent(EKFComponent):
 class DiscreteEKFComponent(EKFComponent):
     """Discrete extended Kalman filter transition."""
 
-    def __init__(self, non_linear_model) -> None:
+    def __init__(
+        self,
+        non_linear_model,
+        use_forward_rv=statespace.forward_rv_classic,
+        use_backward_rv=statespace.backward_rv_classic,
+    ) -> None:
         if not isinstance(non_linear_model, statespace.DiscreteGaussian):
             raise TypeError(
                 "Discrete EKF transition requires a (non-linear) discrete Gaussian transition."
             )
 
         super().__init__(non_linear_model=non_linear_model)
+
+        self.use_forward_rv = use_forward_rv
+        self.use_backward_rv = use_backward_rv
 
     def linearize(self, at_this_rv: pnrv.Normal) -> None:
         """Linearize the dynamics function with a first order Taylor expansion."""
@@ -162,6 +173,8 @@ class DiscreteEKFComponent(EKFComponent):
             state_trans_mat_fun=dynamicsmatfun,
             shift_vec_fun=forcevecfun,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
+            use_forward_rv=self.use_forward_rv,
+            use_backward_rv=self.use_backward_rv,
         )
 
     @property
@@ -175,6 +188,8 @@ class DiscreteEKFComponent(EKFComponent):
         prior,
         evlvar,
         ek0_or_ek1=0,
+        use_forward_rv=statespace.forward_rv_classic,
+        use_backward_rv=statespace.backward_rv_classic,
     ):
         # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
 
@@ -202,4 +217,8 @@ class DiscreteEKFComponent(EKFComponent):
             raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
 
         discrete_model = statespace.DiscreteGaussian(dyna, diff, jaco)
-        return cls(discrete_model)
+        return cls(
+            discrete_model,
+            use_forward_rv=use_forward_rv,
+            use_backward_rv=use_backward_rv,
+        )

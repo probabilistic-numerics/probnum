@@ -127,6 +127,7 @@ class DiscreteUKFComponent(UKFComponent):
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
+        use_backward_rv=statespace.backward_rv_classic,
     ) -> None:
         if not isinstance(non_linear_model, statespace.DiscreteGaussian):
             raise TypeError("cont_model must be an SDE.")
@@ -137,6 +138,7 @@ class DiscreteUKFComponent(UKFComponent):
             priorpar=priorpar,
             special_scale=special_scale,
         )
+        self.use_backward_rv = use_backward_rv
 
     def forward_realization(
         self, real: np.ndarray, start: pntype.FloatArgType, _diffusion=1.0, **kwargs
@@ -187,7 +189,7 @@ class DiscreteUKFComponent(UKFComponent):
         _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
         **kwargs
     ):
-        raise NotImplementedError
+        raise RuntimeError("Finish here")
 
     @property
     def dimension(self) -> int:
