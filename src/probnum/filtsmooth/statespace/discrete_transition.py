@@ -74,6 +74,12 @@ class DiscreteGaussian(trans.Transition):
 
         raise NotImplementedError
 
+    def backward_realization(self, real, rv_past, start, _diffusion=1.0, **kwargs):
+        raise NotImplementedError
+
+    def backward_rv(self, rv_futu, rv_past, start, _diffusion=1.0, **kwargs):
+        raise NotImplementedError
+
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
         return np.linalg.cholesky(self.proc_noise_cov_mat_fun(t))
@@ -134,6 +140,12 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_crosscov = rv.cov @ state_trans_mat.T
         new_cov = state_trans_mat @ new_crosscov + diffmat
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"crosscov": new_crosscov}
+
+    def backward_realization(self, real, rv_past, start, _diffusion=1.0, **kwargs):
+        raise NotImplementedError
+
+    def backward_rv(self, rv_futu, rv_past, start, _diffusion=1.0, **kwargs):
+        raise NotImplementedError
 
     @property
     def dimension(self):

@@ -11,11 +11,17 @@ TEST_NDIM = 10
 class MockTransition(pnfss.Transition):
     """Empty transition object to test generate() function."""
 
-    def forward_realization(self, real, start, stop=None, **kwargs):
+    def forward_realization(self, real, **kwargs):
         return pnrv.Constant(real), {}
 
-    def forward_rv(self, rv, start, stop=None, **kwargs):
+    def forward_rv(self, rv, **kwargs):
         return rv, {}
+
+    def backward_realization(self, real, rv_past, **kwargs):
+        raise NotImplementedError
+
+    def backward_rv(self, rv_futu, rv_past, **kwargs):
+        raise NotImplementedError
 
 
 class TestGenerate(unittest.TestCase):

@@ -52,6 +52,30 @@ class SDE(transition.Transition):
     ):
         raise NotImplementedError
 
+    def backward_realization(
+        self,
+        real,
+        rv_past,
+        start,
+        stop=None,
+        step=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        raise NotImplementedError
+
+    def backward_rv(
+        self,
+        rv_futu,
+        rv_past,
+        start,
+        stop=None,
+        step=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        raise NotImplementedError
+
     @property
     def dimension(self):
         raise NotImplementedError
@@ -135,6 +159,30 @@ class LinearSDE(SDE):
             _diffusion=_diffusion,
         )
 
+    def backward_realization(
+        self,
+        real,
+        rv_past,
+        start,
+        stop=None,
+        step=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        raise NotImplementedError
+
+    def backward_rv(
+        self,
+        rv_futu,
+        rv_past,
+        start,
+        stop=None,
+        step=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        raise NotImplementedError
+
     @property
     def dimension(self):
         """Spatial dimension (utility attribute)."""
@@ -206,6 +254,30 @@ class LTISDE(LinearSDE):
             raise TypeError(errormsg)
         discretised_model = self.discretise(step=stop - start)
         return discretised_model.forward_rv(rv, start, _diffusion=_diffusion)
+
+    def backward_realization(
+        self,
+        real,
+        rv_past,
+        start,
+        stop=None,
+        step=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        raise NotImplementedError
+
+    def backward_rv(
+        self,
+        rv_futu,
+        rv_past,
+        start,
+        stop=None,
+        step=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        raise NotImplementedError
 
     def discretise(self, step):
         """Returns a discrete transition model (i.e. mild solution to SDE) using matrix
