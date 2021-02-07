@@ -81,6 +81,7 @@ class DiscreteGaussian(trans.Transition):
     def forward_rv(
         self, rv, t, _compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
     ):
+        # _linearise_at is here, bc DiscreteEKFCOmponent shall inherit from this one?!
 
         raise NotImplementedError("Not available")
 
@@ -166,53 +167,67 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         self._forward_rv_impl = use_forward_rv
         self._backward_rv_impl = use_backward_rv
 
-    def forward_rv(self, rv, start, compute_gain=False, _diffusion=1.0, **kwargs):
-
-        if not isinstance(rv, pnrv.Normal):
-            raise TypeError(f"Normal RV expected, but {type(rv)} received.")
+    def forward_rv(self, rv, t, _compute_gain=False, _diffusion=1.0, **kwargs):
 
         return self._forward_rv_impl(
             discrete_transition=self,
             rv=rv,
-            t=start,
-            compute_gain=compute_gain,
+            t=t,
+            compute_gain=_compute_gain,
             _diffusion=_diffusion,
         )
 
-    def forward_realization(self, real, start, _diffusion=1.0, **kwargs):
+    def forward_realization(self, real, t, _diffusion=1.0, **kwargs):
 
         zero_cov = np.zeros((len(real), len(real)))
         real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
 
         return self.forward_rv(
-            rv=real_as_rv, start=start, _diffusion=_diffusion, **kwargs
+            rv=real_as_rv, t=t, _compute_gain=False, _diffusion=_diffusion
         )
 
-    def backward_rv(self, rv_futu, rv_past, start, _diffusion=1.0, **kwargs):
+    def backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        _diffusion=1.0,
+        **kwargs,
+    ):
         return self._backward_rv_impl(
-            attained_rv=rv_futu,
+            attained_rv=rv_obtained,
             rv=rv_past,
-            forwarded_rv=None,
-            gain=None,
+            forwarded_rv=rv_forwarded,
+            gain=gain,
             discrete_transition=self,
-            t=start,
+            t=t,
             _diffusion=_diffusion,
         )
 
-    def backward_realization(self, real, *args, **kwargs):
+    def backward_realization(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        _diffusion=1.0,
+        **kwargs,
+    ):
 
         zero_cov = np.zeros((len(real), len(real)))
         real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
 
-        return self.backward_rv(real_as_rv, *args, **kwargs)
-
-    @property
-    def dimension(self):
-        # risky to evaluate at zero, but works well
-        # remove this -- the dimension of discrete transitions is not clear!
-        # input dim != output dim is possible...
-        # See issue #266
-        return len(self.state_trans_mat_fun(0.0).T)
+        return self.backward_rv(
+            rv_obtained=real_as_rv,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            _diffusion=_diffusion,
+        )
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
