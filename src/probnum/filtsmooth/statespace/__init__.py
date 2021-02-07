@@ -20,13 +20,8 @@ from .discrete_transition_utils import (
 )
 from .integrator import IBM, IOUP, Integrator, Matern
 from .preconditioner import NordsieckLikeCoordinates, Preconditioner
-from .sde import (
-    LTISDE,
-    SDE,
-    LinearSDE,
-    linear_sde_statistics,
-    matrix_fraction_decomposition,
-)
+from .sde import LTISDE, SDE, LinearSDE
+from .sde_utils import linear_sde_statistics, matrix_fraction_decomposition
 from .transition import Transition, generate
 
 __all__ = [
