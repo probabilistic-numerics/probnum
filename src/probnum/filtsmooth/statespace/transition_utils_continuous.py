@@ -1,0 +1,1 @@
+"""Continuous-time transition implementations."""

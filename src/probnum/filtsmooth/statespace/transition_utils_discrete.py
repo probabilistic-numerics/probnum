@@ -1,0 +1,1 @@
+"""Discrete-time transition implementations."""
