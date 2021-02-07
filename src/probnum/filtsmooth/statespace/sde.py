@@ -111,7 +111,7 @@ class LinearSDE(SDE):
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         dispmatfun: Callable[[FloatArgType], np.ndarray],
         dimension=None,
-        moment_equation_stepsize=np.nan,
+        moment_equation_stepsize=np.nan,  # use this one for forward and backward!
     ):
         self.driftmatfun = driftmatfun
         self.forcevecfun = forcevecfun
@@ -121,6 +121,7 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: driftmatfun(t)),
             dimension=dimension,
         )
+        raise RuntimeError("Not done here!!")
         self.moment_equation_stepsize = moment_equation_stepsize
 
     def forward_realization(
