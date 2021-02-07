@@ -259,8 +259,8 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
     obs : np.ndarray; shape (len(times), measmod.dimension)
         Observations according to measurement model.
     """
-    states = np.zeros((len(times), _read_dimension(dynmod, initrv)))
-    obs = np.zeros((len(times), _read_dimension(measmod, initrv)))
+    states = np.zeros((len(times), measmod.input_dim))
+    obs = np.zeros((len(times), measmod.output_dim))
 
     # initial observation point
     states[0] = initrv.sample()

@@ -70,18 +70,15 @@ class DiscreteGaussian(trans.Transition):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
 
     def forward_realization(
-        self, real, t, _compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
+        self, real, t, _compute_gain=False, _diffusion=1.0, **kwargs
     ):
 
-        newmean = self.state_trans_fun(start, real)
-        newcov = _diffusion * self.proc_noise_cov_mat_fun(start)
+        newmean = self.state_trans_fun(t, real)
+        newcov = _diffusion * self.proc_noise_cov_mat_fun(t)
 
         return pnrv.Normal(newmean, newcov), {}
 
-    def forward_rv(
-        self, rv, t, _compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
-    ):
-        # _linearise_at is here, bc DiscreteEKFCOmponent shall inherit from this one?!
+    def forward_rv(self, rv, t, _compute_gain=False, _diffusion=1.0, **kwargs):
 
         raise NotImplementedError("Not available")
 
@@ -93,7 +90,6 @@ class DiscreteGaussian(trans.Transition):
         gain=None,
         t=None,
         _diffusion=1.0,
-        _linearise_at=None,
         **kwargs,
     ):
         raise NotImplementedError("Not available")
@@ -106,7 +102,6 @@ class DiscreteGaussian(trans.Transition):
         gain=None,
         t=None,
         _diffusion=1.0,
-        _linearise_at=None,
         **kwargs,
     ):
         raise NotImplementedError("Not available")
@@ -263,12 +258,12 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         proc_noise_cov_mat: np.ndarray,
-        input_dim=None,
-        output_dim=None,
         use_forward_rv=forward_rv_classic,
         use_backward_rv=backward_rv_classic,
     ):
         _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
+        input_dim = len(state_trans_mat)
+        output_dim = len(state_trans_mat.T)
 
         super().__init__(
             lambda t: state_trans_mat,

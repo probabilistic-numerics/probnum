@@ -50,7 +50,9 @@ def car_tracking():
         state_trans_mat=dynamat, shift_vec=np.zeros(4), proc_noise_cov_mat=dynadiff
     )
     measmod = pnfs.statespace.DiscreteLTIGaussian(
-        state_trans_mat=measmat, shift_vec=np.zeros(2), proc_noise_cov_mat=measdiff
+        state_trans_mat=measmat,
+        shift_vec=np.zeros(2),
+        proc_noise_cov_mat=measdiff,
     )
     initrv = Normal(mean, cov)
     return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
@@ -92,6 +94,8 @@ def ornstein_uhlenbeck():
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=r * np.eye(1),
+        input_dim=1,
+        output_dim=1,
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
     return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}

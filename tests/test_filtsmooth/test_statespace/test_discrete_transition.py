@@ -92,17 +92,13 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
         def S(t):
             return self.random_spdmat
 
-        self.dtrans = pnfss.discrete_transition.DiscreteLinearGaussian(G, v, S)
+        self.dtrans = pnfss.discrete_transition.DiscreteLinearGaussian(
+            G, v, S, input_dim=TEST_NDIM, output_dim=TEST_NDIM
+        )
 
         self.G = G
         self.v = v
         self.S = S
-
-    def test_transition_rv(self):
-
-        with self.subTest("Non-Normal-RV-exception"):
-            with self.assertRaises(TypeError):
-                self.dtrans.forward_rv(self.some_nongaussian_rv, self.start)
 
     def test_state_trans_mat(self):
         received = self.dtrans.state_trans_mat_fun(self.start)
@@ -115,7 +111,8 @@ class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(received, expected)
 
     def test_dimension(self):
-        self.assertEqual(self.dtrans.dimension, TEST_NDIM)
+        self.assertEqual(self.dtrans.input_dim, TEST_NDIM)
+        self.assertEqual(self.dtrans.output_dim, TEST_NDIM)
 
 
 class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
