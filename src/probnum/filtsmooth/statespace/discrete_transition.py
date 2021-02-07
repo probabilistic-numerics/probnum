@@ -263,6 +263,8 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         proc_noise_cov_mat: np.ndarray,
+        input_dim=None,
+        output_dim=None,
         use_forward_rv=forward_rv_classic,
         use_backward_rv=backward_rv_classic,
     ):
@@ -272,6 +274,8 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
             lambda t: state_trans_mat,
             lambda t: shift_vec,
             lambda t: proc_noise_cov_mat,
+            input_dim=input_dim,
+            output_dim=output_dim,
             use_forward_rv=use_forward_rv,
             use_backward_rv=use_backward_rv,
         )
@@ -280,7 +284,6 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         self.shift_vec = shift_vec
         self.proc_noise_cov_mat = proc_noise_cov_mat
 
-    @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
         return self.proc_noise_cov_cholesky
 
@@ -290,6 +293,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
 
 
 def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):
+    """LTI SDE model needs matrices which are compatible with each other in size."""
     if state_trans_mat.ndim != 2:
         raise TypeError(
             f"dynamat.ndim=2 expected. dynamat.ndim={state_trans_mat.ndim} received."
