@@ -2,6 +2,12 @@
 
 All sorts of implementations for solving moment equations.
 """
+import functools
+
+import numpy as np
+import scipy.linalg
+
+import probnum.random_variables as pnrv
 
 
 def linear_sde_statistics(
@@ -12,7 +18,7 @@ def linear_sde_statistics(
     driftfun,
     jacobfun,
     dispmatfun,
-    _diffusion: Optional[float] = 1.0,
+    _diffusion=1.0,
 ):
     """Computes mean and covariance of SDE solution.
 
@@ -85,9 +91,7 @@ def _rk4_step(mean, cov, time, step, fun):
     return mean, cov, time
 
 
-def _increment_fun(
-    time, mean, cov, driftfun, jacobfun, dispmatfun, _diffusion: Optional[float] = 1.0
-):
+def _increment_fun(time, mean, cov, driftfun, jacobfun, dispmatfun, _diffusion=1.0):
     """Euler step for closed form solutions of ODE defining mean and covariance of the
     closed-form transition.
 
@@ -109,9 +113,6 @@ def _increment_fun(
 def matrix_fraction_decomposition(driftmat, dispmat, step):
     """Matrix fraction decomposition (without force)."""
     no_force = np.zeros(len(driftmat))
-    _check_initial_state_dimensions(
-        driftmat=driftmat, forcevec=no_force, dispmat=dispmat
-    )
 
     topleft = driftmat
     topright = dispmat @ dispmat.T
