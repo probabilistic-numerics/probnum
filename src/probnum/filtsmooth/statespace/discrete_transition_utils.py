@@ -35,18 +35,11 @@ def forward_rv_classic(
     _diffusion=1.0,
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the forward propagation in square-root form."""
-    H = discrete_transition.state_trans_mat_fun(t)
-    R = discrete_transition.proc_noise_cov_mat_fun(t)
-    shift = discrete_transition.shift_vec_fun(t)
-
-    new_mean = H @ rv.mean + shift
-    crosscov = rv.cov @ H.T
-    new_cov = H @ crosscov + _diffusion * R
-    info = {"crosscov": crosscov}
-    if compute_gain:
-        gain = crosscov @ np.linalg.inv(new_cov)
-        info["gain"] = gain
-    return pnrv.Normal(new_mean, cov=new_cov), info
+    # The argument is the transition `discrete_transition` instead of
+    # the matrices H, R, shift, because other transitions (e.g. the square-root
+    # transition), extract different versions of those system matrices.
+    # We want a common interface for those, in order to test it well
+    # and be able to pass it around freely.
 
 
 def forward_rv_sqrt(
@@ -57,19 +50,6 @@ def forward_rv_sqrt(
     _diffusion=1.0,
 ) -> (pnrv.RandomVariable, typing.Dict):
     """Compute the forward propagation in square-root form."""
-    H = discrete_transition.state_trans_mat_fun(t)
-    SR = discrete_transition.proc_noise_cov_cholesky_fun(t)
-    shift = discrete_transition.shift_vec_fun(t)
-
-    new_mean = H @ rv.mean + shift
-    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, np.sqrt(_diffusion) * SR)
-    new_cov = new_cov_cholesky @ new_cov_cholesky.T
-    crosscov = rv.cov @ H.T
-    info = {"crosscov": crosscov}
-    if compute_gain:
-        gain = crosscov @ np.linalg.inv(new_cov)
-        info["gain"] = gain
-    return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), info
 
 
 # #######################################################################################################################
@@ -115,41 +95,8 @@ def backward_rv_sqrt(
     t=None,
     dt=None,
     _diffusion=None,
-):  # forwarded_rv is ignored in square-root smoothing.
-
-    # Smoothing updates need the gain from the beginning on
-    if np.linalg.norm(rv.cov) > 0 and gain is None:
-        _, info = discrete_transition.forward_rv(
-            rv, t=t, dt=dt, compute_gain=True, _diffusion=_diffusion
-        )
-        gain = info["gain"]
-
-    H = discrete_transition.state_trans_mat_fun(time)
-    SR = discrete_transition.proc_noise_cov_cholesky_fun(time)
-    shift = discrete_transition.shift_vec_fun(time)
-
-    SC_past = rv.cov_cholesky
-    SC_attained = attained_rv.cov_cholesky
-
-    dim = len(A)
-    zeros = np.zeros((dim, dim))
-    blockmat = np.block(
-        [
-            [SC_past.T @ H.T, SC_past.T],
-            [SR.T, zeros],
-            [zeros, SC_attained.T @ gain.T],
-        ]
-    )
-    big_triu = np.linalg.qr(blockmat, mode="r")
-    SC = big_triu[dim : 2 * dim, dim:]
-
-    if gain is None:
-        gain = big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T)
-
-    new_mean = rv.mean + gain @ (attained_rv.mean - H @ rv.mean - shift)
-    new_cov_cholesky = triu_to_positive_tril(SC)
-    new_cov = new_cov_cholesky @ new_cov_cholesky.T
-    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
+):
+    pass
 
 
 ########################################################################################################################

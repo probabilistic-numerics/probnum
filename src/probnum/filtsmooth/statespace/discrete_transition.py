@@ -7,12 +7,7 @@ import probnum.random_variables as pnrv
 from probnum.type import FloatArgType
 
 from . import transition as trans
-from .discrete_transition_utils import (
-    backward_rv_classic,
-    backward_rv_sqrt,
-    forward_rv_classic,
-    forward_rv_sqrt,
-)
+from .discrete_transition_utils import cholesky_update, triu_to_positive_tril
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -142,9 +137,24 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
         input_dim=None,
         output_dim=None,
-        use_forward_rv=forward_rv_classic,
-        use_backward_rv=backward_rv_classic,
+        forward_implementation="classic",
+        backward_implementation="classic",
     ):
+        choose_forward_implementation = {
+            "classic": self._forward_rv_classic,
+            "sqrt": self._forward_rv_sqrt,
+        }
+        self._forward_implementation = choose_forward_implementation[
+            forward_implementation
+        ]
+
+        choose_backward_implementation = {
+            "classic": self._backward_rv_classic,
+            "sqrt": self._backward_rv_sqrt,
+        }
+        self._backward_implementation = choose_backward_implementation[
+            backward_implementation
+        ]
 
         self.state_trans_mat_fun = state_trans_mat_fun
         self.shift_vec_fun = shift_vec_fun
@@ -159,13 +169,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             output_dim=output_dim,
         )
 
-        self._forward_rv_impl = use_forward_rv
-        self._backward_rv_impl = use_backward_rv
-
     def forward_rv(self, rv, t, _compute_gain=False, _diffusion=1.0, **kwargs):
 
-        return self._forward_rv_impl(
-            discrete_transition=self,
+        return self._forward_implementation(
             rv=rv,
             t=t,
             compute_gain=_compute_gain,
@@ -188,7 +194,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         _diffusion=1.0,
         **kwargs,
     ):
-        return self._backward_rv_impl(
+        return self._backward_implementation(
             attained_rv=rv_obtained,
             rv=rv_past,
             forwarded_rv=rv_forwarded,
@@ -216,6 +222,109 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             t=t,
             _diffusion=_diffusion,
         )
+
+    # Forward and backward implementations
+
+    def _forward_rv_classic(
+        self, rv, t, compute_gain=False, _diffusion=1.0
+    ) -> (pnrv.RandomVariable, typing.Dict):
+        H = self.state_trans_mat_fun(t)
+        R = self.proc_noise_cov_mat_fun(t)
+        shift = self.shift_vec_fun(t)
+
+        new_mean = H @ rv.mean + shift
+        crosscov = rv.cov @ H.T
+        new_cov = H @ crosscov + _diffusion * R
+        info = {"crosscov": crosscov}
+        if compute_gain:
+            gain = crosscov @ np.linalg.inv(new_cov)
+            info["gain"] = gain
+        return pnrv.Normal(new_mean, cov=new_cov), info
+
+    def _forward_rv_sqrt(
+        self, rv, t, compute_gain=False, _diffusion=1.0
+    ) -> (pnrv.RandomVariable, typing.Dict):
+
+        H = self.state_trans_mat_fun(t)
+        SR = self.proc_noise_cov_cholesky_fun(t)
+        shift = self.shift_vec_fun(t)
+
+        new_mean = H @ rv.mean + shift
+        new_cov_cholesky = cholesky_update(
+            H @ rv.cov_cholesky, np.sqrt(_diffusion) * SR
+        )
+        new_cov = new_cov_cholesky @ new_cov_cholesky.T
+        crosscov = rv.cov @ H.T
+        info = {"crosscov": crosscov}
+        if compute_gain:
+            gain = crosscov @ np.linalg.inv(new_cov)
+            info["gain"] = gain
+        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), info
+
+    def _backward_rv_classic(
+        self,
+        attained_rv,
+        rv,
+        forwarded_rv=None,
+        gain=None,
+        t=None,
+        _diffusion=None,
+    ):
+
+        if forwarded_rv is None or gain is None:
+            forwarded_rv, info = self.forward_rv(
+                rv, t=t, compute_gain=True, _diffusion=_diffusion
+            )
+            gain = info["gain"]
+
+        new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)
+        new_cov = rv.cov + gain @ (attained_rv.cov - forwarded_rv.cov) @ gain.T
+        return pnrv.Normal(new_mean, new_cov), {}
+
+    def _backward_rv_sqrt(
+        self,
+        attained_rv,
+        rv,
+        forwarded_rv=None,
+        gain=None,
+        t=None,
+        _diffusion=None,
+    ):
+        # forwarded_rv is ignored in square-root smoothing.
+
+        # Smoothing updates need the gain from the beginning on
+        if np.linalg.norm(rv.cov) > 0 and gain is None:
+            _, info = discrete_transition.forward_rv(
+                rv, t=t, dt=dt, compute_gain=True, _diffusion=_diffusion
+            )
+            gain = info["gain"]
+
+        H = discrete_transition.state_trans_mat_fun(time)
+        SR = discrete_transition.proc_noise_cov_cholesky_fun(time)
+        shift = discrete_transition.shift_vec_fun(time)
+
+        SC_past = rv.cov_cholesky
+        SC_attained = attained_rv.cov_cholesky
+
+        dim = len(A)
+        zeros = np.zeros((dim, dim))
+        blockmat = np.block(
+            [
+                [SC_past.T @ H.T, SC_past.T],
+                [SR.T, zeros],
+                [zeros, SC_attained.T @ gain.T],
+            ]
+        )
+        big_triu = np.linalg.qr(blockmat, mode="r")
+        SC = big_triu[dim : 2 * dim, dim:]
+
+        if gain is None:
+            gain = big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T)
+
+        new_mean = rv.mean + gain @ (attained_rv.mean - H @ rv.mean - shift)
+        new_cov_cholesky = triu_to_positive_tril(SC)
+        new_cov = new_cov_cholesky @ new_cov_cholesky.T
+        return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
