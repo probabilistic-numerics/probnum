@@ -74,7 +74,6 @@ class DiscreteGaussian(trans.Transition):
         return pnrv.Normal(newmean, newcov), {}
 
     def forward_rv(self, rv, t, _compute_gain=False, _diffusion=1.0, **kwargs):
-
         raise NotImplementedError("Not available")
 
     def backward_realization(
@@ -99,6 +98,12 @@ class DiscreteGaussian(trans.Transition):
         _diffusion=1.0,
         **kwargs,
     ):
+
+        # Should we use the _backward_rv_classic here?
+        # It is only intractable bc. forward_rv is intractable
+        # and assuming its forward formula would yield a valid
+        # gain, the backward formula would be valid.
+        # This is the case for the UKF, for instance.
         raise NotImplementedError("Not available")
 
     # Implementations that are the same for all sorts of
@@ -164,25 +169,25 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
+
+        # Choose implementation for forward and backward transitions
         choose_forward_implementation = {
             "classic": self._forward_rv_classic,
             "sqrt": self._forward_rv_sqrt,
         }
-        self._forward_implementation = choose_forward_implementation[
-            forward_implementation
-        ]
-
         choose_backward_implementation = {
             "classic": self._backward_rv_classic,
             "sqrt": self._backward_rv_sqrt,
         }
+        self._forward_implementation = choose_forward_implementation[
+            forward_implementation
+        ]
         self._backward_implementation = choose_backward_implementation[
             backward_implementation
         ]
 
         self.state_trans_mat_fun = state_trans_mat_fun
         self.shift_vec_fun = shift_vec_fun
-
         super().__init__(
             state_trans_fun=lambda t, x: (
                 self.state_trans_mat_fun(t) @ x + self.shift_vec_fun(t)
@@ -204,7 +209,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def forward_realization(self, real, t, _diffusion=1.0, **kwargs):
 
-        return self._forward_realization_as_rv(
+        return self._forward_realization_via_forward_rv(
             real, t=t, _compute_gain=False, _diffusion=_diffusion
         )
 
@@ -238,7 +243,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         _diffusion=1.0,
         **kwargs,
     ):
-        return self._backward_realization_as_rv(
+        return self._backward_realization_via_backward_rv(
             real_obtained,
             rv,
             rv_forwarded=rv_forwarded,
@@ -365,8 +370,8 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         proc_noise_cov_mat: np.ndarray,
-        use_forward_rv=forward_rv_classic,
-        use_backward_rv=backward_rv_classic,
+        forward_implementation="classic",
+        backward_implementation="classic",
     ):
         _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
         input_dim = len(state_trans_mat)
@@ -378,8 +383,8 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
             lambda t: proc_noise_cov_mat,
             input_dim=input_dim,
             output_dim=output_dim,
-            use_forward_rv=use_forward_rv,
-            use_backward_rv=use_backward_rv,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
         )
 
         self.state_trans_mat = state_trans_mat

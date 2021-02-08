@@ -48,7 +48,7 @@ class SDE(transition.Transition):
         _diffusion=1.0,
         **kwargs,
     ):
-        return self._forward_realization_as_rv(
+        return self._forward_realization_via_forward_rv(
             real,
             t=t,
             dt=dt,
@@ -66,7 +66,7 @@ class SDE(transition.Transition):
         _diffusion=1.0,
         **kwargs,
     ):
-        raise NotImplementedError
+        raise NotImplementedError("Not available.")
 
     def backward_realization(
         self,
@@ -79,7 +79,7 @@ class SDE(transition.Transition):
         _diffusion=1.0,
         **kwargs,
     ):
-        return self._backward_realization_as_rv(
+        return self._backward_realization_via_backward_rv(
             real_obtained,
             rv=rv,
             rv_forwarded=rv_forwarded,
@@ -101,7 +101,7 @@ class SDE(transition.Transition):
         _diffusion=1.0,
         **kwargs,
     ):
-        raise NotImplementedError
+        raise NotImplementedError("Not available.")
 
 
 class LinearSDE(SDE):
@@ -139,7 +139,7 @@ class LinearSDE(SDE):
     ):
 
         # Once different filtering and smoothing algorithms are available,
-        # replicate the scheme from DiscreteGaussian in which
+        # replicate the scheme from DiscreteGaussian here, in which
         # the initialisation decides between, e.g., classic and sqrt implementations.
 
         self.driftmatfun = driftmatfun
@@ -165,16 +165,7 @@ class LinearSDE(SDE):
         **kwargs,
     ):
 
-        return solve_moment_equations_forward(
-            rv,
-            t,
-            dt,
-            self.moment_equation_stepsize,
-            self.driftfun,
-            self.driftmatfun,
-            self.dispmatfun,
-            _diffusion=_diffusion,
-        )
+        return self._solve_mde_forward(rv, t, dt, _diffusion=_diffusion)
 
     def backward_rv(
         self,
@@ -189,16 +180,12 @@ class LinearSDE(SDE):
     ):
         raise NotImplementedError("Not available (yet).")
 
-    # Forward and backward implementations
+    # Forward (and soon, backward) implementation(s)
 
     def _solve_mde_forward(self, rv, t, dt, _diffusion=1.0):
-        """Solve forward moment differential equations."""
-        mde, y0 = setup_vectorized_mde_forward(
-            self.driftmatfun,
-            self.forcefun,
-            self.dispmatfun,
-            rv.mean,
-            rv.cov,
+        """Solve forward moment differential equations (MDEs)."""
+        mde, y0 = self._setup_vectorized_mde_forward(
+            rv,
             _diffusion=_diffusion,
         )
         sol = scipy.integrate.solve_ivp(
@@ -213,6 +200,37 @@ class LinearSDE(SDE):
         new_mean = y_end[: len(rv.mean)]
         new_cov = y_end[len(rv.mean) :].reshape((len(rv.mean), len(rv.mean)))
         return pnrv.Normal(mean=new_mean, cov=new_cov), {"sol": sol}
+
+    def _setup_vectorized_mde_forward(self, initrv, _diffusion=1.0):
+        """Set up forward moment differential equations (MDEs).
+
+        Compute an ODE vector field that represents the MDEs and is
+        compatible with scipy.solve_ivp.
+        """
+        dim = len(initrv.mean)
+
+        def f(t, y):
+
+            # Undo vectorization
+            mean, cov_flat = y[:dim], y[dim:]
+            cov = cov_flat.reshape((d, d))
+
+            # Apply iteration
+            F = self.driftmatfun(t)
+            u = self.forcefun(t)
+            L = self.dispmatfun(t)
+            new_mean = F @ mean + u
+            new_cov = F @ cov + cov @ F.T + _diffusion * L @ L.T
+
+            # Vectorize outcome
+            new_cov_flat = new_cov.flatten()
+            y_new = np.hstack((new_mean, new_cov_flat))
+            return y_new
+
+        initcov_flat = initrv.cov.flatten()
+        y0 = np.hstack((initrv.mean, initcov_flat))
+
+        return f, y0
 
 
 class LTISDE(LinearSDE):
@@ -242,8 +260,8 @@ class LTISDE(LinearSDE):
         driftmat: np.ndarray,
         forcevec: np.ndarray,
         dispmat: np.ndarray,
-        use_forward_rv=forward_rv_classic,
-        use_backward_rv=backward_rv_classic,
+        forward_implementation="classic",
+        backward_implementation="classic",
     ):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
         dimension = len(driftmat)
@@ -257,8 +275,8 @@ class LTISDE(LinearSDE):
         self.forcevec = forcevec
         self.dispmat = dispmat
 
-        self.use_forward_rv = use_forward_rv
-        self.use_backward_rv = use_backward_rv
+        self.forward_implementation = forward_implementation
+        self.backward_implementation = backward_implementation
 
     def forward_rv(
         self,
@@ -313,8 +331,8 @@ class LTISDE(LinearSDE):
             ah,
             sh,
             qh,
-            use_forward_rv=self.use_forward_rv,
-            use_backward_rv=self.use_backward_rv,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
         )
 
 

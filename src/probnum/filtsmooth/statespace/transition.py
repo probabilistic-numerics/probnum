@@ -77,18 +77,18 @@ class Transition(abc.ABC):
     ):
         raise NotImplementedError
 
-    # Utility functions that are used surprisingly often
+    # Utility functions that are used surprisingly often:
+    #
+    # Call forward/backward transitions of realisations by
+    # turning it into a Normal RV with zero covariance and by
+    # referring to the forward/backward transition of RVs.
 
-    def _backward_realization_as_rv(self, real, *args, **kwargs):
-        """Call backward realization via backward rv with a random variable with zero
-        (co)variance."""
+    def _backward_realization_via_backward_rv(self, real, *args, **kwargs):
         zero_cov = np.zeros((len(real), len(real)))
         real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
         return self.backward_rv(real_as_rv, *args, **kwargs)
 
-    def _forward_realization_as_rv(self, real, *args, **kwargs):
-        """Call forward realization via forward rv with a random variable with zero
-        (co)variance."""
+    def _forward_realization_via_forward_rv(self, real, *args, **kwargs):
         zero_cov = np.zeros((len(real), len(real)))
         real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
         return self.forward_rv(real_as_rv, *args, **kwargs)
