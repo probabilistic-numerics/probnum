@@ -117,9 +117,13 @@ class EKFComponent(abc.ABC):
 class ContinuousEKFComponent(EKFComponent, statespace.SDE):
     """Continuous extended Kalman filter transition."""
 
-    def __init__(self, non_linear_model, moment_equation_stepsize) -> None:
-        if not isinstance(non_linear_model, statespace.SDE):
-            raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
+    def __init__(
+        self,
+        non_linear_model,
+        mde_atol=1e-5,
+        mde_rtol=1e-5,
+        mde_solver="LSODA",
+    ) -> None:
 
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
         statespace.SDE.__init__(
@@ -130,7 +134,9 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
             non_linear_model.dimension,
         )
 
-        self.moment_equation_stepsize = moment_equation_stepsize
+        self.mde_atol = mde_atol
+        self.mde_rtol = mde_rtol
+        self.mde_solver = mde_solver
 
     def linearize(self, at_this_rv: pnrv.Normal) -> None:
         """Linearize the drift function with a first order Taylor expansion."""
@@ -150,8 +156,10 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
             dispmatfun=self.non_linear_model.dispmatfun,
-            moment_equation_stepsize=moment_equation_stepsize,
             dimension=self.non_linear_model.dimension,
+            mde_atol=self.mde_atol,
+            mde_rtol=self.mde_rtol,
+            mde_solver=self.mde_solver,
         )
 
 
@@ -161,13 +169,9 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
     def __init__(
         self,
         non_linear_model,
-        use_forward_rv=statespace.forward_rv_classic,
-        use_backward_rv=statespace.backward_rv_classic,
+        forward_implementation="classic",
+        backward_implementation="classic",
     ) -> None:
-        if not isinstance(non_linear_model, statespace.DiscreteGaussian):
-            raise TypeError(
-                "Discrete EKF transition requires a (non-linear) discrete Gaussian transition."
-            )
 
         EKFComponent.__init__(self, non_linear_model=non_linear_model)
         statespace.DiscreteGaussian.__init__(
@@ -179,8 +183,8 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             output_dim,
         )
 
-        self.use_forward_rv = use_forward_rv
-        self.use_backward_rv = use_backward_rv
+        self.forward_implementation = forward_implementation
+        self.backward_implementation = backward_implementation
 
     def linearize(self, at_this_rv: pnrv.Normal) -> None:
         """Linearize the dynamics function with a first order Taylor expansion."""
@@ -200,10 +204,10 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             state_trans_mat_fun=dynamicsmatfun,
             shift_vec_fun=forcevecfun,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
-            use_forward_rv=self.use_forward_rv,
-            use_backward_rv=self.use_backward_rv,
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
         )
 
     @classmethod
@@ -213,8 +217,8 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         prior,
         evlvar,
         ek0_or_ek1=0,
-        use_forward_rv=statespace.forward_rv_classic,
-        use_backward_rv=statespace.backward_rv_classic,
+        forward_implementation="classic",
+        backward_implementation="classic",
     ):
         # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
 
@@ -246,6 +250,6 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         )
         return cls(
             discrete_model,
-            use_forward_rv=use_forward_rv,
-            use_backward_rv=use_backward_rv,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
         )
