@@ -25,7 +25,9 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
         def df(t, x):
             return np.eye(len(x)) + 3
 
-        self.sde = pnfss.sde.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
+        self.sde = pnfss.sde.SDE(
+            driftfun=f, dispmatfun=l, jacobfun=df, dimension=TEST_NDIM
+        )
         self.f = f
         self.l = l
         self.df = df
@@ -53,10 +55,6 @@ class TestSDE(unittest.TestCase, NumpyAssertions):
         received = self.sde.jacobfun(self.start, self.some_rv.mean)
         self.assertAllClose(received, expected)
 
-    def test_dimension(self):
-        with self.assertRaises(NotImplementedError):
-            _ = self.sde.dimension
-
 
 class TestLinearSDE(unittest.TestCase, NumpyAssertions):
 
@@ -76,7 +74,9 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
         def L(t):
             return 1 + np.arange(2 * TEST_NDIM).reshape((TEST_NDIM, 2))
 
-        self.sde = pnfss.sde.LinearSDE(driftmatfun=F, forcevecfun=s, dispmatfun=L)
+        self.sde = pnfss.sde.LinearSDE(
+            driftmatfun=F, forcevecfun=s, dispmatfun=L, dimension=TEST_NDIM
+        )
         self.F = F
         self.s = s
         self.L = L
@@ -88,14 +88,6 @@ class TestLinearSDE(unittest.TestCase, NumpyAssertions):
         )
 
     def test_transition_rv(self):
-
-        with self.assertRaises(TypeError):
-            self.sde.forward_rv(
-                self.some_nongaussian_rv,
-                self.start,
-                self.stop,
-                step=self.rk_step,
-            )
 
         with self.subTest("Output attainable"):
             _ = self.sde.forward_rv(
@@ -131,29 +123,21 @@ class TestLTISDE(unittest.TestCase, NumpyAssertions):
         self.assertAllClose(self.sde.dispmat, self.L)
 
     def test_discretise(self):
-        discrete = self.sde.discretise(step=self.stop - self.start)
+        discrete = self.sde.discretise(dt=self.stop - self.start)
         self.assertIsInstance(discrete, pnfss.discrete_transition.DiscreteLTIGaussian)
 
     def test_transition_rv(self):
 
-        with self.subTest("NormalRV exception"):
-            with self.assertRaises(TypeError):
-                self.sde.forward_rv(
-                    self.some_nongaussian_rv,
-                    self.start,
-                    self.stop,
-                )
-
-        with self.subTest("Output attainable"):
-            _ = self.sde.forward_rv(self.some_rv, self.start, self.stop)
+        with self.subTest("Output reachable"):
+            _ = self.sde.forward_rv(self.some_rv, self.start, dt=self.stop - self.start)
 
     def test_transition_realization(self):
 
-        with self.subTest("Output attainable"):
+        with self.subTest("Output reachable"):
             _ = self.sde.forward_realization(
                 self.some_rv.sample(),
                 self.start,
-                self.stop,
+                dt=self.stop - self.start,
             )
 
 

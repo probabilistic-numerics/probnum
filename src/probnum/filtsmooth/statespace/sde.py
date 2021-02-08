@@ -31,6 +31,7 @@ class SDE(transition.Transition):
         self.driftfun = driftfun
         self.dispmatfun = dispmatfun
         self.jacobfun = jacobfun
+        self.dimension = dimension
         super().__init__(input_dim=dimension, output_dim=dimension)
 
     def forward_realization(
@@ -121,6 +122,8 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: driftmatfun(t)),
             dimension=dimension,
         )
+        assert dimension is not None
+
         self.moment_equation_stepsize = moment_equation_stepsize
 
     def forward_realization(
