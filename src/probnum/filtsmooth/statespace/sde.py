@@ -138,7 +138,6 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: driftmatfun(t)),
             dimension=dimension,
         )
-        assert dimension is not None
 
         self.moment_equation_stepsize = moment_equation_stepsize
 

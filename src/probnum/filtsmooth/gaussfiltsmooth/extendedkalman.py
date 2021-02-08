@@ -27,70 +27,87 @@ class EKFComponent(statespace.Transition, abc.ABC):
 
     def forward_realization(
         self,
-        real: np.ndarray,
-        start: float,
-        stop: typing.Optional[float] = None,
-        step: typing.Optional[float] = None,
-        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
-        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
-        **kwargs
+        real,
+        t,
+        dt=None,
+        _compute_gain=False,
+        _diffusion=1.0,
+        _linearise_at=None,
     ) -> (pnrv.Normal, typing.Dict):
 
-        # Do we want the EKF to linearise first and then transition the real,
-        # or try to call the non-linear transition if possible?
-        # There is no right or wrong, but what is the desired behaviour?
-        real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
-        return self.forward_rv(
-            real_as_rv,
-            start,
-            stop,
-            step=step,
-            _linearise_at=_linearise_at,
+        return self._forward_realization_as_rv(
+            real,
+            t=t,
+            dt=dt,
+            _compute_gain=_compute_gain,
             _diffusion=_diffusion,
+            _linearise_at=_linearise_at,
         )
 
     def forward_rv(
         self,
-        rv: pnrv.Normal,
-        start: float,
-        stop: typing.Optional[float] = None,
-        step: typing.Optional[float] = None,
-        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
-        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
-        **kwargs
+        rv,
+        t,
+        dt=None,
+        _compute_gain=False,
+        _diffusion=1.0,
+        _linearise_at=None,
     ) -> (pnrv.Normal, typing.Dict):
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
         return self.linearized_model.forward_rv(
-            rv=rv, start=start, stop=stop, step=step, _diffusion=_diffusion
+            rv=rv,
+            t=t,
+            dt=dt,
+            _compute_gain=_compute_gain,
+            _diffusion=_diffusion,
         )
 
     def backward_realization(
         self,
-        real,
-        rv_past,
-        start: float,
-        stop: typing.Optional[float] = None,
-        step: typing.Optional[float] = None,
-        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
-        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
-        **kwargs
+        real_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        _linearise_at=None,
     ):
-        raise NotImplementedError
+        return self._backward_realization_as_rv(
+            real_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            dt=dt,
+            _diffusion=_diffusion,
+            _linearise_at=_linearise_at,
+        )
 
     def backward_rv(
         self,
-        rv_futu,
-        rv_past,
-        start: float,
-        stop: typing.Optional[float] = None,
-        step: typing.Optional[float] = None,
-        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
-        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
-        **kwargs
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        _linearise_at=None,
     ):
-        raise NotImplementedError
+        compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
+        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
+        return self.linearized_model.backward_rv(
+            rv_obtained=rv_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            dt=dt,
+            _diffusion=_diffusion,
+        )
 
     @abc.abstractmethod
     def linearize(self, at_this_rv: pnrv.RandomVariable) -> statespace.Transition:
@@ -101,15 +118,13 @@ class EKFComponent(statespace.Transition, abc.ABC):
 class ContinuousEKFComponent(EKFComponent):
     """Continuous extended Kalman filter transition."""
 
-    def __init__(self, non_linear_model, num_steps: pntype.IntArgType) -> None:
+    def __init__(self, non_linear_model, moment_equation_stepsize) -> None:
         if not isinstance(non_linear_model, statespace.SDE):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
 
         super().__init__(non_linear_model=non_linear_model)
 
-        # Number of RK4 steps to solve the ODE dynamics
-        # see linear_sde_statics() below
-        self.num_steps = num_steps
+        self.moment_equation_stepsize = moment_equation_stepsize
 
     def linearize(self, at_this_rv: pnrv.Normal) -> None:
         """Linearize the drift function with a first order Taylor expansion."""
@@ -129,11 +144,9 @@ class ContinuousEKFComponent(EKFComponent):
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
             dispmatfun=self.non_linear_model.dispmatfun,
+            moment_equation_stepsize=moment_equation_stepsize,
+            dimension=self.non_linear_model.dimension,
         )
-
-    @property
-    def dimension(self):
-        raise NotImplementedError
 
 
 class DiscreteEKFComponent(EKFComponent):
@@ -175,11 +188,9 @@ class DiscreteEKFComponent(EKFComponent):
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
             use_forward_rv=self.use_forward_rv,
             use_backward_rv=self.use_backward_rv,
+            input_dim=self.non_linear_model.input_dim,
+            output_dim=self.non_linear_model.output_dim,
         )
-
-    @property
-    def dimension(self):
-        raise NotImplementedError
 
     @classmethod
     def from_ode(
@@ -216,7 +227,9 @@ class DiscreteEKFComponent(EKFComponent):
         else:
             raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
 
-        discrete_model = statespace.DiscreteGaussian(dyna, diff, jaco)
+        discrete_model = statespace.DiscreteGaussian(
+            dyna, diff, jaco, input_dim=prior.dimension, output_dim=ode.dimension
+        )
         return cls(
             discrete_model,
             use_forward_rv=use_forward_rv,
