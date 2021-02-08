@@ -43,7 +43,14 @@ class SDE(transition.Transition):
         _diffusion=1.0,
         **kwargs,
     ):
-        raise NotImplementedError
+        return self._forward_realization_as_rv(
+            real,
+            t=t,
+            dt=dt,
+            _compute_gain=_compute_gain,
+            _diffusion=_diffusion,
+            **kwargs,
+        )
 
     def forward_rv(
         self,
@@ -67,7 +74,16 @@ class SDE(transition.Transition):
         _diffusion=1.0,
         **kwargs,
     ):
-        raise NotImplementedError
+        return self._backward_realization_as_rv(
+            real_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            dt=dt,
+            _diffusion=_diffusion,
+            **kwargs,
+        )
 
     def backward_rv(
         self,
@@ -126,25 +142,6 @@ class LinearSDE(SDE):
 
         self.moment_equation_stepsize = moment_equation_stepsize
 
-    def forward_realization(
-        self,
-        real,
-        t,
-        dt=None,
-        _compute_gain=False,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-        return self.forward_rv(
-            rv=real_as_rv,
-            t=t,
-            dt=dt,
-            _compute_gain=_compute_gain,
-            _diffusion=_diffusion,
-        )
-
     def forward_rv(
         self,
         rv,
@@ -165,19 +162,6 @@ class LinearSDE(SDE):
             self.dispmatfun,
             _diffusion=_diffusion,
         )
-
-    def backward_realization(
-        self,
-        real_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        dt=None,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-        raise NotImplementedError("Not available (yet).")
 
     def backward_rv(
         self,
@@ -238,26 +222,6 @@ class LTISDE(LinearSDE):
         self.use_forward_rv = use_forward_rv
         self.use_backward_rv = use_backward_rv
 
-    def forward_realization(
-        self,
-        real,
-        t,
-        dt=None,
-        _compute_gain=False,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-
-        return self.forward_rv(
-            rv=real_as_rv,
-            t=t,
-            dt=dt,
-            _compute_gain=_compute_gain,
-            _diffusion=_diffusion,
-        )
-
     def forward_rv(
         self,
         rv,
@@ -269,30 +233,6 @@ class LTISDE(LinearSDE):
     ):
         discretised_model = self.discretise(dt=dt)
         return discretised_model.forward_rv(rv, t, _diffusion=_diffusion)
-
-    def backward_realization(
-        self,
-        real_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        dt=None,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-
-        return self.backward_rv(
-            rv_obtained=real_as_rv,
-            rv=rv,
-            rv_forwarded=rv_forwarded,
-            gain=gain,
-            t=t,
-            dt=dt,
-            _diffusion=_diffusion,
-        )
 
     def backward_rv(
         self,
