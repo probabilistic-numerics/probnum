@@ -101,6 +101,30 @@ class DiscreteGaussian(trans.Transition):
     ):
         raise NotImplementedError("Not available")
 
+    # Implementations that are the same for all sorts of
+    # discrete Gaussian transitions, in particular shared
+    # by LinearDiscreteGaussian and e.g. DiscreteUKFComponent.
+
+    def _backward_rv_classic(
+        self,
+        attained_rv,
+        rv,
+        forwarded_rv=None,
+        gain=None,
+        t=None,
+        _diffusion=None,
+    ):
+
+        if forwarded_rv is None or gain is None:
+            forwarded_rv, info = self.forward_rv(
+                rv, t=t, compute_gain=True, _diffusion=_diffusion
+            )
+            gain = info["gain"]
+
+        new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)
+        new_cov = rv.cov + gain @ (attained_rv.cov - forwarded_rv.cov) @ gain.T
+        return pnrv.Normal(new_mean, new_cov), {}
+
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
         return np.linalg.cholesky(self.proc_noise_cov_mat_fun(t))
@@ -261,26 +285,6 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             info["gain"] = gain
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), info
 
-    def _backward_rv_classic(
-        self,
-        attained_rv,
-        rv,
-        forwarded_rv=None,
-        gain=None,
-        t=None,
-        _diffusion=None,
-    ):
-
-        if forwarded_rv is None or gain is None:
-            forwarded_rv, info = self.forward_rv(
-                rv, t=t, compute_gain=True, _diffusion=_diffusion
-            )
-            gain = info["gain"]
-
-        new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)
-        new_cov = rv.cov + gain @ (attained_rv.cov - forwarded_rv.cov) @ gain.T
-        return pnrv.Normal(new_mean, new_cov), {}
-
     def _backward_rv_sqrt(
         self,
         attained_rv,
@@ -292,7 +296,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     ):
         # forwarded_rv is ignored in square-root smoothing.
 
-        # Smoothing updates need the gain from the beginning on
+        # Smoothing updates need the gain
         if np.linalg.norm(rv.cov) > 0 and gain is None:
             _, info = discrete_transition.forward_rv(
                 rv, t=t, dt=dt, compute_gain=True, _diffusion=_diffusion
@@ -306,7 +310,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         SC_past = rv.cov_cholesky
         SC_attained = attained_rv.cov_cholesky
 
-        dim = len(A)
+        dim = len(H)
         zeros = np.zeros((dim, dim))
         blockmat = np.block(
             [

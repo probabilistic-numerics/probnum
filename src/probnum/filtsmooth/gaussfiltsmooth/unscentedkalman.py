@@ -5,7 +5,6 @@ Examples include the unscented Kalman filter / RTS smoother which is
 based on a third degree fully symmetric rule.
 """
 
-import abc
 import typing
 
 import numpy as np
@@ -17,14 +16,13 @@ from probnum.filtsmooth import statespace
 from .unscentedtransform import UnscentedTransform
 
 
-class UKFComponent(statespace.Transition, abc.ABC):
+class UKFComponent:
     """Interface for unscented Kalman filtering components."""
 
     def __init__(
         self,
         non_linear_model,
         input_dim=None,
-        output_dim=None,
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
@@ -35,14 +33,13 @@ class UKFComponent(statespace.Transition, abc.ABC):
         # Determine the linearization.
         # Will be constructed later.
         self.sigma_points = None
-        super().__init__(input_dim=input_dim, output_dim=output_dim)
 
     def assemble_sigma_points(self, at_this_rv: pnrv.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
         return self.ut.sigma_points(at_this_rv.mean, at_this_rv.cov)
 
 
-class ContinuousUKFComponent(UKFComponent):
+class ContinuousUKFComponent(UKFComponent, statespace.SDE):
     """Continuous unscented Kalman filter transition."""
 
     def __init__(
@@ -53,9 +50,9 @@ class ContinuousUKFComponent(UKFComponent):
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
     ) -> None:
-        if not isinstance(non_linear_model, statespace.SDE):
-            raise TypeError("cont_model must be an SDE.")
-        super().__init__(
+
+        UKFComponent.__init__(
+            self,
             non_linear_model,
             input_dim=dimension,
             output_dim=dimension,
@@ -63,7 +60,14 @@ class ContinuousUKFComponent(UKFComponent):
             priorpar=priorpar,
             special_scale=special_scale,
         )
-        self.dimension = dimension
+        statespace.SDE.__init__(
+            self,
+            non_linear_model.driftfun,
+            non_linear_model.dispmatfun,
+            non_linear_model.jacobfun,
+            dimension,
+        )
+
         raise NotImplementedError(
             "Implementation of the continuous UKF is incomplete. It cannot be used."
         )
@@ -121,7 +125,7 @@ class ContinuousUKFComponent(UKFComponent):
         raise NotImplementedError("Not available (yet).")
 
 
-class DiscreteUKFComponent(UKFComponent):
+class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
     """Discrete unscented Kalman filter transition."""
 
     def __init__(
@@ -133,9 +137,9 @@ class DiscreteUKFComponent(UKFComponent):
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
     ) -> None:
-        if not isinstance(non_linear_model, statespace.DiscreteGaussian):
-            raise TypeError("Nonlinear model must be discrete.")
-        super().__init__(
+
+        UKFComponent.__init__(
+            self,
             non_linear_model,
             input_dim=input_dim,
             output_dim=output_dim,
@@ -143,7 +147,15 @@ class DiscreteUKFComponent(UKFComponent):
             priorpar=priorpar,
             special_scale=special_scale,
         )
-        self.use_backward_rv = use_backward_rv
+
+        statespace.DiscreteGaussian.__init__(
+            self,
+            non_linear_model.state_trans_fun,
+            proc_noise_cov_mat_fun,
+            jacob_state_trans_fun,
+            input_dim,
+            output_dim,
+        )
 
     def forward_rv(
         self, rv, t, _compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
@@ -176,7 +188,8 @@ class DiscreteUKFComponent(UKFComponent):
         **kwargs
     ):
 
-        return statespace.backward_rv_classic(
+        # this method is inherited from DiscreteGaussian.
+        return self._backward_rv_classic(
             rv_obtained,
             rv,
             rv_forwarded,
