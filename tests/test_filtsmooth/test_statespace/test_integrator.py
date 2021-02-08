@@ -60,7 +60,7 @@ class TestIBM(unittest.TestCase, NumpyAssertions):
         self.sde = pnfs.statespace.IBM(ordint=2, spatialdim=2)
 
     def test_discretise(self):
-        discrete_model = self.sde.discretise(step=STEP)
+        discrete_model = self.sde.discretise(dt=STEP)
         self.assertAllClose(discrete_model.state_trans_mat, AH_22_IBM, 1e-14)
 
     def test_transition_rv(self):

@@ -155,6 +155,64 @@ class IBM(Integrator, sde.LTISDE):
             _diffusion=_diffusion,
         )
 
+    def backward_realization(
+        self,
+        real_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        zero_cov = np.zeros((len(real), len(real)))
+        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+
+        return self.backward_rv(
+            rv_obtained=real_as_rv,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            dt=dt,
+            _diffusion=_diffusion,
+        )
+
+    def backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        rv_obtained = self.precon.inverse(dt) @ rv_obtained
+        rv = self.precon.inverse(dt) @ rv
+        rv_forwarded = (
+            self.precon.inverse(dt) @ rv_forwarded if rv_forwarded is not None else None
+        )
+        gain = (
+            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
+            if gain is not None
+            else None
+        )
+
+        rv, info = self.equivalent_discretisation_preconditioned.backward_rv(
+            rv_obtained=rv_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            _diffusion=_diffusion,
+        )
+        # do something to the elements in info??
+
+        return self.precon(dt) @ rv, info
+
     def discretise(self, dt):
         """Equivalent discretisation of the process.
 
@@ -199,7 +257,6 @@ class IOUP(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
-        self.setup_precon()
 
     @property
     def _driftmat(self):
@@ -238,7 +295,6 @@ class Matern(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
-        self.setup_precon()
 
     @property
     def _driftmat(self):
