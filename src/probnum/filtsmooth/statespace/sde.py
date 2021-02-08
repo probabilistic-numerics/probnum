@@ -121,7 +121,6 @@ class LinearSDE(SDE):
             jacobfun=(lambda t, x: driftmatfun(t)),
             dimension=dimension,
         )
-        raise RuntimeError("Not done here!!")
         self.moment_equation_stepsize = moment_equation_stepsize
 
     def forward_realization(
@@ -133,16 +132,13 @@ class LinearSDE(SDE):
         _diffusion=1.0,
         **kwargs,
     ):
-
-        rv = pnrv.Normal(real, 0 * np.eye(len(real)))
-        return linear_sde_statistics(
-            rv,
-            start,
-            stop,
-            step,
-            self.driftfun,
-            self.driftmatfun,
-            self.dispmatfun,
+        zero_cov = np.zeros((len(real), len(real)))
+        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+        return self.forward_rv(
+            rv=real_as_rv,
+            t=t,
+            dt=dt,
+            _compute_gain=_compute_gain,
             _diffusion=_diffusion,
         )
 
@@ -158,9 +154,9 @@ class LinearSDE(SDE):
 
         return linear_sde_statistics(
             rv,
-            start,
-            stop,
-            step,
+            t,
+            dt,
+            self.moment_equation_stepsize,
             self.driftfun,
             self.driftmatfun,
             self.dispmatfun,
