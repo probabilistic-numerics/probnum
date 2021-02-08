@@ -24,15 +24,6 @@ class Integrator:
     def __init__(self, ordint, spatialdim):
         self.ordint = ordint
         self.spatialdim = spatialdim
-        self.precon = None  # to be set later
-
-    def setup_precon(self):
-        # This can not be done in the init, due to the order in which
-        # IBM, IOUP, and Matern initialise their superclasses.
-        # Integrator needs to be initialised before LTISDE,
-        # in which case via LTISDE, self.precon is set to None
-        # To make up for this, we call this function here explicitly
-        # after the calls to the superclasses' init.
         self.precon = NordsieckLikeCoordinates.from_order(self.ordint, self.spatialdim)
 
     def proj2coord(self, coord: int) -> np.ndarray:
@@ -77,7 +68,6 @@ class IBM(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
-        self.setup_precon()
 
     @property
     def _driftmat(self):
@@ -127,34 +117,45 @@ class IBM(Integrator, sde.LTISDE):
         proc_noise_cov_mat_1d = 1.0 / denominators
         return np.kron(np.eye(self.spatialdim), proc_noise_cov_mat_1d)
 
-    def forward_rv(self, rv, start, stop, _diffusion=1.0, **kwargs):
-        if not isinstance(rv, pnrv.Normal):
-            errormsg = (
-                "Closed form transitions in LTI SDE models is only "
-                "available for Gaussian initial conditions."
-            )
-            raise TypeError(errormsg)
-        step = stop - start
-        rv = self.precon.inverse(step) @ rv
+    def forward_rv(
+        self,
+        rv,
+        t,
+        dt=None,
+        _compute_gain=False,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        rv = self.precon.inverse(dt) @ rv
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
-            rv, start, _diffusion=_diffusion
+            rv, t, _compute_gain=_compute_gain, _diffusion=_diffusion
         )
-        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
-        return self.precon(step) @ rv, info
 
-    def forward_realization(self, real, start, stop, _diffusion=1.0, **kwargs):
-        if not isinstance(real, np.ndarray):
-            raise TypeError(f"Numpy array expected, {type(real)} received.")
-        step = stop - start
-        real = self.precon.inverse(step) @ real
-        out = self.equivalent_discretisation_preconditioned.forward_realization(
-            real, start, _diffusion=_diffusion
+        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
+        # do something to the gain, too?!
+
+        return self.precon(dt) @ rv, info
+
+    def forward_realization(
+        self,
+        real,
+        t,
+        dt=None,
+        _compute_gain=False,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        zero_cov = np.zeros((len(real), len(real)))
+        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+        return self.forward_rv(
+            rv=real_as_rv,
+            t=t,
+            dt=dt,
+            _compute_gain=_compute_gain,
+            _diffusion=_diffusion,
         )
-        real, info = out
-        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
-        return self.precon(step) @ real, info
 
-    def discretise(self, step):
+    def discretise(self, dt):
         """Equivalent discretisation of the process.
 
         Overwrites matrix-fraction decomposition in the super-class.
@@ -163,14 +164,14 @@ class IBM(Integrator, sde.LTISDE):
         """
 
         state_trans_mat = (
-            self.precon(step)
+            self.precon(dt)
             @ self.equivalent_discretisation_preconditioned.state_trans_mat
-            @ self.precon.inverse(step)
+            @ self.precon.inverse(dt)
         )
         proc_noise_cov_mat = (
-            self.precon(step)
+            self.precon(dt)
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
-            @ self.precon(step).T
+            @ self.precon(dt).T
         )
         zero_shift = np.zeros(len(state_trans_mat))
         return discrete_transition.DiscreteLTIGaussian(
@@ -189,7 +190,6 @@ class IOUP(Integrator, sde.LTISDE):
         spatialdim: int,
         driftspeed: float,
     ):
-        # Other than previously in ProbNum, we do not use preconditioning for IOUP by default.
         self.driftspeed = driftspeed
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
