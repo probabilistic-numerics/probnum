@@ -174,11 +174,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def forward_realization(self, real, t, _diffusion=1.0, **kwargs):
 
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-
-        return self.forward_rv(
-            rv=real_as_rv, t=t, _compute_gain=False, _diffusion=_diffusion
+        return self._forward_realization_as_rv(
+            real, t=t, _compute_gain=False, _diffusion=_diffusion
         )
 
     def backward_rv(
@@ -203,7 +200,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def backward_realization(
         self,
-        rv_obtained,
+        real_obtained,
         rv,
         rv_forwarded=None,
         gain=None,
@@ -211,13 +208,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         _diffusion=1.0,
         **kwargs,
     ):
-
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-
-        return self.backward_rv(
-            rv_obtained=real_as_rv,
-            rv=rv,
+        return self._backward_realization_as_rv(
+            real_obtained,
+            rv,
             rv_forwarded=rv_forwarded,
             gain=gain,
             t=t,

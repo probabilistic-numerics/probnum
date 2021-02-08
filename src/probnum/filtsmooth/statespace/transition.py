@@ -79,6 +79,18 @@ class Transition(abc.ABC):
     ):
         pass
 
+    # Utility functions that are used surprisingly often
+
+    def _backward_realization_as_rv(self, real, *args, **kwargs):
+        zero_cov = np.zeros((len(real), len(real)))
+        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+        return self.backward_rv(self, real_as_rv, *args, **kwargs)
+
+    def _forward_realization_as_rv(self, real, *args, **kwargs):
+        zero_cov = np.zeros((len(real), len(real)))
+        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+        return self.forward_rv(self, real_as_rv, *args, **kwargs)
+
     #
     # def forward_realization(
     #     self,
