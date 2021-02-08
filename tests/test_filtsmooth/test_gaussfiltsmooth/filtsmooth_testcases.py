@@ -103,7 +103,8 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
     def setup_ornsteinuhlenbeck(self):
         self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
         self.delta_t = info["dt"]
-        self.tms = np.arange(0, 20, self.delta_t)
+        self.tmax = info["tmax"]
+        self.tms = np.arange(0, self.tmax, self.delta_t)
         self.states, self.obs = pnfs.statespace.generate(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
@@ -222,7 +223,8 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         # Set up test problem
         dynamod, measmod, initrv, info = pendulum()
         delta_t = info["dt"]
-        tms = np.arange(0, 4, delta_t)
+        tmax = info["tmax"]
+        tms = np.arange(0, tmax, delta_t)
         states, obs = pnfs.statespace.generate(dynamod, measmod, initrv, tms)
 
         # Linearise problem
@@ -326,9 +328,9 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_rv(initrv, 0.0, 1.0)
+                nonlinear_model.transition_rv(initrv, 0.0, 1.0, step=0.1)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_rv(initrv, 0.0, 1.0)
+            linearised_model.transition_rv(initrv, 0.0, 1.0, step=0.1)
 
     def test_transition_real(self):
         """transition_real() not possible for original model but for the linearised
@@ -339,6 +341,6 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_realization(initrv.mean, 0.0, 1.0)
+                nonlinear_model.transition_realization(initrv.mean, 0.0, 1.0, step=0.1)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_realization(initrv.mean, 0.0, 1.0)
+            linearised_model.transition_realization(initrv.mean, 0.0, 1.0, step=0.1)
