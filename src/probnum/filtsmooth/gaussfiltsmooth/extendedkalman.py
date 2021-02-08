@@ -11,7 +11,7 @@ import probnum.type as pntype
 from probnum.filtsmooth import statespace
 
 
-class EKFComponent(statespace.Transition, abc.ABC):
+class EKFComponent(abc.ABC):
     """Interface for extended Kalman filtering components."""
 
     def __init__(
@@ -23,7 +23,6 @@ class EKFComponent(statespace.Transition, abc.ABC):
 
         # Will be constructed later
         self.linearized_model = None
-        super().__init__()
 
     def forward_realization(
         self,
@@ -115,14 +114,21 @@ class EKFComponent(statespace.Transition, abc.ABC):
         raise NotImplementedError
 
 
-class ContinuousEKFComponent(EKFComponent):
+class ContinuousEKFComponent(EKFComponent, statespace.SDE):
     """Continuous extended Kalman filter transition."""
 
     def __init__(self, non_linear_model, moment_equation_stepsize) -> None:
         if not isinstance(non_linear_model, statespace.SDE):
             raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
 
-        super().__init__(non_linear_model=non_linear_model)
+        EKFComponent.__init__(self, non_linear_model=non_linear_model)
+        statespace.SDE.__init__(
+            self,
+            non_linear_model.driftfun,
+            non_linear_model.dispmatfun,
+            non_linear_model.jacobfun,
+            non_linear_model.dimension,
+        )
 
         self.moment_equation_stepsize = moment_equation_stepsize
 
@@ -149,7 +155,7 @@ class ContinuousEKFComponent(EKFComponent):
         )
 
 
-class DiscreteEKFComponent(EKFComponent):
+class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
@@ -163,7 +169,15 @@ class DiscreteEKFComponent(EKFComponent):
                 "Discrete EKF transition requires a (non-linear) discrete Gaussian transition."
             )
 
-        super().__init__(non_linear_model=non_linear_model)
+        EKFComponent.__init__(self, non_linear_model=non_linear_model)
+        statespace.DiscreteGaussian.__init__(
+            self,
+            non_linear_model.state_trans_fun,
+            proc_noise_cov_mat_fun,
+            jacob_state_trans_fun,
+            input_dim,
+            output_dim,
+        )
 
         self.use_forward_rv = use_forward_rv
         self.use_backward_rv = use_backward_rv

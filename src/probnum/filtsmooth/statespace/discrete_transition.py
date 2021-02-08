@@ -248,6 +248,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         )
 
     # Forward and backward implementations
+    # _backward_rv_classic is inherited from DiscreteGaussian
 
     def _forward_rv_classic(
         self, rv, t, compute_gain=False, _diffusion=1.0
