@@ -178,6 +178,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         choose_backward_implementation = {
             "classic": self._backward_rv_classic,
             "sqrt": self._backward_rv_sqrt,
+            "joseph": self._backward_rv_joseph,
         }
         self._forward_implementation = choose_forward_implementation[
             forward_implementation
@@ -302,7 +303,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     ):
         # forwarded_rv is ignored in square-root smoothing.
 
-        # Smoothing updates need the gain
+        # Smoothing updates need the gain, but
+        # filtering updates "compute their own"
         if np.linalg.norm(rv.cov) > 0 and gain is None:
             _, info = discrete_transition.forward_rv(
                 rv, t=t, dt=dt, compute_gain=True, _diffusion=_diffusion
@@ -335,6 +337,34 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov_cholesky = triu_to_positive_tril(SC)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
         return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
+
+    def _backward_rv_joseph(
+        self,
+        attained_rv,
+        rv,
+        forwarded_rv=None,
+        gain=None,
+        t=None,
+        _diffusion=None,
+    ):
+        # forwarded_rv is ignored in Joseph updates.
+
+        if gain is None:
+            _, info = self.forward_rv(rv, t=t, compute_gain=True, _diffusion=_diffusion)
+            gain = info["gain"]
+
+        H = discrete_transition.state_trans_mat_fun(t)
+        R = discrete_transition.proc_noise_cov_mat_fun(t)
+        shift = discrete_transition.shift_vec_fun(t)
+
+        new_mean = rv.mean + gain @ (attained_rv.mean - H @ rv.mean - shift)
+        joseph_factor = np.eye(len(rv.mean)) - gain @ H
+        new_cov = (
+            joseph_factor @ rv.cov @ joseph_factor.T
+            + gain @ R @ gain.T
+            + gain @ attained_rv.cov @ gain.T
+        )
+        return pnrv.Normal(new_mean, new_cov), {}
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
