@@ -10,7 +10,7 @@ from probnum.type import FloatArgType
 
 from . import discrete_transition, transition
 from .discrete_transition_utils import backward_rv_classic, forward_rv_classic
-from .sde_utils import linear_sde_statistics, matrix_fraction_decomposition
+from .sde_utils import matrix_fraction_decomposition, solve_moment_equations_forward
 
 
 class SDE(transition.Transition):
@@ -151,7 +151,7 @@ class LinearSDE(SDE):
         **kwargs,
     ):
 
-        return linear_sde_statistics(
+        return solve_moment_equations_forward(
             rv,
             t,
             dt,

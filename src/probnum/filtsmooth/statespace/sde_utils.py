@@ -10,7 +10,7 @@ import scipy.linalg
 import probnum.random_variables as pnrv
 
 
-def linear_sde_statistics(
+def solve_moment_equations_forward(
     rv,
     start,
     stop,

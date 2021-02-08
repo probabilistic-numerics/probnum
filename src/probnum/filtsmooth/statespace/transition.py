@@ -5,7 +5,7 @@ from typing import Dict, Optional
 
 import numpy as np
 
-from probnum.random_variables import RandomVariable
+import probnum.random_variables as pnrv
 
 __all__ = ["Transition", "generate"]
 
@@ -43,13 +43,13 @@ class Transition(abc.ABC):
     def forward_rv(
         self, rv, t, dt=None, _compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def forward_realization(
         self, real, t, dt=None, _compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def backward_rv(
@@ -63,7 +63,7 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def backward_realization(
@@ -77,20 +77,27 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        pass
+        raise NotImplementedError
 
     # Utility functions that are used surprisingly often
 
     def _backward_realization_as_rv(self, real, *args, **kwargs):
+        """Call backward realization via backward rv with a random variable with zero
+        (co)variance."""
         zero_cov = np.zeros((len(real), len(real)))
         real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-        return self.backward_rv(self, real_as_rv, *args, **kwargs)
+        return self.backward_rv(real_as_rv, *args, **kwargs)
 
     def _forward_realization_as_rv(self, real, *args, **kwargs):
+        """Call forward realization via forward rv with a random variable with zero
+        (co)variance."""
         zero_cov = np.zeros((len(real), len(real)))
         real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-        return self.forward_rv(self, real_as_rv, *args, **kwargs)
+        return self.forward_rv(real_as_rv, *args, **kwargs)
 
+    #
+    #  The below is still here, because it contains docstrings that need to be copied soon!
+    #
     #
     # def forward_realization(
     #     self,

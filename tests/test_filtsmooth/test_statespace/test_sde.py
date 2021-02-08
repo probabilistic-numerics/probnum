@@ -170,7 +170,7 @@ class TestLinearSDEStatistics(unittest.TestCase, NumpyAssertions):
         self.L = L
 
     def test_linear_sde_statistics(self):
-        out_rv, _ = pnfss.sde.linear_sde_statistics(
+        out_rv, _ = pnfss.sde.solve_moment_equations_forward(
             self.some_rv, self.start, self.stop, self.step, self.f, self.df, self.L
         )
         ah, qh, _ = pnfss.sde.matrix_fraction_decomposition(
