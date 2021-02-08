@@ -153,8 +153,12 @@ def pendulum():
     r = var * np.eye(1)
     initmean = np.ones(2)
     initcov = var * np.eye(2)
-    dynamod = pnfs.statespace.DiscreteGaussian(f, lambda t: q, df)
-    measmod = pnfs.statespace.DiscreteGaussian(h, lambda t: r, dh)
+    dynamod = pnfs.statespace.DiscreteGaussian(
+        f, lambda t: q, df, input_dim=2, output_dim=2
+    )
+    measmod = pnfs.statespace.DiscreteGaussian(
+        h, lambda t: r, dh, input_dim=2, output_dim=1
+    )
     initrv = Normal(initmean, initcov)
     return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
 

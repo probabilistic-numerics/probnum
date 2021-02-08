@@ -65,16 +65,16 @@ class Kalman(BayesFiltSmooth):
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
-        self.predict = lambda *args, **kwargs: use_predict(
-            dynamics_model, *args, **kwargs
-        )
-        self.measure = lambda *args, **kwargs: use_measure(
-            measurement_model, *args, **kwargs
-        )
-        self.update = lambda *args, **kwargs: use_update(
-            measurement_model, *args, **kwargs
-        )
-        self.smooth_step = use_smooth_step
+        # self.predict = lambda *args, **kwargs: use_predict(
+        #     dynamics_model, *args, **kwargs
+        # )
+        # self.measure = lambda *args, **kwargs: use_measure(
+        #     measurement_model, *args, **kwargs
+        # )
+        # self.update = lambda *args, **kwargs: use_update(
+        #     measurement_model, *args, **kwargs
+        # )
+        # self.smooth_step = use_smooth_step
         super().__init__(
             dynamics_model=dynamics_model,
             measurement_model=measurement_model,
@@ -256,7 +256,6 @@ class Kalman(BayesFiltSmooth):
             rv=current_rv,
             start=start,
             stop=stop,
-            _intermediate_step=_intermediate_step,
             _linearise_at=_linearise_predict_at,
             _diffusion=_diffusion,
         )
@@ -268,6 +267,20 @@ class Kalman(BayesFiltSmooth):
             _linearise_at=_linearise_update_at,
         )
         return filtrv, info
+
+    def predict(self, rv, start, stop, _linearise_at, _diffusion):
+        return self.dynamics_model.forward_rv(
+            rv,
+            t=start,
+            dt=stop - start,
+            _linearise_at=_linearise_at,
+            _diffusion=_diffusion,
+        )
+
+    def update(self, rv, time, data, _linearise_at):
+        return self.measurement_model.backward_realization(
+            data, rv, t=time, _linearise_at=_linearise_at
+        )
 
     def smooth(self, filter_posterior):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
@@ -345,3 +358,24 @@ class Kalman(BayesFiltSmooth):
             out_rvs.append(curr_rv)
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
+
+    def smooth_step(
+        self,
+        unsmoothed_rv,
+        predicted_rv,
+        curr_rv,
+        crosscov,
+        dynamics_model,
+        start,
+        stop,
+    ):
+        return self.dynamics_model.backward_rv(
+            curr_rv,
+            unsmoothed_rv,
+            rv_forwarded=predicted_rv,
+            gain=None,
+            t=start,
+            dt=stop - start,
+            _diffusion=_diffusion,
+            _linearise_at=_linearise_at,
+        )
