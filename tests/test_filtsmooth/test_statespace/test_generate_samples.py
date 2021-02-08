@@ -24,7 +24,7 @@ class MockTransition(pnfss.Transition):
         raise NotImplementedError
 
 
-def times_expected():
+def times_array():
     return np.arange(0.0, 13.0, 1.0)
 
 
@@ -32,42 +32,15 @@ def times_single_point():
     return np.array([0.0])
 
 
-@pytest.mark.parametrize("times", [times_expected(), times_single_point()])
-@pytest.mark.parametrize("test_ndim", [0, 1, 3])
+@pytest.mark.parametrize("times", [times_array(), times_single_point()])
+@pytest.mark.parametrize("test_ndim", [0, 1, 2])
 def test_generate_shapes(times, test_ndim):
+    """Output shapes are as expected."""
     mocktrans = MockTransition(dim=test_ndim)
     initrv = pnrv.Constant(np.random.rand(test_ndim))
-    states, obs = pnfss.generate(mocktrans, mocktrans, initrv, times)
+    states, obs = pnfss.generate_samples(mocktrans, mocktrans, initrv, times)
 
     assert states.shape[0] == len(times)
     assert states.shape[1] == test_ndim
     assert obs.shape[0] == len(times)
     assert obs.shape[1] == test_ndim
-
-
-# import unittest
-#
-# import numpy as np
-#
-# import probnum.filtsmooth.statespace as pnfss
-# import probnum.random_variables as pnrv
-#
-# TEST_NDIM = 10
-#
-#
-#
-#
-# class TestGenerate(unittest.TestCase):
-#     def test_generate(self):
-#         mocktrans = MockTransition()
-#         initrv = pnrv.Constant(np.random.rand(TEST_NDIM))
-#         times = np.arange(0.0, 13.0, 1.0)  # length 13
-#         states, obs = pnfss.generate(mocktrans, mocktrans, initrv, times)
-#         self.assertEqual(states.shape[0], len(times))
-#         self.assertEqual(states.shape[1], TEST_NDIM)
-#         self.assertEqual(obs.shape[0], len(times))
-#         self.assertEqual(obs.shape[1], TEST_NDIM)
-#
-#
-# if __name__ == "__main__":
-#     unittest.main()

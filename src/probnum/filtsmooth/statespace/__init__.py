@@ -18,11 +18,12 @@ from .discrete_transition_utils import (
     forward_rv_sqrt,
     triu_to_positive_tril,
 )
+from .generate_samples import generate_samples
 from .integrator import IBM, IOUP, Integrator, Matern
 from .preconditioner import NordsieckLikeCoordinates, Preconditioner
 from .sde import LTISDE, SDE, LinearSDE
 from .sde_utils import matrix_fraction_decomposition, solve_moment_equations_forward
-from .transition import Transition, generate
+from .transition import Transition
 
 __all__ = [
     "Transition",
@@ -40,7 +41,7 @@ __all__ = [
     "NordsieckLikeCoordinates",
     "solve_moment_equations_forward",
     "matrix_fraction_decomposition",
-    "generate",
+    "generate_samples",
     "forward_rv_sqrt",
     "forward_rv_classic",
     "backward_rv_classic",
