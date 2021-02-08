@@ -3,6 +3,7 @@ import functools
 from typing import Callable, Optional
 
 import numpy as np
+import scipy.integrate
 import scipy.linalg
 
 import probnum.random_variables as pnrv
@@ -10,7 +11,11 @@ from probnum.type import FloatArgType
 
 from . import discrete_transition, transition
 from .discrete_transition_utils import backward_rv_classic, forward_rv_classic
-from .sde_utils import matrix_fraction_decomposition, solve_moment_equations_forward
+from .sde_utils import (
+    matrix_fraction_decomposition,
+    setup_vectorized_mde_forward,
+    solve_moment_equations_forward,
+)
 
 
 class SDE(transition.Transition):
@@ -128,8 +133,15 @@ class LinearSDE(SDE):
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         dispmatfun: Callable[[FloatArgType], np.ndarray],
         dimension=None,
-        moment_equation_stepsize=np.nan,  # use this one for forward and backward!
+        mde_atol=1e-5,
+        mde_rtol=1e-5,
+        mde_solver="LSODA",
     ):
+
+        # Once different filtering and smoothing algorithms are available,
+        # replicate the scheme from DiscreteGaussian in which
+        # the initialisation decides between, e.g., classic and sqrt implementations.
+
         self.driftmatfun = driftmatfun
         self.forcevecfun = forcevecfun
         super().__init__(
@@ -139,7 +151,9 @@ class LinearSDE(SDE):
             dimension=dimension,
         )
 
-        self.moment_equation_stepsize = moment_equation_stepsize
+        self.mde_atol = mde_atol
+        self.mde_rtol = mde_rtol
+        self.mde_solver = mde_solver
 
     def forward_rv(
         self,
@@ -174,6 +188,31 @@ class LinearSDE(SDE):
         **kwargs,
     ):
         raise NotImplementedError("Not available (yet).")
+
+    # Forward and backward implementations
+
+    def _solve_mde_forward(self, rv, t, dt, _diffusion=1.0):
+        """Solve forward moment differential equations."""
+        mde, y0 = setup_vectorized_mde_forward(
+            self.driftmatfun,
+            self.forcefun,
+            self.dispmatfun,
+            rv.mean,
+            rv.cov,
+            _diffusion=_diffusion,
+        )
+        sol = scipy.integrate.solve_ivp(
+            mde,
+            (t, t + dt),
+            y0,
+            solver=self.mde_solver,
+            atol=self.mde_atol,
+            rtol=self.mde_rtol,
+        )
+        y_end = sol.y[:, -1]
+        new_mean = y_end[: len(rv.mean)]
+        new_cov = y_end[len(rv.mean) :].reshape((len(rv.mean), len(rv.mean)))
+        return pnrv.Normal(mean=new_mean, cov=new_cov), {"sol": sol}
 
 
 class LTISDE(LinearSDE):

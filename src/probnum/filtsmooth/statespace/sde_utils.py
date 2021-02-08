@@ -132,3 +132,34 @@ def matrix_fraction_decomposition(driftmat, dispmat, step):
     Qh = C @ D
 
     return Ah, Qh, bigmat
+
+
+def setup_vectorized_mde_forward(
+    driftmatfun, forcefun, dispmatfun, initmean, initcov, _diffusion=1.0
+):
+    """Set up forward moment differnetial equations (MDEs) in a way that is compatible
+    with scipy.solve_ivp."""
+    dim = len(initmean)
+
+    def f(t, y):
+
+        # undo vectorization
+        mean, cov_flat = y[:dim], y[dim:]
+        cov = cov_flat.reshape((d, d))
+
+        # apply iteration
+        F = driftmatfun(t)
+        u = forcefun(t)
+        L = dispmatfun(t)
+        new_mean = F @ mean + u
+        new_cov = F @ cov + cov @ F.T + _diffusion * L @ L.T
+
+        # vectorize outcome
+        new_cov_flat = new_cov.flatten()
+        y_new = np.hstack((new_mean, new_cov_flat))
+        return y_new
+
+    initcov_flat = initcov.flatten()
+    y0 = np.hstack((initmean, initcov_flat))
+
+    return f, y0
