@@ -1,107 +1,73 @@
 import numpy as np
+import pytest
 
-from probnum.filtsmooth.gaussfiltsmooth import Kalman
+import probnum.filtsmooth as pnfs
+import probnum.filtsmooth.statespace as pnfss
 
-from .filtsmooth_testcases import CarTrackingDDTestCase, OrnsteinUhlenbeckCDTestCase
-
-np.random.seed(5472)
-
-# Show plots in tests?
-VISUALISE = False
-
-if VISUALISE:
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError as err:
-        raise ImportError(
-            "Install matplotlib to visualise the test functions."
-        ) from err
+from .filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 
 
-class TestKalmanDiscreteDiscrete(CarTrackingDDTestCase):
-    """Kalman filtering and smoothing on a discrete setting, i.e. the car tracking
-    problem.
+@pytest.fixture
+def problem():
+    """Car tracking problem."""
+    return car_tracking()
 
-    By comparing filtering and smoothing RMSEs on the test problem, all
-    methods in Kalman() are called.
+
+@pytest.fixture
+def problem():
+    """Ornstein-Uhlenbeck problem."""
+    return ornstein_uhlenbeck()
+
+
+@pytest.fixture
+def update():
+    """The usual Kalman update.
+
+    Yields Kalman filter.
     """
-
-    def setUp(self):
-        super().setup_cartracking()
-        self.method = Kalman(self.dynmod, self.measmod, self.initrv)
-
-    def test_filtsmooth(self):
-        """RMSE of smoother smaller than rmse of filter smaller than of measurements?"""
-        filter_posterior = self.method.filter(self.obs, self.tms)
-        filtms = filter_posterior.state_rvs.mean
-        smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
-        smooms = smooth_posterior.state_rvs.mean
-
-        normaliser = np.sqrt(self.states[1:, :2].size)
-        filtrmse = np.linalg.norm(filtms[1:, :2] - self.states[1:, :2]) / normaliser
-        smoormse = np.linalg.norm(smooms[1:, :2] - self.states[1:, :2]) / normaliser
-        obs_rmse = np.linalg.norm(self.obs[1:] - self.states[1:, :2]) / normaliser
-
-        if VISUALISE is True:
-            plt.title(
-                "Car tracking trajectory (%.2f " % smoormse
-                + "< %.2f < %.2f?)" % (filtrmse, obs_rmse)
-            )
-            plt.plot(
-                self.obs[:, 0], self.obs[:, 1], ".", label="Observations", alpha=0.5
-            )
-            plt.plot(filtms[:, 0], filtms[:, 1], "-", label="Filter guess")
-            plt.plot(smooms[:, 0], smooms[:, 1], "-", label="Smoother guess")
-            plt.plot(
-                self.states[:, 0],
-                self.states[:, 1],
-                "-",
-                linewidth=6,
-                alpha=0.25,
-                label="Truth",
-            )
-            plt.legend()
-            plt.show()
-        self.assertLess(smoormse, filtrmse)
-        self.assertLess(filtrmse, obs_rmse)
+    return pnfs.update_classic
 
 
-class TestKalmanContinuousDiscrete(OrnsteinUhlenbeckCDTestCase):
-    """Try Kalman filtering on a continuous-discrete setting.
+@pytest.fixture
+def update():
+    """Iterated classical update.
 
-    Try OU process.
+    Yields I(E/U)KF depending on the approximate measurement model.
     """
+    stopcrit = pnfs.StoppingCriterion()
+    return pnfs.iterate_update(pnfs.update_classic, stopcrit=stopcrit)
 
-    def setUp(self):
-        super().setup_ornsteinuhlenbeck()
-        self.method = Kalman(self.dynmod, self.measmod, self.initrv)
 
-    def test_filtsmooth(self):
-        """RMSE of smoother smaller than rmse of filter smaller than of measurements?"""
-        filter_posterior = self.method.filter(self.obs, self.tms)
-        filtms = filter_posterior.state_rvs.mean
-        smooth_posterior = self.method.filtsmooth(self.obs, self.tms)
-        smooms = smooth_posterior.state_rvs.mean
+@pytest.fixture
+def kalman(problem, update):
+    """Create a Kalman object."""
+    dynmod, measmod, initrv, info = problem
+    return pnfs.Kalman(dynmod, measmod, initrv)
 
-        self.assertEqual(filtms[1:].shape, self.states[1:].shape)
-        self.assertEqual(smooms[1:].shape, self.states[1:].shape)
-        self.assertEqual(self.obs[1:].shape, self.states[1:].shape)
 
-        normaliser = np.sqrt(self.states[1:].size)
-        filtrmse = np.linalg.norm(filtms[1:] - self.states[1:]) / normaliser
-        smoormse = np.linalg.norm(smooms[1:] - self.states[1:]) / normaliser
-        obs_rmse = np.linalg.norm(self.obs[1:] - self.states[1:]) / normaliser
+@pytest.fixture
+def data(problem):
+    """Create artificial data."""
+    dynmod, measmod, initrv, info = problem
+    times = np.arange(0, info["tmax"], info["dt"])
+    states, obs = pnfss.generate(
+        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
+    )
+    return obs, times, states
 
-        if VISUALISE is True:
-            plt.title(
-                "Ornstein Uhlenbeck (%.2f < " % smoormse
-                + "%.2f < %.2f?)" % (filtrmse, obs_rmse)
-            )
-            plt.plot(self.tms[1:], self.obs[:, 0], ".", label="Observations", alpha=0.5)
-            plt.plot(self.tms, filtms, "-", label="Filter guess")
-            plt.plot(self.tms, smooms, "-", label="Smoother guess")
-            plt.plot(self.tms, self.states, "-", linewidth=6, alpha=0.25, label="Truth")
-            plt.legend()
-            plt.show()
-        self.assertLess(smoormse, filtrmse)
-        self.assertLess(filtrmse, obs_rmse)
+
+def test_rmse_filt_smooth(kalman, data):
+    """Assert that smoothing beats filtering beats nothing."""
+    obs, times, truth = data
+
+    filter_posterior = kalman.filter(obs, times)
+    smooth_posterior = kalman.smooth(filter_posterior)
+
+    filtms = filter_posterior.state_rvs.mean
+    smooms = smooth_posterior.state_rvs.mean
+
+    filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
+    smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))
+    obs_rmse = np.mean(np.abs(obs - truth[:, :2]))
+
+    assert smooms_rmse < filtms_rmse < obs_rmse
