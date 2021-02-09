@@ -7,7 +7,11 @@ import probnum.random_variables as pnrv
 from probnum.type import FloatArgType
 
 from . import transition as trans
-from .discrete_transition_utils import cholesky_update, triu_to_positive_tril
+from .discrete_transition_utils import (
+    cholesky_update,
+    condition_state_on_measurement,
+    triu_to_positive_tril,
+)
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -125,10 +129,7 @@ class DiscreteGaussian(trans.Transition):
                 rv, t=t, compute_gain=True, _diffusion=_diffusion
             )
             gain = info["gain"]
-
-        new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)
-        new_cov = rv.cov + gain @ (attained_rv.cov - forwarded_rv.cov) @ gain.T
-        return pnrv.Normal(new_mean, new_cov), {}
+        return condition_state_on_measurement(attained_rv, forwarded_rv, rv, gain)
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):

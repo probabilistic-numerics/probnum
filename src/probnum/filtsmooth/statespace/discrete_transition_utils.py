@@ -3,6 +3,12 @@ import typing
 import numpy as np
 
 
+def condition_state_on_measurement(attained_rv, forwarded_rv, rv, gain):
+    new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)
+    new_cov = rv.cov + gain @ (attained_rv.cov - forwarded_rv.cov) @ gain.T
+    return pnrv.Normal(new_mean, new_cov), {}
+
+
 def cholesky_update(
     S1: np.ndarray, S2: typing.Optional[np.ndarray] = None
 ) -> np.ndarray:
