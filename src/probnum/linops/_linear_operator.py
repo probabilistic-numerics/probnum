@@ -1,5 +1,7 @@
 """Finite-dimensional linear operators."""
 
+import functools
+import operator
 import warnings
 
 import numpy as np
@@ -324,24 +326,61 @@ class _TransposedLinearOperator(
         return self.A.inv().T
 
 
-class _SumLinearOperator(
-    scipy.sparse.linalg.interface._SumLinearOperator, LinearOperator
-):
+class _SumLinearOperator(LinearOperator):
     """Sum of two linear operators."""
 
-    def __init__(self, A, B):
-        self.A = A
-        self.B = B
-        super().__init__(A=A, B=B)
+    def __init__(self, *summands: LinearOperator):
+        if not all(isinstance(summand, LinearOperator) for summand in summands):
+            raise TypeError("All summands must be `LinearOperator`s")
 
-    def todense(self):
-        return self.A.todense() + self.B.todense()
+        if len(summands) < 2:
+            raise ValueError("There must be at least two summands")
 
-    def inv(self):
-        return self.A.inv() + self.B.inv()
+        if not all(summand.shape == summands[0].shape for summand in summands):
+            raise ValueError("All summands must have the same shape")
 
-    def trace(self):
-        return self.A.trace() + self.B.trace()
+        self._summands = summands
+
+        super().__init__(
+            dtype=np.find_common_type(
+                [summand.dtype for summand in self._summands], []
+            ),
+            shape=summands[0].shape,
+        )
+
+    def _matvec(self, x: np.ndarray) -> np.ndarray:
+        return functools.reduce(
+            operator.add, (summand.matvec(x) for summand in self._summands)
+        )
+
+    def _rmatvec(self, x: np.ndarray) -> np.ndarray:
+        return functools.reduce(
+            operator.add, (summand.rmatvec(x) for summand in self._summands)
+        )
+
+    def _matmat(self, x: np.ndarray) -> np.ndarray:
+        return functools.reduce(
+            operator.add, (summand.matmat(x) for summand in self._summands)
+        )
+
+    def _rmatmat(self, x: np.ndarray) -> np.ndarray:
+        return functools.reduce(
+            operator.add, (summand.rmatmat(x) for summand in self._summands)
+        )
+
+    def todense(self) -> np.ndarray:
+        return functools.reduce(
+            operator.add, (summand.todense() for summand in self._summands)
+        )
+
+    def inv(self) -> LinearOperator:
+        return MatrixMult(self.todense()).inv()
+
+    def trace(self) -> np.floating:
+        return functools.reduce(
+            operator.add, (summand.trace() for summand in self._summands)
+        )
+
 
 
 class _ProductLinearOperator(
