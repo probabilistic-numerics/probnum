@@ -76,13 +76,22 @@ def test_jacobian_exception(g, S, some_rv):
         dtrans_no_jacob.jacob_state_trans_fun(0.0, some_rv.mean)
 
 
-def test_transition_rv(discrete_transition, some_rv):
-
+def test_forward_rv(discrete_transition, some_rv):
     with pytest.raises(NotImplementedError):
         discrete_transition.forward_rv(some_rv, 0.0)
 
 
-def test_transition_realization(discrete_transition, some_rv):
+def test_backward_rv(discrete_transition, some_rv):
+    with pytest.raises(NotImplementedError):
+        discrete_transition.backward_rv(some_rv, some_rv)
+
+
+def test_backward_realization(discrete_transition, some_rv):
+    with pytest.raises(NotImplementedError):
+        discrete_transition.backward_realization(some_rv, some_rv)
+
+
+def test_forward_realization(discrete_transition, some_rv):
     out, _ = discrete_transition.forward_realization(some_rv.sample(), 0.0)
     assert isinstance(out, pnrv.Normal)
 
