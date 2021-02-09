@@ -4,71 +4,93 @@ import numpy as np
 
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
+from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
 TEST_NDIM = 4
+import pytest
 
 
-class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
+@pytest.fixture
+def test_ndim():
+    return 4
 
-    some_rv = pnrv.Normal(
-        mean=np.random.rand(TEST_NDIM), cov=np.diag(1 + np.random.rand(TEST_NDIM))
-    )
-    start = 0.1 + 0.01 * np.random.rand()
 
-    random_mat = np.random.rand(TEST_NDIM, TEST_NDIM)
-    random_spdmat = random_mat @ random_mat + 2 * np.eye(TEST_NDIM)
+@pytest.fixture
+def spdmat1(test_ndim):
+    return random_spd_matrix(test_ndim)
 
-    def setUp(self):
-        def g(t, x):
-            return np.sin(x)
 
-        def S(t):
-            return self.random_spdmat
+@pytest.fixture
+def spdmat2(test_ndim):
+    return random_spd_matrix(test_ndim)
 
-        def dg(t, x):
-            return np.cos(x)
 
-        self.dtrans = pnfss.discrete_transition.DiscreteGaussian(g, S, dg)
+@pytest.fixture
+def g():
+    return lambda t, x: np.sin(x)
 
-        self.g = g
-        self.S = S
-        self.dg = dg
 
-    def test_dynamics(self):
-        received = self.dtrans.state_trans_fun(self.start, self.some_rv.mean)
-        expected = self.g(self.start, self.some_rv.mean)
-        self.assertAllClose(received, expected)
+@pytest.fixture
+def S(spdmat1):
+    return lambda t: spdmat1
 
-    def test_proc_noise_cov(self):
-        received = self.dtrans.proc_noise_cov_mat_fun(self.start)
-        expected = self.S(self.start)
-        self.assertAllClose(received, expected)
 
-    def test_jacobian(self):
-        received = self.dtrans.jacob_state_trans_fun(self.start, self.some_rv.mean)
-        expected = self.dg(self.start, self.some_rv.mean)
-        self.assertAllClose(received, expected)
+@pytest.fixture
+def dg():
+    return lambda t, x: np.cos(x)
 
-    def test_jacobian_error(self):
-        """Calling a Jacobian when nothing is provided throws an Exception."""
-        dtrans_no_jacob = pnfss.discrete_transition.DiscreteGaussian(self.g, self.S)
-        with self.assertRaises(NotImplementedError):
-            dtrans_no_jacob.jacob_state_trans_fun(self.start, self.some_rv.mean)
 
-    def test_transition_rv(self):
+@pytest.fixture
+def discrete_transition(g, S, dg):
+    return pnfss.discrete_transition.DiscreteGaussian(g, S, dg)
 
-        with self.assertRaises(NotImplementedError):
-            self.dtrans.forward_rv(self.some_rv, self.start)
 
-    def test_transition_realization(self):
-        self.dtrans.forward_realization(self.some_rv.sample(), self.start)
+@pytest.fixture
+def some_rv(test_ndim, spdmat2):
+    return pnrv.Normal(mean=np.random.rand(test_ndim), cov=spdmat2)
 
-    def test_diffmatfun_cholesky(self):
-        self.assertAllClose(
-            self.dtrans.proc_noise_cov_cholesky_fun(0),
-            np.linalg.cholesky(self.dtrans.proc_noise_cov_mat_fun(0)),
-        )
+
+def test_state_transition(discrete_transition, some_rv, g):
+    received = discrete_transition.state_trans_fun(0.0, some_rv.mean)
+    expected = g(0.0, some_rv.mean)
+    np.testing.assert_allclose(received, expected)
+
+
+def test_proces_noise(discrete_transition, some_rv, S):
+    received = discrete_transition.proc_noise_cov_mat_fun(0.0)
+    expected = S(0.0)
+    np.testing.assert_allclose(received, expected)
+
+
+def test_jacobian(discrete_transition, some_rv, dg):
+    received = discrete_transition.jacob_state_trans_fun(0.0, some_rv.mean)
+    expected = dg(0.0, some_rv.mean)
+    np.testing.assert_allclose(received, expected)
+
+
+def test_jacobian_exception(g, S, some_rv):
+    """Calling a Jacobian when nothing is provided throws an Exception."""
+    dtrans_no_jacob = pnfss.discrete_transition.DiscreteGaussian(g, S)
+    with pytest.raises(NotImplementedError):
+        dtrans_no_jacob.jacob_state_trans_fun(0.0, some_rv.mean)
+
+
+def test_transition_rv(discrete_transition, some_rv):
+
+    with pytest.raises(NotImplementedError):
+        discrete_transition.forward_rv(some_rv, 0.0)
+
+
+def test_transition_realization(discrete_transition, some_rv):
+    out, _ = discrete_transition.forward_realization(some_rv.sample(), 0.0)
+    assert isinstance(out, pnrv.Normal)
+
+
+def test_proc_noise_cov_cholesky_fun(discrete_transition):
+    expected = np.linalg.cholesky(discrete_transition.proc_noise_cov_mat_fun(0))
+    received = discrete_transition.proc_noise_cov_cholesky_fun(0)
+    np.testing.assert_allclose(expected, received)
 
 
 class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
