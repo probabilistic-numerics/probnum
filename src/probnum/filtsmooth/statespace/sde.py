@@ -23,15 +23,15 @@ class SDE(transition.Transition):
 
     def __init__(
         self,
+        dimension,
         driftfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         dispmatfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         jacobfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
-        dimension=None,
     ):
+        self.dimension = dimension
         self.driftfun = driftfun
         self.dispmatfun = dispmatfun
         self.jacobfun = jacobfun
-        self.dimension = dimension
         super().__init__(input_dim=dimension, output_dim=dimension)
 
     def forward_realization(
