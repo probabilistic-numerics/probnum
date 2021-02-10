@@ -432,10 +432,23 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
         solver_state: "probnum.linalg.solvers.LinearSolverState",
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
-        return (
-            solver_state.cache.belief.x.mean
-            + solver_state.cache.step_size * solver_state.cache.action.actA
-        )
+        if isinstance(problem, NoisyLinearSystem):
+            if isinstance(hyperparams.epsA_cov.A, linops.ScalarMult):
+                return (
+                    solver_state.cache.belief.x.mean
+                    + solver_state.cache.meanH_update_op
+                    @ solver_state.cache.belief.b.mean
+                )
+
+            else:
+                raise NotImplementedError(
+                    "Belief updated for general noise not implemented."
+                )
+        else:
+            return (
+                solver_state.cache.belief.x.mean
+                + solver_state.cache.step_size * solver_state.cache.action.actA
+            )
 
 
 class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
