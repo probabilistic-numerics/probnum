@@ -14,8 +14,7 @@ class TestDiscreteGaussian(InterfaceTestTransition):
     structure.
     """
 
-    # Replacement for an __init__ in the pytest language
-    # See:
+    # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(self, test_ndim, spdmat1):
@@ -32,9 +31,14 @@ class TestDiscreteGaussian(InterfaceTestTransition):
         expected = self.g(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
-    def test_proces_noise(self):
+    def test_process_noise(self):
         received = self.transition.proc_noise_cov_mat_fun(0.0)
         expected = self.S(0.0)
+        np.testing.assert_allclose(received, expected)
+
+    def test_process_noise_cholesky(self):
+        received = self.transition.proc_noise_cov_cholesky_fun(0.0)
+        expected = np.linalg.cholesky(self.transition.proc_noise_cov_mat_fun(0.0))
         np.testing.assert_allclose(received, expected)
 
     def test_jacobian(self, some_normal_rv1):
@@ -65,6 +69,44 @@ class TestDiscreteGaussian(InterfaceTestTransition):
 
     def test_output_dim(self, test_ndim):
         assert self.transition.output_dim == test_ndim
+
+
+class TestLinearGaussian(TestDiscreteGaussian):
+    """Test class for linear Gaussians. Inherits tests from `TestDiscreteGaussian` but
+    overwrites the forward and backward transitions.
+
+    Also tests that different forward and backward implementations yield
+    the same results.
+    """
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_ndim, spdmat1, spdmat2):
+
+        self.G = lambda t: spdmat1
+        self.S = lambda t: spdmat2
+        self.v = lambda t: np.arange(test_ndim)
+        self.transition = pnfss.DiscreteLinearGaussian(
+            test_ndim, test_ndim, self.G, self.v, self.S
+        )
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    def test_forward_rv(self, some_normal_rv1):
+        out, _ = self.transition.forward_rv(some_normal_rv1, 0.0)
+        assert isinstance(out, pnrv.Normal)
+
+    def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
+        out, _ = self.transition.backward_rv(some_normal_rv1, some_normal_rv2)
+        assert isinstance(out, pnrv.Normal)
+
+    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
+        out, _ = self.transition.backward_realization(
+            some_normal_rv1.sample(), some_normal_rv2
+        )
+        assert isinstance(out, pnrv.Normal)
 
 
 # import unittest

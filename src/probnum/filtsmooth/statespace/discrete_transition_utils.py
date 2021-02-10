@@ -2,6 +2,8 @@ import typing
 
 import numpy as np
 
+import probnum.random_variables as pnrv
+
 
 def condition_state_on_measurement(attained_rv, forwarded_rv, rv, gain):
     new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)

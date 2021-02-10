@@ -39,13 +39,13 @@ class Transition(abc.ABC):
 
     @abc.abstractmethod
     def forward_rv(
-        self, rv, t, dt=None, _compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
         raise NotImplementedError
 
     @abc.abstractmethod
     def forward_realization(
-        self, real, t, dt=None, _compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self, real, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
         raise NotImplementedError
 

@@ -117,20 +117,20 @@ class DiscreteGaussian(trans.Transition):
 
     def _backward_rv_classic(
         self,
-        attained_rv,
+        rv_obtained,
         rv,
-        forwarded_rv=None,
+        rv_forwarded=None,
         gain=None,
         t=None,
         _diffusion=None,
     ):
 
-        if forwarded_rv is None or gain is None:
-            forwarded_rv, info = self.forward_rv(
+        if rv_forwarded is None or gain is None:
+            rv_forwarded, info = self.forward_rv(
                 rv, t=t, compute_gain=True, _diffusion=_diffusion
             )
             gain = info["gain"]
-        return condition_state_on_measurement(attained_rv, forwarded_rv, rv, gain)
+        return condition_state_on_measurement(rv_obtained, rv_forwarded, rv, gain)
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
@@ -163,11 +163,11 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def __init__(
         self,
+        input_dim,
+        output_dim,
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
-        input_dim=None,
-        output_dim=None,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
@@ -192,21 +192,21 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         self.state_trans_mat_fun = state_trans_mat_fun
         self.shift_vec_fun = shift_vec_fun
         super().__init__(
+            input_dim=input_dim,
+            output_dim=output_dim,
             state_trans_fun=lambda t, x: (
                 self.state_trans_mat_fun(t) @ x + self.shift_vec_fun(t)
             ),
             proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
-            input_dim=input_dim,
-            output_dim=output_dim,
         )
 
-    def forward_rv(self, rv, t, _compute_gain=False, _diffusion=1.0, **kwargs):
+    def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
 
         return self._forward_implementation(
             rv=rv,
             t=t,
-            compute_gain=_compute_gain,
+            compute_gain=compute_gain,
             _diffusion=_diffusion,
         )
 
@@ -227,11 +227,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         **kwargs,
     ):
         return self._backward_implementation(
-            attained_rv=rv_obtained,
-            rv=rv_past,
-            forwarded_rv=rv_forwarded,
+            rv_obtained=rv_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
             gain=gain,
-            discrete_transition=self,
             t=t,
             _diffusion=_diffusion,
         )
@@ -296,9 +295,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def _backward_rv_sqrt(
         self,
-        attained_rv,
+        rv_obtained,
         rv,
-        forwarded_rv=None,
+        rv_forwarded=None,
         gain=None,
         t=None,
         _diffusion=None,
@@ -318,7 +317,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         shift = discrete_transition.shift_vec_fun(time)
 
         SC_past = rv.cov_cholesky
-        SC_attained = attained_rv.cov_cholesky
+        SC_attained = rv_obtained.cov_cholesky
 
         dim = len(H)
         zeros = np.zeros((dim, dim))
@@ -335,16 +334,16 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         if gain is None:
             gain = big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T)
 
-        new_mean = rv.mean + gain @ (attained_rv.mean - H @ rv.mean - shift)
+        new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
         new_cov_cholesky = triu_to_positive_tril(SC)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
         return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
 
     def _backward_rv_joseph(
         self,
-        attained_rv,
+        rv_obtained,
         rv,
-        forwarded_rv=None,
+        rv_forwarded=None,
         gain=None,
         t=None,
         _diffusion=None,
@@ -359,12 +358,12 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         R = discrete_transition.proc_noise_cov_mat_fun(t)
         shift = discrete_transition.shift_vec_fun(t)
 
-        new_mean = rv.mean + gain @ (attained_rv.mean - H @ rv.mean - shift)
+        new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
         joseph_factor = np.eye(len(rv.mean)) - gain @ H
         new_cov = (
             joseph_factor @ rv.cov @ joseph_factor.T
             + gain @ R @ gain.T
-            + gain @ attained_rv.cov @ gain.T
+            + gain @ rv_obtained.cov @ gain.T
         )
         return pnrv.Normal(new_mean, new_cov), {}
 
