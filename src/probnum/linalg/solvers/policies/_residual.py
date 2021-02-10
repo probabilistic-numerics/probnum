@@ -7,16 +7,16 @@ from probnum.linalg.solvers.policies._policy import Policy
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["ConjugateDirections"]
+__all__ = ["Residual"]
 
 
-class ConjugateDirections(Policy):
-    """Policy returning :math:`A`-conjugate directions.
+class Residual(Policy):
+    r"""Policy returning the negative residual of the linear system.
 
-    Returns an action given by :math:`s_i = -\\mathbb{E}[\\mathsf{H}]r_{i-1}` where
-    :math:`r_{i-1} = A x_{i-1} - b` is the current residual. If the posterior mean of
-    :math:`\\mathbb{E}[\\mathsf{H}]` of the inverse model equals the true inverse,
-    the resulting action is the exact step to the solution of the linear system.
+    Returns an action given by the residual :math:`s_k = -r_{k-1} = A x_{k-1} - b`.
+    This can also be interpreted as the gradient of
+    :math:`f(x)=\frac{1}{2}x^\top A x - b^\top x + c` assuming symmetric positive
+    definite :math:`A`.
     """
 
     def __init__(self):
@@ -32,7 +32,6 @@ class ConjugateDirections(Policy):
         if solver_state is None:
             solver_state = LinearSolverState(problem=problem, belief=belief)
 
-        # A-conjugate search direction / action (assuming exact arithmetic)
-        action = -belief.Ainv.mean @ solver_state.cache.residual
+        action = -solver_state.cache.residual
 
         return LinearSolverAction(actA=action)
