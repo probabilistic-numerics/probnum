@@ -128,8 +128,8 @@ class LinearSDE(SDE):
         driftmatfun: Callable[[FloatArgType], np.ndarray],
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         dispmatfun: Callable[[FloatArgType], np.ndarray],
-        mde_atol=1e-5,
-        mde_rtol=1e-5,
+        mde_atol=1e-6,
+        mde_rtol=1e-6,
         mde_solver="LSODA",
     ):
 

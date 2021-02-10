@@ -186,19 +186,32 @@ class TestLTISDE(TestLinearSDE):
 
 
 @pytest.fixture
-def ltisde_as_linearsde():
-    G = lambda t: np.array([[0.0, 1.0], [0.0, 0.0]])
-    v = lambda t: np.array([1.0, 1.0])
-    L = lambda t: np.array([[0.0], [1.0]])
-
-    return pnfss.LinearSDE(2, G, v, L, mde_atol=1e-8, mde_rtol=1e-8)
+def G_const():
+    return np.array([[0.0, 1.0], [0.0, 0.0]])
 
 
 @pytest.fixture
-def ltisde():
-    G_const = np.array([[0.0, 1.0], [0.0, 0.0]])
-    v_const = np.array([1.0, 1.0])
-    L_const = np.array([[0.0], [1.0]])
+def v_const():
+    return np.array([1.0, 1.0])
+
+
+@pytest.fixture
+def L_const():
+    return np.array([[0.0], [1.0]])
+
+
+@pytest.fixture
+def ltisde_as_linearsde(G_const, v_const, L_const):
+    G = lambda t: G_const
+    v = lambda t: v_const
+    L = lambda t: L_const
+    dim = 2
+
+    return pnfss.LinearSDE(dim, G, v, L, mde_atol=1e-8, mde_rtol=1e-8)
+
+
+@pytest.fixture
+def ltisde(G_const, v_const, L_const):
     return pnfss.LTISDE(G_const, v_const, L_const)
 
 
@@ -212,89 +225,7 @@ def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, some_normal_rv1):
     np.testing.assert_allclose(out_linear.cov, out_lti.cov)
 
 
-#
-# class TestLTISDE(unittest.TestCase, NumpyAssertions):
-#
-#     start = np.random.rand()
-#     stop = start + np.random.rand()
-#     some_rv = pnrv.Normal(np.random.rand(TEST_NDIM), np.eye(TEST_NDIM))
-#     some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
-#
-#     def setUp(self) -> None:
-#
-#         self.F = np.random.rand(TEST_NDIM, TEST_NDIM)
-#         self.s = np.zeros(TEST_NDIM)  # only because MFD is lazy so far
-#         self.L = np.random.rand(TEST_NDIM, 2)
-#         self.sde = pnfss.sde.LTISDE(driftmat=self.F, forcevec=self.s, dispmat=self.L)
-#
-#     def test_driftmatrix(self):
-#         self.assertAllClose(self.sde.driftmat, self.F)
-#
-#     def test_force(self):
-#         self.assertAllClose(self.sde.forcevec, self.s)
-#
-#     def test_dispersionmatrix(self):
-#
-#         self.assertAllClose(self.sde.dispmat, self.L)
-#
-#     def test_discretise(self):
-#         discrete = self.sde.discretise(dt=self.stop - self.start)
-#         self.assertIsInstance(discrete, pnfss.discrete_transition.DiscreteLTIGaussian)
-#
-#     def test_transition_rv(self):
-#
-#         with self.subTest("Output reachable"):
-#             _ = self.sde.forward_rv(self.some_rv, self.start, dt=self.stop - self.start)
-#
-#     def test_transition_realization(self):
-#
-#         with self.subTest("Output reachable"):
-#             _ = self.sde.forward_realization(
-#                 self.some_rv.sample(),
-#                 self.start,
-#                 dt=self.stop - self.start,
-#             )
-#
-#
-# class TestLinearSDEStatistics(unittest.TestCase, NumpyAssertions):
-#     """Test against Matrix Fraction decomposition."""
-#
-#     start = 0.1
-#     stop = start + 0.1
-#     some_rv = pnrv.Normal(
-#         np.random.rand(TEST_NDIM), np.diag(1 + np.random.rand(TEST_NDIM))
-#     )
-#     step = (stop - start) / 20.0
-#
-#     def setUp(self):
-#         self.Fmat = np.random.rand(TEST_NDIM, TEST_NDIM)
-#         self.svec = np.zeros(TEST_NDIM)  # only because MFD is lazy so far
-#         self.Lmat = np.random.rand(TEST_NDIM, 2)
-#
-#         def f(t, x):
-#             return self.Fmat @ x
-#
-#         def df(t):
-#             return self.Fmat
-#
-#         def L(t):
-#             return self.Lmat
-#
-#         self.f = f
-#         self.df = df
-#         self.L = L
-#
-#     def test_linear_sde_statistics(self):
-#         out_rv, _ = pnfss.sde.solve_moment_equations_forward(
-#             self.some_rv, self.start, self.stop, self.step, self.f, self.df, self.L
-#         )
-#         ah, qh, _ = pnfss.sde.matrix_fraction_decomposition(
-#             self.Fmat, self.Lmat, self.stop - self.start
-#         )
-#
-#         self.assertAllClose(out_rv.mean, ah @ self.some_rv.mean, rtol=1e-6)
-#         self.assertAllClose(out_rv.cov, ah @ self.some_rv.cov @ ah.T + qh, rtol=1e-6)
-#
+# The below shall stay.
 #
 # class TestMatrixFractionDecomposition(unittest.TestCase):
 #     """Test MFD against closed-form IBM solution."""
