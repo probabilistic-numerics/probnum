@@ -20,6 +20,8 @@ class TestSDE(InterfaceTestTransition):
         self.dg = lambda t, x: np.cos(x)
         self.transition = pnfss.SDE(test_ndim, self.g, self.L, self.dg)
 
+    # Test access to system matrices
+
     def test_drift(self, some_normal_rv1):
         expected = self.g(0.0, some_normal_rv1.mean)
         received = self.transition.driftfun(0.0, some_normal_rv1.mean)
@@ -35,21 +37,25 @@ class TestSDE(InterfaceTestTransition):
         received = self.transition.jacobfun(0.0, some_normal_rv1.mean)
         np.testing.assert_allclose(received, expected)
 
+    # Test forward and backward implementations
+
     def test_forward_rv(self, some_normal_rv1):
         with pytest.raises(NotImplementedError):
             self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
 
     def test_forward_realization(self, some_normal_rv1):
         with pytest.raises(NotImplementedError):
-            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
+            self.transition.forward_realization(some_normal_rv1.sample(), 0.0, dt=0.0)
 
-    def test_backward_rv(self, some_normal_rv1):
+    def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
-            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
+            self.transition.backward_rv(some_normal_rv1, some_normal_rv2, 0.0, dt=0.0)
 
-    def test_backward_realization(self, some_normal_rv1):
+    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
-            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
+            self.transition.backward_realization(
+                some_normal_rv1.sample(), some_normal_rv2, 0.0, dt=0.0
+            )
 
     def test_input_dim(self, test_ndim):
         assert self.transition.input_dim == test_ndim
@@ -59,6 +65,19 @@ class TestSDE(InterfaceTestTransition):
 
     def test_dimension(self, test_ndim):
         assert self.transition.dimension == test_ndim
+
+
+class TestLinearSDE(TestSDE):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_ndim, spdmat1):
+
+        self.g = lambda t, x: np.sin(x)
+        self.L = lambda t: spdmat1
+        self.dg = lambda t, x: np.cos(x)
+        self.transition = pnfss.SDE(test_ndim, self.g, self.L, self.dg)
 
 
 # import unittest

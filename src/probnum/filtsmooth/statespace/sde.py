@@ -65,7 +65,7 @@ class SDE(transition.Transition):
 
     def backward_realization(
         self,
-        rv_obtained,
+        real_obtained,
         rv,
         rv_forwarded=None,
         gain=None,
