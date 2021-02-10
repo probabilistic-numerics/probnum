@@ -187,7 +187,7 @@ class LinearSDE(SDE):
             mde,
             (t, t + dt),
             y0,
-            solver=self.mde_solver,
+            method=self.mde_solver,
             atol=self.mde_atol,
             rtol=self.mde_rtol,
         )

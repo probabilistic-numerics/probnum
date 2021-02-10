@@ -43,20 +43,20 @@ class TestSDE(InterfaceTestTransition):
 
     def test_forward_rv(self, some_normal_rv1):
         with pytest.raises(NotImplementedError):
-            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
+            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.1)
 
     def test_forward_realization(self, some_normal_rv1):
         with pytest.raises(NotImplementedError):
-            self.transition.forward_realization(some_normal_rv1.sample(), 0.0, dt=0.0)
+            self.transition.forward_realization(some_normal_rv1.sample(), 0.0, dt=0.1)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
-            self.transition.backward_rv(some_normal_rv1, some_normal_rv2, 0.0, dt=0.0)
+            self.transition.backward_rv(some_normal_rv1, some_normal_rv2, 0.0, dt=0.1)
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
             self.transition.backward_realization(
-                some_normal_rv1.sample(), some_normal_rv2, 0.0, dt=0.0
+                some_normal_rv1.sample(), some_normal_rv2, 0.0, dt=0.1
             )
 
     def test_input_dim(self, test_ndim):
@@ -95,12 +95,12 @@ class TestLinearSDE(TestSDE):
         np.testing.assert_allclose(expected, received)
 
     def test_forward_rv(self, some_normal_rv1):
-        out, _ = self.transition.forward_rv(some_normal_rv1, t=0.0, dt=0.0)
+        out, _ = self.transition.forward_rv(some_normal_rv1, t=0.0, dt=0.1)
         assert isinstance(out, pnrv.Normal)
 
     def test_forward_realization(self, some_normal_rv1):
         out, info = self.transition.forward_realization(
-            some_normal_rv1.sample(), t=0.0, dt=0.0
+            some_normal_rv1.sample(), t=0.0, dt=0.1
         )
         assert isinstance(out, pnrv.Normal)
         warnings.warn(
@@ -110,13 +110,25 @@ class TestLinearSDE(TestSDE):
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
-            self.transition.backward_rv(some_normal_rv1, some_normal_rv2, t=0.0, dt=0.0)
+            self.transition.backward_rv(some_normal_rv1, some_normal_rv2, t=0.0, dt=0.1)
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
             self.transition.backward_realization(
-                some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.0
+                some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
             )
+
+
+@pytest.fixture(params=["classic", "sqrt"])
+def forw_impl_string_linear_gauss(request):
+    """Forward implementation choices passed via strings."""
+    return request.param
+
+
+@pytest.fixture(params=["classic", "joseph", "sqrt"])
+def backw_impl_string_linear_gauss(request):
+    """Backward implementation choices passed via strings."""
+    return request.param
 
 
 class TestLTISDE(TestLinearSDE):
@@ -124,13 +136,26 @@ class TestLTISDE(TestLinearSDE):
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, spdmat1, spdmat2):
+    def _setup(
+        self,
+        test_ndim,
+        spdmat1,
+        spdmat2,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
 
         self.G_const = spdmat1
         self.v_const = np.arange(test_ndim)
         self.L_const = spdmat2
 
-        self.transition = pnfss.LTISDE(self.G_const, self.v_const, self.L_const)
+        self.transition = pnfss.LTISDE(
+            self.G_const,
+            self.v_const,
+            self.L_const,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
 
         self.G = lambda t: spdmat1
         self.v = lambda t: np.arange(test_ndim)
@@ -139,106 +164,23 @@ class TestLTISDE(TestLinearSDE):
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
 
+    def test_discretise(self):
+        out = self.transition.discretise(dt=0.1)
+        assert isinstance(out, pnfss.DiscreteLTIGaussian)
 
-# import unittest
-#
-# import numpy as np
-#
-# import probnum.filtsmooth.statespace as pnfss
-# import probnum.random_variables as pnrv
-# from tests.testing import NumpyAssertions
-#
-# TEST_NDIM = 10
-#
-#
-# class TestSDE(unittest.TestCase, NumpyAssertions):
-#
-#     start = np.random.rand()
-#     stop = start + np.random.rand()
-#     some_rv = pnrv.Normal(np.random.rand(TEST_NDIM), np.eye(TEST_NDIM))
-#
-#     def setUp(self) -> None:
-#         def f(t, x):
-#             return x + 1.0
-#
-#         def l(t):
-#             return 2.0
-#
-#         def df(t, x):
-#             return np.eye(len(x)) + 3
-#
-#         self.sde = pnfss.sde.SDE(
-#             driftfun=f, dispmatfun=l, jacobfun=df, dimension=TEST_NDIM
-#         )
-#         self.f = f
-#         self.l = l
-#         self.df = df
-#
-#     def test_transition_realization(self):
-#         with self.assertRaises(NotImplementedError):
-#             self.sde.forward_realization(self.some_rv.sample(), self.start, self.stop)
-#
-#     def test_transition_rv(self):
-#         with self.assertRaises(NotImplementedError):
-#             self.sde.forward_rv(self.some_rv, self.start, self.stop)
-#
-#     def test_drift(self):
-#         expected = self.f(self.start, self.some_rv.mean)
-#         received = self.sde.driftfun(self.start, self.some_rv.mean)
-#         self.assertAllClose(received, expected)
-#
-#     def test_dispersionmatrix(self):
-#         expected = self.l(self.start)
-#         received = self.sde.dispmatfun(self.start)
-#         self.assertAllClose(received, expected)
-#
-#     def test_jacobfun(self):
-#         expected = self.df(self.start, self.some_rv.mean)
-#         received = self.sde.jacobfun(self.start, self.some_rv.mean)
-#         self.assertAllClose(received, expected)
-#
-#
-# class TestLinearSDE(unittest.TestCase, NumpyAssertions):
-#
-#     start = np.random.rand()
-#     stop = start + np.random.rand()
-#     some_rv = pnrv.Normal(np.random.rand(TEST_NDIM), np.eye(TEST_NDIM))
-#     some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
-#     rk_step = (stop - start) / 10.0
-#
-#     def setUp(self) -> None:
-#         def F(t):
-#             return 1 + np.arange(TEST_NDIM ** 2).reshape((TEST_NDIM, TEST_NDIM))
-#
-#         def s(t):
-#             return 1 + np.arange(TEST_NDIM)
-#
-#         def L(t):
-#             return 1 + np.arange(2 * TEST_NDIM).reshape((TEST_NDIM, 2))
-#
-#         self.sde = pnfss.sde.LinearSDE(
-#             driftmatfun=F, forcevecfun=s, dispmatfun=L, dimension=TEST_NDIM
-#         )
-#         self.F = F
-#         self.s = s
-#         self.L = L
-#
-#     def test_transition_realization(self):
-#
-#         _ = self.sde.forward_realization(
-#             self.some_rv.sample(), self.start, self.stop, step=self.rk_step
-#         )
-#
-#     def test_transition_rv(self):
-#
-#         with self.subTest("Output attainable"):
-#             _ = self.sde.forward_rv(
-#                 self.some_rv, self.start, self.stop, step=self.rk_step
-#             )
-#
-#     def test_dimension(self):
-#         self.assertEqual(self.sde.dimension, TEST_NDIM)
-#
+    def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
+        out, _ = self.transition.backward_rv(
+            some_normal_rv1, some_normal_rv2, t=0.0, dt=0.1
+        )
+        assert isinstance(out, pnrv.Normal)
+
+    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
+        out, _ = self.transition.backward_realization(
+            some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
+        )
+        assert isinstance(out, pnrv.Normal)
+
+
 #
 # class TestLTISDE(unittest.TestCase, NumpyAssertions):
 #

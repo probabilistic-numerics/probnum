@@ -45,19 +45,35 @@ def spdmat4(test_ndim):
 @pytest.fixture
 def some_normal_rv1(test_ndim, spdmat1):
 
-    return pnrv.Normal(mean=np.random.rand(test_ndim), cov=spdmat1)
+    return pnrv.Normal(
+        mean=np.random.rand(test_ndim),
+        cov=spdmat1,
+        cov_cholesky=np.linalg.cholesky(spdmat1),
+    )
 
 
 @pytest.fixture
 def some_normal_rv2(test_ndim, spdmat2):
-    return pnrv.Normal(mean=np.random.rand(test_ndim), cov=spdmat2)
+    return pnrv.Normal(
+        mean=np.random.rand(test_ndim),
+        cov=spdmat2,
+        cov_cholesky=np.linalg.cholesky(spdmat2),
+    )
 
 
 @pytest.fixture
 def some_normal_rv3(test_ndim, spdmat3):
-    return pnrv.Normal(mean=np.random.rand(test_ndim), cov=spdmat3)
+    return pnrv.Normal(
+        mean=np.random.rand(test_ndim),
+        cov=spdmat3,
+        cov_cholesky=np.linalg.cholesky(spdmat3),
+    )
 
 
 @pytest.fixture
 def some_normal_rv4(test_ndim, spdmat4):
-    return pnrv.Normal(mean=np.random.rand(test_ndim), cov=spdmat4)
+    return pnrv.Normal(
+        mean=np.random.rand(test_ndim),
+        cov=spdmat4,
+        cov_cholesky=np.linalg.cholesky(spdmat4),
+    )
