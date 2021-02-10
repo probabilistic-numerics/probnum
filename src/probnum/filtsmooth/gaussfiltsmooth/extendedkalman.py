@@ -138,7 +138,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         self.mde_rtol = mde_rtol
         self.mde_solver = mde_solver
 
-    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+    def linearize(self, at_this_rv: pnrv.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
 
         g = self.non_linear_model.driftfun

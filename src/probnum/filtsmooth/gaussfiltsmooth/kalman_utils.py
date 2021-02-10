@@ -95,6 +95,26 @@ def measure_sqrt(
     }
 
 
+def measure_sqrt(
+    measurement_model,
+    rv,
+    time,
+    _linearise_at=None,
+) -> (pnrv.RandomVariable, typing.Dict):
+    """Compute the measurement in square-root form."""
+    H, SR, shift = linear_system_matrices(
+        measurement_model, rv, time, None, _linearise_at
+    )
+
+    new_mean = H @ rv.mean + shift
+    new_cov_cholesky = cholesky_update(H @ rv.cov_cholesky, SR)
+    new_cov = new_cov_cholesky @ new_cov_cholesky.T
+    crosscov = rv.cov @ H.T
+    return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), {
+        "crosscov": crosscov
+    }
+
+
 ########################################################################################################################
 # Update choices
 ########################################################################################################################

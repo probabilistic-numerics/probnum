@@ -33,6 +33,7 @@ class UKFComponent:
         # Determine the linearization.
         # Will be constructed later.
         self.sigma_points = None
+        super().__init__()
 
     def assemble_sigma_points(self, at_this_rv: pnrv.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
@@ -137,7 +138,6 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
     ) -> None:
-
         UKFComponent.__init__(
             self,
             non_linear_model,
