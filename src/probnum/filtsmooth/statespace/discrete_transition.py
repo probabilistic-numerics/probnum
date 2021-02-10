@@ -307,14 +307,12 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # Smoothing updates need the gain, but
         # filtering updates "compute their own"
         if np.linalg.norm(rv.cov) > 0 and gain is None:
-            _, info = discrete_transition.forward_rv(
-                rv, t=t, dt=dt, compute_gain=True, _diffusion=_diffusion
-            )
+            _, info = self.forward_rv(rv, t=t, compute_gain=True, _diffusion=_diffusion)
             gain = info["gain"]
 
-        H = discrete_transition.state_trans_mat_fun(time)
-        SR = discrete_transition.proc_noise_cov_cholesky_fun(time)
-        shift = discrete_transition.shift_vec_fun(time)
+        H = self.state_trans_mat_fun(t)
+        SR = self.proc_noise_cov_cholesky_fun(t)
+        shift = self.shift_vec_fun(t)
 
         SC_past = rv.cov_cholesky
         SC_attained = rv_obtained.cov_cholesky
@@ -354,9 +352,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             _, info = self.forward_rv(rv, t=t, compute_gain=True, _diffusion=_diffusion)
             gain = info["gain"]
 
-        H = discrete_transition.state_trans_mat_fun(t)
-        R = discrete_transition.proc_noise_cov_mat_fun(t)
-        shift = discrete_transition.shift_vec_fun(t)
+        H = self.state_trans_mat_fun(t)
+        R = self.proc_noise_cov_mat_fun(t)
+        shift = self.shift_vec_fun(t)
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
         joseph_factor = np.eye(len(rv.mean)) - gain @ H

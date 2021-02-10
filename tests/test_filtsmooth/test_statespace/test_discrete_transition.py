@@ -71,6 +71,18 @@ class TestDiscreteGaussian(InterfaceTestTransition):
         assert self.transition.output_dim == test_ndim
 
 
+@pytest.fixture(params=["classic", "sqrt"])
+def forw_impl_string_linear_gauss(request):
+    """Forward implementation choices passed via strings."""
+    return request.param
+
+
+@pytest.fixture(params=["classic", "joseph", "sqrt"])
+def backw_impl_string_linear_gauss(request):
+    """Backward implementation choices passed via strings."""
+    return request.param
+
+
 class TestLinearGaussian(TestDiscreteGaussian):
     """Test class for linear Gaussians. Inherits tests from `TestDiscreteGaussian` but
     overwrites the forward and backward transitions.
@@ -87,8 +99,8 @@ class TestLinearGaussian(TestDiscreteGaussian):
         test_ndim,
         spdmat1,
         spdmat2,
-        forw_impl_string="classic",
-        backw_impl_string="classic",
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
     ):
 
         self.G = lambda t: spdmat1
@@ -100,8 +112,8 @@ class TestLinearGaussian(TestDiscreteGaussian):
             self.G,
             self.v,
             self.S,
-            forward_implementation=forw_impl_string,
-            backward_implementation=backw_impl_string,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
         )
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
