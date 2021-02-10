@@ -82,13 +82,26 @@ class TestLinearGaussian(TestDiscreteGaussian):
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, spdmat1, spdmat2):
+    def _setup(
+        self,
+        test_ndim,
+        spdmat1,
+        spdmat2,
+        forw_impl_string="classic",
+        backw_impl_string="classic",
+    ):
 
         self.G = lambda t: spdmat1
         self.S = lambda t: spdmat2
         self.v = lambda t: np.arange(test_ndim)
         self.transition = pnfss.DiscreteLinearGaussian(
-            test_ndim, test_ndim, self.G, self.v, self.S
+            test_ndim,
+            test_ndim,
+            self.G,
+            self.v,
+            self.S,
+            forward_implementation=forw_impl_string,
+            backward_implementation=backw_impl_string,
         )
 
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
