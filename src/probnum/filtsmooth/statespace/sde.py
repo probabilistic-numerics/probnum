@@ -10,12 +10,7 @@ import probnum.random_variables as pnrv
 from probnum.type import FloatArgType
 
 from . import discrete_transition, transition
-from .discrete_transition_utils import backward_rv_classic, forward_rv_classic
-from .sde_utils import (
-    matrix_fraction_decomposition,
-    setup_vectorized_mde_forward,
-    solve_moment_equations_forward,
-)
+from .sde_utils import matrix_fraction_decomposition
 
 
 class SDE(transition.Transition):

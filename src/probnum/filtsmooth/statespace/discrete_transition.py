@@ -1,4 +1,5 @@
 """Discrete transitions."""
+import typing
 from typing import Callable, Optional
 
 import numpy as np
@@ -47,13 +48,13 @@ class DiscreteGaussian(trans.Transition):
 
     def __init__(
         self,
+        input_dim,
+        output_dim,
         state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
         jacob_state_trans_fun: Optional[
             Callable[[FloatArgType, np.ndarray], np.ndarray]
         ] = None,
-        input_dim=None,
-        output_dim=None,
     ):
         self.state_trans_fun = state_trans_fun
         self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
