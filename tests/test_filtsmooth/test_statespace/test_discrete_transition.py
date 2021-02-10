@@ -10,6 +10,8 @@ from tests.testing import NumpyAssertions
 TEST_NDIM = 4
 import pytest
 
+# Tests for discrete Gaussian transitions
+
 
 @pytest.fixture
 def test_ndim():
@@ -102,48 +104,41 @@ def test_proc_noise_cov_cholesky_fun(discrete_transition):
     np.testing.assert_allclose(expected, received)
 
 
-class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
+# Tests for discrete, linear Gaussian transitions
 
-    some_rv = pnrv.Normal(
-        mean=np.random.rand(TEST_NDIM), cov=np.diag(1 + np.random.rand(TEST_NDIM))
+
+@pytest.fixture
+def G(spdmat1):
+    return lambda t: spdmat1
+
+
+@pytest.fixture
+def v(test_ndim):
+    return lambda t: np.ones(test_ndim)
+
+
+@pytest.fixture
+def linear_transition(G, v, S, test_ndim):
+    return pnfss.DiscreteLinearGaussian(
+        G, v, S, input_dim=test_ndim, output_dim=test_ndim
     )
-    some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
-    start = 0.1 + 0.01 * np.random.rand()
 
-    random_mat = np.random.rand(TEST_NDIM, TEST_NDIM)
-    random_spdmat = random_mat @ random_mat + np.eye(TEST_NDIM)
 
-    def setUp(self):
-        def G(t):
-            return np.arange(TEST_NDIM ** 2).reshape((TEST_NDIM, TEST_NDIM))
+def test_state_trans_mat(linear_transition, G):
+    received = linear_transition.state_trans_mat_fun(0.0)
+    expected = G(0.0)
+    np.testing.assert_allclose(received, expected)
 
-        def v(t):
-            return np.ones(TEST_NDIM)
 
-        def S(t):
-            return self.random_spdmat
+def test_shift_vec(linear_transition, v):
+    received = linear_transition.shift_vec_fun(0.0)
+    expected = v(0.0)
+    np.testing.assert_allclose(received, expected)
 
-        self.dtrans = pnfss.discrete_transition.DiscreteLinearGaussian(
-            G, v, S, input_dim=TEST_NDIM, output_dim=TEST_NDIM
-        )
 
-        self.G = G
-        self.v = v
-        self.S = S
-
-    def test_state_trans_mat(self):
-        received = self.dtrans.state_trans_mat_fun(self.start)
-        expected = self.G(self.start)
-        self.assertAllClose(received, expected)
-
-    def test_shift_vec(self):
-        received = self.dtrans.shift_vec_fun(self.start)
-        expected = self.v(self.start)
-        self.assertAllClose(received, expected)
-
-    def test_dimension(self):
-        self.assertEqual(self.dtrans.input_dim, TEST_NDIM)
-        self.assertEqual(self.dtrans.output_dim, TEST_NDIM)
+def dimension(linear_transition, test_ndim):
+    assert linear_transition.input_dim == test_ndim
+    assert linear_transition.output_dim == test_ndim
 
 
 class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
