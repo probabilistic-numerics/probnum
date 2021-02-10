@@ -140,10 +140,10 @@ class LinearSDE(SDE):
         self.driftmatfun = driftmatfun
         self.forcevecfun = forcevecfun
         super().__init__(
+            dimension=dimension,
             driftfun=(lambda t, x: driftmatfun(t) @ x + forcevecfun(t)),
             dispmatfun=dispmatfun,
             jacobfun=(lambda t, x: driftmatfun(t)),
-            dimension=dimension,
         )
 
         self.mde_atol = mde_atol

@@ -72,13 +72,15 @@ class TestLinearSDE(TestSDE):
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, spdmat1):
+    def _setup(self, test_ndim, spdmat1, spdmat2):
 
-        self.G = lambda t, x: np.sin(x)
+        self.G = lambda t: spdmat1
         self.v = lambda t: np.arange(test_ndim)
-        self.L = lambda t: spdmat1
-        self.dg = lambda t, x: np.cos(x)
-        self.transition = pnfss.SDE(test_ndim, self.g, self.L, self.dg)
+        self.L = lambda t: spdmat2
+        self.transition = pnfss.LinearSDE(test_ndim, self.G, self.v, self.L)
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
 
 
 # import unittest
