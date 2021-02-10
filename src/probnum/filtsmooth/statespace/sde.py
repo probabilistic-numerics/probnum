@@ -141,9 +141,9 @@ class LinearSDE(SDE):
         self.forcevecfun = forcevecfun
         super().__init__(
             dimension=dimension,
-            driftfun=(lambda t, x: driftmatfun(t) @ x + forcevecfun(t)),
+            driftfun=(lambda t, x: self.driftmatfun(t) @ x + self.forcevecfun(t)),
             dispmatfun=dispmatfun,
-            jacobfun=(lambda t, x: driftmatfun(t)),
+            jacobfun=(lambda t, x: self.driftmatfun(t)),
         )
 
         self.mde_atol = mde_atol
@@ -272,15 +272,15 @@ class LTISDE(LinearSDE):
     ):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
         dimension = len(driftmat)
-        super().__init__(
-            dimension,
-            (lambda t: driftmat),
-            (lambda t: forcevec),
-            (lambda t: dispmat),
-        )
         self.driftmat = driftmat
         self.forcevec = forcevec
         self.dispmat = dispmat
+        super().__init__(
+            dimension,
+            (lambda t: self.driftmat),
+            (lambda t: self.forcevec),
+            (lambda t: self.dispmat),
+        )
 
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
@@ -335,7 +335,7 @@ class LTISDE(LinearSDE):
             zeros = np.zeros((self.dimension, self.dimension))
             eye = np.eye(self.dimension)
             driftmat = np.block([[self.driftmat, eye], [zeros, zeros]])
-            dispmat = np.block([[self.dispmat], [zeros]])
+            dispmat = np.block([[self.dispmat], [np.zeros(self.dispmat.shape)]])
             ah_stack, qh_stack, _ = matrix_fraction_decomposition(driftmat, dispmat, dt)
             proj = np.eye(self.dimension, 2 * self.dimension)
             proj_rev = np.flip(proj, axis=1)

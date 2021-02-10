@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 import pytest
 
@@ -103,10 +101,6 @@ class TestLinearSDE(TestSDE):
             some_normal_rv1.sample(), t=0.0, dt=0.1
         )
         assert isinstance(out, pnrv.Normal)
-        warnings.warn(
-            "\n\n\n Check that the resulting values of forward "
-            "are correct by comparing to MFD?!\n\n\n"
-        )
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
@@ -168,6 +162,16 @@ class TestLTISDE(TestLinearSDE):
         out = self.transition.discretise(dt=0.1)
         assert isinstance(out, pnfss.DiscreteLTIGaussian)
 
+    def test_discretise_no_force(self):
+        """LTISDE.discretise() works if there is zero force (there is an "if" in the
+        fct)."""
+        self.transition.forcevec = 0.0 * self.transition.forcevec
+        assert (
+            np.linalg.norm(self.transition.forcevecfun(0.0)) == 0.0
+        )  # side quest/test
+        out = self.transition.discretise(dt=0.1)
+        assert isinstance(out, pnfss.DiscreteLTIGaussian)
+
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_rv(
             some_normal_rv1, some_normal_rv2, t=0.0, dt=0.1
@@ -179,6 +183,33 @@ class TestLTISDE(TestLinearSDE):
             some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
         )
         assert isinstance(out, pnrv.Normal)
+
+
+@pytest.fixture
+def ltisde_as_linearsde():
+    G = lambda t: np.array([[0.0, 1.0], [0.0, 0.0]])
+    v = lambda t: np.array([1.0, 1.0])
+    L = lambda t: np.array([[0.0], [1.0]])
+
+    return pnfss.LinearSDE(2, G, v, L, mde_atol=1e-8, mde_rtol=1e-8)
+
+
+@pytest.fixture
+def ltisde():
+    G_const = np.array([[0.0, 1.0], [0.0, 0.0]])
+    v_const = np.array([1.0, 1.0])
+    L_const = np.array([[0.0], [1.0]])
+    return pnfss.LTISDE(G_const, v_const, L_const)
+
+
+def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, some_normal_rv1):
+    out_linear, _ = ltisde_as_linearsde.forward_rv(
+        some_normal_rv1, t=0.0, dt=0.1, _diffusion=1.12312
+    )
+    out_lti, _ = ltisde.forward_rv(some_normal_rv1, t=0.0, dt=0.1, _diffusion=1.12312)
+
+    np.testing.assert_allclose(out_linear.mean, out_lti.mean)
+    np.testing.assert_allclose(out_linear.cov, out_lti.cov)
 
 
 #
