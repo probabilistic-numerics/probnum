@@ -335,7 +335,7 @@ class LTISDE(LinearSDE):
             zeros = np.zeros((self.dimension, self.dimension))
             eye = np.eye(self.dimension)
             driftmat = np.block([[self.driftmat, eye], [zeros, zeros]])
-            dispmat = np.block([[self.dispmat], [np.zeros(self.dispmat.shape)]])
+            dispmat = np.concatenate((self.dispmat, np.zeros(self.dispmat.shape)))
             ah_stack, qh_stack, _ = matrix_fraction_decomposition(driftmat, dispmat, dt)
             proj = np.eye(self.dimension, 2 * self.dimension)
             proj_rev = np.flip(proj, axis=1)

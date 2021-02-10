@@ -11,10 +11,13 @@ import probnum.random_variables as pnrv
 def matrix_fraction_decomposition(driftmat, dispmat, dt):
     """Matrix fraction decomposition (assuming no force)."""
     dim = len(driftmat)
-    dispmat = np.squeeze(dispmat)
+
+    if dispmat.ndim == 1:
+        dispmat = dispmat.reshape((-1, 1))
+
     Phi = np.block(
         [
-            [driftmat, np.outer(dispmat, dispmat)],
+            [driftmat, dispmat @ dispmat.T],
             [np.zeros(driftmat.shape), -driftmat.T],
         ]
     )
