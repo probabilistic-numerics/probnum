@@ -300,7 +300,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         rv_forwarded=None,
         gain=None,
         t=None,
-        _diffusion=None,
+        _diffusion=1.0,
     ):
         # forwarded_rv is ignored in square-root smoothing.
 
@@ -311,7 +311,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             gain = info["gain"]
 
         H = self.state_trans_mat_fun(t)
-        SR = self.proc_noise_cov_cholesky_fun(t)
+        SR = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
         shift = self.shift_vec_fun(t)
 
         SC_past = rv.cov_cholesky
@@ -353,7 +353,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             gain = info["gain"]
 
         H = self.state_trans_mat_fun(t)
-        R = self.proc_noise_cov_mat_fun(t)
+        R = _diffusion * self.proc_noise_cov_mat_fun(t)
         shift = self.shift_vec_fun(t)
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
