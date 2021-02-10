@@ -119,6 +119,16 @@ class TestLinearGaussian(TestDiscreteGaussian):
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
 
+    def test_state_transition_mat_fun(self):
+        received = self.transition.state_trans_mat_fun(0.0)
+        expected = self.G(0.0)
+        np.testing.assert_allclose(received, expected)
+
+    def test_shift_vec_fun(self):
+        received = self.transition.shift_vec_fun(0.0)
+        expected = self.v(0.0)
+        np.testing.assert_allclose(received, expected)
+
     def test_forward_rv(self, some_normal_rv1):
         out, _ = self.transition.forward_rv(some_normal_rv1, 0.0)
         assert isinstance(out, pnrv.Normal)
@@ -204,6 +214,59 @@ class TestLinearGaussian(TestDiscreteGaussian):
         # Joseph -- sqrt
         np.testing.assert_allclose(out_joseph.mean, out_sqrt.mean)
         np.testing.assert_allclose(out_joseph.cov, out_sqrt.cov)
+
+
+class TestLTIGaussian(TestLinearGaussian):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        test_ndim,
+        spdmat1,
+        spdmat2,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+
+        self.G_const = spdmat1
+        self.S_const = spdmat2
+        self.v_const = np.arange(test_ndim)
+        self.transition = pnfss.DiscreteLTIGaussian(
+            self.G_const,
+            self.v_const,
+            self.S_const,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
+
+        # Compatibility with superclass' test
+        self.G = lambda t: self.G_const
+        self.S = lambda t: self.S_const
+        self.v = lambda t: self.v_const
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    def test_state_transition_mat(self):
+        received = self.transition.state_trans_mat
+        expected = self.G_const
+        np.testing.assert_allclose(received, expected)
+
+    def test_shift_vec(self):
+        received = self.transition.shift_vec
+        expected = self.v_const
+        np.testing.assert_allclose(received, expected)
+
+    def test_process_noise_cov_mat(self):
+        received = self.transition.proc_noise_cov_mat
+        expected = self.S_const
+        np.testing.assert_allclose(received, expected)
+
+    def test_process_noise_cov_cholesky(self):
+        received = self.transition.proc_noise_cov_cholesky
+        expected = np.linalg.cholesky(self.S_const)
+        np.testing.assert_allclose(received, expected)
 
 
 # import unittest

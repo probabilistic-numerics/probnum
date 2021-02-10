@@ -407,11 +407,11 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         output_dim = len(state_trans_mat.T)
 
         super().__init__(
+            input_dim,
+            output_dim,
             lambda t: state_trans_mat,
             lambda t: shift_vec,
             lambda t: proc_noise_cov_mat,
-            input_dim=input_dim,
-            output_dim=output_dim,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
