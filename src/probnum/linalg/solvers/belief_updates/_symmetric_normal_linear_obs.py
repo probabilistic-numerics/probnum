@@ -439,6 +439,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
                     + solver_state.cache.meanH_update_op
                     @ solver_state.cache.belief.b.mean
                 )
+            # TODO: this is incorrect if the right hand side is noisy
 
             else:
                 raise NotImplementedError(
