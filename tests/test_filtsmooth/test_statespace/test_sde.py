@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pytest
 
@@ -91,6 +93,51 @@ class TestLinearSDE(TestSDE):
         expected = self.v(0.0)
         received = self.transition.forcevecfun(0.0)
         np.testing.assert_allclose(expected, received)
+
+    def test_forward_rv(self, some_normal_rv1):
+        out, _ = self.transition.forward_rv(some_normal_rv1, t=0.0, dt=0.0)
+        assert isinstance(out, pnrv.Normal)
+
+    def test_forward_realization(self, some_normal_rv1):
+        out, info = self.transition.forward_realization(
+            some_normal_rv1.sample(), t=0.0, dt=0.0
+        )
+        assert isinstance(out, pnrv.Normal)
+        warnings.warn(
+            "\n\n\n Check that the resulting values of forward "
+            "are correct by comparing to MFD?!\n\n\n"
+        )
+
+    def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
+        with pytest.raises(NotImplementedError):
+            self.transition.backward_rv(some_normal_rv1, some_normal_rv2, t=0.0, dt=0.0)
+
+    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
+        with pytest.raises(NotImplementedError):
+            self.transition.backward_realization(
+                some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.0
+            )
+
+
+class TestLTISDE(TestLinearSDE):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_ndim, spdmat1, spdmat2):
+
+        self.G_const = spdmat1
+        self.v_const = np.arange(test_ndim)
+        self.L_const = spdmat2
+
+        self.transition = pnfss.LTISDE(self.G_const, self.v_const, self.L_const)
+
+        self.G = lambda t: spdmat1
+        self.v = lambda t: np.arange(test_ndim)
+        self.L = lambda t: spdmat2
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
 
 
 # import unittest

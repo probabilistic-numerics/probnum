@@ -194,7 +194,19 @@ class LinearSDE(SDE):
         y_end = sol.y[:, -1]
         new_mean = y_end[: len(rv.mean)]
         new_cov = y_end[len(rv.mean) :].reshape((len(rv.mean), len(rv.mean)))
-        return pnrv.Normal(mean=new_mean, cov=new_cov), {"sol": sol}
+
+        # Will come in useful for backward transitions
+        # Aka continuous time smoothing.
+        sol_mean = lambda t: sol.sol(t)[: len(rv.mean)]
+        sol_cov = lambda t: sol.sol(t)[len(rv.mean) :].reshape(
+            (len(rv.mean), len(rv.mean))
+        )
+
+        return pnrv.Normal(mean=new_mean, cov=new_cov), {
+            "sol": sol,
+            "sol_mean": sol_mean,
+            "sol_cov": sol_cov,
+        }
 
     def _setup_vectorized_mde_forward(self, initrv, _diffusion=1.0):
         """Set up forward moment differential equations (MDEs).
@@ -208,11 +220,11 @@ class LinearSDE(SDE):
 
             # Undo vectorization
             mean, cov_flat = y[:dim], y[dim:]
-            cov = cov_flat.reshape((d, d))
+            cov = cov_flat.reshape((dim, dim))
 
             # Apply iteration
             F = self.driftmatfun(t)
-            u = self.forcefun(t)
+            u = self.forcevecfun(t)
             L = self.dispmatfun(t)
             new_mean = F @ mean + u
             new_cov = F @ cov + cov @ F.T + _diffusion * L @ L.T
@@ -261,10 +273,10 @@ class LTISDE(LinearSDE):
         _check_initial_state_dimensions(driftmat, forcevec, dispmat)
         dimension = len(driftmat)
         super().__init__(
+            dimension,
             (lambda t: driftmat),
             (lambda t: forcevec),
             (lambda t: dispmat),
-            dimension=dimension,
         )
         self.driftmat = driftmat
         self.forcevec = forcevec
@@ -318,10 +330,21 @@ class LTISDE(LinearSDE):
 
         which is the transition of the mild solution to the LTI SDE.
         """
+
         if np.linalg.norm(self.forcevec) > 0:
-            raise NotImplementedError("MFD does not work for force>0 (yet).")
-        ah, qh, _ = matrix_fraction_decomposition(self.driftmat, self.dispmat, dt)
-        sh = np.zeros(len(ah))
+            zeros = np.zeros((self.dimension, self.dimension))
+            eye = np.eye(self.dimension)
+            driftmat = np.block([[self.driftmat, eye], [zeros, zeros]])
+            dispmat = np.block([[self.dispmat], [zeros]])
+            ah_stack, qh_stack, _ = matrix_fraction_decomposition(driftmat, dispmat, dt)
+            proj = np.eye(self.dimension, 2 * self.dimension)
+            proj_rev = np.flip(proj, axis=1)
+            ah = proj @ ah_stack @ proj.T
+            sh = proj @ ah_stack @ proj_rev.T @ self.forcevec
+            qh = proj @ qh_stack @ proj.T
+        else:
+            ah, qh, _ = matrix_fraction_decomposition(self.driftmat, self.dispmat, dt)
+            sh = np.zeros(len(ah))
         return discrete_transition.DiscreteLTIGaussian(
             ah,
             sh,
