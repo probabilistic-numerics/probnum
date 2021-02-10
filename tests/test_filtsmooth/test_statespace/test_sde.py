@@ -20,23 +20,45 @@ class TestSDE(InterfaceTestTransition):
         self.dg = lambda t, x: np.cos(x)
         self.transition = pnfss.SDE(test_ndim, self.g, self.L, self.dg)
 
-    def test_forward_rv(self, *args, **kwargs):
-        pass
+    def test_drift(self, some_normal_rv1):
+        expected = self.g(0.0, some_normal_rv1.mean)
+        received = self.transition.driftfun(0.0, some_normal_rv1.mean)
+        np.testing.assert_allclose(received, expected)
 
-    def test_forward_realization(self, *args, **kwargs):
-        pass
+    def test_dispersionmatrix(self):
+        expected = self.L(0.0)
+        received = self.transition.dispmatfun(0.0)
+        np.testing.assert_allclose(received, expected)
 
-    def test_backward_rv(self, *args, **kwargs):
-        pass
+    def test_jacobfun(self, some_normal_rv1):
+        expected = self.dg(0.0, some_normal_rv1.mean)
+        received = self.transition.jacobfun(0.0, some_normal_rv1.mean)
+        np.testing.assert_allclose(received, expected)
 
-    def test_backward_realization(self, *args, **kwargs):
-        pass
+    def test_forward_rv(self, some_normal_rv1):
+        with pytest.raises(NotImplementedError):
+            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
 
-    def test_input_dim(self, *args, **kwargs):
-        pass
+    def test_forward_realization(self, some_normal_rv1):
+        with pytest.raises(NotImplementedError):
+            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
 
-    def test_output_dim(self, *args, **kwargs):
-        pass
+    def test_backward_rv(self, some_normal_rv1):
+        with pytest.raises(NotImplementedError):
+            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
+
+    def test_backward_realization(self, some_normal_rv1):
+        with pytest.raises(NotImplementedError):
+            self.transition.forward_rv(some_normal_rv1, 0.0, dt=0.0)
+
+    def test_input_dim(self, test_ndim):
+        assert self.transition.input_dim == test_ndim
+
+    def test_output_dim(self, test_ndim):
+        assert self.transition.output_dim == test_ndim
+
+    def test_dimension(self, test_ndim):
+        assert self.transition.dimension == test_ndim
 
 
 # import unittest
