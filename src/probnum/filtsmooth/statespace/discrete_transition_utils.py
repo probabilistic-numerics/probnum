@@ -8,7 +8,8 @@ import probnum.random_variables as pnrv
 def condition_state_on_measurement(attained_rv, forwarded_rv, rv, gain):
     new_mean = rv.mean + gain @ (attained_rv.mean - forwarded_rv.mean)
     new_cov = rv.cov + gain @ (attained_rv.cov - forwarded_rv.cov) @ gain.T
-    return pnrv.Normal(new_mean, new_cov), {}
+
+    return pnrv.Normal(new_mean, new_cov)
 
 
 def cholesky_update(
