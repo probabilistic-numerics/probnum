@@ -82,6 +82,16 @@ class TestLinearSDE(TestSDE):
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
 
+    def test_driftmatfun(self):
+        expected = self.G(0.0)
+        received = self.transition.driftmatfun(0.0)
+        np.testing.assert_allclose(expected, received)
+
+    def test_forcevecfun(self):
+        expected = self.v(0.0)
+        received = self.transition.forcevecfun(0.0)
+        np.testing.assert_allclose(expected, received)
+
 
 # import unittest
 #
