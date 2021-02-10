@@ -74,7 +74,8 @@ class TestLinearSDE(TestSDE):
     @pytest.fixture(autouse=True)
     def _setup(self, test_ndim, spdmat1):
 
-        self.g = lambda t, x: np.sin(x)
+        self.G = lambda t, x: np.sin(x)
+        self.v = lambda t: np.arange(test_ndim)
         self.L = lambda t: spdmat1
         self.dg = lambda t, x: np.cos(x)
         self.transition = pnfss.SDE(test_ndim, self.g, self.L, self.dg)

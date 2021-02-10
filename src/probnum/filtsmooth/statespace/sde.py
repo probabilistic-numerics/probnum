@@ -124,10 +124,10 @@ class LinearSDE(SDE):
 
     def __init__(
         self,
+        dimension,
         driftmatfun: Callable[[FloatArgType], np.ndarray],
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         dispmatfun: Callable[[FloatArgType], np.ndarray],
-        dimension=None,
         mde_atol=1e-5,
         mde_rtol=1e-5,
         mde_solver="LSODA",
