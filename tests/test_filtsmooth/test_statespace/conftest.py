@@ -77,3 +77,10 @@ def some_normal_rv4(test_ndim, spdmat4):
         cov=spdmat4,
         cov_cholesky=np.linalg.cholesky(spdmat4),
     )
+
+
+@pytest.fixture
+def diffusion():
+    """A diffusion != 1 makes it easier to see if _diffusion is actually used in forward
+    and backward."""
+    return 5.1412512431

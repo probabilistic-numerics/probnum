@@ -154,12 +154,12 @@ class TestLinearGaussian(TestDiscreteGaussian):
         )
         assert isinstance(out, pnrv.Normal)
 
-    def test_all_forward_rv_same(self, some_normal_rv1):
+    def test_all_forward_rv_same(self, some_normal_rv1, diffusion):
         out_classic, info_classic = self.transition._forward_rv_classic(
-            some_normal_rv1, 0.0, compute_gain=True, _diffusion=1.234
+            some_normal_rv1, 0.0, compute_gain=True, _diffusion=diffusion
         )
         out_sqrt, info_sqrt = self.transition._forward_rv_sqrt(
-            some_normal_rv1, 0.0, compute_gain=True, _diffusion=1.234
+            some_normal_rv1, 0.0, compute_gain=True, _diffusion=diffusion
         )
 
         np.testing.assert_allclose(out_classic.mean, out_sqrt.mean)
@@ -167,15 +167,17 @@ class TestLinearGaussian(TestDiscreteGaussian):
         np.testing.assert_allclose(info_classic["crosscov"], info_sqrt["crosscov"])
         np.testing.assert_allclose(info_classic["gain"], info_sqrt["gain"])
 
-    def test_all_backward_rv_same_no_cache(self, some_normal_rv1, some_normal_rv2):
+    def test_all_backward_rv_same_no_cache(
+        self, some_normal_rv1, some_normal_rv2, diffusion
+    ):
         out_classic, _ = self.transition._backward_rv_classic(
-            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=1.234
+            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=diffusion
         )
         out_sqrt, _ = self.transition._backward_rv_sqrt(
-            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=1.234
+            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=diffusion
         )
         out_joseph, _ = self.transition._backward_rv_joseph(
-            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=1.234
+            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=diffusion
         )
 
         # Classic -- sqrt
@@ -186,10 +188,12 @@ class TestLinearGaussian(TestDiscreteGaussian):
         np.testing.assert_allclose(out_joseph.mean, out_sqrt.mean)
         np.testing.assert_allclose(out_joseph.cov, out_sqrt.cov)
 
-    def test_all_backward_rv_same_with_cache(self, some_normal_rv1, some_normal_rv2):
+    def test_all_backward_rv_same_with_cache(
+        self, some_normal_rv1, some_normal_rv2, diffusion
+    ):
 
         rv_forward, info = self.transition.forward_rv(
-            some_normal_rv2, 0.0, compute_gain=True, _diffusion=1.234
+            some_normal_rv2, 0.0, compute_gain=True, _diffusion=diffusion
         )
         gain = info["gain"]
 
@@ -199,7 +203,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
             rv_forwarded=rv_forward,
             gain=gain,
             t=0.0,
-            _diffusion=1.234,
+            _diffusion=diffusion,
         )
         out_sqrt, _ = self.transition._backward_rv_sqrt(
             some_normal_rv1,
@@ -207,7 +211,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
             rv_forwarded=rv_forward,
             gain=gain,
             t=0.0,
-            _diffusion=1.234,
+            _diffusion=diffusion,
         )
         out_joseph, _ = self.transition._backward_rv_joseph(
             some_normal_rv1,
@@ -215,7 +219,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
             rv_forwarded=rv_forward,
             gain=gain,
             t=0.0,
-            _diffusion=1.234,
+            _diffusion=diffusion,
         )
 
         # Classic -- sqrt

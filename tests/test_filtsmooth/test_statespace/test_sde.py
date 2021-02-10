@@ -215,11 +215,13 @@ def ltisde(G_const, v_const, L_const):
     return pnfss.LTISDE(G_const, v_const, L_const)
 
 
-def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, some_normal_rv1):
+def test_solve_mde_forward_values(
+    ltisde_as_linearsde, ltisde, some_normal_rv1, diffusion
+):
     out_linear, _ = ltisde_as_linearsde.forward_rv(
-        some_normal_rv1, t=0.0, dt=0.1, _diffusion=1.12312
+        some_normal_rv1, t=0.0, dt=0.1, _diffusion=diffusion
     )
-    out_lti, _ = ltisde.forward_rv(some_normal_rv1, t=0.0, dt=0.1, _diffusion=1.12312)
+    out_lti, _ = ltisde.forward_rv(some_normal_rv1, t=0.0, dt=0.1, _diffusion=diffusion)
 
     np.testing.assert_allclose(out_linear.mean, out_lti.mean)
     np.testing.assert_allclose(out_linear.cov, out_lti.cov)
