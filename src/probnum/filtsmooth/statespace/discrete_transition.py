@@ -144,10 +144,6 @@ class DiscreteGaussian(trans.Transition):
     def proc_noise_cov_cholesky_fun(self, t):
         return np.linalg.cholesky(self.proc_noise_cov_mat_fun(t))
 
-    @lru_cache(maxsize=None)
-    def proc_noise_cov_cholesky_fun(self, t):
-        return np.linalg.cholesky(self.proc_noise_cov_mat_fun(t))
-
 
 class DiscreteLinearGaussian(DiscreteGaussian):
     """Discrete, linear Gaussian transition models of the form.
