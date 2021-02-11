@@ -9,6 +9,11 @@ from probnum.filtsmooth import statespace as pnfss
 from .test_sde import TestLTISDE
 
 
+@pytest.fixture
+def some_ordint(test_ndim):
+    return test_ndim - 1
+
+
 class TestIntegrator:
     """An integrator should be usable as is, but its tests are also useful for IBM,
     IOUP, etc."""
@@ -16,11 +21,8 @@ class TestIntegrator:
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(
-        self,
-        test_ndim,
-    ):
-        self.some_ordint = 2
+    def _setup(self, test_ndim, some_ordint):
+        self.some_ordint = some_ordint
         self.integrator = pnfss.Integrator(
             ordint=self.some_ordint, spatialdim=test_ndim
         )
@@ -52,12 +54,9 @@ def dt():
 def ah_22_ibm(dt):
     return np.array(
         [
-            [1.0, dt, dt ** 2 / 2.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, dt, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0, dt, dt ** 2 / 2.0],
-            [0.0, 0.0, 0.0, 0.0, 1.0, dt],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            [1.0, dt, dt ** 2 / 2.0],
+            [0.0, 1.0, dt],
+            [0.0, 0.0, 1.0],
         ]
     )
 
@@ -66,19 +65,43 @@ def ah_22_ibm(dt):
 def qh_22_ibm(dt):
     return np.array(
         [
-            [dt ** 5 / 20.0, dt ** 4 / 8.0, dt ** 3 / 6.0, 0.0, 0.0, 0.0],
-            [dt ** 4 / 8.0, dt ** 3 / 3.0, dt ** 2 / 2.0, 0.0, 0.0, 0.0],
-            [dt ** 3 / 6.0, dt ** 2 / 2.0, dt, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, dt ** 5 / 20.0, dt ** 4 / 8.0, dt ** 3 / 6.0],
-            [0.0, 0.0, 0.0, dt ** 4 / 8.0, dt ** 3 / 3.0, dt ** 2 / 2.0],
-            [0.0, 0.0, 0.0, dt ** 3 / 6.0, dt ** 2 / 2.0, dt],
+            [dt ** 5 / 20.0, dt ** 4 / 8.0, dt ** 3 / 6.0],
+            [dt ** 4 / 8.0, dt ** 3 / 3.0, dt ** 2 / 2.0],
+            [dt ** 3 / 6.0, dt ** 2 / 2.0, dt],
         ]
     )
 
 
 class TestIBM(TestLTISDE):
 
-    pass
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        some_ordint,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
+        self.transition = pnfss.IBM(
+            ordint=some_ordint,
+            spatialdim=spatialdim,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
+
+        self.G = lambda t: self.transition.driftmat
+        self.v = lambda t: self.transition.forcevec
+        self.L = lambda t: self.transition.dispmat
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    def test_discretise_values(self, ah_22_ibm, qh_22_ibm):
+        discrete_model = self.transition.discretise(dt=0.1)
+        np.testing.assert_allclose(discrete_model.state_trans_mat, ah_22_ibm)
+        np.testing.assert_allclose(discrete_model.proc_noise_cov_mat, qh_22_ibm)
 
 
 #

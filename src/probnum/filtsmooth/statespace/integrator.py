@@ -58,7 +58,13 @@ class Integrator:
 class IBM(Integrator, sde.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
-    def __init__(self, ordint, spatialdim):
+    def __init__(
+        self,
+        ordint,
+        spatialdim,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
@@ -67,6 +73,8 @@ class IBM(Integrator, sde.LTISDE):
             driftmat=self._driftmat,
             forcevec=self._forcevec,
             dispmat=self._dispmat,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
         )
 
     @property
@@ -166,8 +174,10 @@ class IBM(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+        zero_cov = np.zeros((len(real_obtained), len(real_obtained)))
+        real_as_rv = pnrv.Normal(
+            mean=real_obtained, cov=zero_cov, cov_cholesky=zero_cov
+        )
 
         return self.backward_rv(
             rv_obtained=real_as_rv,
