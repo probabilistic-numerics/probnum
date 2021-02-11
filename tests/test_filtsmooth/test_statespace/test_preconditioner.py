@@ -6,12 +6,6 @@ import pytest
 
 from probnum.filtsmooth import statespace as pnfss
 
-#         self.some_order = 3
-#         self.some_dim = 1
-#         self.precon = pnfs.statespace.NordsieckLikeCoordinates.from_order(
-#             self.some_order, self.some_dim
-#         )
-
 
 @pytest.fixture
 def precon():
