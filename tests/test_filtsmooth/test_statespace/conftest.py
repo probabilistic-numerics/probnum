@@ -84,3 +84,15 @@ def diffusion():
     """A diffusion != 1 makes it easier to see if _diffusion is actually used in forward
     and backward."""
     return 5.1412512431
+
+
+@pytest.fixture(params=["classic", "sqrt"])
+def forw_impl_string_linear_gauss(request):
+    """Forward implementation choices passed via strings."""
+    return request.param
+
+
+@pytest.fixture(params=["classic", "joseph", "sqrt"])
+def backw_impl_string_linear_gauss(request):
+    """Backward implementation choices passed via strings."""
+    return request.param

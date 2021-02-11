@@ -6,6 +6,8 @@ import pytest
 import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace as pnfss
 
+from .test_sde import TestLTISDE
+
 
 class TestIntegrator:
     """An integrator should be usable as is, but its tests are also useful for IBM,
@@ -36,64 +38,49 @@ class TestIntegrator:
         e_q = self.integrator.proj2coord(coord=self.some_ordint)
         np.testing.assert_allclose(e_q, e_q_expected)
 
+    def test_precon(self):
 
-#         with self.subTest():
-#             base = np.zeros(self.q + 1)
-#             base[-1] = 1
-#             e_q_expected = np.kron(np.eye(self.d), base)
-#             e_q = self.integrator.proj2coord(coord=self.q)
-#             self.assertAllClose(e_q, e_q_expected, rtol=1e-15, atol=0)
-#
+        assert isinstance(self.integrator.precon, pnfss.NordsieckLikeCoordinates)
 
 
-#
-# class TestIntegrator(unittest.TestCase, NumpyAssertions):
-#     def setUp(self) -> None:
-#         self.q = 3
-#         self.d = 2
-#         self.integrator = pnfs.statespace.Integrator(ordint=self.q, spatialdim=self.d)
-#
-#     def test_proj2coord(self):
-#         with self.subTest():
-#             base = np.zeros(self.q + 1)
-#             base[0] = 1
-#             e_0_expected = np.kron(np.eye(self.d), base)
-#             e_0 = self.integrator.proj2coord(coord=0)
-#             self.assertAllClose(e_0, e_0_expected, rtol=1e-15, atol=0)
-#
-#         with self.subTest():
-#             base = np.zeros(self.q + 1)
-#             base[-1] = 1
-#             e_q_expected = np.kron(np.eye(self.d), base)
-#             e_q = self.integrator.proj2coord(coord=self.q)
-#             self.assertAllClose(e_q, e_q_expected, rtol=1e-15, atol=0)
-#
-#
-# STEP = np.random.rand()
-# DIFFCONST = np.random.rand() ** 2
-#
-# AH_22_IBM = np.array(
-#     [
-#         [1.0, STEP, STEP ** 2 / 2.0, 0.0, 0.0, 0.0],
-#         [0.0, 1.0, STEP, 0.0, 0.0, 0.0],
-#         [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-#         [0.0, 0.0, 0.0, 1.0, STEP, STEP ** 2 / 2.0],
-#         [0.0, 0.0, 0.0, 0.0, 1.0, STEP],
-#         [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-#     ]
-# )
-#
-# QH_22_IBM = DIFFCONST * np.array(
-#     [
-#         [STEP ** 5 / 20.0, STEP ** 4 / 8.0, STEP ** 3 / 6.0, 0.0, 0.0, 0.0],
-#         [STEP ** 4 / 8.0, STEP ** 3 / 3.0, STEP ** 2 / 2.0, 0.0, 0.0, 0.0],
-#         [STEP ** 3 / 6.0, STEP ** 2 / 2.0, STEP, 0.0, 0.0, 0.0],
-#         [0.0, 0.0, 0.0, STEP ** 5 / 20.0, STEP ** 4 / 8.0, STEP ** 3 / 6.0],
-#         [0.0, 0.0, 0.0, STEP ** 4 / 8.0, STEP ** 3 / 3.0, STEP ** 2 / 2.0],
-#         [0.0, 0.0, 0.0, STEP ** 3 / 6.0, STEP ** 2 / 2.0, STEP],
-#     ]
-# )
-#
+@pytest.fixture
+def dt():
+    return 0.1
+
+
+@pytest.fixture
+def ah_22_ibm(dt):
+    return np.array(
+        [
+            [1.0, dt, dt ** 2 / 2.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, dt, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, dt, dt ** 2 / 2.0],
+            [0.0, 0.0, 0.0, 0.0, 1.0, dt],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+        ]
+    )
+
+
+@pytest.fixture
+def qh_22_ibm(dt):
+    return np.array(
+        [
+            [dt ** 5 / 20.0, dt ** 4 / 8.0, dt ** 3 / 6.0, 0.0, 0.0, 0.0],
+            [dt ** 4 / 8.0, dt ** 3 / 3.0, dt ** 2 / 2.0, 0.0, 0.0, 0.0],
+            [dt ** 3 / 6.0, dt ** 2 / 2.0, dt, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, dt ** 5 / 20.0, dt ** 4 / 8.0, dt ** 3 / 6.0],
+            [0.0, 0.0, 0.0, dt ** 4 / 8.0, dt ** 3 / 3.0, dt ** 2 / 2.0],
+            [0.0, 0.0, 0.0, dt ** 3 / 6.0, dt ** 2 / 2.0, dt],
+        ]
+    )
+
+
+class TestIBM(TestLTISDE):
+
+    pass
+
+
 #
 # class TestIBM(unittest.TestCase, NumpyAssertions):
 #     def setUp(self):

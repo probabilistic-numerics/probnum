@@ -113,18 +113,6 @@ class TestLinearSDE(TestSDE):
             )
 
 
-@pytest.fixture(params=["classic", "sqrt"])
-def forw_impl_string_linear_gauss(request):
-    """Forward implementation choices passed via strings."""
-    return request.param
-
-
-@pytest.fixture(params=["classic", "joseph", "sqrt"])
-def backw_impl_string_linear_gauss(request):
-    """Backward implementation choices passed via strings."""
-    return request.param
-
-
 class TestLTISDE(TestLinearSDE):
 
     # Replacement for an __init__ in the pytest language. See:
