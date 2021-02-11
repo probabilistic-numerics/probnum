@@ -5,6 +5,7 @@ import pytest
 
 import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace as pnfss
+from probnum.problems.zoo.linalg import random_spd_matrix
 
 from .test_sde import TestLTISDE
 
@@ -98,39 +99,48 @@ class TestIBM(TestLTISDE):
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
 
-    def test_discretise_values(self, ah_22_ibm, qh_22_ibm):
-        discrete_model = self.transition.discretise(dt=0.1)
+    def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):
+        discrete_model = self.transition.discretise(dt=dt)
         np.testing.assert_allclose(discrete_model.state_trans_mat, ah_22_ibm)
         np.testing.assert_allclose(discrete_model.proc_noise_cov_mat, qh_22_ibm)
 
+    def test_forward_rv_values(
+        self, some_normal_rv1, diffusion, ah_22_ibm, qh_22_ibm, dt
+    ):
+        rv, _ = self.transition.forward_rv(some_normal_rv1, t=0.0, dt=dt)
+        np.testing.assert_allclose(ah_22_ibm @ some_normal_rv1.mean, rv.mean)
+        np.testing.assert_allclose(
+            ah_22_ibm @ some_normal_rv1.cov @ ah_22_ibm.T + qh_22_ibm, rv.cov
+        )
 
-#
-# class TestIBM(unittest.TestCase, NumpyAssertions):
-#     def setUp(self):
-#         self.sde = pnfs.statespace.IBM(ordint=2, spatialdim=2)
-#
-#     def test_discretise(self):
-#         discrete_model = self.sde.discretise(dt=STEP)
-#         self.assertAllClose(discrete_model.state_trans_mat, AH_22_IBM, 1e-14)
-#
-#     def test_transition_rv(self):
-#         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
-#         initrv = pnrv.Normal(mean, cov)
-#         rv, _ = self.sde.forward_rv(rv=initrv, t=0.0, dt=STEP, _diffusion=DIFFCONST)
-#         self.assertAllClose(AH_22_IBM @ initrv.mean, rv.mean, 1e-14)
-#         self.assertAllClose(
-#             AH_22_IBM @ initrv.cov @ AH_22_IBM.T + QH_22_IBM, rv.cov, 1e-14
-#         )
-#
-#     def test_transition_realization(self):
-#         mean, cov = np.ones(self.sde.dimension), np.eye(self.sde.dimension)
-#         state = pnrv.Normal(mean, cov).sample()
-#         rv, _ = self.sde.forward_realization(
-#             real=state, t=0.0, dt=STEP, _diffusion=DIFFCONST
-#         )
-#         self.assertAllClose(AH_22_IBM @ state, rv.mean, 1e-14)
-#         self.assertAllClose(QH_22_IBM, rv.cov, 1e-14)
-#
+    def test_forward_realization_values(
+        self, some_normal_rv1, diffusion, ah_22_ibm, qh_22_ibm, dt
+    ):
+        real = some_normal_rv1.sample()
+        rv, _ = self.transition.forward_realization(real, t=0.0, dt=dt)
+        np.testing.assert_allclose(ah_22_ibm @ real, rv.mean)
+        np.testing.assert_allclose(qh_22_ibm, rv.cov)
+
+
+def test_high_order_small_step_ibm_backward_sqrt():
+    ibm = pnfss.IBM(
+        ordint=10,
+        spatialdim=1,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+    some_rv_mean = np.random.rand(11)
+    some_rv_cov = random_spd_matrix(11)
+    rv = pnrv.Normal(
+        some_rv_mean, some_rv_cov, cov_cholesky=np.linalg.cholesky(some_rv_cov)
+    )
+    dt = 1e-5
+    ibm.backward_rv(rv.sample(), rv, t=0.0, dt=dt)
+    warnings.warn("Can we be certain that the output values of ibm are correct????")
+
+    assert True
+
+
 #
 # class TestIOUP(unittest.TestCase, NumpyAssertions):
 #     def setUp(self):

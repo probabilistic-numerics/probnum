@@ -8,6 +8,8 @@ try:
 except ImportError:
     from cached_property import cached_property
 
+import warnings
+
 import numpy as np
 import scipy.special
 
@@ -101,6 +103,8 @@ class IBM(Integrator, sde.LTISDE):
             state_trans_mat=self._state_trans_mat,
             shift_vec=empty_shift,
             proc_noise_cov_mat=self._proc_noise_cov_mat,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
         )
 
     @cached_property
@@ -130,64 +134,21 @@ class IBM(Integrator, sde.LTISDE):
         rv,
         t,
         dt=None,
-        _compute_gain=False,
+        compute_gain=False,
         _diffusion=1.0,
         **kwargs,
     ):
         rv = self.precon.inverse(dt) @ rv
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
-            rv, t, _compute_gain=_compute_gain, _diffusion=_diffusion
+            rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
 
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
+
+        warnings.warn("What happens to the gain here???")
         # do something to the gain, too?!
 
         return self.precon(dt) @ rv, info
-
-    def forward_realization(
-        self,
-        real,
-        t,
-        dt=None,
-        _compute_gain=False,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
-        return self.forward_rv(
-            rv=real_as_rv,
-            t=t,
-            dt=dt,
-            _compute_gain=_compute_gain,
-            _diffusion=_diffusion,
-        )
-
-    def backward_realization(
-        self,
-        real_obtained,
-        rv,
-        rv_forwarded=None,
-        gain=None,
-        t=None,
-        dt=None,
-        _diffusion=1.0,
-        **kwargs,
-    ):
-        zero_cov = np.zeros((len(real_obtained), len(real_obtained)))
-        real_as_rv = pnrv.Normal(
-            mean=real_obtained, cov=zero_cov, cov_cholesky=zero_cov
-        )
-
-        return self.backward_rv(
-            rv_obtained=real_as_rv,
-            rv=rv,
-            rv_forwarded=rv_forwarded,
-            gain=gain,
-            t=t,
-            dt=dt,
-            _diffusion=_diffusion,
-        )
 
     def backward_rv(
         self,
@@ -219,7 +180,7 @@ class IBM(Integrator, sde.LTISDE):
             t=t,
             _diffusion=_diffusion,
         )
-        # do something to the elements in info??
+        warnings.warn("What happens to the things in info here???")
 
         return self.precon(dt) @ rv, info
 
