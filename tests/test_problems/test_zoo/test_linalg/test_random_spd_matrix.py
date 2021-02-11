@@ -14,7 +14,7 @@ class RandomSPDMatrixTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self) -> None:
         """Define parameters and define test problems."""
         self.rng = np.random.default_rng(42)
-        self.dim_list = [2, 25, 100, 250]
+        self.dim_list = [1, 2, 25, 100, 250]
         self.spd_matrices = [
             random_spd_matrix(dim=n, random_state=self.rng) for n in self.dim_list
         ]
