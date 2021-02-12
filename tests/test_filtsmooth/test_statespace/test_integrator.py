@@ -77,6 +77,39 @@ class TestIBM(TestLTISDE, TestIntegrator):
         return self.transition
 
 
+class TestIOUP(TestLTISDE, TestIntegrator):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        some_ordint,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+        self.some_ordint = some_ordint
+        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
+        self.transition = pnfss.IOUP(
+            ordint=self.some_ordint,
+            spatialdim=spatialdim,
+            driftspeed=1.2345,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
+
+        self.G = lambda t: self.transition.driftmat
+        self.v = lambda t: self.transition.forcevec
+        self.L = lambda t: self.transition.dispmat
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    @property
+    def integrator(self):
+        return self.transition
+
+
 @pytest.fixture
 def dt():
     return 0.1
@@ -162,39 +195,6 @@ class TestIBMValues:
         np.testing.assert_allclose(ah_22_ibm @ real, rv.mean)
         np.testing.assert_allclose(diffusion * qh_22_ibm, rv.cov)
 
-
-#
-# def test_high_order_small_step_ibm_backward_sqrt():
-#     """Propagate an ill-conditioned covariance matrix a few times through IBM backwards."""
-#     ibm = pnfss.IBM(
-#         ordint=10,
-#         spatialdim=1,
-#         forward_implementation="sqrt",
-#         backward_implementation="sqrt",
-#     )
-#     some_rv_mean = np.random.rand(11)
-#     spectrum = np.arange(0, 11)
-#
-#     some_rv_cov = random_spd_matrix(11, spectrum=10.**(-spectrum))
-#     rv1 = pnrv.Normal(
-#         some_rv_mean, some_rv_cov, cov_cholesky=np.linalg.cholesky(some_rv_cov)
-#     )
-#     rv2 = pnrv.Normal(
-#         some_rv_mean + 1, some_rv_cov, cov_cholesky=np.linalg.cholesky(some_rv_cov)
-#     )
-#     dt = 1e-5
-#     out, _ = ibm.backward_rv(rv1, rv2, t=0.0, dt=dt)
-#     for _ in range(15):
-#         out, _ = ibm.backward_rv(rv1, out, t=0.0, dt=dt)
-#         print(np.linalg.norm(out.cov - out.cov.T))
-#         print(np.linalg.norm(out.cov_cholesky))
-#     print(np.linalg.eigvals(out.cov))
-#     assert False
-#     print(out.mean, out.cov)
-#     warnings.warn("Can we be certain that the output values of ibm are correct????")
-#
-#     assert True
-#
 
 #
 # class TestIOUP(unittest.TestCase, NumpyAssertions):
