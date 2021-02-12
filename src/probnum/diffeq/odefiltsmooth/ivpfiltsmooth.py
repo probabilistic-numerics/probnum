@@ -134,7 +134,7 @@ class GaussianIVPFilter(ODESolver):
         local_pred_rv = Normal(pred_rv.mean, calibrated_proc_noise_cov)
         local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
         error = local_meas_rv.cov.diagonal()
-        return np.sqrt(error)
+        return np.sqrt(np.abs(error))
 
     def _estimate_diffusion(self, meas_rv):
         """Estimate the dynamic diffusion parameter sigma_squared.
@@ -149,10 +149,11 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        std_like = np.linalg.cholesky(meas_rv.cov)
-        whitened_res = np.linalg.solve(std_like, meas_rv.mean)
-        ssq = whitened_res @ whitened_res / meas_rv.size
-        return ssq
+        # symmetrised = 0.5*(meas_rv.cov + meas_rv.cov.T)
+        # std_like = np.linalg.cholesky(symmetrised)
+        # whitened_res = np.linalg.solve(std_like, meas_rv.mean)
+
+        return meas_rv.mean @ np.linalg.solve(meas_rv.cov, meas_rv.mean) / meas_rv.size
 
     @property
     def prior(self):
