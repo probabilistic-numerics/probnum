@@ -24,11 +24,24 @@ class KalmanPosterior(FiltSmoothPosterior):
         Filter/smoother used to compute the discrete-time estimates.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter, with_smoothing):
+    def __init__(self, locations, state_rvs, gauss_filter, filter_posterior=None):
         self._locations = np.asarray(locations)
         self.gauss_filter = gauss_filter
         self._state_rvs = _RandomVariableList(state_rvs)
-        self._with_smoothing = with_smoothing
+
+        self.filter_posterior = filter_posterior
+
+    @classmethod
+    def from_filterposterior(cls, locations, state_rvs, gauss_filter):
+        filter_posterior = cls(
+            locations, state_rvs, gauss_filter, filter_posterior=None
+        )
+        return cls(
+            locations=[],
+            state_rvs=[],
+            gauss_filter=None,
+            filter_posterior=filter_posterior,
+        )
 
     @property
     def locations(self):
@@ -60,30 +73,46 @@ class KalmanPosterior(FiltSmoothPosterior):
         :obj:`RandomVariable`
             Estimate of the states at time ``t``.
         """
+        # Raise an error if smoothing posterior is called,
+        # but only the filtering posterior is available.
+        if not self._locations:
+            raise NotImplementedError("Dense output not available.")
+
+        # Recursive evaluation (t can now be any array, not just length 1)
         if not np.isscalar(t):
-            # recursive evaluation (t can now be any array, not just length 1!)
             return _RandomVariableList([self.__call__(t_pt) for t_pt in np.asarray(t)])
 
+        # t is left of our grid -- raise error
+        # (this functionality is not supported yet)
         if t < self.locations[0]:
             raise ValueError(
                 "Invalid location; Can not compute posterior for a location earlier "
                 "than the initial location"
             )
 
+        # t is in our grid -- no need to interpolate
         if t in self.locations:
             idx = (self.locations <= t).sum() - 1
             discrete_estimate = self.state_rvs[idx]
             return discrete_estimate
 
+        # Finally: do the interpolation
         if self.locations[0] < t < self.locations[-1]:
-            pred_rv = self._predict_to_loc(t)
-            if self._with_smoothing:
+
+            # A) We are the filter posterior:
+            # Predict from the left-closest point
+            if self.filter_posterior is None:
+                return self._predict_to_loc(t)
+
+            # B) We are the smoothing posterior:
+            # Predict from the left-closest point and smooth from the right-closest point
+            else:
+                pred_rv = self.filter_posterior._predict_to_loc(t)
                 smoothed_rv = self._smooth_prediction(pred_rv, t)
                 return smoothed_rv
-            else:
-                return pred_rv
 
-        # else: t > self.locations[-1], which case we just predict.
+        # C) t is beyond the grid, so we predict from either posterior,
+        # which yield equivalent results in this case.
         return self._predict_to_loc(t)
 
     def _predict_to_loc(self, loc):
@@ -128,9 +157,9 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         if locations is None:
             locations = self.locations
-            random_vars = self.state_rvs
+            random_vars = self.filter_posterior.state_rvs
         else:
-            random_vars = self.__call__(locations)
+            random_vars = self.filter_posterior(locations)
 
         if size == ():
             return np.array(
@@ -142,10 +171,32 @@ class KalmanPosterior(FiltSmoothPosterior):
         )
 
     def _single_sample_path(self, locations, random_vars):
+        # Mirrors gauss_filter.smooth_list, but sample after each step.
 
-        num_dim = len(random_vars[-1].sample())
+        # Make sure the final rv is informed about all the data points.
+        # Either condition on the final RV (a single smoothing step) and sample
+        # or (if last element in random_vars is final rv) sample directly.
+        if locations[-1] < self.locations[-1]:
+            t, rv = locations[-1], random_vars[-1]
 
-        curr_sample = random_vars[-1].sample()
+            # Intermediate prediction
+            predicted_rv, info = self.gauss_filter.predict(
+                rv=rv,
+                start=t,
+                stop=self.locations[-1],
+            )
+            crosscov = info["crosscov"]
+
+            curr_rv, _ = self.gauss_filter.smooth_step(
+                rv, predicted_rv, self.state_rvs[-1], crosscov
+            )
+            curr_sample = curr_rv.sample()
+        else:
+            curr_rv = random_vars[-1]
+            curr_sample = curr_rv.sample()
+
+        # Conclude initialisation
+        num_dim = len(curr_sample)
         out_samples = [curr_sample]
         curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
 
