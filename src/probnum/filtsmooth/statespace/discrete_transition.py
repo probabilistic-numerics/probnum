@@ -78,7 +78,7 @@ class DiscreteGaussian(trans.Transition):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
 
     def forward_realization(
-        self, real, t, _compute_gain=False, _diffusion=1.0, **kwargs
+        self, real, t, compute_gain=False, _diffusion=1.0, **kwargs
     ):
 
         newmean = self.state_trans_fun(t, real)
@@ -86,7 +86,7 @@ class DiscreteGaussian(trans.Transition):
 
         return pnrv.Normal(newmean, newcov), {}
 
-    def forward_rv(self, rv, t, _compute_gain=False, _diffusion=1.0, **kwargs):
+    def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
         raise NotImplementedError("Not available")
 
     def backward_realization(
@@ -221,7 +221,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
     def forward_realization(self, real, t, _diffusion=1.0, **kwargs):
 
         return self._forward_realization_via_forward_rv(
-            real, t=t, _compute_gain=False, _diffusion=_diffusion
+            real, t=t, compute_gain=False, _diffusion=_diffusion
         )
 
     def backward_rv(
