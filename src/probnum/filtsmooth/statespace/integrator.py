@@ -8,12 +8,8 @@ try:
 except ImportError:
     from cached_property import cached_property
 
-import warnings
-
 import numpy as np
 import scipy.special
-
-import probnum.random_variables as pnrv
 
 from . import discrete_transition, sde
 from .preconditioner import NordsieckLikeCoordinates
@@ -144,9 +140,8 @@ class IBM(Integrator, sde.LTISDE):
         )
 
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
-
-        warnings.warn("What happens to the gain here???")
-        # do something to the gain, too?!
+        if "gain" in info:
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
         return self.precon(dt) @ rv, info
 
@@ -180,7 +175,9 @@ class IBM(Integrator, sde.LTISDE):
             t=t,
             _diffusion=_diffusion,
         )
-        warnings.warn("What happens to the things in info here???")
+        # assert info is empty. Otherwise, we need to change
+        # things in info in which case we want to be warned.
+        assert not info
 
         return self.precon(dt) @ rv, info
 
@@ -277,7 +274,8 @@ class IOUP(Integrator, sde.LTISDE):
         # Undo preconditioning and return
         rv = self.precon(dt) @ rv
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
-        warnings.warn("What happens to the gain here???")
+        if "gain" in info:
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
         self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
         self.forcevec = self.precon(dt) @ self.forcevec
@@ -323,6 +321,9 @@ class IOUP(Integrator, sde.LTISDE):
             t=t,
             _diffusion=_diffusion,
         )
+        # assert info is empty. Otherwise, we need to change
+        # things in info in which case we want to be warned.
+        assert not info
 
         # Undo preconditioning and return
         rv = self.precon(dt) @ rv
@@ -404,7 +405,8 @@ class Matern(Integrator, sde.LTISDE):
         # Undo preconditioning and return
         rv = self.precon(dt) @ rv
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
-        warnings.warn("What happens to the gain here???")
+        if "gain" in info:
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
         self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
         self.forcevec = self.precon(dt) @ self.forcevec
@@ -450,6 +452,10 @@ class Matern(Integrator, sde.LTISDE):
             t=t,
             _diffusion=_diffusion,
         )
+
+        # assert info is empty. Otherwise, we need to change
+        # things in info in which case we want to be warned.
+        assert not info
 
         # Undo preconditioning and return
         rv = self.precon(dt) @ rv
