@@ -5,9 +5,10 @@ import probnum.filtsmooth as pnfs
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
-from tests.testing import chi_squared_statistic
 
 from .filtsmooth_testcases import car_tracking
+
+# from tests.testing import chi_squared_statistic
 
 
 @pytest.fixture
