@@ -143,6 +143,70 @@ class TestMatern(TestLTISDE, TestIntegrator):
         return self.transition
 
 
+def both_transitions_matern():
+    matern = pnfss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
+    matern2 = pnfss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
+    matern_as_ltisde = pnfss.LTISDE(matern2.driftmat, matern2.forcevec, matern2.dispmat)
+    return matern, matern_as_ltisde
+
+
+def both_transitions_ioup():
+    ioup = pnfss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
+    ioup2 = pnfss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
+    ioup_as_ltisde = pnfss.LTISDE(ioup2.driftmat, ioup2.forcevec, ioup2.dispmat)
+    return ioup, ioup_as_ltisde
+
+
+def both_transitions_ibm():
+    ibm = pnfss.IBM(ordint=2, spatialdim=1)
+    ibm2 = pnfss.IBM(ordint=2, spatialdim=1)
+    ibm_as_ltisde = pnfss.LTISDE(ibm2.driftmat, ibm2.forcevec, ibm2.dispmat)
+    return ibm, ibm_as_ltisde
+
+
+@pytest.mark.parametrize(
+    "both_transitions",
+    [both_transitions_ibm(), both_transitions_ioup(), both_transitions_matern()],
+)
+def test_same_forward_outputs(both_transitions, diffusion):
+    trans1, trans2 = both_transitions
+    real = 1 + 0.1 * np.random.rand(trans1.dimension)
+    out_1, info1 = trans1.forward_realization(
+        real, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion
+    )
+    out_2, info2 = trans2.forward_realization(
+        real, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion
+    )
+    np.testing.assert_allclose(out_1.mean, out_2.mean)
+    np.testing.assert_allclose(out_1.cov, out_2.cov)
+    np.testing.assert_allclose(info1["crosscov"], info2["crosscov"])
+    np.testing.assert_allclose(info1["gain"], info2["gain"])
+
+
+@pytest.mark.parametrize(
+    "both_transitions",
+    [both_transitions_ibm(), both_transitions_ioup(), both_transitions_matern()],
+)
+def test_same_backward_outputs(both_transitions, diffusion):
+    trans1, trans2 = both_transitions
+    real = 1 + 0.1 * np.random.rand(trans1.dimension)
+    real2 = 1 + 0.1 * np.random.rand(trans1.dimension)
+    cov = random_spd_matrix(trans1.dimension)
+    rv = pnrv.Normal(real2, cov)
+    out_1, info1 = trans1.backward_realization(
+        real, rv, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion
+    )
+    out_2, info2 = trans2.backward_realization(
+        real, rv, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion
+    )
+    np.testing.assert_allclose(out_1.mean, out_2.mean)
+    np.testing.assert_allclose(out_1.cov, out_2.cov)
+
+    # Both dicts are empty?
+    assert not info1
+    assert not info2
+
+
 @pytest.fixture
 def dt():
     return 0.1

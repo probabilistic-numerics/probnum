@@ -39,7 +39,7 @@ class SDE(transition.Transition):
         real,
         t,
         dt=None,
-        _compute_gain=False,
+        compute_gain=False,
         _diffusion=1.0,
         **kwargs,
     ):
@@ -47,7 +47,7 @@ class SDE(transition.Transition):
             real,
             t=t,
             dt=dt,
-            _compute_gain=_compute_gain,
+            compute_gain=compute_gain,
             _diffusion=_diffusion,
             **kwargs,
         )
@@ -57,7 +57,7 @@ class SDE(transition.Transition):
         rv,
         t,
         dt=None,
-        _compute_gain=False,
+        compute_gain=False,
         _diffusion=1.0,
         **kwargs,
     ):
@@ -290,12 +290,14 @@ class LTISDE(LinearSDE):
         rv,
         t,
         dt=None,
-        _compute_gain=False,
+        compute_gain=False,
         _diffusion=1.0,
         **kwargs,
     ):
         discretised_model = self.discretise(dt=dt)
-        return discretised_model.forward_rv(rv, t, _diffusion=_diffusion)
+        return discretised_model.forward_rv(
+            rv, t, compute_gain=compute_gain, _diffusion=_diffusion
+        )
 
     def backward_rv(
         self,
