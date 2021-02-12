@@ -37,7 +37,7 @@ class KalmanPosterior(FiltSmoothPosterior):
             locations, state_rvs, gauss_filter, filter_posterior=None
         )
         return cls(
-            locations=[],
+            locations=locations,
             state_rvs=[],
             gauss_filter=None,
             filter_posterior=filter_posterior,

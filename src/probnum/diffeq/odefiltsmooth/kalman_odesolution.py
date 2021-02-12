@@ -78,11 +78,15 @@ class KalmanODESolution(ODESolution):
 
         # Pre-compute projection matrices.
         # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'.
-        self.proj_to_y = kalman_posterior.gauss_filter.dynamics_model.proj2coord(
-            coord=0
+        self.proj_to_y = (
+            kalman_posterior.filter_posterior.gauss_filter.dynamics_model.proj2coord(
+                coord=0
+            )
         )
-        self.proj_to_dy = kalman_posterior.gauss_filter.dynamics_model.proj2coord(
-            coord=1
+        self.proj_to_dy = (
+            kalman_posterior.filter_posterior.gauss_filter.dynamics_model.proj2coord(
+                coord=1
+            )
         )
 
     @property
