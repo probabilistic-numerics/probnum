@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.diffeq import probsolve_ivp
+from probnum.diffeq import KalmanODESolution, probsolve_ivp
 from probnum.diffeq.ode import logistic, lotkavolterra
 from probnum.random_variables import Constant, Normal
 from tests.testing import NumpyAssertions, chi_squared_statistic
@@ -79,6 +79,10 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         t = 1.1 * self.ivp.tmax
         self.assertGreater(t, self.solution.t[-1])
         self.solution(t)
+
+    def test_filter_solution(self):
+        filtpost = self.solution.filter_solution
+        self.assertIsInstance(filtpost, KalmanODESolution)
 
 
 class TestODESolutionHigherOrderPrior(TestODESolution):
