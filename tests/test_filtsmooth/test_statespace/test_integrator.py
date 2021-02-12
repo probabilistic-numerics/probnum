@@ -23,28 +23,58 @@ class TestIntegrator:
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self, test_ndim, some_ordint):
+    def _setup(self, some_ordint):
         self.some_ordint = some_ordint
-        self.integrator = pnfss.Integrator(
-            ordint=self.some_ordint, spatialdim=test_ndim
-        )
+        self.integrator = pnfss.Integrator(ordint=self.some_ordint, spatialdim=1)
 
-    def test_proj2coord(self, test_ndim):
+    def test_proj2coord(self):
         base = np.zeros(self.some_ordint + 1)
         base[0] = 1
-        e_0_expected = np.kron(np.eye(test_ndim), base)
+        e_0_expected = np.kron(np.eye(1), base)
         e_0 = self.integrator.proj2coord(coord=0)
         np.testing.assert_allclose(e_0, e_0_expected)
 
         base = np.zeros(self.some_ordint + 1)
         base[-1] = 1
-        e_q_expected = np.kron(np.eye(test_ndim), base)
+        e_q_expected = np.kron(np.eye(1), base)
         e_q = self.integrator.proj2coord(coord=self.some_ordint)
         np.testing.assert_allclose(e_q, e_q_expected)
 
     def test_precon(self):
 
         assert isinstance(self.integrator.precon, pnfss.NordsieckLikeCoordinates)
+
+
+class TestIBM(TestLTISDE, TestIntegrator):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        some_ordint,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+        self.some_ordint = some_ordint
+        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
+        self.transition = pnfss.IBM(
+            ordint=self.some_ordint,
+            spatialdim=spatialdim,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
+
+        self.G = lambda t: self.transition.driftmat
+        self.v = lambda t: self.transition.forcevec
+        self.L = lambda t: self.transition.dispmat
+
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    @property
+    def integrator(self):
+        return self.transition
 
 
 @pytest.fixture
@@ -74,33 +104,6 @@ def qh_22_ibm(dt):
     )
 
 
-class TestIBM(TestLTISDE):
-
-    # Replacement for an __init__ in the pytest language. See:
-    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
-    @pytest.fixture(autouse=True)
-    def _setup(
-        self,
-        some_ordint,
-        forw_impl_string_linear_gauss,
-        backw_impl_string_linear_gauss,
-    ):
-        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnfss.IBM(
-            ordint=some_ordint,
-            spatialdim=spatialdim,
-            forward_implementation=forw_impl_string_linear_gauss,
-            backward_implementation=backw_impl_string_linear_gauss,
-        )
-
-        self.G = lambda t: self.transition.driftmat
-        self.v = lambda t: self.transition.forcevec
-        self.L = lambda t: self.transition.dispmat
-
-        self.g = lambda t, x: self.G(t) @ x + self.v(t)
-        self.dg = lambda t, x: self.G(t)
-
-
 class TestIBMValues:
 
     # Replacement for an __init__ in the pytest language. See:
@@ -108,13 +111,12 @@ class TestIBMValues:
     @pytest.fixture(autouse=True)
     def _setup(
         self,
-        some_ordint,
         forw_impl_string_linear_gauss,
         backw_impl_string_linear_gauss,
     ):
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
         self.transition = pnfss.IBM(
-            ordint=some_ordint,
+            ordint=2,
             spatialdim=spatialdim,
             forward_implementation=forw_impl_string_linear_gauss,
             backward_implementation=backw_impl_string_linear_gauss,
