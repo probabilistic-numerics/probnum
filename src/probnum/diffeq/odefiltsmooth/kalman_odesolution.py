@@ -124,3 +124,9 @@ class KalmanODESolution(ODESolution):
 
         samples = self.kalman_posterior.sample(locations=t, size=size)
         return np.array([self.proj_to_y @ sample for sample in samples])
+
+    @property
+    def filter_solution(self):
+        return KalmanODESolution(
+            kalman_posterior=self.kalman_posterior.filter_posterior
+        )

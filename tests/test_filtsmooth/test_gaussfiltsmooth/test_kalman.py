@@ -124,11 +124,11 @@ def test_rmse_filt_smooth(kalman, data):
     """Assert that smoothing beats filtering beats nothing."""
     obs, times, truth = data
 
-    filter_posterior = kalman.filter(obs, times)
-    smooth_posterior = kalman.smooth(filter_posterior)
+    posterior = kalman.filter(obs, times)
+    posterior = kalman.smooth(posterior)
 
-    filtms = filter_posterior.state_rvs.mean
-    smooms = smooth_posterior.state_rvs.mean
+    filtms = posterior.filter_posterior.state_rvs.mean
+    smooms = posterior.state_rvs.mean
 
     filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
     smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))

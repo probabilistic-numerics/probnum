@@ -18,28 +18,39 @@ class _RandomVariableList(list):
         if not isinstance(rv_list, list):
             raise TypeError("RandomVariableList expects a list.")
 
-        # First element as a proxy for checking all elements
-        if not isinstance(rv_list[0], pn.RandomVariable):
-            raise TypeError(
-                "RandomVariableList expects RandomVariable elements, but "
-                + f"first element has type {type(rv_list[0])}."
-            )
+        # If not empty:
+        if len(rv_list) > 0:
+
+            # First element as a proxy for checking all elements
+            if not isinstance(rv_list[0], pn.RandomVariable):
+                raise TypeError(
+                    "RandomVariableList expects RandomVariable elements, but "
+                    + f"first element has type {type(rv_list[0])}."
+                )
         super().__init__(rv_list)
 
     @property
     def mean(self) -> np.ndarray:
+        if len(self) == 0:
+            return np.array([])
         return np.stack([rv.mean for rv in self])
 
     @property
     def cov(self) -> np.ndarray:
+        if len(self) == 0:
+            return np.array([])
         return np.stack([rv.cov for rv in self])
 
     @property
     def var(self) -> np.ndarray:
+        if len(self) == 0:
+            return np.array([])
         return np.stack([rv.var for rv in self])
 
     @property
     def std(self) -> np.ndarray:
+        if len(self) == 0:
+            return np.array([])
         return np.stack([rv.std for rv in self])
 
     def __getitem__(self, idx) -> Union["pn.RandomVariable", list]:

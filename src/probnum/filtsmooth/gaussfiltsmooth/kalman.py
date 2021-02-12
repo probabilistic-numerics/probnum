@@ -205,7 +205,7 @@ class Kalman(BayesFiltSmooth):
                 _intermediate_step=_intermediate_step,
             )
             rvs.append(filtrv)
-        return KalmanPosterior(times, rvs, self, with_smoothing=False)
+        return KalmanPosterior.from_filterposterior(times, rvs, self)
 
     def filter_step(
         self,
@@ -294,12 +294,17 @@ class Kalman(BayesFiltSmooth):
         ):
             raise ValueError("Continuous-discrete smoothing is not supported (yet).")
 
+        # The non-smoothed posterior is a KalmanPosterior object
+        # with empty attributes, but a filled self.filter_posterior
+        # which holds the actual filter posterior
+        filter_posterior = filter_posterior.filter_posterior
+
         rv_list = self.smooth_list(
-            filter_posterior,
+            filter_posterior.state_rvs,
             filter_posterior.locations,
         )
         return KalmanPosterior(
-            filter_posterior.locations, rv_list, self, with_smoothing=True
+            filter_posterior.locations, rv_list, self, filter_posterior=filter_posterior
         )
 
     def smooth_list(self, rv_list, locations):

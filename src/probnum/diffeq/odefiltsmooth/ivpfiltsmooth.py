@@ -79,8 +79,8 @@ class GaussianIVPFilter(ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        kalman_posterior = pnfs.KalmanPosterior(
-            times, rvs, self.gfilt, self.with_smoothing
+        kalman_posterior = pnfs.KalmanPosterior.from_filterposterior(
+            times, rvs, self.gfilt
         )
 
         return KalmanODESolution(kalman_posterior)

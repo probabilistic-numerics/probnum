@@ -75,7 +75,7 @@ class KalmanPosterior(FiltSmoothPosterior):
         """
         # Raise an error if smoothing posterior is called,
         # but only the filtering posterior is available.
-        if not self._locations:
+        if len(self._locations) == 0:
             raise NotImplementedError("Dense output not available.")
 
         # Recursive evaluation (t can now be any array, not just length 1)

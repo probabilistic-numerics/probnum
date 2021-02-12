@@ -67,13 +67,13 @@ def test_rmse_filt_smooth(kalman, problem):
 
     stopcrit = pnfs.StoppingCriterion(atol=1e-3, rtol=1e-6, maxit=10)
 
-    filter_posterior = kalman.filter(obs, times)
-    smooth_posterior = kalman.smooth(filter_posterior)
+    posterior = kalman.filter(obs, times)
+    posterior = kalman.smooth(posterior)
 
     iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
 
-    filtms = filter_posterior.state_rvs.mean
-    smooms = smooth_posterior.state_rvs.mean
+    filtms = posterior.filter_posterior.state_rvs.mean
+    smooms = posterior.state_rvs.mean
     iterms = iterated_posterior.state_rvs.mean
 
     if filtms.ndim == 1:
