@@ -195,7 +195,7 @@ def ltisde_as_linearsde(G_const, v_const, L_const):
     L = lambda t: L_const
     dim = 2
 
-    return pnfss.LinearSDE(dim, G, v, L, mde_atol=1e-8, mde_rtol=1e-8)
+    return pnfss.LinearSDE(dim, G, v, L, mde_atol=1e-12, mde_rtol=1e-12)
 
 
 @pytest.fixture
@@ -203,13 +203,13 @@ def ltisde(G_const, v_const, L_const):
     return pnfss.LTISDE(G_const, v_const, L_const)
 
 
-def test_solve_mde_forward_values(
-    ltisde_as_linearsde, ltisde, some_normal_rv1, diffusion
-):
-    out_linear, _ = ltisde_as_linearsde.forward_rv(
-        some_normal_rv1, t=0.0, dt=0.1, _diffusion=diffusion
+def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, v_const, diffusion):
+    out_linear, _ = ltisde_as_linearsde.forward_realization(
+        v_const, t=0.0, dt=0.1, _diffusion=diffusion
     )
-    out_lti, _ = ltisde.forward_rv(some_normal_rv1, t=0.0, dt=0.1, _diffusion=diffusion)
+    out_lti, _ = ltisde.forward_realization(
+        v_const, t=0.0, dt=0.1, _diffusion=diffusion
+    )
 
     np.testing.assert_allclose(out_linear.mean, out_lti.mean)
     np.testing.assert_allclose(out_linear.cov, out_lti.cov)
