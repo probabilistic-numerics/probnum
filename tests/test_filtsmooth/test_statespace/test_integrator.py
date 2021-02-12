@@ -100,6 +100,26 @@ class TestIBM(TestLTISDE):
         self.g = lambda t, x: self.G(t) @ x + self.v(t)
         self.dg = lambda t, x: self.G(t)
 
+
+class TestIBMValues:
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        some_ordint,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+        spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
+        self.transition = pnfss.IBM(
+            ordint=some_ordint,
+            spatialdim=spatialdim,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
+
     def test_discretise_values(self, ah_22_ibm, qh_22_ibm, dt):
         discrete_model = self.transition.discretise(dt=dt)
         np.testing.assert_allclose(discrete_model.state_trans_mat, ah_22_ibm)
@@ -108,19 +128,24 @@ class TestIBM(TestLTISDE):
     def test_forward_rv_values(
         self, some_normal_rv1, diffusion, ah_22_ibm, qh_22_ibm, dt
     ):
-        rv, _ = self.transition.forward_rv(some_normal_rv1, t=0.0, dt=dt)
+        rv, _ = self.transition.forward_rv(
+            some_normal_rv1, t=0.0, dt=dt, _diffusion=diffusion
+        )
         np.testing.assert_allclose(ah_22_ibm @ some_normal_rv1.mean, rv.mean)
         np.testing.assert_allclose(
-            ah_22_ibm @ some_normal_rv1.cov @ ah_22_ibm.T + qh_22_ibm, rv.cov
+            ah_22_ibm @ some_normal_rv1.cov @ ah_22_ibm.T + diffusion * qh_22_ibm,
+            rv.cov,
         )
 
     def test_forward_realization_values(
         self, some_normal_rv1, diffusion, ah_22_ibm, qh_22_ibm, dt
     ):
         real = some_normal_rv1.sample()
-        rv, _ = self.transition.forward_realization(real, t=0.0, dt=dt)
+        rv, _ = self.transition.forward_realization(
+            real, t=0.0, dt=dt, _diffusion=diffusion
+        )
         np.testing.assert_allclose(ah_22_ibm @ real, rv.mean)
-        np.testing.assert_allclose(qh_22_ibm, rv.cov)
+        np.testing.assert_allclose(diffusion * qh_22_ibm, rv.cov)
 
 
 #
