@@ -54,6 +54,7 @@ class _RandomVariableList(list):
         return np.stack([rv.std for rv in self])
 
     def __getitem__(self, idx) -> Union["pn.RandomVariable", list]:
+
         result = super().__getitem__(idx)
         # Make sure to wrap the result into a _RandomVariableList if necessary
         if isinstance(result, list):
