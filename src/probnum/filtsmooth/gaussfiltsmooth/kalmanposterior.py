@@ -153,6 +153,11 @@ class KalmanPosterior(FiltSmoothPosterior):
 
     def sample(self, locations=None, size=()):
 
+        if self.filter_posterior is None:
+            raise NotImplementedError(
+                "Sampling from the filter posterior is not implemented."
+            )
+
         size = utils.as_shape(size)
 
         if locations is None:

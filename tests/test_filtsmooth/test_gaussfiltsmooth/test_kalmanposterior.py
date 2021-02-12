@@ -31,15 +31,6 @@ def kalman(problem):
     return pnfs.Kalman(dynmod, measmod, initrv)
 
 
-#
-# @pytest.fixture
-# def posterior(kalman, problem):
-#     """Kalman filtering posterior."""
-#     *_, obs, times, states = problem
-#     posterior = kalman.filter(obs, times)
-#     return posterior.filter_posterior
-
-
 @pytest.fixture
 def posterior(kalman, problem):
     """Kalman smoothing posterior."""
