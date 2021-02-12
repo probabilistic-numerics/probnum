@@ -104,6 +104,21 @@ def qh_22_ibm(dt):
     )
 
 
+@pytest.fixture
+def spdmat3x3():
+    return random_spd_matrix(3)
+
+
+@pytest.fixture
+def normal_rv3x3(spdmat3x3):
+
+    return pnrv.Normal(
+        mean=np.random.rand(3),
+        cov=spdmat3x3,
+        cov_cholesky=np.linalg.cholesky(spdmat3x3),
+    )
+
+
 class TestIBMValues:
 
     # Replacement for an __init__ in the pytest language. See:
@@ -127,22 +142,20 @@ class TestIBMValues:
         np.testing.assert_allclose(discrete_model.state_trans_mat, ah_22_ibm)
         np.testing.assert_allclose(discrete_model.proc_noise_cov_mat, qh_22_ibm)
 
-    def test_forward_rv_values(
-        self, some_normal_rv1, diffusion, ah_22_ibm, qh_22_ibm, dt
-    ):
+    def test_forward_rv_values(self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt):
         rv, _ = self.transition.forward_rv(
-            some_normal_rv1, t=0.0, dt=dt, _diffusion=diffusion
+            normal_rv3x3, t=0.0, dt=dt, _diffusion=diffusion
         )
-        np.testing.assert_allclose(ah_22_ibm @ some_normal_rv1.mean, rv.mean)
+        np.testing.assert_allclose(ah_22_ibm @ normal_rv3x3.mean, rv[:3].mean)
         np.testing.assert_allclose(
-            ah_22_ibm @ some_normal_rv1.cov @ ah_22_ibm.T + diffusion * qh_22_ibm,
+            ah_22_ibm @ normal_rv3x3.cov @ ah_22_ibm.T + diffusion * qh_22_ibm,
             rv.cov,
         )
 
     def test_forward_realization_values(
-        self, some_normal_rv1, diffusion, ah_22_ibm, qh_22_ibm, dt
+        self, normal_rv3x3, diffusion, ah_22_ibm, qh_22_ibm, dt
     ):
-        real = some_normal_rv1.sample()
+        real = normal_rv3x3.sample()
         rv, _ = self.transition.forward_realization(
             real, t=0.0, dt=dt, _diffusion=diffusion
         )

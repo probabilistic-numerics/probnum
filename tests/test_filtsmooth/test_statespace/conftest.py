@@ -10,7 +10,7 @@ import probnum.random_variables as pnrv
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 
-@pytest.fixture(params=[3])
+@pytest.fixture(params=[1, 5])
 def test_ndim(request):
     """Test dimension."""
     return request.param
