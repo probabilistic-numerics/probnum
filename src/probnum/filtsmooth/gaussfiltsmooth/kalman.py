@@ -226,7 +226,7 @@ class Kalman(BayesFiltSmooth):
             data, rv, t=time, _linearise_at=_linearise_at
         )
 
-    def smooth(self, filter_posterior):
+    def smooth(self, filter_posterior, _previous_posterior=None):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
 
         Parameters
@@ -240,26 +240,16 @@ class Kalman(BayesFiltSmooth):
             Posterior distribution of the smoothed output
         """
 
-        # See Issue #300
-        bad_options = (
-            statespace.LinearSDE,
-            ContinuousEKFComponent,
-            ContinuousUKFComponent,
-        )
-        if isinstance(self.dynamics_model, bad_options) and not isinstance(
-            self.dynamics_model, statespace.LTISDE
-        ):
-            raise ValueError("Continuous-discrete smoothing is not supported (yet).")
-
         rv_list = self.smooth_list(
             filter_posterior,
             filter_posterior.locations,
+            _previous_posterior=_previous_posterior,
         )
         return KalmanPosterior(
             filter_posterior.locations, rv_list, self, with_smoothing=True
         )
 
-    def smooth_list(self, rv_list, locations):
+    def smooth_list(self, rv_list, locations, _previous_posterior):
         """Apply smoothing to a list of RVs.
 
         Parameters
@@ -281,23 +271,22 @@ class Kalman(BayesFiltSmooth):
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
 
-            # Intermediate prediction
-            predicted_rv, info = self.predict(
-                rv=unsmoothed_rv,
-                start=locations[idx - 1],
-                stop=locations[idx],
+            _linearise_smooth_step_at = (
+                None
+                if _previous_posterior is None
+                else _previous_posterior(locations[idx - 1])
             )
-            crosscov = info["crosscov"]
 
             # Actual smoothing step
             curr_rv, _ = self.smooth_step(
                 unsmoothed_rv,
-                predicted_rv,
+                None,
                 curr_rv,
-                crosscov,
-                dynamics_model=self.dynamics_model,
+                None,
+                dynamics_model=None,
                 start=locations[idx - 1],
                 stop=locations[idx],
+                _linearise_at=_linearise_smooth_step_at,
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
@@ -312,14 +301,68 @@ class Kalman(BayesFiltSmooth):
         dynamics_model,
         start,
         stop,
+        _linearise_at,
     ):
+
         return self.dynamics_model.backward_rv(
             curr_rv,
             unsmoothed_rv,
-            rv_forwarded=predicted_rv,
+            rv_forwarded=None,
             gain=None,
             t=start,
             dt=stop - start,
-            _diffusion=_diffusion,
             _linearise_at=_linearise_at,
         )
+
+
+def iterate_update(update_fun, stopcrit=None):
+    """Iterated update decorator.
+
+    Examples
+    --------
+    >>> import functools as ft
+    >>>
+    >>> # default stopping
+    >>> iter_upd_default = iterate_update(update_classic)
+    >>>
+    >>> # Custom stopping
+    >>> stopcrit = StoppingCriterion(atol=1e-12, rtol=1e-14, maxit=1000)
+    >>> iter_upd_custom = iterate_update(update_fun=update_classic, stopcrit=stopcrit)
+    """
+    if stopcrit is None:
+        stopcrit = StoppingCriterion()
+
+    def new_update_fun(*args, **kwargs):
+        return _iterated_update(update_fun, stopcrit, *args, **kwargs)
+
+    return new_update_fun
+
+
+def _iterated_update(
+    update_fun, stopcrit, measurement_model, data, rv, time, _linearise_at=None
+):
+    """Turn an update_*() function into an iterated update.
+
+    This iteration is continued until it reaches a fixed-point (as
+    measured with atol and rtol). Using this inside `Kalman` yields the
+    iterated (extended/unscented/...) Kalman filter.
+    """
+    current_rv, info = update_fun(
+        measurement_model=measurement_model,
+        data=data,
+        rv=rv,
+        time=time,
+        _linearise_at=_linearise_at,
+    )
+    new_mean = current_rv.mean
+    old_mean = np.inf * np.ones(current_rv.mean.shape)
+    while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
+        old_mean = new_mean
+        current_rv, info = update_fun(
+            measurement_model=measurement_model,
+            data=data,
+            rv=current_rv,
+            time=time,
+        )
+        new_mean = current_rv.mean
+    return current_rv, info
