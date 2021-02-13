@@ -42,12 +42,9 @@ class ThompsonSampling(Policy):
         # Set seeds
         belief.x.random_state = self.random_state
         belief.A.random_state = self.random_state
-        belief.Ainv.random_state = self.random_state
         belief.b.random_state = self.random_state
 
         # A-conjugate action under sampled belief
-        action = -belief.Ainv.sample() @ (
-            belief.A.sample() @ belief.x.sample() - belief.b.sample()
-        )
+        action = belief.A.sample() @ belief.x.sample() - belief.b.sample()
 
         return LinearSolverAction(actA=action)
