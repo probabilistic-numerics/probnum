@@ -311,7 +311,7 @@ def benes_daum():
     initmean = np.zeros(1)
     initcov = 3.0 * np.eye(1)
     initrv = Normal(initmean, initcov)
-    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
+    dynamod = pnfs.statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
     measmod = pnfs.statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
     return dynamod, measmod, initrv, {}
 
@@ -334,9 +334,9 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.forward_rv(initrv, 0.0, 1.0, step=0.1)
+                nonlinear_model.forward_rv(initrv, 0.0, 1.0)
         with self.subTest("Linearisation happens."):
-            linearised_model.forward_rv(initrv, 0.0, 1.0, step=0.1)
+            linearised_model.forward_rv(initrv, 0.0, 1.0)
 
     def test_transition_real(self):
         """transition_real() not possible for original model but for the linearised
@@ -347,6 +347,6 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.forward_realization(initrv.mean, 0.0, 1.0, step=0.1)
+                nonlinear_model.forward_realization(initrv.mean, 0.0, 1.0)
         with self.subTest("Linearisation happens."):
-            linearised_model.forward_realization(initrv.mean, 0.0, 1.0, step=0.1)
+            linearised_model.forward_realization(initrv.mean, 0.0, 1.0)

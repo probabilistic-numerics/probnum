@@ -29,16 +29,16 @@ class EKFComponent(abc.ABC):
         real,
         t,
         dt=None,
-        _compute_gain=False,
+        compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
     ) -> (pnrv.Normal, typing.Dict):
 
-        return self._forward_realization_as_rv(
+        return self._forward_realization_via_forward_rv(
             real,
             t=t,
             dt=dt,
-            _compute_gain=_compute_gain,
+            compute_gain=compute_gain,
             _diffusion=_diffusion,
             _linearise_at=_linearise_at,
         )
@@ -48,7 +48,7 @@ class EKFComponent(abc.ABC):
         rv,
         t,
         dt=None,
-        _compute_gain=False,
+        compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
     ) -> (pnrv.Normal, typing.Dict):
@@ -59,7 +59,7 @@ class EKFComponent(abc.ABC):
             rv=rv,
             t=t,
             dt=dt,
-            _compute_gain=_compute_gain,
+            compute_gain=compute_gain,
             _diffusion=_diffusion,
         )
 
@@ -74,7 +74,7 @@ class EKFComponent(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
-        return self._backward_realization_as_rv(
+        return self._backward_realization_via_backward_rv(
             real_obtained,
             rv=rv,
             rv_forwarded=rv_forwarded,
@@ -114,6 +114,8 @@ class EKFComponent(abc.ABC):
         raise NotImplementedError
 
 
+# Order of inheritance matters, because forward and backward
+# are defined in EKFComponent, and must not be inherited from SDE.
 class ContinuousEKFComponent(EKFComponent, statespace.SDE):
     """Continuous extended Kalman filter transition."""
 
@@ -125,7 +127,6 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         mde_solver="LSODA",
     ) -> None:
 
-        EKFComponent.__init__(self, non_linear_model=non_linear_model)
         statespace.SDE.__init__(
             self,
             non_linear_model.driftfun,
@@ -133,6 +134,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
             non_linear_model.jacobfun,
             non_linear_model.dimension,
         )
+        EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
         self.mde_atol = mde_atol
         self.mde_rtol = mde_rtol
@@ -153,10 +155,10 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
             return dg(t, x0)
 
         return statespace.LinearSDE(
+            dimension=self.non_linear_model.dimension,
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
             dispmatfun=self.non_linear_model.dispmatfun,
-            dimension=self.non_linear_model.dimension,
             mde_atol=self.mde_atol,
             mde_rtol=self.mde_rtol,
             mde_solver=self.mde_solver,
@@ -173,15 +175,15 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         backward_implementation="classic",
     ) -> None:
 
-        EKFComponent.__init__(self, non_linear_model=non_linear_model)
         statespace.DiscreteGaussian.__init__(
             self,
+            non_linear_model.input_dim,
+            non_linear_model.output_dim,
             non_linear_model.state_trans_fun,
-            proc_noise_cov_mat_fun,
-            jacob_state_trans_fun,
-            input_dim,
-            output_dim,
+            non_linear_model.proc_noise_cov_mat_fun,
+            non_linear_model.jacob_state_trans_fun,
         )
+        EKFComponent.__init__(self, non_linear_model=non_linear_model)
 
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
@@ -201,11 +203,11 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             return dg(t, x0)
 
         return statespace.DiscreteLinearGaussian(
+            input_dim=self.non_linear_model.input_dim,
+            output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
             shift_vec_fun=forcevecfun,
             proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
-            input_dim=self.non_linear_model.input_dim,
-            output_dim=self.non_linear_model.output_dim,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
@@ -246,7 +248,11 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
 
         discrete_model = statespace.DiscreteGaussian(
-            dyna, diff, jaco, input_dim=prior.dimension, output_dim=ode.dimension
+            prior.dimension,
+            ode.dimension,
+            dyna,
+            diff,
+            jaco,
         )
         return cls(
             discrete_model,
