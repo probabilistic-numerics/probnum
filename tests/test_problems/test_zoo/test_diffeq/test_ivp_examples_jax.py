@@ -12,21 +12,21 @@ try:
     config.update("jax_enable_x64", True)
 
     JAX_AVAILABLE = True
+
+    IVPs = [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 except ImportError:
     JAX_AVAILABLE = False
-
+    IVPs = None
 
 only_if_jax_available = pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
-only_if_jax_is_not_available = pytest.mark.skipif(JAX_AVAILABLE, reason="requires jax")
+only_if_jax_is_not_available = pytest.mark.skipif(JAX_AVAILABLE)
 
 
 # Tests for when JAX is available
 
 
 @only_if_jax_available
-@pytest.mark.parametrize(
-    "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
-)
+@pytest.mark.parametrize("ivp_jax", IVPs)
 @pytest.mark.parametrize("order", [0, 1, 2])
 def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
     """Test asserts that the examples in diffeq-zoo are compatible with
@@ -38,25 +38,19 @@ def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
 
 
 @only_if_jax_available
-@pytest.mark.parametrize(
-    "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
-)
+@pytest.mark.parametrize("ivp_jax", IVPs)
 def test_f(ivp_jax):
     ivp_jax.f(ivp_jax.t0, ivp_jax.y0)
 
 
 @only_if_jax_available
-@pytest.mark.parametrize(
-    "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
-)
+@pytest.mark.parametrize("ivp_jax", IVPs)
 def test_df(ivp_jax):
     ivp_jax.df(ivp_jax.t0, ivp_jax.y0)
 
 
 @only_if_jax_available
-@pytest.mark.parametrize(
-    "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
-)
+@pytest.mark.parametrize("ivp_jax", IVPs)
 def test_ddf(ivp_jax):
     ivp_jax.ddf(ivp_jax.t0, ivp_jax.y0)
 
