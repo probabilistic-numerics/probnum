@@ -93,8 +93,11 @@ def _taylormode(f, z0, t0, order):
         from jax.experimental.jet import jet
 
         config.update("jax_enable_x64", True)
-    except ImportError:
-        raise ImportError("Initialisation requires jax. Sorry... :( ")
+    except ImportError as err:
+        raise ImportError(
+            "Cannot perform Taylor-mode initialisation without optional "
+            "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
+        ) from err
 
     def total_derivative(z_t):
         """Total derivative."""

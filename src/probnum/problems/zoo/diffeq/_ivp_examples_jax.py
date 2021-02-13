@@ -5,6 +5,9 @@ from probnum.problems import InitialValueProblem
 __all__ = ["threebody_jax", "vanderpol_jax"]
 
 
+JAX_ERRORMSG = "IVP instantiation requires jax. Try using `threebody()` instead, or install `jax` via `pip install jax jaxlib`"
+
+
 def threebody_jax(tmax=17.0652165601579625588917206249):
     r"""Initial value problem (IVP) based on a three-body problem.
 
@@ -58,7 +61,7 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
         config.update("jax_enable_x64", True)
 
     except ImportError:
-        raise ImportError("Initialisation requires jax. Sorry :( ")
+        raise ImportError(JAX_ERRORMSG)
 
     def threebody_rhs(Y):
         # defining the ODE:
@@ -136,7 +139,7 @@ def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
         config.update("jax_enable_x64", True)
 
     except ImportError:
-        raise ImportError("Initialisation requires jax. Sorry :( ")
+        raise ImportError(JAX_ERRORMSG)
 
     if isinstance(params, float):
         mu = params
