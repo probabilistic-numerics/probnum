@@ -16,8 +16,14 @@ except ImportError:
     JAX_AVAILABLE = False
 
 
-@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
-@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
+only_if_jax_available = pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
+only_if_jax_is_not_available = pytest.mark.skipif(JAX_AVAILABLE, reason="requires jax")
+
+
+# Tests for when JAX is available
+
+
+@only_if_jax_available
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
@@ -27,11 +33,11 @@ def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
     `compute_all_derivatives`, which happens if they are implemented in jax, and jax is
     available in the current environment."""
 
-    ivp = pnd.compute_all_derivatives(ivp_jax, order=1)
+    ivp = pnd.compute_all_derivatives(ivp_jax, order=order)
     assert isinstance(ivp, pnprob.InitialValueProblem)
 
 
-@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
+@only_if_jax_available
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
@@ -39,7 +45,7 @@ def test_f(ivp_jax):
     ivp_jax.f(ivp_jax.t0, ivp_jax.y0)
 
 
-@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
+@only_if_jax_available
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
@@ -47,9 +53,24 @@ def test_df(ivp_jax):
     ivp_jax.df(ivp_jax.t0, ivp_jax.y0)
 
 
-@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
+@only_if_jax_available
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
 def test_ddf(ivp_jax):
     ivp_jax.ddf(ivp_jax.t0, ivp_jax.y0)
+
+
+# Tests for when JAX is not available
+
+
+@only_if_jax_is_not_available
+def test_threebody():
+    with pytest.raises(ImportError):
+        diffeq_zoo.threebody_jax()
+
+
+@only_if_jax_is_not_available
+def test_vanderpol():
+    with pytest.raises(ImportError):
+        diffeq_zoo.vanderpol_jax()
