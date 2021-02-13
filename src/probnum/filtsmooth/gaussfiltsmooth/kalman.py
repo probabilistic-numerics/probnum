@@ -40,6 +40,15 @@ class Kalman(BayesFiltSmooth):
         Custom update step. Choose between e.g. classical, and square-root implementation. Default is 'rts_smooth_step_classic`.
     """
 
+    def __init__(self, dynamics_model, measurement_model, initrv, update_stopcrit=None):
+        super().__init__(dynamics_model, measurement_model, initrv)
+
+        self.update_stopcrit = update_stopcrit
+        if self.update_stopcrit is None:
+            self.update = self._update_classic
+        else:
+            self.update = self._iterated_update
+
     def iterated_filtsmooth(self, dataset, times, stopcrit=None):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -226,6 +235,24 @@ class Kalman(BayesFiltSmooth):
             data, rv, t=time, _linearise_at=_linearise_at
         )
 
+    def _classic_update(self, rv, time, data, _linearise_at):
+        return self.measurement_model.backward_realization(
+            data, rv, t=time, _linearise_at=_linearise_at
+        )
+
+    def _iterated_update(self, rv, time, data, _linearise_at):
+
+        current_rv, info = self._classic_update(rv, time, data, _linearise_at)
+        new_mean = current_rv.mean
+        old_mean = np.inf * np.ones(current_rv.mean.shape)
+        while not self.update_stopcrit.terminate(
+            error=new_mean - old_mean, reference=new_mean
+        ):
+            old_mean = new_mean
+            current_rv, info = self._classic_update(current_rv, time, data)
+            new_mean = current_rv.mean
+        return current_rv, info
+
     def smooth(self, filter_posterior, _previous_posterior=None):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
 
@@ -313,56 +340,3 @@ class Kalman(BayesFiltSmooth):
             dt=stop - start,
             _linearise_at=_linearise_at,
         )
-
-
-def iterate_update(update_fun, stopcrit=None):
-    """Iterated update decorator.
-
-    Examples
-    --------
-    >>> import functools as ft
-    >>>
-    >>> # default stopping
-    >>> iter_upd_default = iterate_update(update_classic)
-    >>>
-    >>> # Custom stopping
-    >>> stopcrit = StoppingCriterion(atol=1e-12, rtol=1e-14, maxit=1000)
-    >>> iter_upd_custom = iterate_update(update_fun=update_classic, stopcrit=stopcrit)
-    """
-    if stopcrit is None:
-        stopcrit = StoppingCriterion()
-
-    def new_update_fun(*args, **kwargs):
-        return _iterated_update(update_fun, stopcrit, *args, **kwargs)
-
-    return new_update_fun
-
-
-def _iterated_update(
-    update_fun, stopcrit, measurement_model, data, rv, time, _linearise_at=None
-):
-    """Turn an update_*() function into an iterated update.
-
-    This iteration is continued until it reaches a fixed-point (as
-    measured with atol and rtol). Using this inside `Kalman` yields the
-    iterated (extended/unscented/...) Kalman filter.
-    """
-    current_rv, info = update_fun(
-        measurement_model=measurement_model,
-        data=data,
-        rv=rv,
-        time=time,
-        _linearise_at=_linearise_at,
-    )
-    new_mean = current_rv.mean
-    old_mean = np.inf * np.ones(current_rv.mean.shape)
-    while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
-        old_mean = new_mean
-        current_rv, info = update_fun(
-            measurement_model=measurement_model,
-            data=data,
-            rv=current_rv,
-            time=time,
-        )
-        new_mean = current_rv.mean
-    return current_rv, info
