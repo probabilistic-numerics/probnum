@@ -1,14 +1,12 @@
 """Initialisation procedures."""
+# pylint: disable=import-outside-toplevel
 
 
-import functools
-
-import numpy as np
-
-import probnum.diffeq as pnd
-import probnum.random_variables as pnrv
+from probnum.problems import InitialValueProblem
 
 __all__ = ["compute_all_derivatives"]
+
+# pylint: disable=import-outside-toplevel
 
 
 def compute_all_derivatives(ivp, order=6):
@@ -96,7 +94,6 @@ def _taylormode(f, z0, t0, order):
     """
 
     try:
-        import jax
         import jax.numpy as jnp
         from jax.config import config
         from jax.experimental.jet import jet

@@ -3,6 +3,7 @@ import numpy as np
 from probnum.problems import InitialValueProblem
 
 __all__ = ["threebody_jax", "vanderpol_jax"]
+# pylint: disable=import-outside-toplevel
 
 
 JAX_ERRORMSG = "IVP instantiation requires jax. Try using `threebody()` instead, or install `jax` via `pip install jax jaxlib`"
@@ -60,8 +61,8 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
 
         config.update("jax_enable_x64", True)
 
-    except ImportError:
-        raise ImportError(JAX_ERRORMSG)
+    except ImportError as err:
+        raise ImportError(JAX_ERRORMSG) from err
 
     def threebody_rhs(Y):
         # defining the ODE:
@@ -87,7 +88,7 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
         return ddf(y)
 
     y0 = np.array([0.994, 0, 0, -2.00158510637908252240537862224])
-    t0, tmax = 0.0, tmax
+    t0 = 0.0
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac, ddf=hess)
 
 
@@ -138,8 +139,8 @@ def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
 
         config.update("jax_enable_x64", True)
 
-    except ImportError:
-        raise ImportError(JAX_ERRORMSG)
+    except ImportError as err:
+        raise ImportError(JAX_ERRORMSG) from err
 
     if isinstance(params, float):
         mu = params
