@@ -4,7 +4,20 @@ import probnum.diffeq as pnd
 import probnum.problems as pnprob
 import probnum.problems.zoo.diffeq as diffeq_zoo
 
+try:
+    import jax
+    import jax.numpy as jnp
+    from jax.config import config
 
+    config.update("jax_enable_x64", True)
+
+    JAX_AVAILABLE = True
+except ImportError:
+    JAX_AVAILABLE = False
+
+
+@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
+@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
@@ -18,6 +31,7 @@ def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
     assert isinstance(ivp, pnprob.InitialValueProblem)
 
 
+@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
@@ -25,6 +39,7 @@ def test_f(ivp_jax):
     ivp_jax.f(ivp_jax.t0, ivp_jax.y0)
 
 
+@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
@@ -32,6 +47,7 @@ def test_df(ivp_jax):
     ivp_jax.df(ivp_jax.t0, ivp_jax.y0)
 
 
+@pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
 @pytest.mark.parametrize(
     "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
 )
