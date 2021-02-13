@@ -85,7 +85,6 @@ class InitialValueProblem:
         Hessian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
     solution
         Closed form, analytic solution to the problem. Used for testing and benchmarking.
-
     dy0_all
         All initial derivatives up to some order.
 
