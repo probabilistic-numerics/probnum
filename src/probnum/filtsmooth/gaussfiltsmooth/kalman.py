@@ -10,12 +10,6 @@ from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
 from .extendedkalman import ContinuousEKFComponent
-from .kalman_utils import (
-    measure_via_transition,
-    predict_via_transition,
-    rts_smooth_step_classic,
-    update_classic,
-)
 from .stoppingcriterion import StoppingCriterion
 from .unscentedkalman import ContinuousUKFComponent
 
@@ -46,44 +40,7 @@ class Kalman(BayesFiltSmooth):
         Custom update step. Choose between e.g. classical, and square-root implementation. Default is 'rts_smooth_step_classic`.
     """
 
-    def __init__(
-        self,
-        dynamics_model,
-        measurement_model,
-        initrv,
-        use_predict=predict_via_transition,
-        use_measure=measure_via_transition,
-        use_update=update_classic,
-        use_smooth_step=rts_smooth_step_classic,
-    ):
-
-        if not issubclass(type(initrv), pnrv.Normal):
-            raise ValueError(
-                "Gaussian filters/smoothers need initial "
-                "random variables with Normal distribution."
-            )
-        self.dynamics_model = dynamics_model
-        self.measurement_model = measurement_model
-        self.initrv = initrv
-        # self.predict = lambda *args, **kwargs: use_predict(
-        #     dynamics_model, *args, **kwargs
-        # )
-        # self.measure = lambda *args, **kwargs: use_measure(
-        #     measurement_model, *args, **kwargs
-        # )
-        # self.update = lambda *args, **kwargs: use_update(
-        #     measurement_model, *args, **kwargs
-        # )
-        # self.smooth_step = use_smooth_step
-        super().__init__(
-            dynamics_model=dynamics_model,
-            measurement_model=measurement_model,
-            initrv=initrv,
-        )
-
-    def iterated_filtsmooth(
-        self, dataset, times, stopcrit=None, _intermediate_step=None
-    ):
+    def iterated_filtsmooth(self, dataset, times, stopcrit=None):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
         If the extended Kalman filter is used, this yields the IEKS. In
@@ -98,7 +55,6 @@ class Kalman(BayesFiltSmooth):
         old_posterior = self.filtsmooth(
             dataset=dataset,
             times=times,
-            _intermediate_step=_intermediate_step,
             _previous_posterior=None,
         )
         new_posterior = old_posterior
@@ -109,16 +65,13 @@ class Kalman(BayesFiltSmooth):
             new_posterior = self.filtsmooth(
                 dataset=dataset,
                 times=times,
-                _intermediate_step=_intermediate_step,
                 _previous_posterior=old_posterior,
             )
             new_mean = new_posterior.state_rvs.mean
             old_mean = old_posterior.state_rvs.mean
         return new_posterior
 
-    def filtsmooth(
-        self, dataset, times, _intermediate_step=None, _previous_posterior=None
-    ):
+    def filtsmooth(self, dataset, times, _previous_posterior=None):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
@@ -128,8 +81,6 @@ class Kalman(BayesFiltSmooth):
         times : array_like, shape (N,)
             Temporal locations of the data points.
             The zeroth element in times and dataset is the location of the initial random variable.
-        _intermediate_step
-            Step-size to solve the moment equations with. Optional. Only required for LinearSDE priors (not for LTI SDE priors).
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -144,13 +95,12 @@ class Kalman(BayesFiltSmooth):
         filter_posterior = self.filter(
             dataset,
             times,
-            _intermediate_step=_intermediate_step,
             _previous_posterior=_previous_posterior,
         )
         smooth_posterior = self.smooth(filter_posterior)
         return smooth_posterior
 
-    def filter(self, dataset, times, _intermediate_step=None, _previous_posterior=None):
+    def filter(self, dataset, times, _previous_posterior=None):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
@@ -160,8 +110,6 @@ class Kalman(BayesFiltSmooth):
         times : array_like, shape (N,)
             Temporal locations of the data points.
             The zeroth element in times and dataset is the location of the initial random variable.
-        _intermediate_step
-            Step-size to solve the moment equations with. Optional. Only required for LinearSDE priors (not for LTI SDE priors).
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -202,7 +150,6 @@ class Kalman(BayesFiltSmooth):
                 data=dataset[idx],
                 _linearise_predict_at=_linearise_predict_at,
                 _linearise_update_at=_linearise_update_at,
-                _intermediate_step=_intermediate_step,
             )
             rvs.append(filtrv)
         return KalmanPosterior(times, rvs, self, with_smoothing=False)
@@ -213,7 +160,6 @@ class Kalman(BayesFiltSmooth):
         stop,
         current_rv,
         data,
-        _intermediate_step=None,
         _linearise_predict_at=None,
         _linearise_update_at=None,
         _diffusion=1.0,
@@ -233,8 +179,6 @@ class Kalman(BayesFiltSmooth):
             of a previous call to filter_step.
         data : array_like
             Compute the update based on this data.
-        _intermediate_step
-            Intermediate step to be taken inside the prediction.
         _linearise_predict_at
             Linearise the prediction step at this RV. Used for iterated filtering and smoothing.
         _linearise_update_at
