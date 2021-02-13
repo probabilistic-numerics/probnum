@@ -262,6 +262,8 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
 
 
 class DiscreteIEKFComponent(DiscreteEKFComponent):
+    """Iterated extended Kalman filtering."""
+
     def __init__(
         self,
         non_linear_model,

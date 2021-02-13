@@ -77,6 +77,99 @@ class Transition(abc.ABC):
     ):
         raise NotImplementedError
 
+    # Smoothing and sampling implementations
+
+    def smooth_list(self, rv_list, locations, _previous_posterior=None):
+        """Apply smoothing to a list of RVs.
+
+        Parameters
+        ----------
+        rv_list : _RandomVariableList or array_like
+            List of random variables to be smoothed.
+        locations : array_like
+            Locations of the random variables in rv_list.
+        _previous_posterior
+            For posterior linearisation. Used iterated smoothing.
+
+        Returns
+        -------
+        _RandomVariableList
+            List of smoothed random variables.
+        """
+
+        final_rv = rv_list[-1]
+        curr_rv = final_rv
+        out_rvs = [curr_rv]
+        for idx in reversed(range(1, len(locations))):
+            unsmoothed_rv = rv_list[idx - 1]
+
+            _linearise_smooth_step_at = (
+                None
+                if _previous_posterior is None
+                else _previous_posterior(locations[idx - 1])
+            )
+
+            # Actual smoothing step
+            curr_rv, _ = self.backward_rv(
+                curr_rv,
+                unsmoothed_rv,
+                t=locations[idx - 1],
+                dt=locations[idx] - locations[idx - 1],
+                _linearise_at=_linearise_smooth_step_at,
+            )
+            out_rvs.append(curr_rv)
+        out_rvs.reverse()
+        return _RandomVariableList(out_rvs)
+
+    def sample_list(self, rv_list, locations, _previous_posterior=None):
+        """Jointly sample from a transition, conditioned on a list of RVs.
+
+        Parameters
+        ----------
+        rv_list : _RandomVariableList or array_like
+            List of random variables to be smoothed.
+        locations : array_like
+            Locations of the random variables in rv_list.
+        _previous_posterior
+            For posterior linearisation. Used iterated smoothing.
+
+        Returns
+        -------
+        _RandomVariableList
+            List of smoothed random variables.
+        """
+
+        num_dim = len(rv_list[-1].sample())
+
+        curr_sample = rv_list[-1].sample()
+        out_samples = [curr_sample]
+        curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+
+        for idx in reversed(range(1, len(locations))):
+            unsmoothed_rv = rv_list[idx - 1]
+
+            _linearise_smooth_step_at = (
+                None
+                if _previous_posterior is None
+                else _previous_posterior(locations[idx - 1])
+            )
+
+            # Actual smoothing step
+            curr_rv, _ = self.backward_rv(
+                curr_rv,
+                unsmoothed_rv,
+                t=locations[idx - 1],
+                dt=locations[idx] - locations[idx - 1],
+                _linearise_at=_linearise_smooth_step_at,
+            )
+
+            curr_sample = curr_rv.sample()
+            out_samples.append(curr_sample)
+            curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+
+        out_samples.reverse()
+        return out_samples
+
     # Utility functions that are used surprisingly often:
     #
     # Call forward/backward transitions of realisations by

@@ -30,14 +30,6 @@ class Kalman(BayesFiltSmooth):
         If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
     initrv
         Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
-    predict
-        Custom prediction step. Choose between e.g. classical and square-root implementation. Default is 'predict_via_transition`.
-    measure
-        Custom measurement step. Choose between e.g. classical and square-root implementation. Default is 'measure_via_transition`.
-    update
-        Custom update step. Choose between e.g. classical, Joseph form, and square-root implementation. Default is 'update_classic`.
-    smooth_step
-        Custom update step. Choose between e.g. classical, and square-root implementation. Default is 'rts_smooth_step_classic`.
     """
 
     def iterated_filtsmooth(self, dataset, times, stopcrit=None):
