@@ -6,7 +6,7 @@ __all__ = ["threebody_jax", "vanderpol_jax"]
 # pylint: disable=import-outside-toplevel
 
 
-JAX_ERRORMSG = "IVP instantiation requires jax. Try using `threebody()` instead, or install `jax` via `pip install jax jaxlib`"
+JAX_ERRORMSG = "IVP instantiation requires jax. Try using the pure numpy versions instead, or install `jax` via `pip install jax jaxlib`"
 
 
 def threebody_jax(tmax=17.0652165601579625588917206249):
