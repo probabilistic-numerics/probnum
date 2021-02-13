@@ -5,6 +5,7 @@ import probnum.problems as pnprob
 import probnum.problems.zoo.diffeq as diffeq_zoo
 
 # Jax dependency handling
+# pylint: disable=unused-import
 try:
     import jax
     import jax.numpy as jnp
@@ -15,6 +16,8 @@ try:
     JAX_AVAILABLE = True
 
     IVPs = [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
+
+
 except ImportError:
     JAX_AVAILABLE = False
     IVPs = []
