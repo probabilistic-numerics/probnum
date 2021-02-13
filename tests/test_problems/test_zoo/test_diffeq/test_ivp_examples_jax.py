@@ -16,3 +16,15 @@ def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
 
     ivp = pnd.compute_all_derivatives(ivp_jax, order=1)
     assert isinstance(ivp, pnprob.InitialValueProblem)
+
+
+def test_f(ivp_jax):
+    ivp.f(ivp.t0, ivp.y0)
+
+
+def test_df(ivp_jax):
+    ivp.df(ivp.t0, ivp.y0)
+
+
+def test_ddf(ivp_jax):
+    ivp.ddf(ivp.t0, ivp.y0)
