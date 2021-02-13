@@ -17,7 +17,7 @@ def problem():
     dynmod, measmod, initrv, info = problem
 
     times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnfss.generate(
+    states, obs = pnfss.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
     return dynmod, measmod, initrv, info, obs, times, states

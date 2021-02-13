@@ -68,7 +68,7 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
         self.dynmod, self.measmod, self.initrv, info = car_tracking()
         self.delta_t = info["dt"]
         self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate(
+        self.states, self.obs = pnfs.statespace.generate_samples(
             self.dynmod, self.measmod, self.initrv, self.tms
         )
 
@@ -107,7 +107,7 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
         self.delta_t = info["dt"]
         self.tmax = info["tmax"]
         self.tms = np.arange(0, self.tmax, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate(
+        self.states, self.obs = pnfs.statespace.generate_samples(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
 
@@ -230,7 +230,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         delta_t = info["dt"]
         tmax = info["tmax"]
         tms = np.arange(0, tmax, delta_t)
-        states, obs = pnfs.statespace.generate(dynamod, measmod, initrv, tms)
+        states, obs = pnfs.statespace.generate_samples(dynamod, measmod, initrv, tms)
 
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(measmod)

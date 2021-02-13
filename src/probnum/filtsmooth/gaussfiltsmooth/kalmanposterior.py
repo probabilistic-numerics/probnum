@@ -103,17 +103,11 @@ class KalmanPosterior(FiltSmoothPosterior):
         next_loc = self.locations[next_idx]
         next_rv = self._state_rvs[next_idx]
 
-        # Intermediate prediction
-        predicted_future_rv, info = self.gauss_filter.predict(
-            rv=pred_rv,
-            start=loc,
-            stop=next_loc,
-        )
-        crosscov = info["crosscov"]
-
+        # Actual smoothing step
         curr_rv, _ = self.gauss_filter.smooth_step(
-            pred_rv, predicted_future_rv, next_rv, crosscov
+            next_rv, pred_rv, t=loc, dt=next_loc - loc, _linearise_at=None
         )
+
         return curr_rv
 
     def __len__(self):
@@ -152,17 +146,15 @@ class KalmanPosterior(FiltSmoothPosterior):
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = random_vars[idx - 1]
 
-            # Intermediate prediction
-            predicted_rv, info = self.gauss_filter.predict(
-                rv=unsmoothed_rv,
-                start=locations[idx - 1],
-                stop=locations[idx],
-            )
-            crosscov = info["crosscov"]
-
+            # Actual smoothing step
             curr_rv, _ = self.gauss_filter.smooth_step(
-                unsmoothed_rv, predicted_rv, curr_rv, crosscov
+                curr_rv,
+                unsmoothed_rv,
+                t=locations[idx - 1],
+                dt=locations[idx] - locations[idx - 1],
+                _linearise_at=None,
             )
+
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)
             curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))

@@ -45,7 +45,7 @@ class Kalman(BayesFiltSmooth):
 
         self.update_stopcrit = update_stopcrit
         if self.update_stopcrit is None:
-            self.update = self._update_classic
+            self.update = self._classic_update
         else:
             self.update = self._iterated_update
 
@@ -221,7 +221,7 @@ class Kalman(BayesFiltSmooth):
         )
         return filtrv, info
 
-    def predict(self, rv, start, stop, _linearise_at, _diffusion):
+    def predict(self, rv, start, stop, _linearise_at=None, _diffusion=1.0):
         return self.dynamics_model.forward_rv(
             rv,
             t=start,
@@ -230,17 +230,20 @@ class Kalman(BayesFiltSmooth):
             _diffusion=_diffusion,
         )
 
-    def update(self, rv, time, data, _linearise_at):
+    # Only here for compatibility reasons, not actually used in filter().
+    def measure(self, rv, time, _linearise_at=None):
+        return self.measurement_model.forward_rv(
+            rv,
+            t=time,
+            _linearise_at=_linearise_at,
+        )
+
+    def _classic_update(self, rv, time, data, _linearise_at=None):
         return self.measurement_model.backward_realization(
             data, rv, t=time, _linearise_at=_linearise_at
         )
 
-    def _classic_update(self, rv, time, data, _linearise_at):
-        return self.measurement_model.backward_realization(
-            data, rv, t=time, _linearise_at=_linearise_at
-        )
-
-    def _iterated_update(self, rv, time, data, _linearise_at):
+    def _iterated_update(self, rv, time, data, _linearise_at=None):
 
         current_rv, info = self._classic_update(rv, time, data, _linearise_at)
         new_mean = current_rv.mean
@@ -306,13 +309,10 @@ class Kalman(BayesFiltSmooth):
 
             # Actual smoothing step
             curr_rv, _ = self.smooth_step(
-                unsmoothed_rv,
-                None,
                 curr_rv,
-                None,
-                dynamics_model=None,
-                start=locations[idx - 1],
-                stop=locations[idx],
+                unsmoothed_rv,
+                t=locations[idx - 1],
+                dt=locations[idx],
                 _linearise_at=_linearise_smooth_step_at,
             )
             out_rvs.append(curr_rv)
@@ -321,22 +321,17 @@ class Kalman(BayesFiltSmooth):
 
     def smooth_step(
         self,
-        unsmoothed_rv,
-        predicted_rv,
         curr_rv,
-        crosscov,
-        dynamics_model,
-        start,
-        stop,
+        unsmoothed_rv,
+        t,
+        dt,
         _linearise_at,
     ):
 
         return self.dynamics_model.backward_rv(
             curr_rv,
             unsmoothed_rv,
-            rv_forwarded=None,
-            gain=None,
-            t=start,
-            dt=stop - start,
+            t=t,
+            dt=dt,
             _linearise_at=_linearise_at,
         )

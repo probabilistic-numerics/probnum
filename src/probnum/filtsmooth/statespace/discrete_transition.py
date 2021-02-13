@@ -411,8 +411,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         backward_implementation="classic",
     ):
         _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat)
-        input_dim = len(state_trans_mat)
-        output_dim = len(state_trans_mat.T)
+        output_dim, input_dim = state_trans_mat.shape
 
         super().__init__(
             input_dim,
