@@ -18,13 +18,22 @@ def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
     assert isinstance(ivp, pnprob.InitialValueProblem)
 
 
+@pytest.mark.parametrize(
+    "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
+)
 def test_f(ivp_jax):
-    ivp.f(ivp.t0, ivp.y0)
+    ivp_jax.f(ivp_jax.t0, ivp_jax.y0)
 
 
+@pytest.mark.parametrize(
+    "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
+)
 def test_df(ivp_jax):
-    ivp.df(ivp.t0, ivp.y0)
+    ivp_jax.df(ivp_jax.t0, ivp_jax.y0)
 
 
+@pytest.mark.parametrize(
+    "ivp_jax", [diffeq_zoo.threebody_jax(), diffeq_zoo.vanderpol_jax()]
+)
 def test_ddf(ivp_jax):
-    ivp.ddf(ivp.t0, ivp.y0)
+    ivp_jax.ddf(ivp_jax.t0, ivp_jax.y0)
