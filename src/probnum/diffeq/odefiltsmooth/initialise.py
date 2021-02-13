@@ -12,19 +12,25 @@ __all__ = ["compute_all_derivatives"]
 
 
 def compute_all_derivatives(ivp, order=11):
-    """Fill dy0_all field of InitialValueProblem."""
+    """Fill dy0_all field of InitialValueProblem.
 
-    try:
-        import jax
-        import jax.numpy as jnp
-        from jax.config import config
-        from jax.experimental.jet import jet
-
-        config.update("jax_enable_x64", True)
-
-    except ImportError:
-        raise ImportError("Initialisation requires jax. Sorry :( ")
-
+    Examples
+    --------
+    >>> from probnum.problems.zoo.diffeq import threebody_jax
+    >>> ivp = threebody_jax()
+    >>> print(ivp.y0)
+    [ 0.994       0.          0.         -2.00158511]
+    >>> print(ivp.dy0_all)
+    None
+    >>> ivp2 = compute_all_derivatives(ivp, order=3)
+    >>> print(ivp2.y0)
+    [ 0.994       0.          0.         -2.00158511]
+    >>> print(ivp2.dy0_all)
+    [ 9.94000000e-01  0.00000000e+00  0.00000000e+00 -2.00158511e+00
+      0.00000000e+00 -2.00158511e+00 -3.15543023e+02  0.00000000e+00
+     -3.15543023e+02  0.00000000e+00  0.00000000e+00  9.99720945e+04
+      0.00000000e+00  9.99720945e+04  6.39028111e+07  0.00000000e+00]
+    """
     ivp.dy0_all = _taylormode(f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order)
     return ivp
 
@@ -35,6 +41,16 @@ def _taylormode(f, z0, t0, order):
     Inspired by the implementation in
     https://github.com/jacobjinkelly/easy-neural-ode/blob/master/latent_ode.py
     """
+
+    try:
+        import jax
+        import jax.numpy as jnp
+        from jax.config import config
+        from jax.experimental.jet import jet
+
+        config.update("jax_enable_x64", True)
+    except ImportError:
+        raise ImportError("Initialisation requires jax. Sorry... :( ")
 
     def total_derivative(z_t):
         """Total derivative."""
@@ -63,33 +79,3 @@ def _taylormode(f, z0, t0, order):
         derivs.extend(yns[-2][:-1])
 
     return jnp.array(derivs)
-
-
-# def forwardmode(f, z0, t0, order):
-#     """Forward mode automatic differentiation for initialisation."""
-#     f_new = functools.partial(f, t=None)
-#
-#     def totalderiv(f_):
-#         jac = jax.jacfwd(f_)
-#         return lambda y: jac(y) @ f_(y)
-#
-#     derivs = []
-#     derivs.extend(z0)
-#     if order == 0:
-#         return jnp.array(derivs)
-#
-#     y0 = f_new(z0)
-#     derivs.extend(y0)
-#     if order == 1:
-#         return jnp.array(derivs)
-#
-#     raise RuntimeError("Something is wrong for q > 1.")
-#
-#     this_f = lambda y: f_new(y)
-#     for _ in range(order - 1):
-#         this_f = totalderiv(this_f)
-#
-#         derivs.extend(this_f(z0))
-#
-#     print()
-#     return jnp.array(derivs)

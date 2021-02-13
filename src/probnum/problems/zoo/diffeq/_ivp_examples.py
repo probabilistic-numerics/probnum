@@ -1,9 +1,22 @@
+import numpy as np
+
 from probnum.problems import InitialValueProblem
 
 __all__ = ["threebody_jax"]
 
 
 def threebody_jax(tmax=17.0652165601579625588917206249):
+    try:
+        import jax
+        import jax.numpy as jnp
+        from jax.config import config
+        from jax.experimental.jet import jet
+
+        config.update("jax_enable_x64", True)
+
+    except ImportError:
+        raise ImportError("Initialisation requires jax. Sorry :( ")
+
     def threebody_rhs(Y):
         # defining the ODE:
         # assume Y = [y1,y2,y1',y2']
@@ -19,14 +32,14 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
     ddf = jax.jit(jax.jacrev(df))
 
     def rhs(t, y):
-        return np.array(threebody_rhs(Y=y))
+        return threebody_rhs(Y=y)
 
     def jac(t, y):
-        return np.array(df(y))
+        return df(y)
 
     def hess(t, y):
-        return np.array(ddf(y))
+        return ddf(y)
 
     y0 = np.array([0.994, 0, 0, -2.00158510637908252240537862224])
     t0, tmax = 0.0, tmax
-    return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=df, ddf=ddf)
+    return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac, ddf=hess)
