@@ -86,6 +86,9 @@ class InitialValueProblem:
     solution
         Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
+    dy0_all
+        All initial derivatives up to some order.
+
     Examples
     --------
     >>> def f(t, x):
@@ -103,6 +106,8 @@ class InitialValueProblem:
     y0: typing.Union[pntp.FloatArgType, np.ndarray]
     df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+
+    dy0_all: typing.Optional[np.ndarray] = None
 
     # For testing and benchmarking
     solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None

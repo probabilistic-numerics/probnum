@@ -14,6 +14,7 @@ from .ode import (
 from .odefiltsmooth import (
     GaussianIVPFilter,
     KalmanODESolution,
+    compute_all_derivatives,
     ivp2ekf0,
     ivp2ekf1,
     ivp2ukf,
@@ -45,6 +46,7 @@ __all__ = [
     "AdaptiveSteps",
     "ODESolution",
     "KalmanODESolution",
+    "compute_all_derivatives",
 ]
 
 # Set correct module paths (for superclasses).
