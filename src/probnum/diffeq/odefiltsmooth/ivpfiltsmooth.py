@@ -45,32 +45,32 @@ class GaussianIVPFilter(ODESolver):
 
         # Read the diffusion matrix; required for calibration / error estimation
         discrete_dynamics = self.gfilt.dynamics_model.discretise(t_new - t)
-        diffmat = discrete_dynamics.diffmat
+        proc_noise_cov = discrete_dynamics.proc_noise_cov_mat
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.predict(t, t_new, current_rv)
+        pred_rv, _ = self.gfilt.predict(rv=current_rv, start=t, stop=t_new)
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
+        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
 
         # 3. Estimate the diffusion (sigma squared)
         self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
         # 3.1. Adjust the prediction covariance to include the diffusion
         pred_rv = Normal(
-            pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * diffmat
+            pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * proc_noise_cov
         )
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measure(t_new, pred_rv)
+        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
 
         # 4. Update
         zero_data = 0.0
-        filt_rv = self.gfilt.condition_state_on_measurement(
-            pred_rv, meas_rv, zero_data, info["crosscov"]
+        filt_rv = pnfs.condition_state_on_measurement(
+            pred_rv, meas_rv, info["crosscov"], zero_data
         )
 
         # 5. Error estimate
         local_errors = self._estimate_local_error(
-            pred_rv, t_new, self.sigma_squared_mle * diffmat
+            pred_rv, t_new, self.sigma_squared_mle * proc_noise_cov
         )
         err = np.linalg.norm(local_errors)
 
@@ -116,7 +116,9 @@ class GaussianIVPFilter(ODESolver):
         smoothing_posterior = self.gfilt.smooth(ode_solution.kalman_posterior)
         return KalmanODESolution(smoothing_posterior)
 
-    def _estimate_local_error(self, pred_rv, t_new, calibrated_diffmat, **kwargs):
+    def _estimate_local_error(
+        self, pred_rv, t_new, calibrated_proc_noise_cov, **kwargs
+    ):
         """Estimate the local errors.
 
         This corresponds to the approach in [1], implemented such that it is compatible
@@ -129,8 +131,8 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        local_pred_rv = Normal(pred_rv.mean, calibrated_diffmat)
-        local_meas_rv, _ = self.gfilt.measure(t_new, local_pred_rv)
+        local_pred_rv = Normal(pred_rv.mean, calibrated_proc_noise_cov)
+        local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
         error = local_meas_rv.cov.diagonal()
         return np.sqrt(error)
 

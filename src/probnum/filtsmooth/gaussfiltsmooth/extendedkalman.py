@@ -1,66 +1,105 @@
 """Gaussian filtering and smoothing based on making intractable quantities tractable
 through Taylor-method approximations, e.g. linearization."""
 
+import abc
+import typing
+
 import numpy as np
 
 import probnum.random_variables as pnrv
+import probnum.type as pntype
 from probnum.filtsmooth import statespace
 
 
-class ContinuousEKFComponent(statespace.Transition):
-    """Continuous extended Kalman filter transition."""
+class EKFComponent(statespace.Transition, abc.ABC):
+    """Interface for extended Kalman filtering components."""
 
-    def __init__(self, non_linear_sde, num_steps):
-        if not isinstance(non_linear_sde, statespace.SDE):
-            raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
-        self.non_linear_sde = non_linear_sde
-        self.num_steps = num_steps
+    def __init__(self, non_linear_model) -> None:
+
+        self.non_linear_model = non_linear_model
+
+        # Will be constructed later
+        self.linearized_model = None
         super().__init__()
 
     def transition_realization(
-        self, real, start, stop, _linearise_at=None, _diffusion=1.0, **kwargs
-    ):
+        self,
+        real: np.ndarray,
+        start: float,
+        stop: typing.Optional[float] = None,
+        step: typing.Optional[float] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ) -> (pnrv.Normal, typing.Dict):
 
-        compute_jacobian_at = _linearise_at.mean if _linearise_at is not None else real
-
-        def jacobfun(t, x=compute_jacobian_at):
-            # replaces functools (second variable may not be called x)
-            return self.non_linear_sde.jacobfun(t, x)
-
-        step = (stop - start) / self.num_steps
-        return statespace.linear_sde_statistics(
-            rv=pnrv.Normal(mean=real, cov=np.zeros((len(real), len(real)))),
-            start=start,
-            stop=stop,
+        # Do we want the EKF to linearise first and then transition the real,
+        # or try to call the non-linear transition if possible?
+        # There is no right or wrong, but what is the desired behaviour?
+        real_as_rv = pnrv.Normal(real, np.zeros((len(real), len(real))))
+        return self.transition_rv(
+            real_as_rv,
+            start,
+            stop,
             step=step,
-            driftfun=self.non_linear_sde.driftfun,
-            jacobfun=jacobfun,
-            dispmatfun=self.non_linear_sde.dispmatfun,
+            _linearise_at=_linearise_at,
             _diffusion=_diffusion,
         )
 
     def transition_rv(
-        self, rv, start, stop, _linearise_at=None, _diffusion=1.0, **kwargs
-    ):
+        self,
+        rv: pnrv.Normal,
+        start: float,
+        stop: typing.Optional[float] = None,
+        step: typing.Optional[float] = None,
+        _linearise_at: typing.Optional[pnrv.RandomVariable] = None,
+        _diffusion: typing.Optional[pntype.FloatArgType] = 1.0,
+        **kwargs
+    ) -> (pnrv.Normal, typing.Dict):
 
-        compute_jacobian_at = (
-            _linearise_at.mean if _linearise_at is not None else rv.mean
+        compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
+        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
+        return self.linearized_model.transition_rv(
+            rv=rv, start=start, stop=stop, step=step, _diffusion=_diffusion
         )
 
-        def jacobfun(t, x=compute_jacobian_at):
-            # replaces functools (second variable may not be called x)
-            return self.non_linear_sde.jacobfun(t, x)
+    @abc.abstractmethod
+    def linearize(self, at_this_rv: pnrv.RandomVariable) -> statespace.Transition:
+        """Linearize the transition and make it tractable."""
+        raise NotImplementedError
 
-        step = (stop - start) / self.num_steps
-        return statespace.linear_sde_statistics(
-            rv=rv,
-            start=start,
-            stop=stop,
-            step=step,
-            driftfun=self.non_linear_sde.driftfun,
-            jacobfun=jacobfun,
-            dispmatfun=self.non_linear_sde.dispmatfun,
-            _diffusion=_diffusion,
+
+class ContinuousEKFComponent(EKFComponent):
+    """Continuous extended Kalman filter transition."""
+
+    def __init__(self, non_linear_model, num_steps: pntype.IntArgType) -> None:
+        if not isinstance(non_linear_model, statespace.SDE):
+            raise TypeError("Continuous EKF transition requires a (non-linear) SDE.")
+
+        super().__init__(non_linear_model=non_linear_model)
+
+        # Number of RK4 steps to solve the ODE dynamics
+        # see linear_sde_statics() below
+        self.num_steps = num_steps
+
+    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+        """Linearize the drift function with a first order Taylor expansion."""
+
+        g = self.non_linear_model.driftfun
+        dg = self.non_linear_model.jacobfun
+
+        x0 = at_this_rv.mean
+
+        def forcevecfun(t):
+            return g(t, x0) - dg(t, x0) @ x0
+
+        def driftmatfun(t):
+            return dg(t, x0)
+
+        return statespace.LinearSDE(
+            driftmatfun=driftmatfun,
+            forcevecfun=forcevecfun,
+            dispmatfun=self.non_linear_model.dispmatfun,
         )
 
     @property
@@ -68,35 +107,51 @@ class ContinuousEKFComponent(statespace.Transition):
         raise NotImplementedError
 
 
-class DiscreteEKFComponent(statespace.Transition):
+class DiscreteEKFComponent(EKFComponent):
     """Discrete extended Kalman filter transition."""
 
-    def __init__(self, disc_model):
-        self.disc_model = disc_model
-        super().__init__()
+    def __init__(self, non_linear_model) -> None:
+        if not isinstance(non_linear_model, statespace.DiscreteGaussian):
+            raise TypeError(
+                "Discrete EKF transition requires a (non-linear) discrete Gaussian transition."
+            )
 
-    def transition_realization(self, real, start, _diffusion=1.0, **kwargs):
-        return self.disc_model.transition_realization(
-            real, start, _diffusion=_diffusion, **kwargs
-        )
+        super().__init__(non_linear_model=non_linear_model)
 
-    def transition_rv(self, rv, start, _linearise_at=None, _diffusion=1.0, **kwargs):
-        diffmat = self.disc_model.diffmatfun(start)
-        compute_jacobian_at = (
-            _linearise_at.mean if _linearise_at is not None else rv.mean
+    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+        """Linearize the dynamics function with a first order Taylor expansion."""
+
+        g = self.non_linear_model.state_trans_fun
+        dg = self.non_linear_model.jacob_state_trans_fun
+
+        x0 = at_this_rv.mean
+
+        def forcevecfun(t):
+            return g(t, x0) - dg(t, x0) @ x0
+
+        def dynamicsmatfun(t):
+            return dg(t, x0)
+
+        return statespace.DiscreteLinearGaussian(
+            state_trans_mat_fun=dynamicsmatfun,
+            shift_vec_fun=forcevecfun,
+            proc_noise_cov_mat_fun=self.non_linear_model.proc_noise_cov_mat_fun,
         )
-        jacob = self.disc_model.jacobfun(start, compute_jacobian_at)
-        mpred = self.disc_model.dynamicsfun(start, rv.mean)
-        crosscov = rv.cov @ jacob.T
-        cpred = jacob @ crosscov + _diffusion * diffmat
-        return pnrv.Normal(mpred, cpred), {"crosscov": crosscov}
 
     @property
     def dimension(self):
         raise NotImplementedError
 
     @classmethod
-    def from_ode(cls, ode, prior, evlvar, ek0_or_ek1=0):
+    def from_ode(
+        cls,
+        ode,
+        prior,
+        evlvar,
+        ek0_or_ek1=0,
+    ):
+        # code is here, and not in DiscreteGaussian, because we want the option of ek0-Jacobians
+
         spatialdim = prior.spatialdim
         h0 = prior.proj2coord(coord=0)
         h1 = prior.proj2coord(coord=1)

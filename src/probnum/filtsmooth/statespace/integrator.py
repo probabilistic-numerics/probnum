@@ -24,6 +24,16 @@ class Integrator:
     def __init__(self, ordint, spatialdim):
         self.ordint = ordint
         self.spatialdim = spatialdim
+        self.precon = None  # to be set later
+
+    def setup_precon(self):
+        # This can not be done in the init, due to the order in which
+        # IBM, IOUP, and Matern initialise their superclasses.
+        # Integrator needs to be initialised before LTISDE,
+        # in which case via LTISDE, self.precon is set to None
+        # To make up for this, we call this function here explicitly
+        # after the calls to the superclasses' init.
+        self.precon = NordsieckLikeCoordinates.from_order(self.ordint, self.spatialdim)
 
     def proj2coord(self, coord: int) -> np.ndarray:
         """Projection matrix to :math:`i` th coordinates.
@@ -67,8 +77,7 @@ class IBM(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
-
-        self.precon = NordsieckLikeCoordinates.from_order(ordint, spatialdim)
+        self.setup_precon()
 
     @property
     def _driftmat(self):
@@ -89,15 +98,15 @@ class IBM(Integrator, sde.LTISDE):
     @cached_property
     def equivalent_discretisation_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
-        empty_force = np.zeros(self.spatialdim * (self.ordint + 1))
+        empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=self._dynamicsmat,
-            forcevec=empty_force,
-            diffmat=self._diffmat,
+            state_trans_mat=self._state_trans_mat,
+            shift_vec=empty_shift,
+            proc_noise_cov_mat=self._proc_noise_cov_mat,
         )
 
     @cached_property
-    def _dynamicsmat(self):
+    def _state_trans_mat(self):
         # Loop, but cached anyway
         driftmat_1d = np.array(
             [
@@ -111,12 +120,12 @@ class IBM(Integrator, sde.LTISDE):
         return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
     @cached_property
-    def _diffmat(self):
+    def _proc_noise_cov_mat(self):
         # Optimised with broadcasting
         range = np.arange(0, self.ordint + 1)
         denominators = 2.0 * self.ordint + 1.0 - range[:, None] - range[None, :]
-        diffmat_1d = 1.0 / denominators
-        return np.kron(np.eye(self.spatialdim), diffmat_1d)
+        proc_noise_cov_mat_1d = 1.0 / denominators
+        return np.kron(np.eye(self.spatialdim), proc_noise_cov_mat_1d)
 
     def transition_rv(self, rv, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(rv, pnrv.Normal):
@@ -127,32 +136,23 @@ class IBM(Integrator, sde.LTISDE):
             raise TypeError(errormsg)
         step = stop - start
         rv = self.precon.inverse(step) @ rv
-        rv, info = self.transition_rv_preconditioned(rv, start, _diffusion=_diffusion)
-        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
-        return self.precon(step) @ rv, info
-
-    def transition_rv_preconditioned(self, rv, start, _diffusion=1.0, **kwargs):
-        return self.equivalent_discretisation_preconditioned.transition_rv(
+        rv, info = self.equivalent_discretisation_preconditioned.transition_rv(
             rv, start, _diffusion=_diffusion
         )
+        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
+        return self.precon(step) @ rv, info
 
     def transition_realization(self, real, start, stop, _diffusion=1.0, **kwargs):
         if not isinstance(real, np.ndarray):
             raise TypeError(f"Numpy array expected, {type(real)} received.")
         step = stop - start
         real = self.precon.inverse(step) @ real
-        real, info = self.transition_realization_preconditioned(
+        out = self.equivalent_discretisation_preconditioned.transition_realization(
             real, start, _diffusion=_diffusion
         )
+        real, info = out
         info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
         return self.precon(step) @ real, info
-
-    def transition_realization_preconditioned(
-        self, real, start, _diffusion=1.0, **kwargs
-    ):
-        return self.equivalent_discretisation_preconditioned.transition_realization(
-            real, start, _diffusion=_diffusion
-        )
 
     def discretise(self, step):
         """Equivalent discretisation of the process.
@@ -162,19 +162,21 @@ class IBM(Integrator, sde.LTISDE):
         interface. Not used for transition_rv, etc..
         """
 
-        dynamicsmat = (
+        state_trans_mat = (
             self.precon(step)
-            @ self.equivalent_discretisation_preconditioned.dynamicsmat
+            @ self.equivalent_discretisation_preconditioned.state_trans_mat
             @ self.precon.inverse(step)
         )
-        diffmat = (
+        proc_noise_cov_mat = (
             self.precon(step)
-            @ self.equivalent_discretisation_preconditioned.diffmat
+            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
             @ self.precon(step).T
         )
-        zero_force = np.zeros(len(dynamicsmat))
+        zero_shift = np.zeros(len(state_trans_mat))
         return discrete_transition.DiscreteLTIGaussian(
-            dynamicsmat=dynamicsmat, forcevec=zero_force, diffmat=diffmat
+            state_trans_mat=state_trans_mat,
+            shift_vec=zero_shift,
+            proc_noise_cov_mat=proc_noise_cov_mat,
         )
 
 
@@ -197,6 +199,7 @@ class IOUP(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
+        self.setup_precon()
 
     @property
     def _driftmat(self):
@@ -226,7 +229,6 @@ class Matern(Integrator, sde.LTISDE):
         lengthscale: float,
     ):
 
-        # Other than previously in ProbNum, we do not use preconditioning for Matern by default.
         self.lengthscale = lengthscale
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
@@ -236,6 +238,7 @@ class Matern(Integrator, sde.LTISDE):
             forcevec=self._forcevec,
             dispmat=self._dispmat,
         )
+        self.setup_precon()
 
     @property
     def _driftmat(self):
