@@ -2,7 +2,7 @@ import numpy as np
 
 from probnum.problems import InitialValueProblem
 
-__all__ = ["threebody_jax"]
+__all__ = ["threebody_jax", "vanderpol_jax"]
 
 
 def threebody_jax(tmax=17.0652165601579625588917206249):
@@ -10,7 +10,6 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
         import jax
         import jax.numpy as jnp
         from jax.config import config
-        from jax.experimental.jet import jet
 
         config.update("jax_enable_x64", True)
 
@@ -42,4 +41,80 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
 
     y0 = np.array([0.994, 0, 0, -2.00158510637908252240537862224])
     t0, tmax = 0.0, tmax
+    return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac, ddf=hess)
+
+
+def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
+    r"""Initial value problem (IVP) based on the Van der Pol Oscillator, implemented in `jax`.
+
+    This function implements the second-order Van-der-Pol Oscillator as a system
+    of first-order ODEs.
+    The Van der Pol Oscillator is defined as
+
+    .. math::
+
+        f(t, y) =
+        \begin{pmatrix}
+            y_2 \\
+            \mu \cdot (1 - y_1^2)y_2 - y_1
+        \end{pmatrix}
+
+    for a constant parameter  :math:`\mu`.
+    :math:`\mu` determines the stiffness of the problem, where
+    the larger :math:`\mu` is chosen, the more stiff the problem becomes.
+    Default is :math:`\mu = 0.1`.
+    This implementation includes the Jacobian :math:`J_f` of :math:`f`.
+
+    Parameters
+    ----------
+    t0 : float
+        Initial time point. Leftmost point of the integration domain.
+    tmax : float
+        Final time point. Rightmost point of the integration domain.
+    y0 : np.ndarray,
+        *(shape=(2, ))* -- Initial value of the problem.
+    params : (float), optional
+        Parameter :math:`\mu` for the Van der Pol Equations
+        Default is :math:`\mu=0.1`.
+
+    Returns
+    -------
+    IVP
+        IVP object describing the Van der Pol Oscillator IVP with the prescribed
+        configuration.
+    """
+
+    try:
+        import jax
+        import jax.numpy as jnp
+        from jax.config import config
+
+        config.update("jax_enable_x64", True)
+
+    except ImportError:
+        raise ImportError("Initialisation requires jax. Sorry :( ")
+
+    if isinstance(params, float):
+        mu = params
+    else:
+        (mu,) = params
+
+    if y0 is None:
+        y0 = np.array([2.0, 0.0])
+
+    def vanderpol_rhs(Y):
+        return jnp.array([Y[1], mu * (1.0 - Y[0] ** 2) * Y[1] - Y[0]])
+
+    df = jax.jit(jax.jacfwd(vanderpol_rhs))
+    ddf = jax.jit(jax.jacrev(df))
+
+    def rhs(t, y):
+        return vanderpol_rhs(Y=y)
+
+    def jac(t, y):
+        return df(y)
+
+    def hess(t, y):
+        return ddf(y)
+
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac, ddf=hess)
