@@ -6,6 +6,7 @@ from typing import Dict, Optional
 import numpy as np
 
 import probnum.random_variables as pnrv
+from probnum._randomvariablelist import _RandomVariableList
 
 
 class Transition(abc.ABC):
@@ -143,7 +144,7 @@ class Transition(abc.ABC):
 
         curr_sample = rv_list[-1].sample()
         out_samples = [curr_sample]
-        curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+        curr_rv = pnrv.Normal(curr_sample, np.zeros((num_dim, num_dim)))
 
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
@@ -165,7 +166,7 @@ class Transition(abc.ABC):
 
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)
-            curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+            curr_rv = pnrv.Normal(curr_sample, np.zeros((num_dim, num_dim)))
 
         out_samples.reverse()
         return out_samples

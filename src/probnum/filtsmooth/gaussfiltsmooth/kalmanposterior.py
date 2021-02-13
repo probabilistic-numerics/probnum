@@ -24,9 +24,9 @@ class KalmanPosterior(FiltSmoothPosterior):
         Filter/smoother used to compute the discrete-time estimates.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter, with_smoothing):
+    def __init__(self, locations, state_rvs, transition, with_smoothing):
         self._locations = np.asarray(locations)
-        self.gauss_filter = gauss_filter
+        self.transition = transition
         self._state_rvs = _RandomVariableList(state_rvs)
         self._with_smoothing = with_smoothing
 
@@ -92,8 +92,8 @@ class KalmanPosterior(FiltSmoothPosterior):
         previous_loc = self.locations[previous_idx]
         previous_rv = self.state_rvs[previous_idx]
 
-        pred_rv, _ = self.gauss_filter.predict(
-            rv=previous_rv, start=previous_loc, stop=loc
+        pred_rv, _ = self.transition.forward_rv(
+            rv=previous_rv, t=previous_loc, dt=loc - previous_loc
         )
         return pred_rv
 
@@ -104,8 +104,8 @@ class KalmanPosterior(FiltSmoothPosterior):
         next_rv = self._state_rvs[next_idx]
 
         # Actual smoothing step
-        curr_rv, _ = self.gauss_filter.smooth_step(
-            next_rv, pred_rv, t=loc, dt=next_loc - loc, _linearise_at=None
+        curr_rv, _ = self.transition.backward_rv(
+            next_rv, pred_rv, t=loc, dt=next_loc - loc
         )
 
         return curr_rv
@@ -128,36 +128,9 @@ class KalmanPosterior(FiltSmoothPosterior):
 
         if size == ():
             return np.array(
-                self._single_sample_path(locations=locations, random_vars=random_vars)
+                self.transition.sample_list(locations=locations, rv_list=random_vars)
             )
 
         return np.array(
             [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
         )
-
-    def _single_sample_path(self, locations, random_vars):
-
-        num_dim = len(random_vars[-1].sample())
-
-        curr_sample = random_vars[-1].sample()
-        out_samples = [curr_sample]
-        curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
-
-        for idx in reversed(range(1, len(locations))):
-            unsmoothed_rv = random_vars[idx - 1]
-
-            # Actual smoothing step
-            curr_rv, _ = self.gauss_filter.smooth_step(
-                curr_rv,
-                unsmoothed_rv,
-                t=locations[idx - 1],
-                dt=locations[idx] - locations[idx - 1],
-                _linearise_at=None,
-            )
-
-            curr_sample = curr_rv.sample()
-            out_samples.append(curr_sample)
-            curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
-
-        out_samples.reverse()
-        return out_samples

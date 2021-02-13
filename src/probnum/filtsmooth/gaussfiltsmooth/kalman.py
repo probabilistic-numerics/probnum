@@ -144,7 +144,7 @@ class Kalman(BayesFiltSmooth):
                 _linearise_update_at=_linearise_update_at,
             )
             rvs.append(filtrv)
-        return KalmanPosterior(times, rvs, self, with_smoothing=False)
+        return KalmanPosterior(times, rvs, self.dynamics_model, with_smoothing=False)
 
     def filter_step(
         self,
@@ -240,68 +240,14 @@ class Kalman(BayesFiltSmooth):
             Posterior distribution of the smoothed output
         """
 
-        rv_list = self.smooth_list(
+        rv_list = self.dynamics_model.smooth_list(
             filter_posterior,
             filter_posterior.locations,
             _previous_posterior=_previous_posterior,
         )
         return KalmanPosterior(
-            filter_posterior.locations, rv_list, self, with_smoothing=True
-        )
-
-    def smooth_list(self, rv_list, locations, _previous_posterior):
-        """Apply smoothing to a list of RVs.
-
-        Parameters
-        ----------
-        rv_list : _RandomVariableList or array_like
-            List of random variables to be smoothed.
-        locations : array_like
-            Locations of the random variables in rv_list.
-
-        Returns
-        -------
-        _RandomVariableList
-            List of smoothed random variables.
-        """
-
-        final_rv = rv_list[-1]
-        curr_rv = final_rv
-        out_rvs = [curr_rv]
-        for idx in reversed(range(1, len(locations))):
-            unsmoothed_rv = rv_list[idx - 1]
-
-            _linearise_smooth_step_at = (
-                None
-                if _previous_posterior is None
-                else _previous_posterior(locations[idx - 1])
-            )
-
-            # Actual smoothing step
-            curr_rv, _ = self.smooth_step(
-                curr_rv,
-                unsmoothed_rv,
-                t=locations[idx - 1],
-                dt=locations[idx],
-                _linearise_at=_linearise_smooth_step_at,
-            )
-            out_rvs.append(curr_rv)
-        out_rvs.reverse()
-        return _RandomVariableList(out_rvs)
-
-    def smooth_step(
-        self,
-        curr_rv,
-        unsmoothed_rv,
-        t,
-        dt,
-        _linearise_at,
-    ):
-
-        return self.dynamics_model.backward_rv(
-            curr_rv,
-            unsmoothed_rv,
-            t=t,
-            dt=dt,
-            _linearise_at=_linearise_at,
+            filter_posterior.locations,
+            rv_list,
+            self.dynamics_model,
+            with_smoothing=True,
         )
