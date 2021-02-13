@@ -188,7 +188,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
-    def linearize(self, at_this_rv: pnrv.Normal) -> None:
+    def linearize(self, at_this_rv: pnrv.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
         g = self.non_linear_model.state_trans_fun
@@ -258,4 +258,75 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             discrete_model,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
+        )
+
+
+class DiscreteIEKFComponent(DiscreteEKFComponent):
+    def __init__(
+        self,
+        non_linear_model,
+        stopcrit=None,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ) -> None:
+
+        super().__init__(
+            non_linear_model, forward_implementation, backward_implementation
+        )
+
+        self.stopcrit = StoppingCriterion() if stopcrit is None else stopcrit
+
+    def backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        current_rv, info = self._classic_backward_rv(
+            rv_obtained=rv_obtained,
+            rv=rv,
+            t=t,
+            dt=dt,
+            _diffusion=_diffusion,
+            _linearise_at=_linearise_at,
+        )
+
+        new_mean = current_rv.mean
+        old_mean = np.inf * np.ones(current_rv.mean.shape)
+        while not self.stopcrit.terminate(
+            error=new_mean - old_mean, reference=new_mean
+        ):
+            old_mean = new_mean
+            current_rv, info = self._classic_backward_rv(
+                rv_obtained=rv_obtained,
+                rv=current_rv,
+                t=t,
+                dt=dt,
+                _diffusion=_diffusion,
+            )
+            new_mean = current_rv.mean
+        return current_rv, info
+
+    def _classic_backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+    ):
+        compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
+        self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
+        return self.linearized_model.backward_rv(
+            rv_obtained=rv_obtained,
+            rv=rv,
+            t=t,
+            dt=dt,
+            _diffusion=_diffusion,
         )

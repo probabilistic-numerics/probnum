@@ -40,15 +40,6 @@ class Kalman(BayesFiltSmooth):
         Custom update step. Choose between e.g. classical, and square-root implementation. Default is 'rts_smooth_step_classic`.
     """
 
-    def __init__(self, dynamics_model, measurement_model, initrv, update_stopcrit=None):
-        super().__init__(dynamics_model, measurement_model, initrv)
-
-        self.update_stopcrit = update_stopcrit
-        if self.update_stopcrit is None:
-            self.update = self._classic_update
-        else:
-            self.update = self._iterated_update
-
     def iterated_filtsmooth(self, dataset, times, stopcrit=None):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -238,23 +229,10 @@ class Kalman(BayesFiltSmooth):
             _linearise_at=_linearise_at,
         )
 
-    def _classic_update(self, rv, time, data, _linearise_at=None):
+    def update(self, rv, time, data, _linearise_at=None):
         return self.measurement_model.backward_realization(
             data, rv, t=time, _linearise_at=_linearise_at
         )
-
-    def _iterated_update(self, rv, time, data, _linearise_at=None):
-
-        current_rv, info = self._classic_update(rv, time, data, _linearise_at)
-        new_mean = current_rv.mean
-        old_mean = np.inf * np.ones(current_rv.mean.shape)
-        while not self.update_stopcrit.terminate(
-            error=new_mean - old_mean, reference=new_mean
-        ):
-            old_mean = new_mean
-            current_rv, info = self._classic_update(current_rv, time, data)
-            new_mean = current_rv.mean
-        return current_rv, info
 
     def smooth(self, filter_posterior, _previous_posterior=None):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
