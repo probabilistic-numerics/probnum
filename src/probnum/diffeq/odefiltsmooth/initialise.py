@@ -75,8 +75,17 @@ def compute_all_derivatives(ivp, order=6):
     >>> print(vdp.dy0_all)
     [    2.     0.     0.    -2.    -2.    60.    60. -1798.]
     """
-    ivp.dy0_all = _taylormode(f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order)
-    return ivp
+    all_initial_derivatives = _taylormode(f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order)
+    return InitialValueProblem(
+        f=ivp.f,
+        t0=ivp.t0,
+        tmax=ivp.tmax,
+        y0=ivp.y0,
+        df=ivp.df,
+        ddf=ivp.ddf,
+        solution=ivp.solution,
+        dy0_all=all_initial_derivatives,
+    )
 
 
 def _taylormode(f, z0, t0, order):
