@@ -6,6 +6,50 @@ __all__ = ["threebody_jax", "vanderpol_jax"]
 
 
 def threebody_jax(tmax=17.0652165601579625588917206249):
+    r"""Initial value problem (IVP) based on a three-body problem.
+
+    Let the initial conditions be :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`.
+    This function implements the second-order three-body problem as a system of
+    first-order ODEs, which is defined as follows: [1]_
+
+    .. math::
+
+        f(t, y) =
+        \begin{pmatrix}
+            \dot{y_1} \\
+            \dot{y_2} \\
+            y_1 + 2 \dot{y}_2 - \frac{(1 - \mu) (y_1 + \mu)}{d_1}
+                - \frac{\mu (y_1 - (1 - \mu))}{d_2} \\
+            y_2 - 2 \dot{y}_1 - \frac{(1 - \mu) y_2}{d_1} - \frac{\mu y_2}{d_2}
+        \end{pmatrix}
+
+    with
+
+    .. math::
+
+        d_1 &= ((y_1 + \mu)^2 + y_2^2)^{\frac{3}{2}} \\
+        d_2 &= ((y_1 - (1 - \mu))^2 + y_2^2)^{\frac{3}{2}}
+
+    and a constant parameter  :math:`\mu = 0.012277471` denoting the standardized moon mass.
+
+    Parameters
+    ----------
+    tmax
+        Final time.
+
+    Returns
+    -------
+    IVP
+        IVP object describing a three-body problem IVP with the prescribed
+        configuration.
+
+    References
+    ----------
+    .. [1] Hairer, E., Norsett, S. and Wanner, G..
+        Solving Ordinary Differential Equations I.
+        Springer Series in Computational Mathematics, 1993.
+    """
+
     try:
         import jax
         import jax.numpy as jnp
