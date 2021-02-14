@@ -74,19 +74,19 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         )
 
     def forward_realization(
-        self, real, t, dt=None, _compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self, real, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ) -> (pnrv.Normal, typing.Dict):
         return self._forward_realization_as_rv(
             real,
             t=t,
             dt=dt,
-            _compute_gain=_compute_gain,
+            compute_gain=compute_gain,
             _diffusion=_diffusion,
             _linearise_at=_linearise_at,
         )
 
     def forward_rv(
-        self, rv, t, dt=None, _compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ) -> (pnrv.Normal, typing.Dict):
         raise NotImplementedError("TODO")  # Issue  #234
 
@@ -132,8 +132,6 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
     def __init__(
         self,
         non_linear_model,
-        input_dim=None,
-        output_dim=None,
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
@@ -141,8 +139,8 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         UKFComponent.__init__(
             self,
             non_linear_model,
-            input_dim=input_dim,
-            output_dim=output_dim,
+            input_dim=non_linear_model.input_dim,
+            output_dim=non_linear_model.output_dim,
             spread=spread,
             priorpar=priorpar,
             special_scale=special_scale,
@@ -150,15 +148,15 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
 
         statespace.DiscreteGaussian.__init__(
             self,
+            non_linear_model.input_dim,
+            non_linear_model.output_dim,
             non_linear_model.state_trans_fun,
-            proc_noise_cov_mat_fun,
-            jacob_state_trans_fun,
-            input_dim,
-            output_dim,
+            non_linear_model.proc_noise_cov_mat_fun,
+            non_linear_model.jacob_state_trans_fun,
         )
 
     def forward_rv(
-        self, rv, t, _compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
+        self, rv, t, compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
     ) -> (pnrv.Normal, typing.Dict):
         compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
         self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
@@ -171,7 +169,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
             proppts, self.sigma_points, meascov, rv.mean
         )
         info = {"crosscov": crosscov}
-        if _compute_gain:
+        if compute_gain:
             gain = crosscov @ np.linalg.inv(cov)
             info["gain"] = gain
         return pnrv.Normal(mean, cov), info

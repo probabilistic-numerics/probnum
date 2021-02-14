@@ -8,6 +8,7 @@ from .gaussfiltsmooth import (
     DiscreteEKFComponent,
     DiscreteUKFComponent,
     EKFComponent,
+    IteratedDiscreteComponent,
     Kalman,
     KalmanPosterior,
     StoppingCriterion,
@@ -29,4 +30,5 @@ __all__ = [
     "FiltSmoothPosterior",
     "KalmanPosterior",
     "StoppingCriterion",
+    "IteratedDiscreteComponent",
 ]
