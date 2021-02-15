@@ -1,11 +1,8 @@
 """Continuous-time transition utility functions."""
 
-import functools
 
 import numpy as np
 import scipy.linalg
-
-import probnum.random_variables as pnrv
 
 
 def matrix_fraction_decomposition(driftmat, dispmat, dt):

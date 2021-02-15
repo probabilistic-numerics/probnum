@@ -6,7 +6,7 @@ from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import logistic, lotkavolterra
 from probnum.random_variables import Constant, Normal
-from tests.testing import NumpyAssertions, chi_squared_statistic
+from tests.testing import NumpyAssertions
 
 
 class TestODESolution(unittest.TestCase, NumpyAssertions):

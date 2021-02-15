@@ -1,5 +1,3 @@
-import functools
-
 import probnum.filtsmooth as pnfs
 
 from . import filtsmooth_testcases as cases

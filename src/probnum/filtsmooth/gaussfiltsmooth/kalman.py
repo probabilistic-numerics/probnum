@@ -3,15 +3,10 @@
 
 import numpy as np
 
-import probnum.random_variables as pnrv
-from probnum._randomvariablelist import _RandomVariableList
-from probnum.filtsmooth import statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
-from .extendedkalman import ContinuousEKFComponent
 from .stoppingcriterion import StoppingCriterion
-from .unscentedkalman import ContinuousUKFComponent
 
 
 class Kalman(BayesFiltSmooth):

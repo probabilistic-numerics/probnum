@@ -3,7 +3,6 @@ import pytest
 
 import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace as pnfss
-from tests.testing import NumpyAssertions
 
 from .test_transition import InterfaceTestTransition
 

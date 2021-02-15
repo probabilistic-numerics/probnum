@@ -8,6 +8,7 @@ from probnum.filtsmooth import statespace as pnfss
 class MockTransition(pnfss.Transition):
     """Empty transition object to test the generate() function."""
 
+    # pylint: disable=signature-differs
     def __init__(self, dim):
         super().__init__(input_dim=dim, output_dim=dim)
 

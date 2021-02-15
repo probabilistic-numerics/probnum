@@ -2,8 +2,6 @@
 
 import abc
 
-import pytest
-
 
 class InterfaceTestTransition(abc.ABC):
     @abc.abstractmethod

@@ -7,7 +7,6 @@ import typing
 import numpy as np
 
 import probnum.random_variables as pnrv
-import probnum.type as pntype
 from probnum.filtsmooth import statespace
 
 

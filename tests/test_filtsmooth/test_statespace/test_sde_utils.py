@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace as pnfss
 
 

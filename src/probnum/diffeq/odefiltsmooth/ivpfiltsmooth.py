@@ -1,7 +1,6 @@
 import numpy as np
 
 import probnum.filtsmooth as pnfs
-from probnum.filtsmooth.statespace import cholesky_update
 from probnum.random_variables import Normal
 
 from ..odesolver import ODESolver

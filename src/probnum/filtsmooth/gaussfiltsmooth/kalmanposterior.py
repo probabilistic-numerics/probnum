@@ -5,7 +5,6 @@ by being callable. Can function values can also be accessed by indexing.
 """
 import numpy as np
 
-import probnum.random_variables as rvs
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior

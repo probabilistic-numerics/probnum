@@ -5,7 +5,7 @@ from probnum.filtsmooth import statespace
 from .stoppingcriterion import StoppingCriterion
 
 
-class IteratedDiscreteComponent(statespace.DiscreteGaussian):
+class IteratedDiscreteComponent(statespace.Transition):
     """Iterated updates.
 
     Examples
@@ -56,6 +56,7 @@ class IteratedDiscreteComponent(statespace.DiscreteGaussian):
     ):
         self._component = component
         self.stopcrit = StoppingCriterion() if stopcrit is None else stopcrit
+        super().__init__(input_dim=component.input_dim, output_dim=component.output_dim)
 
     # Iterated filtering implementation
 
