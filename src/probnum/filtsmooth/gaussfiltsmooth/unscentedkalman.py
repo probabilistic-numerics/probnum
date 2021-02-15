@@ -37,7 +37,7 @@ class UKFComponent:
 
     def assemble_sigma_points(self, at_this_rv: pnrv.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
-        return self.ut.sigma_points(at_this_rv.mean, at_this_rv.cov)
+        return self.ut.sigma_points(at_this_rv)
 
 
 class ContinuousUKFComponent(UKFComponent, statespace.SDE):
@@ -249,5 +249,10 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         def diff(t):
             return evlvar * np.eye(spatialdim)
 
-        disc_model = statespace.DiscreteGaussian(dyna, diff)
-        return cls(disc_model, dimension=prior.dimension)
+        disc_model = statespace.DiscreteGaussian(
+            input_dim=prior.dimension,
+            output_dim=prior.spatialdim,
+            state_trans_fun=dyna,
+            proc_noise_cov_mat_fun=diff,
+        )
+        return cls(disc_model)
