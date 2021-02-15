@@ -144,7 +144,8 @@ class Transition(abc.ABC):
 
         curr_sample = rv_list[-1].sample()
         out_samples = [curr_sample]
-        curr_rv = pnrv.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+        zero_mat = np.zeros((num_dim, num_dim))
+        curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
 
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
@@ -166,7 +167,7 @@ class Transition(abc.ABC):
 
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)
-            curr_rv = pnrv.Normal(curr_sample, np.zeros((num_dim, num_dim)))
+            curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
 
         out_samples.reverse()
         return out_samples

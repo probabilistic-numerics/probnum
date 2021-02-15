@@ -111,7 +111,9 @@ class TestODESolutionAdaptive(TestODESolution):
 
 class TestODESolutionSampling(unittest.TestCase):
     def setUp(self):
-        initrv = Normal(20 * np.ones(2), 0.1 * np.eye(2))
+        initrv = Normal(
+            20 * np.ones(2), 0.1 * np.eye(2), cov_cholesky=np.sqrt(0.1) * np.eye(2)
+        )
         self.ivp = lotkavolterra([0.0, 0.5], initrv)
         step = 0.1
         self.solution = probsolve_ivp(self.ivp, step=step)

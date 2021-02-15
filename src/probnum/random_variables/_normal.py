@@ -74,6 +74,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         cov_cholesky: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
         random_state: RandomStateArgType = None,
     ):
+        if cov_cholesky is None:
+            raise RuntimeError
 
         # Type normalization
         if np.isscalar(mean):
