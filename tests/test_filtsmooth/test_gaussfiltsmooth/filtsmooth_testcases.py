@@ -172,9 +172,11 @@ def logistic_ode():
     delta_t = 0.2
     tmax = 2
 
-    logistic = pnd.logistic((0, tmax), initrv=Constant(0.1), params=(6, 1))
+    logistic = pnd.logistic((0, tmax), initrv=Constant(np.array([0.1])), params=(6, 1))
     dynamod = pnfs.statespace.IBM(ordint=3, spatialdim=1)
-    measmod = pnfs.DiscreteEKFComponent.from_ode(logistic, dynamod, 0.0, ek0_or_ek1=1)
+    measmod = pnfs.DiscreteEKFComponent.from_ode(
+        logistic, dynamod, np.zeros((1, 1)), ek0_or_ek1=1
+    )
 
     initmean = np.array([0.1, 0, 0.0, 0.0])
     initcov = np.diag([0.0, 1.0, 1.0, 1.0])
