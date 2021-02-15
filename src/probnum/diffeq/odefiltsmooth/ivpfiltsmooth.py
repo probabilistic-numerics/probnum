@@ -50,7 +50,9 @@ class GaussianIVPFilter(ODESolver):
         proc_noise_cov_cholesky = discrete_dynamics.proc_noise_cov_cholesky
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.dynamics_model.forward_rv(rv=current_rv, t=t, dt=t_new)
+        pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
+            rv=current_rv, t=t, dt=t_new - t
+        )
 
         # 2. Measure
         meas_rv, info = self.gfilt.measurement_model.forward_rv(
@@ -59,15 +61,11 @@ class GaussianIVPFilter(ODESolver):
 
         # 3. Estimate the diffusion (sigma squared)
         self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
+
         # 3.1. Adjust the prediction covariance to include the diffusion
-        pred_rv_chol = cholesky_update(
-            pred_rv.cov_cholesky,
-            np.sqrt((self.sigma_squared_mle - 1)) * proc_noise_cov_cholesky,
+        pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
+            rv=current_rv, t=t, dt=t_new - t, _diffusion=self.sigma_squared_mle
         )
-
-        pred_rv_cov = pred_rv_chol @ pred_rv_chol.T
-
-        pred_rv = Normal(pred_rv.mean, pred_rv_cov, cov_cholesky=pred_rv_chol)
 
         # 3.2 Update the measurement covariance (measure again)
         meas_rv, info = self.gfilt.measurement_model.forward_rv(
@@ -173,7 +171,7 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        std_like = np.linalg.cholesky(meas_rv.cov)
+        std_like = meas_rv.cov_cholesky
         whitened_res = np.linalg.solve(std_like, meas_rv.mean)
         ssq = whitened_res @ whitened_res / meas_rv.size
         return ssq
