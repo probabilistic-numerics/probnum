@@ -204,6 +204,8 @@ class IBM(Integrator, sde.LTISDE):
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.forward_implementation,
         )
 
 

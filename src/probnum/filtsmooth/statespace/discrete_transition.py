@@ -147,7 +147,10 @@ class DiscreteGaussian(trans.Transition):
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
-        return np.linalg.cholesky(self.proc_noise_cov_mat_fun(t))
+        R = self.proc_noise_cov_mat_fun(t)
+        if np.linalg.norm(R) < 1e-15:
+            return 0 * R
+        return np.linalg.cholesky(R)
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
@@ -318,8 +321,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # forwarded_rv is ignored in square-root smoothing.
 
         # Smoothing updates need the gain, but
-        # filtering updates "compute their own"
-        if np.linalg.norm(rv.cov) > 0 and gain is None:
+        # filtering updates "compute their own".
+        # Thus, if we are doing smoothing (|cov_obtained|>0) an the gain is not provided,
+        # make an extra prediction to compute the gain.
+        if np.linalg.norm(rv_obtained.cov) > 0 and gain is None:
             _, info = self.forward_rv(rv, t=t, compute_gain=True, _diffusion=_diffusion)
             gain = info["gain"]
 
@@ -330,17 +335,20 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         SC_past = rv.cov_cholesky
         SC_attained = rv_obtained.cov_cholesky
 
-        dim = len(H)
+        dim = len(H)  # 2
+        dim2 = len(H.T)  # 8
         zeros = np.zeros((dim, dim))
+        zeros2 = np.zeros((dim, dim2))
+
         blockmat = np.block(
             [
                 [SC_past.T @ H.T, SC_past.T],
-                [SR.T, zeros],
+                [SR.T, zeros2],
                 [zeros, SC_attained.T @ gain.T],
             ]
         )
         big_triu = np.linalg.qr(blockmat, mode="r")
-        SC = big_triu[dim : 2 * dim, dim:]
+        SC = big_triu[dim : (dim + dim2), dim : (dim + dim2)]
 
         if gain is None:
             gain = big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T)
@@ -437,6 +445,10 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
 
     @cached_property
     def proc_noise_cov_cholesky(self):
+
+        # Catch for zero matrix
+        if np.linalg.norm(self.proc_noise_cov_mat) < 1e-15:
+            return 0.0 * self.proc_noise_cov_mat
         return np.linalg.cholesky(self.proc_noise_cov_mat)
 
 

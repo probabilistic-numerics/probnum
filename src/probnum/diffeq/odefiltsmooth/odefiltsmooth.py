@@ -282,13 +282,33 @@ def _string2prior(ivp, which_prior, **kwargs):
 def _string2ibm(ivp, which_prior, **kwargs):
 
     if which_prior == "ibm1":
-        return pnfs.statespace.IBM(1, ivp.dimension)
+        return pnfs.statespace.IBM(
+            1,
+            ivp.dimension,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "ibm2":
-        return pnfs.statespace.IBM(2, ivp.dimension)
+        return pnfs.statespace.IBM(
+            2,
+            ivp.dimension,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "ibm3":
-        return pnfs.statespace.IBM(3, ivp.dimension)
+        return pnfs.statespace.IBM(
+            3,
+            ivp.dimension,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "ibm4":
-        return pnfs.statespace.IBM(4, ivp.dimension)
+        return pnfs.statespace.IBM(
+            4,
+            ivp.dimension,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -300,13 +320,37 @@ def _string2ioup(ivp, which_prior, **kwargs):
     else:
         driftspeed = 1.0
     if which_prior == "ioup1":
-        return pnfs.statespace.IOUP(1, ivp.dimension, driftspeed)
+        return pnfs.statespace.IOUP(
+            1,
+            ivp.dimension,
+            driftspeed,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "ioup2":
-        return pnfs.statespace.IOUP(2, ivp.dimension, driftspeed)
+        return pnfs.statespace.IOUP(
+            2,
+            ivp.dimension,
+            driftspeed,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "ioup3":
-        return pnfs.statespace.IOUP(3, ivp.dimension, driftspeed)
+        return pnfs.statespace.IOUP(
+            3,
+            ivp.dimension,
+            driftspeed,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "ioup4":
-        return pnfs.statespace.IOUP(4, ivp.dimension, driftspeed)
+        return pnfs.statespace.IOUP(
+            4,
+            ivp.dimension,
+            driftspeed,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
@@ -318,13 +362,37 @@ def _string2matern(ivp, which_prior, **kwargs):
     else:
         lengthscale = 1.0
     if which_prior == "matern32":
-        return pnfs.statespace.Matern(1, ivp.dimension, lengthscale)
+        return pnfs.statespace.Matern(
+            1,
+            ivp.dimension,
+            lengthscale,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "matern52":
-        return pnfs.statespace.Matern(2, ivp.dimension, lengthscale)
+        return pnfs.statespace.Matern(
+            2,
+            ivp.dimension,
+            lengthscale,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "matern72":
-        return pnfs.statespace.Matern(3, ivp.dimension, lengthscale)
+        return pnfs.statespace.Matern(
+            3,
+            ivp.dimension,
+            lengthscale,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     elif which_prior == "matern92":
-        return pnfs.statespace.Matern(4, ivp.dimension, lengthscale)
+        return pnfs.statespace.Matern(
+            4,
+            ivp.dimension,
+            lengthscale,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
