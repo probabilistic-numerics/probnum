@@ -22,18 +22,18 @@ class UKFComponent:
     def __init__(
         self,
         non_linear_model,
-        input_dim=None,
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
     ) -> None:
         self.non_linear_model = non_linear_model
-        self.ut = UnscentedTransform(input_dim, spread, priorpar, special_scale)
+        self.ut = UnscentedTransform(
+            non_linear_model.input_dim, spread, priorpar, special_scale
+        )
 
         # Determine the linearization.
         # Will be constructed later.
         self.sigma_points = None
-        super().__init__()
 
     def assemble_sigma_points(self, at_this_rv: pnrv.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
@@ -46,7 +46,6 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
     def __init__(
         self,
         non_linear_model,
-        dimension: pntype.IntArgType,
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
@@ -55,18 +54,16 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         UKFComponent.__init__(
             self,
             non_linear_model,
-            input_dim=dimension,
-            output_dim=dimension,
             spread=spread,
             priorpar=priorpar,
             special_scale=special_scale,
         )
         statespace.SDE.__init__(
             self,
+            non_linear_model.dimension,
             non_linear_model.driftfun,
             non_linear_model.dispmatfun,
             non_linear_model.jacobfun,
-            dimension,
         )
 
         raise NotImplementedError(
@@ -139,8 +136,6 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         UKFComponent.__init__(
             self,
             non_linear_model,
-            input_dim=non_linear_model.input_dim,
-            output_dim=non_linear_model.output_dim,
             spread=spread,
             priorpar=priorpar,
             special_scale=special_scale,
@@ -174,6 +169,18 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
             info["gain"] = gain
         return pnrv.Normal(mean, cov), info
 
+    def forward_realization(
+        self, real, t, _diffusion=1.0, _linearise_at=None, **kwargs
+    ):
+
+        return self._forward_realization_via_forward_rv(
+            real,
+            t=t,
+            compute_gain=False,
+            _diffusion=_diffusion,
+            _linearise_at=_linearise_at,
+        )
+
     def backward_rv(
         self,
         rv_obtained,
@@ -193,8 +200,31 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
             rv_forwarded,
             gain=gain,
             t=t,
-            discrete_transition=self,
             _diffusion=_diffusion,
+            _linearise_at=None,
+        )
+
+    def backward_realization(
+        self,
+        real_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        _diffusion=1.0,
+        _linearise_at=None,
+        **kwargs
+    ):
+
+        # this method is inherited from DiscreteGaussian.
+        return self._backward_realization_via_backward_rv(
+            real_obtained,
+            rv,
+            rv_forwarded,
+            gain=gain,
+            t=t,
+            _diffusion=_diffusion,
+            _linearise_at=_linearise_at,
         )
 
     @property

@@ -131,11 +131,16 @@ class DiscreteGaussian(trans.Transition):
         gain=None,
         t=None,
         _diffusion=None,
+        _linearise_at=None,
     ):
 
         if rv_forwarded is None or gain is None:
             rv_forwarded, info = self.forward_rv(
-                rv, t=t, compute_gain=True, _diffusion=_diffusion
+                rv,
+                t=t,
+                compute_gain=True,
+                _diffusion=_diffusion,
+                _linearise_at=_linearise_at,
             )
             gain = info["gain"]
         return condition_state_on_measurement(rv_obtained, rv_forwarded, rv, gain), {}
