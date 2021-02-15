@@ -48,10 +48,12 @@ class GaussianIVPFilter(ODESolver):
         proc_noise_cov = discrete_dynamics.proc_noise_cov_mat
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.predict(rv=current_rv, start=t, stop=t_new)
+        pred_rv, _ = self.gfilt.dynamics_model.forward_rv(rv=current_rv, t=t, dt=t_new)
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
+        meas_rv, info = self.gfilt.measurement_model.forward_rv(
+            rv=pred_rv, t=t_new, compute_gain=False
+        )
 
         # 3. Estimate the diffusion (sigma squared)
         self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
@@ -59,13 +61,16 @@ class GaussianIVPFilter(ODESolver):
         pred_rv = Normal(
             pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * proc_noise_cov
         )
+
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
+        meas_rv, info = self.gfilt.measurement_model.forward_rv(
+            rv=pred_rv, t=t_new, compute_gain=True
+        )
 
         # 4. Update
-        zero_data = 0.0
-        filt_rv = pnfs.condition_state_on_measurement(
-            pred_rv, meas_rv, info["crosscov"], zero_data
+        zero_data = np.zeros(meas_rv.mean.shape)
+        filt_rv, _ = self.gfilt.measurement_model.backward_realization(
+            zero_data, pred_rv, rv_forwarded=meas_rv, gain=info["gain"]
         )
 
         # 5. Error estimate
@@ -80,7 +85,7 @@ class GaussianIVPFilter(ODESolver):
         """Create an ODESolution object."""
 
         kalman_posterior = pnfs.KalmanPosterior(
-            times, rvs, self.gfilt, self.with_smoothing
+            times, rvs, self.gfilt.dynamics_model, self.with_smoothing
         )
 
         return KalmanODESolution(kalman_posterior)

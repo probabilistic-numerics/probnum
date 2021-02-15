@@ -10,7 +10,7 @@ from probnum.type import FloatArgType
 from . import transition as trans
 from .discrete_transition_utils import (
     cholesky_update,
-    condition_state_on_measurement,
+    condition_state_on_rv,
     triu_to_positive_tril,
 )
 
@@ -143,7 +143,7 @@ class DiscreteGaussian(trans.Transition):
                 _linearise_at=_linearise_at,
             )
             gain = info["gain"]
-        return condition_state_on_measurement(rv_obtained, rv_forwarded, rv, gain), {}
+        return condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain), {}
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):

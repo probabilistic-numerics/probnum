@@ -13,6 +13,7 @@ from .discrete_transition import (
 from .discrete_transition_utils import (
     cholesky_update,
     condition_state_on_measurement,
+    condition_state_on_rv,
     triu_to_positive_tril,
 )
 from .generate_samples import generate_samples
@@ -39,6 +40,7 @@ __all__ = [
     "matrix_fraction_decomposition",
     "generate_samples",
     "condition_state_on_measurement",
+    "condition_state_on_rv",
     "cholesky_update",
     "triu_to_positive_tril",
 ]
