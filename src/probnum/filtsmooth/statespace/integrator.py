@@ -11,6 +11,8 @@ except ImportError:
 import numpy as np
 import scipy.special
 
+import probnum.random_variables as pnrv
+
 from . import discrete_transition, sde
 from .preconditioner import NordsieckLikeCoordinates
 
@@ -134,7 +136,7 @@ class IBM(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        rv = self.precon.inverse(dt) @ rv
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
@@ -143,7 +145,7 @@ class IBM(Integrator, sde.LTISDE):
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        return self.precon(dt) @ rv, info
+        return _apply_precon(self.precon(dt), rv), info
 
     def backward_rv(
         self,
@@ -156,10 +158,12 @@ class IBM(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        rv_obtained = self.precon.inverse(dt) @ rv_obtained
-        rv = self.precon.inverse(dt) @ rv
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            self.precon.inverse(dt) @ rv_forwarded if rv_forwarded is not None else None
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
         )
         gain = (
             self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
@@ -179,7 +183,7 @@ class IBM(Integrator, sde.LTISDE):
         # things in info in which case we want to be warned.
         assert not info
 
-        return self.precon(dt) @ rv, info
+        return _apply_precon(self.precon(dt), rv), info
 
     def discretise(self, dt):
         """Equivalent discretisation of the process.
@@ -260,7 +264,7 @@ class IOUP(Integrator, sde.LTISDE):
     ):
 
         # Fetch things into preconditioned space
-        rv = self.precon.inverse(dt) @ rv
+        rv = _apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
         self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
@@ -274,7 +278,7 @@ class IOUP(Integrator, sde.LTISDE):
         )
 
         # Undo preconditioning and return
-        rv = self.precon(dt) @ rv
+        rv = _apply_precon(self.precon(dt), rv)
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
@@ -297,10 +301,13 @@ class IOUP(Integrator, sde.LTISDE):
         **kwargs,
     ):
         # Fetch things into preconditioned space
-        rv_obtained = self.precon.inverse(dt) @ rv_obtained
-        rv = self.precon.inverse(dt) @ rv
+
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            self.precon.inverse(dt) @ rv_forwarded if rv_forwarded is not None else None
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
         )
         gain = (
             self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
@@ -323,12 +330,13 @@ class IOUP(Integrator, sde.LTISDE):
             t=t,
             _diffusion=_diffusion,
         )
+
         # assert info is empty. Otherwise, we need to change
         # things in info in which case we want to be warned.
         assert not info
 
         # Undo preconditioning and return
-        rv = self.precon(dt) @ rv
+        rv = _apply_precon(self.precon(dt), rv)
         self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
         self.forcevec = self.precon(dt) @ self.forcevec
         self.dispmat = self.precon(dt) @ self.dispmat
@@ -391,7 +399,7 @@ class Matern(Integrator, sde.LTISDE):
     ):
 
         # Fetch things into preconditioned space
-        rv = self.precon.inverse(dt) @ rv
+        rv = _apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
         self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
@@ -405,7 +413,7 @@ class Matern(Integrator, sde.LTISDE):
         )
 
         # Undo preconditioning and return
-        rv = self.precon(dt) @ rv
+        rv = _apply_precon(self.precon(dt), rv)
         info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
             info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
@@ -428,10 +436,13 @@ class Matern(Integrator, sde.LTISDE):
         **kwargs,
     ):
         # Fetch things into preconditioned space
-        rv_obtained = self.precon.inverse(dt) @ rv_obtained
-        rv = self.precon.inverse(dt) @ rv
+
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            self.precon.inverse(dt) @ rv_forwarded if rv_forwarded is not None else None
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
         )
         gain = (
             self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
@@ -460,8 +471,15 @@ class Matern(Integrator, sde.LTISDE):
         assert not info
 
         # Undo preconditioning and return
-        rv = self.precon(dt) @ rv
+        rv = _apply_precon(self.precon(dt), rv)
         self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
         self.forcevec = self.precon(dt) @ self.forcevec
         self.dispmat = self.precon(dt) @ self.dispmat
         return rv, info
+
+
+def _apply_precon(precon, rv):
+    new_mean = precon @ rv.mean
+    new_cov = precon @ rv.cov @ precon.T
+    new_cov_choleky = precon @ rv.cov_cholesky  # precon is diagonal, so this is valid
+    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_choleky)

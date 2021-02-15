@@ -324,9 +324,14 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # filtering updates "compute their own".
         # Thus, if we are doing smoothing (|cov_obtained|>0) an the gain is not provided,
         # make an extra prediction to compute the gain.
-        if np.linalg.norm(rv_obtained.cov) > 0 and gain is None:
-            _, info = self.forward_rv(rv, t=t, compute_gain=True, _diffusion=_diffusion)
-            gain = info["gain"]
+        if gain is None:
+            if np.linalg.norm(rv_obtained.cov) > 0:
+                _, info = self.forward_rv(
+                    rv, t=t, compute_gain=True, _diffusion=_diffusion
+                )
+                gain = info["gain"]
+            else:
+                gain = np.zeros((len(rv.mean), len(rv_obtained.mean)))
 
         H = self.state_trans_mat_fun(t)
         SR = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
