@@ -9,21 +9,34 @@ from probnum._randomvariablelist import _RandomVariableList
 
 
 class Transition(abc.ABC):
-    """Markov transition kernel implementations in discrete and continuous time.
+    r"""Interface for Markov transitions in discrete and continuous time.
 
-    In continuous time, this is a Markov process and described by the solution of a
+    This framework describes transition probabilities
+
+    .. math:: p(\mathcal{G}_t[x(t)] \,|\,  x(t))
+
+    for some operator :math:`\mathcal{G}: \mathbb{R}^d \rightarrow \mathbb{R}^m`, which are used to describe the evolution of Markov processes
+
+    .. math:: p(x(t+\Delta t) \,|\, x(t))
+
+    both in discrete time (Markov chains) and in continuous time (Markov processes).
+    In continuous time, Markov processes are modelled as the solution of a
     stochastic differential equation (SDE)
 
-    .. math:: d x_t = f(t, x_t) d t + d w_t
+    .. math:: d x(t) = f(t, x(t)) d t + d w(t)
 
-    driven by a Wiener process :math:`w`. In discrete time, it is a Markov chain and
+    driven by a Wiener process :math:`w`. In discrete time, Markov chain are
     described by a transformation
 
-    .. math:: x_{t + \\Delta t}  | x_t \\sim p(x_{t + \\Delta t}  | x_t).
+    .. math:: x({t + \Delta t})  \,|\, x(t) \sim p(x({t + \Delta t})  \,|\, x(t)).
 
     Sometimes, these can be equivalent. For example, linear, time-invariant SDEs
     have a mild solution that can be written as a discrete transition.
+    In ProbNum, we also use discrete-time transition objects to describe observation models,
 
+    .. math:: z_k \,|\, x(t_k) \sim p(z_k \,|\, x(t_k))
+
+    for some :math:`k=0,...,K`. All three building blocks are used heavily in filtering and smoothing, as well as solving ODEs.
 
     See Also
     --------
@@ -41,12 +54,75 @@ class Transition(abc.ABC):
     def forward_rv(
         self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
+        r"""Forward-pass of a state, according to the transition. In other words, return a description of
+
+        .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t)),
+
+        or, if we take a message passing perspective,
+
+        .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t), z_{\leq t}),
+
+        for past observations :math:`z_{\leq t}`. (This perspective will be more interesting in light of :meth:`backward_rv`).
+
+
+        Parameters
+        ----------
+        rv
+            Random variable that describes the current state.
+        t
+            Current time point.
+        dt
+            Increment :math:`\Delta t`. Ignored for discrete-time transitions.
+        compute_gain
+            Flag that indicates whether the expected gain of the forward transition shall be computed. This is important if the forward-pass
+            is computed as part of a forward-backward pass, as it is for instance the case in a Kalman update.
+        _diffusion
+            Special diffusion of the driving stochastic process, which is used internally.
+        _linearise_at
+            Specific point of linearisation for approximate forward passes (think: extended Kalman filtering). Used internally for iterated filtering and smoothing.
+
+        Returns
+        -------
+        RandomVariable
+            New state, after applying the transition.
+        Dict
+            Information about the forward pass. Can for instance contain a `gain` key, if `compute_gain` was set to `True` (and if the transition supports this functionality).
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
     def forward_realization(
         self, real, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
     ):
+        r"""Forward-pass of a realization of a state, according to the transition. In other words, return a description of
+
+        .. math:: p(\mathcal{G}_t[x(t)] \,|\, x(t)=\xi),
+
+        for some realization :math:`\xi`.
+
+        Parameters
+        ----------
+        real
+            Realization :math:`\xi` of the random variable :math:`x(t)` that describes the current state.
+        t
+            Current time point.
+        dt
+            Increment :math:`\Delta t`. Ignored for discrete-time transitions.
+        compute_gain
+            Flag that indicates whether the expected gain of the forward transition shall be computed. This is important if the forward-pass
+            is computed as part of a forward-backward pass, as it is for instance the case in a Kalman update.
+        _diffusion
+            Special diffusion of the driving stochastic process, which is used internally.
+        _linearise_at
+            Specific point of linearisation for approximate forward passes (think: extended Kalman filtering). Used internally for iterated filtering and smoothing.
+
+        Returns
+        -------
+        RandomVariable
+            New state, after applying the transition.
+        Dict
+            Information about the forward pass. Can for instance contain a `gain` key, if `compute_gain` was set to `True` (and if the transition supports this functionality).
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -61,6 +137,34 @@ class Transition(abc.ABC):
         _diffusion=1.0,
         _linearise_at=None,
     ):
+        r"""Backward-pass of a state, according to the transition. In other words, return a description of
+
+        .. math:: p(x(t) \,|\, z_{\mathcal{G}_t}) = \int p(x(t) \,|\, z_{\mathcal{G}_t}, \mathcal{G}_t}(x(t))) p(\mathcal{G}_t}(x(t)) \,|\, z_{\mathcal{G}_t})) d \mathcal{G}_t}(x(t)),
+
+        for observations :math:`z_{\mathcal{G}_t})` of :math:`{\mathcal{G}_t}(x(t))`.
+        For example, this function is called for a Rauch-Tung-Striebel smoothing step.
+
+        Parameters
+        ----------
+        t
+            Current time point.
+        dt
+            Increment :math:`\Delta t`. Ignored for discrete-time transitions.
+        compute_gain
+            Flag that indicates whether the expected gain of the forward transition shall be computed. This is important if the forward-pass
+            is computed as part of a forward-backward pass, as it is for instance the case in a Kalman update.
+        _diffusion
+            Special diffusion of the driving stochastic process, which is used internally.
+        _linearise_at
+            Specific point of linearisation for approximate forward passes (think: extended Kalman filtering). Used internally for iterated filtering and smoothing.
+
+        Returns
+        -------
+        RandomVariable
+            New state, after applying the transition.
+        Dict
+            Information about the forward pass. Can for instance contain a `gain` key, if `compute_gain` was set to `True` (and if the transition supports this functionality).
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
