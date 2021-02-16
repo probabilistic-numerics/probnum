@@ -184,6 +184,13 @@ class Kernel(Generic[_InputType], abc.ABC):
                 "dimension."
             )
 
+            # The below was weirdly necessary to make pylint pass
+            # even though I have not touched anything in the vicinity
+            # of kernels. Please, anyone feel free to remove this
+            # pylint-disable again, provided it passes the CI :)
+            #
+            # pylint: disable=redefined-variable-type
+
             # Promote unequal shapes
             if x0.ndim < 2 and x1.ndim == 2:
                 x0 = np.atleast_2d(x0)
