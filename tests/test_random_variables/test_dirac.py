@@ -4,7 +4,6 @@ import unittest
 import numpy as np
 
 from probnum import random_variables as rvs
-from tests.testing import NumpyAssertions
 
 
 def test_constant_accessible_like_gaussian():

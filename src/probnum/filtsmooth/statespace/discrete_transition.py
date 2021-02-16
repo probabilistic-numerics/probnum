@@ -48,10 +48,12 @@ class DiscreteGaussian(trans.Transition):
         State transition function :math:`g=g(t, x)`. Signature: ``state_trans_fun(t, x)``.
     proc_noise_cov_mat_fun :
         Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
-
     jacob_state_trans_fun :
         Jacobian of the state transition function :math:`g` (with respect to :math:`x`), :math:`Jg=Jg(t, x)`.
         Signature: ``jacob_state_trans_fun(t, x)``.
+    proc_noise_cov_cholesky_fun :
+        Cholesky factor of the process noise covariance matrix function :math:`\sqrt{S}=\sqrt{S}(t)`. Signature: ``proc_noise_cov_cholesky_fun(t)``.
+
 
     See Also
     --------
