@@ -1,5 +1,5 @@
 Bayesian Filtering and Smoothing
-===============================
+================================
 
 Bayesian filtering and smoothing provides a framework for efficient inference in state space models.
 For non-linear state space components, probnum provides linearization techniques that enables
