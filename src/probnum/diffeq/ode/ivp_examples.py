@@ -270,7 +270,7 @@ def seir(timespan, initrv, params=(0.3, 0.3, 0.1)):
 
 
 def seir_rhs(t, y, params):
-    """RHS for SEIR model"""
+    """RHS for SEIR model."""
     alpha, beta, gamma, population_count = params
     y1, y2, y3, y4 = y
     y1_next = -beta * y1 * y3 / population_count
@@ -282,7 +282,7 @@ def seir_rhs(t, y, params):
 
 
 def seir_jac(t, y, params):
-    """Jacobian for SEIR model"""
+    """Jacobian for SEIR model."""
     alpha, beta, gamma, population_count = params
     y1, y2, y3, y4 = y
     d_dy1 = np.array(
@@ -498,7 +498,7 @@ def threebody_rhs(t, y, params):
     return np.array([y1_dot, y2_dot, y1p, y2p])
 
 
-def lorenz(timespan, initrv, params=(10, 28, 8 / 3)):
+def lorenz(timespan, initrv, params=(10.0, 28.0, 8.0 / 3.0)):
     r"""Initial value problem (IVP) based on the Lorenz system.
 
     The Lorenz system is defined through
