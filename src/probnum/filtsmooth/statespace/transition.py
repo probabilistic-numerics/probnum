@@ -347,11 +347,9 @@ class Transition(abc.ABC):
     # referring to the forward/backward transition of RVs.
 
     def _backward_realization_via_backward_rv(self, real, *args, **kwargs):
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+        real_as_rv = pnrv.Constant(support=real)
         return self.backward_rv(real_as_rv, *args, **kwargs)
 
     def _forward_realization_via_forward_rv(self, real, *args, **kwargs):
-        zero_cov = np.zeros((len(real), len(real)))
-        real_as_rv = pnrv.Normal(mean=real, cov=zero_cov, cov_cholesky=zero_cov)
+        real_as_rv = pnrv.Constant(support=real)
         return self.forward_rv(real_as_rv, *args, **kwargs)

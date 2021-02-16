@@ -4,6 +4,14 @@ import unittest
 import numpy as np
 
 from probnum import random_variables as rvs
+from tests.testing import NumpyAssertions
+
+
+def test_constant_accessible_like_gaussian():
+    """Constant has an attribute cov_cholesky which returns zeros."""
+    support = np.array([2, 3])
+    s = rvs.Constant(support)
+    np.testing.assert_allclose(s.cov, s.cov_cholesky)
 
 
 class TestDirac(unittest.TestCase):
