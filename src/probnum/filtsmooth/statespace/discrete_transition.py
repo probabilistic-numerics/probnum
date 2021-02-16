@@ -8,6 +8,14 @@ from probnum.type import FloatArgType
 
 from . import transition as trans
 
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property, lru_cache
+except ImportError:
+    from functools import lru_cache
+
+    from cached_property import cached_property
+
 
 class DiscreteGaussian(trans.Transition):
     """Discrete transitions with additive Gaussian noise.
@@ -65,6 +73,10 @@ class DiscreteGaussian(trans.Transition):
     def transition_rv(self, rv, start, **kwargs):
 
         raise NotImplementedError
+
+    @lru_cache(maxsize=None)
+    def proc_noise_cov_cholesky_fun(self, t):
+        return np.linalg.cholesky(self.proc_noise_cov_mat_fun(t))
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
@@ -177,6 +189,14 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         self.state_trans_mat = state_trans_mat
         self.shift_vec = shift_vec
         self.proc_noise_cov_mat = proc_noise_cov_mat
+
+    @lru_cache(maxsize=None)
+    def proc_noise_cov_cholesky_fun(self, t):
+        return self.proc_noise_cov_cholesky
+
+    @cached_property
+    def proc_noise_cov_cholesky(self):
+        return np.linalg.cholesky(self.proc_noise_cov_mat)
 
 
 def _check_dimensions(state_trans_mat, shift_vec, proc_noise_cov_mat):

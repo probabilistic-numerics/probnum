@@ -5,10 +5,11 @@ import numpy as np
 
 import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
+from probnum.filtsmooth import statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
-# default options at initialisation
+from .extendedkalman import ContinuousEKFComponent
 from .kalman_utils import (
     measure_via_transition,
     predict_via_transition,
@@ -16,6 +17,7 @@ from .kalman_utils import (
     update_classic,
 )
 from .stoppingcriterion import StoppingCriterion
+from .unscentedkalman import ContinuousUKFComponent
 
 
 class Kalman(BayesFiltSmooth):
@@ -176,9 +178,9 @@ class Kalman(BayesFiltSmooth):
             None if _previous_posterior is None else _previous_posterior(times[0])
         )
         filtrv, *_ = self.update(
+            data=dataset[0],
             rv=self.initrv,
             time=times[0],
-            data=dataset[0],
             _linearise_at=_linearise_update_at,
         )
 
@@ -251,14 +253,15 @@ class Kalman(BayesFiltSmooth):
         data = np.asarray(data)
         info = {}
         info["pred_rv"], info["info_pred"] = self.predict(
+            rv=current_rv,
             start=start,
             stop=stop,
-            rv=current_rv,
             _intermediate_step=_intermediate_step,
             _linearise_at=_linearise_predict_at,
             _diffusion=_diffusion,
         )
-        filtrv, info["meas_rv"], info["info_upd"] = self.update(
+
+        filtrv, info["info_upd"] = self.update(
             rv=info["pred_rv"],
             time=stop,
             data=data,
@@ -279,6 +282,18 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
+
+        # See Issue #300
+        bad_options = (
+            statespace.LinearSDE,
+            ContinuousEKFComponent,
+            ContinuousUKFComponent,
+        )
+        if isinstance(self.dynamics_model, bad_options) and not isinstance(
+            self.dynamics_model, statespace.LTISDE
+        ):
+            raise ValueError("Continuous-discrete smoothing is not supported (yet).")
+
         rv_list = self.smooth_list(
             filter_posterior,
             filter_posterior.locations,
@@ -319,7 +334,13 @@ class Kalman(BayesFiltSmooth):
 
             # Actual smoothing step
             curr_rv, _ = self.smooth_step(
-                unsmoothed_rv, predicted_rv, curr_rv, crosscov
+                unsmoothed_rv,
+                predicted_rv,
+                curr_rv,
+                crosscov,
+                dynamics_model=self.dynamics_model,
+                start=locations[idx - 1],
+                stop=locations[idx],
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
