@@ -161,8 +161,6 @@ class DiscreteGaussian(trans.Transition):
         if self._proc_noise_cov_cholesky_fun is not None:
             return self._proc_noise_cov_cholesky_fun(t)
         covmat = self.proc_noise_cov_mat_fun(t)
-        if np.linalg.norm(covmat) < 1e-15:
-            return 0.0 * covmat
         return np.linalg.cholesky(covmat)
 
 
@@ -472,10 +470,6 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
     def proc_noise_cov_cholesky(self):
         if self._proc_noise_cov_cholesky is not None:
             return self._proc_noise_cov_cholesky
-
-        # Catch for zero matrix
-        if np.linalg.norm(self.proc_noise_cov_mat) < 1e-15:
-            return 0.0 * self.proc_noise_cov_mat
         return np.linalg.cholesky(self.proc_noise_cov_mat)
 
 
