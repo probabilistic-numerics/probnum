@@ -101,6 +101,7 @@ class IBM(Integrator, sde.LTISDE):
             state_trans_mat=self._state_trans_mat,
             shift_vec=empty_shift,
             proc_noise_cov_mat=self._proc_noise_cov_mat,
+            proc_noise_cov_cholesky=np.linalg.cholesky(self._proc_noise_cov_mat),
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
