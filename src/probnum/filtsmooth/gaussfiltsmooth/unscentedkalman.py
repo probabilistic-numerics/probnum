@@ -148,6 +148,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
             non_linear_model.state_trans_fun,
             non_linear_model.proc_noise_cov_mat_fun,
             non_linear_model.jacob_state_trans_fun,
+            non_linear_model.proc_noise_cov_cholesky_fun,
         )
 
     def forward_rv(
@@ -236,7 +237,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         cls,
         ode,
         prior,
-        evlvar,
+        evlvar=0.0,
     ):
 
         spatialdim = prior.spatialdim
@@ -249,10 +250,14 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         def diff(t):
             return evlvar * np.eye(spatialdim)
 
+        def diff_cholesky(t):
+            return np.sqrt(evlvar) * np.eye(spatialdim)
+
         disc_model = statespace.DiscreteGaussian(
             input_dim=prior.dimension,
             output_dim=prior.spatialdim,
             state_trans_fun=dyna,
             proc_noise_cov_mat_fun=diff,
+            proc_noise_cov_cholesky_fun=diff_cholesky,
         )
         return cls(disc_model)
