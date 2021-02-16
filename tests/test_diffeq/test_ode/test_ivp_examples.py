@@ -86,9 +86,9 @@ class TestConvenienceFunction(unittest.TestCase):
             self.tspan,
             rv,
             params=(
-                10,
-                28,
-                8 / 3,
+                10.0,
+                28.0,
+                8.0 / 3.0,
             ),
         )
 
