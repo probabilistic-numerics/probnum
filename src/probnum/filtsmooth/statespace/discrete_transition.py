@@ -32,20 +32,25 @@ except ImportError:
 
 
 class DiscreteGaussian(trans.Transition):
-    """Discrete transitions with additive Gaussian noise.
+    r"""Discrete transitions with additive Gaussian noise.
 
-    .. math:: x_{i+1} \\sim \\mathcal{N}(g(t_i, x_i), S(t_i))
+    .. math:: x_{i+1} \sim \mathcal{N}(g(t_i, x_i), S(t_i))
 
-    for some (potentially non-linear) dynamics :math:`g` and process noise covariance matrix :math:`S`.
+    for some (potentially non-linear) dynamics :math:`g: \mathbb{R}^m \rightarrow \mathbb{R}^n` and process noise covariance matrix :math:`S`.
 
     Parameters
     ----------
+    input_dim
+        Dimension of the support of :math:`g` (in terms of :math:`x`), i.e. the input dimension.
+    output_dim
+        Dimension of the image of :math:`g`, i.e. the output dimension.
     state_trans_fun :
         State transition function :math:`g=g(t, x)`. Signature: ``state_trans_fun(t, x)``.
     proc_noise_cov_mat_fun :
         Process noise covariance matrix function :math:`S=S(t)`. Signature: ``proc_noise_cov_mat_fun(t)``.
+
     jacob_state_trans_fun :
-        Jacobian of the state transition function :math:`g`, :math:`Jg=Jg(t, x)`.
+        Jacobian of the state transition function :math:`g` (with respect to :math:`x`), :math:`Jg=Jg(t, x)`.
         Signature: ``jacob_state_trans_fun(t, x)``.
 
     See Also
@@ -63,9 +68,15 @@ class DiscreteGaussian(trans.Transition):
         jacob_state_trans_fun: Optional[
             Callable[[FloatArgType, np.ndarray], np.ndarray]
         ] = None,
+        proc_noise_cov_cholesky_fun: Optional[
+            Callable[[FloatArgType], np.ndarray]
+        ] = None,
     ):
         self.state_trans_fun = state_trans_fun
         self.proc_noise_cov_mat_fun = proc_noise_cov_mat_fun
+
+        # "Private", bc. if None, overwritten by the property with the same name
+        self._proc_noise_cov_cholesky_fun = proc_noise_cov_cholesky_fun
 
         def dummy_if_no_jacobian(t, x):
             raise NotImplementedError
@@ -147,10 +158,12 @@ class DiscreteGaussian(trans.Transition):
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
-        R = self.proc_noise_cov_mat_fun(t)
-        if np.linalg.norm(R) < 1e-15:
-            return 0 * R
-        return np.linalg.cholesky(R)
+        if self._proc_noise_cov_cholesky_fun is not None:
+            return self._proc_noise_cov_cholesky_fun(t)
+        covmat = self.proc_noise_cov_mat_fun(t)
+        if np.linalg.norm(covmat) < 1e-15:
+            return 0.0 * covmat
+        return np.linalg.cholesky(covmat)
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
@@ -184,6 +197,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
+        proc_noise_cov_cholesky_fun: Optional[
+            Callable[[FloatArgType], np.ndarray]
+        ] = None,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
@@ -214,6 +230,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
                 self.state_trans_mat_fun(t) @ x + self.shift_vec_fun(t)
             ),
             proc_noise_cov_mat_fun=proc_noise_cov_mat_fun,
+            proc_noise_cov_cholesky_fun=proc_noise_cov_cholesky_fun,
             jacob_state_trans_fun=lambda t, x: state_trans_mat_fun(t),
         )
 
@@ -425,6 +442,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         state_trans_mat: np.ndarray,
         shift_vec: np.ndarray,
         proc_noise_cov_mat: np.ndarray,
+        proc_noise_cov_cholesky: Optional[np.ndarray] = None,
         forward_implementation="classic",
         backward_implementation="classic",
     ):
@@ -437,6 +455,7 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
             lambda t: state_trans_mat,
             lambda t: shift_vec,
             lambda t: proc_noise_cov_mat,
+            lambda t: proc_noise_cov_cholesky,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
@@ -444,12 +463,15 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         self.state_trans_mat = state_trans_mat
         self.shift_vec = shift_vec
         self.proc_noise_cov_mat = proc_noise_cov_mat
+        self._proc_noise_cov_cholesky = proc_noise_cov_cholesky
 
     def proc_noise_cov_cholesky_fun(self, t):
         return self.proc_noise_cov_cholesky
 
     @cached_property
     def proc_noise_cov_cholesky(self):
+        if self._proc_noise_cov_cholesky is not None:
+            return self._proc_noise_cov_cholesky
 
         # Catch for zero matrix
         if np.linalg.norm(self.proc_noise_cov_mat) < 1e-15:

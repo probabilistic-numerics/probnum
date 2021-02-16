@@ -25,7 +25,12 @@ class TestDiscreteGaussian(InterfaceTestTransition):
         self.S = lambda t: spdmat1
         self.dg = lambda t, x: np.cos(x)
         self.transition = pnfss.DiscreteGaussian(
-            test_ndim, test_ndim, self.g, self.S, self.dg
+            test_ndim,
+            test_ndim,
+            self.g,
+            self.S,
+            self.dg,
+            None,
         )
 
     # Test access to system matrices
