@@ -1,14 +1,14 @@
+****************
 probnum.problems
-================
-
-Definitions and collection of problems solved by probabilistic numerical methods.
+****************
 
 .. automodapi:: probnum.problems
     :no-heading:
-    :no-main-docstr:
+    :headings: "="
+    :no-inheritance-diagram:
 
 probnum.problems.zoo
-********************
+====================
 
 Subpackage offering implementations of standard example problems or convenient
 interfaces to benchmark problems for probabilistic numerical methods. These test
