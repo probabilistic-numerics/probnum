@@ -44,6 +44,8 @@ __all__ = [
     "UnscentedTransform",
     "FiltSmoothPosterior",
     "KalmanPosterior",
+    "FilteringPosterior",
+    "SmoothingPosterior",
     "StoppingCriterion",
     "cholesky_update",
     "triu_to_positive_tril",
