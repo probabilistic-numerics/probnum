@@ -39,6 +39,12 @@ The following people contributed to the ProbNum repository.
 	<center>
 		<ul>
 			<li>
+				<a href="https://github.com/schmidtjonathan">
+					<img class="avatar" alt="ninaeffenberger" src="https://github.com/ninaeffenberger.png?v=3&s=96" width="64" height="64" />
+					<p>Nina Effenberger</p>
+				</a>
+			</li>
+			<li>
 				<a href="https://github.com/coldfix">
 					<img class="avatar" alt="coldfix" src="https://github.com/coldfix.png?v=3&s=96" width="64" height="64" />
 					<p>Thomas Gläßle</p>
