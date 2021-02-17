@@ -16,7 +16,7 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
     """Interface for Gaussian filtering and smoothing posteriors."""
 
-    def __init__(self, state_rvs, locations, gauss_filter):
+    def __init__(self, locations, state_rvs, gauss_filter):
         self._locations = np.asarray(locations)
         self.gauss_filter = gauss_filter
         self._state_rvs = _RandomVariableList(state_rvs)
@@ -51,7 +51,7 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
                 "than the initial location"
             )
 
-        # t is in our grid -- no need to interpolate
+        # Early exit if t is in our grid -- no need to interpolate
         if t in self.locations:
             idx = self._find_previous_or_same_index(t)
             discrete_estimate = self.state_rvs[idx]
@@ -61,6 +61,7 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
 
     @abc.abstractmethod
     def interpolate(self, t):
+        """Evaluate the posterior at a measurement-free point."""
         raise NotImplementedError
 
     def sample(self, locations=None, size=()):
@@ -86,6 +87,9 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
     def _single_sample_path(self, locations, random_vars):
         raise NotImplementedError
 
+    # If these two functions can be combined reliably into one
+    # function, please feel free to make the changes.
+
     def _find_previous_index(self, loc):
         return (self.locations < loc).sum() - 1
 
@@ -96,20 +100,21 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
 class SmoothingPosterior(KalmanPosterior):
     """Smoothing posterior."""
 
-    def __init__(self, state_rvs, locations, dynamics_model, filter_posterior):
+    def __init__(self, state_rvs, locations, gauss_filter, filter_posterior):
         self.filter_posterior = filter_posterior
-        super().__init__(state_rvs, locations, dynamics_model)
+        super().__init__(state_rvs, locations, gauss_filter)
 
     def interpolate(self, t):
-        next_idx = self._find_previous_index(t) + 1
-        next_t = self.locations[next_idx]
-        next_rv = self.state_rvs[next_idx]
 
         pred_rv = self.filter_posterior.interpolate(t)
+        next_idx = self._find_previous_index(t) + 1
 
-        # Early exit if we are plain extrapolating
-        if next_idx > len(self.locations):
+        # Early exit if we are extrapolating
+        if next_idx >= len(self.locations):
             return pred_rv
+
+        next_t = self.locations[next_idx]
+        next_rv = self.state_rvs[next_idx]
 
         # Intermediate prediction
         predicted_future_rv, info = self.gauss_filter.predict(
@@ -175,8 +180,8 @@ class SmoothingPosterior(KalmanPosterior):
         return out_samples
 
 
-class FilterPosterior(KalmanPosterior):
-    """Filter posterior."""
+class FilteringPosterior(KalmanPosterior):
+    """Filtering posterior."""
 
     def interpolate(self, t):
         """Predict to the present point."""
@@ -184,7 +189,7 @@ class FilterPosterior(KalmanPosterior):
         previous_t = self.locations[previous_idx]
         previous_rv = self.state_rvs[previous_idx]
 
-        rv, _ = self.dynamics_model.gauss_filter.predict(previous_rv, previous_t, t)
+        rv, _ = self.gauss_filter.predict(previous_rv, previous_t, t)
         return rv
 
     def _single_sample_path(self, locations, random_vars):

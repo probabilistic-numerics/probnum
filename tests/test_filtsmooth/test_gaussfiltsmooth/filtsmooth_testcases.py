@@ -234,7 +234,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
 
         # Compute filter/smoother solution
         posterior = method.filter(obs, tms)
-        filtms = posterior.filter_posterior.state_rvs.mean
+        filtms = posterior.state_rvs.mean
         posterior = method.filtsmooth(obs, tms)
         smooms = posterior.state_rvs.mean
 
