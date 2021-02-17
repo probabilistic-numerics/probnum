@@ -141,9 +141,9 @@ class SmoothingPosterior(KalmanPosterior):
         Filter/smoother used to compute the discrete-time estimates.
     """
 
-    def __init__(self, state_rvs, locations, gauss_filter, filter_posterior):
+    def __init__(self, locations, state_rvs, gauss_filter, filter_posterior):
         self.filter_posterior = filter_posterior
-        super().__init__(state_rvs, locations, gauss_filter)
+        super().__init__(locations, state_rvs, gauss_filter)
 
     def interpolate(self, t):
 
