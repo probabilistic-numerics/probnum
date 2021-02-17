@@ -184,11 +184,6 @@ class Kernel(Generic[_InputType], abc.ABC):
                 "dimension."
             )
 
-            # The below was weirdly necessary to make pylint pass
-            # even though I have not touched anything in the vicinity
-            # of kernels. Please, anyone feel free to remove this
-            # pylint-disable again, provided it passes the CI :)
-            #
             # pylint: disable=redefined-variable-type
 
             # Promote unequal shapes

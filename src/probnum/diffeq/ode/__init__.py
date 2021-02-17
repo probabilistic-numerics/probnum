@@ -2,6 +2,7 @@ from .ivp import IVP
 from .ivp_examples import (
     fitzhughnagumo,
     logistic,
+    lorenz,
     lotkavolterra,
     rigidbody,
     seir,
@@ -20,4 +21,5 @@ __all__ = [
     "vanderpol",
     "threebody",
     "lotkavolterra",
+    "lorenz",
 ]

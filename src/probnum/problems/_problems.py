@@ -85,6 +85,8 @@ class InitialValueProblem:
         Hessian of the ODE vector-field :math:`f=f(t,y)` with respect to the :math:`y` variable.
     solution
         Closed form, analytic solution to the problem. Used for testing and benchmarking.
+    dy0_all
+        All initial derivatives up to some order.
 
     Examples
     --------
@@ -103,6 +105,8 @@ class InitialValueProblem:
     y0: typing.Union[pntp.FloatArgType, np.ndarray]
     df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+
+    dy0_all: typing.Optional[np.ndarray] = None
 
     # For testing and benchmarking
     solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
