@@ -74,10 +74,15 @@ def random_spd_matrix(
             random_state=random_state,
         )
         spectrum = np.sort(spectrum)[::-1]
+
     else:
         spectrum = np.asarray(spectrum)
         if not np.all(spectrum > 0):
             raise ValueError(f"Eigenvalues must be positive, but are {spectrum}.")
+
+    # Early exit for d=1 -- special_ortho_group does not like this case.
+    if dim == 1:
+        return spectrum.reshape((1, 1))
 
     # Draw orthogonal matrix with respect to the Haar measure
     orth_mat = scipy.stats.special_ortho_group.rvs(dim, random_state=random_state)

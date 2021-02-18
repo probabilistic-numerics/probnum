@@ -94,30 +94,6 @@ class Transition(abc.ABC):
         """
         raise NotImplementedError
 
-    def transition_realization_preconditioned(
-        self,
-        real: np.ndarray,
-        start: float,
-        stop: Optional[float] = None,
-        step: Optional[float] = None,
-        _diffusion: Optional[float] = 1.0,
-        _linearise_at: Optional[RandomVariable] = None,
-    ) -> (RandomVariable, Dict):
-        """Applies the transition, assuming that the state is already preconditioned.
-
-        This is useful for numerically stable implementation of Kalman
-        smoothing steps and Kalman updates.
-        """
-        if self.precon is None:
-            errormsg = (
-                "There is no preconditioned associated with this transition. "
-                "Did you mean 'transition_realization'?"
-            )
-            raise NotImplementedError(errormsg)
-        raise NotImplementedError(
-            "'transition_realization_preconditioned' is not implemented."
-        )
-
     @abc.abstractmethod
     def transition_rv(
         self,
@@ -176,28 +152,6 @@ class Transition(abc.ABC):
         """
         raise NotImplementedError
 
-    def transition_rv_preconditioned(
-        self,
-        rv: "RandomVariable",
-        start: float,
-        stop: Optional[float] = None,
-        step: Optional[float] = None,
-        _diffusion: Optional[float] = 1.0,
-        _linearise_at: Optional[RandomVariable] = None,
-    ) -> (RandomVariable, Dict):
-        """Applies the transition, assuming that the state is already preconditioned.
-
-        This is useful for numerically stable implementation of Kalman
-        smoothing steps and Kalman updates.
-        """
-        if self.precon is None:
-            errormsg = (
-                "There is no preconditioned associated with this transition. "
-                "Did you mean 'transition_rv'?"
-            )
-            raise NotImplementedError(errormsg)
-        raise NotImplementedError("'transition_rv_preconditioned' is not implemented.")
-
     @property
     def dimension(self) -> int:
         """Dimension of the transition model.
@@ -232,12 +186,18 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
     -------
     states : np.ndarray; shape (len(times), dynmod.dimension)
         True states according to dynamic model.
-    obs : np.ndarray; shape (len(times)-1, measmod.dimension)
+    obs : np.ndarray; shape (len(times), measmod.dimension)
         Observations according to measurement model.
     """
     states = np.zeros((len(times), _read_dimension(dynmod, initrv)))
-    obs = np.zeros((len(times) - 1, _read_dimension(measmod, initrv)))
+    obs = np.zeros((len(times), _read_dimension(measmod, initrv)))
+
+    # initial observation point
     states[0] = initrv.sample()
+    next_obs_rv, _ = measmod.transition_realization(real=states[0], start=times[0])
+    obs[0] = next_obs_rv.sample()
+
+    # all future points
     for idx in range(1, len(times)):
         start, stop = times[idx - 1], times[idx]
         step = (stop - start) / num_steps
@@ -246,7 +206,7 @@ def generate(dynmod, measmod, initrv, times, num_steps=5):
         )
         states[idx] = next_state_rv.sample()
         next_obs_rv, _ = measmod.transition_realization(real=states[idx], start=stop)
-        obs[idx - 1] = next_obs_rv.sample()
+        obs[idx] = next_obs_rv.sample()
     return states, obs
 
 

@@ -58,6 +58,9 @@ missing-class-docstring,
 unnecessary-pass,
 unused-variable,
 redefined-builtin,
+redefined-outer-name,
+function-redefined,
+import-error
 """
 # Many more `disable`s are defined in `./tox.ini` on a per-module basis!
 

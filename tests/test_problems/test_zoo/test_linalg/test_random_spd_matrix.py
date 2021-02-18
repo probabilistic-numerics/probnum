@@ -10,6 +10,20 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 class TestRandomSPDMatrix:
     """Tests for functions generating random symmetric positive definite matrices."""
 
+    def setUp(self) -> None:
+        """Define parameters and define test problems."""
+        self.rng = np.random.default_rng(42)
+        self.dim_list = [1, 2, 25, 100, 250]
+        self.spd_matrices = [
+            random_spd_matrix(dim=n, random_state=self.rng) for n in self.dim_list
+        ]
+        self.density = 0.01
+        self.sparse_spd_matrices = [
+            random_sparse_spd_matrix(dim=n, density=self.density, random_state=self.rng)
+            for n in self.dim_list
+        ]
+        self.matrices = self.spd_matrices + self.sparse_spd_matrices
+
     def test_dimension(self, spd_mat: np.ndarray, n: int):
         """Test whether matrix dimension matches specified dimension."""
         assert spd_mat.shape[0] == n, "Matrix dimension does not match argument."

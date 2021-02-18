@@ -8,7 +8,7 @@ from tests.testing import NumpyAssertions
 
 
 class TestConvenienceFunction(unittest.TestCase):
-    """Test case for correct object initialization"""
+    """Test case for correct object initialization."""
 
     def setUp(self):
         self.tspan = (0.0, 4.212)
@@ -68,7 +68,7 @@ class TestConvenienceFunction(unittest.TestCase):
         self.assertIsInstance(lg3, ivp.IVP)
 
     def test_threebody(self):
-        """Test the Van der Pol ODE convenience function."""
+        """Test the three-body ODE convenience function."""
         rv = Constant(np.array([1.0, 1.0]))
         lg1 = ivp_examples.threebody(self.tspan, rv)
         lg2 = ivp_examples.threebody(self.tspan, rv, params=(0.012277471,))
@@ -78,9 +78,26 @@ class TestConvenienceFunction(unittest.TestCase):
         self.assertIsInstance(lg2, ivp.IVP)
         self.assertIsInstance(lg3, ivp.IVP)
 
+    def test_lorenz(self):
+        """Test the Lorenz model ODE convenience function."""
+        rv = Constant(np.array([1.0, 1.0, 1.0]))
+        lg1 = ivp_examples.lorenz(self.tspan, rv)
+        lg2 = ivp_examples.lorenz(
+            self.tspan,
+            rv,
+            params=(
+                10.0,
+                28.0,
+                8.0 / 3.0,
+            ),
+        )
+
+        self.assertIsInstance(lg1, ivp.IVP)
+        self.assertIsInstance(lg2, ivp.IVP)
+
 
 class TestRHSEvaluation(unittest.TestCase, NumpyAssertions):
-    """Test cases that check the evaluation of IVP vector fields"""
+    """Test cases that check the evaluation of IVP vector fields."""
 
     def setUp(self):
         self.tspan = (0.0, 4.212)
@@ -127,9 +144,15 @@ class TestRHSEvaluation(unittest.TestCase, NumpyAssertions):
 
         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
 
+    def test_lorenz_rhs(self):
+        rv = Constant(np.ones(3))
+        lg1 = ivp_examples.lorenz(self.tspan, rv)
+
+        self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
+
 
 class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
-    """Test cases that check Jacobians of IVPs against finite differences"""
+    """Test cases that check Jacobians of IVPs against finite differences."""
 
     def setUp(self):
         self.tspan = (0.0, 4.212)
@@ -222,6 +245,23 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
     def test_vanderpol_jacobian(self):
         rv = Constant(np.array([1.0, 1.0]))
         lg1 = ivp_examples.vanderpol(self.tspan, rv)
+        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
+        random_point = 1 + np.random.rand(lg1.dimension)
+        fd_approx = (
+            0.5
+            * 1e11
+            * (
+                lg1(0.1, random_point + 1e-11 * random_direction)
+                - lg1(0.1, random_point - 1e-11 * random_direction)
+            )
+        )
+        self.assertAllClose(
+            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+        )
+
+    def test_lorenz_jacobian(self):
+        rv = Constant(np.array([1.0, 1.0, 1.0]))
+        lg1 = ivp_examples.lorenz(self.tspan, rv)
         random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
