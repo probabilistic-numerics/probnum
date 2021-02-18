@@ -8,8 +8,6 @@ from probnum._randomvariablelist import _RandomVariableList
 
 from .filtsmooth_testcases import car_tracking
 
-# from tests.testing import chi_squared_statistic
-
 
 @pytest.fixture
 def problem():
@@ -158,19 +156,3 @@ def test_sampling_shapes(samples, posterior, locs, size):
         size = (size,)
     expected_size = (*size, *posterior(locs).mean.shape)
     assert samples.shape == expected_size
-
-
-#
-# def test_sampling_chi_squared(samples, posterior, locs, size):
-#     """Returned samples are approximately Gaussian."""
-#
-#     # what is computed below in here???
-#     all_chi_squareds = [
-#         chi_squared_statistic(sample, posterior(locs).mean, posterior(locs).cov)
-#         for sample in samples
-#     ]
-#     chi_squared = np.mean(all_chi_squareds)
-#
-#     # This range is quite large, but a failing tests here would at least
-#     # unveil strong deviations...
-#     assert 0.01 < chi_squared < 100.0

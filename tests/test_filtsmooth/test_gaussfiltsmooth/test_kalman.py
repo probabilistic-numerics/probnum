@@ -124,8 +124,7 @@ def test_rmse_filt_smooth(kalman, data):
     """Assert that smoothing beats filtering beats nothing."""
     obs, times, truth = data
 
-    posterior = kalman.filter(obs, times)
-    posterior = kalman.smooth(posterior)
+    posterior = kalman.filtsmooth(obs, times)
 
     filtms = posterior.filtering_posterior.state_rvs.mean
     smooms = posterior.state_rvs.mean

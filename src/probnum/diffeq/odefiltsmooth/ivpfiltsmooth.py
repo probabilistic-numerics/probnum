@@ -147,10 +147,6 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        # symmetrised = 0.5*(meas_rv.cov + meas_rv.cov.T)
-        # std_like = np.linalg.cholesky(symmetrised)
-        # whitened_res = np.linalg.solve(std_like, meas_rv.mean)
-
         return meas_rv.mean @ np.linalg.solve(meas_rv.cov, meas_rv.mean) / meas_rv.size
 
     @property
