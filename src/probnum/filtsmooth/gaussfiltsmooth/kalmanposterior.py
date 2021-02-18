@@ -83,7 +83,7 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
 
         # Early exit if t is in our grid -- no need to interpolate
         if t in self.locations:
-            idx = self._find_previous_or_same_index(t)
+            idx = self._find_index(t)
             discrete_estimate = self.state_rvs[idx]
             return discrete_estimate
 
@@ -124,8 +124,8 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
     def _find_previous_index(self, loc):
         return (self.locations < loc).sum() - 1
 
-    def _find_previous_or_same_index(self, loc):
-        return (self.locations <= loc).sum() - 1
+    def _find_index(self, loc):
+        return self.locations.tolist().index(loc)
 
 
 class SmoothingPosterior(KalmanPosterior):
