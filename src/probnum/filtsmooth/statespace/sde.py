@@ -7,7 +7,7 @@ import scipy.integrate
 import scipy.linalg
 
 import probnum.random_variables as pnrv
-from probnum.type import FloatArgType
+from probnum.type import FloatArgType, IntArgType
 
 from . import discrete_transition, transition
 from .sde_utils import matrix_fraction_decomposition
@@ -23,7 +23,7 @@ class SDE(transition.Transition):
 
     def __init__(
         self,
-        dimension,
+        dimension: IntArgType,
         driftfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         dispmatfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         jacobfun: Callable[[FloatArgType, np.ndarray], np.ndarray],
@@ -124,7 +124,7 @@ class LinearSDE(SDE):
 
     def __init__(
         self,
-        dimension,
+        dimension: IntArgType,
         driftmatfun: Callable[[FloatArgType], np.ndarray],
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         dispmatfun: Callable[[FloatArgType], np.ndarray],

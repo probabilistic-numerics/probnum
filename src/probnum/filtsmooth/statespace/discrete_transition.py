@@ -5,7 +5,7 @@ from typing import Callable, Optional
 import numpy as np
 
 import probnum.random_variables as pnrv
-from probnum.type import FloatArgType
+from probnum.type import FloatArgType, IntArgType
 
 from . import transition as trans
 from .discrete_transition_utils import (
@@ -63,8 +63,8 @@ class DiscreteGaussian(trans.Transition):
 
     def __init__(
         self,
-        input_dim,
-        output_dim,
+        input_dim: IntArgType,
+        output_dim: IntArgType,
         state_trans_fun: Callable[[FloatArgType, np.ndarray], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],
         jacob_state_trans_fun: Optional[
@@ -192,8 +192,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def __init__(
         self,
-        input_dim,
-        output_dim,
+        input_dim: IntArgType,
+        output_dim: IntArgType,
         state_trans_mat_fun: Callable[[FloatArgType], np.ndarray],
         shift_vec_fun: Callable[[FloatArgType], np.ndarray],
         proc_noise_cov_mat_fun: Callable[[FloatArgType], np.ndarray],

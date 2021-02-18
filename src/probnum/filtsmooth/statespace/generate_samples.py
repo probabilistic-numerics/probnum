@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def generate_samples(dynmod, measmod, initrv, times, num_steps=5):
+def generate_samples(dynmod, measmod, initrv, times):
     """Samples true states and observations at pre-determined timesteps "times" for a
     state space model.
 
