@@ -41,7 +41,20 @@ class UKFComponent:
 
 
 class ContinuousUKFComponent(UKFComponent, statespace.SDE):
-    """Continuous unscented Kalman filter transition."""
+    """Continuous-time unscented Kalman filter transition.
+
+    Parameters
+    ----------
+    non_linear_model
+        Non-linear continuous-time model (:class:`SDE`) that is approximated with the UKF.
+    mde_atol
+        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+    mde_rtol
+        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+    mde_solver
+        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
+    """
 
     def __init__(
         self,
@@ -49,6 +62,9 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         spread: typing.Optional[pntype.FloatArgType] = 1e-4,
         priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
         special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
+        mde_atol: typing.Optional[pntype.FloatArgType] = 1e-6,
+        mde_rtol: typing.Optional[pntype.FloatArgType] = 1e-6,
+        mde_solver: typing.Optional[str] = "LSODA",
     ) -> None:
 
         UKFComponent.__init__(
@@ -65,6 +81,9 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
             non_linear_model.dispmatfun,
             non_linear_model.jacobfun,
         )
+        self.mde_atol = mde_atol
+        self.mde_rtol = mde_rtol
+        self.mde_solver = mde_solver
 
         raise NotImplementedError(
             "Implementation of the continuous UKF is incomplete. It cannot be used."

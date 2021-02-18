@@ -1,6 +1,6 @@
 """SDE models as transitions."""
 import functools
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 import scipy.integrate
@@ -120,6 +120,13 @@ class LinearSDE(SDE):
         This is L = L(t). Evaluations of this function are called
         the dispersion(matrix) of the SDE.
         Returns np.ndarray with shape=(n, s)
+    mde_atol
+        Absolute tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+    mde_rtol
+        Relative tolerance passed to the solver of the moment differential equations (MDEs). Optional. Default is 1e-6.
+    mde_solver
+        Method that is chosen in `scipy.integrate.solve_ivp`. Any string that is compatible with ``solve_ivp(..., method=mde_solve,...)`` works here.
+        Usual candidates are ``[RK45, LSODA, Radau, BDF, RK23, DOP853]``. Optional. Default is LSODA.
     """
 
     def __init__(
@@ -128,9 +135,9 @@ class LinearSDE(SDE):
         driftmatfun: Callable[[FloatArgType], np.ndarray],
         forcevecfun: Callable[[FloatArgType], np.ndarray],
         dispmatfun: Callable[[FloatArgType], np.ndarray],
-        mde_atol=1e-6,
-        mde_rtol=1e-6,
-        mde_solver="LSODA",
+        mde_atol: Optional[FloatArgType] = 1e-6,
+        mde_rtol: Optional[FloatArgType] = 1e-6,
+        mde_solver: Optional[str] = "LSODA",
     ):
 
         # Once different filtering and smoothing algorithms are available,
