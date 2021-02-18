@@ -299,7 +299,10 @@ class Kalman(BayesFiltSmooth):
             filter_posterior.locations,
         )
         return SmoothingPosterior(
-            filter_posterior.locations, rv_list, self, filter_posterior=filter_posterior
+            filter_posterior.locations,
+            rv_list,
+            self,
+            filtering_posterior=filter_posterior,
         )
 
     def smooth_list(self, rv_list, locations):

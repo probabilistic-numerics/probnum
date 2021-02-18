@@ -72,7 +72,7 @@ def test_rmse_filt_smooth(kalman, problem):
 
     iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
 
-    filtms = posterior.filter_posterior.state_rvs.mean
+    filtms = posterior.filtering_posterior.state_rvs.mean
     smooms = posterior.state_rvs.mean
     iterms = iterated_posterior.state_rvs.mean
 

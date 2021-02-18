@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+import probnum.filtsmooth as pnfs
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import KalmanODESolution, probsolve_ivp
 from probnum.diffeq.ode import logistic, lotkavolterra
@@ -80,9 +81,10 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         self.assertGreater(t, self.solution.t[-1])
         self.solution(t)
 
-    def test_filter_solution(self):
-        filtpost = self.solution.filter_solution
+    def test_filtering_solution(self):
+        filtpost = self.solution.filtering_solution
         self.assertIsInstance(filtpost, KalmanODESolution)
+        self.assertIsInstance(filtpost.kalman_posterior, pnfs.FilteringPosterior)
 
 
 class TestODESolutionHigherOrderPrior(TestODESolution):

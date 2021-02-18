@@ -101,9 +101,9 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
 
         if locations is None:
             locations = self.locations
-            random_vars = self.filter_posterior.state_rvs
+            random_vars = self.filtering_posterior.state_rvs
         else:
-            random_vars = self.filter_posterior(locations)
+            random_vars = self.filtering_posterior(locations)
 
         if size == ():
             return np.array(
@@ -141,13 +141,13 @@ class SmoothingPosterior(KalmanPosterior):
         Filter/smoother used to compute the discrete-time estimates.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter, filter_posterior):
-        self.filter_posterior = filter_posterior
+    def __init__(self, locations, state_rvs, gauss_filter, filtering_posterior):
+        self.filtering_posterior = filtering_posterior
         super().__init__(locations, state_rvs, gauss_filter)
 
     def interpolate(self, t):
 
-        pred_rv = self.filter_posterior.interpolate(t)
+        pred_rv = self.filtering_posterior.interpolate(t)
         next_idx = self._find_previous_index(t) + 1
 
         # Early exit if we are extrapolating

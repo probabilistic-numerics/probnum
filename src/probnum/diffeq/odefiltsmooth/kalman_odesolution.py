@@ -126,7 +126,12 @@ class KalmanODESolution(ODESolution):
         return np.array([self.proj_to_y @ sample for sample in samples])
 
     @property
-    def filter_solution(self):
+    def filtering_solution(self):
+
+        if isinstance(self.kalman_posterior, pnfs.FilteringPosterior):
+            return self
+
+        # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.
         return KalmanODESolution(
-            kalman_posterior=self.kalman_posterior.filter_posterior
+            kalman_posterior=self.kalman_posterior.filtering_posterior
         )
