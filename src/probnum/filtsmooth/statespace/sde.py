@@ -166,7 +166,10 @@ class LinearSDE(SDE):
         _diffusion=1.0,
         **kwargs,
     ):
-
+        if dt is None:
+            raise ValueError(
+                "Continuous-time transitions require a time-increment ``dt``."
+            )
         return self._solve_mde_forward(rv, t, dt, _diffusion=_diffusion)
 
     def backward_rv(
@@ -198,16 +201,15 @@ class LinearSDE(SDE):
             atol=self.mde_atol,
             rtol=self.mde_rtol,
         )
+        dim = rv.mean.shape[0]
         y_end = sol.y[:, -1]
-        new_mean = y_end[: len(rv.mean)]
-        new_cov = y_end[len(rv.mean) :].reshape((len(rv.mean), len(rv.mean)))
+        new_mean = y_end[:dim]
+        new_cov = y_end[dim:].reshape((dim, dim))
 
         # Will come in useful for backward transitions
         # Aka continuous time smoothing.
-        sol_mean = lambda t: sol.sol(t)[: len(rv.mean)]
-        sol_cov = lambda t: sol.sol(t)[len(rv.mean) :].reshape(
-            (len(rv.mean), len(rv.mean))
-        )
+        sol_mean = lambda t: sol.sol(t)[:dim]
+        sol_cov = lambda t: sol.sol(t)[dim:].reshape((dim, dim))
 
         return pnrv.Normal(mean=new_mean, cov=new_cov), {
             "sol": sol,
