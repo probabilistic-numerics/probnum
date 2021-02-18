@@ -71,7 +71,7 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
 
         # Recursive evaluation (t can now be any array, not just length 1)
         if not np.isscalar(t):
-            return _RandomVariableList([self.__call__(t_pt) for t_pt in np.asarray(t)])
+            return _RandomVariableList([self.__call__(t_pt) for t_pt in t])
 
         # t is left of our grid -- raise error
         # (this functionality is not supported yet)
