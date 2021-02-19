@@ -235,7 +235,9 @@ class Kalman(BayesFiltSmooth):
             Posterior distribution of the smoothed output
         """
 
-        rv_list = self.dynamics_model.smooth_list(filter_posterior)
+        rv_list = self.dynamics_model.smooth_list(
+            filter_posterior.state_rvs, filter_posterior.locations
+        )
 
         return SmoothingPosterior(
             filter_posterior.locations,

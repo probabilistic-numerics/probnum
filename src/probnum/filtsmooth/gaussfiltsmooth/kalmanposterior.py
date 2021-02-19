@@ -22,8 +22,8 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
         Locations / Times of the discrete-time estimates.
     state_rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
-    gauss_filter : :obj:`GaussFiltSmooth`
-        Filter/smoother used to compute the discrete-time estimates.
+    transition : :obj:`Transition`
+        Dynamics model used as a prior for the filter.
     """
 
     def __init__(self, locations, state_rvs, transition):
@@ -114,13 +114,13 @@ class SmoothingPosterior(KalmanPosterior):
         Locations / Times of the discrete-time estimates.
     state_rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
-    gauss_filter : :obj:`GaussFiltSmooth`
-        Filter/smoother used to compute the discrete-time estimates.
+    transition : :obj:`Transition`
+        Dynamics model used as a prior for the filter.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter, filtering_posterior):
+    def __init__(self, locations, state_rvs, transition, filtering_posterior):
         self.filtering_posterior = filtering_posterior
-        super().__init__(locations, state_rvs, gauss_filter)
+        super().__init__(locations, state_rvs, transition)
 
     def interpolate(self, t):
 
@@ -219,8 +219,8 @@ class FilteringPosterior(KalmanPosterior):
         Locations / Times of the discrete-time estimates.
     state_rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
-    gauss_filter : :obj:`GaussFiltSmooth`
-        Filter/smoother used to compute the discrete-time estimates.
+    transition : :obj:`Transition`
+        Dynamics model used as a prior for the filter.
     """
 
     def interpolate(self, t):
@@ -229,7 +229,7 @@ class FilteringPosterior(KalmanPosterior):
         previous_t = self.locations[previous_idx]
         previous_rv = self.state_rvs[previous_idx]
 
-        rv, _ = self.gauss_filter.predict(previous_rv, previous_t, t)
+        rv, _ = self.transition.forward_rv(previous_rv, t=previous_t, dt=t - previous_t)
         return rv
 
     def sample(self, locations=None, size=()):
