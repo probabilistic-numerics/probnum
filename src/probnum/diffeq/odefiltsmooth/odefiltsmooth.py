@@ -28,7 +28,7 @@ from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 def probsolve_ivp(
     ivp,
-    method="ekf0",
+    method="eks0",
     which_prior="ibm1",
     atol=None,
     rtol=None,

@@ -48,5 +48,32 @@ class TestRandomVariableList(unittest.TestCase):
         self.assertIsInstance(item, Constant)
 
 
+class TestEmptyRandomVariableList(unittest.TestCase):
+    """Passing an empty list does not screw things up."""
+
+    def setUp(self):
+        self.rv_list = _RandomVariableList([])
+
+    def test_mean(self):
+        mean = self.rv_list.mean
+        self.assertEqual(mean.shape, (0,))
+
+    def test_cov(self):
+        cov = self.rv_list.cov
+        self.assertEqual(cov.shape, (0,))
+
+    def test_var(self):
+        var = self.rv_list.var
+        self.assertEqual(var.shape, (0,))
+
+    def test_std(self):
+        std = self.rv_list.std
+        self.assertEqual(std.shape, (0,))
+
+    def test_getitem(self):
+        with self.assertRaises(IndexError):
+            item = self.rv_list[0]
+
+
 if __name__ == "__main__":
     unittest.main()

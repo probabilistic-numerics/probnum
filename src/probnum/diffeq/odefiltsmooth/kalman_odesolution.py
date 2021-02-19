@@ -128,6 +128,17 @@ class KalmanODESolution(ODESolution):
         samples = self.kalman_posterior.sample(locations=t, size=size)
         return np.array([self.proj_to_y @ sample for sample in samples])
 
+    @property
+    def filtering_solution(self):
+
+        if isinstance(self.kalman_posterior, pnfs.FilteringPosterior):
+            return self
+
+        # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.
+        return KalmanODESolution(
+            kalman_posterior=self.kalman_posterior.filtering_posterior
+        )
+
 
 def _project_rv(projmat, rv):
     new_mean = projmat @ rv.mean

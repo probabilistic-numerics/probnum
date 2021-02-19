@@ -91,8 +91,8 @@ class GaussianIVPFilter(ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        kalman_posterior = pnfs.KalmanPosterior(
-            times, rvs, self.gfilt.dynamics_model, self.with_smoothing
+        kalman_posterior = pnfs.FilteringPosterior(
+            times, rvs, self.gfilt.dynamics_model
         )
 
         return KalmanODESolution(kalman_posterior)
@@ -155,7 +155,7 @@ class GaussianIVPFilter(ODESolver):
         )
         local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
         error = local_meas_rv.cov.diagonal()
-        return np.sqrt(error)
+        return np.sqrt(np.abs(error))
 
     def _estimate_diffusion(self, meas_rv):
         """Estimate the dynamic diffusion parameter sigma_squared.

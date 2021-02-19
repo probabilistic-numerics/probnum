@@ -4,8 +4,8 @@
 import numpy as np
 
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
-from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
+from .kalmanposterior import FilteringPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
 
 
@@ -139,7 +139,7 @@ class Kalman(BayesFiltSmooth):
                 _linearise_update_at=_linearise_update_at,
             )
             rvs.append(filtrv)
-        return KalmanPosterior(times, rvs, self.dynamics_model, with_smoothing=False)
+        return FilteringPosterior(times, rvs, self.dynamics_model)
 
     def filter_step(
         self,
@@ -235,14 +235,11 @@ class Kalman(BayesFiltSmooth):
             Posterior distribution of the smoothed output
         """
 
-        rv_list = self.dynamics_model.smooth_list(
-            filter_posterior,
-            filter_posterior.locations,
-            _previous_posterior=_previous_posterior,
-        )
-        return KalmanPosterior(
+        rv_list = self.dynamics_model.smooth_list(filter_posterior)
+
+        return SmoothingPosterior(
             filter_posterior.locations,
             rv_list,
             self.dynamics_model,
-            with_smoothing=True,
+            filtering_posterior=filter_posterior,
         )
