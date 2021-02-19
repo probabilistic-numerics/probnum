@@ -94,28 +94,8 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
         """Evaluate the posterior at a measurement-free point."""
         raise NotImplementedError
 
-    def sample(self, locations=None, size=()):
-        # In the present setting, only works for sampling from the smoothing posterior.
-
-        size = utils.as_shape(size)
-
-        if locations is None:
-            locations = self.locations
-            random_vars = self.filtering_posterior.state_rvs
-        else:
-            random_vars = self.filtering_posterior(locations)
-
-        if size == ():
-            return np.array(
-                self._single_sample_path(locations=locations, random_vars=random_vars)
-            )
-
-        return np.array(
-            [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
-        )
-
     @abc.abstractmethod
-    def _single_sample_path(self, locations, random_vars):
+    def sample(self, locations=None, size=()):
         raise NotImplementedError
 
     # If these two functions can be combined reliably into one
@@ -169,6 +149,26 @@ class SmoothingPosterior(KalmanPosterior):
             pred_rv, predicted_future_rv, next_rv, crosscov
         )
         return curr_rv
+
+    def sample(self, locations=None, size=()):
+        # In the present setting, only works for sampling from the smoothing posterior.
+
+        size = utils.as_shape(size)
+
+        if locations is None:
+            locations = self.locations
+            random_vars = self.filtering_posterior.state_rvs
+        else:
+            random_vars = self.filtering_posterior(locations)
+
+        if size == ():
+            return np.array(
+                self._single_sample_path(locations=locations, random_vars=random_vars)
+            )
+
+        return np.array(
+            [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
+        )
 
     def _single_sample_path(self, locations, random_vars):
 
@@ -243,5 +243,5 @@ class FilteringPosterior(KalmanPosterior):
         rv, _ = self.gauss_filter.predict(previous_rv, previous_t, t)
         return rv
 
-    def _single_sample_path(self, locations, random_vars):
+    def sample(self, locations=None, size=()):
         raise NotImplementedError
