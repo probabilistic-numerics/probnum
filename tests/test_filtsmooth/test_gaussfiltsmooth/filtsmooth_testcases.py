@@ -233,10 +233,9 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         method = pnfs.Kalman(ekf_dyna, ekf_meas, initrv)
 
         # Compute filter/smoother solution
-        filter_posterior = method.filter(obs, tms)
-        filtms = filter_posterior.state_rvs.mean
-        smooth_posterior = method.filtsmooth(obs, tms)
-        smooms = smooth_posterior.state_rvs.mean
+        posterior = method.filtsmooth(obs, tms)
+        filtms = posterior.filtering_posterior.state_rvs.mean
+        smooms = posterior.state_rvs.mean
 
         # Compute RMSEs
         comp = states[:, 0]

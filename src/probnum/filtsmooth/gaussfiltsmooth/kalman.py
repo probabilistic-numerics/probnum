@@ -7,7 +7,6 @@ import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.filtsmooth import statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
-from probnum.filtsmooth.gaussfiltsmooth.kalmanposterior import KalmanPosterior
 
 from .extendedkalman import ContinuousEKFComponent
 from .kalman_utils import (
@@ -16,6 +15,7 @@ from .kalman_utils import (
     rts_smooth_step_classic,
     update_classic,
 )
+from .kalmanposterior import FilteringPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
 from .unscentedkalman import ContinuousUKFComponent
 
@@ -205,7 +205,7 @@ class Kalman(BayesFiltSmooth):
                 _intermediate_step=_intermediate_step,
             )
             rvs.append(filtrv)
-        return KalmanPosterior(times, rvs, self, with_smoothing=False)
+        return FilteringPosterior(times, rvs, self)
 
     def filter_step(
         self,
@@ -295,11 +295,14 @@ class Kalman(BayesFiltSmooth):
             raise ValueError("Continuous-discrete smoothing is not supported (yet).")
 
         rv_list = self.smooth_list(
-            filter_posterior,
+            filter_posterior.state_rvs,
             filter_posterior.locations,
         )
-        return KalmanPosterior(
-            filter_posterior.locations, rv_list, self, with_smoothing=True
+        return SmoothingPosterior(
+            filter_posterior.locations,
+            rv_list,
+            self,
+            filtering_posterior=filter_posterior,
         )
 
     def smooth_list(self, rv_list, locations):

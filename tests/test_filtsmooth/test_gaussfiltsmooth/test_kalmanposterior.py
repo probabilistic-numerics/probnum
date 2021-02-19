@@ -5,7 +5,6 @@ import probnum.filtsmooth as pnfs
 import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
-from tests.testing import chi_squared_statistic
 
 from .filtsmooth_testcases import car_tracking
 
@@ -32,17 +31,7 @@ def kalman(problem):
 
 @pytest.fixture
 def posterior(kalman, problem):
-    """Kalman filtering posterior."""
-    *_, obs, times, states = problem
-    return kalman.filter(obs, times)
-
-
-@pytest.fixture
-def posterior(kalman, problem):
-    """Kalman smoothing posterior.
-
-    Careful: this does not sample well.
-    """
+    """Kalman smoothing posterior."""
     *_, obs, times, states = problem
     return kalman.filtsmooth(obs, times)
 
@@ -167,18 +156,3 @@ def test_sampling_shapes(samples, posterior, locs, size):
         size = (size,)
     expected_size = (*size, *posterior(locs).mean.shape)
     assert samples.shape == expected_size
-
-
-def test_sampling_chi_squared(samples, posterior, locs, size):
-    """Returned samples are approximately Gaussian."""
-
-    # what is computed below in here???
-    all_chi_squareds = [
-        chi_squared_statistic(sample, posterior(locs).mean, posterior(locs).cov)
-        for sample in samples
-    ]
-    chi_squared = np.mean(all_chi_squareds)
-
-    # This range is quite large, but a failing tests here would at least
-    # unveil strong deviations...
-    assert 0.01 < chi_squared < 100.0

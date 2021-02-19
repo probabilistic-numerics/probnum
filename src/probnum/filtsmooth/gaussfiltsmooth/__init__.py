@@ -16,7 +16,7 @@ from .kalman_utils import (
     update_classic,
     update_sqrt,
 )
-from .kalmanposterior import KalmanPosterior
+from .kalmanposterior import FilteringPosterior, KalmanPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
 from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent, UKFComponent
 from .unscentedtransform import UnscentedTransform
