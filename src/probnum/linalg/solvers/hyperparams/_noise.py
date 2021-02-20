@@ -1,9 +1,11 @@
 """Noise on the components of a linear system."""
 
 import dataclasses
-from typing import Optional
+from typing import Optional, Union
 
-import probnum.random_variables as rvs
+import numpy as np
+
+import probnum.linops as linops
 
 from ._hyperparameters import LinearSolverHyperparams
 
@@ -20,5 +22,5 @@ class LinearSystemNoise(LinearSolverHyperparams):
         Covariance of the noise :math:`b + \epsilon` on the right hand side.
     """
 
-    epsA_cov: Optional[rvs.Normal] = None
-    epsb_cov: Optional[rvs.Normal] = None
+    epsA_cov: Optional[Union[np.ndarray, linops.LinearOperator]] = None
+    epsb_cov: Optional[Union[np.ndarray, linops.LinearOperator]] = None
