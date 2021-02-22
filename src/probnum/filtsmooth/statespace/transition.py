@@ -288,7 +288,9 @@ class Transition(abc.ABC):
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
 
-    def sample_list(self, rv_list, locations, _previous_posterior=None):
+    def jointly_sample_list_backward(
+        self, rv_list, locations, _previous_posterior=None
+    ):
         """Jointly sample from a list of random variables, according to the present
         transition.
 

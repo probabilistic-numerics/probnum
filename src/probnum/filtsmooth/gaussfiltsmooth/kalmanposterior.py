@@ -153,7 +153,9 @@ class SmoothingPosterior(KalmanPosterior):
 
         if size == ():
             return np.array(
-                self.transition.sample_list(locations=locations, rv_list=random_vars)
+                self.transition.jointly_sample_list_backward(
+                    locations=locations, rv_list=random_vars
+                )
             )
 
         return np.array(
