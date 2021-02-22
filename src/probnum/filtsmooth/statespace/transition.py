@@ -195,7 +195,7 @@ class Transition(abc.ABC):
     @abc.abstractmethod
     def backward_realization(
         self,
-        real_obtained,
+        realization_obtained,
         rv,
         rv_forwarded=None,
         gain=None,
@@ -214,7 +214,7 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        real_obtained
+        realization_obtained
             Observed realization :math:`\xi` as an array.
         rv
             "Current" distribution :math:`p(x(t))` as a RandomVariable.

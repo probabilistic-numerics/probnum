@@ -65,7 +65,7 @@ class SDE(transition.Transition):
 
     def backward_realization(
         self,
-        real_obtained,
+        realization_obtained,
         rv,
         rv_forwarded=None,
         gain=None,
@@ -75,7 +75,7 @@ class SDE(transition.Transition):
         **kwargs,
     ):
         return self._backward_realization_via_backward_rv(
-            real_obtained,
+            realization_obtained,
             rv=rv,
             rv_forwarded=rv_forwarded,
             gain=gain,
