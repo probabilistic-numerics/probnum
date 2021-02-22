@@ -93,7 +93,13 @@ class Transition(abc.ABC):
 
     @abc.abstractmethod
     def forward_realization(
-        self, real, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self,
+        realization,
+        t,
+        dt=None,
+        compute_gain=False,
+        _diffusion=1.0,
+        _linearise_at=None,
     ):
         r"""Forward-pass of a realization of a state, according to the transition. In other words, return a description of
 
@@ -103,7 +109,7 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        real
+        realization
             Realization :math:`\xi` of the random variable :math:`x(t)` that describes the current state.
         t
             Current time point.
@@ -347,10 +353,10 @@ class Transition(abc.ABC):
     # turning it into a Normal RV with zero covariance and by
     # referring to the forward/backward transition of RVs.
 
-    def _backward_realization_via_backward_rv(self, real, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=real)
+    def _backward_realization_via_backward_rv(self, realization, *args, **kwargs):
+        real_as_rv = pnrv.Constant(support=realization)
         return self.backward_rv(real_as_rv, *args, **kwargs)
 
-    def _forward_realization_via_forward_rv(self, real, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=real)
+    def _forward_realization_via_forward_rv(self, realization, *args, **kwargs):
+        real_as_rv = pnrv.Constant(support=realization)
         return self.forward_rv(real_as_rv, *args, **kwargs)

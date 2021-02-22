@@ -25,7 +25,7 @@ class EKFComponent(abc.ABC):
 
     def forward_realization(
         self,
-        real,
+        realization,
         t,
         dt=None,
         compute_gain=False,
@@ -34,7 +34,7 @@ class EKFComponent(abc.ABC):
     ) -> (pnrv.Normal, typing.Dict):
 
         return self._forward_realization_via_forward_rv(
-            real,
+            realization,
             t=t,
             dt=dt,
             compute_gain=compute_gain,

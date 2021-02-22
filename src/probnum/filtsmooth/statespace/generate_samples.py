@@ -32,14 +32,16 @@ def generate_samples(dynmod, measmod, initrv, times):
 
     # initial observation point
     states[0] = initrv.sample()
-    next_obs_rv, _ = measmod.forward_realization(real=states[0], t=times[0])
+    next_obs_rv, _ = measmod.forward_realization(realization=states[0], t=times[0])
     obs[0] = next_obs_rv.sample()
 
     # all future points
     for idx in range(1, len(times)):
         t, dt = times[idx - 1], times[idx] - times[idx - 1]
-        next_state_rv, _ = dynmod.forward_realization(real=states[idx - 1], t=t, dt=dt)
+        next_state_rv, _ = dynmod.forward_realization(
+            realization=states[idx - 1], t=t, dt=dt
+        )
         states[idx] = next_state_rv.sample()
-        next_obs_rv, _ = measmod.forward_realization(real=states[idx], t=t)
+        next_obs_rv, _ = measmod.forward_realization(realization=states[idx], t=t)
         obs[idx] = next_obs_rv.sample()
     return states, obs

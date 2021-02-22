@@ -91,10 +91,10 @@ class DiscreteGaussian(trans.Transition):
         super().__init__(input_dim=input_dim, output_dim=output_dim)
 
     def forward_realization(
-        self, real, t, compute_gain=False, _diffusion=1.0, **kwargs
+        self, realization, t, compute_gain=False, _diffusion=1.0, **kwargs
     ):
 
-        newmean = self.state_trans_fun(t, real)
+        newmean = self.state_trans_fun(t, realization)
         newcov = _diffusion * self.proc_noise_cov_mat_fun(t)
 
         return pnrv.Normal(newmean, newcov), {}
@@ -243,10 +243,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             _diffusion=_diffusion,
         )
 
-    def forward_realization(self, real, t, _diffusion=1.0, **kwargs):
+    def forward_realization(self, realization, t, _diffusion=1.0, **kwargs):
 
         return self._forward_realization_via_forward_rv(
-            real, t=t, compute_gain=False, _diffusion=_diffusion
+            realization, t=t, compute_gain=False, _diffusion=_diffusion
         )
 
     def backward_rv(

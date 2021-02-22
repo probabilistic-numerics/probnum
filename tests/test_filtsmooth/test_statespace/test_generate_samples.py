@@ -12,8 +12,8 @@ class MockTransition(pnfss.Transition):
     def __init__(self, dim):
         super().__init__(input_dim=dim, output_dim=dim)
 
-    def forward_realization(self, real, **kwargs):
-        return pnrv.Constant(real), {}
+    def forward_realization(self, realization, **kwargs):
+        return pnrv.Constant(realization), {}
 
     def forward_rv(self, rv, **kwargs):
         return rv, {}

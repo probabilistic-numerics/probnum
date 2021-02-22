@@ -90,10 +90,16 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         )
 
     def forward_realization(
-        self, real, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
+        self,
+        realization,
+        t,
+        dt=None,
+        compute_gain=False,
+        _diffusion=1.0,
+        _linearise_at=None,
     ) -> (pnrv.Normal, typing.Dict):
         return self._forward_realization_as_rv(
-            real,
+            realization,
             t=t,
             dt=dt,
             compute_gain=compute_gain,
@@ -190,11 +196,11 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         return pnrv.Normal(mean, cov), info
 
     def forward_realization(
-        self, real, t, _diffusion=1.0, _linearise_at=None, **kwargs
+        self, realization, t, _diffusion=1.0, _linearise_at=None, **kwargs
     ):
 
         return self._forward_realization_via_forward_rv(
-            real,
+            realization,
             t=t,
             compute_gain=False,
             _diffusion=_diffusion,
