@@ -316,16 +316,20 @@ class Transition(abc.ABC):
             List of smoothed random variables.
         """
 
-        num_dim = len(rv_list[-1].sample())
+        num_dim = len(rv_list[-1].mean)
 
-        curr_sample = rv_list[-1].sample()
+        curr_sample = rv_list[-1].sample().copy()
+
+        # print(curr_sample)
+
         out_samples = [curr_sample]
         zero_mat = np.zeros((num_dim, num_dim))
-        curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
+        # curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
+
+        # print(rv_list[len(locations) - 1].cov)
 
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
-
             _linearise_smooth_step_at = (
                 None
                 if _previous_posterior is None
@@ -333,19 +337,22 @@ class Transition(abc.ABC):
             )
 
             # Actual smoothing step
-            curr_rv, _ = self.backward_rv(
-                curr_rv,
+            curr_rv, _ = self.backward_realization(
+                curr_sample,
                 unsmoothed_rv,
                 t=locations[idx - 1],
                 dt=locations[idx] - locations[idx - 1],
                 _linearise_at=_linearise_smooth_step_at,
             )
+            # print(np.linalg.norm(curr_rv.cov))
 
             # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
-            curr_sample = curr_rv.sample()
+            curr_sample = curr_rv.sample().copy()
             out_samples.append(curr_sample)
-            curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
+            # curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
 
+        # print("======")
+        # print()
         out_samples.reverse()
         return out_samples
 

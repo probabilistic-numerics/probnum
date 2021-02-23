@@ -151,6 +151,8 @@ class SmoothingPosterior(KalmanPosterior):
         else:
             random_vars = self.filtering_posterior(locations)
 
+            # Inform the final point in the list about all the data by
+            # conditioning on the final state rv
             if locations[-1] < self.locations[-1]:
 
                 random_vars[-1], _ = self.transition.backward_rv(
