@@ -46,5 +46,7 @@ def triu_to_positive_tril(triu_mat: np.ndarray) -> np.ndarray:
     The name of the function is leaned on `np.triu` and `np.tril`.
     """
     tril_mat = triu_mat.T
-    with_pos_diag = tril_mat @ np.diag(np.sign(np.diag(tril_mat)))
+    d = np.sign(np.diag(tril_mat))
+    d[d == 0] = 1
+    with_pos_diag = tril_mat @ np.diag(d)
     return with_pos_diag
