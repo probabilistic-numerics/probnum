@@ -151,6 +151,15 @@ class SmoothingPosterior(KalmanPosterior):
         else:
             random_vars = self.filtering_posterior(locations)
 
+            if locations[-1] < self.locations[-1]:
+
+                random_vars[-1], _ = self.transition.backward_rv(
+                    self.state_rvs[-1],
+                    random_vars[-1],
+                    t=locations[-1],
+                    dt=self.locations[-1] - locations[-1],
+                )
+
         if size == ():
             return np.array(
                 self.transition.jointly_sample_list_backward(
@@ -161,56 +170,6 @@ class SmoothingPosterior(KalmanPosterior):
         return np.array(
             [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
         )
-
-    def _single_sample_path(self, locations, random_vars):
-
-        # Make sure the final rv is informed about all the data points.
-        # Either condition on the final RV (a single smoothing step) and sample
-        # or (if last element in random_vars is final rv) sample directly.
-        if locations[-1] < self.locations[-1]:
-            t, rv = locations[-1], random_vars[-1]
-
-            # Intermediate prediction
-            predicted_rv, info = self.gauss_filter.predict(
-                rv=rv,
-                start=t,
-                stop=self.locations[-1],
-            )
-            crosscov = info["crosscov"]
-
-            curr_rv, _ = self.gauss_filter.smooth_step(
-                rv, predicted_rv, self.state_rvs[-1], crosscov
-            )
-            curr_sample = curr_rv.sample()
-        else:
-            curr_rv = random_vars[-1]
-            curr_sample = curr_rv.sample()
-
-        # Conclude initialisation
-        num_dim = len(curr_sample)
-        out_samples = [curr_sample]
-        curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
-
-        for idx in reversed(range(1, len(locations))):
-            unsmoothed_rv = random_vars[idx - 1]
-
-            # Intermediate prediction
-            predicted_rv, info = self.gauss_filter.predict(
-                rv=unsmoothed_rv,
-                start=locations[idx - 1],
-                stop=locations[idx],
-            )
-            crosscov = info["crosscov"]
-
-            curr_rv, _ = self.gauss_filter.smooth_step(
-                unsmoothed_rv, predicted_rv, curr_rv, crosscov
-            )
-            curr_sample = curr_rv.sample()
-            out_samples.append(curr_sample)
-            curr_rv = rvs.Normal(curr_sample, np.zeros((num_dim, num_dim)))
-
-        out_samples.reverse()
-        return out_samples
 
 
 class FilteringPosterior(KalmanPosterior):
