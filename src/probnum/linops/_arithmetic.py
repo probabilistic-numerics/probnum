@@ -6,7 +6,7 @@ import numpy as np
 import scipy.sparse
 
 import probnum.utils
-from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
+from probnum.type import ScalarArgType, ShapeArgType
 
 from ._linear_operator import BinaryOperandType, LinearOperator, MatrixMult, ScalarMult
 
@@ -83,13 +83,11 @@ def _apply(
 ########################################################################################
 
 
-def _operand_to_linop(
-    operand: Any, shape: ShapeArgType, dtype: Optional[DTypeArgType] = None
-) -> Optional[LinearOperator]:
+def _operand_to_linop(operand: Any, shape: ShapeArgType) -> Optional[LinearOperator]:
     if isinstance(operand, LinearOperator):
         pass
-    elif np.isscalar(operand):
-        operand = ScalarMult(shape, operand, dtype=dtype)
+    elif np.ndim(operand) == 0:
+        operand = ScalarMult(shape, operand)
     elif isinstance(operand, (np.ndarray, scipy.sparse.spmatrix)):
         operand = MatrixMult(operand)
     else:
@@ -104,9 +102,9 @@ def _operands_to_compatible_linops(
     if not isinstance(op1, LinearOperator) and not isinstance(op2, LinearOperator):
         raise TypeError(f"At least one of the two operands must be a `LinearOperator`.")
     elif not isinstance(op1, LinearOperator):
-        op1 = _operand_to_linop(op1, shape=op2.shape, dtype=op2.dtype)
+        op1 = _operand_to_linop(op1, shape=op2.shape)
     elif not isinstance(op2, LinearOperator):
-        op2 = _operand_to_linop(op2, shape=op1.shape, dtype=op1.dtype)
+        op2 = _operand_to_linop(op2, shape=op1.shape)
     else:
         # TODO: check whether both have the same shape
         pass
@@ -148,20 +146,17 @@ class ScaledLinearOperator(LinearOperator):
     def _rmatmat(self, mat: np.ndarray) -> np.ndarray:
         return np.conj(self._scalar) * self._linop.rmatmat(mat)
 
-    def _adjoint(self):
+    def _adjoint(self) -> LinearOperator:
         return self._linop.H * np.conj(self._scalar)
 
-    def todense(self):
-        A, alpha = self.args
-        return alpha * A.todense()
+    def todense(self) -> np.ndarray:
+        return self._scalar * self._linop.todense()
 
-    def inv(self):
-        A, alpha = self.args
-        return ScaledLinearOperator(A.inv(), 1 / alpha)
+    def inv(self) -> "ScaledLinearOperator":
+        return ScaledLinearOperator(self._linop.inv(), 1.0 / self._scalar)
 
     def trace(self):
-        A, alpha = self.args
-        return alpha * A.trace()
+        return self._scalar * self._linop.trace()
 
 
 class NegatedLinearOperator(ScaledLinearOperator):
@@ -296,7 +291,9 @@ class ProductLinearOperator(LinearOperator):
         return functools.reduce(lambda vec, op: op.rmatmat(vec), self._factors, x)
 
     def todense(self) -> np.ndarray:
-        return functools.reduce(operator.matmul, self._factors)
+        return functools.reduce(
+            operator.matmul, (factor.todense() for factor in self._factors)
+        )
 
     def inv(self) -> np.ndarray:
         return ProductLinearOperator(

@@ -407,6 +407,10 @@ class ScalarMult(LinearOperator):
 
         super().__init__(shape=probnum.utils.as_shape(shape), dtype=self._scalar.dtype)
 
+    @property
+    def scalar(self):
+        return self._scalar
+
     def _matvec(self, x: np.ndarray) -> np.ndarray:
         return self._scalar * x
 
