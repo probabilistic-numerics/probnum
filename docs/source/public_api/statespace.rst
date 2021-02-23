@@ -1,5 +1,5 @@
 probnum.statespace
-=============================
+==================
 
 Probabilistic State Space Models.
 
