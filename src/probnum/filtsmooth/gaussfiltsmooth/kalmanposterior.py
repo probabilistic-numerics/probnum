@@ -23,13 +23,14 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
         Locations / Times of the discrete-time estimates.
     state_rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
-    gauss_filter : :obj:`GaussFiltSmooth`
-        Filter/smoother used to compute the discrete-time estimates.
+    transition : :obj:`Transition`
+        Dynamics model used as a prior for the filter.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter):
+    def __init__(self, locations, state_rvs, transition):
+
         self._locations = np.asarray(locations)
-        self.gauss_filter = gauss_filter
+        self.transition = transition
         self._state_rvs = _RandomVariableList(state_rvs)
 
     @property
@@ -98,9 +99,6 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
     def sample(self, locations=None, size=()):
         raise NotImplementedError
 
-    # If these two functions can be combined reliably into one
-    # function, please feel free to make the changes.
-
     def _find_previous_index(self, loc):
         return (self.locations < loc).sum() - 1
 
@@ -117,13 +115,13 @@ class SmoothingPosterior(KalmanPosterior):
         Locations / Times of the discrete-time estimates.
     state_rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
-    gauss_filter : :obj:`GaussFiltSmooth`
-        Filter/smoother used to compute the discrete-time estimates.
+    transition : :obj:`Transition`
+        Dynamics model used as a prior for the filter.
     """
 
-    def __init__(self, locations, state_rvs, gauss_filter, filtering_posterior):
+    def __init__(self, locations, state_rvs, transition, filtering_posterior):
         self.filtering_posterior = filtering_posterior
-        super().__init__(locations, state_rvs, gauss_filter)
+        super().__init__(locations, state_rvs, transition)
 
     def interpolate(self, t):
 
@@ -137,17 +135,9 @@ class SmoothingPosterior(KalmanPosterior):
         next_t = self.locations[next_idx]
         next_rv = self.state_rvs[next_idx]
 
-        # Intermediate prediction
-        predicted_future_rv, info = self.gauss_filter.predict(
-            rv=pred_rv,
-            start=t,
-            stop=next_t,
-        )
-        crosscov = info["crosscov"]
+        # Actual smoothing step
+        curr_rv, _ = self.transition.backward_rv(next_rv, pred_rv, t=t, dt=next_t - t)
 
-        curr_rv, _ = self.gauss_filter.smooth_step(
-            pred_rv, predicted_future_rv, next_rv, crosscov
-        )
         return curr_rv
 
     def sample(self, locations=None, size=()):
@@ -163,7 +153,9 @@ class SmoothingPosterior(KalmanPosterior):
 
         if size == ():
             return np.array(
-                self._single_sample_path(locations=locations, random_vars=random_vars)
+                self.transition.jointly_sample_list_backward(
+                    locations=locations, rv_list=random_vars
+                )
             )
 
         return np.array(
@@ -230,8 +222,8 @@ class FilteringPosterior(KalmanPosterior):
         Locations / Times of the discrete-time estimates.
     state_rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
-    gauss_filter : :obj:`GaussFiltSmooth`
-        Filter/smoother used to compute the discrete-time estimates.
+    transition : :obj:`Transition`
+        Dynamics model used as a prior for the filter.
     """
 
     def interpolate(self, t):
@@ -240,7 +232,7 @@ class FilteringPosterior(KalmanPosterior):
         previous_t = self.locations[previous_idx]
         previous_rv = self.state_rvs[previous_idx]
 
-        rv, _ = self.gauss_filter.predict(previous_rv, previous_t, t)
+        rv, _ = self.transition.forward_rv(previous_rv, t=previous_t, dt=t - previous_t)
         return rv
 
     def sample(self, locations=None, size=()):

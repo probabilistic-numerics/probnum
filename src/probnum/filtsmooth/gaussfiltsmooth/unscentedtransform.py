@@ -39,7 +39,7 @@ class UnscentedTransform:
             spread, priorpar, self.dimension, self.scale
         )
 
-    def sigma_points(self, mean, covar):
+    def sigma_points(self, rv):
         """Sigma points.
 
         Parameters
@@ -53,17 +53,17 @@ class UnscentedTransform:
         -------
         np.ndarray, shape (2 * d + 1, d)
         """
-        if len(mean) != self.dimension:
+        if len(rv.mean) != self.dimension:
             raise ValueError("Dimensionality does not match UT")
         sigpts = np.zeros((2 * self.dimension + 1, self.dimension))
-        sqrtcovar = np.linalg.cholesky(covar)
-        sigpts[0] = mean.copy()
+        sqrtcovar = rv.cov_cholesky
+        sigpts[0] = rv.mean.copy()
         for idx in range(self.dimension):
             sigpts[idx + 1] = (
-                mean + np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
+                rv.mean + np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
             )
             sigpts[self.dimension + 1 + idx] = (
-                mean - np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
+                rv.mean - np.sqrt(self.dimension + self.scale) * sqrtcovar[:, idx]
             )
         return sigpts
 

@@ -1,173 +1,290 @@
-import unittest
-
 import numpy as np
+import pytest
 
-import probnum.filtsmooth.statespace as pnfss
 import probnum.random_variables as pnrv
-from tests.testing import NumpyAssertions
+from probnum.filtsmooth import statespace as pnfss
 
-TEST_NDIM = 4
+from .test_transition import InterfaceTestTransition
 
 
-class TestDiscreteGaussianTransition(unittest.TestCase, NumpyAssertions):
+class TestDiscreteGaussian(InterfaceTestTransition):
+    """Tests for the discrete Gaussian class.
 
-    some_rv = pnrv.Normal(
-        mean=np.random.rand(TEST_NDIM), cov=np.diag(1 + np.random.rand(TEST_NDIM))
-    )
-    start = 0.1 + 0.01 * np.random.rand()
+    Most of the tests are reused/overwritten in subclasses, therefore
+    the class- structure. Unfortunately, testing the product space of
+    all combinations (different subclasses, different implementations,
+    etc.) generates a lot of tests that are executed.
+    """
 
-    random_mat = np.random.rand(TEST_NDIM, TEST_NDIM)
-    random_spdmat = random_mat @ random_mat + 2 * np.eye(TEST_NDIM)
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_ndim, spdmat1):
 
-    def setUp(self):
-        def g(t, x):
-            return np.sin(x)
-
-        def S(t):
-            return self.random_spdmat
-
-        def dg(t, x):
-            return np.cos(x)
-
-        self.dtrans = pnfss.discrete_transition.DiscreteGaussian(g, S, dg)
-
-        self.g = g
-        self.S = S
-        self.dg = dg
-
-    def test_dynamics(self):
-        received = self.dtrans.state_trans_fun(self.start, self.some_rv.mean)
-        expected = self.g(self.start, self.some_rv.mean)
-        self.assertAllClose(received, expected)
-
-    def test_proc_noise_cov(self):
-        received = self.dtrans.proc_noise_cov_mat_fun(self.start)
-        expected = self.S(self.start)
-        self.assertAllClose(received, expected)
-
-    def test_jacobian(self):
-        received = self.dtrans.jacob_state_trans_fun(self.start, self.some_rv.mean)
-        expected = self.dg(self.start, self.some_rv.mean)
-        self.assertAllClose(received, expected)
-
-    def test_jacobian_error(self):
-        """Calling a Jacobian when nothing is provided throws an Exception."""
-        dtrans_no_jacob = pnfss.discrete_transition.DiscreteGaussian(self.g, self.S)
-        with self.assertRaises(NotImplementedError):
-            dtrans_no_jacob.jacob_state_trans_fun(self.start, self.some_rv.mean)
-
-    def test_transition_rv(self):
-
-        with self.assertRaises(NotImplementedError):
-            self.dtrans.transition_rv(self.some_rv, self.start)
-
-    def test_transition_realization(self):
-        self.dtrans.transition_realization(self.some_rv.sample(), self.start)
-
-    def test_diffmatfun_cholesky(self):
-        self.assertAllClose(
-            self.dtrans.proc_noise_cov_cholesky_fun(0),
-            np.linalg.cholesky(self.dtrans.proc_noise_cov_mat_fun(0)),
+        self.g = lambda t, x: np.sin(x)
+        self.S = lambda t: spdmat1
+        self.dg = lambda t, x: np.cos(x)
+        self.transition = pnfss.DiscreteGaussian(
+            test_ndim,
+            test_ndim,
+            self.g,
+            self.S,
+            self.dg,
+            None,
         )
 
+    # Test access to system matrices
 
-class TestDiscreteLinearGaussianTransition(unittest.TestCase, NumpyAssertions):
+    def test_state_transition(self, some_normal_rv1):
+        received = self.transition.state_trans_fun(0.0, some_normal_rv1.mean)
+        expected = self.g(0.0, some_normal_rv1.mean)
+        np.testing.assert_allclose(received, expected)
 
-    some_rv = pnrv.Normal(
-        mean=np.random.rand(TEST_NDIM), cov=np.diag(1 + np.random.rand(TEST_NDIM))
-    )
-    some_nongaussian_rv = pnrv.Constant(np.random.rand(TEST_NDIM))
-    start = 0.1 + 0.01 * np.random.rand()
+    def test_process_noise(self):
+        received = self.transition.proc_noise_cov_mat_fun(0.0)
+        expected = self.S(0.0)
+        np.testing.assert_allclose(received, expected)
 
-    random_mat = np.random.rand(TEST_NDIM, TEST_NDIM)
-    random_spdmat = random_mat @ random_mat + np.eye(TEST_NDIM)
+    def test_process_noise_cholesky(self):
+        received = self.transition.proc_noise_cov_cholesky_fun(0.0)
+        expected = np.linalg.cholesky(self.transition.proc_noise_cov_mat_fun(0.0))
+        np.testing.assert_allclose(received, expected)
 
-    def setUp(self):
-        def G(t):
-            return np.arange(TEST_NDIM ** 2).reshape((TEST_NDIM, TEST_NDIM))
+    def test_jacobian(self, some_normal_rv1):
+        received = self.transition.jacob_state_trans_fun(0.0, some_normal_rv1.mean)
+        expected = self.dg(0.0, some_normal_rv1.mean)
+        np.testing.assert_allclose(received, expected)
 
-        def v(t):
-            return np.ones(TEST_NDIM)
+    # Test forward and backward implementations
 
-        def S(t):
-            return self.random_spdmat
+    def test_forward_rv(self, some_normal_rv1):
+        with pytest.raises(NotImplementedError):
+            self.transition.forward_rv(some_normal_rv1, 0.0)
 
-        self.dtrans = pnfss.discrete_transition.DiscreteLinearGaussian(G, v, S)
+    def test_forward_realization(self, some_normal_rv1):
+        out, _ = self.transition.forward_realization(some_normal_rv1.sample(), 0.0)
+        assert isinstance(out, pnrv.Normal)
 
-        self.G = G
-        self.v = v
-        self.S = S
+    def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
+        with pytest.raises(NotImplementedError):
+            self.transition.backward_rv(some_normal_rv1, some_normal_rv2)
 
-    def test_transition_rv(self):
-
-        with self.subTest("Non-Normal-RV-exception"):
-            with self.assertRaises(TypeError):
-                self.dtrans.transition_rv(self.some_nongaussian_rv, self.start)
-
-    def test_state_trans_mat(self):
-        received = self.dtrans.state_trans_mat_fun(self.start)
-        expected = self.G(self.start)
-        self.assertAllClose(received, expected)
-
-    def test_shift_vec(self):
-        received = self.dtrans.shift_vec_fun(self.start)
-        expected = self.v(self.start)
-        self.assertAllClose(received, expected)
-
-    def test_dimension(self):
-        self.assertEqual(self.dtrans.dimension, TEST_NDIM)
-
-
-class TestDiscreteLTIGaussianTransition(unittest.TestCase, NumpyAssertions):
-    def setUp(self):
-
-        self.good_dynamicsmat = np.ones((TEST_NDIM, 4 * TEST_NDIM))
-        self.good_forcevec = np.ones(TEST_NDIM)
-        self.good_diffmat = np.ones((TEST_NDIM, TEST_NDIM)) + np.eye(TEST_NDIM)
-
-    def test_init_exceptions(self):
-
-        with self.subTest("Baseline should work"):
-            pnfss.discrete_transition.DiscreteLinearGaussian(
-                self.good_dynamicsmat, self.good_forcevec, self.good_diffmat
+    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
+        with pytest.raises(NotImplementedError):
+            self.transition.backward_realization(
+                some_normal_rv1.sample(), some_normal_rv2
             )
 
-        with self.subTest("bad dynamics"):
-            with self.assertRaises(TypeError):
-                pnfss.discrete_transition.DiscreteLTIGaussian(
-                    self.good_forcevec, self.good_forcevec, self.good_diffmat
-                )
+    def test_input_dim(self, test_ndim):
+        assert self.transition.input_dim == test_ndim
 
-        with self.subTest("bad force"):
-            with self.assertRaises(TypeError):
-                pnfss.discrete_transition.DiscreteLTIGaussian(
-                    self.good_dynamicsmat, self.good_dynamicsmat, self.good_diffmat
-                )
+    def test_output_dim(self, test_ndim):
+        assert self.transition.output_dim == test_ndim
 
-        with self.subTest("bad diffusion"):
-            with self.assertRaises(TypeError):
-                pnfss.discrete_transition.DiscreteLTIGaussian(
-                    self.good_dynamicsmat, self.good_forcevec, self.good_dynamicsmat
-                )
 
-    def test_diffmat_cholesky(self):
-        trans = pnfss.DiscreteLTIGaussian(
-            self.good_dynamicsmat, self.good_forcevec, self.good_diffmat
+@pytest.fixture(params=["classic", "sqrt"])
+def forw_impl_string_linear_gauss(request):
+    """Forward implementation choices passed via strings."""
+    return request.param
+
+
+@pytest.fixture(params=["classic", "joseph", "sqrt"])
+def backw_impl_string_linear_gauss(request):
+    """Backward implementation choices passed via strings."""
+    return request.param
+
+
+class TestLinearGaussian(TestDiscreteGaussian):
+    """Test class for linear Gaussians. Inherits tests from `TestDiscreteGaussian` but
+    overwrites the forward and backward transitions.
+
+    Also tests that different forward and backward implementations yield
+    the same results.
+    """
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        test_ndim,
+        spdmat1,
+        spdmat2,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+
+        self.G = lambda t: spdmat1
+        self.S = lambda t: spdmat2
+        self.v = lambda t: np.arange(test_ndim)
+        self.transition = pnfss.DiscreteLinearGaussian(
+            test_ndim,
+            test_ndim,
+            self.G,
+            self.v,
+            self.S,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
         )
 
-        # Matrix square-root
-        self.assertAllClose(
-            trans.proc_noise_cov_cholesky @ trans.proc_noise_cov_cholesky.T,
-            trans.proc_noise_cov_mat,
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    # Test access to system matrices
+
+    def test_state_transition_mat_fun(self):
+        received = self.transition.state_trans_mat_fun(0.0)
+        expected = self.G(0.0)
+        np.testing.assert_allclose(received, expected)
+
+    def test_shift_vec_fun(self):
+        received = self.transition.shift_vec_fun(0.0)
+        expected = self.v(0.0)
+        np.testing.assert_allclose(received, expected)
+
+    # Test forward and backward implementations
+
+    def test_forward_rv(self, some_normal_rv1):
+        out, _ = self.transition.forward_rv(some_normal_rv1, 0.0)
+        assert isinstance(out, pnrv.Normal)
+
+    def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
+        out, _ = self.transition.backward_rv(some_normal_rv1, some_normal_rv2)
+        assert isinstance(out, pnrv.Normal)
+
+    def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
+        out, _ = self.transition.backward_realization(
+            some_normal_rv1.sample(), some_normal_rv2
+        )
+        assert isinstance(out, pnrv.Normal)
+
+    def test_all_forward_rv_same(self, some_normal_rv1, diffusion):
+        out_classic, info_classic = self.transition._forward_rv_classic(
+            some_normal_rv1, 0.0, compute_gain=True, _diffusion=diffusion
+        )
+        out_sqrt, info_sqrt = self.transition._forward_rv_sqrt(
+            some_normal_rv1, 0.0, compute_gain=True, _diffusion=diffusion
         )
 
-        # Lower triangular
-        self.assertAllClose(
-            trans.proc_noise_cov_cholesky, np.tril(trans.proc_noise_cov_cholesky)
+        np.testing.assert_allclose(out_classic.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_classic.cov, out_sqrt.cov)
+        np.testing.assert_allclose(info_classic["crosscov"], info_sqrt["crosscov"])
+        np.testing.assert_allclose(info_classic["gain"], info_sqrt["gain"])
+
+    def test_all_backward_rv_same_no_cache(
+        self, some_normal_rv1, some_normal_rv2, diffusion
+    ):
+        out_classic, _ = self.transition._backward_rv_classic(
+            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=diffusion
+        )
+        out_sqrt, _ = self.transition._backward_rv_sqrt(
+            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=diffusion
+        )
+        out_joseph, _ = self.transition._backward_rv_joseph(
+            some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=diffusion
         )
 
-        # Nonnegative diagonal
-        self.assertAllClose(
-            np.diag(trans.proc_noise_cov_cholesky),
-            np.abs(np.diag(trans.proc_noise_cov_cholesky)),
+        # Classic -- sqrt
+        np.testing.assert_allclose(out_classic.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_classic.cov, out_sqrt.cov)
+
+        # Joseph -- sqrt
+        np.testing.assert_allclose(out_joseph.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_joseph.cov, out_sqrt.cov)
+
+    def test_all_backward_rv_same_with_cache(
+        self, some_normal_rv1, some_normal_rv2, diffusion
+    ):
+
+        rv_forward, info = self.transition.forward_rv(
+            some_normal_rv2, 0.0, compute_gain=True, _diffusion=diffusion
         )
+        gain = info["gain"]
+
+        out_classic, _ = self.transition._backward_rv_classic(
+            some_normal_rv1,
+            some_normal_rv2,
+            rv_forwarded=rv_forward,
+            gain=gain,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+        out_sqrt, _ = self.transition._backward_rv_sqrt(
+            some_normal_rv1,
+            some_normal_rv2,
+            rv_forwarded=rv_forward,
+            gain=gain,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+        out_joseph, _ = self.transition._backward_rv_joseph(
+            some_normal_rv1,
+            some_normal_rv2,
+            rv_forwarded=rv_forward,
+            gain=gain,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+
+        # Classic -- sqrt
+        np.testing.assert_allclose(out_classic.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_classic.cov, out_sqrt.cov)
+
+        # Joseph -- sqrt
+        np.testing.assert_allclose(out_joseph.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_joseph.cov, out_sqrt.cov)
+
+
+class TestLTIGaussian(TestLinearGaussian):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(
+        self,
+        test_ndim,
+        spdmat1,
+        spdmat2,
+        forw_impl_string_linear_gauss,
+        backw_impl_string_linear_gauss,
+    ):
+
+        self.G_const = spdmat1
+        self.S_const = spdmat2
+        self.v_const = np.arange(test_ndim)
+        self.transition = pnfss.DiscreteLTIGaussian(
+            self.G_const,
+            self.v_const,
+            self.S_const,
+            forward_implementation=forw_impl_string_linear_gauss,
+            backward_implementation=backw_impl_string_linear_gauss,
+        )
+
+        # Compatibility with superclass' test
+        self.G = lambda t: self.G_const
+        self.S = lambda t: self.S_const
+        self.v = lambda t: self.v_const
+        self.g = lambda t, x: self.G(t) @ x + self.v(t)
+        self.dg = lambda t, x: self.G(t)
+
+    # Test access to system matrices
+
+    def test_state_transition_mat(self):
+        received = self.transition.state_trans_mat
+        expected = self.G_const
+        np.testing.assert_allclose(received, expected)
+
+    def test_shift_vec(self):
+        received = self.transition.shift_vec
+        expected = self.v_const
+        np.testing.assert_allclose(received, expected)
+
+    def test_process_noise_cov_mat(self):
+        received = self.transition.proc_noise_cov_mat
+        expected = self.S_const
+        np.testing.assert_allclose(received, expected)
+
+    def test_process_noise_cov_cholesky(self):
+        received = self.transition.proc_noise_cov_cholesky
+        expected = np.linalg.cholesky(self.S_const)
+        np.testing.assert_allclose(received, expected)

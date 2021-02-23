@@ -185,6 +185,7 @@ class Kernel(Generic[_InputType], abc.ABC):
             )
 
             # pylint: disable=redefined-variable-type
+
             # Promote unequal shapes
             if x0.ndim < 2 and x1.ndim == 2:
                 x0 = np.atleast_2d(x0)
