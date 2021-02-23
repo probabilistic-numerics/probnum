@@ -343,3 +343,13 @@ class TransposedLinearOperator(LinearOperator):
 
     def inv(self):
         return self._linop.inv().T
+
+
+class InverseLinearOperator(MatrixMult):
+    def __init__(self, linop: LinearOperator):
+        self._linop = linop
+
+        super().__init__(A=np.inv(self._linop.todense()))
+
+    def inv(self) -> LinearOperator:
+        return self._linop

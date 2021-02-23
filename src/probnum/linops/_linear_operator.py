@@ -1,6 +1,5 @@
 """Finite-dimensional linear operators."""
 
-import numbers
 import warnings
 from typing import Optional, Union
 
@@ -272,7 +271,11 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
     def inv(self) -> "LinearOperator":
         """Inverse of the linear operator."""
-        raise NotImplementedError
+        from ._arithmetic import (  # pylint: disable=import-outside-toplevel
+            InverseLinearOperator,
+        )
+
+        return InverseLinearOperator(self)
 
     ####################################################################################
     # Binary Arithmetic
