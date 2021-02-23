@@ -343,9 +343,3 @@ class TransposedLinearOperator(LinearOperator):
 
     def inv(self):
         return self._linop.inv().T
-
-
-class PowerLinearOperator(
-    scipy.sparse.linalg.interface._PowerLinearOperator, LinearOperator
-):
-    """Linear operator raised to a non-negative integer power."""

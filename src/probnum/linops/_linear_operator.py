@@ -340,16 +340,6 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         # TODO: rmatvec and rmatmat
         return NotImplemented
 
-    def __pow__(self, power: numbers.Integral) -> "LinearOperator":
-        if isinstance(power, numbers.Integral):
-            from ._arithmetic import (  # pylint: disable=import-outside-toplevel
-                PowerLinearOperator,
-            )
-
-            return PowerLinearOperator(self, power)
-        else:
-            return NotImplemented
-
 
 class _CustomLinearOperator(
     scipy.sparse.linalg.interface._CustomLinearOperator, LinearOperator
