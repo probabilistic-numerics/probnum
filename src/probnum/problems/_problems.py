@@ -6,9 +6,9 @@ import typing
 import numpy as np
 import scipy.sparse
 
-import probnum.filtsmooth as pnfs
 import probnum.linops as pnlo
 import probnum.random_variables as pnrv
+import probnum.statespace as pnss
 import probnum.type as pntp
 
 
@@ -48,7 +48,7 @@ class RegressionProblem:
     # Optional, because it should be specifiable without explicit likelihood info.
     # 'DiscreteGaussian' is currently in 'statespace', but can be used to define general
     # Likelihood functions; see #282
-    likelihood: typing.Optional[pnfs.statespace.DiscreteGaussian] = None
+    likelihood: typing.Optional[pnss.DiscreteGaussian] = None
 
     # For testing and benchmarking
     solution: typing.Optional[

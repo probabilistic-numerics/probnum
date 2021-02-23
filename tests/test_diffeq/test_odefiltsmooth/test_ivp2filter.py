@@ -12,6 +12,7 @@ import numpy as np
 import probnum.diffeq as pnd
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
+import probnum.statespace as pnss
 from tests.testing import NumpyAssertions
 
 
@@ -21,7 +22,7 @@ class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):
         tests."""
         y0 = pnrv.Constant(np.array([20.0, 15.0]))
         self.ivp = pnd.lotkavolterra([0.4124, 1.15124], y0)
-        self.prior = pnfs.statespace.IBM(ordint=2, spatialdim=2)
+        self.prior = pnss.IBM(ordint=2, spatialdim=2)
         self.evlvar = 0.0005123121
 
 

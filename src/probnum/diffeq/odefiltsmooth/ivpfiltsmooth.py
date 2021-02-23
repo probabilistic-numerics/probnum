@@ -3,6 +3,7 @@ import typing
 import numpy as np
 
 import probnum.filtsmooth as pnfs
+import probnum.statespace as pnss
 from probnum.random_variables import Normal
 
 from ..ode import IVP
@@ -44,15 +45,15 @@ class GaussianIVPFilter(ODESolver):
     def __init__(
         self,
         ivp: IVP,
-        prior: pnfs.statespace.Integrator,
-        measurement_model: pnfs.statespace.DiscreteGaussian,
+        prior: pnss.Integrator,
+        measurement_model: pnss.DiscreteGaussian,
         with_smoothing: bool,
         init_implementation: typing.Callable[
             [
                 typing.Callable,
                 np.ndarray,
                 float,
-                pnfs.statespace.Integrator,
+                pnss.Integrator,
                 Normal,
                 typing.Optional[typing.Callable],
             ],
@@ -71,9 +72,9 @@ class GaussianIVPFilter(ODESolver):
             dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
         )
 
-        if not isinstance(prior, pnfs.statespace.Integrator):
+        if not isinstance(prior, pnss.Integrator):
             raise ValueError(
-                "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
+                "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
             )
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
