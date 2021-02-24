@@ -60,10 +60,10 @@ def test_triu_to_tril():
     """triu_to_positive_tril can handle small values on the diagonal."""
 
     mat = np.tril(np.random.rand(4, 4))
-    scale = np.diag([1.0, 1.0, 1e-14, 1e-14])
-    tril = mat @ scale
-    signs = np.diag([1.0, -1.0, -1.0, -1.0])
-    triu = (tril @ signs).T
+    scale = np.array([1.0, 1.0, 1e-55, 1e-55])
+    tril = mat @ np.diag(scale)
+    signs = np.array([1.0, -1.0, -1.0, -1.0])
+    triu = (tril @ np.diag(signs)).T
     tril_received = pnfss.triu_to_positive_tril(triu)
 
     # Sanity checks
