@@ -1,8 +1,6 @@
 import numpy as np
-import scipy.linalg
 
 from probnum.filtsmooth import statespace as pnfss
-from probnum.problems.zoo.linalg import random_spd_matrix
 
 
 def test_condition_state_on_rv(some_normal_rv1, some_normal_rv2):
