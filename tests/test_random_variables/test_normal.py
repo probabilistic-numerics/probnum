@@ -40,14 +40,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 linops.SymmetricKronecker(
                     A=np.array([[1.0, 2.0], [2.0, 1.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
-                ).todense()
-                + 10 * np.eye(4),
+                ).todense(),
             ),
             # Operatorvariate
-            (
-                linops.MatrixMult(A=sparsemat.todense()),
-                linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
-            ),
             (
                 np.array([1.0, -5.0]),
                 linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
@@ -59,6 +54,10 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (
                 np.array([[1.0, 2.0], [-3.0, -0.4], [4.0, 1.0]]),
                 linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
+            ),
+            (
+                linops.MatrixMult(A=sparsemat.todense()),
+                linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
             ),
             (
                 linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
@@ -429,7 +428,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
 
         with self.subTest("Without explicit damping"):
-            # damping factor 1e-12 does not mess up this test
+            # The default damping factor 1e-12 does not mess up this test
             self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov))
 
         with self.subTest("With explicit damping"):
@@ -449,7 +448,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         """
         mean, cov = self.params
 
-        # explicitly not the correct cov_cholesky for test reasons
+        # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand()
 
         rv = rvs.Normal(mean, cov, cov_cholesky=cov_cholesky)
@@ -461,7 +460,6 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertAllClose(rv.cov_cholesky, cov_cholesky)
 
         with self.subTest("self.precompute overwrites with true factor"):
-            # Sanity check: usual cov_cholesky does not work
             rv.precompute_cov_cholesky()
             self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov))
 
@@ -530,11 +528,11 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
 
         with self.subTest("Without explicit damping"):
-            # damping factor 1e-12 does not mess up this test
+            # The default damping factor 1e-12 does not mess up this test
             self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
 
         with self.subTest("With explicit damping"):
-            # Sanity check: usual cov_cholesky does not work
+            # Sanity check: usual cov_cholesky does not work with the subsequent test
             with self.assertRaises(AssertionError):
                 self.assertAllClose(
                     rv.cov_cholesky,
@@ -555,7 +553,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         """
         mean, cov = self.params
 
-        # explicitly not the correct cov_cholesky for test reasons
+        # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand(*cov.shape)
 
         rv = rvs.Normal(mean, cov, cov_cholesky=cov_cholesky)
@@ -567,7 +565,6 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertAllClose(rv.cov_cholesky, cov_cholesky)
 
         with self.subTest("self.precompute overwrites with true factor"):
-            # Sanity check: usual cov_cholesky does not work
             rv.precompute_cov_cholesky()
             self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
 
@@ -627,11 +624,11 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertFalse(rv.cov_cholesky_is_precomputed)
 
         with self.subTest("Without explicit damping"):
-            # damping factor 1e-12 does not mess up this test
+            # The default damping factor 1e-12 does not mess up this test
             self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
 
         with self.subTest("With explicit damping"):
-            # Sanity check: usual cov_cholesky does not work
+            # Sanity check: usual cov_cholesky does not work with the subsequent test
             with self.assertRaises(AssertionError):
                 self.assertAllClose(
                     rv.cov_cholesky,
@@ -650,7 +647,7 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         cov_cholesky returns the argument that has been passed, but
         (p)recomputing overwrites the argument with a new factor.
         """
-        # explicitly not the correct cov_cholesky for test reasons
+        # This is purposely not the correct Cholesky factor for test reasons
         cov_cholesky = np.random.rand(4, 4)
 
         rv = rvs.Normal(
@@ -666,7 +663,6 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             self.assertAllClose(rv.cov_cholesky, cov_cholesky)
 
         with self.subTest("self.precompute overwrites with true factor"):
-            # Sanity check: usual cov_cholesky does not work
             rv.precompute_cov_cholesky()
             self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
 

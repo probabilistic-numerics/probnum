@@ -268,17 +268,20 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return self._cov_cholesky_values
 
     def precompute_cov_cholesky(self, damping_factor=COV_CHOLESKY_DAMPING):
-        """Overwrites values of cov_cholesky with new Cholesky factors (careful: in-
-        place operation!)."""
+        """(P)recompute Cholesky factors (careful: in-place operation!)."""
         self._cov_cholesky_values = self._compute_cov_cholesky(
             damping_factor=damping_factor
         )
 
     @property
     def cov_cholesky_is_precomputed(self) -> bool:
-        """Whether the Cholesky factor of the covariance is readily available, which
-        happens if either cov_cholesky is specified during initialization or if the
-        property has been called."""
+        """Return truth-value of whether the Cholesky factor of the covariance is
+        readily available.
+
+        This happens if (i) cov_cholesky is specified during
+        initialization or if (ii) the property `self.cov_cholesky` has
+        been called.
+        """
         if self._cov_cholesky_values is None:
             return False
         return True
