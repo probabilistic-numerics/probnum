@@ -2,8 +2,6 @@
 
 import abc
 
-import numpy as np
-
 import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.type import IntArgType
@@ -315,17 +313,11 @@ class Transition(abc.ABC):
         _RandomVariableList
             List of smoothed random variables.
         """
-
-        num_dim = len(rv_list[-1].sample())
-
         curr_sample = rv_list[-1].sample()
         out_samples = [curr_sample]
-        zero_mat = np.zeros((num_dim, num_dim))
-        curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
 
         for idx in reversed(range(1, len(locations))):
             unsmoothed_rv = rv_list[idx - 1]
-
             _linearise_smooth_step_at = (
                 None
                 if _previous_posterior is None
@@ -333,8 +325,8 @@ class Transition(abc.ABC):
             )
 
             # Actual smoothing step
-            curr_rv, _ = self.backward_rv(
-                curr_rv,
+            curr_rv, _ = self.backward_realization(
+                curr_sample,
                 unsmoothed_rv,
                 t=locations[idx - 1],
                 dt=locations[idx] - locations[idx - 1],
@@ -344,7 +336,6 @@ class Transition(abc.ABC):
             # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
             curr_sample = curr_rv.sample()
             out_samples.append(curr_sample)
-            curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
 
         out_samples.reverse()
         return out_samples

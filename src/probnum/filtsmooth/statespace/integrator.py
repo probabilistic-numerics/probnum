@@ -480,7 +480,16 @@ class Matern(Integrator, sde.LTISDE):
 
 
 def _apply_precon(precon, rv):
+
+    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
+    # Therefore, since we need to update the Cholesky factor for square-root filtering,
+    # we also update the Cholesky factor for non-square-root algorithms here,
+    # which implies additional cost.
+    # See Issues #319 and #329.
+    # When they are resolved, this function here will hopefully be superfluous.
+
     new_mean = precon @ rv.mean
-    new_cov = precon @ rv.cov @ precon.T
-    new_cov_choleky = precon @ rv.cov_cholesky  # precon is diagonal, so this is valid
-    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_choleky)
+    new_cov_cholesky = precon @ rv.cov_cholesky  # precon is diagonal, so this is valid
+    new_cov = new_cov_cholesky @ new_cov_cholesky.T
+
+    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
