@@ -10,16 +10,18 @@ from .discrete_transition import (
     DiscreteLinearGaussian,
     DiscreteLTIGaussian,
 )
+from .discrete_transition_utils import (
+    cholesky_update,
+    condition_state_on_measurement,
+    condition_state_on_rv,
+    triu_to_positive_tril,
+)
+from .generate_samples import generate_samples
 from .integrator import IBM, IOUP, Integrator, Matern
 from .preconditioner import NordsieckLikeCoordinates, Preconditioner
-from .sde import (
-    LTISDE,
-    SDE,
-    LinearSDE,
-    linear_sde_statistics,
-    matrix_fraction_decomposition,
-)
-from .transition import Transition, generate
+from .sde import LTISDE, SDE, LinearSDE
+from .sde_utils import matrix_fraction_decomposition
+from .transition import Transition
 
 __all__ = [
     "Transition",
@@ -35,7 +37,10 @@ __all__ = [
     "DiscreteLTIGaussian",
     "Preconditioner",
     "NordsieckLikeCoordinates",
-    "linear_sde_statistics",
     "matrix_fraction_decomposition",
-    "generate",
+    "generate_samples",
+    "condition_state_on_measurement",
+    "condition_state_on_rv",
+    "cholesky_update",
+    "triu_to_positive_tril",
 ]

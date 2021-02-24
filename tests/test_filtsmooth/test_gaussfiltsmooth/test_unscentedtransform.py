@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+import probnum.random_variables as pnrv
 from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform
 
 
@@ -21,20 +22,20 @@ class TestUnscentedTransform(unittest.TestCase):
         self.assertEqual(self.ut.cweights.shape[0], 2 * self.ndim + 1)
 
     def test_sigpts_shape(self):
-        sigpts = self.ut.sigma_points(self.mean, self.covar)
+        sigpts = self.ut.sigma_points(pnrv.Normal(self.mean, self.covar))
         self.assertEqual(sigpts.ndim, 2)
         self.assertEqual(sigpts.shape[0], 2 * self.ndim + 1)
         self.assertEqual(sigpts.shape[1], self.ndim)
 
     def test_propagate_shape(self):
-        sigpts = self.ut.sigma_points(self.mean, self.covar)
+        sigpts = self.ut.sigma_points(pnrv.Normal(self.mean, self.covar))
         propagated = self.ut.propagate(None, sigpts, lambda t, x: np.sin(x))
         self.assertEqual(propagated.ndim, 2)
         self.assertEqual(propagated.shape[0], 2 * self.ndim + 1)
         self.assertEqual(propagated.shape[1], self.ndim)
 
     def test_estimate_statistics_shape(self):
-        sigpts = self.ut.sigma_points(self.mean, self.covar)
+        sigpts = self.ut.sigma_points(pnrv.Normal(self.mean, self.covar))
         proppts = self.ut.propagate(None, sigpts, lambda t, x: np.sin(x))
         mest, cest, ccest = self.ut.estimate_statistics(
             proppts, sigpts, self.covar, self.mean
@@ -49,7 +50,7 @@ class TestUnscentedTransform(unittest.TestCase):
         self.assertEqual(ccest.shape[1], self.ndim)
 
     def test_transform_of_gaussian_exact(self):
-        sigpts = self.ut.sigma_points(self.mean, self.covar)
+        sigpts = self.ut.sigma_points(pnrv.Normal(self.mean, self.covar))
         ndim_meas = self.ndim + 1  # != self.ndim is important
         transmtrx = np.random.rand(ndim_meas, self.ndim)
         meascov = 0 * np.random.rand(ndim_meas, ndim_meas)

@@ -9,6 +9,7 @@ import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 import probnum.type
 import probnum.utils
+from probnum.filtsmooth.statespace import cholesky_update
 
 from ..odesolution import ODESolution
 
@@ -78,12 +79,8 @@ class KalmanODESolution(ODESolution):
 
         # Pre-compute projection matrices.
         # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'.
-        self.proj_to_y = kalman_posterior.gauss_filter.dynamics_model.proj2coord(
-            coord=0
-        )
-        self.proj_to_dy = kalman_posterior.gauss_filter.dynamics_model.proj2coord(
-            coord=1
-        )
+        self.proj_to_y = kalman_posterior.transition.proj2coord(coord=0)
+        self.proj_to_dy = kalman_posterior.transition.proj2coord(coord=1)
 
     @property
     def t(self) -> np.ndarray:
@@ -91,12 +88,16 @@ class KalmanODESolution(ODESolution):
 
     @cached_property
     def y(self) -> pnrv_list._RandomVariableList:
-        y_rvs = [self.proj_to_y @ rv for rv in self.kalman_posterior.state_rvs]
+        y_rvs = [
+            _project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.state_rvs
+        ]
         return pnrv_list._RandomVariableList(y_rvs)
 
     @cached_property
     def dy(self) -> pnrv_list._RandomVariableList:
-        dy_rvs = [self.proj_to_dy @ rv for rv in self.kalman_posterior.state_rvs]
+        dy_rvs = [
+            _project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.state_rvs
+        ]
         return pnrv_list._RandomVariableList(dy_rvs)
 
     def __call__(
@@ -105,9 +106,11 @@ class KalmanODESolution(ODESolution):
         out_rv = self.kalman_posterior(t)
 
         if np.isscalar(t):
-            return self.proj_to_y @ out_rv
+            return _project_rv(self.proj_to_y, out_rv)
 
-        return pnrv_list._RandomVariableList([self.proj_to_y @ rv for rv in out_rv])
+        return pnrv_list._RandomVariableList(
+            [_project_rv(self.proj_to_y, rv) for rv in out_rv]
+        )
 
     def sample(
         self,
@@ -124,3 +127,21 @@ class KalmanODESolution(ODESolution):
 
         samples = self.kalman_posterior.sample(locations=t, size=size)
         return np.array([self.proj_to_y @ sample for sample in samples])
+
+    @property
+    def filtering_solution(self):
+
+        if isinstance(self.kalman_posterior, pnfs.FilteringPosterior):
+            return self
+
+        # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.
+        return KalmanODESolution(
+            kalman_posterior=self.kalman_posterior.filtering_posterior
+        )
+
+
+def _project_rv(projmat, rv):
+    new_mean = projmat @ rv.mean
+    new_cov = projmat @ rv.cov @ projmat.T
+    new_cov_cholesky = cholesky_update(projmat @ rv.cov_cholesky)
+    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)

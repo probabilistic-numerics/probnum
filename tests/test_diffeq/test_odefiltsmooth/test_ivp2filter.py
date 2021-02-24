@@ -44,7 +44,7 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.transition_realization(
+        received, _ = kalman.measurement_model.forward_realization(
             random_eval, random_time
         )
 
@@ -82,7 +82,7 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.transition_realization(
+        received, _ = kalman.measurement_model.forward_realization(
             random_eval, random_time
         )
 
@@ -120,7 +120,7 @@ class TestIvpUkf(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.transition_realization(
+        received, _ = kalman.measurement_model.forward_realization(
             random_eval, random_time
         )
 
