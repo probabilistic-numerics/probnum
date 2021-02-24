@@ -1,6 +1,8 @@
 import numpy as np
+import scipy.linalg
 
 from probnum.filtsmooth import statespace as pnfss
+from probnum.problems.zoo.linalg import random_spd_matrix
 
 
 def test_condition_state_on_rv(some_normal_rv1, some_normal_rv2):
@@ -45,8 +47,28 @@ def test_cholesky_update(spdmat1, spdmat2):
 
 
 def test_cholesky_optional(spdmat1, test_ndim):
+    """Assert that cholesky_update() transforms a non-square matrix square-root into a
+    correct Cholesky factor."""
     H = np.random.rand(test_ndim, test_ndim)
     expected = np.linalg.cholesky(H @ spdmat1 @ H.T)
     S1 = np.linalg.cholesky(spdmat1)
     received = pnfss.cholesky_update(H @ S1)
     np.testing.assert_allclose(expected, received)
+
+
+def test_triu_to_tril():
+    """triu_to_positive_tril can handle small values on the diagonal."""
+
+    mat = np.tril(np.random.rand(4, 4))
+    scale = np.diag([1.0, 1.0, 1e-14, 1e-14])
+    tril = mat @ scale
+    signs = np.diag([1.0, -1.0, -1.0, -1.0])
+    triu = (tril @ signs).T
+    tril_received = pnfss.triu_to_positive_tril(triu)
+
+    # Sanity checks
+    np.testing.assert_allclose(triu.T @ triu, tril @ tril.T)
+    np.testing.assert_allclose(triu.T @ triu, tril_received @ tril_received.T)
+
+    # This is the real test
+    np.testing.assert_allclose(tril_received, tril)
