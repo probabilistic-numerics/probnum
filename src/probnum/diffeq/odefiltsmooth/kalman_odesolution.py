@@ -141,6 +141,13 @@ class KalmanODESolution(ODESolution):
 
 
 def _project_rv(projmat, rv):
+    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
+    # Therefore, since we need to update the Cholesky factor for square-root filtering,
+    # we also update the Cholesky factor for non-square-root algorithms here,
+    # which implies additional cost.
+    # See Issues #319 and #329.
+    # When they are resolved, this function here will hopefully be superfluous.
+
     new_mean = projmat @ rv.mean
     new_cov = projmat @ rv.cov @ projmat.T
     new_cov_cholesky = cholesky_update(projmat @ rv.cov_cholesky)
