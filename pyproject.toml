@@ -5,7 +5,7 @@
 [tool.pytest.ini_options]
 addopts = "--verbose --doctest-modules"
 norecursedirs = [
-        "dist",
+    "dist",
     "build",
     ".tox"
 ]
