@@ -33,6 +33,7 @@ class BayesianQuadrature(abc.ABC):
         """
         raise NotImplementedError
 
+
 class VanillaBayesianQuadrature(BayesianQuadrature):
     """
     Vanilla Bayesian quadrature.

@@ -2,20 +2,27 @@
 Contains integration measures
 """
 
-from abc import ABC, abstractmethod
+import abc
 from typing import Tuple
 
 import numpy as np
 
 
-class IntegrationMeasure(ABC):
+class IntegrationMeasure(abc.ABC):
     """
     An abstract class for a measure against which a target function is integrated.
+    The integration measure is assumed normalized.
     """
 
     def __init__(self, domain: Tuple[np.ndarray, np.ndarray], name: str):
         self.domain = domain
         self._name = name
+
+    def sample(self, n_sample):
+        """
+        Sample from integration measure
+        """
+        raise NotImplementedError
 
 
 class LebesgueMeasure(IntegrationMeasure):
