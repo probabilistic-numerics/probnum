@@ -57,18 +57,31 @@ def test_cholesky_optional(spdmat1, test_ndim):
 
 
 def test_triu_to_tril():
-    """triu_to_positive_tril can handle small values on the diagonal."""
+    """triu_to_positive_tril can handle small values on the diagonal.
 
+    This is motivatived by the failing sign change in triu_to_positive_tril
+    due to np.sign assigning 0 to really small values.
+
+    This fix unfortunately cannot be tested reliably, since in artificial
+    setups, np.sign is super well-behaved.
+    Nevertheless, it doesn't hurt to test this lower level function.
+    """
+
+    # Make a random tril matrix
     mat = np.tril(np.random.rand(4, 4))
-    scale = np.array([1.0, 1.0, 1e-55, 1e-55])
+    scale = np.array([1.0, 1.0, 1e-5, 1e-5])
     tril = mat @ np.diag(scale)
+
+    # Turn it into a triu matrix with non-positive diagonals
     signs = np.array([1.0, -1.0, -1.0, -1.0])
     triu = (tril @ np.diag(signs)).T
+
+    # Call triu_to_positive_til
     tril_received = pnfss.triu_to_positive_tril(triu)
 
     # Sanity checks
     np.testing.assert_allclose(triu.T @ triu, tril @ tril.T)
     np.testing.assert_allclose(triu.T @ triu, tril_received @ tril_received.T)
 
-    # This is the real test
+    # Assert that the initial tril matrix comes out
     np.testing.assert_allclose(tril_received, tril)
