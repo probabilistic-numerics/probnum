@@ -267,7 +267,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             self.precompute_cov_cholesky()
         return self._cov_cholesky_values
 
-    def precompute_cov_cholesky(self, damping_factor=COV_CHOLESKY_DAMPING):
+    def precompute_cov_cholesky(
+        self, damping_factor: Optional[FloatArgType] = COV_CHOLESKY_DAMPING
+    ):
         """(P)recompute Cholesky factors (careful: in-place operation!)."""
         self._cov_cholesky_values = self._compute_cov_cholesky(
             damping_factor=damping_factor
@@ -434,7 +436,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     # Univariate Gaussians
     def _univariate_cov_cholesky(
-        self, damping_factor=COV_CHOLESKY_DAMPING
+        self, damping_factor: Optional[FloatArgType] = COV_CHOLESKY_DAMPING
     ) -> np.floating:
         return np.sqrt(self._cov + damping_factor)
 
@@ -480,7 +482,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Multi- and matrixvariate Gaussians
-    def dense_cov_cholesky(self, damping_factor=COV_CHOLESKY_DAMPING) -> np.ndarray:
+    def dense_cov_cholesky(
+        self, damping_factor: Optional[FloatArgType] = COV_CHOLESKY_DAMPING
+    ) -> np.ndarray:
         """Compute the Cholesky factorization of the covariance from its dense
         representation."""
         dense_cov = self.dense_cov
@@ -555,7 +559,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     # Matrixvariate Gaussian with Kronecker covariance
     def _kronecker_cov_cholesky(
-        self, damping_factor=COV_CHOLESKY_DAMPING
+        self, damping_factor: Optional[FloatArgType] = COV_CHOLESKY_DAMPING
     ) -> linops.Kronecker:
         assert isinstance(self._cov, linops.Kronecker)
 
@@ -578,7 +582,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # factors
     def _symmetric_kronecker_identical_factors_cov_cholesky(
         self,
-        damping_factor=COV_CHOLESKY_DAMPING,
+        damping_factor: Optional[FloatArgType] = COV_CHOLESKY_DAMPING,
     ) -> linops.SymmetricKronecker:
         assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
 
