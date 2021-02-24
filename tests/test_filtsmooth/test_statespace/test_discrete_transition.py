@@ -159,6 +159,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
         assert isinstance(out, pnrv.Normal)
 
     def test_all_forward_rv_same(self, some_normal_rv1, diffusion):
+        """Assert all implementations give the same output."""
         out_classic, info_classic = self.transition._forward_rv_classic(
             some_normal_rv1, 0.0, compute_gain=True, _diffusion=diffusion
         )
@@ -174,6 +175,9 @@ class TestLinearGaussian(TestDiscreteGaussian):
     def test_all_backward_rv_same_no_cache(
         self, some_normal_rv1, some_normal_rv2, diffusion
     ):
+        """Assert all implementations give the same output -- no gain or forwarded RV
+        passed."""
+
         out_classic, _ = self.transition._backward_rv_classic(
             some_normal_rv1, some_normal_rv2, t=0.0, _diffusion=diffusion
         )
@@ -195,6 +199,8 @@ class TestLinearGaussian(TestDiscreteGaussian):
     def test_all_backward_rv_same_with_cache(
         self, some_normal_rv1, some_normal_rv2, diffusion
     ):
+        """Assert all implementations give the same output -- gain and forwarded RV
+        passed."""
 
         rv_forward, info = self.transition.forward_rv(
             some_normal_rv2, 0.0, compute_gain=True, _diffusion=diffusion
@@ -219,6 +225,83 @@ class TestLinearGaussian(TestDiscreteGaussian):
         )
         out_joseph, _ = self.transition._backward_rv_joseph(
             some_normal_rv1,
+            some_normal_rv2,
+            rv_forwarded=rv_forward,
+            gain=gain,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+
+        # Classic -- sqrt
+        np.testing.assert_allclose(out_classic.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_classic.cov, out_sqrt.cov)
+
+        # Joseph -- sqrt
+        np.testing.assert_allclose(out_joseph.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_joseph.cov, out_sqrt.cov)
+
+    def test_all_backward_realization_same_no_cache(
+        self, some_normal_rv1, some_normal_rv2, diffusion
+    ):
+        """Assert all implementations give the same output -- no gain or forwarded RV
+        passed."""
+
+        out_classic, _ = self.transition._backward_rv_classic(
+            pnrv.Constant(some_normal_rv1.mean),
+            some_normal_rv2,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+        out_sqrt, _ = self.transition._backward_rv_sqrt(
+            pnrv.Constant(some_normal_rv1.mean),
+            some_normal_rv2,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+        out_joseph, _ = self.transition._backward_rv_joseph(
+            pnrv.Constant(some_normal_rv1.mean),
+            some_normal_rv2,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+
+        # Classic -- sqrt
+        np.testing.assert_allclose(out_classic.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_classic.cov, out_sqrt.cov)
+
+        # Joseph -- sqrt
+        np.testing.assert_allclose(out_joseph.mean, out_sqrt.mean)
+        np.testing.assert_allclose(out_joseph.cov, out_sqrt.cov)
+
+    def test_all_backward_realization_same_with_cache(
+        self, some_normal_rv1, some_normal_rv2, diffusion
+    ):
+        """Assert all implementations give the same output -- gain and forwarded RV
+        passed."""
+
+        rv_forward, info = self.transition.forward_rv(
+            some_normal_rv2, 0.0, compute_gain=True, _diffusion=diffusion
+        )
+        gain = info["gain"]
+
+        out_classic, _ = self.transition._backward_rv_classic(
+            pnrv.Constant(some_normal_rv1.mean),
+            some_normal_rv2,
+            rv_forwarded=rv_forward,
+            gain=gain,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+        out_sqrt, _ = self.transition._backward_rv_sqrt(
+            pnrv.Constant(some_normal_rv1.mean),
+            some_normal_rv2,
+            rv_forwarded=rv_forward,
+            gain=gain,
+            t=0.0,
+            _diffusion=diffusion,
+        )
+        out_joseph, _ = self.transition._backward_rv_joseph(
+            pnrv.Constant(some_normal_rv1.mean),
             some_normal_rv2,
             rv_forwarded=rv_forward,
             gain=gain,

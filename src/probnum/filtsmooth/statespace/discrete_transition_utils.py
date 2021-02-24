@@ -47,6 +47,6 @@ def triu_to_positive_tril(triu_mat: np.ndarray) -> np.ndarray:
     """
     tril_mat = triu_mat.T
     d = np.sign(np.diag(tril_mat))
-    d[d == 0] = 1
+    d[d == 0] = 1.0
     with_pos_diag = tril_mat @ np.diag(d)
     return with_pos_diag
