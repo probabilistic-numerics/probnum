@@ -335,6 +335,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         t=None,
         _diffusion=1.0,
     ):
+        """See Section 4.1f of:
+
+        ``https://www.sciencedirect.com/science/article/abs/pii/S0005109805001810``.
+        """
         # forwarded_rv is ignored in square-root smoothing.
 
         # Smoothing updates need the gain, but
@@ -350,34 +354,44 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             else:
                 gain = np.zeros((len(rv.mean), len(rv_obtained.mean)))
 
-        H = self.state_trans_mat_fun(t)
-        SR = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
+        state_trans = self.state_trans_mat_fun(t)
+        proc_noise_chol = np.sqrt(_diffusion) * self.proc_noise_cov_cholesky_fun(t)
         shift = self.shift_vec_fun(t)
 
-        SC_past = rv.cov_cholesky
-        SC_attained = rv_obtained.cov_cholesky
+        chol_past = rv.cov_cholesky
+        chol_obtained = rv_obtained.cov_cholesky
 
-        dim = len(H)  # 2
-        dim2 = len(H.T)  # 8
-        zeros = np.zeros((dim, dim))
-        zeros2 = np.zeros((dim, dim2))
+        output_dim = self.output_dim
+        input_dim = self.input_dim
+
+        zeros_bottomleft = np.zeros((output_dim, output_dim))
+        zeros_middleright = np.zeros((output_dim, input_dim))
 
         blockmat = np.block(
             [
-                [SC_past.T @ H.T, SC_past.T],
-                [SR.T, zeros2],
-                [zeros, SC_attained.T @ gain.T],
+                [chol_past.T @ state_trans.T, chol_past.T],
+                [proc_noise_chol.T, zeros_middleright],
+                [zeros_bottomleft, chol_obtained.T @ gain.T],
             ]
         )
         big_triu = np.linalg.qr(blockmat, mode="r")
-        SC = big_triu[dim : (dim + dim2), dim : (dim + dim2)]
+        new_chol_triu = big_triu[
+            output_dim : (output_dim + input_dim), output_dim : (output_dim + input_dim)
+        ]
 
-        if gain is None:
-            gain = big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T)
+        # If no initial gain was provided, compute it from the QR-results
+        # This is required in the Kalman update, where, other than in the smoothing update,
+        # no initial gain was provided.
+        # Recall that above, gain was set to zero in this setting.
+        if np.linalg.norm(gain) == 0.0:
+            gain = big_triu[:output_dim, output_dim:].T @ np.linalg.inv(
+                big_triu[:output_dim, :output_dim].T
+            )
 
-        new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
-        new_cov_cholesky = triu_to_positive_tril(SC)
+        new_mean = rv.mean + gain @ (rv_obtained.mean - state_trans @ rv.mean - shift)
+        new_cov_cholesky = triu_to_positive_tril(new_chol_triu)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
+
         return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
 
     def _backward_rv_joseph(
