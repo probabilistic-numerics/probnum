@@ -335,7 +335,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         t=None,
         _diffusion=1.0,
     ):
-        """See Section 4.1f of.
+        """See Section 4.1f of:
 
         ``https://www.sciencedirect.com/science/article/abs/pii/S0005109805001810``.
         """
