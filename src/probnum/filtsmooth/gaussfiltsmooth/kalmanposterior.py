@@ -154,9 +154,9 @@ class SmoothingPosterior(KalmanPosterior):
             # Inform the final point in the list about all the data by
             # conditioning on the final state rv
             if locations[-1] < self.locations[-1]:
-
-                random_vars[-1], _ = self.transition.backward_rv(
-                    self.state_rvs[-1],
+                final_sample = self.state_rvs[-1].sample()
+                random_vars[-1], _ = self.transition.backward_realization(
+                    final_sample,
                     random_vars[-1],
                     t=locations[-1],
                     dt=self.locations[-1] - locations[-1],

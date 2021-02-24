@@ -380,28 +380,33 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # print(big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T))
         # print(gain)
 
-        # np.testing.assert_allclose(gain, big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T), rtol=1e-4)
-
-        if gain is None:
+        if np.linalg.norm(gain) == 0.0:
             gain = big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T)
+        np.testing.assert_allclose(
+            big_triu[:dim, dim:].T @ np.linalg.inv(big_triu[:dim, :dim].T),
+            gain,
+            rtol=1e1,
+            atol=1e-12,
+        )
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - H @ rv.mean - shift)
         new_cov_cholesky = triu_to_positive_tril(SC)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
-        # joseph_factor = np.eye(len(rv.mean)) - gain @ H
-        # new_cov2 = (
-        #     joseph_factor @ rv.cov @ joseph_factor.T
-        #     + gain @ SR @ SR.T @ gain.T
-        #     + gain @ rv_obtained.cov @ gain.T
-        # )
+        joseph_factor = np.eye(len(rv.mean)) - gain @ H
+        new_cov2 = (
+            joseph_factor @ rv.cov @ joseph_factor.T
+            + gain @ SR @ SR.T @ gain.T
+            + gain @ rv_obtained.cov @ gain.T
+        )
 
-        #
-        # np.testing.assert_allclose(big_triu, np.triu(big_triu), rtol=1e-4)
-        # np.testing.assert_allclose(SC, np.triu(SC), rtol=1e-4)
-        #
-        # np.testing.assert_allclose(SC.T @ SC, new_cov_cholesky @ new_cov_cholesky.T, rtol=1e-4)
-        # np.testing.assert_allclose(new_cov, new_cov2, rtol=1e-4)
+        np.testing.assert_allclose(big_triu, np.triu(big_triu), rtol=1e-4)
+        np.testing.assert_allclose(SC, np.triu(SC), rtol=1e-4)
+
+        np.testing.assert_allclose(
+            SC.T @ SC, new_cov_cholesky @ new_cov_cholesky.T, rtol=1e-4
+        )
+        np.testing.assert_allclose(new_cov2, new_cov, rtol=1e2, atol=1e-12)
 
         return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
 

@@ -323,7 +323,7 @@ class Transition(abc.ABC):
         # print(curr_sample)
 
         out_samples = [curr_sample]
-        zero_mat = np.zeros((num_dim, num_dim))
+        # zero_mat = np.zeros((num_dim, num_dim))
         # curr_rv = pnrv.Normal(curr_sample, zero_mat, cov_cholesky=zero_mat)
 
         # print(rv_list[len(locations) - 1].cov)
@@ -344,6 +344,11 @@ class Transition(abc.ABC):
                 dt=locations[idx] - locations[idx - 1],
                 _linearise_at=_linearise_smooth_step_at,
             )
+            # print(curr_rv.cov)
+            # np.testing.assert_allclose(curr_rv.cov, curr_rv.cov_cholesky @ curr_rv.cov_cholesky.T, rtol=1e2, atol=1e-12)
+            # print(np.linalg.norm(unsmoothed_rv.cov))
+            # print(np.linalg.norm(curr_rv.cov))
+            # print()
             # print(np.linalg.norm(curr_rv.cov))
 
             # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
