@@ -3,6 +3,7 @@ import itertools
 import unittest
 
 import numpy as np
+import scipy.linalg
 import scipy.sparse
 import scipy.stats
 
@@ -39,9 +40,14 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 linops.SymmetricKronecker(
                     A=np.array([[1.0, 2.0], [2.0, 1.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
-                ).todense(),
+                ).todense()
+                + 10 * np.eye(4),
             ),
             # Operatorvariate
+            (
+                linops.MatrixMult(A=sparsemat.todense()),
+                linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
+            ),
             (
                 np.array([1.0, -5.0]),
                 linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
@@ -53,10 +59,6 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (
                 np.array([[1.0, 2.0], [-3.0, -0.4], [4.0, 1.0]]),
                 linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
-            ),
-            (
-                linops.MatrixMult(A=sparsemat.todense()),
-                linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
             ),
             (
                 linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
@@ -413,6 +415,56 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         self.assertArrayEqual(dist_t_sample, dist_sample)
 
+    def test_cov_cholesky_cov_cholesky_not_passed(self):
+        """No cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is False, a cov_cholesky
+        is computed on demand, but can also be computed manually with
+        any damping factor.
+        """
+        mean, cov = self.params
+        rv = rvs.Normal(mean, cov)
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Without explicit damping"):
+            # damping factor 1e-12 does not mess up this test
+            self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov))
+
+        with self.subTest("With explicit damping"):
+            # Sanity check: usual cov_cholesky does not work
+            with self.assertRaises(AssertionError):
+                self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov + 10.0))
+
+            rv.precompute_cov_cholesky(damping_factor=10.0)
+            self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov + 10.0))
+
+    def test_cov_cholesky_cov_cholesky_passed(self):
+        """A value for cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is True, the
+        cov_cholesky returns the argument that has been passed, but
+        (p)recomputing overwrites the argument with a new factor.
+        """
+        mean, cov = self.params
+
+        # explicitly not the correct cov_cholesky for test reasons
+        cov_cholesky = np.random.rand()
+
+        rv = rvs.Normal(mean, cov, cov_cholesky=cov_cholesky)
+
+        with self.subTest("Cholesky precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Returns correct cov_cholesky"):
+            self.assertAllClose(rv.cov_cholesky, cov_cholesky)
+
+        with self.subTest("self.precompute overwrites with true factor"):
+            # Sanity check: usual cov_cholesky does not work
+            rv.precompute_cov_cholesky()
+            self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov))
+
 
 class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
@@ -463,6 +515,62 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         self.assertArrayEqual(dist_t_sample, dist_sample)
 
+    def test_cov_cholesky_cov_cholesky_not_passed(self):
+        """No cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is False, a cov_cholesky
+        is computed on demand, but can also be computed manually with
+        any damping factor.
+        """
+        mean, cov = self.params
+
+        rv = rvs.Normal(mean, cov)
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Without explicit damping"):
+            # damping factor 1e-12 does not mess up this test
+            self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
+
+        with self.subTest("With explicit damping"):
+            # Sanity check: usual cov_cholesky does not work
+            with self.assertRaises(AssertionError):
+                self.assertAllClose(
+                    rv.cov_cholesky,
+                    np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov))),
+                )
+
+            rv.precompute_cov_cholesky(damping_factor=10.0)
+            self.assertAllClose(
+                rv.cov_cholesky, np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov)))
+            )
+
+    def test_cov_cholesky_cov_cholesky_passed(self):
+        """A value for cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is True, the
+        cov_cholesky returns the argument that has been passed, but
+        (p)recomputing overwrites the argument with a new factor.
+        """
+        mean, cov = self.params
+
+        # explicitly not the correct cov_cholesky for test reasons
+        cov_cholesky = np.random.rand(*cov.shape)
+
+        rv = rvs.Normal(mean, cov, cov_cholesky=cov_cholesky)
+
+        with self.subTest("Cholesky precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Returns correct cov_cholesky"):
+            self.assertAllClose(rv.cov_cholesky, cov_cholesky)
+
+        with self.subTest("self.precompute overwrites with true factor"):
+            # Sanity check: usual cov_cholesky does not work
+            rv.precompute_cov_cholesky()
+            self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
+
 
 class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_reshape(self):
@@ -505,6 +613,62 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertEqual(transposed_rv.cov[idx_t], rv.cov[idx])
 
         # Sadly, sampling is not stable w.r.t. permutations of variables
+
+    def test_cov_cholesky_cov_cholesky_not_passed(self):
+        """No cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is False, a cov_cholesky
+        is computed on demand, but can also be computed manually with
+        any damping factor.
+        """
+        rv = rvs.Normal(mean=np.random.uniform(size=(2, 2)), cov=random_spd_matrix(4))
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Without explicit damping"):
+            # damping factor 1e-12 does not mess up this test
+            self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
+
+        with self.subTest("With explicit damping"):
+            # Sanity check: usual cov_cholesky does not work
+            with self.assertRaises(AssertionError):
+                self.assertAllClose(
+                    rv.cov_cholesky,
+                    np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov))),
+                )
+
+            rv.precompute_cov_cholesky(damping_factor=10.0)
+            self.assertAllClose(
+                rv.cov_cholesky, np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov)))
+            )
+
+    def test_cov_cholesky_cov_cholesky_passed(self):
+        """A value for cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is True, the
+        cov_cholesky returns the argument that has been passed, but
+        (p)recomputing overwrites the argument with a new factor.
+        """
+        # explicitly not the correct cov_cholesky for test reasons
+        cov_cholesky = np.random.rand(4, 4)
+
+        rv = rvs.Normal(
+            mean=np.random.uniform(size=(2, 2)),
+            cov=random_spd_matrix(4),
+            cov_cholesky=cov_cholesky,
+        )
+
+        with self.subTest("Cholesky precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Returns correct cov_cholesky"):
+            self.assertAllClose(rv.cov_cholesky, cov_cholesky)
+
+        with self.subTest("self.precompute overwrites with true factor"):
+            # Sanity check: usual cov_cholesky does not work
+            rv.precompute_cov_cholesky()
+            self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
 
 
 if __name__ == "__main__":
