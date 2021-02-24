@@ -139,6 +139,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self._cov = cov
 
         self._compute_cov_cholesky: Callable[[], _ValueType] = None
+        self._cov_cholesky_values = cov_cholesky  # recall: None if not provided
 
         # Method selection
         univariate = len(mean.shape) == 0
@@ -160,6 +161,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             entropy = self._univariate_entropy
 
             self._compute_cov_cholesky = self._univariate_cov_cholesky
+
         elif dense or cov_operator:
             # Multi- and matrixvariate Gaussians
             sample = self._dense_sample
@@ -174,9 +176,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             var = self._dense_var
             entropy = self._dense_entropy
 
-            if cov_cholesky is None:
-                self._compute_cov_cholesky = self.dense_cov_cholesky
-            else:
+            self._compute_cov_cholesky = self.dense_cov_cholesky
+            if cov_cholesky is not None:
+
                 if not isinstance(cov_cholesky, type(self._cov)):
                     raise ValueError(
                         f"The covariance matrix is of type `{type(self._cov)}`, so its "
@@ -195,8 +197,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     # TODO: Implement casting for linear operators
                     if not isinstance(cov_cholesky, linops.LinearOperator):
                         cov_cholesky = cov_cholesky.astype(self._cov.dtype)
-
-                self._compute_cov_cholesky = lambda: cov_cholesky
 
             if isinstance(cov, linops.SymmetricKronecker):
                 m, n = mean.shape
@@ -230,6 +230,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                     )
 
                 self._compute_cov_cholesky = self._kronecker_cov_cholesky
+
         else:
             raise ValueError(
                 f"Cannot instantiate normal distribution with mean of type "
@@ -257,14 +258,30 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             entropy=entropy,
         )
 
-    @cached_property
+    @property
     def cov_cholesky(self) -> _ValueType:
         """Cholesky factor :math:`L` of the covariance
         :math:`\\operatorname{Cov}(X) =LL^\\top`."""
-        if self._compute_cov_cholesky is None:
-            raise NotImplementedError
 
-        return self._compute_cov_cholesky()
+        if not self.cov_cholesky_is_precomputed:
+            self.precompute_cov_cholesky()
+        return self._cov_cholesky_values
+
+    def precompute_cov_cholesky(self, damping_factor=COV_CHOLESKY_DAMPING):
+        """Overwrites values of cov_cholesky with new Cholesky factors (careful: in-
+        place operation!)."""
+        self._cov_cholesky_values = self._compute_cov_cholesky(
+            damping_factor=damping_factor
+        )
+
+    @property
+    def cov_cholesky_is_precomputed(self) -> bool:
+        """Whether the Cholesky factor of the covariance is readily available, which
+        happens if either cov_cholesky is specified during initialization or if the
+        property has been called."""
+        if self._cov_cholesky_values is None:
+            return False
+        return True
 
     @cached_property
     def dense_mean(self) -> Union[np.floating, np.ndarray]:
@@ -413,8 +430,10 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Univariate Gaussians
-    def _univariate_cov_cholesky(self) -> np.floating:
-        return np.sqrt(self._cov)
+    def _univariate_cov_cholesky(
+        self, damping_factor=COV_CHOLESKY_DAMPING
+    ) -> np.floating:
+        return np.sqrt(self._cov + damping_factor)
 
     def _univariate_sample(
         self, size: ShapeType = ()
@@ -458,13 +477,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Multi- and matrixvariate Gaussians
-    def dense_cov_cholesky(self) -> np.ndarray:
+    def dense_cov_cholesky(self, damping_factor=COV_CHOLESKY_DAMPING) -> np.ndarray:
         """Compute the Cholesky factorization of the covariance from its dense
         representation."""
         dense_cov = self.dense_cov
 
         return scipy.linalg.cholesky(
-            dense_cov + COV_CHOLESKY_DAMPING * np.eye(self.size, dtype=self.dtype),
+            dense_cov + damping_factor * np.eye(self.size, dtype=self.dtype),
             lower=True,
         )
 
@@ -532,7 +551,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     # Matrixvariate Gaussian with Kronecker covariance
-    def _kronecker_cov_cholesky(self) -> linops.Kronecker:
+    def _kronecker_cov_cholesky(
+        self, damping_factor=COV_CHOLESKY_DAMPING
+    ) -> linops.Kronecker:
         assert isinstance(self._cov, linops.Kronecker)
 
         A = self._cov.A.todense()
@@ -540,11 +561,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         return linops.Kronecker(
             A=scipy.linalg.cholesky(
-                A + COV_CHOLESKY_DAMPING * np.eye(A.shape[0], dtype=self.dtype),
+                A + damping_factor * np.eye(A.shape[0], dtype=self.dtype),
                 lower=True,
             ),
             B=scipy.linalg.cholesky(
-                B + COV_CHOLESKY_DAMPING * np.eye(B.shape[0], dtype=self.dtype),
+                B + damping_factor * np.eye(B.shape[0], dtype=self.dtype),
                 lower=True,
             ),
             dtype=self.dtype,
@@ -554,6 +575,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
     # factors
     def _symmetric_kronecker_identical_factors_cov_cholesky(
         self,
+        damping_factor=COV_CHOLESKY_DAMPING,
     ) -> linops.SymmetricKronecker:
         assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
 
@@ -561,7 +583,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         return linops.SymmetricKronecker(
             A=scipy.linalg.cholesky(
-                A + COV_CHOLESKY_DAMPING * np.eye(A.shape[0], dtype=self.dtype),
+                A + damping_factor * np.eye(A.shape[0], dtype=self.dtype),
                 lower=True,
             ),
             dtype=self.dtype,
