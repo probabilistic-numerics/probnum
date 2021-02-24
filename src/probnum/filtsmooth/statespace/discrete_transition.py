@@ -335,10 +335,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         t=None,
         _diffusion=1.0,
     ):
-        """See Section 4.1f of
-        https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.
+        """See Section 4.1f of.
 
-        .68.1059&rep=rep1&type=pdf.
+        ``https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1..68.1059&rep=rep1&type=pdf``.
         """
         # forwarded_rv is ignored in square-root smoothing.
 
