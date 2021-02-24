@@ -122,6 +122,8 @@ class KalmanODESolution(ODESolution):
         size = probnum.utils.as_shape(size)
 
         # implement only single samples, rest via recursion
+        # We cannot 'steal' the recursion from self.kalman_posterior.sample,
+        # because we need to project the respective states out of each sample.
         if size != ():
             return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
 
