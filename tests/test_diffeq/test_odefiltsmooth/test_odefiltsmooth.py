@@ -131,7 +131,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
         self.ivp = ode.logistic([0.0, 1.5], initrv)
         self.step = 0.5
         sol = probsolve_ivp(self.ivp, step=self.step, diffconst=1.0, which_prior="ibm1")
-        state_rvs = sol.kalman_posterior.state_rvs
+        state_rvs = sol.kalman_posterior.filtering_posterior.state_rvs
         self.ms, self.cs = state_rvs.mean, state_rvs.cov
 
     def test_t0(self):
@@ -168,7 +168,7 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
     def test_kf_ibm1_stdev(self):
         """Standard deviation at end point roughly equal to tolerance."""
         sol = probsolve_ivp(
-            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="ekf0"
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="eks0"
         )
         self.assertLess(np.sqrt(sol.y.cov[-1, 0, 0]), 10 * self.tol)
         self.assertLess(0.1 * self.tol, np.sqrt(sol.y.cov[-1, 0, 0]))
@@ -176,7 +176,7 @@ class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
     def test_kf_ibm1(self):
         """Tests whether resulting steps are not evenly distributed."""
         sol = probsolve_ivp(
-            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="ekf0"
+            self.ivp, atol=self.tol, rtol=self.tol, which_prior="ibm1", method="eks0"
         )
         steps = np.diff(sol.t)
         self.assertLess(np.amin(steps) / np.amax(steps), 0.8)

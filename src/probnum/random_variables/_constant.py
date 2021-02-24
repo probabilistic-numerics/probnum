@@ -14,6 +14,13 @@ from probnum.type import (
 
 from . import _random_variable
 
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
+
 _ValueType = TypeVar("ValueType")
 
 
@@ -95,6 +102,12 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             ),
             var=lambda: np.zeros_like(support_floating),
         )
+
+    @cached_property
+    def cov_cholesky(self):
+        # Pure utility attribute (it is zero anyway).
+        # Make Constant behave more like Normal with zero covariance.
+        return self.cov
 
     @property
     def support(self) -> _ValueType:

@@ -102,6 +102,8 @@ class InitialValueProblem:
     solution
         Closed form, analytic solution to the problem. Used for testing and
         benchmarking.
+    dy0_all
+        All initial derivatives up to some order.
 
     Examples
     --------
@@ -121,6 +123,8 @@ class InitialValueProblem:
     y0: Union[FloatArgType, np.ndarray]
     df: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
+
+    dy0_all: Optional[np.ndarray] = None
 
     # For testing and benchmarking
     solution: Optional[Callable[[float, np.ndarray], np.ndarray]] = None

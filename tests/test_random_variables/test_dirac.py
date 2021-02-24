@@ -6,6 +6,13 @@ import numpy as np
 from probnum import random_variables as rvs
 
 
+def test_constant_accessible_like_gaussian():
+    """Constant has an attribute cov_cholesky which returns zeros."""
+    support = np.array([2, 3])
+    s = rvs.Constant(support)
+    np.testing.assert_allclose(s.cov, s.cov_cholesky)
+
+
 class TestDirac(unittest.TestCase):
     """General test case for the Dirac distributions."""
 

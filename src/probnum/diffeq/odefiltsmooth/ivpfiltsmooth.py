@@ -46,31 +46,43 @@ class GaussianIVPFilter(ODESolver):
         # Read the diffusion matrix; required for calibration / error estimation
         discrete_dynamics = self.gfilt.dynamics_model.discretise(t_new - t)
         proc_noise_cov = discrete_dynamics.proc_noise_cov_mat
+        proc_noise_cov_cholesky = discrete_dynamics.proc_noise_cov_cholesky
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.predict(rv=current_rv, start=t, stop=t_new)
+        pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
+            rv=current_rv, t=t, dt=t_new - t
+        )
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
+        meas_rv, info = self.gfilt.measurement_model.forward_rv(
+            rv=pred_rv, t=t_new, compute_gain=False
+        )
 
         # 3. Estimate the diffusion (sigma squared)
         self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
+
         # 3.1. Adjust the prediction covariance to include the diffusion
-        pred_rv = Normal(
-            pred_rv.mean, pred_rv.cov + (self.sigma_squared_mle - 1) * proc_noise_cov
+        pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
+            rv=current_rv, t=t, dt=t_new - t, _diffusion=self.sigma_squared_mle
         )
+
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measure(rv=pred_rv, time=t_new)
+        meas_rv, info = self.gfilt.measurement_model.forward_rv(
+            rv=pred_rv, t=t_new, compute_gain=True
+        )
 
         # 4. Update
-        zero_data = 0.0
-        filt_rv = pnfs.condition_state_on_measurement(
-            pred_rv, meas_rv, info["crosscov"], zero_data
+        zero_data = np.zeros(meas_rv.mean.shape)
+        filt_rv, _ = self.gfilt.measurement_model.backward_realization(
+            zero_data, pred_rv, rv_forwarded=meas_rv, gain=info["gain"]
         )
 
         # 5. Error estimate
         local_errors = self._estimate_local_error(
-            pred_rv, t_new, self.sigma_squared_mle * proc_noise_cov
+            pred_rv,
+            t_new,
+            self.sigma_squared_mle * proc_noise_cov,
+            np.sqrt(self.sigma_squared_mle) * proc_noise_cov_cholesky,
         )
         err = np.linalg.norm(local_errors)
 
@@ -79,8 +91,8 @@ class GaussianIVPFilter(ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        kalman_posterior = pnfs.KalmanPosterior(
-            times, rvs, self.gfilt, self.with_smoothing
+        kalman_posterior = pnfs.FilteringPosterior(
+            times, rvs, self.gfilt.dynamics_model
         )
 
         return KalmanODESolution(kalman_posterior)
@@ -117,7 +129,12 @@ class GaussianIVPFilter(ODESolver):
         return KalmanODESolution(smoothing_posterior)
 
     def _estimate_local_error(
-        self, pred_rv, t_new, calibrated_proc_noise_cov, **kwargs
+        self,
+        pred_rv,
+        t_new,
+        calibrated_proc_noise_cov,
+        calibrated_proc_noise_cov_cholesky,
+        **kwargs
     ):
         """Estimate the local errors.
 
@@ -131,10 +148,14 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        local_pred_rv = Normal(pred_rv.mean, calibrated_proc_noise_cov)
+        local_pred_rv = Normal(
+            pred_rv.mean,
+            calibrated_proc_noise_cov,
+            cov_cholesky=calibrated_proc_noise_cov_cholesky,
+        )
         local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
         error = local_meas_rv.cov.diagonal()
-        return np.sqrt(error)
+        return np.sqrt(np.abs(error))
 
     def _estimate_diffusion(self, meas_rv):
         """Estimate the dynamic diffusion parameter sigma_squared.
@@ -149,7 +170,7 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        std_like = np.linalg.cholesky(meas_rv.cov)
+        std_like = meas_rv.cov_cholesky
         whitened_res = np.linalg.solve(std_like, meas_rv.mean)
         ssq = whitened_res @ whitened_res / meas_rv.size
         return ssq

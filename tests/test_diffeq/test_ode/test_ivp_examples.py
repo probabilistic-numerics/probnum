@@ -157,6 +157,9 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         self.tspan = (0.0, 4.212)
 
+        self.dt = 1e-6  # should lead to errors ~1e-8 in the present tests
+        self.rtol = 1e-4
+
     def test_logistic_jacobian(self):
         rv = Constant(0.1)
         lg1 = ivp_examples.logistic(self.tspan, rv)
@@ -164,14 +167,17 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
-            * 1e11
+            * 1.0
+            / self.dt
             * (
-                lg1(0.1, random_point + 1e-11 * random_direction)
-                - lg1(0.1, random_point - 1e-11 * random_direction)
+                lg1(0.1, random_point + self.dt * random_direction)
+                - lg1(0.1, random_point - self.dt * random_direction)
             )
         )
         self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+            lg1.jacobian(0.1, random_point) @ random_direction,
+            fd_approx,
+            rtol=self.rtol,
         )
 
     def test_fitzhughnagumo_jacobian(self):
@@ -181,14 +187,17 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
-            * 1e11
+            * 1.0
+            / self.dt
             * (
-                lg1(0.1, random_point + 1e-11 * random_direction)
-                - lg1(0.1, random_point - 1e-11 * random_direction)
+                lg1(0.1, random_point + self.dt * random_direction)
+                - lg1(0.1, random_point - self.dt * random_direction)
             )
         )
         self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+            lg1.jacobian(0.1, random_point) @ random_direction,
+            fd_approx,
+            rtol=self.rtol,
         )
 
     def test_lotkavolterra_jacobian(self):
@@ -198,14 +207,17 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
-            * 1e11
+            * 1.0
+            / self.dt
             * (
-                lg1(0.1, random_point + 1e-11 * random_direction)
-                - lg1(0.1, random_point - 1e-11 * random_direction)
+                lg1(0.1, random_point + self.dt * random_direction)
+                - lg1(0.1, random_point - self.dt * random_direction)
             )
         )
         self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+            lg1.jacobian(0.1, random_point) @ random_direction,
+            fd_approx,
+            rtol=self.rtol,
         )
 
     def test_seir_jacobian(self):
@@ -215,14 +227,17 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
-            * 1e11
+            * 1.0
+            / self.dt
             * (
-                lg1(0.1, random_point + 1e-11 * random_direction)
-                - lg1(0.1, random_point - 1e-11 * random_direction)
+                lg1(0.1, random_point + self.dt * random_direction)
+                - lg1(0.1, random_point - self.dt * random_direction)
             )
         )
         self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+            lg1.jacobian(0.1, random_point) @ random_direction,
+            fd_approx,
+            rtol=self.rtol,
         )
 
     def test_rigidbody_jacobian(self):
@@ -232,14 +247,17 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
-            * 1e11
+            * 1.0
+            / self.dt
             * (
-                lg1(0.1, random_point + 1e-11 * random_direction)
-                - lg1(0.1, random_point - 1e-11 * random_direction)
+                lg1(0.1, random_point + self.dt * random_direction)
+                - lg1(0.1, random_point - self.dt * random_direction)
             )
         )
         self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+            lg1.jacobian(0.1, random_point) @ random_direction,
+            fd_approx,
+            rtol=self.rtol,
         )
 
     def test_vanderpol_jacobian(self):
@@ -249,14 +267,17 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
-            * 1e11
+            * 1.0
+            / self.dt
             * (
-                lg1(0.1, random_point + 1e-11 * random_direction)
-                - lg1(0.1, random_point - 1e-11 * random_direction)
+                lg1(0.1, random_point + self.dt * random_direction)
+                - lg1(0.1, random_point - self.dt * random_direction)
             )
         )
         self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+            lg1.jacobian(0.1, random_point) @ random_direction,
+            fd_approx,
+            rtol=self.rtol,
         )
 
     def test_lorenz_jacobian(self):
@@ -266,12 +287,15 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (
             0.5
-            * 1e11
+            * 1.0
+            / self.dt
             * (
-                lg1(0.1, random_point + 1e-11 * random_direction)
-                - lg1(0.1, random_point - 1e-11 * random_direction)
+                lg1(0.1, random_point + self.dt * random_direction)
+                - lg1(0.1, random_point - self.dt * random_direction)
             )
         )
         self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction, fd_approx, rtol=1e-2
+            lg1.jacobian(0.1, random_point) @ random_direction,
+            fd_approx,
+            rtol=self.rtol,
         )

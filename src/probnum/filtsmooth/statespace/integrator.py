@@ -24,15 +24,6 @@ class Integrator:
     def __init__(self, ordint, spatialdim):
         self.ordint = ordint
         self.spatialdim = spatialdim
-        self.precon = None  # to be set later
-
-    def setup_precon(self):
-        # This can not be done in the init, due to the order in which
-        # IBM, IOUP, and Matern initialise their superclasses.
-        # Integrator needs to be initialised before LTISDE,
-        # in which case via LTISDE, self.precon is set to None
-        # To make up for this, we call this function here explicitly
-        # after the calls to the superclasses' init.
         self.precon = NordsieckLikeCoordinates.from_order(self.ordint, self.spatialdim)
 
     def proj2coord(self, coord: int) -> np.ndarray:
@@ -67,7 +58,13 @@ class Integrator:
 class IBM(Integrator, sde.LTISDE):
     """Integrated Brownian motion in :math:`d` dimensions."""
 
-    def __init__(self, ordint, spatialdim):
+    def __init__(
+        self,
+        ordint,
+        spatialdim,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
@@ -76,20 +73,21 @@ class IBM(Integrator, sde.LTISDE):
             driftmat=self._driftmat,
             forcevec=self._forcevec,
             dispmat=self._dispmat,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
         )
-        self.setup_precon()
 
-    @property
+    @cached_property
     def _driftmat(self):
         driftmat_1d = np.diag(np.ones(self.ordint), 1)
         return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
-    @property
+    @cached_property
     def _forcevec(self):
         force_1d = np.zeros(self.ordint + 1)
         return np.kron(np.ones(self.spatialdim), force_1d)
 
-    @property
+    @cached_property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
@@ -103,6 +101,9 @@ class IBM(Integrator, sde.LTISDE):
             state_trans_mat=self._state_trans_mat,
             shift_vec=empty_shift,
             proc_noise_cov_mat=self._proc_noise_cov_mat,
+            proc_noise_cov_cholesky=np.linalg.cholesky(self._proc_noise_cov_mat),
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.backward_implementation,
         )
 
     @cached_property
@@ -127,56 +128,89 @@ class IBM(Integrator, sde.LTISDE):
         proc_noise_cov_mat_1d = 1.0 / denominators
         return np.kron(np.eye(self.spatialdim), proc_noise_cov_mat_1d)
 
-    def transition_rv(self, rv, start, stop, _diffusion=1.0, **kwargs):
-        if not isinstance(rv, pnrv.Normal):
-            errormsg = (
-                "Closed form transitions in LTI SDE models is only "
-                "available for Gaussian initial conditions."
-            )
-            raise TypeError(errormsg)
-        step = stop - start
-        rv = self.precon.inverse(step) @ rv
-        rv, info = self.equivalent_discretisation_preconditioned.transition_rv(
-            rv, start, _diffusion=_diffusion
+    def forward_rv(
+        self,
+        rv,
+        t,
+        dt=None,
+        compute_gain=False,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        rv = _apply_precon(self.precon.inverse(dt), rv)
+        rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
+            rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
-        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
-        return self.precon(step) @ rv, info
 
-    def transition_realization(self, real, start, stop, _diffusion=1.0, **kwargs):
-        if not isinstance(real, np.ndarray):
-            raise TypeError(f"Numpy array expected, {type(real)} received.")
-        step = stop - start
-        real = self.precon.inverse(step) @ real
-        out = self.equivalent_discretisation_preconditioned.transition_realization(
-            real, start, _diffusion=_diffusion
+        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
+        if "gain" in info:
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
+
+        return _apply_precon(self.precon(dt), rv), info
+
+    def backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
+        rv_forwarded = (
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
         )
-        real, info = out
-        info["crosscov"] = self.precon(step) @ info["crosscov"] @ self.precon(step).T
-        return self.precon(step) @ real, info
+        gain = (
+            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
+            if gain is not None
+            else None
+        )
 
-    def discretise(self, step):
+        rv, info = self.equivalent_discretisation_preconditioned.backward_rv(
+            rv_obtained=rv_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            _diffusion=_diffusion,
+        )
+        # assert info is empty. Otherwise, we need to change
+        # things in info in which case we want to be warned.
+        assert not info
+
+        return _apply_precon(self.precon(dt), rv), info
+
+    def discretise(self, dt):
         """Equivalent discretisation of the process.
 
         Overwrites matrix-fraction decomposition in the super-class.
         Only present for user's convenience and to maintain a clean
-        interface. Not used for transition_rv, etc..
+        interface. Not used for forward_rv, etc..
         """
 
         state_trans_mat = (
-            self.precon(step)
+            self.precon(dt)
             @ self.equivalent_discretisation_preconditioned.state_trans_mat
-            @ self.precon.inverse(step)
+            @ self.precon.inverse(dt)
         )
         proc_noise_cov_mat = (
-            self.precon(step)
+            self.precon(dt)
             @ self.equivalent_discretisation_preconditioned.proc_noise_cov_mat
-            @ self.precon(step).T
+            @ self.precon(dt).T
         )
         zero_shift = np.zeros(len(state_trans_mat))
         return discrete_transition.DiscreteLTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,
+            forward_implementation=self.forward_implementation,
+            backward_implementation=self.forward_implementation,
         )
 
 
@@ -188,8 +222,9 @@ class IOUP(Integrator, sde.LTISDE):
         ordint: int,
         spatialdim: int,
         driftspeed: float,
+        forward_implementation="classic",
+        backward_implementation="classic",
     ):
-        # Other than previously in ProbNum, we do not use preconditioning for IOUP by default.
         self.driftspeed = driftspeed
 
         Integrator.__init__(self, ordint=ordint, spatialdim=spatialdim)
@@ -198,25 +233,115 @@ class IOUP(Integrator, sde.LTISDE):
             driftmat=self._driftmat,
             forcevec=self._forcevec,
             dispmat=self._dispmat,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
         )
-        self.setup_precon()
 
-    @property
+    @cached_property
     def _driftmat(self):
         driftmat_1d = np.diag(np.ones(self.ordint), 1)
         driftmat_1d[-1, -1] = -self.driftspeed
         return np.kron(np.eye(self.spatialdim), driftmat_1d)
 
-    @property
+    @cached_property
     def _forcevec(self):
         force_1d = np.zeros(self.ordint + 1)
         return np.kron(np.ones(self.spatialdim), force_1d)
 
-    @property
+    @cached_property
     def _dispmat(self):
         dispmat_1d = np.zeros(self.ordint + 1)
         dispmat_1d[-1] = 1.0  # Unit Diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
+
+    def forward_rv(
+        self,
+        rv,
+        t,
+        dt=None,
+        compute_gain=False,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+
+        # Fetch things into preconditioned space
+        rv = _apply_precon(self.precon.inverse(dt), rv)
+
+        # Apply preconditioning to system matrices
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+
+        # Discretise and propagate
+        discretised_model = self.discretise(dt=dt)
+        rv, info = discretised_model.forward_rv(
+            rv, t, compute_gain=compute_gain, _diffusion=_diffusion
+        )
+
+        # Undo preconditioning and return
+        rv = _apply_precon(self.precon(dt), rv)
+        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
+        if "gain" in info:
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
+
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
+
+        return rv, info
+
+    def backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        # Fetch things into preconditioned space
+
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
+        rv_forwarded = (
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
+        )
+        gain = (
+            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
+            if gain is not None
+            else None
+        )
+
+        # Apply preconditioning to system matrices
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+
+        # Discretise and propagate
+        discretised_model = self.discretise(dt=dt)
+        rv, info = discretised_model.backward_rv(
+            rv_obtained=rv_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            _diffusion=_diffusion,
+        )
+
+        # assert info is empty. Otherwise, we need to change
+        # things in info in which case we want to be warned.
+        assert not info
+
+        # Undo preconditioning and return
+        rv = _apply_precon(self.precon(dt), rv)
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
+        return rv, info
 
 
 class Matern(Integrator, sde.LTISDE):
@@ -227,6 +352,8 @@ class Matern(Integrator, sde.LTISDE):
         ordint: int,
         spatialdim: int,
         lengthscale: float,
+        forward_implementation="classic",
+        backward_implementation="classic",
     ):
 
         self.lengthscale = lengthscale
@@ -237,8 +364,9 @@ class Matern(Integrator, sde.LTISDE):
             driftmat=self._driftmat,
             forcevec=self._forcevec,
             dispmat=self._dispmat,
+            forward_implementation=forward_implementation,
+            backward_implementation=backward_implementation,
         )
-        self.setup_precon()
 
     @property
     def _driftmat(self):
@@ -260,3 +388,108 @@ class Matern(Integrator, sde.LTISDE):
         dispmat_1d = np.zeros(self.ordint + 1)
         dispmat_1d[-1] = 1.0  # Unit diffusion
         return np.kron(np.eye(self.spatialdim), dispmat_1d).T
+
+    def forward_rv(
+        self,
+        rv,
+        t,
+        dt=None,
+        compute_gain=False,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+
+        # Fetch things into preconditioned space
+        rv = _apply_precon(self.precon.inverse(dt), rv)
+
+        # Apply preconditioning to system matrices
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+
+        # Discretise and propagate
+        discretised_model = self.discretise(dt=dt)
+        rv, info = discretised_model.forward_rv(
+            rv, t, compute_gain=compute_gain, _diffusion=_diffusion
+        )
+
+        # Undo preconditioning and return
+        rv = _apply_precon(self.precon(dt), rv)
+        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
+        if "gain" in info:
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
+
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
+
+        return rv, info
+
+    def backward_rv(
+        self,
+        rv_obtained,
+        rv,
+        rv_forwarded=None,
+        gain=None,
+        t=None,
+        dt=None,
+        _diffusion=1.0,
+        **kwargs,
+    ):
+        # Fetch things into preconditioned space
+
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
+        rv_forwarded = (
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
+        )
+        gain = (
+            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
+            if gain is not None
+            else None
+        )
+
+        # Apply preconditioning to system matrices
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+
+        # Discretise and propagate
+        discretised_model = self.discretise(dt=dt)
+        rv, info = discretised_model.backward_rv(
+            rv_obtained=rv_obtained,
+            rv=rv,
+            rv_forwarded=rv_forwarded,
+            gain=gain,
+            t=t,
+            _diffusion=_diffusion,
+        )
+
+        # assert info is empty. Otherwise, we need to change
+        # things in info in which case we want to be warned.
+        assert not info
+
+        # Undo preconditioning and return
+        rv = _apply_precon(self.precon(dt), rv)
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
+        return rv, info
+
+
+def _apply_precon(precon, rv):
+
+    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
+    # Therefore, since we need to update the Cholesky factor for square-root filtering,
+    # we also update the Cholesky factor for non-square-root algorithms here,
+    # which implies additional cost.
+    # See Issues #319 and #329.
+    # When they are resolved, this function here will hopefully be superfluous.
+
+    new_mean = precon @ rv.mean
+    new_cov_cholesky = precon @ rv.cov_cholesky  # precon is diagonal, so this is valid
+    new_cov = new_cov_cholesky @ new_cov_cholesky.T
+
+    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
