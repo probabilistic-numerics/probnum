@@ -109,21 +109,48 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
         configuration.
     """
 
+    if y0 is None:
+        y0 = np.array([2.0, 0.0])
+
+    def rhs(t, y, params=params):
+        y1, y2 = y
+        if isinstance(params, float):
+            mu = params
+        else:
+            (mu,) = params
+
+        return np.array([y2, mu * (1.0 - y1 ** 2) * y2 - y1])
+
+    def jac(t, y, params):
+        y1, y2 = y
+        if isinstance(params, float):
+            mu = params
+        else:
+            (mu,) = params
+
+        return np.array([[0.0, 1.0], [-2.0 * mu * y2 * y1 - 1.0, mu * (1.0 - y1 ** 2)]])
+
+    return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
+
+
+def vanderpol_rhs(t, y, params):
+    y1, y2 = y
     if isinstance(params, float):
         mu = params
     else:
         (mu,) = params
 
-    if y0 is None:
-        y0 = np.array([2.0, 0.0])
+    return np.array([y2, mu * (1.0 - y1 ** 2) * y2 - y1])
 
-    def vanderpol_rhs(Y):
-        return np.array([Y[1], mu * (1.0 - Y[0] ** 2) * Y[1] - Y[0]])
 
-    def rhs(t, y):
-        return vanderpol_rhs(Y=y)
+def vanderpol_jac(t, y, params):
+    y1, y2 = y
+    if isinstance(params, float):
+        mu = params
+    else:
+        (mu,) = params
 
-    return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0)
+    return np.array([[0.0, 1.0], [-2.0 * mu * y2 * y1 - 1.0, mu * (1.0 - y1 ** 2)]])
 
 
 def rigidbody(t0=0.0, tmax=20.0, y0=None, params=(-2.0, 1.25, -0.5)):
@@ -162,25 +189,17 @@ def rigidbody(t0=0.0, tmax=20.0, y0=None, params=(-2.0, 1.25, -0.5)):
     if y0 is None:
         y0 = np.array([1.0, 0.0, 0.9])
 
-    def rhs(t, y):
-        return rigidbody_rhs(t, y, params=params)
+    def rhs(t, y, params=params):
+        p1, p2, p3 = params
+        y1, y2, y3 = y
+        return np.array([p1 * y2 * y3, p2 * y1 * y3, p3 * y1 * y2])
 
-    def jac(t, y):
-        return rigidbody_jac(t, y, params=params)
+    def jac(t, y, params=params):
+        p1, p2, p3 = params
+
+        y1, y2, y3 = y
+        return np.array(
+            [[0.0, p1 * y3, p1 * y2], [p2 * y3, 0.0, p2 * y1], [p3 * y2, p3 * y1, 0.0]]
+        )
 
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
-
-
-def rigidbody_rhs(t, y, params):
-    p1, p2, p3 = params
-    y1, y2, y3 = y
-    return np.array([p1 * y2 * y3, p2 * y1 * y3, p3 * y1 * y2])
-
-
-def rigidbody_jac(t, y, params):
-    p1, p2, p3 = params
-
-    y1, y2, y3 = y
-    return np.array(
-        [[0.0, p1 * y3, p1 * y2], [p2 * y3, 0.0, p2 * y1], [p3 * y2, p3 * y1, 0.0]]
-    )
