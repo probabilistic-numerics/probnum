@@ -5,7 +5,7 @@ from probnum.problems import InitialValueProblem
 __all__ = ["threebody", "vanderpol", "rigidbody"]
 
 
-def threebody(tmax=17.0652165601579625588917206249):
+def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
     r"""Initial value problem (IVP) based on a three-body problem.
 
     Let the initial conditions be :math:`y = (y_1, y_2, \dot{y}_1, \dot{y}_2)^T`.
@@ -50,22 +50,18 @@ def threebody(tmax=17.0652165601579625588917206249):
         Springer Series in Computational Mathematics, 1993.
     """
 
-    def threebody_rhs(Y):
-        # defining the ODE:
-        # assume Y = [y1,y2,y1',y2']
+    def rhs(t, y):
         mu = 0.012277471  # a constant (standardised moon mass)
         mp = 1 - mu
-        D1 = ((Y[0] + mu) ** 2 + Y[1] ** 2) ** (3 / 2)
-        D2 = ((Y[0] - mp) ** 2 + Y[1] ** 2) ** (3 / 2)
-        y1p = Y[0] + 2 * Y[3] - mp * (Y[0] + mu) / D1 - mu * (Y[0] - mp) / D2
-        y2p = Y[1] - 2 * Y[2] - mp * Y[1] / D1 - mu * Y[1] / D2
-        return np.array([Y[2], Y[3], y1p, y2p])
+        D1 = ((y[0] + mu) ** 2 + y[1] ** 2) ** (3 / 2)
+        D2 = ((y[0] - mp) ** 2 + y[1] ** 2) ** (3 / 2)
+        y1p = y[0] + 2 * y[3] - mp * (y[0] + mu) / D1 - mu * (y[0] - mp) / D2
+        y2p = y[1] - 2 * y[2] - mp * y[1] / D1 - mu * y[1] / D2
+        return np.array([y[2], y[3], y1p, y2p])
 
-    def rhs(t, y):
-        return threebody_rhs(Y=y)
+    if y0 is None:
+        y0 = np.array([0.994, 0, 0, -2.00158510637908252240537862224])
 
-    y0 = np.array([0.994, 0, 0, -2.00158510637908252240537862224])
-    t0 = 0.0
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0)
 
 
@@ -121,7 +117,7 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
 
         return np.array([y2, mu * (1.0 - y1 ** 2) * y2 - y1])
 
-    def jac(t, y, params):
+    def jac(t, y, params=params):
         y1, y2 = y
         if isinstance(params, float):
             mu = params
