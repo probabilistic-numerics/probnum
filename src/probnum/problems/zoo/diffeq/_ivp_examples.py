@@ -2,7 +2,7 @@ import numpy as np
 
 from probnum.problems import InitialValueProblem
 
-__all__ = ["threebody", "vanderpol"]
+__all__ = ["threebody", "vanderpol", "rigidbody"]
 
 
 def threebody(tmax=17.0652165601579625588917206249):
@@ -124,3 +124,63 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
         return vanderpol_rhs(Y=y)
 
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0)
+
+
+def rigidbody(t0=0.0, tmax=20.0, y0=None, params=(-2.0, 1.25, -0.5)):
+    r"""Initial value problem (IVP) for rigid body dynamics without external forces
+
+    The rigid body dynamics without external forces is defined through
+
+    .. math::
+
+        f(t, y) =
+        \begin{pmatrix}
+            y_2 y_3 \\
+            -y_1 y_3 \\
+            -0.51 \cdot y_1 y_2
+        \end{pmatrix}
+
+    The ODE system has no parameters.
+    This implementation includes the Jacobian :math:`J_f` of :math:`f`.
+
+    Parameters
+    ----------
+    timespan : (float, float)
+        Time span of IVP.
+    initrv : RandomVariable,
+        *(shape=(3, ))* -- Vector-valued RandomVariable that describes the belief
+        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
+        Random Variable with :math:`3`-dimensional mean vector and
+        :math:`3 \times 3`-dimensional covariance matrix.
+        To replicate "classical" initial values use the Constant distribution.
+    Returns
+    -------
+    IVP
+        IVP object describing the rigid body dynamics IVP with the prescribed
+        configuration.
+    """
+    if y0 is None:
+        y0 = np.array([1.0, 0.0, 0.9])
+
+    def rhs(t, y):
+        return rigidbody_rhs(t, y, params=params)
+
+    def jac(t, y):
+        return rigidbody_jac(t, y, params=params)
+
+    return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
+
+
+def rigidbody_rhs(t, y, params):
+    p1, p2, p3 = params
+    y1, y2, y3 = y
+    return np.array([p1 * y2 * y3, p2 * y1 * y3, p3 * y1 * y2])
+
+
+def rigidbody_jac(t, y, params):
+    p1, p2, p3 = params
+
+    y1, y2, y3 = y
+    return np.array(
+        [[0.0, p1 * y3, p1 * y2], [p2 * y3, 0.0, p2 * y1], [p3 * y2, p3 * y1, 0.0]]
+    )
