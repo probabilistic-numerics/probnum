@@ -116,6 +116,10 @@ def compute_all_derivatives(ivp, order=6):
     )
 
 
+def _old_to_new(arr, order):
+    return arr.reshape((order + 1, -1)).T.flatten()
+
+
 def _via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
     """Solve the ODE for a few steps with scipy.integrate, and fit an integrated Wiener
     process to the solution.
@@ -130,7 +134,6 @@ def _via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
         backward_implementation="sqrt",
     )
     proj_to_y = prior.proj2coord(0)
-    proj_to_dy = prior.proj2coord(1)
     zeros_shift = np.zeros(ode_dim)
     zeros_cov = np.zeros((ode_dim, ode_dim))
     measmod = pnss.DiscreteLTIGaussian(
@@ -225,11 +228,11 @@ def _taylormode(f, z0, t0, order):
 
     derivs.extend(z0)
     if order == 0:
-        return jnp.array(derivs)
+        return jnp.array(derivs), jnp.zeros(len(derivs))
     (y0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
     derivs.extend(y0[:-1])
     if order == 1:
-        return jnp.array(derivs)
+        return jnp.array(derivs), jnp.zeros(len(derivs))
 
     order = order - 2
     for _ in range(order + 1):
@@ -237,7 +240,3 @@ def _taylormode(f, z0, t0, order):
         derivs.extend(yns[-2][:-1])
 
     return jnp.array(derivs), jnp.zeros(len(derivs))
-
-
-def _old_to_new(arr, order):
-    return arr.reshape((order + 1, -1)).T.flatten()
