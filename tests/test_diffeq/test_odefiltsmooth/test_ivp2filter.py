@@ -60,7 +60,12 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
                 @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
             ]
         )
-        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
+        self.assertAllClose(
+            filtsmooth_object.initrv.mean,
+            expected_initval.T.flatten(),
+            atol=1e-8,
+            rtol=1e-8,
+        )
 
 
 class TestIvp2Ekf1(Ivp2FilterTestCase):
@@ -98,7 +103,12 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
                 @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
             ]
         )
-        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
+        self.assertAllClose(
+            filtsmooth_object.initrv.mean,
+            expected_initval.T.flatten(),
+            atol=1e-8,
+            rtol=1e-8,
+        )
 
 
 class TestIvpUkf(Ivp2FilterTestCase):
@@ -136,4 +146,9 @@ class TestIvpUkf(Ivp2FilterTestCase):
                 @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
             ]
         )
-        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
+        self.assertAllClose(
+            filtsmooth_object.initrv.mean,
+            expected_initval.T.flatten(),
+            atol=1e-8,
+            rtol=1e-8,
+        )

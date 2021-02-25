@@ -139,8 +139,8 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
             [self.ivp.initrv.mean, self.ivp.rhs(0, self.ivp.initrv.mean)]
         )
 
-        self.assertAllClose(self.ms[0], exp_mean[:, 0], rtol=1e-14)
-        self.assertAllClose(self.cs[0], np.zeros((2, 2)), rtol=1e-14)
+        self.assertAllClose(self.ms[0], exp_mean[:, 0], atol=1e-8, rtol=1e-8)
+        self.assertAllClose(self.cs[0], np.zeros((2, 2)), atol=1e-8, rtol=1e-8)
 
     def test_t1(self):
         """The kernels do not coincide exactly because of the uncertainty calibration
@@ -152,7 +152,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
         z0 = self.ivp.rhs(0, y0)
         z1 = self.ivp.rhs(0, y0 + self.step * z0)
         exp_mean = np.array([y0 + 0.5 * self.step * (z0 + z1), z1])
-        self.assertAllClose(self.ms[1], exp_mean[:, 0], rtol=1e-14)
+        self.assertAllClose(self.ms[1], exp_mean[:, 0], atol=1e-8, rtol=1e-8)
 
 
 class TestAdaptivityOnLotkaVolterra(unittest.TestCase):

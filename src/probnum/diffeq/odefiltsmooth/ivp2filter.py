@@ -10,6 +10,8 @@ import scipy.linalg
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 
+from .initialise import _via_rk
+
 
 def ivp2ekf0(ivp, prior, evlvar):
     """Computes measurement model and initial distribution for KF based on IVP and
@@ -112,76 +114,85 @@ def ivp2ukf(ivp, prior, evlvar):
 
 
 def _initialdistribution(ivp, prior):
-    """Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)` on the initial
-    values :math:`(x_0, f(t_0, x_0), ...)` using as many available derivatives as
-    possible.
 
-    Note that the projection matrices :math:`H_0` and :math:`H_1` become
-    :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
-    """
-    if not issubclass(type(ivp.initrv), pnrv.Normal):
-        if not issubclass(type(ivp.initrv), pnrv.Constant):
-            raise RuntimeError("Initial distribution not Normal or Constant")
-
-    x0 = ivp.initialdistribution.mean
-    dx0 = ivp.rhs(ivp.t0, x0)
-    ddx0 = _ddx(ivp.t0, x0, ivp)
-
-    h0 = prior.proj2coord(coord=0)
-    h1 = prior.proj2coord(coord=1)
-
-    initcov = np.eye(len(h0.T))
-    if prior.ordint == 1:
-        projmat = np.hstack((h0.T, h1.T)).T
-        data = np.hstack((x0, dx0))
-    else:
-        h2 = prior.proj2coord(coord=2)
-        projmat = np.hstack((h0.T, h1.T, h2.T)).T
-        data = np.hstack((x0, dx0, ddx0))
-
-    s = projmat @ initcov @ projmat.T
-    crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
-    newmean = crosscov @ np.linalg.solve(s, data)
-    newcov = initcov - crosscov @ np.linalg.solve(s, crosscov.T)
-
-    lu, d, _ = scipy.linalg.ldl(newcov, lower=True)
-    chol = lu @ np.sqrt(d)
-
-    return pnrv.Normal(newmean, newcov, cov_cholesky=chol)
+    m0, s0 = _via_rk(
+        ivp.rhs, ivp.initrv.mean, ivp.t0, order=prior.ordint, df=ivp.jacobian
+    )
+    return pnrv.Normal(m0, np.diag(s0 ** 2), np.diag(s0))
 
 
-def _ddx(t, x, ivp):
-    """If Jacobian is available:
-
-    x''(t) = J_f(x(t)) @ f(x(t))
-    Else it just returns zero.
-    """
-    try:
-        jac = ivp.jacobian(t, x)
-    except NotImplementedError:
-        jac = np.zeros((len(x), len(x)))
-    evl = ivp.rhs(t, x)
-    if np.isscalar(evl) is True:
-        evl = np.array([evl])
-        jac = np.array([jac])
-    return jac @ evl
-
-
-def _dddx(t, x, ivp):
-    """x'''(t) = H_f(x) @ f(x) @ f(x) + J_f(X) @ J_f(x) @ f(x)
-    with an approximate Hessian-vector product.
-    """
-    evl = ivp.rhs(t, x)
-    try:
-        jac = ivp.jacobian(t, x)
-    except NotImplementedError:
-        jac = np.zeros((len(x), len(x)))
-    try:
-        hess = ivp.hessian(t, x)
-    except NotImplementedError:
-        hess = np.zeros((len(x), len(x), len(x)))
-    if np.isscalar(evl):
-        evl = np.array([evl])
-        jac = np.array([jac])
-        hess = np.array([hess])
-    return (hess @ evl) @ evl + jac @ (jac @ evl)
+#
+# def _initialdistribution2(ivp, prior):
+#     """Conditions initialdistribution :math:`\\mathcal{N}(0, P P^\\top)` on the initial
+#     values :math:`(x_0, f(t_0, x_0), ...)` using as many available derivatives as
+#     possible.
+#
+#     Note that the projection matrices :math:`H_0` and :math:`H_1` become
+#     :math:`H_0 P^{-1}` and :math:`H_1 P^{-1}`.
+#     """
+#     if not issubclass(type(ivp.initrv), pnrv.Normal):
+#         if not issubclass(type(ivp.initrv), pnrv.Constant):
+#             raise RuntimeError("Initial distribution not Normal or Constant")
+#
+#     x0 = ivp.initialdistribution.mean
+#     dx0 = ivp.rhs(ivp.t0, x0)
+#     ddx0 = _ddx(ivp.t0, x0, ivp)
+#
+#     h0 = prior.proj2coord(coord=0)
+#     h1 = prior.proj2coord(coord=1)
+#
+#     initcov = np.eye(len(h0.T))
+#     if prior.ordint == 1:
+#         projmat = np.hstack((h0.T, h1.T)).T
+#         data = np.hstack((x0, dx0))
+#     else:
+#         h2 = prior.proj2coord(coord=2)
+#         projmat = np.hstack((h0.T, h1.T, h2.T)).T
+#         data = np.hstack((x0, dx0, ddx0))
+#
+#     s = projmat @ initcov @ projmat.T
+#     crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
+#     newmean = crosscov @ np.linalg.solve(s, data)
+#     newcov = initcov - crosscov @ np.linalg.solve(s, crosscov.T)
+#
+#     lu, d, _ = scipy.linalg.ldl(newcov, lower=True)
+#     chol = lu @ np.sqrt(d)
+#
+#     return pnrv.Normal(newmean, newcov, cov_cholesky=chol)
+#
+#
+# def _ddx(t, x, ivp):
+#     """If Jacobian is available:
+#
+#     x''(t) = J_f(x(t)) @ f(x(t))
+#     Else it just returns zero.
+#     """
+#     try:
+#         jac = ivp.jacobian(t, x)
+#     except NotImplementedError:
+#         jac = np.zeros((len(x), len(x)))
+#     evl = ivp.rhs(t, x)
+#     if np.isscalar(evl) is True:
+#         evl = np.array([evl])
+#         jac = np.array([jac])
+#     return jac @ evl
+#
+#
+# def _dddx(t, x, ivp):
+#     """x'''(t) = H_f(x) @ f(x) @ f(x) + J_f(X) @ J_f(x) @ f(x)
+#     with an approximate Hessian-vector product.
+#     """
+#     evl = ivp.rhs(t, x)
+#     try:
+#         jac = ivp.jacobian(t, x)
+#     except NotImplementedError:
+#         jac = np.zeros((len(x), len(x)))
+#     try:
+#         hess = ivp.hessian(t, x)
+#     except NotImplementedError:
+#         hess = np.zeros((len(x), len(x), len(x)))
+#     if np.isscalar(evl):
+#         evl = np.array([evl])
+#         jac = np.array([jac])
+#         hess = np.array([hess])
+#     return (hess @ evl) @ evl + jac @ (jac @ evl)
