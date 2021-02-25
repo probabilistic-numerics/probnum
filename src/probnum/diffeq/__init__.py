@@ -1,14 +1,6 @@
 """Differential Equations."""
 
-from .ode import (  # rigidbody,; threebody,; vanderpol,
-    IVP,
-    ODE,
-    fitzhughnagumo,
-    logistic,
-    lorenz,
-    lotkavolterra,
-    seir,
-)
+from .ode import IVP, ODE, fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
 from .odefiltsmooth import (
     GaussianIVPFilter,
     KalmanODESolution,
@@ -30,9 +22,6 @@ __all__ = [
     "fitzhughnagumo",
     "lotkavolterra",
     "seir",
-    # "rigidbody",
-    # "vanderpol",
-    # "threebody",
     "lorenz",
     "probsolve_ivp",
     "ODESolver",

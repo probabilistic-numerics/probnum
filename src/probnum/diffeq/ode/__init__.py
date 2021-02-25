@@ -1,11 +1,5 @@
 from .ivp import IVP
-from .ivp_examples import (  # rigidbody,; threebody,; vanderpol,
-    fitzhughnagumo,
-    logistic,
-    lorenz,
-    lotkavolterra,
-    seir,
-)
+from .ivp_examples import fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
 from .ode import ODE
 
 __all__ = [
@@ -14,9 +8,6 @@ __all__ = [
     "logistic",
     "fitzhughnagumo",
     "seir",
-    # "rigidbody",
-    # "vanderpol",
-    # "threebody",
     "lotkavolterra",
     "lorenz",
 ]
