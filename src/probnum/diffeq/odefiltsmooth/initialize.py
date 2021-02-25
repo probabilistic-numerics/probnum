@@ -127,6 +127,9 @@ def _correct_order_of_elements(arr, order):
     return arr.reshape((order + 1, -1)).T.flatten()
 
 
+SMALL_VALUE = 1e-28
+
+
 def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
     """Solve the ODE for a few steps with scipy.integrate, and fit an integrated Wiener
     process to the solution.
@@ -174,19 +177,13 @@ def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="D
     initmean[1 :: (order + 1)] = f(t0, z0)
 
     initcov_diag = np.ones(prior.dimension)
-    initcov_diag[
-        0 :: (order + 1)
-    ] = 1e-12  # small value, because zero would lead to numerical
-    initcov_diag[
-        1 :: (order + 1)
-    ] = 1e-12  # problems since the measurement variance is zero as well.
+    initcov_diag[0 :: (order + 1)] = SMALL_VALUE
+    initcov_diag[1 :: (order + 1)] = SMALL_VALUE
 
     if df is not None:
         if order > 1:
             initmean[2 :: (order + 1)] = df(t0, z0) @ f(t0, z0)
-            initcov_diag[
-                2 :: (order + 1)
-            ] = 1e-12  # problems since the measurement variance is zero as well.
+            initcov_diag[2 :: (order + 1)] = SMALL_VALUE
 
     initcov = np.diag(initcov_diag)
     initcov_cholesky = np.diag(np.sqrt(initcov_diag))

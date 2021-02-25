@@ -7,7 +7,7 @@ Local import, because with a global import this does not seem
 to work.
 """
 
-from .initialise import (
+from .initialize import (
     compute_all_derivatives_via_rk,
     compute_all_derivatives_via_taylormode,
     extend_ivp_with_all_derivatives,
