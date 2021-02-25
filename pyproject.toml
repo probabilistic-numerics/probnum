@@ -1,6 +1,21 @@
 # For more information about this pyproject.toml file, see
 # PEP 518: https://www.python.org/dev/peps/pep-0518/
 
+# PyTest configuration
+[tool.pytest.ini_options]
+addopts = "--verbose --doctest-modules"
+norecursedirs = [
+    ".*",
+    "*.egg*",
+    "dist",
+    "build",
+    ".tox"
+]
+testpaths = [
+    "src",
+    "tests"
+]
+doctest_optionflags = "NUMBER NORMALIZE_WHITESPACE"
 
 # Configuration of the black code style checker
 # For more information about Black's usage of this file, see
