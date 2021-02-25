@@ -77,7 +77,7 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
     [2. 0.]
     >>> print(vdp.dy0_all)
     None
-    >>> vdp = compute_all_derivatives(vdp, order=3)
+    >>> vdp = extend_ivp_with_all_derivatives(vdp, order=3)
     >>> print(vdp.y0)
     [2. 0.]
     >>> print(vdp.dy0_all)
@@ -89,7 +89,7 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
     [2. 0.]
     >>> print(vdp2.dy0_all)
     None
-    >>> vdp2 = compute_all_derivatives(vdp2, order=3)
+    >>> vdp2 = extend_ivp_with_all_derivatives(vdp2, order=3)
     >>> print(vdp2.y0)
     [2. 0.]
     >>> print(np.round(vdp2.dy0_all, 1))
@@ -98,12 +98,14 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
     [-inf -6.1 -3.5 -1.1 -inf -6.1 -3.5 -1.1]
     """
     try:
-        all_initial_derivatives, errors = _taylormode(
+        all_initial_derivatives, errors = compute_all_derivatives_via_taylormode(
             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order
         )
-        all_initial_derivatives = _old_to_new(all_initial_derivatives, order)
+        all_initial_derivatives = _correct_order_of_elements(
+            all_initial_derivatives, order
+        )
     except KeyError:
-        all_initial_derivatives, errors = _via_rk(
+        all_initial_derivatives, errors = compute_all_derivatives_via_rk(
             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order, df=ivp.df
         )
 
@@ -120,7 +122,8 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
     )
 
 
-def _old_to_new(arr, order):
+def _correct_order_of_elements(arr, order):
+    """Utility function to change ordering of elements in stacked vector."""
     return arr.reshape((order + 1, -1)).T.flatten()
 
 

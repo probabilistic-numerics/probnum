@@ -42,7 +42,7 @@ def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
     `compute_all_derivatives`, which happens if they are implemented in jax, and jax is
     available in the current environment."""
 
-    ivp = pnd.compute_all_derivatives(ivp_jax, order=order)
+    ivp = pnd.extend_ivp_with_all_derivatives(ivp_jax, order=order)
     assert isinstance(ivp, pnprob.InitialValueProblem)
 
 
