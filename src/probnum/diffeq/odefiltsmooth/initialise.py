@@ -10,12 +10,16 @@ import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace as pnss
 from probnum.problems import InitialValueProblem
 
-__all__ = ["compute_all_derivatives"]
+__all__ = [
+    "extend_ivp_with_all_derivatives",
+    "compute_all_derivatives_via_rk",
+    "compute_all_derivatives_via_taylormode",
+]
 
 # pylint: disable=import-outside-toplevel
 
 
-def compute_all_derivatives(ivp, order=6):
+def extend_ivp_with_all_derivatives(ivp, order=6):
     r"""Compute derivatives of initial values of an initial value ODE problem.
 
     This requires jax. For an explanation of what happens "under the hood", see [1]_.
@@ -120,7 +124,7 @@ def _old_to_new(arr, order):
     return arr.reshape((order + 1, -1)).T.flatten()
 
 
-def _via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
+def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
     """Solve the ODE for a few steps with scipy.integrate, and fit an integrated Wiener
     process to the solution.
 
@@ -194,7 +198,7 @@ def _via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
     return mean, std
 
 
-def _taylormode(f, z0, t0, order):
+def compute_all_derivatives_via_taylormode(f, z0, t0, order):
     """Taylor-mode automatic differentiation for initialisation.
 
     Inspired by the implementation in
