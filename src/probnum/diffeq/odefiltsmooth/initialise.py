@@ -2,6 +2,12 @@
 # pylint: disable=import-outside-toplevel
 
 
+import numpy as np
+import scipy.integrate as sci
+
+import probnum.filtsmooth as pnfs
+import probnum.random_variables as pnrv
+from probnum.filtsmooth import statespace as pnss
 from probnum.problems import InitialValueProblem
 
 __all__ = ["compute_all_derivatives"]
@@ -42,7 +48,7 @@ def compute_all_derivatives(ivp, order=6):
 
     Examples
     --------
-    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
+    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax, threebody, vanderpol
 
     Compute the initial values of the restricted three-body problem as follows
 
@@ -55,10 +61,10 @@ def compute_all_derivatives(ivp, order=6):
     >>> print(res2bod.y0)
     [ 0.994       0.          0.         -2.00158511]
     >>> print(res2bod.dy0_all)
-    [ 9.94000000e-01  0.00000000e+00  0.00000000e+00 -2.00158511e+00
-      0.00000000e+00 -2.00158511e+00 -3.15543023e+02  0.00000000e+00
-     -3.15543023e+02  0.00000000e+00  0.00000000e+00  9.99720945e+04
-      0.00000000e+00  9.99720945e+04  6.39028111e+07  0.00000000e+00]
+    [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
+      0.00000000e+00 -2.00158511e+00  0.00000000e+00  9.99720945e+04
+      0.00000000e+00 -3.15543023e+02  0.00000000e+00  6.39028111e+07
+     -2.00158511e+00  0.00000000e+00  9.99720945e+04  0.00000000e+00]
 
     Compute the initial values of the van-der-Pol oscillator as follows
 
@@ -71,9 +77,32 @@ def compute_all_derivatives(ivp, order=6):
     >>> print(vdp.y0)
     [2. 0.]
     >>> print(vdp.dy0_all)
-    [    2.     0.     0.    -2.    -2.    60.    60. -1798.]
+    [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
+
+
+    >>> vdp2 = vanderpol()
+    >>> print(vdp2.y0)
+    [2. 0.]
+    >>> print(vdp2.dy0_all)
+    None
+    >>> vdp2 = compute_all_derivatives(vdp2, order=3)
+    >>> print(vdp2.y0)
+    [2. 0.]
+    >>> print(np.round(vdp2.dy0_all, 1))
+    [    2.     -0.     -2.     49.7     0.     -2.     59.  -1492. ]
+    >>> print(np.round(np.log10(vdp2.dy0_errors), 1))
+    [-inf -6.1 -3.5 -1.1 -inf -6.1 -3.5 -1.1]
     """
-    all_initial_derivatives = _taylormode(f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order)
+    try:
+        all_initial_derivatives, errors = _taylormode(
+            f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order
+        )
+        all_initial_derivatives = _old_to_new(all_initial_derivatives, order)
+    except KeyError:
+        all_initial_derivatives, errors = _via_rk(
+            f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order, df=ivp.df
+        )
+
     return InitialValueProblem(
         f=ivp.f,
         t0=ivp.t0,
@@ -83,7 +112,83 @@ def compute_all_derivatives(ivp, order=6):
         ddf=ivp.ddf,
         solution=ivp.solution,
         dy0_all=all_initial_derivatives,
+        dy0_errors=errors,
     )
+
+
+def _via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
+    """Solve the ODE for a few steps with scipy.integrate, and fit an integrated Wiener
+    process to the solution.
+
+    The resulting value at t0 is an estimate of the initial derivatives.
+    """
+    ode_dim = len(z0)
+    prior = pnss.IBM(
+        ordint=order,
+        spatialdim=ode_dim,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+    proj_to_y = prior.proj2coord(0)
+    proj_to_dy = prior.proj2coord(1)
+    zeros_shift = np.zeros(ode_dim)
+    zeros_cov = np.zeros((ode_dim, ode_dim))
+    measmod = pnss.DiscreteLTIGaussian(
+        proj_to_y,
+        zeros_shift,
+        zeros_cov,
+        proc_noise_cov_cholesky=zeros_cov,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+
+    num_steps = (
+        2 * order
+    )  # order + 1 would suffice in theory, 2*order is for good measure
+    t_eval = np.arange(t0, t0 + (num_steps + 1) * h0, h0)
+    sol = sci.solve_ivp(
+        f,
+        (t0, t0 + (num_steps + 1) * h0),
+        y0=z0,
+        atol=1e-12,
+        rtol=1e-12,
+        t_eval=t_eval,
+        method=method,
+    )
+
+    ts = sol.t[:num_steps]
+    ys = sol.y[:, :num_steps].T
+
+    initmean = np.zeros(prior.dimension)
+    initmean[0 :: (order + 1)] = z0
+    initmean[1 :: (order + 1)] = f(t0, z0)
+
+    initcov_diag = np.ones(prior.dimension)
+    initcov_diag[
+        0 :: (order + 1)
+    ] = 1e-12  # small value, because zero would lead to numerical
+    initcov_diag[
+        1 :: (order + 1)
+    ] = 1e-12  # problems since the measurement variance is zero as well.
+
+    if df is not None:
+        if order > 1:
+            initmean[2 :: (order + 1)] = df(t0, z0) @ f(t0, z0)
+            initcov_diag[
+                2 :: (order + 1)
+            ] = 1e-12  # problems since the measurement variance is zero as well.
+
+    initcov = np.diag(initcov_diag)
+    initcov_cholesky = np.diag(np.sqrt(initcov_diag))
+    initrv = pnrv.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
+    kalman = pnfs.Kalman(prior, measmod, initrv)
+
+    out = kalman.filtsmooth(ys, ts)
+
+    estimated_initrv = out.state_rvs[0]
+    mean = estimated_initrv.mean
+    std = estimated_initrv.std
+    return mean, std
 
 
 def _taylormode(f, z0, t0, order):
@@ -131,4 +236,8 @@ def _taylormode(f, z0, t0, order):
         (y0, [*yns]) = jet(total_derivative, (z_t,), ((y0, *yns),))
         derivs.extend(yns[-2][:-1])
 
-    return jnp.array(derivs)
+    return jnp.array(derivs), jnp.zeros(len(derivs))
+
+
+def _old_to_new(arr, order):
+    return arr.reshape((order + 1, -1)).T.flatten()
