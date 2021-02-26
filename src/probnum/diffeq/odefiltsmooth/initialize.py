@@ -20,9 +20,12 @@ __all__ = [
 
 
 def extend_ivp_with_all_derivatives(ivp, order=6):
-    r"""Compute derivatives of initial values of an initial value ODE problem.
+    r"""Create a new InitialValueProblem which is informed about derivatives of initial conditions.
 
-    This requires jax. For an explanation of what happens "under the hood", see [1]_.
+    If the InitialValueProblem is compatible with JAX (and if jax and jaxlib can be imported), this is done with
+    Taylor-mode automatic differentiation.
+    If not, an integrated Brownian motion process is fitted to the first few states of an ODE solution computed with a Runge-Kutta formula.
+
 
 
     Parameters
@@ -43,11 +46,6 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
         InitialValueProblem object where the attribute `dy0_all` is filled with an
         :math:`d(\nu + 1)` vector, where :math:`\nu` is the specified order,
         and :math:`d` is the dimension of the IVP.
-
-    References
-    ----------
-    .. [1] Krämer, N. and Hennig, P., Stable implementation of probabilistic ODE solvers,
-       *arXiv:2012.10106*, 2020.
 
 
     Examples
@@ -123,7 +121,11 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
 
 
 def _correct_order_of_elements(arr, order):
-    """Utility function to change ordering of elements in stacked vector."""
+    """Utility function to change ordering of elements in stacked vector from ``(y1, y2,
+    dy1, dy2, ddy1, ddy2, ...))``.
+
+    to ``(y1, dy1, ddy1, ..., y2, dy2, ddy2, ...)``.
+    """
     return arr.reshape((order + 1, -1)).T.flatten()
 
 
@@ -131,10 +133,49 @@ SMALL_VALUE = 1e-28
 
 
 def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
-    """Solve the ODE for a few steps with scipy.integrate, and fit an integrated Wiener
-    process to the solution.
+    r"""
+    Compute derivatives of the initial value by fitting an integrated Brownian motion process to a few steps of an approximate ODE solution.
 
-    The resulting value at t0 is an estimate of the initial derivatives.
+
+    It goes as follows:
+
+    1. The ODE integration problem is set up on the interval ``[t0, t0 + (2*order+1)*h0]``
+    and solved with a call to ``scipy.integrate.solve_ivp``. The solver is uses adaptive steps with ``atol=rtol=1e-12``,
+    but is forced to pass through the
+    events ``(t0, t0+h0, t0 + 2*h0, ..., t0 + (2*order+1)*h0)``.
+    The result is a vector of time points and states, with at least ``(2*order+1)``.
+    Potentially, the adaptive steps selected many more steps, but because of the event, fewer steps cannot have happened.
+
+    2. A :math:`\nu` times integrated Brownian motion process is fitted to the first ``(2*order+1)`` (t, y) pairs of the solution.
+
+    3. The value of the resulting posterior at time ``t=t0`` is an estimate of the state and all its derivatives.
+    The resulting marginal standard deviations estimate the error.
+
+    Parameters
+    ----------
+    f
+        ODE vector field.
+    z0
+        Initial value.
+    t0
+        Initial time point.
+    order
+        Number of derivatives to compute. Corresponds to the order of the prior (for instance the number of times an integrated Brownian motion process is integrated).
+    df
+        Jacobian of the ODE vector field. Optional. If specified, more components of the result will be exact.
+    h0
+        Maximum step-size to use for computing the approximate ODE solution. The smaller, the more accurate, but also, the smaller, the less stable.
+        The best value here depends on the ODE problem, and probably the chosen method. Optional. Default is ``1e-2``.
+    method
+        Which solver to use. This is communicated as a string that is compatible with ``scipy.integrate.solve_ivp(..., method=method)``.
+        Optional. Default is `DOP853`.
+
+    Returns
+    -------
+    array
+        Estimate of the full stack of derivatives
+    array
+        Marginal standard deviations of the state, can be used as an error estimate of the estimation.
     """
     z0 = np.asarray(z0)
     ode_dim = z0.shape[0] if z0.ndim > 0 else 1
@@ -200,10 +241,37 @@ def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="D
 
 
 def compute_all_derivatives_via_taylormode(f, z0, t0, order):
-    """Taylor-mode automatic differentiation for initialisation.
+    """Compute derivatives of the initial conditions of an IVP with Taylor-mode
+    automatic differentiation.
 
-    Inspired by the implementation in
+    This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
+
+    References
+    ----------
+    .. [1] Krämer, N. and Hennig, P., Stable implementation of probabilistic ODE solvers,
+       *arXiv:2012.10106*, 2020.
+
+
+    The implementation is inspired by the implementation in
     https://github.com/jacobjinkelly/easy-neural-ode/blob/master/latent_ode.py
+
+    Parameters
+    ----------
+    f
+        ODE vector field.
+    z0
+        Initial value.
+    t0
+        Initial time point.
+    order
+        Number of derivatives to compute. Corresponds to the order of the prior (for instance the number of times an integrated Brownian motion process is integrated).
+
+    Returns
+    -------
+    array
+        Estimate of the full stack of derivatives
+    array
+        Array full of zeros, as a dummy error estimate of the estimation.
     """
 
     try:
