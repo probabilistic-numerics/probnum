@@ -177,25 +177,28 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             entropy = self._dense_entropy
 
             self._compute_cov_cholesky = self.dense_cov_cholesky
-            if cov_cholesky is not None:
 
-                if not isinstance(cov_cholesky, type(self._cov)):
+            # Ensure that the Cholesky factor has the same type as the covariance,
+            # and, if necessary, promote types. Check for (in this order): type, shape, dtype.
+            if self._cov_cholesky is not None:
+
+                if not isinstance(self._cov_cholesky, type(self._cov)):
                     raise ValueError(
                         f"The covariance matrix is of type `{type(self._cov)}`, so its "
                         f"Cholesky decomposition must be of the same type, but an "
-                        f"object of type `{type(cov_cholesky)}` was given."
+                        f"object of type `{type(self._cov_cholesky)}` was given."
                     )
 
-                if cov_cholesky.shape != self._cov.shape:
+                if self._cov_cholesky.shape != self._cov.shape:
                     raise ValueError(
                         f"The cholesky decomposition of the covariance matrix must "
                         f"have the same shape as the covariance matrix, i.e. "
-                        f"{self._cov.shape}, but shape {cov_cholesky.shape} was given"
+                        f"{self._cov.shape}, but shape {self._cov_cholesky.shape} was given"
                     )
 
-                if cov_cholesky.dtype != self._cov.dtype:
+                if self._cov_cholesky.dtype != self._cov.dtype:
                     # TODO: Implement casting for linear operators
-                    if not isinstance(cov_cholesky, linops.LinearOperator):
+                    if not isinstance(self._cov_cholesky, linops.LinearOperator):
                         self._cov_cholesky = self._cov_cholesky.astype(self._cov.dtype)
 
             if isinstance(cov, linops.SymmetricKronecker):
