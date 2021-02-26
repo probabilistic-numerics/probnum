@@ -196,7 +196,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 if cov_cholesky.dtype != self._cov.dtype:
                     # TODO: Implement casting for linear operators
                     if not isinstance(cov_cholesky, linops.LinearOperator):
-                        cov_cholesky = cov_cholesky.astype(self._cov.dtype)
+                        self._cov_cholesky = self._cov_cholesky.astype(self._cov.dtype)
 
             if isinstance(cov, linops.SymmetricKronecker):
                 m, n = mean.shape
