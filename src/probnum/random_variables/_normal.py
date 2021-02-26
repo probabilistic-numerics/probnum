@@ -271,6 +271,8 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self, damping_factor: Optional[FloatArgType] = COV_CHOLESKY_DAMPING
     ):
         """(P)recompute Cholesky factors (careful: in-place operation!)."""
+        if self.cov_cholesky_is_precomputed:
+            raise Exception("A Cholesky factor is already available.")
         self._cov_cholesky_values = self._compute_cov_cholesky(
             damping_factor=damping_factor
         )
