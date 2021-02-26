@@ -139,7 +139,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self._cov = cov
 
         self._compute_cov_cholesky: Callable[[], _ValueType] = None
-        self._cov_cholesky_values = cov_cholesky  # recall: None if not provided
+        self._cov_cholesky = cov_cholesky  # recall: None if not provided
 
         # Method selection
         univariate = len(mean.shape) == 0
@@ -265,7 +265,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         if not self.cov_cholesky_is_precomputed:
             self.precompute_cov_cholesky()
-        return self._cov_cholesky_values
+        return self._cov_cholesky
 
     def precompute_cov_cholesky(
         self, damping_factor: Optional[FloatArgType] = COV_CHOLESKY_DAMPING
@@ -273,9 +273,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         """(P)recompute Cholesky factors (careful: in-place operation!)."""
         if self.cov_cholesky_is_precomputed:
             raise Exception("A Cholesky factor is already available.")
-        self._cov_cholesky_values = self._compute_cov_cholesky(
-            damping_factor=damping_factor
-        )
+        self._cov_cholesky = self._compute_cov_cholesky(damping_factor=damping_factor)
 
     @property
     def cov_cholesky_is_precomputed(self) -> bool:
@@ -286,7 +284,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         initialization or if (ii) the property `self.cov_cholesky` has
         been called.
         """
-        if self._cov_cholesky_values is None:
+        if self._cov_cholesky is None:
             return False
         return True
 
