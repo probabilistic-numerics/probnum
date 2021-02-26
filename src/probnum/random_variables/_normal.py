@@ -179,7 +179,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             self._compute_cov_cholesky = self.dense_cov_cholesky
 
             # Ensure that the Cholesky factor has the same type as the covariance,
-            # and, if necessary, promote types. Check for (in this order): type, shape, dtype.
+            # and, if necessary, promote data types. Check for (in this order): type, shape, dtype.
             if self._cov_cholesky is not None:
 
                 if not isinstance(self._cov_cholesky, type(self._cov)):
