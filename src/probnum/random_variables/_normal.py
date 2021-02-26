@@ -48,6 +48,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         Mean of the random variable.
     cov :
         (Co-)variance of the random variable.
+    cov_cholesky :
+        (Lower triangular) Cholesky factor of the covariance matrix. If None, then the Cholesky factor of the covariance matrix
+        is computed when :attr:`Normal.cov_cholesky` is called and then cached. If specified, the value is returned by :attr:`Normal.cov_cholesky`.
+        In this case, its type and data type are compared to the type and data type of the covariance.
+        If the types do not match, an exception is thrown. If the data types do not match,
+        the data type of the Cholesky factor is promoted to the data type of the covariance matrix.
     random_state :
         Random state of the random variable. If None (or np.random), the global
         :mod:`numpy.random` state is used. If integer, it is used to seed the local
@@ -283,9 +289,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         """Return truth-value of whether the Cholesky factor of the covariance is
         readily available.
 
-        This happens if (i) cov_cholesky is specified during
+        This happens if (i) the Cholesky factor is specified during
         initialization or if (ii) the property `self.cov_cholesky` has
-        been called.
+        been called before.
         """
         if self._cov_cholesky is None:
             return False
