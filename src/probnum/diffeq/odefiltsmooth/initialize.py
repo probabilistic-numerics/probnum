@@ -136,7 +136,8 @@ def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="D
 
     The resulting value at t0 is an estimate of the initial derivatives.
     """
-    ode_dim = len(z0)
+    z0 = np.asarray(z0)
+    ode_dim = z0.shape[0] if z0.ndim > 0 else 1
     prior = pnss.IBM(
         ordint=order,
         spatialdim=ode_dim,
