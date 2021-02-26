@@ -34,13 +34,17 @@ def threebody(t0=0.0, tmax=17.0652165601579625588917206249, y0=None):
 
     Parameters
     ----------
+    t0
+        Initial time. Default is ``0.0``.
     tmax
-        Final time.
+        Final time. Default is ``17.0652165601579625588917206249`` which is the period of the solution.
+    y0
+        *(shape=(4, ))* -- Initial value. Default is ``[0.994, 0, 0, -2.00158510637908252240537862224]``.
 
     Returns
     -------
-    IVP
-        IVP object describing a three-body problem IVP with the prescribed
+    InitialValueProblem
+        InitialValueProblem object describing a three-body problem IVP with the prescribed
         configuration.
 
     References
@@ -100,8 +104,8 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
 
     Returns
     -------
-    IVP
-        IVP object describing the Van der Pol Oscillator IVP with the prescribed
+    InitialValueProblem
+        InitialValueProblem object describing the Van der Pol Oscillator IVP with the prescribed
         configuration.
     """
 
@@ -129,26 +133,6 @@ def vanderpol(t0=0.0, tmax=30, y0=None, params=1e1):
     return InitialValueProblem(f=rhs, t0=t0, tmax=tmax, y0=y0, df=jac)
 
 
-def vanderpol_rhs(t, y, params):
-    y1, y2 = y
-    if isinstance(params, float):
-        mu = params
-    else:
-        (mu,) = params
-
-    return np.array([y2, mu * (1.0 - y1 ** 2) * y2 - y1])
-
-
-def vanderpol_jac(t, y, params):
-    y1, y2 = y
-    if isinstance(params, float):
-        mu = params
-    else:
-        (mu,) = params
-
-    return np.array([[0.0, 1.0], [-2.0 * mu * y2 * y1 - 1.0, mu * (1.0 - y1 ** 2)]])
-
-
 def rigidbody(t0=0.0, tmax=20.0, y0=None, params=(-2.0, 1.25, -0.5)):
     r"""Initial value problem (IVP) for rigid body dynamics without external forces
 
@@ -168,18 +152,19 @@ def rigidbody(t0=0.0, tmax=20.0, y0=None, params=(-2.0, 1.25, -0.5)):
 
     Parameters
     ----------
-    timespan : (float, float)
-        Time span of IVP.
-    initrv : RandomVariable,
-        *(shape=(3, ))* -- Vector-valued RandomVariable that describes the belief
-        over the initial value. Usually it is a Constant (noise-free) or Normal (noisy)
-        Random Variable with :math:`3`-dimensional mean vector and
-        :math:`3 \times 3`-dimensional covariance matrix.
-        To replicate "classical" initial values use the Constant distribution.
+    t0
+        Initial time. Default is 0.0
+    tmax
+        Final time. Default is 20.0
+    y0
+        *(shape=(3, ))* -- Initial value. Default is ``[]1., 0., 0.9]``.
+    params
+        Parameter of the rigid body problem. Default is ``(-2.0, 1.25, -0.5)``.
+
     Returns
     -------
-    IVP
-        IVP object describing the rigid body dynamics IVP with the prescribed
+    InitialValueProblem
+        InitialValueProblem object describing the rigid body dynamics IVP with the prescribed
         configuration.
     """
     if y0 is None:
