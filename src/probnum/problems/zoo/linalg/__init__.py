@@ -12,4 +12,4 @@ __all__ = [
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-SuiteSparseMatrix.__module__ = "probnum.problems"
+SuiteSparseMatrix.__module__ = "probnum.problems.zoo.linalg"
