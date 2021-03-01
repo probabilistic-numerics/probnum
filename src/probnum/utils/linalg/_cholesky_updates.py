@@ -18,6 +18,20 @@ def cholesky_update(
     As long as :math:`C C^\top = S_1 S_1^\top + S_2 S_2^\top` is well-defined (and admits a Cholesky-decomposition),
     :math:`S_1` and :math:`S_2` do not even have to be square.
 
+
+    Parameters
+    ----------
+    S1 :
+        First matrix square-root. Not necessarily a Cholesky factor, any (possibly even non-square) matrix :math:`S` such that :math:`C = S S^\top` holds, is sufficient.
+    S2 :
+        Second matrix square-root. Not necessarily a Cholesky factor, any (possibly even non-square) matrix :math:`S` such that :math:`C = S S^\top` holds, is sufficient.
+        Optional. Default is None.
+
+    Returns
+    -------
+    Lower Cholesky factor of :math:`S1 S1^\top + S2 S2^\top`, if ``S2`` was not None. Otherwise, lower Cholesky factor of :math:`S1 S1^\top`.
+
+
     Examples
     --------
 
@@ -42,23 +56,23 @@ def cholesky_update(
     >>> np.allclose(np.linalg.cholesky(A @ C1 @ A.T), S)
     True
     """
-    # doc might need a bit more explanation in the future
-    # perhaps some doctest or so?
     if S2 is not None:
         stacked_up = np.vstack((S1.T, S2.T))
     else:
         stacked_up = np.vstack(S1.T)
     upper_sqrtm = np.linalg.qr(stacked_up, mode="r")
-    return triu_to_positive_tril(upper_sqrtm)
+    lower_sqrtm = upper_sqrtm.T
+    return tril_to_positive_tril(lower_sqrtm)
 
 
-def triu_to_positive_tril(triu_mat: np.ndarray) -> np.ndarray:
-    r"""Change an upper triangular matrix into a valid lower Cholesky factor.
+def tril_to_positive_tril(tril_mat: np.ndarray) -> np.ndarray:
+    r"""Orthogonally transform a lower-triangular matrix into a lower-triangular matrix with positive diagonal.
+
+    In other words, make it a valid lower Cholesky factor.
 
     Transpose, and change the sign of the diagonals to '+' if necessary.
     The name of the function is leaned on `np.triu` and `np.tril`.
     """
-    tril_mat = triu_mat.T
     d = np.sign(np.diag(tril_mat))
     d[d == 0] = 1.0
     with_pos_diag = tril_mat @ np.diag(d)

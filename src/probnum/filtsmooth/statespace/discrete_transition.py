@@ -6,7 +6,7 @@ import numpy as np
 
 import probnum.random_variables as pnrv
 from probnum.type import FloatArgType, IntArgType
-from probnum.utils.linalg import cholesky_update, triu_to_positive_tril
+from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
 from . import transition as trans
 from .discrete_transition_utils import condition_state_on_rv
@@ -386,7 +386,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             )
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - state_trans @ rv.mean - shift)
-        new_cov_cholesky = triu_to_positive_tril(new_chol_triu)
+        new_cov_cholesky = tril_to_positive_tril(new_chol_triu.T)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
         return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}

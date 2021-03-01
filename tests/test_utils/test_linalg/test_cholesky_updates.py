@@ -41,23 +41,20 @@ def test_cholesky_optional(spdmat1, even_ndim):
     np.testing.assert_allclose(expected, received)
 
 
-def test_triu_to_tril():
+def test_tril_to_positive_tril():
 
     # Make a random tril matrix
     mat = np.tril(np.random.rand(4, 4))
     scale = np.array([1.0, 1.0, 1e-5, 1e-5])
-    tril = mat @ np.diag(scale)
-
-    # Turn it into a triu matrix with non-positive diagonals
     signs = np.array([1.0, -1.0, -1.0, -1.0])
-    triu = (tril @ np.diag(signs)).T
+    tril = mat @ np.diag(scale)
+    tril_wrong_signs = tril @ np.diag(signs)
 
     # Call triu_to_positive_til
-    tril_received = utlin.triu_to_positive_tril(triu)
+    tril_received = utlin.tril_to_positive_tril(tril_wrong_signs)
 
-    # Sanity checks
-    np.testing.assert_allclose(triu.T @ triu, tril @ tril.T)
-    np.testing.assert_allclose(triu.T @ triu, tril_received @ tril_received.T)
+    # Sanity check
+    np.testing.assert_allclose(tril @ tril.T, tril_received @ tril_received.T)
 
     # Assert that the initial tril matrix comes out
     np.testing.assert_allclose(tril_received, tril)
