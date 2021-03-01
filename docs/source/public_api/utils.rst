@@ -11,5 +11,7 @@ Utility Functions.
 probnum.utils.linalg
 --------------------
 
+Utility functions involving (numerical) linear algebra.
+
 .. automodapi:: probnum.utils.linalg
     :no-heading:

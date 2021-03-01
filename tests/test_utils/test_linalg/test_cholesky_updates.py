@@ -6,18 +6,20 @@ from probnum.problems.zoo.linalg import random_spd_matrix
 
 
 @pytest.fixture
-def test_ndim():
-    return 5
+def even_ndim():
+    """Even dimension for the tests, because it is halfed in test_cholesky_optional
+    below."""
+    return 10
 
 
 @pytest.fixture
-def spdmat1(test_ndim):
-    return random_spd_matrix(test_ndim)
+def spdmat1(even_ndim):
+    return random_spd_matrix(even_ndim)
 
 
 @pytest.fixture
-def spdmat2(test_ndim):
-    return random_spd_matrix(test_ndim)
+def spdmat2(even_ndim):
+    return random_spd_matrix(even_ndim)
 
 
 def test_cholesky_update(spdmat1, spdmat2):
@@ -29,10 +31,10 @@ def test_cholesky_update(spdmat1, spdmat2):
     np.testing.assert_allclose(expected, received)
 
 
-def test_cholesky_optional(spdmat1, test_ndim):
+def test_cholesky_optional(spdmat1, even_ndim):
     """Assert that cholesky_update() transforms a non-square matrix square-root into a
     correct Cholesky factor."""
-    H = np.random.rand(2 * test_ndim, test_ndim)
+    H = np.random.rand(int(0.5 * even_ndim), even_ndim)
     expected = np.linalg.cholesky(H @ spdmat1 @ H.T)
     S1 = np.linalg.cholesky(spdmat1)
     received = utlin.cholesky_update(H @ S1)
