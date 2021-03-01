@@ -99,9 +99,6 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
         all_initial_derivatives, errors = compute_all_derivatives_via_taylormode(
             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order
         )
-        all_initial_derivatives = _convert_derivorder_to_coordorder(
-            all_initial_derivatives, order
-        )
     except KeyError:
         all_initial_derivatives, errors = compute_all_derivatives_via_rk(
             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order, df=ivp.df
@@ -292,15 +289,27 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, order):
 
     derivs.extend(z0)
     if order == 0:
-        return jnp.array(derivs), jnp.zeros(len(derivs))
+        all_derivs = pnss.convert_derivwise_to_coordwise(
+            jnp.array(derivs), ordint=0, spatialdim=len(z0)
+        )
+
+        return all_derivs, jnp.zeros(len(derivs))
     (y0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
     derivs.extend(y0[:-1])
     if order == 1:
-        return jnp.array(derivs), jnp.zeros(len(derivs))
+        all_derivs = pnss.convert_derivwise_to_coordwise(
+            jnp.array(derivs), ordint=1, spatialdim=len(z0)
+        )
+
+        return all_derivs, jnp.zeros(len(derivs))
 
     order = order - 2
     for _ in range(order + 1):
         (y0, [*yns]) = jet(total_derivative, (z_t,), ((y0, *yns),))
         derivs.extend(yns[-2][:-1])
 
-    return jnp.array(derivs), jnp.zeros(len(derivs))
+    all_derivs = pnss.convert_derivwise_to_coordwise(
+        jnp.array(derivs), ordint=order + 2, spatialdim=len(z0)
+    )
+
+    return all_derivs, jnp.zeros(len(derivs))

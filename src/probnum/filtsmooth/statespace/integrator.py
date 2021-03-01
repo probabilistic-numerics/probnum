@@ -107,7 +107,7 @@ class Integrator:
         return projmat
 
     @property
-    def coordwise2derivwise_projmat(self) -> np.ndarray:
+    def derivwise2coordwise_projmat(self) -> np.ndarray:
         r"""Projection matrix to change the ordering of the state representation in an :class:`Integrator` from coordinate-wise to derivative-wise representation.
 
         A coordinate-wise ordering is
@@ -137,7 +137,7 @@ class Integrator:
         return projmat
 
     @property
-    def derivwise2coordwise_projmat(self) -> np.ndarray:
+    def coordwise2derivwise_projmat(self) -> np.ndarray:
         r"""Projection matrix to change the ordering of the state representation in an :class:`Integrator` from derivative-wise to coordinate-wise representation.
 
         A coordinate-wise ordering is
@@ -156,7 +156,7 @@ class Integrator:
         :meth:`convert_derivwise_to_coordwise`
 
         """
-        return self.coordwise2derivwise_projmat.T
+        return self.derivwise2coordwise_projmat.T
 
 
 class IBM(Integrator, sde.LTISDE):

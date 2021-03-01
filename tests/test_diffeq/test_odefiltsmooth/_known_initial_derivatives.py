@@ -1,12 +1,15 @@
 """Known derivatives of initial values for ODE example problems that are used to test
 the methods in diffeq/odefiltsmooth/initialize.py.
 
-Other than in the ``Integrator`` objects, which stores values as ``(y1,
-dy1, ddy1, ..., y2, dy2, ddy2, ...)``,  the values here are stored as
+Other than in the ``Integrator`` objects, which stores values coordinate-wise, that is, as ``(y1,
+dy1, ddy1, ..., y2, dy2, ddy2, ...)``,  the values here are stored derivative-wise, that is, as
 ``(y1, y2, dy1, dy2, ddy1, ddy2, ...))``. The reason is that in order to
 extract "the first few derivatives", we can conveniently slice the first
 ``(d*(q+1))`` entries and reshape accordingly. Otherwise, we would have
 to slice the blocks (:(q+1)), (d*15:d*15+q+1), ...
+
+To convert between the two representations use `probnum.statespace.convert_derivwise_to_coordwise` or
+`probnum.statespace.convert_coordwise_to-derivwise`.
 """
 
 
@@ -18,38 +21,39 @@ import numpy as np
 # t0: 0.
 LV_INITS = np.array(
     [
-        2.00000000e01,
-        -1.00000000e01,
-        -5.00000000e00,
-        1.75000000e01,
-        8.75000000e00,
-        -9.06250000e01,
-        -4.53125000e01,
-        9.83593750e02,
-        4.91796875e02,
-        -1.83900391e04,
-        -9.19501953e03,
-        5.27121631e05,
-        2.63560815e05,
-        -2.14720140e07,
-        -1.07360070e07,
-        2.00000000e01,
-        1.00000000e01,
-        -5.00000000e00,
-        -1.75000000e01,
-        8.75000000e00,
-        9.06250000e01,
-        -4.53125000e01,
-        -9.83593750e02,
-        4.91796875e02,
-        1.83900391e04,
-        -9.19501953e03,
-        -5.27121631e05,
-        2.63560815e05,
-        2.14720140e07,
-        -1.07360070e07,
+        [20.0],
+        [20.0],
+        [-10.0],
+        [10.0],
+        [-5.0],
+        [-5.0],
+        [17.5],
+        [-17.5],
+        [8.75],
+        [8.75],
+        [-90.625],
+        [90.625],
+        [-45.3125],
+        [-45.3125],
+        [983.59375],
+        [-983.59375],
+        [491.796875],
+        [491.796875],
+        [-18390.039062500007],
+        [18390.039062500007],
+        [-9195.019531250015],
+        [-9195.019531249985],
+        [527121.630859375],
+        [-527121.630859375],
+        [263560.8154296875],
+        [263560.8154296875],
+        [-2.1472014025878906e7],
+        [2.1472014025878906e7],
+        [-1.0736007012939423e7],
+        [-1.0736007012939423e7],
     ]
-)
+).flatten()
+
 
 # The usual initial values and parameters for the three-body problem
 THREEBODY_INITS = np.array(
