@@ -23,6 +23,7 @@ def suitesparse_matrix(
     name: str,
     group: str,
     download: bool = False,
+    verbose: bool = False,
 ) -> "SuiteSparseMatrix":
     """Sparse matrix from the SuiteSparse Matrix Collection.
 
@@ -38,6 +39,8 @@ def suitesparse_matrix(
     download :
         Whether to download the matrix. If ``False`` only information about
         the matrix is returned.
+    verbose :
+        Print additional information.
 
     References
     ----------
@@ -81,6 +84,8 @@ def suitesparse_matrix(
     )
 
     # Query the SuiteSparse Matrix collection
+    if verbose:
+        print("Querying SuiteSparse Collection.")
     matrix_attr_dict = None
     matid = 0
     for row in databaseindex_reader:
@@ -98,7 +103,7 @@ def suitesparse_matrix(
     matrix = SuiteSparseMatrix.from_database_entry(matrix_attr_dict)
 
     if download:
-        matrix.download()
+        matrix.download(verbose=verbose)
 
     return matrix
 
@@ -252,10 +257,6 @@ class SuiteSparseMatrix(linops.LinearOperator):
     def todense(self) -> np.ndarray:
         self._check_matrix_downloaded()
         return np.array(self.matrix.todense())
-
-    def rank(self):
-        self._check_matrix_downloaded()
-        return np.linalg.matrix_rank(self.matrix)
 
     def trace(self):
         self._check_matrix_downloaded()

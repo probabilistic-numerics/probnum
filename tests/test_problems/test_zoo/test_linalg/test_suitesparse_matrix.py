@@ -1,4 +1,6 @@
 """Tests for SuiteSparse matrices and related functions."""
+
+import numpy as np
 import scipy.sparse
 
 from probnum.problems.zoo.linalg import SuiteSparseMatrix
@@ -25,3 +27,10 @@ def test_attribute_parsing(suitesparse_mycielskian: SuiteSparseMatrix):
 def test_html_representation_returns_string(suitesparse_mat: SuiteSparseMatrix):
     """Test whether the HTML representation of a SuiteSparse Matrix returns a string."""
     assert isinstance(suitesparse_mat._repr_html_(), str)
+
+
+def test_trace(suitesparse_mycielskian: SuiteSparseMatrix):
+    """Test whether the SuiteSparse Matrix object computes the trace correctly."""
+    assert suitesparse_mycielskian.trace() == np.trace(
+        suitesparse_mycielskian.todense()
+    )
