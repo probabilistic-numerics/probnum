@@ -77,7 +77,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self,
         mean: Union[float, np.floating, np.ndarray, linops.LinearOperator],
         cov: Union[float, np.floating, np.ndarray, linops.LinearOperator],
-        cov_cholesky: Optional[Union[np.ndarray, linops.LinearOperator]] = None,
+        cov_cholesky: Optional[
+            Union[float, np.floating, np.ndarray, linops.LinearOperator]
+        ] = None,
         random_state: RandomStateArgType = None,
     ):
         # Type normalization
@@ -86,6 +88,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         if np.isscalar(cov):
             cov = _utils.as_numpy_scalar(cov)
+
+        if np.isscalar(cov_cholesky):
+            cov_cholesky = _utils.as_numpy_scalar(cov_cholesky)
 
         # Data type normalization
         is_mean_floating = mean.dtype is not None and np.issubdtype(
