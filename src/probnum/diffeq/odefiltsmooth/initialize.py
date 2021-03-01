@@ -54,7 +54,7 @@ def extend_ivp_with_all_derivatives(ivp, order):
 
     Compute the initial values of the restricted three-body problem as follows
 
-    >>> res2bod = threebody_jax()
+    >>> res2bod = threebody_jax()  # doctest: +SKIP
     >>> print(res2bod.y0)
     [ 0.994       0.          0.         -2.00158511]
     >>> print(res2bod.dy0_all)
