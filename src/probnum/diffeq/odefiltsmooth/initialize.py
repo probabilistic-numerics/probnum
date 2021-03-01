@@ -50,20 +50,23 @@ def extend_ivp_with_all_derivatives(ivp, order):
 
     Examples
     --------
-    >>> from probnum.problems.zoo.diffeq import threebody, vanderpol
-    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax  # doctest: +SKIP
+    >>> import sys, pytest
+    >>> if sys.platform.startswith('win'):
+    ...     pytest.skip('this doctest does not work on Windows')
+
+    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax, threebody, vanderpol
 
     Compute the initial values of the restricted three-body problem as follows
 
-    >>> res2bod = threebody_jax()  # doctest: +SKIP
-    >>> print(res2bod.y0)  # doctest: +SKIP
+    >>> res2bod = threebody_jax()
+    >>> print(res2bod.y0)
     [ 0.994       0.          0.         -2.00158511]
-    >>> print(res2bod.dy0_all)  # doctest: +SKIP
+    >>> print(res2bod.dy0_all)
     None
-    >>> res2bod = extend_ivp_with_all_derivatives(res2bod, order=3)  # doctest: +SKIP
-    >>> print(res2bod.y0)  # doctest: +SKIP
+    >>> res2bod = extend_ivp_with_all_derivatives(res2bod, order=3)
+    >>> print(res2bod.y0)
     [ 0.994       0.          0.         -2.00158511]
-    >>> print(res2bod.dy0_all)  # doctest: +SKIP
+    >>> print(res2bod.dy0_all)
     [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
       0.00000000e+00 -2.00158511e+00  0.00000000e+00  9.99720945e+04
       0.00000000e+00 -3.15543023e+02  0.00000000e+00  6.39028111e+07
@@ -71,15 +74,15 @@ def extend_ivp_with_all_derivatives(ivp, order):
 
     Compute the initial values of the van-der-Pol oscillator as follows
 
-    >>> vdp = vanderpol_jax()  # doctest: +SKIP
-    >>> print(vdp.y0)  # doctest: +SKIP
+    >>> vdp = vanderpol_jax()
+    >>> print(vdp.y0)
     [2. 0.]
-    >>> print(vdp.dy0_all)  # doctest: +SKIP
+    >>> print(vdp.dy0_all)
     None
-    >>> vdp = extend_ivp_with_all_derivatives(vdp, order=3)  # doctest: +SKIP
-    >>> print(vdp.y0)  # doctest: +SKIP
+    >>> vdp = extend_ivp_with_all_derivatives(vdp, order=3)
+    >>> print(vdp.y0)
     [2. 0.]
-    >>> print(vdp.dy0_all)  # doctest: +SKIP
+    >>> print(vdp.dy0_all)
     [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
 
 
