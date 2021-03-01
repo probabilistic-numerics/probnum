@@ -52,7 +52,7 @@ def suitesparse_matrix(
     --------
     >>> ssmat = suitesparse_matrix(name="ash85", group="HB", download=True)
     >>> ssmat
-    <85x85 SuiteSparseMatrix with dtype=float64>
+    <85x85 SuiteSparseMatrix with dtype=bool>
     >>> ssmat.trace()
     85.0
     """
@@ -291,7 +291,7 @@ class SuiteSparseMatrix(linops.LinearOperator):
         if self.shape[0] != self.shape[1]:
             raise ValueError("The trace is only defined for square linear operators.")
         else:
-            self.matrix.diagonal().sum()
+            return self.matrix.diagonal().sum()
 
     # def _render_item_html(self, key, value):
     #     if key == "Group":
