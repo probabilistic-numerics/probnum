@@ -21,7 +21,7 @@ class Ivp2FilterTestCase(unittest.TestCase, NumpyAssertions):
         tests."""
         y0 = pnrv.Constant(np.array([20.0, 15.0]))
         self.ivp = pnd.lotkavolterra([0.4124, 1.15124], y0)
-        self.prior = pnfs.statespace.IBM(ordint=2, spatialdim=2, diffconst=1.7685)
+        self.prior = pnfs.statespace.IBM(ordint=2, spatialdim=2)
         self.evlvar = 0.0005123121
 
 
@@ -44,7 +44,7 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.transition_realization(
+        received, _ = kalman.measurement_model.forward_realization(
             random_eval, random_time
         )
 
@@ -82,7 +82,7 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.transition_realization(
+        received, _ = kalman.measurement_model.forward_realization(
             random_eval, random_time
         )
 
@@ -120,7 +120,7 @@ class TestIvpUkf(Ivp2FilterTestCase):
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.transition_realization(
+        received, _ = kalman.measurement_model.forward_realization(
             random_eval, random_time
         )
 

@@ -48,6 +48,7 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    tutorials/probability
    tutorials/linear_algebra
    tutorials/ordinary_differential_equations
+   tutorials/bayesian_filtering_smoothing
 
 .. toctree::
    :maxdepth: 1
@@ -55,6 +56,7 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
 
    public_api/diffeq
    public_api/filtsmooth
+   public_api/kernels
    public_api/linalg
    public_api/linops
    public_api/problems

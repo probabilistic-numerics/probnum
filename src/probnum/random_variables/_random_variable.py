@@ -30,12 +30,12 @@ class RandomVariable(Generic[_ValueType]):
 
     Random variables generalize multi-dimensional arrays by encoding uncertainty
     about the (numerical) quantity in question. Despite their name, they do not
-    necessarily represent stochastic objects. Random variables are also the primary in-
-    and outputs of probabilistic numerical methods.
+    necessarily represent stochastic objects. Random variables are also the
+    primary  in- and outputs of probabilistic numerical methods.
 
-    Instances of :class:`RandomVariable` can be added, multiplied, etc. with arrays and
-    linear operators. This may change their distribution and therefore not necessarily
-    all previously available methods are retained.
+    Instances of :class:`RandomVariable` can be added, multiplied, etc. with
+    arrays and linear operators. This may change their distribution and therefore
+    not necessarily all previously available methods are retained.
 
     Parameters
     ----------
@@ -457,7 +457,7 @@ class RandomVariable(Generic[_ValueType]):
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        return self.__sample(size=_utils.as_shape(size))
+        return self.__sample(_utils.as_shape(size))
 
     def cdf(self, x: _ValueType) -> np.float_:
         """Cumulative distribution function.
@@ -953,12 +953,14 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
 
     See Also
     --------
+    RandomVariable : Class representing random variables.
     ContinuousRandomVariable : A random variable with uncountably infinite range.
 
     Examples
     --------
     >>> # Create a custom categorical random variable
     >>> import numpy as np
+    >>> from probnum.random_variables import DiscreteRandomVariable
     >>>
     >>> # Distribution parameters
     >>> support = np.array([-1, 0, 1])
@@ -1175,6 +1177,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
 
     See Also
     --------
+    RandomVariable : Class representing random variables.
     DiscreteRandomVariable : A random variable with countable range.
 
     Examples

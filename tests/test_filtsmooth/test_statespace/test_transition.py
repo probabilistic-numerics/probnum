@@ -1,34 +1,29 @@
-import unittest
+"""Interface for transition test functions."""
 
-import numpy as np
-
-import probnum.filtsmooth.statespace as pnfss
-import probnum.random_variables as pnrv
-
-TEST_NDIM = 10
+import abc
 
 
-class MockTransition(pnfss.Transition):
-    """Empty transition object to test generate() function."""
+class InterfaceTestTransition(abc.ABC):
+    @abc.abstractmethod
+    def test_forward_rv(self, *args, **kwargs):
+        raise NotImplementedError
 
-    def transition_realization(self, real, start, stop=None, **kwargs):
-        return pnrv.Constant(real), {}
+    @abc.abstractmethod
+    def test_forward_realization(self, *args, **kwargs):
+        raise NotImplementedError
 
-    def transition_rv(self, rv, start, stop=None, **kwargs):
-        return rv, {}
+    @abc.abstractmethod
+    def test_backward_rv(self, *args, **kwargs):
+        raise NotImplementedError
 
+    @abc.abstractmethod
+    def test_backward_realization(self, *args, **kwargs):
+        raise NotImplementedError
 
-class TestGenerate(unittest.TestCase):
-    def test_generate(self):
-        mocktrans = MockTransition()
-        initrv = pnrv.Constant(np.random.rand(TEST_NDIM))
-        times = np.arange(0.0, 13.0, 1.0)  # length 13
-        states, obs = pnfss.generate(mocktrans, mocktrans, initrv, times)
-        self.assertEqual(states.shape[0], len(times))
-        self.assertEqual(states.shape[1], TEST_NDIM)
-        self.assertEqual(obs.shape[0], len(times) - 1)
-        self.assertEqual(obs.shape[1], TEST_NDIM)
+    @abc.abstractmethod
+    def test_input_dim(self, *args, **kwargs):
+        raise NotImplementedError
 
-
-if __name__ == "__main__":
-    unittest.main()
+    @abc.abstractmethod
+    def test_output_dim(self, *args, **kwargs):
+        raise NotImplementedError

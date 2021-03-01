@@ -15,12 +15,10 @@ def atleast_1d(*rvs):
     Scalar inputs are converted to 1-dimensional arrays, whilst
     higher-dimensional inputs are preserved. Sparse arrays are not
     transformed.
-
     Parameters
     ----------
     rvs: array-like or RandomVariable
         One or more input random variables or arrays.
-
     Returns
     -------
     res : array-like or list
@@ -47,10 +45,9 @@ def atleast_1d(*rvs):
 def as_colvec(
     vec: Union[np.ndarray, "probnum.RandomVariable"]
 ) -> Union[np.ndarray, "probnum.RandomVariable"]:
-    """Transform the given vector or random variable to column format.
-
-    Given a vector (or random variable) of dimension (n,) return an array with
-    dimensions (n, 1) instead. Higher-dimensional arrays are not changed.
+    """Transform the given vector or random variable to column format. Given a vector
+    (or random variable) of dimension (n,) return an array with dimensions (n, 1)
+    instead. Higher-dimensional arrays are not changed.
 
     Parameters
     ----------

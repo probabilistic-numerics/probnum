@@ -1,7 +1,7 @@
-from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
-from .iterated_kalman import IteratedKalman
+from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent, EKFComponent
+from .iterated_component import IteratedDiscreteComponent
 from .kalman import Kalman
-from .kalmanposterior import KalmanPosterior
-from .stoppingcriterion import FixedPointStopping, StoppingCriterion
-from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
+from .kalmanposterior import FilteringPosterior, KalmanPosterior, SmoothingPosterior
+from .stoppingcriterion import StoppingCriterion
+from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent, UKFComponent
 from .unscentedtransform import UnscentedTransform

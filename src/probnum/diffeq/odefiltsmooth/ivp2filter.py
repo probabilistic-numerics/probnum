@@ -5,6 +5,7 @@ care of elsewhere.
 """
 
 import numpy as np
+import scipy.linalg
 
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
@@ -65,7 +66,14 @@ def ivp2ekf0(ivp, prior, evlvar):
     evlvar : float,
         measurement variance; in the literature, this is "R"
     """  # pylint: disable=line-too-long
-    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(ivp, prior, evlvar, ek0_or_ek1=0)
+    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(
+        ivp,
+        prior,
+        evlvar,
+        ek0_or_ek1=0,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
     initrv = _initialdistribution(ivp, prior)
     return pnfs.Kalman(prior, ekf_mod, initrv)
 
@@ -78,7 +86,14 @@ def ivp2ekf1(ivp, prior, evlvar):
 
     evlvar : float, (this is "R")
     """
-    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(ivp, prior, evlvar, ek0_or_ek1=1)
+    ekf_mod = pnfs.DiscreteEKFComponent.from_ode(
+        ivp,
+        prior,
+        evlvar,
+        ek0_or_ek1=1,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
     initrv = _initialdistribution(ivp, prior)
     return pnfs.Kalman(prior, ekf_mod, initrv)
 
@@ -106,7 +121,8 @@ def _initialdistribution(ivp, prior):
     """
     if not issubclass(type(ivp.initrv), pnrv.Normal):
         if not issubclass(type(ivp.initrv), pnrv.Constant):
-            raise RuntimeError("Initial distribution not Normal nor Dirac")
+            raise RuntimeError("Initial distribution not Normal or Constant")
+
     x0 = ivp.initialdistribution.mean
     dx0 = ivp.rhs(ivp.t0, x0)
     ddx0 = _ddx(ivp.t0, x0, ivp)
@@ -127,7 +143,11 @@ def _initialdistribution(ivp, prior):
     crosscov = initcov @ projmat.T  # @ np.linalg.inv(s)
     newmean = crosscov @ np.linalg.solve(s, data)
     newcov = initcov - crosscov @ np.linalg.solve(s, crosscov.T)
-    return pnrv.Normal(newmean, newcov)
+
+    lu, d, _ = scipy.linalg.ldl(newcov, lower=True)
+    chol = lu @ np.sqrt(d)
+
+    return pnrv.Normal(newmean, newcov, cov_cholesky=chol)
 
 
 def _ddx(t, x, ivp):

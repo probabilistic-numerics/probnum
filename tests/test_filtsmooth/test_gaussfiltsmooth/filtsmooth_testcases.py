@@ -3,8 +3,9 @@ import unittest
 
 import numpy as np
 
+import probnum.diffeq as pnd  # ODE problem as test function
 import probnum.filtsmooth as pnfs
-from probnum.random_variables import Normal
+from probnum.random_variables import Constant, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [
@@ -46,13 +47,15 @@ def car_tracking():
     cov = 0.5 * var * np.eye(4)
 
     dynmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamicsmat=dynamat, forcevec=np.zeros(4), diffmat=dynadiff
+        state_trans_mat=dynamat, shift_vec=np.zeros(4), proc_noise_cov_mat=dynadiff
     )
     measmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamicsmat=measmat, forcevec=np.zeros(2), diffmat=measdiff
+        state_trans_mat=measmat,
+        shift_vec=np.zeros(2),
+        proc_noise_cov_mat=measdiff,
     )
     initrv = Normal(mean, cov)
-    return dynmod, measmod, initrv, {"dt": delta_t}
+    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
 
 
 class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
@@ -65,7 +68,7 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
         self.dynmod, self.measmod, self.initrv, info = car_tracking()
         self.delta_t = info["dt"]
         self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate(
+        self.states, self.obs = pnfs.statespace.generate_samples(
             self.dynmod, self.measmod, self.initrv, self.tms
         )
 
@@ -88,10 +91,12 @@ def ornstein_uhlenbeck():
         dispmat=disp,
     )
     measmod = pnfs.statespace.DiscreteLTIGaussian(
-        dynamicsmat=np.eye(1), forcevec=np.zeros(1), diffmat=r * np.eye(1)
+        state_trans_mat=np.eye(1),
+        shift_vec=np.zeros(1),
+        proc_noise_cov_mat=r * np.eye(1),
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
-    return dynmod, measmod, initrv, {"dt": delta_t}
+    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
 
 
 class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
@@ -100,8 +105,9 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
     def setup_ornsteinuhlenbeck(self):
         self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
         self.delta_t = info["dt"]
-        self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate(
+        self.tmax = info["tmax"]
+        self.tms = np.arange(0, self.tmax, self.delta_t)
+        self.states, self.obs = pnfs.statespace.generate_samples(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
 
@@ -145,10 +151,32 @@ def pendulum():
     r = var * np.eye(1)
     initmean = np.ones(2)
     initcov = var * np.eye(2)
-    dynamod = pnfs.statespace.DiscreteGaussian(f, lambda t: q, df)
-    measmod = pnfs.statespace.DiscreteGaussian(h, lambda t: r, dh)
+    dynamod = pnfs.statespace.DiscreteGaussian(2, 2, f, lambda t: q, df)
+    measmod = pnfs.statespace.DiscreteGaussian(2, 1, h, lambda t: r, dh)
     initrv = Normal(initmean, initcov)
-    return dynamod, measmod, initrv, {"dt": delta_t}
+    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
+
+
+def logistic_ode():
+
+    # Below is for consistency with pytest & unittest.
+    # Without a seed, unittest passes but pytest fails.
+    # I tried multiple seeds, they all work equally well.
+    np.random.seed(12345)
+    delta_t = 0.2
+    tmax = 2
+
+    logistic = pnd.logistic((0, tmax), initrv=Constant(np.array([0.1])), params=(6, 1))
+    dynamod = pnfs.statespace.IBM(ordint=3, spatialdim=1)
+    measmod = pnfs.DiscreteEKFComponent.from_ode(
+        logistic, dynamod, np.zeros((1, 1)), ek0_or_ek1=1
+    )
+
+    initmean = np.array([0.1, 0, 0.0, 0.0])
+    initcov = np.diag([0.0, 1.0, 1.0, 1.0])
+    initrv = Normal(initmean, initcov)
+
+    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": tmax, "ode": logistic}
 
 
 class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
@@ -163,17 +191,16 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     linearising_component_car = NotImplemented
 
     def test_transition_rv(self):
-        """transition_rv() not possible for original model but for the linearised
-        model."""
+        """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = pendulum()
         linearised_model = self.linearising_component_pendulum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_rv(initrv, 0.0)
+                nonlinear_model.forward_rv(initrv, 0.0)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_rv(initrv, 0.0)
+            linearised_model.forward_rv(initrv, 0.0)
 
     def test_exactness_linear_model(self):
         """Applied to a linear model, the results should be unchanged."""
@@ -184,8 +211,8 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         with self.subTest("Different objects"):
             self.assertNotIsInstance(linear_model, type(linearised_model))
 
-        received, info1 = linear_model.transition_rv(initrv, 0.0)
-        expected, info2 = linearised_model.transition_rv(initrv, 0.0)
+        received, info1 = linear_model.forward_rv(initrv, 0.0)
+        expected, info2 = linearised_model.forward_rv(initrv, 0.0)
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
         rtol, atol = 1e-10, 1e-10
@@ -199,8 +226,9 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         # Set up test problem
         dynamod, measmod, initrv, info = pendulum()
         delta_t = info["dt"]
-        tms = np.arange(0, 4, delta_t)
-        states, obs = pnfs.statespace.generate(dynamod, measmod, initrv, tms)
+        tmax = info["tmax"]
+        tms = np.arange(0, tmax, delta_t)
+        states, obs = pnfs.statespace.generate_samples(dynamod, measmod, initrv, tms)
 
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(measmod)
@@ -208,17 +236,16 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         method = pnfs.Kalman(ekf_dyna, ekf_meas, initrv)
 
         # Compute filter/smoother solution
-        filter_posterior = method.filter(obs, tms)
-        filtms = filter_posterior.state_rvs.mean
-        smooth_posterior = method.filtsmooth(obs, tms)
-        smooms = smooth_posterior.state_rvs.mean
+        posterior = method.filtsmooth(obs, tms)
+        filtms = posterior.filtering_posterior.state_rvs.mean
+        smooms = posterior.state_rvs.mean
 
         # Compute RMSEs
         comp = states[:, 0]
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[:, 0] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[:, 0] - comp) / normaliser
-        obs_rmse = np.linalg.norm(obs[:, 0] - comp[1:]) / normaliser
+        obs_rmse = np.linalg.norm(obs[:, 0] - comp) / normaliser
 
         # If desired, visualise.
         if VISUALISE:
@@ -279,7 +306,7 @@ def benes_daum():
     initmean = np.zeros(1)
     initcov = 3.0 * np.eye(1)
     initrv = Normal(initmean, initcov)
-    dynamod = pnfs.statespace.SDE(driftfun=f, dispmatfun=l, jacobfun=df)
+    dynamod = pnfs.statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
     measmod = pnfs.statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
     return dynamod, measmod, initrv, {}
 
@@ -295,17 +322,16 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
     linearising_component_benes_daum = NotImplemented
 
     def test_transition_rv(self):
-        """transition_rv() not possible for original model but for the linearised
-        model."""
+        """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
         nonlinear_model, _, initrv, _ = benes_daum()
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_rv(initrv, 0.0, 1.0)
+                nonlinear_model.forward_rv(initrv, 0.0, 1.0)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_rv(initrv, 0.0, 1.0)
+            linearised_model.forward_rv(initrv, 0.0, 1.0)
 
     def test_transition_real(self):
         """transition_real() not possible for original model but for the linearised
@@ -316,6 +342,6 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
 
         with self.subTest("Baseline should not work."):
             with self.assertRaises(NotImplementedError):
-                nonlinear_model.transition_realization(initrv.mean, 0.0, 1.0)
+                nonlinear_model.forward_realization(initrv.mean, 0.0, 1.0)
         with self.subTest("Linearisation happens."):
-            linearised_model.transition_realization(initrv.mean, 0.0, 1.0)
+            linearised_model.forward_realization(initrv.mean, 0.0, 1.0)
