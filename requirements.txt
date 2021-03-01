@@ -14,8 +14,8 @@
 # =============================================================================
 cached_property; python_version<"3.8"
 dataclasses; python_version<"3.7"
-requests
-tqdm
+requests>=2.0
+tqdm>=4.0
 numpy<=1.19.1; python_version<="3.6"
 numpy; python_version>"3.6"
 scipy>=1.4
