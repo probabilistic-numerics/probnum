@@ -42,6 +42,9 @@ def compute_all_derivatives(ivp, order=6):
 
     Examples
     --------
+    >>> import sys, pytest
+    >>> if sys.platform.startswith("win"):
+    ...     pytest.skip("This doctest does not run on windows since jax does not.")
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
 
     Compute the initial values of the restricted three-body problem as follows
