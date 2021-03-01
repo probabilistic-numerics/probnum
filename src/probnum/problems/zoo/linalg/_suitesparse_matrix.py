@@ -206,7 +206,7 @@ class SuiteSparseMatrix(linops.LinearOperator):
             kind=database_entry["kind"],
         )
 
-    def _check_matrix_downloaded(self):
+    def _check_matrix_downloaded(self) -> None:
         if self.matrix is None:
             raise RuntimeError(
                 "Matrix has not been downloaded yet. Call self.download() first."
@@ -250,7 +250,7 @@ class SuiteSparseMatrix(linops.LinearOperator):
         tar = tarfile.open(fileobj=buffer, mode="r:gz")
         self.matrix = scipy.io.mmread(tar.extractfile(tar.getmembers()[0]))
 
-    def serialize(self, filename: Optional[str] = None):
+    def serialize(self, filename: Optional[str] = None) -> None:
         """Save the matrix to file.
 
         Parameters
@@ -275,10 +275,8 @@ class SuiteSparseMatrix(linops.LinearOperator):
         raise NotImplementedError
 
     # TODO: serialization and deserialization
-    # TODO: HTML representation for notebooks
-    # TODO: tests
 
-    def todense(self):
+    def todense(self) -> np.ndarray:
         self._check_matrix_downloaded()
         return np.array(self.matrix.todense())
 
@@ -293,71 +291,66 @@ class SuiteSparseMatrix(linops.LinearOperator):
         else:
             return self.matrix.diagonal().sum()
 
-    # def _render_item_html(self, key, value):
-    #     if key == "Group":
-    #         return (
-    #             f'<a href="{self._attribute_urls["group_info"]}" '
-    #             f'target="_blank">{value}</a>'
-    #         )
-    #     if key == "Name":
-    #         return (
-    #             f'<a href="{self._attribute_urls["matrix_info"]}" '
-    #             f'target="_blank">{value}</a>'
-    #         )
-    #     if key in ("Pattern Symmetry", "Numerical Symmetry"):
-    #         return f"{value:0.2}"
-    #     if key in ("2D/3D Discretization", "SPD"):
-    #         return "Yes" if value else "No"
-    #     if key == "Preview":
-    #         return f'<img src="{value}">'
-    #
-    #     return str(value)
-    #
-    # def _to_html_row(self):
-    #     return (
-    #         "<tr>"
-    #         + "".join(
-    #             f"<td>{self._render_item_html(key, value)}</td>"
-    #             for key, value in zip(
-    #                 _SuiteSparseMatrix._attribute_names_list,
-    #                 list(zip(*self.__dict__.items()))[
-    #                     1
-    #                 ],  # Attribute values of instance
-    #             )
-    #         )
-    #         + "</tr>"
-    #     )
-    #
-    # @staticmethod
-    # def html_header():
-    #     """Header of the HTML representation of a SuiteSparseMatrix."""
-    #     return (
-    #         "<thead>"
-    #         + "".join(
-    #             f"<th>{attr}</th>" for attr in _SuiteSparseMatrix._attribute_names_list
-    #         )
-    #         + "</thead>"
-    #     )
-    #
-    # def _repr_html_(self):
-    #     """HTML representation."""
-    #     return (
-    #         f"<table>{_SuiteSparseMatrix.html_header()}"
-    #         + f"<tbody>{self._to_html_row()}</tbody></table>"
-    #     )
+    @staticmethod
+    def _html_header() -> str:
+        """Header of the HTML representation of a SuiteSparseMatrix."""
+        return (
+            "<thead>"
+            + "".join(
+                f"<th>{attr}</th>"
+                for attr in [
+                    "ID",
+                    "Group",
+                    "Name",
+                    "Rows",
+                    "Cols",
+                    "Nonzeros",
+                    "DType",
+                    "2D/3D Discretization",
+                    "SPD",
+                    "Pattern Symmetry",
+                    "Numerical Symmetry",
+                    "Domain",
+                    "Preview",
+                ]
+            )
+            + "</thead>"
+        )
 
+    def _to_html_row(self) -> str:
+        return (
+            "<tr>"
+            + "".join(
+                f"<td>{str(table_item)}</td>"
+                for table_item in [
+                    self.matid,
+                    (
+                        f'<a href="{SUITESPARSE_ROOT_URL + "/" + self.group}"'
+                        f' target="_blank">{self.group}</a>'
+                    ),
+                    (
+                        f'<a href="'
+                        f'{SUITESPARSE_ROOT_URL + "/" + self.group + "/" + self.name}" '
+                        f'target="_blank">{self.name}</a>'
+                    ),
+                    self.shape[0],
+                    self.shape[1],
+                    self.nnz,
+                    self.dtype,
+                    self.is2d3d,
+                    self.isspd,
+                    f"{self.psym:.2}",
+                    f"{self.nsym:.2}",
+                    self.kind,
+                    f'<img src="{SUITESPARSE_ROOT_URL}/files/{self.group}/{self.name}.png">',
+                ]
+            )
+            + "</tr>"
+        )
 
-# class SuiteSparseMatrixList(list):
-#     """List of SuiteSparseMatrix objects."""
-#
-#     def _repr_html_(self):
-#         """HTML representation."""
-#         body = "".join(r.to_html_row() for r in self)
-#         return f"<table>{SuiteSparseMatrix.html_header()}<tbody>{body}</tbody></table>"
-#
-#     def __getitem__(self, expr):
-#         result = super().__getitem__(expr)
-#         return SuiteSparseMatrixList(result) if isinstance(expr, slice) else result
-#
-#     def download(self):
-#         raise NotImplementedError
+    def _repr_html_(self) -> str:
+        """HTML representation."""
+        return (
+            f"<table>{self._html_header()}"
+            + f"<tbody>{self._to_html_row()}</tbody></table>"
+        )
