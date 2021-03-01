@@ -50,19 +50,20 @@ def extend_ivp_with_all_derivatives(ivp, order):
 
     Examples
     --------
-    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax, threebody, vanderpol
+    >>> from probnum.problems.zoo.diffeq import threebody, vanderpol
+    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax  # doctest: +SKIP
 
     Compute the initial values of the restricted three-body problem as follows
 
     >>> res2bod = threebody_jax()  # doctest: +SKIP
-    >>> print(res2bod.y0)
+    >>> print(res2bod.y0)  # doctest: +SKIP
     [ 0.994       0.          0.         -2.00158511]
-    >>> print(res2bod.dy0_all)
+    >>> print(res2bod.dy0_all)  # doctest: +SKIP
     None
-    >>> res2bod = extend_ivp_with_all_derivatives(res2bod, order=3)
-    >>> print(res2bod.y0)
+    >>> res2bod = extend_ivp_with_all_derivatives(res2bod, order=3)  # doctest: +SKIP
+    >>> print(res2bod.y0)  # doctest: +SKIP
     [ 0.994       0.          0.         -2.00158511]
-    >>> print(res2bod.dy0_all)
+    >>> print(res2bod.dy0_all)  # doctest: +SKIP
     [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
       0.00000000e+00 -2.00158511e+00  0.00000000e+00  9.99720945e+04
       0.00000000e+00 -3.15543023e+02  0.00000000e+00  6.39028111e+07
@@ -70,15 +71,15 @@ def extend_ivp_with_all_derivatives(ivp, order):
 
     Compute the initial values of the van-der-Pol oscillator as follows
 
-    >>> vdp = vanderpol_jax()
-    >>> print(vdp.y0)
+    >>> vdp = vanderpol_jax()  # doctest: +SKIP
+    >>> print(vdp.y0)  # doctest: +SKIP
     [2. 0.]
-    >>> print(vdp.dy0_all)
+    >>> print(vdp.dy0_all)  # doctest: +SKIP
     None
-    >>> vdp = extend_ivp_with_all_derivatives(vdp, order=3)
-    >>> print(vdp.y0)
+    >>> vdp = extend_ivp_with_all_derivatives(vdp, order=3)  # doctest: +SKIP
+    >>> print(vdp.y0)  # doctest: +SKIP
     [2. 0.]
-    >>> print(vdp.dy0_all)
+    >>> print(vdp.dy0_all)  # doctest: +SKIP
     [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
 
 
