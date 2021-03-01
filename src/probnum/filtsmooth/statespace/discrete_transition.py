@@ -6,13 +6,10 @@ import numpy as np
 
 import probnum.random_variables as pnrv
 from probnum.type import FloatArgType, IntArgType
+from probnum.utils.linalg import cholesky_update, triu_to_positive_tril
 
 from . import transition as trans
-from .discrete_transition_utils import (
-    cholesky_update,
-    condition_state_on_rv,
-    triu_to_positive_tril,
-)
+from .discrete_transition_utils import condition_state_on_rv
 
 try:
     # functools.cached_property is only available in Python >=3.8
