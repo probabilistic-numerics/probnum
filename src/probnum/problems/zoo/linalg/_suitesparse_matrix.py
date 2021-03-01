@@ -3,9 +3,8 @@
 import codecs
 import csv
 import io
-import pathlib
 import tarfile
-from typing import Dict, Optional
+from typing import Dict
 
 import numpy as np
 import requests
@@ -59,7 +58,7 @@ def suitesparse_matrix(
     # Get database index
     response = requests.get(SUITESPARSE_INDEX_URL, "r")
     line_gen = response.iter_lines()
-    for i in range(2):
+    for _ in range(2):
         next(line_gen)  # skip lines not part of the matrix table
 
     # Read index with custom header
@@ -146,7 +145,7 @@ class SuiteSparseMatrix(linops.LinearOperator):
            interface. *Journal of Open Source Software* 4.35 (2019): 1244.
     """
 
-    # pylint: disable="too-many-instance-attributes"
+    # pylint: disable="too-many-instance-attributes,too-many-arguments,abstract-method"
     def __init__(
         self,
         matid: str,
@@ -216,9 +215,9 @@ class SuiteSparseMatrix(linops.LinearOperator):
         self._check_matrix_downloaded()
         return self.matrix @ x
 
-    def _matmat(self, x):
+    def _matmat(self, X):
         self._check_matrix_downloaded()
-        return self.matrix @ x
+        return self.matrix @ X
 
     def download(self, verbose: bool = False) -> None:
         """Download and extract file archive containing the sparse matrix.
@@ -250,46 +249,20 @@ class SuiteSparseMatrix(linops.LinearOperator):
         tar = tarfile.open(fileobj=buffer, mode="r:gz")
         self.matrix = scipy.io.mmread(tar.extractfile(tar.getmembers()[0]))
 
-    def serialize(self, filename: Optional[str] = None) -> None:
-        """Save the matrix to file.
-
-        Parameters
-        ----------
-        filename :
-            Filename of the matrix. If none given, the matrix will be saved to the
-            current working directory.
-        """
-        if filename is None:
-            filename = pathlib.Path.cwd() / self.name
-        raise NotImplementedError
-
-    @classmethod
-    def deserialize(self, filename: str) -> "SuiteSparseMatrix":
-        """Load matrix from file.
-
-        Parameters
-        ----------
-        filename :
-            Filename of the matrix.
-        """
-        raise NotImplementedError
-
-    # TODO: serialization and deserialization
-
     def todense(self) -> np.ndarray:
         self._check_matrix_downloaded()
         return np.array(self.matrix.todense())
 
     def rank(self):
         self._check_matrix_downloaded()
-        return np.linalg.matrix_rank(self.A)
+        return np.linalg.matrix_rank(self.matrix)
 
     def trace(self):
         self._check_matrix_downloaded()
         if self.shape[0] != self.shape[1]:
             raise ValueError("The trace is only defined for square linear operators.")
-        else:
-            return self.matrix.diagonal().sum()
+
+        return self.matrix.diagonal().sum()
 
     @staticmethod
     def _html_header() -> str:
