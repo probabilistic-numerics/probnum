@@ -6,6 +6,8 @@ from .odefiltsmooth import (
     KalmanODESolution,
     compute_all_derivatives_via_rk,
     compute_all_derivatives_via_taylormode,
+    convert_coordwise_to_derivwise,
+    convert_derivwise_to_coordwise,
     extend_ivp_with_all_derivatives,
     ivp2ekf0,
     ivp2ekf1,
@@ -39,6 +41,8 @@ __all__ = [
     "extend_ivp_with_all_derivatives",
     "compute_all_derivatives_via_rk",
     "compute_all_derivatives_via_taylormode",
+    "convert_derivwise_to_coordwise",
+    "convert_coordwise_to_derivwise",
 ]
 
 # Set correct module paths (for superclasses).

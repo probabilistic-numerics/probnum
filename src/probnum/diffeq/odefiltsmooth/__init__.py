@@ -7,6 +7,7 @@ Local import, because with a global import this does not seem
 to work.
 """
 
+from ._utils import convert_coordwise_to_derivwise, convert_derivwise_to_coordwise
 from .initialize import (
     compute_all_derivatives_via_rk,
     compute_all_derivatives_via_taylormode,

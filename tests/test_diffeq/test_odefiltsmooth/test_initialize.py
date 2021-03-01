@@ -38,9 +38,6 @@ def test_compute_all_derivatives_via_taylormode(order):
         ivp.f, ivp.y0, ivp.t0, order=order
     )
     np.testing.assert_allclose(errors, 0.0)
-    print(y0_all)
-    print(THREEBODY_INITS)
-    assert False
 
 
 @pytest.fixture
@@ -56,8 +53,6 @@ def test_initialize_with_rk(lv):
     received, error = pnde.compute_all_derivatives_via_rk(
         lv.rhs, lv.initrv.mean, lv.t0, df=lv.jacobian, h0=1e-1, order=5, method="RK45"
     )
-    ode_dim = 2
-    expected = np.hstack(())
     # Extract the relevant values
     expected = np.hstack((LV_INITS[0:6], LV_INITS[15:21]))
 

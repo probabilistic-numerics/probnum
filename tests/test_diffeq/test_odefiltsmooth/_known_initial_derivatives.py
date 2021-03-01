@@ -1,14 +1,12 @@
 """Known derivatives of initial values for ODE example problems that are used to test
 the methods in diffeq/odefiltsmooth/initialize.py.
 
-Other than in the ``Integrator`` objects, which stores values as
-``(y1, dy1, ddy1, ..., y2, dy2, ddy2, ...)``,
- the values here are stored as
-``(y1, y2, dy1, dy2, ddy1, ddy2, ...))``.
-The reason is that in order to extract "the first few derivatives", we can conveniently slice the first ``(d*(q+1))`` entries
-and reshape accordingly. Otherwise, we would have to slice the blocks (:(q+1)), (d*15:d*15+q+1), ...
-
-To convert between the representations, use initialize
+Other than in the ``Integrator`` objects, which stores values as ``(y1,
+dy1, ddy1, ..., y2, dy2, ddy2, ...)``,  the values here are stored as
+``(y1, y2, dy1, dy2, ddy1, ddy2, ...))``. The reason is that in order to
+extract "the first few derivatives", we can conveniently slice the first
+``(d*(q+1))`` entries and reshape accordingly. Otherwise, we would have
+to slice the blocks (:(q+1)), (d*15:d*15+q+1), ...
 """
 
 

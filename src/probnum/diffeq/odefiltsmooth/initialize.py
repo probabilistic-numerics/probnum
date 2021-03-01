@@ -99,7 +99,7 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
         all_initial_derivatives, errors = compute_all_derivatives_via_taylormode(
             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order
         )
-        all_initial_derivatives = _correct_order_of_elements(
+        all_initial_derivatives = _convert_derivorder_to_coordorder(
             all_initial_derivatives, order
         )
     except KeyError:
@@ -118,15 +118,6 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
         dy0_all=all_initial_derivatives,
         dy0_errors=errors,
     )
-
-
-def _correct_order_of_elements(arr, order):
-    """Utility function to change ordering of elements in stacked vector from ``(y1, y2,
-    dy1, dy2, ddy1, ddy2, ...))``.
-
-    to ``(y1, dy1, ddy1, ..., y2, dy2, ddy2, ...)``.
-    """
-    return arr.reshape((order + 1, -1)).T.flatten()
 
 
 SMALL_VALUE = 1e-28
