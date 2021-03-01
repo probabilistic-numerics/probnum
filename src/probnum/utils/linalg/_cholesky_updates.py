@@ -5,17 +5,17 @@ import typing
 
 import numpy as np
 
-__all__ = ["cholesky_update", "triu_to_positive_tril"]
+__all__ = ["cholesky_update", "tril_to_positive_tril"]
 
 
 def cholesky_update(
     S1: np.ndarray, S2: typing.Optional[np.ndarray] = None
 ) -> np.ndarray:
-    r"""Compute Cholesky update/factorization :math:`C C^\top = S_1 S_1^\top + S_2 S_2^\top` without ever assembling the full matrix.
+    r"""Compute Cholesky update/factorization :math:`L` such that :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` holds.
 
     This can be used in various ways.
     For example, :math:`S_1` and :math:`S_2` do not need to be Cholesky factors; any matrix square-root is sufficient.
-    As long as :math:`C C^\top = S_1 S_1^\top + S_2 S_2^\top` is well-defined (and admits a Cholesky-decomposition),
+    As long as :math:`L L^\top = S_1 S_1^\top + S_2 S_2^\top` is well-defined (and admits a Cholesky-decomposition),
     :math:`S_1` and :math:`S_2` do not even have to be square.
 
 
@@ -29,7 +29,7 @@ def cholesky_update(
 
     Returns
     -------
-    Lower Cholesky factor of :math:`S1 S1^\top + S2 S2^\top`, if ``S2`` was not None. Otherwise, lower Cholesky factor of :math:`S1 S1^\top`.
+    Lower Cholesky factor :math:`L` of :math:`L L^\top =S1 S1^\top + S2 S2^\top`, if ``S2`` was not None. Otherwise, lower Cholesky factor of :math:`L L^\top =S1 S1^\top`.
 
 
     Examples
