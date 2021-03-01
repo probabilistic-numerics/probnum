@@ -19,7 +19,7 @@ __all__ = [
 # pylint: disable=import-outside-toplevel
 
 
-def extend_ivp_with_all_derivatives(ivp, order=6):
+def extend_ivp_with_all_derivatives(ivp, order):
     r"""Create a new InitialValueProblem which is informed about derivatives of initial conditions.
 
     If the InitialValueProblem is compatible with JAX (and if jax and jaxlib can be imported), this is done with
@@ -131,7 +131,7 @@ def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="D
     but is forced to pass through the
     events ``(t0, t0+h0, t0 + 2*h0, ..., t0 + (2*order+1)*h0)``.
     The result is a vector of time points and states, with at least ``(2*order+1)``.
-    Potentially, the adaptive steps selected many more steps, but because of the event, fewer steps cannot have happened.
+    Potentially, the adaptive steps selected many more steps, but because of the events, fewer steps cannot have happened.
 
     2. A :math:`\nu` times integrated Brownian motion process is fitted to the first ``(2*order+1)`` (t, y) pairs of the solution.
 
