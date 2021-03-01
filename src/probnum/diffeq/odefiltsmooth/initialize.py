@@ -121,8 +121,7 @@ SMALL_VALUE = 1e-28
 
 
 def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
-    r"""
-    Compute derivatives of the initial value by fitting an integrated Brownian motion process to a few steps of an approximate ODE solution.
+    r"""Compute derivatives of the initial value by fitting an integrated Brownian motion process to a few steps of an approximate ODE solution.
 
 
     It goes as follows:
