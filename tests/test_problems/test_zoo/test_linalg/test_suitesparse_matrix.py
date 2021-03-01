@@ -34,3 +34,13 @@ def test_trace(suitesparse_mycielskian: SuiteSparseMatrix):
     assert suitesparse_mycielskian.trace() == np.trace(
         suitesparse_mycielskian.todense()
     )
+
+
+def test_matrix_multiplication(suitesparse_mat: SuiteSparseMatrix):
+    """Test whether the SuiteSparse matrix can be multiplied with."""
+    zerovec = np.zeros(suitesparse_mat.shape[1])
+    identity = np.eye(suitesparse_mat.shape[1])
+    np.testing.assert_allclose(
+        np.zeros(suitesparse_mat.shape[0]), suitesparse_mat @ zerovec
+    )
+    np.testing.assert_allclose(suitesparse_mat.todense(), suitesparse_mat @ identity)
