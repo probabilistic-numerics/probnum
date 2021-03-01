@@ -35,7 +35,7 @@ def test_compute_all_derivatives_via_taylormode(any_order):
     available in the current environment."""
     ivp = diffeq_zoo.threebody_jax()
     y0_all, errors = pnde.compute_all_derivatives_via_taylormode(
-        ivp.f, ivp.y0, ivp.t0, order=order
+        ivp.f, ivp.y0, ivp.t0, order=any_order
     )
     np.testing.assert_allclose(errors, 0.0)
 

@@ -59,7 +59,7 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
     [ 0.994       0.          0.         -2.00158511]
     >>> print(res2bod.dy0_all)
     None
-    >>> res2bod = compute_all_derivatives(res2bod, order=3)
+    >>> res2bod = extend_ivp_with_all_derivatives(res2bod, order=3)
     >>> print(res2bod.y0)
     [ 0.994       0.          0.         -2.00158511]
     >>> print(res2bod.dy0_all)
@@ -91,9 +91,9 @@ def extend_ivp_with_all_derivatives(ivp, order=6):
     >>> print(vdp2.y0)
     [2. 0.]
     >>> print(np.round(vdp2.dy0_all, 1))
-    [    2.     -0.     -2.     49.7     0.     -2.     59.  -1492. ]
+    [    2.      0.     -2.     58.2     0.     -2.     60.  -1743.4]
     >>> print(np.round(np.log10(vdp2.dy0_errors), 1))
-    [-inf -6.1 -3.5 -1.1 -inf -6.1 -3.5 -1.1]
+    [ -inf -14.  -14.   -1.5  -inf -14.  -14.   -1.5]
     """
     try:
         all_initial_derivatives, errors = compute_all_derivatives_via_taylormode(
