@@ -584,6 +584,35 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.assertRaises(Exception):
                 rv.precompute_cov_cholesky()
 
+    def test_cholesky_cov_incompatible_types_value_error(self):
+        """Test the behaviour of Normal.__init__ in the setup where the type of the
+        Cholesky factor and the type of the covariance do not match."""
+        mean, cov = self.params
+        cov_cholesky = np.linalg.cholesky(cov)
+        cov_cholesky_wrong_type = cov_cholesky.tolist()
+        with self.subTest("Different type raises ValueError"):
+            with self.assertRaises(ValueError):
+                rvs.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_type)
+
+        cov_cholesky_wrong_shape = cov_cholesky[1:]
+        with self.subTest("Different shape raises ValueError"):
+            with self.assertRaises(ValueError):
+                rvs.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_shape)
+
+        cov_cholesky_wrong_dtype = cov_cholesky.astype(int)
+        with self.subTest("Different data type is promoted"):
+
+            # Sanity check
+            self.assertNotEqual(cov.dtype, cov_cholesky_wrong_dtype.dtype)
+
+            # Assert data type of cov_cholesky is changed during __init__
+            normal_new_dtype = rvs.Normal(
+                mean, cov, cov_cholesky=cov_cholesky_wrong_dtype
+            )
+            self.assertEqual(
+                normal_new_dtype.cov.dtype, normal_new_dtype.cov_cholesky.dtype
+            )
+
 
 class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_reshape(self):
