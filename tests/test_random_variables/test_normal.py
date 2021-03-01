@@ -591,7 +591,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         cov_cholesky = np.linalg.cholesky(cov)
         cov_cholesky_wrong_type = cov_cholesky.tolist()
         with self.subTest("Different type raises ValueError"):
-            with self.assertRaises(ValueError):
+            with self.assertRaises(TypeError):
                 rvs.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_type)
 
         cov_cholesky_wrong_shape = cov_cholesky[1:]

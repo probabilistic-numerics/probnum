@@ -194,7 +194,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             if self._cov_cholesky is not None:
 
                 if not isinstance(self._cov_cholesky, type(self._cov)):
-                    raise ValueError(
+                    raise TypeError(
                         f"The covariance matrix is of type `{type(self._cov)}`, so its "
                         f"Cholesky decomposition must be of the same type, but an "
                         f"object of type `{type(self._cov_cholesky)}` was given."
