@@ -70,10 +70,13 @@ def tril_to_positive_tril(tril_mat: np.ndarray) -> np.ndarray:
 
     In other words, make it a valid lower Cholesky factor.
 
-    Transpose, and change the sign of the diagonals to '+' if necessary.
-    The name of the function is leaned on `np.triu` and `np.tril`.
+    The name of the function is based on `np.tril`.
     """
     d = np.sign(np.diag(tril_mat))
+
+    # Numpy assigns sign 0 to 0.0, which eliminate entire rows in the operation below.
     d[d == 0] = 1.0
-    with_pos_diag = tril_mat @ np.diag(d)
+
+    # Fast(er) multiplication with a diagonal matrix from the right via broadcasting.
+    with_pos_diag = tril_mat * d[None, :]
     return with_pos_diag
