@@ -584,7 +584,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.assertRaises(Exception):
                 rv.precompute_cov_cholesky()
 
-    def test_cholesky_cov_incompatible_types_value_error(self):
+    def test_cholesky_cov_incompatible_types(self):
         """Test the behaviour of Normal.__init__ in the setup where the type of the
         Cholesky factor and the type of the covariance do not match."""
         mean, cov = self.params
