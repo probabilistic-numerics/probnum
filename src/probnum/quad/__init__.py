@@ -1,23 +1,10 @@
 """Bayesian Quadrature."""
 
 from ._bayesquad import *
+from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
+from ._kernel_embeddings import _KernelEmbedding, _KExpQuadMGauss, _KExpQuadMLebesgue
 from .bq_methods import *
-
-from ._integration_measures import (
-    IntegrationMeasure,
-    LebesgueMeasure,
-    GaussianMeasure,
-)
-
-from ._kernel_embeddings import (
-    KernelEmbedding,
-    KExpQuadMLebesgue,
-    KExpQuadMGauss,
-)
-
-from .bq_methods import (
-    BayesianQuadrature,
-)
+from .bq_methods import BayesianQuadrature
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
