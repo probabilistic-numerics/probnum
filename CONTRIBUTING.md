@@ -27,7 +27,7 @@ Code quality is an essential component in a collaborative open-source project.
 
 - Make sure to observe [good coding practice](https://www.python.org/dev/peps/pep-0020/).
 - Keep dependencies to a minimum.
-- All code should be covered by tests within the [unittest](https://docs.python.org/3/library/unittest.html) framework.
+- All code should be covered by tests within the [pytest](https://docs.pytest.org/) framework.
 - Documentation of code is essential. ProbNum uses the
 [NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html).
 - Code should be formatted with [*Black*](https://github.com/psf/black) and follow the internal [style guide](https://github.com/probabilistic-numerics/probnum/blob/master/STYLEGUIDE.md).
@@ -92,7 +92,7 @@ in the `probnum` folder.
 
 [![test coverage: latest](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage%3A%20latest&logo=codecov)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
 
-We use [unittest](https://docs.python.org/3/library/unittest.html) for testing and aim to cover as much code with tests
+We use [pytest](https://docs.pytest.org/) for testing and aim to cover as much code with tests
 as possible. Make sure to always add tests for newly implemented code. To run the test suite on your machine you have
 multiple options:
 
