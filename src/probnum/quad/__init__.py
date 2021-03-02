@@ -17,16 +17,13 @@ from ._kernel_embeddings import (
 
 from .bq_methods import (
     BayesianQuadrature,
-    VanillaBayesianQuadrature
 )
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "bayesquad",
     "BayesianQuadrature",
-    "VanillaBayesianQuadrature",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 BayesianQuadrature.__module__ = "probnum.quad"
-VanillaBayesianQuadrature.__module__ = "probnum.quad"

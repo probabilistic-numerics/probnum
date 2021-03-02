@@ -7,10 +7,10 @@ value of the integral. Bayesian quadrature methods return a random
 variable, specifying the belief about the true value of the integral.
 """
 
-from .bq_methods import BayesianQuadrature, VanillaBayesianQuadrature
+from .bq_methods import BayesianQuadrature
 
 
-def bayesquad(fun, fun0, domain, nevals=None, measure=None, method="vanilla"):
+def bayesquad(fun, fun0, domain=None, nevals=None, measure=None, method="vanilla", strategy='bmc'):
     """Bayesian quadrature (BQ) infers integrals of the form
 
     .. math:: F = \\int_a^b f(x) d \\mu(x),
@@ -46,6 +46,16 @@ def bayesquad(fun, fun0, domain, nevals=None, measure=None, method="vanilla"):
          vanilla              ``vanilla``
          WSABI                ``wsabi``
         ====================  ===========
+
+    strategy : str, optional
+        Type of acquisition strategy to use. Options are
+
+        =======================  =======
+         Bayesian Monte Carlo    ``bmc``
+         Uncertainty Sampling    ``us``
+         Mutual Information      ``mi``
+         Integral Variance       ``iv``
+        =======================  =======
 
     Returns
     -------
