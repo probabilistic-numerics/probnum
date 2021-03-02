@@ -70,7 +70,7 @@ class KExpQuadMGauss(KernelEmbedding):
                 self.kernel.lengthscale * np.eye(self.dim) + self.measure.covariance
             )
             Linv_x = slinalg.cho_solve(L, x - self.measure.mean)
-            det_factor = self.kernel.lengthscale ** self.dim / np.diag(L).prod()
+            det_factor = self.kernel.lengthscale ** self.dim / np.diag(L[0]).prod()
 
         exp_factor = np.exp(-0.5 * (Linv_x ** 2)).sum(axis=0)
 
