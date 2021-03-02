@@ -1,1 +1,4 @@
-from .bayesian_quadrature import BayesianQuadrature, VanillaBayesianQuadrature
+from .bayesian_quadrature import (
+    BayesianQuadrature,
+    VanillaBayesianQuadrature,
+)
