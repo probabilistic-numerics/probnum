@@ -39,7 +39,7 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
     Vanilla Bayesian quadrature.
     """
 
-    def integrate(self, fun, fun0, domain, nevals, **kwargs) -> Tuple[RandomVariable, RandomProcess, Dict]:
+    def integrate(self, fun, fun0, domain, nevals, **kwargs):
         """
         Integrate the function ``fun``.
 

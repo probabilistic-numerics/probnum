@@ -12,7 +12,8 @@ from ._integration_measures import IntegrationMeasure, LebesgueMeasure, Gaussian
 
 class KernelEmbedding(abc.ABC):
     """
-    Contains integrals over kernels
+    Contains integrals over kernels.
+    The naming scheme is 'K + kernel + M + measure'
     """
 
     def __init__(self, kernel: Kernel, measure: IntegrationMeasure):
@@ -44,7 +45,7 @@ class KExpQuadMGauss(KernelEmbedding):
 
     def __init__(self, kernel: ExpQuad, measure: GaussianMeasure):
         super(KExpQuadMGauss, self).__init__(kernel, measure)
-        # TODO: should we consider diagonal lengthscales and measure covs separately?
+        # TODO: args are now child classes of args of the parent class.
         self.dim = self.kernel.input_dim
 
     def qk(self, x: np.ndarray) -> np.ndarray:
@@ -54,18 +55,33 @@ class KExpQuadMGauss(KernelEmbedding):
             n_eval locations where to evaluate the kernel mean.
         :returns: np.ndarray
         """
-        L = slinalg.cho_factor(self.kernel.lengthscale * np.eye(self.dim) + self.measure.covariance)
-        Lx = slinalg.cho_solve(L, x - self.measure.mean)
+        if self.measure.diagonal_covariance:
+            Linv_x = x / (
+                self.kernel.lengthscale ** 2 * np.diag(self.measure.covariance)
+            ).reshape(-1, 1)
+            det_factor = (
+                self.kernel.lengthscale ** self.dim
+                / (
+                    self.kernel.lengthscale ** 2 * np.diag(self.measure.covariance)
+                ).prod()
+            )
+        else:
+            L = slinalg.cho_factor(
+                self.kernel.lengthscale * np.eye(self.dim) + self.measure.covariance
+            )
+            Linv_x = slinalg.cho_solve(L, x - self.measure.mean)
+            det_factor = self.kernel.lengthscale ** self.dim / np.diag(L).prod()
 
-        exp_factor = np.exp(-0.5*(Lx**2)).sum(axis=0) #shape (N,)
-        det_factor = self.kernel.lengthscale**self.dim / np.diag(L).prod()
+        exp_factor = np.exp(-0.5 * (Linv_x ** 2)).sum(axis=0)
 
         return det_factor * exp_factor
 
     def qkq(self) -> float:
-        L = slinalg.cho_factor(self.kernel.lengthscale * np.eye(self.dim) + 2*self.measure.covariance)
+        L = slinalg.cho_factor(
+            self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.covariance
+        )
 
-        return self.kernel.lengthscale**self.dim / np.diag(L).prod()
+        return self.kernel.lengthscale ** self.dim / np.diag(L).prod()
 
 
 class KExpQuadMLebesgue(KernelEmbedding):
@@ -80,7 +96,7 @@ class KExpQuadMLebesgue(KernelEmbedding):
         raise NotImplementedError
 
 
-def get_kernel_embedding(kernel:Kernel, measure:IntegrationMeasure):
+def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):
     """
     Select the right kernel embedding given the kernel and integration measure
 

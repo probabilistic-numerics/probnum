@@ -1,1 +1,0 @@
-from probnum.quad.bqmethods import *

@@ -8,9 +8,9 @@ from .bq_methods import *
 __all__ = [
     "bayesquad",
     "BayesianQuadrature",
-    "WarpedBayesianQuadrature",
+    "VanillaBayesianQuadrature",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 BayesianQuadrature.__module__ = "probnum.quad"
-WarpedBayesianQuadrature.__module__ = "probnum.quad"
+VanillaBayesianQuadrature.__module__ = "probnum.quad"

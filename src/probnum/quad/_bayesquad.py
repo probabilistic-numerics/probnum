@@ -7,7 +7,7 @@ value of the integral. Bayesian quadrature methods return a random
 variable, specifying the belief about the true value of the integral.
 """
 
-from .bq_methods import BayesianQuadrature, WarpedBayesianQuadrature
+from .bq_methods import BayesianQuadrature, VanillaBayesianQuadrature
 
 
 def bayesquad(fun, fun0, domain, nevals=None, measure=None, method="vanilla"):
@@ -65,8 +65,8 @@ def bayesquad(fun, fun0, domain, nevals=None, measure=None, method="vanilla"):
     bqmethod = None
     if method == "vanilla":
         bqmethod = BayesianQuadrature(fun0=fun0)
-    elif method == "wsabi":
-        bqmethod = WarpedBayesianQuadrature(fun0=fun0)
+    # elif method == "wsabi":
+    #     bqmethod = WarpedBayesianQuadrature(fun0=fun0)
 
     # Integrate
     integral, fun0, info = bqmethod.integrate(
