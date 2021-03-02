@@ -57,7 +57,7 @@ class KExpQuadMGauss(KernelEmbedding):
         """
         if self.measure.diagonal_covariance:
             Linv_x = x / (
-                self.kernel.lengthscale ** 2 * np.diag(self.measure.covariance)
+                self.kernel.lengthscale ** 2 + np.diag(self.measure.covariance)
             ).reshape(-1, 1)
             det_factor = (
                 self.kernel.lengthscale ** self.dim
@@ -70,18 +70,22 @@ class KExpQuadMGauss(KernelEmbedding):
                 self.kernel.lengthscale * np.eye(self.dim) + self.measure.covariance
             )
             Linv_x = slinalg.cho_solve(L, x - self.measure.mean)
+
             det_factor = self.kernel.lengthscale ** self.dim / np.diag(L[0]).prod()
 
         exp_factor = np.exp(-0.5 * (Linv_x ** 2)).sum(axis=0)
-
         return det_factor * exp_factor
 
     def qkq(self) -> float:
-        L = slinalg.cho_factor(
-            self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.covariance
-        )
+        if self.measure.diagonal_covariance:
+            denom = np.sqrt((self.kernel.lengthscale**2 + 2.*np.diag(self.measure.covariance)).prod())
+        else:
+            L = np.diag(slinalg.cholesky(
+                self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.covariance, lower=True
+            ))
+            denom = np.diag(L).prod()
 
-        return self.kernel.lengthscale ** self.dim / np.diag(L).prod()
+        return self.kernel.lengthscale ** self.dim / denom
 
 
 class KExpQuadMLebesgue(KernelEmbedding):
