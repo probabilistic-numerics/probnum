@@ -78,11 +78,18 @@ class KExpQuadMGauss(KernelEmbedding):
 
     def qkq(self) -> float:
         if self.measure.diagonal_covariance:
-            denom = np.sqrt((self.kernel.lengthscale**2 + 2.*np.diag(self.measure.covariance)).prod())
+            denom = np.sqrt(
+                (
+                    self.kernel.lengthscale ** 2
+                    + 2.0 * np.diag(self.measure.covariance)
+                ).prod()
+            )
         else:
-            L = np.diag(slinalg.cholesky(
-                self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.covariance, lower=True
-            ))
+            L = slinalg.cholesky(
+                self.kernel.lengthscale * np.eye(self.dim)
+                + 2 * self.measure.covariance,
+                lower=True,
+            )
             denom = np.diag(L).prod()
 
         return self.kernel.lengthscale ** self.dim / denom
