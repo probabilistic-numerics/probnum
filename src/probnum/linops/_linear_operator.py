@@ -1,10 +1,18 @@
 """Finite-dimensional linear operators."""
 
 import warnings
+from typing import Optional, Union
 
 import numpy as np
 import scipy.sparse.linalg
 import scipy.sparse.linalg.interface
+
+import probnum.utils
+from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
+
+BinaryOperandType = Union[
+    "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
+]
 
 
 class LinearOperator(scipy.sparse.linalg.LinearOperator):
@@ -91,36 +99,6 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
             return obj
 
-    def astype(self, dtype):
-        """Cast a :class:`LinearOperator` to a specified ``dtype``."""
-        if dtype == self.dtype:
-            return self
-        else:
-            raise NotImplementedError
-
-    # Overload arithmetic operators to give access to newly implemented functions (e.g.
-    # todense())
-    def __rmul__(self, x):
-        if np.isscalar(x):
-            return _ScaledLinearOperator(self, x)
-        else:
-            return NotImplemented
-
-    def __pow__(self, p):
-        if np.isscalar(p):
-            return _PowerLinearOperator(self, p)
-        else:
-            return NotImplemented
-
-    def __add__(self, x):
-        if isinstance(x, LinearOperator):
-            return _SumLinearOperator(self, x)
-        else:
-            return NotImplemented
-
-    def __neg__(self):
-        return _ScaledLinearOperator(self, -1)
-
     # The below methods are overloaded to allow dot products with random variables
     def dot(self, x):
         """Matrix-matrix or matrix-vector multiplication.
@@ -136,19 +114,7 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             1-d or 2-d array (depending on the shape of x) that represents
             the result of applying this linear operator on x.
         """
-        if isinstance(x, LinearOperator):
-            return _ProductLinearOperator(self, x)
-        elif np.isscalar(x):
-            return _ScaledLinearOperator(self, x)
-        else:
-            if len(x.shape) == 1 or len(x.shape) == 2 and x.shape[1] == 1:
-                return self.matvec(x)
-            elif len(x.shape) == 2:
-                return self.matmat(x)
-            else:
-                raise ValueError(
-                    "Expected 1-d or 2-d array, matrix or random variable, got %r." % x
-                )
+        return self @ x
 
     def matvec(self, x):
         """Matrix-vector multiplication. Performs the operation y=A*x where A is an MxN
@@ -191,19 +157,6 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
         return y
 
-    def transpose(self):
-        """Transpose this linear operator.
-
-        Can be abbreviated self.T instead of self.transpose().
-        """
-        return self._transpose()
-
-    T = property(transpose)
-
-    def _transpose(self):
-        """Default implementation of _transpose; defers to rmatvec + conj."""
-        return _TransposedLinearOperator(self)
-
     def todense(self):
         """Dense matrix representation of the linear operator.
 
@@ -216,10 +169,6 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             Matrix representation of the linear operator.
         """
         return self.matmat(np.eye(self.shape[1], dtype=self.dtype))
-
-    def inv(self):
-        """Inverse of the linear operator."""
-        raise NotImplementedError
 
     # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
     def rank(self):
@@ -288,8 +237,111 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             _identity = np.eye(self.shape[0])
             trace = 0.0
             for i in range(self.shape[0]):
-                trace += self.matvec(_identity[:, i]).dot(_identity[:, i])
+                trace += np.squeeze(
+                    _identity[np.newaxis, i, :]
+                    @ self.matvec(_identity[i, :, np.newaxis])
+                )
             return trace
+
+    ####################################################################################
+    # Unary Arithmetic
+    ####################################################################################
+
+    def __neg__(self) -> "LinearOperator":
+        from ._arithmetic import (  # pylint: disable=import-outside-toplevel
+            NegatedLinearOperator,
+        )
+
+        return NegatedLinearOperator(self)
+
+    def transpose(self) -> "LinearOperator":
+        """Transpose this linear operator.
+
+        Can be abbreviated self.T instead of self.transpose().
+        """
+        from ._arithmetic import (  # pylint: disable=import-outside-toplevel
+            TransposedLinearOperator,
+        )
+
+        return TransposedLinearOperator(self)
+
+    @property
+    def T(self):
+        return self.transpose()
+
+    def inv(self) -> "LinearOperator":
+        """Inverse of the linear operator."""
+        from ._arithmetic import (  # pylint: disable=import-outside-toplevel
+            InverseLinearOperator,
+        )
+
+        return InverseLinearOperator(self)
+
+    ####################################################################################
+    # Binary Arithmetic
+    ####################################################################################
+
+    __array_ufunc__ = None
+    """
+    This prevents numpy from calling elementwise arithmetic operations allowing
+    expressions like `y = np.array([1, 1]) + linop` to call the arithmetic operations
+    defined by `LinearOperator` instead of elementwise. Thus no array of
+    `LinearOperator`s but a `LinearOperator` with the correct shape is returned.
+    """
+
+    def __add__(self, other: BinaryOperandType) -> "LinearOperator":
+        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+
+        return add(self, other)
+
+    def __radd__(self, other: BinaryOperandType) -> "LinearOperator":
+        from ._arithmetic import add  # pylint: disable=import-outside-toplevel
+
+        return add(other, self)
+
+    def __sub__(self, other: BinaryOperandType) -> "LinearOperator":
+        from ._arithmetic import sub  # pylint: disable=import-outside-toplevel
+
+        return sub(self, other)
+
+    def __rsub__(self, other: BinaryOperandType) -> "LinearOperator":
+        from ._arithmetic import sub  # pylint: disable=import-outside-toplevel
+
+        return sub(other, self)
+
+    def __mul__(self, other: BinaryOperandType) -> "LinearOperator":
+        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+
+        return mul(self, other)
+
+    def __rmul__(self, other: BinaryOperandType) -> "LinearOperator":
+        from ._arithmetic import mul  # pylint: disable=import-outside-toplevel
+
+        return mul(other, self)
+
+    def __matmul__(
+        self, other: BinaryOperandType
+    ) -> Union["LinearOperator", np.ndarray]:
+        if isinstance(other, LinearOperator):
+            from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
+
+            return matmul(self, other)
+        else:
+            if len(other.shape) == 1 or len(other.shape) == 2 and other.shape[1] == 1:
+                return self.matvec(other)
+            elif len(other.shape) == 2:
+                return self.matmat(other)
+            else:
+                raise ValueError(
+                    f"Expected 1-d or 2-d array, matrix or random variable, got "
+                    f"{other}."
+                )
+
+    def __rmatmul__(
+        self, other: BinaryOperandType
+    ) -> Union["LinearOperator", np.ndarray]:
+        # TODO: rmatvec and rmatmat
+        return NotImplemented
 
 
 class _CustomLinearOperator(
@@ -310,109 +362,21 @@ class _CustomLinearOperator(
         )
 
 
-# TODO: inheritance from _TransposedLinearOperator causes dependency on scipy>=1.4,
-# maybe implement our own instead?
-class _TransposedLinearOperator(
-    scipy.sparse.linalg.interface._TransposedLinearOperator, LinearOperator
-):
-    """Transposition of a linear operator."""
+class Diagonal(LinearOperator):
+    """A linear operator representing the diagonal from another linear operator.
 
-    def __init__(self, A):
-        self.A = A
-        super().__init__(A=A)
+    Parameters
+    ----------
+    Op : LinearOperator
+        Linear operator of which to represent the diagonal.
+    """
 
-    def todense(self):
-        return self.A.todense().T
-
-    def inv(self):
-        return self.A.inv().T
-
-
-class _SumLinearOperator(
-    scipy.sparse.linalg.interface._SumLinearOperator, LinearOperator
-):
-    """Sum of two linear operators."""
-
-    def __init__(self, A, B):
-        self.A = A
-        self.B = B
-        super().__init__(A=A, B=B)
-
-    def todense(self):
-        return self.A.todense() + self.B.todense()
-
-    def trace(self):
-        return self.A.trace() + self.B.trace()
-
-
-class _ProductLinearOperator(
-    scipy.sparse.linalg.interface._ProductLinearOperator, LinearOperator
-):
-    """(Operator) Product of two linear operators."""
-
-    def __init__(self, A, B):
-        self.A = A
-        self.B = B
-        super().__init__(A=A, B=B)
-
-    def _transpose(self):
-        return _ProductLinearOperator(A=self.B.T, B=self.A.T)
-
-    def adjoint(self):
-        return _ProductLinearOperator(A=self.B.H, B=self.A.H)
-
-    def todense(self):
-        return self.A.todense() @ self.B.todense()
-
-
-class _ScaledLinearOperator(
-    scipy.sparse.linalg.interface._ScaledLinearOperator, LinearOperator
-):
-    """Linear operator scaled with a scalar."""
-
-    def __init__(self, A, alpha):
-        super().__init__(A=A, alpha=alpha)
-
-    def todense(self):
-        A, alpha = self.args
-        return alpha * A.todense()
-
-    def inv(self):
-        A, alpha = self.args
-        return _ScaledLinearOperator(A.inv(), 1 / alpha)
-
-    # Properties
-    def rank(self):
-        A, alpha = self.args
-        if alpha == 0:
-            return 0
-        else:
-            return A.rank()
-
-    def eigvals(self):
-        A, alpha = self.args
-        return alpha * A.eigvals()
-
-    def det(self):
-        A, alpha = self.args
-        return alpha ** A.shape[0] * A.det()
-
-    def logabsdet(self):
-        A, alpha = self.args
-        return A.shape[0] * np.log(np.abs(alpha)) + A.logabsdet()
-
-    def trace(self):
-        A, alpha = self.args
-        return alpha * A.trace()
-
-
-class _PowerLinearOperator(
-    scipy.sparse.linalg.interface._PowerLinearOperator, LinearOperator
-):
-    """Linear operator raised to a non-negative integer power."""
-
-    def __init__(self, A, p):
-        super().__init__(A=A, p=p)
+    # TODO: should this be an operator itself or a function of a LinearOperator?
+    #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient
+    # versions than n products e_i A e_i
+    def __init__(self, Op):
+        # pylint: disable=super-init-not-called
+        raise NotImplementedError
 
 
 class ScalarMult(LinearOperator):
@@ -426,46 +390,53 @@ class ScalarMult(LinearOperator):
         Scalar to multiply by.
     """
 
-    def __init__(self, shape, scalar):
-        self.scalar = scalar
-        super().__init__(shape=shape, dtype=float)
+    def __init__(
+        self,
+        shape: ShapeArgType,
+        scalar: ScalarArgType,
+        dtype: Optional[DTypeArgType] = None,
+    ):
+        self._scalar = probnum.utils.as_numpy_scalar(scalar, dtype=dtype)
 
-    def _matvec(self, x):
-        return self.scalar * x
+        super().__init__(shape=probnum.utils.as_shape(shape), dtype=self._scalar.dtype)
 
-    def _matmat(self, X):
-        return self.scalar * X
+    @property
+    def scalar(self):
+        return self._scalar
 
-    def _transpose(self):
-        return self
+    def _matvec(self, x: np.ndarray) -> np.ndarray:
+        return self._scalar * x
 
-    def adjoint(self):
-        return ScalarMult(shape=self.shape, scalar=np.conj(self.scalar))
+    def _rmatvec(self, x: np.ndarray) -> np.ndarray:
+        return x.T * self._scalar
+
+    def _matmat(self, X: np.ndarray) -> np.ndarray:
+        return self._scalar * X
 
     def todense(self):
-        return np.eye(self.shape[0]) * self.scalar
+        return np.eye(self.shape[0]) * self._scalar
 
-    def inv(self):
-        return ScalarMult(shape=self.shape, scalar=1 / self.scalar)
+    def inv(self) -> LinearOperator:
+        return ScalarMult(shape=self.shape, scalar=1 / self._scalar)
 
     # Properties
-    def rank(self):
-        return np.minimum(self.shape[0], self.shape[1])
+    def rank(self) -> int:
+        return min(self.shape)
 
     def eigvals(self):
-        return np.ones(self.shape[0]) * self.scalar
+        return np.ones(self.shape[0]) * self._scalar
 
     def cond(self, p=None):
         return 1
 
     def det(self):
-        return self.scalar ** self.shape[0]
+        return self._scalar ** self.shape[0]
 
     def logabsdet(self):
-        return np.log(np.abs(self.scalar))
+        return np.log(np.abs(self._scalar))
 
     def trace(self):
-        return self.scalar * self.shape[0]
+        return self._scalar * self.shape[0]
 
 
 class Identity(ScalarMult):
@@ -487,12 +458,6 @@ class Identity(ScalarMult):
             _shape = shape
         # Initiator of super class
         super().__init__(shape=_shape, scalar=1.0)
-
-    def _transpose(self):
-        return self
-
-    def adjoint(self):
-        return self
 
     def todense(self):
         return np.eye(self.shape[0])
@@ -520,61 +485,6 @@ class Identity(ScalarMult):
         return self.shape[0]
 
 
-class DiagMult(LinearOperator):
-    """A diagonal linear operator.
-
-    Parameters
-    ----------
-    diagonal : np.ndarray
-        Diagonal of the linear operator.
-    """
-
-    def __init__(self, diagonal: np.ndarray):
-        if diagonal.ndim != 1:
-            raise ValueError("Diagonal must be a one dimensional array.")
-        self.diagonal = diagonal
-        super().__init__(
-            shape=(diagonal.shape[0], diagonal.shape[0]), dtype=diagonal.dtype
-        )
-
-    def _matvec(self, x):
-        return self.diagonal * x.squeeze()
-
-    def _matmat(self, X):
-        return X * self.diagonal[:, np.newaxis]
-
-    def _transpose(self):
-        return self
-
-    def adjoint(self):
-        return DiagMult(diagonal=np.conj(self.diagonal))
-
-    def todense(self):
-        return np.diag(self.diagonal)
-
-    def inv(self):
-        return DiagMult(diagonal=1 / self.diagonal)
-
-    # Properties
-    def rank(self):
-        return np.sum(self.diagonal != 0)
-
-    def eigvals(self):
-        return self.diagonal
-
-    def cond(self, p=None):
-        return np.max(np.abs(self.diagonal)) / np.min(np.abs(self.diagonal))
-
-    def det(self):
-        return np.prod(self.diagonal)
-
-    def logabsdet(self):
-        return np.log(np.abs(self.det()))
-
-    def trace(self):
-        return np.sum(self.diagonal)
-
-
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
     """A linear operator defined via a matrix.
 
@@ -592,12 +502,6 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
 
     def _matmat(self, X):
         return self.A @ X
-
-    def _transpose(self):
-        return MatrixMult(A=self.A.T)
-
-    def adjoint(self):
-        return MatrixMult(A=np.conj(self.A.T))
 
     def todense(self):
         if isinstance(self.A, scipy.sparse.spmatrix):
