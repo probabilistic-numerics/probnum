@@ -36,7 +36,7 @@ class IntegrationMeasure(abc.ABC):
         Sets the integration domain and dimension. Error is thrown if the given
         dimension and domain limits do not match.
 
-        THIS HAS NOT BEEN FULLY IMPLEMENTED YET. DOES NOT CHECK IF DIMENSIONS MATCH ETC.
+        TODO: check that dimensions match and the domain is not empty
         """
         if ndim >= 1:
             self.ndim = ndim
@@ -91,13 +91,27 @@ class GaussianMeasure(IntegrationMeasure):
         Sets the mean and covariance of the Gaussian integration measure. Throws
         error if their dimensions do not match with ndim.
 
-        THIS HAS NOT BEEN FULLY IMPLEMENTED YET.
+        TODO: dimension or covariance positivity checks have not been implemented
         """
         if isinstance(mean, FloatArgType):
             self.mean = np.full((self.ndim,), mean)
         else:
             self.mean = mean
+
         if isinstance(covariance, FloatArgType):
-            self.cov = np.full((self.ndim,), covariance)
+            if covariance <= 0:
+                # TODO: raise error
+                pass
+            self.covariance = covariance*np.eye(self.ndim)
+            self.diagonal_covariance = True
+        elif covariance.ndim == 1:
+            if not all(covariance > 0):
+                # TODO: raise error
+                pass
+            self.covariance = np.diag(covariance)
+            self.diagonal_covariance = True
         else:
-            self.cov = covariance
+            # TODO: raise error if covariance matrix is not positive-definite
+            self.covariance = covariance
+            self.diagonal_covariance = False
+
