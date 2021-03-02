@@ -43,13 +43,13 @@ class IntegrationMeasure(abc.ABC):
         else:
             # Error if the dimension is stupid
             pass
-        if isinstance(domain[0], FloatArgType):
+        if np.isscalar(domain[0]):
             # Use same domain limit in all dimensions if only one limit is given
-            domain_a = np.full((self.ndim,), domain[0])
+            domain_a = np.full((self.ndim, 1), domain[0])
         else:
             domain_a = domain[0]
-        if isinstance(domain[1], FloatArgType):
-            domain_b = np.full((self.ndim,), domain[1])
+        if np.isscalar(domain[1]):
+            domain_b = np.full((self.ndim, 1), domain[1])
         else:
             domain_b = domain[1]
         self.domain = (domain_a, domain_b)
@@ -93,12 +93,12 @@ class GaussianMeasure(IntegrationMeasure):
 
         TODO: dimension or covariance positivity checks have not been implemented
         """
-        if isinstance(mean, FloatArgType):
-            self.mean = np.full((self.ndim,), mean)
+        if np.isscalar(mean):
+            self.mean = np.full((self.ndim, 1), mean)
         else:
             self.mean = mean
 
-        if isinstance(covariance, FloatArgType):
+        if np.isscalar(covariance):
             if covariance <= 0:
                 # TODO: raise error
                 pass
