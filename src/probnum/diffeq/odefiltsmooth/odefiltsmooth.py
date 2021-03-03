@@ -193,9 +193,15 @@ def probsolve_ivp(
     >>> from probnum.diffeq import logistic, probsolve_ivp
     >>> from probnum import random_variables as rvs
     >>> import numpy as np
-    >>> initrv = rvs.Constant(0.15)
-    >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
+
+    Solve a simple logistic ODE.
+
+    >>> def f(t, x):
+    ...     return 4*x*(1-x)
+    >>>
+    >>> y0 = np.array([0.15])
+    >>> t0, tmax = 0., 1.5
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, method="ek0", step=0.1, atol=None, rtol=None)
     >>> print(np.round(solution.y.mean, 2))
     [[0.15]
      [0.21]
@@ -214,9 +220,11 @@ def probsolve_ivp(
      [0.98]
      [0.98]]
 
-    >>> initrv = rvs.Constant(0.15)
-    >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
+    Other priors and other methods are easily accessible.
+
+    >>> def df(t, x):
+    ...     return np.array([4. - 8 * x])
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="ek1", which_prior="ioup3", step=0.1, atol=None, rtol=None)
     >>> print(np.round(solution.y.mean, 2))
     [[0.15]
      [0.21]
