@@ -123,6 +123,8 @@ def probsolve_ivp(
         prior information about the solution is available. On the other
         hand, if the :math:`q`-th derivative is expected to regress to
         zero, an IOUP(:math:`q`) prior might be suitable.
+        While we recommend to use correct capitalization for the method string,
+        lower-case letters will be capitalized internally.
     method : str, optional
         Which method is to be used. Default is ``EK0`` which is the
         method proposed by Schober et al.. The available
@@ -143,6 +145,8 @@ def probsolve_ivp(
         but since its square-root implementation is not available yet, it will be
         less stable (numerically, i.e. in terms of singular matrices)
         than the extended Kalman filter variations.
+        While we recommend to use correct capitalization for the method string,
+        lower-case letters will be capitalized internally.
     dense_output : bool
         Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
         dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
