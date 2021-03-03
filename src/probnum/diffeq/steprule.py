@@ -76,7 +76,7 @@ class AdaptiveSteps(StepRule):
         firststep,
         atol,
         rtol,
-        limitchange=(0.1, 5.0),
+        limitchange=(0.2, 5.0),
         safetyscale=0.95,
         minstep=1e-15,
         maxstep=1e15,

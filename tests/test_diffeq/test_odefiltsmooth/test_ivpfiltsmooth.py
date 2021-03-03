@@ -71,7 +71,7 @@ def test_second_iteration(ivp, sol, step):
 
 
 @pytest.mark.parametrize(
-    "which_prior", ["ibm1", "ibm2", "ibm3", "ioup1", "ioup2", "ioup3"]
+    "which_prior", ["IBM1", "IBM2", "IBM3", "IOUP1", "IOUP2", "IOUP3"]
 )
 def test_convergence_error(ivp, which_prior):
     """Assert that by halfing the step-size, the error of the small step is roughly the

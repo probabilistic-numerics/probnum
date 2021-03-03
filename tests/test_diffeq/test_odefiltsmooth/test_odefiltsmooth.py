@@ -12,22 +12,22 @@ def ivp():
     return ode.lotkavolterra([0.0, 0.25], initrv)
 
 
-@pytest.mark.parametrize("method", ["ek0", "ek1"])
+@pytest.mark.parametrize("method", ["EK0", "EK1"])
 @pytest.mark.parametrize(
     "which_prior",
     [
-        "ibm1",
-        "ibm2",
-        "ibm3",
-        "ibm4",
-        "ioup1",
-        "ioup2",
-        "ioup3",
-        "ioup4",
-        "matern32",
-        "matern52",
-        "matern72",
-        "matern92",
+        "IBM1",
+        "IBM2",
+        "IBM3",
+        "IBM4",
+        "IOUP1",
+        "IOUP2",
+        "IOUP3",
+        "IOUP4",
+        "MAT32",
+        "MAT52",
+        "MAT72",
+        "MAT92",
     ],
 )
 @pytest.mark.parametrize("dense_output", [True, False])

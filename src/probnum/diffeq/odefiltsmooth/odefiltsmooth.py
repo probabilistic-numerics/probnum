@@ -34,14 +34,14 @@ def probsolve_ivp(
     tmax,
     y0,
     df=None,
-    method="ek0",
+    method="EK0",
     dense_output=True,
-    which_prior="ibm1",
-    atol=1e-4,
+    which_prior="IBM2",
+    atol=1e-2,
     rtol=1e-2,
     step=None,
-    driftspeed=1.0,
-    lengthscale=1.0,
+    driftspeed=None,
+    lengthscale=None,
 ):
     r"""Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -109,12 +109,12 @@ def probsolve_ivp(
         options are
 
         ======================  ========================================
-         IBM(:math:`q`)         ``'ibm1'``, ``'ibm2'``, ``'ibm3'``,
-                                ``'ibm4'``
-         IOUP(:math:`q`)        ``'ioup1'``, ``'ioup2'``, ``'ioup3'``,
-                                ``'ioup4'``
-         Matern(:math:`q+0.5`)  ``'matern32'``, ``'matern52'``,
-                                ``'matern72'``, ``'matern92'``
+         IBM(:math:`q`)         ``'IBM1'``, ``'IBM2'``, ``'IBM3'``,
+                                ``'IBM4'``
+         IOUP(:math:`q`)        ``'IOUP1'``, ``'IOUP2'``, ``'IOUP3'``,
+                                ``'IOUP4'``
+         Matern(:math:`q+0.5`)  ``'MAT32'``, ``'MAT52'``,
+                                ``'MAT72'``, ``'MAT92'``
         ======================  ========================================
 
         The type of prior relates to prior assumptions about the
@@ -124,20 +124,24 @@ def probsolve_ivp(
         hand, if the :math:`q`-th derivative is expected to regress to
         zero, an IOUP(:math:`q`) prior might be suitable.
     method : str, optional
-        Which method is to be used. Default is ``ek0`` which is the
+        Which method is to be used. Default is ``EK0`` which is the
         method proposed by Schober et al.. The available
         options are
 
         ================================================  ==============
-         Extended Kalman filtering/smoothing (0th order)  ``'ek0'``
-         Extended Kalman filtering/smoothing (1st order)  ``'ek1'``
-         Unscented Kalman filtering/smoothing             ``'uk'``
+         Extended Kalman filtering/smoothing (0th order)  ``'EK0'``
+         Extended Kalman filtering/smoothing (1st order)  ``'EK1'``
+         Unscented Kalman filtering/smoothing             ``'UK'``
         ================================================  ==============
 
-        First order extended Kalman filtering and smoothing methods
-        require Jacobians of the RHS-vector field of the IVP. That is,
-        the argument ``df`` needs to be specified. The unscented Kalman filter is supported,
-        but since its square-root implementation is not available yet, it will be less stable
+        First order extended Kalman filtering and smoothing methods (``EK1``)
+        require Jacobians of the RHS-vector field of the IVP.
+        That is, the argument ``df`` needs to be specified.
+        They are likely to perform better than zeroth order methods in
+        terms of (A-)stability and "meaningful uncertainty estimates".
+        The unscented Kalman filter is supported,
+        but since its square-root implementation is not available yet, it will be
+        less stable (numerically, i.e. in terms of singular matrices)
         than the extended Kalman filter variations.
     dense_output : bool
         Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
@@ -145,10 +149,10 @@ def probsolve_ivp(
         but when it is ``True``, the filter solution is smoothed.
     driftspeed : float
         Drift speed of the IOUP process. Only used there, i.e. IBM and Matern remain unaffected by this argument.
-        Optional. Default is 1.0.
+        Optional. Default is None. If not specified, it is set to the default value ``driftspeed = step``.
     lengthscale : float
         Length scale of the Matern process. Only used there, i.e. IBM and IOUP remain unaffected by this argument.
-        Optional. Default is 1.0.
+        Optional. Default is None. If not specified, it is set to the default value ``lengthscale = 1./step``.
 
     Returns
     -------
@@ -194,39 +198,40 @@ def probsolve_ivp(
     >>> from probnum import random_variables as rvs
     >>> import numpy as np
 
-    Solve a simple logistic ODE.
+    Solve a simple logistic ODE with fixed steps.
 
     >>> def f(t, x):
     ...     return 4*x*(1-x)
     >>>
     >>> y0 = np.array([0.15])
     >>> t0, tmax = 0., 1.5
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, method="ek0", step=0.1, atol=None, rtol=None)
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, atol=None, rtol=None)
     >>> print(np.round(solution.y.mean, 2))
     [[0.15]
      [0.21]
      [0.28]
-     [0.36]
+     [0.37]
      [0.46]
      [0.56]
-     [0.65]
+     [0.66]
      [0.74]
      [0.81]
      [0.86]
      [0.9 ]
      [0.93]
-     [0.95]
+     [0.96]
      [0.97]
      [0.98]
-     [0.98]]
+     [0.99]]
+
 
     Other priors and other methods are easily accessible.
 
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="ek1", which_prior="ioup3", step=0.1, atol=None, rtol=None)
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", which_prior="IOUP2", step=0.1, atol=None, rtol=None)
     >>> print(np.round(solution.y.mean, 2))
-    [[0.15]
+        [[0.15]
      [0.21]
      [0.28]
      [0.37]
@@ -242,11 +247,35 @@ def probsolve_ivp(
      [0.97]
      [0.98]
      [0.99]]
+
     """
+
+    # Normalize string inputs
+    method = method.upper()
+    which_prior = which_prior.upper()
+
+    # Create IVP object
     ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
-    stprl = _create_steprule(atol, rtol, step, ivp)
+
+    # Infer first step from arguments
+    if step is None:
+        # lazy version of Hairer, Wanner, Norsett, p. 169
+        norm_y0 = np.linalg.norm(ivp.initrv.mean)
+        norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
+        firststep = 0.01 * norm_y0 / norm_dy0
+    else:
+        firststep = step
+
+    # Set up some default hyperparameters: not great, but much better than 1.0
+    lengthscale = lengthscale if lengthscale is not None else 1.0 / firststep
+    driftspeed = driftspeed if driftspeed is not None else firststep
+
+    # Construct underlying Kalman filter object
+    stprl = _create_steprule(atol, rtol, step, firststep)
     prior = _string2prior(ivp, which_prior, driftspeed, lengthscale)
     gfilt = _create_filter(ivp, prior, method)
+
+    # Solve
     solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=dense_output)
     solution = solver.solve(steprule=stprl)
     return solution
@@ -254,13 +283,13 @@ def probsolve_ivp(
 
 def _create_filter(ivp, prior, method):
     """Create the solver object that is used."""
-    if method not in ["ek0", "ek1", "uk"]:
+    if method not in ["EK0", "EK1", "UK"]:
         raise ValueError("Method not supported.")
     gfilt = _string2filter(ivp, prior, method)
     return gfilt
 
 
-def _create_steprule(atol, rtol, step, ivp):
+def _create_steprule(atol, rtol, step, firststep):
     if atol is None and rtol is None and step is None:
         errormsg = (
             "Please specify either absolute and relative tolerances or a step size."
@@ -270,22 +299,16 @@ def _create_steprule(atol, rtol, step, ivp):
     if atol is None and rtol is None:
         stprl = steprule.ConstantSteps(step)
     else:
-        if step is None:
-            # lazy version of Hairer, Wanner, Norsett, p. 169
-            norm_y0 = np.linalg.norm(ivp.initrv.mean)
-            norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
-            firststep = 0.01 * norm_y0 / norm_dy0
-        else:
-            firststep = step
+        firststep = step if step is not None else firststep
         stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     return stprl
 
 
 def _string2prior(ivp, which_prior, driftspeed, lengthscale):
 
-    ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
-    ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
-    matern_family = ["matern32", "matern52", "matern72", "matern92"]
+    ibm_family = ["IBM1", "IBM2", "IBM3", "IBM4"]
+    ioup_family = ["IOUP1", "IOUP2", "IOUP3", "IOUP4"]
+    matern_family = ["MAT32", "MAT52", "MAT72", "MAT92"]
     if which_prior in ibm_family:
         return _string2ibm(ivp, which_prior)
     elif which_prior in ioup_family:
@@ -298,28 +321,28 @@ def _string2prior(ivp, which_prior, driftspeed, lengthscale):
 
 def _string2ibm(ivp, which_prior):
 
-    if which_prior == "ibm1":
+    if which_prior == "IBM1":
         return pnfs.statespace.IBM(
             1,
             ivp.dimension,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "ibm2":
+    elif which_prior == "IBM2":
         return pnfs.statespace.IBM(
             2,
             ivp.dimension,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "ibm3":
+    elif which_prior == "IBM3":
         return pnfs.statespace.IBM(
             3,
             ivp.dimension,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "ibm4":
+    elif which_prior == "IBM4":
         return pnfs.statespace.IBM(
             4,
             ivp.dimension,
@@ -332,7 +355,7 @@ def _string2ibm(ivp, which_prior):
 
 def _string2ioup(ivp, which_prior, driftspeed):
 
-    if which_prior == "ioup1":
+    if which_prior == "IOUP1":
         return pnfs.statespace.IOUP(
             1,
             ivp.dimension,
@@ -340,7 +363,7 @@ def _string2ioup(ivp, which_prior, driftspeed):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "ioup2":
+    elif which_prior == "IOUP2":
         return pnfs.statespace.IOUP(
             2,
             ivp.dimension,
@@ -348,7 +371,7 @@ def _string2ioup(ivp, which_prior, driftspeed):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "ioup3":
+    elif which_prior == "IOUP3":
         return pnfs.statespace.IOUP(
             3,
             ivp.dimension,
@@ -356,7 +379,7 @@ def _string2ioup(ivp, which_prior, driftspeed):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "ioup4":
+    elif which_prior == "IOUP4":
         return pnfs.statespace.IOUP(
             4,
             ivp.dimension,
@@ -370,7 +393,7 @@ def _string2ioup(ivp, which_prior, driftspeed):
 
 def _string2matern(ivp, which_prior, lengthscale):
 
-    if which_prior == "matern32":
+    if which_prior == "MAT32":
         return pnfs.statespace.Matern(
             1,
             ivp.dimension,
@@ -378,7 +401,7 @@ def _string2matern(ivp, which_prior, lengthscale):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "matern52":
+    elif which_prior == "MAT52":
         return pnfs.statespace.Matern(
             2,
             ivp.dimension,
@@ -386,7 +409,7 @@ def _string2matern(ivp, which_prior, lengthscale):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "matern72":
+    elif which_prior == "MAT72":
         return pnfs.statespace.Matern(
             3,
             ivp.dimension,
@@ -394,7 +417,7 @@ def _string2matern(ivp, which_prior, lengthscale):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "matern92":
+    elif which_prior == "MAT92":
         return pnfs.statespace.Matern(
             4,
             ivp.dimension,
@@ -409,10 +432,10 @@ def _string2matern(ivp, which_prior, lengthscale):
 def _string2filter(_ivp, _prior, _method):
 
     evlvar = 0.0
-    if _method == "ek0":
+    if _method == "EK0":
         return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    if _method == "ek1":
+    if _method == "EK1":
         return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    if _method == "uk":
+    if _method == "UK":
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
     raise ValueError("Type of filter not supported.")
