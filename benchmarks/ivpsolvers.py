@@ -23,7 +23,7 @@ class IVPSolve:
     def setup(self, method, prior):
         # pylint: disable=invalid-name
         self.ivp = load_lotkavolterra()
-        self.stepsize = 1e-2
+        self.stepsize = 1e-1
 
     def time_solve(self, method, prior):
         f = self.ivp.rhs
