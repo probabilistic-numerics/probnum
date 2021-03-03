@@ -15,7 +15,10 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         initrv = Constant(20 * np.ones(2))
         self.ivp = lotkavolterra([0.0, 0.5], initrv)
         step = 0.1
-        self.solution = probsolve_ivp(self.ivp, step=step)
+        f = self.ivp.rhs
+        t0, tmax = self.ivp.timespan
+        y0 = self.ivp.initrv.mean
+        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, atol=None, rtol=None)
 
     def test_len(self):
         self.assertTrue(len(self.solution) > 0)
@@ -94,7 +97,13 @@ class TestODESolutionHigherOrderPrior(TestODESolution):
         initrv = Constant(20 * np.ones(2))
         self.ivp = lotkavolterra([0.0, 0.5], initrv)
         step = 0.1
-        self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
+        f = self.ivp.rhs
+        t0, tmax = self.ivp.timespan
+        y0 = self.ivp.initrv.mean
+
+        self.solution = probsolve_ivp(
+            f, t0, tmax, y0, which_prior="ibm3", step=step, atol=None, rtol=None
+        )
 
 
 class TestODESolutionOneDimODE(TestODESolution):
@@ -104,7 +113,13 @@ class TestODESolutionOneDimODE(TestODESolution):
         initrv = Constant(0.1 * np.ones(1))
         self.ivp = logistic([0.0, 1.5], initrv)
         step = 0.1
-        self.solution = probsolve_ivp(self.ivp, which_prior="ibm3", step=step)
+        f = self.ivp.rhs
+        t0, tmax = self.ivp.timespan
+        y0 = self.ivp.initrv.mean
+
+        self.solution = probsolve_ivp(
+            f, t0, tmax, y0, which_prior="ibm3", step=step, atol=None, rtol=None
+        )
 
 
 class TestODESolutionAdaptive(TestODESolution):
@@ -112,7 +127,13 @@ class TestODESolutionAdaptive(TestODESolution):
 
     def setUp(self):
         super().setUp()
-        self.solution = probsolve_ivp(self.ivp, which_prior="ibm2", atol=0.1, rtol=0.1)
+        f = self.ivp.rhs
+        t0, tmax = self.ivp.timespan
+        y0 = self.ivp.initrv.mean
+
+        self.solution = probsolve_ivp(
+            f, t0, tmax, y0, which_prior="ibm2", atol=0.1, rtol=0.1
+        )
 
 
 class TestODESolutionSampling(unittest.TestCase):
@@ -122,7 +143,11 @@ class TestODESolutionSampling(unittest.TestCase):
         )
         self.ivp = lotkavolterra([0.0, 0.5], initrv)
         step = 0.1
-        self.solution = probsolve_ivp(self.ivp, step=step)
+        f = self.ivp.rhs
+        t0, tmax = self.ivp.timespan
+        y0 = self.ivp.initrv.mean
+
+        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, atol=None, rtol=None)
 
     def test_output_shape(self):
         loc_inputs = [
