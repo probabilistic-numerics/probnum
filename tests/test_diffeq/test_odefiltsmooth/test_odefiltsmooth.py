@@ -39,7 +39,6 @@ def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
-    # Values that seem okay for this setup from experience.
     lengthscale = 10.0
     driftspeed = 1.0
 
@@ -55,8 +54,8 @@ def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step
         method=method,
         dense_output=dense_output,
         step=step,
-        lengthscale=lengthscale,
         driftspeed=driftspeed,
+        lengthscale=lengthscale,
     )
     # Successful return value as documented
     assert isinstance(sol, KalmanODESolution)
@@ -65,3 +64,34 @@ def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step
     step_diff = np.diff(sol.t)
     step_ratio = np.amin(step_diff) / np.amax(step_diff)
     assert step_ratio < 0.5
+
+
+def test_wrong_prior_raises_error(ivp):
+    """Priors that are not in the list raise errors."""
+    f = ivp.rhs
+    df = ivp.jacobian
+    t0, tmax = ivp.timespan
+    y0 = ivp.initrv.mean
+
+    for which_prior in ["IBM5", "IOUP5", "MAT112"]:
+        with pytest.raises(ValueError):
+            probsolve_ivp(
+                f,
+                t0,
+                tmax,
+                y0,
+                df=df,
+                which_prior=which_prior,
+            )
+
+
+def test_wrong_filter_raises_error(ivp):
+    """Priors that are not in the list raise errors."""
+    f = ivp.rhs
+    df = ivp.jacobian
+    t0, tmax = ivp.timespan
+    y0 = ivp.initrv.mean
+
+    # UK1 does not exist
+    with pytest.raises(ValueError):
+        probsolve_ivp(f, t0, tmax, y0, df=df, method="UK1")

@@ -322,8 +322,7 @@ def _string2prior(ivp, which_prior, driftspeed, lengthscale):
         return _string2ioup(ivp, which_prior, driftspeed=driftspeed)
     elif which_prior in matern_family:
         return _string2matern(ivp, which_prior, lengthscale=lengthscale)
-    else:
-        raise RuntimeError("It should have been impossible to reach this point.")
+    raise ValueError("This prior is not supported.")
 
 
 def _string2ibm(ivp, which_prior):
@@ -356,8 +355,7 @@ def _string2ibm(ivp, which_prior):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    else:
-        raise RuntimeError("It should have been impossible to reach this point.")
+    raise ValueError("This prior is not supported.")
 
 
 def _string2ioup(ivp, which_prior, driftspeed):
@@ -394,8 +392,7 @@ def _string2ioup(ivp, which_prior, driftspeed):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    else:
-        raise RuntimeError("It should have been impossible to reach this point.")
+    raise ValueError("This prior is not supported.")
 
 
 def _string2matern(ivp, which_prior, lengthscale):
@@ -432,8 +429,7 @@ def _string2matern(ivp, which_prior, lengthscale):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    else:
-        raise RuntimeError("It should have been impossible to reach this point.")
+    raise ValueError("This prior is not supported.")
 
 
 def _string2filter(_ivp, _prior, _method):
