@@ -34,7 +34,7 @@ def probsolve_ivp(
     tmax,
     y0,
     df=None,
-    method="eks0",
+    method="ek0",
     dense_output=True,
     which_prior="ibm1",
     atol=1e-4,
@@ -136,7 +136,9 @@ def probsolve_ivp(
 
         First order extended Kalman filtering and smoothing methods
         require Jacobians of the RHS-vector field of the IVP. That is,
-        the argument ``df`` needs to be specified.
+        the argument ``df`` needs to be specified. The unscented Kalman filter is supported,
+        but since its square-root implementation is not available yet, it will be less stable
+        than the extended Kalman filter variations.
     dense_output : bool
         Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
         dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
