@@ -35,7 +35,6 @@ If imports are shortened, the following conventions should be used. Full import
 paths are always acceptable.
 
 - `import probnum as pn`
-- `import probnum.random_variables as rvs`
 
 ### Type Standardization
 
