@@ -187,13 +187,16 @@ def probsolve_ivp(
         A probabilistic model for the numerical solution of initial
         value problems.
         Statistics and Computing, 2019.
-    .. [2] Tronarp, F., Kersting, H., Särkkä, S., and Hennig, P..
+    .. [2] Kersting, H., Sullivan, T.J., and Hennig, P..
+        Convergence rates of Gaussian ODE filters.
+        2019.
+    .. [3] Tronarp, F., Kersting, H., Särkkä, S., and Hennig, P..
         Probabilistic solutions to ordinary differential equations as
         non-linear Bayesian filtering: a new perspective.
         Statistics and Computing, 2019.
-    .. [3] Bosch, N., Hennig, P., and Tronarp, F..
-        Calibrated adaptive probabilistic ODE solvers.
-        AISTATS 2021.
+    .. [4] Tronarp, F., Särkkä, S., and Hennig, P..
+        Bayesian ODE solvers: the maximum a posteriori estimate.
+        2019.
 
 
     Examples
