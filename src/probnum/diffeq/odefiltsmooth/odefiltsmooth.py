@@ -291,7 +291,7 @@ def probsolve_ivp(
 def _create_filter(ivp, prior, method):
     """Create the solver object that is used."""
     if method not in ["EK0", "EK1", "UK"]:
-        raise ValueError("Method not supported.")
+        raise ValueError("This method is not supported.")
     gfilt = _string2filter(ivp, prior, method)
     return gfilt
 
@@ -348,14 +348,13 @@ def _string2ibm(ivp, which_prior):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "IBM4":
+    else:  # which_prior == "IBM4":
         return pnfs.statespace.IBM(
             4,
             ivp.dimension,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    raise ValueError("This prior is not supported.")
 
 
 def _string2ioup(ivp, which_prior, driftspeed):
@@ -384,7 +383,7 @@ def _string2ioup(ivp, which_prior, driftspeed):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "IOUP4":
+    else:  # which_prior == "IOUP4":
         return pnfs.statespace.IOUP(
             4,
             ivp.dimension,
@@ -392,7 +391,6 @@ def _string2ioup(ivp, which_prior, driftspeed):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    raise ValueError("This prior is not supported.")
 
 
 def _string2matern(ivp, which_prior, lengthscale):
@@ -421,7 +419,7 @@ def _string2matern(ivp, which_prior, lengthscale):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    elif which_prior == "MAT92":
+    else:  # which_prior == "MAT92":
         return pnfs.statespace.Matern(
             4,
             ivp.dimension,
@@ -429,7 +427,6 @@ def _string2matern(ivp, which_prior, lengthscale):
             forward_implementation="sqrt",
             backward_implementation="sqrt",
         )
-    raise ValueError("This prior is not supported.")
 
 
 def _string2filter(_ivp, _prior, _method):
@@ -437,8 +434,7 @@ def _string2filter(_ivp, _prior, _method):
     evlvar = 0.0
     if _method == "EK0":
         return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    if _method == "EK1":
+    elif _method == "EK1":
         return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    if _method == "UK":
+    else:  # _method == "UK":
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
-    raise ValueError("Type of filter not supported.")

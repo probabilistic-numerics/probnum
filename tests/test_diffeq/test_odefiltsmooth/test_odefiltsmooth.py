@@ -69,7 +69,6 @@ def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step
 def test_wrong_prior_raises_error(ivp):
     """Priors that are not in the list raise errors."""
     f = ivp.rhs
-    df = ivp.jacobian
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
@@ -80,7 +79,6 @@ def test_wrong_prior_raises_error(ivp):
                 t0,
                 tmax,
                 y0,
-                df=df,
                 which_prior=which_prior,
             )
 
@@ -88,10 +86,20 @@ def test_wrong_prior_raises_error(ivp):
 def test_wrong_filter_raises_error(ivp):
     """Priors that are not in the list raise errors."""
     f = ivp.rhs
-    df = ivp.jacobian
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
     # UK1 does not exist
     with pytest.raises(ValueError):
-        probsolve_ivp(f, t0, tmax, y0, df=df, method="UK1")
+        probsolve_ivp(f, t0, tmax, y0, method="UK1")
+
+
+def test_no_step_or_tol_info_raises_error(ivp):
+    """Priors that are not in the list raise errors."""
+    f = ivp.rhs
+    t0, tmax = ivp.timespan
+    y0 = ivp.initrv.mean
+
+    # UK1 does not exist
+    with pytest.raises(ValueError):
+        probsolve_ivp(f, t0, tmax, y0, step=None, atol=None, rtol=None)
