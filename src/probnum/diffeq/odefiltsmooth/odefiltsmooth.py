@@ -21,22 +21,29 @@ References
 import numpy as np
 
 import probnum.filtsmooth as pnfs
+import probnum.random_variables as pnrv
 from probnum.diffeq import steprule
+from probnum.diffeq.ode import IVP
 from probnum.diffeq.odefiltsmooth import ivp2filter
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 
 def probsolve_ivp(
-    ivp,
+    f,
+    t0,
+    tmax,
+    y0,
+    df=None,
     method="eks0",
+    dense_output=True,
     which_prior="ibm1",
-    atol=None,
-    rtol=None,
+    atol=1e-4,
+    rtol=1e-2,
     step=None,
-    firststep=None,
-    **kwargs
+    driftspeed=1.0,
+    lengthscale=1.0,
 ):
-    """Solve initial value problem with Gaussian filtering and smoothing.
+    r"""Solve initial value problem with Gaussian filtering and smoothing.
 
     Numerically computes a Gauss-Markov process which solves numerically
     the initial value problem (IVP) based on a system of first order
@@ -68,22 +75,33 @@ def probsolve_ivp(
     extended Kalman smoothing (EKS1), and
     unscented Kalman smoothing (UKS).
 
+    For adaptive step-size selection of ODE filters, we implement the
+    scheme proposed by Schober et al. (2019), and further examined by Bosch et al (2021),
+    where the local error estimate is derived from the local, calibrated
+    uncertainty estimate.
+
     Arguments
     ---------
-    ivp : IVP
-        Initial value problem to be solved.
-    step : float
-        Step size :math:`h` of the solver. This defines the
-        discretisation mesh as each proposed step is equal to :math:`h`
-        and all proposed steps are accepted.
-        Only one of out of ``step`` and ``tol`` is set.
-    tol : float
-        Tolerance :math:`\\varepsilon` of the adaptive step scheme.
-        We implement the scheme proposed by Schober et al., accepting a
-        step if the absolute as well as the relative error estimate are
-        smaller than the tolerance,
-        :math:`\\max\\{e, e / |y|\\} \\leq \\varepsilon`.
-        Only one of out of ``step`` and ``tol`` is set.
+    f :
+        ODE vector field.
+    t0 :
+        Initial time point.
+    tmax :
+        Final time point.
+    y0 :
+        Initial value.
+    df :
+        Jacobian of the ODE vector field.
+    atol : float
+        Absolute tolerance  of the adaptive step-size selection scheme.
+        Optional. Default is ``1e-4``.
+    rtol : float
+        Relative tolerance   of the adaptive step-size selection scheme.
+        Optional. Default is ``1e-4``.
+    step :
+        Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
+        If they are specified, this only affects the first step. Optional.
+        Default is None, in which case the first step is chosen as :math:`0.01 \cdot |y_0|/|f(t_0, y_0)|`.
     which_prior : str, optional
         Which prior is to be used. Default is an IBM(1), further support
         for IBM(:math:`q`), IOUP(:math:`q`), Matern(:math:`q+1/2`),
@@ -106,38 +124,37 @@ def probsolve_ivp(
         hand, if the :math:`q`-th derivative is expected to regress to
         zero, an IOUP(:math:`q`) prior might be suitable.
     method : str, optional
-        Which method is to be used. Default is ``ekf0`` which is the
+        Which method is to be used. Default is ``ek0`` which is the
         method proposed by Schober et al.. The available
         options are
 
         ================================================  ==============
-         Extended Kalman filtering/smoothing (0th order)  ``'ekf0'``,
-                                                          ``'eks0'``
-         Extended Kalman filtering/smoothing (1st order)  ``'ekf1'``,
-                                                          ``'eks1'``
-         Unscented Kalman filtering/smoothing             ``'ukf'``,
-                                                          ``'uks'``
+         Extended Kalman filtering/smoothing (0th order)  ``'ek0'``
+         Extended Kalman filtering/smoothing (1st order)  ``'ek1'``
+         Unscented Kalman filtering/smoothing             ``'uk'``
         ================================================  ==============
 
         First order extended Kalman filtering and smoothing methods
-        require Jacobians of the RHS-vector field of the IVP. The
-        uncertainty estimates as returned by EKF1/S1 and UKF/S appear to
-        be more reliable than those of EKF0/S0. The latter is more
-        stable when it comes to very small steps.
-
-    firststep : float, optional
-        First suggested step :math:`h_0` for adaptive step size scheme.
-        Default is None which lets the solver start with the suggestion
-        :math:`h_0 = T - t_0`. For low accuracy it might be more
-        efficient to start out with smaller :math:`h_0` so that the
-        first acceptance occurs earlier.
+        require Jacobians of the RHS-vector field of the IVP. That is,
+        the argument ``df`` needs to be specified.
+    dense_output : bool
+        Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
+        dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
+        but when it is ``True``, the filter solution is smoothed.
+    driftspeed : float
+        Drift speed of the IOUP process. Only used there, i.e. IBM and Matern remain unaffected by this argument.
+        Optional. Default is 1.0.
+    lengthscale : float
+        Length scale of the Matern process. Only used there, i.e. IBM and IOUP remain unaffected by this argument.
+        Optional. Default is 1.0.
 
     Returns
     -------
     solution : KalmanODESolution
         Solution of the ODE problem.
 
-        Contains fields:
+        Can be evaluated at and sampled from at arbitrary grid points.
+        Further, it contains fields:
 
         t : :obj:`np.ndarray`, shape=(N,)
             Mesh used by the solver to compute the solution.
@@ -160,16 +177,13 @@ def probsolve_ivp(
         A probabilistic model for the numerical solution of initial
         value problems.
         Statistics and Computing, 2019.
-    .. [2] Kersting, H., Sullivan, T.J., and Hennig, P..
-        Convergence rates of Gaussian ODE filters.
-        2019.
-    .. [3] Tronarp, F., Kersting, H., Särkkä, S., and Hennig, P..
+    .. [2] Tronarp, F., Kersting, H., Särkkä, S., and Hennig, P..
         Probabilistic solutions to ordinary differential equations as
         non-linear Bayesian filtering: a new perspective.
         Statistics and Computing, 2019.
-    .. [4] Tronarp, F., Särkkä, S., and Hennig, P..
-        Bayesian ODE solvers: the maximum a posteriori estimate.
-        2019.
+    .. [3] Bosch, N., Hennig, P., and Tronarp, F..
+        Calibrated adaptive probabilistic ODE solvers.
+        AISTATS 2021.
 
 
     Examples
@@ -219,67 +233,60 @@ def probsolve_ivp(
      [0.98]
      [0.99]]
     """
-    stprl = _create_steprule(atol, rtol, step, firststep, ivp)
-    prior = _string2prior(ivp, which_prior, **kwargs)
-    gfilt = _create_filter(ivp, prior, method, **kwargs)
-    with_smoothing = method[-2] == "s" or method[-1] == "s"
-    solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
+    ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
+    stprl = _create_steprule(atol, rtol, step, ivp)
+    prior = _string2prior(ivp, which_prior, driftspeed, lengthscale)
+    gfilt = _create_filter(ivp, prior, method)
+    solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=dense_output)
     solution = solver.solve(steprule=stprl)
     return solution
 
 
-def _create_filter(ivp, prior, method, **kwargs):
+def _create_filter(ivp, prior, method):
     """Create the solver object that is used."""
-    if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
+    if method not in ["ek0", "ek1", "uk"]:
         raise ValueError("Method not supported.")
-    gfilt = _string2filter(ivp, prior, method, **kwargs)
+    gfilt = _string2filter(ivp, prior, method)
     return gfilt
 
 
-def _create_steprule(atol, rtol, step, firststep, ivp):
-    _check_step_tol(step, atol, rtol)
+def _create_steprule(atol, rtol, step, ivp):
+    if atol is None and rtol is None and step is None:
+        errormsg = (
+            "Please specify either absolute and relative tolerances or a step size."
+        )
+        raise ValueError(errormsg)
 
-    if step is not None:
+    if atol is None and rtol is None:
         stprl = steprule.ConstantSteps(step)
     else:
-        if firststep is None:
+        if step is None:
             # lazy version of Hairer, Wanner, Norsett, p. 169
             norm_y0 = np.linalg.norm(ivp.initrv.mean)
             norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
             firststep = 0.01 * norm_y0 / norm_dy0
+        else:
+            firststep = step
         stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     return stprl
 
 
-def _check_step_tol(step, atol, rtol):
-    both_none = atol is None and rtol is None and step is None
-    both_not_none = (atol is not None and rtol is not None) and step is not None
-    if both_none or both_not_none:
-        errormsg = "Please specify either a tolerance or a step size."
-        raise ValueError(errormsg)
-    atol_not_rtol = atol is not None and rtol is None
-    rtol_not_atol = rtol is not None and atol is None
-    if atol_not_rtol or rtol_not_atol:
-        errormsg = "Please specify either both atol and rtol, or neither."
-        raise ValueError(errormsg)
-
-
-def _string2prior(ivp, which_prior, **kwargs):
+def _string2prior(ivp, which_prior, driftspeed, lengthscale):
 
     ibm_family = ["ibm1", "ibm2", "ibm3", "ibm4"]
     ioup_family = ["ioup1", "ioup2", "ioup3", "ioup4"]
     matern_family = ["matern32", "matern52", "matern72", "matern92"]
     if which_prior in ibm_family:
-        return _string2ibm(ivp, which_prior, **kwargs)
+        return _string2ibm(ivp, which_prior)
     elif which_prior in ioup_family:
-        return _string2ioup(ivp, which_prior, **kwargs)
+        return _string2ioup(ivp, which_prior, driftspeed=driftspeed)
     elif which_prior in matern_family:
-        return _string2matern(ivp, which_prior, **kwargs)
+        return _string2matern(ivp, which_prior, lengthscale=lengthscale)
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2ibm(ivp, which_prior, **kwargs):
+def _string2ibm(ivp, which_prior):
 
     if which_prior == "ibm1":
         return pnfs.statespace.IBM(
@@ -313,12 +320,8 @@ def _string2ibm(ivp, which_prior, **kwargs):
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2ioup(ivp, which_prior, **kwargs):
+def _string2ioup(ivp, which_prior, driftspeed):
 
-    if "driftspeed" in kwargs.keys():
-        driftspeed = kwargs["driftspeed"]
-    else:
-        driftspeed = 1.0
     if which_prior == "ioup1":
         return pnfs.statespace.IOUP(
             1,
@@ -355,12 +358,8 @@ def _string2ioup(ivp, which_prior, **kwargs):
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2matern(ivp, which_prior, **kwargs):
+def _string2matern(ivp, which_prior, lengthscale):
 
-    if "lengthscale" in kwargs.keys():
-        lengthscale = kwargs["lengthscale"]
-    else:
-        lengthscale = 1.0
     if which_prior == "matern32":
         return pnfs.statespace.Matern(
             1,
@@ -397,17 +396,13 @@ def _string2matern(ivp, which_prior, **kwargs):
         raise RuntimeError("It should have been impossible to reach this point.")
 
 
-def _string2filter(_ivp, _prior, _method, **kwargs):
+def _string2filter(_ivp, _prior, _method):
 
-    if "evlvar" in kwargs.keys():
-        evlvar = kwargs["evlvar"]
-    else:
-        evlvar = 0.0
-    if _method in ("ekf0", "eks0"):
+    evlvar = 0.0
+    if _method == "ek0":
         return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    elif _method in ("ekf1", "eks1"):
+    if _method == "ek1":
         return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    elif _method in ("ukf", "uks"):
+    if _method == "uk":
         return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
-    else:
-        raise ValueError("Type of filter not supported.")
+    raise ValueError("Type of filter not supported.")
