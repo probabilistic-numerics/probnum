@@ -25,6 +25,7 @@ def ivp():
         "IOUP1",
         "IOUP2",
         "IOUP3",
+        "IOUP4",
         "MAT32",
         "MAT52",
         "MAT72",
@@ -73,6 +74,8 @@ def test_wrong_prior_raises_error(ivp):
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
+    # Anything that is no {IBM, IOUP, MAT} + Number is wrong
+    # (the Matern number must end on a 2).
     for which_prior in ["IBM_5", "IOUPX5", "MAT112Y", "MAT33"]:
         with pytest.raises(ValueError):
             probsolve_ivp(

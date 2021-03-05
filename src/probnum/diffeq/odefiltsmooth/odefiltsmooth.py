@@ -111,13 +111,18 @@ def probsolve_ivp(
         options are
 
         ======================  ========================================
-         IBM(:math:`q`)         ``'IBM1'``, ``'IBM2'``, ``'IBM3'``,
-                                ``'IBM4'``
-         IOUP(:math:`q`)        ``'IOUP1'``, ``'IOUP2'``, ``'IOUP3'``,
-                                ``'IOUP4'``
+         IBM(:math:`q`)         ``'IBM1'``, ``'IBM2'``, ...,
+                                ``'IBM11'``
+         IOUP(:math:`q`)        ``'IOUP1'``, ``'IOUP2'``,
+                                ``'IOUP3'``,``'IOUP4'``
          Matern(:math:`q+0.5`)  ``'MAT32'``, ``'MAT52'``,
                                 ``'MAT72'``, ``'MAT92'``
         ======================  ========================================
+
+        In principle, any prior of the form ``{IBM, IOUP, MAT} + number`` works. Here, the number is the order.
+        For too high orders, process noise covariance matrices become singular. For IBM, this maximum seems to be :`q=11` (using standard ``float64``).
+        For IOUP and Matern, this seems to be ``MAT92``, i.e. order :math:`q=4`.
+        It is possible that higher orders may work for you.
 
         The type of prior relates to prior assumptions about the
         derivative of the solution. The IBM(:math:`q`) prior leads to a
