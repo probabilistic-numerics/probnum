@@ -42,10 +42,8 @@ def sol(ivp, step):
 
 
 def test_first_iteration(ivp, sol):
-    """Test whether first few means and covariances coincide with Prop.
-
-    1 in Schober et al., 2019.
-    """
+    """Test whether first few means and covariances coincide with Proposition 1 in
+    Schober et al., 2019."""
     state_rvs = sol.kalman_posterior.filtering_posterior.state_rvs
     ms, cs = state_rvs.mean, state_rvs.cov
 
