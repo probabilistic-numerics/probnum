@@ -23,10 +23,18 @@ Use absolute imports over relative imports.
 
 Use `__all__ = [...]` in `__init__.py` files to fix the order in which the methods are visible in the documentation.
 This also avoids importing unnecessary functions via import statements ``from ... import *``.
-Almost all methods are "pulled up" to a higher-level namespace via `__init__.py` files. Import from there wherever there is no chance for
+Many classes and functions are "pulled up" to a higher-level namespace via `__init__.
+py`
+files. Import from there wherever there is no chance for
 confusion and/or circular imports. This makes imports more readable. When changing the namespace of classes make sure to
 to correct module paths in the documentation by adding `SuperClass.__module__ = "probnum.module"` to the corresponding
 `__init.py__`.
+
+#### Conventions
+If imports are shortened, the following conventions should be used. Full import
+paths are always acceptable.
+
+- `import probnum as pn`
 
 ### Type Standardization
 
@@ -87,8 +95,8 @@ Further conventions are
 - `unit2unit`: convert between types or units, e.g. `mat2arr`: convert matrix to array or `s2ms`: convert seconds to milliseconds. Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - `proj`: projection (if required: `projmat`, `projvec`, `projlinop`, ...)
 - `precon`: preconditioner
-- `driftmat`: drift-matrix, `forcevec`: force-vector, `dispmat` dispersion-matrix, 
-`dynamicsmat` dynamics-matrix, `diffmat` diffusion-matrix, 
+- `driftmat`: drift-matrix, `forcevec`: force-vector, `dispmat` dispersion-matrix,
+`dynamicsmat` dynamics-matrix, `diffmat` diffusion-matrix,
 plus the respective `driftmatfun`, `driftfun`, `dispmatfun`, etc.
 - `inv*`: for inverse of a matrix; e.g. `invprecond`, `invcovmat`, ...
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`
