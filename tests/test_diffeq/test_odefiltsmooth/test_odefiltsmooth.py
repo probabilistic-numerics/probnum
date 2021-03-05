@@ -83,8 +83,8 @@ def test_wrong_prior_raises_error(ivp):
             )
 
 
-def test_wrong_filter_raises_error(ivp):
-    """Priors that are not in the list raise errors."""
+def test_wrong_method_raises_error(ivp):
+    """Methods that are not in the list raise errors."""
     f = ivp.rhs
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
@@ -95,11 +95,10 @@ def test_wrong_filter_raises_error(ivp):
 
 
 def test_no_step_or_tol_info_raises_error(ivp):
-    """Priors that are not in the list raise errors."""
+    """Providing neither a step-size nor a tolerance raises an error."""
     f = ivp.rhs
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
-    # UK1 does not exist
     with pytest.raises(ValueError):
         probsolve_ivp(f, t0, tmax, y0, step=None, atol=None, rtol=None)
