@@ -18,6 +18,8 @@ References
 .. [4] https://arxiv.org/pdf/2004.00623.pdf
 """
 
+import re
+
 import numpy as np
 
 import probnum.filtsmooth as pnfs
@@ -312,121 +314,53 @@ def _create_steprule(atol, rtol, step, firststep):
 
 
 def _string2prior(ivp, which_prior, driftspeed, lengthscale):
+    """Turn a ``which_prior`` string into an actual prior."""
 
-    ibm_family = ["IBM1", "IBM2", "IBM3", "IBM4"]
-    ioup_family = ["IOUP1", "IOUP2", "IOUP3", "IOUP4"]
-    matern_family = ["MAT32", "MAT52", "MAT72", "MAT92"]
-    if which_prior in ibm_family:
-        return _string2ibm(ivp, which_prior)
-    elif which_prior in ioup_family:
-        return _string2ioup(ivp, which_prior, driftspeed=driftspeed)
-    elif which_prior in matern_family:
-        return _string2matern(ivp, which_prior, lengthscale=lengthscale)
-    raise ValueError("This prior is not supported.")
+    prior_str, order_str = _split_prior_string(which_prior)
+    order = _turn_order_string_into_integer_order(order_str, prior_str)
 
-
-def _string2ibm(ivp, which_prior):
-
-    if which_prior == "IBM1":
-        return pnfs.statespace.IBM(
-            1,
+    # Fix priors with all but the order
+    choose_prior = {
+        "IBM": lambda q: pnfs.statespace.IBM(
+            q,
             ivp.dimension,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
-        )
-    elif which_prior == "IBM2":
-        return pnfs.statespace.IBM(
-            2,
+        ),
+        "IOUP": lambda q: pnfs.statespace.IOUP(
+            q,
             ivp.dimension,
+            driftspeed=driftspeed,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
-        )
-    elif which_prior == "IBM3":
-        return pnfs.statespace.IBM(
-            3,
+        ),
+        "MAT": lambda q: pnfs.statespace.Matern(
+            q,
             ivp.dimension,
+            lengthscale=lengthscale,
             forward_implementation="sqrt",
             backward_implementation="sqrt",
-        )
-    else:  # which_prior == "IBM4":
-        return pnfs.statespace.IBM(
-            4,
-            ivp.dimension,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
+        ),
+    }
+    return choose_prior[prior_str](order)
 
 
-def _string2ioup(ivp, which_prior, driftspeed):
-
-    if which_prior == "IOUP1":
-        return pnfs.statespace.IOUP(
-            1,
-            ivp.dimension,
-            driftspeed,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-    elif which_prior == "IOUP2":
-        return pnfs.statespace.IOUP(
-            2,
-            ivp.dimension,
-            driftspeed,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-    elif which_prior == "IOUP3":
-        return pnfs.statespace.IOUP(
-            3,
-            ivp.dimension,
-            driftspeed,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-    else:  # which_prior == "IOUP4":
-        return pnfs.statespace.IOUP(
-            4,
-            ivp.dimension,
-            driftspeed,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
+def _turn_order_string_into_integer_order(order_str, prior_str):
+    if prior_str in ["IBM", "IOUP"]:
+        order = int(order_str)
+    else:  # must be "MAT"
+        order = int(np.floor(float(order_str[:-1]) / 2.0))
+    return order
 
 
-def _string2matern(ivp, which_prior, lengthscale):
-
-    if which_prior == "MAT32":
-        return pnfs.statespace.Matern(
-            1,
-            ivp.dimension,
-            lengthscale,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-    elif which_prior == "MAT52":
-        return pnfs.statespace.Matern(
-            2,
-            ivp.dimension,
-            lengthscale,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-    elif which_prior == "MAT72":
-        return pnfs.statespace.Matern(
-            3,
-            ivp.dimension,
-            lengthscale,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
-    else:  # which_prior == "MAT92":
-        return pnfs.statespace.Matern(
-            4,
-            ivp.dimension,
-            lengthscale,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        )
+def _split_prior_string(which_prior):
+    m = re.match("^(IBM|IOUP|MAT)([0-9]+)$", which_prior)
+    if m is None:
+        raise ValueError("This prior is not supported.")
+    prior_str, order_str = m.groups()
+    if prior_str == "MAT" and order_str[-1] != "2":
+        raise ValueError("Order of Matern prior is not understood.")
+    return prior_str, order_str
 
 
 def _string2filter(_ivp, _prior, _method):

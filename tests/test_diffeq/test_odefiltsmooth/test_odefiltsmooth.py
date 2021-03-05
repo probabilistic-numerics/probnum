@@ -19,11 +19,12 @@ def ivp():
         "IBM1",
         "IBM2",
         "IBM3",
-        "IBM4",
+        "IBM5",
+        "IBM8",
+        "IBM11",
         "IOUP1",
         "IOUP2",
         "IOUP3",
-        "IOUP4",
         "MAT32",
         "MAT52",
         "MAT72",
@@ -72,7 +73,7 @@ def test_wrong_prior_raises_error(ivp):
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
-    for which_prior in ["IBM5", "IOUP5", "MAT112"]:
+    for which_prior in ["IBM_5", "IOUPX5", "MAT112Y", "MAT33"]:
         with pytest.raises(ValueError):
             probsolve_ivp(
                 f,
