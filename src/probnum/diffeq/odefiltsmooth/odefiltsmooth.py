@@ -230,14 +230,6 @@ def probsolve_ivp(
     return solution
 
 
-def _create_filter(ivp, prior, method, **kwargs):
-    """Create the solver object that is used."""
-    if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
-        raise ValueError("Method not supported.")
-    gfilt = _string2filter(ivp, prior, method, **kwargs)
-    return gfilt
-
-
 def _create_steprule(atol, rtol, step, firststep, ivp):
     _check_step_tol(step, atol, rtol)
 
