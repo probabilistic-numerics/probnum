@@ -17,15 +17,15 @@ class IVPSolve:
     """Benchmark ODE-filter and ODE-smoother with fixed steps and different priors and
     information operators."""
 
-    param_names = ["method", "prior"]
-    params = [["ek0", "ek1"], ["IBM3", "IOUP3", "MAT72"]]
+    param_names = ["method", "algo_order"]
+    params = [["ek0", "ek1"], [2, 3]]
 
     def setup(self, method, prior):
         # pylint: disable=invalid-name
         self.ivp = load_lotkavolterra()
         self.stepsize = 1e-1
 
-    def time_solve(self, method, prior):
+    def time_solve(self, method, algo_order):
         f = self.ivp.rhs
         df = self.ivp.jacobian
         t0, tmax = self.ivp.timespan
@@ -37,13 +37,12 @@ class IVPSolve:
             y0,
             df=df,
             method=method,
-            which_prior=prior,
+            algo_order=algo_order,
             step=self.stepsize,
-            atol=None,
-            rtol=None,
+            adaptive=False,
         )
 
-    def peakmem_solve(self, method, prior):
+    def peakmem_solve(self, method, algo_order):
         f = self.ivp.rhs
         df = self.ivp.jacobian
         t0, tmax = self.ivp.timespan
@@ -55,8 +54,7 @@ class IVPSolve:
             y0,
             df=df,
             method=method,
-            which_prior=prior,
+            algo_order=algo_order,
             step=self.stepsize,
-            atol=None,
-            rtol=None,
+            adaptive=False,
         )
