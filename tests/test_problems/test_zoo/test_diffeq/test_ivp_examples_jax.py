@@ -35,18 +35,6 @@ only_if_jax_is_not_available = pytest.mark.skipif(
 
 
 @pytest.mark.parametrize("ivp_jax", IVPs)
-@pytest.mark.parametrize("order", [0, 1, 2])
-@only_if_jax_available
-def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
-    """Test asserts that the examples in diffeq-zoo are compatible with
-    `compute_all_derivatives`, which happens if they are implemented in jax, and jax is
-    available in the current environment."""
-
-    ivp = pnd.extend_ivp_with_all_derivatives(ivp_jax, order=order)
-    assert isinstance(ivp, pnprob.InitialValueProblem)
-
-
-@pytest.mark.parametrize("ivp_jax", IVPs)
 @only_if_jax_available
 def test_f(ivp_jax):
     ivp_jax.f(ivp_jax.t0, ivp_jax.y0)

@@ -37,14 +37,16 @@ def lv():
     y0 = pnrv.Constant(np.array([20.0, 20.0]))
 
     # tmax is ignored anyway
-    return pnde.lotkavolterra([0.0, None], y0)
+    return pnde.lotkavolterra([0.0, np.inf], y0)
 
 
 @pytest.fixture
 def lv_inits(order):
     lv_dim = 2
     vals = LV_INITS[: lv_dim * (order + 1)]
-    return pnss.convert_derivwise_to_coordwise(vals, ordint=order, spatialdim=lv_dim)
+    return pnss.Integrator._convert_derivwise_to_coordwise(
+        vals, ordint=order, spatialdim=lv_dim
+    )
 
 
 def test_initialize_with_rk(lv, lv_inits, order):
@@ -80,7 +82,7 @@ def test_initialize_with_taylormode(any_order):
     """Make sure that the values are close(ish) to the truth."""
     r2b_jax = diffeq_zoo.threebody_jax()
     ode_dim = 4
-    expected = pnss.convert_derivwise_to_coordwise(
+    expected = pnss.Integrator._convert_derivwise_to_coordwise(
         THREEBODY_INITS[: ode_dim * (any_order + 1)],
         ordint=any_order,
         spatialdim=ode_dim,

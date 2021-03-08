@@ -8,8 +8,9 @@ extract "the first few derivatives", we can conveniently slice the first
 ``(d*(q+1))`` entries and reshape accordingly. Otherwise, we would have
 to slice the blocks (:(q+1)), (d*15:d*15+q+1), ...
 
-To convert between the two representations use `probnum.statespace.convert_derivwise_to_coordwise` or
-`probnum.statespace.convert_coordwise_to-derivwise`.
+To convert between the two representations use the static methods
+    * `probnum.statespace.Integrator._convert_derivwise_to_coordwise`; or
+    * `probnum.statespace.Integrator._convert_coordwise_to_derivwise`.
 """
 
 

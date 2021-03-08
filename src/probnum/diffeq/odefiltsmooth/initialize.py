@@ -287,7 +287,7 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, prior):
 
     derivs.extend(z0)
     if order == 0:
-        all_derivs = pnss.convert_derivwise_to_coordwise(
+        all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
             jnp.array(derivs), ordint=0, spatialdim=len(z0)
         )
 
@@ -300,7 +300,7 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, prior):
     (y0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
     derivs.extend(y0[:-1])
     if order == 1:
-        all_derivs = pnss.convert_derivwise_to_coordwise(
+        all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
             jnp.array(derivs), ordint=1, spatialdim=len(z0)
         )
 
@@ -315,7 +315,7 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, prior):
         (y0, [*yns]) = jet(total_derivative, (z_t,), ((y0, *yns),))
         derivs.extend(yns[-2][:-1])
 
-    all_derivs = pnss.convert_derivwise_to_coordwise(
+    all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
         jnp.array(derivs), ordint=order + 2, spatialdim=len(z0)
     )
 
