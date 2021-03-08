@@ -22,7 +22,7 @@ SMALL_VALUE = 1e-28
 
 
 def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP853"):
-    r"""Compute derivatives of the initial value by fitting a prior Gauss-Markov process to a few steps of an approximate ODE solution.
+    r"""Initialize an ODE filter by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's RK.
 
     It goes as follows:
 
@@ -46,8 +46,8 @@ def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP
         Initial value.
     t0
         Initial time point.
-    order
-        Number of derivatives to compute. Corresponds to the order of the prior (for instance the number of times an integrated Brownian motion process is integrated).
+    prior
+        Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
     df
         Jacobian of the ODE vector field. Optional. If specified, more components of the result will be exact.
     h0
@@ -142,8 +142,7 @@ def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP
 
 
 def initialize_odefilter_with_taylormode(f, y0, t0, prior):
-    """Compute derivatives of the initial conditions of an IVP with Taylor-mode
-    automatic differentiation.
+    """Initialize an ODE filter with Taylor-mode automatic differentiation.
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
 
@@ -164,8 +163,8 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior):
         Initial value.
     t0
         Initial time point.
-    order
-        Number of derivatives to compute. Corresponds to the order of the prior (for instance the number of times an integrated Brownian motion process is integrated).
+    prior
+        Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
 
     Returns
     -------

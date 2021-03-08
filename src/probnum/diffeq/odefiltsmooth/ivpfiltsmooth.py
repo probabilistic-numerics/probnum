@@ -26,19 +26,15 @@ class GaussianIVPFilter(ODESolver):
     ----------
     ivp
         Initial value problem to be solved.
-    gaussfilt : gaussianfilter.GaussianFilter
-            e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
+    prior
+        Prior distribution.
+    measurement_model
+        ODE measurement model.
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
     init_implementation
         Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
         For more convenient construction, consider :func:`GaussianIVPFilter.from_scipy_init`.
-
-    Notes
-    -----
-    - gaussfilt.dynamicmodel contains the prior,
-    - gaussfilt.measurementmodel contains the information about the ODE right hand side function,
-    - gaussfilt.initialdistribution contains the information about the initial values.
     """
 
     def __init__(
@@ -74,15 +70,16 @@ class GaussianIVPFilter(ODESolver):
     def string_to_measurement_model(
         measurement_model_string, ivp, prior, measurement_noise_covariance=0.0
     ):
-        """Return a measurement model :math:`\\mathcal{N}(g(m), R)` based on the local
-        defect.
+        """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
+
+        Return a :class:`DiscreteGaussian` (either a :class:`DiscreteEKFComponent` or a `DiscreteUKFComponent`) that provides
+        a tractable approximation of the transition densities based on the local defect of the ODE
 
         .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t))
 
         and user-specified measurement noise covariance :math:`R`. Almost always, the measurement noise covariance is zero.
 
-        Compute either type filter, each with a
-        different interpretation of the Jacobian :math:`J_g`:
+        Compute either type filter, each with a different interpretation of the Jacobian :math:`J_g`:
 
         - EKF0 thinks :math:`J_g(m) = H_1`
         - EKF1 thinks :math:`J_g(m) = H_1 - J_f(t, H_0 m(t)) H_0^\\top`
