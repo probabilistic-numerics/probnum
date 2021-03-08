@@ -106,8 +106,8 @@ class InitialValueProblem:
     df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
 
-    dy0_all: typing.Optional[np.ndarray] = None
-    dy0_errors: typing.Optional[np.ndarray] = None
+    # dy0_all: typing.Optional[np.ndarray] = None
+    # dy0_errors: typing.Optional[np.ndarray] = None
 
     # For testing and benchmarking
     solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
