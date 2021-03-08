@@ -223,7 +223,9 @@ def probsolve_ivp(
     prior = _string2prior(ivp, which_prior, **kwargs)
     gfilt = _create_filter(ivp, prior, method, **kwargs)
     with_smoothing = method[-2] == "s" or method[-1] == "s"
-    solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
+    solver = GaussianIVPFilter.from_scipy_init(
+        ivp, gfilt, with_smoothing=with_smoothing
+    )
     solution = solver.solve(steprule=stprl)
     return solution
 

@@ -229,7 +229,7 @@ def compute_all_derivatives_via_rk(f, z0, t0, prior, df=None, h0=1e-2, method="D
     return estimated_initrv
 
 
-def compute_all_derivatives_via_taylormode(f, z0, t0, order):
+def compute_all_derivatives_via_taylormode(f, z0, t0, prior):
     """Compute derivatives of the initial conditions of an IVP with Taylor-mode
     automatic differentiation.
 
@@ -274,6 +274,8 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, order):
             "Cannot perform Taylor-mode initialisation without optional "
             "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
         ) from err
+
+    order = prior.ordint
 
     def total_derivative(z_t):
         """Total derivative."""

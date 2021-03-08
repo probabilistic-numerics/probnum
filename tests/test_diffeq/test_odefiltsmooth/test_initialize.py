@@ -79,7 +79,6 @@ def test_initialize_with_rk(lv, lv_inits, order):
 def test_initialize_with_taylormode(any_order):
     """Make sure that the values are close(ish) to the truth."""
     r2b_jax = diffeq_zoo.threebody_jax()
-
     ode_dim = 4
     expected = pnss.convert_derivwise_to_coordwise(
         THREEBODY_INITS[: ode_dim * (any_order + 1)],
@@ -87,8 +86,14 @@ def test_initialize_with_taylormode(any_order):
         spatialdim=ode_dim,
     )
 
+    prior = pnss.IBM(
+        ordint=any_order,
+        spatialdim=ode_dim,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
     received_rv = pnde.compute_all_derivatives_via_taylormode(
-        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, order=any_order
+        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior
     )
 
     # The higher derivatives will have absolute difference ~8%

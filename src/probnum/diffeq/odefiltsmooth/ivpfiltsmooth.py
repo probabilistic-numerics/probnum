@@ -4,6 +4,10 @@ import probnum.filtsmooth as pnfs
 from probnum.random_variables import Normal
 
 from ..odesolver import ODESolver
+from .initialize import (
+    compute_all_derivatives_via_rk,
+    compute_all_derivatives_via_taylormode,
+)
 from .kalman_odesolution import KalmanODESolution
 
 
@@ -27,7 +31,7 @@ class GaussianIVPFilter(ODESolver):
     - gaussfilt.initialdistribution contains the information about the initial values.
     """
 
-    def __init__(self, ivp, gaussfilt, with_smoothing):
+    def __init__(self, ivp, gaussfilt, with_smoothing, init_implementation):
         if not isinstance(gaussfilt.dynamics_model, pnfs.statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
@@ -35,10 +39,47 @@ class GaussianIVPFilter(ODESolver):
         self.gfilt = gaussfilt
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
+        self.init_implementation = init_implementation
         super().__init__(ivp=ivp, order=gaussfilt.dynamics_model.ordint)
 
+    # Construct an ODE solver from different initialisation methods.
+    # The reason for implementing these via classmethods is that different
+    # initialisation methods require different parameters.
+
+    @classmethod
+    def from_scipy_init(
+        cls, ivp, gaussfilt, with_smoothing, init_h0=0.01, init_method="DOP853"
+    ):
+        def init_implementation(f, z0, t0, prior, df=None):
+            return compute_all_derivatives_via_rk(
+                f=f, z0=z0, t0=t0, prior=prior, df=df, h0=init_h0, method=init_method
+            )
+
+        return cls(
+            ivp, gaussfilt, with_smoothing, init_implementation=init_implementation
+        )
+
+    @classmethod
+    def from_taylormode_init(
+        cls, ivp, gaussfilt, with_smoothing, init_h0=0.01, init_method="DOP853"
+    ):
+        return cls(
+            ivp,
+            gaussfilt,
+            with_smoothing,
+            init_implementation=compute_all_derivatives_via_taylormode,
+        )
+
     def initialise(self):
-        return self.ivp.t0, self.gfilt.initrv
+        initrv = self.init_implementation(
+            self.ivp.rhs,
+            self.ivp.initrv.mean,
+            self.ivp.t0,
+            self.gfilt.dynamics_model,
+            self.ivp.jacobian,
+        )
+
+        return self.ivp.t0, initrv
 
     def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""

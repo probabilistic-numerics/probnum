@@ -114,7 +114,11 @@ def ivp2ukf(ivp, prior, evlvar):
 
 def _initial_random_variable(ivp, prior):
     """Initialize derivatives of the initial value with a Runge-Kutta method."""
-    m0, s0 = compute_all_derivatives_via_rk(
-        ivp.rhs, ivp.initrv.mean, ivp.t0, order=prior.ordint, df=ivp.jacobian
-    )
-    return pnrv.Normal(m0, np.diag(s0 ** 2), cov_cholesky=np.diag(s0))
+
+    dim = prior.dimension
+    return pnrv.Normal(np.zeros(dim), np.eye(dim), cov_cholesky=np.eye(dim))
+    #
+    # m0, s0 = compute_all_derivatives_via_rk(
+    #     ivp.rhs, ivp.initrv.mean, ivp.t0, order=prior.ordint, df=ivp.jacobian
+    # )
+    # return pnrv.Normal(m0, np.diag(s0 ** 2), cov_cholesky=np.diag(s0))

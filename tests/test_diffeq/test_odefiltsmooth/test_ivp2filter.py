@@ -50,23 +50,6 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
 
         self.assertAllClose(expected, received.mean)
 
-    def test_ekf0_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
-        expected_initval = np.array(
-            [
-                self.ivp.initrv.mean,
-                self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-                self.ivp.jacobian(self.ivp.t0, self.ivp.initrv.mean)
-                @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-            ]
-        )
-        self.assertAllClose(
-            filtsmooth_object.initrv.mean,
-            expected_initval.T.flatten(),
-            atol=1e-8,
-            rtol=1e-8,
-        )
-
 
 class TestIvp2Ekf1(Ivp2FilterTestCase):
     """Do ivp2ekf0, ivp2ekf1 return the right objects?
@@ -93,23 +76,6 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
 
         self.assertAllClose(expected, received.mean)
 
-    def test_ekf1_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2ekf1(self.ivp, self.prior, self.evlvar)
-        expected_initval = np.array(
-            [
-                self.ivp.initrv.mean,
-                self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-                self.ivp.jacobian(self.ivp.t0, self.ivp.initrv.mean)
-                @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-            ]
-        )
-        self.assertAllClose(
-            filtsmooth_object.initrv.mean,
-            expected_initval.T.flatten(),
-            atol=1e-8,
-            rtol=1e-8,
-        )
-
 
 class TestIvpUkf(Ivp2FilterTestCase):
     """Do ivp2ekf0, ivp2ekf1 return the right objects?
@@ -135,20 +101,3 @@ class TestIvpUkf(Ivp2FilterTestCase):
         )
 
         self.assertAllClose(expected, received.mean)
-
-    def test_ukf_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2ukf(self.ivp, self.prior, self.evlvar)
-        expected_initval = np.array(
-            [
-                self.ivp.initrv.mean,
-                self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-                self.ivp.jacobian(self.ivp.t0, self.ivp.initrv.mean)
-                @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-            ]
-        )
-        self.assertAllClose(
-            filtsmooth_object.initrv.mean,
-            expected_initval.T.flatten(),
-            atol=1e-8,
-            rtol=1e-8,
-        )
