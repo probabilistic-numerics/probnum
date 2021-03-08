@@ -225,9 +225,6 @@ def probsolve_ivp(
 
     """
 
-    # Normalize string inputs
-    method = method.upper()
-
     # Create IVP object
     ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
 
@@ -242,13 +239,16 @@ def probsolve_ivp(
     else:
         stprl = steprule.ConstantSteps(step)
 
-    # Make a prior
+    # Create prior
     prior = pnfs.statespace.IBM(
         ordint=algo_order,
         spatialdim=ivp.dimension,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
+
+    # Create measurement model and Kalman object.
+    method = method.upper()
     gfilt = _create_filter(ivp, prior, method)
 
     # Solve
