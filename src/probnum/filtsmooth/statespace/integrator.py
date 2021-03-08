@@ -71,8 +71,8 @@ class Integrator:
 
         See Also
         --------
-        :meth:`convert_coordwise_to_derivwise`
-        :meth:`convert_derivwise_to_coordwise`
+        :attr:`Integrator._convert_coordwise_to_derivwise`
+        :attr:`Integrator._convert_derivwise_to_coordwise`
 
         """
         dim = (self.ordint + 1) * self.spatialdim
@@ -101,8 +101,8 @@ class Integrator:
 
         See Also
         --------
-        :meth:`convert_coordwise_to_derivwise`
-        :meth:`convert_derivwise_to_coordwise`
+        :attr:`Integrator._convert_coordwise_to_derivwise`
+        :attr:`Integrator._convert_derivwise_to_coordwise`
 
         """
         return self._derivwise2coordwise_projmat.T
@@ -126,8 +126,8 @@ class Integrator:
 
         See Also
         --------
-        :attr:`Integrator.coordwise2derivwise_projmat`
-        :attr:`Integrator.derivwise2coordwise_projmat`
+        :attr:`Integrator._coordwise2derivwise_projmat`
+        :attr:`Integrator._derivwise2coordwise_projmat`
         """
         projmat = Integrator(ordint, spatialdim)._coordwise2derivwise_projmat
         return projmat @ state
@@ -152,8 +152,8 @@ class Integrator:
 
         See Also
         --------
-        :attr:`Integrator.coordwise2derivwise_projmat`
-        :attr:`Integrator.derivwise2coordwise_projmat`
+        :attr:`Integrator._coordwise2derivwise_projmat`
+        :attr:`Integrator._derivwise2coordwise_projmat`
         """
         projmat = Integrator(ordint, spatialdim)._derivwise2coordwise_projmat
         return projmat @ state
