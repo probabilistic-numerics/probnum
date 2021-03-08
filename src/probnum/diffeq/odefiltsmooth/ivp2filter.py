@@ -9,7 +9,7 @@
 # import probnum.filtsmooth as pnfs
 # import probnum.random_variables as pnrv
 #
-# from .initialize import compute_all_derivatives_via_rk
+# from .initialize import initialize_odefilter_with_rk
 #
 #
 # def ivp2ekf0(ivp, prior, evlvar):
@@ -118,7 +118,7 @@
 #     dim = prior.dimension
 #     return pnrv.Normal(np.zeros(dim), np.eye(dim), cov_cholesky=np.eye(dim))
 #
-#     m0, s0 = compute_all_derivatives_via_rk(
+#     m0, s0 = initialize_odefilter_with_rk(
 #         ivp.rhs, ivp.initrv.mean, ivp.t0, order=prior.ordint, df=ivp.jacobian
 #     )
 #     return pnrv.Normal(m0, np.diag(s0 ** 2), cov_cholesky=np.diag(s0))

@@ -4,8 +4,8 @@ from .ode import IVP, ODE, fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
 from .odefiltsmooth import (
     GaussianIVPFilter,
     KalmanODESolution,
-    compute_all_derivatives_via_rk,
-    compute_all_derivatives_via_taylormode,
+    initialize_odefilter_with_rk,
+    initialize_odefilter_with_taylormode,
     probsolve_ivp,
 )
 from .odesolution import ODESolution
@@ -24,16 +24,13 @@ __all__ = [
     "probsolve_ivp",
     "ODESolver",
     "GaussianIVPFilter",
-    "ivp2ekf0",
-    "ivp2ekf1",
-    "ivp2ukf",
     "StepRule",
     "ConstantSteps",
     "AdaptiveSteps",
     "ODESolution",
     "KalmanODESolution",
-    "compute_all_derivatives_via_rk",
-    "compute_all_derivatives_via_taylormode",
+    "initialize_odefilter_with_rk",
+    "initialize_odefilter_with_taylormode",
 ]
 
 # Set correct module paths (for superclasses).

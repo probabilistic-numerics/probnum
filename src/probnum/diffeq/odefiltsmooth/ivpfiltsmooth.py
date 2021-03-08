@@ -8,8 +8,8 @@ from probnum.random_variables import Normal
 from ..ode import IVP
 from ..odesolver import ODESolver
 from .initialize import (
-    compute_all_derivatives_via_rk,
-    compute_all_derivatives_via_taylormode,
+    initialize_odefilter_with_rk,
+    initialize_odefilter_with_taylormode,
 )
 from .kalman_odesolution import KalmanODESolution
 
@@ -31,7 +31,7 @@ class GaussianIVPFilter(ODESolver):
     with_smoothing
         To smooth after the solve or not to smooth after the solve.
     init_implementation
-        Initialization algorithm. Either via Scipy (``compute_all_derivatives_via_rk``) or via Taylor-mode AD (``compute_all_derivatives_via_taylormode``).
+        Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
         For more convenient construction, consider :func:`GaussianIVPFilter.from_scipy_init`.
 
     Notes
@@ -90,6 +90,7 @@ class GaussianIVPFilter(ODESolver):
         """
         measurement_model_string = measurement_model_string.upper()
 
+        # This dict will be made much smaller once "probsolve_ivp" is leaned out.
         choose_meas_model = {
             "EKF0": pnfs.DiscreteEKFComponent.from_ode(
                 ivp,
@@ -155,10 +156,10 @@ class GaussianIVPFilter(ODESolver):
         init_method="DOP853",
     ):
         """Create a Gaussian IVP filter that is initialised via
-        :func:`compute_all_derivatives_via_rk`."""
+        :func:`initialize_odefilter_with_rk`."""
 
         def init_implementation(f, z0, t0, prior, df=None):
-            return compute_all_derivatives_via_rk(
+            return initialize_odefilter_with_rk(
                 f=f, z0=z0, t0=t0, prior=prior, df=df, h0=init_h0, method=init_method
             )
 
@@ -173,13 +174,13 @@ class GaussianIVPFilter(ODESolver):
     @classmethod
     def from_taylormode_init(cls, ivp, prior, measurement_model, with_smoothing):
         """Create a Gaussian IVP filter that is initialised via
-        :func:`compute_all_derivatives_via_taylormode`."""
+        :func:`initialize_odefilter_with_taylormode`."""
         return cls(
             ivp,
             prior,
             measurement_model,
             with_smoothing,
-            init_implementation=compute_all_derivatives_via_taylormode,
+            init_implementation=initialize_odefilter_with_taylormode,
         )
 
     def initialise(self):

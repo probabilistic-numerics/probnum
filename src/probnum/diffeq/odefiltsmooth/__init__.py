@@ -8,8 +8,8 @@ to work.
 """
 
 from .initialize import (
-    compute_all_derivatives_via_rk,
-    compute_all_derivatives_via_taylormode,
+    initialize_odefilter_with_rk,
+    initialize_odefilter_with_taylormode,
 )
 from .ivpfiltsmooth import GaussianIVPFilter
 from .kalman_odesolution import KalmanODESolution

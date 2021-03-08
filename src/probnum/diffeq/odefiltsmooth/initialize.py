@@ -8,11 +8,10 @@ import scipy.integrate as sci
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace as pnss
-from probnum.problems import InitialValueProblem
 
 __all__ = [
-    "compute_all_derivatives_via_rk",
-    "compute_all_derivatives_via_taylormode",
+    "initialize_odefilter_with_rk",
+    "initialize_odefilter_with_taylormode",
 ]
 
 
@@ -100,11 +99,11 @@ __all__ = [
 #     [ -inf -14.  -14.   -1.5  -inf -14.  -14.   -1.5]
 #     """
 #     try:
-#         all_initial_derivatives, errors = compute_all_derivatives_via_taylormode(
+#         all_initial_derivatives, errors = initialize_odefilter_with_taylormode(
 #             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order
 #         )
 #     except KeyError:
-#         all_initial_derivatives, errors = compute_all_derivatives_via_rk(
+#         all_initial_derivatives, errors = initialize_odefilter_with_rk(
 #             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order, df=ivp.df
 #         )
 #
@@ -124,7 +123,7 @@ __all__ = [
 SMALL_VALUE = 1e-28
 
 
-def compute_all_derivatives_via_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP853"):
+def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP853"):
     r"""Compute derivatives of the initial value by fitting an integrated Brownian motion process to a few steps of an approximate ODE solution.
 
 
@@ -224,7 +223,7 @@ def compute_all_derivatives_via_rk(f, z0, t0, prior, df=None, h0=1e-2, method="D
     return estimated_initrv
 
 
-def compute_all_derivatives_via_taylormode(f, z0, t0, prior):
+def initialize_odefilter_with_taylormode(f, z0, t0, prior):
     """Compute derivatives of the initial conditions of an IVP with Taylor-mode
     automatic differentiation.
 

@@ -58,7 +58,7 @@ def test_initialize_with_rk(lv, lv_inits, order):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    received_rv = pnde.compute_all_derivatives_via_rk(
+    received_rv = pnde.initialize_odefilter_with_rk(
         lv.rhs,
         lv.initrv.mean,
         lv.t0,
@@ -94,7 +94,7 @@ def test_initialize_with_taylormode(any_order):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    received_rv = pnde.compute_all_derivatives_via_taylormode(
+    received_rv = pnde.initialize_odefilter_with_taylormode(
         r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior
     )
 
