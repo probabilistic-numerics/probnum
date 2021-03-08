@@ -183,9 +183,9 @@ def compute_all_derivatives_via_rk(f, z0, t0, prior, df=None, h0=1e-2, method="D
         backward_implementation="sqrt",
     )
 
-    num_steps = (
-        2 * order
-    )  # order + 1 would suffice in theory, 2*order is for good measure
+    # order + 1 would suffice in theory, 2*order + 1 is for good measure
+    # (the "+1" is a safety factor for order=1)
+    num_steps = 2 * order + 1
     t_eval = np.arange(t0, t0 + (num_steps + 1) * h0, h0)
     sol = sci.solve_ivp(
         f,
