@@ -14,27 +14,12 @@ def ivp():
 
 @pytest.mark.parametrize("method", ["EK0", "EK1"])
 @pytest.mark.parametrize(
-    "which_prior",
-    [
-        "IBM1",
-        "IBM2",
-        "IBM3",
-        "IBM5",
-        "IBM8",
-        "IBM11",
-        "IOUP1",
-        "IOUP2",
-        "IOUP3",
-        "IOUP4",
-        "MAT32",
-        "MAT52",
-        "MAT72",
-        "MAT92",
-    ],
+    "algo_order",
+    [1, 2, 5],
 )
 @pytest.mark.parametrize("dense_output", [True, False])
 @pytest.mark.parametrize("step", [0.01, None])
-def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step):
+def test_adaptive_solver_successful(ivp, method, algo_order, dense_output, step):
     """The solver terminates successfully for all sorts of parametrizations."""
     f = ivp.rhs
     df = ivp.jacobian
@@ -53,7 +38,7 @@ def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step
         adaptive=True,
         atol=1e-1,
         rtol=1e-1,
-        which_prior=which_prior,
+        algo_order=algo_order,
         method=method,
         dense_output=dense_output,
         step=step,
@@ -69,23 +54,24 @@ def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step
     assert step_ratio < 0.5
 
 
-def test_wrong_prior_raises_error(ivp):
-    """Priors that are not in the list raise errors."""
-    f = ivp.rhs
-    t0, tmax = ivp.timespan
-    y0 = ivp.initrv.mean
-
-    # Anything that is no {IBM, IOUP, MAT} + Number is wrong
-    # (the Matern number must end on a 2).
-    for which_prior in ["IBM_5", "IOUPX5", "MAT112Y", "MAT33"]:
-        with pytest.raises(ValueError):
-            probsolve_ivp(
-                f,
-                t0,
-                tmax,
-                y0,
-                which_prior=which_prior,
-            )
+#
+# def test_wrong_prior_raises_error(ivp):
+#     """Priors that are not in the list raise errors."""
+#     f = ivp.rhs
+#     t0, tmax = ivp.timespan
+#     y0 = ivp.initrv.mean
+#
+#     # Anything that is no {IBM, IOUP, MAT} + Number is wrong
+#     # (the Matern number must end on a 2).
+#     for which_prior in ["IBM_5", "IOUPX5", "MAT112Y", "MAT33"]:
+#         with pytest.raises(ValueError):
+#             probsolve_ivp(
+#                 f,
+#                 t0,
+#                 tmax,
+#                 y0,
+#                 which_prior=which_prior,
+#             )
 
 
 def test_wrong_method_raises_error(ivp):

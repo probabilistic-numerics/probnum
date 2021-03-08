@@ -46,7 +46,7 @@ class KalmanODESolution(ODESolution):
     >>>
     >>> y0 = np.array([0.15])
     >>> t0, tmax = 0., 1.5
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, atol=None, rtol=None)
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
     >>> # Mean of the discrete-time solution
     >>> print(np.round(solution.y.mean, 2))
     [[0.15]

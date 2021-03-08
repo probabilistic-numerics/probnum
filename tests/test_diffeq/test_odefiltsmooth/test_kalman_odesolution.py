@@ -102,7 +102,7 @@ class TestODESolutionHigherOrderPrior(TestODESolution):
         y0 = self.ivp.initrv.mean
 
         self.solution = probsolve_ivp(
-            f, t0, tmax, y0, which_prior="ibm3", step=step, adaptive=False
+            f, t0, tmax, y0, algo_order=3, step=step, adaptive=False
         )
 
 
@@ -118,7 +118,7 @@ class TestODESolutionOneDimODE(TestODESolution):
         y0 = self.ivp.initrv.mean
 
         self.solution = probsolve_ivp(
-            f, t0, tmax, y0, which_prior="ibm3", step=step, adaptive=False
+            f, t0, tmax, y0, algo_order=3, step=step, adaptive=False
         )
 
 
@@ -131,9 +131,7 @@ class TestODESolutionAdaptive(TestODESolution):
         t0, tmax = self.ivp.timespan
         y0 = self.ivp.initrv.mean
 
-        self.solution = probsolve_ivp(
-            f, t0, tmax, y0, which_prior="ibm2", atol=0.1, rtol=0.1
-        )
+        self.solution = probsolve_ivp(f, t0, tmax, y0, algo_order=2, atol=0.1, rtol=0.1)
 
 
 class TestODESolutionSampling(unittest.TestCase):

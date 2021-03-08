@@ -34,7 +34,7 @@ def sol(ivp, step):
         tmax,
         y0,
         method="ek0",
-        which_prior="ibm1",
+        algo_order=1,
         adaptive=False,
         step=step,
     )
@@ -67,28 +67,25 @@ def test_second_iteration(ivp, sol, step):
     np.testing.assert_allclose(ms[1], exp_mean[:, 0], rtol=1e-14)
 
 
-@pytest.mark.parametrize(
-    "which_prior", ["IBM1", "IBM2", "IBM3", "IOUP1", "IOUP2", "IOUP3"]
-)
-def test_convergence_error(ivp, which_prior):
+@pytest.mark.parametrize("algo_order", [1, 2, 3])
+def test_convergence_error(ivp, algo_order):
     """Assert that by halfing the step-size, the error of the small step is roughly the
     error of the large step multiplied with (small / large)**(nu)"""
 
     # Set up two different step-sizes
     step_large = 0.2
     step_small = 0.5 * step_large
-    order = int(which_prior[-1])
-    expected_decay = (step_small / step_large) ** order
+    expected_decay = (step_small / step_large) ** algo_order
 
     # Solve IVP with both step-sizes
     f = ivp.rhs
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
     sol_small_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_small, which_prior=which_prior, adaptive=False
+        f, t0, tmax, y0, step=step_small, algo_order=algo_order, adaptive=False
     )
     sol_large_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_large, which_prior=which_prior, adaptive=False
+        f, t0, tmax, y0, step=step_large, algo_order=algo_order, adaptive=False
     )
 
     # Check that the final point is identical (sanity check)

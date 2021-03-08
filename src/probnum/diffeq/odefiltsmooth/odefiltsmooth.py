@@ -1,15 +1,5 @@
 """Convenience functions for Gaussian filtering and smoothing.
 
-We support the following methods:
-    - ekf0: Extended Kalman filtering based on a zero-th order Taylor
-        approximation [1]_, [2]_, [3]_. Also known as "PFOS".
-    - ekf1: Extended Kalman filtering [3]_.
-    - ukf: Unscented Kalman filtering [3]_.
-    - eks0: Extended Kalman smoothing based on a zero-th order Taylor
-        approximation [4]_.
-    - eks1: Extended Kalman smoothing [4]_.
-    - uks: Unscented Kalman smoothing.
-
 References
 ----------
 .. [1] https://arxiv.org/pdf/1610.05261.pdf
@@ -38,7 +28,7 @@ def probsolve_ivp(
     df=None,
     method="EK0",
     dense_output=True,
-    which_prior="IBM2",
+    algo_order=2,
     adaptive=True,
     atol=1e-2,
     rtol=1e-2,
@@ -107,34 +97,13 @@ def probsolve_ivp(
         Step size. If atol and rtol are not specified, this step-size is used for a fixed-step ODE solver.
         If they are specified, this only affects the first step. Optional.
         Default is None, in which case the first step is chosen as :math:`0.01 \cdot |y_0|/|f(t_0, y_0)|`.
-    which_prior : str, optional
-        Which prior is to be used. Default is an IBM(1), further support
-        for IBM(:math:`q`), IOUP(:math:`q`), Matern(:math:`q+1/2`),
-        :math:`q\\in\\{1, 2, 3, 4\\}` is provided. The available
-        options are
-
-        ======================  ========================================
-         IBM(:math:`q`)         ``'IBM1'``, ``'IBM2'``, ...,
-                                ``'IBM11'``
-         IOUP(:math:`q`)        ``'IOUP1'``, ``'IOUP2'``,
-                                ``'IOUP3'``,``'IOUP4'``
-         Matern(:math:`q+0.5`)  ``'MAT32'``, ``'MAT52'``,
-                                ``'MAT72'``, ``'MAT92'``
-        ======================  ========================================
-
-        In principle, any prior of the form ``{IBM, IOUP, MAT} + number`` works. Here, the number is the order.
+    algo_order
+        Order of the algorithm. This amounts to choosing the order of integration (``ordint``) of an integrated Brownian motion prior.
         For too high orders, process noise covariance matrices become singular. For IBM, this maximum seems to be :`q=11` (using standard ``float64``).
-        For IOUP and Matern, this seems to be ``MAT92``, i.e. order :math:`q=4`.
         It is possible that higher orders may work for you.
-
         The type of prior relates to prior assumptions about the
-        derivative of the solution. The IBM(:math:`q`) prior leads to a
-        :math:`q`-th order method that is recommended if little to no
-        prior information about the solution is available. On the other
-        hand, if the :math:`q`-th derivative is expected to regress to
-        zero, an IOUP(:math:`q`) prior might be suitable.
-        While we recommend to use correct capitalization for the method string,
-        lower-case letters will be capitalized internally.
+        derivative of the solution.
+        The higher the order of the algorithm, the faster the convergence, but also, the higher-dimensional (and thus the costlier) the state space.
     method : str, optional
         Which method is to be used. Default is ``EK0`` which is the
         method proposed by Schober et al.. The available
@@ -246,7 +215,7 @@ def probsolve_ivp(
 
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", which_prior="IOUP2", step=0.1, adaptive=False)
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", algo_order=2, step=0.1, adaptive=False)
     >>> print(np.round(solution.y.mean, 2))
         [[0.15]
      [0.21]
@@ -269,7 +238,6 @@ def probsolve_ivp(
 
     # Normalize string inputs
     method = method.upper()
-    which_prior = which_prior.upper()
 
     # Create IVP object
     ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
@@ -296,7 +264,12 @@ def probsolve_ivp(
     else:
         stprl = steprule.ConstantSteps(step)
 
-    prior = _string2prior(ivp, which_prior, driftspeed, lengthscale)
+    prior = pnfs.statespace.IBM(
+        ordint=algo_order,
+        spatialdim=ivp.dimension,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
     gfilt = _create_filter(ivp, prior, method)
 
     # Solve
@@ -313,54 +286,56 @@ def _create_filter(ivp, prior, method):
     return gfilt
 
 
-def _string2prior(ivp, which_prior, driftspeed, lengthscale):
-    """Turn a ``which_prior`` string into an actual prior."""
-
-    prior_str, order_str = _split_prior_string(which_prior)
-    order = _turn_order_string_into_integer_order(order_str, prior_str)
-
-    # Fix priors with all but the order
-    choose_prior = {
-        "IBM": lambda q: pnfs.statespace.IBM(
-            q,
-            ivp.dimension,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        ),
-        "IOUP": lambda q: pnfs.statespace.IOUP(
-            q,
-            ivp.dimension,
-            driftspeed=driftspeed,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        ),
-        "MAT": lambda q: pnfs.statespace.Matern(
-            q,
-            ivp.dimension,
-            lengthscale=lengthscale,
-            forward_implementation="sqrt",
-            backward_implementation="sqrt",
-        ),
-    }
-    return choose_prior[prior_str](order)
-
-
-def _turn_order_string_into_integer_order(order_str, prior_str):
-    if prior_str in ["IBM", "IOUP"]:
-        order = int(order_str)
-    else:  # must be "MAT"
-        order = int(np.floor(float(order_str[:-1]) / 2.0))
-    return order
-
-
-def _split_prior_string(which_prior):
-    m = re.match("^(IBM|IOUP|MAT)([0-9]+)$", which_prior)
-    if m is None:
-        raise ValueError("This prior is not supported.")
-    prior_str, order_str = m.groups()
-    if prior_str == "MAT" and order_str[-1] != "2":
-        raise ValueError("Order of Matern prior is not understood.")
-    return prior_str, order_str
+#
+#
+# def _string2prior(ivp, which_prior, driftspeed, lengthscale):
+#     """Turn a ``which_prior`` string into an actual prior."""
+#
+#     prior_str, order_str = _split_prior_string(which_prior)
+#     order = _turn_order_string_into_integer_order(order_str, prior_str)
+#
+#     # Fix priors with all but the order
+#     choose_prior = {
+#         "IBM": lambda q: pnfs.statespace.IBM(
+#             q,
+#             ivp.dimension,
+#             forward_implementation="sqrt",
+#             backward_implementation="sqrt",
+#         ),
+#         "IOUP": lambda q: pnfs.statespace.IOUP(
+#             q,
+#             ivp.dimension,
+#             driftspeed=driftspeed,
+#             forward_implementation="sqrt",
+#             backward_implementation="sqrt",
+#         ),
+#         "MAT": lambda q: pnfs.statespace.Matern(
+#             q,
+#             ivp.dimension,
+#             lengthscale=lengthscale,
+#             forward_implementation="sqrt",
+#             backward_implementation="sqrt",
+#         ),
+#     }
+#     return choose_prior[prior_str](order)
+#
+#
+# def _turn_order_string_into_integer_order(order_str, prior_str):
+#     if prior_str in ["IBM", "IOUP"]:
+#         order = int(order_str)
+#     else:  # must be "MAT"
+#         order = int(np.floor(float(order_str[:-1]) / 2.0))
+#     return order
+#
+#
+# def _split_prior_string(which_prior):
+#     m = re.match("^(IBM|IOUP|MAT)([0-9]+)$", which_prior)
+#     if m is None:
+#         raise ValueError("This prior is not supported.")
+#     prior_str, order_str = m.groups()
+#     if prior_str == "MAT" and order_str[-1] != "2":
+#         raise ValueError("Order of Matern prior is not understood.")
+#     return prior_str, order_str
 
 
 def _string2filter(_ivp, _prior, _method):
