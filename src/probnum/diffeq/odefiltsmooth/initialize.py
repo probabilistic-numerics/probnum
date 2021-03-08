@@ -21,9 +21,8 @@ __all__ = [
 SMALL_VALUE = 1e-28
 
 
-def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP853"):
+def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP853"):
     r"""Compute derivatives of the initial value by fitting a prior Gauss-Markov process to a few steps of an approximate ODE solution.
-
 
     It goes as follows:
 
@@ -34,16 +33,16 @@ def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP
     The result is a vector of time points and states, with at least ``(2*order+1)``.
     Potentially, the adaptive steps selected many more steps, but because of the events, fewer steps cannot have happened.
 
-    2. A :math:`\nu` times integrated Brownian motion process is fitted to the first ``(2*order+1)`` (t, y) pairs of the solution.
+    2. A prescribed prior is fitted to the first ``(2*order+1)`` (t, y) pairs of the solution. ``order`` is the order of the prior.
 
     3. The value of the resulting posterior at time ``t=t0`` is an estimate of the state and all its derivatives.
-    The resulting marginal standard deviations estimate the error.
+    The resulting marginal standard deviations estimate the error. This random variable is returned.
 
     Parameters
     ----------
     f
         ODE vector field.
-    z0
+    y0
         Initial value.
     t0
         Initial time point.
@@ -86,8 +85,8 @@ def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP
     >>> print(np.round(np.log10(initrv.std), 1))
     [-13.8 -11.3  -9.   -1.5 -13.8 -11.3  -9.   -1.5]
     """
-    z0 = np.asarray(z0)
-    ode_dim = z0.shape[0] if z0.ndim > 0 else 1
+    y0 = np.asarray(y0)
+    ode_dim = y0.shape[0] if y0.ndim > 0 else 1
     order = prior.ordint
     proj_to_y = prior.proj2coord(0)
     zeros_shift = np.zeros(ode_dim)
@@ -108,7 +107,7 @@ def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP
     sol = sci.solve_ivp(
         f,
         (t0, t0 + (num_steps + 1) * h0),
-        y0=z0,
+        y0=y0,
         atol=1e-12,
         rtol=1e-12,
         t_eval=t_eval,
@@ -119,8 +118,8 @@ def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP
     ys = sol.y[:, :num_steps].T
 
     initmean = np.zeros(prior.dimension)
-    initmean[0 :: (order + 1)] = z0
-    initmean[1 :: (order + 1)] = f(t0, z0)
+    initmean[0 :: (order + 1)] = y0
+    initmean[1 :: (order + 1)] = f(t0, y0)
 
     initcov_diag = np.ones(prior.dimension)
     initcov_diag[0 :: (order + 1)] = SMALL_VALUE
@@ -128,7 +127,7 @@ def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP
 
     if df is not None:
         if order > 1:
-            initmean[2 :: (order + 1)] = df(t0, z0) @ f(t0, z0)
+            initmean[2 :: (order + 1)] = df(t0, y0) @ f(t0, y0)
             initcov_diag[2 :: (order + 1)] = SMALL_VALUE
 
     initcov = np.diag(initcov_diag)
@@ -142,7 +141,7 @@ def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP
     return estimated_initrv
 
 
-def initialize_odefilter_with_taylormode(f, z0, t0, prior):
+def initialize_odefilter_with_taylormode(f, y0, t0, prior):
     """Compute derivatives of the initial conditions of an IVP with Taylor-mode
     automatic differentiation.
 
@@ -161,7 +160,7 @@ def initialize_odefilter_with_taylormode(f, z0, t0, prior):
     ----------
     f
         ODE vector field.
-    z0
+    y0
         Initial value.
     t0
         Initial time point.
@@ -240,15 +239,15 @@ def initialize_odefilter_with_taylormode(f, z0, t0, prior):
         dz_t = jnp.concatenate((dz, dt))
         return dz_t
 
-    z_shape = z0.shape
-    z_t = jnp.concatenate((jnp.ravel(z0), jnp.array([t0])))
+    z_shape = y0.shape
+    z_t = jnp.concatenate((jnp.ravel(y0), jnp.array([t0])))
 
     derivs = []
 
-    derivs.extend(z0)
+    derivs.extend(y0)
     if order == 0:
         all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
-            jnp.array(derivs), ordint=0, spatialdim=len(z0)
+            np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
         )
 
         return pnrv.Normal(
@@ -257,11 +256,11 @@ def initialize_odefilter_with_taylormode(f, z0, t0, prior):
             cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
         )
 
-    (y0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
-    derivs.extend(y0[:-1])
+    (dy0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
+    derivs.extend(dy0[:-1])
     if order == 1:
         all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
-            jnp.array(derivs), ordint=1, spatialdim=len(z0)
+            np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
         )
 
         return pnrv.Normal(
@@ -272,11 +271,11 @@ def initialize_odefilter_with_taylormode(f, z0, t0, prior):
 
     order = order - 2
     for _ in range(order + 1):
-        (y0, [*yns]) = jet(total_derivative, (z_t,), ((y0, *yns),))
+        (dy0, [*yns]) = jet(total_derivative, (z_t,), ((dy0, *yns),))
         derivs.extend(yns[-2][:-1])
 
     all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
-        jnp.array(derivs), ordint=order + 2, spatialdim=len(z0)
+        jnp.array(derivs), ordint=order + 2, spatialdim=len(y0)
     )
 
     return pnrv.Normal(

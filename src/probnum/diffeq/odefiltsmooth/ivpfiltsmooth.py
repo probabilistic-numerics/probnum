@@ -158,9 +158,9 @@ class GaussianIVPFilter(ODESolver):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_rk`."""
 
-        def init_implementation(f, z0, t0, prior, df=None):
+        def init_implementation(f, y0, t0, prior, df=None):
             return initialize_odefilter_with_rk(
-                f=f, z0=z0, t0=t0, prior=prior, df=df, h0=init_h0, method=init_method
+                f=f, y0=y0, t0=t0, prior=prior, df=df, h0=init_h0, method=init_method
             )
 
         return cls(
