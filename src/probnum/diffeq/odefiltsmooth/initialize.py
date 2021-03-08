@@ -166,6 +166,27 @@ def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP
         Estimate of the full stack of derivatives
     array
         Marginal standard deviations of the state, can be used as an error estimate of the estimation.
+
+    Examples
+    --------
+
+    >>> from dataclasses import astuple
+    >>> from probnum.filtsmooth.statespace import IBM
+    >>> from probnum.problems.zoo.diffeq import vanderpol
+
+    Compute the initial values of the restricted three-body problem as follows
+
+    >>> f, t0, tmax, y0, df, *_ = astuple(vanderpol())
+    >>> print(y0)
+    [2. 0.]
+    >>> prior = IBM(ordint=3, spatialdim=2)
+    >>> initrv = initialize_odefilter_with_rk(f, y0, t0, prior=prior, df=df)
+    >>> print(prior.proj2coord(0) @ initrv.mean)
+    [2. 0.]
+    >>> print(np.round(initrv.mean, 1))
+    [    2.      0.     -2.     58.2     0.     -2.     60.  -1745.7]
+    >>> print(np.round(np.log10(initrv.std), 1))
+    [-13.8 -11.3  -9.   -1.5 -13.8 -11.3  -9.   -1.5]
     """
     z0 = np.asarray(z0)
     ode_dim = z0.shape[0] if z0.ndim > 0 else 1
@@ -255,6 +276,48 @@ def initialize_odefilter_with_taylormode(f, z0, t0, prior):
         Estimate of the full stack of derivatives
     array
         Array full of zeros, as a dummy error estimate of the estimation.
+
+
+    Examples
+    --------
+
+    >>> import sys, pytest
+    >>> if sys.platform.startswith('win'):
+    ...     pytest.skip('this doctest does not work on Windows')
+
+    >>> from dataclasses import astuple
+    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
+    >>> from probnum.filtsmooth.statespace import IBM
+
+    Compute the initial values of the restricted three-body problem as follows
+
+    >>> f, t0, tmax, y0, df, *_ = astuple(threebody_jax())
+    >>> print(y0)
+    [ 0.994       0.          0.         -2.00158511]
+
+    >>> prior = IBM(ordint=3, spatialdim=4)
+    >>> initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior)
+    >>> print(prior.proj2coord(0) @ initrv.mean)
+    [ 0.994       0.          0.         -2.00158511]
+    >>> print(initrv.mean)
+    [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
+      0.00000000e+00 -2.00158511e+00  0.00000000e+00  9.99720945e+04
+      0.00000000e+00 -3.15543023e+02  0.00000000e+00  6.39028111e+07
+     -2.00158511e+00  0.00000000e+00  9.99720945e+04  0.00000000e+00]
+
+    Compute the initial values of the van-der-Pol oscillator as follows
+
+    >>> f, t0, tmax, y0, df, *_ = astuple(vanderpol_jax())
+    >>> print(y0)
+    [2. 0.]
+    >>> prior = IBM(ordint=3, spatialdim=2)
+    >>> initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior)
+    >>> print(prior.proj2coord(0) @ initrv.mean)
+    [2. 0.]
+    >>> print(initrv.mean)
+    [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
+    >>> print(initrv.std)
+    [0. 0. 0. 0. 0. 0. 0. 0.]
     """
 
     try:
