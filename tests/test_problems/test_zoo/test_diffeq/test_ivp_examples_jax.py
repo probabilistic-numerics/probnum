@@ -1,7 +1,5 @@
 import pytest
 
-import probnum.diffeq as pnd
-import probnum.problems as pnprob
 import probnum.problems.zoo.diffeq as diffeq_zoo
 
 # Jax dependency handling
