@@ -1,8 +1,11 @@
+import typing
+
 import numpy as np
 
 import probnum.filtsmooth as pnfs
 from probnum.random_variables import Normal
 
+from ..ode import IVP
 from ..odesolver import ODESolver
 from .initialize import (
     compute_all_derivatives_via_rk,
@@ -21,8 +24,15 @@ class GaussianIVPFilter(ODESolver):
 
     Parameters
     ----------
+    ivp
+        Initial value problem to be solved.
     gaussfilt : gaussianfilter.GaussianFilter
-        e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
+            e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
+    with_smoothing
+        To smooth after the solve or not to smooth after the solve.
+    init_implementation
+        Initialization algorithm. Either via Scipy (``compute_all_derivatives_via_rk``) or via Taylor-mode AD (``compute_all_derivatives_via_taylormode``).
+        For more convenient construction, consider :func:`GaussianIVPFilter.from_scipy_init`.
 
     Notes
     -----
@@ -31,7 +41,15 @@ class GaussianIVPFilter(ODESolver):
     - gaussfilt.initialdistribution contains the information about the initial values.
     """
 
-    def __init__(self, ivp, gaussfilt, with_smoothing, init_implementation):
+    def __init__(
+        self,
+        ivp: IVP,
+        gaussfilt: pnfs.Kalman,
+        with_smoothing: bool,
+        init_implementation: typing.Callable[
+            [typing.Callable, np.ndarray, float, pnfs.statespace.Integrator], Normal
+        ],
+    ):
         if not isinstance(gaussfilt.dynamics_model, pnfs.statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
@@ -50,6 +68,9 @@ class GaussianIVPFilter(ODESolver):
     def from_scipy_init(
         cls, ivp, gaussfilt, with_smoothing, init_h0=0.01, init_method="DOP853"
     ):
+        """Create a Gaussian IVP filter that is initialised via
+        :func:`compute_all_derivatives_via_rk`."""
+
         def init_implementation(f, z0, t0, prior, df=None):
             return compute_all_derivatives_via_rk(
                 f=f, z0=z0, t0=t0, prior=prior, df=df, h0=init_h0, method=init_method
@@ -63,6 +84,8 @@ class GaussianIVPFilter(ODESolver):
     def from_taylormode_init(
         cls, ivp, gaussfilt, with_smoothing, init_h0=0.01, init_method="DOP853"
     ):
+        """Create a Gaussian IVP filter that is initialised via
+        :func:`compute_all_derivatives_via_taylormode`."""
         return cls(
             ivp,
             gaussfilt,

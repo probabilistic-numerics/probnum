@@ -11,14 +11,9 @@ from probnum.filtsmooth import statespace as pnss
 from probnum.problems import InitialValueProblem
 
 __all__ = [
-    "extend_ivp_with_all_derivatives",
     "compute_all_derivatives_via_rk",
     "compute_all_derivatives_via_taylormode",
 ]
-
-
-def extend_ivp_with_all_derivatives(ivp, order):
-    pass
 
 
 # pylint: disable=import-outside-toplevel

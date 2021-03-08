@@ -6,7 +6,6 @@ from .odefiltsmooth import (
     KalmanODESolution,
     compute_all_derivatives_via_rk,
     compute_all_derivatives_via_taylormode,
-    extend_ivp_with_all_derivatives,
     ivp2ekf0,
     ivp2ekf1,
     ivp2ukf,
@@ -36,7 +35,6 @@ __all__ = [
     "AdaptiveSteps",
     "ODESolution",
     "KalmanODESolution",
-    "extend_ivp_with_all_derivatives",
     "compute_all_derivatives_via_rk",
     "compute_all_derivatives_via_taylormode",
 ]
