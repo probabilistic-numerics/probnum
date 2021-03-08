@@ -81,9 +81,7 @@ class GaussianIVPFilter(ODESolver):
         )
 
     @classmethod
-    def from_taylormode_init(
-        cls, ivp, gaussfilt, with_smoothing, init_h0=0.01, init_method="DOP853"
-    ):
+    def from_taylormode_init(cls, ivp, gaussfilt, with_smoothing):
         """Create a Gaussian IVP filter that is initialised via
         :func:`compute_all_derivatives_via_taylormode`."""
         return cls(
