@@ -44,21 +44,101 @@ class GaussianIVPFilter(ODESolver):
     def __init__(
         self,
         ivp: IVP,
-        gaussfilt: pnfs.Kalman,
+        prior: pnfs.statespace.Integrator,
+        measurement_model: pnfs.statespace.DiscreteGaussian,
         with_smoothing: bool,
         init_implementation: typing.Callable[
             [typing.Callable, np.ndarray, float, pnfs.statespace.Integrator], Normal
         ],
     ):
-        if not isinstance(gaussfilt.dynamics_model, pnfs.statespace.Integrator):
+
+        initrv = Normal(
+            np.zeros(prior.dimension),
+            np.zeros((prior.dimension, prior.dimension)),
+            cov_cholesky=np.zeros((prior.dimension, prior.dimension)),
+        )
+        self.gfilt = pnfs.Kalman(
+            dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
+        )
+
+        if not isinstance(prior, pnfs.statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
             )
-        self.gfilt = gaussfilt
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
-        super().__init__(ivp=ivp, order=gaussfilt.dynamics_model.ordint)
+        super().__init__(ivp=ivp, order=prior.ordint)
+
+    @staticmethod
+    def string_to_measurement_model(
+        measurement_model_string, ivp, prior, measurement_noise_covariance=0.0
+    ):
+        """Return a measurement model :math:`\\mathcal{N}(g(m), R)` based on the local
+        defect.
+
+        .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t))
+
+        and user-specified measurement noise covariance :math:`R`. Almost always, the measurement noise covariance is zero.
+
+        Compute either type filter, each with a
+        different interpretation of the Jacobian :math:`J_g`:
+
+        - EKF0 thinks :math:`J_g(m) = H_1`
+        - EKF1 thinks :math:`J_g(m) = H_1 - J_f(t, H_0 m(t)) H_0^\\top`
+        - UKF thinks: ''What is a Jacobian?'' and uses the unscented transform to compute a tractable approximation of the transition densities.
+        """
+        measurement_model_string = measurement_model_string.upper()
+
+        choose_meas_model = {
+            "EKF0": pnfs.DiscreteEKFComponent.from_ode(
+                ivp,
+                prior=prior,
+                ek0_or_ek1=0,
+                evlvar=measurement_noise_covariance,
+                forward_implementation="sqrt",
+                backward_implementation="sqrt",
+            ),
+            "EKS0": pnfs.DiscreteEKFComponent.from_ode(
+                ivp,
+                prior=prior,
+                ek0_or_ek1=0,
+                evlvar=measurement_noise_covariance,
+                forward_implementation="sqrt",
+                backward_implementation="sqrt",
+            ),
+            "EKF1": pnfs.DiscreteEKFComponent.from_ode(
+                ivp,
+                prior=prior,
+                ek0_or_ek1=1,
+                evlvar=measurement_noise_covariance,
+                forward_implementation="sqrt",
+                backward_implementation="sqrt",
+            ),
+            "EKS1": pnfs.DiscreteEKFComponent.from_ode(
+                ivp,
+                prior=prior,
+                ek0_or_ek1=1,
+                evlvar=measurement_noise_covariance,
+                forward_implementation="sqrt",
+                backward_implementation="sqrt",
+            ),
+            "UKF": pnfs.DiscreteUKFComponent.from_ode(
+                ivp,
+                prior,
+                evlvar=measurement_noise_covariance,
+            ),
+            "UKS": pnfs.DiscreteUKFComponent.from_ode(
+                ivp,
+                prior,
+                evlvar=measurement_noise_covariance,
+            ),
+        }
+
+        if measurement_model_string not in choose_meas_model.keys():
+            raise ValueError("Type of measurement model not supported.")
+
+        return choose_meas_model[measurement_model_string]
 
     # Construct an ODE solver from different initialisation methods.
     # The reason for implementing these via classmethods is that different
@@ -66,7 +146,13 @@ class GaussianIVPFilter(ODESolver):
 
     @classmethod
     def from_scipy_init(
-        cls, ivp, gaussfilt, with_smoothing, init_h0=0.01, init_method="DOP853"
+        cls,
+        ivp,
+        prior,
+        measurement_model,
+        with_smoothing,
+        init_h0=0.01,
+        init_method="DOP853",
     ):
         """Create a Gaussian IVP filter that is initialised via
         :func:`compute_all_derivatives_via_rk`."""
@@ -77,16 +163,21 @@ class GaussianIVPFilter(ODESolver):
             )
 
         return cls(
-            ivp, gaussfilt, with_smoothing, init_implementation=init_implementation
+            ivp,
+            prior,
+            measurement_model,
+            with_smoothing,
+            init_implementation=init_implementation,
         )
 
     @classmethod
-    def from_taylormode_init(cls, ivp, gaussfilt, with_smoothing):
+    def from_taylormode_init(cls, ivp, prior, measurement_model, with_smoothing):
         """Create a Gaussian IVP filter that is initialised via
         :func:`compute_all_derivatives_via_taylormode`."""
         return cls(
             ivp,
-            gaussfilt,
+            prior,
+            measurement_model,
             with_smoothing,
             init_implementation=compute_all_derivatives_via_taylormode,
         )

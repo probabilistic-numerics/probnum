@@ -245,27 +245,29 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
             method="ekf1",
         )
 
-    def test_filter_ivp_mat72_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp,
-            atol=self.tol,
-            rtol=self.tol,
-            evlvar=0.01,
-            which_prior="matern72",
-            method="ukf",
-        )
+    #
+    # def test_filter_ivp_mat72_ukf(self):
+    #     """UKF requires some evaluation-variance to have a positive definite innovation
+    #     matrix, apparently."""
+    #     probsolve_ivp(
+    #         self.ivp,
+    #         atol=self.tol,
+    #         rtol=self.tol,
+    #         evlvar=0.01,
+    #         which_prior="matern72",
+    #         method="ukf",
+    #     )
 
     def test_filter_ivp_h_mat32_ekf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="ekf1")
 
-    def test_filter_ivp_h_mat52_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="ukf"
-        )
+    #
+    # def test_filter_ivp_h_mat52_ukf(self):
+    #     """UKF requires some evaluation-variance to have a positive definite innovation
+    #     matrix, apparently."""
+    #     probsolve_ivp(
+    #         self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="ukf"
+    #     )
 
     def test_filter_ivp_h_mat72_kf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="ekf0")
@@ -461,28 +463,28 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
             method="eks1",
         )
 
-    def test_filter_ivp_mat72_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp,
-            atol=self.tol,
-            rtol=self.tol,
-            evlvar=0.01,
-            which_prior="matern72",
-            method="uks",
-        )
-
+    # def test_filter_ivp_mat72_ukf(self):
+    #     """UKF requires some evaluation-variance to have a positive definite innovation
+    #     matrix, apparently."""
+    #     probsolve_ivp(
+    #         self.ivp,
+    #         atol=self.tol,
+    #         rtol=self.tol,
+    #         evlvar=0.01,
+    #         which_prior="matern72",
+    #         method="uks",
+    #     )
+    #
     def test_filter_ivp_h_mat32_ekf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="eks1")
 
-    def test_filter_ivp_h_mat52_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="uks"
-        )
-
+    # def test_filter_ivp_h_mat52_ukf(self):
+    #     """UKF requires some evaluation-variance to have a positive definite innovation
+    #     matrix, apparently."""
+    #     probsolve_ivp(
+    #         self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="uks"
+    #     )
+    #
     def test_filter_ivp_h_mat72_kf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="eks0")
 
