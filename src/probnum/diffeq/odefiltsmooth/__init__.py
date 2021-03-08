@@ -11,4 +11,4 @@ from .initialise import compute_all_derivatives
 from .ivp2filter import ivp2ekf0, ivp2ekf1, ivp2ukf
 from .ivpfiltsmooth import GaussianIVPFilter
 from .kalman_odesolution import KalmanODESolution
-from .odefiltsmooth import probsolve_ivp, propose_firststep
+from .odefiltsmooth import probsolve_ivp

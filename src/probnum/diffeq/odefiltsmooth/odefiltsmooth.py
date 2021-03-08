@@ -19,7 +19,7 @@ from probnum.diffeq.ode import IVP
 from probnum.diffeq.odefiltsmooth import ivp2filter
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
-__all__ = ["probsolve_ivp", "propose_firststep"]
+__all__ = ["probsolve_ivp"]
 
 
 def probsolve_ivp(
@@ -234,7 +234,7 @@ def probsolve_ivp(
             raise ValueError(
                 "Please provide absolute and relative tolerance for adaptive steps."
             )
-        firststep = step if step is not None else propose_firststep(ivp)
+        firststep = step if step is not None else steprule.propose_firststep(ivp)
         stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
         stprl = steprule.ConstantSteps(step)
@@ -257,17 +257,6 @@ def probsolve_ivp(
     return solution
 
 
-def propose_firststep(ivp):
-    """Propose a suitable first step that can be taken by an ODE solver.
-
-    This function implements a lazy version of the algorithm on p. 169
-    of Hairer, Wanner, Norsett.
-    """
-    norm_y0 = np.linalg.norm(ivp.initrv.mean)
-    norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
-    return 0.01 * norm_y0 / norm_dy0
-
-
 def _create_filter(ivp, prior, method):
     """Create the solver object that is used."""
     if method not in ["EK0", "EK1"]:
@@ -278,55 +267,3 @@ def _create_filter(ivp, prior, method):
 
     # else: method == "EK1":
     return ivp2filter.ivp2ekf1(ivp, prior, evlvar)
-
-
-#
-#
-# def _string2prior(ivp, which_prior, driftspeed, lengthscale):
-#     """Turn a ``which_prior`` string into an actual prior."""
-#
-#     prior_str, order_str = _split_prior_string(which_prior)
-#     order = _turn_order_string_into_integer_order(order_str, prior_str)
-#
-#     # Fix priors with all but the order
-#     choose_prior = {
-#         "IBM": lambda q: pnfs.statespace.IBM(
-#             q,
-#             ivp.dimension,
-#             forward_implementation="sqrt",
-#             backward_implementation="sqrt",
-#         ),
-#         "IOUP": lambda q: pnfs.statespace.IOUP(
-#             q,
-#             ivp.dimension,
-#             driftspeed=driftspeed,
-#             forward_implementation="sqrt",
-#             backward_implementation="sqrt",
-#         ),
-#         "MAT": lambda q: pnfs.statespace.Matern(
-#             q,
-#             ivp.dimension,
-#             lengthscale=lengthscale,
-#             forward_implementation="sqrt",
-#             backward_implementation="sqrt",
-#         ),
-#     }
-#     return choose_prior[prior_str](order)
-#
-#
-# def _turn_order_string_into_integer_order(order_str, prior_str):
-#     if prior_str in ["IBM", "IOUP"]:
-#         order = int(order_str)
-#     else:  # must be "MAT"
-#         order = int(np.floor(float(order_str[:-1]) / 2.0))
-#     return order
-#
-#
-# def _split_prior_string(which_prior):
-#     m = re.match("^(IBM|IOUP|MAT)([0-9]+)$", which_prior)
-#     if m is None:
-#         raise ValueError("This prior is not supported.")
-#     prior_str, order_str = m.groups()
-#     if prior_str == "MAT" and order_str[-1] != "2":
-#         raise ValueError("Order of Matern prior is not understood.")
-#     return prior_str, order_str

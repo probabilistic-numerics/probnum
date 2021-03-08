@@ -20,11 +20,10 @@ from .odefiltsmooth import (
     ivp2ekf1,
     ivp2ukf,
     probsolve_ivp,
-    propose_firststep,
 )
 from .odesolution import ODESolution
 from .odesolver import ODESolver
-from .steprule import AdaptiveSteps, ConstantSteps, StepRule
+from .steprule import AdaptiveSteps, ConstantSteps, StepRule, propose_firststep
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
