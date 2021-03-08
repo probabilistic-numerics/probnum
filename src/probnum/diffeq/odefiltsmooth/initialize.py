@@ -16,115 +16,120 @@ __all__ = [
     "compute_all_derivatives_via_taylormode",
 ]
 
-# pylint: disable=import-outside-toplevel
-
 
 def extend_ivp_with_all_derivatives(ivp, order):
-    r"""Create a new InitialValueProblem which is informed about derivatives of initial conditions.
-
-    If the InitialValueProblem is compatible with JAX (and if jax and jaxlib can be imported), this is done with
-    Taylor-mode automatic differentiation.
-    If not, an integrated Brownian motion process is fitted to the first few states of an ODE solution computed with a Runge-Kutta formula.
+    pass
 
 
-
-    Parameters
-    ----------
-    ivp: InitialValueProblem
-        Initial value problem. See `probnum.problems`.
-    order : int
-        How many derivatives are required? Optional, default is 6. This will later be referred to as :math:`\nu`.
-
-    Raises
-    ------
-    ImportError
-        If `jax` or `jaxlib` are not available.
-
-    Returns
-    -------
-    InitialValueProblem
-        InitialValueProblem object where the attribute `dy0_all` is filled with an
-        :math:`d(\nu + 1)` vector, where :math:`\nu` is the specified order,
-        and :math:`d` is the dimension of the IVP.
-
-
-    Examples
-    --------
-    >>> import sys, pytest
-    >>> if sys.platform.startswith('win'):
-    ...     pytest.skip('this doctest does not work on Windows')
-
-    >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax, threebody, vanderpol
-
-    Compute the initial values of the restricted three-body problem as follows
-
-    >>> res2bod = threebody_jax()
-    >>> print(res2bod.y0)
-    [ 0.994       0.          0.         -2.00158511]
-    >>> print(res2bod.dy0_all)
-    None
-    >>> res2bod = extend_ivp_with_all_derivatives(res2bod, order=3)
-    >>> print(res2bod.y0)
-    [ 0.994       0.          0.         -2.00158511]
-    >>> print(res2bod.dy0_all)
-    [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
-      0.00000000e+00 -2.00158511e+00  0.00000000e+00  9.99720945e+04
-      0.00000000e+00 -3.15543023e+02  0.00000000e+00  6.39028111e+07
-     -2.00158511e+00  0.00000000e+00  9.99720945e+04  0.00000000e+00]
-
-    Compute the initial values of the van-der-Pol oscillator as follows
-
-    >>> vdp = vanderpol_jax()
-    >>> print(vdp.y0)
-    [2. 0.]
-    >>> print(vdp.dy0_all)
-    None
-    >>> vdp = extend_ivp_with_all_derivatives(vdp, order=3)
-    >>> print(vdp.y0)
-    [2. 0.]
-    >>> print(vdp.dy0_all)
-    [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
-
-
-    >>> vdp2 = vanderpol()
-    >>> print(vdp2.y0)
-    [2. 0.]
-    >>> print(vdp2.dy0_all)
-    None
-    >>> vdp2 = extend_ivp_with_all_derivatives(vdp2, order=3)
-    >>> print(vdp2.y0)
-    [2. 0.]
-    >>> print(np.round(vdp2.dy0_all, 1))
-    [    2.      0.     -2.     58.2     0.     -2.     60.  -1743.4]
-    >>> print(np.round(np.log10(vdp2.dy0_errors), 1))
-    [ -inf -14.  -14.   -1.5  -inf -14.  -14.   -1.5]
-    """
-    try:
-        all_initial_derivatives, errors = compute_all_derivatives_via_taylormode(
-            f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order
-        )
-    except KeyError:
-        all_initial_derivatives, errors = compute_all_derivatives_via_rk(
-            f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order, df=ivp.df
-        )
-
-    return InitialValueProblem(
-        f=ivp.f,
-        t0=ivp.t0,
-        tmax=ivp.tmax,
-        y0=ivp.y0,
-        df=ivp.df,
-        ddf=ivp.ddf,
-        solution=ivp.solution,
-        dy0_all=all_initial_derivatives,
-        dy0_errors=errors,
-    )
+# pylint: disable=import-outside-toplevel
+#
+#
+# def extend_ivp_with_all_derivatives(ivp, order):
+#     r"""Create a new InitialValueProblem which is informed about derivatives of initial conditions.
+#
+#     If the InitialValueProblem is compatible with JAX (and if jax and jaxlib can be imported), this is done with
+#     Taylor-mode automatic differentiation.
+#     If not, an integrated Brownian motion process is fitted to the first few states of an ODE solution computed with a Runge-Kutta formula.
+#
+#
+#
+#     Parameters
+#     ----------
+#     ivp: InitialValueProblem
+#         Initial value problem. See `probnum.problems`.
+#     order : int
+#         How many derivatives are required? Optional, default is 6. This will later be referred to as :math:`\nu`.
+#
+#     Raises
+#     ------
+#     ImportError
+#         If `jax` or `jaxlib` are not available.
+#
+#     Returns
+#     -------
+#     InitialValueProblem
+#         InitialValueProblem object where the attribute `dy0_all` is filled with an
+#         :math:`d(\nu + 1)` vector, where :math:`\nu` is the specified order,
+#         and :math:`d` is the dimension of the IVP.
+#
+#
+#     Examples
+#     --------
+#     >>> import sys, pytest
+#     >>> if sys.platform.startswith('win'):
+#     ...     pytest.skip('this doctest does not work on Windows')
+#
+#     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax, threebody, vanderpol
+#
+#     Compute the initial values of the restricted three-body problem as follows
+#
+#     >>> res2bod = threebody_jax()
+#     >>> print(res2bod.y0)
+#     [ 0.994       0.          0.         -2.00158511]
+#     >>> print(res2bod.dy0_all)
+#     None
+#     >>> res2bod = extend_ivp_with_all_derivatives(res2bod, order=3)
+#     >>> print(res2bod.y0)
+#     [ 0.994       0.          0.         -2.00158511]
+#     >>> print(res2bod.dy0_all)
+#     [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
+#       0.00000000e+00 -2.00158511e+00  0.00000000e+00  9.99720945e+04
+#       0.00000000e+00 -3.15543023e+02  0.00000000e+00  6.39028111e+07
+#      -2.00158511e+00  0.00000000e+00  9.99720945e+04  0.00000000e+00]
+#
+#     Compute the initial values of the van-der-Pol oscillator as follows
+#
+#     >>> vdp = vanderpol_jax()
+#     >>> print(vdp.y0)
+#     [2. 0.]
+#     >>> print(vdp.dy0_all)
+#     None
+#     >>> vdp = extend_ivp_with_all_derivatives(vdp, order=3)
+#     >>> print(vdp.y0)
+#     [2. 0.]
+#     >>> print(vdp.dy0_all)
+#     [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
+#
+#
+#     >>> vdp2 = vanderpol()
+#     >>> print(vdp2.y0)
+#     [2. 0.]
+#     >>> print(vdp2.dy0_all)
+#     None
+#     >>> vdp2 = extend_ivp_with_all_derivatives(vdp2, order=3)
+#     >>> print(vdp2.y0)
+#     [2. 0.]
+#     >>> print(np.round(vdp2.dy0_all, 1))
+#     [    2.      0.     -2.     58.2     0.     -2.     60.  -1743.4]
+#     >>> print(np.round(np.log10(vdp2.dy0_errors), 1))
+#     [ -inf -14.  -14.   -1.5  -inf -14.  -14.   -1.5]
+#     """
+#     try:
+#         all_initial_derivatives, errors = compute_all_derivatives_via_taylormode(
+#             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order
+#         )
+#     except KeyError:
+#         all_initial_derivatives, errors = compute_all_derivatives_via_rk(
+#             f=ivp.f, z0=ivp.y0, t0=ivp.t0, order=order, df=ivp.df
+#         )
+#
+#     return InitialValueProblem(
+#         f=ivp.f,
+#         t0=ivp.t0,
+#         tmax=ivp.tmax,
+#         y0=ivp.y0,
+#         df=ivp.df,
+#         ddf=ivp.ddf,
+#         solution=ivp.solution,
+#         dy0_all=all_initial_derivatives,
+#         dy0_errors=errors,
+#     )
 
 
 SMALL_VALUE = 1e-28
 
 
-def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="DOP853"):
+def compute_all_derivatives_via_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP853"):
     r"""Compute derivatives of the initial value by fitting an integrated Brownian motion process to a few steps of an approximate ODE solution.
 
 
@@ -170,12 +175,7 @@ def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="D
     """
     z0 = np.asarray(z0)
     ode_dim = z0.shape[0] if z0.ndim > 0 else 1
-    prior = pnss.IBM(
-        ordint=order,
-        spatialdim=ode_dim,
-        forward_implementation="sqrt",
-        backward_implementation="sqrt",
-    )
+    order = prior.ordint
     proj_to_y = prior.proj2coord(0)
     zeros_shift = np.zeros(ode_dim)
     zeros_cov = np.zeros((ode_dim, ode_dim))
@@ -226,9 +226,7 @@ def compute_all_derivatives_via_rk(f, z0, t0, order, df=None, h0=1e-2, method="D
     out = kalman.filtsmooth(ys, ts)
 
     estimated_initrv = out.state_rvs[0]
-    mean = estimated_initrv.mean
-    std = estimated_initrv.std
-    return mean, std
+    return estimated_initrv
 
 
 def compute_all_derivatives_via_taylormode(f, z0, t0, order):
@@ -296,7 +294,12 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, order):
             jnp.array(derivs), ordint=0, spatialdim=len(z0)
         )
 
-        return all_derivs, jnp.zeros(len(derivs))
+        return pnrv.Normal(
+            np.asarray(all_derivs),
+            cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+            cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+        )
+
     (y0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
     derivs.extend(y0[:-1])
     if order == 1:
@@ -304,7 +307,11 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, order):
             jnp.array(derivs), ordint=1, spatialdim=len(z0)
         )
 
-        return all_derivs, jnp.zeros(len(derivs))
+        return pnrv.Normal(
+            np.asarray(all_derivs),
+            cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+            cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+        )
 
     order = order - 2
     for _ in range(order + 1):
@@ -315,4 +322,8 @@ def compute_all_derivatives_via_taylormode(f, z0, t0, order):
         jnp.array(derivs), ordint=order + 2, spatialdim=len(z0)
     )
 
-    return all_derivs, jnp.zeros(len(derivs))
+    return pnrv.Normal(
+        np.asarray(all_derivs),
+        cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+        cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
+    )

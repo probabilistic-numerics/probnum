@@ -27,19 +27,6 @@ except ImportError:
 only_if_jax_available = pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
 
 
-@pytest.mark.parametrize("any_order", [0, 1, 2])
-@only_if_jax_available
-def test_compute_all_derivatives_via_taylormode(any_order):
-    """Test asserts that the examples in diffeq-zoo are compatible with
-    `compute_all_derivatives`, which happens if they are implemented in jax, and jax is
-    available in the current environment."""
-    ivp = diffeq_zoo.threebody_jax()
-    y0_all, errors = pnde.compute_all_derivatives_via_taylormode(
-        ivp.f, ivp.y0, ivp.t0, order=any_order
-    )
-    np.testing.assert_allclose(errors, 0.0)
-
-
 @pytest.fixture
 def order():
     return 5
@@ -62,13 +49,20 @@ def lv_inits(order):
 
 def test_initialize_with_rk(lv, lv_inits, order):
     """Make sure that the values are close(ish) to the truth."""
-    received, error = pnde.compute_all_derivatives_via_rk(
+    ode_dim = len(lv.initrv.mean)
+    prior = pnss.IBM(
+        ordint=order,
+        spatialdim=ode_dim,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+    received_rv = pnde.compute_all_derivatives_via_rk(
         lv.rhs,
         lv.initrv.mean,
         lv.t0,
+        prior=prior,
         df=lv.jacobian,
         h0=1e-1,
-        order=order,
         method="RK45",
     )
     # Extract the relevant values
@@ -76,23 +70,28 @@ def test_initialize_with_rk(lv, lv_inits, order):
 
     # The higher derivatives will have absolute difference ~8%
     # if things work out correctly
-    np.testing.assert_allclose(received, expected, rtol=0.25)
+    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.25)
+    assert np.linalg.norm(received_rv.std) > 0
 
 
+@pytest.mark.parametrize("any_order", [0, 1, 2])
 @only_if_jax_available
-def test_initialize_with_taylormode(order):
+def test_initialize_with_taylormode(any_order):
     """Make sure that the values are close(ish) to the truth."""
     r2b_jax = diffeq_zoo.threebody_jax()
 
     ode_dim = 4
     expected = pnss.convert_derivwise_to_coordwise(
-        THREEBODY_INITS[: ode_dim * (order + 1)], ordint=order, spatialdim=ode_dim
+        THREEBODY_INITS[: ode_dim * (any_order + 1)],
+        ordint=any_order,
+        spatialdim=ode_dim,
     )
 
-    received, error = pnde.compute_all_derivatives_via_taylormode(
-        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, order=5
+    received_rv = pnde.compute_all_derivatives_via_taylormode(
+        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, order=any_order
     )
 
     # The higher derivatives will have absolute difference ~8%
     # if things work out correctly
-    np.testing.assert_allclose(received, expected, rtol=0.25)
+    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.25)
+    np.testing.assert_allclose(received_rv.std, 0.0)
