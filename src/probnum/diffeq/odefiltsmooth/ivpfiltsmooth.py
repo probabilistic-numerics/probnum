@@ -34,7 +34,7 @@ class GaussianIVPFilter(ODESolver):
         To smooth after the solve or not to smooth after the solve.
     init_implementation
         Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
-        For more convenient construction, consider :func:`GaussianIVPFilter.from_scipy_init`.
+        For more convenient construction, consider :func:`GaussianIVPFilter.from_rk_init`.
     """
 
     def __init__(
@@ -143,7 +143,7 @@ class GaussianIVPFilter(ODESolver):
     # initialisation methods require different parameters.
 
     @classmethod
-    def from_scipy_init(
+    def from_rk_init(
         cls,
         ivp,
         prior,

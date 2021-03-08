@@ -223,7 +223,7 @@ def probsolve_ivp(
 
     measmodel = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
     with_smoothing = method[-2] == "s" or method[-1] == "s"
-    solver = GaussianIVPFilter.from_scipy_init(
+    solver = GaussianIVPFilter.from_rk_init(
         ivp, prior, measmodel, with_smoothing=with_smoothing
     )
     solution = solver.solve(steprule=stprl)
