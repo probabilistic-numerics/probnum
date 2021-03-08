@@ -8,8 +8,6 @@ References
 .. [4] https://arxiv.org/pdf/2004.00623.pdf
 """
 
-import re
-
 import numpy as np
 
 import probnum.filtsmooth as pnfs
