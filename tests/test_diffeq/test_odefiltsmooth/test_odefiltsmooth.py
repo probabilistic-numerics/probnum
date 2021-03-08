@@ -50,6 +50,7 @@ def test_adaptive_solver_successful(ivp, method, which_prior, dense_output, step
         tmax,
         y0,
         df=df,
+        adaptive=True,
         atol=1e-1,
         rtol=1e-1,
         which_prior=which_prior,
@@ -105,4 +106,4 @@ def test_no_step_or_tol_info_raises_error(ivp):
     y0 = ivp.initrv.mean
 
     with pytest.raises(ValueError):
-        probsolve_ivp(f, t0, tmax, y0, step=None, atol=None, rtol=None)
+        probsolve_ivp(f, t0, tmax, y0, step=None, adaptive=True, atol=None, rtol=None)

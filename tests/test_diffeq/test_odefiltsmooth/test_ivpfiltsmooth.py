@@ -35,8 +35,7 @@ def sol(ivp, step):
         y0,
         method="ek0",
         which_prior="ibm1",
-        atol=None,
-        rtol=None,
+        adaptive=False,
         step=step,
     )
 
@@ -86,10 +85,10 @@ def test_convergence_error(ivp, which_prior):
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
     sol_small_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_small, which_prior=which_prior, atol=None, rtol=None
+        f, t0, tmax, y0, step=step_small, which_prior=which_prior, adaptive=False
     )
     sol_large_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_large, which_prior=which_prior, atol=None, rtol=None
+        f, t0, tmax, y0, step=step_large, which_prior=which_prior, adaptive=False
     )
 
     # Check that the final point is identical (sanity check)

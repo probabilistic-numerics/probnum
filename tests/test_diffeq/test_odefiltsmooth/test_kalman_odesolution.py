@@ -18,7 +18,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
         f = self.ivp.rhs
         t0, tmax = self.ivp.timespan
         y0 = self.ivp.initrv.mean
-        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, atol=None, rtol=None)
+        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, adaptive=False)
 
     def test_len(self):
         self.assertTrue(len(self.solution) > 0)
@@ -102,7 +102,7 @@ class TestODESolutionHigherOrderPrior(TestODESolution):
         y0 = self.ivp.initrv.mean
 
         self.solution = probsolve_ivp(
-            f, t0, tmax, y0, which_prior="ibm3", step=step, atol=None, rtol=None
+            f, t0, tmax, y0, which_prior="ibm3", step=step, adaptive=False
         )
 
 
@@ -118,7 +118,7 @@ class TestODESolutionOneDimODE(TestODESolution):
         y0 = self.ivp.initrv.mean
 
         self.solution = probsolve_ivp(
-            f, t0, tmax, y0, which_prior="ibm3", step=step, atol=None, rtol=None
+            f, t0, tmax, y0, which_prior="ibm3", step=step, adaptive=False
         )
 
 
@@ -147,7 +147,7 @@ class TestODESolutionSampling(unittest.TestCase):
         t0, tmax = self.ivp.timespan
         y0 = self.ivp.initrv.mean
 
-        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, atol=None, rtol=None)
+        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, adaptive=False)
 
     def test_output_shape(self):
         loc_inputs = [

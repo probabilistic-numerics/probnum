@@ -39,6 +39,7 @@ def probsolve_ivp(
     method="EK0",
     dense_output=True,
     which_prior="IBM2",
+    adaptive=True,
     atol=1e-2,
     rtol=1e-2,
     step=None,
@@ -94,6 +95,8 @@ def probsolve_ivp(
         Initial value.
     df :
         Jacobian of the ODE vector field.
+    adaptive :
+        Whether to use adaptive steps or not. Default is `True`.
     atol : float
         Absolute tolerance  of the adaptive step-size selection scheme.
         Optional. Default is ``1e-4``.
@@ -219,7 +222,7 @@ def probsolve_ivp(
     >>>
     >>> y0 = np.array([0.15])
     >>> t0, tmax = 0., 1.5
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, atol=None, rtol=None)
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
     >>> print(np.round(solution.y.mean, 2))
     [[0.15]
      [0.21]
@@ -243,7 +246,7 @@ def probsolve_ivp(
 
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
-    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", which_prior="IOUP2", step=0.1, atol=None, rtol=None)
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", which_prior="IOUP2", step=0.1, adaptive=False)
     >>> print(np.round(solution.y.mean, 2))
         [[0.15]
      [0.21]
@@ -284,8 +287,15 @@ def probsolve_ivp(
     lengthscale = lengthscale if lengthscale is not None else 1.0 / firststep
     driftspeed = driftspeed if driftspeed is not None else firststep
 
-    # Construct underlying Kalman filter object
-    stprl = _create_steprule(atol, rtol, step, firststep)
+    if adaptive is True:
+        if atol is None or rtol is None:
+            raise ValueError(
+                "Please provide absolute and relative tolerance for adaptive steps."
+            )
+        stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
+    else:
+        stprl = steprule.ConstantSteps(step)
+
     prior = _string2prior(ivp, which_prior, driftspeed, lengthscale)
     gfilt = _create_filter(ivp, prior, method)
 
@@ -301,21 +311,6 @@ def _create_filter(ivp, prior, method):
         raise ValueError("This method is not supported.")
     gfilt = _string2filter(ivp, prior, method)
     return gfilt
-
-
-def _create_steprule(atol, rtol, step, firststep):
-    if atol is None and rtol is None and step is None:
-        errormsg = (
-            "Please specify either absolute and relative tolerances or a step size."
-        )
-        raise ValueError(errormsg)
-
-    if atol is None and rtol is None:
-        stprl = steprule.ConstantSteps(step)
-    else:
-        firststep = step if step is not None else firststep
-        stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
-    return stprl
 
 
 def _string2prior(ivp, which_prior, driftspeed, lengthscale):
