@@ -112,7 +112,6 @@ def probsolve_ivp(
         ================================================  ==============
          Extended Kalman filtering/smoothing (0th order)  ``'EK0'``
          Extended Kalman filtering/smoothing (1st order)  ``'EK1'``
-         Unscented Kalman filtering/smoothing             ``'UK'``
         ================================================  ==============
 
         First order extended Kalman filtering and smoothing methods (``EK1``)
@@ -120,10 +119,6 @@ def probsolve_ivp(
         That is, the argument ``df`` needs to be specified.
         They are likely to perform better than zeroth order methods in
         terms of (A-)stability and "meaningful uncertainty estimates".
-        The unscented Kalman filter is supported,
-        but since its square-root implementation is not available yet, it will be
-        less stable (numerically, i.e. in terms of singular matrices)
-        than the extended Kalman filter variations.
         While we recommend to use correct capitalization for the method string,
         lower-case letters will be capitalized internally.
     dense_output : bool
@@ -264,6 +259,7 @@ def probsolve_ivp(
     else:
         stprl = steprule.ConstantSteps(step)
 
+    # Make a prior
     prior = pnfs.statespace.IBM(
         ordint=algo_order,
         spatialdim=ivp.dimension,
@@ -280,7 +276,7 @@ def probsolve_ivp(
 
 def _create_filter(ivp, prior, method):
     """Create the solver object that is used."""
-    if method not in ["EK0", "EK1", "UK"]:
+    if method not in ["EK0", "EK1"]:
         raise ValueError("This method is not supported.")
     gfilt = _string2filter(ivp, prior, method)
     return gfilt
@@ -343,7 +339,5 @@ def _string2filter(_ivp, _prior, _method):
     evlvar = 0.0
     if _method == "EK0":
         return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    elif _method == "EK1":
-        return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    else:  # _method == "UK":
-        return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
+    # else: _method == "EK1":
+    return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)

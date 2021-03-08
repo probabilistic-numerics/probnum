@@ -80,9 +80,9 @@ def test_wrong_method_raises_error(ivp):
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
-    # UK1 does not exist
+    # UK1 does not exist anymore
     with pytest.raises(ValueError):
-        probsolve_ivp(f, t0, tmax, y0, method="UK1")
+        probsolve_ivp(f, t0, tmax, y0, method="UK")
 
 
 def test_no_step_or_tol_info_raises_error(ivp):
