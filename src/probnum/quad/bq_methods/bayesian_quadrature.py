@@ -1,9 +1,8 @@
 
-import abc
 from typing import Tuple, Dict
 
 
-class BayesianQuadrature(abc.ABC):
+class BayesianQuadrature:
     """
     An abstract base class for Bayesian quadrature methods.
 
@@ -29,33 +28,6 @@ class BayesianQuadrature(abc.ABC):
 
         Returns
         -------
-
-        """
-        raise NotImplementedError
-
-
-class VanillaBayesianQuadrature(BayesianQuadrature):
-    """
-    Vanilla Bayesian quadrature.
-    """
-
-    def integrate(self, fun, fun0, domain, nevals, **kwargs):
-        """
-        Integrate the function ``fun``.
-
-        Parameters
-        ----------
-        fun : function
-            Function to be integrated.
-        fun0 : RandomProcess
-            Stochastic process modelling function to be integrated.
-        domain : ndarray, shape=()
-            Domain to integrate over.
-        nevals : int
-            Number of function evaluations.
-
-        Returns
-        -------
         F : RandomVariable
         The integral of ``func`` from ``a`` to ``b``.
         fun0 : RandomProcess
@@ -69,6 +41,8 @@ class VanillaBayesianQuadrature(BayesianQuadrature):
         F = None
 
         # Iteration
+        # before we have an acquisition function, we choose locations at random
+
         for _ in range(nevals):
             # Predictive Distribution
             # fun_pred = None

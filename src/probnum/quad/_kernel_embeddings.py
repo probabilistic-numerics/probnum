@@ -1,62 +1,78 @@
-"""
-Contains the kernel embeddings, i.e., integrals over kernels.
-"""
+"""Contains the kernel embeddings, i.e., integrals over kernels."""
 
 import abc
+
 import numpy as np
 import scipy.linalg as slinalg
 
-from ..kernels import Kernel, ExpQuad, RatQuad, Matern
-from ._integration_measures import IntegrationMeasure, LebesgueMeasure, GaussianMeasure
+from ..kernels import ExpQuad, Kernel
+from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 
 
-class KernelEmbedding(abc.ABC):
-    """
-    Contains integrals over kernels.
-    The naming scheme is 'K + kernel + M + measure'
+class _KernelEmbedding(abc.ABC):
+    """Abstract class for integrals over kernels.
+
+    Child classes implement integrals for a given combination of kernel and measure.
+    The naming scheme for child classes is 'K + kernel + M + measure'
+
+    Parameters
+    ----------
+    kernel: Kernel
+        Instance of a kernel
+    measure: IntegrationMeasure
+        Instance of an integration measure
     """
 
     def __init__(self, kernel: Kernel, measure: IntegrationMeasure):
-        """
-        Contains the kernel integrals
-        """
         self.kernel = kernel
         self.measure = measure
 
-    def qk(self, x: np.ndarray) -> np.ndarray:
-        """
-        Kernel mean w.r.t. its first argument against integration measure
-        :param x: np.ndarray with shape (dim, n_eval)
+    def kernel_mean(self, x: np.ndarray) -> np.ndarray:
+        """Kernel mean w.r.t. its first argument against the integration measure.
+
+        Parameters
+        ----------
+        x: np.ndarray with shape (dim, n_eval)
             n_eval locations where to evaluate the kernel mean.
+
+        Returns
+        -------
+        k_mean: np.ndarray with shape (n_eval,)
+            The kernel integrated w.r.t. its first argument, evaluated at locations x
         """
         raise NotImplementedError
 
-    def qkq(self) -> float:
-        """
-        Kernel integrated in both arguments against integration measure
+    def kernel_variance(self) -> float:
+        """Kernel integrated in both arguments against the integration measure.
+
+        Returns
+        -------
+        k_var: float
+            The kernel integrated w.r.t. both arguments
         """
         raise NotImplementedError
 
 
-class KExpQuadMGauss(KernelEmbedding):
-    """
-    Kernel embedding of exponentiated quadratic kernel with Gaussian Gaussian integration measure
+class _KExpQuadMGauss(_KernelEmbedding):
+    """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
+    measure.
+
+    Parameters
+    ----------
+    kernel: ExpQuad
+        Instance of an exponentiated quadratic kernel
+    measure: GaussianMeasure
+        Instance of a Gaussian integration measure
     """
 
     def __init__(self, kernel: ExpQuad, measure: GaussianMeasure):
-        super(KExpQuadMGauss, self).__init__(kernel, measure)
-        # TODO: args are now child classes of args of the parent class.
+        super().__init__(kernel, measure)
         self.dim = self.kernel.input_dim
 
-    def qk(self, x: np.ndarray) -> np.ndarray:
-        """
-        Kernel mean w.r.t. its first argument against integration measure
-        :param x: np.ndarray with shape (dim, n_eval)
-            n_eval locations where to evaluate the kernel mean.
-        :returns: np.ndarray
-        """
+    def kernel_mean(self, x: np.ndarray) -> np.ndarray:
+
         if self.measure.diagonal_covariance:
-            Linv_x = x / (
+            chol_inv_x = x / (
                 self.kernel.lengthscale ** 2 + np.diag(self.measure.covariance)
             ).reshape(-1, 1)
             det_factor = (
@@ -66,17 +82,17 @@ class KExpQuadMGauss(KernelEmbedding):
                 ).prod()
             )
         else:
-            L = slinalg.cho_factor(
+            chol = slinalg.cho_factor(
                 self.kernel.lengthscale * np.eye(self.dim) + self.measure.covariance
             )
-            Linv_x = slinalg.cho_solve(L, x - self.measure.mean)
+            chol_inv_x = slinalg.cho_solve(chol, x - self.measure.mean)
 
-            det_factor = self.kernel.lengthscale ** self.dim / np.diag(L[0]).prod()
+            det_factor = self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
 
-        exp_factor = np.exp(-0.5 * (Linv_x ** 2)).sum(axis=0)
+        exp_factor = np.exp(-0.5 * (chol_inv_x ** 2)).sum(axis=0)
         return det_factor * exp_factor
 
-    def qkq(self) -> float:
+    def kernel_variance(self) -> float:
         if self.measure.diagonal_covariance:
             denom = np.sqrt(
                 (
@@ -85,31 +101,41 @@ class KExpQuadMGauss(KernelEmbedding):
                 ).prod()
             )
         else:
-            L = slinalg.cholesky(
+            chol, _ = slinalg.cho_factor(
                 self.kernel.lengthscale * np.eye(self.dim)
                 + 2 * self.measure.covariance,
                 lower=True,
             )
-            denom = np.diag(L).prod()
+            denom = np.diag(chol).prod()
 
         return self.kernel.lengthscale ** self.dim / denom
 
 
-class KExpQuadMLebesgue(KernelEmbedding):
+class _KExpQuadMLebesgue(_KernelEmbedding):
+    """Kernel embedding of exponentiated quadratic kernel with Lebesgue integration
+    measure.
+
+    Parameters
+    ----------
+    kernel: ExpQuad
+        Instance of an exponentiated quadratic kernel
+    measure: LebesgueMeasure
+        Instance of a Lebesgue integration measure
+    """
+
     def __init__(self, kernel: ExpQuad, measure: LebesgueMeasure):
-        super(KExpQuadMGauss, self).__init__(kernel, measure)
+        super().__init__(kernel, measure)
         self.dim = self.kernel.input_dim
 
-    def qk(self, x):
+    def kernel_mean(self, x):
         raise NotImplementedError
 
-    def qkq(self):
+    def kernel_variance(self):
         raise NotImplementedError
 
 
 def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):
-    """
-    Select the right kernel embedding given the kernel and integration measure
+    """Select the right kernel embedding given the kernel and integration measure.
 
     Parameters
     ----------
@@ -126,11 +152,8 @@ def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):
     # Exponentiated quadratic kernel
     if isinstance(kernel, ExpQuad):
         if isinstance(measure, GaussianMeasure):
-            return KExpQuadMGauss(kernel, measure)
-        else:
-            raise NotImplementedError
+            return _KExpQuadMGauss(kernel, measure)
+        raise NotImplementedError
 
     # other kernels
-    else:
-        raise NotImplementedError
-    # TODO: integrate all possible kernels with Monte Carlo.
+    raise NotImplementedError
