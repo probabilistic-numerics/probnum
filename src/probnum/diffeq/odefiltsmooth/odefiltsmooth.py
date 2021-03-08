@@ -19,6 +19,8 @@ from probnum.diffeq.ode import IVP
 from probnum.diffeq.odefiltsmooth import ivp2filter
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
+__all__ = ["probsolve_ivp", "propose_firststep"]
+
 
 def probsolve_ivp(
     f,
@@ -229,21 +231,13 @@ def probsolve_ivp(
     # Create IVP object
     ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
 
-    # Infer first step from arguments
-    if step is None:
-        # lazy version of Hairer, Wanner, Norsett, p. 169
-        norm_y0 = np.linalg.norm(ivp.initrv.mean)
-        norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
-        firststep = 0.01 * norm_y0 / norm_dy0
-    else:
-        firststep = step
-
     # Create steprule
     if adaptive is True:
         if atol is None or rtol is None:
             raise ValueError(
                 "Please provide absolute and relative tolerance for adaptive steps."
             )
+        firststep = step if step is not None else propose_firststep(ivp)
         stprl = steprule.AdaptiveSteps(firststep=firststep, atol=atol, rtol=rtol)
     else:
         stprl = steprule.ConstantSteps(step)
@@ -261,6 +255,17 @@ def probsolve_ivp(
     solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=dense_output)
     solution = solver.solve(steprule=stprl)
     return solution
+
+
+def propose_firststep(ivp):
+    """Propose a suitable first step that can be taken by an ODE solver.
+
+    This function implements a lazy version of the algorithm on p. 169
+    of Hairer, Wanner, Norsett.
+    """
+    norm_y0 = np.linalg.norm(ivp.initrv.mean)
+    norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
+    return 0.01 * norm_y0 / norm_dy0
 
 
 def _create_filter(ivp, prior, method):

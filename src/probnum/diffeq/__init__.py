@@ -20,6 +20,7 @@ from .odefiltsmooth import (
     ivp2ekf1,
     ivp2ukf,
     probsolve_ivp,
+    propose_firststep,
 )
 from .odesolution import ODESolution
 from .odesolver import ODESolver
@@ -49,6 +50,7 @@ __all__ = [
     "ODESolution",
     "KalmanODESolution",
     "compute_all_derivatives",
+    "propose_firststep",
 ]
 
 # Set correct module paths (for superclasses).
