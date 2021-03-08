@@ -26,9 +26,6 @@ def test_adaptive_solver_successful(ivp, method, algo_order, dense_output, step)
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
 
-    lengthscale = 10.0
-    driftspeed = 1.0
-
     sol = probsolve_ivp(
         f,
         t0,
@@ -42,8 +39,6 @@ def test_adaptive_solver_successful(ivp, method, algo_order, dense_output, step)
         method=method,
         dense_output=dense_output,
         step=step,
-        driftspeed=driftspeed,
-        lengthscale=lengthscale,
     )
     # Successful return value as documented
     assert isinstance(sol, KalmanODESolution)

@@ -33,8 +33,6 @@ def probsolve_ivp(
     atol=1e-2,
     rtol=1e-2,
     step=None,
-    driftspeed=None,
-    lengthscale=None,
 ):
     r"""Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -125,12 +123,6 @@ def probsolve_ivp(
         Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
         dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
         but when it is ``True``, the filter solution is smoothed.
-    driftspeed : float
-        Drift speed of the IOUP process. Only used there, i.e. IBM and Matern remain unaffected by this argument.
-        Optional. Default is None. If not specified, it is set to the default value ``driftspeed = step``.
-    lengthscale : float
-        Length scale of the Matern process. Only used there, i.e. IBM and IOUP remain unaffected by this argument.
-        Optional. Default is None. If not specified, it is set to the default value ``lengthscale = 1./step``.
 
     Returns
     -------
@@ -246,10 +238,7 @@ def probsolve_ivp(
     else:
         firststep = step
 
-    # Set up some default hyperparameters: not great, but much better than 1.0
-    lengthscale = lengthscale if lengthscale is not None else 1.0 / firststep
-    driftspeed = driftspeed if driftspeed is not None else firststep
-
+    # Create steprule
     if adaptive is True:
         if atol is None or rtol is None:
             raise ValueError(
@@ -278,8 +267,12 @@ def _create_filter(ivp, prior, method):
     """Create the solver object that is used."""
     if method not in ["EK0", "EK1"]:
         raise ValueError("This method is not supported.")
-    gfilt = _string2filter(ivp, prior, method)
-    return gfilt
+    evlvar = 0.0
+    if method == "EK0":
+        return ivp2filter.ivp2ekf0(ivp, prior, evlvar)
+
+    # else: method == "EK1":
+    return ivp2filter.ivp2ekf1(ivp, prior, evlvar)
 
 
 #
@@ -332,12 +325,3 @@ def _create_filter(ivp, prior, method):
 #     if prior_str == "MAT" and order_str[-1] != "2":
 #         raise ValueError("Order of Matern prior is not understood.")
 #     return prior_str, order_str
-
-
-def _string2filter(_ivp, _prior, _method):
-
-    evlvar = 0.0
-    if _method == "EK0":
-        return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    # else: _method == "EK1":
-    return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
