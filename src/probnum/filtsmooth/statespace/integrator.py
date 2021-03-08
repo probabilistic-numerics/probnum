@@ -18,57 +18,6 @@ from . import discrete_transition, sde
 from .preconditioner import NordsieckLikeCoordinates
 
 
-def convert_coordwise_to_derivwise(
-    state: np.ndarray, ordint: pntype.IntArgType, spatialdim: pntype.IntArgType
-) -> np.ndarray:
-    """Convert coordinate-wise representation to derivative-wise representation.
-
-    Lightweight call to the respective property in :class:`Integrator`.
-
-    Parameters
-    ----------
-    state:
-        State to be converted. Assumed to be in coordinate-wise representation.
-    ordint:
-        Order of the integrator-state. Usually, this is the order of the highest derivative in the state.
-    spatialdim:
-        Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
-
-    See Also
-    --------
-    :attr:`Integrator.coordwise2derivwise_projmat`
-    :attr:`Integrator.derivwise2coordwise_projmat`
-    """
-    projmat = Integrator(ordint, spatialdim).coordwise2derivwise_projmat
-    return projmat @ state
-
-
-def convert_derivwise_to_coordwise(
-    state: np.ndarray, ordint: pntype.IntArgType, spatialdim: pntype.IntArgType
-) -> np.ndarray:
-    """Convert coordinate-wise representation to derivative-wise representation.
-
-    Lightweight call to the respective property in :class:`Integrator`.
-
-    Parameters
-    ----------
-    state:
-        State to be converted. Assumed to be in derivative-wise representation.
-    ordint:
-        Order of the integrator-state. Usually, this is the order of the highest derivative in the state.
-    spatialdim:
-        Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
-
-
-    See Also
-    --------
-    :attr:`Integrator.coordwise2derivwise_projmat`
-    :attr:`Integrator.derivwise2coordwise_projmat`
-    """
-    projmat = Integrator(ordint, spatialdim).derivwise2coordwise_projmat
-    return projmat @ state
-
-
 class Integrator:
     """An integrator is a special kind of SDE, where the :math:`i` th coordinate models
     the :math:`i` th derivative."""
@@ -107,7 +56,7 @@ class Integrator:
         return projmat
 
     @property
-    def derivwise2coordwise_projmat(self) -> np.ndarray:
+    def _derivwise2coordwise_projmat(self) -> np.ndarray:
         r"""Projection matrix to change the ordering of the state representation in an :class:`Integrator` from coordinate-wise to derivative-wise representation.
 
         A coordinate-wise ordering is
@@ -137,7 +86,7 @@ class Integrator:
         return projmat
 
     @property
-    def coordwise2derivwise_projmat(self) -> np.ndarray:
+    def _coordwise2derivwise_projmat(self) -> np.ndarray:
         r"""Projection matrix to change the ordering of the state representation in an :class:`Integrator` from derivative-wise to coordinate-wise representation.
 
         A coordinate-wise ordering is
@@ -156,7 +105,58 @@ class Integrator:
         :meth:`convert_derivwise_to_coordwise`
 
         """
-        return self.derivwise2coordwise_projmat.T
+        return self._derivwise2coordwise_projmat.T
+
+    @staticmethod
+    def _convert_coordwise_to_derivwise(
+        state: np.ndarray, ordint: pntype.IntArgType, spatialdim: pntype.IntArgType
+    ) -> np.ndarray:
+        """Convert coordinate-wise representation to derivative-wise representation.
+
+        Lightweight call to the respective property in :class:`Integrator`.
+
+        Parameters
+        ----------
+        state:
+            State to be converted. Assumed to be in coordinate-wise representation.
+        ordint:
+            Order of the integrator-state. Usually, this is the order of the highest derivative in the state.
+        spatialdim:
+            Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
+
+        See Also
+        --------
+        :attr:`Integrator.coordwise2derivwise_projmat`
+        :attr:`Integrator.derivwise2coordwise_projmat`
+        """
+        projmat = Integrator(ordint, spatialdim)._coordwise2derivwise_projmat
+        return projmat @ state
+
+    @staticmethod
+    def _convert_derivwise_to_coordwise(
+        state: np.ndarray, ordint: pntype.IntArgType, spatialdim: pntype.IntArgType
+    ) -> np.ndarray:
+        """Convert coordinate-wise representation to derivative-wise representation.
+
+        Lightweight call to the respective property in :class:`Integrator`.
+
+        Parameters
+        ----------
+        state:
+            State to be converted. Assumed to be in derivative-wise representation.
+        ordint:
+            Order of the integrator-state. Usually, this is the order of the highest derivative in the state.
+        spatialdim:
+            Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
+
+
+        See Also
+        --------
+        :attr:`Integrator.coordwise2derivwise_projmat`
+        :attr:`Integrator.derivwise2coordwise_projmat`
+        """
+        projmat = Integrator(ordint, spatialdim)._derivwise2coordwise_projmat
+        return projmat @ state
 
 
 class IBM(Integrator, sde.LTISDE):

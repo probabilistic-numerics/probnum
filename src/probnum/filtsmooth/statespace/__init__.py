@@ -17,14 +17,7 @@ from .discrete_transition_utils import (
     triu_to_positive_tril,
 )
 from .generate_samples import generate_samples
-from .integrator import (
-    IBM,
-    IOUP,
-    Integrator,
-    Matern,
-    convert_coordwise_to_derivwise,
-    convert_derivwise_to_coordwise,
-)
+from .integrator import IBM, IOUP, Integrator, Matern
 from .preconditioner import NordsieckLikeCoordinates, Preconditioner
 from .sde import LTISDE, SDE, LinearSDE
 from .sde_utils import matrix_fraction_decomposition
@@ -50,6 +43,4 @@ __all__ = [
     "condition_state_on_rv",
     "cholesky_update",
     "triu_to_positive_tril",
-    "convert_derivwise_to_coordwise",
-    "convert_coordwise_to_derivwise",
 ]
