@@ -14,11 +14,15 @@ __all__ = [
     "initialize_odefilter_with_taylormode",
 ]
 
+
+# In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
+# If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
+# This value is chosen such that its square-root is a really small damping factor).
 SMALL_VALUE = 1e-28
 
 
 def initialize_odefilter_with_rk(f, z0, t0, prior, df=None, h0=1e-2, method="DOP853"):
-    r"""Compute derivatives of the initial value by fitting an integrated Brownian motion process to a few steps of an approximate ODE solution.
+    r"""Compute derivatives of the initial value by fitting a prior Gauss-Markov process to a few steps of an approximate ODE solution.
 
 
     It goes as follows:

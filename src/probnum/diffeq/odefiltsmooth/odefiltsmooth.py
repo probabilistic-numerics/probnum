@@ -22,7 +22,6 @@ import numpy as np
 
 import probnum.filtsmooth as pnfs
 from probnum.diffeq import steprule
-from probnum.diffeq.odefiltsmooth import ivp2filter
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 
@@ -398,19 +397,3 @@ def _string2matern(ivp, which_prior, **kwargs):
         )
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
-
-
-def _string2filter(_ivp, _prior, _method, **kwargs):
-
-    if "evlvar" in kwargs.keys():
-        evlvar = kwargs["evlvar"]
-    else:
-        evlvar = 0.0
-    if _method in ("ekf0", "eks0"):
-        return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    elif _method in ("ekf1", "eks1"):
-        return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    elif _method in ("ukf", "uks"):
-        return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
-    else:
-        raise ValueError("Type of filter not supported.")

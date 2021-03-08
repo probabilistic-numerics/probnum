@@ -1,9 +1,9 @@
-"""Checks for ivp2filter functions.
+"""While previously, this module contained the tests for functions in the
+`diffeq.odefiltsmooth.ivp2filter` module, since this module has become obsolete, we test
+its replacement (`GaussianIVPFilter.string_to_measurement_model`) here.
 
-Covers:
-    * Are the output ExtendedKalman/UnscentedKalman objects?
-    * Does the measurement model do what we think it does
-    * Are the initial values initialised truthfully (y0, f(y0), Jf(y0)f(y0), ...)
+With the next refactoring of `probsolve_ivp` and its tests, please
+refactor this module, too.
 """
 import unittest
 
