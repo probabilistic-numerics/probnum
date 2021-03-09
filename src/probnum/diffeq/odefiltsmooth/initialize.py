@@ -21,7 +21,9 @@ __all__ = [
 SMALL_VALUE = 1e-28
 
 
-def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP853"):
+def initialize_odefilter_with_rk(
+    f, y0, t0, prior, initrv, df=None, h0=1e-2, method="DOP853"
+):
     r"""Initialize an ODE filter by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's RK.
 
     It goes as follows:
@@ -48,6 +50,8 @@ def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP
         Initial time point.
     prior
         Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
+    initrv
+        Initial random variable.
     df
         Jacobian of the ODE vector field. Optional. If specified, more components of the result will be exact.
     h0
@@ -60,27 +64,29 @@ def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP
     Returns
     -------
     Normal
-        Estimated initial random variable. Compatible with the specified prior.
+        Estimated (improved) initial random variable. Compatible with the specified prior.
 
     Examples
     --------
 
     >>> from dataclasses import astuple
+    >>> from probnum.random_variables import Normal
     >>> from probnum.filtsmooth.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
 
-    Compute the initial values of the restricted three-body problem as follows
+    Compute the initial values of the van-der-Pol problem as follows
 
     >>> f, t0, tmax, y0, df, *_ = astuple(vanderpol())
     >>> print(y0)
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
-    >>> initrv = initialize_odefilter_with_rk(f, y0, t0, prior=prior, df=df)
-    >>> print(prior.proj2coord(0) @ initrv.mean)
+    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
+    >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior=prior, initrv=initrv, df=df)
+    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
-    >>> print(np.round(initrv.mean, 1))
+    >>> print(np.round(improved_initrv.mean, 1))
     [    2.      0.     -2.     58.2     0.     -2.     60.  -1745.7]
-    >>> print(np.round(np.log10(initrv.std), 1))
+    >>> print(np.round(np.log10(improved_initrv.std), 1))
     [-13.8 -11.3  -9.   -1.5 -13.8 -11.3  -9.   -1.5]
     """
     y0 = np.asarray(y0)
@@ -115,11 +121,11 @@ def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP
     ts = sol.t[:num_steps]
     ys = sol.y[:, :num_steps].T
 
-    initmean = np.zeros(prior.dimension)
+    initmean = initrv.mean.copy()
     initmean[0 :: (order + 1)] = y0
     initmean[1 :: (order + 1)] = f(t0, y0)
 
-    initcov_diag = np.ones(prior.dimension)
+    initcov_diag = np.diag(initrv.cov).copy()
     initcov_diag[0 :: (order + 1)] = SMALL_VALUE
     initcov_diag[1 :: (order + 1)] = SMALL_VALUE
 
@@ -139,7 +145,7 @@ def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP
     return estimated_initrv
 
 
-def initialize_odefilter_with_taylormode(f, y0, t0, prior):
+def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     """Initialize an ODE filter with Taylor-mode automatic differentiation.
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
@@ -163,6 +169,8 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior):
         Initial time point.
     prior
         Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
+    initrv
+        Initial random variable.
 
     Returns
     -------
@@ -178,6 +186,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior):
     ...     pytest.skip('this doctest does not work on Windows')
 
     >>> from dataclasses import astuple
+    >>> from probnum.random_variables import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
     >>> from probnum.filtsmooth.statespace import IBM
 
@@ -188,10 +197,11 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior):
     [ 0.994       0.          0.         -2.00158511]
 
     >>> prior = IBM(ordint=3, spatialdim=4)
-    >>> initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior)
-    >>> print(prior.proj2coord(0) @ initrv.mean)
+    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
+    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv)
+    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
     [ 0.994       0.          0.         -2.00158511]
-    >>> print(initrv.mean)
+    >>> print(improved_initrv.mean)
     [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
       0.00000000e+00 -2.00158511e+00  0.00000000e+00  9.99720945e+04
       0.00000000e+00 -3.15543023e+02  0.00000000e+00  6.39028111e+07
@@ -203,12 +213,13 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior):
     >>> print(y0)
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
-    >>> initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior)
-    >>> print(prior.proj2coord(0) @ initrv.mean)
+    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
+    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv)
+    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
-    >>> print(initrv.mean)
+    >>> print(improved_initrv.mean)
     [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
-    >>> print(initrv.std)
+    >>> print(improved_initrv.std)
     [0. 0. 0. 0. 0. 0. 0. 0.]
     """
 

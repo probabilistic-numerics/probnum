@@ -44,17 +44,22 @@ class GaussianIVPFilter(ODESolver):
         measurement_model: pnfs.statespace.DiscreteGaussian,
         with_smoothing: bool,
         init_implementation: typing.Callable[
-            [typing.Callable, np.ndarray, float, pnfs.statespace.Integrator], Normal
+            [
+                typing.Callable,
+                np.ndarray,
+                float,
+                pnfs.statespace.Integrator,
+                Normal,
+                typing.Optional[typing.Callable],
+            ],
+            Normal,
         ],
     ):
 
-        # This is not used in init_implementation, but merely a placeholder so that
-        # a Kalman object can be initialised successfully.
-        # initialize_odefilter_with_rk and initialize_odefilter_with_taylormode
-        # have their own, more suitable, initial distribution.
         initrv = Normal(
-            np.nan * np.ones(prior.dimension),
-            np.nan * np.ones((prior.dimension, prior.dimension)),
+            np.zeros(prior.dimension),
+            np.eye(prior.dimension),
+            cov_cholesky=np.eye(prior.dimension),
         )
 
         self.gfilt = pnfs.Kalman(
@@ -159,9 +164,16 @@ class GaussianIVPFilter(ODESolver):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_rk`."""
 
-        def init_implementation(f, y0, t0, prior, df=None):
+        def init_implementation(f, y0, t0, prior, initrv, df=None):
             return initialize_odefilter_with_rk(
-                f=f, y0=y0, t0=t0, prior=prior, df=df, h0=init_h0, method=init_method
+                f=f,
+                y0=y0,
+                t0=t0,
+                prior=prior,
+                initrv=initrv,
+                df=df,
+                h0=init_h0,
+                method=init_method,
             )
 
         return cls(
@@ -190,6 +202,7 @@ class GaussianIVPFilter(ODESolver):
             self.ivp.initrv.mean,
             self.ivp.t0,
             self.gfilt.dynamics_model,
+            self.gfilt.initrv,
             self.ivp.jacobian,
         )
 

@@ -58,11 +58,13 @@ def test_initialize_with_rk(lv, lv_inits, order):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
+    initrv = pnrv.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
     received_rv = pnde.initialize_odefilter_with_rk(
         lv.rhs,
         lv.initrv.mean,
         lv.t0,
         prior=prior,
+        initrv=initrv,
         df=lv.jacobian,
         h0=1e-1,
         method="RK45",
@@ -94,11 +96,14 @@ def test_initialize_with_taylormode(any_order):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
+
+    initrv = pnrv.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
+
     received_rv = pnde.initialize_odefilter_with_taylormode(
-        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior
+        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior, initrv=initrv
     )
 
     # The higher derivatives will have absolute difference ~8%
     # if things work out correctly
-    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.25)
+    np.testing.assert_allclose(received_rv.mean, expected, rtol=1e-10)
     np.testing.assert_allclose(received_rv.std, 0.0)
