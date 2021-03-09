@@ -78,18 +78,18 @@ class GaussianMeasure(IntegrationMeasure):
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov
 
-        # Find dimension based on the mean vector
-        if len(self.mean.shape) == 0:
+        # Set dimension based on the mean vector
+        if np.isscalar(self.mean):
             dim = 1
         else:
-            dim = len(self.mean)
+            dim = self.mean.size
 
         # Set diagonal_covariance flag
         if dim == 1:
             self.diagonal_covariance = True
         else:
             self.diagonal_covariance = (
-                np.count_nonzero(self.cov - np.diag(self.cov)) == 0
+                np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov))) == 0
             )
 
         super().__init__(
