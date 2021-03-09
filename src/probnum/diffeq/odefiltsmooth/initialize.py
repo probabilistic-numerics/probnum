@@ -59,10 +59,8 @@ def initialize_odefilter_with_rk(f, y0, t0, prior, df=None, h0=1e-2, method="DOP
 
     Returns
     -------
-    array
-        Estimate of the full stack of derivatives
-    array
-        Marginal standard deviations of the state, can be used as an error estimate of the estimation.
+    Normal
+        Estimated initial random variable. Compatible with the specified prior.
 
     Examples
     --------
@@ -168,10 +166,8 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior):
 
     Returns
     -------
-    array
-        Estimate of the full stack of derivatives
-    array
-        Array full of zeros, as a dummy error estimate of the estimation.
+    Normal
+        Estimated initial random variable. Compatible with the specified prior.
 
 
     Examples
