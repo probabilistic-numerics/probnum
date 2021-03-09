@@ -236,23 +236,19 @@ def probsolve_ivp(
     else:
         stprl = steprule.ConstantSteps(step)
 
-    # Create prior
+    # Create solver
     prior = pnfs.statespace.IBM(
         ordint=algo_order,
         spatialdim=ivp.dimension,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-
-    # Create measurement model.
     measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
-
-    # Solve
     solver = GaussianIVPFilter.construct_with_rk_init(
         ivp, prior, measmod, with_smoothing=dense_output
     )
-    solution = solver.solve(steprule=stprl)
-    return solution
+
+    return solver.solve(steprule=stprl)
 
 
 def _create_filter(ivp, prior, method):
