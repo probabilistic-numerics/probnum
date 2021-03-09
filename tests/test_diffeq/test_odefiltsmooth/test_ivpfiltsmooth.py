@@ -47,8 +47,8 @@ def test_first_iteration(ivp, sol):
     ms, cs = state_rvs.mean, state_rvs.cov
 
     exp_mean = np.array([ivp.initrv.mean, ivp.rhs(0, ivp.initrv.mean)])
-    np.testing.assert_allclose(ms[0], exp_mean[:, 0], rtol=1e-14)
-    np.testing.assert_allclose(cs[0], np.zeros((2, 2)), rtol=1e-14)
+    np.testing.assert_allclose(ms[0], exp_mean[:, 0], atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(cs[0], np.zeros((2, 2)), atol=1e-14, rtol=1e-14)
 
 
 def test_second_iteration(ivp, sol, step):

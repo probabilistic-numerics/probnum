@@ -9,7 +9,7 @@ import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 import probnum.type
 import probnum.utils
-from probnum.filtsmooth.statespace import cholesky_update
+from probnum.utils.linalg import cholesky_update
 
 from ..odesolution import ODESolution
 
@@ -53,14 +53,14 @@ class KalmanODESolution(ODESolution):
      [0.21]
      [0.28]
      [0.37]
-     [0.46]
-     [0.56]
+     [0.47]
+     [0.57]
      [0.66]
      [0.74]
      [0.81]
-     [0.86]
-     [0.9 ]
-     [0.93]
+     [0.87]
+     [0.91]
+     [0.94]
      [0.96]
      [0.97]
      [0.98]

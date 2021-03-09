@@ -14,7 +14,6 @@ import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 from probnum.diffeq import steprule
 from probnum.diffeq.ode import IVP
-from probnum.diffeq.odefiltsmooth import ivp2filter
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 __all__ = ["probsolve_ivp"]
@@ -184,21 +183,21 @@ def probsolve_ivp(
      [0.21]
      [0.28]
      [0.37]
-     [0.46]
-     [0.56]
+     [0.47]
+     [0.57]
      [0.66]
      [0.74]
      [0.81]
-     [0.86]
-     [0.9 ]
-     [0.93]
+     [0.87]
+     [0.91]
+     [0.94]
      [0.96]
      [0.97]
      [0.98]
      [0.99]]
 
 
-    Other priors and other methods are easily accessible.
+    Other methods are easily accessible.
 
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
@@ -245,12 +244,13 @@ def probsolve_ivp(
         backward_implementation="sqrt",
     )
 
-    # Create measurement model and Kalman object.
-    method = method.upper()
-    gfilt = _create_filter(ivp, prior, method)
+    # Create measurement model.
+    measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
 
     # Solve
-    solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=dense_output)
+    solver = GaussianIVPFilter.construct_with_rk_init(
+        ivp, prior, measmod, with_smoothing=dense_output
+    )
     solution = solver.solve(steprule=stprl)
     return solution
 
