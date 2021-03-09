@@ -34,7 +34,11 @@ class GaussianIVPFilter(ODESolver):
         To smooth after the solve or not to smooth after the solve.
     init_implementation
         Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
-        For more convenient construction, consider :func:`GaussianIVPFilter.from_rk_init`.
+        For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
+    initrv
+        Initial random variable to be used by the filter. Optional. Default is `None`, which amounts to choosing a standard-normal initial RV.
+        As part of `GaussianIVPFilter.initialise()` (called in `GaussianIVPFilter.solve()`), this variable is improved upon with the help of the
+        initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
     """
 
     def __init__(
@@ -54,13 +58,14 @@ class GaussianIVPFilter(ODESolver):
             ],
             Normal,
         ],
+        initrv: typing.Optional[Normal] = None,
     ):
-
-        initrv = Normal(
-            np.zeros(prior.dimension),
-            np.eye(prior.dimension),
-            cov_cholesky=np.eye(prior.dimension),
-        )
+        if initrv is None:
+            initrv = Normal(
+                np.zeros(prior.dimension),
+                np.eye(prior.dimension),
+                cov_cholesky=np.eye(prior.dimension),
+            )
 
         self.gfilt = pnfs.Kalman(
             dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
@@ -152,12 +157,13 @@ class GaussianIVPFilter(ODESolver):
     # initialisation methods require different parameters.
 
     @classmethod
-    def from_rk_init(
+    def construct_with_rk_init(
         cls,
         ivp,
         prior,
         measurement_model,
         with_smoothing,
+        initrv=None,
         init_h0=0.01,
         init_method="DOP853",
     ):
@@ -182,10 +188,13 @@ class GaussianIVPFilter(ODESolver):
             measurement_model,
             with_smoothing,
             init_implementation=init_implementation,
+            initrv=initrv,
         )
 
     @classmethod
-    def from_taylormode_init(cls, ivp, prior, measurement_model, with_smoothing):
+    def construct_with_taylormode_init(
+        cls, ivp, prior, measurement_model, with_smoothing, initrv=None
+    ):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_taylormode`."""
         return cls(
@@ -194,6 +203,7 @@ class GaussianIVPFilter(ODESolver):
             measurement_model,
             with_smoothing,
             init_implementation=initialize_odefilter_with_taylormode,
+            initrv=initrv,
         )
 
     def initialise(self):
