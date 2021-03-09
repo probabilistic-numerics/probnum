@@ -73,16 +73,22 @@ class GaussianMeasure(IntegrationMeasure):
         mean: Union[float, np.floating, np.ndarray],
         cov: Union[float, np.floating, np.ndarray],
     ):
+
+        # Set dimension based on the mean vector
+        if np.isscalar(mean):
+            dim = 1
+        else:
+            dim = mean.size
+
+        if dim > 1:
+            if isinstance(cov, np.ndarray) and cov.size == dim:
+                # cov has been given as vector of variances
+                cov = np.diag(np.squeeze(cov))
+
         # Exploit random variables to carry out mean and covariance checks
         self.random_variable = Normal(np.squeeze(mean), np.squeeze(cov))
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov
-
-        # Set dimension based on the mean vector
-        if np.isscalar(self.mean):
-            dim = 1
-        else:
-            dim = self.mean.size
 
         # Set diagonal_covariance flag and reshape covariance to (1,1) if we are in 1d
         if dim == 1:
