@@ -101,7 +101,9 @@ class GaussianIVPFilter(ODESolver):
         """
         measurement_model_string = measurement_model_string.upper()
 
-        # This dict will be made much smaller once "probsolve_ivp" is leaned out.
+        # While "UK" is not available in probsolve_ivp (because it is not recommended)
+        # It is an option in this function here, because there is no obvious reason to restrict
+        # the options in this lower level function.
         choose_meas_model = {
             "EK0": pnfs.DiscreteEKFComponent.from_ode(
                 ivp,
