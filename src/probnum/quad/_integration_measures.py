@@ -18,15 +18,14 @@ class IntegrationMeasure(abc.ABC):
         self,
         dim: IntArgType,
         domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
-        name: str = "Custom measure",
+        name: Optional[str] = "Custom measure",
     ):
 
         self._set_dimension_domain(dim, domain)
-        self._name = name
+        self.name = name
 
     def sample(self, n_sample):
-        """Sample from integration measure."""
-        raise NotImplementedError
+        return np.squeeze(self.random_variable.sample(size=n_sample))
 
     def _set_dimension_domain(self, dim, domain):
         """
@@ -71,12 +70,9 @@ class GaussianMeasure(IntegrationMeasure):
         cov: Union[float, np.floating, np.ndarray],
     ):
         # Exploit random variables to carry out mean and covariance checks
-        self.random_variable = Normal(mean, cov)
+        self.random_variable = Normal(np.squeeze(mean), np.squeeze(cov))
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov
-        self.diagonal_covariance = not bool(
-            np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov)))
-        )
 
         # Use the mean to set the dimension
         if len(self.mean.shape) == 0:
@@ -84,14 +80,16 @@ class GaussianMeasure(IntegrationMeasure):
         else:
             self.dim = len(self.mean)
 
+        # Set diagonal_covariance flag
+        if self.dim == 1:
+            self.diagonal_covariance = True
+        else:
+            self.diagonal_covariance = not bool(
+                np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov)))
+            )
+
         super().__init__(
             dim=self.dim,
             domain=(np.full((self.dim,), -np.Inf), np.full((self.dim,), np.Inf)),
             name="Gaussian measure",
         )
-
-    def sample(self, n_sample):
-        if self.dim == 1:
-            return self.random_variable._univariate_sample(size=(n_sample, 1))
-        else:
-            return self.random_variable._dense_sample(size=n_sample)
