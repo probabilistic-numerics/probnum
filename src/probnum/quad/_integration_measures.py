@@ -24,6 +24,9 @@ class IntegrationMeasure(abc.ABC):
         self._set_dimension_domain(dim, domain)
         self.name = name
 
+    def __call__(self, points: Union[float, np.floating, np.ndarray]):
+        return self.random_variable.pdf(points)
+
     def sample(self, n_sample):
         return np.squeeze(self.random_variable.sample(size=n_sample))
 
