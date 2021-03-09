@@ -72,20 +72,18 @@ class _KExpQuadMGauss(_KernelEmbedding):
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
 
         if self.measure.diagonal_covariance:
-            chol_inv_x = x / (
-                self.kernel.lengthscale ** 2 + np.diag(self.measure.covariance)
+            chol_inv_x = (x - self.measure.mean[:, None]) / (
+                self.kernel.lengthscale ** 2 + np.diag(self.measure.cov)
             ).reshape(-1, 1)
             det_factor = (
                 self.kernel.lengthscale ** self.dim
-                / (
-                    self.kernel.lengthscale ** 2 * np.diag(self.measure.covariance)
-                ).prod()
+                / (self.kernel.lengthscale ** 2 * np.diag(self.measure.cov)).prod()
             )
         else:
             chol = slinalg.cho_factor(
-                self.kernel.lengthscale * np.eye(self.dim) + self.measure.covariance
+                self.kernel.lengthscale * np.eye(self.dim) + self.measure.cov
             )
-            chol_inv_x = slinalg.cho_solve(chol, x - self.measure.mean)
+            chol_inv_x = slinalg.cho_solve(chol, x - self.measure.mean[:, None])
 
             det_factor = self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
 
@@ -95,15 +93,11 @@ class _KExpQuadMGauss(_KernelEmbedding):
     def kernel_variance(self) -> float:
         if self.measure.diagonal_covariance:
             denom = np.sqrt(
-                (
-                    self.kernel.lengthscale ** 2
-                    + 2.0 * np.diag(self.measure.covariance)
-                ).prod()
+                (self.kernel.lengthscale ** 2 + 2.0 * np.diag(self.measure.cov)).prod()
             )
         else:
             chol, _ = slinalg.cho_factor(
-                self.kernel.lengthscale * np.eye(self.dim)
-                + 2 * self.measure.covariance,
+                self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.cov,
                 lower=True,
             )
             denom = np.diag(chol).prod()
@@ -153,6 +147,8 @@ def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):
     if isinstance(kernel, ExpQuad):
         if isinstance(measure, GaussianMeasure):
             return _KExpQuadMGauss(kernel, measure)
+        elif isinstance(measure, LebesgueMeasure):
+            return _KExpQuadMLebesgue(kernel, measure)
         raise NotImplementedError
 
     # other kernels
