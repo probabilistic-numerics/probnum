@@ -34,7 +34,7 @@ def test_cholesky_update(spdmat1, spdmat2):
 def test_cholesky_optional(spdmat1, even_ndim):
     """Assert that cholesky_update() transforms a non-square matrix square-root into a
     correct Cholesky factor."""
-    H = np.random.rand(int(0.5 * even_ndim), even_ndim)
+    H = np.random.rand(even_ndim // 2, even_ndim)
     expected = np.linalg.cholesky(H @ spdmat1 @ H.T)
     S1 = np.linalg.cholesky(spdmat1)
     received = utlin.cholesky_update(H @ S1)
