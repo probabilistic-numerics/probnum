@@ -1,11 +1,12 @@
 """Contains integration measures."""
 
 import abc
-from typing import Tuple, Optional, Union
-from probnum.type import IntArgType, FloatArgType
-from probnum.random_variables._normal import Normal
+from typing import Optional, Tuple, Union
 
 import numpy as np
+
+from probnum.random_variables._normal import Normal
+from probnum.type import FloatArgType, IntArgType
 
 
 class IntegrationMeasure(abc.ABC):
@@ -31,8 +32,7 @@ class IntegrationMeasure(abc.ABC):
         return np.squeeze(self.random_variable.sample(size=n_sample))
 
     def _set_dimension_domain(self, dim, domain):
-        """
-        Sets the integration domain and dimension. Error is thrown if the given
+        """Sets the integration domain and dimension. Error is thrown if the given
         dimension and domain limits do not match.
 
         TODO: check that dimensions match and the domain is not empty
@@ -87,8 +87,8 @@ class GaussianMeasure(IntegrationMeasure):
         if self.dim == 1:
             self.diagonal_covariance = True
         else:
-            self.diagonal_covariance = not bool(
-                np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov)))
+            self.diagonal_covariance = (
+                np.count_nonzero(self.cov - np.diag(self.cov)) == 0
             )
 
         super().__init__(
