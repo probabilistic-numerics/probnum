@@ -88,8 +88,8 @@ class GaussianMeasure(IntegrationMeasure):
         if dim == 1:
             self.diagonal_covariance = True
         else:
-            self.diagonal_covariance = not bool(
-                np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov)))
+            self.diagonal_covariance = (
+                np.count_nonzero(self.cov - np.diag(self.cov)) == 0
             )
 
         super().__init__(
