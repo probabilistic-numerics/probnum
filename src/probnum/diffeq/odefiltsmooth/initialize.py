@@ -9,12 +9,6 @@ import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 from probnum.filtsmooth import statespace as pnss
 
-__all__ = [
-    "initialize_odefilter_with_rk",
-    "initialize_odefilter_with_taylormode",
-]
-
-
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
 # This value is chosen such that its square-root is a really small damping factor).
