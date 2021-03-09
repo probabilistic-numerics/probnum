@@ -48,11 +48,15 @@ class GaussianIVPFilter(ODESolver):
         ],
     ):
 
+        # This is not used in init_implementation, but merely a placeholder so that
+        # a Kalman object can be initialised successfully.
+        # initialize_odefilter_with_rk and initialize_odefilter_with_taylormode
+        # have their own, more suitable, initial distribution.
         initrv = Normal(
-            np.zeros(prior.dimension),
-            np.zeros((prior.dimension, prior.dimension)),
-            cov_cholesky=np.zeros((prior.dimension, prior.dimension)),
+            np.nan * np.ones(prior.dimension),
+            np.nan * np.ones((prior.dimension, prior.dimension)),
         )
+
         self.gfilt = pnfs.Kalman(
             dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
         )

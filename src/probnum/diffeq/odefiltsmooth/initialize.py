@@ -264,13 +264,12 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior):
             cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
         )
 
-    order = order - 2
-    for _ in range(order + 1):
+    for _ in range(1, order):
         (dy0, [*yns]) = jet(total_derivative, (z_t,), ((dy0, *yns),))
         derivs.extend(yns[-2][:-1])
 
     all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
-        jnp.array(derivs), ordint=order + 2, spatialdim=len(y0)
+        jnp.array(derivs), ordint=order, spatialdim=len(y0)
     )
 
     return pnrv.Normal(
