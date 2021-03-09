@@ -51,6 +51,8 @@ no-else-raise,
 
 no-member,
 
+redefined-variable-type,
+
 abstract-class-instantiated,
 too-many-locals,
 too-few-public-methods,
