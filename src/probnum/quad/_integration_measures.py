@@ -16,6 +16,7 @@ class IntegrationMeasure(abc.ABC):
 
     def __init__(
         self,
+        dim: IntArgType,
         domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
         name: str = "Custom measure",
     ):
@@ -30,6 +31,7 @@ class IntegrationMeasure(abc.ABC):
     def _set_dimension_domain(self, dim, domain):
         """
         Sets the integration domain and dimension. Error is thrown if the given
+        dimension and domain limits do not match.
 
         TODO: check that dimensions match and the domain is not empty
         """
@@ -55,6 +57,9 @@ class LebesgueMeasure(IntegrationMeasure):
     def __init__(self, domain: Tuple[np.ndarray, np.ndarray]):
 
         super().__init__(domain=domain, name="Lebesgue measure")
+
+    def sample(self, n_sample):
+        raise NotImplementedError
 
 
 class GaussianMeasure(IntegrationMeasure):
