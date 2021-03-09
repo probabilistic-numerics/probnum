@@ -1,9 +1,9 @@
-"""Checks for ivp2filter functions.
+"""While previously, this module contained the tests for functions in the
+`diffeq.odefiltsmooth.ivp2filter` module, since this module has become obsolete, we test
+its replacement (`GaussianIVPFilter.string_to_measurement_model`) here.
 
-Covers:
-    * Are the output ExtendedKalman/UnscentedKalman objects?
-    * Does the measurement model do what we think it does
-    * Are the initial values initialised truthfully (y0, f(y0), Jf(y0)f(y0), ...)
+With the next refactoring of `probsolve_ivp` and its tests, please
+refactor this module, too.
 """
 import unittest
 
@@ -32,35 +32,23 @@ class TestIvp2Ekf0(Ivp2FilterTestCase):
     """
 
     def test_ivp2ekf0_output(self):
-        filtsmooth_object = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(
-            filtsmooth_object.measurement_model, pnfs.DiscreteEKFComponent
+        measmod = pnd.GaussianIVPFilter.string_to_measurement_model(
+            "ekf0", self.ivp, self.prior, self.evlvar
         )
+        self.assertIsInstance(measmod, pnfs.DiscreteEKFComponent)
 
     def test_ekf0_measmod(self):
-        kalman = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
+        measmod = pnd.GaussianIVPFilter.string_to_measurement_model(
+            "eks0", self.ivp, self.prior, self.evlvar
+        )
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.forward_realization(
-            random_eval, random_time
-        )
+        received, _ = measmod.forward_realization(random_eval, random_time)
 
         self.assertAllClose(expected, received.mean)
-
-    def test_ekf0_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2ekf0(self.ivp, self.prior, self.evlvar)
-        expected_initval = np.array(
-            [
-                self.ivp.initrv.mean,
-                self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-                self.ivp.jacobian(self.ivp.t0, self.ivp.initrv.mean)
-                @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-            ]
-        )
-        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
 
 
 class TestIvp2Ekf1(Ivp2FilterTestCase):
@@ -70,35 +58,23 @@ class TestIvp2Ekf1(Ivp2FilterTestCase):
     """
 
     def test_ivp2ekf1_output(self):
-        filtsmooth_object = pnd.ivp2ekf1(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(
-            filtsmooth_object.measurement_model, pnfs.DiscreteEKFComponent
+        measmod = pnd.GaussianIVPFilter.string_to_measurement_model(
+            "ekf1", self.ivp, self.prior, self.evlvar
         )
+        self.assertIsInstance(measmod, pnfs.DiscreteEKFComponent)
 
     def test_ekf1_measmod(self):
-        kalman = pnd.ivp2ekf1(self.ivp, self.prior, self.evlvar)
+        measmod = pnd.GaussianIVPFilter.string_to_measurement_model(
+            "eks1", self.ivp, self.prior, self.evlvar
+        )
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.forward_realization(
-            random_eval, random_time
-        )
+        received, _ = measmod.forward_realization(random_eval, random_time)
 
         self.assertAllClose(expected, received.mean)
-
-    def test_ekf1_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2ekf1(self.ivp, self.prior, self.evlvar)
-        expected_initval = np.array(
-            [
-                self.ivp.initrv.mean,
-                self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-                self.ivp.jacobian(self.ivp.t0, self.ivp.initrv.mean)
-                @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-            ]
-        )
-        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
 
 
 class TestIvpUkf(Ivp2FilterTestCase):
@@ -108,32 +84,20 @@ class TestIvpUkf(Ivp2FilterTestCase):
     """
 
     def test_ivp2ukf_output(self):
-        filtsmooth_object = pnd.ivp2ukf(self.ivp, self.prior, self.evlvar)
-        self.assertIsInstance(
-            filtsmooth_object.measurement_model, pnfs.DiscreteUKFComponent
+        measmod = pnd.GaussianIVPFilter.string_to_measurement_model(
+            "ukf", self.ivp, self.prior, self.evlvar
         )
+        self.assertIsInstance(measmod, pnfs.DiscreteUKFComponent)
 
     def test_ukf_measmod(self):
-        kalman = pnd.ivp2ukf(self.ivp, self.prior, self.evlvar)
+        measmod = pnd.GaussianIVPFilter.string_to_measurement_model(
+            "uks", self.ivp, self.prior, self.evlvar
+        )
         random_time, random_eval = np.random.rand(), np.random.rand(
             self.prior.dimension
         )
         e0, e1 = self.prior.proj2coord(0), self.prior.proj2coord(1)
         expected = e1 @ random_eval - self.ivp.rhs(random_time, e0 @ random_eval)
-        received, _ = kalman.measurement_model.forward_realization(
-            random_eval, random_time
-        )
+        received, _ = measmod.forward_realization(random_eval, random_time)
 
         self.assertAllClose(expected, received.mean)
-
-    def test_ukf_initialdistribution(self):
-        filtsmooth_object = pnd.ivp2ukf(self.ivp, self.prior, self.evlvar)
-        expected_initval = np.array(
-            [
-                self.ivp.initrv.mean,
-                self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-                self.ivp.jacobian(self.ivp.t0, self.ivp.initrv.mean)
-                @ self.ivp(self.ivp.t0, self.ivp.initrv.mean),
-            ]
-        )
-        self.assertAllClose(filtsmooth_object.initrv.mean, expected_initval.T.flatten())
