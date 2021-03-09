@@ -243,6 +243,9 @@ def probsolve_ivp(
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
+
+    if method.upper() not in ["EK0", "EK1"]:
+        raise ValueError("Method is not supported.")
     measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
     solver = GaussianIVPFilter.construct_with_rk_init(
         ivp, prior, measmod, with_smoothing=dense_output

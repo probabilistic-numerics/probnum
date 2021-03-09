@@ -119,11 +119,11 @@ class GaussianIVPFilter(ODESolver):
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             ),
-            # "UK": pnfs.DiscreteUKFComponent.from_ode(
-            #     ivp,
-            #     prior,
-            #     evlvar=measurement_noise_covariance,
-            # ),
+            "UK": pnfs.DiscreteUKFComponent.from_ode(
+                ivp,
+                prior,
+                evlvar=measurement_noise_covariance,
+            ),
         }
 
         if measurement_model_string not in choose_meas_model.keys():

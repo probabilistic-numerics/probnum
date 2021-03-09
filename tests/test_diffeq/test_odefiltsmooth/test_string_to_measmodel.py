@@ -28,7 +28,11 @@ def prior(ivp):
 
 @pytest.mark.parametrize(
     "string, expected_type",
-    [("EK0", pnfs.DiscreteEKFComponent), ("EK1", pnfs.DiscreteEKFComponent)],
+    [
+        ("EK0", pnfs.DiscreteEKFComponent),
+        ("EK1", pnfs.DiscreteEKFComponent),
+        ("UK", pnfs.DiscreteUKFComponent),
+    ],
 )
 def test_output_type(string, expected_type, ivp, prior):
     """Assert that the output type matches."""
@@ -38,7 +42,7 @@ def test_output_type(string, expected_type, ivp, prior):
 
 @pytest.mark.parametrize(
     "string",
-    ["EK0", "EK1"],
+    ["EK0", "EK1", "UK"],
 )
 def test_true_mean_ek(string, ivp, prior):
     """Assert that a forwarded realization is x[1] - f(t, x[0]) with zero added covariance."""
@@ -50,4 +54,4 @@ def test_true_mean_ek(string, ivp, prior):
     e0, e1 = prior.proj2coord(0), prior.proj2coord(1)
     expected = e1 @ some_real - ivp.rhs(some_time, e0 @ some_real)
     np.testing.assert_allclose(received.mean, expected)
-    np.testing.assert_allclose(received.cov, 0.0)
+    np.testing.assert_allclose(received.cov, 0.0, atol=1e-12)
