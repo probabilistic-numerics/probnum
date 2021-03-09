@@ -27,6 +27,13 @@ class _KernelEmbedding(abc.ABC):
         self.kernel = kernel
         self.measure = measure
 
+        if self.kernel.input_dim != self.measure.dim:
+            raise ValueError(
+                "Input dimensions of kernel and measure need to be the same."
+            )
+
+        self.dim = self.kernel.input_dim
+
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
         """Kernel mean w.r.t. its first argument against the integration measure.
 
@@ -67,40 +74,62 @@ class _KExpQuadMGauss(_KernelEmbedding):
 
     def __init__(self, kernel: ExpQuad, measure: GaussianMeasure):
         super().__init__(kernel, measure)
-        self.dim = self.kernel.input_dim
 
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
 
-        if self.measure.diagonal_covariance:
-            chol_inv_x = (x - self.measure.mean[:, None]) / (
-                self.kernel.lengthscale ** 2 + np.diag(self.measure.cov)
-            ).reshape(-1, 1)
-            det_factor = (
-                self.kernel.lengthscale ** self.dim
-                / (self.kernel.lengthscale ** 2 * np.diag(self.measure.cov)).prod()
+        if self.dim == 1:
+            chol_inv_x = (x - self.measure.mean) / np.sqrt(
+                self.kernel.lengthscale ** 2 + self.measure.cov
             )
+            det_factor = np.float(
+                np.sqrt(
+                    self.kernel.lengthscale ** 2
+                    / (self.kernel.lengthscale ** 2 + self.measure.cov)
+                )
+            )
+            exp_factor = np.exp(-0.5 * (chol_inv_x ** 2)).reshape(-1)
         else:
-            chol = slinalg.cho_factor(
-                self.kernel.lengthscale * np.eye(self.dim) + self.measure.cov
-            )
-            chol_inv_x = slinalg.cho_solve(chol, x - self.measure.mean[:, None])
+            if self.measure.diagonal_covariance:
+                chol_inv_x = (x - self.measure.mean[:, None]) / np.sqrt(
+                    (self.kernel.lengthscale ** 2 + np.diag(self.measure.cov)).reshape(
+                        -1, 1
+                    )
+                )
+                det_factor = self.kernel.lengthscale ** self.dim / np.sqrt(
+                    (self.kernel.lengthscale ** 2 + np.diag(self.measure.cov)).prod()
+                )
+            else:
+                chol = slinalg.cho_factor(
+                    self.kernel.lengthscale ** 2 * np.eye(self.dim) + self.measure.cov,
+                    lower=True,
+                )
+                chol_inv_x = slinalg.cho_solve(chol, x - self.measure.mean[:, None])
 
-            det_factor = self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
+                det_factor = (
+                    self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
+                )
 
-        exp_factor = np.exp(-0.5 * (chol_inv_x ** 2)).sum(axis=0)
+            exp_factor = np.exp(-0.5 * (chol_inv_x ** 2).sum(axis=0))
         return det_factor * exp_factor
 
     def kernel_variance(self) -> float:
-        if self.measure.diagonal_covariance:
-            denom = np.sqrt(
-                (self.kernel.lengthscale ** 2 + 2.0 * np.diag(self.measure.cov)).prod()
+        if self.dim == 1:
+            denom = np.float(
+                np.sqrt((self.kernel.lengthscale ** 2 + 2.0 * self.measure.cov))
             )
         else:
-            chol, _ = slinalg.cho_factor(
-                self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.cov,
-                lower=True,
-            )
-            denom = np.diag(chol).prod()
+            if self.measure.diagonal_covariance:
+                denom = np.sqrt(
+                    (
+                        self.kernel.lengthscale ** 2 + 2.0 * np.diag(self.measure.cov)
+                    ).prod()
+                )
+            else:
+                chol, _ = slinalg.cho_factor(
+                    self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.cov,
+                    lower=True,
+                )
+                denom = np.diag(chol).prod()
 
         return self.kernel.lengthscale ** self.dim / denom
 

@@ -33,7 +33,7 @@ def fixture_num_data(request) -> int:
 
 @pytest.fixture(
     params=[
-        pytest.param(input_dim, id=f"indim{input_dim}") for input_dim in [1, 10, 100]
+        pytest.param(input_dim, id=f"dim{input_dim}") for input_dim in [1, 10, 100]
     ],
     name="input_dim",
 )
@@ -68,48 +68,33 @@ def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
 
 # Measures
 @pytest.fixture(name="mean")
-def fixture_mean(
-    input_dim: int, mean_property, random_state: np.random.RandomState
-) -> np.ndarray:
+def fixture_mean(input_dim: int, random_state: np.random.RandomState) -> np.ndarray:
     """Random array for mean from a standard normal distribution."""
-    if mean_property == "scalar":
+    if input_dim == 1:
         return random_state.normal(0, 1)
     return random_state.normal(0, 1, size=(input_dim, 1))
 
 
-@pytest.fixture(
-    params=[
-        pytest.param(mean_property, id=f"mean_{mean_property}")
-        for mean_property in ["scalar", "vector"]
-    ],
-    name="mean_property",
-)
-def fixture_mean_property(request) -> str:
-    """Possible forms of the mean."""
-    return request.param
-
-
-@pytest.fixture(name="covariance")
-def fixture_covariance(
-    input_dim: int, cov_property, random_state: np.random.RandomState
+@pytest.fixture(name="cov")
+def fixture_cov(
+    input_dim: int, diagonal, random_state: np.random.RandomState
 ) -> np.ndarray:
-    """Random covariance matrix a standard normal distribution."""
-    if cov_property == "scalar":
+    """Random covariance matrix."""
+    if input_dim == 1:
         return random_state.uniform(0.5, 1.5)
-    elif cov_property == "diagonal":
+    if diagonal:
         return random_state.uniform(0.5, 1.5, size=(input_dim, 1))
     mat = random_state.normal(0, 1, size=(input_dim, input_dim))
-    return np.eye(input_dim)  # mat @ mat.T + np.eye(input_dim)
+    return mat @ mat.T
 
 
 @pytest.fixture(
     params=[
-        pytest.param(cov_property, id=f"cov_{cov_property}")
-        for cov_property in ["scalar", "diagonal", "full"]
+        pytest.param(diagonal, id=f"covdiag{diagonal}") for diagonal in [True, False]
     ],
-    name="cov_property",
+    name="diagonal",
 )
-def fixture_cov_property(request) -> str:
+def fixture_diagonal(request) -> str:
     """Possible forms of the covariance matrix."""
     return request.param
 
@@ -125,12 +110,11 @@ def fixture_cov_property(request) -> str:
 )
 def fixture_measure(
     request,
-    input_dim: int,
     mean: Optional[Union[np.ndarray, FloatArgType]],
-    covariance: Optional[Union[np.ndarray, FloatArgType]],
+    cov: Optional[Union[np.ndarray, FloatArgType]],
 ) -> measures.IntegrationMeasure:
     """Kernel / covariance function."""
-    return request.param[0](ndim=input_dim, mean=mean, covariance=covariance)
+    return request.param[0](mean=mean, cov=cov)
 
 
 # Kernel Embeddings
