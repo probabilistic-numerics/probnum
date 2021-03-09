@@ -1,11 +1,12 @@
 """Contains integration measures."""
 
 import abc
-from typing import Tuple, Optional, Union
-from probnum.type import IntArgType, FloatArgType
-from probnum.random_variables._normal import Normal
+from typing import Optional, Tuple, Union
 
 import numpy as np
+
+from probnum.random_variables._normal import Normal
+from probnum.type import FloatArgType, IntArgType
 
 
 class IntegrationMeasure(abc.ABC):
@@ -31,8 +32,7 @@ class IntegrationMeasure(abc.ABC):
         return np.squeeze(self.random_variable.sample(size=n_sample))
 
     def _set_dimension_domain(self, dim, domain):
-        """
-        Sets the integration domain and dimension. Error is thrown if the given
+        """Sets the integration domain and dimension. Error is thrown if the given
         dimension and domain limits do not match.
 
         TODO: check that dimensions match and the domain is not empty
@@ -41,13 +41,14 @@ class IntegrationMeasure(abc.ABC):
             self.dim = dim
         else:
             raise ValueError(f"Domain dimension dim={dim} must be positive.")
+
         if np.isscalar(domain[0]):
             # Use same domain limit in all dimensions if only one limit is given
-            domain_a = np.full((self.dim, 1), domain[0])
+            domain_a = np.full((dim, 1), domain[0])
         else:
             domain_a = domain[0]
         if np.isscalar(domain[1]):
-            domain_b = np.full((self.dim, 1), domain[1])
+            domain_b = np.full((dim, 1), domain[1])
         else:
             domain_b = domain[1]
         self.domain = (domain_a, domain_b)
@@ -77,14 +78,14 @@ class GaussianMeasure(IntegrationMeasure):
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov
 
-        # Use the mean to set the dimension
+        # Find dimension based on the mean vector
         if len(self.mean.shape) == 0:
-            self.dim = 1
+            dim = 1
         else:
-            self.dim = len(self.mean)
+            dim = len(self.mean)
 
         # Set diagonal_covariance flag
-        if self.dim == 1:
+        if dim == 1:
             self.diagonal_covariance = True
         else:
             self.diagonal_covariance = not bool(
@@ -92,7 +93,7 @@ class GaussianMeasure(IntegrationMeasure):
             )
 
         super().__init__(
-            dim=self.dim,
-            domain=(np.full((self.dim,), -np.Inf), np.full((self.dim,), np.Inf)),
+            dim=dim,
+            domain=(np.full((dim,), -np.Inf), np.full((dim,), np.Inf)),
             name="Gaussian measure",
         )
