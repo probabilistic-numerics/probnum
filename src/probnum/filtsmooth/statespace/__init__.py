@@ -11,10 +11,8 @@ from .discrete_transition import (
     DiscreteLTIGaussian,
 )
 from .discrete_transition_utils import (
-    cholesky_update,
     condition_state_on_measurement,
     condition_state_on_rv,
-    triu_to_positive_tril,
 )
 from .generate_samples import generate_samples
 from .integrator import IBM, IOUP, Integrator, Matern
@@ -41,6 +39,4 @@ __all__ = [
     "generate_samples",
     "condition_state_on_measurement",
     "condition_state_on_rv",
-    "cholesky_update",
-    "triu_to_positive_tril",
 ]

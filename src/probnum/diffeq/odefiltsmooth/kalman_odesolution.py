@@ -9,7 +9,7 @@ import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 import probnum.type
 import probnum.utils
-from probnum.filtsmooth.statespace import cholesky_update
+from probnum.utils.linalg import cholesky_update
 
 from ..odesolution import ODESolution
 
