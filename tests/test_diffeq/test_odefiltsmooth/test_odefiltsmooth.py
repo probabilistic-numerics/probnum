@@ -139,8 +139,8 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
             [self.ivp.initrv.mean, self.ivp.rhs(0, self.ivp.initrv.mean)]
         )
 
-        self.assertAllClose(self.ms[0], exp_mean[:, 0], rtol=1e-14)
-        self.assertAllClose(self.cs[0], np.zeros((2, 2)), rtol=1e-14)
+        self.assertAllClose(self.ms[0], exp_mean[:, 0], atol=1e-8, rtol=1e-8)
+        self.assertAllClose(self.cs[0], np.zeros((2, 2)), atol=1e-8, rtol=1e-8)
 
     def test_t1(self):
         """The kernels do not coincide exactly because of the uncertainty calibration
@@ -152,7 +152,7 @@ class TestFirstIterations(unittest.TestCase, NumpyAssertions):
         z0 = self.ivp.rhs(0, y0)
         z1 = self.ivp.rhs(0, y0 + self.step * z0)
         exp_mean = np.array([y0 + 0.5 * self.step * (z0 + z1), z1])
-        self.assertAllClose(self.ms[1], exp_mean[:, 0], rtol=1e-14)
+        self.assertAllClose(self.ms[1], exp_mean[:, 0], atol=1e-8, rtol=1e-8)
 
 
 class TestAdaptivityOnLotkaVolterra(unittest.TestCase):
@@ -245,27 +245,8 @@ class TestLotkaVolterraOtherPriors(unittest.TestCase):
             method="ekf1",
         )
 
-    def test_filter_ivp_mat72_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp,
-            atol=self.tol,
-            rtol=self.tol,
-            evlvar=0.01,
-            which_prior="matern72",
-            method="ukf",
-        )
-
     def test_filter_ivp_h_mat32_ekf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="ekf1")
-
-    def test_filter_ivp_h_mat52_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="ukf"
-        )
 
     def test_filter_ivp_h_mat72_kf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="ekf0")
@@ -461,27 +442,8 @@ class TestLotkaVolterraOtherPriorsSmoother(unittest.TestCase):
             method="eks1",
         )
 
-    def test_filter_ivp_mat72_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp,
-            atol=self.tol,
-            rtol=self.tol,
-            evlvar=0.01,
-            which_prior="matern72",
-            method="uks",
-        )
-
     def test_filter_ivp_h_mat32_ekf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern32", method="eks1")
-
-    def test_filter_ivp_h_mat52_ukf(self):
-        """UKF requires some evaluation-variance to have a positive definite innovation
-        matrix, apparently."""
-        probsolve_ivp(
-            self.ivp, step=self.step, evlvar=0.01, which_prior="matern52", method="uks"
-        )
 
     def test_filter_ivp_h_mat72_kf(self):
         probsolve_ivp(self.ivp, step=self.step, which_prior="matern72", method="eks0")

@@ -22,7 +22,6 @@ import numpy as np
 
 import probnum.filtsmooth as pnfs
 from probnum.diffeq import steprule
-from probnum.diffeq.odefiltsmooth import ivp2filter
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 
@@ -177,7 +176,7 @@ def probsolve_ivp(
     >>> from probnum.diffeq import logistic, probsolve_ivp
     >>> from probnum import random_variables as rvs
     >>> import numpy as np
-    >>> initrv = rvs.Constant(0.15)
+    >>> initrv = rvs.Constant(np.array([0.15]))
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
     >>> print(np.round(solution.y.mean, 2))
@@ -198,7 +197,7 @@ def probsolve_ivp(
      [0.98]
      [0.98]]
 
-    >>> initrv = rvs.Constant(0.15)
+    >>> initrv = rvs.Constant(np.array([0.15]))
     >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
     >>> solution = probsolve_ivp(ivp, method="eks1", which_prior="ioup3", step=0.1)
     >>> print(np.round(solution.y.mean, 2))
@@ -221,19 +220,14 @@ def probsolve_ivp(
     """
     stprl = _create_steprule(atol, rtol, step, firststep, ivp)
     prior = _string2prior(ivp, which_prior, **kwargs)
-    gfilt = _create_filter(ivp, prior, method, **kwargs)
+
+    measmodel = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
     with_smoothing = method[-2] == "s" or method[-1] == "s"
-    solver = GaussianIVPFilter(ivp, gfilt, with_smoothing=with_smoothing)
+    solver = GaussianIVPFilter.construct_with_rk_init(
+        ivp, prior, measmodel, with_smoothing=with_smoothing
+    )
     solution = solver.solve(steprule=stprl)
     return solution
-
-
-def _create_filter(ivp, prior, method, **kwargs):
-    """Create the solver object that is used."""
-    if method not in ["ekf0", "ekf1", "ukf", "eks0", "eks1", "uks"]:
-        raise ValueError("Method not supported.")
-    gfilt = _string2filter(ivp, prior, method, **kwargs)
-    return gfilt
 
 
 def _create_steprule(atol, rtol, step, firststep, ivp):
@@ -395,19 +389,3 @@ def _string2matern(ivp, which_prior, **kwargs):
         )
     else:
         raise RuntimeError("It should have been impossible to reach this point.")
-
-
-def _string2filter(_ivp, _prior, _method, **kwargs):
-
-    if "evlvar" in kwargs.keys():
-        evlvar = kwargs["evlvar"]
-    else:
-        evlvar = 0.0
-    if _method in ("ekf0", "eks0"):
-        return ivp2filter.ivp2ekf0(_ivp, _prior, evlvar)
-    elif _method in ("ekf1", "eks1"):
-        return ivp2filter.ivp2ekf1(_ivp, _prior, evlvar)
-    elif _method in ("ukf", "uks"):
-        return ivp2filter.ivp2ukf(_ivp, _prior, evlvar)
-    else:
-        raise ValueError("Type of filter not supported.")
