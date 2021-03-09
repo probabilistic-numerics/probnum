@@ -22,3 +22,12 @@ def test_gaussian_non_diagonal_covariance(input_dim_non_diagonal):
     cov[0, 1] = 1.5
     measure = quad.GaussianMeasure(mean, cov)
     assert measure.diagonal_covariance == False
+
+
+@pytest.mark.parametrize("mean", [0, np.array([0]), np.array([[0]])])
+@pytest.mark.parametrize("cov", [0.5, np.array([0.5]), np.array([[0.5]])])
+def test_gaussian_mean_shape_1d(mean, cov):
+    """Test that different types of one-dimensional means and covariances yield one-
+    dimensional Gaussian measures."""
+    measure = quad.GaussianMeasure(mean, cov)
+    assert measure.dim == 1

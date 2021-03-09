@@ -84,9 +84,10 @@ class GaussianMeasure(IntegrationMeasure):
         else:
             dim = self.mean.size
 
-        # Set diagonal_covariance flag
+        # Set diagonal_covariance flag and reshape covariance to (1,1) if we are in 1d
         if dim == 1:
             self.diagonal_covariance = True
+            self.cov = np.reshape(self.cov, (1, 1))
         else:
             self.diagonal_covariance = (
                 np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov))) == 0
