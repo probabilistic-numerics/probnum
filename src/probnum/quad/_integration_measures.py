@@ -1,17 +1,11 @@
 """Contains integration measures."""
 
 import abc
-<<<<<<< HEAD
 from typing import Tuple, Optional, Union
 from probnum.type import IntArgType, FloatArgType
 from probnum.random_variables._normal import Normal
-=======
-from typing import Optional, Tuple, Union
->>>>>>> c17bafe99b2587386912dd86b6584107bf62cb13
 
 import numpy as np
-
-from probnum.type import FloatArgType, IntArgType
 
 
 class IntegrationMeasure(abc.ABC):
@@ -22,15 +16,8 @@ class IntegrationMeasure(abc.ABC):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        dim: IntArgType,
         domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
         name: str = "Custom measure",
-=======
-        ndim: IntArgType,
-        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
-        name: str,
->>>>>>> c17bafe99b2587386912dd86b6584107bf62cb13
     ):
 
         self._set_dimension_domain(dim, domain)
@@ -40,15 +27,9 @@ class IntegrationMeasure(abc.ABC):
         """Sample from integration measure."""
         raise NotImplementedError
 
-<<<<<<< HEAD
     def _set_dimension_domain(self, dim, domain):
         """
         Sets the integration domain and dimension. Error is thrown if the given
-=======
-    def _set_dimension_domain(self, ndim, domain):
-        """Sets the integration domain and dimension. Error is thrown if the given
->>>>>>> c17bafe99b2587386912dd86b6584107bf62cb13
-        dimension and domain limits do not match.
 
         TODO: check that dimensions match and the domain is not empty
         """
@@ -81,7 +62,6 @@ class GaussianMeasure(IntegrationMeasure):
 
     def __init__(
         self,
-<<<<<<< HEAD
         mean: Union[float, np.floating, np.ndarray],
         cov: Union[float, np.floating, np.ndarray],
     ):
@@ -98,12 +78,6 @@ class GaussianMeasure(IntegrationMeasure):
             self.dim = 1
         else:
             self.dim = len(self.mean)
-=======
-        ndim: Optional[IntArgType],
-        mean: Optional[Union[np.ndarray, FloatArgType]] = 0.0,
-        covariance: Optional[Union[np.ndarray, FloatArgType]] = 1.0,
-    ):
->>>>>>> c17bafe99b2587386912dd86b6584107bf62cb13
 
         super().__init__(
             dim=self.dim,
@@ -112,40 +86,7 @@ class GaussianMeasure(IntegrationMeasure):
         )
 
     def sample(self, n_sample):
-<<<<<<< HEAD
         if self.dim == 1:
             return self.random_variable._univariate_sample(size=(n_sample, 1))
         else:
             return self.random_variable._dense_sample(size=n_sample)
-=======
-        """Sample from Gaussian measure."""
-        raise NotImplementedError
-
-    def _set_mean_covariance(self, mean, covariance):
-        """Sets the mean and covariance of the Gaussian integration measure. Throws
-        error if their dimensions do not match with ndim.
-
-        TODO: dimension or covariance positivity checks have not been implemented
-        """
-        if np.isscalar(mean):
-            self.mean = np.full((self.ndim, 1), mean)
-        else:
-            self.mean = mean
-
-        if np.isscalar(covariance):
-            if covariance <= 0:
-                # TODO: raise error
-                pass
-            self.covariance = covariance * np.eye(self.ndim)
-            self.diagonal_covariance = True
-        elif covariance.ndim == 1 or covariance.shape[0] != covariance.shape[1]:
-            if not all(covariance > 0):
-                # TODO: raise error
-                pass
-            self.covariance = np.diag(covariance)
-            self.diagonal_covariance = True
-        else:
-            # TODO: raise error if covariance matrix is not positive-definite
-            self.covariance = covariance
-            self.diagonal_covariance = False
->>>>>>> c17bafe99b2587386912dd86b6584107bf62cb13
