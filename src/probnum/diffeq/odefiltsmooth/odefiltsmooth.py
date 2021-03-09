@@ -249,15 +249,3 @@ def probsolve_ivp(
     )
 
     return solver.solve(steprule=stprl)
-
-
-def _create_filter(ivp, prior, method):
-    """Create the solver object that is used."""
-    if method not in ["EK0", "EK1"]:
-        raise ValueError("This method is not supported.")
-    evlvar = 0.0
-    if method == "EK0":
-        return ivp2filter.ivp2ekf0(ivp, prior, evlvar)
-
-    # else: method == "EK1":
-    return ivp2filter.ivp2ekf1(ivp, prior, evlvar)
