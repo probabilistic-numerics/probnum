@@ -1,6 +1,9 @@
 """Previously, this module contained the tests for functions in the
 `diffeq.odefiltsmooth.ivp2filter` module, since this module has become obsolete, we test
-its replacement (`GaussianIVPFilter.string_to_measurement_model`) here."""
+its replacement (`GaussianIVPFilter.string_to_measurement_model`) here.
+
+They need different fixtures anyway.
+"""
 
 import numpy as np
 import pytest
