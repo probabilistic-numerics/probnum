@@ -103,7 +103,5 @@ def test_initialize_with_taylormode(any_order):
         r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior, initrv=initrv
     )
 
-    # The higher derivatives will have absolute difference ~8%
-    # if things work out correctly
-    np.testing.assert_allclose(received_rv.mean, expected, rtol=1e-10)
+    np.testing.assert_allclose(received_rv.mean, expected)
     np.testing.assert_allclose(received_rv.std, 0.0)
