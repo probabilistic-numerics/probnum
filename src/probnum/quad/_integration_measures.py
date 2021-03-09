@@ -72,7 +72,18 @@ class GaussianMeasure(IntegrationMeasure):
         self,
         mean: Union[float, np.floating, np.ndarray],
         cov: Union[float, np.floating, np.ndarray],
+        dim: Optional[IntArgType] = None,
     ):
+
+        # Extend scalar mean and covariance to higher dimensions if dim has been
+        # supplied by the user
+        if (
+            (np.isscalar(mean) or mean.size == 1)
+            and (np.isscalar(cov) or cov.size == 1)
+            and dim is not None
+        ):
+            mean = np.full((dim,), mean)
+            cov = cov * np.eye(dim)
 
         # Set dimension based on the mean vector
         if np.isscalar(mean):
@@ -80,20 +91,18 @@ class GaussianMeasure(IntegrationMeasure):
         else:
             dim = mean.size
 
-        if dim > 1:
-            if isinstance(cov, np.ndarray) and cov.size == dim:
-                # cov has been given as vector of variances
-                cov = np.diag(np.squeeze(cov))
+        # If cov has been given as a vector of variances, transform to diagonal matrix
+        if isinstance(cov, np.ndarray) and np.squeeze(cov).ndim == 1 and dim > 1:
+            cov = np.diag(np.squeeze(cov))
 
         # Exploit random variables to carry out mean and covariance checks
         self.random_variable = Normal(np.squeeze(mean), np.squeeze(cov))
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov
 
-        # Set diagonal_covariance flag and reshape covariance to (1,1) if we are in 1d
+        # Set diagonal_covariance flag
         if dim == 1:
             self.diagonal_covariance = True
-            self.cov = np.reshape(self.cov, (1, 1))
         else:
             self.diagonal_covariance = (
                 np.count_nonzero(self.cov - np.diag(np.diagonal(self.cov))) == 0
