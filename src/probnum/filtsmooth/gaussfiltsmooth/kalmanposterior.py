@@ -211,7 +211,7 @@ class SmoothingPosterior(KalmanPosterior):
                 )
 
         return np.array(
-            self.transition.jointly_push_forward_realization_list_backward(
+            self.transition.jointly_transform_base_measure_realization_list_backward(
                 t=t,
                 rv_list=rv_list,
                 base_measure_samples=base_measure_realizations,
