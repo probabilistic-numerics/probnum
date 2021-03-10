@@ -12,7 +12,7 @@ import numpy as np
 
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
-import probnum.statespace as pnss
+from probnum import statespace
 from probnum.diffeq import steprule
 from probnum.diffeq.ode import IVP
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
@@ -238,7 +238,7 @@ def probsolve_ivp(
         stprl = steprule.ConstantSteps(step)
 
     # Create solver
-    prior = pnfs.statespace.IBM(
+    prior = statespace.IBM(
         ordint=algo_order,
         spatialdim=ivp.dimension,
         forward_implementation="sqrt",

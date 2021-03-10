@@ -8,35 +8,33 @@ They need different fixtures anyway.
 import numpy as np
 import pytest
 
-import probnum.diffeq as pnd
-import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
+from probnum import diffeq, filtsmooth, random_variables, statespace
 
 
 @pytest.fixture
 def ivp():
-    y0 = pnrv.Constant(np.array([20.0, 15.0]))
-    return pnd.lotkavolterra([0.4124, 1.15124], y0)
+    y0 = random_variables.Constant(np.array([20.0, 15.0]))
+    return diffeq.lotkavolterra([0.4124, 1.15124], y0)
 
 
 @pytest.fixture
 def prior(ivp):
     ode_dim = ivp.dimension
-    prior = pnfs.statespace.IBM(ordint=2, spatialdim=ode_dim)
+    prior = statespace.IBM(ordint=2, spatialdim=ode_dim)
     return prior
 
 
 @pytest.mark.parametrize(
     "string, expected_type",
     [
-        ("EK0", pnfs.DiscreteEKFComponent),
-        ("EK1", pnfs.DiscreteEKFComponent),
-        ("UK", pnfs.DiscreteUKFComponent),
+        ("EK0", filtsmooth.DiscreteEKFComponent),
+        ("EK1", filtsmooth.DiscreteEKFComponent),
+        ("UK", filtsmooth.DiscreteUKFComponent),
     ],
 )
 def test_output_type(string, expected_type, ivp, prior):
     """Assert that the output type matches."""
-    received = pnd.GaussianIVPFilter.string_to_measurement_model(string, ivp, prior)
+    received = diffeq.GaussianIVPFilter.string_to_measurement_model(string, ivp, prior)
     assert isinstance(received, expected_type)
 
 
@@ -46,7 +44,7 @@ def test_output_type(string, expected_type, ivp, prior):
 )
 def test_true_mean_ek(string, ivp, prior):
     """Assert that a forwarded realization is x[1] - f(t, x[0]) with zero added covariance."""
-    received = pnd.GaussianIVPFilter.string_to_measurement_model(string, ivp, prior)
+    received = diffeq.GaussianIVPFilter.string_to_measurement_model(string, ivp, prior)
     some_real = 1.0 + 0.01 * np.random.rand(prior.dimension)
     some_time = 1.0 + 0.01 * np.random.rand()
     received, _ = received.forward_realization(some_real, some_time)
