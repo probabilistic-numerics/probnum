@@ -40,7 +40,7 @@ def test_len(posterior):
     """__len__ performs as expected."""
     assert len(posterior) > 0
     assert len(posterior.locations) == len(posterior)
-    assert len(posterior.state_rvs) == len(posterior)
+    assert len(posterior.states) == len(posterior)
 
 
 def test_locations(posterior, problem):
@@ -53,21 +53,21 @@ def test_locations(posterior, problem):
 def test_getitem(posterior):
     """Getitem performs as expected."""
 
-    np.testing.assert_allclose(posterior[0].mean, posterior.state_rvs[0].mean)
-    np.testing.assert_allclose(posterior[0].cov, posterior.state_rvs[0].cov)
+    np.testing.assert_allclose(posterior[0].mean, posterior.states[0].mean)
+    np.testing.assert_allclose(posterior[0].cov, posterior.states[0].cov)
 
-    np.testing.assert_allclose(posterior[-1].mean, posterior.state_rvs[-1].mean)
-    np.testing.assert_allclose(posterior[-1].cov, posterior.state_rvs[-1].cov)
+    np.testing.assert_allclose(posterior[-1].mean, posterior.states[-1].mean)
+    np.testing.assert_allclose(posterior[-1].cov, posterior.states[-1].cov)
 
-    np.testing.assert_allclose(posterior[:].mean, posterior.state_rvs[:].mean)
-    np.testing.assert_allclose(posterior[:].cov, posterior.state_rvs[:].cov)
+    np.testing.assert_allclose(posterior[:].mean, posterior.states[:].mean)
+    np.testing.assert_allclose(posterior[:].cov, posterior.states[:].cov)
 
 
-def test_state_rvs(posterior):
+def test_states(posterior):
     """RVs are stored correctly."""
 
-    assert isinstance(posterior.state_rvs, _RandomVariableList)
-    assert len(posterior.state_rvs[0].shape) == 1
+    assert isinstance(posterior.states, _RandomVariableList)
+    assert len(posterior.states[0].shape) == 1
 
 
 def test_call_error_if_small(posterior):

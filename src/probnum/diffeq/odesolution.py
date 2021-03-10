@@ -21,20 +21,8 @@ except ImportError:
     from cached_property import cached_property
 
 
-class ODESolution(abc.ABC):
+class ODESolution(filtsmooth.FiltSmoothPosterior):
     """ODE Solution interface."""
-
-    @property
-    @abc.abstractmethod
-    def t(self) -> np.ndarray:
-        """Time points of the discrete-time solution."""
-        raise NotImplementedError
-
-    @cached_property
-    @abc.abstractmethod
-    def y(self) -> pnrv_list._RandomVariableList:
-        """Discrete-time solution."""
-        raise NotImplementedError
 
     @cached_property
     def dy(self) -> pnrv_list._RandomVariableList:

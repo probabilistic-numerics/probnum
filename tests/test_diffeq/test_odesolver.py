@@ -7,18 +7,10 @@ from probnum.random_variables import Constant
 
 
 class MockODESolution(ODESolution):
-    def __init__(self, t, y):
-        self._t = t
-        self._y = y
-
-    @property
-    def t(self):
-        return self._t
-
     @property
     def y(self):
         # pylint: disable=invalid-overridden-method
-        return self._y
+        return self.state_rvs
 
 
 class MockODESolver(ODESolver):
@@ -37,7 +29,7 @@ class MockODESolver(ODESolver):
         )  # return nan as error estimate to ensure that it is not used
 
     def rvlist_to_odesol(self, times, rvs):
-        return MockODESolution(times, rvs)
+        return MockODESolution(locations=times, state_rvs=rvs)
 
 
 class ODESolverTestCase(unittest.TestCase):

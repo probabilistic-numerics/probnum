@@ -25,9 +25,9 @@ class FiltSmoothPosterior(abc.ABC):
     >>> posterior(locs=5.)
     """
 
-    def __init__(self, locations, state_rvs):
+    def __init__(self, locations, states):
         self.locations = np.asarray(locations)
-        self.state_rvs = _RandomVariableList(state_rvs)
+        self.states = _RandomVariableList(states)
 
     def __len__(self):
         """Length of the discrete-time solution.
@@ -37,11 +37,11 @@ class FiltSmoothPosterior(abc.ABC):
         return len(self.locations)
 
     def __getitem__(self, idx):
-        return self.state_rvs[idx]
+        return self.states[idx]
 
     def shape(self):
         try:
-            return self.locations.shape + self.state_rvs[0].shape
+            return self.locations.shape + self.states[0].shape
         except NotImplementedError as err:
             raise NotImplementedError from err
 

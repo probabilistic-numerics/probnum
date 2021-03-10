@@ -45,7 +45,7 @@ class Kalman(BayesFiltSmooth):
             _previous_posterior=None,
         )
         new_posterior = old_posterior
-        new_mean = new_posterior.state_rvs.mean
+        new_mean = new_posterior.states.mean
         old_mean = np.inf * np.ones(new_mean.shape)
         while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
             old_posterior = new_posterior
@@ -54,8 +54,8 @@ class Kalman(BayesFiltSmooth):
                 times=times,
                 _previous_posterior=old_posterior,
             )
-            new_mean = new_posterior.state_rvs.mean
-            old_mean = old_posterior.state_rvs.mean
+            new_mean = new_posterior.states.mean
+            old_mean = old_posterior.states.mean
         return new_posterior
 
     def filtsmooth(self, dataset, times, _previous_posterior=None):
@@ -236,7 +236,7 @@ class Kalman(BayesFiltSmooth):
         """
 
         rv_list = self.dynamics_model.smooth_list(
-            filter_posterior.state_rvs, filter_posterior.locations
+            filter_posterior.states, filter_posterior.locations
         )
 
         return SmoothingPosterior(

@@ -26,9 +26,9 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
         Dynamics model used as a prior for the filter.
     """
 
-    def __init__(self, locations, state_rvs, transition):
+    def __init__(self, locations, states, transition):
 
-        super().__init__(locations=locations, state_rvs=state_rvs)
+        super().__init__(locations=locations, states=states)
         self.transition = transition
 
     def __call__(self, t):
@@ -67,7 +67,7 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
         # Early exit if t is in our grid -- no need to interpolate
         if t in self.locations:
             idx = self._find_index(t)
-            discrete_estimate = self.state_rvs[idx]
+            discrete_estimate = self.states[idx]
             return discrete_estimate
 
         return self.interpolate(t)
@@ -85,7 +85,7 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
             t_shape = (len(self.locations),)
         else:
             t_shape = (len(t) + 1,)
-        rv_list_shape = (len(self.filtering_posterior.state_rvs[0].mean),)
+        rv_list_shape = (len(self.filtering_posterior.states[0].mean),)
 
         base_measure_realizations = stats.norm.rvs(
             size=(size + t_shape + rv_list_shape), random_state=random_state
@@ -140,15 +140,15 @@ class SmoothingPosterior(KalmanPosterior):
     ----------
     locations : `array_like`
         Locations / Times of the discrete-time estimates.
-    state_rvs : :obj:`list` of :obj:`RandomVariable`
+    states : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
     transition : :obj:`Transition`
         Dynamics model used as a prior for the filter.
     """
 
-    def __init__(self, locations, state_rvs, transition, filtering_posterior):
+    def __init__(self, locations, states, transition, filtering_posterior):
         self.filtering_posterior = filtering_posterior
-        super().__init__(locations, state_rvs, transition)
+        super().__init__(locations, states, transition)
 
     def interpolate(self, t):
 
@@ -160,7 +160,7 @@ class SmoothingPosterior(KalmanPosterior):
             return pred_rv
 
         next_t = self.locations[next_idx]
-        next_rv = self.state_rvs[next_idx]
+        next_rv = self.states[next_idx]
 
         # Actual smoothing step
         curr_rv, _ = self.transition.backward_rv(next_rv, pred_rv, t=t, dt=next_t - t)
@@ -189,7 +189,7 @@ class SmoothingPosterior(KalmanPosterior):
 
         if t is None:
             t = self.locations
-            rv_list = self.filtering_posterior.state_rvs
+            rv_list = self.filtering_posterior.states
         else:
             rv_list = self.filtering_posterior(t)
 
@@ -197,7 +197,7 @@ class SmoothingPosterior(KalmanPosterior):
             # conditioning on the final state rv
             if t[-1] < self.locations[-1]:
 
-                final_rv = self.state_rvs[-1]
+                final_rv = self.states[-1]
                 final_sample = (
                     final_rv.mean
                     + final_rv.cov_cholesky @ base_measure_realizations[-1]
@@ -225,7 +225,7 @@ class FilteringPosterior(KalmanPosterior):
     ----------
     locations : `array_like`
         Locations / Times of the discrete-time estimates.
-    state_rvs : :obj:`list` of :obj:`RandomVariable`
+    states : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
     transition : :obj:`Transition`
         Dynamics model used as a prior for the filter.
@@ -235,7 +235,7 @@ class FilteringPosterior(KalmanPosterior):
         """Predict to the present point."""
         previous_idx = self._find_previous_index(t)
         previous_t = self.locations[previous_idx]
-        previous_rv = self.state_rvs[previous_idx]
+        previous_rv = self.states[previous_idx]
 
         rv, _ = self.transition.forward_rv(previous_rv, t=previous_t, dt=t - previous_t)
         return rv
