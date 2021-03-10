@@ -34,10 +34,7 @@ class TimeSeriesPosterior(abc.ABC):
         return self.states[idx]
 
     def shape(self):
-        try:
-            return self.locations.shape + self.states[0].shape
-        except NotImplementedError as err:
-            raise NotImplementedError from err
+        return self.locations.shape + self.states[0].shape
 
     @abc.abstractmethod
     def __call__(self, t):
