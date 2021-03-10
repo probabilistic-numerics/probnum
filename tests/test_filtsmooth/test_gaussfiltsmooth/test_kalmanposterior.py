@@ -126,33 +126,21 @@ def size():
 
 
 @pytest.fixture
-def locs(posterior):
-    return None
-
-
-@pytest.fixture
-def locs(posterior):
-    return posterior.locations[[2, 3]]
-
-
-@pytest.fixture
-def locs(posterior):
-    return np.arange(0, 0.5, 0.025)
-
-
-@pytest.fixture
 def seed():
     return 42
 
 
-@pytest.fixture
-def samples(posterior, locs, size, seed):
-    return posterior.sample(t=locs, size=size)
-
-
-def test_sampling_shapes(samples, posterior, locs, size):
+@pytest.mark.parametrize("locs", [None, np.arange(0.0, 0.5, 0.025)])
+@pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
+def test_sampling_shapes(posterior, locs, size):
     """Shape of the returned samples matches expectation."""
+    samples = posterior.sample(t=locs, size=size)
+
     if isinstance(size, int):
         size = (size,)
-    expected_size = (*size, *posterior(locs).mean.shape)
+    if locs is None:
+        expected_size = (*size, *posterior.states.mean.shape)
+    else:
+        expected_size = (*size, *posterior(locs).mean.shape)
+
     assert samples.shape == expected_size
