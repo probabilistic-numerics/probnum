@@ -134,3 +134,29 @@ def test_sampling_shapes(posterior, locs, size):
         expected_size = (*size, *posterior(locs).mean.shape)
 
     assert samples.shape == expected_size
+
+
+@pytest.mark.parametrize("locs", [None, np.arange(0.0, 0.5, 0.025)])
+@pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
+def test_sampling_shapes_1d(locs, size):
+    locations = np.linspace(0, 2 * np.pi, 100)
+    data = 0.5 * np.random.randn(100) + np.sin(locations)
+
+    prior = pnss.IBM(0, 1)
+    measmod = pnss.DiscreteLTIGaussian(
+        state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
+    )
+    initrv = pnrv.Normal(np.zeros(1), np.eye(1))
+
+    kalman = pnfs.Kalman(prior, measmod, initrv)
+    posterior = kalman.filtsmooth(times=locations, dataset=data)
+
+    samples = posterior.sample(t=locs, size=size)
+    if isinstance(size, int):
+        size = (size,)
+    if locs is None:
+        expected_size = (*size, *posterior.states.mean.shape)
+    else:
+        expected_size = (*size, *posterior(locs).mean.shape)
+
+    assert samples.shape == expected_size
