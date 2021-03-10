@@ -33,7 +33,7 @@ class FiltSmoothPosterior(ABC):
         """Return the corresponding index/slice of the discrete-time solution."""
         raise NotImplementedError
 
-    def sample(self, locations=None, size=()):
+    def sample(self, locations=None, size=(), random_state=None):
         """Draw samples from the filtering/smoothing posterior.
 
         If nothing is specified, a single sample is drawn (supported on self.locations).
