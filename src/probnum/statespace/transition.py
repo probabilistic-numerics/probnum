@@ -329,7 +329,18 @@ class Transition(abc.ABC):
         of random variables."""
 
         curr_rv = rv_list[-1]
-        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[-1]
+
+        # Those exceptions will be gotten rid of, once the transform_sample
+        # functionality exists in Normal.
+        if np.isscalar(curr_rv.mean):
+            print(curr_rv.cov_cholesky.shape)
+
+            curr_sample = curr_rv.mean + curr_rv.cov_cholesky * base_measure_samples[-1]
+        else:
+
+            curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[
+                -1
+            ].reshape((-1,))
         out_samples = [curr_sample]
 
         for idx in reversed(range(1, len(t))):
@@ -350,9 +361,17 @@ class Transition(abc.ABC):
             )
 
             # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
-            curr_sample = (
-                curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[idx - 1]
-            )
+            if np.isscalar(curr_rv.mean):
+                curr_sample = (
+                    curr_rv.mean + curr_rv.cov_cholesky * base_measure_samples[idx - 1]
+                )
+            else:
+                curr_sample = (
+                    curr_rv.mean
+                    + curr_rv.cov_cholesky
+                    @ base_measure_samples[idx - 1].reshape((-1,))
+                )
+
             out_samples.append(curr_sample)
 
         out_samples.reverse()
