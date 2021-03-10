@@ -116,16 +116,6 @@ def test_call_extrapolation(posterior):
 
 
 @pytest.fixture
-def size():
-    return 10
-
-
-@pytest.fixture
-def size():
-    return (12,)
-
-
-@pytest.fixture
 def seed():
     return 42
 
