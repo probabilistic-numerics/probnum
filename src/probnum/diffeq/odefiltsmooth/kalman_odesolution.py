@@ -3,6 +3,7 @@
 import typing
 
 import numpy as np
+from scipy import stats
 
 import probnum._randomvariablelist as pnrv_list
 import probnum.filtsmooth as pnfs
@@ -118,20 +119,48 @@ class KalmanODESolution(ODESolution):
         """Sample from the Gaussian filtering ODE solution by sampling from the Gauss-
         Markov posterior."""
         size = probnum.utils.as_shape(size)
+        t = np.asarray(t) if t is not None else None
 
-        # implement only single samples, rest via recursion
+        if t is None:
+            t_shape = (len(self.locations),)
+        else:
+            t_shape = (len(t) + 1,)
+
+        # Note how here, the dimension of the underlying Kalman posterior
+        # is used in order to generate the base measure samples.
+        # This is because KalmanODESolution essentially delegates
+        # everything to KalmanPosterior
+        rv_list_shape = (len(self.kalman_posterior.states[0].mean),)
+
+        base_measure_realizations = stats.norm.rvs(
+            size=(size + t_shape + rv_list_shape), random_state=random_state
+        )
+        return self.transform_base_measure_realizations(
+            base_measure_realizations=base_measure_realizations, t=t, size=size
+        )
+
+    def transform_base_measure_realizations(
+        self, base_measure_realizations, t=None, size=()
+    ):
+        size = probnum.utils.as_shape(size)
+
+        # Implement only single samples, rest via recursion
         # We cannot 'steal' the recursion from self.kalman_posterior.sample,
         # because we need to project the respective states out of each sample.
         if size != ():
             return np.array(
                 [
-                    self.sample(t=t, size=size[1:], random_state=random_state)
-                    for _ in range(size[0])
+                    self.transform_base_measure_realizations(
+                        base_measure_realizations=base_real,
+                        t=t,
+                        size=size[1:],
+                    )
+                    for base_real in base_measure_realizations
                 ]
             )
 
-        samples = self.kalman_posterior.sample(
-            t=t, size=size, random_state=random_state
+        samples = self.kalman_posterior.transform_base_measure_realizations(
+            base_measure_realizations=base_measure_realizations, t=t, size=size
         )
         return np.array([self.proj_to_y @ sample for sample in samples])
 
