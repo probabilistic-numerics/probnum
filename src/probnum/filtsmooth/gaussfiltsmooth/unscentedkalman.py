@@ -10,8 +10,8 @@ import typing
 import numpy as np
 
 import probnum.random_variables as pnrv
+import probnum.statespace as pnss
 import probnum.type as pntype
-from probnum.filtsmooth import statespace
 
 from .unscentedtransform import UnscentedTransform
 
@@ -40,7 +40,7 @@ class UKFComponent:
         return self.ut.sigma_points(at_this_rv)
 
 
-class ContinuousUKFComponent(UKFComponent, statespace.SDE):
+class ContinuousUKFComponent(UKFComponent, pnss.SDE):
     """Continuous-time unscented Kalman filter transition.
 
     Parameters
@@ -74,7 +74,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
             priorpar=priorpar,
             special_scale=special_scale,
         )
-        statespace.SDE.__init__(
+        pnss.SDE.__init__(
             self,
             non_linear_model.dimension,
             non_linear_model.driftfun,
@@ -97,7 +97,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> (pnrv.Normal, typing.Dict):
+    ) -> typing.Tuple[pnrv.Normal, typing.Dict]:
         return self._forward_realization_as_rv(
             realization,
             t=t,
@@ -109,7 +109,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
 
     def forward_rv(
         self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
-    ) -> (pnrv.Normal, typing.Dict):
+    ) -> typing.Tuple[pnrv.Normal, typing.Dict]:
         raise NotImplementedError("TODO")  # Issue  #234
 
     def backward_realization(
@@ -148,7 +148,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         raise NotImplementedError("Not available (yet).")
 
 
-class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
+class DiscreteUKFComponent(UKFComponent, pnss.DiscreteGaussian):
     """Discrete unscented Kalman filter transition."""
 
     def __init__(
@@ -166,7 +166,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
             special_scale=special_scale,
         )
 
-        statespace.DiscreteGaussian.__init__(
+        pnss.DiscreteGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -178,7 +178,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
 
     def forward_rv(
         self, rv, t, compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
-    ) -> (pnrv.Normal, typing.Dict):
+    ) -> typing.Tuple[pnrv.Normal, typing.Dict]:
         compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
         self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
 
@@ -278,7 +278,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         def diff_cholesky(t):
             return np.sqrt(evlvar) * np.eye(spatialdim)
 
-        disc_model = statespace.DiscreteGaussian(
+        disc_model = pnss.DiscreteGaussian(
             input_dim=prior.dimension,
             output_dim=prior.spatialdim,
             state_trans_fun=dyna,

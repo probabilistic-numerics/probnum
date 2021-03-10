@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 
 import probnum.random_variables as pnrv
-from probnum.filtsmooth import statespace as pnfss
+import probnum.statespace as pnss
 
 
-class MockTransition(pnfss.Transition):
+class MockTransition(pnss.Transition):
     """Empty transition object to test the generate() function."""
 
     # pylint: disable=signature-differs
@@ -39,7 +39,7 @@ def test_generate_shapes(times, test_ndim):
     """Output shapes are as expected."""
     mocktrans = MockTransition(dim=test_ndim)
     initrv = pnrv.Constant(np.random.rand(test_ndim))
-    states, obs = pnfss.generate_samples(mocktrans, mocktrans, initrv, times)
+    states, obs = pnss.generate_samples(mocktrans, mocktrans, initrv, times)
 
     assert states.shape[0] == len(times)
     assert states.shape[1] == test_ndim

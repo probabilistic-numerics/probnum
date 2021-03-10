@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.random_variables as pnrv
-from probnum.filtsmooth import statespace as pnfss
+import probnum.statespace as pnss
 
 from .test_transition import InterfaceTestTransition
 
@@ -24,7 +24,7 @@ class TestDiscreteGaussian(InterfaceTestTransition):
         self.g = lambda t, x: np.sin(x)
         self.S = lambda t: spdmat1
         self.dg = lambda t, x: np.cos(x)
-        self.transition = pnfss.DiscreteGaussian(
+        self.transition = pnss.DiscreteGaussian(
             test_ndim,
             test_ndim,
             self.g,
@@ -117,7 +117,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
         self.G = lambda t: spdmat1
         self.S = lambda t: spdmat2
         self.v = lambda t: np.arange(test_ndim)
-        self.transition = pnfss.DiscreteLinearGaussian(
+        self.transition = pnss.DiscreteLinearGaussian(
             test_ndim,
             test_ndim,
             self.G,
@@ -335,7 +335,7 @@ class TestLTIGaussian(TestLinearGaussian):
         self.G_const = spdmat1
         self.S_const = spdmat2
         self.v_const = np.arange(test_ndim)
-        self.transition = pnfss.DiscreteLTIGaussian(
+        self.transition = pnss.DiscreteLTIGaussian(
             self.G_const,
             self.v_const,
             self.S_const,
