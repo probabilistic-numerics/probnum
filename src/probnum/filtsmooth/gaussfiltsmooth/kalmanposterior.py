@@ -199,10 +199,17 @@ class SmoothingPosterior(KalmanPosterior):
             if t[-1] < self.locations[-1]:
 
                 final_rv = self.states[-1]
-                final_sample = (
-                    final_rv.mean
-                    + final_rv.cov_cholesky @ base_measure_realizations[-1]
-                )
+                if np.isscalar(final_rv.mean):
+                    final_sample = (
+                        final_rv.mean
+                        + final_rv.cov_cholesky * base_measure_realizations[-1]
+                    )
+                else:
+                    final_sample = (
+                        final_rv.mean
+                        + final_rv.cov_cholesky
+                        @ base_measure_realizations[-1].reshape((-1,))
+                    )
                 rv_list[-1], _ = self.transition.backward_realization(
                     final_sample,
                     rv_list[-1],

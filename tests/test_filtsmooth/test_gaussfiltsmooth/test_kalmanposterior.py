@@ -4,6 +4,7 @@ import pytest
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 import probnum.statespace as pnss
+from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 
 from .filtsmooth_testcases import car_tracking
@@ -151,7 +152,14 @@ def test_sampling_shapes_1d(locs, size):
     kalman = pnfs.Kalman(prior, measmod, initrv)
     posterior = kalman.filtsmooth(times=locations, dataset=data)
 
-    samples = posterior.sample(t=locs, size=size)
+    size = utils.as_shape(size)
+    if locs is None:
+        base_measure_reals = np.random.randn(*(size + posterior.locations.shape))
+    else:
+        base_measure_reals = np.random.randn(*(size + locs.shape))
+    samples = posterior.transform_base_measure_realizations(
+        base_measure_reals, t=locs, size=size
+    )
     if isinstance(size, int):
         size = (size,)
     if locs is None:
