@@ -53,6 +53,11 @@ class _RandomVariableList(list):
             return np.array([])
         return np.stack([rv.std for rv in self])
 
+    @property
+    def shape(self):
+        first_rv = np.asarray(self[0].mean)
+        return (len(self),) + first_rv.shape
+
     def __getitem__(self, idx) -> Union["pn.RandomVariable", list]:
 
         result = super().__getitem__(idx)

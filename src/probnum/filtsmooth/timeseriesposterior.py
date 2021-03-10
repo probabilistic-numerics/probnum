@@ -33,9 +33,6 @@ class TimeSeriesPosterior(abc.ABC):
     def __getitem__(self, idx):
         return self.states[idx]
 
-    def shape(self):
-        return self.locations.shape + self.states[0].shape
-
     @abc.abstractmethod
     def __call__(self, t):
         """Evaluate the time-continuous posterior for a given location.
