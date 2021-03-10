@@ -4,21 +4,11 @@ This object is returned by ODESolver.solve().
 
 Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
 """
-import abc
 import typing
-
-import numpy as np
 
 import probnum._randomvariablelist as pnrv_list
 import probnum.random_variables as pnrv
-import probnum.type
 from probnum import filtsmooth
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):

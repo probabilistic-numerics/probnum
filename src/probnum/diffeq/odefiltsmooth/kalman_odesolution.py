@@ -14,12 +14,6 @@ from probnum.utils.linalg import cholesky_update
 
 from ..odesolution import ODESolution
 
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 
 class KalmanODESolution(ODESolution):
     """Gaussian IVP filtering solution of an ODE problem.
