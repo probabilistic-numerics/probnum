@@ -102,9 +102,11 @@ class GaussianIVPFilter(ODESolver):
         """
         measurement_model_string = measurement_model_string.upper()
 
-        # This dict will be made much smaller once "probsolve_ivp" is leaned out.
+        # While "UK" is not available in probsolve_ivp (because it is not recommended)
+        # It is an option in this function here, because there is no obvious reason to restrict
+        # the options in this lower level function.
         choose_meas_model = {
-            "EKF0": pnfs.DiscreteEKFComponent.from_ode(
+            "EK0": pnfs.DiscreteEKFComponent.from_ode(
                 ivp,
                 prior=prior,
                 ek0_or_ek1=0,
@@ -112,15 +114,7 @@ class GaussianIVPFilter(ODESolver):
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             ),
-            "EKS0": pnfs.DiscreteEKFComponent.from_ode(
-                ivp,
-                prior=prior,
-                ek0_or_ek1=0,
-                evlvar=measurement_noise_covariance,
-                forward_implementation="sqrt",
-                backward_implementation="sqrt",
-            ),
-            "EKF1": pnfs.DiscreteEKFComponent.from_ode(
+            "EK1": pnfs.DiscreteEKFComponent.from_ode(
                 ivp,
                 prior=prior,
                 ek0_or_ek1=1,
@@ -128,20 +122,7 @@ class GaussianIVPFilter(ODESolver):
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             ),
-            "EKS1": pnfs.DiscreteEKFComponent.from_ode(
-                ivp,
-                prior=prior,
-                ek0_or_ek1=1,
-                evlvar=measurement_noise_covariance,
-                forward_implementation="sqrt",
-                backward_implementation="sqrt",
-            ),
-            "UKF": pnfs.DiscreteUKFComponent.from_ode(
-                ivp,
-                prior,
-                evlvar=measurement_noise_covariance,
-            ),
-            "UKS": pnfs.DiscreteUKFComponent.from_ode(
+            "UK": pnfs.DiscreteUKFComponent.from_ode(
                 ivp,
                 prior,
                 evlvar=measurement_noise_covariance,
@@ -214,7 +195,7 @@ class GaussianIVPFilter(ODESolver):
             self.ivp.t0,
             self.gfilt.dynamics_model,
             self.gfilt.initrv,
-            self.ivp.jacobian,
+            self.ivp._jac,
         )
 
         return self.ivp.t0, initrv

@@ -40,38 +40,43 @@ class KalmanODESolution(ODESolution):
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
     >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Constant(np.array([0.15]))
-    >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
+    >>>
+    >>> def f(t, x):
+    ...     return 4*x*(1-x)
+    >>>
+    >>> y0 = np.array([0.15])
+    >>> t0, tmax = 0., 1.5
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
     >>> # Mean of the discrete-time solution
-    >>> print(solution.y.mean)
-    [[0.15      ]
-     [0.2076198 ]
-     [0.27932997]
-     [0.3649165 ]
-     [0.46054129]
-     [0.55945475]
-     [0.65374523]
-     [0.73686744]
-     [0.8053776 ]
-     [0.85895587]
-     [0.89928283]
-     [0.92882899]
-     [0.95007559]
-     [0.96515825]
-     [0.97577054]
-     [0.9831919 ]]
+    >>> print(np.round(solution.y.mean, 2))
+    [[0.15]
+     [0.21]
+     [0.28]
+     [0.37]
+     [0.47]
+     [0.57]
+     [0.66]
+     [0.74]
+     [0.81]
+     [0.87]
+     [0.91]
+     [0.94]
+     [0.96]
+     [0.97]
+     [0.98]
+     [0.99]]
+
     >>> # Times of the discrete-time solution
     >>> print(solution.t)
     [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
     >>> # Individual entries of the discrete-time solution can be accessed with
     >>> print(solution[5])
     <Normal with shape=(1,), dtype=float64>
-    >>> print(solution[5].mean)
-    [0.55945475]
+    >>> print(np.round(solution[5].mean, 2))
+    [0.56]
     >>> # Evaluate the continuous-time solution at a new time point t=0.65
-    >>> print(solution(0.65).mean)
-    [0.69875089]
+    >>> print(np.round(solution(0.65).mean, 2))
+    [0.70]
     """
 
     def __init__(self, kalman_posterior: pnfs.KalmanPosterior):

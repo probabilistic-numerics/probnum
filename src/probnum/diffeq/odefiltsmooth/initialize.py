@@ -136,6 +136,7 @@ def initialize_odefilter_with_rk(
     out = kalman.filtsmooth(ys, ts)
 
     estimated_initrv = out.state_rvs[0]
+
     return estimated_initrv
 
 
