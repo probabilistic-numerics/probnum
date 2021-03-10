@@ -1,6 +1,7 @@
 import unittest
 
 import probnum.filtsmooth as pnfs
+import probnum.statespace as pnss
 
 from . import filtsmooth_testcases as cases
 
@@ -9,7 +10,7 @@ class TestContinuousUKFComponent(unittest.TestCase):
     """Implementation incomplete, hence check that an error is raised."""
 
     def test_notimplementederror(self):
-        sde = pnfs.statespace.SDE(1, None, None, None)  # content is irrelevant.
+        sde = pnss.SDE(1, None, None, None)  # content is irrelevant.
         with self.assertRaises(NotImplementedError):
             pnfs.ContinuousUKFComponent(sde)
 

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.filtsmooth as pnfs
-import probnum.filtsmooth.statespace as pnfss
+import probnum.statespace as pnss
 
 from .filtsmooth_testcases import logistic_ode, pendulum
 
@@ -15,7 +15,7 @@ def pendulum_problem():
     measmod = pnfs.DiscreteEKFComponent(measmod)
 
     times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnfss.generate_samples(
+    states, obs = pnss.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
     return dynmod, measmod, initrv, info, obs, times, states

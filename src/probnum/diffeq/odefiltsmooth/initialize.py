@@ -7,7 +7,7 @@ import scipy.integrate as sci
 
 import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
-from probnum.filtsmooth import statespace as pnss
+import probnum.statespace as pnss
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
@@ -65,7 +65,7 @@ def initialize_odefilter_with_rk(
 
     >>> from dataclasses import astuple
     >>> from probnum.random_variables import Normal
-    >>> from probnum.filtsmooth.statespace import IBM
+    >>> from probnum.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
 
     Compute the initial values of the van-der-Pol problem as follows
@@ -183,7 +183,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     >>> from dataclasses import astuple
     >>> from probnum.random_variables import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
-    >>> from probnum.filtsmooth.statespace import IBM
+    >>> from probnum.statespace import IBM
 
     Compute the initial values of the restricted three-body problem as follows
 
