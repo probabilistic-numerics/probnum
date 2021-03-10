@@ -140,6 +140,7 @@ def test_sampling_shapes(posterior, locs, size):
 @pytest.mark.parametrize("locs", [None, np.arange(0.0, 0.5, 0.025)])
 @pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
 def test_sampling_shapes_1d(locs, size):
+    """Make the sampling tests for a 1d posterior."""
     locations = np.linspace(0, 2 * np.pi, 100)
     data = 0.5 * np.random.randn(100) + np.sin(locations)
 
