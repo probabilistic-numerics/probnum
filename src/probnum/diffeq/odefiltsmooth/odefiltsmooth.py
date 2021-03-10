@@ -10,7 +10,6 @@ References
 
 import numpy as np
 
-import probnum.filtsmooth as pnfs
 import probnum.random_variables as pnrv
 from probnum import statespace
 from probnum.diffeq import steprule
