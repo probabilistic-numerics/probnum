@@ -10,10 +10,11 @@ from scipy import stats
 
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
+
+from ..timeseriesposterior import TimeSeriesPosterior
 
 
-class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
+class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
     """Posterior distribution after approximate Gaussian filtering and smoothing.
 
     Parameters

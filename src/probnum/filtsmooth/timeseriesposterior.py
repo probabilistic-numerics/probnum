@@ -7,7 +7,7 @@ import numpy as np
 from probnum._randomvariablelist import _RandomVariableList
 
 
-class FiltSmoothPosterior(abc.ABC):
+class TimeSeriesPosterior(abc.ABC):
     """Posterior Distribution over States after time-series algorithms such as
     filtering/smoothing or solving ODEs.
 

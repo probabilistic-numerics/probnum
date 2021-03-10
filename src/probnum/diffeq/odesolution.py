@@ -21,7 +21,7 @@ except ImportError:
     from cached_property import cached_property
 
 
-class ODESolution(filtsmooth.FiltSmoothPosterior):
+class ODESolution(filtsmooth.TimeSeriesPosterior):
     """ODE Solution interface."""
 
     def __init__(self, locations, states, derivatives=None):
