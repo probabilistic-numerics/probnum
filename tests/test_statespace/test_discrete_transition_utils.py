@@ -1,6 +1,6 @@
 import numpy as np
 
-from probnum.filtsmooth import statespace as pnfss
+import probnum.statespace as pnss
 
 
 def test_condition_state_on_rv(some_normal_rv1, some_normal_rv2):
@@ -11,7 +11,7 @@ def test_condition_state_on_rv(some_normal_rv1, some_normal_rv2):
     """
     gain = np.random.rand(len(some_normal_rv1.mean), len(some_normal_rv1.mean))
 
-    out = pnfss.condition_state_on_rv(
+    out = pnss.condition_state_on_rv(
         some_normal_rv2, some_normal_rv2, some_normal_rv1, gain
     )
     np.testing.assert_allclose(out.mean, some_normal_rv1.mean)
@@ -26,7 +26,7 @@ def test_condition_state_on_measurement(some_normal_rv1, some_normal_rv2):
     """
     gain = np.random.rand(len(some_normal_rv1.mean), len(some_normal_rv1.mean))
 
-    out = pnfss.condition_state_on_measurement(
+    out = pnss.condition_state_on_measurement(
         some_normal_rv2.mean, some_normal_rv2, some_normal_rv1, gain
     )
 

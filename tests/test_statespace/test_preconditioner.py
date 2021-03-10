@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from probnum.filtsmooth import statespace as pnfss
+import probnum.statespace as pnss
 
 
 @pytest.fixture
 def precon():
     some_order = 3
     some_dim = 1
-    return pnfss.NordsieckLikeCoordinates.from_order(some_order, some_dim)
+    return pnss.NordsieckLikeCoordinates.from_order(some_order, some_dim)
 
 
 def test_call(precon):

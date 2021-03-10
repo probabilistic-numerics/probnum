@@ -1,18 +1,18 @@
 import numpy as np
 
-from probnum.filtsmooth import statespace
+import probnum.statespace as pnss
 
 from .stoppingcriterion import StoppingCriterion
 
 
-class IteratedDiscreteComponent(statespace.Transition):
+class IteratedDiscreteComponent(pnss.Transition):
     """Iterated updates.
 
     Examples
     --------
     >>> from probnum.filtsmooth import DiscreteEKFComponent, StoppingCriterion
     >>> from probnum.diffeq import logistic
-    >>> from probnum.filtsmooth.statespace import IBM
+    >>> from probnum.statespace import IBM
     >>> from probnum.random_variables import Constant
     >>> from numpy import array
     >>>
