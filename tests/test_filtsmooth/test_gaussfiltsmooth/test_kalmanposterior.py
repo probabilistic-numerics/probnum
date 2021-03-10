@@ -147,7 +147,7 @@ def seed():
 
 @pytest.fixture
 def samples(posterior, locs, size, seed):
-    return posterior.sample(locations=locs, size=size)
+    return posterior.sample(t=locs, size=size)
 
 
 def test_sampling_shapes(samples, posterior, locs, size):

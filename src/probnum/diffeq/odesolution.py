@@ -12,6 +12,7 @@ import numpy as np
 import probnum._randomvariablelist as pnrv_list
 import probnum.random_variables as pnrv
 import probnum.type
+from probnum import filtsmooth
 
 try:
     # functools.cached_property is only available in Python >=3.8

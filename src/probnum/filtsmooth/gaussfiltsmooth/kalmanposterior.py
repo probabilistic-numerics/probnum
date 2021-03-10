@@ -6,6 +6,7 @@ by being callable. Can function values can also be accessed by indexing.
 import abc
 
 import numpy as np
+from scipy import stats
 
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
@@ -13,12 +14,11 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
 class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
-    """Interface for posterior distribution after (extended/unscented) Kalman
-    filtering/smoothing.
+    """Posterior distribution after approximate Gaussian filtering and smoothing.
 
     Parameters
     ----------
-    locations : `array_like`
+    locs : `array_like`
         Locations / Times of the discrete-time estimates.
     state_rvs : :obj:`list` of :obj:`RandomVariable`
         Estimated states (in the state-space model view) of the discrete-time estimates.
@@ -28,25 +28,8 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
 
     def __init__(self, locations, state_rvs, transition):
 
-        self._locations = np.asarray(locations)
+        super().__init__(locations=locations, state_rvs=state_rvs)
         self.transition = transition
-        self._state_rvs = _RandomVariableList(state_rvs)
-
-    @property
-    def locations(self):
-        """:obj:`np.ndarray`: Locations / times of the discrete observations"""
-        return self._locations
-
-    @property
-    def state_rvs(self):
-        """:obj:`list` of :obj:`RandomVariable`: Discrete-time posterior state estimates"""
-        return self._state_rvs
-
-    def __len__(self):
-        return len(self.locations)
-
-    def __getitem__(self, idx):
-        return self.state_rvs[idx]
 
     def __call__(self, t):
         """Evaluate the time-continuous posterior at location `t`
@@ -94,15 +77,54 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
         """Evaluate the posterior at a measurement-free point."""
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def sample(self, locations=None, size=()):
-        raise NotImplementedError
+    def sample(self, t=None, size=(), random_state=None):
+
+        size = utils.as_shape(size)
+
+        if t is None:
+            t_shape = (len(self.locations),)
+        else:
+            t_shape = (len(t) + 1,)
+        rv_list_shape = (len(self.filtering_posterior.state_rvs[0].mean),)
+
+        base_measure_realizations = stats.norm.rvs(
+            size=(size + t_shape + rv_list_shape), random_state=random_state
+        )
+        return self.transform_base_measure_realizations(
+            base_measure_realizations=base_measure_realizations, t=t, size=size
+        )
 
     @abc.abstractmethod
     def transform_base_measure_realizations(
-        self, base_measure_realizations, locations=None, size=()
+        self, base_measure_realizations, t=None, size=()
     ):
-        raise NotImplementedError("Sampling not implemented.")
+        """Transform samples from a base measure to samples from the KalmanPosterior.
+
+        Here, the base measure is a multivariate standard Normal distribution.
+
+        Parameters
+        ----------
+        base_measure_realizations
+            **Shape (*size, N, d).**
+            Samples from a multivariate standard Normal distribution.
+            `N` is either the `len(self.locations)` (if `t == None`),
+            or `len(t) + 1` (if `t != None`). The reason for the `+1` in the latter
+            is that samples at arbitrary locations need to be conditioned on
+            a sample at the final time point.
+        t
+            Times. Optional. If None, samples are drawn at `self.locations`.
+        size
+            Number of samples to draw. Optional. Default is `size=()`.
+
+        Returns
+        -------
+        np.ndarray
+            **Shape (*size, N, d)**
+            Transformed base measure realizations. If the inputs are samples
+            from a multivariate standard Normal distribution, the results are
+            `size` samples from the Kalman posterior at prescribed locations.
+        """
+        raise NotImplementedError
 
     def _find_previous_index(self, loc):
         return (self.locations < loc).sum() - 1
@@ -145,98 +167,52 @@ class SmoothingPosterior(KalmanPosterior):
 
         return curr_rv
 
-    def sample(self, locations=None, size=()):
-        # In the present setting, only works for sampling from the smoothing posterior.
-
-        size = utils.as_shape(size)
-
-        if locations is None:
-            locs_shape = self.locations.shape
-            rv_list_shape = (len(self.filtering_posterior.state_rvs[0].mean),)
-        else:
-            locs_shape = locations.shape
-            rv_list_shape = (len(self.filtering_posterior.state_rvs[0].mean),)
-
-        base_measure_samples = np.random.randn(*(size + locs_shape + rv_list_shape))
-
-        return self.transform_base_measure_realizations(
-            base_measure_samples, locations=locations, size=size
-        )
-        # if locations is None:
-        #     locations = self.locations
-        #     random_vars = self.filtering_posterior.state_rvs
-        # else:
-        #     random_vars = self.filtering_posterior(locations)
-        #
-        #     # Inform the final point in the list about all the data by
-        #     # conditioning on the final state rv
-        #     if locations[-1] < self.locations[-1]:
-        #         final_sample = self.state_rvs[-1].sample()
-        #         random_vars[-1], _ = self.transition.backward_realization(
-        #             final_sample,
-        #             random_vars[-1],
-        #             t=locations[-1],
-        #             dt=self.locations[-1] - locations[-1],
-        #         )
-        #
-        #
-        # if size == ():
-        #     return np.array(
-        #         self.transition.jointly_sample_list_backward(
-        #             locations=locations, rv_list=random_vars
-        #         )
-        #     )
-        #
-        # return np.array(
-        #     [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
-        # )
-
     def transform_base_measure_realizations(
-        self, base_measure_realizations, locations=None, size=()
+        self, base_measure_realizations, t=None, size=()
     ):
-        # In the present setting, only works for sampling from the smoothing posterior.
-        # bmr is of shape (*size, *locations.shape, *random_vars.shape
         size = utils.as_shape(size)
+        t = np.asarray(t) if t is not None else None
 
         # Early exit: recursively compute multiple samples
+        # if size is not equal to '()'
         if size != ():
             return np.array(
                 [
                     self.transform_base_measure_realizations(
                         base_measure_realizations=base_real,
-                        locations=locations,
+                        t=t,
                         size=size[1:],
                     )
                     for base_real in base_measure_realizations
                 ]
             )
 
-        # A single sample is computed by referring to the transition.
-        if locations is None:
-            locations = self.locations
-            random_vars = self.filtering_posterior.state_rvs
+        if t is None:
+            t = self.locations
+            rv_list = self.filtering_posterior.state_rvs
         else:
-            random_vars = self.filtering_posterior(locations)
+            rv_list = self.filtering_posterior(t)
 
             # Inform the final point in the list about all the data by
             # conditioning on the final state rv
-            if locations[-1] < self.locations[-1]:
-                final_sample = self.state_rvs[-1].sample()
-                random_vars[-1], _ = self.transition.backward_realization(
+            if t[-1] < self.locations[-1]:
+
+                final_rv = self.state_rvs[-1]
+                final_sample = (
+                    final_rv.mean
+                    + final_rv.cov_cholesky @ base_measure_realizations[-1]
+                )
+                rv_list[-1], _ = self.transition.backward_realization(
                     final_sample,
-                    random_vars[-1],
-                    t=locations[-1],
-                    dt=self.locations[-1] - locations[-1],
+                    rv_list[-1],
+                    t=t[-1],
+                    dt=self.locations[-1] - t[-1],
                 )
 
-        if not np.allclose(
-            base_measure_realizations.shape, (len(locations), len(random_vars[0].mean))
-        ):
-            raise ValueError("Base measures don't fit.")
         return np.array(
             self.transition.jointly_push_forward_realization_list_backward(
-                locations=locations,
-                rv_list=random_vars,
+                t=t,
+                rv_list=rv_list,
                 base_measure_samples=base_measure_realizations,
             )
         )
@@ -264,10 +240,10 @@ class FilteringPosterior(KalmanPosterior):
         rv, _ = self.transition.forward_rv(previous_rv, t=previous_t, dt=t - previous_t)
         return rv
 
-    def sample(self, locations=None, size=()):
+    def sample(self, t=None, size=()):
         raise NotImplementedError
 
     def transform_base_measure_realizations(
-        self, base_measure_realizations, locations=None, size=()
+        self, base_measure_realizations, t=None, size=()
     ):
         raise NotImplementedError("Sampling not implemented.")

@@ -1,12 +1,52 @@
 """Abstract Base Class for posteriors over states after applying filtering/smoothing."""
-from abc import ABC, abstractmethod
+
+import abc
+
+import numpy as np
+
+from probnum._randomvariablelist import _RandomVariableList
 
 
-class FiltSmoothPosterior(ABC):
-    """Posterior Distribution over States after Filtering/Smoothing."""
+class FiltSmoothPosterior(abc.ABC):
+    """Posterior Distribution over States after time-series algorithms such as
+    filtering/smoothing or solving ODEs.
 
-    @abstractmethod
-    def __call__(self, location):
+    Parameters
+    ----------
+    locations
+        Locations of the posterior states (represented as random variables).
+    state_rvs
+        Posterior random variables.
+
+    >>> posterior = FiltSmoothPosterior(locs=[1., 2.], state_rvs=[2., 3.])
+    >>> posterior.locs
+    [1., 2.]
+    >>> posterior(t=5.)
+    >>> posterior(locs=5.)
+    """
+
+    def __init__(self, locations, state_rvs):
+        self.locations = np.asarray(locations)
+        self.state_rvs = _RandomVariableList(state_rvs)
+
+    def __len__(self):
+        """Length of the discrete-time solution.
+
+        Corresponds to the number of filtering/smoothing steps
+        """
+        return len(self.locations)
+
+    def __getitem__(self, idx):
+        return self.state_rvs[idx]
+
+    def shape(self):
+        try:
+            return self.locations.shape + self.state_rvs[0].shape
+        except NotImplementedError as err:
+            raise NotImplementedError from err
+
+    @abc.abstractmethod
+    def __call__(self, t):
         """Evaluate the time-continuous posterior for a given location.
 
         Parameters
@@ -20,20 +60,8 @@ class FiltSmoothPosterior(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def __len__(self):
-        """Length of the discrete-time solution.
-
-        Corresponds to the number of filtering/smoothing steps
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def __getitem__(self, idx):
-        """Return the corresponding index/slice of the discrete-time solution."""
-        raise NotImplementedError
-
-    def sample(self, locations=None, size=(), random_state=None):
+    @abc.abstractmethod
+    def sample(self, t=None, size=(), random_state=None):
         """Draw samples from the filtering/smoothing posterior.
 
         If nothing is specified, a single sample is drawn (supported on self.locations).
@@ -44,7 +72,7 @@ class FiltSmoothPosterior(ABC):
 
         Parameters
         ----------
-        locations : array_like, optional
+        t : array_like, optional
             Locations on which the samples are wanted. Default is none, which implies that
             self.location is used.
         size : int or tuple of ints, optional
@@ -61,8 +89,8 @@ class FiltSmoothPosterior(ABC):
         """
         raise NotImplementedError("Sampling not implemented.")
 
-    @abstractmethod
+    @abc.abstractmethod
     def transform_base_measure_realizations(
-        self, base_measure_realizations, locations=None, size=()
+        self, base_measure_realizations, t=None, size=()
     ):
         raise NotImplementedError("Sampling not implemented.")

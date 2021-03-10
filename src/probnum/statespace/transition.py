@@ -288,9 +288,7 @@ class Transition(abc.ABC):
         out_rvs.reverse()
         return _RandomVariableList(out_rvs)
 
-    def jointly_sample_list_backward(
-        self, rv_list, locations, _previous_posterior=None
-    ):
+    def jointly_sample_list_backward(self, rv_list, t, _previous_posterior=None):
         """Jointly sample from a list of random variables, according to the present
         transition.
 
@@ -316,16 +314,16 @@ class Transition(abc.ABC):
             List of smoothed random variables.
         """
 
-        base_measure_samples = np.random.randn(len(locations), self.input_dim)
+        base_measure_samples = np.random.randn(len(t), self.input_dim)
         return self.jointly_push_forward_realization_list_backward(
             rv_list,
-            locations,
+            t,
             base_measure_samples=base_measure_samples,
             _previous_posterior=_previous_posterior,
         )
 
     def jointly_push_forward_realization_list_backward(
-        self, rv_list, locations, base_measure_samples, _previous_posterior=None
+        self, rv_list, t, base_measure_samples, _previous_posterior=None
     ):
         """Transform samples from a base measure into joint backward samples from a list
         of random variables."""
@@ -334,7 +332,7 @@ class Transition(abc.ABC):
         curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[-1]
         out_samples = [curr_sample]
 
-        for idx in reversed(range(1, len(locations))):
+        for idx in reversed(range(1, len(t))):
             unsmoothed_rv = rv_list[idx - 1]
             _linearise_smooth_step_at = (
                 None
@@ -346,8 +344,8 @@ class Transition(abc.ABC):
             curr_rv, _ = self.backward_realization(
                 curr_sample,
                 unsmoothed_rv,
-                t=locations[idx - 1],
-                dt=locations[idx] - locations[idx - 1],
+                t=t[idx - 1],
+                dt=t[idx] - t[idx - 1],
                 _linearise_at=_linearise_smooth_step_at,
             )
 
