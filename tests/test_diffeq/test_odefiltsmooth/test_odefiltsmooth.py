@@ -44,29 +44,9 @@ def test_adaptive_solver_successful(ivp, method, algo_order, dense_output, step)
     assert isinstance(sol, KalmanODESolution)
 
     # Adaptive steps are not evenly distributed
-    step_diff = np.diff(sol.t)
+    step_diff = np.diff(sol.locations)
     step_ratio = np.amin(step_diff) / np.amax(step_diff)
     assert step_ratio < 0.5
-
-
-#
-# def test_wrong_prior_raises_error(ivp):
-#     """Priors that are not in the list raise errors."""
-#     f = ivp.rhs
-#     t0, tmax = ivp.timespan
-#     y0 = ivp.initrv.mean
-#
-#     # Anything that is no {IBM, IOUP, MAT} + Number is wrong
-#     # (the Matern number must end on a 2).
-#     for which_prior in ["IBM_5", "IOUPX5", "MAT112Y", "MAT33"]:
-#         with pytest.raises(ValueError):
-#             probsolve_ivp(
-#                 f,
-#                 t0,
-#                 tmax,
-#                 y0,
-#                 which_prior=which_prior,
-#             )
 
 
 def test_wrong_method_raises_error(ivp):

@@ -29,7 +29,7 @@ class MockODESolver(ODESolver):
         )  # return nan as error estimate to ensure that it is not used
 
     def rvlist_to_odesol(self, times, rvs):
-        return MockODESolution(locations=times, state_rvs=rvs)
+        return MockODESolution(locations=times, states=rvs)
 
 
 class ODESolverTestCase(unittest.TestCase):
@@ -52,8 +52,8 @@ class ODESolverTestCase(unittest.TestCase):
         )  # this is the actual part of the test
 
         # quick check that the result is sensible
-        self.assertAlmostEqual(odesol.t[-1], self.solver.ivp.tmax)
-        self.assertAlmostEqual(odesol.y[-1].mean, 1.0, places=2)
+        self.assertAlmostEqual(odesol.locations[-1], self.solver.ivp.tmax)
+        self.assertAlmostEqual(odesol.states[-1].mean, 1.0, places=2)
 
 
 if __name__ == "__main__":

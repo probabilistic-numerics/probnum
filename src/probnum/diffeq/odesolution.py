@@ -24,10 +24,13 @@ except ImportError:
 class ODESolution(filtsmooth.FiltSmoothPosterior):
     """ODE Solution interface."""
 
-    @cached_property
-    def dy(self) -> pnrv_list._RandomVariableList:
-        """First derivative of the discrete-time solution."""
-        raise NotImplementedError("The first derivative has not been implemented")
+    def __init__(self, locations, states, derivatives=None):
+        super().__init__(locations=locations, states=states)
+        self.derivatives = (
+            pnrv_list._RandomVariableList(derivatives)
+            if derivatives is not None
+            else None
+        )
 
     # Not abstract, because providing interpolation could sometimes be tedious.
     def __call__(
@@ -46,19 +49,7 @@ class ODESolution(filtsmooth.FiltSmoothPosterior):
         """
         raise NotImplementedError("Dense output is not implemented.")
 
-    def __len__(self) -> int:
-        """Number of points in the discrete-time solution."""
-        return len(self.y)
-
-    def __getitem__(self, idx: int) -> pnrv.RandomVariable:
-        """Access the :math:`i`th element of the discrete-time solution."""
-        return self.y[idx]
-
-    def sample(
-        self,
-        t: typing.Optional[typing.Union[float, typing.List[float]]] = None,
-        size: typing.Optional[probnum.type.ShapeArgType] = (),
-    ) -> np.ndarray:
+    def sample(self, t=None, size=(), random_state=None):
         """Sample from the ODE solution.
 
         Parameters
@@ -73,3 +64,8 @@ class ODESolution(filtsmooth.FiltSmoothPosterior):
             Number of samples.
         """
         raise NotImplementedError("Sampling is not implemented.")
+
+    def transform_base_measure_realizations(
+        self, base_measure_realizations, t=None, size=()
+    ):
+        raise NotImplementedError("Sampling not implemented.")

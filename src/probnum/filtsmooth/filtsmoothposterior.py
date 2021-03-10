@@ -17,12 +17,6 @@ class FiltSmoothPosterior(abc.ABC):
         Locations of the posterior states (represented as random variables).
     state_rvs
         Posterior random variables.
-
-    >>> posterior = FiltSmoothPosterior(locs=[1., 2.], state_rvs=[2., 3.])
-    >>> posterior.locs
-    [1., 2.]
-    >>> posterior(t=5.)
-    >>> posterior(locs=5.)
     """
 
     def __init__(self, locations, states):

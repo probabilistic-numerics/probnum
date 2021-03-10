@@ -22,48 +22,48 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
     def test_len(self):
         self.assertTrue(len(self.solution) > 0)
-        self.assertEqual(len(self.solution.t), len(self.solution))
-        self.assertEqual(len(self.solution.y), len(self.solution))
+        self.assertEqual(len(self.solution.locations), len(self.solution))
+        self.assertEqual(len(self.solution.states), len(self.solution))
 
     def test_t(self):
-        self.assertArrayEqual(self.solution.t, np.sort(self.solution.t))
+        self.assertArrayEqual(self.solution.locations, np.sort(self.solution.locations))
 
-        self.assertApproxEqual(self.solution.t[0], self.ivp.t0)
-        self.assertApproxEqual(self.solution.t[-1], self.ivp.tmax)
+        self.assertApproxEqual(self.solution.locations[0], self.ivp.t0)
+        self.assertApproxEqual(self.solution.locations[-1], self.ivp.tmax)
 
     def test_getitem(self):
-        self.assertArrayEqual(self.solution[0].mean, self.solution.y[0].mean)
-        self.assertArrayEqual(self.solution[0].cov, self.solution.y[0].cov)
+        self.assertArrayEqual(self.solution[0].mean, self.solution.states[0].mean)
+        self.assertArrayEqual(self.solution[0].cov, self.solution.states[0].cov)
 
-        self.assertArrayEqual(self.solution[-1].mean, self.solution.y[-1].mean)
-        self.assertArrayEqual(self.solution[-1].cov, self.solution.y[-1].cov)
+        self.assertArrayEqual(self.solution[-1].mean, self.solution.states[-1].mean)
+        self.assertArrayEqual(self.solution[-1].cov, self.solution.states[-1].cov)
 
-        self.assertArrayEqual(self.solution[:].mean, self.solution.y[:].mean)
-        self.assertArrayEqual(self.solution[:].cov, self.solution.y[:].cov)
+        self.assertArrayEqual(self.solution[:].mean, self.solution.states[:].mean)
+        self.assertArrayEqual(self.solution[:].cov, self.solution.states[:].cov)
 
     def test_y(self):
-        self.assertTrue(isinstance(self.solution.y, _RandomVariableList))
+        self.assertTrue(isinstance(self.solution.states, _RandomVariableList))
 
-        self.assertEqual(len(self.solution.y[0].shape), 1)
-        self.assertEqual(self.solution.y[0].shape[0], self.ivp.dimension)
+        self.assertEqual(len(self.solution.states[0].shape), 1)
+        self.assertEqual(self.solution.states[0].shape[0], self.ivp.dimension)
 
     def test_dy(self):
-        self.assertTrue(isinstance(self.solution.dy, _RandomVariableList))
+        self.assertTrue(isinstance(self.solution.derivatives, _RandomVariableList))
 
-        self.assertEqual(len(self.solution.dy[0].shape), 1)
-        self.assertEqual(self.solution.dy[0].shape[0], self.ivp.dimension)
+        self.assertEqual(len(self.solution.derivatives[0].shape), 1)
+        self.assertEqual(self.solution.derivatives[0].shape[0], self.ivp.dimension)
 
     def test_call_error_if_small(self):
         t = self.ivp.t0 - 0.5
-        self.assertLess(t, self.solution.t[0])
+        self.assertLess(t, self.solution.locations[0])
         with self.assertRaises(ValueError):
             self.solution(t)
 
     def test_call_interpolation(self):
         t = self.ivp.t0 + (self.ivp.tmax - self.ivp.t0) / np.pi
-        self.assertLess(self.solution.t[0], t)
-        self.assertGreater(self.solution.t[-1], t)
-        self.assertTrue(t not in self.solution.t)
+        self.assertLess(self.solution.locations[0], t)
+        self.assertGreater(self.solution.locations[-1], t)
+        self.assertTrue(t not in self.solution.locations)
         self.solution(t)
 
     def test_call_correctness(self):
@@ -81,7 +81,7 @@ class TestODESolution(unittest.TestCase, NumpyAssertions):
 
     def test_call_extrapolation(self):
         t = 1.1 * self.ivp.tmax
-        self.assertGreater(t, self.solution.t[-1])
+        self.assertGreater(t, self.solution.locations[-1])
         self.solution(t)
 
     def test_filtering_solution(self):
@@ -150,7 +150,7 @@ class TestODESolutionSampling(unittest.TestCase):
     def test_output_shape(self):
         loc_inputs = [
             None,
-            self.solution.t[[2, 3]],
+            self.solution.locations[[2, 3]],
             np.arange(0.0, 0.5, 0.05),
         ]
         single_sample_shapes = [

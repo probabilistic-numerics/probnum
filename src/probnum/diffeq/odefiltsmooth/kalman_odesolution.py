@@ -48,7 +48,7 @@ class KalmanODESolution(ODESolution):
     >>> t0, tmax = 0., 1.5
     >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
     >>> # Mean of the discrete-time solution
-    >>> print(np.round(solution.y.mean, 2))
+    >>> print(np.round(solution.states.mean, 2))
     [[0.15]
      [0.21]
      [0.28]
@@ -67,7 +67,7 @@ class KalmanODESolution(ODESolution):
      [0.99]]
 
     >>> # Times of the discrete-time solution
-    >>> print(solution.t)
+    >>> print(solution.locations)
     [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
     >>> # Individual entries of the discrete-time solution can be accessed with
     >>> print(solution[5])
@@ -84,26 +84,18 @@ class KalmanODESolution(ODESolution):
 
         # Pre-compute projection matrices.
         # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'.
-        self.proj_to_y = kalman_posterior.transition.proj2coord(coord=0)
-        self.proj_to_dy = kalman_posterior.transition.proj2coord(coord=1)
+        self.proj_to_y = self.kalman_posterior.transition.proj2coord(coord=0)
+        self.proj_to_dy = self.kalman_posterior.transition.proj2coord(coord=1)
 
-    @property
-    def t(self) -> np.ndarray:
-        return self.kalman_posterior.locations
-
-    @cached_property
-    def y(self) -> pnrv_list._RandomVariableList:
-        y_rvs = [
-            _project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.state_rvs
-        ]
-        return pnrv_list._RandomVariableList(y_rvs)
-
-    @cached_property
-    def dy(self) -> pnrv_list._RandomVariableList:
-        dy_rvs = [
-            _project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.state_rvs
-        ]
-        return pnrv_list._RandomVariableList(dy_rvs)
+        states = pnrv_list._RandomVariableList(
+            [_project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.states]
+        )
+        derivatives = pnrv_list._RandomVariableList(
+            [_project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.states]
+        )
+        super().__init__(
+            locations=kalman_posterior.locations, states=states, derivatives=derivatives
+        )
 
     def __call__(
         self, t: float
@@ -121,6 +113,7 @@ class KalmanODESolution(ODESolution):
         self,
         t: typing.Optional[float] = None,
         size: typing.Optional[probnum.type.ShapeArgType] = (),
+        random_state=None,
     ) -> np.ndarray:
         """Sample from the Gaussian filtering ODE solution by sampling from the Gauss-
         Markov posterior."""
@@ -130,9 +123,16 @@ class KalmanODESolution(ODESolution):
         # We cannot 'steal' the recursion from self.kalman_posterior.sample,
         # because we need to project the respective states out of each sample.
         if size != ():
-            return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
+            return np.array(
+                [
+                    self.sample(t=t, size=size[1:], random_state=random_state)
+                    for _ in range(size[0])
+                ]
+            )
 
-        samples = self.kalman_posterior.sample(locations=t, size=size)
+        samples = self.kalman_posterior.sample(
+            t=t, size=size, random_state=random_state
+        )
         return np.array([self.proj_to_y @ sample for sample in samples])
 
     @property

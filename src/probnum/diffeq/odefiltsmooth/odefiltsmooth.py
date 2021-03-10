@@ -178,7 +178,7 @@ def probsolve_ivp(
     >>> y0 = np.array([0.15])
     >>> t0, tmax = 0., 1.5
     >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
-    >>> print(np.round(solution.y.mean, 2))
+    >>> print(np.round(solution.states.mean, 2))
     [[0.15]
      [0.21]
      [0.28]
@@ -202,8 +202,8 @@ def probsolve_ivp(
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
     >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", algo_order=2, step=0.1, adaptive=False)
-    >>> print(np.round(solution.y.mean, 2))
-        [[0.15]
+    >>> print(np.round(solution.states.mean, 2))
+    [[0.15]
      [0.21]
      [0.28]
      [0.37]
