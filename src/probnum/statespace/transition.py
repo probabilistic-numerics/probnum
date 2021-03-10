@@ -2,6 +2,8 @@
 
 import abc
 
+import numpy as np
+
 import probnum.random_variables as pnrv
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.type import IntArgType
@@ -313,7 +315,23 @@ class Transition(abc.ABC):
         _RandomVariableList
             List of smoothed random variables.
         """
-        curr_sample = rv_list[-1].sample()
+
+        base_measure_samples = np.random.randn(len(locations), self.input_dim)
+        return self.jointly_push_forward_realization_list_backward(
+            rv_list,
+            locations,
+            base_measure_samples=base_measure_samples,
+            _previous_posterior=_previous_posterior,
+        )
+
+    def jointly_push_forward_realization_list_backward(
+        self, rv_list, locations, base_measure_samples, _previous_posterior=None
+    ):
+        """Transform samples from a base measure into joint backward samples from a list
+        of random variables."""
+
+        curr_rv = rv_list[-1]
+        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[-1]
         out_samples = [curr_sample]
 
         for idx in reversed(range(1, len(locations))):
@@ -334,7 +352,9 @@ class Transition(abc.ABC):
             )
 
             # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
-            curr_sample = curr_rv.sample()
+            curr_sample = (
+                curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[idx - 1]
+            )
             out_samples.append(curr_sample)
 
         out_samples.reverse()

@@ -37,8 +37,10 @@ class FiltSmoothPosterior(ABC):
         """Draw samples from the filtering/smoothing posterior.
 
         If nothing is specified, a single sample is drawn (supported on self.locations).
-        If locations are specified, the samples are drawn on those locations.
+        If locations are specified, a single sample is drawn on those locations.
         If size is specified, more than a single sample is drawn.
+
+        Internally, samples from a base measure are drawn and transformed via self.transform_base_measure_realizations.
 
         Parameters
         ----------
@@ -57,4 +59,10 @@ class FiltSmoothPosterior(ABC):
             shape (A1, ..., Z1, L, A2, ..., Z2).
             For example: size=4, len(locations)=4, dim=3 gives shape (4, 4, 3).
         """
+        raise NotImplementedError("Sampling not implemented.")
+
+    @abstractmethod
+    def transform_base_measure_realizations(
+        self, base_measure_realizations, locations=None, size=()
+    ):
         raise NotImplementedError("Sampling not implemented.")

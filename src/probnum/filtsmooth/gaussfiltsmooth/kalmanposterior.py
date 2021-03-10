@@ -98,6 +98,12 @@ class KalmanPosterior(FiltSmoothPosterior, abc.ABC):
     def sample(self, locations=None, size=()):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def transform_base_measure_realizations(
+        self, base_measure_realizations, locations=None, size=()
+    ):
+        raise NotImplementedError("Sampling not implemented.")
+
     def _find_previous_index(self, loc):
         return (self.locations < loc).sum() - 1
 
@@ -145,6 +151,68 @@ class SmoothingPosterior(KalmanPosterior):
         size = utils.as_shape(size)
 
         if locations is None:
+            locs_shape = self.locations.shape
+            rv_list_shape = (len(self.filtering_posterior.state_rvs[0].mean),)
+        else:
+            locs_shape = locations.shape
+            rv_list_shape = (len(self.filtering_posterior.state_rvs[0].mean),)
+
+        base_measure_samples = np.random.randn(*(size + locs_shape + rv_list_shape))
+
+        return self.transform_base_measure_realizations(
+            base_measure_samples, locations=locations, size=size
+        )
+        # if locations is None:
+        #     locations = self.locations
+        #     random_vars = self.filtering_posterior.state_rvs
+        # else:
+        #     random_vars = self.filtering_posterior(locations)
+        #
+        #     # Inform the final point in the list about all the data by
+        #     # conditioning on the final state rv
+        #     if locations[-1] < self.locations[-1]:
+        #         final_sample = self.state_rvs[-1].sample()
+        #         random_vars[-1], _ = self.transition.backward_realization(
+        #             final_sample,
+        #             random_vars[-1],
+        #             t=locations[-1],
+        #             dt=self.locations[-1] - locations[-1],
+        #         )
+        #
+        #
+        # if size == ():
+        #     return np.array(
+        #         self.transition.jointly_sample_list_backward(
+        #             locations=locations, rv_list=random_vars
+        #         )
+        #     )
+        #
+        # return np.array(
+        #     [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
+        # )
+
+    def transform_base_measure_realizations(
+        self, base_measure_realizations, locations=None, size=()
+    ):
+        # In the present setting, only works for sampling from the smoothing posterior.
+        # bmr is of shape (*size, *locations.shape, *random_vars.shape
+        size = utils.as_shape(size)
+
+        # Early exit: recursively compute multiple samples
+        if size != ():
+            return np.array(
+                [
+                    self.transform_base_measure_realizations(
+                        base_measure_realizations=base_real,
+                        locations=locations,
+                        size=size[1:],
+                    )
+                    for base_real in base_measure_realizations
+                ]
+            )
+
+        # A single sample is computed by referring to the transition.
+        if locations is None:
             locations = self.locations
             random_vars = self.filtering_posterior.state_rvs
         else:
@@ -161,15 +229,16 @@ class SmoothingPosterior(KalmanPosterior):
                     dt=self.locations[-1] - locations[-1],
                 )
 
-        if size == ():
-            return np.array(
-                self.transition.jointly_sample_list_backward(
-                    locations=locations, rv_list=random_vars
-                )
-            )
-
+        if not np.allclose(
+            base_measure_realizations.shape, (len(locations), len(random_vars[0].mean))
+        ):
+            raise ValueError("Base measures don't fit.")
         return np.array(
-            [self.sample(locations=locations, size=size[1:]) for _ in range(size[0])]
+            self.transition.jointly_push_forward_realization_list_backward(
+                locations=locations,
+                rv_list=random_vars,
+                base_measure_samples=base_measure_realizations,
+            )
         )
 
 
@@ -197,3 +266,8 @@ class FilteringPosterior(KalmanPosterior):
 
     def sample(self, locations=None, size=()):
         raise NotImplementedError
+
+    def transform_base_measure_realizations(
+        self, base_measure_realizations, locations=None, size=()
+    ):
+        raise NotImplementedError("Sampling not implemented.")
