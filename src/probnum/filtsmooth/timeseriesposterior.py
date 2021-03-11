@@ -30,9 +30,9 @@ class TimeSeriesPosterior(abc.ABC):
 
     Parameters
     ----------
-    locations
+    locations :
         Locations of the posterior states (represented as random variables).
-    state_rvs
+    states :
         Posterior random variables.
     """
 
@@ -43,7 +43,7 @@ class TimeSeriesPosterior(abc.ABC):
     def __len__(self) -> int:
         """Length of the discrete-time solution.
 
-        Corresponds to the number of filtering/smoothing steps
+        Corresponds to the number of filtering/smoothing steps.
         """
         return len(self.locations)
 
@@ -53,21 +53,18 @@ class TimeSeriesPosterior(abc.ABC):
         return self.states[idx]
 
     @abc.abstractmethod
-    def __call__(
-        self, t: DenseOutputLocationArgType
-    ) -> Union[
-        random_variables.RandomVariable, _randomvariablelist._RandomVariableList
-    ]:
+    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
         """Evaluate the time-continuous posterior for a given location.
 
         Parameters
         ----------
-        location : float
-            Location, or time, at which to evaluate the posterior.
+        t :
+            Location on which to evaluate the posterior.
 
         Returns
         -------
-        rv : `RandomVariable`
+        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+            Dense evaluation.
         """
         raise NotImplementedError
 
@@ -94,10 +91,13 @@ class TimeSeriesPosterior(abc.ABC):
         size :
             Indicates how many samples are drawn. Default is an empty tuple, in which case
             a single sample is returned.
+        random_state
+            Random state (seed, generator) to be used for sampling base measure realizations.
+
 
         Returns
         -------
-        numpy.ndarray
+        np.ndarray
             Drawn samples. If size has shape (A1, ..., Z1), locations have shape (L,),
             and the state space model has shape (A2, ..., Z2), the output has
             shape (A1, ..., Z1, L, A2, ..., Z2).

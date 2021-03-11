@@ -1,12 +1,12 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
+from typing import Optional
 
 import numpy as np
 
-import probnum.random_variables as pnrv
-from probnum._randomvariablelist import _RandomVariableList
-from probnum.type import IntArgType
+from probnum import _randomvariablelist, random_variables
+from probnum.type import FloatArgType, IntArgType
 
 
 class Transition(abc.ABC):
@@ -250,7 +250,7 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        rv_list : _RandomVariableList
+        rv_list : _randomvariablelist._RandomVariableList
             List of random variables to be smoothed.
         locations :
             Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
@@ -260,7 +260,7 @@ class Transition(abc.ABC):
 
         Returns
         -------
-        _RandomVariableList
+        _randomvariablelist._RandomVariableList
             List of smoothed random variables.
         """
 
@@ -286,7 +286,7 @@ class Transition(abc.ABC):
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
-        return _RandomVariableList(out_rvs)
+        return _randomvariablelist._RandomVariableList(out_rvs)
 
     # def jointly_sample_list_backward(self, rv_list, t, _previous_posterior=None):
     #     """Jointly sample from a list of random variables, according to the present
@@ -300,7 +300,7 @@ class Transition(abc.ABC):
     #
     #     Parameters
     #     ----------
-    #     rv_list : _RandomVariableList
+    #     rv_list : _randomvariablelist._RandomVariableList
     #         List of random variables to be sampled from (jointly).
     #     locations :
     #         Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
@@ -310,7 +310,7 @@ class Transition(abc.ABC):
     #
     #     Returns
     #     -------
-    #     _RandomVariableList
+    #     _randomvariablelist._RandomVariableList
     #         List of smoothed random variables.
     #     """
     #
@@ -323,14 +323,36 @@ class Transition(abc.ABC):
     #     )
 
     def jointly_transform_base_measure_realization_list_backward(
-        self, rv_list, t, base_measure_samples, _previous_posterior=None
-    ):
+        self,
+        base_measure_realizations: np.ndarray,
+        t: FloatArgType,
+        rv_list: _randomvariablelist._RandomVariableList,
+        _previous_posterior: Optional["TimeSeriesPosterior"] = None,
+    ) -> np.ndarray:
         """Transform samples from a base measure into joint backward samples from a list
-        of random variables."""
+        of random variables.
+
+        Parameters
+        ----------
+        base_measure_realizations :
+            Base measure realizations (usually samples from a standard Normal distribution).
+            These are transformed into joint realizations of the random variable list.
+        rv_list :
+            List of random variables to be jointly sampled from.
+        t :
+            Locations of the random variables in the list.
+        _previous_posterior :
+            Previous posterior. Used for iterative posterior linearisation.
+
+        Returns
+        -------
+        np.ndarray
+            Jointly transformed realizations.
+        """
 
         curr_rv = rv_list[-1]
 
-        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[
+        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
             -1
         ].reshape((-1,))
         out_samples = [curr_sample]
@@ -353,9 +375,11 @@ class Transition(abc.ABC):
             )
 
             # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
-            curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_samples[
-                idx - 1
-            ].reshape((-1,))
+            curr_sample = (
+                curr_rv.mean
+                + curr_rv.cov_cholesky
+                @ base_measure_realizations[idx - 1].reshape((-1,))
+            )
 
             out_samples.append(curr_sample)
 
@@ -369,9 +393,9 @@ class Transition(abc.ABC):
     # referring to the forward/backward transition of RVs.
 
     def _backward_realization_via_backward_rv(self, realization, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=realization)
+        real_as_rv = random_variables.Constant(support=realization)
         return self.backward_rv(real_as_rv, *args, **kwargs)
 
     def _forward_realization_via_forward_rv(self, realization, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=realization)
+        real_as_rv = random_variables.Constant(support=realization)
         return self.forward_rv(real_as_rv, *args, **kwargs)

@@ -36,9 +36,9 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
     Parameters
     ----------
-    locs :
+    locations :
         Locations / Times of the discrete-time estimates.
-    state_rvs :
+    states :
         Estimated states (in the state-space model view) of the discrete-time estimates.
     transition :
         Dynamics model used as a prior for the filter.
@@ -71,7 +71,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
         Returns
         -------
-        :obj:`RandomVariable`
+        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
             Estimate of the states at time ``t``.
         """
 
@@ -99,7 +99,18 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
     @abc.abstractmethod
     def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
-        """Evaluate the posterior at a measurement-free point."""
+        """Evaluate the posterior at a measurement-free point.
+
+        Parameters
+        ----------
+        t :
+            Location to evaluate at.
+
+        Returns
+        -------
+        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+            Dense evaluation.
+        """
         raise NotImplementedError
 
     def sample(
@@ -141,16 +152,16 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
         Parameters
         ----------
-        base_measure_realizations
+        base_measure_realizations :
             **Shape (*size, N, d).**
             Samples from a multivariate standard Normal distribution.
             `N` is either the `len(self.locations)` (if `t == None`),
             or `len(t) + 1` (if `t != None`). The reason for the `+1` in the latter
             is that samples at arbitrary locations need to be conditioned on
             a sample at the final time point.
-        t
+        t :
             Times. Optional. If None, samples are drawn at `self.locations`.
-        size
+        size :
             Number of samples to draw. Optional. Default is `size=()`.
 
         Returns
@@ -181,6 +192,8 @@ class SmoothingPosterior(KalmanPosterior):
         Estimated states (in the state-space model view) of the discrete-time estimates.
     transition : :obj:`Transition`
         Dynamics model used as a prior for the filter.
+    filtering_posterior :
+        Filtering posterior.
     """
 
     def __init__(
@@ -258,9 +271,9 @@ class SmoothingPosterior(KalmanPosterior):
 
         return np.array(
             self.transition.jointly_transform_base_measure_realization_list_backward(
+                base_measure_realizations=base_measure_realizations,
                 t=t,
                 rv_list=rv_list,
-                base_measure_samples=base_measure_realizations,
             )
         )
 
@@ -269,7 +282,18 @@ class FilteringPosterior(KalmanPosterior):
     """Filtering posterior."""
 
     def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
-        """Predict to the present point."""
+        """Predict to the present point.
+
+        Parameters
+        ----------
+        t :
+            Location to evaluate at.
+
+        Returns
+        -------
+        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+            Dense evaluation.
+        """
         previous_idx = self._find_previous_index(t)
         previous_t = self.locations[previous_idx]
         previous_rv = self.states[previous_idx]
