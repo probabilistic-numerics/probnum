@@ -77,22 +77,58 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
 
-        size = utils.as_shape(size)
-
-        # If self.locations are used, the final RV in the list is informed
-        # about all the data. If not, the final data point needs to be
-        # included in the joint sampling, hence the (len(t) + 1) below.
+        # Include the final point if a specific grid is demanded
+        # and the rightmost point is left of the rightmost data point.
+        # If this is not done, the samples are not from the full posterior.
         if t is None:
-            t_shape = (len(self.locations),)
+            sampling_locs = self.locations
+            remove_final_point = False
+        elif t[-1] >= self.locations[-1]:
+            sampling_locs = t
+            remove_final_point = False
         else:
-            t_shape = (len(t) + 1,)
+            sampling_locs = np.hstack((t, self.locations[-1]))
+            remove_final_point = True
 
-        rv_shape = self.states[0].shape
+        # Infer desired size of the base measure realizations and create them
+        size = utils.as_shape(size)
+        single_rv_shape = self.states[0].shape
         base_measure_realizations = stats.norm.rvs(
-            size=(size + t_shape + rv_shape), random_state=random_state
+            size=(size + sampling_locs.shape + single_rv_shape),
+            random_state=random_state,
         )
-        return self.transform_base_measure_realizations(
-            base_measure_realizations=base_measure_realizations, t=t
+
+        # Transform samples and return the corresponding values.
+        # If the final point was artificially added (see above), remove it again.
+        transformed_realizations = self.transform_base_measure_realizations(
+            base_measure_realizations=base_measure_realizations, t=sampling_locs
+        )
+        if remove_final_point:
+            return self._remove_final_time_point(transformed_realizations)
+
+        return transformed_realizations
+
+    def _remove_final_time_point(self, transformed_realizations):
+        """Remove the transformed sample associated with the final time point from the
+        transformed samples.
+
+        Careful with the correct slicing!
+
+        Ignore all the size-related dimensions with the Ellipsis, and ignore the RV-shape-related
+        dimension with np.take.
+        The line below leaves the last `rv_ndim` dimensions untouched, removes the
+        last element from the `rv_ndim+1`th dimension (counted from the back) and
+        leaves the former dimensions untouched, too.
+        In other words, the transformed realization that corresponds to the added final RV is removed.
+
+        This is extracted into a function not only because it allows more thorough documentation, but we would
+        also like to reuse it in the KalmanODESolution.
+        """
+        rv_ndim = self.states[0].ndim
+        return np.take(
+            transformed_realizations,
+            indices=range(transformed_realizations.shape[-(rv_ndim + 1)] - 1),
+            axis=-(rv_ndim + 1),
         )
 
     @abc.abstractmethod
@@ -178,10 +214,10 @@ class SmoothingPosterior(KalmanPosterior):
         t = np.asarray(t) if t is not None else None
 
         # Early exit: recursively compute multiple samples
-        # if size is not equal to '()', which is the case if
+        # if the desired sample size is not equal to '()', which is the case if
         # the shape of base_measure_realization is not (len(locations), shape(RV))
-        t_shape = self.locations.shape if t is None else (len(t) + 1,)
-        size_zero_shape = () + t_shape + self.states[0].shape
+        # t_shape = self.locations.shape if t is None else (len(t) + 1,)
+        size_zero_shape = () + t.shape + self.states[0].shape
         if base_measure_realizations.shape != size_zero_shape:
             return np.array(
                 [
@@ -193,29 +229,10 @@ class SmoothingPosterior(KalmanPosterior):
                 ]
             )
 
-        if t is None:
-            t = self.locations
-            rv_list = self.filtering_posterior.states
-        else:
-            rv_list = self.filtering_posterior(t)
-
-            # Inform the final point in the list about all the data by
-            # conditioning on the final state rv
-            if t[-1] < self.locations[-1]:
-
-                final_rv = self.states[-1]
-                final_sample = (
-                    final_rv.mean
-                    + final_rv.cov_cholesky
-                    @ base_measure_realizations[-1].reshape((-1,))
-                )
-                rv_list[-1], _ = self.transition.backward_realization(
-                    final_sample,
-                    rv_list[-1],
-                    t=t[-1],
-                    dt=self.locations[-1] - t[-1],
-                )
-
+        # The final location is contained in  't' if this function is called from sample().
+        # If `transform_base_measure_realizations()` is called directly from the outside,
+        # you better know what you're doing ;)
+        rv_list = self.filtering_posterior(t)
         return np.array(
             self.transition.jointly_transform_base_measure_realization_list_backward(
                 base_measure_realizations=base_measure_realizations,

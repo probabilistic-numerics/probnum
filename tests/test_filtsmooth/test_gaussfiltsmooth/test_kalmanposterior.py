@@ -130,14 +130,18 @@ def test_sampling_shapes(posterior, locs, size):
     if isinstance(size, int):
         size = (size,)
     if locs is None:
-        expected_size = (*size, *posterior.states.mean.shape)
+        expected_size = (
+            size + posterior.states.shape
+        )  # (*size, *posterior.states.shape)
     else:
-        expected_size = (*size, *posterior(locs).mean.shape)
+        expected_size = (
+            size + locs.shape + posterior.states[0].shape
+        )  # (*size, *posterior(locs).mean.shape)
 
     assert samples.shape == expected_size
 
 
-@pytest.mark.parametrize("locs", [None, np.arange(0.0, 0.5, 0.025)])
+@pytest.mark.parametrize("locs", [np.arange(0.0, 0.5, 0.025)])
 @pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
 def test_sampling_shapes_1d(locs, size):
     """Make the sampling tests for a 1d posterior."""
@@ -156,14 +160,13 @@ def test_sampling_shapes_1d(locs, size):
     size = utils.as_shape(size)
     if locs is None:
         base_measure_reals = np.random.randn(*(size + posterior.locations.shape + (1,)))
+        samples = posterior.transform_base_measure_realizations(
+            base_measure_reals, t=posterior.locations
+        )
     else:
-        base_measure_reals = np.random.randn(*(size + (len(locs) + 1,)) + (1,))
-    samples = posterior.transform_base_measure_realizations(base_measure_reals, t=locs)
-    if isinstance(size, int):
-        size = (size,)
-    if locs is None:
-        expected_size = (*size, *posterior.states.mean.shape)
-    else:
-        expected_size = (*size, *posterior(locs).mean.shape)
+        base_measure_reals = np.random.randn(*(size + (len(locs),)) + (1,))
+        samples = posterior.transform_base_measure_realizations(
+            base_measure_reals, t=locs
+        )
 
-    assert samples.shape == expected_size
+    assert samples.shape == base_measure_reals.shape

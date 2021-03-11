@@ -91,7 +91,6 @@ class KalmanODESolution(ODESolution):
 
     def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
         out_rv = self.kalman_posterior.interpolate(t)
-
         return _project_rv(self.proj_to_y, out_rv)
 
     def sample(
@@ -100,30 +99,39 @@ class KalmanODESolution(ODESolution):
         size: Optional[ShapeArgType] = (),
         random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
-        """Sample from the Gaussian filtering ODE solution."""
-        size = utils.as_shape(size)
-        t = np.asarray(t) if t is not None else None
 
-        # If self.locations are used, the final RV in the list is informed
-        # about all the data. If not, the final data point needs to be
-        # included in the joint sampling, hence the (len(t) + 1) below.
+        # Include the final point if a specific grid is demanded
+        # and the rightmost point is left of the rightmost data point.
+        # If this is not done, the samples are not from the full posterior.
         if t is None:
-            t_shape = (len(self.locations),)
+            sampling_locs = self.locations
+            remove_final_point = False
+        elif t[-1] >= self.locations[-1]:
+            sampling_locs = t
+            remove_final_point = False
         else:
-            t_shape = (len(t) + 1,)
+            sampling_locs = np.hstack((t, self.locations[-1]))
+            remove_final_point = True
 
-        # Note how here, the dimension of the underlying Kalman posterior
-        # is used in order to generate the base measure samples.
-        # This is because KalmanODESolution essentially delegates
-        # everything to KalmanPosterior
-        rv_list_shape = (len(self.kalman_posterior.states[0].mean),)
-
+        # Infer desired size of the base measure realizations and create them
+        size = utils.as_shape(size)
+        single_rv_shape = self.kalman_posterior.states[0].shape
         base_measure_realizations = stats.norm.rvs(
-            size=(size + t_shape + rv_list_shape), random_state=random_state
+            size=(size + sampling_locs.shape + single_rv_shape),
+            random_state=random_state,
         )
-        return self.transform_base_measure_realizations(
-            base_measure_realizations=base_measure_realizations, t=t
+
+        # Transform samples and return the corresponding values.
+        transformed_realizations = self.transform_base_measure_realizations(
+            base_measure_realizations=base_measure_realizations, t=sampling_locs
         )
+
+        if remove_final_point:
+            return self.kalman_posterior._remove_final_time_point(
+                transformed_realizations
+            )
+
+        return transformed_realizations
 
     def transform_base_measure_realizations(
         self,
@@ -131,16 +139,18 @@ class KalmanODESolution(ODESolution):
         t: Optional[DenseOutputLocationArgType] = None,
     ) -> np.ndarray:
 
+        t = np.asarray(t) if t is not None else None
+
         # Implement only single samples, rest via recursion
         # We cannot 'steal' the recursion from
         # self.kalman_posterior.transform_base_measure_realizations,
         # because we need to project the respective states out of each sample.
-
+        #
         # Early exit: recursively compute multiple samples
-        # if size is not equal to '()', which is the case if
+        # if the desired sample size is not equal to '()', which is the case if
         # the shape of base_measure_realization is not (len(locations), shape(RV))
-        t_shape = self.locations.shape if t is None else (len(t) + 1,)
-        size_zero_shape = () + t_shape + self.kalman_posterior.states[0].shape
+        # t_shape = self.locations.shape if t is None else (len(t) + 1,)
+        size_zero_shape = () + t.shape + self.kalman_posterior.states[0].shape
         if base_measure_realizations.shape != size_zero_shape:
             return np.array(
                 [
@@ -152,10 +162,13 @@ class KalmanODESolution(ODESolution):
                 ]
             )
 
+        # Now we have a single sample, which is when we can delegate to the Kalman posterior
+        # and the only thing that remains is to extract the correct zeroth coordinate (the state)
+        # out of the set of samples.
         samples = self.kalman_posterior.transform_base_measure_realizations(
             base_measure_realizations=base_measure_realizations, t=t
         )
-        return np.array([self.proj_to_y @ sample for sample in samples])
+        return samples @ self.proj_to_y.T
 
     @property
     def filtering_solution(self):

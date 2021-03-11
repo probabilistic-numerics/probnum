@@ -340,7 +340,7 @@ class Transition(abc.ABC):
         rv_list :
             List of random variables to be jointly sampled from.
         t :
-            Locations of the random variables in the list.
+            Locations of the random variables in the list. Assumed to be sorted.
         _previous_posterior :
             Previous posterior. Used for iterative posterior linearisation.
 
@@ -365,22 +365,20 @@ class Transition(abc.ABC):
                 else _previous_posterior(locations[idx - 1])
             )
 
-            # Actual smoothing step
+            # Condition on the 'future' realization and sample
+            dt = t[idx] - t[idx - 1]
             curr_rv, _ = self.backward_realization(
                 curr_sample,
                 unsmoothed_rv,
                 t=t[idx - 1],
-                dt=t[idx] - t[idx - 1],
+                dt=dt,
                 _linearise_at=_linearise_smooth_step_at,
             )
-
-            # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
             curr_sample = (
                 curr_rv.mean
                 + curr_rv.cov_cholesky
                 @ base_measure_realizations[idx - 1].reshape((-1,))
             )
-
             out_samples.append(curr_sample)
 
         out_samples.reverse()
