@@ -110,11 +110,13 @@ class KalmanODESolution(ODESolution):
         size: typing.Optional[probnum.type.ShapeArgType] = (),
         random_state=None,
     ) -> np.ndarray:
-        """Sample from the Gaussian filtering ODE solution by sampling from the Gauss-
-        Markov posterior."""
+        """Sample from the Gaussian filtering ODE solution."""
         size = probnum.utils.as_shape(size)
         t = np.asarray(t) if t is not None else None
 
+        # If self.locations are used, the final RV in the list is informed
+        # about all the data. If not, the final data point needs to be
+        # included in the joint sampling, hence the (len(t) + 1) below.
         if t is None:
             t_shape = (len(self.locations),)
         else:
@@ -139,7 +141,8 @@ class KalmanODESolution(ODESolution):
         size = probnum.utils.as_shape(size)
 
         # Implement only single samples, rest via recursion
-        # We cannot 'steal' the recursion from self.kalman_posterior.sample,
+        # We cannot 'steal' the recursion from
+        # self.kalman_posterior.transform_base_measure_realizations,
         # because we need to project the respective states out of each sample.
         if size != ():
             return np.array(
