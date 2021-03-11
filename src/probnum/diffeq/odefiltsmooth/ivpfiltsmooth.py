@@ -1,10 +1,10 @@
+"""Gaussian IVP filtering and smoothing."""
+
 import typing
 
 import numpy as np
 
-import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
-from probnum.random_variables import Normal
+from probnum import filtsmooth, random_variables, statespace
 
 from ..ode import IVP
 from ..odesolver import ODESolver
@@ -45,34 +45,34 @@ class GaussianIVPFilter(ODESolver):
     def __init__(
         self,
         ivp: IVP,
-        prior: pnss.Integrator,
-        measurement_model: pnss.DiscreteGaussian,
+        prior: statespace.Integrator,
+        measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
         init_implementation: typing.Callable[
             [
                 typing.Callable,
                 np.ndarray,
                 float,
-                pnss.Integrator,
-                Normal,
+                statespace.Integrator,
+                random_variables.Normal,
                 typing.Optional[typing.Callable],
             ],
-            Normal,
+            random_variables.Normal,
         ],
-        initrv: typing.Optional[Normal] = None,
+        initrv: typing.Optional[random_variables.Normal] = None,
     ):
         if initrv is None:
-            initrv = Normal(
+            initrv = random_variables.Normal(
                 np.zeros(prior.dimension),
                 np.eye(prior.dimension),
                 cov_cholesky=np.eye(prior.dimension),
             )
 
-        self.gfilt = pnfs.Kalman(
+        self.gfilt = filtsmooth.Kalman(
             dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
         )
 
-        if not isinstance(prior, pnss.Integrator):
+        if not isinstance(prior, statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
             )
@@ -106,7 +106,7 @@ class GaussianIVPFilter(ODESolver):
         # It is an option in this function here, because there is no obvious reason to restrict
         # the options in this lower level function.
         choose_meas_model = {
-            "EK0": pnfs.DiscreteEKFComponent.from_ode(
+            "EK0": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
                 prior=prior,
                 ek0_or_ek1=0,
@@ -114,7 +114,7 @@ class GaussianIVPFilter(ODESolver):
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             ),
-            "EK1": pnfs.DiscreteEKFComponent.from_ode(
+            "EK1": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
                 prior=prior,
                 ek0_or_ek1=1,
@@ -122,7 +122,7 @@ class GaussianIVPFilter(ODESolver):
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             ),
-            "UK": pnfs.DiscreteUKFComponent.from_ode(
+            "UK": filtsmooth.DiscreteUKFComponent.from_ode(
                 ivp,
                 prior,
                 evlvar=measurement_noise_covariance,
@@ -251,7 +251,7 @@ class GaussianIVPFilter(ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        kalman_posterior = pnfs.FilteringPosterior(
+        kalman_posterior = filtsmooth.FilteringPosterior(
             times, rvs, self.gfilt.dynamics_model
         )
 
@@ -268,7 +268,10 @@ class GaussianIVPFilter(ODESolver):
 
     def _rescale(self, rvs):
         """Rescales covariances according to estimate sigma squared value."""
-        rvs = [Normal(rv.mean, self.sigma_squared_mle * rv.cov) for rv in rvs]
+        rvs = [
+            random_variables.Normal(rv.mean, self.sigma_squared_mle * rv.cov)
+            for rv in rvs
+        ]
         return rvs
 
     def _odesmooth(self, ode_solution, **kwargs):
@@ -308,7 +311,7 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        local_pred_rv = Normal(
+        local_pred_rv = random_variables.Normal(
             pred_rv.mean,
             calibrated_proc_noise_cov,
             cov_cholesky=calibrated_proc_noise_cov_cholesky,

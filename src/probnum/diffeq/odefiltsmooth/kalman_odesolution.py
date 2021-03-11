@@ -1,16 +1,13 @@
 """ODE solutions returned by Gaussian ODE filtering."""
 
-import typing
+from typing import Optional, Union
 
 import numpy as np
 from scipy import stats
 
-import probnum._randomvariablelist as pnrv_list
-import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
-import probnum.type
 import probnum.utils
-from probnum.utils.linalg import cholesky_update
+from probnum import _randomvariablelist, filtsmooth, random_variables, utils
+from probnum.type import ShapeArgType
 
 from ..odesolution import ODESolution
 
@@ -74,7 +71,7 @@ class KalmanODESolution(ODESolution):
     [0.70]
     """
 
-    def __init__(self, kalman_posterior: pnfs.KalmanPosterior):
+    def __init__(self, kalman_posterior: filtsmooth.KalmanPosterior):
         self.kalman_posterior = kalman_posterior
 
         # Pre-compute projection matrices.
@@ -82,10 +79,10 @@ class KalmanODESolution(ODESolution):
         self.proj_to_y = self.kalman_posterior.transition.proj2coord(coord=0)
         self.proj_to_dy = self.kalman_posterior.transition.proj2coord(coord=1)
 
-        states = pnrv_list._RandomVariableList(
+        states = _randomvariablelist._RandomVariableList(
             [_project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.states]
         )
-        derivatives = pnrv_list._RandomVariableList(
+        derivatives = _randomvariablelist._RandomVariableList(
             [_project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.states]
         )
         super().__init__(
@@ -94,24 +91,26 @@ class KalmanODESolution(ODESolution):
 
     def __call__(
         self, t: float
-    ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
+    ) -> Union[
+        random_variables.RandomVariable, _randomvariablelist._RandomVariableList
+    ]:
         out_rv = self.kalman_posterior(t)
 
         if np.isscalar(t):
             return _project_rv(self.proj_to_y, out_rv)
 
-        return pnrv_list._RandomVariableList(
+        return _randomvariablelist._RandomVariableList(
             [_project_rv(self.proj_to_y, rv) for rv in out_rv]
         )
 
     def sample(
         self,
-        t: typing.Optional[float] = None,
-        size: typing.Optional[probnum.type.ShapeArgType] = (),
+        t: Optional[float] = None,
+        size: Optional[ShapeArgType] = (),
         random_state=None,
     ) -> np.ndarray:
         """Sample from the Gaussian filtering ODE solution."""
-        size = probnum.utils.as_shape(size)
+        size = utils.as_shape(size)
         t = np.asarray(t) if t is not None else None
 
         # If self.locations are used, the final RV in the list is informed
@@ -138,7 +137,7 @@ class KalmanODESolution(ODESolution):
     def transform_base_measure_realizations(
         self, base_measure_realizations, t=None, size=()
     ):
-        size = probnum.utils.as_shape(size)
+        size = utils.as_shape(size)
 
         # Implement only single samples, rest via recursion
         # We cannot 'steal' the recursion from
@@ -164,7 +163,7 @@ class KalmanODESolution(ODESolution):
     @property
     def filtering_solution(self):
 
-        if isinstance(self.kalman_posterior, pnfs.FilteringPosterior):
+        if isinstance(self.kalman_posterior, filtsmooth.FilteringPosterior):
             return self
 
         # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.
@@ -183,5 +182,5 @@ def _project_rv(projmat, rv):
 
     new_mean = projmat @ rv.mean
     new_cov = projmat @ rv.cov @ projmat.T
-    new_cov_cholesky = cholesky_update(projmat @ rv.cov_cholesky)
-    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
+    new_cov_cholesky = utils.linalg.cholesky_update(projmat @ rv.cov_cholesky)
+    return random_variables.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
