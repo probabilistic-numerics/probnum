@@ -13,6 +13,8 @@ from probnum.type import (
     ShapeArgType,
 )
 
+from .filtsmooth_types import DenseOutputLocationArgType
+
 
 class TimeSeriesPosterior(abc.ABC):
     """Posterior Distribution over States after time-series algorithms such as
@@ -44,7 +46,7 @@ class TimeSeriesPosterior(abc.ABC):
 
     @abc.abstractmethod
     def __call__(
-        self, t: Union[FloatArgType, np.ndarray]
+        self, t: DenseOutputLocationArgType
     ) -> Union[
         random_variables.RandomVariable, _randomvariablelist._RandomVariableList
     ]:
@@ -64,7 +66,7 @@ class TimeSeriesPosterior(abc.ABC):
     @abc.abstractmethod
     def sample(
         self,
-        t: Optional[Union[FloatArgType, np.ndarray]] = None,
+        t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
         random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
@@ -99,7 +101,7 @@ class TimeSeriesPosterior(abc.ABC):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[Union[FloatArgType, np.ndarray]] = None,
+        t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
     ):
         raise NotImplementedError(

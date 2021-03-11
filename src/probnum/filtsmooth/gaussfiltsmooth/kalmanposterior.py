@@ -4,12 +4,18 @@ Contains the discrete time and function outputs. Provides dense output
 by being callable. Can function values can also be accessed by indexing.
 """
 import abc
+from typing import Optional, Union
 
 import numpy as np
 from scipy import stats
 
-from probnum import _randomvariablelist, utils
+from probnum import _randomvariablelist, random_variables, statespace, utils
+from probnum.type import FloatArgType
 
+from ..filtsmooth_types import (
+    DenseOutputLocationArgType,
+    GaussMarkovPriorTransitionType,
+)
 from ..timeseriesposterior import TimeSeriesPosterior
 
 
@@ -26,12 +32,21 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         Dynamics model used as a prior for the filter.
     """
 
-    def __init__(self, locations, states, transition):
+    def __init__(
+        self,
+        locations: np.ndarray,
+        states: np.ndarray,
+        transition: GaussMarkovPriorTransitionType,
+    ) -> None:
 
         super().__init__(locations=locations, states=states)
         self.transition = transition
 
-    def __call__(self, t):
+    def __call__(
+        self, t: DenseOutputLocationArgType
+    ) -> Union[
+        random_variables.RandomVariable, _randomvariablelist._RandomVariableList
+    ]:
         """Evaluate the time-continuous posterior at location `t`
 
         Algorithm:

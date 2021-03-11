@@ -9,7 +9,6 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-import probnum.type as pntype
 from probnum import random_variables, statespace
 from probnum.type import FloatArgType
 
