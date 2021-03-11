@@ -10,7 +10,7 @@ from .odefiltsmooth import (
 )
 from .odesolution import ODESolution
 from .odesolver import ODESolver
-from .steprule import AdaptiveSteps, ConstantSteps, StepRule
+from .steprule import AdaptiveSteps, ConstantSteps, StepRule, propose_firststep
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -29,6 +29,7 @@ __all__ = [
     "AdaptiveSteps",
     "ODESolution",
     "KalmanODESolution",
+    "propose_firststep",
     "initialize_odefilter_with_rk",
     "initialize_odefilter_with_taylormode",
 ]

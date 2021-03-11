@@ -5,6 +5,7 @@ import numpy as np
 
 import probnum.diffeq as pnd  # ODE problem as test function
 import probnum.filtsmooth as pnfs
+import probnum.statespace as pnss
 from probnum.random_variables import Constant, Normal
 from tests.testing import NumpyAssertions
 
@@ -46,10 +47,10 @@ def car_tracking():
     mean = np.zeros(4)
     cov = 0.5 * var * np.eye(4)
 
-    dynmod = pnfs.statespace.DiscreteLTIGaussian(
+    dynmod = pnss.DiscreteLTIGaussian(
         state_trans_mat=dynamat, shift_vec=np.zeros(4), proc_noise_cov_mat=dynadiff
     )
-    measmod = pnfs.statespace.DiscreteLTIGaussian(
+    measmod = pnss.DiscreteLTIGaussian(
         state_trans_mat=measmat,
         shift_vec=np.zeros(2),
         proc_noise_cov_mat=measdiff,
@@ -68,7 +69,7 @@ class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
         self.dynmod, self.measmod, self.initrv, info = car_tracking()
         self.delta_t = info["dt"]
         self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate_samples(
+        self.states, self.obs = pnss.generate_samples(
             self.dynmod, self.measmod, self.initrv, self.tms
         )
 
@@ -85,12 +86,12 @@ def ornstein_uhlenbeck():
     drift = -lam * np.eye(1)
     force = np.zeros(1)
     disp = np.sqrt(q) * np.eye(1)
-    dynmod = pnfs.statespace.LTISDE(
+    dynmod = pnss.LTISDE(
         driftmat=drift,
         forcevec=force,
         dispmat=disp,
     )
-    measmod = pnfs.statespace.DiscreteLTIGaussian(
+    measmod = pnss.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=r * np.eye(1),
@@ -107,7 +108,7 @@ class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
         self.delta_t = info["dt"]
         self.tmax = info["tmax"]
         self.tms = np.arange(0, self.tmax, self.delta_t)
-        self.states, self.obs = pnfs.statespace.generate_samples(
+        self.states, self.obs = pnss.generate_samples(
             dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
         )
 
@@ -151,8 +152,8 @@ def pendulum():
     r = var * np.eye(1)
     initmean = np.ones(2)
     initcov = var * np.eye(2)
-    dynamod = pnfs.statespace.DiscreteGaussian(2, 2, f, lambda t: q, df)
-    measmod = pnfs.statespace.DiscreteGaussian(2, 1, h, lambda t: r, dh)
+    dynamod = pnss.DiscreteGaussian(2, 2, f, lambda t: q, df)
+    measmod = pnss.DiscreteGaussian(2, 1, h, lambda t: r, dh)
     initrv = Normal(initmean, initcov)
     return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
 
@@ -167,7 +168,7 @@ def logistic_ode():
     tmax = 2
 
     logistic = pnd.logistic((0, tmax), initrv=Constant(np.array([0.1])), params=(6, 1))
-    dynamod = pnfs.statespace.IBM(ordint=3, spatialdim=1)
+    dynamod = pnss.IBM(ordint=3, spatialdim=1)
     measmod = pnfs.DiscreteEKFComponent.from_ode(
         logistic, dynamod, np.zeros((1, 1)), ek0_or_ek1=1
     )
@@ -228,7 +229,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         delta_t = info["dt"]
         tmax = info["tmax"]
         tms = np.arange(0, tmax, delta_t)
-        states, obs = pnfs.statespace.generate_samples(dynamod, measmod, initrv, tms)
+        states, obs = pnss.generate_samples(dynamod, measmod, initrv, tms)
 
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(measmod)
@@ -306,8 +307,8 @@ def benes_daum():
     initmean = np.zeros(1)
     initcov = 3.0 * np.eye(1)
     initrv = Normal(initmean, initcov)
-    dynamod = pnfs.statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
-    measmod = pnfs.statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
+    dynamod = pnss.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
+    measmod = pnss.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
     return dynamod, measmod, initrv, {}
 
 
