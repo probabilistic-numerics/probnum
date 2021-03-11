@@ -5,16 +5,13 @@ This object is returned by ODESolver.solve().
 Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
 """
 
-from typing import List, Optional, Union
+from typing import Optional
 
 import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, random_variables
-from probnum.filtsmooth.timeseriesposterior import (
-    DenseOutputLocationArgType,
-    DenseOutputValueType,
-)
-from probnum.type import RandomStateArgType, ShapeArgType
+from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -44,20 +41,20 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             else None
         )
 
-    # Not abstract, because providing interpolation could sometimes be tedious.
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
-        """Evaluate the time-continuous solution at time t.
+    def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
+        """Evaluate the posterior at a non-grid point.
 
         Parameters
         ----------
-        t
-            Location / time at which to evaluate the continuous ODE solution.
+        t :
+            Location to evaluate at.
 
         Returns
         -------
-        Probabilistic estimate of the continuous-time solution at time ``t``.
+        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+            Dense evaluation.
         """
-        raise NotImplementedError("Dense output is not implemented.")
+        raise NotImplementedError
 
     def sample(
         self,

@@ -54,51 +54,8 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         super().__init__(locations=locations, states=states)
         self.transition = transition
 
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
-        """Evaluate the time-continuous posterior at location `t`
-
-        Algorithm:
-        1. Find closest t_prev and t_next, with t_prev < t < t_next
-        2. Predict from t_prev to t
-        3. (if `self._with_smoothing=True`) Predict from t to t_next
-        4. (if `self._with_smoothing=True`) Smooth from t_next to t
-        5. Return random variable for time t
-
-        Parameters
-        ----------
-        t :
-            Location, or time, at which to evaluate the posterior.
-
-        Returns
-        -------
-        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
-            Estimate of the states at time ``t``.
-        """
-
-        # Recursive evaluation (t can now be any array, not just length 1)
-        if not np.isscalar(t):
-            return _randomvariablelist._RandomVariableList(
-                [self.__call__(t_pt) for t_pt in t]
-            )
-
-        # t is left of our grid -- raise error
-        # (this functionality is not supported yet)
-        if t < self.locations[0]:
-            raise ValueError(
-                "Invalid location; Can not compute posterior for a location earlier "
-                "than the initial location"
-            )
-
-        # Early exit if t is in our grid -- no need to interpolate
-        if t in self.locations:
-            idx = self._find_index(t)
-            discrete_estimate = self.states[idx]
-            return discrete_estimate
-
-        return self.interpolate(t)
-
     @abc.abstractmethod
-    def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
+    def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 
         Parameters
@@ -173,12 +130,6 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
             `size` samples from the Kalman posterior at prescribed locations.
         """
         raise NotImplementedError
-
-    def _find_previous_index(self, loc):
-        return (self.locations < loc).sum() - 1
-
-    def _find_index(self, loc):
-        return self.locations.tolist().index(loc)
 
 
 class SmoothingPosterior(KalmanPosterior):

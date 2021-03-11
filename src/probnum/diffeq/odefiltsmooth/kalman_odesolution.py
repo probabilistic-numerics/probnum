@@ -1,17 +1,13 @@
 """ODE solutions returned by Gaussian ODE filtering."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 from scipy import stats
 
-import probnum.utils
 from probnum import _randomvariablelist, filtsmooth, random_variables, utils
-from probnum.filtsmooth.timeseriesposterior import (
-    DenseOutputLocationArgType,
-    DenseOutputValueType,
-)
-from probnum.type import RandomStateArgType, ShapeArgType
+from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 from ..odesolution import ODESolution
 
@@ -93,15 +89,10 @@ class KalmanODESolution(ODESolution):
             locations=kalman_posterior.locations, states=states, derivatives=derivatives
         )
 
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
-        out_rv = self.kalman_posterior(t)
+    def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
+        out_rv = self.kalman_posterior.interpolate(t)
 
-        if np.isscalar(t):
-            return _project_rv(self.proj_to_y, out_rv)
-
-        return _randomvariablelist._RandomVariableList(
-            [_project_rv(self.proj_to_y, rv) for rv in out_rv]
-        )
+        return _project_rv(self.proj_to_y, out_rv)
 
     def sample(
         self,
