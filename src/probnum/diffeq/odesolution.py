@@ -8,6 +8,10 @@ Provides dense output (by being callable), is sliceable, and collects the time-g
 from typing import List, Union
 
 from probnum import _randomvariablelist, filtsmooth, random_variables
+from probnum.filtsmooth.timeseriesposterior import (
+    DenseOutputLocationArgType,
+    DenseOutputValueType,
+)
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -24,7 +28,12 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
         Some ODE solvers provide these estimates, others do not.
     """
 
-    def __init__(self, locations, states, derivatives=None):
+    def __init__(
+        self,
+        locations: np.ndarray,
+        states: _randomvariablelist._RandomVariableList,
+        derivatives: Optional[_randomvariablelist._RandomVariableList] = None,
+    ):
         super().__init__(locations=locations, states=states)
         self.derivatives = (
             _randomvariablelist._RandomVariableList(derivatives)
@@ -33,11 +42,7 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
         )
 
     # Not abstract, because providing interpolation could sometimes be tedious.
-    def __call__(
-        self, t: Union[float, List[float]]
-    ) -> Union[
-        random_variables.RandomVariable, _randomvariablelist._RandomVariableList
-    ]:
+    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
         """Evaluate the time-continuous solution at time t.
 
         Parameters
@@ -51,7 +56,12 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
         """
         raise NotImplementedError("Dense output is not implemented.")
 
-    def sample(self, t=None, size=(), random_state=None):
+    def sample(
+        self,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+        random_state: Optional[RandomStateArgType] = None,
+    ) -> np.ndarray:
         """Sample from the ODE solution.
 
         Parameters
@@ -68,8 +78,11 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
         raise NotImplementedError("Sampling is not implemented.")
 
     def transform_base_measure_realizations(
-        self, base_measure_realizations, t=None, size=()
-    ):
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+    ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."
         )

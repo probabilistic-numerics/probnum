@@ -10,20 +10,15 @@ import numpy as np
 from scipy import stats
 
 from probnum import _randomvariablelist, random_variables, statespace, utils
-from probnum.filtsmooth.gaussfiltsmooth.extendedkalman import (
-    ContinuousEKFComponent,
-    DiscreteEKFComponent,
-)
-from probnum.filtsmooth.gaussfiltsmooth.unscentedkalman import (
-    ContinuousUKFComponent,
-    DiscreteUKFComponent,
-)
-from probnum.filtsmooth.timeseriesposterior import (
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+
+from ..timeseriesposterior import (
     DenseOutputLocationArgType,
     DenseOutputValueType,
     TimeSeriesPosterior,
 )
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
+from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
 
 GaussMarkovPriorTransitionArgType = Union[
     statespace.DiscreteLinearGaussian,

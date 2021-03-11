@@ -105,9 +105,9 @@ class KalmanODESolution(ODESolution):
 
     def sample(
         self,
-        t: Optional[float] = None,
+        t: Optional[DenseOutputLocationArgType] = None,
         size: Optional[ShapeArgType] = (),
-        random_state=None,
+        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         """Sample from the Gaussian filtering ODE solution."""
         size = utils.as_shape(size)
