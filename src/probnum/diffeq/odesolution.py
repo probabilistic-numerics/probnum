@@ -12,7 +12,18 @@ from probnum import filtsmooth
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
-    """ODE Solution interface."""
+    """ODE solution.
+
+    Parameters
+    ----------
+    locations
+        Locations of the time-grid that was used by the ODE solver.
+    states
+        Output of the ODE solver at the locations.
+    derivatives
+        Derivatives of the states at the locations. Optional. Default is None.
+        Some ODE solvers provide these estimates, others do not.
+    """
 
     def __init__(self, locations, states, derivatives=None):
         super().__init__(locations=locations, states=states)
@@ -58,4 +69,6 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def transform_base_measure_realizations(
         self, base_measure_realizations, t=None, size=()
     ):
-        raise NotImplementedError("Sampling not implemented.")
+        raise NotImplementedError(
+            "Transforming base measure realizations is not implemented."
+        )

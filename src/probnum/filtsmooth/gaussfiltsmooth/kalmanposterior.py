@@ -82,10 +82,14 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
         size = utils.as_shape(size)
 
+        # If self.locations are used, the final RV in the list is informed
+        # about all the data. If not, the final data point needs to be
+        # included in the joint sampling, hence the (len(t) + 1) below.
         if t is None:
             t_shape = (len(self.locations),)
         else:
             t_shape = (len(t) + 1,)
+
         rv_list_shape = (len(self.filtering_posterior.states[0].mean),)
 
         base_measure_realizations = stats.norm.rvs(
