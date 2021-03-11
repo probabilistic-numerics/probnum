@@ -7,6 +7,10 @@ from scipy import stats
 
 import probnum.utils
 from probnum import _randomvariablelist, filtsmooth, random_variables, utils
+from probnum.filtsmooth.timeseriesposterior import (
+    DenseOutputLocationArgType,
+    DenseOutputValueType,
+)
 from probnum.type import ShapeArgType
 
 from ..odesolution import ODESolution
@@ -89,11 +93,7 @@ class KalmanODESolution(ODESolution):
             locations=kalman_posterior.locations, states=states, derivatives=derivatives
         )
 
-    def __call__(
-        self, t: float
-    ) -> Union[
-        random_variables.RandomVariable, _randomvariablelist._RandomVariableList
-    ]:
+    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
         out_rv = self.kalman_posterior(t)
 
         if np.isscalar(t):
@@ -135,8 +135,11 @@ class KalmanODESolution(ODESolution):
         )
 
     def transform_base_measure_realizations(
-        self, base_measure_realizations, t=None, size=()
-    ):
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+    ) -> np.ndarray:
         size = utils.as_shape(size)
 
         # Implement only single samples, rest via recursion
