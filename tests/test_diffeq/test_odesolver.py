@@ -6,13 +6,6 @@ from probnum.diffeq import ConstantSteps, ODESolution, ODESolver, logistic
 from probnum.random_variables import Constant
 
 
-class MockODESolution(ODESolution):
-    @property
-    def y(self):
-        # pylint: disable=invalid-overridden-method
-        return self.state_rvs
-
-
 class MockODESolver(ODESolver):
     """Euler method as an ODE solver."""
 
@@ -29,7 +22,7 @@ class MockODESolver(ODESolver):
         )  # return nan as error estimate to ensure that it is not used
 
     def rvlist_to_odesol(self, times, rvs):
-        return MockODESolution(locations=times, states=rvs)
+        return ODESolution(locations=times, states=rvs)
 
 
 class ODESolverTestCase(unittest.TestCase):
