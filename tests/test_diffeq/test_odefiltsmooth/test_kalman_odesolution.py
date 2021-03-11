@@ -148,10 +148,13 @@ class TestODESolutionSampling(unittest.TestCase):
         self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, adaptive=False)
 
     def test_output_shape(self):
+
+        # (all grid points, some grid points, in-domain-interpolation, partial-extrapolation)
         loc_inputs = [
             None,
             self.solution.locations[[2, 3]],
             np.arange(0.0, 0.5, 0.05),
+            np.arange(0.0, 500.0, 50.0),
         ]
         single_sample_shapes = [
             (len(self.solution), self.ivp.dimension),

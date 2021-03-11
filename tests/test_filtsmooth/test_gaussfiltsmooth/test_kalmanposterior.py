@@ -121,7 +121,12 @@ def seed():
     return 42
 
 
-@pytest.mark.parametrize("locs", [None, np.arange(0.0, 0.5, 0.025)])
+# Sampling shape checks include extrapolation phases
+IN_DOMAIN_DENSE_LOCS = np.arange(0.0, 0.5, 0.025)
+OUT_OF_DOMAIN_DENSE_LOCS = np.arange(0.0, 500.0, 25.0)
+
+
+@pytest.mark.parametrize("locs", [None, IN_DOMAIN_DENSE_LOCS, OUT_OF_DOMAIN_DENSE_LOCS])
 @pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
 def test_sampling_shapes(posterior, locs, size):
     """Shape of the returned samples matches expectation."""
