@@ -11,7 +11,7 @@ from probnum.filtsmooth.timeseriesposterior import (
     DenseOutputLocationArgType,
     DenseOutputValueType,
 )
-from probnum.type import ShapeArgType
+from probnum.type import RandomStateArgType, ShapeArgType
 
 from ..odesolution import ODESolution
 

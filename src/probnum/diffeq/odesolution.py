@@ -5,13 +5,16 @@ This object is returned by ODESolver.solve().
 Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
 """
 
-from typing import List, Union
+from typing import List, Optional, Union
+
+import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, random_variables
 from probnum.filtsmooth.timeseriesposterior import (
     DenseOutputLocationArgType,
     DenseOutputValueType,
 )
+from probnum.type import RandomStateArgType, ShapeArgType
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
