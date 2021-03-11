@@ -327,7 +327,7 @@ class Transition(abc.ABC):
         base_measure_realizations: np.ndarray,
         t: FloatArgType,
         rv_list: _randomvariablelist._RandomVariableList,
-        _previous_posterior: Optional["TimeSeriesPosterior"] = None,
+        _previous_posterior=None,
     ) -> np.ndarray:
         """Transform samples from a base measure into joint backward samples from a list
         of random variables.
