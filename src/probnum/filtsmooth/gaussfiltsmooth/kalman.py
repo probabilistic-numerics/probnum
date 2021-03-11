@@ -7,6 +7,16 @@ from ..bayesfiltsmooth import BayesFiltSmooth
 from .kalmanposterior import FilteringPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
 
+GaussMarkovPriorTransitionArgType = Union[
+    statespace.DiscreteLinearGaussian,
+    DiscreteEKFComponent,
+    DiscreteUKFComponent,
+    statespace.LinearSDE,
+    ContinuousEKFComponent,
+    ContinuousUKFComponent,
+]
+"""Acceptable transitions that can define a(n approximate) Gauss-Markov prior."""
+
 
 class Kalman(BayesFiltSmooth):
     """Gaussian filtering and smoothing, i.e. Kalman-like filters and smoothers.

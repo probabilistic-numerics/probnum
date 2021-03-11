@@ -16,10 +16,6 @@ internal representation of those same objects.
 import numbers
 from typing import Iterable, Tuple, Union
 
-import numpy as np
-
-from probnum import filtsmooth, statespace
-
 ########################################################################################
 # API Types
 ########################################################################################

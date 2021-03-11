@@ -10,13 +10,20 @@ import numpy as np
 from scipy import stats
 
 from probnum import _randomvariablelist, random_variables, statespace, utils
-from probnum.type import FloatArgType
-
-from ..filtsmooth_types import (
-    DenseOutputLocationArgType,
-    GaussMarkovPriorTransitionType,
+from probnum.filtsmooth.gaussfiltsmooth.extendedkalman import (
+    ContinuousEKFComponent,
+    DiscreteEKFComponent,
 )
-from ..timeseriesposterior import TimeSeriesPosterior
+from probnum.filtsmooth.gaussfiltsmooth.kalman import GaussMarkovPriorTransitionArgType
+from probnum.filtsmooth.gaussfiltsmooth.unscentedkalman import (
+    ContinuousUKFComponent,
+    DiscreteUKFComponent,
+)
+from probnum.filtsmooth.timeseriesposterior import (
+    DenseOutputLocationArgType,
+    TimeSeriesPosterior,
+)
+from probnum.type import FloatArgType
 
 
 class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
@@ -24,11 +31,11 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
     Parameters
     ----------
-    locs : `array_like`
+    locs :
         Locations / Times of the discrete-time estimates.
-    state_rvs : :obj:`list` of :obj:`RandomVariable`
+    state_rvs :
         Estimated states (in the state-space model view) of the discrete-time estimates.
-    transition : :obj:`Transition`
+    transition :
         Dynamics model used as a prior for the filter.
     """
 
@@ -58,7 +65,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
         Parameters
         ----------
-        t : float
+        t :
             Location, or time, at which to evaluate the posterior.
 
         Returns

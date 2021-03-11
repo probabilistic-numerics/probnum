@@ -13,7 +13,15 @@ from probnum.type import (
     ShapeArgType,
 )
 
-from .filtsmooth_types import DenseOutputLocationArgType
+DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
+"""TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
+or an array of locations."""
+
+DenseOutputValueType = Union[
+    random_variables.RandomVariable, _randomvariablelist._RandomVariableList
+]
+"""Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a single location,
+and a _RandomVariableList if evaluated at an array of locations."""
 
 
 class TimeSeriesPosterior(abc.ABC):
