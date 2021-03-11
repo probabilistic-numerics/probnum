@@ -4,7 +4,7 @@ might be more ode-based problems, such as bvp."""
 
 import numpy as np
 
-from probnum.diffeq.ode.ode import ODE
+from .ode import ODE
 
 
 class IVP(ODE):

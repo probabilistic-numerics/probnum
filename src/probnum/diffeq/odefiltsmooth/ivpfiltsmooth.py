@@ -1,6 +1,6 @@
 """Gaussian IVP filtering and smoothing."""
 
-import typing
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -48,18 +48,18 @@ class GaussianIVPFilter(ODESolver):
         prior: statespace.Integrator,
         measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
-        init_implementation: typing.Callable[
+        init_implementation: Callable[
             [
-                typing.Callable,
+                Callable,
                 np.ndarray,
                 float,
                 statespace.Integrator,
                 random_variables.Normal,
-                typing.Optional[typing.Callable],
+                Optional[Callable],
             ],
             random_variables.Normal,
         ],
-        initrv: typing.Optional[random_variables.Normal] = None,
+        initrv: Optional[random_variables.Normal] = None,
     ):
         if initrv is None:
             initrv = random_variables.Normal(
