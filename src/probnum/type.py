@@ -16,6 +16,8 @@ internal representation of those same objects.
 import numbers
 from typing import Iterable, Tuple, Union
 
+import numpy as np
+
 ########################################################################################
 # API Types
 ########################################################################################

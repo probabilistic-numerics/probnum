@@ -1,21 +1,16 @@
 """Gaussian filtering and smoothing."""
 
 
+from typing import Optional
+
 import numpy as np
 
+from probnum.filtsmooth.gaussfiltsmooth import stoppingcriterion
+
 from ..bayesfiltsmooth import BayesFiltSmooth
+from ..timeseriesposterior import TimeSeriesPosterior
 from .kalmanposterior import FilteringPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
-
-GaussMarkovPriorTransitionArgType = Union[
-    statespace.DiscreteLinearGaussian,
-    DiscreteEKFComponent,
-    DiscreteUKFComponent,
-    statespace.LinearSDE,
-    ContinuousEKFComponent,
-    ContinuousUKFComponent,
-]
-"""Acceptable transitions that can define a(n approximate) Gauss-Markov prior."""
 
 
 class Kalman(BayesFiltSmooth):
@@ -36,7 +31,12 @@ class Kalman(BayesFiltSmooth):
         Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
     """
 
-    def iterated_filtsmooth(self, dataset, times, stopcrit=None):
+    def iterated_filtsmooth(
+        self,
+        dataset: np.ndarray,
+        times: np.ndarray,
+        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+    ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
         If the extended Kalman filter is used, this yields the IEKS. In
@@ -67,7 +67,12 @@ class Kalman(BayesFiltSmooth):
             old_mean = old_posterior.states.mean
         return new_posterior
 
-    def filtsmooth(self, dataset, times, _previous_posterior=None):
+    def filtsmooth(
+        self,
+        dataset: np.ndarray,
+        times: np.ndarray,
+        _previous_posterior: Optional[TimeSeriesPosterior] = None,
+    ):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
@@ -96,7 +101,12 @@ class Kalman(BayesFiltSmooth):
         smooth_posterior = self.smooth(filter_posterior)
         return smooth_posterior
 
-    def filter(self, dataset, times, _previous_posterior=None):
+    def filter(
+        self,
+        dataset: np.ndarray,
+        times: np.ndarray,
+        _previous_posterior: Optional[TimeSeriesPosterior] = None,
+    ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters

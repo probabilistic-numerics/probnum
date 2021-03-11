@@ -14,16 +14,26 @@ from probnum.filtsmooth.gaussfiltsmooth.extendedkalman import (
     ContinuousEKFComponent,
     DiscreteEKFComponent,
 )
-from probnum.filtsmooth.gaussfiltsmooth.kalman import GaussMarkovPriorTransitionArgType
 from probnum.filtsmooth.gaussfiltsmooth.unscentedkalman import (
     ContinuousUKFComponent,
     DiscreteUKFComponent,
 )
 from probnum.filtsmooth.timeseriesposterior import (
     DenseOutputLocationArgType,
+    DenseOutputValueType,
     TimeSeriesPosterior,
 )
-from probnum.type import FloatArgType
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+
+GaussMarkovPriorTransitionArgType = Union[
+    statespace.DiscreteLinearGaussian,
+    DiscreteEKFComponent,
+    DiscreteUKFComponent,
+    statespace.LinearSDE,
+    ContinuousEKFComponent,
+    ContinuousUKFComponent,
+]
+"""Any linear and linearised transition can define an (approximate) Gauss-Markov prior."""
 
 
 class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
@@ -42,18 +52,14 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
     def __init__(
         self,
         locations: np.ndarray,
-        states: np.ndarray,
-        transition: GaussMarkovPriorTransitionType,
+        states: _randomvariablelist._RandomVariableList,
+        transition: GaussMarkovPriorTransitionArgType,
     ) -> None:
 
         super().__init__(locations=locations, states=states)
         self.transition = transition
 
-    def __call__(
-        self, t: DenseOutputLocationArgType
-    ) -> Union[
-        random_variables.RandomVariable, _randomvariablelist._RandomVariableList
-    ]:
+    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
         """Evaluate the time-continuous posterior at location `t`
 
         Algorithm:
@@ -97,11 +103,16 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         return self.interpolate(t)
 
     @abc.abstractmethod
-    def interpolate(self, t):
+    def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
         """Evaluate the posterior at a measurement-free point."""
         raise NotImplementedError
 
-    def sample(self, t=None, size=(), random_state=None):
+    def sample(
+        self,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+        random_state: Optional[RandomStateArgType] = None,
+    ) -> np.ndarray:
 
         size = utils.as_shape(size)
 
@@ -124,8 +135,11 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
     @abc.abstractmethod
     def transform_base_measure_realizations(
-        self, base_measure_realizations, t=None, size=()
-    ):
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+    ) -> np.ndarray:
         """Transform samples from a base measure to samples from the KalmanPosterior.
 
         Here, the base measure is a multivariate standard Normal distribution.
@@ -174,11 +188,17 @@ class SmoothingPosterior(KalmanPosterior):
         Dynamics model used as a prior for the filter.
     """
 
-    def __init__(self, locations, states, transition, filtering_posterior):
+    def __init__(
+        self,
+        locations: np.ndarray,
+        states: _randomvariablelist._RandomVariableList,
+        transition: GaussMarkovPriorTransitionArgType,
+        filtering_posterior: TimeSeriesPosterior,
+    ):
         self.filtering_posterior = filtering_posterior
         super().__init__(locations, states, transition)
 
-    def interpolate(self, t):
+    def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
 
         pred_rv = self.filtering_posterior.interpolate(t)
         next_idx = self._find_previous_index(t) + 1
@@ -196,8 +216,11 @@ class SmoothingPosterior(KalmanPosterior):
         return curr_rv
 
     def transform_base_measure_realizations(
-        self, base_measure_realizations, t=None, size=()
-    ):
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+    ) -> np.ndarray:
         size = utils.as_shape(size)
         t = np.asarray(t) if t is not None else None
 
@@ -248,19 +271,9 @@ class SmoothingPosterior(KalmanPosterior):
 
 
 class FilteringPosterior(KalmanPosterior):
-    """Filtering posterior.
+    """Filtering posterior."""
 
-    Parameters
-    ----------
-    locations : `array_like`
-        Locations / Times of the discrete-time estimates.
-    states : :obj:`list` of :obj:`RandomVariable`
-        Estimated states (in the state-space model view) of the discrete-time estimates.
-    transition : :obj:`Transition`
-        Dynamics model used as a prior for the filter.
-    """
-
-    def interpolate(self, t):
+    def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
         """Predict to the present point."""
         previous_idx = self._find_previous_index(t)
         previous_t = self.locations[previous_idx]
@@ -269,10 +282,20 @@ class FilteringPosterior(KalmanPosterior):
         rv, _ = self.transition.forward_rv(previous_rv, t=previous_t, dt=t - previous_t)
         return rv
 
-    def sample(self, t=None, size=()):
+    def sample(
+        self,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+        random_state: Optional[RandomStateArgType] = None,
+    ) -> np.ndarray:
         raise NotImplementedError
 
     def transform_base_measure_realizations(
-        self, base_measure_realizations, t=None, size=()
-    ):
-        raise NotImplementedError("Sampling not implemented.")
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+    ) -> np.ndarray:
+        raise NotImplementedError(
+            "Transforming base measure realizations is not implemented."
+        )
