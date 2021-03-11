@@ -87,13 +87,12 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         else:
             t_shape = (len(t) + 1,)
 
-        rv_list_shape = (len(self.filtering_posterior.states[0].mean),)
-
+        rv_shape = self.states[0].shape
         base_measure_realizations = stats.norm.rvs(
-            size=(size + t_shape + rv_list_shape), random_state=random_state
+            size=(size + t_shape + rv_shape), random_state=random_state
         )
         return self.transform_base_measure_realizations(
-            base_measure_realizations=base_measure_realizations, t=t, size=size
+            base_measure_realizations=base_measure_realizations, t=t
         )
 
     @abc.abstractmethod
@@ -101,7 +100,6 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         self,
         base_measure_realizations: np.ndarray,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
     ) -> np.ndarray:
         """Transform samples from a base measure to samples from the KalmanPosterior.
 
@@ -118,8 +116,6 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
             a sample at the final time point.
         t :
             Times. Optional. If None, samples are drawn at `self.locations`.
-        size :
-            Number of samples to draw. Optional. Default is `size=()`.
 
         Returns
         -------
@@ -178,20 +174,20 @@ class SmoothingPosterior(KalmanPosterior):
         self,
         base_measure_realizations: np.ndarray,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
     ) -> np.ndarray:
-        size = utils.as_shape(size)
         t = np.asarray(t) if t is not None else None
 
         # Early exit: recursively compute multiple samples
-        # if size is not equal to '()'
-        if size != ():
+        # if size is not equal to '()', which is the case if
+        # the shape of base_measure_realization is not (len(locations), shape(RV))
+        t_shape = self.locations.shape if t is None else (len(t) + 1,)
+        size_zero_shape = () + t_shape + self.states[0].shape
+        if base_measure_realizations.shape != size_zero_shape:
             return np.array(
                 [
                     self.transform_base_measure_realizations(
                         base_measure_realizations=base_real,
                         t=t,
-                        size=size[1:],
                     )
                     for base_real in base_measure_realizations
                 ]
@@ -264,7 +260,6 @@ class FilteringPosterior(KalmanPosterior):
         self,
         base_measure_realizations: np.ndarray,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
     ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."

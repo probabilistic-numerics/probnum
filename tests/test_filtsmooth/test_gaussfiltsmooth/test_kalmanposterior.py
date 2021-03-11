@@ -155,12 +155,10 @@ def test_sampling_shapes_1d(locs, size):
 
     size = utils.as_shape(size)
     if locs is None:
-        base_measure_reals = np.random.randn(*(size + posterior.locations.shape))
+        base_measure_reals = np.random.randn(*(size + posterior.locations.shape + (1,)))
     else:
-        base_measure_reals = np.random.randn(*(size + locs.shape))
-    samples = posterior.transform_base_measure_realizations(
-        base_measure_reals, t=locs, size=size
-    )
+        base_measure_reals = np.random.randn(*(size + (len(locs) + 1,)) + (1,))
+    samples = posterior.transform_base_measure_realizations(base_measure_reals, t=locs)
     if isinstance(size, int):
         size = (size,)
     if locs is None:

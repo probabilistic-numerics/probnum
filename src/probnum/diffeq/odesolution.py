@@ -81,7 +81,6 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
         self,
         base_measure_realizations: np.ndarray,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
     ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."

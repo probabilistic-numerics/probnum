@@ -153,7 +153,6 @@ class TimeSeriesPosterior(abc.ABC):
         self,
         base_measure_realizations: np.ndarray,
         t: Optional[DenseOutputLocationArgType] = None,
-        size: Optional[ShapeArgType] = (),
     ) -> np.ndarray:
         """Transform a set of realizations from a base measure into realizations from
         the posterior.
@@ -164,8 +163,6 @@ class TimeSeriesPosterior(abc.ABC):
             Base measure realizations.
         t :
             Locations on which the transformed realizations shall represent realizations from the posterior.
-        size :
-            Number of realizations.
 
         Returns
         -------
