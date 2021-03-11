@@ -8,8 +8,7 @@ import abc
 import numpy as np
 from scipy import stats
 
-from probnum import utils
-from probnum._randomvariablelist import _RandomVariableList
+from probnum import _randomvariablelist, utils
 
 from ..timeseriesposterior import TimeSeriesPosterior
 
@@ -55,7 +54,9 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
         # Recursive evaluation (t can now be any array, not just length 1)
         if not np.isscalar(t):
-            return _RandomVariableList([self.__call__(t_pt) for t_pt in t])
+            return _randomvariablelist._RandomVariableList(
+                [self.__call__(t_pt) for t_pt in t]
+            )
 
         # t is left of our grid -- raise error
         # (this functionality is not supported yet)

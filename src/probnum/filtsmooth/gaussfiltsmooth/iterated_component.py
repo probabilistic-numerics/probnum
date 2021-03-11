@@ -1,11 +1,11 @@
 import numpy as np
 
-import probnum.statespace as pnss
+from probnum import statespace
 
 from .stoppingcriterion import StoppingCriterion
 
 
-class IteratedDiscreteComponent(pnss.Transition):
+class IteratedDiscreteComponent(statespace.Transition):
     """Iterated updates.
 
     Examples

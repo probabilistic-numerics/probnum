@@ -3,8 +3,7 @@
 
 import numpy as np
 
-from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
-
+from ..bayesfiltsmooth import BayesFiltSmooth
 from .kalmanposterior import FilteringPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
 

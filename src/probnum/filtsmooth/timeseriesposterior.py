@@ -4,7 +4,7 @@ import abc
 
 import numpy as np
 
-from probnum._randomvariablelist import _RandomVariableList
+from probnum import _randomvariablelist
 
 
 class TimeSeriesPosterior(abc.ABC):
@@ -21,7 +21,7 @@ class TimeSeriesPosterior(abc.ABC):
 
     def __init__(self, locations, states):
         self.locations = np.asarray(locations)
-        self.states = _RandomVariableList(states)
+        self.states = _randomvariablelist._RandomVariableList(states)
 
     def __len__(self):
         """Length of the discrete-time solution.

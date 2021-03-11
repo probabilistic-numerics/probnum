@@ -1,3 +1,5 @@
+"""Gaussian filtering and smoothing."""
+
 from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent, EKFComponent
 from .iterated_component import IteratedDiscreteComponent
 from .kalman import Kalman

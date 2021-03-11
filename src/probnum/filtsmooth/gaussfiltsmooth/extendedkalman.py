@@ -2,12 +2,11 @@
 through Taylor-method approximations, e.g. linearization."""
 
 import abc
-import typing
+from typing import Dict, Tuple
 
 import numpy as np
 
-import probnum.random_variables as pnrv
-import probnum.statespace as pnss
+from probnum import random_variables, statespace
 
 
 class EKFComponent(abc.ABC):
@@ -31,7 +30,7 @@ class EKFComponent(abc.ABC):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> typing.Tuple[pnrv.Normal, typing.Dict]:
+    ) -> Tuple[random_variables.Normal, Dict]:
 
         return self._forward_realization_via_forward_rv(
             realization,
@@ -50,7 +49,7 @@ class EKFComponent(abc.ABC):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> typing.Tuple[pnrv.Normal, typing.Dict]:
+    ) -> Tuple[random_variables.Normal, Dict]:
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
@@ -108,14 +107,16 @@ class EKFComponent(abc.ABC):
         )
 
     @abc.abstractmethod
-    def linearize(self, at_this_rv: pnrv.RandomVariable) -> pnss.Transition:
+    def linearize(
+        self, at_this_rv: random_variables.RandomVariable
+    ) -> statespace.Transition:
         """Linearize the transition and make it tractable."""
         raise NotImplementedError
 
 
 # Order of inheritance matters, because forward and backward
 # are defined in EKFComponent, and must not be inherited from SDE.
-class ContinuousEKFComponent(EKFComponent, pnss.SDE):
+class ContinuousEKFComponent(EKFComponent, statespace.SDE):
     """Continuous-time extended Kalman filter transition.
 
     Parameters
@@ -139,7 +140,7 @@ class ContinuousEKFComponent(EKFComponent, pnss.SDE):
         mde_solver="LSODA",
     ) -> None:
 
-        pnss.SDE.__init__(
+        statespace.SDE.__init__(
             self,
             non_linear_model.driftfun,
             non_linear_model.dispmatfun,
@@ -152,7 +153,7 @@ class ContinuousEKFComponent(EKFComponent, pnss.SDE):
         self.mde_rtol = mde_rtol
         self.mde_solver = mde_solver
 
-    def linearize(self, at_this_rv: pnrv.Normal):
+    def linearize(self, at_this_rv: random_variables.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
 
         g = self.non_linear_model.driftfun
@@ -166,7 +167,7 @@ class ContinuousEKFComponent(EKFComponent, pnss.SDE):
         def driftmatfun(t):
             return dg(t, x0)
 
-        return pnss.LinearSDE(
+        return statespace.LinearSDE(
             dimension=self.non_linear_model.dimension,
             driftmatfun=driftmatfun,
             forcevecfun=forcevecfun,
@@ -177,7 +178,7 @@ class ContinuousEKFComponent(EKFComponent, pnss.SDE):
         )
 
 
-class DiscreteEKFComponent(EKFComponent, pnss.DiscreteGaussian):
+class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
     """Discrete extended Kalman filter transition."""
 
     def __init__(
@@ -187,7 +188,7 @@ class DiscreteEKFComponent(EKFComponent, pnss.DiscreteGaussian):
         backward_implementation="classic",
     ) -> None:
 
-        pnss.DiscreteGaussian.__init__(
+        statespace.DiscreteGaussian.__init__(
             self,
             non_linear_model.input_dim,
             non_linear_model.output_dim,
@@ -201,7 +202,7 @@ class DiscreteEKFComponent(EKFComponent, pnss.DiscreteGaussian):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
-    def linearize(self, at_this_rv: pnrv.Normal):
+    def linearize(self, at_this_rv: random_variables.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
         g = self.non_linear_model.state_trans_fun
@@ -215,7 +216,7 @@ class DiscreteEKFComponent(EKFComponent, pnss.DiscreteGaussian):
         def dynamicsmatfun(t):
             return dg(t, x0)
 
-        return pnss.DiscreteLinearGaussian(
+        return statespace.DiscreteLinearGaussian(
             input_dim=self.non_linear_model.input_dim,
             output_dim=self.non_linear_model.output_dim,
             state_trans_mat_fun=dynamicsmatfun,
@@ -264,7 +265,7 @@ class DiscreteEKFComponent(EKFComponent, pnss.DiscreteGaussian):
         else:
             raise TypeError("ek0_or_ek1 must be 0 or 1, resp.")
 
-        discrete_model = pnss.DiscreteGaussian(
+        discrete_model = statespace.DiscreteGaussian(
             prior.dimension,
             ode.dimension,
             dyna,
