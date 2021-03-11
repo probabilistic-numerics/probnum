@@ -4,11 +4,10 @@ This object is returned by ODESolver.solve().
 
 Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
 """
-import typing
 
-import probnum._randomvariablelist as pnrv_list
-import probnum.random_variables as pnrv
-from probnum import filtsmooth
+from typing import List, Union
+
+from probnum import _randomvariablelist, filtsmooth, random_variables
 
 
 class ODESolution(filtsmooth.TimeSeriesPosterior):
@@ -28,15 +27,17 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
     def __init__(self, locations, states, derivatives=None):
         super().__init__(locations=locations, states=states)
         self.derivatives = (
-            pnrv_list._RandomVariableList(derivatives)
+            _randomvariablelist._RandomVariableList(derivatives)
             if derivatives is not None
             else None
         )
 
     # Not abstract, because providing interpolation could sometimes be tedious.
     def __call__(
-        self, t: typing.Union[float, typing.List[float]]
-    ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
+        self, t: Union[float, List[float]]
+    ) -> Union[
+        random_variables.RandomVariable, _randomvariablelist._RandomVariableList
+    ]:
         """Evaluate the time-continuous solution at time t.
 
         Parameters
