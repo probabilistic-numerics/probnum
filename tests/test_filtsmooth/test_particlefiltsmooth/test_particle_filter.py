@@ -21,7 +21,7 @@ def num_gridpoints():
 
 @pytest.fixture
 def num_particles():
-    return 10
+    return 15
 
 
 @pytest.fixture
@@ -57,14 +57,13 @@ def test_sth(setup, data, num_gridpoints, num_particles):
     prior, measmod, initrv, particle = setup
 
     posterior = particle.filter(data.reshape((-1, 1)), locations)
-    states = np.array([state.support for state in posterior.particle_state_list])
-    weights = np.array(
-        [state.event_probabilities for state in posterior.particle_state_list]
-    )
+    states = posterior.supports
+    weights = posterior.event_probabilities
+
     assert states.shape == (num_gridpoints, num_particles, 2)
     assert weights.shape == (num_gridpoints, num_particles)
 
-    mean = np.einsum("ijk,ij->ik", states, weights)
+    mean = posterior.mean
 
     print(np.linalg.norm(mean[:, 0] - np.sin(locations)))
 

@@ -35,7 +35,7 @@ class Categorical(DiscreteRandomVariable):
         }
 
         def _sample_categorical(size=()):
-            np.random.choice(a=self._support, size=size, p=self._event_probabilities)
+            raise NotImplementedError
 
         def _pmf_categorical(x):
             idx = np.where(x == self._support)[0]

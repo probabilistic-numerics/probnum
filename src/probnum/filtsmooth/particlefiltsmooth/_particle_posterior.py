@@ -1,6 +1,7 @@
 """Particle filtering posterior."""
 import abc
 from dataclasses import dataclass
+from functools import cached_property
 
 import numpy as np
 
@@ -15,6 +16,20 @@ class ParticleFilterPosterior(FiltSmoothPosterior):
 
     def __call__(self, t):
         raise NotImplementedError
+
+    @cached_property
+    def supports(self):
+        return np.array([state.support for state in self.particle_state_list])
+
+    @cached_property
+    def event_probabilities(self):
+        return np.array(
+            [state.event_probabilities for state in self.particle_state_list]
+        )
+
+    @cached_property
+    def mean(self):
+        return np.einsum("ijk,ij->ik", self.supports, self.event_probabilities)
 
     def __len__(self):
         return len(self.particle_state_list)
