@@ -1,4 +1,8 @@
-"""Diffusion calibrations."""
+"""Diffusion calibrations.
+
+Maybe move this to `statespace` or `filtsmooth` in the future, but for
+now, it is well placed in `diffeq`.
+"""
 
 
 import abc
@@ -13,20 +17,22 @@ DiffusionType = Union[FloatArgType]
 """Acceptable diffusion types are -- in principle -- floats and arrays of shape (d,).
 In other words, everything that behaves well with `cov1 + diffusion*cov2` and
 `chol1 + sqrt(diffusion) * chol2`.
-For now, let's only use floats.
+For now, let's only use floats, because it is not clear to me how to best implement the square-root behaviour.
 """
 
 
-class Diffusion:
-    """Interface for (piecewise constant) diffusions and their calibration."""
+class Diffusion(abc.ABC):
+    r"""Interface for diffusion models :math:`\sigma: \mathbb{R} \rightarrow \mathbb{R}^d` and their calibration."""
 
     def __repr__(self):
         raise NotImplementedError
 
+    @abc.abstractmethod
     def __call__(self, t) -> DiffusionType:
         """Evaluate the diffusion."""
         raise NotImplementedError
 
+    @abc.abstractmethod
     def __getitem__(self, idx):
         """Get the i-th diffusion from the list."""
         pass
@@ -41,6 +47,7 @@ class Diffusion:
         ssq = whitened_res @ whitened_res / meas_rv.size
         return ssq
 
+    @abc.abstractmethod
     def update_current_information(self, diffusion, t):
         """Update the current information about the global diffusion.
 
@@ -49,6 +56,7 @@ class Diffusion:
         """
         pass
 
+    @abc.abstractmethod
     def postprocess_states(self, states, locations):
         """Postprocess a set of ODE solver states after seeing all the data."""
         pass
@@ -70,21 +78,21 @@ class ConstantDiffusion(Diffusion):
     def __getitem__(self, idx):
         return self.diffusion
 
-    def postprocess_states(self, states, locations):
-        return [
-            random_variables.Normal(rv.mean, self.diffusion * rv.cov) for rv in states
-        ]
-
     def update_current_information(self, diffusion, t):
+        """Update the current global MLE with a new diffusion."""
         self._seen_diffusions += 1
 
         if self.diffusion is None:
             self.diffusion = diffusion
         else:
-            # on the fly update for mean
             a = 1 / self._seen_diffusions
             b = 1 - a
             self.diffusion = a * diffusion + b * self.diffusion
+
+    def postprocess_states(self, states, locations):
+        return [
+            random_variables.Normal(rv.mean, self.diffusion * rv.cov) for rv in states
+        ]
 
 
 class PiecewiseConstantDiffusion(Diffusion):
@@ -103,14 +111,10 @@ class PiecewiseConstantDiffusion(Diffusion):
     def __getitem__(self, idx):
         return self.diffusions[idx]
 
-    def postprocess_states(self, states, locations):
-        return states
-
     def update_current_information(self, diffusion, t):
-        """Update the current information about the global diffusion.
-
-        This could mean appending the diffusion to a list or updating a
-        global estimate.
-        """
+        """Append the most recent diffusion and location to a list."""
         self.diffusions.append(diffusion)
         self.times.append(t)
+
+    def postprocess_states(self, states, locations):
+        return states

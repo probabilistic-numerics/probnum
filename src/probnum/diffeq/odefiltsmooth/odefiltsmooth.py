@@ -127,6 +127,15 @@ def probsolve_ivp(
         Whether we want dense output. Optional. Default is ``True``. For the ODE filter,
         dense output requires smoothing, so if ``dense_output`` is False, no smoothing is performed;
         but when it is ``True``, the filter solution is smoothed.
+    diffusion_model : str
+        Which diffusion model to use. The choices are ``'constant'`` and ``'dynamic'``,
+        which implement different styles of
+        online calibration of the underlying diffusion [5]_.
+        Optional. Default is ``'dynamic'``.
+        While we recommend to use correct capitalization for the `diffusion_model` string,
+        upper-case letters will be lower-cased internally.
+
+
 
     Returns
     -------
@@ -167,6 +176,9 @@ def probsolve_ivp(
     .. [4] Tronarp, F., Särkkä, S., and Hennig, P..
         Bayesian ODE solvers: the maximum a posteriori estimate.
         2019.
+    .. [5] Bosch, N., and Hennig, P., and Tronarp, F..
+        Calibrated Adaptive Probabilistic ODE Solvers.
+        2021.
 
 
     Examples
@@ -242,6 +254,10 @@ def probsolve_ivp(
         stprl = steprule.ConstantSteps(step)
 
     # Construct diffusion model.
+    diffusion_model = diffusion_model.lower()
+    if diffusion_model not in ["constant", "dynamic"]:
+        raise ValueError("Diffusion model is not supported.")
+
     choose_diffusion_model_and_repredict = {
         "constant": (ConstantDiffusion(), False),
         "dynamic": (PiecewiseConstantDiffusion(), True),
