@@ -1,5 +1,6 @@
 """Random Variables."""
 
+from ._categorical import Categorical
 from ._constant import Constant
 from ._normal import Normal
 from ._random_variable import (
@@ -22,6 +23,7 @@ __all__ = [
     "ContinuousRandomVariable",
     "Constant",
     "Normal",
+    "Categorical",
     "WrappedSciPyRandomVariable",
     "WrappedSciPyDiscreteRandomVariable",
     "WrappedSciPyContinuousRandomVariable",

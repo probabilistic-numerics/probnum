@@ -5,21 +5,31 @@ import pytest
 from probnum import filtsmooth, random_variables, statespace
 
 
+def test_effective_number_of_events():
+    weights = np.random.rand(10)
+    categ = random_variables.Categorical(
+        support=np.random.rand(10, 2), event_probabilities=weights / np.sum(weights)
+    )
+    ess = filtsmooth.effective_number_of_events(categ)
+    assert 0 < ess < 10
+
+
 @pytest.fixture
 def num_gridpoints():
-    return 50
+    assert False
+    return 250
 
 
 @pytest.fixture
 def num_particles():
-    return 100
+    return 10
 
 
 @pytest.fixture
 def data(num_gridpoints):
 
     locations = np.linspace(0, 2 * np.pi, num_gridpoints)
-    data = 0.05 * np.random.randn(num_gridpoints) + np.sin(locations)
+    data = 0.005 * np.random.randn(num_gridpoints) + np.sin(locations)
     return data, locations
 
 
@@ -29,12 +39,16 @@ def setup(num_particles):
     measmod = statespace.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1, 2),
         shift_vec=np.zeros(1),
-        proc_noise_cov_mat=0.025 * np.eye(1),
+        proc_noise_cov_mat=0.00025 * np.eye(1),
     )
     initrv = random_variables.Normal(np.zeros(2), 0.01 * np.eye(2))
 
     particle = filtsmooth.ParticleFilter(
-        prior, measmod, initrv, num_particles=num_particles
+        prior,
+        measmod,
+        initrv,
+        num_particles=num_particles,
+        importance_density_choice="bootstrap",
     )
     return prior, measmod, initrv, particle
 
@@ -49,11 +63,18 @@ def test_sth(setup, data, num_gridpoints, num_particles):
     assert states.shape == (num_gridpoints, num_particles, 2)
     assert weights.shape == (num_gridpoints, num_particles)
 
-    for i in range(10):
+    mean = np.einsum("ijk,ij->ik", states, weights)
+
+    print(np.linalg.norm(mean[:, 0] - np.sin(locations)))
+
+    for i in range(num_particles):
         for l, p, w in zip(locations, states[:, i, 0], weights[:, i]):
 
-            plt.plot(l, p, "o", alpha=min(0.01 + 2 * w, 1.0), color="k")
+            plt.plot(l, p, "o", alpha=min(0.01 + 10 * w, 1.0), color="k")
+
     plt.plot(locations, np.sin(locations))
+    plt.plot(locations, mean[:, 0])
     plt.ylim((-2, 2))
     plt.show()
+
     assert False
