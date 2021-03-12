@@ -1,9 +1,17 @@
+import typing
+
 import numpy as np
 
 import probnum.filtsmooth as pnfs
+import probnum.statespace as pnss
 from probnum.random_variables import Normal
 
+from ..ode import IVP
 from ..odesolver import ODESolver
+from .initialize import (
+    initialize_odefilter_with_rk,
+    initialize_odefilter_with_taylormode,
+)
 from .kalman_odesolution import KalmanODESolution
 
 
@@ -17,28 +25,180 @@ class GaussianIVPFilter(ODESolver):
 
     Parameters
     ----------
-    gaussfilt : gaussianfilter.GaussianFilter
-        e.g. the return value of ivp_to_ukf(), ivp_to_ekf1().
-
-    Notes
-    -----
-    - gaussfilt.dynamicmodel contains the prior,
-    - gaussfilt.measurementmodel contains the information about the ODE right hand side function,
-    - gaussfilt.initialdistribution contains the information about the initial values.
+    ivp
+        Initial value problem to be solved.
+    prior
+        Prior distribution.
+    measurement_model
+        ODE measurement model.
+    with_smoothing
+        To smooth after the solve or not to smooth after the solve.
+    init_implementation
+        Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
+        For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
+    initrv
+        Initial random variable to be used by the filter. Optional. Default is `None`, which amounts to choosing a standard-normal initial RV.
+        As part of `GaussianIVPFilter.initialise()` (called in `GaussianIVPFilter.solve()`), this variable is improved upon with the help of the
+        initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
     """
 
-    def __init__(self, ivp, gaussfilt, with_smoothing):
-        if not isinstance(gaussfilt.dynamics_model, pnfs.statespace.Integrator):
-            raise ValueError(
-                "Please initialise a Gaussian filter with an Integrator (see filtsmooth.statespace)"
+    def __init__(
+        self,
+        ivp: IVP,
+        prior: pnss.Integrator,
+        measurement_model: pnss.DiscreteGaussian,
+        with_smoothing: bool,
+        init_implementation: typing.Callable[
+            [
+                typing.Callable,
+                np.ndarray,
+                float,
+                pnss.Integrator,
+                Normal,
+                typing.Optional[typing.Callable],
+            ],
+            Normal,
+        ],
+        initrv: typing.Optional[Normal] = None,
+    ):
+        if initrv is None:
+            initrv = Normal(
+                np.zeros(prior.dimension),
+                np.eye(prior.dimension),
+                cov_cholesky=np.eye(prior.dimension),
             )
-        self.gfilt = gaussfilt
+
+        self.gfilt = pnfs.Kalman(
+            dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
+        )
+
+        if not isinstance(prior, pnss.Integrator):
+            raise ValueError(
+                "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
+            )
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
-        super().__init__(ivp=ivp, order=gaussfilt.dynamics_model.ordint)
+        self.init_implementation = init_implementation
+        super().__init__(ivp=ivp, order=prior.ordint)
+
+    @staticmethod
+    def string_to_measurement_model(
+        measurement_model_string, ivp, prior, measurement_noise_covariance=0.0
+    ):
+        """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
+
+        Return a :class:`DiscreteGaussian` (either a :class:`DiscreteEKFComponent` or a `DiscreteUKFComponent`) that provides
+        a tractable approximation of the transition densities based on the local defect of the ODE
+
+        .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t))
+
+        and user-specified measurement noise covariance :math:`R`. Almost always, the measurement noise covariance is zero.
+
+        Compute either type filter, each with a different interpretation of the Jacobian :math:`J_g`:
+
+        - EKF0 thinks :math:`J_g(m) = H_1`
+        - EKF1 thinks :math:`J_g(m) = H_1 - J_f(t, H_0 m(t)) H_0^\\top`
+        - UKF thinks: ''What is a Jacobian?'' and uses the unscented transform to compute a tractable approximation of the transition densities.
+        """
+        measurement_model_string = measurement_model_string.upper()
+
+        # While "UK" is not available in probsolve_ivp (because it is not recommended)
+        # It is an option in this function here, because there is no obvious reason to restrict
+        # the options in this lower level function.
+        choose_meas_model = {
+            "EK0": pnfs.DiscreteEKFComponent.from_ode(
+                ivp,
+                prior=prior,
+                ek0_or_ek1=0,
+                evlvar=measurement_noise_covariance,
+                forward_implementation="sqrt",
+                backward_implementation="sqrt",
+            ),
+            "EK1": pnfs.DiscreteEKFComponent.from_ode(
+                ivp,
+                prior=prior,
+                ek0_or_ek1=1,
+                evlvar=measurement_noise_covariance,
+                forward_implementation="sqrt",
+                backward_implementation="sqrt",
+            ),
+            "UK": pnfs.DiscreteUKFComponent.from_ode(
+                ivp,
+                prior,
+                evlvar=measurement_noise_covariance,
+            ),
+        }
+
+        if measurement_model_string not in choose_meas_model.keys():
+            raise ValueError("Type of measurement model not supported.")
+
+        return choose_meas_model[measurement_model_string]
+
+    # Construct an ODE solver from different initialisation methods.
+    # The reason for implementing these via classmethods is that different
+    # initialisation methods require different parameters.
+
+    @classmethod
+    def construct_with_rk_init(
+        cls,
+        ivp,
+        prior,
+        measurement_model,
+        with_smoothing,
+        initrv=None,
+        init_h0=0.01,
+        init_method="DOP853",
+    ):
+        """Create a Gaussian IVP filter that is initialised via
+        :func:`initialize_odefilter_with_rk`."""
+
+        def init_implementation(f, y0, t0, prior, initrv, df=None):
+            return initialize_odefilter_with_rk(
+                f=f,
+                y0=y0,
+                t0=t0,
+                prior=prior,
+                initrv=initrv,
+                df=df,
+                h0=init_h0,
+                method=init_method,
+            )
+
+        return cls(
+            ivp,
+            prior,
+            measurement_model,
+            with_smoothing,
+            init_implementation=init_implementation,
+            initrv=initrv,
+        )
+
+    @classmethod
+    def construct_with_taylormode_init(
+        cls, ivp, prior, measurement_model, with_smoothing, initrv=None
+    ):
+        """Create a Gaussian IVP filter that is initialised via
+        :func:`initialize_odefilter_with_taylormode`."""
+        return cls(
+            ivp,
+            prior,
+            measurement_model,
+            with_smoothing,
+            init_implementation=initialize_odefilter_with_taylormode,
+            initrv=initrv,
+        )
 
     def initialise(self):
-        return self.ivp.t0, self.gfilt.initrv
+        initrv = self.init_implementation(
+            self.ivp.rhs,
+            self.ivp.initrv.mean,
+            self.ivp.t0,
+            self.gfilt.dynamics_model,
+            self.gfilt.initrv,
+            self.ivp._jac,
+        )
+
+        return self.ivp.t0, initrv
 
     def step(self, t, t_new, current_rv):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""

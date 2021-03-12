@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.random_variables as pnrv
-from probnum.filtsmooth import statespace as pnfss
+import probnum.statespace as pnss
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 from .test_sde import TestLTISDE
@@ -22,7 +22,7 @@ class TestIntegrator:
     @pytest.fixture(autouse=True)
     def _setup(self, some_ordint):
         self.some_ordint = some_ordint
-        self.integrator = pnfss.Integrator(ordint=self.some_ordint, spatialdim=1)
+        self.integrator = pnss.Integrator(ordint=self.some_ordint, spatialdim=1)
 
     def test_proj2coord(self):
         base = np.zeros(self.some_ordint + 1)
@@ -39,7 +39,7 @@ class TestIntegrator:
 
     def test_precon(self):
 
-        assert isinstance(self.integrator.precon, pnfss.NordsieckLikeCoordinates)
+        assert isinstance(self.integrator.precon, pnss.NordsieckLikeCoordinates)
 
 
 class TestIBM(TestLTISDE, TestIntegrator):
@@ -55,7 +55,7 @@ class TestIBM(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnfss.IBM(
+        self.transition = pnss.IBM(
             ordint=self.some_ordint,
             spatialdim=spatialdim,
             forward_implementation=forw_impl_string_linear_gauss,
@@ -87,7 +87,7 @@ class TestIOUP(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnfss.IOUP(
+        self.transition = pnss.IOUP(
             ordint=self.some_ordint,
             spatialdim=spatialdim,
             driftspeed=1.2345,
@@ -120,7 +120,7 @@ class TestMatern(TestLTISDE, TestIntegrator):
     ):
         self.some_ordint = some_ordint
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnfss.Matern(
+        self.transition = pnss.Matern(
             ordint=self.some_ordint,
             spatialdim=spatialdim,
             lengthscale=1.2345,
@@ -141,23 +141,23 @@ class TestMatern(TestLTISDE, TestIntegrator):
 
 
 def both_transitions_matern():
-    matern = pnfss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
-    matern2 = pnfss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
-    matern_as_ltisde = pnfss.LTISDE(matern2.driftmat, matern2.forcevec, matern2.dispmat)
+    matern = pnss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
+    matern2 = pnss.Matern(ordint=2, spatialdim=2, lengthscale=2.041)
+    matern_as_ltisde = pnss.LTISDE(matern2.driftmat, matern2.forcevec, matern2.dispmat)
     return matern, matern_as_ltisde
 
 
 def both_transitions_ioup():
-    ioup = pnfss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
-    ioup2 = pnfss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
-    ioup_as_ltisde = pnfss.LTISDE(ioup2.driftmat, ioup2.forcevec, ioup2.dispmat)
+    ioup = pnss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
+    ioup2 = pnss.IOUP(ordint=2, spatialdim=2, driftspeed=2.041)
+    ioup_as_ltisde = pnss.LTISDE(ioup2.driftmat, ioup2.forcevec, ioup2.dispmat)
     return ioup, ioup_as_ltisde
 
 
 def both_transitions_ibm():
-    ibm = pnfss.IBM(ordint=2, spatialdim=1)
-    ibm2 = pnfss.IBM(ordint=2, spatialdim=1)
-    ibm_as_ltisde = pnfss.LTISDE(ibm2.driftmat, ibm2.forcevec, ibm2.dispmat)
+    ibm = pnss.IBM(ordint=2, spatialdim=1)
+    ibm2 = pnss.IBM(ordint=2, spatialdim=1)
+    ibm_as_ltisde = pnss.LTISDE(ibm2.driftmat, ibm2.forcevec, ibm2.dispmat)
     return ibm, ibm_as_ltisde
 
 
@@ -257,7 +257,7 @@ class TestIBMValues:
         backw_impl_string_linear_gauss,
     ):
         spatialdim = 1  # make tests compatible with some_normal_rv1, etc.
-        self.transition = pnfss.IBM(
+        self.transition = pnss.IBM(
             ordint=2,
             spatialdim=spatialdim,
             forward_implementation=forw_impl_string_linear_gauss,
@@ -288,3 +288,66 @@ class TestIBMValues:
         )
         np.testing.assert_allclose(ah_22_ibm @ real, rv.mean)
         np.testing.assert_allclose(diffusion * qh_22_ibm, rv.cov)
+
+
+############################################################################################
+# Tests for the coordinate-representation conversion functions.
+############################################################################################
+
+
+@pytest.fixture
+def some_order():
+    return 2
+
+
+@pytest.fixture
+def some_dim():
+    return 3
+
+
+@pytest.fixture
+def fake_state(some_order, some_dim):
+    return np.arange(some_dim * (some_order + 1))
+
+
+@pytest.fixture
+def in_out_pair(fake_state, some_order):
+    """Initial states for the three-body initial values.
+
+    Returns (derivwise, coordwise)
+    """
+    return fake_state, fake_state.reshape((-1, some_order + 1)).T.flatten()
+
+
+def test_in_out_pair_is_not_identical(in_out_pair):
+    """A little sanity check to assert that these are actually different, so the
+    conversion is non-trivial."""
+    derivwise, coordwise = in_out_pair
+    assert np.linalg.norm(derivwise - coordwise) > 5
+
+
+def test_convert_coordwise_to_derivwise(in_out_pair, some_order, some_dim):
+    derivwise, coordwise = in_out_pair
+    coordwise_as_derivwise = pnss.Integrator._convert_coordwise_to_derivwise(
+        coordwise, some_order, some_dim
+    )
+    np.testing.assert_allclose(coordwise_as_derivwise, derivwise)
+
+
+def test_convert_derivwise_to_coordwise(in_out_pair, some_order, some_dim):
+    derivwise, coordwise = in_out_pair
+    derivwise_as_coordwise = pnss.Integrator._convert_derivwise_to_coordwise(
+        derivwise, some_order, some_dim
+    )
+    np.testing.assert_allclose(derivwise_as_coordwise, coordwise)
+
+
+def test_conversion_pairwise_inverse(in_out_pair, some_order, some_dim):
+    derivwise, coordwise = in_out_pair
+    as_coord = pnss.Integrator._convert_derivwise_to_coordwise(
+        derivwise, some_order, some_dim
+    )
+    as_deriv_again = pnss.Integrator._convert_coordwise_to_derivwise(
+        as_coord, some_order, some_dim
+    )
+    np.testing.assert_allclose(as_deriv_again, derivwise)

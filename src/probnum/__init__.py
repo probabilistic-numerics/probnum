@@ -38,6 +38,7 @@ from . import (
     problems,
     quad,
     random_variables,
+    statespace,
     utils,
 )
 from .random_variables import RandomVariable, asrandvar
