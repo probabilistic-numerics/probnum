@@ -1,6 +1,7 @@
 """Diffusion calibrations."""
 
 
+import abc
 from typing import Union
 
 import numpy as np
@@ -19,9 +20,12 @@ For now, let's only use floats.
 class Diffusion:
     """Interface for (piecewise constant) diffusions and their calibration."""
 
+    def __repr__(self):
+        raise NotImplementedError
+
     def __call__(self, t) -> DiffusionType:
         """Evaluate the diffusion."""
-        pass
+        raise NotImplementedError
 
     def __getitem__(self, idx):
         """Get the i-th diffusion from the list."""
@@ -45,7 +49,7 @@ class Diffusion:
         """
         pass
 
-    def postprocess_states(self, states):
+    def postprocess_states(self, states, locations):
         """Postprocess a set of ODE solver states after seeing all the data."""
         pass
 
@@ -57,13 +61,16 @@ class ConstantDiffusion(Diffusion):
         self.diffusion = None
         self._seen_diffusions = 0
 
+    def __repr__(self):
+        return f"ConstantDiffusion({self.diffusion})"
+
     def __call__(self, t) -> DiffusionType:
         return self.diffusion
 
     def __getitem__(self, idx):
         return self.diffusion
 
-    def postprocess_states(self, states):
+    def postprocess_states(self, states, locations):
         return [
             random_variables.Normal(rv.mean, self.diffusion * rv.cov) for rv in states
         ]
@@ -87,13 +94,16 @@ class PiecewiseConstantDiffusion(Diffusion):
         self.diffusions = []
         self.times = []
 
+    def __repr__(self):
+        return f"PiecewiseConstantDiffusion({self.diffusions})"
+
     def __call__(self, t) -> DiffusionType:
         raise NotImplementedError
 
     def __getitem__(self, idx):
         return self.diffusions[idx]
 
-    def postprocess_states(self, states):
+    def postprocess_states(self, states, locations):
         return states
 
     def update_current_information(self, diffusion, t):
