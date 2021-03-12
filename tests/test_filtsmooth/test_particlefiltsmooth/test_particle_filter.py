@@ -64,8 +64,9 @@ def test_sth(setup, data, num_gridpoints, num_particles):
     assert weights.shape == (num_gridpoints, num_particles)
 
     mean = posterior.mean
-
+    cov = posterior.cov
     print(np.linalg.norm(mean[:, 0] - np.sin(locations)))
+    print(cov)
 
     for i in range(num_particles):
         for l, p, w in zip(locations, states[:, i, 0], weights[:, i]):

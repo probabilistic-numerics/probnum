@@ -33,6 +33,16 @@ class ParticleFilterPosterior(FiltSmoothPosterior):
     def mean(self):
         return np.einsum("ijk,ij->ik", self.supports, self.event_probabilities)
 
+    @cached_property
+    def cov(self):
+        centered_supports = self.supports - self.mean[:, None, :]
+        raise RuntimeError("finish implementing the cov here!")
+        return np.einsum(
+            "ijk,ij->ik",
+            centered_supports[..., None] - centered_supports[None, ...],
+            self.event_probabilities,
+        )
+
     def __len__(self):
         return len(self.particle_state_list)
 
