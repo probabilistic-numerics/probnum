@@ -71,3 +71,14 @@ def test_no_step_or_tol_info_raises_error(ivp):
 
     with pytest.raises(ValueError):
         probsolve_ivp(f, t0, tmax, y0, step=None, adaptive=True, atol=None, rtol=None)
+
+
+def test_wrong_diffusion_raises_error(ivp):
+    """Methods that are not in the list raise errors."""
+    f = ivp.rhs
+    t0, tmax = ivp.timespan
+    y0 = ivp.initrv.mean
+
+    # UK1 does not exist anymore
+    with pytest.raises(ValueError):
+        probsolve_ivp(f, t0, tmax, y0, diffusion_model="something_wrong")
