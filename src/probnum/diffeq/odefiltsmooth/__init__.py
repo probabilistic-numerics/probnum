@@ -7,6 +7,7 @@ Local import, because with a global import this does not seem
 to work.
 """
 
+from .diffusions import ConstantDiffusion, Diffusion, PiecewiseConstantDiffusion
 from .initialize import (
     initialize_odefilter_with_rk,
     initialize_odefilter_with_taylormode,
