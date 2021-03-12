@@ -79,7 +79,6 @@ class GaussianIVPFilter(ODESolver):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
             )
-        self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
         super().__init__(ivp=ivp, order=prior.ordint)
@@ -129,6 +128,8 @@ class GaussianIVPFilter(ODESolver):
             with_smoothing,
             init_implementation=init_implementation,
             initrv=initrv,
+            diffusion=diffusion,
+            re_predict_with_calibrated_diffusion=re_predict_with_calibrated_diffusion,
         )
 
     @classmethod
@@ -151,6 +152,8 @@ class GaussianIVPFilter(ODESolver):
             with_smoothing,
             init_implementation=initialize_odefilter_with_taylormode,
             initrv=initrv,
+            diffusion=diffusion,
+            re_predict_with_calibrated_diffusion=re_predict_with_calibrated_diffusion,
         )
 
     def initialise(self):
@@ -185,12 +188,13 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # 3. Estimate the diffusion (sigma squared)
-        self.sigma_square_mle = self.diffusion.calibrate_locally(meas_rv)
+        local_squared_diffusion = self.diffusion.calibrate_locally(meas_rv)
+        self.diffusion.update_current_information(local_squared_diffusion, t_new)
 
         if self.re_predict_with_calibrated_diffusion:
             # 3.1. Adjust the prediction covariance to include the diffusion
             pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
-                rv=current_rv, t=t, dt=t_new - t, _diffusion=self.sigma_squared_mle
+                rv=current_rv, t=t, dt=t_new - t, _diffusion=local_squared_diffusion
             )
 
             # 3.2 Update the measurement covariance (measure again)
@@ -208,12 +212,10 @@ class GaussianIVPFilter(ODESolver):
         local_errors = self._estimate_local_error(
             pred_rv,
             t_new,
-            self.sigma_squared_mle * proc_noise_cov,
-            np.sqrt(self.sigma_squared_mle) * proc_noise_cov_cholesky,
+            local_squared_diffusion * proc_noise_cov,
+            np.sqrt(local_squared_diffusion) * proc_noise_cov_cholesky,
         )
         err = np.linalg.norm(local_errors)
-
-        self.diffusion.update_current_information(self.sigma_square_mle, t_new)
 
         return filt_rv, err
 
@@ -232,7 +234,7 @@ class GaussianIVPFilter(ODESolver):
         """If specified (at initialisation), smooth the filter output."""
 
         if self.with_smoothing is True:
-            smoothing_posterior = self.gfilt.smooth(ode_solution.kalman_posterior)
+            smoothing_posterior = self.gfilt.smooth(odesol.kalman_posterior)
             odesol = KalmanODESolution(smoothing_posterior)
 
         return odesol

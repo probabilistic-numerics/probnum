@@ -63,7 +63,7 @@ def test_postprocess_states(constant_diffusion):
         # t = None does not make a difference
         constant_diffusion.update_current_information(diff, None)
 
-    calibrated_states = constant_diffusion.postprocess_states(meas_rvs)
+    calibrated_states = constant_diffusion.postprocess_states(meas_rvs, locations=None)
     for calibrated, uncalibrated in zip(calibrated_states, meas_rvs):
         np.testing.assert_allclose(
             calibrated.cov, constant_diffusion.diffusion * uncalibrated.cov
