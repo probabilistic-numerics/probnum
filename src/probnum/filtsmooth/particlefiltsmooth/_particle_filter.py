@@ -137,4 +137,16 @@ class ParticleFilter(BayesFiltSmooth):
             new_particle_state.weights
         )
 
+        # Resample
+        if new_particle_state.effective_num_particles < self.num_particles / 10:
+            u = np.random.rand(len(new_particle_state.weights))
+            bins = np.cumsum(new_particle_state.weights)
+
+            new_particle_state.particles = new_particle_state.particles[
+                np.digitize(u, bins)
+            ]
+            new_particle_state.weights = np.ones(len(new_particle_state.weights)) / len(
+                new_particle_state.weights
+            )
+
         return new_particle_state, {}
