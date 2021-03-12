@@ -9,7 +9,7 @@ from probnum import random_variables
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
-from ._particle_posterior import ParticleFilterPosterior
+from ._particle_filter_posterior import ParticleFilterPosterior
 
 
 def effective_number_of_events(categ_rv):

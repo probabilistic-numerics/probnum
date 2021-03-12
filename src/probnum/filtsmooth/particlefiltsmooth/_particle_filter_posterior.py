@@ -10,6 +10,8 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
 class ParticleFilterPosterior(FiltSmoothPosterior):
+    """Particle filter posterior distribution."""
+
     def __init__(self, particle_state_list, locations):
         self.particle_state_list = particle_state_list
         self.locations = locations

@@ -5,4 +5,4 @@ from ._particle_filter import (
     effective_number_of_events,
     resample_categorical,
 )
-from ._particle_posterior import ParticleFilterPosterior
+from ._particle_filter_posterior import ParticleFilterPosterior
