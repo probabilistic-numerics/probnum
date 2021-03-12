@@ -8,7 +8,7 @@ from probnum.random_variables import Normal
 
 from ..ode import IVP
 from ..odesolver import ODESolver
-from .diffusions import ConstantDiffusion, PiecewiseConstantDiffusion
+from .diffusions import PiecewiseConstantDiffusion
 from .initialize import (
     initialize_odefilter_with_rk,
     initialize_odefilter_with_taylormode,
