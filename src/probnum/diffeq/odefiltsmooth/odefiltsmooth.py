@@ -14,6 +14,10 @@ import probnum.random_variables as pnrv
 from probnum import statespace
 from probnum.diffeq import steprule
 from probnum.diffeq.ode import IVP
+from probnum.diffeq.odefiltsmooth.diffusions import (
+    ConstantDiffusion,
+    PiecewiseConstantDiffusion,
+)
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 __all__ = ["probsolve_ivp"]
@@ -32,6 +36,7 @@ def probsolve_ivp(
     atol=1e-2,
     rtol=1e-2,
     step=None,
+    diffusion_model="dynamic",
 ):
     r"""Solve initial value problem with Gaussian filtering and smoothing.
 
@@ -236,6 +241,13 @@ def probsolve_ivp(
     else:
         stprl = steprule.ConstantSteps(step)
 
+    # Construct diffusion model.
+    choose_diffusion_model_and_repredict = {
+        "constant": (ConstantDiffusion(), False),
+        "dynamic": (PiecewiseConstantDiffusion(), True),
+    }
+    diffusion, re_predict = choose_diffusion_model_and_repredict[diffusion_model]
+
     # Create solver
     prior = statespace.IBM(
         ordint=algo_order,
@@ -243,12 +255,16 @@ def probsolve_ivp(
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-
     if method.upper() not in ["EK0", "EK1"]:
         raise ValueError("Method is not supported.")
     measmod = GaussianIVPFilter.string_to_measurement_model(method, ivp, prior)
     solver = GaussianIVPFilter.construct_with_rk_init(
-        ivp, prior, measmod, with_smoothing=dense_output
+        ivp,
+        prior,
+        measmod,
+        with_smoothing=dense_output,
+        diffusion=diffusion,
+        re_predict_with_calibrated_diffusion=re_predict,
     )
 
     return solver.solve(steprule=stprl)

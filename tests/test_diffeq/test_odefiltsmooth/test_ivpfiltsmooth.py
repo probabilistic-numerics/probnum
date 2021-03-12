@@ -37,6 +37,7 @@ def sol(ivp, step):
         algo_order=1,
         adaptive=False,
         step=step,
+        diffusion_model="constant",
     )
 
 
@@ -82,10 +83,24 @@ def test_convergence_error(ivp, algo_order):
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
     sol_small_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_small, algo_order=algo_order, adaptive=False
+        f,
+        t0,
+        tmax,
+        y0,
+        step=step_small,
+        algo_order=algo_order,
+        adaptive=False,
+        diffusion_model="dynamic",
     )
     sol_large_step = probsolve_ivp(
-        f, t0, tmax, y0, step=step_large, algo_order=algo_order, adaptive=False
+        f,
+        t0,
+        tmax,
+        y0,
+        step=step_large,
+        algo_order=algo_order,
+        adaptive=False,
+        diffusion_model="dynamic",
     )
 
     # Check that the final point is identical (sanity check)
