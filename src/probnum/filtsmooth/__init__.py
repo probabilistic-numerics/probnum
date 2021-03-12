@@ -20,7 +20,6 @@ from .gaussfiltsmooth import (
 from .particlefiltsmooth import (
     ParticleFilter,
     ParticleFilterPosterior,
-    ParticleFilterState,
     effective_number_of_events,
 )
 
@@ -43,6 +42,5 @@ __all__ = [
     "IteratedDiscreteComponent",
     "ParticleFilter",
     "ParticleFilterPosterior",
-    "ParticleFilterState",
     "effective_number_of_events",
 ]

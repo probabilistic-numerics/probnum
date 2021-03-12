@@ -16,8 +16,7 @@ def test_effective_number_of_events():
 
 @pytest.fixture
 def num_gridpoints():
-    assert False
-    return 250
+    return 25
 
 
 @pytest.fixture
@@ -58,8 +57,10 @@ def test_sth(setup, data, num_gridpoints, num_particles):
     prior, measmod, initrv, particle = setup
 
     posterior = particle.filter(data.reshape((-1, 1)), locations)
-    states = np.array([state.particles for state in posterior.particle_state_list])
-    weights = np.array([state.weights for state in posterior.particle_state_list])
+    states = np.array([state.support for state in posterior.particle_state_list])
+    weights = np.array(
+        [state.event_probabilities for state in posterior.particle_state_list]
+    )
     assert states.shape == (num_gridpoints, num_particles, 2)
     assert weights.shape == (num_gridpoints, num_particles)
 

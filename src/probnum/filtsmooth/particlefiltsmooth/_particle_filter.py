@@ -16,25 +16,12 @@ def effective_number_of_events(categ_rv):
     return 1.0 / np.sum(categ_rv.event_probabilities ** 2)
 
 
-class ParticleFilterState:
-    """
-    Set of weighted particles used within the particle filter.    Collection of :math:`N` particles :math:`(X_{ij})_{ij}`
-    in :math:`m` dimensions
-    with :math:`N` weights :math:`(w_i)_i`.    Attributes
-    ---------
-    particles : np.ndarray, shape=(N, m)
-        These are the particles
-    weights : np.ndarray, shape=(N,)
-        These are the weights.
-    """
-
-    def __init__(self, particles, weights):
-        self.particles = particles
-        self.weights = weights
-
-    @property
-    def effective_num_particles(self):
-        return 1.0 / np.sum(self.weights ** 2)
+def resample(categ_rv):
+    new_support = categ_rv.sample()
+    new_event_probs = np.ones(len(categ_rv.event_probabilities)) / len(
+        categ_rv.event_probabilities
+    )
+    return Categorical(support=new_support, event_probabilities=new_event_probs)
 
 
 class ParticleFilter(BayesFiltSmooth):
@@ -88,23 +75,23 @@ class ParticleFilter(BayesFiltSmooth):
 
         weights = weights / np.sum(weights)
 
-        new_particle_state = ParticleFilterState(
-            particles=np.array(particles), weights=weights
+        curr_rv = random_variables.Categorical(
+            support=np.array(particles), event_probabilities=weights
         )
-        states = [new_particle_state]
+        rvs = [curr_rv]
 
         # Iterate
 
         for idx in range(1, len(times)):
 
-            new_particle_state, _ = self.filter_step(
+            curr_rv, _ = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
-                randvar=new_particle_state,
+                randvar=curr_rv,
                 data=dataset[idx],
             )
-            states.append(new_particle_state)
-        return ParticleFilterPosterior(states, times)
+            rvs.append(curr_rv)
+        return ParticleFilterPosterior(rvs, times)
 
     def dynamics_to_proposal_rv(self, dynamics_rv, data, t):
         proposal_rv = dynamics_rv
@@ -115,14 +102,11 @@ class ParticleFilter(BayesFiltSmooth):
         return proposal_rv
 
     def filter_step(self, start, stop, randvar, data):
-        new_particle_state = ParticleFilterState(
-            particles=randvar.particles.copy(),
-            weights=randvar.weights.copy(),
-        )
 
-        for idx, (particle, weight) in enumerate(
-            zip(new_particle_state.particles, new_particle_state.weights)
-        ):
+        new_weights = randvar.event_probabilities.copy()
+        new_support = randvar.support.copy()
+
+        for idx, (particle, weight) in enumerate(zip(new_support, new_weights)):
 
             dynamics_rv, _ = self.dynamics_model.forward_realization(
                 particle, t=start, dt=(stop - start)
@@ -141,24 +125,17 @@ class ParticleFilter(BayesFiltSmooth):
                 / proposal_rv.pdf(proposal_state)
             )
 
-            new_particle_state.particles[idx] = proposal_state
-            new_particle_state.weights[idx] = proposal_weight
+            new_support[idx] = proposal_state
+            new_weights[idx] = proposal_weight
 
-        new_particle_state.weights = new_particle_state.weights / np.sum(
-            new_particle_state.weights
+        new_weights = new_weights / np.sum(new_weights)
+        new_rv = random_variables.Categorical(
+            support=new_support, event_probabilities=new_weights
         )
 
         # Resample
         if self.with_resampling:
-            if new_particle_state.effective_num_particles < self.num_particles / 10:
-                print("Resampling")
-                assert False
-                u = np.random.rand(len(new_particle_state.weights))
-                bins = np.cumsum(new_particle_state.weights)
-                new_particle_state = ParticleFilterState(
-                    particles=new_particle_state.particles[np.digitize(u, bins)],
-                    weights=np.ones(len(new_particle_state.weights))
-                    / len(new_particle_state.weights),
-                )
+            if effective_number_of_events(new_rv) < self.num_particles / 10:
+                new_rv = resample(new_rv)
 
-        return new_particle_state, {}
+        return new_rv, {}

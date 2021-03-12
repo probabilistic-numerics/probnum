@@ -1,5 +1,7 @@
 import numpy as np
 
+from probnum import utils
+
 from ._random_variable import DiscreteRandomVariable
 
 
@@ -16,12 +18,15 @@ class Categorical(DiscreteRandomVariable):
 
     def __init__(self, support, event_probabilities=None):
 
+        # support = utils.atleast_1d(support)
+        # event_probabilities = utils.atleast_1d(event_probabilities)
+
         self._event_probabilities = (
             np.ones(len(support)) / len(support)
             if event_probabilities is None
-            else event_probabilities
+            else np.asarray(event_probabilities)
         )
-        self._support = support
+        self._support = np.asarray(support)
 
         parameters = {
             "support": self._support,
@@ -29,10 +34,10 @@ class Categorical(DiscreteRandomVariable):
             "num_categories": len(support),
         }
 
-        def sample_categorical(size=()):
+        def _sample_categorical(size=()):
             np.random.choice(a=self._support, size=size, p=self._event_probabilities)
 
-        def pmf_categorical(x):
+        def _pmf_categorical(x):
             idx = np.where(x == self._support)[0]
             return self._event_probabilities[idx] if len(idx) > 0 else 0.0
 
@@ -40,8 +45,8 @@ class Categorical(DiscreteRandomVariable):
             shape=(),
             dtype=self._support.dtype,
             parameters=parameters,
-            sample=sample_categorical,
-            pmf=pmf_categorical,
+            sample=_sample_categorical,
+            pmf=_pmf_categorical,
         )
 
     @property

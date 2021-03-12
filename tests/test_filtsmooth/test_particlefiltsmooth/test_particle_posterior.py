@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from probnum import filtsmooth
+from probnum import filtsmooth, random_variables
 
 
 @pytest.fixture
 def state_list():
     return [
-        filtsmooth.ParticleFilterState(
-            weights=np.ones(10) / 10, particles=np.random.rand(10, 2)
+        random_variables.Categorical(
+            event_probabilities=np.ones(10) / 10, support=np.random.rand(10, 2)
         )
         for _ in range(20)
     ]
