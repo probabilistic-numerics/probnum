@@ -24,11 +24,11 @@ def some_meas_rv():
 class DiffusionTestInterface(abc.ABC):
     @abc.abstractmethod
     def test_call(self):
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def test_getitem(self):
-        pass
+        raise NotImplementedError
 
     def test_calibrate_locally(self, some_meas_rv):
         # 9.776307498421126 is the true value for given some_meas_rv
@@ -36,12 +36,8 @@ class DiffusionTestInterface(abc.ABC):
         np.testing.assert_allclose(out, 9.776307498421126)
 
     @abc.abstractmethod
-    def test_update_current_information(self):
-        pass
-
-    @abc.abstractmethod
     def test_postprocess_states(self):
-        pass
+        raise NotImplementedError
 
 
 class TestConstantDiffusion(DiffusionTestInterface):
@@ -93,3 +89,43 @@ class TestConstantDiffusion(DiffusionTestInterface):
             np.testing.assert_allclose(
                 calibrated.cov, self.diffusion.diffusion * uncalibrated.cov
             )
+
+
+class TestPiecewiseConstantDiffusion(DiffusionTestInterface):
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.diffusion = diffeq.PiecewiseConstantDiffusion()
+
+    def test_call(self):
+        with pytest.raises(NotImplementedError):
+            self.diffusion(0.5)
+
+    def test_getitem(self):
+        # Tests PiecewiseConstantDiffusion.update_current_information as well.
+        generic_diffusion_values = [1.2345, 2.3456, 3.4567]
+        for val in generic_diffusion_values:
+            self.diffusion.update_current_information(diffusion=val, t=0.0)
+
+        for idx, expected_val in enumerate(generic_diffusion_values):
+            out = self.diffusion[idx]
+            np.testing.assert_allclose(out, expected_val)
+
+    def test_postprocess_states(self, some_meas_rv):
+
+        # Set up 10 RVs
+        meas_rvs = [some_meas_rv for _ in range(10)]
+
+        # Compute 10 diffusions
+        diffusion_list = np.arange(100, 110)
+        for diff in diffusion_list:
+            # t = None does not make a difference
+            self.diffusion.update_current_information(diff, None)
+
+        calibrated_states = self.diffusion.postprocess_states(meas_rvs, locations=None)
+
+        # Assert that nothing happens.
+        for calibrated, uncalibrated in zip(calibrated_states, meas_rvs):
+            np.testing.assert_allclose(calibrated.cov, uncalibrated.cov)
