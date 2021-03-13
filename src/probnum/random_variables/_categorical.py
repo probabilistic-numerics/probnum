@@ -72,15 +72,7 @@ class Categorical(DiscreteRandomVariable):
         """Event probabilities of the categorical distribution."""
         return self._probabilities
 
-    @probabilities.setter
-    def probabilities(self, probabilities):
-        self._probabilities = np.asarray(probabilities)
-
     @property
     def support(self):
         """Support of the categorical distribution."""
         return self._support
-
-    @support.setter
-    def support(self, support):
-        self._support = np.asarray(support)
