@@ -13,6 +13,7 @@ from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 class ParticleFilterPosterior(FiltSmoothPosterior):
     """Posterior distribution of a particle filter.."""
 
+    # This is essentially just a lightweight wrapper around _RandomVariableList.
     def __init__(
         self, states: _randomvariablelist._RandomVariableList, locations: np.ndarray
     ):
