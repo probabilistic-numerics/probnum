@@ -54,7 +54,7 @@ def setup(pendulum_problem, num_particles):
         measmod,
         initrv,
         num_particles=num_particles,
-        linearized_measurement_model=None,
+        linearized_measurement_model=linearized_measmod,
     )
     return dynmod, measmod, initrv, particle
 
