@@ -19,6 +19,8 @@ class Categorical(DiscreteRandomVariable):
     """
 
     def __init__(self, probabilities, support=None, random_state=None):
+        # The set of events is names "support" to be aligned with the method
+        # DiscreteRandomVariable.in_support().
 
         num_categories = len(probabilities)
         self._probabilities = np.asarray(probabilities)
@@ -35,7 +37,7 @@ class Categorical(DiscreteRandomVariable):
         def _sample_categorical(size=()):
             mask = np.random.choice(
                 np.arange(len(self.support)), size=size, p=self.probabilities
-            )
+            ).reshape(size)
             return self.support[mask]
 
         def _pmf_categorical(x):
