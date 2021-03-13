@@ -108,21 +108,18 @@ class ParticleFilter(BayesFiltSmooth):
 
     def filter(self, dataset, times, _previous_posterior=None):
 
-        # Initialize:
-        particles = []
-        weights = []
-        for idx in range(self.num_particles):
-
-            dynamics_rv = self.initrv
-            proposal_state, proposal_weight = self.compute_new_particle(
-                dataset[0], times[0], dynamics_rv
-            )
-            particles.append(proposal_state)
-            weights.append(proposal_weight)
-
-        weights = weights / np.sum(weights)
+        # Initialize: condition on first data point.
+        particles_and_weights = np.array(
+            [
+                self.compute_new_particle(dataset[0], times[0], self.initrv)
+                for _ in range(self.num_particles)
+            ]
+        )
+        particles = np.stack(particles_and_weights[:, 0], axis=0)
+        weights = np.stack(particles_and_weights[:, 1], axis=0)
+        weights = np.array(weights) / np.sum(weights)
         curr_rv = random_variables.Categorical(
-            support=np.array(particles), event_probabilities=weights
+            support=particles, event_probabilities=weights
         )
         rvs = [curr_rv]
 
