@@ -3,8 +3,7 @@ import pytest
 
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
-
-from .filtsmooth_testcases import logistic_ode, pendulum
+from probnum.tests.test_filtsmooth.filtsmooth_testcases import logistic_ode, pendulum
 
 
 def pendulum_problem():

@@ -10,6 +10,7 @@
 
 import abc
 from dataclasses import dataclass
+from typing import Optional, Union
 
 import numpy as np
 
@@ -17,6 +18,11 @@ from probnum import random_variables
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
+from ..gaussfiltsmooth import (
+    DiscreteEKFComponent,
+    DiscreteUKFComponent,
+    IteratedDiscreteComponent,
+)
 from ._particle_filter_posterior import ParticleFilterPosterior
 
 
@@ -24,30 +30,9 @@ def effective_number_of_events(categ_rv):
     return 1.0 / np.sum(categ_rv.event_probabilities ** 2)
 
 
-#
-# def resample_categorical(categ_rv):
-#
-#     u = np.random.rand(*categ_rv.event_probabilities.shape)
-#     bins = np.cumsum(categ_rv.event_probabilities)
-#     new_support = categ_rv.support[np.digitize(u, bins)]
-#
-#     new_event_probs = np.ones(categ_rv.event_probabilities.shape) / len(
-#         categ_rv.event_probabilities
-#     )
-#     return random_variables.Categorical(
-#         support=new_support, event_probabilities=new_event_probs
-#     )
-
-
 def resample_categorical(categ_rv):
 
     num_particles = len(categ_rv.support)
-    mask = np.random.choice(
-        np.arange(len(categ_rv.support)),
-        size=num_particles,
-        p=categ_rv.event_probabilities,
-    )
-    new_support = categ_rv.support[mask]
     new_support = categ_rv.sample(size=num_particles)
     new_event_probs = np.ones(categ_rv.event_probabilities.shape) / len(
         categ_rv.event_probabilities
@@ -55,6 +40,11 @@ def resample_categorical(categ_rv):
     return random_variables.Categorical(
         support=new_support, event_probabilities=new_event_probs
     )
+
+
+LinearizedMeasurementModelType = Union[
+    DiscreteUKFComponent, DiscreteEKFComponent, IteratedDiscreteComponent
+]
 
 
 class ParticleFilter(BayesFiltSmooth):
@@ -66,7 +56,7 @@ class ParticleFilter(BayesFiltSmooth):
         measurement_model,
         initrv,
         num_particles,
-        importance_density_choice="gaussian",
+        linearized_measurement_model: Optional[LinearizedMeasurementModelType] = None,
         with_resampling=True,
     ):
         self.dynamics_model = dynamics_model
@@ -75,9 +65,11 @@ class ParticleFilter(BayesFiltSmooth):
         self.num_particles = num_particles
         self.with_resampling = with_resampling
 
-        if importance_density_choice not in ["bootstrap", "gaussian"]:
-            raise ValueError
-        self.importance_density_choice = importance_density_choice
+        # If None, the dynamics model is used as a fallback option
+        # which results in the bootstrap PF.
+        # Any linearised measurement model that could be used in a
+        # Gaussian filter can be used here and will likely be a better choice.
+        self.linearized_measurement_model = linearized_measurement_model
 
     def filter(self, dataset, times, _previous_posterior=None):
 
@@ -154,8 +146,8 @@ class ParticleFilter(BayesFiltSmooth):
 
     def dynamics_to_proposal_rv(self, dynamics_rv, data, t):
         proposal_rv = dynamics_rv
-        if self.importance_density_choice == "gaussian":  # "gaussian"
-            proposal_rv, _ = self.measurement_model.backward_realization(
+        if self.linearized_measurement_model is not None:
+            proposal_rv, _ = self.linearized_measurement_model.backward_realization(
                 data, proposal_rv, t=t
             )
         return proposal_rv

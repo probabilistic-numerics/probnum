@@ -4,6 +4,8 @@ import pytest
 
 from probnum import filtsmooth, random_variables, statespace
 
+from ..filtsmooth_testcases import pendulum
+
 
 def test_effective_number_of_events():
     weights = np.random.rand(10)
@@ -15,67 +17,76 @@ def test_effective_number_of_events():
 
 
 @pytest.fixture
-def num_gridpoints():
-    return 25
-
-
-@pytest.fixture
 def num_particles():
-    return 15
+    return 10
 
 
 @pytest.fixture
-def data(num_gridpoints):
-
-    locations = np.linspace(0, 2 * np.pi, num_gridpoints)
-    data = 0.005 * np.random.randn(num_gridpoints) + np.sin(locations)
-    return data, locations
+def pendulum_problem():
+    return pendulum()
 
 
 @pytest.fixture
-def setup(num_particles):
-    prior = statespace.IBM(1, 1)
-    measmod = statespace.DiscreteLTIGaussian(
-        state_trans_mat=np.eye(1, 2),
-        shift_vec=np.zeros(1),
-        proc_noise_cov_mat=0.00025 * np.eye(1),
-    )
-    initrv = random_variables.Normal(np.zeros(2), 0.01 * np.eye(2))
+def data(pendulum_problem):
+    dynamod, measmod, initrv, info = pendulum_problem
+    delta_t = info["dt"]
+    tmax = info["tmax"]
+    times = np.arange(0, tmax, delta_t)
+    print(times)
+    states, obs = statespace.generate_samples(dynamod, measmod, initrv, times)
+
+    # Introduce clutter
+    for idx in range(len(obs) // 2):
+        obs[2 * idx] = 4 * np.random.rand() - 2
+    return states, obs, times
+    #
+    # locations = np.linspace(0, 2 * np.pi, num_gridpoints)
+    # data = 0.005 * np.random.randn(num_gridpoints) + np.sin(locations)
+    # return data, locations
+
+
+@pytest.fixture
+def setup(pendulum_problem, num_particles):
+    dynmod, measmod, initrv, info = pendulum_problem
+    linearized_measmod = filtsmooth.DiscreteUKFComponent(measmod)
 
     particle = filtsmooth.ParticleFilter(
-        prior,
+        dynmod,
         measmod,
         initrv,
         num_particles=num_particles,
-        importance_density_choice="bootstrap",
+        linearized_measurement_model=None,
     )
-    return prior, measmod, initrv, particle
+    return dynmod, measmod, initrv, particle
 
 
-def test_sth(setup, data, num_gridpoints, num_particles):
-    data, locations = data
+def test_sth(setup, data, num_particles):
+    true_states, obs, locations = data
     prior, measmod, initrv, particle = setup
 
-    posterior = particle.filter(data.reshape((-1, 1)), locations)
+    posterior = particle.filter(obs.reshape((-1, 1)), locations)
     states = posterior.supports
     weights = posterior.event_probabilities
 
+    num_gridpoints = len(locations)
     assert states.shape == (num_gridpoints, num_particles, 2)
     assert weights.shape == (num_gridpoints, num_particles)
 
     mean = posterior.mean
     # cov = posterior.cov
-    print(np.linalg.norm(mean[:, 0] - np.sin(locations)))
+    print(np.linalg.norm(mean - true_states) / np.sqrt(true_states.size))
     # print(cov)
 
-    for i in range(num_particles):
-        for l, p, w in zip(locations, states[:, i, 0], weights[:, i]):
+    # for i in range(num_particles):
+    #     for l, p, w in zip(locations, states[:, i, 0], weights[:, i]):
+    #
+    #         plt.plot(l, np.sin(p), "o", alpha=min(0.0 + w, 1.0), color="k")
 
-            plt.plot(l, p, "o", alpha=min(0.01 + 10 * w, 1.0), color="k")
-
-    plt.plot(locations, np.sin(locations))
-    plt.plot(locations, mean[:, 0])
-    plt.ylim((-2, 2))
+    plt.plot(locations, np.sin(true_states[:, 0]), label="states)")
+    plt.plot(locations, np.sin(mean[:, 0]), label="mean(posterior)")
+    plt.plot(locations, obs, label="Observations", marker="x", linestyle="None")
+    plt.legend()
+    # plt.ylim((-2, 2))
     plt.show()
 
     assert False
