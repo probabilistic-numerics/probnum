@@ -108,7 +108,8 @@ class ParticleFilter(BayesFiltSmooth):
 
     def filter(self, dataset, times, _previous_posterior=None):
 
-        # Initialize: condition on first data point.
+        # Initialize: condition on first data point using the initial random
+        # variable as a dynamics rv (i.e. as the current prior).
         particles_and_weights = np.array(
             [
                 self.compute_new_particle(dataset[0], times[0], self.initrv)
@@ -176,7 +177,11 @@ class ParticleFilter(BayesFiltSmooth):
         return new_rv, {}
 
     def compute_new_particle(self, data, stop, dynamics_rv):
-        """Compute a new particle."""
+        """Compute a new particle.
+
+        Turn the dynamics RV into a proposal RV, apply the measurement
+        model and compute new weights via the respective PDFs.
+        """
         proposal_rv = self.dynamics_to_proposal_rv(dynamics_rv, data=data, t=stop)
         proposal_state = proposal_rv.sample()
         meas_rv, _ = self.measurement_model.forward_realization(proposal_state, t=stop)
