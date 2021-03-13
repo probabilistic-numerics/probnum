@@ -25,7 +25,7 @@ def effective_number_of_events(categ_rv: random_variables.Categorical) -> float:
     In a particle filter, this is used as the effective number of
     particles.
     """
-    return 1.0 / np.sum(categ_rv.event_probabilities ** 2)
+    return 1.0 / np.sum(categ_rv.probabilities ** 2)
 
 
 def resample_categorical(
@@ -34,12 +34,12 @@ def resample_categorical(
     """Resample a categorical random variable."""
     num_particles = len(categ_rv.support)
     new_support = categ_rv.sample(size=num_particles)
-    new_event_probs = np.ones(categ_rv.event_probabilities.shape) / len(
-        categ_rv.event_probabilities
+    new_event_probs = np.ones(categ_rv.probabilities.shape) / len(
+        categ_rv.probabilities
     )
     return random_variables.Categorical(
         support=new_support,
-        event_probabilities=new_event_probs,
+        probabilities=new_event_probs,
         random_state=categ_rv.random_state,
     )
 
@@ -119,9 +119,7 @@ class ParticleFilter(BayesFiltSmooth):
         particles = np.stack(particles_and_weights[:, 0], axis=0)
         weights = np.stack(particles_and_weights[:, 1], axis=0)
         weights = np.array(weights) / np.sum(weights)
-        curr_rv = random_variables.Categorical(
-            support=particles, event_probabilities=weights
-        )
+        curr_rv = random_variables.Categorical(support=particles, probabilities=weights)
         rvs = [curr_rv]
 
         for idx in range(1, len(times)):
@@ -151,7 +149,7 @@ class ParticleFilter(BayesFiltSmooth):
 
         After this is done for all particles, the weights are normalized in order to sum to 1.
         """
-        new_weights = randvar.event_probabilities.copy()
+        new_weights = randvar.probabilities.copy()
         new_support = randvar.support.copy()
 
         for idx, (particle, weight) in enumerate(zip(new_support, new_weights)):
@@ -167,7 +165,7 @@ class ParticleFilter(BayesFiltSmooth):
 
         new_weights = new_weights / np.sum(new_weights)
         new_rv = random_variables.Categorical(
-            support=new_support, event_probabilities=new_weights
+            support=new_support, probabilities=new_weights
         )
 
         if self.with_resampling:

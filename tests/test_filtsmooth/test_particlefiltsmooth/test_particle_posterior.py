@@ -8,7 +8,7 @@ from probnum import filtsmooth, random_variables
 def state_list():
     return [
         random_variables.Categorical(
-            event_probabilities=np.ones(10) / 10, support=np.random.rand(10, 2)
+            probabilities=np.ones(10) / 10, support=np.random.rand(10, 2)
         )
         for _ in range(20)
     ]

@@ -10,7 +10,7 @@ from ..filtsmooth_testcases import pendulum
 def test_effective_number_of_events():
     weights = np.random.rand(10)
     categ = random_variables.Categorical(
-        support=np.random.rand(10, 2), event_probabilities=weights / np.sum(weights)
+        support=np.random.rand(10, 2), probabilities=weights / np.sum(weights)
     )
     ess = filtsmooth.effective_number_of_events(categ)
     assert 0 < ess < 10
@@ -64,17 +64,16 @@ def test_sth(setup, data, num_particles):
     prior, measmod, initrv, particle = setup
 
     posterior = particle.filter(obs.reshape((-1, 1)), locations)
-    states = posterior.supports
-    weights = posterior.event_probabilities
+    states = posterior.states.support
+    weights = posterior.states.probabilities
 
     num_gridpoints = len(locations)
     assert states.shape == (num_gridpoints, num_particles, 2)
     assert weights.shape == (num_gridpoints, num_particles)
 
-    mean = posterior.mean
-    mode = posterior.mode
+    mode = posterior.states.mode
     # cov = posterior.cov
-    print(np.linalg.norm(mean - true_states) / np.sqrt(true_states.size))
+    print(np.linalg.norm(mode - true_states) / np.sqrt(true_states.size))
     # print(cov.shape)
 
     # for i in range(num_particles):
@@ -83,7 +82,6 @@ def test_sth(setup, data, num_particles):
     #         plt.plot(l, np.sin(p), "o", alpha=min(0.0 + w, 1.0), color="k")
 
     plt.plot(locations, np.sin(true_states[:, 0]), label="states)")
-    plt.plot(locations, np.sin(mean[:, 0]), label="mean(posterior)")
     plt.plot(locations, np.sin(mode[:, 0]), label="mode(posterior)")
     plt.plot(locations, obs, label="Observations", marker="x", linestyle="None")
     plt.legend()
