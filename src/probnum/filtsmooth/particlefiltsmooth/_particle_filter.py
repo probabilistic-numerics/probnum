@@ -108,7 +108,8 @@ class ParticleFilter(BayesFiltSmooth):
             [
                 self.compute_new_particle(dataset[0], times[0], self.initrv)
                 for _ in range(self.num_particles)
-            ]
+            ],
+            dtype=object,
         )
         particles = np.stack(particles_and_weights[:, 0], axis=0)
         weights = np.stack(particles_and_weights[:, 1], axis=0)

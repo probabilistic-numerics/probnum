@@ -16,38 +16,58 @@ def test_effective_number_of_events():
     assert 0 < ess < 10
 
 
+def test_resample_categorical():
+    weights = np.random.rand(10)
+    categ = random_variables.Categorical(
+        support=np.random.rand(10, 2), probabilities=weights / np.sum(weights)
+    )
+    new_categ = filtsmooth.resample_categorical(categ)
+    assert isinstance(new_categ, random_variables.Categorical)
+    assert new_categ.shape == categ.shape
+    np.testing.assert_allclose(np.diff(new_categ.probabilities), 0.0)
+
+
+# Test the RMSE on a pendulum example
+
+
 @pytest.fixture
 def num_particles():
-    return 5
+    return 4
 
 
 @pytest.fixture
-def pendulum_problem():
+def problem():
     return pendulum()
 
 
 @pytest.fixture
-def data(pendulum_problem):
-    dynamod, measmod, initrv, info = pendulum_problem
-    delta_t = info["dt"]
+def data(problem):
+    """Downsample pendulum data because PF is EXPENSIVE."""
+    dynamod, measmod, initrv, info = problem
+    delta_t = 16 * info["dt"]
     tmax = info["tmax"]
     times = np.arange(0, tmax, delta_t)
     states, obs = statespace.generate_samples(dynamod, measmod, initrv, times)
 
-    # Introduce clutter
-    # for idx in range(len(obs) // 2):
-    #     obs[2 * idx] = 4 * np.random.rand() - 2
     return states, obs, times
-    #
-    # locations = np.linspace(0, 2 * np.pi, num_gridpoints)
-    # data = 0.005 * np.random.randn(num_gridpoints) + np.sin(locations)
-    # return data, locations
 
 
 @pytest.fixture
-def setup(pendulum_problem, num_particles):
-    dynmod, measmod, initrv, info = pendulum_problem
-    linearized_measmod = filtsmooth.DiscreteUKFComponent(measmod)
+def linearized_measmod(problem, measmod_style):
+    """UKF-importance density and bootstrap PF."""
+    if measmod_style == "uk":
+        dynmod, measmod, initrv, info = problem
+        linearized_measmod = filtsmooth.DiscreteUKFComponent(measmod)
+        return linearized_measmod
+
+    # Now measmod_style is "none"
+    return None
+
+
+@pytest.fixture
+def particle(problem, num_particles, linearized_measmod):
+    """Create a particle filter."""
+    dynmod, measmod, initrv, info = problem
 
     particle = filtsmooth.ParticleFilter(
         dynmod,
@@ -56,36 +76,37 @@ def setup(pendulum_problem, num_particles):
         num_particles=num_particles,
         linearized_measurement_model=linearized_measmod,
     )
-    return dynmod, measmod, initrv, particle
+    return particle
 
 
-def test_sth(setup, data, num_particles):
+@pytest.fixture
+def pf_output(particle, data, num_particles):
     true_states, obs, locations = data
-    prior, measmod, initrv, particle = setup
+    return particle.filter(obs, locations)
 
-    posterior = particle.filter(obs.reshape((-1, 1)), locations)
-    states = posterior.states.support
-    weights = posterior.states.probabilities
 
+@pytest.mark.parametrize("measmod_style", ["uk", "none"])
+def test_shape_pf_output(pf_output, data, num_particles):
+    true_states, obs, locations = data
+
+    states = pf_output.states.support
+    weights = pf_output.states.probabilities
     num_gridpoints = len(locations)
     assert states.shape == (num_gridpoints, num_particles, 2)
     assert weights.shape == (num_gridpoints, num_particles)
 
-    mode = posterior.states.mode
-    # cov = posterior.cov
-    print(np.linalg.norm(mode - true_states) / np.sqrt(true_states.size))
-    # print(cov.shape)
 
-    # for i in range(num_particles):
-    #     for l, p, w in zip(locations, states[:, i, 0], weights[:, i]):
-    #
-    #         plt.plot(l, np.sin(p), "o", alpha=min(0.0 + w, 1.0), color="k")
+@pytest.mark.parametrize("measmod_style", ["uk", "none"])
+def test_rmse_particlefilter(pf_output, data):
+    """Assert that the RMSE of the mode of the posterior of the PF is a lot smaller than
+    the RMSE of the data."""
+    true_states, obs, locations = data
 
-    plt.plot(locations, np.sin(true_states[:, 0]), label="states)")
-    plt.plot(locations, np.sin(mode[:, 0]), label="mode(posterior)")
-    plt.plot(locations, obs, label="Observations", marker="x", linestyle="None")
-    plt.legend()
-    # plt.ylim((-2, 2))
-    plt.show()
+    mode = pf_output.states.mode
+    rmse_mode = np.linalg.norm(np.sin(mode) - np.sin(true_states)) / np.sqrt(
+        true_states.size
+    )
+    rmse_data = np.linalg.norm(obs - np.sin(true_states)) / np.sqrt(true_states.size)
 
-    assert False
+    # RMSE of PF.mode strictly better than RMSE of data
+    assert rmse_mode < 0.9 * rmse_data
