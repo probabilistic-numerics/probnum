@@ -100,7 +100,22 @@ class ParticleFilter(BayesFiltSmooth):
         # choice than the bootstrap.
         self.linearized_measurement_model = linearized_measurement_model
 
-    def filter(self, dataset, times, _previous_posterior=None):
+    def filter(self, dataset, times):
+        """Apply Particle filtering to a data set.
+
+        Parameters
+        ----------
+        dataset : array_like, shape (N, M)
+            Data set that is filtered.
+        times : array_like, shape (N,)
+            Temporal locations of the data points.
+            The zeroth element in times and dataset is the location of the initial random variable.
+
+        Returns
+        -------
+        ParticleFilterPosterior
+            Posterior distribution of the filtered output.
+        """
 
         # Initialize: condition on first data point using the initial random
         # variable as a dynamics rv (i.e. as the current prior).
