@@ -35,6 +35,8 @@ class ParticleFilterPosterior(FiltSmoothPosterior):
 
     @cached_property
     def cov(self):
+        # Shape N, num_particles, ndim
+
         centered_supports = self.supports - self.mean[:, None, :]
         raise RuntimeError("finish implementing the cov here!")
         return np.einsum(

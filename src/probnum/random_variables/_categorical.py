@@ -35,7 +35,10 @@ class Categorical(DiscreteRandomVariable):
         }
 
         def _sample_categorical(size=()):
-            raise NotImplementedError
+            mask = np.random.choice(
+                np.arange(len(self.support)), size=size, p=self.event_probabilities
+            )
+            return self.support[mask]
 
         def _pmf_categorical(x):
             idx = np.where(x == self._support)[0]

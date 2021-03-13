@@ -1,4 +1,12 @@
-"""Particle filters."""
+"""Particle filters.
+
+
+    #
+    # u = np.random.rand(*categ_rv.event_probabilities.shape)
+    # bins = np.cumsum(categ_rv.event_probabilities)
+    # new_support = categ_rv.support[np.digitize(u, bins)]
+
+"""
 
 import abc
 from dataclasses import dataclass
@@ -16,12 +24,31 @@ def effective_number_of_events(categ_rv):
     return 1.0 / np.sum(categ_rv.event_probabilities ** 2)
 
 
+#
+# def resample_categorical(categ_rv):
+#
+#     u = np.random.rand(*categ_rv.event_probabilities.shape)
+#     bins = np.cumsum(categ_rv.event_probabilities)
+#     new_support = categ_rv.support[np.digitize(u, bins)]
+#
+#     new_event_probs = np.ones(categ_rv.event_probabilities.shape) / len(
+#         categ_rv.event_probabilities
+#     )
+#     return random_variables.Categorical(
+#         support=new_support, event_probabilities=new_event_probs
+#     )
+
+
 def resample_categorical(categ_rv):
 
-    u = np.random.rand(*categ_rv.event_probabilities.shape)
-    bins = np.cumsum(categ_rv.event_probabilities)
-    new_support = categ_rv.support[np.digitize(u, bins)]
-
+    num_particles = len(categ_rv.support)
+    mask = np.random.choice(
+        np.arange(len(categ_rv.support)),
+        size=num_particles,
+        p=categ_rv.event_probabilities,
+    )
+    new_support = categ_rv.support[mask]
+    new_support = categ_rv.sample(size=num_particles)
     new_event_probs = np.ones(categ_rv.event_probabilities.shape) / len(
         categ_rv.event_probabilities
     )
