@@ -41,8 +41,17 @@ class Categorical(DiscreteRandomVariable):
             return self.support[mask]
 
         def _pmf_categorical(x):
-            idx = np.where(x == self.support)[0]
-            return self.probabilities[idx][0] if len(idx) > 0 else 0.0
+
+            # Defense against cryptic warnings such as:
+            # https://stackoverflow.com/questions/45020217/numpy-where-function-throws-a-futurewarning-returns-scalar-instead-of-list
+            x = np.asarray(x)
+            if x.dtype != self.dtype:
+                raise ValueError(
+                    "The data type of x does not match with the data type of the support."
+                )
+
+            mask = (x == self.support).nonzero()[0]
+            return self.probabilities[mask][0] if len(mask) > 0 else 0.0
 
         def _mode_categorical():
             mask = np.argmax(self.probabilities)
@@ -50,7 +59,7 @@ class Categorical(DiscreteRandomVariable):
 
         super().__init__(
             shape=self._support[0].shape,
-            dtype=self._support.dtype,
+            dtype=self._support[0].dtype,
             random_state=random_state,
             parameters=parameters,
             sample=_sample_categorical,
