@@ -10,28 +10,26 @@ class Categorical(DiscreteRandomVariable):
 
     Parameters
     ----------
-    support :
-        Support of the categorical distribution.
     event_probabilities :
-        Probabilities that each event in the support happens.
+        Probabilities of the events.
+    support :
+        Support of the categorical distribution. Optional. Default is None,
+        in which case the support is chosen as :math:`(0, ..., K-1)` where
+        :math:`K` is the number of elements in `event_probabilities`.
     """
 
-    def __init__(self, support, event_probabilities=None, random_state=None):
+    def __init__(self, event_probabilities, support=None, random_state=None):
 
-        # support = utils.atleast_1d(support)
-        # event_probabilities = utils.atleast_1d(event_probabilities)
-
-        self._event_probabilities = (
-            np.ones(len(support)) / len(support)
-            if event_probabilities is None
-            else np.asarray(event_probabilities)
+        num_categories = len(event_probabilities)
+        self._event_probabilities = np.asarray(event_probabilities)
+        self._support = (
+            np.asarray(support) if support is not None else np.arange(num_categories)
         )
-        self._support = np.asarray(support)
 
         parameters = {
             "support": self._support,
             "event_probabilities": self._event_probabilities,
-            "num_categories": len(support),
+            "num_categories": num_categories,
         }
 
         def _sample_categorical(size=()):
@@ -60,8 +58,18 @@ class Categorical(DiscreteRandomVariable):
 
     @property
     def event_probabilities(self):
+        """Event probabilities of the categorical distribution."""
         return self._event_probabilities
+
+    @event_probabilities.setter
+    def event_probabilities(self, event_probabilities):
+        self._event_probabilities = np.asarray(event_probabilities)
 
     @property
     def support(self):
+        """Support of the categorical distribution."""
         return self._support
+
+    @support.setter
+    def support(self, support):
+        self._support = np.asarray(support)
