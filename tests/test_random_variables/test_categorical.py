@@ -11,7 +11,7 @@ from probnum import random_variables, utils
 NDIM = 5
 
 all_supports = pytest.mark.parametrize(
-    "event_labels",
+    "support",
     [
         None,
         np.arange(NDIM),
@@ -37,9 +37,9 @@ def probabilities():
 
 
 @pytest.fixture
-def categ(probabilities, event_labels, random_state):
+def categ(probabilities, support, random_state):
     return random_variables.Categorical(
-        probabilities=probabilities, support=event_labels, random_state=random_state
+        probabilities=probabilities, support=support, random_state=random_state
     )
 
 
@@ -64,3 +64,24 @@ def test_sample(categ, size):
     samples = categ.sample(size=size)
     expected_shape = utils.as_shape(size) + categ.shape
     assert samples.shape == expected_shape
+
+
+@all_supports
+@all_random_states
+@pytest.mark.parametrize("index", [0, -1])
+def test_pmf(categ, index):
+    pmf_value = categ.pmf(x=categ.support[index])
+    np.testing.assert_almost_equal(pmf_value, categ.probabilities[index])
+
+    zero_pmf_value = categ.pmf(x=np.inf * np.ones(categ.shape))
+    np.testing.assert_almost_equal(zero_pmf_value, 0.0)
+
+
+#
+# @all_supports
+# @all_random_states
+# @pytest.mark.parametrize("index", [0, -1])
+# def test_pmf_zero(categ, index):
+#     zero_pmf_value = categ.pmf(x=np.inf * np.ones(categ.shape))
+#     np.testing.assert_almost_equal(zero_pmf_value, 0.)
+#

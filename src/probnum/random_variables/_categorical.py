@@ -42,7 +42,7 @@ class Categorical(DiscreteRandomVariable):
 
         def _pmf_categorical(x):
             idx = np.where(x == self.support)[0]
-            return self.probabilities[idx] if len(idx) > 0 else 0.0
+            return self.probabilities[idx][0] if len(idx) > 0 else 0.0
 
         def _mode_categorical():
             mask = np.argmax(self.probabilities)
