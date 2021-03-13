@@ -1,21 +1,13 @@
 """Particle filters."""
 
-import abc
-from dataclasses import dataclass
 from typing import Optional, Union
 
 import numpy as np
 
 from probnum import random_variables, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
-from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 from probnum.type import FloatArgType, IntArgType
 
-from ..gaussfiltsmooth import (
-    DiscreteEKFComponent,
-    DiscreteUKFComponent,
-    IteratedDiscreteComponent,
-)
 from ._particle_filter_posterior import ParticleFilterPosterior
 
 
@@ -88,9 +80,11 @@ class ParticleFilter(BayesFiltSmooth):
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,
     ) -> None:
-        self.dynamics_model = dynamics_model
-        self.measurement_model = measurement_model
-        self.initrv = initrv
+        super().__init__(
+            dynamics_model=dynamics_model,
+            measurement_model=measurement_model,
+            initrv=initrv,
+        )
         self.num_particles = num_particles
 
         self.with_resampling = with_resampling

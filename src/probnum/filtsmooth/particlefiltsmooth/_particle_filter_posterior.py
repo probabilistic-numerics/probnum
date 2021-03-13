@@ -1,12 +1,8 @@
 """Particle filtering posterior."""
-import abc
-from dataclasses import dataclass
-from functools import cached_property
 
 import numpy as np
 
 from probnum import _randomvariablelist
-from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
 
 
@@ -19,6 +15,7 @@ class ParticleFilterPosterior(FiltSmoothPosterior):
     ):
         self.states = _randomvariablelist._RandomVariableList(states)
         self.locations = locations
+        super().__init__()
 
     def __call__(self, t):
         raise NotImplementedError("Particle filters do not provide dense output.")
@@ -26,5 +23,5 @@ class ParticleFilterPosterior(FiltSmoothPosterior):
     def __len__(self):
         return len(self.states)
 
-    def __getitem__(self):
+    def __getitem__(self, idx):
         return self.states[idx]

@@ -1,6 +1,5 @@
+"""Categorical random variables."""
 import numpy as np
-
-from probnum import utils
 
 from ._random_variable import DiscreteRandomVariable
 
