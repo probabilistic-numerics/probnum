@@ -15,9 +15,7 @@ all_supports = pytest.mark.parametrize(
     [
         None,
         np.arange(NDIM),
-        np.arange(10, 10 + NDIM),
         np.array(list(string.ascii_lowercase)[:NDIM]),
-        np.random.rand(NDIM, 3),
         np.random.rand(NDIM, 3, 3),
     ],
 )
@@ -78,9 +76,7 @@ def test_pmf(categ, index):
 
 @all_supports
 @all_random_states
-def test_pmf_zero(
-    categ,
-):
+def test_pmf_zero(categ):
     """Make a new Categorical RV that excludes the final point and check that the pmf
     rightfully evaluates to zero."""
 
@@ -102,3 +98,10 @@ def test_pmf_valueerror():
     categ = random_variables.Categorical(probabilities=[0.5, 0.5], support=["a", "b"])
     with pytest.raises(ValueError):
         categ.pmf(2)
+
+
+@all_supports
+@all_random_states
+def test_mode(categ):
+    mode = categ.mode
+    assert mode.shape == categ.shape
