@@ -95,14 +95,15 @@ class ParticleFilter(BayesFiltSmooth):
 
         self.with_resampling = with_resampling
         self.resampling_percentage_threshold = resampling_percentage_threshold
-        self.min_effictive_num_of_particles = (
+        self.min_effective_num_of_particles = (
             resampling_percentage_threshold * num_particles
         )
 
         # If None, the dynamics model is used as a fallback option
         # which results in the bootstrap PF.
         # Any linearised measurement model that could be used in a
-        # Gaussian filter can be used here and will likely be a better choice.
+        # Gaussian filter can be used here and will likely be a better
+        # choice than the bootstrap.
         self.linearized_measurement_model = linearized_measurement_model
 
     def filter(self, dataset, times, _previous_posterior=None):
@@ -160,11 +161,9 @@ class ParticleFilter(BayesFiltSmooth):
             dynamics_rv, _ = self.dynamics_model.forward_realization(
                 particle, t=start, dt=(stop - start)
             )
-
             proposal_state, proposal_weight = self.compute_new_particle(
                 data, stop, dynamics_rv
             )
-
             new_support[idx] = proposal_state
             new_weights[idx] = proposal_weight
 
@@ -174,7 +173,7 @@ class ParticleFilter(BayesFiltSmooth):
         )
 
         if self.with_resampling:
-            if effective_number_of_events(new_rv) < self.min_effictive_num_of_particles:
+            if effective_number_of_events(new_rv) < self.min_effective_num_of_particles:
                 new_rv = resample_categorical(new_rv)
 
         return new_rv, {}
@@ -184,11 +183,13 @@ class ParticleFilter(BayesFiltSmooth):
         proposal_rv = self.dynamics_to_proposal_rv(dynamics_rv, data=data, t=stop)
         proposal_state = proposal_rv.sample()
         meas_rv, _ = self.measurement_model.forward_realization(proposal_state, t=stop)
-        proposal_weight = (
-            meas_rv.pdf(data)
-            * dynamics_rv.pdf(proposal_state)
-            / proposal_rv.pdf(proposal_state)
+
+        log_proposal_weight = (
+            meas_rv.logpdf(data)
+            + dynamics_rv.logpdf(proposal_state)
+            - proposal_rv.logpdf(proposal_state)
         )
+        proposal_weight = np.exp(log_proposal_weight)
         return proposal_state, proposal_weight
 
     def dynamics_to_proposal_rv(self, dynamics_rv, data, t):
