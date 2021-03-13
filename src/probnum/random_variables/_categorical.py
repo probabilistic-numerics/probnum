@@ -10,7 +10,7 @@ class Categorical(DiscreteRandomVariable):
 
     Parameters
     ----------
-    event_probabilities :
+    probabilities :
         Probabilities of the events.
     support :
         Support of the categorical distribution. Optional. Default is None,
@@ -18,32 +18,32 @@ class Categorical(DiscreteRandomVariable):
         :math:`K` is the number of elements in `event_probabilities`.
     """
 
-    def __init__(self, event_probabilities, support=None, random_state=None):
+    def __init__(self, probabilities, support=None, random_state=None):
 
-        num_categories = len(event_probabilities)
-        self._event_probabilities = np.asarray(event_probabilities)
+        num_categories = len(probabilities)
+        self._probabilities = np.asarray(probabilities)
         self._support = (
             np.asarray(support) if support is not None else np.arange(num_categories)
         )
 
         parameters = {
             "support": self._support,
-            "event_probabilities": self._event_probabilities,
+            "event_probabilities": self._probabilities,
             "num_categories": num_categories,
         }
 
         def _sample_categorical(size=()):
             mask = np.random.choice(
-                np.arange(len(self.support)), size=size, p=self.event_probabilities
+                np.arange(len(self.support)), size=size, p=self.probabilities
             )
             return self.support[mask]
 
         def _pmf_categorical(x):
-            idx = np.where(x == self._support)[0]
-            return self._event_probabilities[idx] if len(idx) > 0 else 0.0
+            idx = np.where(x == self.support)[0]
+            return self.probabilities[idx] if len(idx) > 0 else 0.0
 
         def _mode_categorical():
-            mask = np.argmax(self.event_probabilities)
+            mask = np.argmax(self.probabilities)
             return self.support[mask]
 
         super().__init__(
@@ -57,13 +57,13 @@ class Categorical(DiscreteRandomVariable):
         )
 
     @property
-    def event_probabilities(self):
+    def probabilities(self):
         """Event probabilities of the categorical distribution."""
-        return self._event_probabilities
+        return self._probabilities
 
-    @event_probabilities.setter
-    def event_probabilities(self, event_probabilities):
-        self._event_probabilities = np.asarray(event_probabilities)
+    @probabilities.setter
+    def probabilities(self, probabilities):
+        self._probabilities = np.asarray(probabilities)
 
     @property
     def support(self):

@@ -11,7 +11,7 @@ from probnum import random_variables
 NDIM = 5
 
 all_supports = pytest.mark.parametrize(
-    "support",
+    "event_labels",
     [
         None,
         np.arange(NDIM),
@@ -37,17 +37,17 @@ def event_probs():
 
 
 @pytest.fixture
-def categ(event_probs, support, random_state):
+def categ(event_probs, event_labels, random_state):
     return random_variables.Categorical(
-        event_probabilities=event_probs, support=support, random_state=random_state
+        probabilities=event_probs, support=event_labels, random_state=random_state
     )
 
 
 @all_random_states
 @all_supports
 def test_event_probabilities(categ, event_probs):
-    assert categ.event_probabilities.shape == (NDIM,)
-    np.testing.assert_allclose(categ.event_probabilities, event_probs)
+    assert categ.probabilities.shape == (NDIM,)
+    np.testing.assert_allclose(categ.probabilities, event_probs)
 
 
 @all_supports
