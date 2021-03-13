@@ -18,7 +18,7 @@ def test_effective_number_of_events():
 
 @pytest.fixture
 def num_particles():
-    return 20
+    return 5
 
 
 @pytest.fixture
@@ -75,7 +75,7 @@ def test_sth(setup, data, num_particles):
     mode = posterior.mode
     # cov = posterior.cov
     print(np.linalg.norm(mean - true_states) / np.sqrt(true_states.size))
-    # print(cov)
+    # print(cov.shape)
 
     # for i in range(num_particles):
     #     for l, p, w in zip(locations, states[:, i, 0], weights[:, i]):

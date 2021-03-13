@@ -58,12 +58,15 @@ class ParticleFilter(BayesFiltSmooth):
         num_particles,
         linearized_measurement_model: Optional[LinearizedMeasurementModelType] = None,
         with_resampling=True,
+        resampling_percentage_threshold=0.1,
     ):
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
         self.num_particles = num_particles
+
         self.with_resampling = with_resampling
+        self.resampling_percentage_threshold = resampling_percentage_threshold
 
         # If None, the dynamics model is used as a fallback option
         # which results in the bootstrap PF.
@@ -128,7 +131,10 @@ class ParticleFilter(BayesFiltSmooth):
 
         # Resample
         if self.with_resampling:
-            if effective_number_of_events(new_rv) < self.num_particles / 10:
+            if (
+                effective_number_of_events(new_rv)
+                < self.num_particles * self.resampling_percentage_threshold
+            ):
                 new_rv = resample_categorical(new_rv)
 
         return new_rv, {}
