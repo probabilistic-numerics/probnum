@@ -3,10 +3,8 @@ import pytest
 
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
-from probnum.tests.test_filtsmooth.filtsmooth_testcases import (
-    car_tracking,
-    ornstein_uhlenbeck,
-)
+
+from ..filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 
 # Problems
 
