@@ -16,7 +16,7 @@ class Categorical(DiscreteRandomVariable):
         Probabilities that each event in the support happens.
     """
 
-    def __init__(self, support, event_probabilities=None):
+    def __init__(self, support, event_probabilities=None, random_state=None):
 
         # support = utils.atleast_1d(support)
         # event_probabilities = utils.atleast_1d(event_probabilities)
@@ -44,12 +44,18 @@ class Categorical(DiscreteRandomVariable):
             idx = np.where(x == self._support)[0]
             return self._event_probabilities[idx] if len(idx) > 0 else 0.0
 
+        def _mode_categorical():
+            mask = np.argmax(self.event_probabilities)
+            return self.support[mask]
+
         super().__init__(
-            shape=(),
+            shape=self._support[0].shape,
             dtype=self._support.dtype,
+            random_state=random_state,
             parameters=parameters,
             sample=_sample_categorical,
             pmf=_pmf_categorical,
+            mode=_mode_categorical,
         )
 
     @property

@@ -30,6 +30,10 @@ class ParticleFilterPosterior(FiltSmoothPosterior):
         )
 
     @cached_property
+    def mode(self):
+        return np.array([state.mode for state in self.particle_state_list])
+
+    @cached_property
     def mean(self):
         return np.einsum("ijk,ij->ik", self.supports, self.event_probabilities)
 

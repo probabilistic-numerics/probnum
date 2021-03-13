@@ -18,7 +18,7 @@ def test_effective_number_of_events():
 
 @pytest.fixture
 def num_particles():
-    return 10
+    return 20
 
 
 @pytest.fixture
@@ -32,12 +32,11 @@ def data(pendulum_problem):
     delta_t = info["dt"]
     tmax = info["tmax"]
     times = np.arange(0, tmax, delta_t)
-    print(times)
     states, obs = statespace.generate_samples(dynamod, measmod, initrv, times)
 
     # Introduce clutter
-    for idx in range(len(obs) // 2):
-        obs[2 * idx] = 4 * np.random.rand() - 2
+    # for idx in range(len(obs) // 2):
+    #     obs[2 * idx] = 4 * np.random.rand() - 2
     return states, obs, times
     #
     # locations = np.linspace(0, 2 * np.pi, num_gridpoints)
@@ -73,6 +72,7 @@ def test_sth(setup, data, num_particles):
     assert weights.shape == (num_gridpoints, num_particles)
 
     mean = posterior.mean
+    mode = posterior.mode
     # cov = posterior.cov
     print(np.linalg.norm(mean - true_states) / np.sqrt(true_states.size))
     # print(cov)
@@ -84,6 +84,7 @@ def test_sth(setup, data, num_particles):
 
     plt.plot(locations, np.sin(true_states[:, 0]), label="states)")
     plt.plot(locations, np.sin(mean[:, 0]), label="mean(posterior)")
+    plt.plot(locations, np.sin(mode[:, 0]), label="mode(posterior)")
     plt.plot(locations, obs, label="Observations", marker="x", linestyle="None")
     plt.legend()
     # plt.ylim((-2, 2))
