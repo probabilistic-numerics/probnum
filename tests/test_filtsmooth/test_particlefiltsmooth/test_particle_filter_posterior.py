@@ -30,3 +30,38 @@ def test_getitem(posterior):
 def test_call(posterior):
     with pytest.raises(NotImplementedError):
         posterior(0.0)
+
+
+# The tests below -- as a side results -- also cover the specific properties in _RandomVariableList.
+
+
+def test_mode(posterior):
+    mode = posterior.states.mode
+    assert mode.shape == (len(posterior),) + posterior.states[0].shape
+
+
+def test_support(posterior):
+    support = posterior.states.support
+    assert (
+        support.shape
+        == (len(posterior),)
+        + (len(posterior.states[0].probabilities),)
+        + posterior.states[0].shape
+    )
+
+
+def test_probabilities(posterior):
+    probabilities = posterior.states.probabilities
+    assert probabilities.shape == (len(posterior),) + (
+        len(posterior.states[0].probabilities),
+    )
+
+
+def test_resample(posterior):
+    resampled_posterior = posterior.states.resample()
+    assert (
+        resampled_posterior.support.shape
+        == (len(posterior),)
+        + (len(posterior.states[0].probabilities),)
+        + posterior.states[0].shape
+    )
