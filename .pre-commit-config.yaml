@@ -15,7 +15,8 @@ repos:
     rev: v3.2.0
     hooks:
       - id: check-added-large-files
-        args: ['--maxkb=100']
+        # Default is 500 which is too strict on the notebooks.
+        args: ['--maxkb=1000']
       - id: check-json
       - id: pretty-format-json
       - id: check-merge-conflict
