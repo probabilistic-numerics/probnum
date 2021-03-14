@@ -13,6 +13,7 @@ See the notebooks below to learn more about how to use ProbNum's functionality f
 
    filtsmooth/linear_bayesian_filtering_smoothing
    filtsmooth/nonlinear_bayesian_filtering_smoothing
+   filtsmooth/particle_filtering
 
 ----
 
