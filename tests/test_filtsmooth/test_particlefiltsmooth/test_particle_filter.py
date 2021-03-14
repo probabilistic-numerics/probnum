@@ -53,7 +53,9 @@ def linearized_measmod(problem, measmod_style):
 
 
 @pytest.fixture
-def particle(problem, num_particles, linearized_measmod):
+def particle(
+    problem, num_particles, linearized_measmod, resampling_percentage_threshold
+):
     """Create a particle filter."""
     dynmod, measmod, initrv, info = problem
 
@@ -63,6 +65,7 @@ def particle(problem, num_particles, linearized_measmod):
         initrv,
         num_particles=num_particles,
         linearized_measurement_model=linearized_measmod,
+        resampling_percentage_threshold=resampling_percentage_threshold,
     )
     return particle
 
@@ -74,6 +77,7 @@ def pf_output(particle, data, num_particles):
 
 
 @pytest.mark.parametrize("measmod_style", ["uk", "none"])
+@pytest.mark.parametrize("resampling_percentage_threshold", [-1.0, 0.1, 2.0])
 def test_shape_pf_output(pf_output, data, num_particles):
     true_states, obs, locations = data
 
@@ -84,7 +88,11 @@ def test_shape_pf_output(pf_output, data, num_particles):
     assert weights.shape == (num_gridpoints, num_particles)
 
 
+# Resampling percentage threshold checks that
+# resampling is performed a) never, b) sometimes, c) always
+# Measmod style checks bootstrap and Gaussian proposals.
 @pytest.mark.parametrize("measmod_style", ["uk", "none"])
+@pytest.mark.parametrize("resampling_percentage_threshold", [-1.0, 0.1, 2.0])
 def test_rmse_particlefilter(pf_output, data):
     """Assert that the RMSE of the mode of the posterior of the PF is a lot smaller than
     the RMSE of the data."""

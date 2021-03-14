@@ -21,7 +21,6 @@ from .particlefiltsmooth import (
     ParticleFilter,
     ParticleFilterPosterior,
     effective_number_of_events,
-    resample_categorical,
 )
 
 # Public classes and functions. Order is reflected in documentation.
@@ -44,5 +43,4 @@ __all__ = [
     "ParticleFilter",
     "ParticleFilterPosterior",
     "effective_number_of_events",
-    "resample_categorical",
 ]

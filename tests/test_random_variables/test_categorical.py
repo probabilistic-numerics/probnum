@@ -111,8 +111,12 @@ def test_mode(categ):
 @all_random_states
 def test_resample(categ):
     new_categ = categ.resample()
+
     assert isinstance(new_categ, random_variables.Categorical)
     assert new_categ.shape == categ.shape
 
     # Assert all probabilities are equal
     np.testing.assert_allclose(np.diff(new_categ.probabilities), 0.0)
+
+    # Assert support is chosen from old support
+    assert np.all(np.isin(new_categ.support, categ.support))

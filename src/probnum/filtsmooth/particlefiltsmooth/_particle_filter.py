@@ -20,22 +20,6 @@ def effective_number_of_events(categ_rv: random_variables.Categorical) -> float:
     return 1.0 / np.sum(categ_rv.probabilities ** 2)
 
 
-def resample_categorical(
-    categ_rv: random_variables.Categorical,
-) -> random_variables.Categorical:
-    """Resample a categorical random variable."""
-    num_particles = len(categ_rv.support)
-    new_support = categ_rv.sample(size=num_particles)
-    new_event_probs = np.ones(categ_rv.probabilities.shape) / len(
-        categ_rv.probabilities
-    )
-    return random_variables.Categorical(
-        support=new_support,
-        probabilities=new_event_probs,
-        random_state=categ_rv.random_state,
-    )
-
-
 class ParticleFilter(BayesFiltSmooth):
     r"""Particle filter (PF). Also known as sequential Monte Carlo method.
 
@@ -68,6 +52,8 @@ class ParticleFilter(BayesFiltSmooth):
     resampling_percentage_threshold :
         Percentage threshold for resampling. That is, it is the value :math:`p` such that
         resampling is performed if :math:`N_{\text{eff}} < p \, N_\text{particles}` holds.
+        Optional. Default is 0.1. If this value is non-positive, resampling is never performed.
+        If it is larger than 1, resampling is performed after each step.
     """
 
     def __init__(
@@ -180,7 +166,7 @@ class ParticleFilter(BayesFiltSmooth):
 
         if self.with_resampling:
             if effective_number_of_events(new_rv) < self.min_effective_num_of_particles:
-                new_rv = resample_categorical(new_rv)
+                new_rv = new_rv.resample()
 
         return new_rv, {}
 
