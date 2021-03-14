@@ -18,6 +18,16 @@ def test_effective_number_of_events():
 # Test the RMSE on a pendulum example
 
 
+# Measmod style checks bootstrap and Gaussian proposals.
+all_importance_distributions = pytest.mark.parametrize("measmod_style", ["uk", "none"])
+
+# Resampling percentage threshold checks that
+# resampling is performed a) never, b) sometimes, c) always
+all_resampling_configurations = pytest.mark.parametrize(
+    "resampling_percentage_threshold", [-1.0, 0.1, 2.0]
+)
+
+
 @pytest.fixture
 def num_particles():
     return 4
@@ -76,8 +86,8 @@ def pf_output(particle, data, num_particles):
     return particle.filter(obs, locations)
 
 
-@pytest.mark.parametrize("measmod_style", ["uk", "none"])
-@pytest.mark.parametrize("resampling_percentage_threshold", [-1.0, 0.1, 2.0])
+@all_importance_distributions
+@all_resampling_configurations
 def test_shape_pf_output(pf_output, data, num_particles):
     true_states, obs, locations = data
 
@@ -88,11 +98,8 @@ def test_shape_pf_output(pf_output, data, num_particles):
     assert weights.shape == (num_gridpoints, num_particles)
 
 
-# Resampling percentage threshold checks that
-# resampling is performed a) never, b) sometimes, c) always
-# Measmod style checks bootstrap and Gaussian proposals.
-@pytest.mark.parametrize("measmod_style", ["uk", "none"])
-@pytest.mark.parametrize("resampling_percentage_threshold", [-1.0, 0.1, 2.0])
+@all_importance_distributions
+@all_resampling_configurations
 def test_rmse_particlefilter(pf_output, data):
     """Assert that the RMSE of the mode of the posterior of the PF is a lot smaller than
     the RMSE of the data."""

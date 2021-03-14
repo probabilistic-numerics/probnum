@@ -79,6 +79,11 @@ class _RandomVariableList(list):
             return np.array([])
         return np.stack([rv.probabilities for rv in self])
 
+    def resample(self) -> "_RandomVariableList":
+        if len(self) == 0:
+            return _RandomVariableList([])
+        return _RandomVariableList([rv.resample() for rv in self])
+
     def __getitem__(
         self, idx
     ) -> Union[random_variables.RandomVariable, "_RandomVariableList"]:
