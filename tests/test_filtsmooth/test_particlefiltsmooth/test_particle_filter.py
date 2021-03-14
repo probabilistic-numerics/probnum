@@ -15,8 +15,9 @@ def test_effective_number_of_events():
     assert 0 < ess < 10
 
 
+#####################################
 # Test the RMSE on a pendulum example
-
+#####################################
 
 # Measmod style checks bootstrap and Gaussian proposals.
 all_importance_distributions = pytest.mark.parametrize("measmod_style", ["uk", "none"])
@@ -78,6 +79,13 @@ def particle(
         resampling_percentage_threshold=resampling_percentage_threshold,
     )
     return particle
+
+
+@all_importance_distributions
+@all_resampling_configurations
+def test_random_state(particle, problem):
+    dynmod, measmod, initrv, info = problem
+    assert initrv.random_state == particle.random_state
 
 
 @pytest.fixture

@@ -26,6 +26,8 @@ class ParticleFilter(BayesFiltSmooth):
     A PF estimates the posterior distribution of a Markov process given noisy, non-linear observations,
     with a set of particles.
 
+    The random state of the particle filter is inferred from the random state of the initial random variable.
+
     Parameters
     ----------
     dynamics_model :
@@ -115,7 +117,9 @@ class ParticleFilter(BayesFiltSmooth):
         particles = np.stack(particles_and_weights[:, 0], axis=0)
         weights = np.stack(particles_and_weights[:, 1], axis=0)
         weights = np.array(weights) / np.sum(weights)
-        curr_rv = random_variables.Categorical(support=particles, probabilities=weights)
+        curr_rv = random_variables.Categorical(
+            support=particles, probabilities=weights, random_state=self.random_state
+        )
         rvs = [curr_rv]
 
         for idx in range(1, len(times)):
@@ -161,7 +165,9 @@ class ParticleFilter(BayesFiltSmooth):
 
         new_weights = new_weights / np.sum(new_weights)
         new_rv = random_variables.Categorical(
-            support=new_support, probabilities=new_weights
+            support=new_support,
+            probabilities=new_weights,
+            random_state=self.random_state,
         )
 
         if self.with_resampling:
@@ -202,3 +208,11 @@ class ParticleFilter(BayesFiltSmooth):
                 data, proposal_rv, t=t
             )
         return proposal_rv
+
+    @property
+    def random_state(self):
+        """Random state of the particle filter.
+
+        Inferred from the random state of the initial random variable.
+        """
+        return self.initrv.random_state
