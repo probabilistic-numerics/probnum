@@ -1,5 +1,9 @@
 """Categorical random variables."""
+from typing import Optional
+
 import numpy as np
+
+from probnum.type import RandomStateArgType
 
 from ._random_variable import DiscreteRandomVariable
 
@@ -15,9 +19,16 @@ class Categorical(DiscreteRandomVariable):
         Support of the categorical distribution. Optional. Default is None,
         in which case the support is chosen as :math:`(0, ..., K-1)` where
         :math:`K` is the number of elements in `event_probabilities`.
+    random_state :
+        Random state of the random variable.
     """
 
-    def __init__(self, probabilities, support=None, random_state=None):
+    def __init__(
+        self,
+        probabilities: np.ndarray,
+        support: Optional[np.ndarray] = None,
+        random_state: Optional[RandomStateArgType] = None,
+    ):
         # The set of events is names "support" to be aligned with the method
         # DiscreteRandomVariable.in_support().
 
@@ -67,16 +78,16 @@ class Categorical(DiscreteRandomVariable):
         )
 
     @property
-    def probabilities(self):
+    def probabilities(self) -> np.ndarray:
         """Event probabilities of the categorical distribution."""
         return self._probabilities
 
     @property
-    def support(self):
+    def support(self) -> np.ndarray:
         """Support of the categorical distribution."""
         return self._support
 
-    def resample(self):
+    def resample(self) -> "Categorical":
         """Resample the support of the categorical random variable.
 
         Return a new categorical random variable (RV), where the support

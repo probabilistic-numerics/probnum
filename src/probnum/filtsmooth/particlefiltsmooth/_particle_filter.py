@@ -12,10 +12,11 @@ from ._particle_filter_posterior import ParticleFilterPosterior
 
 
 def effective_number_of_events(categ_rv: random_variables.Categorical) -> float:
-    """Effective number of events in the support of a categorical random variable.
+    """Approximate effective number of events in the support of a categorical random
+    variable.
 
     In a particle filter, this is used as the effective number of
-    particles.
+    particles which may indicate the need for resampling.
     """
     return 1.0 / np.sum(categ_rv.probabilities ** 2)
 
