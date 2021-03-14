@@ -15,6 +15,7 @@ repos:
     rev: v3.2.0
     hooks:
       - id: check-added-large-files
+        args: ['--maxkb=1000']
       - id: check-json
       - id: pretty-format-json
       - id: check-merge-conflict
