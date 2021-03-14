@@ -75,3 +75,20 @@ class Categorical(DiscreteRandomVariable):
     def support(self):
         """Support of the categorical distribution."""
         return self._support
+
+    def resample(self):
+        """Resample the support of the categorical random variable.
+
+        Return a new categorical random variable (RV), where the support
+        is randomly chosen from the elements in the current support with
+        probabilities given by the current event probabilities. The
+        probabilities of the resulting categorical RV are all equal.
+        """
+        num_events = len(self.support)
+        new_support = self.sample(size=num_events)
+        new_probabilities = np.ones(self.probabilities.shape) / num_events
+        return Categorical(
+            support=new_support,
+            probabilities=new_probabilities,
+            random_state=self.random_state,
+        )

@@ -15,17 +15,6 @@ def test_effective_number_of_events():
     assert 0 < ess < 10
 
 
-def test_resample_categorical():
-    weights = np.random.rand(10)
-    categ = random_variables.Categorical(
-        support=np.random.rand(10, 2), probabilities=weights / np.sum(weights)
-    )
-    new_categ = filtsmooth.resample_categorical(categ)
-    assert isinstance(new_categ, random_variables.Categorical)
-    assert new_categ.shape == categ.shape
-    np.testing.assert_allclose(np.diff(new_categ.probabilities), 0.0)
-
-
 # Test the RMSE on a pendulum example
 
 

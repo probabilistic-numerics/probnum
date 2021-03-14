@@ -105,3 +105,14 @@ def test_pmf_valueerror():
 def test_mode(categ):
     mode = categ.mode
     assert mode.shape == categ.shape
+
+
+@all_supports
+@all_random_states
+def test_resample(categ):
+    new_categ = categ.resample()
+    assert isinstance(new_categ, random_variables.Categorical)
+    assert new_categ.shape == categ.shape
+
+    # Assert all probabilities are equal
+    np.testing.assert_allclose(np.diff(new_categ.probabilities), 0.0)
