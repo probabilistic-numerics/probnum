@@ -3,6 +3,7 @@ import typing
 from typing import Callable, Optional
 
 import numpy as np
+import scipy.linalg
 
 import probnum.random_variables as pnrv
 from probnum.type import FloatArgType, IntArgType
@@ -319,8 +320,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         crosscov = rv.cov @ H.T
         info = {"crosscov": crosscov}
         if compute_gain:
-            gain = crosscov @ np.linalg.inv(new_cov)
-            info["gain"] = gain
+            info["gain"] = scipy.linalg.cho_solve(
+                (new_cov_cholesky, True), crosscov.T
+            ).T
         return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), info
 
     def _backward_rv_sqrt(
@@ -381,9 +383,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # no initial gain was provided.
         # Recall that above, gain was set to zero in this setting.
         if np.linalg.norm(gain) == 0.0:
-            gain = big_triu[:output_dim, output_dim:].T @ np.linalg.inv(
-                big_triu[:output_dim, :output_dim].T
-            )
+            R1 = big_triu[:output_dim, :output_dim]
+            R12 = big_triu[:output_dim, output_dim:]
+            gain = scipy.linalg.solve_triangular(R1, R12, lower=False).T
+            # gain = R12 @ np.linalg.inv(R1)
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - state_trans @ rv.mean - shift)
         new_cov_cholesky = tril_to_positive_tril(new_chol_triu.T)
