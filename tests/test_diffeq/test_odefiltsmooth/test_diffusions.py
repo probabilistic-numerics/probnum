@@ -38,13 +38,20 @@ class DiffusionTestInterface(abc.ABC):
 
 class TestConstantDiffusion(DiffusionTestInterface):
 
+    all_diffusion_returns = pytest.mark.parametrize(
+        "use_global_estimate_as_local_estimate", [True, False]
+    )
+
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
-    def _setup(self):
-        self.diffusion = diffeq.ConstantDiffusion()
+    def _setup(self, use_global_estimate_as_local_estimate):
+        self.diffusion = diffeq.ConstantDiffusion(
+            use_global_estimate_as_local_estimate=use_global_estimate_as_local_estimate
+        )
 
-    def test_call(self):
+    @all_diffusion_returns
+    def test_call(self, use_global_estimate_as_local_estimate):
         generic_diffusion_value = 1.2345
         self.diffusion.update_current_information(
             diffusion=generic_diffusion_value, t=0.0
@@ -52,14 +59,26 @@ class TestConstantDiffusion(DiffusionTestInterface):
         out = self.diffusion(0.5)
         np.testing.assert_allclose(out, generic_diffusion_value)
 
-    def test_update_current_information(self):
+    @all_diffusion_returns
+    def test_calibrate_locally(
+        self, some_meas_rv, use_global_estimate_as_local_estimate
+    ):
+        # 9.776307498421126 is the true value for given some_meas_rv
+        out = self.diffusion.calibrate_locally(some_meas_rv)
+        np.testing.assert_allclose(out, 9.776307498421126)
+
+    @all_diffusion_returns
+    def test_update_current_information(self, use_global_estimate_as_local_estimate):
         diffusion_list = np.arange(100, 110)
         for diff in diffusion_list:
             # t = None does not make a difference
             self.diffusion.update_current_information(diff, None)
         np.testing.assert_allclose(self.diffusion.diffusion, diffusion_list.mean())
 
-    def test_calibrate_all_states(self, some_meas_rv):
+    @all_diffusion_returns
+    def test_calibrate_all_states(
+        self, some_meas_rv, use_global_estimate_as_local_estimate
+    ):
 
         # Set up 10 RVs
         meas_rvs = [some_meas_rv for _ in range(10)]

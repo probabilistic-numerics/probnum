@@ -43,11 +43,13 @@ class Diffusion(abc.ABC):
         return ssq
 
     @abc.abstractmethod
-    def update_current_information(self, diffusion, t):
-        """Update the current information about the global diffusion.
+    def update_current_information(self, diffusion, t) -> DiffusionType:
+        """Update the current information about the global diffusion and return a value
+        that is used for local calibration and error estimation.
 
         This could mean appending the diffusion to a list or updating a
-        global estimate.
+        global estimate. It could also mean returning the input value or
+        the global mean.
         """
         pass
 
@@ -60,9 +62,12 @@ class Diffusion(abc.ABC):
 class ConstantDiffusion(Diffusion):
     """Constant diffusion and its calibration."""
 
-    def __init__(self):
+    def __init__(self, use_global_estimate_as_local_estimate=False):
         self.diffusion = None
         self._seen_diffusions = 0
+        self.use_global_estimate_as_local_estimate = (
+            use_global_estimate_as_local_estimate
+        )
 
     def __repr__(self):
         return f"ConstantDiffusion({self.diffusion})"
@@ -80,6 +85,10 @@ class ConstantDiffusion(Diffusion):
             a = 1 / self._seen_diffusions
             b = 1 - a
             self.diffusion = a * diffusion + b * self.diffusion
+        if self.use_global_estimate_as_local_estimate:
+            return self.diffusion
+        else:
+            return diffusion
 
     def calibrate_all_states(self, states, locations):
         return [
@@ -121,7 +130,7 @@ class PiecewiseConstantDiffusion(Diffusion):
         idx = np.nonzero(t < self.locations)[0]
         return self.diffusions[idx[0]] if len(idx) > 0 else self.diffusions[-1]
 
-    def update_current_information(self, diffusion, t):
+    def update_current_information(self, diffusion, t) -> DiffusionType:
         """Append the most recent diffusion and location to a list.
 
         This function assumes that the list of times and diffusions is
@@ -130,6 +139,7 @@ class PiecewiseConstantDiffusion(Diffusion):
         """
         self.diffusions.append(diffusion)
         self.locations.append(t)
+        return diffusion
 
     def calibrate_all_states(self, states, locations):
         return states
