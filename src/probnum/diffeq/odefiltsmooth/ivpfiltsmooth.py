@@ -229,16 +229,17 @@ class GaussianIVPFilter(ODESolver):
         we finally compute the Kalman update and return the result. Recall that the error estimate has been computed in the third step.
         """
 
-        # Read the diffusion matrix; required for calibration / error estimation
+        # Read off system matrices; required for calibration / error estimation
+        # Use only where a full call to forward_*() would be too costly.
+        # We use the mathematical symbol `Phi`, because this makes it much easier to read for us.
+        # The system matrix H of the measurement model can be accessed after the first forward_*,
+        # therefore we read it off below.
         dt = t_new - t
         discrete_dynamics = self.gfilt.dynamics_model.discretise(dt)
-        noise_cov = discrete_dynamics.proc_noise_cov_mat
-        noise_cov_cholesky = discrete_dynamics.proc_noise_cov_cholesky
-
-        state_transition = discrete_dynamics.state_trans_mat
+        Phi = discrete_dynamics.state_trans_mat
 
         # Split the current RV into a deterministic part and a noisy part.
-        # This split is necessary for efficient calibration.
+        # This split is necessary for efficient calibration. See docstring.
         error_free_state = current_rv.mean.copy()
         noisy_component = Normal(
             mean=np.zeros(current_rv.shape),
@@ -253,20 +254,16 @@ class GaussianIVPFilter(ODESolver):
         meas_rv_error_free, _ = self.gfilt.measurement_model.forward_rv(
             pred_rv_error_free, t=t
         )
+        H = self.gfilt.measurement_model.linearized_model.state_trans_mat_fun(t=t)
 
-        # Compute the measurements for the noisy components.
-        # This only depends on the deterministic part of the transition.
-        # The resulting measurement RV has zero mean.
-        pred_rv_noisy_component = _apply_state_trans(state_transition, noisy_component)
-        meas_rv_noisy_component, _ = self.gfilt.measurement_model.forward_rv(
-            pred_rv_noisy_component, t=t
-        )
-
-        # Update the measurement RV.
-        # The prediction RV may be updated again below (which can be combined with the current formula),
-        # so we delay this computation for a bit.
+        # Compute the measurements for the full components.
+        # Since the means of noise-free and noisy measurements coincide,
+        # we manually update only the covariance.
+        # The first two are only matrix square-roots and will be turned into proper Cholesky factors below.
+        pred_sqrtm = Phi @ noisy_component.cov_cholesky
+        meas_sqrtm = H @ pred_sqrtm
         full_meas_cov_cholesky = utils.linalg.cholesky_update(
-            meas_rv_error_free.cov_cholesky, meas_rv_noisy_component.cov_cholesky
+            meas_rv_error_free.cov_cholesky, meas_sqrtm
         )
         full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
         meas_rv = Normal(
@@ -275,17 +272,19 @@ class GaussianIVPFilter(ODESolver):
             cov_cholesky=full_meas_cov_cholesky,
         )
 
-        # Estimate local diffusions
-        local_squared_diffusion_error_free = self.diffusion.calibrate_locally(
-            meas_rv_error_free
-        )
-        local_squared_diffusion_full = self.diffusion.calibrate_locally(meas_rv)
+        # Estimate local diffusion and error
+        diffusion_error_free = self.diffusion.calibrate_locally(meas_rv_error_free)
+        diffusion_full = self.diffusion.calibrate_locally(meas_rv)
         diffusion_for_calibration = self.diffusion.update_current_information(
-            local_squared_diffusion_full, local_squared_diffusion_error_free, t_new
+            diffusion_full, diffusion_error_free, t_new
         )
+        local_errors = np.sqrt(diffusion_for_calibration) * np.sqrt(
+            np.diag(meas_rv_error_free.cov)
+        )
+        error = np.linalg.norm(local_errors)
 
+        # Either re-predict and re-measure with improved calibration or let the predicted RV catch up.
         if self.re_predict_with_calibrated_diffusion:
-            # Re-predict and re-measure with improved calibration
             pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
                 rv=current_rv, t=t, dt=dt, _diffusion=diffusion_for_calibration
             )
@@ -297,7 +296,7 @@ class GaussianIVPFilter(ODESolver):
             # Combine error-free and noisy-component predictions into a full prediction.
             # (The measurement has been updated already.)
             full_pred_cov_cholesky = utils.linalg.cholesky_update(
-                pred_rv_error_free.cov_cholesky, pred_rv_noisy_component.cov_cholesky
+                pred_rv_error_free.cov_cholesky, pred_sqrtm
             )
             full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T
             pred_rv = Normal(
@@ -306,8 +305,7 @@ class GaussianIVPFilter(ODESolver):
                 cov_cholesky=full_pred_cov_cholesky,
             )
 
-            # Gain needs manual catching up
-            H = self.gfilt.measurement_model.linearized_model.state_trans_mat_fun(t=t)
+            # Gain needs manual catching up, too.
             crosscov = full_pred_cov @ H.T
             gain = scipy.linalg.cho_solve((meas_rv.cov_cholesky, True), crosscov.T).T
 
@@ -317,16 +315,7 @@ class GaussianIVPFilter(ODESolver):
             zero_data, pred_rv, rv_forwarded=meas_rv, gain=gain
         )
 
-        # 5. Error estimate
-        local_errors = self._estimate_local_error(
-            pred_rv,
-            t_new,
-            diffusion_for_calibration * noise_cov,
-            np.sqrt(diffusion_for_calibration) * noise_cov_cholesky,
-        )
-        err = np.linalg.norm(local_errors)
-
-        return filt_rv, err
+        return filt_rv, error
 
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
