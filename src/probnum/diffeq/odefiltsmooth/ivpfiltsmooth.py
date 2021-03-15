@@ -319,7 +319,6 @@ class GaussianIVPFilter(ODESolver):
         local_errors = np.sqrt(diffusion_for_calibration) * np.sqrt(
             np.diag(meas_rv_error_free.cov)
         )
-        error = np.linalg.norm(local_errors)
 
         # Either re-predict and re-measure with improved calibration or let the predicted RV catch up.
         if self._repeat_after_calibration:
@@ -355,7 +354,7 @@ class GaussianIVPFilter(ODESolver):
 
         proj = self.dynamics_model.proj2coord(coord=self._reference_coordinates)
         reference_state = np.maximum(proj @ filt_rv.mean, proj @ current_rv.mean)
-        return filt_rv, error, reference_state
+        return filt_rv, local_errors, reference_state
 
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
