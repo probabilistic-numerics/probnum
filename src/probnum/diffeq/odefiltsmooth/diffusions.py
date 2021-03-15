@@ -64,7 +64,7 @@ class Diffusion(abc.ABC):
 class ConstantDiffusion(Diffusion):
     """Constant diffusion and its calibration."""
 
-    def __init__(self, use_global_estimate_as_local_estimate=False):
+    def __init__(self, use_global_estimate_as_local_estimate=True):
         self.diffusion = None
         self._seen_diffusions = 0
         self.use_global_estimate_as_local_estimate = (

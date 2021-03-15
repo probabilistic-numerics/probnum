@@ -10,7 +10,7 @@ from probnum.random_variables import Normal
 
 from ..ode import IVP
 from ..odesolver import ODESolver
-from .diffusions import PiecewiseConstantDiffusion
+from .diffusions import Diffusion, PiecewiseConstantDiffusion
 from .initialize import (
     initialize_odefilter_with_rk,
     initialize_odefilter_with_taylormode,
@@ -28,28 +28,32 @@ class GaussianIVPFilter(ODESolver):
 
     Parameters
     ----------
-    ivp
+    ivp :
         Initial value problem to be solved.
-    prior
+    prior :
         Prior distribution.
-    measurement_model
-        ODE measurement model.
-    with_smoothing
+    measurement_model :
+        Linearized ODE measurement model. Must be a `DiscreteEKFComponent`.
+    with_smoothing :
         To smooth after the solve or not to smooth after the solve.
-    init_implementation
+    init_implementation :
         Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
         For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
-    initrv
+    initrv :
         Initial random variable to be used by the filter. Optional. Default is `None`, which amounts to choosing a standard-normal initial RV.
         As part of `GaussianIVPFilter.initialise()` (called in `GaussianIVPFilter.solve()`), this variable is improved upon with the help of the
         initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
+    diffusion :
+        Diffusion model.
+    re_predict_with_calibrated_diffusion :
+        Re-start the step after the initial calibration. Improves the result of each step, but slightly increases computational complexity.
     """
 
     def __init__(
         self,
         ivp: IVP,
         prior: pnss.Integrator,
-        measurement_model: pnss.DiscreteGaussian,
+        measurement_model: pnfs.DiscreteEKFComponent,
         with_smoothing: bool,
         init_implementation: typing.Callable[
             [
@@ -63,8 +67,8 @@ class GaussianIVPFilter(ODESolver):
             Normal,
         ],
         initrv: typing.Optional[Normal] = None,
-        diffusion=None,
-        re_predict_with_calibrated_diffusion=True,
+        diffusion: typing.Optional[Diffusion] = None,
+        re_predict_with_calibrated_diffusion: typing.Optional[bool] = True,
     ):
         if initrv is None:
             initrv = Normal(
@@ -174,7 +178,56 @@ class GaussianIVPFilter(ODESolver):
         return self.ivp.t0, initrv
 
     def step(self, t, t_new, current_rv):
-        """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
+        r"""Gaussian IVP filter step as nonlinear Kalman filtering with zero data.
+
+        It goes as follows:
+
+        1. The current state :math:`x(t) \sim \mathcal{N}(m(t), P(t))` is split into a deterministic component
+        and a noisy component,
+
+        .. math::
+            x(t) = m(t) + p(t), \quad p(t) \sim \mathcal{N}(0, P(t))
+
+        which is required for accurate calibration and error estimation: in order to only work with the local error,
+        ODE solvers often assume that the error at the previous step is zero.
+
+        2. The deterministic component is propagated through dynamics model and measurement model
+
+        .. math::
+            \hat{z}(t + \Delta t) \sim \mathcal{N}(H \Phi(\Delta t) m(t), H Q(\Delta t) H^\top)
+
+        which is a random variable that estimates the expected local defect :math:`\dot y - f(y)`.
+
+        3. The counterpart of :math:`\hat{z}` in the (much more likely) interpretation of an erronous previous state
+        (recall that :math:`\hat z` was based on the interpretation of an error-free previous state) is computed as,
+
+        .. math::
+            z(t + \Delta t) \sim \mathcal{N}(\mathbb{E}[\hat{z}(t + \Delta t)],
+            \mathbb{C}[\hat{z}(t + \Delta t)] + H \Phi(\Delta t) P(t) \Phi(\Delta t)^\top H^\top ),
+
+        which acknowledges the covariance :math:`P(t)` of the previous state.
+        :math:`\mathbb{E}` is the mean, and :math:`\mathbb{C}` is the covariance.
+        Both :math:`z(t + \Delta t)` and :math:`\hat z(t + \Delta t)` give rise to a reasonable diffusion estimate.
+        Which one to use is handled by the ``Diffusion`` attribute of the solver.
+        At this point already we can compute a local error estimate of the current step.
+
+        4. Once the diffusion is chosen, there are two options:
+
+            4.1. If the calibrated diffusion is used to repeat prediction and measurement step, we compute new values for
+            :math:`x(t+\Delta t) \,|\, x(t)` and for :math:`z(t)`. While this adds computational expense, the uncertainties of these
+            values will be calibrated much better than in the other scenario:
+
+            4.2. If the calibrated diffusion is only used for a post-hoc rescaling of the covariances, we only need to assemble
+            the prediction  :math:`x(t+\Delta t) | x(t)`
+
+            .. math::
+                x(t+\Delta t) \,|\, x(t) \sim \mathcal{N}(\Phi(\Delta t) m(t), \Phi(\Delta t) P(t) \Phi(\Delta t)^\top + Q(\Delta t))
+
+            from quantities that have been computed above.
+
+        5. With the results of either 4.1. or 4.2. (which both return a predicted RV and a measured RV),
+        we finally compute the Kalman update and return the result. Recall that the error estimate has been computed in the third step.
+        """
 
         # Read the diffusion matrix; required for calibration / error estimation
         dt = t_new - t
@@ -257,31 +310,6 @@ class GaussianIVPFilter(ODESolver):
             H = self.gfilt.measurement_model.linearized_model.state_trans_mat_fun(t=t)
             crosscov = full_pred_cov @ H.T
             gain = scipy.linalg.cho_solve((meas_rv.cov_cholesky, True), crosscov.T).T
-
-        #
-        # # 1. Predict
-        # pred_rv, _ = self.gfilt.dynamics_model.forward_rv(rv=current_rv, t=t, dt=dt)
-        #
-        # # 2. Measure
-        # compute_gain = not self.re_predict_with_calibrated_diffusion
-        # meas_rv, info = self.gfilt.measurement_model.forward_rv(
-        #     rv=pred_rv, t=t_new, compute_gain=compute_gain
-        # )
-        #
-        # # 3. Estimate the diffusion (sigma squared)
-        # local_squared_diffusion = self.diffusion.calibrate_locally(meas_rv)
-        # self.diffusion.update_current_information(local_squared_diffusion, t_new)
-        #
-        # if self.re_predict_with_calibrated_diffusion:
-        #     # 3.1. Adjust the prediction covariance to include the diffusion
-        #     pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
-        #         rv=current_rv, t=t, dt=t_new - t, _diffusion=local_squared_diffusion
-        #     )
-        #
-        #     # 3.2 Update the measurement covariance (measure again)
-        #     meas_rv, info = self.gfilt.measurement_model.forward_rv(
-        #         rv=pred_rv, t=t_new, compute_gain=True
-        #     )
 
         # 4. Update
         zero_data = np.zeros(meas_rv.mean.shape)
