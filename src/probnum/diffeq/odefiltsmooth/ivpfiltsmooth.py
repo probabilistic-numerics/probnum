@@ -51,6 +51,11 @@ class GaussianIVPFilter(ODESolver):
         if it is a `ConstantDiffusion`, this parameter is set to `False`;
         if it is a `PiecewiseConstantDiffusion`, this parameter is set to `True`.
         Other combinations are possible, but we recommend to stick to the defaults here.
+        If you decide to change this argument, it happens at your own risk!
+    _reference_coordinates :
+        Use this state as a reference state to compute the normalized error estimate.
+        Optional. Default is 0 (which amounts to the usual reference state for ODE solvers).
+        Another reasonable choice could be 1, but use this at your own risk!
 
     References
     ----------
@@ -79,6 +84,7 @@ class GaussianIVPFilter(ODESolver):
         initrv: typing.Optional[Normal] = None,
         diffusion: typing.Optional[Diffusion] = None,
         _repeat_after_calibration: typing.Optional[bool] = None,
+        _reference_coordinates: typing.Optional[int] = 0,
     ):
 
         # Raise a comprehensible error if the wrong models are passed.
@@ -98,9 +104,6 @@ class GaussianIVPFilter(ODESolver):
                 cov_cholesky=np.eye(dynamics_model.dimension),
             )
 
-        # self.gfilt = pnfs.Kalman(
-        #     dynamics_model=dynamics_model, measurement_model=measurement_model, initrv=initrv
-        # )
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
@@ -123,6 +126,8 @@ class GaussianIVPFilter(ODESolver):
         else:
             self._repeat_after_calibration = _repeat_after_calibration
 
+        self._reference_coordinates = _reference_coordinates
+
     # Construct an ODE solver from different initialisation methods.
     # The reason for implementing these via classmethods is that different
     # initialisation methods require different parameters.
@@ -137,6 +142,7 @@ class GaussianIVPFilter(ODESolver):
         initrv=None,
         diffusion=None,
         _repeat_after_calibration=True,
+        _reference_coordinates=0,
         init_h0=0.01,
         init_method="DOP853",
     ):
@@ -164,6 +170,7 @@ class GaussianIVPFilter(ODESolver):
             initrv=initrv,
             diffusion=diffusion,
             _repeat_after_calibration=_repeat_after_calibration,
+            _reference_coordinates=_reference_coordinates,
         )
 
     @classmethod
@@ -176,6 +183,7 @@ class GaussianIVPFilter(ODESolver):
         initrv=None,
         diffusion=None,
         _repeat_after_calibration=True,
+        _reference_coordinates=0,
     ):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_taylormode`."""
@@ -188,6 +196,7 @@ class GaussianIVPFilter(ODESolver):
             initrv=initrv,
             diffusion=diffusion,
             _repeat_after_calibration=_repeat_after_calibration,
+            _reference_coordinates=_reference_coordinates,
         )
 
     def initialise(self):
@@ -340,7 +349,9 @@ class GaussianIVPFilter(ODESolver):
             zero_data, pred_rv, rv_forwarded=meas_rv, gain=gain
         )
 
-        return filt_rv, error
+        proj = self.dynamics_model.proj2coord(coord=self._reference_coordinates)
+        reference_state = np.maximum(proj @ filt_rv.mean, proj @ current_rv.mean)
+        return filt_rv, error, reference_state
 
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
