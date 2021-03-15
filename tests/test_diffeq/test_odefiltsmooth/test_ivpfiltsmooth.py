@@ -38,13 +38,14 @@ def sol(ivp, step):
         adaptive=False,
         step=step,
         diffusion_model="constant",
+        dense_output=False,
     )
 
 
 def test_first_iteration(ivp, sol):
     """Test whether first few means and covariances coincide with Proposition 1 in
     Schober et al., 2019."""
-    state_rvs = sol.kalman_posterior.filtering_posterior.state_rvs
+    state_rvs = sol.kalman_posterior.state_rvs
     ms, cs = state_rvs.mean, state_rvs.cov
 
     exp_mean = np.array([ivp.initrv.mean, ivp.rhs(0, ivp.initrv.mean)])
@@ -58,7 +59,7 @@ def test_second_iteration(ivp, sol, step):
     1 in Schober et al., 2019.
     """
 
-    state_rvs = sol.kalman_posterior.filtering_posterior.state_rvs
+    state_rvs = sol.kalman_posterior.state_rvs
     ms, cs = state_rvs.mean, state_rvs.cov
 
     y0 = ivp.initrv.mean

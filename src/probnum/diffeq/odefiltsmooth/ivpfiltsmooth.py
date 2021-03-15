@@ -30,8 +30,8 @@ class GaussianIVPFilter(ODESolver):
     ----------
     ivp :
         Initial value problem to be solved.
-    prior :
-        Prior distribution.
+    dynamics_model :
+        dynamics_model distribution.
     measurement_model :
         Linearized ODE measurement model. Must be a `DiscreteEKFComponent`.
     with_smoothing :
@@ -62,7 +62,7 @@ class GaussianIVPFilter(ODESolver):
     def __init__(
         self,
         ivp: IVP,
-        prior: pnss.Integrator,
+        dynamics_model: pnss.Integrator,
         measurement_model: pnfs.DiscreteEKFComponent,
         with_smoothing: bool,
         init_implementation: typing.Callable[
@@ -86,25 +86,28 @@ class GaussianIVPFilter(ODESolver):
             raise TypeError(
                 "Please initialize a Gaussian ODE filter with an EKF component as a measurement model."
             )
-        if not isinstance(prior, pnss.Integrator):
+        if not isinstance(dynamics_model, pnss.Integrator):
             raise TypeError(
-                "Please initialize a Gaussian ODE filter with an Integrator as a prior"
+                "Please initialize a Gaussian ODE filter with an Integrator as a dynamics_model"
             )
 
         if initrv is None:
             initrv = Normal(
-                np.zeros(prior.dimension),
-                np.eye(prior.dimension),
-                cov_cholesky=np.eye(prior.dimension),
+                np.zeros(dynamics_model.dimension),
+                np.eye(dynamics_model.dimension),
+                cov_cholesky=np.eye(dynamics_model.dimension),
             )
 
-        self.gfilt = pnfs.Kalman(
-            dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
-        )
+        # self.gfilt = pnfs.Kalman(
+        #     dynamics_model=dynamics_model, measurement_model=measurement_model, initrv=initrv
+        # )
+        self.dynamics_model = dynamics_model
+        self.measurement_model = measurement_model
+        self.initrv = initrv
 
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
-        super().__init__(ivp=ivp, order=prior.ordint)
+        super().__init__(ivp=ivp, order=dynamics_model.ordint)
 
         # Set up the diffusion style: constant or piecewise constant.
         self.diffusion = (
@@ -128,7 +131,7 @@ class GaussianIVPFilter(ODESolver):
     def construct_with_rk_init(
         cls,
         ivp,
-        prior,
+        dynamics_model,
         measurement_model,
         with_smoothing,
         initrv=None,
@@ -140,12 +143,12 @@ class GaussianIVPFilter(ODESolver):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_rk`."""
 
-        def init_implementation(f, y0, t0, prior, initrv, df=None):
+        def init_implementation(f, y0, t0, dynamics_model, initrv, df=None):
             return initialize_odefilter_with_rk(
                 f=f,
                 y0=y0,
                 t0=t0,
-                prior=prior,
+                prior=dynamics_model,
                 initrv=initrv,
                 df=df,
                 h0=init_h0,
@@ -154,7 +157,7 @@ class GaussianIVPFilter(ODESolver):
 
         return cls(
             ivp,
-            prior,
+            dynamics_model,
             measurement_model,
             with_smoothing,
             init_implementation=init_implementation,
@@ -167,7 +170,7 @@ class GaussianIVPFilter(ODESolver):
     def construct_with_taylormode_init(
         cls,
         ivp,
-        prior,
+        dynamics_model,
         measurement_model,
         with_smoothing,
         initrv=None,
@@ -178,7 +181,7 @@ class GaussianIVPFilter(ODESolver):
         :func:`initialize_odefilter_with_taylormode`."""
         return cls(
             ivp,
-            prior,
+            dynamics_model,
             measurement_model,
             with_smoothing,
             init_implementation=initialize_odefilter_with_taylormode,
@@ -192,8 +195,8 @@ class GaussianIVPFilter(ODESolver):
             self.ivp.rhs,
             self.ivp.initrv.mean,
             self.ivp.t0,
-            self.gfilt.dynamics_model,
-            self.gfilt.initrv,
+            self.dynamics_model,
+            self.initrv,
             self.ivp._jac,
         )
 
@@ -257,7 +260,7 @@ class GaussianIVPFilter(ODESolver):
         # The system matrix H of the measurement model can be accessed after the first forward_*,
         # therefore we read it off further below.
         dt = t_new - t
-        discrete_dynamics = self.gfilt.dynamics_model.discretise(dt)
+        discrete_dynamics = self.dynamics_model.discretise(dt)
         Phi = discrete_dynamics.state_trans_mat
 
         # Split the current RV into a deterministic part and a noisy part.
@@ -270,13 +273,13 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # Compute the measurements for the error-free component
-        pred_rv_error_free, _ = self.gfilt.dynamics_model.forward_realization(
+        pred_rv_error_free, _ = self.dynamics_model.forward_realization(
             error_free_state, t=t, dt=dt
         )
-        meas_rv_error_free, _ = self.gfilt.measurement_model.forward_rv(
+        meas_rv_error_free, _ = self.measurement_model.forward_rv(
             pred_rv_error_free, t=t
         )
-        H = self.gfilt.measurement_model.linearized_model.state_trans_mat_fun(t=t)
+        H = self.measurement_model.linearized_model.state_trans_mat_fun(t=t)
 
         # Compute the measurements for the full components.
         # Since the means of noise-free and noisy measurements coincide,
@@ -307,10 +310,10 @@ class GaussianIVPFilter(ODESolver):
 
         # Either re-predict and re-measure with improved calibration or let the predicted RV catch up.
         if self._repeat_after_calibration:
-            pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
+            pred_rv, _ = self.dynamics_model.forward_rv(
                 rv=current_rv, t=t, dt=dt, _diffusion=diffusion_for_calibration
             )
-            meas_rv, info = self.gfilt.measurement_model.forward_rv(
+            meas_rv, info = self.measurement_model.forward_rv(
                 rv=pred_rv, t=t_new, compute_gain=True
             )
             gain = info["gain"]
@@ -333,7 +336,7 @@ class GaussianIVPFilter(ODESolver):
 
         # 4. Update
         zero_data = np.zeros(meas_rv.mean.shape)
-        filt_rv, _ = self.gfilt.measurement_model.backward_realization(
+        filt_rv, _ = self.measurement_model.backward_realization(
             zero_data, pred_rv, rv_forwarded=meas_rv, gain=gain
         )
 
@@ -342,55 +345,35 @@ class GaussianIVPFilter(ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        rvs = self.diffusion.calibrate_all_states(rvs, times)
-
-        kalman_posterior = pnfs.FilteringPosterior(
-            times, rvs, self.gfilt.dynamics_model
-        )
+        kalman_posterior = pnfs.FilteringPosterior(times, rvs, self.dynamics_model)
 
         return KalmanODESolution(kalman_posterior)
 
     def postprocess(self, odesol):
         """If specified (at initialisation), smooth the filter output."""
+        locations = odesol.kalman_posterior.locations
+        rv_list = self.diffusion.calibrate_all_states(
+            odesol.kalman_posterior.state_rvs, locations
+        )
+
+        kalman_posterior = pnfs.FilteringPosterior(
+            locations, rv_list, self.dynamics_model
+        )
 
         if self.with_smoothing is True:
-            smoothing_posterior = self.gfilt.smooth(odesol.kalman_posterior)
-            odesol = KalmanODESolution(smoothing_posterior)
+            rv_list = self.dynamics_model.smooth_list(rv_list, locations)
+            kalman_posterior = pnfs.SmoothingPosterior(
+                locations,
+                rv_list,
+                self.dynamics_model,
+                filtering_posterior=kalman_posterior,
+            )
 
-        return odesol
-
-    # def _estimate_local_error(
-    #     self,
-    #     pred_rv,
-    #     t_new,
-    #     calibrated_proc_noise_cov,
-    #     calibrated_proc_noise_cov_cholesky,
-    #     **kwargs
-    # ):
-    #     """Estimate the local errors.
-    #
-    #     This corresponds to the approach in [1], implemented such that it is compatible
-    #     with the EKF1 and UKF.
-    #
-    #     References
-    #     ----------
-    #     .. [1] Schober, M., Särkkä, S. and Hennig, P..
-    #         A probabilistic model for the numerical solution of initial
-    #         value problems.
-    #         Statistics and Computing, 2019.
-    #     """
-    #     local_pred_rv = Normal(
-    #         pred_rv.mean,
-    #         calibrated_proc_noise_cov,
-    #         cov_cholesky=calibrated_proc_noise_cov_cholesky,
-    #     )
-    #     local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
-    #     error = local_meas_rv.cov.diagonal()
-    #     return np.sqrt(np.abs(error))
+        return KalmanODESolution(kalman_posterior)
 
     @staticmethod
     def string_to_measurement_model(
-        measurement_model_string, ivp, prior, measurement_noise_covariance=0.0
+        measurement_model_string, ivp, dynamics_model, measurement_noise_covariance=0.0
     ):
         """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
 
@@ -414,7 +397,7 @@ class GaussianIVPFilter(ODESolver):
         choose_meas_model = {
             "EK0": pnfs.DiscreteEKFComponent.from_ode(
                 ivp,
-                prior=prior,
+                prior=dynamics_model,
                 ek0_or_ek1=0,
                 evlvar=measurement_noise_covariance,
                 forward_implementation="sqrt",
@@ -422,7 +405,7 @@ class GaussianIVPFilter(ODESolver):
             ),
             "EK1": pnfs.DiscreteEKFComponent.from_ode(
                 ivp,
-                prior=prior,
+                prior=dynamics_model,
                 ek0_or_ek1=1,
                 evlvar=measurement_noise_covariance,
                 forward_implementation="sqrt",
@@ -434,19 +417,3 @@ class GaussianIVPFilter(ODESolver):
             raise ValueError("Type of measurement model not supported.")
 
         return choose_meas_model[measurement_model_string]
-
-
-def _apply_state_trans(H, rv):
-
-    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
-    # Therefore, since we need to update the Cholesky factor for square-root filtering,
-    # we also update the Cholesky factor for non-square-root algorithms here,
-    # which implies additional cost.
-    # See Issues #319 and #329.
-    # When they are resolved, this function here will hopefully be superfluous.
-
-    new_mean = H @ rv.mean
-    new_cov_cholesky = utils.linalg.cholesky_update(H @ rv.cov_cholesky)
-    new_cov = new_cov_cholesky @ new_cov_cholesky.T
-
-    return Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
