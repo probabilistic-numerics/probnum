@@ -54,7 +54,7 @@ class TestConstantDiffusion(DiffusionTestInterface):
     def test_call(self, use_global_estimate_as_local_estimate):
         generic_diffusion_value = 1.2345
         self.diffusion.update_current_information(
-            diffusion=generic_diffusion_value, t=0.0
+            generic_diffusion_value, generic_diffusion_value, 0.0
         )
         out = self.diffusion(0.5)
         np.testing.assert_allclose(out, generic_diffusion_value)
@@ -72,8 +72,10 @@ class TestConstantDiffusion(DiffusionTestInterface):
         diffusion_list = np.arange(100, 110)
         for diff in diffusion_list:
             # t = None does not make a difference
-            self.diffusion.update_current_information(diff, None)
-        np.testing.assert_allclose(self.diffusion.diffusion, diffusion_list.mean())
+            self.diffusion.update_current_information(diff, diff, None)
+        np.testing.assert_allclose(
+            self.diffusion.diffusion, self.diffusion.diffusion, diffusion_list.mean()
+        )
 
     @all_diffusion_returns
     def test_calibrate_all_states(
@@ -87,7 +89,7 @@ class TestConstantDiffusion(DiffusionTestInterface):
         diffusion_list = np.arange(100, 110)
         for diff in diffusion_list:
             # t = None does not make a difference
-            self.diffusion.update_current_information(diff, None)
+            self.diffusion.update_current_information(diff, diff, None)
 
         calibrated_states = self.diffusion.calibrate_all_states(
             meas_rvs, locations=None
@@ -112,7 +114,7 @@ class TestPiecewiseConstantDiffusion(DiffusionTestInterface):
         times = np.arange(10)
         diffusion_list = 1 + 0.1 * np.random.rand(10)
         for diff, t in zip(diffusion_list, times):
-            self.diffusion.update_current_information(diff, t)
+            self.diffusion.update_current_information(diff, diff, t)
 
         for diff, t in zip(diffusion_list, times):
 
@@ -140,7 +142,7 @@ class TestPiecewiseConstantDiffusion(DiffusionTestInterface):
         diffusion_list = np.arange(100, 110)
         for diff in diffusion_list:
             # t = None does not make a difference
-            self.diffusion.update_current_information(diff, None)
+            self.diffusion.update_current_information(diff, diff, None)
 
         calibrated_states = self.diffusion.calibrate_all_states(
             meas_rvs, locations=None

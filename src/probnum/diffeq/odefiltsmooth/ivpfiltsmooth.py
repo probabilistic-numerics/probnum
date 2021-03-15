@@ -227,10 +227,9 @@ class GaussianIVPFilter(ODESolver):
             meas_rv_error_free
         )
         local_squared_diffusion_full = self.diffusion.calibrate_locally(meas_rv)
-        self.diffusion.update_current_information(
-            local_squared_diffusion_error_free, t_new
+        diffusion_for_calibration = self.diffusion.update_current_information(
+            local_squared_diffusion_full, local_squared_diffusion_error_free, t_new
         )
-        diffusion_for_calibration = local_squared_diffusion_error_free
 
         if self.re_predict_with_calibrated_diffusion:
             # Re-predict and re-measure with improved calibration

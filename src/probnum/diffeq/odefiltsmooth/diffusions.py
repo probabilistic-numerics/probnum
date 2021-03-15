@@ -43,7 +43,9 @@ class Diffusion(abc.ABC):
         return ssq
 
     @abc.abstractmethod
-    def update_current_information(self, diffusion, t) -> DiffusionType:
+    def update_current_information(
+        self, full_diffusion, error_free_diffusion, t
+    ) -> DiffusionType:
         """Update the current information about the global diffusion and return a value
         that is used for local calibration and error estimation.
 
@@ -75,20 +77,22 @@ class ConstantDiffusion(Diffusion):
     def __call__(self, t) -> DiffusionType:
         return self.diffusion
 
-    def update_current_information(self, diffusion, t):
+    def update_current_information(
+        self, full_diffusion, error_free_diffusion, t
+    ) -> DiffusionType:
         """Update the current global MLE with a new diffusion."""
         self._seen_diffusions += 1
 
         if self.diffusion is None:
-            self.diffusion = diffusion
+            self.diffusion = full_diffusion
         else:
             a = 1 / self._seen_diffusions
             b = 1 - a
-            self.diffusion = a * diffusion + b * self.diffusion
+            self.diffusion = a * full_diffusion + b * self.diffusion
         if self.use_global_estimate_as_local_estimate:
             return self.diffusion
         else:
-            return diffusion
+            return error_free_diffusion
 
     def calibrate_all_states(self, states, locations):
         return [
@@ -130,16 +134,18 @@ class PiecewiseConstantDiffusion(Diffusion):
         idx = np.nonzero(t < self.locations)[0]
         return self.diffusions[idx[0]] if len(idx) > 0 else self.diffusions[-1]
 
-    def update_current_information(self, diffusion, t) -> DiffusionType:
+    def update_current_information(
+        self, full_diffusion, error_free_diffusion, t
+    ) -> DiffusionType:
         """Append the most recent diffusion and location to a list.
 
         This function assumes that the list of times and diffusions is
         sorted, and that the input `t` lies "right of the final point"
         in the current list.
         """
-        self.diffusions.append(diffusion)
+        self.diffusions.append(error_free_diffusion)
         self.locations.append(t)
-        return diffusion
+        return error_free_diffusion
 
     def calibrate_all_states(self, states, locations):
         return states
