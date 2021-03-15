@@ -1,9 +1,11 @@
 import typing
 
 import numpy as np
+import scipy.linalg
 
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
+from probnum import utils
 from probnum.random_variables import Normal
 
 from ..ode import IVP
@@ -70,6 +72,9 @@ class GaussianIVPFilter(ODESolver):
                 np.eye(prior.dimension),
                 cov_cholesky=np.eye(prior.dimension),
             )
+
+        if not isinstance(measurement_model, pnfs.DiscreteEKFComponent):
+            raise TypeError
 
         self.gfilt = pnfs.Kalman(
             dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
@@ -172,48 +177,125 @@ class GaussianIVPFilter(ODESolver):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
 
         # Read the diffusion matrix; required for calibration / error estimation
-        discrete_dynamics = self.gfilt.dynamics_model.discretise(t_new - t)
-        proc_noise_cov = discrete_dynamics.proc_noise_cov_mat
-        proc_noise_cov_cholesky = discrete_dynamics.proc_noise_cov_cholesky
+        dt = t_new - t
+        discrete_dynamics = self.gfilt.dynamics_model.discretise(dt)
+        noise_cov = discrete_dynamics.proc_noise_cov_mat
+        noise_cov_cholesky = discrete_dynamics.proc_noise_cov_cholesky
 
-        # 1. Predict
-        pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
-            rv=current_rv, t=t, dt=t_new - t
+        state_transition = discrete_dynamics.state_trans_mat
+
+        # Split the current RV into a deterministic part and a noisy part.
+        # This split is necessary for efficient calibration.
+        error_free_state = current_rv.mean.copy()
+        noisy_component = Normal(
+            mean=np.zeros(current_rv.shape),
+            cov=current_rv.cov.copy(),
+            cov_cholesky=current_rv.cov_cholesky.copy(),
         )
 
-        # 2. Measure
-        compute_gain = not self.re_predict_with_calibrated_diffusion
-        meas_rv, info = self.gfilt.measurement_model.forward_rv(
-            rv=pred_rv, t=t_new, compute_gain=compute_gain
+        # Compute the measurements for the error-free component
+        pred_rv_error_free, _ = self.gfilt.dynamics_model.forward_realization(
+            error_free_state, t=t, dt=dt
+        )
+        meas_rv_error_free, _ = self.gfilt.measurement_model.forward_rv(
+            pred_rv_error_free, t=t
         )
 
-        # 3. Estimate the diffusion (sigma squared)
-        local_squared_diffusion = self.diffusion.calibrate_locally(meas_rv)
-        self.diffusion.update_current_information(local_squared_diffusion, t_new)
+        # Compute the measurements for the noisy components.
+        # This only depends on the deterministic part of the transition.
+        # The resulting measurement RV has zero mean.
+        pred_rv_noisy_component = _apply_state_trans(state_transition, noisy_component)
+        meas_rv_noisy_component, _ = self.gfilt.measurement_model.forward_rv(
+            pred_rv_noisy_component, t=t
+        )
+
+        # Update the measurement RV.
+        # The prediction RV may be updated again below (which can be combined with the current formula),
+        # so we delay this computation for a bit.
+        full_meas_cov_cholesky = utils.linalg.cholesky_update(
+            meas_rv_error_free.cov_cholesky, meas_rv_noisy_component.cov_cholesky
+        )
+        full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
+        meas_rv = Normal(
+            mean=meas_rv_error_free.mean,
+            cov=full_meas_cov,
+            cov_cholesky=full_meas_cov_cholesky,
+        )
+
+        # Estimate local diffusions
+        local_squared_diffusion_error_free = self.diffusion.calibrate_locally(
+            meas_rv_error_free
+        )
+        local_squared_diffusion_full = self.diffusion.calibrate_locally(meas_rv)
+        self.diffusion.update_current_information(
+            local_squared_diffusion_error_free, t_new
+        )
+        diffusion_for_calibration = local_squared_diffusion_error_free
 
         if self.re_predict_with_calibrated_diffusion:
-            # 3.1. Adjust the prediction covariance to include the diffusion
+            # Re-predict and re-measure with improved calibration
             pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
-                rv=current_rv, t=t, dt=t_new - t, _diffusion=local_squared_diffusion
+                rv=current_rv, t=t, dt=dt, _diffusion=diffusion_for_calibration
             )
-
-            # 3.2 Update the measurement covariance (measure again)
             meas_rv, info = self.gfilt.measurement_model.forward_rv(
                 rv=pred_rv, t=t_new, compute_gain=True
             )
+            gain = info["gain"]
+        else:
+            # Combine error-free and noisy-component predictions into a full prediction.
+            # (The measurement has been updated already.)
+            full_pred_cov_cholesky = utils.linalg.cholesky_update(
+                pred_rv_error_free.cov_cholesky, pred_rv_noisy_component.cov_cholesky
+            )
+            full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T
+            pred_rv = Normal(
+                mean=pred_rv_error_free.mean,
+                cov=full_pred_cov,
+                cov_cholesky=full_pred_cov_cholesky,
+            )
+
+            # Gain needs manual catching up
+            H = self.gfilt.measurement_model.linearized_model.state_trans_mat_fun(t=t)
+            crosscov = full_pred_cov @ H.T
+            gain = scipy.linalg.cho_solve((meas_rv.cov_cholesky, True), crosscov.T).T
+
+        #
+        # # 1. Predict
+        # pred_rv, _ = self.gfilt.dynamics_model.forward_rv(rv=current_rv, t=t, dt=dt)
+        #
+        # # 2. Measure
+        # compute_gain = not self.re_predict_with_calibrated_diffusion
+        # meas_rv, info = self.gfilt.measurement_model.forward_rv(
+        #     rv=pred_rv, t=t_new, compute_gain=compute_gain
+        # )
+        #
+        # # 3. Estimate the diffusion (sigma squared)
+        # local_squared_diffusion = self.diffusion.calibrate_locally(meas_rv)
+        # self.diffusion.update_current_information(local_squared_diffusion, t_new)
+        #
+        # if self.re_predict_with_calibrated_diffusion:
+        #     # 3.1. Adjust the prediction covariance to include the diffusion
+        #     pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
+        #         rv=current_rv, t=t, dt=t_new - t, _diffusion=local_squared_diffusion
+        #     )
+        #
+        #     # 3.2 Update the measurement covariance (measure again)
+        #     meas_rv, info = self.gfilt.measurement_model.forward_rv(
+        #         rv=pred_rv, t=t_new, compute_gain=True
+        #     )
 
         # 4. Update
         zero_data = np.zeros(meas_rv.mean.shape)
         filt_rv, _ = self.gfilt.measurement_model.backward_realization(
-            zero_data, pred_rv, rv_forwarded=meas_rv, gain=info["gain"]
+            zero_data, pred_rv, rv_forwarded=meas_rv, gain=gain
         )
 
         # 5. Error estimate
         local_errors = self._estimate_local_error(
             pred_rv,
             t_new,
-            local_squared_diffusion * proc_noise_cov,
-            np.sqrt(local_squared_diffusion) * proc_noise_cov_cholesky,
+            diffusion_for_calibration * noise_cov,
+            np.sqrt(diffusion_for_calibration) * noise_cov_cholesky,
         )
         err = np.linalg.norm(local_errors)
 
@@ -320,3 +402,19 @@ class GaussianIVPFilter(ODESolver):
             raise ValueError("Type of measurement model not supported.")
 
         return choose_meas_model[measurement_model_string]
+
+
+def _apply_state_trans(H, rv):
+
+    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
+    # Therefore, since we need to update the Cholesky factor for square-root filtering,
+    # we also update the Cholesky factor for non-square-root algorithms here,
+    # which implies additional cost.
+    # See Issues #319 and #329.
+    # When they are resolved, this function here will hopefully be superfluous.
+
+    new_mean = H @ rv.mean
+    new_cov_cholesky = utils.linalg.cholesky_update(H @ rv.cov_cholesky)
+    new_cov = new_cov_cholesky @ new_cov_cholesky.T
+
+    return Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)

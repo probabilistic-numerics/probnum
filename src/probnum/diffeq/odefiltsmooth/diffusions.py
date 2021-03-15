@@ -114,9 +114,10 @@ class PiecewiseConstantDiffusion(Diffusion):
         return f"PiecewiseConstantDiffusion({self.diffusions})"
 
     def __call__(self, t) -> DiffusionType:
-        """Evaluate the diffusion."""
-        # Indices in self.locations that are larger than t
+
+        # Get indices in self.locations that are larger than t
         # The first element in this list is the first time-point right of t.
+        # If the list is empty, we are extrapolating to the right.
         idx = np.nonzero(t < self.locations)[0]
         return self.diffusions[idx[0]] if len(idx) > 0 else self.diffusions[-1]
 
