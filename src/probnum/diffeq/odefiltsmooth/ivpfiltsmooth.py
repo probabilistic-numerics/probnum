@@ -118,13 +118,10 @@ class GaussianIVPFilter(ODESolver):
         )
 
         if _repeat_after_calibration is None:
-            choose_re_prediction = {
-                PiecewiseConstantDiffusion: True,
-                ConstantDiffusion: False,
-            }
-            self._repeat_after_calibration = choose_re_prediction[
-                type(self.diffusion_model)
-            ]
+            if isinstance(self.diffusion_model, PiecewiseConstantDiffusion):
+                self._repeat_after_calibration = True
+            else:
+                self._repeat_after_calibration = False
         else:
             self._repeat_after_calibration = _repeat_after_calibration
 

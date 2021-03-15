@@ -6,12 +6,11 @@ now, it is well placed in `diffeq`.
 
 
 import abc
-from typing import Union
 
 import numpy as np
 
 from probnum import random_variables
-from probnum.type import FloatArgType, ToleranceDiffusionType
+from probnum.type import ToleranceDiffusionType
 
 
 class Diffusion(abc.ABC):
