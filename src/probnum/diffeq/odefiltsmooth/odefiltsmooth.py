@@ -279,7 +279,7 @@ def probsolve_ivp(
         prior,
         measmod,
         with_smoothing=dense_output,
-        diffusion=diffusion,
+        diffusion_model=diffusion,
     )
 
     return solver.solve(steprule=stprl)
