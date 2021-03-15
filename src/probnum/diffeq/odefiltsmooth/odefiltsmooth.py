@@ -132,9 +132,6 @@ def probsolve_ivp(
         which implement different styles of
         online calibration of the underlying diffusion [5]_.
         Optional. Default is ``'dynamic'``.
-        While we recommend to use correct capitalization for the `diffusion_model` string,
-        upper-case letters will be lower-cased internally.
-
 
 
     Returns
