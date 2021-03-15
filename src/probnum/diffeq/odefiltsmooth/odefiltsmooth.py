@@ -258,11 +258,11 @@ def probsolve_ivp(
     if diffusion_model not in ["constant", "dynamic"]:
         raise ValueError("Diffusion model is not supported.")
 
-    choose_diffusion_model_and_repredict = {
-        "constant": (ConstantDiffusion(), False),
-        "dynamic": (PiecewiseConstantDiffusion(), True),
+    choose_diffusion_model = {
+        "constant": ConstantDiffusion(),
+        "dynamic": PiecewiseConstantDiffusion(),
     }
-    diffusion, re_predict = choose_diffusion_model_and_repredict[diffusion_model]
+    diffusion = choose_diffusion_model[diffusion_model]
 
     # Create solver
     prior = statespace.IBM(
@@ -280,7 +280,6 @@ def probsolve_ivp(
         measmod,
         with_smoothing=dense_output,
         diffusion=diffusion,
-        re_predict_with_calibrated_diffusion=re_predict,
     )
 
     return solver.solve(steprule=stprl)

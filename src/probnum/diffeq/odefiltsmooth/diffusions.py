@@ -62,7 +62,21 @@ class Diffusion(abc.ABC):
 
 
 class ConstantDiffusion(Diffusion):
-    """Constant diffusion and its calibration."""
+    """Constant diffusion and its calibration.
+
+    Parameters
+    ----------
+    use_global_estimate_as_local_estimate :
+        Use the global diffusion estimate (which is the arithmetic mean of all previous diffusion estimates)
+        for error estimation and re-prediction in the ODE solver. Optional. Default is `True`, which corresponds to the
+        time-fixed diffusion model as used by Bosch et al. (2020) [1]_.
+
+    References
+    ----------
+    .. [1] Bosch, N., and Hennig, P., and Tronarp, F..
+        Calibrated Adaptive Probabilistic ODE Solvers.
+        2021.
+    """
 
     def __init__(self, use_global_estimate_as_local_estimate=True):
         self.diffusion = None
@@ -117,11 +131,18 @@ class PiecewiseConstantDiffusion(Diffusion):
 
     This definition implies that at all points :math:`t \geq t_{N-1}`, its value is `\sigma_N`.
     This choice of piecewise constant function is by definition right-continuous.
+
+    Parameters
+    ----------
+    diffusions :
+        List of diffusions. Optional. Default is `None`, which implies that a list is created from scratch.
+    locations :
+        List of locations corresponding to the diffusions. Optional. Default is `None`, which implies that a list is created from scratch.
     """
 
-    def __init__(self):
-        self.diffusions = []
-        self.locations = []
+    def __init__(self, diffusions=None, locations=None):
+        self.diffusions = [] if diffusions is None else diffusions
+        self.locations = [] if locations is None else locations
 
     def __repr__(self):
         return f"PiecewiseConstantDiffusion({self.diffusions})"

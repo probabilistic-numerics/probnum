@@ -45,8 +45,12 @@ class GaussianIVPFilter(ODESolver):
         initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
     diffusion :
         Diffusion model.
-    re_predict_with_calibrated_diffusion :
-        Re-start the step after the initial calibration. Improves the result of each step, but slightly increases computational complexity.
+    _repeat_after_calibration :
+        Repeat the step after the initial calibration. Improves the result of each step, but slightly increases computational complexity.
+        Optional. A default value is inferred from the type of diffusion model:
+        if it is a `ConstantDiffusion`, this parameter is set to `False`;
+        if it is a `PiecewiseConstantDiffusion`, this parameter is set to `True`.
+        Other combinations are possible, but we recommend to stick to the defaults here.
     """
 
     def __init__(
@@ -68,7 +72,7 @@ class GaussianIVPFilter(ODESolver):
         ],
         initrv: typing.Optional[Normal] = None,
         diffusion: typing.Optional[Diffusion] = None,
-        re_predict_with_calibrated_diffusion: typing.Optional[bool] = True,
+        _repeat_after_calibration: typing.Optional[bool] = None,
     ):
         if initrv is None:
             initrv = Normal(
@@ -96,7 +100,15 @@ class GaussianIVPFilter(ODESolver):
         self.diffusion = (
             PiecewiseConstantDiffusion() if diffusion is None else diffusion
         )
-        self.re_predict_with_calibrated_diffusion = re_predict_with_calibrated_diffusion
+
+        if _repeat_after_calibration is None:
+            choose_re_prediction = {
+                PiecewiseConstantDiffusion: True,
+                ConstantDiffusion: False,
+            }
+            self._repeat_after_calibration = choose_re_prediction[type(self.diffusion)]
+        else:
+            self._repeat_after_calibration = _repeat_after_calibration
 
     # Construct an ODE solver from different initialisation methods.
     # The reason for implementing these via classmethods is that different
@@ -111,7 +123,7 @@ class GaussianIVPFilter(ODESolver):
         with_smoothing,
         initrv=None,
         diffusion=None,
-        re_predict_with_calibrated_diffusion=True,
+        _repeat_after_calibration=True,
         init_h0=0.01,
         init_method="DOP853",
     ):
@@ -138,7 +150,7 @@ class GaussianIVPFilter(ODESolver):
             init_implementation=init_implementation,
             initrv=initrv,
             diffusion=diffusion,
-            re_predict_with_calibrated_diffusion=re_predict_with_calibrated_diffusion,
+            _repeat_after_calibration=_repeat_after_calibration,
         )
 
     @classmethod
@@ -150,7 +162,7 @@ class GaussianIVPFilter(ODESolver):
         with_smoothing,
         initrv=None,
         diffusion=None,
-        re_predict_with_calibrated_diffusion=True,
+        _repeat_after_calibration=True,
     ):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_taylormode`."""
@@ -162,7 +174,7 @@ class GaussianIVPFilter(ODESolver):
             init_implementation=initialize_odefilter_with_taylormode,
             initrv=initrv,
             diffusion=diffusion,
-            re_predict_with_calibrated_diffusion=re_predict_with_calibrated_diffusion,
+            _repeat_after_calibration=_repeat_after_calibration,
         )
 
     def initialise(self):
@@ -284,7 +296,7 @@ class GaussianIVPFilter(ODESolver):
         error = np.linalg.norm(local_errors)
 
         # Either re-predict and re-measure with improved calibration or let the predicted RV catch up.
-        if self.re_predict_with_calibrated_diffusion:
+        if self._repeat_after_calibration:
             pred_rv, _ = self.gfilt.dynamics_model.forward_rv(
                 rv=current_rv, t=t, dt=dt, _diffusion=diffusion_for_calibration
             )
