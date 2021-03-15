@@ -231,15 +231,15 @@ class GaussianIVPFilter(ODESolver):
 
         # Read off system matrices; required for calibration / error estimation
         # Use only where a full call to forward_*() would be too costly.
-        # We use the mathematical symbol `Phi`, because this makes it much easier to read for us.
+        # We use the mathematical symbol `Phi` (and later, `H`), because this makes it easier to read for us.
         # The system matrix H of the measurement model can be accessed after the first forward_*,
-        # therefore we read it off below.
+        # therefore we read it off further below.
         dt = t_new - t
         discrete_dynamics = self.gfilt.dynamics_model.discretise(dt)
         Phi = discrete_dynamics.state_trans_mat
 
         # Split the current RV into a deterministic part and a noisy part.
-        # This split is necessary for efficient calibration. See docstring.
+        # This split is necessary for efficient calibration; see docstring.
         error_free_state = current_rv.mean.copy()
         noisy_component = Normal(
             mean=np.zeros(current_rv.shape),
