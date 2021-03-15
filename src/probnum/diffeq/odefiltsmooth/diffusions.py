@@ -11,11 +11,7 @@ from typing import Union
 import numpy as np
 
 from probnum import random_variables
-from probnum.type import FloatArgType
-
-from ..steprule import ToleranceDiffusionType
-
-DiffusionType = ToleranceDiffusionType
+from probnum.type import FloatArgType, ToleranceDiffusionType
 
 
 class Diffusion(abc.ABC):
@@ -25,7 +21,7 @@ class Diffusion(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def __call__(self, t) -> DiffusionType:
+    def __call__(self, t) -> ToleranceDiffusionType:
         """Evaluate the diffusion."""
         raise NotImplementedError
 
@@ -42,7 +38,7 @@ class Diffusion(abc.ABC):
     @abc.abstractmethod
     def update_current_information(
         self, full_diffusion, error_free_diffusion, t
-    ) -> DiffusionType:
+    ) -> ToleranceDiffusionType:
         """Update the current information about the global diffusion and return a value
         that is used for local calibration and error estimation.
 
@@ -85,12 +81,12 @@ class ConstantDiffusion(Diffusion):
     def __repr__(self):
         return f"ConstantDiffusion({self.diffusion})"
 
-    def __call__(self, t) -> DiffusionType:
+    def __call__(self, t) -> ToleranceDiffusionType:
         return self.diffusion
 
     def update_current_information(
         self, full_diffusion, error_free_diffusion, t
-    ) -> DiffusionType:
+    ) -> ToleranceDiffusionType:
         """Update the current global MLE with a new diffusion."""
         self._seen_diffusions += 1
 
@@ -144,7 +140,7 @@ class PiecewiseConstantDiffusion(Diffusion):
     def __repr__(self):
         return f"PiecewiseConstantDiffusion({self.diffusions})"
 
-    def __call__(self, t) -> DiffusionType:
+    def __call__(self, t) -> ToleranceDiffusionType:
 
         # Get indices in self.locations that are larger than t
         # The first element in this list is the first time-point right of t.
@@ -154,7 +150,7 @@ class PiecewiseConstantDiffusion(Diffusion):
 
     def update_current_information(
         self, full_diffusion, error_free_diffusion, t
-    ) -> DiffusionType:
+    ) -> ToleranceDiffusionType:
         """Append the most recent diffusion and location to a list.
 
         This function assumes that the list of times and diffusions is

@@ -1,22 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum.type import FloatArgType
-
-ToleranceDiffusionType = Union[FloatArgType, np.ndarray]
-r"""Tolerance types.
-
-Used for absolute (atol) and relative tolerances (rtol), as well as
-(the diagonal entries of diagonal matrices representing) diffusion models.
-atol, rtol, and diffusion are usually floats, but can be generalized to arrays -- essentially,
-to every :math:`\tau` that allows arithmetic operations such as
-
-.. math:: \tau + tau * \text{vec}, \text{ or } L \otimes \text{diag}(\tau)
-
-respectively. Currently, the array-support for diffusions is experimental (at best).
-"""
+from probnum.type import FloatArgType, IntArgType, ToleranceDiffusionType
 
 
 def propose_firststep(ivp):
@@ -33,16 +20,21 @@ def propose_firststep(ivp):
 class StepRule(ABC):
     """(Adaptive) step size rules for ODE solvers."""
 
-    def __init__(self, firststep):
+    def __init__(self, firststep: FloatArgType):
         self.firststep = firststep
 
     @abstractmethod
-    def suggest(self, laststep, errorest, localconvrate=None):
+    def suggest(
+        self,
+        laststep: FloatArgType,
+        scaled_error: FloatArgType,
+        localconvrate: Optional[IntArgType] = None,
+    ):
         """Suggest a new step h_{n+1} given error estimate e_n at step h_n."""
         raise NotImplementedError
 
     @abstractmethod
-    def is_accepted(self, scaled_error):
+    def is_accepted(self, scaled_error: FloatArgType):
         """Check if the proposed step should be accepted or not.
 
         Variable "proposedstep" not used yet, but may be important in
@@ -52,7 +44,9 @@ class StepRule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def errorest_to_norm(self, errorest, reference_state):
+    def errorest_to_norm(
+        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
+    ):
         """Computes the norm of error per tolerance (usually referred to as 'E').
 
         The norm is usually the current error estimate normalised with
@@ -65,18 +59,25 @@ class StepRule(ABC):
 class ConstantSteps(StepRule):
     """Constant step size rule for ODE solvers."""
 
-    def __init__(self, stepsize):
+    def __init__(self, stepsize: FloatArgType):
         self.step = stepsize
         super().__init__(firststep=stepsize)
 
-    def suggest(self, laststep, errorest, localconvrate=None):
+    def suggest(
+        self,
+        laststep: FloatArgType,
+        scaled_error: FloatArgType,
+        localconvrate: Optional[IntArgType] = None,
+    ):
         return self.step
 
-    def is_accepted(self, scaled_error):
+    def is_accepted(self, scaled_error: FloatArgType):
         """Always True."""
         return True
 
-    def errorest_to_norm(self, errorest, reference_state):
+    def errorest_to_norm(
+        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
+    ):
         pass
 
 
@@ -100,15 +101,15 @@ class AdaptiveSteps(StepRule):
 
     def __init__(
         self,
-        firststep,
-        atol,
-        rtol,
-        limitchange=(0.2, 10.0),
-        safetyscale=0.95,
-        minstep=1e-15,
-        maxstep=1e15,
+        firststep: FloatArgType,
+        atol: ToleranceDiffusionType,
+        rtol: ToleranceDiffusionType,
+        limitchange: Optional[Tuple[FloatArgType]] = (0.2, 10.0),
+        safetyscale: Optional[FloatArgType] = 0.95,
+        minstep: Optional[FloatArgType] = 1e-15,
+        maxstep: Optional[FloatArgType] = 1e15,
     ):
-        self.safetyscale = float(safetyscale)
+        self.safetyscale = safetyscale
         self.limitchange = limitchange
         self.minstep = minstep
         self.maxstep = maxstep
@@ -116,7 +117,12 @@ class AdaptiveSteps(StepRule):
         self.rtol = rtol
         super().__init__(firststep=firststep)
 
-    def suggest(self, laststep, scaled_error, localconvrate=None):
+    def suggest(
+        self,
+        laststep: FloatArgType,
+        scaled_error: FloatArgType,
+        localconvrate: Optional[IntArgType] = None,
+    ):
         small, large = self.limitchange
 
         ratio = 1.0 / scaled_error
@@ -136,10 +142,12 @@ class AdaptiveSteps(StepRule):
             raise RuntimeError("Step-size larger than maximum step-size")
         return step
 
-    def is_accepted(self, scaled_error):
+    def is_accepted(self, scaled_error: FloatArgType):
         return scaled_error < 1
 
-    def errorest_to_norm(self, errorest, reference_state):
+    def errorest_to_norm(
+        self, errorest: ToleranceDiffusionType, reference_state: np.ndarray
+    ):
         tolerance = self.atol + self.rtol * reference_state
         ratio = errorest / tolerance
         dim = len(ratio) if ratio.ndim > 0 else 1
