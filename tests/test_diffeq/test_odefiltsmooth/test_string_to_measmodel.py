@@ -29,7 +29,6 @@ def prior(ivp):
     [
         ("EK0", filtsmooth.DiscreteEKFComponent),
         ("EK1", filtsmooth.DiscreteEKFComponent),
-        ("UK", filtsmooth.DiscreteUKFComponent),
     ],
 )
 def test_output_type(string, expected_type, ivp, prior):
@@ -40,7 +39,7 @@ def test_output_type(string, expected_type, ivp, prior):
 
 @pytest.mark.parametrize(
     "string",
-    ["EK0", "EK1", "UK"],
+    ["EK0", "EK1"],
 )
 def test_true_mean_ek(string, ivp, prior):
     """Assert that a forwarded realization is x[1] - f(t, x[0]) with zero added covariance."""

@@ -44,13 +44,19 @@ class GaussianIVPFilter(ODESolver):
         As part of `GaussianIVPFilter.initialise()` (called in `GaussianIVPFilter.solve()`), this variable is improved upon with the help of the
         initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
     diffusion :
-        Diffusion model.
+        Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [1]_ for a survey.
     _repeat_after_calibration :
         Repeat the step after the initial calibration. Improves the result of each step, but slightly increases computational complexity.
         Optional. A default value is inferred from the type of diffusion model:
         if it is a `ConstantDiffusion`, this parameter is set to `False`;
         if it is a `PiecewiseConstantDiffusion`, this parameter is set to `True`.
         Other combinations are possible, but we recommend to stick to the defaults here.
+
+    References
+    ----------
+    .. [1] Bosch, N., and Hennig, P., and Tronarp, F..
+        Calibrated Adaptive Probabilistic ODE Solvers.
+        2021.
     """
 
     def __init__(
@@ -74,6 +80,17 @@ class GaussianIVPFilter(ODESolver):
         diffusion: typing.Optional[Diffusion] = None,
         _repeat_after_calibration: typing.Optional[bool] = None,
     ):
+
+        # Raise a comprehensible error if the wrong models are passed.
+        if not isinstance(measurement_model, pnfs.DiscreteEKFComponent):
+            raise TypeError(
+                "Please initialize a Gaussian ODE filter with an EKF component as a measurement model."
+            )
+        if not isinstance(prior, pnss.Integrator):
+            raise TypeError(
+                "Please initialize a Gaussian ODE filter with an Integrator as a prior"
+            )
+
         if initrv is None:
             initrv = Normal(
                 np.zeros(prior.dimension),
@@ -81,17 +98,10 @@ class GaussianIVPFilter(ODESolver):
                 cov_cholesky=np.eye(prior.dimension),
             )
 
-        if not isinstance(measurement_model, pnfs.DiscreteEKFComponent):
-            raise TypeError
-
         self.gfilt = pnfs.Kalman(
             dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
         )
 
-        if not isinstance(prior, pnss.Integrator):
-            raise ValueError(
-                "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
-            )
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
         super().__init__(ivp=ivp, order=prior.ordint)
@@ -349,34 +359,34 @@ class GaussianIVPFilter(ODESolver):
 
         return odesol
 
-    def _estimate_local_error(
-        self,
-        pred_rv,
-        t_new,
-        calibrated_proc_noise_cov,
-        calibrated_proc_noise_cov_cholesky,
-        **kwargs
-    ):
-        """Estimate the local errors.
-
-        This corresponds to the approach in [1], implemented such that it is compatible
-        with the EKF1 and UKF.
-
-        References
-        ----------
-        .. [1] Schober, M., Särkkä, S. and Hennig, P..
-            A probabilistic model for the numerical solution of initial
-            value problems.
-            Statistics and Computing, 2019.
-        """
-        local_pred_rv = Normal(
-            pred_rv.mean,
-            calibrated_proc_noise_cov,
-            cov_cholesky=calibrated_proc_noise_cov_cholesky,
-        )
-        local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
-        error = local_meas_rv.cov.diagonal()
-        return np.sqrt(np.abs(error))
+    # def _estimate_local_error(
+    #     self,
+    #     pred_rv,
+    #     t_new,
+    #     calibrated_proc_noise_cov,
+    #     calibrated_proc_noise_cov_cholesky,
+    #     **kwargs
+    # ):
+    #     """Estimate the local errors.
+    #
+    #     This corresponds to the approach in [1], implemented such that it is compatible
+    #     with the EKF1 and UKF.
+    #
+    #     References
+    #     ----------
+    #     .. [1] Schober, M., Särkkä, S. and Hennig, P..
+    #         A probabilistic model for the numerical solution of initial
+    #         value problems.
+    #         Statistics and Computing, 2019.
+    #     """
+    #     local_pred_rv = Normal(
+    #         pred_rv.mean,
+    #         calibrated_proc_noise_cov,
+    #         cov_cholesky=calibrated_proc_noise_cov_cholesky,
+    #     )
+    #     local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
+    #     error = local_meas_rv.cov.diagonal()
+    #     return np.sqrt(np.abs(error))
 
     @staticmethod
     def string_to_measurement_model(
@@ -384,7 +394,7 @@ class GaussianIVPFilter(ODESolver):
     ):
         """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
 
-        Return a :class:`DiscreteGaussian` (either a :class:`DiscreteEKFComponent` or a `DiscreteUKFComponent`) that provides
+        Return a :class:`DiscreteGaussian` (:class:`DiscreteEKFComponent`) that provides
         a tractable approximation of the transition densities based on the local defect of the ODE
 
         .. math:: g(m) = H_1 m(t) - f(t, H_0 m(t))
@@ -395,7 +405,6 @@ class GaussianIVPFilter(ODESolver):
 
         - EKF0 thinks :math:`J_g(m) = H_1`
         - EKF1 thinks :math:`J_g(m) = H_1 - J_f(t, H_0 m(t)) H_0^\\top`
-        - UKF thinks: ''What is a Jacobian?'' and uses the unscented transform to compute a tractable approximation of the transition densities.
         """
         measurement_model_string = measurement_model_string.upper()
 
@@ -418,11 +427,6 @@ class GaussianIVPFilter(ODESolver):
                 evlvar=measurement_noise_covariance,
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
-            ),
-            "UK": pnfs.DiscreteUKFComponent.from_ode(
-                ivp,
-                prior,
-                evlvar=measurement_noise_covariance,
             ),
         }
 
