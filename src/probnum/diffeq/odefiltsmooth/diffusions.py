@@ -13,12 +13,9 @@ import numpy as np
 from probnum import random_variables
 from probnum.type import FloatArgType
 
-DiffusionType = Union[FloatArgType]
-"""Acceptable diffusion types are -- in principle -- floats and arrays of shape (d,).
-In other words, everything that behaves well with `cov1 + diffusion*cov2` and
-`chol1 + sqrt(diffusion) * chol2`.
-For now, let's only use floats, because it is not clear to me how to best implement the square-root behaviour.
-"""
+from ..steprule import ToleranceDiffusionType
+
+DiffusionType = ToleranceDiffusionType
 
 
 class Diffusion(abc.ABC):

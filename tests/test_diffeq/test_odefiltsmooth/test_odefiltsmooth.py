@@ -20,8 +20,9 @@ def ivp():
 @pytest.mark.parametrize("dense_output", [True, False])
 @pytest.mark.parametrize("step", [0.01, None])
 @pytest.mark.parametrize("diffusion_model", ["constant", "dynamic"])
+@pytest.mark.parametrize("tolerance", [0.1, np.array([0.09, 0.10])])
 def test_adaptive_solver_successful(
-    ivp, method, algo_order, dense_output, step, diffusion_model
+    ivp, method, algo_order, dense_output, step, diffusion_model, tolerance
 ):
     """The solver terminates successfully for all sorts of parametrizations."""
     f = ivp.rhs
@@ -36,8 +37,8 @@ def test_adaptive_solver_successful(
         y0,
         df=df,
         adaptive=True,
-        atol=1e-1,
-        rtol=1e-1,
+        atol=tolerance,
+        rtol=tolerance,
         algo_order=algo_order,
         method=method,
         dense_output=dense_output,

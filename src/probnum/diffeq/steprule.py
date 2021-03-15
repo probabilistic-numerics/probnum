@@ -1,6 +1,22 @@
 from abc import ABC, abstractmethod
+from typing import Union
 
 import numpy as np
+
+from probnum.type import FloatArgType
+
+ToleranceDiffusionType = Union[FloatArgType, np.ndarray]
+r"""Tolerance types.
+
+Used for absolute (atol) and relative tolerances (rtol), as well as
+(the diagonal entries of diagonal matrices representing) diffusion models.
+atol, rtol, and diffusion are usually floats, but can be generalized to arrays -- essentially,
+to every :math:`\tau` that allows arithmetic operations such as
+
+.. math:: \tau + tau * \text{vec}, \text{ or } L \otimes \text{diag}(\tau)
+
+respectively. Currently, the array-support for diffusions is experimental (at best).
+"""
 
 
 def propose_firststep(ivp):
