@@ -222,7 +222,7 @@ class GaussianIVPFilter(ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        rvs = self.diffusion.postprocess_states(rvs, times)
+        rvs = self.diffusion.calibrate_all_states(rvs, times)
 
         kalman_posterior = pnfs.FilteringPosterior(
             times, rvs, self.gfilt.dynamics_model
