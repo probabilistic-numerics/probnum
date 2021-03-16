@@ -4,6 +4,7 @@ import abc
 from typing import Optional, Tuple, Union
 
 import numpy as np
+import scipy.stats
 
 from probnum.random_variables._normal import Normal
 from probnum.type import FloatArgType, IntArgType
@@ -35,34 +36,88 @@ class IntegrationMeasure(abc.ABC):
         """Sets the integration domain and dimension. Error is thrown if the given
         dimension and domain limits do not match.
 
-        TODO: check that dimensions match and the domain is not empty
+        TODO: check that domain dimensions match
         """
-        if dim >= 1:
-            self.dim = dim
-        else:
-            raise ValueError(f"Domain dimension dim={dim} must be positive.")
 
-        if np.isscalar(domain[0]):
-            # Use same domain limit in all dimensions if only one limit is given
-            domain_a = np.full((dim, 1), domain[0])
+        domain_a_dim = np.size(domain[0])
+        domain_b_dim = np.size(domain[1])
+
+        # Check that given dimensions match and are positive
+        dim_mismatch = False
+        if dim is None:
+            if domain_a_dim == domain_b_dim:
+                dim = domain_a_dim
+            elif domain_a_dim == 1 or domain_b_dim == 1:
+                dim = np.max([domain_a_dim, domain_b_dim])
+            else:
+                dim_mismatch = True
+        else:
+            if (domain_a_dim > 1 or domain_b_dim > 1) and dim != np.max(
+                [domain_a_dim, domain_b_dim]
+            ):
+                dim_mismatch = True
+
+        if dim_mismatch:
+            raise ValueError(
+                "Domain limits must have the same length or at least "
+                "one of them has to be one-dimensional"
+            )
+        if dim < 1:
+            raise ValueError(f"Domain dimension dim = {dim} must be positive.")
+
+        # Use same domain limit in all dimensions if only one limit is given
+        if domain_a_dim == 1:
+            domain_a = np.full((dim,), domain[0])
         else:
             domain_a = domain[0]
-        if np.isscalar(domain[1]):
-            domain_b = np.full((dim, 1), domain[1])
+        if domain_b_dim == 1:
+            domain_b = np.full((dim,), domain[1])
         else:
             domain_b = domain[1]
+
+        # Check that the domain is non-empty
+        if not np.all(domain_a < domain_b):
+            raise ValueError(f"Domain must be non-empty.")
+
+        self.dim = dim
         self.domain = (domain_a, domain_b)
 
 
 class LebesgueMeasure(IntegrationMeasure):
     """A Lebesgue measure."""
 
-    def __init__(self, domain: Tuple[np.ndarray, np.ndarray]):
+    def __init__(
+        self,
+        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+        dim: Optional[IntArgType] = None,
+        normalized: Optional[bool] = False,
+    ):
+        super().__init__(dim=dim, domain=domain, name="Lebesgue measure")
 
-        super().__init__(domain=domain, name="Lebesgue measure")
+        # Set normalization constant
+        self.normalized = normalized
+        if self.normalized:
+            self.normalization_constant = 1 / np.prod(self.domain[1] - self.domain[0])
+        else:
+            self.normalization_constant = 1
+
+        if self.normalization_constant in [0, np.Inf, -np.Inf]:
+            raise ValueError(
+                "Normalization constant is too small or too large. "
+                "Consider setting normalized = False."
+            )
+
+        # Use scipy's uniform random variable since uniform random variables are not
+        # yet implemented in probnum
+        self.random_variable = scipy.stats.uniform(
+            loc=self.domain[0], scale=self.domain[1] - self.domain[0]
+        )
+
+    def __call__(self, points: Union[float, np.floating, np.ndarray]):
+        return np.full(np.shape(np.atleast_1d(points)), self.normalization_constant)
 
     def sample(self, n_sample):
-        raise NotImplementedError
+        return np.squeeze(self.random_variable.rvs((n_sample, self.dim)))
 
 
 class GaussianMeasure(IntegrationMeasure):
