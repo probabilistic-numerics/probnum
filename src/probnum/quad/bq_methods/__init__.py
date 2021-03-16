@@ -1,1 +1,1 @@
-from .bayesian_quadrature import BayesianQuadrature
+from .bayesian_quadrature import BayesianQuadrature, sample_from_measure

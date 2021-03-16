@@ -7,16 +7,35 @@ value of the integral. Bayesian quadrature methods return a random
 variable, specifying the belief about the true value of the integral.
 """
 
+from typing import Callable, Optional, Tuple, Union
+
+import numpy as np
+
+from probnum.kernels import Kernel
+from probnum.type import FloatArgType
+
+from ._integration_measures import IntegrationMeasure, LebesgueMeasure
 from .bq_methods import BayesianQuadrature
 
 
-def bayesquad(fun, fun0, domain=None, nevals=None, measure=None, method="vanilla", strategy='bmc'):
-    """Bayesian quadrature (BQ) infers integrals of the form
+def bayesquad(
+    fun: Callable,
+    input_dim: int,
+    kernel: Optional[Kernel] = None,
+    domain: Optional[
+        Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
+    ] = None,
+    nevals: int = None,
+    measure: Optional[IntegrationMeasure] = None,
+    method: str = "vanilla",
+    policy: str = "bmc",
+):
+    r"""Bayesian quadrature (BQ) infers integrals of the form
 
-    .. math:: F = \\int_a^b f(x) d \\mu(x),
+    .. math:: F = \int_a^b f(x) d \mu(x),
 
-    of a function :math: `f:\\mathbb{R}^n \\mapsto \\mathbb{R}` integrated between bounds
-    :math: `a` and :math: `b` against a measure :math: `\\mu: \\mathbb{R}^n \\mapsto \\mathbb{R}`.
+    of a function :math: `f:\mathbb{R}^D \mapsto \mathbb{R}` integrated between bounds
+    :math: `a` and :math: `b` against a measure :math: `\mu: \mathbb{R}^D \mapsto \mathbb{R}`.
 
     Bayesian quadrature methods return a probability distribution over the solution :math: `F` with
     uncertainty arising from finite computation (here a finite number of function evaluations).
@@ -27,18 +46,18 @@ def bayesquad(fun, fun0, domain=None, nevals=None, measure=None, method="vanilla
 
     Parameters
     ----------
-    fun : function
+    fun :
         Function to be integrated.
-    fun0 : RandomProcess or function, optional
-        Stochastic process modelling the function to be integrated.
+    input_dim:
+        Input dimension of the integration problem
+    kernel:
+        the kernel used for the GP model
     domain : Tuple
         Domain of integration. Contains lower and upper bound as int or ndarray, shape=(dim,)
-    measure :
-        Measure to integrate against.
-    nevals :
-        Number of function evaluations.
     measure: IntegrationMeasure, optional
         Integration measure, defaults to the Lebesgue measure.
+    nevals :
+        Number of function evaluations.
     method : str, optional
         Type of Bayesian quadrature to use. The available options are
 
@@ -47,7 +66,7 @@ def bayesquad(fun, fun0, domain=None, nevals=None, measure=None, method="vanilla
          WSABI                ``wsabi``
         ====================  ===========
 
-    strategy : str, optional
+    policy : str, optional
         Type of acquisition strategy to use. Options are
 
         =======================  =======
@@ -61,26 +80,31 @@ def bayesquad(fun, fun0, domain=None, nevals=None, measure=None, method="vanilla
     -------
     integral :
         The integral of ``func`` on the domain.
-    fun0 :
-        Stochastic process modelling the function to be integrated after ``neval``
-        observations.
     info :
         Information on the performance of the method.
 
     References
     ----------
     """
+    if domain is None and measure is None:
+        raise ValueError(
+            "You need to either specify an integration domain or an integration measure. "
+            "The Lebesgue measure can only operate on a finite domain"
+        )
+
+    # Integration measure
+    if measure is None:
+        measure = LebesgueMeasure(domain=domain, dim=input_dim)
 
     # Choose Method
-    bqmethod = None
-    if method == "vanilla":
-        bqmethod = BayesianQuadrature(fun0=fun0)
-    # elif method == "wsabi":
-    #     bqmethod = WarpedBayesianQuadrature(fun0=fun0)
-
-    # Integrate
-    integral, fun0, info = bqmethod.integrate(
-        fun=fun, nevals=nevals, domain=domain, measure=measure
+    bq_method = BayesianQuadrature.instantiate_default(
+        input_dim=input_dim, kernel=kernel, method=method, policy=policy
     )
 
-    return integral, fun0, info
+    if nevals is None:
+        nevals = input_dim * 25
+
+    # Integrate
+    integral, info = bq_method.integrate(fun=fun, measure=measure, nevals=nevals)
+
+    return integral, info

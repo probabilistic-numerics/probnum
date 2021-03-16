@@ -1,11 +1,11 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from typing import Callable
+from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 
-from probnum.kernels import Kernel
+from probnum.kernels import ExpQuad, Kernel
 from probnum.random_variables import Normal
 
 from .._integration_measures import IntegrationMeasure
@@ -13,60 +13,74 @@ from .._kernel_embeddings import get_kernel_embedding
 
 
 class BayesianQuadrature:
-    """A Bayesian quadrature model to solve integrals of the type.
+    r"""A Bayesian quadrature model to solve integrals of the type.
 
-    .. math:: \\int f(x) p(x) dx
-
-    This class is designed to be subclassed by implementations of Bayesian quadrature
-    with an :meth:`integrate` method.
+    .. math:: F = \int_a^b f(x) d \mu(x),
 
     Parameters
     ----------
-    fun: Callable
-        integrand function :math:`f`
-    kernel: Kernel
+    kernel:
         the kernel used for the GP model
-    measure : IntegrationMeasure
-        integration measure :math:`p`
+    policy:
+        the policy for acquiring nodes for function evaluations
     """
 
-    def __init__(self, fun: Callable, kernel: Kernel, measure: IntegrationMeasure):
-        self.fun = fun
+    def __init__(self, kernel: Kernel, policy: Callable) -> None:
         self.kernel = kernel
-        self.measure = measure
+        self.policy = policy
 
-        # Define kernel embedding
-        self.kernel_embedding = get_kernel_embedding(
-            kernel=self.kernel, measure=self.measure
-        )
+    @classmethod
+    def instantiate_default(
+        cls,
+        input_dim: int,
+        kernel: Optional[Kernel] = None,
+        method: str = "vanilla",
+        policy: str = "bmc",
+    ) -> "BayesianQuadrature":
+        if method != "vanilla":
+            raise NotImplementedError
+        if kernel is None:
+            kernel = ExpQuad(input_dim=input_dim)
+        if policy == "bmc":
+            policy = sample_from_measure
+        else:
+            raise NotImplementedError(
+                "Policies outside random sampling are not available at the moment"
+            )
+        return cls(kernel=kernel, policy=policy)
 
-    def integrate(self, nevals: int):
-        """Integrate the function ``fun``.
+    def integrate(
+        self, fun: Callable, measure: IntegrationMeasure, nevals: int
+    ) -> Tuple[Normal, Dict]:
+        r"""Integrate the function ``fun``.
 
         Parameters
         ----------
-        nevals : int
+        fun:
+            integrand function :math:`f`
+        measure :
+            integration measure :math:`\mu`
+        nevals :
             Number of function evaluations.
 
         Returns
         -------
         F : RandomVariable
-        The integral of ``func`` from ``a`` to ``b``.
-        fun0 : RandomProcess
-            Stochastic process modelling the function to be integrated after ``neval``
-            observations.
+            The integral of ``fun`` from ``a`` to ``b``.
         info : dict
             Information on the performance of the method.
         """
 
         # Acquisition policy
-        nodes = self._policy(nevals)
-        y = self.fun(nodes)
+        nodes = self.policy(nevals, measure)
+        y = fun(nodes)
 
         # compute integral mean and variance
+        # Define kernel embedding
+        kernel_embedding = get_kernel_embedding(self.kernel, measure)
         gram = self.kernel(nodes, nodes)
-        kernel_mean = self.kernel_embedding.kernel_mean(nodes)
-        initial_error = self.kernel_embedding.kernel_variance()
+        kernel_mean = kernel_embedding.kernel_mean(nodes)
+        initial_error = kernel_embedding.kernel_variance()
 
         weights = self._solve_gram(gram, kernel_mean)
 
@@ -85,39 +99,43 @@ class BayesianQuadrature:
     # 1. acquisition policy
     # 2. GP inference
 
-    def _policy(self, nevals: int):
-        """Acquisition policy for obtaining locations where to evaluate the function.
-
-        Parameters
-        ----------
-        nevals : int
-            Number of function evaluations.
-
-        Returns
-        -------
-        x : np.ndarray
-            nodes where the integrand will be evaluated
-        """
-        return self.measure.sample(nevals).reshape(nevals, -1)
-
     @staticmethod
-    def _solve_gram(gram: np.ndarray, rhs: np.ndarray):
+    def _solve_gram(gram: np.ndarray, rhs: np.ndarray) -> np.ndarray:
         """Solve the linear system of the form.
 
         .. math:: Kx=b,
 
         Parameters
         ----------
-        gram : np.ndarray
+        gram :
             symmetric pos. def. kernel Gram matrix :math:`K`, shape (nevals, nevals)
-        rhs : np.ndarray
+        rhs :
             right-hand-side :math:`b`, matrix or vector, shape (nevals, ...)
 
         Returns
         -------
-        x:  np.ndarray
+        x:
             The solution to the linear system :math:`K x = b`
         """
         jitter = 1.0e-6
         chol_gram = cho_factor(gram + jitter * np.eye(gram.shape[0]))
         return cho_solve(chol_gram, rhs)
+
+
+def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
+    r"""Acquisition policy: random samples from the integration measure
+
+    Parameters
+    ----------
+    nevals : int
+        Number of function evaluations.
+
+    measure :
+            integration measure :math:`\mu`
+
+    Returns
+    -------
+    x : np.ndarray
+        nodes where the integrand will be evaluated
+    """
+    return measure.sample(nevals).reshape(nevals, -1)
