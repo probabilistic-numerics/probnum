@@ -139,36 +139,15 @@ class KalmanODESolution(ODESolution):
         t: Optional[DenseOutputLocationArgType] = None,
     ) -> np.ndarray:
 
-        t = np.asarray(t) if t is not None else None
-
-        # Implement only single samples, rest via recursion
-        # We cannot 'steal' the recursion from
-        # self.kalman_posterior.transform_base_measure_realizations,
-        # because we need to project the respective states out of each sample.
-        #
-        # Early exit: recursively compute multiple samples
-        # if the desired sample size is not equal to '()', which is the case if
-        # the shape of base_measure_realization is not (len(locations), shape(RV))
-        # t_shape = self.locations.shape if t is None else (len(t) + 1,)
-        size_zero_shape = () + t.shape + self.kalman_posterior.states[0].shape
-        if base_measure_realizations.shape != size_zero_shape:
-            return np.array(
-                [
-                    self.transform_base_measure_realizations(
-                        base_measure_realizations=base_real,
-                        t=t,
-                    )
-                    for base_real in base_measure_realizations
-                ]
-            )
-
-        # Now we have a single sample, which is when we can delegate to the Kalman posterior
-        # and the only thing that remains is to extract the correct zeroth coordinate (the state)
-        # out of the set of samples.
         samples = self.kalman_posterior.transform_base_measure_realizations(
             base_measure_realizations=base_measure_realizations, t=t
         )
-        return samples @ self.proj_to_y.T
+
+        # Project the samples down to the "true" KalmanODESolution dimensions
+        # (which are a subset of the KalmanPosterior dimensions)
+        ode_samples = np.einsum("dq,...q->...d", self.proj_to_y, samples)
+
+        return ode_samples
 
     @property
     def filtering_solution(self):
