@@ -35,6 +35,13 @@ If imports are shortened, the following conventions should be used. Full import
 paths are always acceptable.
 
 - `import probnum as pn`
+- `from probnum import randvars, linalg, diffeq, statespace`
+
+Please do not abbreviate import paths unnecessarily. We do **not** use the following imports:
+- `import probnum.random_variables as pnrv` or `import probnum.filtsmooth as pnfs` (correct would be `from probnum import randvars, filtsmooth`)
+- `from probnum import random_variables as rvs` or `import probnum.random_variables as rvs` (the `randvars` name is sufficiently short and does not need to be abbreviated)
+
+All of these rule obey the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html).
 
 ### Type Standardization
 
