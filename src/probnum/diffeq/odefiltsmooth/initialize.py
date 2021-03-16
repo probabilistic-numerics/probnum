@@ -6,7 +6,7 @@ import numpy as np
 import scipy.integrate as sci
 
 import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 import probnum.statespace as pnss
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
@@ -64,7 +64,7 @@ def initialize_odefilter_with_rk(
     --------
 
     >>> from dataclasses import astuple
-    >>> from probnum.random_variables import Normal
+    >>> from probnum.randvars import Normal
     >>> from probnum.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
 
@@ -181,7 +181,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     ...     pytest.skip('this doctest does not work on Windows')
 
     >>> from dataclasses import astuple
-    >>> from probnum.random_variables import Normal
+    >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
     >>> from probnum.statespace import IBM
 

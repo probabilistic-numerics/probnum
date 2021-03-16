@@ -10,7 +10,7 @@ References
 
 import numpy as np
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 from probnum import statespace
 from probnum.diffeq import steprule
 from probnum.diffeq.ode import IVP
@@ -167,7 +167,7 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum import random_variables as rvs
+    >>> from probnum import randvars as rvs
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.

@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 from probnum.filtsmooth.gaussfiltsmooth import unscentedtransform
 
 

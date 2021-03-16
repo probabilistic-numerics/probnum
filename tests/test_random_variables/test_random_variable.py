@@ -8,7 +8,7 @@ import scipy.stats
 
 import probnum
 from probnum import linops
-from probnum import random_variables as rvs
+from probnum import randvars as rvs
 from tests.testing import NumpyAssertions
 
 

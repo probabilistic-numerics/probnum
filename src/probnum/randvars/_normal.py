@@ -65,7 +65,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     Examples
     --------
-    >>> from probnum import random_variables as rvs
+    >>> from probnum import randvars as rvs
     >>> x = rvs.Normal(mean=0.5, cov=1.0, random_state=42)
     >>> x.sample(size=(2, 2))
     array([[0.99671415, 0.3617357 ],

@@ -8,7 +8,7 @@ import scipy.sparse.linalg
 
 import probnum
 from probnum import linalg, linops
-from probnum import random_variables as rvs
+from probnum import randvars as rvs
 from tests.testing import NumpyAssertions
 
 

@@ -6,7 +6,7 @@ import numpy as np
 import scipy.integrate
 import scipy.linalg
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 from probnum.type import FloatArgType, IntArgType
 
 from . import discrete_transition, transition

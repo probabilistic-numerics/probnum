@@ -10,7 +10,7 @@ import typing
 import numpy as np
 
 import probnum._randomvariablelist as pnrv_list
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 import probnum.type
 
 try:

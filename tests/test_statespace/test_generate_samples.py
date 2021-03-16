@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 import probnum.statespace as pnss
 
 

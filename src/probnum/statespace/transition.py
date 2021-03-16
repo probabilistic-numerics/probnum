@@ -2,7 +2,7 @@
 
 import abc
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.type import IntArgType
 

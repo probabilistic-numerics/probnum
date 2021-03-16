@@ -1,6 +1,6 @@
 import numpy as np
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 
 
 def condition_state_on_measurement(measurement, forwarded_rv, rv, gain):

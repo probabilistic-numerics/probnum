@@ -6,7 +6,7 @@ import probnum.filtsmooth as pnfs
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import KalmanODESolution, probsolve_ivp
 from probnum.diffeq.ode import logistic, lotkavolterra
-from probnum.random_variables import Constant, Normal
+from probnum.randvars import Constant, Normal
 from tests.testing import NumpyAssertions
 
 

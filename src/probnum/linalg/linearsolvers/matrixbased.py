@@ -10,7 +10,7 @@ import numpy as np
 
 import probnum
 from probnum import linops
-from probnum import random_variables as rvs
+from probnum import randvars as rvs
 
 
 class ProbabilisticLinearSolver(abc.ABC):

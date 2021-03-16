@@ -6,7 +6,7 @@ import numpy as np
 
 import probnum._randomvariablelist as pnrv_list
 import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 import probnum.type
 import probnum.utils
 from probnum.utils.linalg import cholesky_update
@@ -39,7 +39,7 @@ class KalmanODESolution(ODESolution):
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum import random_variables as rvs
+    >>> from probnum import randvars as rvs
     >>>
     >>> def f(t, x):
     ...     return 4*x*(1-x)

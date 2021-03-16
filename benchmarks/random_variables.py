@@ -4,7 +4,7 @@ import numpy as np
 
 from benchmarks.benchmark_utils import SPD_MATRIX_5x5
 from probnum import linops
-from probnum import random_variables as rvs
+from probnum import randvars as rvs
 
 # Module level variables
 RV_NAMES = [

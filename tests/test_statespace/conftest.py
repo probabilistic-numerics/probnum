@@ -6,7 +6,7 @@ Mostly some random variables of matching dimensions.
 import numpy as np
 import pytest
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 

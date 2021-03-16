@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from probnum import random_variables as rvs
+from probnum import randvars as rvs
 
 
 def test_constant_accessible_like_gaussian():

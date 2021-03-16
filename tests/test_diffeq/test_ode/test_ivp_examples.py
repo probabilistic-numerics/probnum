@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum.diffeq.ode import ivp, ivp_examples
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 from tests.testing import NumpyAssertions
 
 

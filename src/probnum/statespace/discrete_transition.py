@@ -4,7 +4,7 @@ from typing import Callable, Optional
 
 import numpy as np
 
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 from probnum.type import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 

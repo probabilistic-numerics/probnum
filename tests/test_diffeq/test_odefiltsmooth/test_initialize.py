@@ -3,7 +3,7 @@ import pytest
 
 import probnum.diffeq as pnde
 import probnum.problems.zoo.diffeq as diffeq_zoo
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 import probnum.statespace as pnss
 
 from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
