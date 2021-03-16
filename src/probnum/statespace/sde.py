@@ -6,7 +6,7 @@ import numpy as np
 import scipy.integrate
 import scipy.linalg
 
-import probnum.randvars as pnrv
+from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
 
 from . import discrete_transition, transition
@@ -211,7 +211,7 @@ class LinearSDE(SDE):
         sol_mean = lambda t: sol.sol(t)[:dim]
         sol_cov = lambda t: sol.sol(t)[dim:].reshape((dim, dim))
 
-        return pnrv.Normal(mean=new_mean, cov=new_cov), {
+        return randvars.Normal(mean=new_mean, cov=new_cov), {
             "sol": sol,
             "sol_mean": sol_mean,
             "sol_cov": sol_cov,

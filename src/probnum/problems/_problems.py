@@ -7,9 +7,9 @@ import numpy as np
 import scipy.sparse
 
 import probnum.linops as pnlo
-import probnum.randvars as pnrv
 import probnum.statespace as pnss
 import probnum.type as pntp
+from probnum import randvars
 
 
 @dataclasses.dataclass
@@ -141,12 +141,12 @@ class LinearSystem:
         np.ndarray,
         scipy.sparse.spmatrix,
         pnlo.LinearOperator,
-        pnrv.RandomVariable,
+        randvars.RandomVariable,
     ]
-    b: typing.Union[np.ndarray, pnrv.RandomVariable]
+    b: typing.Union[np.ndarray, randvars.RandomVariable]
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Union[np.ndarray, pnrv.RandomVariable]] = None
+    solution: typing.Optional[typing.Union[np.ndarray, randvars.RandomVariable]] = None
 
 
 @dataclasses.dataclass
@@ -202,5 +202,5 @@ class QuadratureProblem:
 
     # For testing and benchmarking
     solution: typing.Optional[
-        typing.Union[float, np.ndarray, pnrv.RandomVariable]
+        typing.Union[float, np.ndarray, randvars.RandomVariable]
     ] = None

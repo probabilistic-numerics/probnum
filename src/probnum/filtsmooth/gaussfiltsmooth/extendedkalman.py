@@ -6,8 +6,8 @@ import typing
 
 import numpy as np
 
-import probnum.randvars as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 
 
 class EKFComponent(abc.ABC):
@@ -31,7 +31,7 @@ class EKFComponent(abc.ABC):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> typing.Tuple[pnrv.Normal, typing.Dict]:
+    ) -> typing.Tuple[randvars.Normal, typing.Dict]:
 
         return self._forward_realization_via_forward_rv(
             realization,
@@ -50,7 +50,7 @@ class EKFComponent(abc.ABC):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> typing.Tuple[pnrv.Normal, typing.Dict]:
+    ) -> typing.Tuple[randvars.Normal, typing.Dict]:
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
@@ -108,7 +108,7 @@ class EKFComponent(abc.ABC):
         )
 
     @abc.abstractmethod
-    def linearize(self, at_this_rv: pnrv.RandomVariable) -> pnss.Transition:
+    def linearize(self, at_this_rv: randvars.RandomVariable) -> pnss.Transition:
         """Linearize the transition and make it tractable."""
         raise NotImplementedError
 
@@ -152,7 +152,7 @@ class ContinuousEKFComponent(EKFComponent, pnss.SDE):
         self.mde_rtol = mde_rtol
         self.mde_solver = mde_solver
 
-    def linearize(self, at_this_rv: pnrv.Normal):
+    def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
 
         g = self.non_linear_model.driftfun
@@ -201,7 +201,7 @@ class DiscreteEKFComponent(EKFComponent, pnss.DiscreteGaussian):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
-    def linearize(self, at_this_rv: pnrv.Normal):
+    def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
         g = self.non_linear_model.state_trans_fun

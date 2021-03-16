@@ -11,8 +11,8 @@ except ImportError:
 import numpy as np
 import scipy.special
 
-import probnum.randvars as pnrv
 import probnum.type as pntype
+from probnum import randvars
 
 from . import discrete_transition, sde
 from .preconditioner import NordsieckLikeCoordinates
@@ -596,4 +596,4 @@ def _apply_precon(precon, rv):
     new_cov_cholesky = precon @ rv.cov_cholesky  # precon is diagonal, so this is valid
     new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
-    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
+    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)

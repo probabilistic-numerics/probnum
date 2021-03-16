@@ -10,8 +10,7 @@ References
 
 import numpy as np
 
-import probnum.randvars as pnrv
-from probnum import statespace
+from probnum import randvars, statespace
 from probnum.diffeq import steprule
 from probnum.diffeq.ode import IVP
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
@@ -223,7 +222,9 @@ def probsolve_ivp(
     """
 
     # Create IVP object
-    ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
+    ivp = IVP(
+        timespan=(t0, tmax), initrv=randvars.Constant(np.asarray(y0)), rhs=f, jac=df
+    )
 
     # Create steprule
     if adaptive is True:

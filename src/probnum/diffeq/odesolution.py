@@ -10,8 +10,8 @@ import typing
 import numpy as np
 
 import probnum._randomvariablelist as pnrv_list
-import probnum.randvars as pnrv
 import probnum.type
+from probnum import randvars
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -43,7 +43,7 @@ class ODESolution(abc.ABC):
     # Not abstract, because providing interpolation could sometimes be tedious.
     def __call__(
         self, t: typing.Union[float, typing.List[float]]
-    ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
+    ) -> typing.Union[randvars.RandomVariable, pnrv_list._RandomVariableList]:
         """Evaluate the time-continuous solution at time t.
 
         Parameters
@@ -61,7 +61,7 @@ class ODESolution(abc.ABC):
         """Number of points in the discrete-time solution."""
         return len(self.y)
 
-    def __getitem__(self, idx: int) -> pnrv.RandomVariable:
+    def __getitem__(self, idx: int) -> randvars.RandomVariable:
         """Access the :math:`i`th element of the discrete-time solution."""
         return self.y[idx]
 

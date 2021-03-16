@@ -6,9 +6,9 @@ import numpy as np
 
 import probnum._randomvariablelist as pnrv_list
 import probnum.filtsmooth as pnfs
-import probnum.randvars as pnrv
 import probnum.type
 import probnum.utils
+from probnum import randvars
 from probnum.utils.linalg import cholesky_update
 
 from ..odesolution import ODESolution
@@ -107,7 +107,7 @@ class KalmanODESolution(ODESolution):
 
     def __call__(
         self, t: float
-    ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
+    ) -> typing.Union[randvars.RandomVariable, pnrv_list._RandomVariableList]:
         out_rv = self.kalman_posterior(t)
 
         if np.isscalar(t):
@@ -158,4 +158,4 @@ def _project_rv(projmat, rv):
     new_mean = projmat @ rv.mean
     new_cov = projmat @ rv.cov @ projmat.T
     new_cov_cholesky = cholesky_update(projmat @ rv.cov_cholesky)
-    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
+    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)

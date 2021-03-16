@@ -6,8 +6,8 @@ import numpy as np
 import scipy.integrate as sci
 
 import probnum.filtsmooth as pnfs
-import probnum.randvars as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
@@ -130,7 +130,7 @@ def initialize_odefilter_with_rk(
 
     initcov = np.diag(initcov_diag)
     initcov_cholesky = np.diag(np.sqrt(initcov_diag))
-    initrv = pnrv.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
+    initrv = randvars.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
     kalman = pnfs.Kalman(prior, measmod, initrv)
 
     out = kalman.filtsmooth(ys, ts)
@@ -251,7 +251,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
             np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
         )
 
-        return pnrv.Normal(
+        return randvars.Normal(
             np.asarray(all_derivs),
             cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
@@ -264,7 +264,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
             np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
         )
 
-        return pnrv.Normal(
+        return randvars.Normal(
             np.asarray(all_derivs),
             cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
@@ -278,7 +278,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
         jnp.array(derivs), ordint=order, spatialdim=len(y0)
     )
 
-    return pnrv.Normal(
+    return randvars.Normal(
         np.asarray(all_derivs),
         cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
         cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
