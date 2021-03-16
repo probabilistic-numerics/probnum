@@ -242,7 +242,7 @@ class Transition(abc.ABC):
         """
         raise NotImplementedError
 
-    # Smoothing and sampling implementations
+        # Smoothing and sampling implementations
 
     def smooth_list(self, rv_list, locations, _previous_posterior=None):
         """Apply smoothing to a list of random variables, according to the present
@@ -287,40 +287,6 @@ class Transition(abc.ABC):
             out_rvs.append(curr_rv)
         out_rvs.reverse()
         return _randomvariablelist._RandomVariableList(out_rvs)
-
-    # def jointly_sample_list_backward(self, rv_list, t, _previous_posterior=None):
-    #     """Jointly sample from a list of random variables, according to the present
-    #     transition.
-    #
-    #     An explanation of the algorithm can be found in, for instance, this link [1]_.
-    #
-    #     References
-    #     ----------
-    #     .. [1] https://stats.stackexchange.com/questions/376974/how-to-sample-an-unobserved-markov-process-using-the-forward-backward-algorithm
-    #
-    #     Parameters
-    #     ----------
-    #     rv_list : _randomvariablelist._RandomVariableList
-    #         List of random variables to be sampled from (jointly).
-    #     locations :
-    #         Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
-    #     _previous_posterior
-    #         Specify a previous posterior to improve linearisation in approximate backward passes.
-    #         Used in iterated smoothing based on posterior linearisation.
-    #
-    #     Returns
-    #     -------
-    #     _randomvariablelist._RandomVariableList
-    #         List of smoothed random variables.
-    #     """
-    #
-    #     base_measure_samples = np.random.randn(len(t), self.input_dim)
-    #     return self.jointly_transform_base_measure_realization_list_backward(
-    #         rv_list,
-    #         t,
-    #         base_measure_samples=base_measure_samples,
-    #         _previous_posterior=_previous_posterior,
-    #     )
 
     def jointly_transform_base_measure_realization_list_backward(
         self,

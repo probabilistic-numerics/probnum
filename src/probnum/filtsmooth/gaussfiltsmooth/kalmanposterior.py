@@ -189,7 +189,9 @@ class SmoothingPosterior(KalmanPosterior):
         self.filtering_posterior = filtering_posterior
         super().__init__(locations, states, transition)
 
-    def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
+    def interpolate(
+        self, t: DenseOutputLocationArgType
+    ) -> random_variables.RandomVariable:
 
         pred_rv = self.filtering_posterior.interpolate(t)
         next_idx = self._find_previous_index(t) + 1
@@ -245,7 +247,9 @@ class SmoothingPosterior(KalmanPosterior):
 class FilteringPosterior(KalmanPosterior):
     """Filtering posterior."""
 
-    def interpolate(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
+    def interpolate(
+        self, t: DenseOutputLocationArgType
+    ) -> random_variables.RandomVariable:
         """Predict to the present point.
 
         Parameters
@@ -255,7 +259,7 @@ class FilteringPosterior(KalmanPosterior):
 
         Returns
         -------
-        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+        random_variables.RandomVariable
             Dense evaluation.
         """
         previous_idx = self._find_previous_index(t)

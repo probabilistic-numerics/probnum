@@ -72,15 +72,6 @@ class TimeSeriesPosterior(abc.ABC):
         random_variables.RandomVariable or _randomvariablelist._RandomVariableList
             Estimate of the states at time ``t``.
         """
-        #
-        # # Early exit if t consists of gridpoints:
-        # if np.all(np.isin(t, self.locations)):
-        #     indices = np.where(np.isin(self.locations, t))[0]
-        #     print(indices)
-        #     print(type(self.states))
-        #     res = _randomvariablelist._RandomVariableList(list(np.array(self.states)[indices.astype(int)]))
-        #     print(res)
-        #     return res
 
         # Recursive evaluation (t can now be any array, not just length 1)
         if not np.isscalar(t):
