@@ -6,9 +6,9 @@ import probnum.random_variables as pnrv
 import probnum.statespace as pnss
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.diffeq import KalmanODESolution, probsolve_ivp
-from probnum.diffeq.ode import logistic, lotkavolterra
-from probnum.random_variables import Constant, Normal
+from probnum.diffeq import probsolve_ivp
+from probnum.diffeq.ode import lotkavolterra
+from probnum.random_variables import Constant
 
 
 @pytest.fixture

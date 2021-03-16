@@ -12,11 +12,7 @@ from scipy import stats
 from probnum import _randomvariablelist, random_variables, statespace, utils
 from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
-from ..timeseriesposterior import (
-    DenseOutputLocationArgType,
-    DenseOutputValueType,
-    TimeSeriesPosterior,
-)
+from ..timeseriesposterior import DenseOutputLocationArgType, TimeSeriesPosterior
 from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
 from .unscentedkalman import ContinuousUKFComponent, DiscreteUKFComponent
 

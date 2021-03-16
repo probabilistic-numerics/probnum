@@ -3,7 +3,6 @@
 from typing import Optional
 
 import numpy as np
-from scipy import stats
 
 from probnum import _randomvariablelist, filtsmooth, random_variables, utils
 from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
