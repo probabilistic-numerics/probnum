@@ -100,47 +100,8 @@ class KalmanODESolution(ODESolution):
         random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
 
-        # Include the final point if a specific grid is demanded
-        # and the rightmost point is left of the rightmost data point.
-        # If this is not done, the samples are not from the full posterior.
-        if t is None:
-            sampling_locs = self.locations
-            remove_final_point = False
-        elif t[-1] >= self.locations[-1]:
-            sampling_locs = t
-            remove_final_point = False
-        else:
-            sampling_locs = np.hstack((t, self.locations[-1]))
-            remove_final_point = True
-
-        # Infer desired size of the base measure realizations and create them
-        size = utils.as_shape(size)
-        single_rv_shape = self.kalman_posterior.states[0].shape
-        base_measure_realizations = stats.norm.rvs(
-            size=(size + sampling_locs.shape + single_rv_shape),
-            random_state=random_state,
-        )
-
-        # Transform samples and return the corresponding values.
-        transformed_realizations = self.transform_base_measure_realizations(
-            base_measure_realizations=base_measure_realizations, t=sampling_locs
-        )
-
-        if remove_final_point:
-            return self.kalman_posterior._remove_final_time_point(
-                transformed_realizations
-            )
-
-        return transformed_realizations
-
-    def transform_base_measure_realizations(
-        self,
-        base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType] = None,
-    ) -> np.ndarray:
-
-        samples = self.kalman_posterior.transform_base_measure_realizations(
-            base_measure_realizations=base_measure_realizations, t=t
+        samples = self.kalman_posterior.sample(
+            t=t, size=size, random_state=random_state
         )
 
         # Project the samples down to the "true" KalmanODESolution dimensions
@@ -148,6 +109,18 @@ class KalmanODESolution(ODESolution):
         ode_samples = np.einsum("dq,...q->...d", self.proj_to_y, samples)
 
         return ode_samples
+
+    def transform_base_measure_realizations(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+    ) -> np.ndarray:
+        errormsg = (
+            "The KalmanODESolution does not implement transformation of realizations of a base measure."
+            "Try `KalmanODESolution.kalman_posterior.transform_base_measure_realizations` instead."
+        )
+
+        raise NotImplementedError(errormsg)
 
     @property
     def filtering_solution(self):

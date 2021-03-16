@@ -151,6 +151,13 @@ def test_sampling_shapes(posterior, locs, size):
     assert samples.shape == expected_size
 
 
+def test_transform_base_measure_realizations_raises_error(posterior):
+    """The KalmanODESolution does not implement transformation of base measure
+    realizations, but refers to KalmanPosterior instead."""
+    with pytest.raises(NotImplementedError):
+        posterior.transform_base_measure_realizations(None)
+
+
 @pytest.mark.parametrize("locs", [np.arange(0.0, 0.5, 0.025)])
 @pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
 def test_sampling_shapes_1d(locs, size):
