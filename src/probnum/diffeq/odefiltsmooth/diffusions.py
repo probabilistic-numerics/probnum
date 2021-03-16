@@ -45,12 +45,12 @@ class Diffusion(abc.ABC):
         global estimate. It could also mean returning the input value or
         the global mean.
         """
-        pass
+        raise NotImplementedError
 
     @abc.abstractmethod
     def calibrate_all_states(self, states, locations):
         """Calibrate a set of ODE solver states after seeing all the data."""
-        pass
+        raise NotImplementedError
 
 
 class ConstantDiffusion(Diffusion):
