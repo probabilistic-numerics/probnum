@@ -166,7 +166,7 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum import randvars as rvs
+    >>> from probnum import randvars
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.

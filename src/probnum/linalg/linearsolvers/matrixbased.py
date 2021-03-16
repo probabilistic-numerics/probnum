@@ -9,8 +9,7 @@ import warnings
 import numpy as np
 
 import probnum
-from probnum import linops
-from probnum import randvars as rvs
+from probnum import linops, randvars
 
 
 class ProbabilisticLinearSolver(abc.ABC):
@@ -746,9 +745,11 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             _Ainv_covfactor = self.Ainv_covfactor0
 
         # Create output random variables
-        A = rvs.Normal(mean=self.A_mean, cov=linops.SymmetricKronecker(A=_A_covfactor))
+        A = randvars.Normal(
+            mean=self.A_mean, cov=linops.SymmetricKronecker(A=_A_covfactor)
+        )
 
-        Ainv = rvs.Normal(
+        Ainv = randvars.Normal(
             mean=self.Ainv_mean,
             cov=linops.SymmetricKronecker(A=_Ainv_covfactor),
         )
@@ -764,7 +765,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv
         )
 
-        x = rvs.Normal(mean=self.x_mean.ravel(), cov=cov_op)
+        x = randvars.Normal(mean=self.x_mean.ravel(), cov=cov_op)
 
         # Compute trace of solution covariance: tr(Cov(x))
         self.trace_sol_cov = np.real_if_close(

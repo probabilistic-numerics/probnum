@@ -63,8 +63,8 @@ class IVP(ODE):
     --------
     >>> from probnum.diffeq import IVP
     >>> rhsfun = lambda t, y, **kwargs: 2.0*y
-    >>> from probnum import randvars as rvs
-    >>> initrv = rvs.Constant(0.1)
+    >>> from probnum import randvars
+    >>> initrv = randvars.Constant(0.1)
     >>> timespan = (0, 10)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> print(ivp.rhs(0., 2.))
@@ -74,7 +74,7 @@ class IVP(ODE):
     >>> print(ivp.t0)
     0
 
-    >>> initrv = rvs.Normal(0.1, 1.0)
+    >>> initrv = randvars.Normal(0.1, 1.0)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> jac = lambda t, y, **kwargs: 2.0
     >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)
