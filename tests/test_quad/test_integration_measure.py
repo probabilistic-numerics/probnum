@@ -12,7 +12,7 @@ def test_gaussian_diagonal_covariance(input_dim: int):
     mean = np.full((input_dim,), 0.0)
     cov = np.eye(input_dim)
     measure = quad.GaussianMeasure(mean, cov)
-    assert measure.diagonal_covariance == True
+    assert measure.diagonal_covariance is True
 
 
 @pytest.mark.parametrize("input_dim_non_diagonal", [2, 10, 100])
@@ -22,7 +22,7 @@ def test_gaussian_non_diagonal_covariance(input_dim_non_diagonal):
     cov = np.eye(input_dim_non_diagonal)
     cov[0, 1] = 1.5
     measure = quad.GaussianMeasure(mean, cov)
-    assert measure.diagonal_covariance == False
+    assert measure.diagonal_covariance is False
 
 
 @pytest.mark.parametrize("mean", [0, np.array([0]), np.array([[0]])])
