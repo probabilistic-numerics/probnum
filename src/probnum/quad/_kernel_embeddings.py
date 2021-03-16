@@ -4,6 +4,7 @@ import abc
 
 import numpy as np
 import scipy.linalg as slinalg
+import scipy.special
 
 from ..kernels import ExpQuad, Kernel
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
@@ -63,6 +64,8 @@ class _KernelEmbedding(abc.ABC):
 class _KExpQuadMGauss(_KernelEmbedding):
     """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
     measure.
+
+    TODO: adopt the convention that arrays have shape (n_eval, dim)
 
     Parameters
     ----------
@@ -148,13 +151,41 @@ class _KExpQuadMLebesgue(_KernelEmbedding):
 
     def __init__(self, kernel: ExpQuad, measure: LebesgueMeasure):
         super().__init__(kernel, measure)
-        self.dim = self.kernel.input_dim
 
-    def kernel_mean(self, x):
-        raise NotImplementedError
+    def kernel_mean(self, x: np.ndarray) -> np.ndarray:
+        a = self.measure.domain[0]
+        b = self.measure.domain[1]
+        ell = self.kernel.lengthscale
+        return (
+            self.measure.normalization_constant
+            * (np.pi * ell ** 2 / 2) ** (self.dim / 2)
+            * np.prod(
+                np.atleast_2d(
+                    scipy.special.erf((b - x) / (ell * np.sqrt(2)))
+                    - scipy.special.erf((a - x) / (ell * np.sqrt(2)))
+                ),
+                axis=1,
+            )
+        )
 
-    def kernel_variance(self):
-        raise NotImplementedError
+    def kernel_variance(self) -> float:
+        r = self.measure.domain[1] - self.measure.domain[0]
+        ell = self.kernel.lengthscale
+        return np.squeeze(
+            (
+                self.measure.normalization_constant ** 2
+                * (2 * np.pi * ell ** 2) ** (self.dim / 2)
+                * np.prod(
+                    np.atleast_2d(
+                        ell
+                        * np.sqrt(2 / np.pi)
+                        * (np.exp(-(r ** 2) / (2 * ell ** 2)) - 1)
+                        + r * scipy.special.erf(r / (ell * np.sqrt(2)))
+                    ),
+                    axis=1,
+                )
+            )[0]
+        )
 
 
 def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):

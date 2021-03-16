@@ -11,10 +11,7 @@ from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
 
 class IntegrationMeasure(abc.ABC):
-    """An abstract class for a measure against which a target function is integrated.
-
-    The integration measure is assumed normalized.
-    """
+    """An abstract class for a measure against which a target function is integrated."""
 
     def __init__(
         self,
