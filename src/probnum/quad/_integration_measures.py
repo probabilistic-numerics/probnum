@@ -11,7 +11,23 @@ from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
 
 class IntegrationMeasure(abc.ABC):
-    """An abstract class for a measure against which a target function is integrated."""
+    """An abstract class for a measure against which a target function is integrated.
+
+    Child classes implement specific integration measures and, if available, make use
+    of random variables for sampling and evaluation of the density function.
+
+    Parameters
+    ----------
+    dim :
+        Dimension of the integration domain
+    domain :
+        Tuple which contains two arrays which define the start and end points,
+        respectively, of the rectangular integration domain.
+    random_state :
+        Random state of the random variable corresponding to the integration measure.
+    name :
+        Name of the integration measure.
+    """
 
     def __init__(
         self,
@@ -25,19 +41,56 @@ class IntegrationMeasure(abc.ABC):
         self.random_state = random_state
         self.name = name
 
-    def __call__(self, points: Union[float, np.floating, np.ndarray]):
+    def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
+        """Evaluate the density function of the integration measure.
+
+        Parameters
+        ----------
+        points :
+            (n_points,) or (n_points, dim)
+
+        Returns
+        -------
+        density_evals :
+            (n_points,) or (n_points,dim)
+        """
         return self.random_variable.pdf(points)
 
-    def sample(self, n_sample):
+    def sample(self, n_sample) -> np.ndarray:
+        """Sample ``n_sample`` points from the integration measure.
+
+        Parameters
+        ----------
+        n_sample :
+            Number of points to be sampled
+
+        Returns
+        -------
+        points :
+            (n_sample,) or (n_sample,dim)
+        """
         return np.squeeze(self.random_variable.sample(size=n_sample))
 
     def _set_dimension_domain(self, dim, domain):
         """Sets the integration domain and dimension.
 
-        Error is thrown if the given dimension and domain limits do not
-        match.
+        The following logic is used to set the domain and dimension:
+            1. If ``dim`` is not given (``dim == None``):
+                1a. If either ``domain[0]`` or ``domain[1]`` is a scalar, the dimension
+                    is set as the maximum of their lengths and the scalar is expanded to
+                    a constant vector.
+                1b. Otherwise, if the ``domain[0]`` and ``domain[1]`` are not of equal
+                    length, an error is raised.
+            2. If ``dim`` is given:
+                2a. If both ``domain[0]`` and ``domain[1]`` are scalars, they are
+                    expanded to constant vectors of length ``dim``.
+                2b. If only one of `domain[0]`` and ``domain[1]`` is a scalar and the
+                    length of the other equals ``dim``, the scalar one is expanded to a
+                    constant vector of length ``dim``.
+                2c. Otherwise, if neither of ``domain[0]`` and ``domain[1]`` is a
+                    scalar, error is raised if either of them has length which does not
+                    equal ``dim``.
         """
-
         domain_a_dim = np.size(domain[0])
         domain_b_dim = np.size(domain[1])
 
