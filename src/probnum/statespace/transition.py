@@ -2,7 +2,7 @@
 
 import abc
 
-import probnum.random_variables as pnrv
+from probnum import randvars
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.type import IntArgType
 
@@ -347,9 +347,9 @@ class Transition(abc.ABC):
     # referring to the forward/backward transition of RVs.
 
     def _backward_realization_via_backward_rv(self, realization, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=realization)
+        real_as_rv = randvars.Constant(support=realization)
         return self.backward_rv(real_as_rv, *args, **kwargs)
 
     def _forward_realization_via_forward_rv(self, realization, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=realization)
+        real_as_rv = randvars.Constant(support=realization)
         return self.forward_rv(real_as_rv, *args, **kwargs)

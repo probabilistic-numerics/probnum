@@ -3,8 +3,8 @@ import pytest
 
 import probnum.diffeq as pnde
 import probnum.problems.zoo.diffeq as diffeq_zoo
-import probnum.random_variables as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 
 from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
 
@@ -34,7 +34,7 @@ def order():
 
 @pytest.fixture
 def lv():
-    y0 = pnrv.Constant(np.array([20.0, 20.0]))
+    y0 = randvars.Constant(np.array([20.0, 20.0]))
 
     # tmax is ignored anyway
     return pnde.lotkavolterra([0.0, np.inf], y0)
@@ -58,7 +58,7 @@ def test_initialize_with_rk(lv, lv_inits, order):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    initrv = pnrv.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
+    initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
     received_rv = pnde.initialize_odefilter_with_rk(
         lv.rhs,
         lv.initrv.mean,
@@ -97,7 +97,7 @@ def test_initialize_with_taylormode(any_order):
         backward_implementation="sqrt",
     )
 
-    initrv = pnrv.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
+    initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
 
     received_rv = pnde.initialize_odefilter_with_taylormode(
         r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior, initrv=initrv

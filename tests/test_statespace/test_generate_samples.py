@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.random_variables as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 
 
 class MockTransition(pnss.Transition):
@@ -13,7 +13,7 @@ class MockTransition(pnss.Transition):
         super().__init__(input_dim=dim, output_dim=dim)
 
     def forward_realization(self, realization, **kwargs):
-        return pnrv.Constant(realization), {}
+        return randvars.Constant(realization), {}
 
     def forward_rv(self, rv, **kwargs):
         return rv, {}
@@ -38,7 +38,7 @@ def times_single_point():
 def test_generate_shapes(times, test_ndim):
     """Output shapes are as expected."""
     mocktrans = MockTransition(dim=test_ndim)
-    initrv = pnrv.Constant(np.random.rand(test_ndim))
+    initrv = randvars.Constant(np.random.rand(test_ndim))
     states, obs = pnss.generate_samples(mocktrans, mocktrans, initrv, times)
 
     assert states.shape[0] == len(times)

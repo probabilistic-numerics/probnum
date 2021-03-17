@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 from probnum._randomvariablelist import _RandomVariableList
 
 from .filtsmooth_testcases import car_tracking
@@ -89,7 +89,7 @@ def test_call_interpolation(posterior):
     assert posterior.locations[0] < 9.88 < posterior.locations[-1]
     assert 9.88 not in posterior.locations
     out_rv = posterior(9.88)
-    assert isinstance(out_rv, pnrv.Normal)
+    assert isinstance(out_rv, randvars.Normal)
 
 
 def test_call_to_discrete(posterior):
@@ -112,7 +112,7 @@ def test_call_extrapolation(posterior):
     """Extrapolation is possible and returns a Normal RV."""
     assert posterior.locations[-1] < 30.0
     out_rv = posterior(30.0)
-    assert isinstance(out_rv, pnrv.Normal)
+    assert isinstance(out_rv, randvars.Normal)
 
 
 @pytest.fixture
