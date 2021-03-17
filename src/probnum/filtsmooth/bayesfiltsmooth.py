@@ -5,7 +5,7 @@ from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import random_variables, statespace
+from probnum import randvars, statespace
 from probnum.filtsmooth.timeseriesposterior import TimeSeriesPosterior
 from probnum.type import FloatArgType
 
@@ -17,7 +17,7 @@ class BayesFiltSmooth(ABC):
         self,
         dynamics_model: statespace.Transition,
         measurement_model: statespace.Transition,
-        initrv: random_variables.RandomVariable,
+        initrv: randvars.RandomVariable,
     ):
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
@@ -28,12 +28,12 @@ class BayesFiltSmooth(ABC):
         self,
         start: FloatArgType,
         stop: FloatArgType,
-        current_rv: random_variables.RandomVariable,
+        current_rv: randvars.RandomVariable,
         data: np.ndarray,
-        _linearise_predict_at: Optional[random_variables.RandomVariable] = None,
-        _linearise_update_at: Optional[random_variables.RandomVariable] = None,
+        _linearise_predict_at: Optional[randvars.RandomVariable] = None,
+        _linearise_update_at: Optional[randvars.RandomVariable] = None,
         _diffusion: Union[FloatArgType, np.ndarray] = 1.0,
-    ) -> Tuple[random_variables.RandomVariable, Dict]:
+    ) -> Tuple[randvars.RandomVariable, Dict]:
         """Filter step.
 
         For Gaussian filters, this means a prediction step followed by

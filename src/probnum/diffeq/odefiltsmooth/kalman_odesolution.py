@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import _randomvariablelist, filtsmooth, random_variables, utils
+from probnum import _randomvariablelist, filtsmooth, randvars, utils
 from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
 from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
@@ -30,7 +30,7 @@ class KalmanODESolution(ODESolution):
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum import random_variables as rvs
+    >>> from probnum import randvars
     >>>
     >>> def f(t, x):
     ...     return 4*x*(1-x)
@@ -88,7 +88,7 @@ class KalmanODESolution(ODESolution):
             locations=kalman_posterior.locations, states=states, derivatives=derivatives
         )
 
-    def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
         out_rv = self.kalman_posterior.interpolate(t)
         return _project_rv(self.proj_to_y, out_rv)
 
@@ -144,4 +144,4 @@ def _project_rv(projmat, rv):
     new_mean = projmat @ rv.mean
     new_cov = projmat @ rv.cov @ projmat.T
     new_cov_cholesky = utils.linalg.cholesky_update(projmat @ rv.cov_cholesky)
-    return random_variables.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
+    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)

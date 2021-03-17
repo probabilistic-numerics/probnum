@@ -2,9 +2,8 @@ import numpy as np
 import pytest
 
 import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
 import probnum.statespace as pnss
-from probnum import utils
+from probnum import randvars, utils
 from probnum._randomvariablelist import _RandomVariableList
 
 from .filtsmooth_testcases import car_tracking
@@ -90,7 +89,7 @@ def test_call_interpolation(posterior):
     assert posterior.locations[0] < 9.88 < posterior.locations[-1]
     assert 9.88 not in posterior.locations
     out_rv = posterior(9.88)
-    assert isinstance(out_rv, pnrv.Normal)
+    assert isinstance(out_rv, randvars.Normal)
 
 
 def test_call_to_discrete(posterior):
@@ -113,7 +112,7 @@ def test_call_extrapolation(posterior):
     """Extrapolation is possible and returns a Normal RV."""
     assert posterior.locations[-1] < 30.0
     out_rv = posterior(30.0)
-    assert isinstance(out_rv, pnrv.Normal)
+    assert isinstance(out_rv, randvars.Normal)
 
 
 @pytest.fixture
@@ -157,7 +156,7 @@ def test_sampling_shapes_1d(locs, size):
     measmod = pnss.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
     )
-    initrv = pnrv.Normal(np.zeros(1), np.eye(1))
+    initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
     kalman = pnfs.Kalman(prior, measmod, initrv)
     posterior = kalman.filtsmooth(times=locations, dataset=data)

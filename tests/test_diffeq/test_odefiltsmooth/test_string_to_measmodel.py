@@ -8,12 +8,12 @@ They need different fixtures anyway.
 import numpy as np
 import pytest
 
-from probnum import diffeq, filtsmooth, random_variables, statespace
+from probnum import diffeq, filtsmooth, randvars, statespace
 
 
 @pytest.fixture
 def ivp():
-    y0 = random_variables.Constant(np.array([20.0, 15.0]))
+    y0 = randvars.Constant(np.array([20.0, 15.0]))
     return diffeq.lotkavolterra([0.4124, 1.15124], y0)
 
 

@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum.diffeq.ode import ivp
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 
 TEST_NDIM = 3
 

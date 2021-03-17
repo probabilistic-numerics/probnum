@@ -4,7 +4,7 @@ from typing import Callable, Optional
 
 import numpy as np
 
-from probnum import filtsmooth, random_variables, statespace
+from probnum import filtsmooth, randvars, statespace
 
 from ..ode import IVP
 from ..odesolver import ODESolver
@@ -54,15 +54,15 @@ class GaussianIVPFilter(ODESolver):
                 np.ndarray,
                 float,
                 statespace.Integrator,
-                random_variables.Normal,
+                randvars.Normal,
                 Optional[Callable],
             ],
-            random_variables.Normal,
+            randvars.Normal,
         ],
-        initrv: Optional[random_variables.Normal] = None,
+        initrv: Optional[randvars.Normal] = None,
     ):
         if initrv is None:
-            initrv = random_variables.Normal(
+            initrv = randvars.Normal(
                 np.zeros(prior.dimension),
                 np.eye(prior.dimension),
                 cov_cholesky=np.eye(prior.dimension),
@@ -268,10 +268,7 @@ class GaussianIVPFilter(ODESolver):
 
     def _rescale(self, rvs):
         """Rescales covariances according to estimate sigma squared value."""
-        rvs = [
-            random_variables.Normal(rv.mean, self.sigma_squared_mle * rv.cov)
-            for rv in rvs
-        ]
+        rvs = [randvars.Normal(rv.mean, self.sigma_squared_mle * rv.cov) for rv in rvs]
         return rvs
 
     def _odesmooth(self, ode_solution, **kwargs):
@@ -311,7 +308,7 @@ class GaussianIVPFilter(ODESolver):
             value problems.
             Statistics and Computing, 2019.
         """
-        local_pred_rv = random_variables.Normal(
+        local_pred_rv = randvars.Normal(
             pred_rv.mean,
             calibrated_proc_noise_cov,
             cov_cholesky=calibrated_proc_noise_cov_cholesky,

@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-from probnum import random_variables, statespace
+from probnum import randvars, statespace
 
 
 class EKFComponent(abc.ABC):
@@ -30,7 +30,7 @@ class EKFComponent(abc.ABC):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> Tuple[random_variables.Normal, Dict]:
+    ) -> Tuple[randvars.Normal, Dict]:
 
         return self._forward_realization_via_forward_rv(
             realization,
@@ -49,7 +49,7 @@ class EKFComponent(abc.ABC):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> Tuple[random_variables.Normal, Dict]:
+    ) -> Tuple[randvars.Normal, Dict]:
 
         compute_jacobian_at = _linearise_at if _linearise_at is not None else rv
         self.linearized_model = self.linearize(at_this_rv=compute_jacobian_at)
@@ -107,9 +107,7 @@ class EKFComponent(abc.ABC):
         )
 
     @abc.abstractmethod
-    def linearize(
-        self, at_this_rv: random_variables.RandomVariable
-    ) -> statespace.Transition:
+    def linearize(self, at_this_rv: randvars.RandomVariable) -> statespace.Transition:
         """Linearize the transition and make it tractable."""
         raise NotImplementedError
 
@@ -153,7 +151,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         self.mde_rtol = mde_rtol
         self.mde_solver = mde_solver
 
-    def linearize(self, at_this_rv: random_variables.Normal):
+    def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
 
         g = self.non_linear_model.driftfun
@@ -202,7 +200,7 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         self.forward_implementation = forward_implementation
         self.backward_implementation = backward_implementation
 
-    def linearize(self, at_this_rv: random_variables.Normal):
+    def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the dynamics function with a first order Taylor expansion."""
 
         g = self.non_linear_model.state_trans_fun

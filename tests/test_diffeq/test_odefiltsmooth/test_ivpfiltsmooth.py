@@ -9,7 +9,7 @@ import pytest
 
 from probnum.diffeq import ode
 from probnum.diffeq.odefiltsmooth import probsolve_ivp
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 
 
 @pytest.fixture

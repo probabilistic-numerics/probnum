@@ -13,7 +13,7 @@ class IteratedDiscreteComponent(statespace.Transition):
     >>> from probnum.filtsmooth import DiscreteEKFComponent, StoppingCriterion
     >>> from probnum.diffeq import logistic
     >>> from probnum.statespace import IBM
-    >>> from probnum.random_variables import Constant
+    >>> from probnum.randvars import Constant
     >>> from numpy import array
     >>>
 

@@ -9,7 +9,7 @@ from typing import Optional, Union
 import numpy as np
 from scipy import stats
 
-from probnum import _randomvariablelist, random_variables, statespace, utils
+from probnum import _randomvariablelist, randvars, statespace, utils
 from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 from ..timeseriesposterior import DenseOutputLocationArgType, TimeSeriesPosterior
@@ -51,7 +51,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         self.transition = transition
 
     @abc.abstractmethod
-    def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 
         Parameters
@@ -61,7 +61,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
         Returns
         -------
-        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+        randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Dense evaluation.
         """
         raise NotImplementedError
@@ -185,9 +185,7 @@ class SmoothingPosterior(KalmanPosterior):
         self.filtering_posterior = filtering_posterior
         super().__init__(locations, states, transition)
 
-    def interpolate(
-        self, t: DenseOutputLocationArgType
-    ) -> random_variables.RandomVariable:
+    def interpolate(self, t: DenseOutputLocationArgType) -> randvars.RandomVariable:
 
         pred_rv = self.filtering_posterior.interpolate(t)
         next_idx = self._find_previous_index(t) + 1
@@ -243,9 +241,7 @@ class SmoothingPosterior(KalmanPosterior):
 class FilteringPosterior(KalmanPosterior):
     """Filtering posterior."""
 
-    def interpolate(
-        self, t: DenseOutputLocationArgType
-    ) -> random_variables.RandomVariable:
+    def interpolate(self, t: DenseOutputLocationArgType) -> randvars.RandomVariable:
         """Predict to the present point.
 
         Parameters
@@ -255,7 +251,7 @@ class FilteringPosterior(KalmanPosterior):
 
         Returns
         -------
-        random_variables.RandomVariable
+        randvars.RandomVariable
             Dense evaluation.
         """
         previous_idx = self._find_previous_index(t)

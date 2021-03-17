@@ -9,7 +9,7 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from probnum import random_variables, statespace
+from probnum import randvars, statespace
 from probnum.type import FloatArgType
 
 from .unscentedtransform import UnscentedTransform
@@ -34,7 +34,7 @@ class UKFComponent:
         # Will be constructed later.
         self.sigma_points = None
 
-    def assemble_sigma_points(self, at_this_rv: random_variables.Normal) -> np.ndarray:
+    def assemble_sigma_points(self, at_this_rv: randvars.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
         return self.ut.sigma_points(at_this_rv)
 
@@ -96,7 +96,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> Tuple[random_variables.Normal, Dict]:
+    ) -> Tuple[randvars.Normal, Dict]:
         return self._forward_realization_as_rv(
             realization,
             t=t,
@@ -108,7 +108,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
 
     def forward_rv(
         self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
-    ) -> Tuple[random_variables.Normal, Dict]:
+    ) -> Tuple[randvars.Normal, Dict]:
         raise NotImplementedError("TODO")  # Issue  #234
 
     def backward_realization(
@@ -177,7 +177,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
 
     def forward_rv(
         self, rv, t, compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
-    ) -> Tuple[random_variables.Normal, Dict]:
+    ) -> Tuple[randvars.Normal, Dict]:
         compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
         self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
 
@@ -192,7 +192,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         if compute_gain:
             gain = crosscov @ np.linalg.inv(cov)
             info["gain"] = gain
-        return random_variables.Normal(mean, cov), info
+        return randvars.Normal(mean, cov), info
 
     def forward_realization(
         self, realization, t, _diffusion=1.0, _linearise_at=None, **kwargs

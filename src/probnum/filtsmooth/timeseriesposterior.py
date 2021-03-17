@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum import _randomvariablelist, random_variables
+from probnum import _randomvariablelist, randvars
 from probnum.type import (
     ArrayLikeGetitemArgType,
     FloatArgType,
@@ -18,7 +18,7 @@ DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
 or an array of locations."""
 
 DenseOutputValueType = Union[
-    random_variables.RandomVariable, _randomvariablelist._RandomVariableList
+    randvars.RandomVariable, _randomvariablelist._RandomVariableList
 ]
 """Dense evaluation of a TimeSeriesPosterior returns a RandomVariable if evaluated at a single location,
 and a _RandomVariableList if evaluated at an array of locations."""
@@ -47,9 +47,7 @@ class TimeSeriesPosterior(abc.ABC):
         """
         return len(self.locations)
 
-    def __getitem__(
-        self, idx: ArrayLikeGetitemArgType
-    ) -> random_variables.RandomVariable:
+    def __getitem__(self, idx: ArrayLikeGetitemArgType) -> randvars.RandomVariable:
         return self.states[idx]
 
     def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
@@ -69,7 +67,7 @@ class TimeSeriesPosterior(abc.ABC):
 
         Returns
         -------
-        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+        randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Estimate of the states at time ``t``.
         """
 
@@ -97,7 +95,7 @@ class TimeSeriesPosterior(abc.ABC):
         return self.interpolate(t)
 
     @abc.abstractmethod
-    def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 
         Parameters
@@ -107,7 +105,7 @@ class TimeSeriesPosterior(abc.ABC):
 
         Returns
         -------
-        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+        randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Dense evaluation.
         """
         raise NotImplementedError

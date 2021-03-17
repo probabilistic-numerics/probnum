@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum.diffeq import ConstantSteps, ODESolution, ODESolver, logistic
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 
 
 class MockODESolver(ODESolver):

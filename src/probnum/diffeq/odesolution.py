@@ -9,7 +9,9 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import _randomvariablelist, filtsmooth, random_variables
+import probnum._randomvariablelist as pnrv_list
+import probnum.type
+from probnum import _randomvariablelist, filtsmooth, randvars
 from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
 from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
@@ -41,7 +43,7 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             else None
         )
 
-    def interpolate(self, t: FloatArgType) -> random_variables.RandomVariable:
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
         """Evaluate the posterior at a non-grid point.
 
         Parameters
@@ -51,10 +53,18 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
 
         Returns
         -------
-        random_variables.RandomVariable or _randomvariablelist._RandomVariableList
+        randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Dense evaluation.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Dense output is not implemented.")
+
+    def __len__(self) -> int:
+        """Number of points in the discrete-time solution."""
+        return len(self.states)
+
+    def __getitem__(self, idx: int) -> randvars.RandomVariable:
+        """Access the :math:`i`th element of the discrete-time solution."""
+        return self.states[idx]
 
     def sample(
         self,

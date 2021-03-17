@@ -1,13 +1,11 @@
-"""
-Policies for 1D quadratic optimization.
-"""
+"""Policies for 1D quadratic optimization."""
 
 from typing import Callable, Optional
 
 import numpy as np
 
 import probnum as pn
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.type import FloatArgType, RandomStateArgType
 
 
@@ -16,9 +14,8 @@ def explore_exploit_policy(
     fun_params0: pn.RandomVariable,
     random_state: RandomStateArgType = None,
 ) -> float:
-    """
-    Policy exploring around the estimate of the minimum based on the certainty about the
-    parameters.
+    """Policy exploring around the estimate of the minimum based on the certainty about
+    the parameters.
 
     Parameters
     ----------
@@ -43,8 +40,7 @@ def stochastic_policy(
     fun_params0: pn.RandomVariable,
     random_state: RandomStateArgType = None,
 ) -> float:
-    """
-    Policy returning a random action.
+    """Policy returning a random action.
 
     Parameters
     ----------

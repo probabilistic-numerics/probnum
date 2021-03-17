@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from probnum import _randomvariablelist, random_variables
+from probnum import _randomvariablelist, randvars
 from probnum.type import FloatArgType, IntArgType
 
 
@@ -357,9 +357,10 @@ class Transition(abc.ABC):
     # referring to the forward/backward transition of RVs.
 
     def _backward_realization_via_backward_rv(self, realization, *args, **kwargs):
-        real_as_rv = random_variables.Constant(support=realization)
+
+        real_as_rv = randvars.Constant(support=realization)
         return self.backward_rv(real_as_rv, *args, **kwargs)
 
     def _forward_realization_via_forward_rv(self, realization, *args, **kwargs):
-        real_as_rv = random_variables.Constant(support=realization)
+        real_as_rv = randvars.Constant(support=realization)
         return self.forward_rv(real_as_rv, *args, **kwargs)

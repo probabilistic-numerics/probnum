@@ -6,7 +6,7 @@ import numpy as np
 import probnum.diffeq as pnd  # ODE problem as test function
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
-from probnum.random_variables import Constant, Normal
+from probnum.randvars import Constant, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [

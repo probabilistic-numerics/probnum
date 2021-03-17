@@ -2,13 +2,13 @@ import numpy as np
 import pytest
 
 import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
+import probnum.randvars as pnrv
 import probnum.statespace as pnss
 from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import lotkavolterra
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 
 
 @pytest.fixture
