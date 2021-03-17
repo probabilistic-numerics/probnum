@@ -9,8 +9,6 @@ from typing import Optional
 
 import numpy as np
 
-import probnum._randomvariablelist as pnrv_list
-import probnum.type
 from probnum import _randomvariablelist, filtsmooth, randvars
 from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
 from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
