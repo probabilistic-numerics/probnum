@@ -7,8 +7,7 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 import probnum
-from probnum import linalg, linops
-from probnum import randvars as rvs
+from probnum import linalg, linops, randvars
 from tests.testing import NumpyAssertions
 
 
@@ -310,7 +309,7 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
 
         # Prior distributions on A
         covA = linops.SymmetricKronecker(A=np.eye(n))
-        Ainv0 = rvs.Normal(mean=np.eye(n), cov=covA)
+        Ainv0 = randvars.Normal(mean=np.eye(n), cov=covA)
 
         for matblinsolve in self.matblinsolvers:
             with self.subTest():
@@ -378,11 +377,11 @@ class LinearSolverTestCase(unittest.TestCase, NumpyAssertions):
         cg_iters_arr = np.array([x0] + cg_iterates)
 
         # Matrix priors (encoding weak symmetric posterior correspondence)
-        Ainv0 = rvs.Normal(
+        Ainv0 = randvars.Normal(
             mean=linops.Identity(A.shape[1]),
             cov=linops.SymmetricKronecker(A=linops.Identity(A.shape[1])),
         )
-        A0 = rvs.Normal(
+        A0 = randvars.Normal(
             mean=linops.Identity(A.shape[1]),
             cov=linops.SymmetricKronecker(A),
         )

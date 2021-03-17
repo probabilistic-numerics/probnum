@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.randvars as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 
 from .test_sde import TestLTISDE
@@ -189,7 +189,7 @@ def test_same_backward_outputs(both_transitions, diffusion):
     real = 1 + 0.1 * np.random.rand(trans1.dimension)
     real2 = 1 + 0.1 * np.random.rand(trans1.dimension)
     cov = random_spd_matrix(trans1.dimension)
-    rv = pnrv.Normal(real2, cov)
+    rv = randvars.Normal(real2, cov)
     out_1, info1 = trans1.backward_realization(
         real, rv, t=0.0, dt=0.5, compute_gain=True, _diffusion=diffusion
     )
@@ -239,7 +239,7 @@ def spdmat3x3():
 @pytest.fixture
 def normal_rv3x3(spdmat3x3):
 
-    return pnrv.Normal(
+    return randvars.Normal(
         mean=np.random.rand(3),
         cov=spdmat3x3,
         cov_cholesky=np.linalg.cholesky(spdmat3x3),

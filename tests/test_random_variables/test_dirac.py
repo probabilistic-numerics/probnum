@@ -3,13 +3,13 @@ import unittest
 
 import numpy as np
 
-from probnum import randvars as rvs
+from probnum import randvars
 
 
 def test_constant_accessible_like_gaussian():
     """Constant has an attribute cov_cholesky which returns zeros."""
     support = np.array([2, 3])
-    s = rvs.Constant(support)
+    s = randvars.Constant(support)
     np.testing.assert_allclose(s.cov, s.cov_cholesky)
 
 
@@ -27,7 +27,7 @@ class TestDirac(unittest.TestCase):
         for supp in self.supports:
             for sample_size in [1, (), 10, (4,), (3, 2)]:
                 with self.subTest():
-                    s = rvs.Constant(support=supp).sample(size=sample_size)
+                    s = randvars.Constant(support=supp).sample(size=sample_size)
                     if sample_size == ():
                         self.assertEqual(np.shape(supp), np.shape(s))
                     elif isinstance(sample_size, tuple):

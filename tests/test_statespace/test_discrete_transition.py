@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.randvars as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 
 from .test_transition import InterfaceTestTransition
 
@@ -63,7 +63,7 @@ class TestDiscreteGaussian(InterfaceTestTransition):
 
     def test_forward_realization(self, some_normal_rv1):
         out, _ = self.transition.forward_realization(some_normal_rv1.sample(), 0.0)
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
@@ -146,17 +146,17 @@ class TestLinearGaussian(TestDiscreteGaussian):
 
     def test_forward_rv(self, some_normal_rv1):
         out, _ = self.transition.forward_rv(some_normal_rv1, 0.0)
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_rv(some_normal_rv1, some_normal_rv2)
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_realization(
             some_normal_rv1.sample(), some_normal_rv2
         )
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
     def test_all_forward_rv_same(self, some_normal_rv1, diffusion):
         """Assert all implementations give the same output."""
@@ -247,19 +247,19 @@ class TestLinearGaussian(TestDiscreteGaussian):
         passed."""
 
         out_classic, _ = self.transition._backward_rv_classic(
-            pnrv.Constant(some_normal_rv1.mean),
+            randvars.Constant(some_normal_rv1.mean),
             some_normal_rv2,
             t=0.0,
             _diffusion=diffusion,
         )
         out_sqrt, _ = self.transition._backward_rv_sqrt(
-            pnrv.Constant(some_normal_rv1.mean),
+            randvars.Constant(some_normal_rv1.mean),
             some_normal_rv2,
             t=0.0,
             _diffusion=diffusion,
         )
         out_joseph, _ = self.transition._backward_rv_joseph(
-            pnrv.Constant(some_normal_rv1.mean),
+            randvars.Constant(some_normal_rv1.mean),
             some_normal_rv2,
             t=0.0,
             _diffusion=diffusion,
@@ -285,7 +285,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
         gain = info["gain"]
 
         out_classic, _ = self.transition._backward_rv_classic(
-            pnrv.Constant(some_normal_rv1.mean),
+            randvars.Constant(some_normal_rv1.mean),
             some_normal_rv2,
             rv_forwarded=rv_forward,
             gain=gain,
@@ -293,7 +293,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
             _diffusion=diffusion,
         )
         out_sqrt, _ = self.transition._backward_rv_sqrt(
-            pnrv.Constant(some_normal_rv1.mean),
+            randvars.Constant(some_normal_rv1.mean),
             some_normal_rv2,
             rv_forwarded=rv_forward,
             gain=gain,
@@ -301,7 +301,7 @@ class TestLinearGaussian(TestDiscreteGaussian):
             _diffusion=diffusion,
         )
         out_joseph, _ = self.transition._backward_rv_joseph(
-            pnrv.Constant(some_normal_rv1.mean),
+            randvars.Constant(some_normal_rv1.mean),
             some_normal_rv2,
             rv_forwarded=rv_forward,
             gain=gain,

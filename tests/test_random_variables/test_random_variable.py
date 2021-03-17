@@ -7,8 +7,7 @@ import numpy as np
 import scipy.stats
 
 import probnum
-from probnum import linops
-from probnum import randvars as rvs
+from probnum import linops, randvars
 from tests.testing import NumpyAssertions
 
 
@@ -34,10 +33,10 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
         self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
-            rvs.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
+            randvars.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
         ]
         self.randvars2x2 = [
-            rvs.Normal(
+            randvars.Normal(
                 mean=np.array([[-2, 0.3], [0, 1]]),
                 cov=linops.SymmetricKronecker(A=np.eye(2), B=np.ones((2, 2))),
             ),
@@ -175,8 +174,8 @@ class ArithmeticTestCase(RandomVariableTestCase):
     def test_keep_fixed_seed(self):
         """Arithmetic operation between two random variables with different seeds retain
         a fixed seed."""
-        x = rvs.Normal(0, 1, random_state=0)
-        y = rvs.Normal(0, 1, random_state=1)
+        x = randvars.Normal(0, 1, random_state=0)
+        y = randvars.Normal(0, 1, random_state=1)
         z = x + y
         self.assertIsNotNone(z.random_state)
 

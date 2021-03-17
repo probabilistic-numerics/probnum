@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.randvars as pnrv
 import probnum.statespace as pnss
+from probnum import randvars
 
 from .test_transition import InterfaceTestTransition
 
@@ -93,13 +93,13 @@ class TestLinearSDE(TestSDE):
 
     def test_forward_rv(self, some_normal_rv1):
         out, _ = self.transition.forward_rv(some_normal_rv1, t=0.0, dt=0.1)
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
     def test_forward_realization(self, some_normal_rv1):
         out, info = self.transition.forward_realization(
             some_normal_rv1.sample(), t=0.0, dt=0.1
         )
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
         with pytest.raises(NotImplementedError):
@@ -163,13 +163,13 @@ class TestLTISDE(TestLinearSDE):
         out, _ = self.transition.backward_rv(
             some_normal_rv1, some_normal_rv2, t=0.0, dt=0.1
         )
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
         out, _ = self.transition.backward_realization(
             some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
         )
-        assert isinstance(out, pnrv.Normal)
+        assert isinstance(out, randvars.Normal)
 
 
 @pytest.fixture
