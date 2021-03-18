@@ -237,16 +237,26 @@ class SuiteSparseMatrix(linops.LinearOperator):
         if verbose:
             print("Downloading compressed matrix.")
 
+        chunk_size = 4096
+        chunk_iter = response.iter_content(chunk_size=chunk_size)
+
+        try:
+            from tqdm.auto import tqdm
+
+            chunk_iter = tqdm(
+                chunk_iter,
+                total=int(response.headers["content-length"]) // chunk_size,
+                desc=self.name,
+                unit="B",
+                unit_scale=chunk_size,
+            )
+        except ImportError:
+            pass
+
         buffer = io.BytesIO()
-        with tqdm.auto.tqdm(
-            total=int(response.headers["content-length"]),
-            desc=self.name,
-            unit="B",
-            unit_scale=True,
-        ) as pbar:
-            for chunk in response.iter_content(chunk_size=4096):
-                buffer.write(chunk)
-                pbar.update(4096)
+        for chunk in chunk_iter:
+            buffer.write(chunk)
+            # pbar.update(4096)
 
         buffer.seek(0)
         if verbose:
