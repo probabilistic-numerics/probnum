@@ -7,9 +7,7 @@ import tarfile
 from typing import Dict
 
 import numpy as np
-import requests
 import scipy.io
-import tqdm.auto
 
 import probnum.linops as linops
 from probnum.type import DTypeArgType
@@ -59,6 +57,12 @@ def suitesparse_matrix(
     85.0
     """
     # Get database index
+    try:
+        import requests  # pylint: disable=import-outside-toplevel
+    except ImportError as err:
+        raise ImportError(
+            "Cannot query SuiteSparse Matrix collection without optional dependency `requests`. Install ProbNum with optional dependencies for the problem zoo via `pip install probnum[zoo]` or install requests directly: `pip install requests`."
+        ) from err
     response = requests.get(SUITESPARSE_INDEX_URL, "r")
     line_gen = response.iter_lines()
     for _ in range(2):
@@ -230,6 +234,13 @@ class SuiteSparseMatrix(linops.LinearOperator):
         verbose:
             Print additional information.
         """
+        try:
+            import requests  # pylint: disable=import-outside-toplevel
+        except ImportError as err:
+            raise ImportError(
+                "Cannot query SuiteSparse Matrix collection without optional dependency `requests`. Install ProbNum with optional dependencies for the problem zoo via `pip install probnum[zoo]` or install requests directly: `pip install requests`."
+            ) from err
+
         url = SUITESPARSE_ROOT_URL + f"/MM/{self.group}/{self.name}.tar.gz"
         response = requests.get(url, stream=True)
 
