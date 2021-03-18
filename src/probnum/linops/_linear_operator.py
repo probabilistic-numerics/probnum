@@ -237,7 +237,10 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             _identity = np.eye(self.shape[0])
             trace = 0.0
             for i in range(self.shape[0]):
-                trace += self.matvec(_identity[:, i]).dot(_identity[:, i])
+                trace += np.squeeze(
+                    _identity[np.newaxis, i, :]
+                    @ self.matvec(_identity[i, :, np.newaxis])
+                )
             return trace
 
     ####################################################################################
@@ -359,6 +362,23 @@ class _CustomLinearOperator(
         )
 
 
+class Diagonal(LinearOperator):
+    """A linear operator representing the diagonal from another linear operator.
+
+    Parameters
+    ----------
+    Op : LinearOperator
+        Linear operator of which to represent the diagonal.
+    """
+
+    # TODO: should this be an operator itself or a function of a LinearOperator?
+    #   - a function allows subclasses (e.g. MatrixMult) to implement more efficient
+    # versions than n products e_i A e_i
+    def __init__(self, Op):
+        # pylint: disable=super-init-not-called
+        raise NotImplementedError
+
+
 class ScalarMult(LinearOperator):
     """A linear operator representing scalar multiplication.
 
@@ -392,12 +412,6 @@ class ScalarMult(LinearOperator):
 
     def _matmat(self, X: np.ndarray) -> np.ndarray:
         return self._scalar * X
-
-    def _transpose(self):
-        return self
-
-    def adjoint(self):
-        return ScalarMult(shape=self.shape, scalar=np.conj(self.scalar))
 
     def todense(self):
         return np.eye(self.shape[0]) * self._scalar
@@ -445,12 +459,6 @@ class Identity(ScalarMult):
         # Initiator of super class
         super().__init__(shape=_shape, scalar=1.0)
 
-    def _transpose(self):
-        return self
-
-    def adjoint(self):
-        return self
-
     def todense(self):
         return np.eye(self.shape[0])
 
@@ -477,61 +485,6 @@ class Identity(ScalarMult):
         return self.shape[0]
 
 
-class DiagMult(LinearOperator):
-    """A diagonal linear operator.
-
-    Parameters
-    ----------
-    diagonal : np.ndarray
-        Diagonal of the linear operator.
-    """
-
-    def __init__(self, diagonal: np.ndarray):
-        if diagonal.ndim != 1:
-            raise ValueError("Diagonal must be a one dimensional array.")
-        self.diagonal = diagonal
-        super().__init__(
-            shape=(diagonal.shape[0], diagonal.shape[0]), dtype=diagonal.dtype
-        )
-
-    def _matvec(self, x):
-        return self.diagonal * x.squeeze()
-
-    def _matmat(self, X):
-        return X * self.diagonal[:, np.newaxis]
-
-    def _transpose(self):
-        return self
-
-    def adjoint(self):
-        return DiagMult(diagonal=np.conj(self.diagonal))
-
-    def todense(self):
-        return np.diag(self.diagonal)
-
-    def inv(self):
-        return DiagMult(diagonal=1 / self.diagonal)
-
-    # Properties
-    def rank(self):
-        return np.sum(self.diagonal != 0)
-
-    def eigvals(self):
-        return self.diagonal
-
-    def cond(self, p=None):
-        return np.max(np.abs(self.diagonal)) / np.min(np.abs(self.diagonal))
-
-    def det(self):
-        return np.prod(self.diagonal)
-
-    def logabsdet(self):
-        return np.log(np.abs(self.det()))
-
-    def trace(self):
-        return np.sum(self.diagonal)
-
-
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
     """A linear operator defined via a matrix.
 
@@ -549,12 +502,6 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
 
     def _matmat(self, X):
         return self.A @ X
-
-    def _transpose(self):
-        return MatrixMult(A=self.A.T)
-
-    def adjoint(self):
-        return MatrixMult(A=np.conj(self.A.T))
 
     def todense(self):
         if isinstance(self.A, scipy.sparse.spmatrix):
