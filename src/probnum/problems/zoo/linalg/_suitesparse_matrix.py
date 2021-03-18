@@ -4,7 +4,7 @@ import codecs
 import csv
 import io
 import tarfile
-from typing import Dict
+from typing import Dict, Union
 
 import numpy as np
 import scipy.io
@@ -20,7 +20,6 @@ SUITESPARSE_INDEX_URL = SUITESPARSE_ROOT_URL + "/files/ssstats.csv"
 def suitesparse_matrix(
     name: str,
     group: str,
-    download: bool = False,
     verbose: bool = False,
 ) -> "SuiteSparseMatrix":
     """Sparse matrix from the SuiteSparse Matrix Collection.
@@ -34,9 +33,6 @@ def suitesparse_matrix(
         Name of the matrix.
     group :
         Group of the matrix.
-    download :
-        Whether to download the matrix. If ``False`` only information about
-        the matrix is returned.
     verbose :
         Print additional information.
 
@@ -50,7 +46,7 @@ def suitesparse_matrix(
 
     Examples
     --------
-    >>> ssmat = suitesparse_matrix(name="ash85", group="HB", download=True)
+    >>> ssmat = suitesparse_matrix(name="ash85", group="HB")
     >>> ssmat
     <85x85 SuiteSparseMatrix with dtype=bool>
     >>> ssmat.trace()
@@ -104,15 +100,10 @@ def suitesparse_matrix(
         )
 
     # Create a SuiteSparseMatrix (and save to file)
-    matrix = SuiteSparseMatrix.from_database_entry(matrix_attr_dict)
-
-    if download:
-        matrix.download(verbose=verbose)
-
-    return matrix
+    return SuiteSparseMatrix.from_database_entry(matrix_attr_dict)
 
 
-class SuiteSparseMatrix(linops.LinearOperator):
+class SuiteSparseMatrix(linops.MatrixMult):
     """SuiteSparse Matrix.
 
     Sparse matrix from the `SuiteSparse Matrix Collection
@@ -170,7 +161,6 @@ class SuiteSparseMatrix(linops.LinearOperator):
         nsym: float,
         kind: str,
     ):
-        self.matrix = None
         self.matid = matid
         self.group = group
         self.name = name
@@ -181,7 +171,7 @@ class SuiteSparseMatrix(linops.LinearOperator):
         self.nsym = nsym
         self.kind = kind
 
-        super().__init__(shape=(nrows, ncols), dtype=np.dtype(dtype))
+        super().__init__(A=self._download())
 
     @classmethod
     def from_database_entry(cls, database_entry: Dict) -> "SuiteSparseMatrix":
@@ -214,21 +204,18 @@ class SuiteSparseMatrix(linops.LinearOperator):
             kind=database_entry["kind"],
         )
 
-    def _check_matrix_downloaded(self) -> None:
-        if self.matrix is None:
-            raise RuntimeError(
-                "Matrix has not been downloaded yet. Call self.download() first."
-            )
+    def todense(self) -> np.ndarray:
+        return np.array(self.A.todense())
 
-    def _matvec(self, x):
-        self._check_matrix_downloaded()
-        return self.matrix @ x
+    def trace(self):
+        if self.shape[0] != self.shape[1]:
+            raise ValueError("The trace is only defined for square linear operators.")
 
-    def _matmat(self, X):
-        self._check_matrix_downloaded()
-        return self.matrix @ X
+        return self.A.diagonal().sum()
 
-    def download(self, verbose: bool = False) -> None:
+    def _download(
+        self, verbose: bool = False
+    ) -> Union[np.ndarray, scipy.sparse.coo_matrix]:
         """Download and extract file archive containing the sparse matrix.
 
         verbose:
@@ -250,41 +237,30 @@ class SuiteSparseMatrix(linops.LinearOperator):
 
         chunk_size = 4096
         chunk_iter = response.iter_content(chunk_size=chunk_size)
+        buffer = io.BytesIO()
 
         try:
-            from tqdm.auto import tqdm
+            from tqdm.auto import tqdm  # pylint: disable=import-outside-toplevel
 
-            chunk_iter = tqdm(
-                chunk_iter,
-                total=int(response.headers["content-length"]) // chunk_size,
+            with tqdm(
+                total=int(response.headers["content-length"]),
                 desc=self.name,
                 unit="B",
-                unit_scale=chunk_size,
-            )
+                unit_scale=True,
+            ) as pbar:
+                for chunk in chunk_iter:
+                    buffer.write(chunk)
+                    pbar.update(chunk_size)
         except ImportError:
-            pass
-
-        buffer = io.BytesIO()
-        for chunk in chunk_iter:
-            buffer.write(chunk)
-            # pbar.update(4096)
+            for chunk in chunk_iter:
+                buffer.write(chunk)
 
         buffer.seek(0)
         if verbose:
             print("Extracting file archive.")
         tar = tarfile.open(fileobj=buffer, mode="r:gz")
-        self.matrix = scipy.io.mmread(tar.extractfile(tar.getmembers()[0]))
 
-    def todense(self) -> np.ndarray:
-        self._check_matrix_downloaded()
-        return np.array(self.matrix.todense())
-
-    def trace(self):
-        self._check_matrix_downloaded()
-        if self.shape[0] != self.shape[1]:
-            raise ValueError("The trace is only defined for square linear operators.")
-
-        return self.matrix.diagonal().sum()
+        return scipy.io.mmread(tar.extractfile(tar.getmembers()[0]))
 
     @staticmethod
     def _html_header() -> str:
