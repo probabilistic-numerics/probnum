@@ -4,8 +4,7 @@ from typing import Callable, Generic, Optional, TypeVar, Union
 
 import numpy as np
 
-import probnum.kernels as kernels
-import probnum.randvars as randvars
+from probnum import kernels, randvars
 from probnum import utils as _utils
 from probnum.type import (
     DTypeArgType,
@@ -120,9 +119,7 @@ class RandomProcess(Generic[_InputType, _OutputType]):
                 )
             self.__cov = cov
         elif callable(cov):
-            self.__cov = kernels.Kernel(
-                kernelfun=cov, input_dim=self.input_dim, output_dim=self.output_dim
-            )
+            self.__cov = cov
         else:
             raise TypeError("The covariance function must be a callable.")
 

@@ -4,8 +4,7 @@ from typing import Callable, Union
 
 import numpy as np
 
-import probnum.kernels as kernels
-import probnum.randvars as randvars
+from probnum import kernels, randvars
 from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
 
 from ._random_process import RandomProcess
@@ -31,10 +30,6 @@ class GaussianProcess(RandomProcess[_InputType, _OutputType]):
         Mean function.
     cov :
         Covariance function or kernel.
-    random_state :
-        Random state of the random process. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
@@ -43,14 +38,17 @@ class GaussianProcess(RandomProcess[_InputType, _OutputType]):
 
     Examples
     --------
+    Define a Gaussian process with a zero mean function and RBF kernel.
+
     >>> import numpy as np
     >>> from probnum.kernels import ExpQuad
-    >>> from probnum.random_processes import GaussianProcess
-    >>> # Gaussian process definition
+    >>> from probnum.randprocs import GaussianProcess
     >>> mu = lambda x : np.zeros_like(x)  # zero-mean function
-    >>> k = ExpQuad(input_dim=1)# RBF kernel
+    >>> k = ExpQuad(input_dim=1)  # RBF kernel
     >>> gp = GaussianProcess(mu, k)
-    >>> # Sample path
+
+    Sample from the Gaussian process.
+
     >>> x = np.linspace(-1, 1, 5)[:, None]
     >>> np.random.seed(42)
     >>> gp.sample(x)
@@ -97,5 +95,12 @@ class GaussianProcess(RandomProcess[_InputType, _OutputType]):
     def __call__(self, x: _InputType) -> randvars.Normal:
         return randvars.Normal(mean=self.mean(x), cov=self.cov(x))
 
-    def _sample_at_input(self, x: _InputType, size: ShapeArgType = ()) -> _OutputType:
-        return self.__call__(x).sample(size=size)
+    def _sample_at_input(
+        self,
+        x: _InputType,
+        size: ShapeArgType = (),
+        random_state: RandomStateArgType = None,
+    ) -> _OutputType:
+        gaussian_rv = self.__call__(x)
+        gaussian_rv.random_state = random_state
+        return gaussian_rv.sample(size=size)

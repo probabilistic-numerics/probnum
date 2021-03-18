@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-import probnum.randvars as randvars
+from probnum import randvars
 from probnum.type import FloatArgType, RandomStateArgType
 
 from ._gaussian_process import GaussianProcess
@@ -34,10 +34,6 @@ class GaussMarkovProcess(GaussianProcess):
         Initial starting index / time of the process.
     initrv
         Gaussian random variable describing the initial state.
-    random_state :
-        Random state of the random process. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
@@ -50,7 +46,7 @@ class GaussMarkovProcess(GaussianProcess):
 
     def __init__(
         self,
-        linear_transition,
+        linear_transition: Union,
         initrv: randvars.Normal,
         t0: FloatArgType = 0.0,
     ):
