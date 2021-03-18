@@ -6,7 +6,7 @@ import numpy as np
 
 import probnum as pn
 import probnum.linalg.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 import probnum.utils as _utils
 from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
@@ -28,8 +28,7 @@ def probsolve_qp(
     ] = None,
     random_state: RandomStateArgType = None,
 ) -> Tuple[float, pn.RandomVariable, pn.RandomVariable, Dict]:
-    """
-    Probabilistic 1D Quadratic Optimization.
+    """Probabilistic 1D Quadratic Optimization.
 
     PN method solving unconstrained one-dimensional (noisy) quadratic
     optimization problems only needing access to function evaluations.
@@ -142,8 +141,7 @@ def probsolve_qp(
 def _choose_prior(
     fun_params0: Union[pn.RandomVariable, np.ndarray, None]
 ) -> pn.RandomVariable:
-    """
-    Initialize the prior distribution over the parameters.
+    """Initialize the prior distribution over the parameters.
 
     Sets up a prior distribution if no prior or only a point estimate for the parameters
     of the latent quadratic function is given.
@@ -192,8 +190,7 @@ QuadOptStoppingCriterionType = Callable[
 
 
 class ProbabilisticQuadraticOptimizer:
-    """
-    Probabilistic Quadratic Optimization in 1D
+    """Probabilistic Quadratic Optimization in 1D.
 
     PN method solving unconstrained one-dimensional (noisy) quadratic
     optimization problems only needing access to function evaluations.
@@ -220,7 +217,7 @@ class ProbabilisticQuadraticOptimizer:
     --------
     >>> from functools import partial
     >>> import numpy as np
-    >>> import probnum.random_variables as rvs
+    >>> import probnum.randvars as rvs
     >>> from quadopt_example.policies import stochastic_policy
     >>> from quadopt_example.observation_operators import function_evaluation
     >>> from quadopt_example.belief_updates import gaussian_belief_update
@@ -287,8 +284,7 @@ class ProbabilisticQuadraticOptimizer:
     def has_converged(
         self, fun: Callable[[FloatArgType], FloatArgType], iteration: IntArgType
     ) -> Tuple[bool, Union[str, None]]:
-        """
-        Check whether the optimizer has converged.
+        """Check whether the optimizer has converged.
 
         Parameters
         ----------
@@ -309,8 +305,7 @@ class ProbabilisticQuadraticOptimizer:
         self,
         fun: Callable[[FloatArgType], FloatArgType],
     ) -> Tuple[float, float, pn.RandomVariable]:
-        """
-        Generator implementing the optimization iteration.
+        """Generator implementing the optimization iteration.
 
         This function allows stepping through the optimization
         process one step at a time.
@@ -346,8 +341,7 @@ class ProbabilisticQuadraticOptimizer:
         fun: Callable[[FloatArgType], FloatArgType],
         callback: Optional[Callable[[float, float, pn.RandomVariable], None]] = None,
     ) -> Tuple[float, pn.RandomVariable, pn.RandomVariable, Dict]:
-        """
-        Optimize the quadratic objective function.
+        """Optimize the quadratic objective function.
 
         Parameters
         ----------
@@ -400,8 +394,7 @@ class ProbabilisticQuadraticOptimizer:
         return x_opt, fun_opt, self.fun_params, info
 
     def belief_optimum(self) -> Tuple[float, pn.RandomVariable]:
-        """
-        Compute the belief over the optimum and optimal function value.
+        """Compute the belief over the optimum and optimal function value.
 
         Returns
         -------

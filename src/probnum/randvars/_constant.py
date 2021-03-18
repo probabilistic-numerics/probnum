@@ -58,9 +58,9 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
 
     Examples
     --------
-    >>> from probnum import random_variables as rvs
-    >>> rv1 = rvs.Constant(support=0.)
-    >>> rv2 = rvs.Constant(support=1.)
+    >>> from probnum import randvars
+    >>> rv1 = randvars.Constant(support=0.)
+    >>> rv2 = randvars.Constant(support=1.)
     >>> rv = rv1 + rv2
     >>> rv.sample(size=5)
     array([1., 1., 1., 1., 1.])
