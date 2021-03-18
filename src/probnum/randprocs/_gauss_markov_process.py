@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 
 from probnum import randvars
-from probnum.type import FloatArgType, RandomStateArgType
+from probnum.type import FloatArgType
 
 from ._gaussian_process import GaussianProcess
 

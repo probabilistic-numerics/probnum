@@ -6,13 +6,7 @@ import numpy as np
 
 from probnum import kernels, randvars
 from probnum import utils as _utils
-from probnum.type import (
-    DTypeArgType,
-    IntArgType,
-    RandomStateArgType,
-    RandomStateType,
-    ShapeArgType,
-)
+from probnum.type import DTypeArgType, IntArgType, RandomStateArgType, ShapeArgType
 
 _InputType = TypeVar("InputType")
 _OutputType = TypeVar("OutputType")
