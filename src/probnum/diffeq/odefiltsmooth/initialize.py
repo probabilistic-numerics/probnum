@@ -175,8 +175,8 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     --------
 
     >>> import sys, pytest
-    >>> if sys.platform.startswith('win'):
-    ...     pytest.skip('this doctest does not work on Windows')
+    >>> if not sys.platform.startswith('linux'):
+    ...     pytest.skip()
 
     >>> from dataclasses import astuple
     >>> from probnum.randvars import Normal
