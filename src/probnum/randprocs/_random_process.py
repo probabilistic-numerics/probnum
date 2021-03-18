@@ -1,0 +1,370 @@
+"""Random Processes."""
+
+from typing import Callable, Generic, Optional, TypeVar, Union
+
+import numpy as np
+
+import probnum.kernels as kernels
+import probnum.randvars as randvars
+from probnum import utils as _utils
+from probnum.type import (
+    DTypeArgType,
+    IntArgType,
+    RandomStateArgType,
+    RandomStateType,
+    ShapeArgType,
+)
+
+_InputType = TypeVar("InputType")
+_OutputType = TypeVar("OutputType")
+
+
+class RandomProcess(Generic[_InputType, _OutputType]):
+    """Random processes represent uncertainty about a function.
+
+    Random processes generalize functions by encoding uncertainty over function
+    values in their covariance function. They can be used to model (deterministic)
+    functions which are not fully known or to define functions with stochastic
+    output.
+
+    Instances of :class:`RandomProcess` can be added, multiplied, etc. with scalars,
+    arrays and random variables. Such (arithmetic) operations may not retain all
+    previously available methods.
+
+    Parameters
+    ----------
+    input_dim :
+        Input dimension of the random process.
+    output_dim :
+        Output dimension of the random process.
+    dtype :
+        Data type of the random process evaluated at an input. If ``object`` will be
+        converted to ``numpy.dtype``.
+    fun :
+        Callable defining the random process.
+    sample_at_input :
+        Sampling from the random process at a set of inputs.
+    mean :
+        Mean function.
+    cov :
+        Covariance function or kernel.
+    var :
+        Variance function.
+    std :
+        Standard deviation function.
+
+    See Also
+    --------
+    asrandproc : Convert an object to a random process.
+    RandomVariable : Random variables.
+
+    Notes
+    -----
+    Random processes are assumed to have an (un-/countably) infinite domain. Random
+    processes with a finite index set are represented by :class:`RandomVariable` s.
+
+    Sampling from random processes with fixed seed is not stable with respect to the
+    order of operations. This means sampling from a random process and then
+    performing an arithmetic operation will not necessarily return the same samples
+    as if the order of operations is reversed. However, the random seed ensures that
+    each sequence of operations will always result in the same output.
+    """
+
+    # pylint: disable=too-many-instance-attributes,invalid-name
+
+    def __init__(
+        self,
+        input_dim: IntArgType,
+        output_dim: IntArgType,
+        dtype: DTypeArgType,
+        fun: Optional[
+            Callable[[_InputType], randvars.RandomVariable[_OutputType]]
+        ] = None,
+        sample_at_input: Optional[
+            Callable[[_InputType, ShapeArgType], _OutputType]
+        ] = None,
+        mean: Optional[Callable[[_InputType], _OutputType]] = None,
+        cov: Optional[
+            Union[Callable[[_InputType], _OutputType], kernels.Kernel]
+        ] = None,
+        var: Optional[Callable[[_InputType], _OutputType]] = None,
+        std: Optional[Callable[[_InputType], _OutputType]] = None,
+    ):
+        # pylint: disable=too-many-arguments
+        """Instantiate a new random process."""
+
+        # Function defining the random process
+        self.__fun = fun
+
+        # Dimension and data type
+        self.__input_dim = np.int_(_utils.as_numpy_scalar(input_dim))
+        self.__output_dim = np.int_(_utils.as_numpy_scalar(output_dim))
+        self.__dtype = np.dtype(dtype)
+
+        # Sampling
+        self.__sample_at_input = sample_at_input
+
+        # Functions of the random process
+        self.__mean = mean
+        self.__var = var
+        self.__std = std
+
+        if cov is None:
+            self.__cov = cov
+        elif isinstance(cov, kernels.Kernel):
+            if cov.input_dim != self.input_dim or cov.output_dim != self.output_dim:
+                raise ValueError(
+                    f"Dimensions of kernel ({cov.input_dim}, "
+                    f"{cov.output_dim}) and process ({self.input_dim}, "
+                    f"{self.output_dim}) do not match."
+                )
+            self.__cov = cov
+        elif callable(cov):
+            self.__cov = kernels.Kernel(
+                kernelfun=cov, input_dim=self.input_dim, output_dim=self.output_dim
+            )
+        else:
+            raise TypeError("The covariance function must be a callable.")
+
+    def __repr__(self) -> str:
+        return (
+            f"<{self.__class__.__name__} with "
+            f"input_dim={self.input_dim}, output_dim={self.output_dim}, "
+            f"dtype={self.dtype}>"
+        )
+
+    def __call__(self, x: _InputType) -> randvars.RandomVariable[_OutputType]:
+        """Evaluate the random process at a set of inputs.
+
+        Parameters
+        ----------
+        x
+            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to evaluate random
+            process at.
+
+        Returns
+        -------
+        f
+            *shape=(), (output_dim,) or (n, output_dim)* -- Random process evaluated at
+            the inputs.
+        """
+        if self.__fun is None:
+            raise NotImplementedError
+
+        return self._reshape_output(output=self.__fun(x), x_shape=np.asarray(x).shape)
+
+    @property
+    def input_dim(self) -> int:
+        """Shape of inputs to the random process."""
+        return self.__input_dim
+
+    @property
+    def output_dim(self) -> int:
+        """Shape of the random process evaluated at an input."""
+        return self.__output_dim
+
+    @property
+    def dtype(self) -> np.dtype:
+        """Data type of (elements of) the random process evaluated at an input."""
+        return self.__dtype
+
+    def mean(self, x: _InputType) -> _OutputType:
+        """Mean function.
+
+        Returns the mean function evaluated at the given input(s).
+
+        Parameters
+        ----------
+        x
+            *shape=(input_dim,) or (n, input_dim)* -- Input(s) where the mean
+            function is evaluated.
+
+        Returns
+        -------
+        mean
+            *shape=(), (output_dim, ) or (n, output_dim)* -- Mean function of the
+            process evaluated at inputs ``x``.
+        """
+        if self.__mean is None:
+            raise NotImplementedError
+
+        return self._reshape_output(output=self.__mean(x), x_shape=np.asarray(x).shape)
+
+    def cov(self, x0: _InputType, x1: Optional[_InputType] = None) -> _OutputType:
+        r"""Covariance function or kernel.
+
+        Returns the covariance function :math:`\operatorname{Cov}(f(x_0),
+        f(x_1)) = \mathbb{E}[(f(x_0) - \mathbb{E}[f(x_0)])(f(x_0) - \mathbb{E}[f(
+        x_0)])^\top]` of the process evaluated at ``x0`` and ``x1``. If only ``x0`` is
+        provided the covariance among the components of the random process at the
+        inputs defined by ``x0`` is computed.
+
+        Parameters
+        ----------
+        x0
+            *shape=(input_dim,) or (n0, input_dim)* -- First input to the covariance
+            function.
+        x1
+            *shape=(input_dim,) or (n1, input_dim)* -- Second input to the covariance
+            function.
+
+        Returns
+        -------
+        cov
+            *shape=(), (output_dim, output_dim), (n0, n1) or (n0, n1, output_dim,
+            output_dim)* -- Covariance of the process at ``x0`` and ``x1``. If
+            only ``x0`` is given the kernel matrix :math:`K=k(X_0, X_0)` is computed.
+        """  # pylint: disable=trailing-whitespace
+        if self.__cov is None:
+            raise NotImplementedError
+
+        return self.__cov(x0, x1)
+
+    def var(self, x: _InputType) -> _OutputType:
+        """Variance function.
+
+        Returns the variance function which is the value of the covariance or kernel
+        evaluated elementwise at ``x`` for each output dimension separately.
+
+        Parameters
+        ----------
+        x
+            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the variance function.
+
+        Returns
+        -------
+        var
+            *shape=(), (output_dim,) or (n, output_dim)* -- Variance of the
+            process at ``x``.
+        """
+        if self.__var is None:
+            try:
+                cov = self.cov(x0=x)
+                if cov.ndim < 2:
+                    _var = cov
+                elif cov.ndim == 2:
+                    _var = np.diag(cov)
+                else:
+                    _var = np.vstack(
+                        [np.diagonal(cov[:, :, i, i]) for i in range(self.output_dim)]
+                    ).T
+                return self._reshape_output(
+                    output=_var,
+                    x_shape=np.asarray(x).shape,
+                )
+            except NotImplementedError as exc:
+                raise NotImplementedError from exc
+        else:
+            return self._reshape_output(
+                output=self.__var(x), x_shape=np.asarray(x).shape
+            )
+
+    def std(self, x: _InputType) -> _OutputType:
+        """Standard deviation function.
+
+        Parameters
+        ----------
+        x
+            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the standard
+            deviation function.
+
+        Returns
+        -------
+        var
+            *shape=(), (output_dim,) or (n, output_dim)* -- Standard deviation of the
+            process at ``x``.
+        """
+        if self.__std is None:
+            try:
+                return np.sqrt(self.var(x=x))
+            except NotImplementedError as exc:
+                raise NotImplementedError from exc
+        else:
+            return self._reshape_output(
+                output=self.__std(x), x_shape=np.asarray(x).shape
+            )
+
+    def sample(
+        self,
+        x: _InputType = None,
+        size: ShapeArgType = (),
+        random_state: RandomStateArgType = None,
+    ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
+        """Sample paths from the random process.
+
+        If no inputs are provided this function returns sample paths which are
+        callables, otherwise random variables corresponding to the input locations
+        are returned.
+
+        Parameters
+        ----------
+        x
+            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
+            sample paths of the process. If ``None``, sample paths, i.e. callables are
+            returned.
+        size
+            Size of the sample.
+        random_state :
+            Random state of the random process. If None (or np.random), the global
+            :mod:`numpy.random` state is used. If integer, it is used to seed the local
+            :class:`~numpy.random.RandomState` instance.
+        """
+        if x is None:
+            return lambda x0: self._sample_at_input(x=x0, size=size)
+
+        return self._sample_at_input(x=x, size=size)
+
+    def _sample_at_input(
+        self,
+        x: _InputType,
+        size: ShapeArgType = (),
+        random_state: RandomStateArgType = None,
+    ) -> _OutputType:
+        """Evaluate a set of sample paths at the given inputs.
+
+        This function should be implemented by subclasses of :class:`RandomProcess`.
+        This enables :meth:`sample` to both return functions, i.e. sample paths if
+        only a `size` is provided and random variables if inputs are provided as well.
+
+        Parameters
+        ----------
+        x
+            *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
+            sample paths of the process.
+        size
+            Size of the sample.
+        random_state :
+            Random state of the random process. If None (or np.random), the global
+            :mod:`numpy.random` state is used. If integer, it is used to seed the local
+            :class:`~numpy.random.RandomState` instance.
+        """
+        if self.__sample_at_input is None:
+            raise NotImplementedError("No sampling method provided.")
+
+        return self.__sample_at_input(x, _utils.as_shape(size), random_state)
+
+    def _reshape_output(
+        self, output: Union[np.ndarray, randvars.RandomVariable], x_shape: ShapeArgType
+    ) -> Union[np.ndarray, randvars.RandomVariable]:
+        """Reshape output based on input shape.
+
+        Reshapes an output of a function of a random process to a vector for a single
+        input ``x`` or to a matrix for multiple inputs stacked into a matrix.
+
+        Parameters
+        ----------
+        output :
+            Output of a function of the random process.
+        x_shape :
+            Shape of the input to the function of the random process.
+        """
+
+        if len(x_shape) <= 1:
+            if self.output_dim == 1:
+                output = output.reshape(())
+                if isinstance(output, np.ndarray):
+                    return _utils.as_numpy_scalar(output)
+        else:
+            output = output.reshape((x_shape[0], self.output_dim))
+
+        return output

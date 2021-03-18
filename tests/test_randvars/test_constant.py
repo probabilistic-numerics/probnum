@@ -1,4 +1,4 @@
-"""Tests for the Dirac distributions."""
+"""Tests for constant random variables."""
 import unittest
 
 import numpy as np
@@ -13,8 +13,8 @@ def test_constant_accessible_like_gaussian():
     np.testing.assert_allclose(s.cov, s.cov_cholesky)
 
 
-class TestDirac(unittest.TestCase):
-    """General test case for the Dirac distributions."""
+class TestConstant(unittest.TestCase):
+    """General test case for constant random variables."""
 
     def setUp(self):
         self.supports = [1, np.array([1, 2]), np.array([[0]]), np.array([[6], [-0.3]])]
