@@ -48,7 +48,7 @@ def suitesparse_matrix(
     --------
     >>> ssmat = suitesparse_matrix(name="ash85", group="HB")
     >>> ssmat
-    <85x85 SuiteSparseMatrix with dtype=bool>
+    <85x85 SuiteSparseMatrix with dtype=float64>
     >>> ssmat.trace()
     85.0
     """
@@ -117,14 +117,8 @@ class SuiteSparseMatrix(linops.MatrixMult):
         Group this matrix belongs to.
     name :
         Name of this matrix.
-    nrows :
-        Number of rows.
-    ncols :
-        Number of columns.
     nnz  :
         Number of non-zero elements.
-    dtype:
-        Datatype of non-zero elements.
     is2d3d:
         Does this matrix come from a 2D or 3D discretization?
     isspd :
@@ -151,9 +145,6 @@ class SuiteSparseMatrix(linops.MatrixMult):
         matid: str,
         group: str,
         name: str,
-        dtype: DTypeArgType,
-        nrows: int,
-        ncols: int,
         nnz: int,
         is2d3d: bool,
         isspd: bool,
@@ -182,19 +173,9 @@ class SuiteSparseMatrix(linops.MatrixMult):
         database_entry :
             Dictionary representing one entry from the SuiteSparse database index.
         """
-        if bool(int(database_entry["logical"])):
-            dtype = np.dtype(np.bool_)
-        elif bool(int(database_entry["real"])):
-            dtype = np.dtype(np.float_)
-        else:
-            dtype = np.dtype(np.complex_)
-
         return cls(
             matid=database_entry["matid"],
             group=database_entry["group"],
-            dtype=dtype,
-            nrows=int(database_entry["nrows"]),
-            ncols=int(database_entry["ncols"]),
             nnz=int(database_entry["nnz"]),
             is2d3d=bool(int(database_entry["is2d3d"])),
             isspd=bool(int(database_entry["isspd"])),
@@ -203,15 +184,6 @@ class SuiteSparseMatrix(linops.MatrixMult):
             name=database_entry["name"],
             kind=database_entry["kind"],
         )
-
-    def todense(self) -> np.ndarray:
-        return np.array(self.A.todense())
-
-    def trace(self):
-        if self.shape[0] != self.shape[1]:
-            raise ValueError("The trace is only defined for square linear operators.")
-
-        return self.A.diagonal().sum()
 
     def _download(
         self, verbose: bool = False
