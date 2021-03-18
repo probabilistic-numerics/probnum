@@ -9,6 +9,7 @@ GLOBAL_DISABLES = {
     "no-else-raise",
     "no-else-return",
     "no-member",
+    "redefined-variable-type",
 }
 
 

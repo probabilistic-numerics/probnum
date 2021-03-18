@@ -46,7 +46,7 @@ DTypeArgType = Union[np.dtype, str]
 always be converted into :class:`np.dtype` using the function
 :func:`np.dtype` before further internal processing."""
 
-ScalarArgType = Union[int, float, complex, numbers.Number, np.float_]
+ScalarArgType = Union[int, float, complex, numbers.Number, np.number]
 """Type of a public API argument for supplying a scalar value. Values of this type
 should always be converted into :class:`np.generic` using the function
 :func:`probnum.utils.as_scalar` before further internal processing."""
