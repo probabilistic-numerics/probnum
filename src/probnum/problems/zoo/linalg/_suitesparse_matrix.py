@@ -10,7 +10,6 @@ import numpy as np
 import scipy.io
 
 import probnum.linops as linops
-from probnum.type import DTypeArgType
 
 # URLs and file paths to data
 SUITESPARSE_ROOT_URL = "https://sparse.tamu.edu"
@@ -57,7 +56,9 @@ def suitesparse_matrix(
         import requests  # pylint: disable=import-outside-toplevel
     except ImportError as err:
         raise ImportError(
-            "Cannot query SuiteSparse Matrix collection without optional dependency `requests`. Install ProbNum with optional dependencies for the problem zoo via `pip install probnum[zoo]` or install requests directly: `pip install requests`."
+            "Cannot query SuiteSparse Matrix collection without optional dependency ",
+            "`requests`. Install ProbNum with optional dependencies for the problem zoo via",
+            " `pip install probnum[zoo]` or install requests directly: `pip install requests`.",
         ) from err
     response = requests.get(SUITESPARSE_INDEX_URL, "r")
     line_gen = response.iter_lines()

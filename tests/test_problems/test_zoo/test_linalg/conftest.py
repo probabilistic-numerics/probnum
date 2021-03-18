@@ -17,4 +17,4 @@ def fixture_suitesparse_mat(request) -> SuiteSparseMatrix:
 
 @pytest.fixture(name="suitesparse_mycielskian")
 def fixture_suitesparse_mycielskian() -> SuiteSparseMatrix:
-    return suitesparse_matrix(group="Mycielski", name="mycielskian3")
+    return suitesparse_matrix(group="Mycielski", name="mycielskian3", verbose=True)
