@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          sudo apt install <apt.txt
+          sudo apt install $(cat apt.txt)
           pip install -r docs/notebook-requirements.txt
           pip install .
 

@@ -1,8 +1,3 @@
-# Configuration file for interactive tutorials using binder.
-#
-# This file is used by binder to install Debian packages necessary to run the Jupyter
-# notebook tutorials in the documentation.
-# See also: https://mybinder.readthedocs.io/en/latest/using/config_files.html
 dvipng
 ghostscript
 cm-super
