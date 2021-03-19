@@ -1,5 +1,5 @@
 # Workflow which runs all Jupyter notebooks of the documentation and fails on errors.
-name: Run Jupyter notebooks
+name: Jupyter Notebooks
 
 on:
   # Triggers the workflow on push or pull request
@@ -27,5 +27,5 @@ jobs:
           conda install nbconvert
           for file in $(find -wholename "./docs/source/**/*.ipynb" -not -path "**/.ipynb_checkpoints/*")
           do
-              jupyter nbconvert --to notebook --execute --debug $file
+              jupyter nbconvert --to notebook --execute --debug --ExecutePreprocessor.kernel_name=python3 $file
           done
