@@ -16,7 +16,15 @@ jobs:
       - name: Set up Git repository
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Install conda environment
+        uses: conda-incubator/setup-miniconda@v1
         with:
-          python-version: "3.x"
+          environment-file: environment.yml
+
+      - name: Execute all notebooks with nbconvert
+        run: |
+          conda install nbconvert
+          for file in $(find -wholename "./docs/source/**/*.ipynb" -not -path "**/.ipynb_checkpoints/*")
+          do
+              jupyter nbconvert --to notebook --execute --debug $file
+          done
