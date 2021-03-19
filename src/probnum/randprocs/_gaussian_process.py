@@ -72,17 +72,16 @@ class GaussianProcess(RandomProcess[_InputType, _OutputType]):
         input_dim: IntArgType = None,
         output_dim: IntArgType = None,
     ):
-        if not isinstance(cov, kernels.Kernel) and (
-            input_dim is None or output_dim is None
-        ):
+
+        if isinstance(cov, kernels.Kernel):
+            input_dim = cov.input_dim
+            output_dim = cov.output_dim
+
+        if input_dim is None or output_dim is None:
             raise ValueError(
                 "If 'cov' is not a Kernel, 'input_dim' and 'output_dim' must be "
                 "specified."
             )
-        else:
-            input_dim = cov.input_dim
-            output_dim = cov.output_dim
-
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,

@@ -5,7 +5,7 @@ from typing import Callable
 import numpy as np
 import pytest
 
-from probnum import kernels, randprocs
+from probnum import kernels, randprocs, statespace
 
 
 @pytest.fixture(
@@ -74,3 +74,17 @@ def fixture_cov(request, input_dim: int) -> kernels.Kernel:
 def fixture_gaussian_process(mean, cov) -> randprocs.GaussianProcess:
     """Gaussian process."""
     return randprocs.GaussianProcess(mean=mean, cov=cov)
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(gmpdef, id=gmpdef[0])
+        for gmpdef in [("brownian", statespace.IBM(ordint=1, spatialdim=1), 0.0, 0.0)]
+    ],
+    name="gauss_markov_process",
+)
+def fixture_gauss_markov_process(request) -> randprocs.GaussMarkovProcess:
+    """Gauss-Markov process."""
+    return randprocs.GaussMarkovProcess(
+        linear_sde=request.param[1], t0=request.param[2], x0=request.param[3]
+    )

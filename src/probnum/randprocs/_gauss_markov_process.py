@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-from probnum import randvars
+from probnum import randvars, statespace
 from probnum.type import FloatArgType
 
 from ._gaussian_process import GaussianProcess
@@ -24,15 +24,16 @@ class GaussMarkovProcess(GaussianProcess):
 
     .. math:: d x_t = G(t) x_t d t + d w_t.
 
-    and a Gaussian initial condition.
+    and a Gaussian initial condition :math:`x_0`.
 
     Parameters
     ----------
-    linear_transition
-        Linear transition model describing a state change of the system.
+    linear_sde
+        Linear stochastic differential equation / transition model describing a
+        state change of the system.
     t0
         Initial starting index / time of the process.
-    initrv
+    x0
         Gaussian random variable describing the initial state.
 
     See Also
@@ -46,32 +47,28 @@ class GaussMarkovProcess(GaussianProcess):
 
     def __init__(
         self,
-        linear_transition: Union,
-        initrv: randvars.Normal,
+        linear_sde: statespace.LinearSDE,
+        x0: randvars.Normal,
         t0: FloatArgType = 0.0,
     ):
-        self.transition = linear_transition
+        self.linear_sde = linear_sde
         self.t0 = t0
-        self.initrv = initrv
+        self.x0 = np.asarray(x0).reshape(1, -1)
+
         super().__init__(
             input_dim=1,
-            output_dim=initrv.shape[0],
-            mean=self._sde_solution_mean,
-            cov=self._sde_solution_cov,
+            output_dim=1 if self.x0.ndim == 0 else self.x0.shape[0],
+            mean=lambda t: self.__call__(t).mean,
+            cov=lambda t: self.__call__(t).cov,
         )
-
-    # TODO: currently the SDE Models do not support arbitrary steps as defined by
-    #  the increments in ``x``, but rather only predefined "euler_step"s. This has to
-    #  be added first before __call__, mean, etc. work as defined by the
-    #  RandomProcess interface.
 
     def __call__(self, x: _InputType) -> randvars.Normal:
         """Closed form solution to the SDE evaluated at ``x`` as defined by the linear
         transition."""
-        return self.transition.transition_rv(rv=self.initrv, start=self.t0, stop=x)
+        # TODO: currently the SDE Models do not support arbitrary steps as defined by
+        #  the increments in ``x``, only fixed step sizes ``dt```. This has to
+        #  be added first before __call__, mean, etc. work as defined by the
+        #  RandomProcess interface.
 
-    def _sde_solution_mean(self, x: _InputType) -> _OutputType:
-        return self.__call__(x).mean
-
-    def _sde_solution_cov(self, x: _InputType) -> _OutputType:
-        return self.__call__(x).cov
+        # return self.linear_sde.forward_rv(rv=self.x0, t=self.t0, dt=x[-1] - x[-2])
+        raise NotImplementedError
