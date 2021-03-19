@@ -14,7 +14,7 @@ def constant():
 @pytest.fixture
 def normal(cov_cholesky):
     return randvars.Normal(
-        mean=np.arange(1, 3), cov=np.diag(np.arange(5, 7)), cov_cholesky=cov_cholesky
+        mean=np.arange(4, 6), cov=np.diag(np.arange(5, 7)), cov_cholesky=cov_cholesky
     )
 
 
@@ -120,7 +120,7 @@ def test_constant_normal_multiplication_right(constant, normal):
     )
     np.testing.assert_allclose(
         element_product.cov,
-        scalar_like_constant.support * normal.cov * scalar_like_constant.support.T,
+        scalar_like_constant.support ** 2 * normal.cov,
     )
     assert (
         element_product.cov_cholesky_is_precomputed
@@ -147,7 +147,7 @@ def test_constant_normal_multiplication_left(constant, normal):
     )
     np.testing.assert_allclose(
         element_product.cov,
-        scalar_like_constant.support.T * normal.cov * scalar_like_constant.support,
+        normal.cov * scalar_like_constant.support ** 2,
     )
     assert (
         element_product.cov_cholesky_is_precomputed
@@ -157,4 +157,31 @@ def test_constant_normal_multiplication_left(constant, normal):
         np.testing.assert_allclose(
             element_product.cov_cholesky,
             normal.cov_cholesky * scalar_like_constant.support,
+        )
+
+
+@pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
+def test_constant_normal_division(constant, normal):
+    """Assert that mean and covariance follow the correct formula and that a Cholesky
+    factor is preserved if it existed before."""
+
+    # Elementwise multiplication only supported for Constant RVs of size 1.
+    scalar_like_constant = constant[0]
+    element_product = normal / scalar_like_constant
+
+    np.testing.assert_allclose(
+        element_product.mean, normal.mean / scalar_like_constant.support
+    )
+    np.testing.assert_allclose(
+        element_product.cov,
+        normal.cov / scalar_like_constant.support ** 2,
+    )
+    assert (
+        element_product.cov_cholesky_is_precomputed
+        == normal.cov_cholesky_is_precomputed
+    )
+    if element_product.cov_cholesky_is_precomputed:
+        np.testing.assert_allclose(
+            element_product.cov_cholesky,
+            normal.cov_cholesky / scalar_like_constant.support,
         )
