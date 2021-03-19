@@ -74,7 +74,7 @@ def initialize_odefilter_with_rk(
     >>> print(y0)
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
-    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
+    >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension), cov_cholesky=np.eye(prior.dimension))
     >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior=prior, initrv=initrv, df=df)
     >>> print(prior.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]

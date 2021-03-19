@@ -1,5 +1,7 @@
-"""Integrated processes such as the integrated Wiener process or the Matern process."""
+"""Integrated processes such as the integrated Wiener process or the Matern process.
 
+This is the sucessor of the former ODEPrior.
+"""
 try:
     # cached_property is only available in Python >=3.8
     from functools import cached_property
@@ -32,9 +34,8 @@ class Integrator:
 
         .. math:: H_i = \\left[ I_d \\otimes e_i \\right] P^{-1},
 
-        where :math:`e_i` is the :math:`i` th unit vector
+        where :math:`e_i` is the :math:`i` th unit vector,
         that projects to the :math:`i` th coordinate of a vector.
-
         If the ODE is multidimensional, it projects to **each** of the
         :math:`i` th coordinates of each ODE dimension.
 
@@ -72,6 +73,7 @@ class Integrator:
         --------
         :attr:`Integrator._convert_coordwise_to_derivwise`
         :attr:`Integrator._convert_derivwise_to_coordwise`
+
         """
         dim = (self.ordint + 1) * self.spatialdim
         projmat = np.zeros((dim, dim))
@@ -101,6 +103,7 @@ class Integrator:
         --------
         :attr:`Integrator._convert_coordwise_to_derivwise`
         :attr:`Integrator._convert_derivwise_to_coordwise`
+
         """
         return self._derivwise2coordwise_projmat.T
 
@@ -134,6 +137,7 @@ class Integrator:
         state: np.ndarray, ordint: pntype.IntArgType, spatialdim: pntype.IntArgType
     ) -> np.ndarray:
         """Convert coordinate-wise representation to derivative-wise representation.
+
         Lightweight call to the respective property in :class:`Integrator`.
 
         Parameters
@@ -144,6 +148,7 @@ class Integrator:
             Order of the integrator-state. Usually, this is the order of the highest derivative in the state.
         spatialdim:
             Spatial dimension of the integrator. Usually, this is the number of states associated with each derivative.
+
 
         See Also
         --------
@@ -236,18 +241,16 @@ class IBM(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        precon = self.precon(dt)
-        inverse_precon = self.precon.inverse(dt)
-        rv = inverse_precon @ rv
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
         )
 
-        info["crosscov"] = precon @ info["crosscov"] @ precon.T
+        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
-            info["gain"] = precon @ info["gain"] @ inverse_precon.T
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        return precon @ rv, info
+        return _apply_precon(self.precon(dt), rv), info
 
     def backward_rv(
         self,
@@ -260,16 +263,18 @@ class IBM(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        precon = self.precon(dt)
-        inverse_precon = self.precon.inverse(dt)
-
-        rv_obtained = inverse_precon @ rv_obtained
-        rv = inverse_precon @ rv
-
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            inverse_precon @ rv_forwarded if rv_forwarded is not None else None
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
         )
-        gain = inverse_precon @ gain @ inverse_precon.T if gain is not None else None
+        gain = (
+            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
+            if gain is not None
+            else None
+        )
 
         rv, info = self.equivalent_discretisation_preconditioned.backward_rv(
             rv_obtained=rv_obtained,
@@ -283,7 +288,7 @@ class IBM(Integrator, sde.LTISDE):
         # things in info in which case we want to be warned.
         assert not info
 
-        return precon @ rv, info
+        return _apply_precon(self.precon(dt), rv), info
 
     def discretise(self, dt):
         """Equivalent discretisation of the process.
@@ -362,16 +367,14 @@ class IOUP(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        precon = self.precon(dt)
-        inverse_precon = self.precon.inverse(dt)
 
         # Fetch things into preconditioned space
-        rv = inverse_precon @ rv
+        rv = _apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
-        self.driftmat = inverse_precon @ self.driftmat @ precon
-        self.forcevec = inverse_precon @ self.forcevec
-        self.dispmat = inverse_precon @ self.dispmat
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -380,14 +383,14 @@ class IOUP(Integrator, sde.LTISDE):
         )
 
         # Undo preconditioning and return
-        rv = precon @ rv
-        info["crosscov"] = precon @ info["crosscov"] @ precon.T
+        rv = _apply_precon(self.precon(dt), rv)
+        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
-            info["gain"] = precon @ info["gain"] @ inverse_precon.T
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        self.driftmat = precon @ self.driftmat @ inverse_precon
-        self.forcevec = precon @ self.forcevec
-        self.dispmat = precon @ self.dispmat
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
 
         return rv, info
 
@@ -402,21 +405,25 @@ class IOUP(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        precon = self.precon(dt)
-        inverse_precon = self.precon.inverse(dt)
-
         # Fetch things into preconditioned space
-        rv_obtained = inverse_precon @ rv_obtained
-        rv = inverse_precon @ rv
+
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            inverse_precon @ rv_forwarded if rv_forwarded is not None else None
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
         )
-        gain = inverse_precon @ gain @ inverse_precon.T if gain is not None else None
+        gain = (
+            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
+            if gain is not None
+            else None
+        )
 
         # Apply preconditioning to system matrices
-        self.driftmat = inverse_precon @ self.driftmat @ precon
-        self.forcevec = inverse_precon @ self.forcevec
-        self.dispmat = inverse_precon @ self.dispmat
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -434,10 +441,10 @@ class IOUP(Integrator, sde.LTISDE):
         assert not info
 
         # Undo preconditioning and return
-        rv = precon @ rv
-        self.driftmat = precon @ self.driftmat @ inverse_precon
-        self.forcevec = precon @ self.forcevec
-        self.dispmat = precon @ self.dispmat
+        rv = _apply_precon(self.precon(dt), rv)
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
         return rv, info
 
 
@@ -495,16 +502,14 @@ class Matern(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        precon = self.precon(dt)
-        inverse_precon = self.precon.inverse(dt)
 
         # Fetch things into preconditioned space
-        rv = inverse_precon @ rv
+        rv = _apply_precon(self.precon.inverse(dt), rv)
 
         # Apply preconditioning to system matrices
-        self.driftmat = inverse_precon @ self.driftmat @ precon
-        self.forcevec = inverse_precon @ self.forcevec
-        self.dispmat = inverse_precon @ self.dispmat
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -513,14 +518,14 @@ class Matern(Integrator, sde.LTISDE):
         )
 
         # Undo preconditioning and return
-        rv = precon @ rv
-        info["crosscov"] = precon @ info["crosscov"] @ precon.T
+        rv = _apply_precon(self.precon(dt), rv)
+        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
         if "gain" in info:
-            info["gain"] = precon @ info["gain"] @ inverse_precon.T
+            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
 
-        self.driftmat = precon @ self.driftmat @ inverse_precon
-        self.forcevec = precon @ self.forcevec
-        self.dispmat = precon @ self.dispmat
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
 
         return rv, info
 
@@ -535,22 +540,25 @@ class Matern(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-
-        precon = self.precon(dt)
-        inverse_precon = self.precon.inverse(dt)
-
         # Fetch things into preconditioned space
-        rv_obtained = inverse_precon @ rv_obtained
-        rv = inverse_precon @ rv
+
+        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
+        rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
-            inverse_precon @ rv_forwarded if rv_forwarded is not None else None
+            _apply_precon(self.precon.inverse(dt), rv_forwarded)
+            if rv_forwarded is not None
+            else None
         )
-        gain = inverse_precon @ gain @ inverse_precon.T if gain is not None else None
+        gain = (
+            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
+            if gain is not None
+            else None
+        )
 
         # Apply preconditioning to system matrices
-        self.driftmat = inverse_precon @ self.driftmat @ precon
-        self.forcevec = inverse_precon @ self.forcevec
-        self.dispmat = inverse_precon @ self.dispmat
+        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
+        self.forcevec = self.precon.inverse(dt) @ self.forcevec
+        self.dispmat = self.precon.inverse(dt) @ self.dispmat
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -568,8 +576,24 @@ class Matern(Integrator, sde.LTISDE):
         assert not info
 
         # Undo preconditioning and return
-        rv = precon @ rv
-        self.driftmat = precon @ self.driftmat @ inverse_precon
-        self.forcevec = precon @ self.forcevec
-        self.dispmat = precon @ self.dispmat
+        rv = _apply_precon(self.precon(dt), rv)
+        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
+        self.forcevec = self.precon(dt) @ self.forcevec
+        self.dispmat = self.precon(dt) @ self.dispmat
         return rv, info
+
+
+def _apply_precon(precon, rv):
+
+    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
+    # Therefore, since we need to update the Cholesky factor for square-root filtering,
+    # we also update the Cholesky factor for non-square-root algorithms here,
+    # which implies additional cost.
+    # See Issues #319 and #329.
+    # When they are resolved, this function here will hopefully be superfluous.
+
+    new_mean = precon @ rv.mean
+    new_cov_cholesky = precon @ rv.cov_cholesky  # precon is diagonal, so this is valid
+    new_cov = new_cov_cholesky @ new_cov_cholesky.T
+
+    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
