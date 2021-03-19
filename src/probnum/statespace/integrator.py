@@ -1,7 +1,4 @@
-"""Integrated processes such as the integrated Wiener process or the Matern process.
-
-This is the sucessor of the former ODEPrior.
-"""
+"""Integrated processes such as the integrated Wiener process or the Matern process."""
 try:
     # cached_property is only available in Python >=3.8
     from functools import cached_property
