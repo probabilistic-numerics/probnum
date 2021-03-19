@@ -1,0 +1,9 @@
+# Jupyter notebooks
+jupyter
+
+# Notebook conversion
+nbsphinx>=0.6.1
+
+# Dependencies
+matplotlib
+pytest
