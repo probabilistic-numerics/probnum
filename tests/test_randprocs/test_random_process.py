@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from probnum import kernels, randprocs
+from probnum import kernels, randprocs, randvars
 
 
 def test_rp_from_covariance_callable():
@@ -27,6 +27,19 @@ def test_covariance_not_callable():
         randprocs.RandomProcess(input_dim=1, output_dim=1, cov=kern, dtype=np.float_)
 
 
+def test_evaluated_random_process_is_random_variable(
+    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
+):
+    """Test whether evaluating a random process returns a random variable."""
+    n_inputs_x0 = 10
+    x0 = random_state.normal(size=(n_inputs_x0, random_process.input_dim))
+    y0 = random_process(x0)
+
+    assert isinstance(y0, randvars.RandomVariable), (
+        f"Output of {repr(random_process)} is not a " f"random variable."
+    )
+
+
 def test_samples_are_callables(
     random_process: randprocs.RandomProcess, random_state: np.random.RandomState
 ):
@@ -36,12 +49,12 @@ def test_samples_are_callables(
 
 
 def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
-    random_process: randprocs.RandomProcess,
+    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
 ):
     """Check whether the evaluated mean and covariance function of a random process is
     equivalent to the mean and covariance of the evaluated random process as a random
     variable."""
-    x = np.random.normal(size=(10, random_process.input_dim))
+    x = random_state.normal(size=(10, random_process.input_dim))
 
     np.testing.assert_allclose(
         random_process(x).mean,
