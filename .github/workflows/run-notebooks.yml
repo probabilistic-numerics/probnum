@@ -26,5 +26,5 @@ jobs:
         run: |
           for file in $(find -wholename "./docs/source/**/*.ipynb" -not -path "**/.ipynb_checkpoints/*")
           do
-              jupyter nbconvert --to notebook --execute --debug --ExecutePreprocessor.kernel_name=python3 $file
+              jupyter nbconvert --to notebook --execute --ExecutePreprocessor.kernel_name=python3 $file
           done
