@@ -77,7 +77,7 @@ def fixture_cov(request, input_dim: int) -> kernels.Kernel:
             (
                 "gp",
                 randprocs.GaussianProcess(
-                    mean=lambda x: 2 * x.sum(axis=1) + 1.0,
+                    mean=lambda x: np.zeros(x.shape[0]),
                     cov=kernels.Matern(input_dim=1),
                 ),
             ),
