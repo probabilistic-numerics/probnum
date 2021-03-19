@@ -2,4 +2,4 @@
 -r sphinx-requirements.txt
 
 # Jupyter notebook requirements
--r notebook-reqirements.txt
+-r notebook-requirements.txt
