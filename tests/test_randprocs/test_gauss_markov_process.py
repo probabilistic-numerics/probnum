@@ -1,7 +1,5 @@
 """Tests for Gauss-Markov processes."""
 
-import pytest
-
 from probnum import randprocs
 
 

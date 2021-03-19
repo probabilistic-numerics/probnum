@@ -10,7 +10,7 @@ def test_no_kernel_covariance_no_dimensions_raises_error():
     """Initializing a GP with a covariance function which is not a kernel and not
     specifying in-/output dimension raises a ValueError."""
     with pytest.raises(ValueError):
-        randprocs.GaussianProcess(mean=np.zeros_like, cov=lambda x, y: np.dot(x, y))
+        randprocs.GaussianProcess(mean=np.zeros_like, cov=np.dot)
 
 
 def test_finite_evaluation_is_normal(gaussian_process: randprocs.GaussianProcess):

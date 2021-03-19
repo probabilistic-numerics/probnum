@@ -70,6 +70,26 @@ def fixture_cov(request, input_dim: int) -> kernels.Kernel:
     return request.param[0](**request.param[1], input_dim=input_dim)
 
 
+@pytest.fixture(
+    params=[
+        pytest.param(randprocdef, id=randprocdef[0])
+        for randprocdef in [
+            (
+                "gp",
+                randprocs.GaussianProcess(
+                    mean=lambda x: 2 * x.sum(axis=1) + 1.0,
+                    cov=kernels.Matern(input_dim=1),
+                ),
+            ),
+        ]
+    ],
+    name="random_process",
+)
+def fixture_random_process(request) -> randprocs.RandomProcess:
+    """Random process."""
+    return request.param[1]
+
+
 @pytest.fixture(name="gaussian_process")
 def fixture_gaussian_process(mean, cov) -> randprocs.GaussianProcess:
     """Gaussian process."""
