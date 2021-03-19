@@ -79,10 +79,10 @@ class KalmanODESolution(ODESolution):
         self.proj_to_dy = self.kalman_posterior.transition.proj2coord(coord=1)
 
         states = _randomvariablelist._RandomVariableList(
-            [_project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.states]
+            [self.proj_to_y @ rv for rv in self.kalman_posterior.states]
         )
         derivatives = _randomvariablelist._RandomVariableList(
-            [_project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.states]
+            [self.proj_to_dy @ rv for rv in self.kalman_posterior.states]
         )
         super().__init__(
             locations=kalman_posterior.locations, states=states, derivatives=derivatives
@@ -90,7 +90,7 @@ class KalmanODESolution(ODESolution):
 
     def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
         out_rv = self.kalman_posterior.interpolate(t)
-        return _project_rv(self.proj_to_y, out_rv)
+        return self.proj_to_y @ out_rv
 
     def sample(
         self,
@@ -131,17 +131,3 @@ class KalmanODESolution(ODESolution):
         return KalmanODESolution(
             kalman_posterior=self.kalman_posterior.filtering_posterior
         )
-
-
-def _project_rv(projmat, rv):
-    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
-    # Therefore, since we need to update the Cholesky factor for square-root filtering,
-    # we also update the Cholesky factor for non-square-root algorithms here,
-    # which implies additional cost.
-    # See Issues #319 and #329.
-    # When they are resolved, this function here will hopefully be superfluous.
-
-    new_mean = projmat @ rv.mean
-    new_cov = projmat @ rv.cov @ projmat.T
-    new_cov_cholesky = utils.linalg.cholesky_update(projmat @ rv.cov_cholesky)
-    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
