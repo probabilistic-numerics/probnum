@@ -10,18 +10,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  black:
+  run_notebooks:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v2
 
       - name: Install conda environment
-        uses: conda-incubator/setup-miniconda@v1
+        uses: conda-incubator/setup-miniconda@v2
         with:
           environment-file: environment.yml
 
       - name: Execute all notebooks with nbconvert
+        shell: bash -l {0}
         run: |
           conda install nbconvert
           for file in $(find -wholename "./docs/source/**/*.ipynb" -not -path "**/.ipynb_checkpoints/*")
