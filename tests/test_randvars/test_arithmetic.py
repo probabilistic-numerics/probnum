@@ -33,6 +33,8 @@ def test_constant_normal_sum_left(constant, normal):
 
 @pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
 def test_constant_normal_sum_right(constant, normal):
+    """Assert that mean and covariance follow the correct formula and that a Cholesky
+    factor is preserved if it existed before."""
     sum_of_rvs = normal + constant
     np.testing.assert_allclose(sum_of_rvs.mean, normal.mean + constant.mean)
     np.testing.assert_allclose(sum_of_rvs.cov, normal.cov)
@@ -43,6 +45,8 @@ def test_constant_normal_sum_right(constant, normal):
 
 @pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
 def test_constant_normal_subtraction_left(constant, normal):
+    """Assert that mean and covariance follow the correct formula and that a Cholesky
+    factor is preserved if it existed before."""
     diff_of_rvs = constant - normal
 
     np.testing.assert_allclose(diff_of_rvs.mean, constant.mean - normal.mean)
@@ -54,6 +58,8 @@ def test_constant_normal_subtraction_left(constant, normal):
 
 @pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
 def test_constant_normal_subtraction_right(constant, normal):
+    """Assert that mean and covariance follow the correct formula and that a Cholesky
+    factor is preserved if it existed before."""
     diff_of_rvs = normal - constant
     np.testing.assert_allclose(diff_of_rvs.mean, normal.mean - constant.mean)
     np.testing.assert_allclose(diff_of_rvs.cov, normal.cov)
