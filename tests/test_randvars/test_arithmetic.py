@@ -14,7 +14,7 @@ def constant():
 @pytest.fixture
 def normal(cov_cholesky):
     return randvars.Normal(
-        mean=np.arange(2), cov=np.diag(np.arange(5, 7)), cov_cholesky=cov_cholesky
+        mean=np.arange(1, 3), cov=np.diag(np.arange(5, 7)), cov_cholesky=cov_cholesky
     )
 
 
@@ -69,7 +69,7 @@ def test_constant_normal_subtraction_right(constant, normal):
 
 
 @pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
-def test_constant_normal_matmul_right(constant, normal):
+def test_constant_normal_matrix_multiplication_right(constant, normal):
     """Assert that mean and covariance follow the correct formula and that a Cholesky
     factor is preserved if it existed before."""
     matrix_product = constant @ normal
@@ -88,7 +88,7 @@ def test_constant_normal_matmul_right(constant, normal):
 
 
 @pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
-def test_constant_normal_matmul_left(constant, normal):
+def test_constant_normal_matrix_multiplication_left(constant, normal):
     """Assert that mean and covariance follow the correct formula and that a Cholesky
     factor is preserved if it existed before."""
     matrix_product = normal @ constant
@@ -103,4 +103,58 @@ def test_constant_normal_matmul_left(constant, normal):
         np.testing.assert_allclose(
             matrix_product.cov_cholesky,
             utils.linalg.cholesky_update(constant.support.T @ normal.cov_cholesky),
+        )
+
+
+@pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
+def test_constant_normal_multiplication_right(constant, normal):
+    """Assert that mean and covariance follow the correct formula and that a Cholesky
+    factor is preserved if it existed before."""
+
+    # Elementwise multiplication only supported for Constant RVs of size 1.
+    scalar_like_constant = constant[0]
+    element_product = scalar_like_constant * normal
+
+    np.testing.assert_allclose(
+        element_product.mean, scalar_like_constant.support * normal.mean
+    )
+    np.testing.assert_allclose(
+        element_product.cov,
+        scalar_like_constant.support * normal.cov * scalar_like_constant.support.T,
+    )
+    assert (
+        element_product.cov_cholesky_is_precomputed
+        == normal.cov_cholesky_is_precomputed
+    )
+    if element_product.cov_cholesky_is_precomputed:
+        np.testing.assert_allclose(
+            element_product.cov_cholesky,
+            scalar_like_constant.support * normal.cov_cholesky,
+        )
+
+
+@pytest.mark.parametrize("cov_cholesky", [None, np.diag(np.sqrt(np.arange(5, 7)))])
+def test_constant_normal_multiplication_left(constant, normal):
+    """Assert that mean and covariance follow the correct formula and that a Cholesky
+    factor is preserved if it existed before."""
+
+    # Elementwise multiplication only supported for Constant RVs of size 1.
+    scalar_like_constant = constant[0]
+    element_product = normal * scalar_like_constant
+
+    np.testing.assert_allclose(
+        element_product.mean, normal.mean * scalar_like_constant.support
+    )
+    np.testing.assert_allclose(
+        element_product.cov,
+        scalar_like_constant.support.T * normal.cov * scalar_like_constant.support,
+    )
+    assert (
+        element_product.cov_cholesky_is_precomputed
+        == normal.cov_cholesky_is_precomputed
+    )
+    if element_product.cov_cholesky_is_precomputed:
+        np.testing.assert_allclose(
+            element_product.cov_cholesky,
+            normal.cov_cholesky * scalar_like_constant.support,
         )
