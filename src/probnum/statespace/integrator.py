@@ -500,14 +500,16 @@ class Matern(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
+        precon = self.precon(dt)
+        inverse_precon = self.precon.inverse(dt)
 
         # Fetch things into preconditioned space
-        rv = _apply_precon(self.precon.inverse(dt), rv)
+        rv = inverse_precon @ rv
 
         # Apply preconditioning to system matrices
-        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
-        self.forcevec = self.precon.inverse(dt) @ self.forcevec
-        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+        self.driftmat = inverse_precon @ self.driftmat @ precon
+        self.forcevec = inverse_precon @ self.forcevec
+        self.dispmat = inverse_precon @ self.dispmat
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -516,14 +518,14 @@ class Matern(Integrator, sde.LTISDE):
         )
 
         # Undo preconditioning and return
-        rv = _apply_precon(self.precon(dt), rv)
-        info["crosscov"] = self.precon(dt) @ info["crosscov"] @ self.precon(dt).T
+        rv = precon @ rv
+        info["crosscov"] = precon @ info["crosscov"] @ precon.T
         if "gain" in info:
-            info["gain"] = self.precon(dt) @ info["gain"] @ self.precon.inverse(dt).T
+            info["gain"] = precon @ info["gain"] @ inverse_precon.T
 
-        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
-        self.forcevec = self.precon(dt) @ self.forcevec
-        self.dispmat = self.precon(dt) @ self.dispmat
+        self.driftmat = precon @ self.driftmat @ inverse_precon
+        self.forcevec = precon @ self.forcevec
+        self.dispmat = precon @ self.dispmat
 
         return rv, info
 
@@ -538,25 +540,22 @@ class Matern(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        # Fetch things into preconditioned space
 
-        rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
-        rv = _apply_precon(self.precon.inverse(dt), rv)
+        precon = self.precon(dt)
+        inverse_precon = self.precon.inverse(dt)
+
+        # Fetch things into preconditioned space
+        rv_obtained = inverse_precon @ rv_obtained
+        rv = inverse_precon @ rv
         rv_forwarded = (
-            _apply_precon(self.precon.inverse(dt), rv_forwarded)
-            if rv_forwarded is not None
-            else None
+            inverse_precon @ rv_forwarded if rv_forwarded is not None else None
         )
-        gain = (
-            self.precon.inverse(dt) @ gain @ self.precon.inverse(dt).T
-            if gain is not None
-            else None
-        )
+        gain = inverse_precon @ gain @ inverse_precon.T if gain is not None else None
 
         # Apply preconditioning to system matrices
-        self.driftmat = self.precon.inverse(dt) @ self.driftmat @ self.precon(dt)
-        self.forcevec = self.precon.inverse(dt) @ self.forcevec
-        self.dispmat = self.precon.inverse(dt) @ self.dispmat
+        self.driftmat = inverse_precon @ self.driftmat @ precon
+        self.forcevec = inverse_precon @ self.forcevec
+        self.dispmat = inverse_precon @ self.dispmat
 
         # Discretise and propagate
         discretised_model = self.discretise(dt=dt)
@@ -574,25 +573,8 @@ class Matern(Integrator, sde.LTISDE):
         assert not info
 
         # Undo preconditioning and return
-        rv = _apply_precon(self.precon(dt), rv)
-        self.driftmat = self.precon(dt) @ self.driftmat @ self.precon.inverse(dt)
-        self.forcevec = self.precon(dt) @ self.forcevec
-        self.dispmat = self.precon(dt) @ self.dispmat
+        rv = precon @ rv
+        self.driftmat = precon @ self.driftmat @ inverse_precon
+        self.forcevec = precon @ self.forcevec
+        self.dispmat = precon @ self.dispmat
         return rv, info
-
-
-def _apply_precon(precon, rv):
-
-    # There is no way of checking whether `rv` has its Cholesky factor computed already or not.
-    # Therefore, since we need to update the Cholesky factor for square-root filtering,
-    # we also update the Cholesky factor for non-square-root algorithms here,
-    # which implies additional cost.
-    # See Issues #319 and #329.
-    # When they are resolved, this function here will hopefully be superfluous.
-
-    return precon @ rv
-    # new_mean = precon @ rv.mean
-    # new_cov_cholesky = precon @ rv.cov_cholesky  # precon is diagonal, so this is valid
-    # new_cov = new_cov_cholesky @ new_cov_cholesky.T
-    #
-    # return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
