@@ -16,16 +16,13 @@ jobs:
       - name: Set up Git repository
         uses: actions/checkout@v2
 
-      - name: Install conda environment
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          environment-file: environment.yml
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
 
       - name: Execute all notebooks with nbconvert
-        shell: bash -l {0}
         run: |
-          conda install nb_conda_kernels
-          conda install nbconvert
           for file in $(find -wholename "./docs/source/**/*.ipynb" -not -path "**/.ipynb_checkpoints/*")
           do
               jupyter nbconvert --to notebook --execute --debug --ExecutePreprocessor.kernel_name=python3 $file

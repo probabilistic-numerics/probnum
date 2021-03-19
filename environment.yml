@@ -3,8 +3,7 @@
 # This file is used to install dependencies necessary to run the Jupyter
 # notebook tutorials in the documentation. It is currently used for
 #
-# - Continuous integration via GitHub Actions
-# - Interactive tutorials using binder:
+# - Interactive tutorials using Binder:
 #   https://mybinder.readthedocs.io/en/latest/using/config_files.html
 name: jupyter-tutorials-env
 channels:
