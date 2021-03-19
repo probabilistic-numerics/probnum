@@ -1,0 +1,22 @@
+# Workflow which runs all Jupyter notebooks of the documentation and fails on errors.
+name: Run Jupyter notebooks
+
+on:
+  # Triggers the workflow on push or pull request
+  push:
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
