@@ -2,7 +2,6 @@ dvipng
 ghostscript
 cm-super
 texlive-fonts-recommended
-texlive-generic-recommended
 texlive-latex-base
 texlive-latex-extra
 texlive-latex-recommended
