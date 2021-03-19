@@ -24,6 +24,7 @@ jobs:
       - name: Execute all notebooks with nbconvert
         shell: bash -l {0}
         run: |
+          conda install nb_conda_kernels
           conda install nbconvert
           for file in $(find -wholename "./docs/source/**/*.ipynb" -not -path "**/.ipynb_checkpoints/*")
           do
