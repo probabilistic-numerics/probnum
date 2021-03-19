@@ -48,8 +48,9 @@ class RandomProcess(Generic[_InputType, _OutputType]):
 
     See Also
     --------
-    asrandproc : Convert an object to a random process.
     RandomVariable : Random variables.
+    GaussianProcess : Gaussian processes.
+    GaussMarkovProcess : Gaussian processes with the Markov property.
 
     Notes
     -----
