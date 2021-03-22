@@ -1,6 +1,6 @@
 """Gaussian processes."""
 
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 
@@ -82,17 +82,22 @@ class GaussianProcess(RandomProcess[_InputType, _OutputType]):
                 "If 'cov' is not a Kernel, 'input_dim' and 'output_dim' must be "
                 "specified."
             )
+        self._meanfun = mean
+        self._covfun = cov
         super().__init__(
             input_dim=input_dim,
             output_dim=output_dim,
             dtype=np.dtype(np.float_),
-            mean=mean,
-            cov=cov,
-            sample_at_input=self._sample_at_input,
         )
 
     def __call__(self, x: _InputType) -> randvars.Normal:
         return randvars.Normal(mean=self.mean(x), cov=self.cov(x))
+
+    def mean(self, x: _InputType) -> _OutputType:
+        return self._meanfun(x)
+
+    def cov(self, x0: _InputType, x1: Optional[_InputType] = None) -> _OutputType:
+        return self._covfun(x0, x1)
 
     def _sample_at_input(
         self,

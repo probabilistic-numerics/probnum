@@ -9,10 +9,10 @@ from probnum import kernels, randprocs, statespace
 
 
 @pytest.fixture(
-    params=[pytest.param(seed, id=f"seed{seed}") for seed in range(1)],
+    params=[pytest.param(seed, id=f"seed{seed}") for seed in range(3)],
     name="random_state",
 )
-def fixture_random_state(request):
+def fixture_random_state(request) -> np.random.RandomState:
     """Random state(s) used for test parameterization."""
     return np.random.RandomState(seed=request.param)
 
@@ -99,7 +99,7 @@ def fixture_gaussian_process(mean, cov) -> randprocs.GaussianProcess:
 @pytest.fixture(
     params=[
         pytest.param(gmpdef, id=gmpdef[0])
-        for gmpdef in [("brownian", statespace.IBM(ordint=1, spatialdim=1), 0.0, 0.0)]
+        for gmpdef in [("ibm", statespace.IBM(ordint=1, spatialdim=1), 0.0, 0.0)]
     ],
     name="gauss_markov_process",
 )
@@ -108,3 +108,13 @@ def fixture_gauss_markov_process(request) -> randprocs.GaussMarkovProcess:
     return randprocs.GaussMarkovProcess(
         linear_sde=request.param[1], t0=request.param[2], x0=request.param[3]
     )
+
+
+@pytest.fixture(params=[pytest.param(n, id=f"n{n}") for n in [1, 10]], name="x0")
+def fixture_x0(
+    request,
+    random_process: randprocs.RandomProcess,
+    random_state: np.random.RandomState,
+) -> np.ndarray:
+    """Input(s) to a random process."""
+    return random_state.normal(size=(request.param, random_process.input_dim))

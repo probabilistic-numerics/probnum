@@ -1,103 +1,57 @@
 """Tests for random processes."""
 
-from typing import Callable
-
 import numpy as np
-import pytest
 
-from probnum import kernels, randprocs, randvars
+from probnum import randprocs, randvars
 
-# Random process instantiation
-
-
-def test_rp_from_covariance_callable():
-    """Create a random process with a covariance function from a callable."""
-    kern = lambda x0, x1=None: x0 @ x0.T if x1 is None else x0 @ x1.T
-    fun = randprocs.RandomProcess(input_dim=1, output_dim=1, cov=kern, dtype=np.float_)
-    fun.cov(np.linspace(0, 1, 5)[:, None])
+# pylint: disable=invalid-name
 
 
-def test_dimension_process_kernel_mismatch():
-    """Test whether an error is raised if kernel and process dimension do not match."""
-    with pytest.raises(ValueError):
-        kern = kernels.Linear(input_dim=5)
-        randprocs.RandomProcess(input_dim=10, output_dim=1, cov=kern, dtype=np.float_)
-
-
-def test_covariance_not_callable():
-    """Test whether an error is raised if the covariance is not a callable."""
-    with pytest.raises(TypeError):
-        kern = 1.0
-        randprocs.RandomProcess(input_dim=1, output_dim=1, cov=kern, dtype=np.float_)
-
-
-# Random process shape
-
-
-def generic_shape_assert(
-    x0: np.ndarray, rand_proc: randprocs.RandomProcess, fun: Callable
-):
-    """A generic shape test for functions of a random process taking one input."""
-    if rand_proc.input_dim == 1:
-        assert (
-            0 == fun(x0[0, 0]).ndim
-        ), f"Output of {repr(rand_proc)} for scalar input should have 0 dimensions."
-
-    if rand_proc.output_dim == 1:
-        assert (
-            0 == fun(x0[0, :]).ndim
-        ), f"Output of {repr(rand_proc)} for vector input should have 0 dimensions."
+def test_output_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+    """Test whether evaluations of the random process have the correct shape."""
+    if random_process.output_dim == 1:
+        assert random_process(x0).ndim == 1
     else:
-        x1 = x0[0, :]
-        y1 = fun(x1)
-        assert (
-            rand_proc.output_dim,
-        ) == y1.shape, (
-            f"Output of {repr(rand_proc)} for vector input should be a vector."
+        assert random_process(x0).shape[1] == random_process.output_dim
+
+
+def test_mean_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+    """Test whether the mean of the random process has the correct shape."""
+    if random_process.output_dim == 1:
+        assert random_process.mean(x0).ndim == 1
+    else:
+        assert random_process.mean(x0).shape[1] == random_process.output_dim
+
+
+def test_var_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+    """Test whether the variance of the random process has the correct shape."""
+    if random_process.output_dim == 1:
+        assert random_process.var(x0).ndim == 1
+    else:
+        assert random_process.var(x0).shape[1] == random_process.output_dim
+
+
+def test_std_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+    """Test whether the standard deviation of the random process has the correct
+    shape."""
+    if random_process.output_dim == 1:
+        assert random_process.std(x0).ndim == 1
+    else:
+        assert random_process.std(x0).shape[1] == random_process.output_dim
+
+
+def test_cov_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+    """Test whether the covariance of the random process has the correct shape."""
+    n = x0.shape[0]
+    if random_process.output_dim == 1:
+        assert random_process.cov(x0).shape == (n, n) or random_process.cov(x0).ndim < 2
+    else:
+        assert random_process.cov(x0).shape == (
+            n,
+            n,
+            random_process.output_dim,
+            random_process.output_dim,
         )
-
-    assert (x0.shape[0], rand_proc.output_dim) == fun(
-        x0
-    ).shape, f"Output of {repr(rand_proc)} does not have the correct shape for multiple inputs."
-
-
-def test_output_shape(
-    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
-):
-    """Test whether evaluations of the random process have shape=(output_shape,) for an
-    input vector or shape=(n, output_shape) for multiple inputs."""
-    x0 = random_state.normal(size=(10, random_process.input_dim))
-    generic_shape_assert(x0=x0, rand_proc=random_process, fun=random_process)
-
-
-def test_mean_shape(
-    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
-):
-    """Test whether output shape matches the shape of the mean function of the random
-    process."""
-    x0 = random_state.normal(size=(10, random_process.input_dim))
-    generic_shape_assert(x0=x0, rand_proc=random_process, fun=random_process.mean)
-
-
-def test_var_shape(
-    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
-):
-    """Test whether output shape matches the shape of the variance function of the
-    random process."""
-    x0 = random_state.normal(size=(10, random_process.input_dim))
-    generic_shape_assert(x0=x0, rand_proc=random_process, fun=random_process.var)
-
-
-def test_std_shape(
-    random_process: randprocs.RandomProcess, random_state: np.random.RandomState
-):
-    """Test whether output shape matches the shape of the standard deviation function of
-    the random process."""
-    x0 = random_state.normal(size=(10, random_process.input_dim))
-    generic_shape_assert(x0=x0, rand_proc=random_process, fun=random_process.std)
-
-
-# Random process methods
 
 
 def test_evaluated_random_process_is_random_variable(

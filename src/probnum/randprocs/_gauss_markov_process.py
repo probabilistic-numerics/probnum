@@ -13,7 +13,7 @@ _OutputType = Union[np.floating, np.ndarray]
 
 
 class GaussMarkovProcess(GaussianProcess):
-    """Gaussian processes with the Markov property.
+    r"""Gaussian processes with the Markov property.
 
     A Gauss-Markov process is a Gaussian process with the additional property that
     conditioned on the present state of the system its future and past states are
@@ -22,15 +22,15 @@ class GaussMarkovProcess(GaussianProcess):
     (linear) transition model given by a stochastic differential equation (SDE) of
     the form
 
-    .. math:: d x_t = G(t) x_t d t + d w_t.
+    .. math:: \mathrm{d} x_t = G(t) x_t \mathrm{d} t + \mathrm{d} w_t.
 
     and a Gaussian initial condition :math:`x_0`.
 
     Parameters
     ----------
     linear_sde
-        Linear stochastic differential equation / transition model describing a
-        state change of the system.
+        Linear stochastic differential equation describing a state transition of the
+        system.
     t0
         Initial starting index / time of the process.
     x0
@@ -44,6 +44,7 @@ class GaussMarkovProcess(GaussianProcess):
     Examples
     --------
     """
+    # pylint: disable=invalid-name
 
     def __init__(
         self,
