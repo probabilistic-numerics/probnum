@@ -17,6 +17,11 @@ from .gaussfiltsmooth import (
     UKFComponent,
     UnscentedTransform,
 )
+from .particlefiltsmooth import (
+    ParticleFilter,
+    ParticleFilterPosterior,
+    effective_number_of_events,
+)
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -35,4 +40,7 @@ __all__ = [
     "SmoothingPosterior",
     "StoppingCriterion",
     "IteratedDiscreteComponent",
+    "ParticleFilter",
+    "ParticleFilterPosterior",
+    "effective_number_of_events",
 ]

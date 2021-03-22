@@ -12,6 +12,10 @@ class BayesFiltSmooth(ABC):
         self.initrv = initrv
 
     @abstractmethod
+    def filter(self, dataset, times, _previous_posterior=None):
+        raise NotImplementedError
+
+    @abstractmethod
     def filter_step(self, start, stop, randvar, data, **kwargs):
         """Filter step.
 
