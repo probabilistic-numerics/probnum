@@ -136,6 +136,8 @@ class ParticleFilter(BayesFiltSmooth):
     def filter_step(self, start, stop, randvar, data):
         """Perform a particle filter step.
 
+        This method implements sequential importance (re)sampling.
+
         It consists of the following steps:
         1. Propagating the "past" particles through the dynamics model.
         2. Computing a "proposal" random variable.
@@ -143,12 +145,13 @@ class ParticleFilter(BayesFiltSmooth):
         of an (approximate) Gaussian filter.
         3. Sample from the proposal random variable. This is the "new" particle.
         4. Propagate the particle through the measurement model.
-        This is required in order to require the PDF of the resulting RV at
+        This is required in order to evaluate the PDF of the resulting RV at
         the data. If this is small, the weight of the particle will be small.
         5. Compute weights ("event probabilities") of the new particle.
         This requires evaluating the PDFs of all three RVs (dynamics, proposal, measurement).
 
         After this is done for all particles, the weights are normalized in order to sum to 1.
+        If the effective number of particles is low, the particles are resampled.
         """
         new_weights = randvar.probabilities.copy()
         new_support = randvar.support.copy()
@@ -187,11 +190,17 @@ class ParticleFilter(BayesFiltSmooth):
         proposal_state = proposal_rv.sample()
         meas_rv, _ = self.measurement_model.forward_realization(proposal_state, t=stop)
 
-        log_proposal_weight = (
-            meas_rv.logpdf(data)
-            + dynamics_rv.logpdf(proposal_state)
-            - proposal_rv.logpdf(proposal_state)
-        )
+        # For the bootstrap PF, the dynamics and proposal PDFs cancel out.
+        # Therefore we make the following exception.
+        if self.linearized_measurement_model is None:
+            log_proposal_weight = meas_rv.logpdf(data)
+        else:
+            log_proposal_weight = (
+                meas_rv.logpdf(data)
+                + dynamics_rv.logpdf(proposal_state)
+                - proposal_rv.logpdf(proposal_state)
+            )
+
         proposal_weight = np.exp(log_proposal_weight)
         return proposal_state, proposal_weight
 

@@ -40,5 +40,6 @@ WrappedSciPyContinuousRandomVariable.__module__ = "probnum.randvars"
 
 Constant.__module__ = "probnum.randvars"
 Normal.__module__ = "probnum.randvars"
+Categorical.__module__ = "probnum.randvars"
 
 asrandvar.__module__ = "probnum.randvars"
