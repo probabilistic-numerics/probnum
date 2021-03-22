@@ -40,20 +40,31 @@ class Categorical(DiscreteRandomVariable):
 
         parameters = {
             "support": self._support,
-            "event_probabilities": self._probabilities,
+            "probabilities": self._probabilities,
             "num_categories": num_categories,
         }
 
         def _sample_categorical(size=()):
+            """Sample from a categorical distribution.
+
+            While on first sight, one might think that this
+            implementation can be replaced by
+            `np.random.choice(self.support, size, self.probabilities)`,
+            this is not true, because `np.random.choice` cannot handle
+            arrays with `ndim > 1`, but `self.support` can be just that.
+            This detour via the `mask` avoids this problem.
+            """
             mask = np.random.choice(
                 np.arange(len(self.support)), size=size, p=self.probabilities
             ).reshape(size)
             return self.support[mask]
 
         def _pmf_categorical(x):
+            """PMF of a categorical distribution.
 
-            # Defense against cryptic warnings such as:
+            This implementation is defense against cryptic warnings such as:
             # https://stackoverflow.com/questions/45020217/numpy-where-function-throws-a-futurewarning-returns-scalar-instead-of-list
+            """
             x = np.asarray(x)
             if x.dtype != self.dtype:
                 raise ValueError(
