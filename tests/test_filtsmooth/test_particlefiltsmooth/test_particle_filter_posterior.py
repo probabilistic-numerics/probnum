@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 
-from probnum import filtsmooth, random_variables
+from probnum import filtsmooth, randvars
 
 
 @pytest.fixture
 def state_list():
     return [
-        random_variables.Categorical(
+        randvars.Categorical(
             probabilities=np.ones(10) / 10, support=np.random.rand(10, 2)
         )
         for _ in range(20)

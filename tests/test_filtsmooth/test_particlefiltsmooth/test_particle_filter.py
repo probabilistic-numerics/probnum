@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 
-from probnum import filtsmooth, random_variables, statespace
+from probnum import filtsmooth, randvars, statespace
 
 from ..filtsmooth_testcases import pendulum
 
 
 def test_effective_number_of_events():
     weights = np.random.rand(10)
-    categ = random_variables.Categorical(
+    categ = randvars.Categorical(
         support=np.random.rand(10, 2), probabilities=weights / np.sum(weights)
     )
     ess = filtsmooth.effective_number_of_events(categ)

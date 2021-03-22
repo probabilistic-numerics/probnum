@@ -2,7 +2,7 @@ from typing import Union
 
 import numpy as np
 
-from probnum import random_variables
+from probnum import randvars
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -28,7 +28,7 @@ class _RandomVariableList(list):
         if len(rv_list) > 0:
 
             # First element as a proxy for checking all elements
-            if not isinstance(rv_list[0], random_variables.RandomVariable):
+            if not isinstance(rv_list[0], randvars.RandomVariable):
                 raise TypeError(
                     "RandomVariableList expects RandomVariable elements, but "
                     + f"first element has type {type(rv_list[0])}."
@@ -85,9 +85,7 @@ class _RandomVariableList(list):
             return _RandomVariableList([])
         return _RandomVariableList([rv.resample() for rv in self])
 
-    def __getitem__(
-        self, idx
-    ) -> Union[random_variables.RandomVariable, "_RandomVariableList"]:
+    def __getitem__(self, idx) -> Union[randvars.RandomVariable, "_RandomVariableList"]:
 
         result = super().__getitem__(idx)
         # Make sure to wrap the result into a _RandomVariableList if necessary

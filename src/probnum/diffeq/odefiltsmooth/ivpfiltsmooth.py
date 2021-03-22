@@ -4,7 +4,7 @@ import numpy as np
 
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
-from probnum.random_variables import Normal
+from probnum.randvars import Normal
 
 from ..ode import IVP
 from ..odesolver import ODESolver

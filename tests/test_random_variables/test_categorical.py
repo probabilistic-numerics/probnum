@@ -6,7 +6,7 @@ import string
 import numpy as np
 import pytest
 
-from probnum import random_variables, utils
+from probnum import randvars, utils
 
 NDIM = 5
 
@@ -38,7 +38,7 @@ def probabilities():
 
 @pytest.fixture
 def categ(probabilities, support, random_state):
-    return random_variables.Categorical(
+    return randvars.Categorical(
         probabilities=probabilities, support=support, random_state=random_state
     )
 
@@ -80,7 +80,7 @@ def test_pmf_zero(categ):
     """Make a new Categorical RV that excludes the final point and check that the pmf
     rightfully evaluates to zero."""
 
-    new_categ = random_variables.Categorical(
+    new_categ = randvars.Categorical(
         support=categ.support[:-1],
         probabilities=categ.probabilities[:-1],
         random_state=categ.random_state,
@@ -95,7 +95,7 @@ def test_pmf_valueerror():
     This value error is intended to guard against the issue presented in
     https://stackoverflow.com/questions/45020217/numpy-where-function-throws-a-futurewarning-returns-scalar-instead-of-list
     """
-    categ = random_variables.Categorical(probabilities=[0.5, 0.5], support=["a", "b"])
+    categ = randvars.Categorical(probabilities=[0.5, 0.5], support=["a", "b"])
     with pytest.raises(ValueError):
         categ.pmf(2)
 
@@ -112,7 +112,7 @@ def test_mode(categ):
 def test_resample(categ):
     new_categ = categ.resample()
 
-    assert isinstance(new_categ, random_variables.Categorical)
+    assert isinstance(new_categ, randvars.Categorical)
     assert new_categ.shape == categ.shape
 
     # Assert all probabilities are equal

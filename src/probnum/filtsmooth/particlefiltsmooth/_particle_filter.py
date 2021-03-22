@@ -4,14 +4,14 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum import random_variables, statespace
+from probnum import randvars, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.type import FloatArgType, IntArgType
 
 from ._particle_filter_posterior import ParticleFilterPosterior
 
 
-def effective_number_of_events(categ_rv: random_variables.Categorical) -> float:
+def effective_number_of_events(categ_rv: randvars.Categorical) -> float:
     """Approximate effective number of events in the support of a categorical random
     variable.
 
@@ -63,7 +63,7 @@ class ParticleFilter(BayesFiltSmooth):
         self,
         dynamics_model: Union[statespace.LTISDE, statespace.DiscreteGaussian],
         measurement_model: statespace.DiscreteGaussian,
-        initrv: random_variables.RandomVariable,
+        initrv: randvars.RandomVariable,
         num_particles: IntArgType,
         linearized_measurement_model: Optional[statespace.DiscreteGaussian] = None,
         with_resampling: bool = True,
@@ -118,7 +118,7 @@ class ParticleFilter(BayesFiltSmooth):
         particles = np.stack(particles_and_weights[:, 0], axis=0)
         weights = np.stack(particles_and_weights[:, 1], axis=0)
         weights = np.array(weights) / np.sum(weights)
-        curr_rv = random_variables.Categorical(
+        curr_rv = randvars.Categorical(
             support=particles, probabilities=weights, random_state=self.random_state
         )
         rvs = [curr_rv]
@@ -165,7 +165,7 @@ class ParticleFilter(BayesFiltSmooth):
             new_weights[idx] = proposal_weight
 
         new_weights = new_weights / np.sum(new_weights)
-        new_rv = random_variables.Categorical(
+        new_rv = randvars.Categorical(
             support=new_support,
             probabilities=new_weights,
             random_state=self.random_state,

@@ -10,8 +10,7 @@ References
 
 import numpy as np
 
-import probnum.random_variables as pnrv
-from probnum import statespace
+from probnum import randvars, statespace
 from probnum.diffeq import steprule
 from probnum.diffeq.ode import IVP
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
@@ -167,7 +166,7 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum import random_variables as rvs
+    >>> from probnum import randvars
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.
@@ -223,7 +222,9 @@ def probsolve_ivp(
     """
 
     # Create IVP object
-    ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
+    ivp = IVP(
+        timespan=(t0, tmax), initrv=randvars.Constant(np.asarray(y0)), rhs=f, jac=df
+    )
 
     # Create steprule
     if adaptive is True:
