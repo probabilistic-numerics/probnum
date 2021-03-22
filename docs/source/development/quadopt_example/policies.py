@@ -4,14 +4,13 @@ from typing import Callable, Optional
 
 import numpy as np
 
-import probnum as pn
-import probnum.randvars as rvs
+from probnum import randvars
 from probnum.type import FloatArgType, RandomStateArgType
 
 
 def explore_exploit_policy(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: pn.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     random_state: RandomStateArgType = None,
 ) -> float:
     """Policy exploring around the estimate of the minimum based on the certainty about
@@ -28,16 +27,18 @@ def explore_exploit_policy(
         is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
     """
-    a0, b0, c0 = fun_params0
+    a0, b0, _ = fun_params0
     return (
         -b0.mean / a0.mean
-        + rvs.Normal(0, np.trace(fun_params0.cov), random_state=random_state).sample()
+        + randvars.Normal(
+            0, np.trace(fun_params0.cov), random_state=random_state
+        ).sample()
     )
 
 
 def stochastic_policy(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: pn.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     random_state: RandomStateArgType = None,
 ) -> float:
     """Policy returning a random action.
@@ -53,4 +54,4 @@ def stochastic_policy(
         is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
     """
-    return rvs.Normal(mean=0.0, cov=1.0, random_state=random_state).sample()
+    return randvars.Normal(mean=0.0, cov=1.0, random_state=random_state).sample()
