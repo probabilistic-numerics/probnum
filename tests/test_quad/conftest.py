@@ -1,6 +1,6 @@
 """Test fixtures for kernels."""
 
-from typing import Optional, Union
+from typing import Dict
 
 import numpy as np
 import pytest
@@ -48,7 +48,7 @@ def fixture_x(
     input_dim: int, num_data: int, random_state: np.random.RandomState
 ) -> np.ndarray:
     """Random data from a standard normal distribution."""
-    return random_state.normal(0, 1, size=(input_dim, num_data))
+    return random_state.normal(0, 1, size=(num_data, input_dim))
 
 
 # Kernels
@@ -67,32 +67,12 @@ def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
 
 
 # Measures
-@pytest.fixture(name="mean")
-def fixture_mean(input_dim: int, random_state: np.random.RandomState) -> np.ndarray:
-    """Random array for mean from a standard normal distribution."""
-    if input_dim == 1:
-        return random_state.normal(0, 1)
-    return random_state.normal(0, 1, size=(input_dim, 1))
-
-
-@pytest.fixture(name="cov")
-def fixture_cov(
-    input_dim: int, diagonal, random_state: np.random.RandomState
-) -> np.ndarray:
-    """Random covariance matrix."""
-    if input_dim == 1:
-        return random_state.uniform(0.5, 1.5)
-    if diagonal:
-        return random_state.uniform(0.5, 1.5, size=(input_dim, 1))
-    mat = random_state.normal(0, 1, size=(input_dim, input_dim))
-    return mat @ mat.T
-
-
 @pytest.fixture(
     params=[
-        pytest.param(diagonal, id=f"covdiag{diagonal}") for diagonal in [True, False]
+        pytest.param(diagonal, id="covdiag" if diagonal else "covfull")
+        for diagonal in [True, False]
     ],
-    name="diagonal",
+    name="cov_diagonal",
 )
 def fixture_diagonal(request) -> str:
     """Possible forms of the covariance matrix."""
@@ -100,35 +80,80 @@ def fixture_diagonal(request) -> str:
 
 
 @pytest.fixture(
+    params=[pytest.param(name, id=name) for name in ["gauss", "lebesgue"]],
+    name="measure_name",
+)
+def fixture_measure_names(request) -> str:
+    """Pedestrian way to deal with integration measures."""
+    return request.param
+
+
+@pytest.fixture(name="measure_params")
+def fixture_measure_params(
+    measure_name: str,
+    input_dim: int,
+    cov_diagonal: bool,
+    random_state: np.random.RandomState,
+) -> Dict:
+    params = {"name": measure_name}
+
+    if measure_name == "gauss":
+        # set up mean and covariance
+        if input_dim == 1:
+            mean = random_state.normal(0, 1)
+            cov = random_state.uniform(0.5, 1.5)
+        else:
+            mean = random_state.normal(0, 1, size=(input_dim, 1))
+            if cov_diagonal:
+                cov = random_state.uniform(0.5, 1.5, size=(input_dim, 1))
+            else:
+                mat = random_state.normal(0, 1, size=(input_dim, input_dim))
+                cov = mat @ mat.T
+
+        params["mean"] = mean
+        params["cov"] = cov
+
+    elif measure_name == "lebesgue":
+        # set up bounds
+        rv = random_state.uniform(0, 1, size=(input_dim, 2))
+        domain = (rv[:, 0] - 1.0, rv[:, 1] + 1.0)
+
+        params["domain"] = domain
+
+    return params
+
+
+@pytest.fixture(name="measure")
+def fixture_measure(measure_params) -> measures.IntegrationMeasure:
+    """Kernel / covariance function."""
+    name = measure_params.pop("name")
+
+    if name == "gauss":
+        return measures.GaussianMeasure(**measure_params)
+    elif name == "lebesgue":
+        return measures.LebesgueMeasure(**measure_params)
+    raise NotImplementedError
+
+
+# Kernels
+@pytest.fixture(
     params=[
-        pytest.param(mdef, id=mdef[0].__name__)
-        for mdef in [
-            (measures.GaussianMeasure,),
+        pytest.param(kerndef, id=kerndef[0].__name__)
+        for kerndef in [
+            (kernels.ExpQuad, {"lengthscale": 1.25}),
         ]
     ],
-    name="measure",
+    name="kernel",
 )
-def fixture_measure(
-    request,
-    mean: Optional[Union[np.ndarray, FloatArgType]],
-    cov: Optional[Union[np.ndarray, FloatArgType]],
-) -> measures.IntegrationMeasure:
+def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
     """Kernel / covariance function."""
-    return request.param[0](mean=mean, cov=cov)
+    return request.param[0](**request.param[1], input_dim=input_dim)
 
 
 # Kernel Embeddings
-@pytest.fixture(
-    params=[
-        pytest.param(kedef, id=kedef[0].__name__)
-        for kedef in [
-            (kernel_embeddings._KExpQuadMGauss,),
-        ]
-    ],
-    name="kernel_embedding",
-)
+@pytest.fixture(name="kernel_embedding")
 def fixture_kernel_embedding(
     request, kernel: kernels.Kernel, measure: measures.IntegrationMeasure
 ) -> kernel_embeddings._KernelEmbedding:
-    """Kernel / covariance function."""
-    return request.param[0](kernel=kernel, measure=measure)
+    """Set up kernel embedding."""
+    return kernel_embeddings.get_kernel_embedding(kernel, measure)
