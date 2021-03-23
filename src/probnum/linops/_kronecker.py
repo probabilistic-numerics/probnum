@@ -184,11 +184,12 @@ class Kronecker(_linear_operator.LinearOperator):
     """
 
     # todo: extend this to list of operators
-    def __init__(self, A, B, dtype=None):
+    def __init__(self, A, B):
         self.A = _utils.aslinop(A)
         self.B = _utils.aslinop(B)
+
         super().__init__(
-            dtype=dtype,
+            dtype=np.result_type(self.A.dtype, self.B.dtype),
             shape=(
                 self.A.shape[0] * self.B.shape[0],
                 self.A.shape[1] * self.B.shape[1],
@@ -211,18 +212,15 @@ class Kronecker(_linear_operator.LinearOperator):
 
     def transpose(self):
         # (A (x) B)^T = A^T (x) B^T
-        return Kronecker(A=self.A.transpose(), B=self.B.transpose(), dtype=self.dtype)
+        return Kronecker(A=self.A.transpose(), B=self.B.transpose())
 
     def inv(self):
-        #  (A (x) B)^-1 = A^-1 (x) B^-1
-        return Kronecker(A=self.A.inv(), B=self.B.inv(), dtype=self.dtype)
+        # (A (x) B)^-1 = A^-1 (x) B^-1
+        return Kronecker(A=self.A.inv(), B=self.B.inv())
 
     # Properties
     def rank(self):
         return self.A.rank() * self.B.rank()
-
-    def eigvals(self):
-        raise NotImplementedError
 
     def cond(self, p=None):
         return self.A.cond(p=p) * self.B.cond(p=p)
@@ -232,7 +230,7 @@ class Kronecker(_linear_operator.LinearOperator):
         if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
             return self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
         else:
-            raise NotImplementedError
+            return super().det()
 
     def logabsdet(self):
         # If A (m x m) and B (n x n), then det(A (x) B) = det(A)^n * det(B) * m
@@ -242,13 +240,13 @@ class Kronecker(_linear_operator.LinearOperator):
                 + self.A.shape[0] * self.B.logabsdet()
             )
         else:
-            raise NotImplementedError
+            return super().logabsdet()
 
     def trace(self):
         if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
             return self.A.trace() * self.B.trace()
         else:
-            raise NotImplementedError
+            return super().trace()
 
 
 class SymmetricKronecker(_linear_operator.LinearOperator):
@@ -287,7 +285,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1),
     # representation symmetric n2xn2
 
-    def __init__(self, A, B=None, dtype=None):
+    def __init__(self, A, B=None):
         # Set parameters
         self.A = _utils.aslinop(A)
         self._ABequal = False
@@ -303,7 +301,10 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             )
 
         # Initiator of superclass
-        super().__init__(dtype=dtype, shape=(self._n ** 2, self._n ** 2))
+        super().__init__(
+            dtype=np.result_type(self.A.dtype, self.B.dtype, np.inexact),
+            shape=(self._n ** 2, self._n ** 2),
+        )
 
     def _matvec(self, x):
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
@@ -342,6 +343,6 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     def inv(self):
         # (A (x)_s A)^-1 = A^-1 (x)_s A^-1
         if self._ABequal:
-            return SymmetricKronecker(A=self.A.inv(), dtype=self.dtype)
+            return SymmetricKronecker(A=self.A.inv())
         else:
-            return NotImplementedError
+            return super().inv()

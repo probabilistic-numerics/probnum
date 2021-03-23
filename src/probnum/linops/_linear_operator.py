@@ -99,6 +99,10 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
             return obj
 
+    @property
+    def is_square(self) -> bool:
+        return self.shape[0] == self.shape[1]
+
     # The below methods are overloaded to allow dot products with random variables
     def dot(self, x):
         """Matrix-matrix or matrix-vector multiplication.
@@ -173,11 +177,16 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     # TODO: implement operations (eigs, cond, det, logabsdet, trace, ...)
     def rank(self):
         """Rank of the linear operator."""
-        raise NotImplementedError
+        return np.linalg.matrix_rank(self.todense())
 
     def eigvals(self):
         """Eigenvalue spectrum of the linear operator."""
-        raise NotImplementedError
+        if not self.is_square:
+            raise np.linalg.LinAlgError(
+                "Eigenvalues are only defined on square operators"
+            )
+
+        return np.linalg.eigvals(self.todense())
 
     def cond(self, p=None):
         """Compute the condition number of the linear operator.
@@ -206,15 +215,26 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         cond : {float, inf}
             The condition number of the linear operator. May be infinite.
         """
-        raise NotImplementedError
+        return np.linalg.cond(self.todense(), p=p)
 
     def det(self):
         """Determinant of the linear operator."""
-        raise NotImplementedError
+        if not self.is_square:
+            raise np.linalg.LinAlgError(
+                "The determinant is only defined on square operators"
+            )
+
+        return np.linalg.det(self.todense())
 
     def logabsdet(self):
         """Log absolute determinant of the linear operator."""
-        raise NotImplementedError
+        if not self.is_square:
+            raise np.linalg.LinAlgError(
+                "The determinant is only defined on square operators"
+            )
+
+        _, logabsdet = np.linalg.slogdet(self.todense())
+        return logabsdet
 
     def trace(self):
         """Trace of the linear operator.
@@ -229,19 +249,18 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
 
         Raises
         ------
-        ValueError : If :meth:`trace` is called on a non-square matrix.
+        LinAlgError : If :meth:`trace` is called on a non-square matrix.
         """
-        if self.shape[0] != self.shape[1]:
-            raise ValueError("The trace is only defined for square linear operators.")
-        else:
-            _identity = np.eye(self.shape[0])
-            trace = 0.0
-            for i in range(self.shape[0]):
-                trace += np.squeeze(
-                    _identity[np.newaxis, i, :]
-                    @ self.matvec(_identity[i, :, np.newaxis])
-                )
-            return trace
+        if not self.is_square:
+            raise np.linalg.LinAlgError("The trace is only defined on square operators")
+
+        _identity = np.eye(self.shape[0], dtype=self.dtype)
+        trace = probnum.utils.as_numpy_scalar(0, dtype=self.dtype)
+        for i in range(self.shape[0]):
+            trace += np.squeeze(
+                _identity[np.newaxis, i, :] @ self.matvec(_identity[i, :, np.newaxis])
+            )
+        return trace
 
     ####################################################################################
     # Unary Arithmetic
@@ -426,9 +445,6 @@ class ScalarMult(LinearOperator):
     def eigvals(self):
         return np.ones(self.shape[0]) * self._scalar
 
-    def cond(self, p=None):
-        return 1
-
     def det(self):
         return self._scalar ** self.shape[0]
 
@@ -470,22 +486,25 @@ class Identity(ScalarMult):
 
     # Properties
     def rank(self):
-        return self.shape[0]
+        return probnum.utils.as_numpy_scalar(self.shape[0], dtype=np.int_)
 
     def eigvals(self):
         return np.ones(self.shape[0])
 
     def cond(self, p=None):
-        return 1
+        if p is None or p == 1 or p == 2 or p == np.inf:
+            return probnum.utils.as_numpy_scalar(1.0, dtype=self.dtype)
+        else:
+            return super().cond(p=p)
 
     def det(self):
-        return 1.0
+        return probnum.utils.as_numpy_scalar(1.0, dtype=self.dtype)
 
     def logabsdet(self):
-        return 0.0
+        return probnum.utils.as_numpy_scalar(0.0, dtype=self.dtype)
 
     def trace(self):
-        return self.shape[0]
+        return probnum.utils.as_numpy_scalar(self.shape[0], dtype=self.dtype)
 
 
 class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOperator):
@@ -543,7 +562,7 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         return logdet
 
     def trace(self):
-        if self.shape[0] != self.shape[1]:
-            raise ValueError("The trace is only defined for square linear operators.")
-        else:
+        if self.is_square:
             return self.A.diagonal().sum()
+        else:
+            return super().trace()
