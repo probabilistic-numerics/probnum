@@ -43,6 +43,7 @@ def fixture_input_dim(request) -> int:
 
 
 # Datasets
+# TODO: We might not want to always use standard normal data
 @pytest.fixture(name="x")
 def fixture_x(
     input_dim: int, num_data: int, random_state: np.random.RandomState

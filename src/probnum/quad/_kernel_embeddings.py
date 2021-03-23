@@ -96,7 +96,7 @@ class _KExpQuadMGauss(_KernelEmbedding):
             chol_inv_x = slinalg.cho_solve(chol, (x - self.measure.mean).T).T
             det_factor = self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
 
-        exp_factor = np.exp(-0.5 * (chol_inv_x ** 2).sum(axis=1))
+        exp_factor = np.exp(-0.5 * (np.atleast_2d(chol_inv_x) ** 2).sum(axis=1))
         return det_factor * exp_factor
 
     def kernel_variance(self) -> float:
