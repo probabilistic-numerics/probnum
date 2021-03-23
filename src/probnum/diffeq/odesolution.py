@@ -4,71 +4,71 @@ This object is returned by ODESolver.solve().
 
 Provides dense output (by being callable), is sliceable, and collects the time-grid as well as the discrete-time solution.
 """
-import abc
-import typing
+
+from typing import Optional
 
 import numpy as np
 
-import probnum._randomvariablelist as pnrv_list
-import probnum.type
-from probnum import randvars
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
+from probnum import _randomvariablelist, filtsmooth, randvars
+from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 
-class ODESolution(abc.ABC):
-    """ODE Solution interface."""
+class ODESolution(filtsmooth.TimeSeriesPosterior):
+    """ODE solution.
 
-    @property
-    @abc.abstractmethod
-    def t(self) -> np.ndarray:
-        """Time points of the discrete-time solution."""
-        raise NotImplementedError
+    Parameters
+    ----------
+    locations
+        Locations of the time-grid that was used by the ODE solver.
+    states
+        Output of the ODE solver at the locations.
+    derivatives
+        Derivatives of the states at the locations. Optional. Default is None.
+        Some ODE solvers provide these estimates, others do not.
+    """
 
-    @cached_property
-    @abc.abstractmethod
-    def y(self) -> pnrv_list._RandomVariableList:
-        """Discrete-time solution."""
-        raise NotImplementedError
+    def __init__(
+        self,
+        locations: np.ndarray,
+        states: _randomvariablelist._RandomVariableList,
+        derivatives: Optional[_randomvariablelist._RandomVariableList] = None,
+    ):
+        super().__init__(locations=locations, states=states)
+        self.derivatives = (
+            _randomvariablelist._RandomVariableList(derivatives)
+            if derivatives is not None
+            else None
+        )
 
-    @cached_property
-    def dy(self) -> pnrv_list._RandomVariableList:
-        """First derivative of the discrete-time solution."""
-        raise NotImplementedError("The first derivative has not been implemented")
-
-    # Not abstract, because providing interpolation could sometimes be tedious.
-    def __call__(
-        self, t: typing.Union[float, typing.List[float]]
-    ) -> typing.Union[randvars.RandomVariable, pnrv_list._RandomVariableList]:
-        """Evaluate the time-continuous solution at time t.
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+        """Evaluate the posterior at a non-grid point.
 
         Parameters
         ----------
-        t
-            Location / time at which to evaluate the continuous ODE solution.
+        t :
+            Location to evaluate at.
 
         Returns
         -------
-        Probabilistic estimate of the continuous-time solution at time ``t``.
+        randvars.RandomVariable or _randomvariablelist._RandomVariableList
+            Dense evaluation.
         """
         raise NotImplementedError("Dense output is not implemented.")
 
     def __len__(self) -> int:
         """Number of points in the discrete-time solution."""
-        return len(self.y)
+        return len(self.states)
 
     def __getitem__(self, idx: int) -> randvars.RandomVariable:
         """Access the :math:`i`th element of the discrete-time solution."""
-        return self.y[idx]
+        return self.states[idx]
 
     def sample(
         self,
-        t: typing.Optional[typing.Union[float, typing.List[float]]] = None,
-        size: typing.Optional[probnum.type.ShapeArgType] = (),
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
         """Sample from the ODE solution.
 
@@ -84,3 +84,12 @@ class ODESolution(abc.ABC):
             Number of samples.
         """
         raise NotImplementedError("Sampling is not implemented.")
+
+    def transform_base_measure_realizations(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+    ) -> np.ndarray:
+        raise NotImplementedError(
+            "Transforming base measure realizations is not implemented."
+        )

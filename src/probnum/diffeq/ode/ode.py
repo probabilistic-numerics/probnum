@@ -1,17 +1,9 @@
-"""Ordinary differential equations.
+"""Ordinary differential equations."""
 
-Subclassed by the types of ODEs: IVPs, BVPs and whatever you
-can imagine.
-
-See Also
---------
-IVP : Initial value problems (ivp.py)
-"""
-
-from abc import ABC, abstractmethod
+import abc
 
 
-class ODE(ABC):
+class ODE(abc.ABC):
     """Ordinary differential equations.
 
     Extended by the types of ODEs, e.g. IVPs, BVPs.
@@ -124,7 +116,7 @@ class ODE(ABC):
         return [self._t0, self._tmax]
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def dimension(self):
         """Abstract, in order to force subclassing."""
         raise NotImplementedError

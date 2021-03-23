@@ -1,7 +1,6 @@
 """Bayesian Filtering and Smoothing."""
 
 from .bayesfiltsmooth import BayesFiltSmooth
-from .filtsmoothposterior import FiltSmoothPosterior
 from .gaussfiltsmooth import (
     ContinuousEKFComponent,
     ContinuousUKFComponent,
@@ -22,6 +21,7 @@ from .particlefiltsmooth import (
     ParticleFilterPosterior,
     effective_number_of_events,
 )
+from .timeseriesposterior import TimeSeriesPosterior
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -34,7 +34,7 @@ __all__ = [
     "ContinuousUKFComponent",
     "DiscreteUKFComponent",
     "UnscentedTransform",
-    "FiltSmoothPosterior",
+    "TimeSeriesPosterior",
     "KalmanPosterior",
     "FilteringPosterior",
     "SmoothingPosterior",

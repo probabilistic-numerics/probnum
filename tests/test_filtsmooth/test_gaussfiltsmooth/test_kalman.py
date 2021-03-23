@@ -55,8 +55,8 @@ def test_rmse_filt_smooth(kalman, data):
 
     posterior = kalman.filtsmooth(obs, times)
 
-    filtms = posterior.filtering_posterior.state_rvs.mean
-    smooms = posterior.state_rvs.mean
+    filtms = posterior.filtering_posterior.states.mean
+    smooms = posterior.states.mean
 
     filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
     smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))
