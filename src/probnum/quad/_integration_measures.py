@@ -6,7 +6,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 import scipy.stats
 
-from probnum.random_variables._normal import Normal
+from probnum.randvars import Normal
 from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
 

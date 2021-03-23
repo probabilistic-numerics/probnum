@@ -6,7 +6,7 @@ import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 
 from probnum.kernels import ExpQuad, Kernel
-from probnum.random_variables import Normal
+from probnum.randvars import Normal
 
 from .._integration_measures import IntegrationMeasure
 from .._kernel_embeddings import get_kernel_embedding
