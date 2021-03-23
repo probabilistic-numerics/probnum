@@ -263,7 +263,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         prior,
         evlvar=0.0,
     ):
-        discrete_model = pnss.DiscreteGaussian.from_ode(
+        discrete_model = statespace.DiscreteGaussian.from_ode(
             ode=ode, prior=prior, evlvar=evlvar
         )
         return cls(discrete_model)

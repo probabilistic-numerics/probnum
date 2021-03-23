@@ -1,21 +1,25 @@
 """Particle filtering posterior."""
 
+from typing import Optional, Union
+
 import numpy as np
 
-from probnum import _randomvariablelist
-from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
+from probnum import _randomvariablelist, randvars
+from probnum.filtsmooth.timeseriesposterior import (
+    DenseOutputLocationArgType,
+    DenseOutputValueType,
+    TimeSeriesPosterior,
+)
+from probnum.type import (
+    ArrayLikeGetitemArgType,
+    FloatArgType,
+    RandomStateArgType,
+    ShapeArgType,
+)
 
 
-class ParticleFilterPosterior(FiltSmoothPosterior):
+class ParticleFilterPosterior(TimeSeriesPosterior):
     """Posterior distribution of a particle filter.."""
-
-    # This is essentially just a lightweight wrapper around _RandomVariableList.
-    def __init__(
-        self, states: _randomvariablelist._RandomVariableList, locations: np.ndarray
-    ):
-        self.states = _randomvariablelist._RandomVariableList(states)
-        self.locations = locations
-        super().__init__()
 
     def __call__(self, t):
         raise NotImplementedError("Particle filters do not provide dense output.")
@@ -25,3 +29,25 @@ class ParticleFilterPosterior(FiltSmoothPosterior):
 
     def __getitem__(self, idx):
         return self.states[idx]
+
+    # The methods below are not implemented (yet?).
+
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+        raise NotImplementedError
+
+    def sample(
+        self,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+        random_state: Optional[RandomStateArgType] = None,
+    ) -> np.ndarray:
+        raise NotImplementedError("Sampling is not implemented.")
+
+    def transform_base_measure_realizations(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+    ) -> np.ndarray:
+        raise NotImplementedError(
+            "Transforming base measure realizations is not implemented."
+        )

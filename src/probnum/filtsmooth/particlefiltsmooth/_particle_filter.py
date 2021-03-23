@@ -131,7 +131,7 @@ class ParticleFilter(BayesFiltSmooth):
                 data=dataset[idx],
             )
             rvs.append(curr_rv)
-        return ParticleFilterPosterior(rvs, times)
+        return ParticleFilterPosterior(states=rvs, locations=times)
 
     def filter_step(self, start, stop, randvar, data):
         """Perform a particle filter step.

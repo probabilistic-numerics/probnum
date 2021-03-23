@@ -16,7 +16,9 @@ def state_list():
 
 @pytest.fixture
 def posterior(state_list):
-    return filtsmooth.ParticleFilterPosterior(state_list, locations=np.random.rand(20))
+    return filtsmooth.ParticleFilterPosterior(
+        states=state_list, locations=np.random.rand(20)
+    )
 
 
 def test_len(posterior):
