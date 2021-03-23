@@ -6,10 +6,12 @@ from scipy.integrate import quad
 
 from probnum.kernels import ExpQuad
 from probnum.quad import BayesianQuadrature, get_kernel_embedding, sample_from_measure
-from probnum.random_variables import Normal
+from probnum.randvars import Normal
+
+test_funs_1d = [lambda x: x, lambda x: x ** 2, lambda x: np.sin(x)]
 
 
-@pytest.mark.parametrize("f1d", [lambda x: x, lambda x: x ** 2, lambda x: np.sin(x)])
+@pytest.mark.parametrize("f1d", test_funs_1d, ids=["x", "x^2", "sinx"])
 @pytest.mark.parametrize("input_dim", [1])
 def test_type_1d(f1d, kernel, measure):
     """Test that BQ outputs normal random variables for 1D integrands."""
@@ -18,7 +20,7 @@ def test_type_1d(f1d, kernel, measure):
     assert isinstance(F, Normal)
 
 
-@pytest.mark.parametrize("f1d", [lambda x: x, lambda x: x ** 2, lambda x: np.sin(x)])
+@pytest.mark.parametrize("f1d", test_funs_1d, ids=["x", "x^2", "sinx"])
 @pytest.mark.parametrize("input_dim", [1])
 def test_integral_values_1d(f1d, measure, kernel):
     """Test numerically that BQ computes 1D integrals correctly."""

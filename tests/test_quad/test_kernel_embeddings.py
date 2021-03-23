@@ -3,8 +3,6 @@
 import numpy as np
 from scipy.integrate import dblquad, quad
 
-import probnum.quad._integration_measures as measures
-
 
 def test_kmean_shape(kernel_embedding, x):
     """Test output shape of kernel mean."""
