@@ -6,7 +6,7 @@ import probnum.statespace as pnss
 from probnum import randvars, utils
 from probnum._randomvariablelist import _RandomVariableList
 
-from .filtsmooth_testcases import car_tracking
+from ..filtsmooth_testcases import car_tracking
 
 
 @pytest.fixture

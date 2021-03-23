@@ -4,7 +4,7 @@ import pytest
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
 
-from .filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
+from ..filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 
 # Problems
 
