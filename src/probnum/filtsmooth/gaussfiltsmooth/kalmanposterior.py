@@ -267,7 +267,13 @@ class FilteringPosterior(KalmanPosterior):
         size: Optional[ShapeArgType] = (),
         random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
-        raise NotImplementedError
+        # If this error would not be thrown here, trying to sample from a FilteringPosterior
+        # would call FilteringPosterior.transform_base_measure_realizations which is not implemented.
+        # Since an error thrown by that function instead of one thrown by FilteringPosterior.sample
+        # would likely by hard to parse by a user, we explicitly raise a NotImplementedError here.
+        raise NotImplementedError(
+            "Sampling from the FilteringPosterior is not implemented."
+        )
 
     def transform_base_measure_realizations(
         self,
