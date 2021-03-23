@@ -304,8 +304,10 @@ def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal
             ),
         )
     elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
-        # Todo: this part does not do the Cholesky update,
-        #  because I do not understand what happens here (NK).
+        # This part does not do the Cholesky update,
+        # because of performance configurations: currently, there is no way of switching
+        # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
+        # of matrix-variate Normal RVs. See Issue #335.
         cov_update = _linear_operators.Kronecker(
             _linear_operators.Identity(constant_rv.shape[0]), constant_rv.support
         )
