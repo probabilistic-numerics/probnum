@@ -1,21 +1,15 @@
 """Particle filtering posterior."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 
-from probnum import _randomvariablelist, randvars
+from probnum import randvars
 from probnum.filtsmooth.timeseriesposterior import (
     DenseOutputLocationArgType,
-    DenseOutputValueType,
     TimeSeriesPosterior,
 )
-from probnum.type import (
-    ArrayLikeGetitemArgType,
-    FloatArgType,
-    RandomStateArgType,
-    ShapeArgType,
-)
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 
 class ParticleFilterPosterior(TimeSeriesPosterior):
@@ -23,12 +17,6 @@ class ParticleFilterPosterior(TimeSeriesPosterior):
 
     def __call__(self, t):
         raise NotImplementedError("Particle filters do not provide dense output.")
-
-    def __len__(self):
-        return len(self.states)
-
-    def __getitem__(self, idx):
-        return self.states[idx]
 
     # The methods below are not implemented (yet?).
 
