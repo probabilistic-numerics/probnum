@@ -119,6 +119,7 @@ def fixture_measure_params(
         domain = (rv[:, 0] - 1.0, rv[:, 1] + 1.0)
 
         params["domain"] = domain
+        params["normalized"] = True  # TODO: Reconsider if this a good idea
 
     return params
 

@@ -93,8 +93,7 @@ class _KExpQuadMGauss(_KernelEmbedding):
                 self.kernel.lengthscale ** 2 * np.eye(self.dim) + self.measure.cov,
                 lower=True,
             )
-            chol_inv_x = slinalg.cho_solve(chol, (x - self.measure.mean).T)
-
+            chol_inv_x = slinalg.cho_solve(chol, (x - self.measure.mean).T).T
             det_factor = self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
 
         exp_factor = np.exp(-0.5 * (chol_inv_x ** 2).sum(axis=1))
@@ -156,8 +155,8 @@ class _KExpQuadMLebesgue(_KernelEmbedding):
             * np.atleast_2d(
                 ell * np.sqrt(2 / np.pi) * (np.exp(-(r ** 2) / (2 * ell ** 2)) - 1)
                 + r * scipy.special.erf(r / (ell * np.sqrt(2)))
-            ).prod(axis=1)
-        )[0]
+            ).prod()
+        )
 
 
 def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):

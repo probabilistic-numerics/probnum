@@ -9,7 +9,7 @@ import probnum.quad._integration_measures as measures
 def test_kmean_shape(kernel_embedding, x):
     """Test output shape of kernel mean."""
 
-    kmean_shape = (x.shape[1],)
+    kmean_shape = (np.atleast_2d(x).shape[0],)
 
     assert kernel_embedding.kernel_mean(x).shape == kmean_shape, (
         f"Kernel mean of {type(kernel_embedding)} has shape {kernel_embedding.kernel_mean(x).shape} instead of"
@@ -26,30 +26,33 @@ def test_kmean(kernel_embedding, x):
     """Test kernel mean against scipy.integrate.quad or sampling."""
     if kernel_embedding.dim != 1:
         # use MC sampling for ground truth
-        n_mc = 10000
+        n_mc = 100000
         X = kernel_embedding.measure.sample(n_mc)
-        num_kmeans = kernel_embedding.kernel(x.T, X).sum(axis=1) / n_mc
+        # note that the following MC computation requires that the measure is a
+        # probability measure
+        num_kmeans = kernel_embedding.kernel(x, X).sum(axis=1) / n_mc
         true_kmeans = kernel_embedding.kernel_mean(x)
 
         np.testing.assert_allclose(true_kmeans, num_kmeans, rtol=1.0e-3, atol=1.0e-3)
 
     else:
         # numerical solution
-        num_kmeans = np.empty((x.shape[1],))
-
-        # get reasonable integration box to avoid trouble with quad and np.inf
-        mean = kernel_embedding.measure.mean
-        std = np.sqrt(kernel_embedding.measure.cov)
-        integration_box = (mean - 5 * std, mean + 5 * std)
-
-        for i in range(x.shape[1]):
+        num_kmeans = np.array([])
+        for point in x:
 
             def f(xx):
                 return kernel_embedding.kernel(
-                    np.float(x[:, i]), xx
+                    np.float(point), xx
                 ) * kernel_embedding.measure(xx)
 
-            num_kmeans[i] = quad(f, integration_box[0], integration_box[1])[0]
+            num_kmeans = np.append(
+                num_kmeans,
+                quad(
+                    f,
+                    kernel_embedding.measure.domain[0],
+                    kernel_embedding.measure.domain[1],
+                )[0],
+            )
 
         # closed form solution
         true_kmeans = kernel_embedding.kernel_mean(x)
@@ -75,9 +78,9 @@ def test_kvar(kernel_embedding):
                 * kernel_embedding.measure(y)
             )
 
-        num_integral = dblquad(f, -np.inf, np.inf, lambda x: -np.inf, lambda x: np.inf)[
-            0
-        ]
+        a = kernel_embedding.measure.domain[0]
+        b = kernel_embedding.measure.domain[1]
+        num_integral = dblquad(f, a, b, lambda x: a, lambda x: b)[0]
         true_integral = kernel_embedding.kernel_variance()
 
         np.testing.assert_approx_equal(
