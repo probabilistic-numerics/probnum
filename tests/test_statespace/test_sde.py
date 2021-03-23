@@ -102,14 +102,16 @@ class TestLinearSDE(TestSDE):
         assert isinstance(out, randvars.Normal)
 
     def test_backward_rv(self, some_normal_rv1, some_normal_rv2):
-        with pytest.raises(NotImplementedError):
-            self.transition.backward_rv(some_normal_rv1, some_normal_rv2, t=0.0, dt=0.1)
+        out, _ = self.transition.backward_rv(
+            some_normal_rv1, some_normal_rv2, t=0.0, dt=0.1
+        )
+        assert isinstance(out, randvars.Normal)
 
     def test_backward_realization(self, some_normal_rv1, some_normal_rv2):
-        with pytest.raises(NotImplementedError):
-            self.transition.backward_realization(
-                some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
-            )
+        out, _ = self.transition.backward_realization(
+            some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=0.1
+        )
+        assert isinstance(out, randvars.Normal)
 
 
 class TestLTISDE(TestLinearSDE):
@@ -212,3 +214,36 @@ def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, v_const, diffusio
 
     np.testing.assert_allclose(out_linear.mean, out_lti.mean)
     np.testing.assert_allclose(out_linear.cov, out_lti.cov)
+
+
+def test_solve_mde_backward_values(ltisde_as_linearsde, ltisde, v_const, diffusion):
+    out_linear_forward, _ = ltisde_as_linearsde.forward_realization(
+        v_const, t=0.0, dt=0.1, _diffusion=diffusion
+    )
+    out_lti_forward, _ = ltisde.forward_realization(
+        v_const, t=0.0, dt=0.1, _diffusion=diffusion
+    )
+    out_linear_forward_next, _ = ltisde_as_linearsde.forward_rv(
+        out_linear_forward, t=0.1, dt=0.1, _diffusion=diffusion
+    )
+    out_lti_forward_next, _ = ltisde.forward_rv(
+        out_lti_forward, t=0.1, dt=0.1, _diffusion=diffusion
+    )
+
+    out_linear, _ = ltisde_as_linearsde.backward_realization(
+        realization_obtained=out_linear_forward_next.mean,
+        rv=out_linear_forward,
+        t=0.1,
+        dt=0.1,
+        _diffusion=diffusion,
+    )
+    out_lti, _ = ltisde.backward_realization(
+        realization_obtained=out_lti_forward_next.mean,
+        rv=out_lti_forward,
+        t=0.1,
+        dt=0.1,
+        _diffusion=diffusion,
+    )
+
+    np.testing.assert_allclose(out_linear.mean, out_lti.mean)
+    np.testing.assert_allclose(out_linear.cov, out_lti.cov, atol=1e-9)
