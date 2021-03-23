@@ -5,13 +5,12 @@ Examples include the unscented Kalman filter / RTS smoother which is
 based on a third degree fully symmetric rule.
 """
 
-import typing
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-import probnum.random_variables as pnrv
-import probnum.type as pntype
-from probnum.filtsmooth import statespace
+from probnum import randvars, statespace
+from probnum.type import FloatArgType
 
 from .unscentedtransform import UnscentedTransform
 
@@ -22,9 +21,9 @@ class UKFComponent:
     def __init__(
         self,
         non_linear_model,
-        spread: typing.Optional[pntype.FloatArgType] = 1e-4,
-        priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
-        special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
+        spread: Optional[FloatArgType] = 1e-4,
+        priorpar: Optional[FloatArgType] = 2.0,
+        special_scale: Optional[FloatArgType] = 0.0,
     ) -> None:
         self.non_linear_model = non_linear_model
         self.ut = UnscentedTransform(
@@ -35,7 +34,7 @@ class UKFComponent:
         # Will be constructed later.
         self.sigma_points = None
 
-    def assemble_sigma_points(self, at_this_rv: pnrv.Normal) -> np.ndarray:
+    def assemble_sigma_points(self, at_this_rv: randvars.Normal) -> np.ndarray:
         """Assemble the sigma-points."""
         return self.ut.sigma_points(at_this_rv)
 
@@ -59,12 +58,12 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
     def __init__(
         self,
         non_linear_model,
-        spread: typing.Optional[pntype.FloatArgType] = 1e-4,
-        priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
-        special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
-        mde_atol: typing.Optional[pntype.FloatArgType] = 1e-6,
-        mde_rtol: typing.Optional[pntype.FloatArgType] = 1e-6,
-        mde_solver: typing.Optional[str] = "LSODA",
+        spread: Optional[FloatArgType] = 1e-4,
+        priorpar: Optional[FloatArgType] = 2.0,
+        special_scale: Optional[FloatArgType] = 0.0,
+        mde_atol: Optional[FloatArgType] = 1e-6,
+        mde_rtol: Optional[FloatArgType] = 1e-6,
+        mde_solver: Optional[str] = "LSODA",
     ) -> None:
 
         UKFComponent.__init__(
@@ -97,7 +96,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
         compute_gain=False,
         _diffusion=1.0,
         _linearise_at=None,
-    ) -> (pnrv.Normal, typing.Dict):
+    ) -> Tuple[randvars.Normal, Dict]:
         return self._forward_realization_as_rv(
             realization,
             t=t,
@@ -109,7 +108,7 @@ class ContinuousUKFComponent(UKFComponent, statespace.SDE):
 
     def forward_rv(
         self, rv, t, dt=None, compute_gain=False, _diffusion=1.0, _linearise_at=None
-    ) -> (pnrv.Normal, typing.Dict):
+    ) -> Tuple[randvars.Normal, Dict]:
         raise NotImplementedError("TODO")  # Issue  #234
 
     def backward_realization(
@@ -154,9 +153,9 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
     def __init__(
         self,
         non_linear_model,
-        spread: typing.Optional[pntype.FloatArgType] = 1e-4,
-        priorpar: typing.Optional[pntype.FloatArgType] = 2.0,
-        special_scale: typing.Optional[pntype.FloatArgType] = 0.0,
+        spread: Optional[FloatArgType] = 1e-4,
+        priorpar: Optional[FloatArgType] = 2.0,
+        special_scale: Optional[FloatArgType] = 0.0,
     ) -> None:
         UKFComponent.__init__(
             self,
@@ -178,7 +177,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
 
     def forward_rv(
         self, rv, t, compute_gain=False, _diffusion=1.0, _linearise_at=None, **kwargs
-    ) -> (pnrv.Normal, typing.Dict):
+    ) -> Tuple[randvars.Normal, Dict]:
         compute_sigmapts_at = _linearise_at if _linearise_at is not None else rv
         self.sigma_points = self.assemble_sigma_points(at_this_rv=compute_sigmapts_at)
 
@@ -193,7 +192,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         if compute_gain:
             gain = crosscov @ np.linalg.inv(cov)
             info["gain"] = gain
-        return pnrv.Normal(mean, cov), info
+        return randvars.Normal(mean, cov), info
 
     def forward_realization(
         self, realization, t, _diffusion=1.0, _linearise_at=None, **kwargs
@@ -264,25 +263,7 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         prior,
         evlvar=0.0,
     ):
-
-        spatialdim = prior.spatialdim
-        h0 = prior.proj2coord(coord=0)
-        h1 = prior.proj2coord(coord=1)
-
-        def dyna(t, x):
-            return h1 @ x - ode.rhs(t, h0 @ x)
-
-        def diff(t):
-            return evlvar * np.eye(spatialdim)
-
-        def diff_cholesky(t):
-            return np.sqrt(evlvar) * np.eye(spatialdim)
-
-        disc_model = statespace.DiscreteGaussian(
-            input_dim=prior.dimension,
-            output_dim=prior.spatialdim,
-            state_trans_fun=dyna,
-            proc_noise_cov_mat_fun=diff,
-            proc_noise_cov_cholesky_fun=diff_cholesky,
+        discrete_model = statespace.DiscreteGaussian.from_ode(
+            ode=ode, prior=prior, evlvar=evlvar
         )
-        return cls(disc_model)
+        return cls(discrete_model)

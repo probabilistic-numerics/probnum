@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 import probnum.filtsmooth as pnfs
-import probnum.filtsmooth.statespace as pnfss
+import probnum.statespace as pnss
 
-from .filtsmooth_testcases import logistic_ode, pendulum
+from ..filtsmooth_testcases import logistic_ode, pendulum
 
 
 def pendulum_problem():
@@ -15,7 +15,7 @@ def pendulum_problem():
     measmod = pnfs.DiscreteEKFComponent(measmod)
 
     times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnfss.generate_samples(
+    states, obs = pnss.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
     return dynmod, measmod, initrv, info, obs, times, states
@@ -52,9 +52,9 @@ def test_rmse_filt_smooth(kalman, problem):
 
     iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
 
-    filtms = posterior.filtering_posterior.state_rvs.mean
-    smooms = posterior.state_rvs.mean
-    iterms = iterated_posterior.state_rvs.mean
+    filtms = posterior.filtering_posterior.states.mean
+    smooms = posterior.states.mean
+    iterms = iterated_posterior.states.mean
 
     if filtms.ndim == 1:
         filtms = filtms.reshape((-1, 1))

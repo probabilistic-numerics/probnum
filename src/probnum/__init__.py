@@ -19,7 +19,7 @@ linops
     Finite-dimensional linear operators.
 quad
     Bayesian quadrature / numerical integration.
-random_variables
+randvars
     Random variables representing uncertain values.
 problems
     Definitions and collection of problems solved by probabilistic numerical methods.
@@ -37,10 +37,11 @@ from . import (
     linops,
     problems,
     quad,
-    random_variables,
+    randvars,
+    statespace,
     utils,
 )
-from .random_variables import RandomVariable, asrandvar
+from .randvars import RandomVariable, asrandvar
 
 try:
     # Change here if project is renamed and does not equal the package name
