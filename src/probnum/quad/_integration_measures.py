@@ -54,7 +54,7 @@ class IntegrationMeasure(abc.ABC):
         density_evals :
             (n_points,) or (n_points,dim)
         """
-        return self.random_variable.pdf(points)
+        return self.random_variable.pdf(points).squeeze()
 
     def sample(self, n_sample) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
@@ -169,7 +169,8 @@ class LebesgueMeasure(IntegrationMeasure):
         )
 
     def __call__(self, points: Union[float, np.floating, np.ndarray]):
-        return np.full(np.shape(np.atleast_1d(points)), self.normalization_constant)
+        num_dat = np.atleast_1d(points).shape[0]
+        return np.full(() if num_dat == 1 else (num_dat,), self.normalization_constant)
 
     def sample(self, n_sample):
         return np.squeeze(

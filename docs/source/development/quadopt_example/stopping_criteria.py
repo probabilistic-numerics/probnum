@@ -1,24 +1,21 @@
-"""
-Stopping criterion for a 1D quadratic optimization problem.
-"""
+"""Stopping criterion for a 1D quadratic optimization problem."""
 
 from typing import Callable, Tuple, Union
 
 import numpy as np
 
-import probnum as pn
+from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
 
 
 def parameter_uncertainty(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: pn.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     current_iter: IntArgType,
     abstol: FloatArgType,
     reltol: FloatArgType,
 ) -> Tuple[bool, Union[str, None]]:
-    """
-    Termination based on numerical uncertainty about the parameters.
+    """Termination based on numerical uncertainty about the parameters.
 
     Parameters
     ----------
@@ -45,12 +42,11 @@ def parameter_uncertainty(
 
 def maximum_iterations(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: pn.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     current_iter: IntArgType,
     maxiter: IntArgType,
 ) -> Tuple[bool, Union[str, None]]:
-    """
-    Termination based on maximum number of iterations.
+    """Termination based on maximum number of iterations.
 
     Parameters
     ----------
@@ -71,13 +67,12 @@ def maximum_iterations(
 
 def residual(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: pn.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     current_iter: IntArgType,
     abstol: FloatArgType,
     reltol: FloatArgType,
 ) -> Tuple[bool, Union[str, None]]:
-    """
-    Termination based on the residual.
+    """Termination based on the residual.
 
     Stop iterating whenever :math:`\\lVert f(x_*) \\rVert \\leq \\min(\\text{abstol}`.
 

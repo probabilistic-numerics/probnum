@@ -6,10 +6,10 @@ import typing
 import numpy as np
 import scipy.sparse
 
-import probnum.filtsmooth as pnfs
 import probnum.linops as pnlo
-import probnum.random_variables as pnrv
+import probnum.statespace as pnss
 import probnum.type as pntp
+from probnum import randvars
 
 
 @dataclasses.dataclass
@@ -48,7 +48,7 @@ class RegressionProblem:
     # Optional, because it should be specifiable without explicit likelihood info.
     # 'DiscreteGaussian' is currently in 'statespace', but can be used to define general
     # Likelihood functions; see #282
-    likelihood: typing.Optional[pnfs.statespace.DiscreteGaussian] = None
+    likelihood: typing.Optional[pnss.DiscreteGaussian] = None
 
     # For testing and benchmarking
     solution: typing.Optional[
@@ -90,6 +90,7 @@ class InitialValueProblem:
 
     Examples
     --------
+    >>> import numpy as np
     >>> def f(t, x):
     ...     return x*(1-x)
     >>> ivp = InitialValueProblem(f, t0=0., tmax=3., y0=0.1)
@@ -105,8 +106,6 @@ class InitialValueProblem:
     y0: typing.Union[pntp.FloatArgType, np.ndarray]
     df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
-
-    dy0_all: typing.Optional[np.ndarray] = None
 
     # For testing and benchmarking
     solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
@@ -130,6 +129,7 @@ class LinearSystem:
 
     Examples
     --------
+    >>> import numpy as np
     >>> A = np.eye(3)
     >>> b = np.arange(3)
     >>> lin_sys = LinearSystem(A, b)
@@ -143,12 +143,12 @@ class LinearSystem:
         np.ndarray,
         scipy.sparse.spmatrix,
         pnlo.LinearOperator,
-        pnrv.RandomVariable,
+        randvars.RandomVariable,
     ]
-    b: typing.Union[np.ndarray, pnrv.RandomVariable]
+    b: typing.Union[np.ndarray, randvars.RandomVariable]
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Union[np.ndarray, pnrv.RandomVariable]] = None
+    solution: typing.Optional[typing.Union[np.ndarray, randvars.RandomVariable]] = None
 
 
 @dataclasses.dataclass
@@ -204,5 +204,5 @@ class QuadratureProblem:
 
     # For testing and benchmarking
     solution: typing.Optional[
-        typing.Union[float, np.ndarray, pnrv.RandomVariable]
+        typing.Union[float, np.ndarray, randvars.RandomVariable]
     ] = None

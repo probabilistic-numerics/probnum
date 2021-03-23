@@ -32,6 +32,8 @@ def test_gaussian_mean_shape_1d(mean, cov):
     dimensional Gaussian measures when no dimension is given."""
     measure = quad.GaussianMeasure(mean, cov)
     assert measure.dim == 1
+    assert measure.mean.size == 1
+    assert measure.cov.size == 1
 
 
 @pytest.mark.parametrize("neg_dim", [0, -1, -10, -100])
@@ -41,13 +43,18 @@ def test_gaussian_negative_dimension(neg_dim):
         measure = quad.GaussianMeasure(0, 1, neg_dim)
 
 
-@pytest.mark.parametrize("input_dim_for_scalar", [2, 10, 100])
-def test_gaussian_scalar_nd(input_dim_for_scalar: int):
+def test_gaussian_param_assignment(input_dim: int):
     """Check that diagonal mean and covariance for higher dimensions are extended
     correctly."""
-    measure = quad.GaussianMeasure(0, 1, input_dim_for_scalar)
-    assert np.array_equal(measure.mean, np.zeros(input_dim_for_scalar))
-    assert np.array_equal(measure.cov, np.eye(input_dim_for_scalar))
+    measure = quad.GaussianMeasure(0, 1, input_dim)
+    if input_dim == 1:
+        assert measure.mean == 0.0
+        assert measure.cov == 1.0
+        assert isinstance(measure.mean, np.ndarray)
+        assert isinstance(measure.cov, np.ndarray)
+    else:
+        assert np.array_equal(measure.mean, np.zeros(input_dim))
+        assert np.array_equal(measure.cov, np.eye(input_dim))
 
 
 @pytest.mark.parametrize(
@@ -111,3 +118,9 @@ def test_lebesgue_non_normalization(input_dim: int):
     measure1 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=True)
     measure2 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=False)
     assert measure1.normalization_constant == measure2.normalization_constant
+
+
+# Tests for all integration measures
+def test_density_call(x, measure):
+    actual_shape = () if x.shape[0] == 1 else (x.shape[0],)
+    assert measure(x).shape == actual_shape

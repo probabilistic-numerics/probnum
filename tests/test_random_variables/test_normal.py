@@ -3,12 +3,12 @@ import itertools
 import unittest
 
 import numpy as np
+import scipy.linalg
 import scipy.sparse
 import scipy.stats
 
 import probnum
-from probnum import linops
-from probnum import random_variables as rvs
+from probnum import linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
 
@@ -77,8 +77,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         Normal."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                dist = rvs.Normal(mean=mean, cov=cov)
-                self.assertIsInstance(dist, rvs.Normal)
+                dist = randvars.Normal(mean=mean, cov=cov)
+                self.assertIsInstance(dist, randvars.Normal)
 
     def test_scalarmult(self):
         """Multiply a rv with a normal distribution with a scalar."""
@@ -86,14 +86,14 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             itertools.product(self.normal_params, self.constants)
         ):
             with self.subTest():
-                normrv = const * rvs.Normal(mean=mean, cov=cov)
+                normrv = const * randvars.Normal(mean=mean, cov=cov)
 
                 self.assertIsInstance(normrv, probnum.RandomVariable)
 
                 if const != 0:
-                    self.assertIsInstance(normrv, rvs.Normal)
+                    self.assertIsInstance(normrv, randvars.Normal)
                 else:
-                    self.assertIsInstance(normrv, rvs.Constant)
+                    self.assertIsInstance(normrv, randvars.Constant)
 
     def test_addition_normal(self):
         """Add two random variables with a normal distribution."""
@@ -101,8 +101,8 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             itertools.product(self.normal_params, self.normal_params)
         ):
             with self.subTest():
-                normrv0 = rvs.Normal(mean=mean0, cov=cov0)
-                normrv1 = rvs.Normal(mean=mean1, cov=cov1)
+                normrv0 = randvars.Normal(mean=mean0, cov=cov0)
+                normrv1 = randvars.Normal(mean=mean1, cov=cov1)
 
                 if normrv0.shape == normrv1.shape:
                     try:
@@ -111,7 +111,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     except TypeError:
                         continue
 
-                    self.assertIsInstance(normrv0 + normrv1, rvs.Normal)
+                    self.assertIsInstance(normrv0 + normrv1, randvars.Normal)
                 else:
                     with self.assertRaises(ValueError):
                         normrv_added = normrv0 + normrv1
@@ -125,7 +125,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
 
         A = linops.LinearOperator(shape=(2, 2), matvec=mv)
         V = linops.Kronecker(A, A)
-        rvs.Normal(mean=A, cov=V)
+        randvars.Normal(mean=A, cov=V)
 
     def test_normal_dimension_mismatch(self):
         """Instantiating a normal distribution with mismatched mean and kernels should
@@ -138,19 +138,19 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 err_msg = "Mean and kernels mismatch in normal distribution did not raise a ValueError."
                 with self.assertRaises(ValueError, msg=err_msg):
-                    assert rvs.Normal(mean=mean, cov=cov)
+                    assert randvars.Normal(mean=mean, cov=cov)
 
     def test_normal_instantiation(self):
         """Instantiation of a normal distribution with mixed mean and cov type."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                rvs.Normal(mean=mean, cov=cov)
+                randvars.Normal(mean=mean, cov=cov)
 
     def test_normal_pdf(self):
         """Evaluate pdf at random input."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                dist = rvs.Normal(mean=mean, cov=cov)
+                dist = randvars.Normal(mean=mean, cov=cov)
                 pass
 
     def test_normal_cdf(self):
@@ -162,7 +162,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         for mean, cov in self.normal_params:
             with self.subTest():
                 # TODO: check dimension of each realization in rv_sample
-                rv = rvs.Normal(mean=mean, cov=cov, random_state=1)
+                rv = randvars.Normal(mean=mean, cov=cov, random_state=1)
                 rv_sample = rv.sample(size=5)
                 if not np.isscalar(rv.mean):
                     self.assertEqual(
@@ -176,7 +176,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         the mean."""
         for mean, cov in self.normal_params:
             with self.subTest():
-                rv = rvs.Normal(mean=mean, cov=0 * cov, random_state=1)
+                rv = randvars.Normal(mean=mean, cov=0 * cov, random_state=1)
                 rv_sample = rv.sample(size=1)
                 assert_str = "Draw with kernels zero does not match mean."
                 if isinstance(rv.mean, linops.LinearOperator):
@@ -191,7 +191,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         n = 3
         A = np.random.uniform(size=(n, n))
         A = 0.5 * (A + A.T) + n * np.eye(n)
-        rv = rvs.Normal(
+        rv = randvars.Normal(
             mean=np.eye(A.shape[0]),
             cov=linops.SymmetricKronecker(A=A),
             random_state=1,
@@ -211,7 +211,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_indexing(self):
         """Indexing with Python integers yields a univariate normal distribution."""
         for mean, cov in self.normal_params:
-            rv = rvs.Normal(mean=mean, cov=cov)
+            rv = randvars.Normal(mean=mean, cov=cov)
 
             with self.subTest():
                 # Sample random index
@@ -220,7 +220,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Index into distribution
                 indexed_rv = rv[idx]
 
-                self.assertIsInstance(indexed_rv, rvs.Normal)
+                self.assertIsInstance(indexed_rv, randvars.Normal)
 
                 # Compare with expected parameter values
                 if rv.ndim == 0:
@@ -241,7 +241,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         """Slicing into a normal distribution yields a normal distribution of the same
         type."""
         for mean, cov in self.normal_params:
-            rv = rvs.Normal(mean=mean, cov=cov)
+            rv = randvars.Normal(mean=mean, cov=cov)
 
             def _random_slice(dim_size):
                 start = np.random.randint(0, dim_size)
@@ -274,7 +274,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_array_indexing(self):
         """Indexing with 1-dim integer arrays yields a multivariate normal."""
         for mean, cov in self.normal_params:
-            rv = rvs.Normal(mean=mean, cov=cov)
+            rv = randvars.Normal(mean=mean, cov=cov)
 
             if rv.ndim == 0:
                 continue
@@ -288,7 +288,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Index into distribution
                 indexed_rv = rv[idcs]
 
-                self.assertIsInstance(indexed_rv, rvs.Normal)
+                self.assertIsInstance(indexed_rv, randvars.Normal)
 
                 # Compare with expected parameter values
                 if len(rv.shape) == 1:
@@ -309,7 +309,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_array_indexing_broadcast(self):
         """Indexing with broadcasted integer arrays yields a matrixvariate normal."""
         for mean, cov in self.normal_params:
-            rv = rvs.Normal(mean=mean, cov=cov)
+            rv = randvars.Normal(mean=mean, cov=cov)
 
             if rv.ndim != 2:
                 continue
@@ -325,7 +325,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Index into distribution
                 indexed_rv = rv[idcs]
 
-                self.assertIsInstance(indexed_rv, rvs.Normal)
+                self.assertIsInstance(indexed_rv, randvars.Normal)
                 self.assertEqual(indexed_rv.shape, (10, 10))
 
                 # Compare with expected parameter values
@@ -343,7 +343,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         """Masking a multivariate or matrixvariate normal yields a multivariate
         normal."""
         for mean, cov in self.normal_params:
-            rv = rvs.Normal(mean=mean, cov=cov)
+            rv = randvars.Normal(mean=mean, cov=cov)
 
             with self.subTest():
                 # Sample random indices
@@ -357,7 +357,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 # Mask distribution
                 masked_rv = rv[mask]
 
-                self.assertIsInstance(masked_rv, rvs.Normal)
+                self.assertIsInstance(masked_rv, randvars.Normal)
 
                 # Compare with expected parameter values
                 flat_mask = mask.flatten()
@@ -378,7 +378,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         self.params = (np.random.uniform(), np.random.gamma(shape=6, scale=1.0))
 
     def test_reshape_newaxis(self):
-        dist = rvs.Normal(*self.params)
+        dist = randvars.Normal(*self.params)
 
         for ndim in range(1, 3):
             for method in ["newaxis", "reshape"]:
@@ -398,7 +398,7 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
                     self.assertEqual(np.squeeze(newdist.cov), dist.cov)
 
     def test_transpose(self):
-        dist = rvs.Normal(*self.params)
+        dist = randvars.Normal(*self.params)
         dist_t = dist.transpose()
 
         self.assertArrayEqual(dist_t.mean, dist.mean)
@@ -413,13 +413,72 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         self.assertArrayEqual(dist_t_sample, dist_sample)
 
+    def test_cov_cholesky_cov_cholesky_not_passed(self):
+        """No cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is False, a cov_cholesky
+        is computed on demand, but can also be computed manually with
+        any damping factor.
+        """
+        mean, cov = self.params
+        rv = randvars.Normal(mean, cov)
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Cholesky factor is computed correctly"):
+            # The default damping factor 1e-12 does not mess up this test
+            self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov))
+
+        with self.subTest("Cholesky is precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_precompute_cov_cholesky(self):
+        mean, cov = self.params
+        rv = randvars.Normal(mean, cov)
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Damping factor check"):
+
+            rv.precompute_cov_cholesky(damping_factor=10.0)
+            self.assertAllClose(rv.cov_cholesky, np.sqrt(rv.cov + 10.0))
+
+        with self.subTest("Cholesky is precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_cov_cholesky_cov_cholesky_passed(self):
+        """A value for cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is True, the
+        cov_cholesky returns the argument that has been passed, but
+        (p)recomputing overwrites the argument with a new factor.
+        """
+        mean, cov = self.params
+
+        # This is purposely not the correct Cholesky factor for test reasons
+        cov_cholesky = np.random.rand()
+
+        rv = randvars.Normal(mean, cov, cov_cholesky=cov_cholesky)
+
+        with self.subTest("Cholesky precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Returns correct cov_cholesky"):
+            self.assertAllClose(rv.cov_cholesky, cov_cholesky)
+
+        with self.subTest("self.precompute raises exception"):
+            with self.assertRaises(Exception):
+                rv.precompute_cov_cholesky()
+
 
 class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         self.params = (np.random.uniform(size=10), random_spd_matrix(10))
 
     def test_newaxis(self):
-        vector_rv = rvs.Normal(*self.params)
+        vector_rv = randvars.Normal(*self.params)
 
         matrix_rv = vector_rv[:, np.newaxis]
 
@@ -428,7 +487,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         self.assertArrayEqual(matrix_rv.cov, vector_rv.cov)
 
     def test_reshape(self):
-        rv = rvs.Normal(*self.params)
+        rv = randvars.Normal(*self.params)
 
         newshape = (5, 2)
         reshaped_rv = rv.reshape(newshape)
@@ -448,7 +507,7 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         )
 
     def test_transpose(self):
-        rv = rvs.Normal(*self.params)
+        rv = randvars.Normal(*self.params)
         transposed_rv = rv.transpose()
 
         self.assertArrayEqual(transposed_rv.mean, rv.mean)
@@ -463,10 +522,100 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         self.assertArrayEqual(dist_t_sample, dist_sample)
 
+    def test_cov_cholesky_cov_cholesky_not_passed(self):
+        """No cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is False, a cov_cholesky
+        is computed on demand, but can also be computed manually with
+        any damping factor.
+        """
+        mean, cov = self.params
+
+        rv = randvars.Normal(mean, cov)
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Cholesky factor is computed correctly"):
+            # The default damping factor 1e-12 does not mess up this test
+            self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
+
+        with self.subTest("Cholesky is precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_precompute_cov_cholesky(self):
+        mean, cov = self.params
+        rv = randvars.Normal(mean, cov)
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Damping factor check"):
+            rv.precompute_cov_cholesky(damping_factor=10.0)
+            self.assertAllClose(
+                rv.cov_cholesky, np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov)))
+            )
+
+        with self.subTest("Cholesky is precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_cov_cholesky_cov_cholesky_passed(self):
+        """A value for cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is True, the
+        cov_cholesky returns the argument that has been passed, but
+        (p)recomputing overwrites the argument with a new factor.
+        """
+        mean, cov = self.params
+
+        # This is purposely not the correct Cholesky factor for test reasons
+        cov_cholesky = np.random.rand(*cov.shape)
+
+        rv = randvars.Normal(mean, cov, cov_cholesky=cov_cholesky)
+
+        with self.subTest("Cholesky precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Returns correct cov_cholesky"):
+            self.assertAllClose(rv.cov_cholesky, cov_cholesky)
+
+        with self.subTest("self.precompute raises exception"):
+            with self.assertRaises(Exception):
+                rv.precompute_cov_cholesky()
+
+    def test_cholesky_cov_incompatible_types(self):
+        """Test the behaviour of Normal.__init__ in the setup where the type of the
+        Cholesky factor and the type of the covariance do not match."""
+        mean, cov = self.params
+        cov_cholesky = np.linalg.cholesky(cov)
+        cov_cholesky_wrong_type = cov_cholesky.tolist()
+        with self.subTest("Different type raises ValueError"):
+            with self.assertRaises(TypeError):
+                randvars.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_type)
+
+        cov_cholesky_wrong_shape = cov_cholesky[1:]
+        with self.subTest("Different shape raises ValueError"):
+            with self.assertRaises(ValueError):
+                randvars.Normal(mean, cov, cov_cholesky=cov_cholesky_wrong_shape)
+
+        cov_cholesky_wrong_dtype = cov_cholesky.astype(int)
+        with self.subTest("Different data type is promoted"):
+
+            # Sanity check
+            self.assertNotEqual(cov.dtype, cov_cholesky_wrong_dtype.dtype)
+
+            # Assert data type of cov_cholesky is changed during __init__
+            normal_new_dtype = randvars.Normal(
+                mean, cov, cov_cholesky=cov_cholesky_wrong_dtype
+            )
+            self.assertEqual(
+                normal_new_dtype.cov.dtype, normal_new_dtype.cov_cholesky.dtype
+            )
+
 
 class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_reshape(self):
-        rv = rvs.Normal(
+        rv = randvars.Normal(
             mean=np.random.uniform(size=(4, 3)),
             cov=linops.Kronecker(
                 A=random_spd_matrix(4), B=random_spd_matrix(3)
@@ -491,7 +640,9 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
         )
 
     def test_transpose(self):
-        rv = rvs.Normal(mean=np.random.uniform(size=(2, 2)), cov=random_spd_matrix(4))
+        rv = randvars.Normal(
+            mean=np.random.uniform(size=(2, 2)), cov=random_spd_matrix(4)
+        )
         transposed_rv = rv.transpose()
 
         self.assertArrayEqual(transposed_rv.mean, rv.mean.T)
@@ -505,6 +656,70 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
                 self.assertEqual(transposed_rv.cov[idx_t], rv.cov[idx])
 
         # Sadly, sampling is not stable w.r.t. permutations of variables
+
+    def test_cov_cholesky_cov_cholesky_not_passed(self):
+        """No cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is False, a cov_cholesky
+        is computed on demand, but can also be computed manually with
+        any damping factor.
+        """
+        rv = randvars.Normal(
+            mean=np.random.uniform(size=(2, 2)), cov=random_spd_matrix(4)
+        )
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Cholesky factor is computed correctly"):
+            # The default damping factor 1e-12 does not mess up this test
+            self.assertAllClose(rv.cov_cholesky, np.linalg.cholesky(rv.cov))
+
+        with self.subTest("Cholesky is precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_precompute_cov_cholesky(self):
+        rv = randvars.Normal(
+            mean=np.random.uniform(size=(2, 2)), cov=random_spd_matrix(4)
+        )
+
+        with self.subTest("No Cholesky precomputed"):
+            self.assertFalse(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Damping factor check"):
+            rv.precompute_cov_cholesky(damping_factor=10.0)
+            self.assertAllClose(
+                rv.cov_cholesky, np.linalg.cholesky(rv.cov + 10.0 * np.eye(len(rv.cov)))
+            )
+
+        with self.subTest("Cholesky is precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+    def test_cov_cholesky_cov_cholesky_passed(self):
+        """A value for cov_cholesky is passed in init.
+
+        In this case, the "is_precomputed" flag is True, the
+        cov_cholesky returns the argument that has been passed, but
+        (p)recomputing overwrites the argument with a new factor.
+        """
+        # This is purposely not the correct Cholesky factor for test reasons
+        cov_cholesky = np.random.rand(4, 4)
+
+        rv = randvars.Normal(
+            mean=np.random.uniform(size=(2, 2)),
+            cov=random_spd_matrix(4),
+            cov_cholesky=cov_cholesky,
+        )
+
+        with self.subTest("Cholesky precomputed"):
+            self.assertTrue(rv.cov_cholesky_is_precomputed)
+
+        with self.subTest("Returns correct cov_cholesky"):
+            self.assertAllClose(rv.cov_cholesky, cov_cholesky)
+
+        with self.subTest("self.precompute raises exception"):
+            with self.assertRaises(Exception):
+                rv.precompute_cov_cholesky()
 
 
 if __name__ == "__main__":
