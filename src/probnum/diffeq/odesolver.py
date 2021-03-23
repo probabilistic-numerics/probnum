@@ -1,7 +1,4 @@
-"""Abstract ODESolver class.
-
-Interface for Runge-Kutta, ODEFilter.
-"""
+"""ODE solver interface."""
 
 from abc import ABC, abstractmethod
 

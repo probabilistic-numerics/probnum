@@ -1,27 +1,41 @@
 """Particle filtering posterior."""
 
+from typing import Optional
+
 import numpy as np
 
-from probnum import _randomvariablelist
-from probnum.filtsmooth.filtsmoothposterior import FiltSmoothPosterior
+from probnum import randvars
+from probnum.filtsmooth.timeseriesposterior import (
+    DenseOutputLocationArgType,
+    TimeSeriesPosterior,
+)
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 
-class ParticleFilterPosterior(FiltSmoothPosterior):
+class ParticleFilterPosterior(TimeSeriesPosterior):
     """Posterior distribution of a particle filter.."""
-
-    # This is essentially just a lightweight wrapper around _RandomVariableList.
-    def __init__(
-        self, states: _randomvariablelist._RandomVariableList, locations: np.ndarray
-    ):
-        self.states = _randomvariablelist._RandomVariableList(states)
-        self.locations = locations
-        super().__init__()
 
     def __call__(self, t):
         raise NotImplementedError("Particle filters do not provide dense output.")
 
-    def __len__(self):
-        return len(self.states)
+    # The methods below are not implemented (yet?).
 
-    def __getitem__(self, idx):
-        return self.states[idx]
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+        raise NotImplementedError
+
+    def sample(
+        self,
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+        random_state: Optional[RandomStateArgType] = None,
+    ) -> np.ndarray:
+        raise NotImplementedError("Sampling is not implemented.")
+
+    def transform_base_measure_realizations(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: Optional[DenseOutputLocationArgType] = None,
+    ) -> np.ndarray:
+        raise NotImplementedError(
+            "Transforming base measure realizations is not implemented."
+        )

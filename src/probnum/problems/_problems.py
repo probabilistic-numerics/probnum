@@ -90,6 +90,7 @@ class InitialValueProblem:
 
     Examples
     --------
+    >>> import numpy as np
     >>> def f(t, x):
     ...     return x*(1-x)
     >>> ivp = InitialValueProblem(f, t0=0., tmax=3., y0=0.1)
@@ -128,6 +129,7 @@ class LinearSystem:
 
     Examples
     --------
+    >>> import numpy as np
     >>> A = np.eye(3)
     >>> b = np.arange(3)
     >>> lin_sys = LinearSystem(A, b)

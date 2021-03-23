@@ -1,3 +1,5 @@
+"""Ordinary differential equation classes."""
+
 from .ivp import IVP
 from .ivp_examples import fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
 from .ode import ODE

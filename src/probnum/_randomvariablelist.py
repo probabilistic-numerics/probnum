@@ -35,6 +35,14 @@ class _RandomVariableList(list):
                 )
         super().__init__(rv_list)
 
+    def __getitem__(self, idx) -> Union[randvars.RandomVariable, "_RandomVariableList"]:
+
+        result = super().__getitem__(idx)
+        # Make sure to wrap the result into a _RandomVariableList if necessary
+        if isinstance(result, list):
+            result = _RandomVariableList(result)
+        return result
+
     @cached_property
     def mean(self) -> np.ndarray:
         if len(self) == 0:
@@ -58,6 +66,11 @@ class _RandomVariableList(list):
         if len(self) == 0:
             return np.array([])
         return np.stack([rv.std for rv in self])
+
+    @property
+    def shape(self):
+        first_rv = np.asarray(self[0].mean)
+        return (len(self),) + first_rv.shape
 
     @cached_property
     def mode(self) -> np.ndarray:
@@ -84,11 +97,3 @@ class _RandomVariableList(list):
         if len(self) == 0:
             return _RandomVariableList([])
         return _RandomVariableList([rv.resample() for rv in self])
-
-    def __getitem__(self, idx) -> Union[randvars.RandomVariable, "_RandomVariableList"]:
-
-        result = super().__getitem__(idx)
-        # Make sure to wrap the result into a _RandomVariableList if necessary
-        if isinstance(result, list):
-            result = _RandomVariableList(result)
-        return result
