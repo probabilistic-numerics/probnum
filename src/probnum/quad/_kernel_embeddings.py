@@ -40,7 +40,7 @@ class _KernelEmbedding(abc.ABC):
 
         Parameters
         ----------
-        x: np.ndarray with shape (dim, n_eval)
+        x: np.ndarray with shape (n_eval, dim)
             n_eval locations where to evaluate the kernel mean.
 
         Returns
@@ -80,59 +80,41 @@ class _KExpQuadMGauss(_KernelEmbedding):
 
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
 
-        if self.dim == 1:
+        if self.measure.diagonal_covariance:
+            cov_diag = np.diag(np.atleast_2d(self.measure.cov))
             chol_inv_x = (x - self.measure.mean) / np.sqrt(
-                self.kernel.lengthscale ** 2 + self.measure.cov
+                self.kernel.lengthscale ** 2 + cov_diag
             )
-            det_factor = np.float(
-                np.sqrt(
-                    self.kernel.lengthscale ** 2
-                    / (self.kernel.lengthscale ** 2 + self.measure.cov)
-                )
+            det_factor = self.kernel.lengthscale ** self.dim / np.sqrt(
+                (self.kernel.lengthscale ** 2 + cov_diag).prod()
             )
-            exp_factor = np.exp(-0.5 * (chol_inv_x ** 2)).reshape(-1)
         else:
-            if self.measure.diagonal_covariance:
-                chol_inv_x = (x - self.measure.mean[:, None]) / np.sqrt(
-                    (self.kernel.lengthscale ** 2 + np.diag(self.measure.cov)).reshape(
-                        -1, 1
-                    )
-                )
-                det_factor = self.kernel.lengthscale ** self.dim / np.sqrt(
-                    (self.kernel.lengthscale ** 2 + np.diag(self.measure.cov)).prod()
-                )
-            else:
-                chol = slinalg.cho_factor(
-                    self.kernel.lengthscale ** 2 * np.eye(self.dim) + self.measure.cov,
-                    lower=True,
-                )
-                chol_inv_x = slinalg.cho_solve(chol, x - self.measure.mean[:, None])
+            chol = slinalg.cho_factor(
+                self.kernel.lengthscale ** 2 * np.eye(self.dim) + self.measure.cov,
+                lower=True,
+            )
+            chol_inv_x = slinalg.cho_solve(chol, (x - self.measure.mean).T)
 
-                det_factor = (
-                    self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
-                )
+            det_factor = self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
 
-            exp_factor = np.exp(-0.5 * (chol_inv_x ** 2).sum(axis=0))
+        exp_factor = np.exp(-0.5 * (chol_inv_x ** 2).sum(axis=1))
         return det_factor * exp_factor
 
     def kernel_variance(self) -> float:
-        if self.dim == 1:
-            denom = np.float(
-                np.sqrt((self.kernel.lengthscale ** 2 + 2.0 * self.measure.cov))
+
+        if self.measure.diagonal_covariance:
+            denom = np.sqrt(
+                (
+                    self.kernel.lengthscale ** 2
+                    + 2.0 * np.diag(np.atleast_2d(self.measure.cov))
+                ).prod()
             )
         else:
-            if self.measure.diagonal_covariance:
-                denom = np.sqrt(
-                    (
-                        self.kernel.lengthscale ** 2 + 2.0 * np.diag(self.measure.cov)
-                    ).prod()
-                )
-            else:
-                chol, _ = slinalg.cho_factor(
-                    self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.cov,
-                    lower=True,
-                )
-                denom = np.diag(chol).prod()
+            chol, _ = slinalg.cho_factor(
+                self.kernel.lengthscale * np.eye(self.dim) + 2 * self.measure.cov,
+                lower=True,
+            )
+            denom = np.diag(chol).prod()
 
         return self.kernel.lengthscale ** self.dim / denom
 
@@ -159,33 +141,23 @@ class _KExpQuadMLebesgue(_KernelEmbedding):
         return (
             self.measure.normalization_constant
             * (np.pi * ell ** 2 / 2) ** (self.dim / 2)
-            * np.prod(
-                np.atleast_2d(
-                    scipy.special.erf((b - x) / (ell * np.sqrt(2)))
-                    - scipy.special.erf((a - x) / (ell * np.sqrt(2)))
-                ),
-                axis=1,
-            )
+            * np.atleast_2d(
+                scipy.special.erf((b - x) / (ell * np.sqrt(2)))
+                - scipy.special.erf((a - x) / (ell * np.sqrt(2)))
+            ).prod(axis=1)
         )
 
     def kernel_variance(self) -> float:
         r = self.measure.domain[1] - self.measure.domain[0]
         ell = self.kernel.lengthscale
-        return np.squeeze(
-            (
-                self.measure.normalization_constant ** 2
-                * (2 * np.pi * ell ** 2) ** (self.dim / 2)
-                * np.prod(
-                    np.atleast_2d(
-                        ell
-                        * np.sqrt(2 / np.pi)
-                        * (np.exp(-(r ** 2) / (2 * ell ** 2)) - 1)
-                        + r * scipy.special.erf(r / (ell * np.sqrt(2)))
-                    ),
-                    axis=1,
-                )
-            )[0]
-        )
+        return (
+            self.measure.normalization_constant ** 2
+            * (2 * np.pi * ell ** 2) ** (self.dim / 2)
+            * np.atleast_2d(
+                ell * np.sqrt(2 / np.pi) * (np.exp(-(r ** 2) / (2 * ell ** 2)) - 1)
+                + r * scipy.special.erf(r / (ell * np.sqrt(2)))
+            ).prod(axis=1)
+        )[0]
 
 
 def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):

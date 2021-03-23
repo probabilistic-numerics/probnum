@@ -62,7 +62,7 @@ def test_kvar(kernel_embedding):
     if kernel_embedding.dim != 1:
         n_mc = 10000
         X = kernel_embedding.measure.sample(n_mc)
-        num_kvar = kernel_embedding.kernel_mean(X.T).sum() / n_mc
+        num_kvar = kernel_embedding.kernel_mean(X).sum() / n_mc
         true_kvar = kernel_embedding.kernel_variance()
 
         np.testing.assert_allclose(true_kvar, num_kvar, rtol=1.0e-3, atol=1.0e-3)

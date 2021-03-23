@@ -192,6 +192,8 @@ class GaussianMeasure(IntegrationMeasure):
 
         # Extend scalar mean and covariance to higher dimensions if dim has been
         # supplied by the user
+        # TODO: This needs to be modified to account for cases where only either the
+        #  mean or covariance is given in scalar form
         if (
             (np.isscalar(mean) or mean.size == 1)
             and (np.isscalar(cov) or cov.size == 1)
