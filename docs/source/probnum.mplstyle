@@ -74,7 +74,7 @@ legend.fancybox      : False     ## if True, use a rounded box for the
 #### FIGURE
 ## See http://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure
 figure.figsize       : 8, 4.5     ## figure size in inches
-figure.dpi           : 150        ## figure dots per inch
+figure.dpi           : 100        ## figure dots per inch
 
 #### SAVING FIGURES
 savefig.dpi          : figure   ## figure dots per inch or 'figure'
