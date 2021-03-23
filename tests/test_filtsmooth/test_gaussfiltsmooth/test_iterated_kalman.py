@@ -4,7 +4,7 @@ import pytest
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
 
-from .filtsmooth_testcases import logistic_ode, pendulum
+from ..filtsmooth_testcases import logistic_ode, pendulum
 
 
 def pendulum_problem():
@@ -52,9 +52,9 @@ def test_rmse_filt_smooth(kalman, problem):
 
     iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
 
-    filtms = posterior.filtering_posterior.state_rvs.mean
-    smooms = posterior.state_rvs.mean
-    iterms = iterated_posterior.state_rvs.mean
+    filtms = posterior.filtering_posterior.states.mean
+    smooms = posterior.states.mean
+    iterms = iterated_posterior.states.mean
 
     if filtms.ndim == 1:
         filtms = filtms.reshape((-1, 1))

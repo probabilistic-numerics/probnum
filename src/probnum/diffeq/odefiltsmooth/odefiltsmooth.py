@@ -11,9 +11,10 @@ References
 import numpy as np
 
 from probnum import randvars, statespace
-from probnum.diffeq import steprule
-from probnum.diffeq.ode import IVP
-from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
+
+from .. import steprule
+from ..ode import IVP
+from .ivpfiltsmooth import GaussianIVPFilter
 
 __all__ = ["probsolve_ivp"]
 
@@ -177,7 +178,7 @@ def probsolve_ivp(
     >>> y0 = np.array([0.15])
     >>> t0, tmax = 0., 1.5
     >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
-    >>> print(np.round(solution.y.mean, 2))
+    >>> print(np.round(solution.states.mean, 2))
     [[0.15]
      [0.21]
      [0.28]
@@ -201,8 +202,8 @@ def probsolve_ivp(
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
     >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", algo_order=2, step=0.1, adaptive=False)
-    >>> print(np.round(solution.y.mean, 2))
-        [[0.15]
+    >>> print(np.round(solution.states.mean, 2))
+    [[0.15]
      [0.21]
      [0.28]
      [0.37]
@@ -223,7 +224,10 @@ def probsolve_ivp(
 
     # Create IVP object
     ivp = IVP(
-        timespan=(t0, tmax), initrv=randvars.Constant(np.asarray(y0)), rhs=f, jac=df
+        timespan=(t0, tmax),
+        initrv=randvars.Constant(np.asarray(y0)),
+        rhs=f,
+        jac=df,
     )
 
     # Create steprule

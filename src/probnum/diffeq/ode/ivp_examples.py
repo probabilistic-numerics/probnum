@@ -1,6 +1,6 @@
 import numpy as np
 
-from probnum.diffeq.ode.ivp import IVP
+from .ivp import IVP
 
 
 def logistic(timespan, initrv, params=(3.0, 1.0)):

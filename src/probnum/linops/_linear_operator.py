@@ -448,7 +448,10 @@ class Identity(ScalarMult):
         Shape of the identity operator.
     """
 
-    def __init__(self, shape):
+    def __init__(
+        self,
+        shape: ShapeArgType,
+    ):
         # Check shape
         if np.isscalar(shape):
             _shape = (shape, shape)
@@ -494,7 +497,10 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         The explicit matrix.
     """
 
-    def __init__(self, A):
+    def __init__(
+        self,
+        A: Union[np.ndarray, scipy.sparse.spmatrix],
+    ):
         super().__init__(A=A)
 
     def _matvec(self, x):
@@ -505,7 +511,7 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
 
     def todense(self):
         if isinstance(self.A, scipy.sparse.spmatrix):
-            return self.A.todense()
+            return self.A.toarray()
         else:
             return np.asarray(self.A)
 
@@ -540,4 +546,4 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
         if self.shape[0] != self.shape[1]:
             raise ValueError("The trace is only defined for square linear operators.")
         else:
-            return np.trace(self.A)
+            return self.A.diagonal().sum()
