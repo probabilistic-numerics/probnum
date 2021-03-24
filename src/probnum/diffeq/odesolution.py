@@ -41,7 +41,14 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             else None
         )
 
-    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+    def interpolate(
+        self,
+        t: FloatArgType,
+        previous_location: Optional[FloatArgType] = None,
+        previous_state: Optional[randvars.RandomVariable] = None,
+        next_location: Optional[FloatArgType] = None,
+        next_state: Optional[randvars.RandomVariable] = None,
+    ) -> randvars.RandomVariable:
         """Evaluate the posterior at a non-grid point.
 
         Parameters
