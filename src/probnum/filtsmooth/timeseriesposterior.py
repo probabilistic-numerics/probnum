@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum import _randomvariablelist, randvars
+from probnum import _randomvariablelist, randvars, utils
 from probnum.type import (
     ArrayLikeGetitemArgType,
     FloatArgType,
@@ -70,32 +70,77 @@ class TimeSeriesPosterior(abc.ABC):
         randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Estimate of the states at time ``t``.
         """
+        if np.isscalar(t):
+            t = np.atleast_1d(t)
+            squeeze_eventually = True
+        else:
+            squeeze_eventually = False
+        locations = self.locations
+        states = np.asarray(self.states)
 
-        # Recursive evaluation (t can now be any array, not just length 1)
-        if not np.isscalar(t):
-            return _randomvariablelist._RandomVariableList(
-                [self.__call__(t_pt) for t_pt in t]
+        # Split left-extrapolation, interpolation, right_extrapolation
+        t0, tmax = np.amin(locations), np.amax(locations)
+        t_extra_left = t[t < t0]
+        t_extra_right = t[t > tmax]
+        t_inter = t[(t0 <= t) & (t <= tmax)]
+
+        # Indices of t where they would be inserted
+        # into self.locations ("left": right-closest states)
+        indices = np.searchsorted(locations, t_inter, side="left")
+        interpolated_values = [
+            self.interpolate(
+                t=ti,
+                previous_location=prevloc,
+                previous_state=prevstate,
+                next_location=nextloc,
+                next_state=nextstate,
             )
-
-        # t is left of our grid -- raise error
-        # (this functionality is not supported yet)
-        if t < self.locations[0]:
-            raise ValueError(
-                "Invalid location; Can not compute posterior for a location earlier "
-                "than the initial location"
+            for ti, prevloc, prevstate, nextloc, nextstate in zip(
+                t_inter,
+                locations[indices - 1],
+                self._states_left_of_location[indices - 1],
+                locations[indices],
+                self._states_right_of_location[indices],
             )
-        #
+        ]
+        extrapolated_values_left = [
+            self.interpolate(
+                t=ti,
+                previous_location=None,
+                previous_state=None,
+                next_location=t0,
+                next_state=self._states_right_of_location[0],
+            )
+            for ti in t_extra_left
+        ]
 
-        # Early exit if t is in our grid -- no need to interpolate
-        if t in self.locations:
-            idx = self._find_index(t)
-            discrete_estimate = self.states[idx]
-            return discrete_estimate
+        extrapolated_values_right = [
+            self.interpolate(
+                t=ti,
+                previous_location=tmax,
+                previous_state=self._states_left_of_location[-1],
+                next_location=None,
+                next_state=None,
+            )
+            for ti in t_extra_right
+        ]
+        dense_output_values = extrapolated_values_left
+        dense_output_values.extend(interpolated_values)
+        dense_output_values.extend(extrapolated_values_right)
 
-        return self.interpolate(t)
+        if squeeze_eventually:
+            return dense_output_values[0]
+        return _randomvariablelist._RandomVariableList(dense_output_values)
 
     @abc.abstractmethod
-    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+    def interpolate(
+        self,
+        t: FloatArgType,
+        previous_location: Optional[FloatArgType] = None,
+        previous_state: Optional[randvars.RandomVariable] = None,
+        next_location: Optional[FloatArgType] = None,
+        next_state: Optional[randvars.RandomVariable] = None,
+    ) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 
         Parameters
@@ -177,3 +222,11 @@ class TimeSeriesPosterior(abc.ABC):
 
     def _find_index(self, loc):
         return self.locations.tolist().index(loc)
+
+    @property
+    def _states_left_of_location(self):
+        return np.asarray(self.states)
+
+    @property
+    def _states_right_of_location(self):
+        return np.asarray(self.states)

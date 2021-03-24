@@ -51,7 +51,14 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         self.transition = transition
 
     @abc.abstractmethod
-    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+    def interpolate(
+        self,
+        t: FloatArgType,
+        previous_location: Optional[FloatArgType] = None,
+        previous_state: Optional[randvars.RandomVariable] = None,
+        next_location: Optional[FloatArgType] = None,
+        next_state: Optional[randvars.RandomVariable] = None,
+    ) -> randvars.RandomVariable:
         """Evaluate the posterior at a measurement-free point.
 
         Parameters
@@ -185,22 +192,70 @@ class SmoothingPosterior(KalmanPosterior):
         self.filtering_posterior = filtering_posterior
         super().__init__(locations, states, transition)
 
-    def interpolate(self, t: DenseOutputLocationArgType) -> randvars.RandomVariable:
+    def interpolate(
+        self,
+        t: FloatArgType,
+        previous_location: Optional[FloatArgType] = None,
+        previous_state: Optional[randvars.RandomVariable] = None,
+        next_location: Optional[FloatArgType] = None,
+        next_state: Optional[randvars.RandomVariable] = None,
+    ) -> randvars.RandomVariable:
 
-        pred_rv = self.filtering_posterior.interpolate(t)
-        next_idx = self._find_previous_index(t) + 1
+        # Assert either previous_location or next_location is not None
+        if previous_location is None and next_location is None:
+            raise ValueError
 
-        # Early exit if we are extrapolating
-        if next_idx >= len(self.locations):
-            return pred_rv
+        # Corner case 1: point is on grid
+        if t == previous_location:
+            return previous_state
+        if t == next_location:
+            return next_state
 
-        next_t = self.locations[next_idx]
-        next_rv = self.states[next_idx]
+        # Corner case 2: are extrapolating to the left
+        if previous_location is None:
+            dt = t - next_location
+            assert dt < 0.0
+            extrapolated_rv_left, _ = self.transition.forward_rv(
+                next_state, t=next_location, dt=dt
+            )
+            return extrapolated_rv_left
 
-        # Actual smoothing step
-        curr_rv, _ = self.transition.backward_rv(next_rv, pred_rv, t=t, dt=next_t - t)
+        # Corner case 3: are extrapolating to the right
+        if next_location is None:
+            dt = t - previous_location
+            assert dt > 0.0
+            extrapolated_rv_right, _ = self.transition.forward_rv(
+                previous_state, t=previous_location, dt=dt
+            )
+            return extrapolated_rv_right
 
-        return curr_rv
+        # Final case: we are interpolating. Both locations are not None.
+        dt_left = t - previous_location
+        dt_right = next_location - t
+        assert dt_left > 0.0
+        assert dt_right > 0.0
+        filtered_rv, _ = self.transition.forward_rv(
+            rv=previous_state, t=previous_location, dt=dt_left
+        )
+        smoothed_rv, _ = self.transition.backward_rv(
+            rv_obtained=next_state, rv=filtered_rv, t=t, dt=dt_right
+        )
+        return smoothed_rv
+        #
+        # pred_rv = self.filtering_posterior.interpolate(t)
+        # next_idx = self._find_previous_index(t) + 1
+        #
+        # # Early exit if we are extrapolating
+        # if next_idx >= len(self.locations):
+        #     return pred_rv
+        #
+        # next_t = self.locations[next_idx]
+        # next_rv = self.states[next_idx]
+        #
+        # # Actual smoothing step
+        # curr_rv, _ = self.transition.backward_rv(next_rv, pred_rv, t=t, dt=next_t - t)
+        #
+        # return curr_rv
 
     def transform_base_measure_realizations(
         self,
@@ -237,11 +292,22 @@ class SmoothingPosterior(KalmanPosterior):
             )
         )
 
+    @property
+    def _states_left_of_location(self):
+        return self.filtering_posterior._states_left_of_location
+
 
 class FilteringPosterior(KalmanPosterior):
     """Filtering posterior."""
 
-    def interpolate(self, t: DenseOutputLocationArgType) -> randvars.RandomVariable:
+    def interpolate(
+        self,
+        t: FloatArgType,
+        previous_location: Optional[FloatArgType] = None,
+        previous_state: Optional[randvars.RandomVariable] = None,
+        next_location: Optional[FloatArgType] = None,
+        next_state: Optional[randvars.RandomVariable] = None,
+    ) -> randvars.RandomVariable:
         """Predict to the present point.
 
         Parameters
