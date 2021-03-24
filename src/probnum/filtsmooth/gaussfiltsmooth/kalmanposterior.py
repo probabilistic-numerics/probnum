@@ -141,7 +141,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
             axis=-(single_rv_ndim + 1),
         )
         if squeeze_eventually:
-            return np.take(samples, indices=0, axis=-(rv_ndim + 1))
+            return np.take(samples, indices=0, axis=-(single_rv_ndim + 1))
         return samples
 
         #
