@@ -94,7 +94,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
                 base_measure_realizations=base_measure_realizations, t=self.locations
             )
 
-        # Promote locations to an array.
+        # Promote locations to an array. This allows treating all inputs in the same way.
         if np.isscalar(t):
             t = np.atleast_1d(t)
             squeeze_eventually = True
@@ -102,6 +102,23 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
             squeeze_eventually = False
         if not np.all(np.diff(t) >= 0.0):
             raise ValueError("Time-points have to be sorted.")
+
+        # Second early exit if t is a subset of locations
+        # In this case, we don't want to append the values in `t` to self.locations
+        # but instead, sample on self.locations and extract the relevant values.
+        if np.all(np.isin(t, self.locations)):
+            slice_these_out = np.where(np.isin(self.locations, t))[0]
+            base_measure_realizations = stats.norm.rvs(
+                size=(size + self.locations.shape + single_rv_shape),
+                random_state=random_state,
+            )
+            samples = self.transform_base_measure_realizations(
+                base_measure_realizations=base_measure_realizations, t=self.locations
+            )
+            new_samples = np.take(
+                samples, indices=slice_these_out, axis=-(single_rv_ndim + 1)
+            )
+            return new_samples
 
         # Insert locations into self.locations and remember the positions.
         indices = np.searchsorted(self.locations, t, side="left")
@@ -159,28 +176,29 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         #
         # return transformed_realizations
 
-    def _remove_final_time_point(self, transformed_realizations):
-        """Remove the transformed sample associated with the final time point from the
-        transformed samples.
-
-        Careful with the correct slicing!
-
-        Ignore all the size-related dimensions with the Ellipsis, and ignore the RV-shape-related
-        dimension with np.take.
-        The line below leaves the last `rv_ndim` dimensions untouched, removes the
-        last element from the `rv_ndim+1`th dimension (counted from the back) and
-        leaves the former dimensions untouched, too.
-        In other words, the transformed realization that corresponds to the added final RV is removed.
-
-        This is extracted into a function not only because it allows more thorough documentation, but we would
-        also like to reuse it in the KalmanODESolution.
-        """
-        rv_ndim = self.states[0].ndim
-        return np.take(
-            transformed_realizations,
-            indices=range(transformed_realizations.shape[-(rv_ndim + 1)] - 1),
-            axis=-(rv_ndim + 1),
-        )
+    #
+    # def _remove_final_time_point(self, transformed_realizations):
+    #     """Remove the transformed sample associated with the final time point from the
+    #     transformed samples.
+    #
+    #     Careful with the correct slicing!
+    #
+    #     Ignore all the size-related dimensions with the Ellipsis, and ignore the RV-shape-related
+    #     dimension with np.take.
+    #     The line below leaves the last `rv_ndim` dimensions untouched, removes the
+    #     last element from the `rv_ndim+1`th dimension (counted from the back) and
+    #     leaves the former dimensions untouched, too.
+    #     In other words, the transformed realization that corresponds to the added final RV is removed.
+    #
+    #     This is extracted into a function not only because it allows more thorough documentation, but we would
+    #     also like to reuse it in the KalmanODESolution.
+    #     """
+    #     rv_ndim = self.states[0].ndim
+    #     return np.take(
+    #         transformed_realizations,
+    #         indices=range(transformed_realizations.shape[-(rv_ndim + 1)] - 1),
+    #         axis=-(rv_ndim + 1),
+    #     )
 
     @abc.abstractmethod
     def transform_base_measure_realizations(
@@ -321,17 +339,105 @@ class SmoothingPosterior(KalmanPosterior):
                 ]
             )
 
-        # The final location is contained in  't' if this function is called from sample().
-        # If `transform_base_measure_realizations()` is called directly from the outside,
-        # you better know what you're doing ;)
-        rv_list = self.filtering_posterior(t)
-        return np.array(
+        # Now we are in the setting of computing a single sample.
+        # The sample is computed by jointly sampling from the posterior.
+        # On time points inside the domain, this is essentially a sequence of smoothing steps.
+        # For extrapolation, samples are propagated forwards.
+
+        # Early exit: no time-grid, which means that samples are computed on the posterior.
+        if t is None or (
+            np.all(np.isin(t, self.locations)) and np.all(np.isin(self.locations, t))
+        ):
+            t = self.locations
+            states = self.filtering_posterior.states
+            return np.array(
+                self.transition.jointly_transform_base_measure_realization_list_backward(
+                    base_measure_realizations=base_measure_realizations,
+                    t=t,
+                    rv_list=states,
+                )
+            )
+
+        # Promote locations to an array. This allows treating all inputs in the same way.
+        if np.isscalar(t):
+            t = np.atleast_1d(t)
+            squeeze_eventually = True
+        else:
+            t = np.asarray(t)
+            squeeze_eventually = False
+        if not np.all(np.diff(t) >= 0.0):
+            raise ValueError("Time-points have to be sorted.")
+
+        states = self.filtering_posterior(t)
+
+        # Split into interpolation and extrapolation samples.
+        # Note: t=tmax is in two arrays!
+        # This is on purpose, because sample realisations need to be
+        # "communicated" between interpolation and extrapolation.
+        t0, tmax = np.amin(self.locations), np.amax(self.locations)
+        t_extra_left = t[t < t0]
+        t_extra_right = t[tmax <= t]
+        t_inter = t[(t0 <= t) & (t <= tmax)]
+
+        if len(t_extra_left) > 0:
+            raise NotImplementedError(
+                "Sampling on the left of the time-domain is not implemented."
+            )
+
+        # Split base measure realisations: the first N belong to the interpolation samples,
+        # and the final M belong to the extrapolation samples.
+        # Note again: the sample corresponding to tmax is double-counted.
+        base_measure_reals_inter = base_measure_realizations[: len(t_inter)]
+        base_measure_reals_extra_right = base_measure_realizations[
+            -len(t_extra_right) :
+        ]
+        states_inter = states[: len(t_inter)]
+        states_extra_right = states[-len(t_extra_right) :]
+
+        samples_inter = np.array(
             self.transition.jointly_transform_base_measure_realization_list_backward(
-                base_measure_realizations=base_measure_realizations,
-                t=t,
-                rv_list=rv_list,
+                base_measure_realizations=base_measure_reals_inter,
+                t=t_inter,
+                rv_list=states_inter,
             )
         )
+
+        samples_extra = np.array(
+            self.transition.jointly_transform_base_measure_realization_list_forward(
+                base_measure_realizations=base_measure_reals_extra_right,
+                t=t_extra_right,
+                initrv=states_extra_right[0],
+            )
+        )
+        samples = np.concatenate((samples_inter[:-1], samples_extra), axis=0)
+
+        if squeeze_eventually:
+            return samples[0]
+        return samples
+
+        #
+        #
+        # # Split left-extrapolation, interpolation, right_extrapolation
+        # t0, tmax = np.amin(self.locations), np.amax(self.locations)
+        # t_extra_left = t[t < t0]
+        # t_extra_right = t[t > tmax]
+        # t_inter = t[(t0 <= t) & (t <= tmax)]
+        #
+        # # Indices of t where they would be inserted
+        # # into self.locations ("left": right-closest states)
+        # indices = np.searchsorted(self.locations, t_inter, side="left")
+        #
+        # # The final location is contained in  't' if this function is called from sample().
+        # # If `transform_base_measure_realizations()` is called directly from the outside,
+        # # you better know what you're doing ;)
+        # rv_list = self.filtering_posterior(t)
+        # return np.array(
+        #     self.transition.jointly_transform_base_measure_realization_list_backward(
+        #         base_measure_realizations=base_measure_realizations,
+        #         t=t,
+        #         rv_list=rv_list,
+        #     )
+        # )
 
     @property
     def _states_left_of_location(self):
