@@ -241,6 +241,11 @@ class IBM(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
+        if dt is None:
+            raise ValueError(
+                "Continuous-time transitions require a time-increment ``dt``."
+            )
+
         rv = _apply_precon(self.precon.inverse(dt), rv)
         rv, info = self.equivalent_discretisation_preconditioned.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
@@ -263,6 +268,11 @@ class IBM(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
+        if dt is None:
+            raise ValueError(
+                "Continuous-time transitions require a time-increment ``dt``."
+            )
+
         rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
         rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
@@ -502,6 +512,10 @@ class Matern(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
+        if dt is None:
+            raise ValueError(
+                "Continuous-time transitions require a time-increment ``dt``."
+            )
 
         # Fetch things into preconditioned space
         rv = _apply_precon(self.precon.inverse(dt), rv)
@@ -540,8 +554,12 @@ class Matern(Integrator, sde.LTISDE):
         _diffusion=1.0,
         **kwargs,
     ):
-        # Fetch things into preconditioned space
+        if dt is None:
+            raise ValueError(
+                "Continuous-time transitions require a time-increment ``dt``."
+            )
 
+        # Fetch things into preconditioned space
         rv_obtained = _apply_precon(self.precon.inverse(dt), rv_obtained)
         rv = _apply_precon(self.precon.inverse(dt), rv)
         rv_forwarded = (
