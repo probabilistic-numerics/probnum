@@ -59,18 +59,6 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         next_location: Optional[FloatArgType] = None,
         next_state: Optional[randvars.RandomVariable] = None,
     ) -> randvars.RandomVariable:
-        """Evaluate the posterior at a measurement-free point.
-
-        Parameters
-        ----------
-        t :
-            Location to evaluate at.
-
-        Returns
-        -------
-        randvars.RandomVariable or _randomvariablelist._RandomVariableList
-            Dense evaluation.
-        """
         raise NotImplementedError
 
     def sample(
@@ -94,117 +82,29 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
                 base_measure_realizations=base_measure_realizations, t=self.locations
             )
 
-        # Promote locations to an array. This allows treating all inputs in the same way.
-        if np.isscalar(t):
-            t = np.atleast_1d(t)
-            squeeze_eventually = True
-        else:
-            squeeze_eventually = False
-        if not np.all(np.diff(t) >= 0.0):
-            raise ValueError("Time-points have to be sorted.")
-
-        # Second early exit if t is a subset of locations
-        # In this case, we don't want to append the values in `t` to self.locations
+        # Compute the union (as sets) of t and self.locations
+        # This allows that samples "always pass" the grid points.
+        # W don't want to append the values in `t` to self.locations
         # but instead, sample on self.locations and extract the relevant values.
-        if np.all(np.isin(t, self.locations)):
-            slice_these_out = np.where(np.isin(self.locations, t))[0]
-            base_measure_realizations = stats.norm.rvs(
-                size=(size + self.locations.shape + single_rv_shape),
-                random_state=random_state,
-            )
-            samples = self.transform_base_measure_realizations(
-                base_measure_realizations=base_measure_realizations, t=self.locations
-            )
-            new_samples = np.take(
-                samples, indices=slice_these_out, axis=-(single_rv_ndim + 1)
-            )
-            return new_samples
-
-        # Insert locations into self.locations and remember the positions.
-        indices = np.searchsorted(self.locations, t, side="left")
-        all_locations = np.insert(self.locations, indices, t)
-        t_in_all_locations = indices + np.arange(len(indices))
-
-        # Sample from the full list.
+        all_locations = np.union1d(t, self.locations)
+        slice_these_out = np.where(np.isin(all_locations, t))[0]
         base_measure_realizations = stats.norm.rvs(
             size=(size + all_locations.shape + single_rv_shape),
             random_state=random_state,
         )
-        transformed_realizations = self.transform_base_measure_realizations(
+        samples = self.transform_base_measure_realizations(
             base_measure_realizations=base_measure_realizations, t=all_locations
         )
-
-        # Extract and return the relevant positions.
-        samples = np.take(
-            transformed_realizations,
-            indices=t_in_all_locations,
-            axis=-(single_rv_ndim + 1),
+        new_samples = np.take(
+            samples, indices=slice_these_out, axis=-(single_rv_ndim + 1)
         )
-        if squeeze_eventually:
-            return np.take(samples, indices=0, axis=-(single_rv_ndim + 1))
-        return samples
-
-        #
-        # # Include the final point if a specific grid is demanded
-        # # and the rightmost point is left of the rightmost data point.
-        # # If this is not done, the samples are not from the full posterior.
-        # if t is None:
-        #     sampling_locs = self.locations
-        #     remove_final_point = False
-        # elif t[-1] >= self.locations[-1]:
-        #     sampling_locs = t
-        #     remove_final_point = False
-        # else:
-        #     sampling_locs = np.hstack((t, self.locations[-1]))
-        #     remove_final_point = True
-        #
-        # # Infer desired size of the base measure realizations and create them
-        # size = utils.as_shape(size)
-        # single_rv_shape = self.states[0].shape
-        # base_measure_realizations = stats.norm.rvs(
-        #     size=(size + sampling_locs.shape + single_rv_shape),
-        #     random_state=random_state,
-        # )
-        #
-        # # Transform samples and return the corresponding values.
-        # # If the final point was artificially added (see above), remove it again.
-        # transformed_realizations = self.transform_base_measure_realizations(
-        #     base_measure_realizations=base_measure_realizations, t=sampling_locs
-        # )
-        # if remove_final_point:
-        #     return self._remove_final_time_point(transformed_realizations)
-        #
-        # return transformed_realizations
-
-    #
-    # def _remove_final_time_point(self, transformed_realizations):
-    #     """Remove the transformed sample associated with the final time point from the
-    #     transformed samples.
-    #
-    #     Careful with the correct slicing!
-    #
-    #     Ignore all the size-related dimensions with the Ellipsis, and ignore the RV-shape-related
-    #     dimension with np.take.
-    #     The line below leaves the last `rv_ndim` dimensions untouched, removes the
-    #     last element from the `rv_ndim+1`th dimension (counted from the back) and
-    #     leaves the former dimensions untouched, too.
-    #     In other words, the transformed realization that corresponds to the added final RV is removed.
-    #
-    #     This is extracted into a function not only because it allows more thorough documentation, but we would
-    #     also like to reuse it in the KalmanODESolution.
-    #     """
-    #     rv_ndim = self.states[0].ndim
-    #     return np.take(
-    #         transformed_realizations,
-    #         indices=range(transformed_realizations.shape[-(rv_ndim + 1)] - 1),
-    #         axis=-(rv_ndim + 1),
-    #     )
+        return new_samples
 
     @abc.abstractmethod
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: DenseOutputLocationArgType,
     ) -> np.ndarray:
         """Transform samples from a base measure to samples from the KalmanPosterior.
 
@@ -280,7 +180,7 @@ class SmoothingPosterior(KalmanPosterior):
         # Corner case 2: are extrapolating to the left
         if previous_location is None:
             raise NotImplementedError("Extrapolation to the left is not implemented.")
-            # The code below would work, but since forward and backward transitions
+            # The code below would more or less work, but since forward and backward transitions
             # cannot handle negative time increments reliably, we do not support it.
             #
             ############################################################
@@ -294,7 +194,7 @@ class SmoothingPosterior(KalmanPosterior):
             #
             ############################################################
 
-        # Corner case 3: are extrapolating to the right
+        # Corner case 3: we are extrapolating to the right
         if next_location is None:
             dt = t - previous_location
             assert dt > 0.0
@@ -319,9 +219,8 @@ class SmoothingPosterior(KalmanPosterior):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t,
     ) -> np.ndarray:
-        t = np.asarray(t) if t is not None else None
 
         # Early exit: recursively compute multiple samples
         # if the desired sample size is not equal to '()', which is the case if
@@ -343,32 +242,14 @@ class SmoothingPosterior(KalmanPosterior):
         # The sample is computed by jointly sampling from the posterior.
         # On time points inside the domain, this is essentially a sequence of smoothing steps.
         # For extrapolation, samples are propagated forwards.
-
-        # Early exit: no time-grid, which means that samples are computed on the posterior.
-        if t is None or (
-            np.all(np.isin(t, self.locations)) and np.all(np.isin(self.locations, t))
-        ):
-            t = self.locations
-            states = self.filtering_posterior.states
-            return np.array(
-                self.transition.jointly_transform_base_measure_realization_list_backward(
-                    base_measure_realizations=base_measure_realizations,
-                    t=t,
-                    rv_list=states,
-                )
+        t = np.asarray(t) if t is not None else None
+        if not np.all(np.isin(self.locations, t)):
+            raise ValueError(
+                "Base measure realizations cannot be transformed if the locations don't include self.locations."
             )
 
-        # Promote locations to an array. This allows treating all inputs in the same way.
-        if np.isscalar(t):
-            t = np.atleast_1d(t)
-            squeeze_eventually = True
-        else:
-            t = np.asarray(t)
-            squeeze_eventually = False
         if not np.all(np.diff(t) >= 0.0):
             raise ValueError("Time-points have to be sorted.")
-
-        states = self.filtering_posterior(t)
 
         # Split into interpolation and extrapolation samples.
         # Note: t=tmax is in two arrays!
@@ -384,13 +265,16 @@ class SmoothingPosterior(KalmanPosterior):
                 "Sampling on the left of the time-domain is not implemented."
             )
 
-        # Split base measure realisations: the first N belong to the interpolation samples,
-        # and the final M belong to the extrapolation samples.
-        # Note again: the sample corresponding to tmax is double-counted.
+        # Split base measure realisations (which have, say, length N + M - 1):
+        # the first N realizations belong to the interpolation samples,
+        # and the final M realizations belong to the extrapolation samples.
+        # Note again: the sample corresponding to tmax belongs to both groups.
         base_measure_reals_inter = base_measure_realizations[: len(t_inter)]
         base_measure_reals_extra_right = base_measure_realizations[
             -len(t_extra_right) :
         ]
+
+        states = self.filtering_posterior(t)
         states_inter = states[: len(t_inter)]
         states_extra_right = states[-len(t_extra_right) :]
 
@@ -411,8 +295,8 @@ class SmoothingPosterior(KalmanPosterior):
         )
         samples = np.concatenate((samples_inter[:-1], samples_extra), axis=0)
 
-        if squeeze_eventually:
-            return samples[0]
+        # if squeeze_eventually:
+        #     return samples[0]
         return samples
 
         #

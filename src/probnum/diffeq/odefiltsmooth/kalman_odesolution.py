@@ -111,7 +111,6 @@ class KalmanODESolution(ODESolution):
         samples = self.kalman_posterior.sample(
             t=t, size=size, random_state=random_state
         )
-
         # Project the samples down to the "true" KalmanODESolution dimensions
         # (which are a subset of the KalmanPosterior dimensions)
         ode_samples = np.einsum("dq,...q->...d", self.proj_to_y, samples)

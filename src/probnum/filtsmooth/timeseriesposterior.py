@@ -198,7 +198,7 @@ class TimeSeriesPosterior(abc.ABC):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: Optional[DenseOutputLocationArgType],
     ) -> np.ndarray:
         """Transform a set of realizations from a base measure into realizations from
         the posterior.
