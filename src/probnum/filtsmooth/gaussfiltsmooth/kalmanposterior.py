@@ -213,12 +213,20 @@ class SmoothingPosterior(KalmanPosterior):
 
         # Corner case 2: are extrapolating to the left
         if previous_location is None:
-            dt = t - next_location
-            assert dt < 0.0
-            extrapolated_rv_left, _ = self.transition.forward_rv(
-                next_state, t=next_location, dt=dt
-            )
-            return extrapolated_rv_left
+            raise NotImplementedError("Extrapolation to the left is not implemented.")
+            # The code below would work, but since forward and backward transitions
+            # cannot handle negative time increments reliably, we do not support it.
+            #
+            ############################################################
+            #
+            # dt = t - next_location
+            # assert dt < 0.0
+            # extrapolated_rv_left, _ = self.transition.forward_rv(
+            #     next_state, t=next_location, dt=dt
+            # )
+            # return extrapolated_rv_left
+            #
+            ############################################################
 
         # Corner case 3: are extrapolating to the right
         if next_location is None:
@@ -241,21 +249,6 @@ class SmoothingPosterior(KalmanPosterior):
             rv_obtained=next_state, rv=filtered_rv, t=t, dt=dt_right
         )
         return smoothed_rv
-        #
-        # pred_rv = self.filtering_posterior.interpolate(t)
-        # next_idx = self._find_previous_index(t) + 1
-        #
-        # # Early exit if we are extrapolating
-        # if next_idx >= len(self.locations):
-        #     return pred_rv
-        #
-        # next_t = self.locations[next_idx]
-        # next_rv = self.states[next_idx]
-        #
-        # # Actual smoothing step
-        # curr_rv, _ = self.transition.backward_rv(next_rv, pred_rv, t=t, dt=next_t - t)
-        #
-        # return curr_rv
 
     def transform_base_measure_realizations(
         self,
@@ -308,24 +301,50 @@ class FilteringPosterior(KalmanPosterior):
         next_location: Optional[FloatArgType] = None,
         next_state: Optional[randvars.RandomVariable] = None,
     ) -> randvars.RandomVariable:
-        """Predict to the present point.
 
-        Parameters
-        ----------
-        t :
-            Location to evaluate at.
+        # Assert either previous_location or next_location is not None
+        if previous_location is None and next_location is None:
+            raise ValueError
 
-        Returns
-        -------
-        randvars.RandomVariable
-            Dense evaluation.
-        """
-        previous_idx = self._find_previous_index(t)
-        previous_t = self.locations[previous_idx]
-        previous_rv = self.states[previous_idx]
+        # Corner case 1: point is on grid
+        if t == previous_location:
+            return previous_state
+        if t == next_location:
+            return next_state
 
-        rv, _ = self.transition.forward_rv(previous_rv, t=previous_t, dt=t - previous_t)
-        return rv
+        # Corner case 2: are extrapolating to the left
+        if previous_location is None:
+            raise NotImplementedError("Extrapolation to the left is not implemented.")
+            # The code below would work, but since forward and backward transitions
+            # cannot handle negative time increments reliably, we do not support it.
+            #
+            ############################################################
+            #
+            # dt = t - next_location
+            # assert dt < 0.0
+            # extrapolated_rv_left, _ = self.transition.forward_rv(
+            #     next_state, t=next_location, dt=dt
+            # )
+            # return extrapolated_rv_left
+            #
+            ############################################################
+
+        # Corner case 3: are extrapolating to the right
+        if next_location is None:
+            dt = t - previous_location
+            assert dt > 0.0
+            extrapolated_rv_right, _ = self.transition.forward_rv(
+                previous_state, t=previous_location, dt=dt
+            )
+            return extrapolated_rv_right
+
+        # Final case: we are interpolating. Both locations are not None.
+        dt_left = t - previous_location
+        assert dt_left > 0.0
+        filtered_rv, _ = self.transition.forward_rv(
+            rv=previous_state, t=previous_location, dt=dt_left
+        )
+        return filtered_rv
 
     def sample(
         self,

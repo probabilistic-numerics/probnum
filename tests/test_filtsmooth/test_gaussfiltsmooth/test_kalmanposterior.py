@@ -73,7 +73,7 @@ def test_states(posterior):
 def test_call_error_if_small(posterior):
     """Evaluating in the past of the data raises an error."""
     assert -0.5 < posterior.locations[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         posterior(-0.5)
 
 

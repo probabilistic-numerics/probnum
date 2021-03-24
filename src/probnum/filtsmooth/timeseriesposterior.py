@@ -70,23 +70,25 @@ class TimeSeriesPosterior(abc.ABC):
         randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Estimate of the states at time ``t``.
         """
+
         if np.isscalar(t):
             t = np.atleast_1d(t)
             squeeze_eventually = True
         else:
             squeeze_eventually = False
-        locations = self.locations
-        states = np.asarray(self.states)
+
+        if not np.all(np.diff(t) >= 0.0):
+            raise ValueError("Time-points have to be sorted.")
 
         # Split left-extrapolation, interpolation, right_extrapolation
-        t0, tmax = np.amin(locations), np.amax(locations)
+        t0, tmax = np.amin(self.locations), np.amax(self.locations)
         t_extra_left = t[t < t0]
         t_extra_right = t[t > tmax]
         t_inter = t[(t0 <= t) & (t <= tmax)]
 
         # Indices of t where they would be inserted
         # into self.locations ("left": right-closest states)
-        indices = np.searchsorted(locations, t_inter, side="left")
+        indices = np.searchsorted(self.locations, t_inter, side="left")
         interpolated_values = [
             self.interpolate(
                 t=ti,
@@ -97,9 +99,9 @@ class TimeSeriesPosterior(abc.ABC):
             )
             for ti, prevloc, prevstate, nextloc, nextstate in zip(
                 t_inter,
-                locations[indices - 1],
+                self.locations[indices - 1],
                 self._states_left_of_location[indices - 1],
-                locations[indices],
+                self.locations[indices],
                 self._states_right_of_location[indices],
             )
         ]
@@ -217,16 +219,28 @@ class TimeSeriesPosterior(abc.ABC):
             "Transforming base measure realizations is not implemented."
         )
 
-    def _find_previous_index(self, loc):
-        return (self.locations < loc).sum() - 1
-
-    def _find_index(self, loc):
-        return self.locations.tolist().index(loc)
-
     @property
     def _states_left_of_location(self):
+        """Return the set of states that is used to find the LEFTMOST states of a given
+        time point in a way that supports slicing with the output of numpy.searchsorted.
+
+        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
+        because then the _RandomVariableList functionality would be lost.
+
+
+        Note: This exists as a property, because for the KalmanSmoothingPosterior, the leftmost states
+        are extracted from the filtering posterior, not the smoothing posterior, which can be overwritten here.
+        """
         return np.asarray(self.states)
 
     @property
     def _states_right_of_location(self):
+        """Return the set of states that is used to find the RIGHTMOST states of a given
+        time point in a way that supports slicing with the output of numpy.searchsorted.
+
+        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
+        because then the _RandomVariableList functionality would be lost.
+
+        This exists as a property because the leftmost states exist as a property and who knows when we need it like that.
+        """
         return np.asarray(self.states)
