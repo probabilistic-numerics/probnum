@@ -205,6 +205,7 @@ class LinearSDE(SDE):
             rv,
             _diffusion=_diffusion,
         )
+        # Dense output for lambda-expression
         sol = scipy.integrate.solve_ivp(
             mde,
             (t, t + dt),
@@ -212,7 +213,6 @@ class LinearSDE(SDE):
             method=self.mde_solver,
             atol=self.mde_atol,
             rtol=self.mde_rtol,
-            # Dense output for lambda-expression
             dense_output=True,
         )
         dim = rv.mean.shape[0]
@@ -242,6 +242,8 @@ class LinearSDE(SDE):
             rv_obtained,
             _diffusion=_diffusion,
         )
+        # Use forward solution for mean and covariance in scipy's ivp
+        # Dense output for lambda-expression
         sol = scipy.integrate.solve_ivp(
             mde,
             (t + dt, t),
@@ -249,9 +251,7 @@ class LinearSDE(SDE):
             method=self.mde_solver,
             atol=self.mde_atol,
             rtol=self.mde_rtol,
-            # Use forward solution for mean and covariance in scipy's ivp
             args=(mde_forward_sol_mean, mde_forward_sol_cov),
-            # Dense output for lambda-expression
             dense_output=True,
         )
         dim = rv.mean.shape[0]
@@ -298,13 +298,13 @@ class LinearSDE(SDE):
 
         return f, y0
 
-    def _setup_vectorized_mde_backward(self, initrv_obtained, _diffusion=1.0):
+    def _setup_vectorized_mde_backward(self, finalrv_obtained, _diffusion=1.0):
         """Set up backward moment differential equations (MDEs).
 
         Compute an ODE vector field that represents the MDEs and is
         compatible with scipy.solve_ivp.
         """
-        dim = len(initrv_obtained.mean)
+        dim = len(finalrv_obtained.mean)
 
         def f(t, y, mde_forward_sol_mean, mde_forward_sol_cov):
             # Undo vectorization
@@ -316,18 +316,21 @@ class LinearSDE(SDE):
             u = self.forcevecfun(t)
             L = self.dispmatfun(t)
 
-            LL = _diffusion * L @ L.T
-            LL_inv_cov = LL @ np.linalg.inv(mde_forward_sol_cov(t))
+            mde_forward_sol_cov_mat = mde_forward_sol_cov(t)
+            mde_forward_sol_mean_vec = mde_forward_sol_mean(t)
 
-            new_mean = F @ mean + LL_inv_cov @ (mean - mde_forward_sol_mean(t)) + u
+            LL = _diffusion * L @ L.T
+            LL_inv_cov = np.linalg.solve(mde_forward_sol_cov_mat, LL.T).T
+
+            new_mean = F @ mean + LL_inv_cov @ (mean - mde_forward_sol_mean_vec) + u
             new_cov = (F + LL_inv_cov) @ cov + cov @ (F + LL_inv_cov).T - LL
 
             new_cov_flat = new_cov.flatten()
             y_new = np.hstack((new_mean, new_cov_flat))
             return y_new
 
-        initcov_flat = initrv_obtained.cov.flatten()
-        y0 = np.hstack((initrv_obtained.mean, initcov_flat))
+        finalcov_flat = finalrv_obtained.cov.flatten()
+        y0 = np.hstack((finalrv_obtained.mean, finalcov_flat))
 
         return f, y0
 
@@ -386,6 +389,10 @@ class LTISDE(LinearSDE):
         _diffusion=1.0,
         **kwargs,
     ):
+        if dt is None:
+            raise ValueError(
+                "Continuous-time transitions require a time-increment ``dt``."
+            )
         discretised_model = self.discretise(dt=dt)
         return discretised_model.forward_rv(
             rv, t, compute_gain=compute_gain, _diffusion=_diffusion
@@ -402,6 +409,10 @@ class LTISDE(LinearSDE):
         _diffusion=1.0,
         **kwargs,
     ):
+        if dt is None:
+            raise ValueError(
+                "Continuous-time transitions require a time-increment ``dt``."
+            )
         discretised_model = self.discretise(dt=dt)
         return discretised_model.backward_rv(
             rv_obtained=rv_obtained,
