@@ -113,6 +113,18 @@ class TestLinearSDE(TestSDE):
         )
         assert isinstance(out, randvars.Normal)
 
+    def test_forward_realization_value_error_caught(self, some_normal_rv1):
+        with pytest.raises(ValueError):
+            self.transition.forward_realization(some_normal_rv1.sample(), t=0.0)
+
+    def test_backward_realization_value_error_caught(
+        self, some_normal_rv1, some_normal_rv2
+    ):
+        with pytest.raises(ValueError):
+            out, _ = self.transition.backward_realization(
+                some_normal_rv1.sample(), some_normal_rv2, t=0.0, dt=None
+            )
+
 
 class TestLTISDE(TestLinearSDE):
 
