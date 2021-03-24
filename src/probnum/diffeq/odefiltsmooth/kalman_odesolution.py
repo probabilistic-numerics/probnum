@@ -120,7 +120,7 @@ class KalmanODESolution(ODESolution):
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: Optional[DenseOutputLocationArgType] = None,
+        t: DenseOutputLocationArgType = None,
     ) -> np.ndarray:
         errormsg = (
             "The KalmanODESolution does not implement transformation of realizations of a base measure."

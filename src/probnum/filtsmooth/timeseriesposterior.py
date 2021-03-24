@@ -70,7 +70,11 @@ class TimeSeriesPosterior(abc.ABC):
         randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Estimate of the states at time ``t``.
         """
-
+        # The variable "squeeze_eventually" indicates whether
+        # the dimension of the time-array has been promoted
+        # (which is there for a well-behaved loop).
+        # If this has been the case, the final result needs to be
+        # reshaped ("squeezed") accordingly.
         if np.isscalar(t):
             t = np.atleast_1d(t)
             squeeze_eventually = True

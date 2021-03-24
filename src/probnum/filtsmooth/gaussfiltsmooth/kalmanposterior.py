@@ -84,8 +84,6 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
 
         # Compute the union (as sets) of t and self.locations
         # This allows that samples "always pass" the grid points.
-        # W don't want to append the values in `t` to self.locations
-        # but instead, sample on self.locations and extract the relevant values.
         all_locations = np.union1d(t, self.locations)
         slice_these_out = np.where(np.isin(all_locations, t))[0]
         base_measure_realizations = stats.norm.rvs(
@@ -120,7 +118,8 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
             is that samples at arbitrary locations need to be conditioned on
             a sample at the final time point.
         t :
-            Times. Optional. If None, samples are drawn at `self.locations`.
+            **Shape (N,).**
+            Time points. Must include `self.locations`.Shape
 
         Returns
         -------
@@ -168,10 +167,11 @@ class SmoothingPosterior(KalmanPosterior):
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
+        # Otherwise, there is no reference point that can be used for interpolation.
         if previous_location is None and next_location is None:
             raise ValueError
 
-        # Corner case 1: point is on grid
+        # Corner case 1: point is on grid. In this case, don't compute anything.
         if t == previous_location:
             return previous_state
         if t == next_location:
@@ -204,6 +204,8 @@ class SmoothingPosterior(KalmanPosterior):
             return extrapolated_rv_right
 
         # Final case: we are interpolating. Both locations are not None.
+        # In this case, filter from the the left to the middle point;
+        # And compute a smoothing update from the middle to the RHS point.
         dt_left = t - previous_location
         dt_right = next_location - t
         assert dt_left > 0.0
@@ -238,10 +240,9 @@ class SmoothingPosterior(KalmanPosterior):
                 ]
             )
 
-        # Now we are in the setting of computing a single sample.
-        # The sample is computed by jointly sampling from the posterior.
+        # Now we are in the setting of jointly sampling a single realization from the posterior.
         # On time points inside the domain, this is essentially a sequence of smoothing steps.
-        # For extrapolation, samples are propagated forwards.
+
         t = np.asarray(t) if t is not None else None
         if not np.all(np.isin(self.locations, t)):
             raise ValueError(
@@ -252,6 +253,8 @@ class SmoothingPosterior(KalmanPosterior):
             raise ValueError("Time-points have to be sorted.")
 
         # Split into interpolation and extrapolation samples.
+        # For extrapolation, samples are propagated forwards.
+        # Due to this distinction, we need to treat both cases differently.
         # Note: t=tmax is in two arrays!
         # This is on purpose, because sample realisations need to be
         # "communicated" between interpolation and extrapolation.
@@ -285,7 +288,6 @@ class SmoothingPosterior(KalmanPosterior):
                 rv_list=states_inter,
             )
         )
-
         samples_extra = np.array(
             self.transition.jointly_transform_base_measure_realization_list_forward(
                 base_measure_realizations=base_measure_reals_extra_right,
@@ -294,34 +296,7 @@ class SmoothingPosterior(KalmanPosterior):
             )
         )
         samples = np.concatenate((samples_inter[:-1], samples_extra), axis=0)
-
-        # if squeeze_eventually:
-        #     return samples[0]
         return samples
-
-        #
-        #
-        # # Split left-extrapolation, interpolation, right_extrapolation
-        # t0, tmax = np.amin(self.locations), np.amax(self.locations)
-        # t_extra_left = t[t < t0]
-        # t_extra_right = t[t > tmax]
-        # t_inter = t[(t0 <= t) & (t <= tmax)]
-        #
-        # # Indices of t where they would be inserted
-        # # into self.locations ("left": right-closest states)
-        # indices = np.searchsorted(self.locations, t_inter, side="left")
-        #
-        # # The final location is contained in  't' if this function is called from sample().
-        # # If `transform_base_measure_realizations()` is called directly from the outside,
-        # # you better know what you're doing ;)
-        # rv_list = self.filtering_posterior(t)
-        # return np.array(
-        #     self.transition.jointly_transform_base_measure_realization_list_backward(
-        #         base_measure_realizations=base_measure_realizations,
-        #         t=t,
-        #         rv_list=rv_list,
-        #     )
-        # )
 
     @property
     def _states_left_of_location(self):
