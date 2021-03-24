@@ -80,36 +80,84 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
 
-        # Include the final point if a specific grid is demanded
-        # and the rightmost point is left of the rightmost data point.
-        # If this is not done, the samples are not from the full posterior.
-        if t is None:
-            sampling_locs = self.locations
-            remove_final_point = False
-        elif t[-1] >= self.locations[-1]:
-            sampling_locs = t
-            remove_final_point = False
-        else:
-            sampling_locs = np.hstack((t, self.locations[-1]))
-            remove_final_point = True
-
-        # Infer desired size of the base measure realizations and create them
         size = utils.as_shape(size)
         single_rv_shape = self.states[0].shape
+        single_rv_ndim = self.states[0].ndim
+
+        # Early exit if no dense output is required
+        if t is None:
+            base_measure_realizations = stats.norm.rvs(
+                size=(size + self.locations.shape + single_rv_shape),
+                random_state=random_state,
+            )
+            return self.transform_base_measure_realizations(
+                base_measure_realizations=base_measure_realizations, t=self.locations
+            )
+
+        # Promote locations to an array.
+        if np.isscalar(t):
+            t = np.atleast_1d(t)
+            squeeze_eventually = True
+        else:
+            squeeze_eventually = False
+        if not np.all(np.diff(t) >= 0.0):
+            raise ValueError("Time-points have to be sorted.")
+
+        # Insert locations into self.locations and remember the positions.
+        indices = np.searchsorted(self.locations, t, side="left")
+        all_locations = np.insert(self.locations, indices, t)
+        t_in_all_locations = indices + np.arange(len(indices))
+
+        # Sample from the full list.
         base_measure_realizations = stats.norm.rvs(
-            size=(size + sampling_locs.shape + single_rv_shape),
+            size=(size + all_locations.shape + single_rv_shape),
             random_state=random_state,
         )
-
-        # Transform samples and return the corresponding values.
-        # If the final point was artificially added (see above), remove it again.
         transformed_realizations = self.transform_base_measure_realizations(
-            base_measure_realizations=base_measure_realizations, t=sampling_locs
+            base_measure_realizations=base_measure_realizations, t=all_locations
         )
-        if remove_final_point:
-            return self._remove_final_time_point(transformed_realizations)
 
-        return transformed_realizations
+        # Extract and return the relevant positions.
+        samples = np.take(
+            transformed_realizations,
+            indices=t_in_all_locations,
+            axis=-(single_rv_ndim + 1),
+        )
+        if squeeze_eventually:
+            return np.take(samples, indices=0, axis=-(rv_ndim + 1))
+        return samples
+
+        #
+        # # Include the final point if a specific grid is demanded
+        # # and the rightmost point is left of the rightmost data point.
+        # # If this is not done, the samples are not from the full posterior.
+        # if t is None:
+        #     sampling_locs = self.locations
+        #     remove_final_point = False
+        # elif t[-1] >= self.locations[-1]:
+        #     sampling_locs = t
+        #     remove_final_point = False
+        # else:
+        #     sampling_locs = np.hstack((t, self.locations[-1]))
+        #     remove_final_point = True
+        #
+        # # Infer desired size of the base measure realizations and create them
+        # size = utils.as_shape(size)
+        # single_rv_shape = self.states[0].shape
+        # base_measure_realizations = stats.norm.rvs(
+        #     size=(size + sampling_locs.shape + single_rv_shape),
+        #     random_state=random_state,
+        # )
+        #
+        # # Transform samples and return the corresponding values.
+        # # If the final point was artificially added (see above), remove it again.
+        # transformed_realizations = self.transform_base_measure_realizations(
+        #     base_measure_realizations=base_measure_realizations, t=sampling_locs
+        # )
+        # if remove_final_point:
+        #     return self._remove_final_time_point(transformed_realizations)
+        #
+        # return transformed_realizations
 
     def _remove_final_time_point(self, transformed_realizations):
         """Remove the transformed sample associated with the final time point from the
