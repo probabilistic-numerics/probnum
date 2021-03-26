@@ -73,7 +73,7 @@ def test_states(posterior):
 def test_call_error_if_small(posterior):
     """Evaluating in the past of the data raises an error."""
     assert -0.5 < posterior.locations[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         posterior(-0.5)
 
 
@@ -168,6 +168,7 @@ def test_sampling_shapes_1d(locs, size):
             base_measure_reals, t=posterior.locations
         )
     else:
+        locs = np.union1d(locs, posterior.locations)
         base_measure_reals = np.random.randn(*(size + (len(locs),)) + (1,))
         samples = posterior.transform_base_measure_realizations(
             base_measure_reals, t=locs
