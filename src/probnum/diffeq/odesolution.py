@@ -41,14 +41,19 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             else None
         )
 
-    def interpolate(
-        self,
-        t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
-    ) -> randvars.RandomVariable:
+    def interpolate(self, t: FloatArgType) -> randvars.RandomVariable:
+        """Evaluate the posterior at a non-grid point.
+
+        Parameters
+        ----------
+        t :
+            Location to evaluate at.
+
+        Returns
+        -------
+        randvars.RandomVariable or _randomvariablelist._RandomVariableList
+            Dense evaluation.
+        """
         raise NotImplementedError("Dense output is not implemented.")
 
     def __len__(self) -> int:
@@ -77,15 +82,13 @@ class ODESolution(filtsmooth.TimeSeriesPosterior):
             This is not the same as computing i.i.d samples at the respective locations.
         size
             Number of samples.
-        random_state :
-            Random state used for sampling.
         """
         raise NotImplementedError("Sampling is not implemented.")
 
     def transform_base_measure_realizations(
         self,
         base_measure_realizations: np.ndarray,
-        t: DenseOutputLocationArgType,
+        t: Optional[DenseOutputLocationArgType] = None,
     ) -> np.ndarray:
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."

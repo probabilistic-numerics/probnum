@@ -1,10 +1,7 @@
-"""Convenience function(s) for state space models."""
-
 import numpy as np
-import scipy.stats
 
 
-def generate_samples(dynmod, measmod, initrv, times, random_state=None):
+def generate_samples(dynmod, measmod, initrv, times):
     """Samples true states and observations at pre-determined timesteps "times" for a
     state space model.
 
@@ -18,9 +15,10 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
         Random variable according to initial distribution
     times : np.ndarray, shape (n,)
         Timesteps on which the states are to be sampled.
-    random_state :
-        Random state that is used to generate the samples from the latent state.
-        The measurement samples are not affected by this.
+    num_steps : int
+        Number of steps to be taken for numerical integration
+        of the continuous prior model. Optional. Default is 5.
+        Irrelevant for time-invariant or discrete models.
 
     Returns
     -------
@@ -29,20 +27,21 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
     obs : np.ndarray; shape (len(times), measmod.dimension)
         Observations according to measurement model.
     """
+    states = np.zeros((len(times), measmod.input_dim))
     obs = np.zeros((len(times), measmod.output_dim))
 
-    base_measure_realizations_latent_state = scipy.stats.norm.rvs(
-        size=(times.shape + (measmod.input_dim,)), random_state=random_state
-    )
-    latent_states = np.array(
-        dynmod.jointly_transform_base_measure_realization_list_forward(
-            base_measure_realizations=base_measure_realizations_latent_state,
-            t=times,
-            initrv=initrv,
-        )
-    )
+    # initial observation point
+    states[0] = initrv.sample()
+    next_obs_rv, _ = measmod.forward_realization(realization=states[0], t=times[0])
+    obs[0] = next_obs_rv.sample()
 
-    for idx, (state, t) in enumerate(zip(latent_states, times)):
-        measured_rv, _ = measmod.forward_realization(state, t=t)
-        obs[idx] = measured_rv.sample()
-    return latent_states, obs
+    # all future points
+    for idx in range(1, len(times)):
+        t, dt = times[idx - 1], times[idx] - times[idx - 1]
+        next_state_rv, _ = dynmod.forward_realization(
+            realization=states[idx - 1], t=t, dt=dt
+        )
+        states[idx] = next_state_rv.sample()
+        next_obs_rv, _ = measmod.forward_realization(realization=states[idx], t=t)
+        obs[idx] = next_obs_rv.sample()
+    return states, obs
