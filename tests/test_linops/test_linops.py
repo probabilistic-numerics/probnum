@@ -170,7 +170,7 @@ def test_logabsdet(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         np.testing.assert_allclose(linop_logabsdet, matrix_logabsdet)
     else:
         with pytest.raises(np.linalg.LinAlgError):
-            linop.det()
+            linop.logabsdet()
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
