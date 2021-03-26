@@ -486,7 +486,7 @@ class Identity(ScalarMult):
 
     # Properties
     def rank(self):
-        return probnum.utils.as_numpy_scalar(self.shape[0], dtype=np.int_)
+        return probnum.utils.as_numpy_scalar(self.shape[0], dtype=np.intp)
 
     def eigvals(self):
         return np.ones(self.shape[0])

@@ -76,7 +76,7 @@ def test_rank(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     linop_rank = linop.rank()
     matrix_rank = np.linalg.matrix_rank(matrix)
 
-    assert isinstance(linop_rank, np.int_)
+    assert isinstance(linop_rank, np.intp)
     assert linop_rank.shape == ()
     assert linop_rank.dtype == matrix_rank.dtype
 
