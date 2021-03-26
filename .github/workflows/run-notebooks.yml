@@ -18,6 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd /
           python -m pip install --upgrade pip
           sudo apt-get install $(cat apt.txt)
           pip install -r docs/requirements.txt
