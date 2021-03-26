@@ -21,7 +21,7 @@ class ODESolver(ABC):
         """
         times, rvs = [], []
         for t, rv in self.solver_steps(steprule):
-            times.append(t), rvs.append(rv)
+            times.append(t), rvs.append(rv)  # pylint: discable=expression-not-assigned
 
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         odesol = self.postprocess(odesol)
