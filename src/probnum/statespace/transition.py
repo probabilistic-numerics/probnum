@@ -343,7 +343,9 @@ class Transition(abc.ABC):
             curr_sample = (
                 curr_rv.mean
                 + curr_rv.cov_cholesky
-                @ base_measure_realizations[idx - 1].reshape((-1,))
+                @ base_measure_realizations[idx - 1].reshape(
+                    -1,
+                )
             )
             out_samples.append(curr_sample)
 
