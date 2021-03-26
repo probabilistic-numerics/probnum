@@ -20,14 +20,16 @@ class ODESolver(ABC):
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
         times, rvs = [], []
-        for t, rv in self.steps(steprule):
+        for t, rv in self.solver_steps(steprule):
             times.append(t), rvs.append(rv)
 
         odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
         odesol = self.postprocess(odesol)
         return odesol
 
-    def steps(self, steprule):
+    def solver_steps(self, steprule):
+        """Generate ODE solver steps."""
+
         t, current_rv = self.initialise()
 
         yield t, current_rv
