@@ -359,8 +359,22 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
     def __rmatmul__(
         self, other: BinaryOperandType
     ) -> Union["LinearOperator", np.ndarray]:
-        # TODO: rmatvec and rmatmat
-        return NotImplemented
+        if isinstance(other, LinearOperator):
+            from ._arithmetic import matmul  # pylint: disable=import-outside-toplevel
+
+            return matmul(other, self)
+        else:
+            if len(other.shape) == 1:
+                return self.rmatvec(other)
+            elif len(other.shape) == 2 and other.shape[0] == 1:
+                return self.rmatvec(other[0, :])[None, :]
+            elif len(other.shape) == 2:
+                return self.rmatmat(other)
+            else:
+                raise ValueError(
+                    f"Expected 1-d or 2-d array, matrix or random variable, got "
+                    f"{other}."
+                )
 
 
 class _CustomLinearOperator(
@@ -371,6 +385,9 @@ class _CustomLinearOperator(
     def __init__(
         self, shape, matvec, rmatvec=None, matmat=None, rmatmat=None, dtype=None
     ):
+        if rmatvec is None:
+            rmatvec = lambda x: np.conj(self.todense().T @ np.conj(x))
+
         super().__init__(
             shape=shape,
             matvec=matvec,
@@ -524,6 +541,9 @@ class MatrixMult(scipy.sparse.linalg.interface.MatrixLinearOperator, LinearOpera
 
     def _matvec(self, x):
         return self.A @ x  # Needed to call __matmul__ instead of np.dot or np.matmul
+
+    def _rmatvec(self, x):
+        return np.conj(self.A.T @ np.conj(x))
 
     def _matmat(self, X):
         return self.A @ X

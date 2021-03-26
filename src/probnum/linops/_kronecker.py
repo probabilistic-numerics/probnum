@@ -300,9 +300,14 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
                 "Linear operators A and B must be square and have the same dimensions."
             )
 
+        if self._ABequal:
+            dtype = self.A.dtype
+        else:
+            dtype = np.result_type(self.A.dtype, self.B.dtype, 0.5)
+
         # Initiator of superclass
         super().__init__(
-            dtype=np.result_type(self.A.dtype, self.B.dtype, np.inexact),
+            dtype=dtype,
             shape=(self._n ** 2, self._n ** 2),
         )
 
@@ -314,9 +319,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         X = x.reshape(self._n, self._n)
 
         # (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T)
-        Y1 = (self.A @ (self.B @ X).T).T
-        Y2 = (self.B @ (self.A @ X).T).T
-        Y = 0.5 * (Y1 + Y2)
+        if self._ABequal:
+            Y = (self.A @ (self.A @ X).T).T
+        else:
+            Y1 = (self.A @ (self.B @ X).T).T
+            Y2 = (self.B @ (self.A @ X).T).T
+            Y = 0.5 * (Y1 + Y2)
+
         return Y.ravel()
 
     def _rmatvec(self, x):
@@ -325,9 +334,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         X = x.reshape(self._n, self._n)
 
         # (A^T (x)_s B^T)vec(X) = 1/2 vec(B^T XA + A^T XB)
-        Y1 = (self.A.H @ (self.B.H @ X).T).T
-        Y2 = (self.B.H @ (self.A.H @ X).T).T
-        Y = 0.5 * (Y1 + Y2)
+        if self._ABequal:
+            Y = (self.A.H @ (self.A.H @ X).T).T
+        else:
+            Y1 = (self.A.H @ (self.B.H @ X).T).T
+            Y2 = (self.B.H @ (self.A.H @ X).T).T
+            Y = 0.5 * (Y1 + Y2)
+
         return Y.ravel()
 
     # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker
@@ -336,9 +349,20 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     def todense(self):
         """Dense representation of the symmetric Kronecker product."""
         # 1/2 (A (x) B + B (x) A)
-        A_dense = self.A.todense()
-        B_dense = self.B.todense()
-        return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
+        if self._ABequal:
+            A_dense = self.A.todense()
+            return np.kron(A_dense, A_dense)
+        else:
+            A_dense = self.A.todense()
+            B_dense = self.B.todense()
+            return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
+
+    def transpose(self):
+        # (A (x) B)^T = A^T (x) B^T
+        if self._ABequal:
+            return SymmetricKronecker(A=self.A.transpose())
+        else:
+            return SymmetricKronecker(A=self.A.transpose(), B=self.B.transpose())
 
     def inv(self):
         # (A (x)_s A)^-1 = A^-1 (x)_s A^-1

@@ -5,7 +5,11 @@ import pytest
 
 import probnum as pn
 
-matrices = [np.array([[-1.5, 3], [0, -230]]), np.array([[2, 0], [1, 3]])]
+matrices = [
+    np.array([[-1.5, 3], [0, -230]]),
+    np.array([[2, 0], [1, 3]]),
+    np.array([[2, 0, -1.5], [1, 3, -230]]),
+]
 
 
 @pytest.mark.parametrize("matrix", matrices)

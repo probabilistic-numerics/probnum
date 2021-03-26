@@ -61,6 +61,35 @@ def test_matvec(
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_rmatvec(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+    random_state: np.random.RandomState,
+):
+    vec = random_state.normal(size=linop.shape[0])
+
+    # Shape (n,)
+    linop_matvec = vec @ linop
+    matrix_matvec = vec @ matrix
+
+    assert linop_matvec.ndim == 1
+    assert linop_matvec.shape == matrix_matvec.shape
+    assert linop_matvec.dtype == matrix_matvec.dtype
+
+    np.testing.assert_allclose(linop_matvec, matrix_matvec)
+
+    # Shape (1, n)
+    linop_matvec_n1 = vec[None, :] @ linop
+    matrix_matvec_n1 = vec[None, :] @ matrix
+
+    assert linop_matvec_n1.ndim == 2
+    assert linop_matvec_n1.shape == matrix_matvec_n1.shape
+    assert linop_matvec_n1.dtype == matrix_matvec_n1.dtype
+
+    np.testing.assert_allclose(linop_matvec_n1, matrix_matvec_n1)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_todense(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     linop_dense = linop.todense()
 
