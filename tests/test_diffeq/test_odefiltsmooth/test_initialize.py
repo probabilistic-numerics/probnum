@@ -24,11 +24,7 @@ except ImportError:
 
 
 # Pytest decorators to select tests for each case
-# only_if_jax_available = pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
-
-
-# There is a weird jax problem, below is a temporary fix (warning: all tests below will be skipped).
-only_if_jax_available = pytest.mark.skip
+only_if_jax_available = pytest.mark.skipif(not JAX_AVAILABLE, reason="requires jax")
 
 
 @pytest.fixture
