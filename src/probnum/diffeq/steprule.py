@@ -1,3 +1,5 @@
+"""Rules for adaptive and constant step-size selection."""
+
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 

@@ -3,7 +3,7 @@ import pytest
 
 from probnum.diffeq import ode
 from probnum.diffeq.odefiltsmooth import KalmanODESolution, probsolve_ivp
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ def test_adaptive_solver_successful(
     assert isinstance(sol, KalmanODESolution)
 
     # Adaptive steps are not evenly distributed
-    step_diff = np.diff(sol.t)
+    step_diff = np.diff(sol.locations)
     step_ratio = np.amin(step_diff) / np.amax(step_diff)
     assert step_ratio < 0.5
 

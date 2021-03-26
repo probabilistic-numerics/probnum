@@ -1,11 +1,4 @@
-"""Import convenience functions in optim.py to create an intuitive, numpy-like
-interface.
-
-Note
-----
-Local import, because with a global import this does not seem
-to work.
-"""
+"""ODE Filtering."""
 
 from .diffusions import ConstantDiffusion, Diffusion, PiecewiseConstantDiffusion
 from .initialize import (

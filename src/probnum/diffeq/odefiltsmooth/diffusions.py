@@ -9,7 +9,7 @@ import abc
 
 import numpy as np
 
-from probnum import random_variables
+from probnum import randvars
 from probnum.type import ToleranceDiffusionType
 
 
@@ -101,9 +101,7 @@ class ConstantDiffusion(Diffusion):
             return error_free_diffusion
 
     def calibrate_all_states(self, states, locations):
-        return [
-            random_variables.Normal(rv.mean, self.diffusion * rv.cov) for rv in states
-        ]
+        return [randvars.Normal(rv.mean, self.diffusion * rv.cov) for rv in states]
 
 
 class PiecewiseConstantDiffusion(Diffusion):

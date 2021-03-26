@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 
 
 class TestRandomVariableList(unittest.TestCase):
@@ -46,6 +46,9 @@ class TestRandomVariableList(unittest.TestCase):
     def test_getitem(self):
         item = self.rv_list[0]
         self.assertIsInstance(item, Constant)
+
+    def test_shape(self):
+        self.assertEqual(self.rv_list.shape, (2,))
 
 
 class TestEmptyRandomVariableList(unittest.TestCase):

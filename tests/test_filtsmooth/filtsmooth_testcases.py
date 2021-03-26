@@ -6,7 +6,7 @@ import numpy as np
 import probnum.diffeq as pnd  # ODE problem as test function
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
-from probnum.random_variables import Constant, Normal
+from probnum.randvars import Constant, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [
@@ -238,8 +238,8 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
 
         # Compute filter/smoother solution
         posterior = method.filtsmooth(obs, tms)
-        filtms = posterior.filtering_posterior.state_rvs.mean
-        smooms = posterior.state_rvs.mean
+        filtms = posterior.filtering_posterior.states.mean
+        smooms = posterior.states.mean
 
         # Compute RMSEs
         comp = states[:, 0]

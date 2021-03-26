@@ -1,13 +1,11 @@
-"""Initialisation procedures."""
+"""Initialisation procedures for ODE filters."""
 # pylint: disable=import-outside-toplevel
 
 
 import numpy as np
 import scipy.integrate as sci
 
-import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
-import probnum.statespace as pnss
+from probnum import filtsmooth, randvars, statespace
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
@@ -64,7 +62,7 @@ def initialize_odefilter_with_rk(
     --------
 
     >>> from dataclasses import astuple
-    >>> from probnum.random_variables import Normal
+    >>> from probnum.randvars import Normal
     >>> from probnum.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
 
@@ -89,7 +87,7 @@ def initialize_odefilter_with_rk(
     proj_to_y = prior.proj2coord(0)
     zeros_shift = np.zeros(ode_dim)
     zeros_cov = np.zeros((ode_dim, ode_dim))
-    measmod = pnss.DiscreteLTIGaussian(
+    measmod = statespace.DiscreteLTIGaussian(
         proj_to_y,
         zeros_shift,
         zeros_cov,
@@ -130,12 +128,12 @@ def initialize_odefilter_with_rk(
 
     initcov = np.diag(initcov_diag)
     initcov_cholesky = np.diag(np.sqrt(initcov_diag))
-    initrv = pnrv.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
-    kalman = pnfs.Kalman(prior, measmod, initrv)
+    initrv = randvars.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
+    kalman = filtsmooth.Kalman(prior, measmod, initrv)
 
     out = kalman.filtsmooth(ys, ts)
 
-    estimated_initrv = out.state_rvs[0]
+    estimated_initrv = out.states[0]
 
     return estimated_initrv
 
@@ -177,11 +175,11 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     --------
 
     >>> import sys, pytest
-    >>> if sys.platform.startswith('win'):
-    ...     pytest.skip('this doctest does not work on Windows')
+    >>> if not sys.platform.startswith('linux'):
+    ...     pytest.skip()
 
     >>> from dataclasses import astuple
-    >>> from probnum.random_variables import Normal
+    >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
     >>> from probnum.statespace import IBM
 
@@ -247,11 +245,11 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
 
     derivs.extend(y0)
     if order == 0:
-        all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
+        all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
             np.asarray(jnp.array(derivs)), ordint=0, spatialdim=len(y0)
         )
 
-        return pnrv.Normal(
+        return randvars.Normal(
             np.asarray(all_derivs),
             cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
@@ -260,11 +258,11 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     (dy0, [*yns]) = jet(total_derivative, (z_t,), ((jnp.ones_like(z_t),),))
     derivs.extend(dy0[:-1])
     if order == 1:
-        all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
+        all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
             np.asarray(jnp.array(derivs)), ordint=1, spatialdim=len(y0)
         )
 
-        return pnrv.Normal(
+        return randvars.Normal(
             np.asarray(all_derivs),
             cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
             cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
@@ -274,11 +272,11 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
         (dy0, [*yns]) = jet(total_derivative, (z_t,), ((dy0, *yns),))
         derivs.extend(yns[-2][:-1])
 
-    all_derivs = pnss.Integrator._convert_derivwise_to_coordwise(
+    all_derivs = statespace.Integrator._convert_derivwise_to_coordwise(
         jnp.array(derivs), ordint=order, spatialdim=len(y0)
     )
 
-    return pnrv.Normal(
+    return randvars.Normal(
         np.asarray(all_derivs),
         cov=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),
         cov_cholesky=np.asarray(jnp.diag(jnp.zeros(len(derivs)))),

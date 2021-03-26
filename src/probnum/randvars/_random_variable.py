@@ -960,7 +960,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     --------
     >>> # Create a custom categorical random variable
     >>> import numpy as np
-    >>> from probnum.random_variables import DiscreteRandomVariable
+    >>> from probnum.randvars import DiscreteRandomVariable
     >>>
     >>> # Distribution parameters
     >>> support = np.array([-1, 0, 1])

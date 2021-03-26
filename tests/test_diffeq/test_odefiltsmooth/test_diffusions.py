@@ -5,7 +5,7 @@ import abc
 import numpy as np
 import pytest
 
-from probnum import diffeq, random_variables
+from probnum import diffeq, randvars
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def some_meas_rv():
     """
     some_mean = np.arange(10, 13)
     some_cov = np.arange(9).reshape((3, 3)) @ np.arange(9).reshape((3, 3)).T + np.eye(3)
-    meas_rv = random_variables.Normal(some_mean, some_cov)
+    meas_rv = randvars.Normal(some_mean, some_cov)
     return meas_rv
 
 

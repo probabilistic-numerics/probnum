@@ -1,10 +1,12 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
+from typing import Optional
 
-import probnum.random_variables as pnrv
-from probnum._randomvariablelist import _RandomVariableList
-from probnum.type import IntArgType
+import numpy as np
+
+from probnum import _randomvariablelist, randvars
+from probnum.type import FloatArgType, IntArgType
 
 
 class Transition(abc.ABC):
@@ -240,7 +242,7 @@ class Transition(abc.ABC):
         """
         raise NotImplementedError
 
-    # Smoothing and sampling implementations
+        # Smoothing and sampling implementations
 
     def smooth_list(self, rv_list, locations, _previous_posterior=None):
         """Apply smoothing to a list of random variables, according to the present
@@ -248,7 +250,7 @@ class Transition(abc.ABC):
 
         Parameters
         ----------
-        rv_list : _RandomVariableList
+        rv_list : _randomvariablelist._RandomVariableList
             List of random variables to be smoothed.
         locations :
             Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
@@ -258,7 +260,7 @@ class Transition(abc.ABC):
 
         Returns
         -------
-        _RandomVariableList
+        _randomvariablelist._RandomVariableList
             List of smoothed random variables.
         """
 
@@ -284,39 +286,44 @@ class Transition(abc.ABC):
             )
             out_rvs.append(curr_rv)
         out_rvs.reverse()
-        return _RandomVariableList(out_rvs)
+        return _randomvariablelist._RandomVariableList(out_rvs)
 
-    def jointly_sample_list_backward(
-        self, rv_list, locations, _previous_posterior=None
-    ):
-        """Jointly sample from a list of random variables, according to the present
-        transition.
-
-        An explanation of the algorithm can be found in, for instance, this link [1]_.
-
-        References
-        ----------
-        .. [1] https://stats.stackexchange.com/questions/376974/how-to-sample-an-unobserved-markov-process-using-the-forward-backward-algorithm
+    def jointly_transform_base_measure_realization_list_backward(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: FloatArgType,
+        rv_list: _randomvariablelist._RandomVariableList,
+        _previous_posterior=None,
+    ) -> np.ndarray:
+        """Transform samples from a base measure into joint backward samples from a list
+        of random variables.
 
         Parameters
         ----------
-        rv_list : _RandomVariableList
-            List of random variables to be sampled from (jointly).
-        locations :
-            Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
-        _previous_posterior
-            Specify a previous posterior to improve linearisation in approximate backward passes.
-            Used in iterated smoothing based on posterior linearisation.
+        base_measure_realizations :
+            Base measure realizations (usually samples from a standard Normal distribution).
+            These are transformed into joint realizations of the random variable list.
+        rv_list :
+            List of random variables to be jointly sampled from.
+        t :
+            Locations of the random variables in the list. Assumed to be sorted.
+        _previous_posterior :
+            Previous posterior. Used for iterative posterior linearisation.
 
         Returns
         -------
-        _RandomVariableList
-            List of smoothed random variables.
+        np.ndarray
+            Jointly transformed realizations.
         """
-        curr_sample = rv_list[-1].sample()
+
+        curr_rv = rv_list[-1]
+
+        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
+            -1
+        ].reshape((-1,))
         out_samples = [curr_sample]
 
-        for idx in reversed(range(1, len(locations))):
+        for idx in reversed(range(1, len(t))):
             unsmoothed_rv = rv_list[idx - 1]
             _linearise_smooth_step_at = (
                 None
@@ -324,20 +331,83 @@ class Transition(abc.ABC):
                 else _previous_posterior(locations[idx - 1])
             )
 
-            # Actual smoothing step
+            # Condition on the 'future' realization and sample
+            dt = t[idx] - t[idx - 1]
             curr_rv, _ = self.backward_realization(
                 curr_sample,
                 unsmoothed_rv,
-                t=locations[idx - 1],
-                dt=locations[idx] - locations[idx - 1],
+                t=t[idx - 1],
+                dt=dt,
                 _linearise_at=_linearise_smooth_step_at,
             )
-
-            # Follow up smoothing with a sample, and turn the sample into a pseudo-Normal distribution.
-            curr_sample = curr_rv.sample()
+            curr_sample = (
+                curr_rv.mean
+                + curr_rv.cov_cholesky
+                @ base_measure_realizations[idx - 1].reshape(
+                    -1,
+                )
+            )
             out_samples.append(curr_sample)
 
         out_samples.reverse()
+        return out_samples
+
+    def jointly_transform_base_measure_realization_list_forward(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: FloatArgType,
+        initrv: randvars.RandomVariable,
+        _previous_posterior=None,
+    ) -> np.ndarray:
+        """Transform samples from a base measure into joint backward samples from a list
+        of random variables.
+
+        Parameters
+        ----------
+        base_measure_realizations :
+            Base measure realizations (usually samples from a standard Normal distribution).
+            These are transformed into joint realizations of the random variable list.
+        initrv :
+            Initial random variable.
+        t :
+            Locations of the random variables in the list. Assumed to be sorted.
+        _previous_posterior :
+            Previous posterior. Used for iterative posterior linearisation.
+
+        Returns
+        -------
+        np.ndarray
+            Jointly transformed realizations.
+        """
+
+        curr_rv = initrv
+
+        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
+            0
+        ].reshape((-1,))
+        out_samples = [curr_sample]
+
+        for idx in range(1, len(t)):
+
+            _linearise_prediction_step_at = (
+                None
+                if _previous_posterior is None
+                else _previous_posterior(locations[idx - 1])
+            )
+
+            dt = t[idx] - t[idx - 1]
+            curr_rv, _ = self.forward_realization(
+                curr_sample,
+                t=t[idx - 1],
+                dt=dt,
+                _linearise_at=_linearise_prediction_step_at,
+            )
+            curr_sample = (
+                curr_rv.mean
+                + curr_rv.cov_cholesky
+                @ base_measure_realizations[idx - 1].reshape((-1,))
+            )
+            out_samples.append(curr_sample)
         return out_samples
 
     # Utility functions that are used surprisingly often:
@@ -347,9 +417,10 @@ class Transition(abc.ABC):
     # referring to the forward/backward transition of RVs.
 
     def _backward_realization_via_backward_rv(self, realization, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=realization)
+
+        real_as_rv = randvars.Constant(support=realization)
         return self.backward_rv(real_as_rv, *args, **kwargs)
 
     def _forward_realization_via_forward_rv(self, realization, *args, **kwargs):
-        real_as_rv = pnrv.Constant(support=realization)
+        real_as_rv = randvars.Constant(support=realization)
         return self.forward_rv(real_as_rv, *args, **kwargs)

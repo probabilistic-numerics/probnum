@@ -10,15 +10,16 @@ References
 
 import numpy as np
 
-import probnum.random_variables as pnrv
-from probnum import statespace
-from probnum.diffeq import steprule
-from probnum.diffeq.ode import IVP
+from probnum import randvars, statespace
 from probnum.diffeq.odefiltsmooth.diffusions import (
     ConstantDiffusion,
     PiecewiseConstantDiffusion,
 )
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
+
+from .. import steprule
+from ..ode import IVP
+from .ivpfiltsmooth import GaussianIVPFilter
 
 __all__ = ["probsolve_ivp"]
 
@@ -181,7 +182,7 @@ def probsolve_ivp(
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum import random_variables as rvs
+    >>> from probnum import randvars
     >>> import numpy as np
 
     Solve a simple logistic ODE with fixed steps.
@@ -192,7 +193,7 @@ def probsolve_ivp(
     >>> y0 = np.array([0.15])
     >>> t0, tmax = 0., 1.5
     >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
-    >>> print(np.round(solution.y.mean, 2))
+    >>> print(np.round(solution.states.mean, 2))
     [[0.15]
      [0.21]
      [0.28]
@@ -216,8 +217,8 @@ def probsolve_ivp(
     >>> def df(t, x):
     ...     return np.array([4. - 8 * x])
     >>> solution = probsolve_ivp(f, t0, tmax, y0, df=df, method="EK1", algo_order=2, step=0.1, adaptive=False)
-    >>> print(np.round(solution.y.mean, 2))
-        [[0.15]
+    >>> print(np.round(solution.states.mean, 2))
+    [[0.15]
      [0.21]
      [0.28]
      [0.37]
@@ -237,7 +238,12 @@ def probsolve_ivp(
     """
 
     # Create IVP object
-    ivp = IVP(timespan=(t0, tmax), initrv=pnrv.Constant(np.asarray(y0)), rhs=f, jac=df)
+    ivp = IVP(
+        timespan=(t0, tmax),
+        initrv=randvars.Constant(np.asarray(y0)),
+        rhs=f,
+        jac=df,
+    )
 
     # Create steprule
     if adaptive is True:

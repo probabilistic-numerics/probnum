@@ -1,12 +1,11 @@
-import typing
+"""Gaussian IVP filtering and smoothing."""
+
+from typing import Callable, Optional
 
 import numpy as np
 import scipy.linalg
 
-import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
-from probnum import utils
-from probnum.random_variables import Normal
+from probnum import filtsmooth, randvars, statespace, utils
 
 from ..ode import IVP
 from ..odesolver import ODESolver
@@ -67,43 +66,44 @@ class GaussianIVPFilter(ODESolver):
     def __init__(
         self,
         ivp: IVP,
-        dynamics_model: pnss.Integrator,
-        measurement_model: pnfs.DiscreteEKFComponent,
+        dynamics_model: statespace.Integrator,
+        measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
-        init_implementation: typing.Callable[
+        init_implementation: Callable[
             [
-                typing.Callable,
+                Callable,
                 np.ndarray,
                 float,
-                pnss.Integrator,
-                Normal,
-                typing.Optional[typing.Callable],
+                statespace.Integrator,
+                randvars.Normal,
+                Optional[Callable],
             ],
-            Normal,
+            randvars.Normal,
         ],
-        initrv: typing.Optional[Normal] = None,
-        diffusion_model: typing.Optional[Diffusion] = None,
-        _repeat_after_calibration: typing.Optional[bool] = None,
-        _reference_coordinates: typing.Optional[int] = 0,
+        initrv: Optional[randvars.Normal] = None,
+        diffusion_model: Optional[Diffusion] = None,
+        _repeat_after_calibration: Optional[bool] = None,
+        _reference_coordinates: Optional[int] = 0,
     ):
 
         # Raise a comprehensible error if the wrong models are passed.
-        if not isinstance(measurement_model, pnfs.DiscreteEKFComponent):
+        if not isinstance(measurement_model, filtsmooth.DiscreteEKFComponent):
             raise TypeError(
                 "Please initialize a Gaussian ODE filter with an EKF component as a measurement model."
             )
-        if not isinstance(dynamics_model, pnss.Integrator):
+        if not isinstance(dynamics_model, statespace.Integrator):
             raise TypeError(
                 "Please initialize a Gaussian ODE filter with an Integrator as a dynamics_model"
             )
 
         if initrv is None:
-            initrv = Normal(
-                np.zeros(dynamics_model.dimension),
-                np.eye(dynamics_model.dimension),
-                cov_cholesky=np.eye(dynamics_model.dimension),
+            d = dynamics_model.dimension
+            scale = 1e6
+            initrv = randvars.Normal(
+                mean=np.zeros(d),
+                cov=scale * np.eye(d),
+                cov_cholesky=np.sqrt(scale) * np.eye(d),
             )
-
         self.dynamics_model = dynamics_model
         self.measurement_model = measurement_model
         self.initrv = initrv
@@ -112,6 +112,7 @@ class GaussianIVPFilter(ODESolver):
         self.init_implementation = init_implementation
         super().__init__(ivp=ivp, order=dynamics_model.ordint)
 
+        self.sigma_squared_mle = 1.0
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
             PiecewiseConstantDiffusion() if diffusion_model is None else diffusion_model
@@ -274,7 +275,7 @@ class GaussianIVPFilter(ODESolver):
         # Split the current RV into a deterministic part and a noisy part.
         # This split is necessary for efficient calibration; see docstring.
         error_free_state = current_rv.mean.copy()
-        noisy_component = Normal(
+        noisy_component = randvars.Normal(
             mean=np.zeros(current_rv.shape),
             cov=current_rv.cov.copy(),
             cov_cholesky=current_rv.cov_cholesky.copy(),
@@ -299,7 +300,7 @@ class GaussianIVPFilter(ODESolver):
             meas_rv_error_free.cov_cholesky, meas_sqrtm
         )
         full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
-        meas_rv = Normal(
+        meas_rv = randvars.Normal(
             mean=meas_rv_error_free.mean,
             cov=full_meas_cov,
             cov_cholesky=full_meas_cov_cholesky,
@@ -333,7 +334,7 @@ class GaussianIVPFilter(ODESolver):
                 pred_rv_error_free.cov_cholesky, pred_sqrtm
             )
             full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T
-            pred_rv = Normal(
+            pred_rv = randvars.Normal(
                 mean=pred_rv_error_free.mean,
                 cov=full_pred_cov,
                 cov_cholesky=full_pred_cov_cholesky,
@@ -356,7 +357,9 @@ class GaussianIVPFilter(ODESolver):
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
 
-        kalman_posterior = pnfs.FilteringPosterior(times, rvs, self.dynamics_model)
+        kalman_posterior = filtsmooth.FilteringPosterior(
+            times, rvs, self.dynamics_model
+        )
 
         return KalmanODESolution(kalman_posterior)
 
@@ -364,16 +367,16 @@ class GaussianIVPFilter(ODESolver):
         """If specified (at initialisation), smooth the filter output."""
         locations = odesol.kalman_posterior.locations
         rv_list = self.diffusion_model.calibrate_all_states(
-            odesol.kalman_posterior.state_rvs, locations
+            odesol.kalman_posterior.states, locations
         )
 
-        kalman_posterior = pnfs.FilteringPosterior(
+        kalman_posterior = filtsmooth.FilteringPosterior(
             locations, rv_list, self.dynamics_model
         )
 
         if self.with_smoothing is True:
             rv_list = self.dynamics_model.smooth_list(rv_list, locations)
-            kalman_posterior = pnfs.SmoothingPosterior(
+            kalman_posterior = filtsmooth.SmoothingPosterior(
                 locations,
                 rv_list,
                 self.dynamics_model,
@@ -406,7 +409,7 @@ class GaussianIVPFilter(ODESolver):
         # It is an option in this function here, because there is no obvious reason to restrict
         # the options in this lower level function.
         choose_meas_model = {
-            "EK0": pnfs.DiscreteEKFComponent.from_ode(
+            "EK0": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
                 prior=dynamics_model,
                 ek0_or_ek1=0,
@@ -414,7 +417,7 @@ class GaussianIVPFilter(ODESolver):
                 forward_implementation="sqrt",
                 backward_implementation="sqrt",
             ),
-            "EK1": pnfs.DiscreteEKFComponent.from_ode(
+            "EK1": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
                 prior=dynamics_model,
                 ek0_or_ek1=1,

@@ -1,5 +1,6 @@
 """Random Variables."""
 
+from ._categorical import Categorical
 from ._constant import Constant
 from ._normal import Normal
 from ._random_variable import (
@@ -22,21 +23,23 @@ __all__ = [
     "ContinuousRandomVariable",
     "Constant",
     "Normal",
+    "Categorical",
     "WrappedSciPyRandomVariable",
     "WrappedSciPyDiscreteRandomVariable",
     "WrappedSciPyContinuousRandomVariable",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
-RandomVariable.__module__ = "probnum.random_variables"
-DiscreteRandomVariable.__module__ = "probnum.random_variables"
-ContinuousRandomVariable.__module__ = "probnum.random_variables"
+RandomVariable.__module__ = "probnum.randvars"
+DiscreteRandomVariable.__module__ = "probnum.randvars"
+ContinuousRandomVariable.__module__ = "probnum.randvars"
 
-WrappedSciPyRandomVariable.__module__ = "probnum.random_variables"
-WrappedSciPyDiscreteRandomVariable.__module__ = "probnum.random_variables"
-WrappedSciPyContinuousRandomVariable.__module__ = "probnum.random_variables"
+WrappedSciPyRandomVariable.__module__ = "probnum.randvars"
+WrappedSciPyDiscreteRandomVariable.__module__ = "probnum.randvars"
+WrappedSciPyContinuousRandomVariable.__module__ = "probnum.randvars"
 
-Constant.__module__ = "probnum.random_variables"
-Normal.__module__ = "probnum.random_variables"
+Constant.__module__ = "probnum.randvars"
+Normal.__module__ = "probnum.randvars"
+Categorical.__module__ = "probnum.randvars"
 
-asrandvar.__module__ = "probnum.random_variables"
+asrandvar.__module__ = "probnum.randvars"

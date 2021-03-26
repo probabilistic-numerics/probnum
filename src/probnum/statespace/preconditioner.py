@@ -53,7 +53,7 @@ class NordsieckLikeCoordinates(Preconditioner):
         return cls(powers=powers + 0.5, scales=scales, spatialdim=spatialdim)
 
     def __call__(self, step):
-        scaling_vector = step ** self.powers / self.scales
+        scaling_vector = np.abs(step) ** self.powers / self.scales
         return np.kron(np.eye(self.spatialdim), np.diag(scaling_vector))
 
     @cached_property

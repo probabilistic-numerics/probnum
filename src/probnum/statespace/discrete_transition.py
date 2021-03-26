@@ -5,7 +5,7 @@ from typing import Callable, Optional
 import numpy as np
 import scipy.linalg
 
-import probnum.random_variables as pnrv
+from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
 from probnum.utils.linalg import cholesky_update, tril_to_positive_tril
 
@@ -95,7 +95,7 @@ class DiscreteGaussian(trans.Transition):
         newmean = self.state_trans_fun(t, realization)
         newcov = _diffusion * self.proc_noise_cov_mat_fun(t)
 
-        return pnrv.Normal(newmean, newcov), {}
+        return randvars.Normal(newmean, newcov), {}
 
     def forward_rv(self, rv, t, compute_gain=False, _diffusion=1.0, **kwargs):
         raise NotImplementedError("Not available")
@@ -162,6 +162,39 @@ class DiscreteGaussian(trans.Transition):
             return self._proc_noise_cov_cholesky_fun(t)
         covmat = self.proc_noise_cov_mat_fun(t)
         return np.linalg.cholesky(covmat)
+
+    @classmethod
+    def from_ode(
+        cls,
+        ode,
+        prior,
+        evlvar=0.0,
+    ):
+
+        spatialdim = prior.spatialdim
+        h0 = prior.proj2coord(coord=0)
+        h1 = prior.proj2coord(coord=1)
+
+        def dyna(t, x):
+            return h1 @ x - ode.rhs(t, h0 @ x)
+
+        def diff(t):
+            return evlvar * np.eye(spatialdim)
+
+        def diff_cholesky(t):
+            return np.sqrt(evlvar) * np.eye(spatialdim)
+
+        def jacobian(t, x):
+            return h1 - ode.jacobian(t, h0 @ x) @ h0
+
+        return cls(
+            input_dim=prior.dimension,
+            output_dim=prior.spatialdim,
+            state_trans_fun=dyna,
+            jacob_state_trans_fun=jacobian,
+            proc_noise_cov_mat_fun=diff,
+            proc_noise_cov_cholesky_fun=diff_cholesky,
+        )
 
 
 class DiscreteLinearGaussian(DiscreteGaussian):
@@ -290,7 +323,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def _forward_rv_classic(
         self, rv, t, compute_gain=False, _diffusion=1.0
-    ) -> (pnrv.RandomVariable, typing.Dict):
+    ) -> (randvars.RandomVariable, typing.Dict):
         H = self.state_trans_mat_fun(t)
         R = self.proc_noise_cov_mat_fun(t)
         shift = self.shift_vec_fun(t)
@@ -302,11 +335,11 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         if compute_gain:
             gain = crosscov @ np.linalg.inv(new_cov)
             info["gain"] = gain
-        return pnrv.Normal(new_mean, cov=new_cov), info
+        return randvars.Normal(new_mean, cov=new_cov), info
 
     def _forward_rv_sqrt(
         self, rv, t, compute_gain=False, _diffusion=1.0
-    ) -> (pnrv.RandomVariable, typing.Dict):
+    ) -> (randvars.RandomVariable, typing.Dict):
 
         H = self.state_trans_mat_fun(t)
         SR = self.proc_noise_cov_cholesky_fun(t)
@@ -323,7 +356,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             info["gain"] = scipy.linalg.cho_solve(
                 (new_cov_cholesky, True), crosscov.T
             ).T
-        return pnrv.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky), info
+        return (
+            randvars.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky),
+            info,
+        )
 
     def _backward_rv_sqrt(
         self,
@@ -392,7 +428,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov_cholesky = tril_to_positive_tril(new_chol_triu.T)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
-        return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
+        return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
 
     def _backward_rv_joseph(
         self,
@@ -420,7 +456,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             + gain @ R @ gain.T
             + gain @ rv_obtained.cov @ gain.T
         )
-        return pnrv.Normal(new_mean, new_cov), {}
+        return randvars.Normal(new_mean, new_cov), {}
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
