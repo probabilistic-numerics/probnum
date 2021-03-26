@@ -177,6 +177,9 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
     # >>> import sys, pytest
     # >>> if not sys.platform.startswith('linux'):
     # ...     pytest.skip()
+
+    # Skip this test for now when run in the CI.
+    >>> import pytest
     >>> pytest.skip()
 
     >>> from dataclasses import astuple
