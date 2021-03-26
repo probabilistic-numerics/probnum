@@ -24,11 +24,18 @@ class Diffusion(abc.ABC):
         """Evaluate the diffusion."""
         raise NotImplementedError
 
-    def calibrate_locally(self, meas_rv):
-        """Compute a local diffusion estimate.
+    @abc.abstractmethod
+    def estimate_locally_and_update_in_place(
+        self, meas_rv, meas_rv_assuming_zero_previous_covariance
+    ):
+        """Estimate the (local) diffusion and update current (global) estimation in-
+        place.
 
         Used for uncertainty calibration in the ODE solver.
         """
+        raise NotImplementedError
+
+    def _compute_local_quasi_mle(self, meas_rv):
         std_like = meas_rv.cov_cholesky
         whitened_res = np.linalg.solve(std_like, meas_rv.mean)
         ssq = whitened_res @ whitened_res / meas_rv.size
@@ -83,25 +90,21 @@ class ConstantDiffusion(Diffusion):
     def __call__(self, t) -> ToleranceDiffusionType:
         return self.diffusion
 
-    def update_current_information(
-        self, full_diffusion, error_free_diffusion, t
-    ) -> ToleranceDiffusionType:
-        """Update the current global MLE with a new diffusion."""
-        self._seen_diffusions += 1
-
+    def estimate_locally_and_update_in_place(
+        self, meas_rv, meas_rv_assuming_zero_previous_covariance
+    ):
+        new_increment = self._compute_local_quasi_mle(meas_rv)
         if self.diffusion is None:
-            self.diffusion = full_diffusion
+            self.diffusion = new_increment
         else:
             a = 1 / self._seen_diffusions
             b = 1 - a
-            self.diffusion = a * full_diffusion + b * self.diffusion
-        if self.use_global_estimate_as_local_estimate:
-            return self.diffusion
-        else:
-            return error_free_diffusion
+            self.diffusion = a * new_increment + b * self.diffusion
+        return new_increment
 
-    def calibrate_all_states(self, states, locations):
-        return [randvars.Normal(rv.mean, self.diffusion * rv.cov) for rv in states]
+    #
+    # def calibrate_all_states(self, states, locations):
+    #     return [randvars.Normal(rv.mean, self.diffusion * rv.cov) for rv in states]
 
 
 class PiecewiseConstantDiffusion(Diffusion):
@@ -138,6 +141,7 @@ class PiecewiseConstantDiffusion(Diffusion):
         return f"PiecewiseConstantDiffusion({self.diffusions})"
 
     def __call__(self, t) -> ToleranceDiffusionType:
+        # Todo: reimplement that with seachsorted which allows vectorised implementation!
 
         # Get indices in self.locations that are larger than t
         # The first element in this list is the first time-point right of t.
@@ -145,18 +149,17 @@ class PiecewiseConstantDiffusion(Diffusion):
         idx = np.nonzero(t < self.locations)[0]
         return self.diffusions[idx[0]] if len(idx) > 0 else self.diffusions[-1]
 
-    def update_current_information(
-        self, full_diffusion, error_free_diffusion, t
-    ) -> ToleranceDiffusionType:
-        """Append the most recent diffusion and location to a list.
-
-        This function assumes that the list of times and diffusions is
-        sorted, and that the input `t` lies "right of the final point"
-        in the current list.
-        """
-        self.diffusions.append(error_free_diffusion)
+    def estimate_locally_and_update_in_place(
+        self, meas_rv, meas_rv_assuming_zero_previous_covariance
+    ):
+        local_quasi_mle = self._compute_local_quasi_mle(
+            meas_rv_assuming_zero_previous_covariance
+        )
+        self.diffusions.append(local_quasi_mle)
         self.locations.append(t)
-        return error_free_diffusion
+        return local_quasi_mle
 
-    def calibrate_all_states(self, states, locations):
-        return states
+    #
+    #
+    # def calibrate_all_states(self, states, locations):
+    #     return states
