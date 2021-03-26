@@ -75,8 +75,8 @@ def threebody_jax(tmax=17.0652165601579625588917206249):
         y2p = Y[1] - 2 * Y[2] - mp * Y[1] / D1 - mu * Y[1] / D2
         return jnp.array([Y[2], Y[3], y1p, y2p])
 
-    df = jax.jit(jax.jacfwd(threebody_rhs))
-    ddf = jax.jit(jax.jacrev(df))
+    # df = jax.jit(jax.jacfwd(threebody_rhs))
+    # ddf = jax.jit(jax.jacrev(df))
 
     def rhs(t, y):
         return threebody_rhs(Y=y)
@@ -153,8 +153,8 @@ def vanderpol_jax(t0=0.0, tmax=30, y0=None, params=1e1):
     def vanderpol_rhs(Y):
         return jnp.array([Y[1], mu * (1.0 - Y[0] ** 2) * Y[1] - Y[0]])
 
-    df = jax.jit(jax.jacfwd(vanderpol_rhs))
-    ddf = jax.jit(jax.jacrev(df))
+    # df = jax.jit(jax.jacfwd(vanderpol_rhs))
+    # ddf = jax.jit(jax.jacrev(df))
 
     def rhs(t, y):
         return vanderpol_rhs(Y=y)
