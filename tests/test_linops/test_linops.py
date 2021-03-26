@@ -39,7 +39,6 @@ def test_matvec(
 ):
     vec = random_state.normal(size=linop.shape[1])
 
-    # Shape (n,)
     linop_matvec = linop @ vec
     matrix_matvec = matrix @ vec
 
@@ -49,15 +48,44 @@ def test_matvec(
 
     np.testing.assert_allclose(linop_matvec, matrix_matvec)
 
-    # Shape (n, 1)
-    linop_matvec_n1 = linop @ vec[:, None]
-    matrix_matvec_n1 = matrix @ vec[:, None]
 
-    assert linop_matvec_n1.ndim == 2
-    assert linop_matvec_n1.shape == matrix_matvec_n1.shape
-    assert linop_matvec_n1.dtype == matrix_matvec_n1.dtype
+@pytest.mark.parametrize("n", [1, 2, 15, 100])
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_matmat(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+    random_state: np.random.RandomState,
+    n: int,
+):
+    mat = random_state.normal(size=(linop.shape[1], n))
 
-    np.testing.assert_allclose(linop_matvec_n1, matrix_matvec_n1)
+    linop_matmat = linop @ mat
+    matrix_matmat = matrix @ mat
+
+    assert linop_matmat.ndim == 2
+    assert linop_matmat.shape == matrix_matmat.shape
+    assert linop_matmat.dtype == matrix_matmat.dtype
+
+    np.testing.assert_allclose(linop_matmat, matrix_matmat)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_matmat_shape_mismatch(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+):
+    mat = np.zeros((linop.shape[1] + 1, 10))
+
+    with pytest.raises(Exception) as excinfo:
+        matrix @ mat  # pylint: disable=pointless-statement
+
+    with pytest.raises(excinfo.type):
+        linop @ mat  # pylint: disable=pointless-statement
+
+    mat = np.zeros((1, linop.shape[1], 10))
+
+    with pytest.raises(ValueError):
+        linop @ mat  # pylint: disable=pointless-statement
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
@@ -68,9 +96,8 @@ def test_rmatvec(
 ):
     vec = random_state.normal(size=linop.shape[0])
 
-    # Shape (n,)
-    linop_matvec = vec @ linop
-    matrix_matvec = vec @ matrix
+    linop_matvec = np.conj(vec) @ linop
+    matrix_matvec = np.conj(vec) @ matrix
 
     assert linop_matvec.ndim == 1
     assert linop_matvec.shape == matrix_matvec.shape
@@ -78,15 +105,44 @@ def test_rmatvec(
 
     np.testing.assert_allclose(linop_matvec, matrix_matvec)
 
-    # Shape (1, n)
-    linop_matvec_n1 = vec[None, :] @ linop
-    matrix_matvec_n1 = vec[None, :] @ matrix
 
-    assert linop_matvec_n1.ndim == 2
-    assert linop_matvec_n1.shape == matrix_matvec_n1.shape
-    assert linop_matvec_n1.dtype == matrix_matvec_n1.dtype
+@pytest.mark.parametrize("n", [1, 2, 15, 100])
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_rmatmat(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+    random_state: np.random.RandomState,
+    n: int,
+):
+    mat = random_state.normal(size=(n, linop.shape[0]))
 
-    np.testing.assert_allclose(linop_matvec_n1, matrix_matvec_n1)
+    linop_matmat = np.conj(mat) @ linop
+    matrix_matmat = np.conj(mat) @ matrix
+
+    assert linop_matmat.ndim == 2
+    assert linop_matmat.shape == matrix_matmat.shape
+    assert linop_matmat.dtype == matrix_matmat.dtype
+
+    np.testing.assert_allclose(linop_matmat, matrix_matmat)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_rmatmat_shape_mismatch(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+):
+    mat = np.zeros((10, linop.shape[0] + 1))
+
+    with pytest.raises(Exception) as excinfo:
+        mat @ matrix  # pylint: disable=pointless-statement
+
+    with pytest.raises(excinfo.type):
+        mat @ linop  # pylint: disable=pointless-statement
+
+    mat = np.zeros((1, 10, linop.shape[0]))
+
+    with pytest.raises(ValueError):
+        mat[None, :, :] @ linop  # pylint: disable=pointless-statement
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)

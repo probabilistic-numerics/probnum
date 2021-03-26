@@ -365,11 +365,11 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
             return matmul(other, self)
         else:
             if len(other.shape) == 1:
-                return self.rmatvec(other)
+                return self.rmatvec(np.conj(other))
             elif len(other.shape) == 2 and other.shape[0] == 1:
-                return self.rmatvec(other[0, :])[None, :]
+                return self.rmatvec(np.conj(other[0, :]))[None, :]
             elif len(other.shape) == 2:
-                return self.rmatmat(other)
+                return np.conj(self.rmatmat(np.conj(other.T)).T)
             else:
                 raise ValueError(
                     f"Expected 1-d or 2-d array, matrix or random variable, got "
