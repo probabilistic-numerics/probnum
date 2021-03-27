@@ -256,9 +256,11 @@ class Transition(abc.ABC):
             List of random variables to be smoothed.
         locations :
             Locations :math:`t` of the random variables in the time-domain. Used for continuous-time transitions.
-        _previous_posterior
+        _previous_posterior :
             Specify a previous posterior to improve linearisation in approximate backward passes.
             Used in iterated smoothing based on posterior linearisation.
+        _diffusion_model :
+            Callable diffusion model that carries a (list of) calibrated diffusions.
 
         Returns
         -------
