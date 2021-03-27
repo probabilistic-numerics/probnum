@@ -35,26 +35,6 @@ class Diffusion(abc.ABC):
         """
         raise NotImplementedError
 
-    #
-    #
-    # @abc.abstractmethod
-    # def update_current_information(
-    #     self, full_diffusion, error_free_diffusion, t
-    # ) -> ToleranceDiffusionType:
-    #     """Update the current information about the global diffusion and return a value
-    #     that is used for local calibration and error estimation.
-    #
-    #     This could mean appending the diffusion to a list or updating a
-    #     global estimate. It could also mean returning the input value or
-    #     the global mean.
-    #     """
-    #     raise NotImplementedError
-    #
-    # @abc.abstractmethod
-    # def calibrate_all_states(self, states, locations):
-    #     """Calibrate a set of ODE solver states after seeing all the data."""
-    #     raise NotImplementedError
-
 
 class ConstantDiffusion(Diffusion):
     """Constant diffusion and its calibration.
@@ -98,10 +78,6 @@ class ConstantDiffusion(Diffusion):
             b = 1 - a
             self.diffusion = a * new_increment + b * self.diffusion
         return new_increment
-
-    #
-    # def calibrate_all_states(self, states, locations):
-    #     return [randvars.Normal(rv.mean, self.diffusion * rv.cov) for rv in states]
 
 
 class PiecewiseConstantDiffusion(Diffusion):
@@ -165,11 +141,6 @@ class PiecewiseConstantDiffusion(Diffusion):
     @property
     def diffusions(self):
         return np.asarray(self._diffusions)
-
-    #
-    #
-    # def calibrate_all_states(self, states, locations):
-    #     return states
 
 
 def _compute_local_quasi_mle(meas_rv):
