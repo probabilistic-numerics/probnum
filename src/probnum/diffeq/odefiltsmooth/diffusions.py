@@ -9,7 +9,6 @@ import abc
 
 import numpy as np
 
-from probnum import randvars
 from probnum.type import ToleranceDiffusionType
 
 

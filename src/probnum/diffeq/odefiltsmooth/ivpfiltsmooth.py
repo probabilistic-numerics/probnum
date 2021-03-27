@@ -234,19 +234,13 @@ class GaussianIVPFilter(ODESolver):
         Which one to use is handled by the ``Diffusion`` attribute of the solver.
         At this point already we can compute a local error estimate of the current step.
 
-        4. Once the diffusion_model is chosen, there are two options:
+        4. Depending on the diffusion model, there are two options now:
 
-            4.1. If the calibrated diffusion_model is used to repeat prediction and measurement step, we compute new values for
-            :math:`x(t+\Delta t) \,|\, x(t)` and for :math:`z(t)`. While this adds computational expense, the uncertainties of these
-            values will be calibrated much better than in the other scenario:
+            4.1. For a piecewise constant diffusion, the covariances are calibrated locally -- that is, at each step.
+            In this case we update the predicted covariance and measured covariance with the most recent diffusion estimate.
 
-            4.2. If the calibrated diffusion_model is only used for a post-hoc rescaling of the covariances, we only need to assemble
-            the prediction  :math:`x(t+\Delta t) | x(t)`
-
-            .. math::
-                x(t+\Delta t) \,|\, x(t) \sim \mathcal{N}(\Phi(\Delta t) m(t), \Phi(\Delta t) P(t) \Phi(\Delta t)^\top + Q(\Delta t))
-
-            from quantities that have been computed above.
+            4.2. For a constant diffusion, the calibration happens post hoc, and the only step that is carried out here is an assembly
+            of the full predicted random variable (up to now, only its parts were available).
 
         5. With the results of either 4.1. or 4.2. (which both return a predicted RV and a measured RV),
         we finally compute the Kalman update and return the result. Recall that the error estimate has been computed in the third step.
