@@ -26,7 +26,7 @@ class Diffusion(abc.ABC):
 
     @abc.abstractmethod
     def estimate_locally_and_update_in_place(
-        self, meas_rv, meas_rv_assuming_zero_previous_covariance
+        self, meas_rv, meas_rv_assuming_zero_previous_covariance, t
     ):
         """Estimate the (local) diffusion and update current (global) estimation in-
         place.
@@ -83,12 +83,12 @@ class ConstantDiffusion(Diffusion):
     def __call__(self, t) -> ToleranceDiffusionType:
         if self.diffusion is None:
             raise NotImplementedError(
-                "No diffusions seen yet. Call estimate_locally first."
+                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
             )
         return self.diffusion
 
     def estimate_locally_and_update_in_place(
-        self, meas_rv, meas_rv_assuming_zero_previous_cov
+        self, meas_rv, meas_rv_assuming_zero_previous_cov, t
     ):
         new_increment = _compute_local_quasi_mle(meas_rv)
         if self.diffusion is None:
@@ -107,8 +107,8 @@ class ConstantDiffusion(Diffusion):
 class PiecewiseConstantDiffusion(Diffusion):
     r"""Piecewise constant diffusion.
 
-    It is defined by a set of diffusions :math:`(\sigma_0, ..., \sigma_N)` and a set of locations :math:`(t_0, ...,  t_N)`.
-    Based on this, it is defined as
+    It is defined by a set of diffusions :math:`(\sigma_0, ..., \sigma_N)` and a set of locations :math:`(t_0, ...,  t_N)`
+    through
 
     .. math::
         \sigma(t) = \left\{
@@ -119,42 +119,52 @@ class PiecewiseConstantDiffusion(Diffusion):
         \end{array}
         \right.
 
-    This definition implies that at all points :math:`t \geq t_{N-1}`, its value is `\sigma_N`.
-    This choice of piecewise constant function is by definition right-continuous.
+    In other words, a tuple :math:`(t, \sigma)` always defines the diffusion *right* of :math:`t` as :math:`\sigma` (including the point :math:`t`),
+    except for the very first tuple :math:`(t_0, \sigma_0)` which *also* defines the diffusion *left* of :math:`t`.
+    This choice of piecewise constant function is continuous from the right.
 
     Parameters
     ----------
     diffusions :
         List of diffusions. Optional. Default is `None`, which implies that a list is created from scratch.
+        If values are provided, make sure they support an `.append` method (for instance, make them a list).
     locations :
         List of locations corresponding to the diffusions. Optional. Default is `None`, which implies that a list is created from scratch.
+        If values are provided, make sure they support an `.append` method (for instance, make them a list).
     """
 
     def __init__(self, diffusions=None, locations=None):
-        self.diffusions = [] if diffusions is None else diffusions
-        self.locations = [] if locations is None else locations
+        self._diffusions = [] if diffusions is None else diffusions
+        self._locations = [] if locations is None else locations
 
     def __repr__(self):
         return f"PiecewiseConstantDiffusion({self.diffusions})"
 
     def __call__(self, t) -> ToleranceDiffusionType:
-        # Todo: reimplement that with seachsorted which allows vectorised implementation!
+        if len(self._locations) == 0:
+            raise NotImplementedError(
+                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
+            )
 
-        # Get indices in self.locations that are larger than t
-        # The first element in this list is the first time-point right of t.
-        # If the list is empty, we are extrapolating to the right.
-        idx = np.nonzero(t < self.locations)[0]
-        return self.diffusions[idx[0]] if len(idx) > 0 else self.diffusions[-1]
+        indices = np.searchsorted(self.locations[:-1], t, side="right")
+
+        return self.diffusions[indices]
 
     def estimate_locally_and_update_in_place(
-        self, meas_rv, meas_rv_assuming_zero_previous_covariance
+        self, meas_rv, meas_rv_assuming_zero_previous_cov, t
     ):
-        local_quasi_mle = _compute_local_quasi_mle(
-            meas_rv_assuming_zero_previous_covariance
-        )
-        self.diffusions.append(local_quasi_mle)
-        self.locations.append(t)
+        local_quasi_mle = _compute_local_quasi_mle(meas_rv_assuming_zero_previous_cov)
+        self._diffusions.append(local_quasi_mle)
+        self._locations.append(t)
         return local_quasi_mle
+
+    @property
+    def locations(self):
+        return np.asarray(self._locations)
+
+    @property
+    def diffusions(self):
+        return np.asarray(self._diffusions)
 
     #
     #
