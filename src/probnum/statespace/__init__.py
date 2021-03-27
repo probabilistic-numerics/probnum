@@ -5,6 +5,7 @@ space models, which are the basis for Bayesian filtering and smoothing,
 but also probabilistic ODE solvers.
 """
 
+from .diffusions import ConstantDiffusion, Diffusion, PiecewiseConstantDiffusion
 from .discrete_transition import (
     DiscreteGaussian,
     DiscreteLinearGaussian,
@@ -39,4 +40,7 @@ __all__ = [
     "generate_samples",
     "condition_state_on_measurement",
     "condition_state_on_rv",
+    "Diffusion",
+    "ConstantDiffusion",
+    "PiecewiseConstantDiffusion",
 ]

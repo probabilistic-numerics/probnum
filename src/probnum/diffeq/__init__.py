@@ -2,11 +2,8 @@
 
 from .ode import IVP, ODE, fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
 from .odefiltsmooth import (
-    ConstantDiffusion,
-    Diffusion,
     GaussianIVPFilter,
     KalmanODESolution,
-    PiecewiseConstantDiffusion,
     initialize_odefilter_with_rk,
     initialize_odefilter_with_taylormode,
     probsolve_ivp,
@@ -35,9 +32,6 @@ __all__ = [
     "propose_firststep",
     "initialize_odefilter_with_rk",
     "initialize_odefilter_with_taylormode",
-    "Diffusion",
-    "ConstantDiffusion",
-    "PiecewiseConstantDiffusion",
 ]
 
 # Set correct module paths (for superclasses).

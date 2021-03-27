@@ -11,10 +11,6 @@ References
 import numpy as np
 
 from probnum import randvars, statespace
-from probnum.diffeq.odefiltsmooth.diffusions import (
-    ConstantDiffusion,
-    PiecewiseConstantDiffusion,
-)
 from probnum.diffeq.odefiltsmooth.ivpfiltsmooth import GaussianIVPFilter
 
 from .. import steprule
@@ -262,8 +258,8 @@ def probsolve_ivp(
         raise ValueError("Diffusion model is not supported.")
 
     choose_diffusion_model = {
-        "constant": ConstantDiffusion(),
-        "dynamic": PiecewiseConstantDiffusion(),
+        "constant": statespace.ConstantDiffusion(),
+        "dynamic": statespace.PiecewiseConstantDiffusion(),
     }
     diffusion = choose_diffusion_model[diffusion_model]
 

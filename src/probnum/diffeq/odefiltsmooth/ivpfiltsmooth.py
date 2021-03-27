@@ -9,7 +9,6 @@ from probnum import filtsmooth, randvars, statespace, utils
 
 from ..ode import IVP
 from ..odesolver import ODESolver
-from .diffusions import Diffusion, PiecewiseConstantDiffusion
 from .initialize import (
     initialize_odefilter_with_rk,
     initialize_odefilter_with_taylormode,
@@ -74,7 +73,7 @@ class GaussianIVPFilter(ODESolver):
             randvars.Normal,
         ],
         initrv: Optional[randvars.Normal] = None,
-        diffusion_model: Optional[Diffusion] = None,
+        diffusion_model: Optional[statespace.Diffusion] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
 
@@ -106,14 +105,18 @@ class GaussianIVPFilter(ODESolver):
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
-            PiecewiseConstantDiffusion() if diffusion_model is None else diffusion_model
+            statespace.PiecewiseConstantDiffusion()
+            if diffusion_model is None
+            else diffusion_model
         )
 
         # Once the diffusion has been calibrated, the covariance can either
         # be calibrated after each step, or all states can be calibrated
         # with a global diffusion estimate. The choices here depend on the
         # employed diffusion model.
-        is_dynamic = isinstance(self.diffusion_model, PiecewiseConstantDiffusion)
+        is_dynamic = isinstance(
+            self.diffusion_model, statespace.PiecewiseConstantDiffusion
+        )
         self._calibrate_at_each_step = is_dynamic
         self._calibrate_all_states_post_hoc = not self._calibrate_at_each_step
 

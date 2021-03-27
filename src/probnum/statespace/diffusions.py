@@ -1,8 +1,4 @@
-"""Diffusion calibrations.
-
-Maybe move this to `statespace` or `filtsmooth` in the future, but for
-now, it is well placed in `diffeq`.
-"""
+"""Diffusion models and their calibration."""
 
 
 import abc
