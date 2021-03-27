@@ -44,13 +44,6 @@ class GaussianIVPFilter(ODESolver):
         initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
     diffusion_model :
         Diffusion model. This determines which kind of calibration is used. We refer to Bosch et al. (2020) [1]_ for a survey.
-    _repeat_after_calibration :
-        Repeat the step after the initial calibration. Improves the result of each step, but slightly increases computational complexity.
-        Optional. A default value is inferred from the type of diffusion_model model:
-        if it is a `ConstantDiffusion`, this parameter is set to `False`;
-        if it is a `PiecewiseConstantDiffusion`, this parameter is set to `True`.
-        Other combinations are possible, but we recommend to stick to the defaults here.
-        If you decide to change this argument, it happens at your own risk!
     _reference_coordinates :
         Use this state as a reference state to compute the normalized error estimate.
         Optional. Default is 0 (which amounts to the usual reference state for ODE solvers).
@@ -82,7 +75,6 @@ class GaussianIVPFilter(ODESolver):
         ],
         initrv: Optional[randvars.Normal] = None,
         diffusion_model: Optional[Diffusion] = None,
-        _repeat_after_calibration: Optional[bool] = None,
         _reference_coordinates: Optional[int] = 0,
     ):
 
@@ -112,20 +104,21 @@ class GaussianIVPFilter(ODESolver):
         self.init_implementation = init_implementation
         super().__init__(ivp=ivp, order=dynamics_model.ordint)
 
-        self.sigma_squared_mle = 1.0
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
             PiecewiseConstantDiffusion() if diffusion_model is None else diffusion_model
         )
 
-        if _repeat_after_calibration is None:
-            if isinstance(self.diffusion_model, PiecewiseConstantDiffusion):
-                self._repeat_after_calibration = True
-            else:
-                self._repeat_after_calibration = False
-        else:
-            self._repeat_after_calibration = _repeat_after_calibration
+        # Once the diffusion has been calibrated, the covariance can either
+        # be calibrated after each step, or all states can be calibrated
+        # with a global diffusion estimate. The choices here depend on the
+        # employed diffusion model.
+        is_dynamic = isinstance(self.diffusion_model, PiecewiseConstantDiffusion)
+        self._calibrate_at_each_step = is_dynamic
+        self._calibrate_all_states_post_hoc = not self._calibrate_at_each_step
 
+        # Normalize the error estimate with the values from the 0th state
+        # or from any other state.
         self._reference_coordinates = _reference_coordinates
 
     # Construct an ODE solver from different initialisation methods.
@@ -141,7 +134,6 @@ class GaussianIVPFilter(ODESolver):
         with_smoothing,
         initrv=None,
         diffusion_model=None,
-        _repeat_after_calibration=True,
         _reference_coordinates=0,
         init_h0=0.01,
         init_method="DOP853",
@@ -169,7 +161,6 @@ class GaussianIVPFilter(ODESolver):
             init_implementation=init_implementation,
             initrv=initrv,
             diffusion_model=diffusion_model,
-            _repeat_after_calibration=_repeat_after_calibration,
             _reference_coordinates=_reference_coordinates,
         )
 
@@ -182,7 +173,6 @@ class GaussianIVPFilter(ODESolver):
         with_smoothing,
         initrv=None,
         diffusion_model=None,
-        _repeat_after_calibration=True,
         _reference_coordinates=0,
     ):
         """Create a Gaussian IVP filter that is initialised via
@@ -195,7 +185,6 @@ class GaussianIVPFilter(ODESolver):
             init_implementation=initialize_odefilter_with_taylormode,
             initrv=initrv,
             diffusion_model=diffusion_model,
-            _repeat_after_calibration=_repeat_after_calibration,
             _reference_coordinates=_reference_coordinates,
         )
 
@@ -307,28 +296,41 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # Estimate local diffusion_model and error
-        diffusion_error_free = self.diffusion_model.calibrate_locally(
-            meas_rv_error_free
+        local_diffusion = self.diffusion_model.estimate_locally_and_update_in_place(
+            meas_rv=meas_rv, meas_rv_assuming_zero_previous_cov=meas_rv_error_free, t=t
         )
-        diffusion_full = self.diffusion_model.calibrate_locally(meas_rv)
-        diffusion_for_calibration = self.diffusion_model.update_current_information(
-            diffusion_full, diffusion_error_free, t_new
-        )
-        local_errors = np.sqrt(diffusion_for_calibration) * np.sqrt(
+
+        local_errors = np.sqrt(local_diffusion) * np.sqrt(
             np.diag(meas_rv_error_free.cov)
         )
 
-        # Either re-predict and re-measure with improved calibration or let the predicted RV catch up.
-        if self._repeat_after_calibration:
-            pred_rv, _ = self.dynamics_model.forward_rv(
-                rv=current_rv, t=t, dt=dt, _diffusion=diffusion_for_calibration
+        if self._calibrate_at_each_step:
+            # With the updated diffusion, we need to re-compute the covariances of the
+            # predicted RV and measured RV.
+            # The resulting predicted and measured RV are overwritten herein.
+            full_pred_cov_cholesky = utils.linalg.cholesky_update(
+                np.sqrt(local_diffusion) * pred_rv_error_free.cov_cholesky, pred_sqrtm
             )
-            meas_rv, info = self.measurement_model.forward_rv(
-                rv=pred_rv, t=t_new, compute_gain=True
+            full_pred_cov = full_pred_cov_cholesky @ full_pred_cov_cholesky.T
+            pred_rv = randvars.Normal(
+                mean=pred_rv_error_free.mean,
+                cov=full_pred_cov,
+                cov_cholesky=full_pred_cov_cholesky,
             )
-            gain = info["gain"]
+
+            full_meas_cov_cholesky = utils.linalg.cholesky_update(
+                np.sqrt(local_diffusion) * meas_rv_error_free.cov_cholesky, meas_sqrtm
+            )
+            full_meas_cov = full_meas_cov_cholesky @ full_meas_cov_cholesky.T
+            meas_rv = randvars.Normal(
+                mean=meas_rv_error_free.mean,
+                cov=full_meas_cov,
+                cov_cholesky=full_meas_cov_cholesky,
+            )
         else:
             # Combine error-free and noisy-component predictions into a full prediction.
+            # This has not been assembled as a standalone random variable yet,
+            # but is needed for the update below.
             # (The measurement has been updated already.)
             full_pred_cov_cholesky = utils.linalg.cholesky_update(
                 pred_rv_error_free.cov_cholesky, pred_sqrtm
@@ -340,19 +342,18 @@ class GaussianIVPFilter(ODESolver):
                 cov_cholesky=full_pred_cov_cholesky,
             )
 
-            # Gain needs manual catching up, too.
-            crosscov = full_pred_cov @ H.T
-            gain = scipy.linalg.cho_solve((meas_rv.cov_cholesky, True), crosscov.T).T
-
-        # 4. Update
+        # Gain needs manual catching up, too. Use it to compute the update
+        crosscov = full_pred_cov @ H.T
+        gain = scipy.linalg.cho_solve((meas_rv.cov_cholesky, True), crosscov.T).T
         zero_data = np.zeros(meas_rv.mean.shape)
         filt_rv, _ = self.measurement_model.backward_realization(
             zero_data, pred_rv, rv_forwarded=meas_rv, gain=gain
         )
 
+        # Lets finally extract reference values, and the job is done.
         proj = self.dynamics_model.proj2coord(coord=self._reference_coordinates)
-        reference_state = np.maximum(proj @ filt_rv.mean, proj @ current_rv.mean)
-        return filt_rv, local_errors, reference_state
+        reference_values = np.maximum(proj @ filt_rv.mean, proj @ current_rv.mean)
+        return filt_rv, local_errors, reference_values
 
     def rvlist_to_odesol(self, times, rvs):
         """Create an ODESolution object."""
@@ -366,9 +367,18 @@ class GaussianIVPFilter(ODESolver):
     def postprocess(self, odesol):
         """If specified (at initialisation), smooth the filter output."""
         locations = odesol.kalman_posterior.locations
-        rv_list = self.diffusion_model.calibrate_all_states(
-            odesol.kalman_posterior.states, locations
-        )
+        rv_list = odesol.kalman_posterior.states
+        if self._calibrate_all_states_post_hoc:
+
+            # Constant diffusion model is the only way to go here.
+            s = self.diffusion_model.diffusion
+
+            for idx, (t, rv) in enumerate(zip(locations, rv_list)):
+                rv_list[idx] = randvars.Normal(
+                    mean=rv.mean,
+                    cov=s * rv.cov,
+                    cov_cholesky=np.sqrt(s) * rv.cov_cholesky,
+                )
 
         kalman_posterior = filtsmooth.FilteringPosterior(
             locations, rv_list, self.dynamics_model

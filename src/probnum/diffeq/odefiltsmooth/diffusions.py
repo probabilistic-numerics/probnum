@@ -77,6 +77,7 @@ class ConstantDiffusion(Diffusion):
             a = 1 / self._seen_diffusions
             b = 1 - a
             self.diffusion = a * new_increment + b * self.diffusion
+        self._seen_diffusions += 1
         return new_increment
 
 
