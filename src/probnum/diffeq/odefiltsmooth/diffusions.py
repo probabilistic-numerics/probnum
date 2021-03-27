@@ -35,29 +35,25 @@ class Diffusion(abc.ABC):
         """
         raise NotImplementedError
 
-    def _compute_local_quasi_mle(self, meas_rv):
-        std_like = meas_rv.cov_cholesky
-        whitened_res = np.linalg.solve(std_like, meas_rv.mean)
-        ssq = whitened_res @ whitened_res / meas_rv.size
-        return ssq
-
-    @abc.abstractmethod
-    def update_current_information(
-        self, full_diffusion, error_free_diffusion, t
-    ) -> ToleranceDiffusionType:
-        """Update the current information about the global diffusion and return a value
-        that is used for local calibration and error estimation.
-
-        This could mean appending the diffusion to a list or updating a
-        global estimate. It could also mean returning the input value or
-        the global mean.
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def calibrate_all_states(self, states, locations):
-        """Calibrate a set of ODE solver states after seeing all the data."""
-        raise NotImplementedError
+    #
+    #
+    # @abc.abstractmethod
+    # def update_current_information(
+    #     self, full_diffusion, error_free_diffusion, t
+    # ) -> ToleranceDiffusionType:
+    #     """Update the current information about the global diffusion and return a value
+    #     that is used for local calibration and error estimation.
+    #
+    #     This could mean appending the diffusion to a list or updating a
+    #     global estimate. It could also mean returning the input value or
+    #     the global mean.
+    #     """
+    #     raise NotImplementedError
+    #
+    # @abc.abstractmethod
+    # def calibrate_all_states(self, states, locations):
+    #     """Calibrate a set of ODE solver states after seeing all the data."""
+    #     raise NotImplementedError
 
 
 class ConstantDiffusion(Diffusion):
@@ -77,23 +73,24 @@ class ConstantDiffusion(Diffusion):
         2021.
     """
 
-    def __init__(self, use_global_estimate_as_local_estimate=True):
+    def __init__(self):
         self.diffusion = None
         self._seen_diffusions = 0
-        self.use_global_estimate_as_local_estimate = (
-            use_global_estimate_as_local_estimate
-        )
 
     def __repr__(self):
         return f"ConstantDiffusion({self.diffusion})"
 
     def __call__(self, t) -> ToleranceDiffusionType:
+        if self.diffusion is None:
+            raise NotImplementedError(
+                "No diffusions seen yet. Call estimate_locally first."
+            )
         return self.diffusion
 
     def estimate_locally_and_update_in_place(
-        self, meas_rv, meas_rv_assuming_zero_previous_covariance
+        self, meas_rv, meas_rv_assuming_zero_previous_cov
     ):
-        new_increment = self._compute_local_quasi_mle(meas_rv)
+        new_increment = _compute_local_quasi_mle(meas_rv)
         if self.diffusion is None:
             self.diffusion = new_increment
         else:
@@ -152,7 +149,7 @@ class PiecewiseConstantDiffusion(Diffusion):
     def estimate_locally_and_update_in_place(
         self, meas_rv, meas_rv_assuming_zero_previous_covariance
     ):
-        local_quasi_mle = self._compute_local_quasi_mle(
+        local_quasi_mle = _compute_local_quasi_mle(
             meas_rv_assuming_zero_previous_covariance
         )
         self.diffusions.append(local_quasi_mle)
@@ -163,3 +160,10 @@ class PiecewiseConstantDiffusion(Diffusion):
     #
     # def calibrate_all_states(self, states, locations):
     #     return states
+
+
+def _compute_local_quasi_mle(meas_rv):
+    std_like = meas_rv.cov_cholesky
+    whitened_res = np.linalg.solve(std_like, meas_rv.mean)
+    ssq = whitened_res @ whitened_res / meas_rv.size
+    return ssq
