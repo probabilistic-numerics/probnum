@@ -244,7 +244,9 @@ class Transition(abc.ABC):
 
         # Smoothing and sampling implementations
 
-    def smooth_list(self, rv_list, locations, _previous_posterior=None):
+    def smooth_list(
+        self, rv_list, locations, _diffusion_model=None, _previous_posterior=None
+    ):
         """Apply smoothing to a list of random variables, according to the present
         transition.
 
@@ -264,6 +266,11 @@ class Transition(abc.ABC):
             List of smoothed random variables.
         """
 
+        if _diffusion_model is not None:
+            diffusion_list = _diffusion_model(locations)
+        else:
+            diffusion_list = np.ones_like(locations)
+
         final_rv = rv_list[-1]
         curr_rv = final_rv
         out_rvs = [curr_rv]
@@ -275,6 +282,7 @@ class Transition(abc.ABC):
                 if _previous_posterior is None
                 else _previous_posterior(locations[idx - 1])
             )
+            diffusion = diffusion_list[idx - 1]
 
             # Actual smoothing step
             curr_rv, _ = self.backward_rv(
@@ -282,6 +290,7 @@ class Transition(abc.ABC):
                 unsmoothed_rv,
                 t=locations[idx - 1],
                 dt=locations[idx] - locations[idx - 1],
+                _diffusion=diffusion,
                 _linearise_at=_linearise_smooth_step_at,
             )
             out_rvs.append(curr_rv)

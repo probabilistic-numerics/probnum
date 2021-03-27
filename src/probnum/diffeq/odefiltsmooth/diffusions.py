@@ -65,7 +65,7 @@ class ConstantDiffusion(Diffusion):
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
             )
-        return self.diffusion
+        return self.diffusion * np.ones_like(t)
 
     def estimate_locally_and_update_in_place(
         self, meas_rv, meas_rv_assuming_zero_previous_cov, t

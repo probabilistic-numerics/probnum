@@ -380,7 +380,9 @@ class GaussianIVPFilter(ODESolver):
         )
 
         if self.with_smoothing is True:
-            rv_list = self.dynamics_model.smooth_list(rv_list, locations)
+            rv_list = self.dynamics_model.smooth_list(
+                rv_list, locations, _diffusion_model=self.diffusion_model
+            )
             kalman_posterior = filtsmooth.SmoothingPosterior(
                 locations,
                 rv_list,
