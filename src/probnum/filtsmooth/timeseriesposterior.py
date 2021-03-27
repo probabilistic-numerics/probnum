@@ -36,12 +36,9 @@ class TimeSeriesPosterior(abc.ABC):
         Posterior random variables.
     """
 
-    def __init__(
-        self, locations: np.ndarray, states: np.ndarray, _diffusion_model=None
-    ) -> None:
+    def __init__(self, locations: np.ndarray, states: np.ndarray) -> None:
         self.locations = np.asarray(locations)
         self.states = _randomvariablelist._RandomVariableList(states)
-        self._diffusion_model = _diffusion_model
 
     def __len__(self) -> int:
         """Length of the discrete-time solution.
