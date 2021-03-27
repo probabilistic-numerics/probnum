@@ -8,6 +8,7 @@ now, it is well placed in `diffeq`.
 import abc
 
 import numpy as np
+import scipy.linalg
 
 from probnum.type import ToleranceDiffusionType
 
@@ -145,6 +146,6 @@ class PiecewiseConstantDiffusion(Diffusion):
 
 def _compute_local_quasi_mle(meas_rv):
     std_like = meas_rv.cov_cholesky
-    whitened_res = np.linalg.solve(std_like, meas_rv.mean)
+    whitened_res = scipy.linalg.solve_triangular(std_like, meas_rv.mean, lower=True)
     ssq = whitened_res @ whitened_res / meas_rv.size
     return ssq

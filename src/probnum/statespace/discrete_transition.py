@@ -422,7 +422,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             R1 = big_triu[:output_dim, :output_dim]
             R12 = big_triu[:output_dim, output_dim:]
             gain = scipy.linalg.solve_triangular(R1, R12, lower=False).T
-            # gain = R12 @ np.linalg.inv(R1)
+            # gain = R12.T @ np.linalg.inv(R1.T)
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - state_trans @ rv.mean - shift)
         new_cov_cholesky = tril_to_positive_tril(new_chol_triu.T)

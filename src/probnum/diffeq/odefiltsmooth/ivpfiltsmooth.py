@@ -321,6 +321,7 @@ class GaussianIVPFilter(ODESolver):
                 cov=full_meas_cov,
                 cov_cholesky=full_meas_cov_cholesky,
             )
+
         else:
             # Combine error-free and noisy-component predictions into a full prediction.
             # This has not been assembled as a standalone random variable yet,
