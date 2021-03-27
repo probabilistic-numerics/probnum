@@ -354,11 +354,71 @@ class Transition(abc.ABC):
             curr_sample = (
                 curr_rv.mean
                 + curr_rv.cov_cholesky
-                @ base_measure_realizations[idx - 1].reshape((-1,))
+                @ base_measure_realizations[idx - 1].reshape(
+                    -1,
+                )
             )
             out_samples.append(curr_sample)
 
         out_samples.reverse()
+        return out_samples
+
+    def jointly_transform_base_measure_realization_list_forward(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: FloatArgType,
+        initrv: randvars.RandomVariable,
+        _previous_posterior=None,
+    ) -> np.ndarray:
+        """Transform samples from a base measure into joint backward samples from a list
+        of random variables.
+
+        Parameters
+        ----------
+        base_measure_realizations :
+            Base measure realizations (usually samples from a standard Normal distribution).
+            These are transformed into joint realizations of the random variable list.
+        initrv :
+            Initial random variable.
+        t :
+            Locations of the random variables in the list. Assumed to be sorted.
+        _previous_posterior :
+            Previous posterior. Used for iterative posterior linearisation.
+
+        Returns
+        -------
+        np.ndarray
+            Jointly transformed realizations.
+        """
+
+        curr_rv = initrv
+
+        curr_sample = curr_rv.mean + curr_rv.cov_cholesky @ base_measure_realizations[
+            0
+        ].reshape((-1,))
+        out_samples = [curr_sample]
+
+        for idx in range(1, len(t)):
+
+            _linearise_prediction_step_at = (
+                None
+                if _previous_posterior is None
+                else _previous_posterior(locations[idx - 1])
+            )
+
+            dt = t[idx] - t[idx - 1]
+            curr_rv, _ = self.forward_realization(
+                curr_sample,
+                t=t[idx - 1],
+                dt=dt,
+                _linearise_at=_linearise_prediction_step_at,
+            )
+            curr_sample = (
+                curr_rv.mean
+                + curr_rv.cov_cholesky
+                @ base_measure_realizations[idx - 1].reshape((-1,))
+            )
+            out_samples.append(curr_sample)
         return out_samples
 
     # Utility functions that are used surprisingly often:
