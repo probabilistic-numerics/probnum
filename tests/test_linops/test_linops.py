@@ -187,14 +187,14 @@ def test_eigvals(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 @pytest.mark.parametrize("p", [None, 2])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_cond(linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int]):
-    linop_det = linop.cond(p=p)
-    matrix_det = np.linalg.cond(matrix, p=p)
+    linop_cond = linop.cond(p=p)
+    matrix_cond = np.linalg.cond(matrix, p=p)
 
-    assert isinstance(linop_det, np.number)
-    assert linop_det.shape == ()
-    assert linop_det.dtype == matrix_det.dtype
+    assert isinstance(linop_cond, np.number)
+    assert linop_cond.shape == ()
+    assert linop_cond.dtype == matrix_cond.dtype
 
-    np.testing.assert_allclose(linop_det, matrix_det)
+    np.testing.assert_allclose(linop_cond, matrix_cond)
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)

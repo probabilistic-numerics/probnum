@@ -252,7 +252,9 @@ class LinearOperator(scipy.sparse.linalg.LinearOperator):
         LinAlgError : If :meth:`trace` is called on a non-square matrix.
         """
         if not self.is_square:
-            raise np.linalg.LinAlgError("The trace is only defined on square operators")
+            raise np.linalg.LinAlgError(
+                "The trace is only defined on square operators."
+            )
 
         _identity = np.eye(self.shape[0], dtype=self.dtype)
         trace = probnum.utils.as_numpy_scalar(0, dtype=self.dtype)
