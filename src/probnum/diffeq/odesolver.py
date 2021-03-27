@@ -19,20 +19,8 @@ class ODESolver(ABC):
         steprule : :class:`StepRule`
             Step-size selection rule, e.g. constant steps or adaptive steps.
         """
-        times, rvs = [], []
-        for t, rv in self.solution_generator(steprule):
-            times.append(t)
-            rvs.append(rv)
-
-        odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
-        return self.postprocess(odesol)
-
-    def solution_generator(self, steprule):
-        """Generate ODE solver steps."""
-
         t, current_rv = self.initialise()
-
-        yield t, current_rv
+        times, rvs = [t], [current_rv]
         stepsize = steprule.firststep
 
         while t < self.ivp.tmax:
@@ -50,13 +38,17 @@ class ODESolver(ABC):
                 )
                 t = t_new
                 current_rv = proposed_rv
-
-                yield t, current_rv
+                times.append(t)
+                rvs.append(current_rv)
 
             suggested_stepsize = steprule.suggest(
                 stepsize, internal_norm, localconvrate=self.order + 1
             )
             stepsize = min(suggested_stepsize, self.ivp.tmax - t)
+
+        odesol = self.rvlist_to_odesol(times=times, rvs=rvs)
+        odesol = self.postprocess(odesol)
+        return odesol
 
     @abstractmethod
     def initialise(self):
