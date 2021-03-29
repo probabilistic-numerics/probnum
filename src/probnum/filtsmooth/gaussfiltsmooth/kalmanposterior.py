@@ -45,10 +45,17 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         locations: np.ndarray,
         states: _randomvariablelist._RandomVariableList,
         transition: GaussMarkovPriorTransitionArgType,
+        diffusion_model=None,
     ) -> None:
 
         super().__init__(locations=locations, states=states)
         self.transition = transition
+
+        if isinstance(diffusion_model, statespace.PiecewiseConstantDiffusion):
+            self.diffusion_is_dynamic = True
+        else:
+            self.diffusion_is_dynamic = False
+        self.diffusion_model = diffusion_model
 
     @abc.abstractmethod
     def interpolate(
@@ -151,9 +158,10 @@ class SmoothingPosterior(KalmanPosterior):
         states: _randomvariablelist._RandomVariableList,
         transition: GaussMarkovPriorTransitionArgType,
         filtering_posterior: TimeSeriesPosterior,
+        diffusion_model=None,
     ):
         self.filtering_posterior = filtering_posterior
-        super().__init__(locations, states, transition)
+        super().__init__(locations, states, transition, diffusion_model=diffusion_model)
 
     def interpolate(
         self,
@@ -182,6 +190,18 @@ class SmoothingPosterior(KalmanPosterior):
         if t == next_location:
             return next_state
 
+        # This block avoids calling self.diffusion_model, because we do not want
+        # to search the full index set -- we already know the index.
+        # Diffusion index: "prefer" the previous index, but accept the next index
+        # as well (which is required for e.g. left extrapolation).
+        diffusion_index = previous_index if previous_index is not None else next_index
+        if self.diffusion_model is None:
+            squared_diffusion = 1.0
+        elif self.diffusion_is_dynamic:
+            squared_diffusion = self.diffusion_model.diffusions[diffusion_index]
+        else:
+            squared_diffusion = self.diffusion_model.diffusion[diffusion_index]
+
         # Corner case 2: are extrapolating to the left
         if previous_location is None:
             raise NotImplementedError("Extrapolation to the left is not implemented.")
@@ -193,7 +213,7 @@ class SmoothingPosterior(KalmanPosterior):
             # dt = t - next_location
             # assert dt < 0.0
             # extrapolated_rv_left, _ = self.transition.forward_rv(
-            #     next_state, t=next_location, dt=dt
+            #     next_state, t=next_location, dt=dt, _diffusion=squared_diffusion
             # )
             # return extrapolated_rv_left
             #
@@ -204,22 +224,31 @@ class SmoothingPosterior(KalmanPosterior):
             dt = t - previous_location
             assert dt > 0.0
             extrapolated_rv_right, _ = self.transition.forward_rv(
-                previous_state, t=previous_location, dt=dt
+                previous_state, t=previous_location, dt=dt, _diffusion=squared_diffusion
             )
             return extrapolated_rv_right
 
         # Final case: we are interpolating. Both locations are not None.
         # In this case, filter from the the left to the middle point;
         # And compute a smoothing update from the middle to the RHS point.
+        if np.abs(previous_index - next_index) > 1.1:
+            raise ValueError
         dt_left = t - previous_location
         dt_right = next_location - t
         assert dt_left > 0.0
         assert dt_right > 0.0
         filtered_rv, _ = self.transition.forward_rv(
-            rv=previous_state, t=previous_location, dt=dt_left
+            rv=previous_state,
+            t=previous_location,
+            dt=dt_left,
+            _diffusion=squared_diffusion,
         )
         smoothed_rv, _ = self.transition.backward_rv(
-            rv_obtained=next_state, rv=filtered_rv, t=t, dt=dt_right
+            rv_obtained=next_state,
+            rv=filtered_rv,
+            t=t,
+            dt=dt_right,
+            _diffusion=squared_diffusion,
         )
         return smoothed_rv
 
