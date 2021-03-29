@@ -295,9 +295,7 @@ class SmoothingPosterior(KalmanPosterior):
         elif self.diffusion_is_dynamic:
             squared_diffusion_list = self.diffusion_model.diffusions[diffusion_indices]
         else:
-            squared_diffusion_list = self.diffusion_model.diffusion * np.ones_like(
-                all_locations
-            )
+            squared_diffusion_list = self.diffusion_model.diffusion * np.ones_like(t)
 
         # Split into interpolation and extrapolation samples.
         # For extrapolation, samples are propagated forwards.
