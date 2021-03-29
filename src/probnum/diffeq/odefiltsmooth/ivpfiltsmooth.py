@@ -386,8 +386,16 @@ class GaussianIVPFilter(ODESolver):
         )
 
         if self.with_smoothing is True:
+
+            if isinstance(self.diffusion_model, statespace.PiecewiseConstantDiffusion):
+                squared_diffusion_list = self.diffusion_model.diffusions
+            else:
+                squared_diffusion_list = np.ones_like(locations)
+                if isinstance(self.diffusion_model, statespace.ConstantDiffusion):
+                    squared_diffusion_list *= self.diffusion_model.diffusion
+
             rv_list = self.dynamics_model.smooth_list(
-                rv_list, locations, _diffusion_model=self.diffusion_model
+                rv_list, locations, _diffusion_list=squared_diffusion_list
             )
             kalman_posterior = filtsmooth.SmoothingPosterior(
                 locations,

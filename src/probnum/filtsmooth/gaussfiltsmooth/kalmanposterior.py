@@ -291,7 +291,6 @@ class SmoothingPosterior(KalmanPosterior):
         # of the grid points in all_locations (which is done via np.searchsorted):
         diffusion_indices = np.searchsorted(self.locations[:-2], t)
         if self.diffusion_model is None:
-            raise RuntimeError
             squared_diffusion_list = np.ones_like(t)
         elif self.diffusion_is_dynamic:
             squared_diffusion_list = self.diffusion_model.diffusions[diffusion_indices]
@@ -339,7 +338,7 @@ class SmoothingPosterior(KalmanPosterior):
                 base_measure_realizations=base_measure_reals_inter,
                 t=t_inter,
                 rv_list=states_inter,
-                squared_diffusion_list=squared_diffusion_list_inter,
+                _diffusion_list=squared_diffusion_list_inter,
             )
         )
         samples_extra = np.array(
@@ -347,7 +346,7 @@ class SmoothingPosterior(KalmanPosterior):
                 base_measure_realizations=base_measure_reals_extra_right,
                 t=t_extra_right,
                 initrv=states_extra_right[0],
-                squared_diffusion_list=squared_diffusion_list_extra_right,
+                _diffusion_list=squared_diffusion_list_extra_right,
             )
         )
         samples = np.concatenate((samples_inter[:-1], samples_extra), axis=0)
