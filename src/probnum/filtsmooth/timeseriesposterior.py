@@ -200,29 +200,3 @@ class TimeSeriesPosterior(abc.ABC):
         raise NotImplementedError(
             "Transforming base measure realizations is not implemented."
         )
-
-    @property
-    def _states_left_of_location(self):
-        """Return the set of states that is used to find the LEFTMOST states of a given
-        time point in a way that supports slicing with the output of numpy.searchsorted.
-
-        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
-        because then the _RandomVariableList functionality would be lost.
-
-
-        Note: This exists as a property, because for the KalmanSmoothingPosterior, the leftmost states
-        are extracted from the filtering posterior, not the smoothing posterior, which can be overwritten here.
-        """
-        return np.asarray(self.states)
-
-    @property
-    def _states_right_of_location(self):
-        """Return the set of states that is used to find the RIGHTMOST states of a given
-        time point in a way that supports slicing with the output of numpy.searchsorted.
-
-        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
-        because then the _RandomVariableList functionality would be lost.
-
-        This exists as a property because the leftmost states exist as a property and who knows when we need it like that.
-        """
-        return np.asarray(self.states)
