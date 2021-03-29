@@ -62,6 +62,12 @@ The following people contributed to the ProbNum repository.
 					<p>Jonathan Schmidt</p>
 				</a>
 			</li>
+			<li>
+				<a href="https://github.com/jzenn">
+					<img class="avatar" alt="jzenn" src="https://github.com/jzenn.png?v=3&s=96" width="64" height="64" />
+					<p>Johannes Zenn</p>
+				</a>
+			</li>
 		</ul>
 	</center>
 </div>
