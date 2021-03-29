@@ -6,6 +6,7 @@ import numpy as np
 import probnum.diffeq as pnd  # ODE problem as test function
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
+from probnum.problems import RegressionProblem
 from probnum.randvars import Constant, Normal
 from tests.testing import NumpyAssertions
 
@@ -56,7 +57,17 @@ def car_tracking():
         proc_noise_cov_mat=measdiff,
     )
     initrv = Normal(mean, cov)
-    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
+
+    # Generate data
+    t_max = 20
+    times = np.arange(0.0, t_max, step=delta_t)
+    states, obs = pnss.generate_samples(
+        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
+    )
+    regression_problem = RegressionProblem(
+        observations=obs, locations=times, solution=states
+    )
+    return dynmod, measmod, initrv, regression_problem
 
 
 class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
@@ -97,7 +108,17 @@ def ornstein_uhlenbeck():
         proc_noise_cov_mat=r * np.eye(1),
     )
     initrv = Normal(10 * np.ones(1), np.eye(1))
-    return dynmod, measmod, initrv, {"dt": delta_t, "tmax": 20}
+
+    # Generate data
+    t_max = 20
+    times = np.arange(0.0, t_max, step=delta_t)
+    states, obs = pnss.generate_samples(
+        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
+    )
+    regression_problem = RegressionProblem(
+        observations=obs, locations=times, solution=states
+    )
+    return dynmod, measmod, initrv, regression_problem
 
 
 class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
@@ -152,10 +173,32 @@ def pendulum():
     r = var * np.eye(1)
     initmean = np.ones(2)
     initcov = var * np.eye(2)
-    dynamod = pnss.DiscreteGaussian(2, 2, f, lambda t: q, df)
-    measmod = pnss.DiscreteGaussian(2, 1, h, lambda t: r, dh)
+    dynmod = pnss.DiscreteGaussian(
+        input_dim=2,
+        output_dim=2,
+        state_trans_fun=f,
+        proc_noise_cov_mat_fun=lambda t: q,
+        jacob_state_trans_fun=df,
+    )
+    measmod = pnss.DiscreteGaussian(
+        input_dim=2,
+        output_dim=1,
+        state_trans_fun=h,
+        proc_noise_cov_mat_fun=lambda t: r,
+        jacob_state_trans_fun=dh,
+    )
     initrv = Normal(initmean, initcov)
-    return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
+
+    # Generate data
+    t_max = 4
+    times = np.arange(0.0, t_max, step=delta_t)
+    states, obs = pnss.generate_samples(
+        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
+    )
+    regression_problem = RegressionProblem(
+        observations=obs, locations=times, solution=states
+    )
+    return dynmod, measmod, initrv, regression_problem
 
 
 def logistic_ode():

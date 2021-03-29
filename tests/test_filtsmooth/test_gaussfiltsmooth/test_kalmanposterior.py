@@ -5,6 +5,7 @@ import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
 from probnum import randvars, utils
 from probnum._randomvariablelist import _RandomVariableList
+from probnum.problems import RegressionProblem
 
 from ..filtsmooth_testcases import car_tracking
 
@@ -12,28 +13,23 @@ from ..filtsmooth_testcases import car_tracking
 @pytest.fixture
 def problem():
     """Car-tracking problem."""
-    problem = car_tracking()
-    dynmod, measmod, initrv, info = problem
-
-    times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnss.generate_samples(
-        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
-    )
-    return dynmod, measmod, initrv, info, obs, times, states
+    return car_tracking()
 
 
 @pytest.fixture
-def kalman(problem):
-    """Standard Kalman filter."""
-    dynmod, measmod, initrv, *_ = problem
-    return pnfs.Kalman(dynmod, measmod, initrv)
+def setup(problem):
+    """Filter and regression problem."""
+    dynmod, measmod, initrv, regression_problem = problem
+
+    kalman = pnfs.Kalman(dynmod, measmod, initrv)
+    return kalman, regression_problem
 
 
 @pytest.fixture
-def posterior(kalman, problem):
+def posterior(setup):
     """Kalman smoothing posterior."""
-    *_, obs, times, states = problem
-    return kalman.filtsmooth(obs, times)
+    kalman, regression_problem = setup
+    return kalman.filtsmooth(regression_problem)
 
 
 def test_len(posterior):
@@ -43,9 +39,10 @@ def test_len(posterior):
     assert len(posterior.states) == len(posterior)
 
 
-def test_locations(posterior, problem):
+def test_locations(posterior, setup):
     """Locations are stored correctly."""
-    *_, obs, times, states = problem
+    _, regression_problem = setup
+    times = regression_problem.locations
     np.testing.assert_allclose(posterior.locations, np.sort(posterior.locations))
     np.testing.assert_allclose(posterior.locations, times)
 
@@ -159,7 +156,8 @@ def test_sampling_shapes_1d(locs, size):
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
     kalman = pnfs.Kalman(prior, measmod, initrv)
-    posterior = kalman.filtsmooth(times=locations, dataset=data)
+    regression_problem = RegressionProblem(observations=data, locations=locations)
+    posterior = kalman.filtsmooth(regression_problem)
 
     size = utils.as_shape(size)
     if locs is None:
