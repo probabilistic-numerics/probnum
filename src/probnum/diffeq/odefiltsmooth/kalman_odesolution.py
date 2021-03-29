@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, randvars, utils
 from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+from probnum.type import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
 
 from ..odesolution import ODESolution
 
@@ -91,13 +91,11 @@ class KalmanODESolution(ODESolution):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
         out_rv = self.kalman_posterior.interpolate(
-            t, previous_location, previous_state, next_location, next_state
+            t, previous_index=previous_index, next_index=next_index
         )
         return _project_rv(self.proj_to_y, out_rv)
 

@@ -10,7 +10,7 @@ import numpy as np
 from scipy import stats
 
 from probnum import _randomvariablelist, randvars, statespace, utils
-from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
+from probnum.type import FloatArgType, IntArgType, RandomStateArgType, ShapeArgType
 
 from ..timeseriesposterior import DenseOutputLocationArgType, TimeSeriesPosterior
 from .extendedkalman import ContinuousEKFComponent, DiscreteEKFComponent
@@ -54,10 +54,8 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
         raise NotImplementedError
 
@@ -160,16 +158,23 @@ class SmoothingPosterior(KalmanPosterior):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
         # Otherwise, there is no reference point that can be used for interpolation.
-        if previous_location is None and next_location is None:
+        if previous_index is None and next_index is None:
             raise ValueError
+
+        previous_location = (
+            self.locations[previous_index] if previous_index is not None else None
+        )
+        next_location = self.locations[next_index] if next_index is not None else None
+        previous_state = (
+            self.states[previous_index] if previous_index is not None else None
+        )
+        next_state = self.states[next_index] if next_index is not None else None
 
         # Corner case 1: point is on grid. In this case, don't compute anything.
         if t == previous_location:
@@ -309,15 +314,23 @@ class FilteringPosterior(KalmanPosterior):
     def interpolate(
         self,
         t: FloatArgType,
-        previous_location: Optional[FloatArgType] = None,
-        previous_state: Optional[randvars.RandomVariable] = None,
-        next_location: Optional[FloatArgType] = None,
-        next_state: Optional[randvars.RandomVariable] = None,
+        previous_index: Optional[IntArgType] = None,
+        next_index: Optional[IntArgType] = None,
     ) -> randvars.RandomVariable:
 
         # Assert either previous_location or next_location is not None
-        if previous_location is None and next_location is None:
+        # Otherwise, there is no reference point that can be used for interpolation.
+        if previous_index is None and next_index is None:
             raise ValueError
+
+        previous_location = (
+            self.locations[previous_index] if previous_index is not None else None
+        )
+        next_location = self.locations[next_index] if next_index is not None else None
+        previous_state = (
+            self.states[previous_index] if previous_index is not None else None
+        )
+        next_state = self.states[next_index] if next_index is not None else None
 
         # Corner case 1: point is on grid
         if t == previous_location:
