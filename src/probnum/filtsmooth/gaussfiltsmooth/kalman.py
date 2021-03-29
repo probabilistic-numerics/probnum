@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 
 from probnum.filtsmooth.gaussfiltsmooth import stoppingcriterion
+from probnum.problems import RegressionProblem
 
 from ..bayesfiltsmooth import BayesFiltSmooth
 from ..timeseriesposterior import TimeSeriesPosterior
@@ -33,8 +34,7 @@ class Kalman(BayesFiltSmooth):
 
     def iterated_filtsmooth(
         self,
-        dataset: np.ndarray,
-        times: np.ndarray,
+        regression_problem: RegressionProblem,
         stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
@@ -49,8 +49,7 @@ class Kalman(BayesFiltSmooth):
 
         # Initialise iterated smoother
         old_posterior = self.filtsmooth(
-            dataset=dataset,
-            times=times,
+            regression_problem,
             _previous_posterior=None,
         )
         new_posterior = old_posterior
@@ -59,8 +58,7 @@ class Kalman(BayesFiltSmooth):
         while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
             old_posterior = new_posterior
             new_posterior = self.filtsmooth(
-                dataset=dataset,
-                times=times,
+                regression_problem,
                 _previous_posterior=old_posterior,
             )
             new_mean = new_posterior.states.mean
@@ -69,19 +67,21 @@ class Kalman(BayesFiltSmooth):
 
     def filtsmooth(
         self,
-        dataset: np.ndarray,
-        times: np.ndarray,
+        regression_problem: RegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
         ----------
-        dataset : array_like, shape (N, M)
-            Data set that is filtered.
-        times : array_like, shape (N,)
-            Temporal locations of the data points.
-            The zeroth element in times and dataset is the location of the initial random variable.
+        regression_problem: RegressionProblem
+            A dataclass containing fields for both
+            - locations: array_like, shape (N, )
+            Temporal locations of the (time series) data points, has to be 1-dimensional.
+            The zero-th element is the location of the initial random variable.
+            - observations: array_like, shape(N, M)
+            Observations at the provided locations.
+            The zero-th element is the initial random variable.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -92,30 +92,29 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the filtered output
         """
-        dataset, times = np.asarray(dataset), np.asarray(times)
         filter_posterior = self.filter(
-            dataset,
-            times,
-            _previous_posterior=_previous_posterior,
+            regression_problem, _previous_posterior=_previous_posterior
         )
         smooth_posterior = self.smooth(filter_posterior)
         return smooth_posterior
 
     def filter(
         self,
-        dataset: np.ndarray,
-        times: np.ndarray,
+        regression_problem: RegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
-        dataset : array_like, shape (N, M)
-            Data set that is filtered.
-        times : array_like, shape (N,)
-            Temporal locations of the data points.
-            The zeroth element in times and dataset is the location of the initial random variable.
+        regression_problem: RegressionProblem
+            A dataclass containing fields for both
+            - locations: array_like, shape (N, )
+            Temporal locations of the (time series) data points, has to be 1-dimensional.
+            The zero-th element is the location of the initial random variable.
+            - observations: array_like, shape(N, M)
+            Observations at the provided locations.
+            The zero-th element is the initial random variable.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -125,7 +124,7 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the filtered output
         """
-        dataset, times = np.asarray(dataset), np.asarray(times)
+        dataset, times = regression_problem.observations, regression_problem.locations
         rvs = []
 
         _linearise_update_at = (
