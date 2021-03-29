@@ -263,4 +263,5 @@ class Kalman(BayesFiltSmooth):
             rv_list,
             self.dynamics_model,
             filtering_posterior=filter_posterior,
+            diffusion_model=filter_posterior.diffusion_model,
         )

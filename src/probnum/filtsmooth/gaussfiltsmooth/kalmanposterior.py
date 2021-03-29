@@ -95,6 +95,7 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
             size=(size + all_locations.shape + single_rv_shape),
             random_state=random_state,
         )
+
         samples = self.transform_base_measure_realizations(
             base_measure_realizations=base_measure_realizations, t=all_locations
         )
@@ -286,6 +287,19 @@ class SmoothingPosterior(KalmanPosterior):
         if not np.all(np.diff(t) >= 0.0):
             raise ValueError("Time-points have to be sorted.")
 
+        # Find locations of the diffusions, which amounts to finding the locations
+        # of the grid points in all_locations (which is done via np.searchsorted):
+        diffusion_indices = np.searchsorted(self.locations[:-2], t)
+        if self.diffusion_model is None:
+            raise RuntimeError
+            squared_diffusion_list = np.ones_like(t)
+        elif self.diffusion_is_dynamic:
+            squared_diffusion_list = self.diffusion_model.diffusions[diffusion_indices]
+        else:
+            squared_diffusion_list = self.diffusion_model.diffusion * np.ones_like(
+                all_locations
+            )
+
         # Split into interpolation and extrapolation samples.
         # For extrapolation, samples are propagated forwards.
         # Due to this distinction, we need to treat both cases differently.
@@ -311,6 +325,11 @@ class SmoothingPosterior(KalmanPosterior):
             -len(t_extra_right) :
         ]
 
+        squared_diffusion_list_inter = squared_diffusion_list[: len(t_inter)]
+        squared_diffusion_list_extra_right = squared_diffusion_list[
+            -len(t_extra_right) :
+        ]
+
         states = self.filtering_posterior(t)
         states_inter = states[: len(t_inter)]
         states_extra_right = states[-len(t_extra_right) :]
@@ -320,6 +339,7 @@ class SmoothingPosterior(KalmanPosterior):
                 base_measure_realizations=base_measure_reals_inter,
                 t=t_inter,
                 rv_list=states_inter,
+                squared_diffusion_list=squared_diffusion_list_inter,
             )
         )
         samples_extra = np.array(
@@ -327,6 +347,7 @@ class SmoothingPosterior(KalmanPosterior):
                 base_measure_realizations=base_measure_reals_extra_right,
                 t=t_extra_right,
                 initrv=states_extra_right[0],
+                squared_diffusion_list=squared_diffusion_list_extra_right,
             )
         )
         samples = np.concatenate((samples_inter[:-1], samples_extra), axis=0)

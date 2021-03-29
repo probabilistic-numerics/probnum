@@ -304,6 +304,7 @@ class Transition(abc.ABC):
         base_measure_realizations: np.ndarray,
         t: FloatArgType,
         rv_list: _randomvariablelist._RandomVariableList,
+        squared_diffusion_list,
         _previous_posterior=None,
     ) -> np.ndarray:
         """Transform samples from a base measure into joint backward samples from a list
@@ -350,6 +351,7 @@ class Transition(abc.ABC):
                 t=t[idx - 1],
                 dt=dt,
                 _linearise_at=_linearise_smooth_step_at,
+                _diffusion=squared_diffusion_list[idx],
             )
             curr_sample = (
                 curr_rv.mean
@@ -368,6 +370,7 @@ class Transition(abc.ABC):
         base_measure_realizations: np.ndarray,
         t: FloatArgType,
         initrv: randvars.RandomVariable,
+        squared_diffusion_list,
         _previous_posterior=None,
     ) -> np.ndarray:
         """Transform samples from a base measure into joint backward samples from a list
@@ -412,6 +415,7 @@ class Transition(abc.ABC):
                 t=t[idx - 1],
                 dt=dt,
                 _linearise_at=_linearise_prediction_step_at,
+                _diffusion=squared_diffusion_list[idx],
             )
             curr_sample = (
                 curr_rv.mean
