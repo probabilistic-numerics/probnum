@@ -3,6 +3,7 @@ import pytest
 
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
+from probnum.problems import RegressionProblem
 
 from ..filtsmooth_testcases import logistic_ode, pendulum
 
@@ -10,15 +11,11 @@ from ..filtsmooth_testcases import logistic_ode, pendulum
 def pendulum_problem():
     """Pendulum problem."""
     problem = pendulum()
-    dynmod, measmod, initrv, info = problem
+    dynmod, measmod, initrv, regression_problem = problem
     dynmod = pnfs.DiscreteEKFComponent(dynmod)
     measmod = pnfs.DiscreteEKFComponent(measmod)
 
-    times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnss.generate_samples(
-        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
-    )
-    return dynmod, measmod, initrv, info, obs, times, states
+    return dynmod, measmod, initrv, regression_problem
 
 
 def logistic_ode_problem():
@@ -30,27 +27,37 @@ def logistic_ode_problem():
     obs = np.zeros((len(times), 1))
 
     states = info["ode"].solution(times)
-    return dynmod, measmod, initrv, info, obs, times, states
+    regression_problem = RegressionProblem(
+        observations=obs, locations=times, solution=states
+    )
+    return dynmod, measmod, initrv, regression_problem
 
 
-@pytest.fixture
-def kalman(problem):
-    """Create a Kalman object."""
-    dynmod, measmod, initrv, info, *_ = problem
-    return pnfs.Kalman(dynmod, measmod, initrv)
+@pytest.fixture(
+    params=[logistic_ode_problem]
+)  # , pendulum_problem]) #TODO: Make pendulum work
+def setup(request):
+    """Filter and regression problem."""
+    problem = request.param
+    dynmod, measmod, initrv, regression_problem = problem()
+
+    kalman = pnfs.Kalman(dynmod, measmod, initrv)
+    return kalman, regression_problem
 
 
-@pytest.mark.parametrize("problem", [logistic_ode_problem()])
-def test_rmse_filt_smooth(kalman, problem):
+def test_rmse_filt_smooth(setup):
     """Assert that iterated smoothing beats smoothing beats filtering."""
-    *_, obs, times, truth = problem
+    kalman, regression_problem = setup
+    truth = regression_problem.solution
 
     stopcrit = pnfs.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
-    posterior = kalman.filter(obs, times)
+    posterior = kalman.filter(regression_problem)
     posterior = kalman.smooth(posterior)
 
-    iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
+    iterated_posterior = kalman.iterated_filtsmooth(
+        regression_problem, stopcrit=stopcrit
+    )
 
     filtms = posterior.filtering_posterior.states.mean
     smooms = posterior.states.mean

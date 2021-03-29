@@ -10,22 +10,11 @@ from ..filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 # Problems
 
 
-@pytest.fixture
-def problem():
-    """Car tracking problem."""
-    return car_tracking()
-
-
-@pytest.fixture
-def problem():
-    """Ornstein-Uhlenbeck problem."""
-    return ornstein_uhlenbeck()
-
-
-@pytest.fixture
-def setup(problem):
+@pytest.fixture(params=[car_tracking, ornstein_uhlenbeck])
+def setup(request):
     """Filter and regression problem."""
-    dynmod, measmod, initrv, regression_problem = problem
+    problem = request.param
+    dynmod, measmod, initrv, regression_problem = problem()
 
     kalman = pnfs.Kalman(dynmod, measmod, initrv)
     return kalman, regression_problem

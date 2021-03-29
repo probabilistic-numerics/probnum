@@ -268,11 +268,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_filtsmooth_pendulum(self):
         # pylint: disable=not-callable
         # Set up test problem
-        dynamod, measmod, initrv, info = pendulum()
-        delta_t = info["dt"]
-        tmax = info["tmax"]
-        tms = np.arange(0, tmax, delta_t)
-        states, obs = pnss.generate_samples(dynamod, measmod, initrv, tms)
+        dynamod, measmod, initrv, regression_problem = pendulum()
 
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(measmod)
@@ -280,19 +276,26 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         method = pnfs.Kalman(ekf_dyna, ekf_meas, initrv)
 
         # Compute filter/smoother solution
-        posterior = method.filtsmooth(obs, tms)
+        posterior = method.filtsmooth(regression_problem)
         filtms = posterior.filtering_posterior.states.mean
         smooms = posterior.states.mean
 
         # Compute RMSEs
-        comp = states[:, 0]
+        comp = regression_problem.solution[:, 0]
         normaliser = np.sqrt(comp.size)
         filtrmse = np.linalg.norm(filtms[:, 0] - comp) / normaliser
         smoormse = np.linalg.norm(smooms[:, 0] - comp) / normaliser
-        obs_rmse = np.linalg.norm(obs[:, 0] - comp) / normaliser
+        obs_rmse = (
+            np.linalg.norm(regression_problem.observations[:, 0] - comp) / normaliser
+        )
 
         # If desired, visualise.
         if VISUALISE:
+            obs, tms, states = (
+                regression_problem.observations,
+                regression_problem.locations,
+                regression_problem.solution,
+            )
             fig, (ax1, ax2) = plt.subplots(1, 2)
             fig.suptitle(
                 "Noisy pendulum model (%.2f " % smoormse
