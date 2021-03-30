@@ -8,6 +8,7 @@ from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
 from probnum.diffeq import probsolve_ivp
 from probnum.diffeq.ode import lotkavolterra
+from probnum.problems import RegressionProblem
 from probnum.randvars import Constant
 
 
@@ -172,7 +173,8 @@ def test_sampling_shapes_1d(locs, size):
     initrv = pnrv.Normal(np.zeros(1), np.eye(1))
 
     kalman = pnfs.Kalman(prior, measmod, initrv)
-    posterior = kalman.filtsmooth(times=locations, dataset=data)
+    regression_problem = RegressionProblem(observations=data, locations=locations)
+    posterior = kalman.filtsmooth(regression_problem)
 
     size = utils.as_shape(size)
     if locs is None:
