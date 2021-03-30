@@ -34,15 +34,24 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
     base_measure_realizations_latent_state = scipy.stats.norm.rvs(
         size=(times.shape + (measmod.input_dim,)), random_state=random_state
     )
+    base_measure_realizations_observation = scipy.stats.norm.rvs(
+        size=(times.shape + (measmod.output_dim,)), random_state=random_state
+    )
+
+    # One diffusion less than timepoints, because they correspond to intervals.
+    squared_diffusions = np.ones_like(times[:-1])
     latent_states = np.array(
         dynmod.jointly_transform_base_measure_realization_list_forward(
             base_measure_realizations=base_measure_realizations_latent_state,
             t=times,
             initrv=initrv,
+            _diffusion_list=squared_diffusions,
         )
     )
 
-    for idx, (state, t) in enumerate(zip(latent_states, times)):
+    for idx, (state, t, base) in enumerate(
+        zip(latent_states, times, base_measure_realizations_observation)
+    ):
         measured_rv, _ = measmod.forward_realization(state, t=t)
-        obs[idx] = measured_rv.sample()
+        obs[idx] = measured_rv.mean + measured_rv.cov_cholesky @ base
     return latent_states, obs
