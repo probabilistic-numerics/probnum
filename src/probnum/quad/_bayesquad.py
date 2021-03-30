@@ -7,11 +7,12 @@ value of the integral. Bayesian quadrature methods return a random
 variable, specifying the belief about the true value of the integral.
 """
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 
 from probnum.kernels import Kernel
+from probnum.randvars import Normal
 from probnum.type import FloatArgType
 
 from ._integration_measures import IntegrationMeasure, LebesgueMeasure
@@ -29,20 +30,22 @@ def bayesquad(
     measure: Optional[IntegrationMeasure] = None,
     method: str = "vanilla",
     policy: str = "bmc",
-):
-    r"""Bayesian quadrature (BQ) infers integrals of the form
+) -> Tuple[Normal, Dict]:
+    r"""Infer the solution of the uni- or multivariate integral :math:`\int_a^b f(x) d \mu(x)`.
+
+    Bayesian quadrature (BQ) infers integrals of the form
 
     .. math:: F = \int_a^b f(x) d \mu(x),
 
-    of a function :math: `f:\mathbb{R}^D \mapsto \mathbb{R}` integrated between bounds
-    :math: `a` and :math: `b` against a measure :math: `\mu: \mathbb{R}^D \mapsto \mathbb{R}`.
+    of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated between bounds
+    :math:`a` and :math:`b` against a measure :math:`\mu: \mathbb{R}^D \mapsto \mathbb{R}`.
 
-    Bayesian quadrature methods return a probability distribution over the solution :math: `F` with
+    Bayesian quadrature methods return a probability distribution over the solution :math:`F` with
     uncertainty arising from finite computation (here a finite number of function evaluations).
-    They start out with a random process encoding the prior belief about the function :math: `f`
+    They start out with a random process encoding the prior belief about the function :math:`f`
     to be integrated. Conditioned on either existing or acquired function evaluations according to a
-    policy, they update the belief on :math: `f`, which is translated into a posterior measure over
-    the integral :math: `F`.
+    policy, they update the belief on :math:`f`, which is translated into a posterior measure over
+    the integral :math:`F`.
 
     Parameters
     ----------
@@ -52,13 +55,13 @@ def bayesquad(
         Input dimension of the integration problem
     kernel:
         the kernel used for the GP model
-    domain : Tuple
+    domain :
         Domain of integration. Contains lower and upper bound as int or ndarray, shape=(dim,)
-    measure: IntegrationMeasure, optional
+    measure:
         Integration measure, defaults to the Lebesgue measure.
     nevals :
         Number of function evaluations.
-    method : str, optional
+    method :
         Type of Bayesian quadrature to use. The available options are
 
         ====================  ===========
@@ -66,7 +69,7 @@ def bayesquad(
          WSABI                ``wsabi``
         ====================  ===========
 
-    policy : str, optional
+    policy :
         Type of acquisition strategy to use. Options are
 
         =======================  =======

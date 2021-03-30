@@ -13,7 +13,9 @@ from .._kernel_embeddings import get_kernel_embedding
 
 
 class BayesianQuadrature:
-    r"""A Bayesian quadrature model to solve integrals of the type.
+    r"""A base class for Bayesian quadrature
+
+    Bayesian quadrature solves integrals of the form
 
     .. math:: F = \int_a^b f(x) d \mu(x),
 
@@ -65,9 +67,9 @@ class BayesianQuadrature:
 
         Returns
         -------
-        F : RandomVariable
+        F :
             The integral of ``fun`` from ``a`` to ``b``.
-        info : dict
+        info :
             Information on the performance of the method.
         """
 

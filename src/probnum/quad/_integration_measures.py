@@ -35,7 +35,7 @@ class IntegrationMeasure(abc.ABC):
         domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
         random_state: Optional[RandomStateArgType] = None,
         name: Optional[str] = "Custom measure",
-    ):
+    ) -> None:
 
         self._set_dimension_domain(dim, domain)
         self.random_state = random_state
@@ -56,7 +56,7 @@ class IntegrationMeasure(abc.ABC):
         """
         return self.random_variable.pdf(points).squeeze()
 
-    def sample(self, n_sample) -> np.ndarray:
+    def sample(self, n_sample: IntArgType) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
 
         Parameters
@@ -71,7 +71,11 @@ class IntegrationMeasure(abc.ABC):
         """
         return np.squeeze(self.random_variable.sample(size=n_sample))
 
-    def _set_dimension_domain(self, dim, domain):
+    def _set_dimension_domain(
+        self,
+        dim: IntArgType,
+        domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+    ) -> None:
         """Sets the integration domain and dimension.
 
         The following logic is used to set the domain and dimension:
@@ -144,7 +148,7 @@ class LebesgueMeasure(IntegrationMeasure):
         dim: Optional[IntArgType] = None,
         normalized: Optional[bool] = False,
         random_state: Optional[RandomStateArgType] = None,
-    ):
+    ) -> None:
         super().__init__(
             dim=dim, domain=domain, random_state=random_state, name="Lebesgue measure"
         )
@@ -168,11 +172,11 @@ class LebesgueMeasure(IntegrationMeasure):
             loc=self.domain[0], scale=self.domain[1] - self.domain[0]
         )
 
-    def __call__(self, points: Union[float, np.floating, np.ndarray]):
+    def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
         num_dat = np.atleast_1d(points).shape[0]
         return np.full(() if num_dat == 1 else (num_dat,), self.normalization_constant)
 
-    def sample(self, n_sample):
+    def sample(self, n_sample: IntArgType) -> np.ndarray:
         return np.squeeze(
             self.random_variable.rvs(
                 size=(n_sample, self.dim), random_state=self.random_state
@@ -189,7 +193,7 @@ class GaussianMeasure(IntegrationMeasure):
         cov: Union[float, np.floating, np.ndarray],
         dim: Optional[IntArgType] = None,
         random_state: Optional[RandomStateArgType] = None,
-    ):
+    ) -> None:
 
         # Extend scalar mean and covariance to higher dimensions if dim has been
         # supplied by the user
