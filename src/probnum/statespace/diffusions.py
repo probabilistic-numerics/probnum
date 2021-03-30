@@ -36,7 +36,7 @@ class Diffusion(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def estimate_locally_and_update_in_place(
+    def estimate_locally(
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
@@ -47,6 +47,10 @@ class Diffusion(abc.ABC):
 
         Used for uncertainty calibration in the ODE solver.
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def update_in_place(self, local_estimate, t):
         raise NotImplementedError
 
 
@@ -86,21 +90,24 @@ class ConstantDiffusion(Diffusion):
 
         return self.diffusion * np.ones_like(idx)
 
-    def estimate_locally_and_update_in_place(
+    def estimate_locally(
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
         t: FloatArgType,
     ) -> ToleranceDiffusionType:
         new_increment = _compute_local_quasi_mle(meas_rv)
+        return new_increment
+
+    def update_in_place(self, local_estimate, t):
+
         if self.diffusion is None:
-            self.diffusion = new_increment
+            self.diffusion = local_estimate
         else:
             a = 1 / self._seen_diffusions
             b = 1 - a
-            self.diffusion = a * new_increment + b * self.diffusion
+            self.diffusion = a * local_estimate + b * self.diffusion
         self._seen_diffusions += 1
-        return new_increment
 
 
 class PiecewiseConstantDiffusion(Diffusion):
@@ -167,7 +174,7 @@ class PiecewiseConstantDiffusion(Diffusion):
             )
         return self.diffusions[idx]
 
-    def estimate_locally_and_update_in_place(
+    def estimate_locally(
         self,
         meas_rv: randvars.RandomVariable,
         meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
@@ -178,9 +185,12 @@ class PiecewiseConstantDiffusion(Diffusion):
                 "This time-point is not right of the current rightmost time-point."
             )
         local_quasi_mle = _compute_local_quasi_mle(meas_rv_assuming_zero_previous_cov)
-        self._diffusions.append(local_quasi_mle)
-        self._locations.append(t)
         return local_quasi_mle
+
+    def update_in_place(self, local_estimate, t):
+
+        self._diffusions.append(local_estimate)
+        self._locations.append(t)
 
     @property
     def locations(self) -> np.ndarray:

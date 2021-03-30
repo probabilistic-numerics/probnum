@@ -73,10 +73,10 @@ class TestConstantDiffusion(DiffusionTestInterface):
     def test_estimate_locally_and_update_in_place(
         self, some_meas_rv1, some_meas_rv2, t
     ):
-        sigma_squared = self.diffusion.estimate_locally_and_update_in_place(
+        sigma_squared = self.diffusion.estimate_locally(
             meas_rv=some_meas_rv1, meas_rv_assuming_zero_previous_cov=some_meas_rv2, t=t
         )
-
+        self.diffusion.update_in_place(sigma_squared, t=t)
         expected = (
             some_meas_rv1.mean
             @ np.linalg.solve(some_meas_rv1.cov, some_meas_rv1.mean)
@@ -120,9 +120,10 @@ class TestPiecewiseConstantDiffusion(DiffusionTestInterface):
     def test_estimate_locally_and_update_in_place(
         self, some_meas_rv1, some_meas_rv2, t
     ):
-        sigma_squared = self.diffusion.estimate_locally_and_update_in_place(
+        sigma_squared = self.diffusion.estimate_locally(
             meas_rv=some_meas_rv1, meas_rv_assuming_zero_previous_cov=some_meas_rv2, t=t
         )
+        self.diffusion.update_in_place(sigma_squared, t=t)
 
         expected = (
             some_meas_rv2.mean

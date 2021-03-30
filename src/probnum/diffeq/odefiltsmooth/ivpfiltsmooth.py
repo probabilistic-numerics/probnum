@@ -105,7 +105,7 @@ class GaussianIVPFilter(ODESolver):
 
         # Set up the diffusion_model style: constant or piecewise constant.
         self.diffusion_model = (
-            statespace.PiecewiseConstantDiffusion()
+            statespace.PiecewiseConstantDiffusion(t0=self.ivp.t0)
             if diffusion_model is None
             else diffusion_model
         )
@@ -293,13 +293,29 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # Estimate local diffusion_model and error
-        local_diffusion = self.diffusion_model.estimate_locally_and_update_in_place(
+        local_diffusion = self.diffusion_model.estimate_locally(
             meas_rv=meas_rv, meas_rv_assuming_zero_previous_cov=meas_rv_error_free, t=t
         )
 
         local_errors = np.sqrt(local_diffusion) * np.sqrt(
             np.diag(meas_rv_error_free.cov)
         )
+        proj = self.dynamics_model.proj2coord(coord=self._reference_coordinates)
+        reference_values = np.abs(proj @ current_rv.mean)
+
+        # Overwrite the acceptance/rejection step here, because we need control over
+        # Appending or not appending the diffusion (and because the computations below
+        # are sufficiently costly such that skipping them here will have a positive impact).
+        internal_norm = self.steprule.errorest_to_norm(
+            errorest=local_errors,
+            reference_state=reference_values,
+        )
+        if not self.steprule.is_accepted(internal_norm):
+            return np.nan * current_rv, local_errors, reference_values
+
+        # Now we can be certain that the step will be accepted. In this case
+        # we update the diffusion model and continue the rest of the iteration.,
+        self.diffusion_model.update_in_place(local_diffusion, t=t)
 
         if self._calibrate_at_each_step:
             # With the updated diffusion, we need to re-compute the covariances of the
@@ -349,8 +365,6 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # Lets finally extract reference values, and the job is done.
-        proj = self.dynamics_model.proj2coord(coord=self._reference_coordinates)
-        reference_values = np.maximum(proj @ filt_rv.mean, proj @ current_rv.mean)
         return filt_rv, local_errors, reference_values
 
     def rvlist_to_odesol(self, times, rvs):

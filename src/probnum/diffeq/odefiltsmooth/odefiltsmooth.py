@@ -259,7 +259,7 @@ def probsolve_ivp(
 
     choose_diffusion_model = {
         "constant": statespace.ConstantDiffusion(),
-        "dynamic": statespace.PiecewiseConstantDiffusion(),
+        "dynamic": statespace.PiecewiseConstantDiffusion(t0=ivp.t0),
     }
     diffusion = choose_diffusion_model[diffusion_model]
 

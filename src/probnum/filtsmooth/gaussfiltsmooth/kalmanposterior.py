@@ -290,6 +290,7 @@ class SmoothingPosterior(KalmanPosterior):
         # Find locations of the diffusions, which amounts to finding the locations
         # of the grid points in t (think: `all_locations`), which is done via np.searchsorted:
         diffusion_indices = np.searchsorted(self.locations[1:], t)
+        diffusion_indices[diffusion_indices >= len(self.locations) - 1] = -1
         if self.diffusion_model_has_been_provided:
             squared_diffusion_list = self.diffusion_model[diffusion_indices]
         else:
@@ -403,10 +404,12 @@ class FilteringPosterior(KalmanPosterior):
         # Final case: we are extrapolating to the right.
         # This is also how the filter-posterior interpolates
         # (by extrapolating from the leftmost point)
-
-        # Final case: we are interpolating. Both locations are not None.
+        # previous_index is not None
         if self.diffusion_model_has_been_provided:
-            diffusion = self.diffusion_model[next_index]
+            diffusion_index = previous_index + 1
+            if diffusion_index >= len(self.locations) - 1:
+                diffusion_index = -1
+            diffusion = self.diffusion_model[diffusion_index]
         else:
             diffusion = 1.0
         dt_left = t - previous_location
