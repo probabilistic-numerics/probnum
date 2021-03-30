@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
 from probnum.problems import RegressionProblem
 
 from ..filtsmooth_testcases import logistic_ode, pendulum

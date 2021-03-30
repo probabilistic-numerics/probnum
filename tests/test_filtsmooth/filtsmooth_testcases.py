@@ -11,8 +11,6 @@ from probnum.randvars import Constant, Normal
 from tests.testing import NumpyAssertions
 
 __all__ = [
-    "CarTrackingDDTestCase",
-    "OrnsteinUhlenbeckCDTestCase",
     "LinearisedDiscreteTransitionTestCase",
 ]
 
@@ -70,21 +68,6 @@ def car_tracking():
     return dynmod, measmod, initrv, regression_problem
 
 
-class CarTrackingDDTestCase(unittest.TestCase, NumpyAssertions):
-    """Car tracking: Ex.
-
-    4.3 in Bayesian Filtering and Smoothing
-    """
-
-    def setup_cartracking(self):
-        self.dynmod, self.measmod, self.initrv, info = car_tracking()
-        self.delta_t = info["dt"]
-        self.tms = np.arange(0, 20, self.delta_t)
-        self.states, self.obs = pnss.generate_samples(
-            self.dynmod, self.measmod, self.initrv, self.tms
-        )
-
-
 def ornstein_uhlenbeck():
 
     # Below is for consistency with pytest & unittest.
@@ -119,19 +102,6 @@ def ornstein_uhlenbeck():
         observations=obs, locations=times, solution=states
     )
     return dynmod, measmod, initrv, regression_problem
-
-
-class OrnsteinUhlenbeckCDTestCase(unittest.TestCase, NumpyAssertions):
-    """Ornstein Uhlenbeck process as a test case."""
-
-    def setup_ornsteinuhlenbeck(self):
-        self.dynmod, self.measmod, self.initrv, info = ornstein_uhlenbeck()
-        self.delta_t = info["dt"]
-        self.tmax = info["tmax"]
-        self.tms = np.arange(0, self.tmax, self.delta_t)
-        self.states, self.obs = pnss.generate_samples(
-            dynmod=self.dynmod, measmod=self.measmod, initrv=self.initrv, times=self.tms
-        )
 
 
 def pendulum():
