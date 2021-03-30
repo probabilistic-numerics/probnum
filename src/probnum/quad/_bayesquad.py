@@ -100,7 +100,7 @@ def bayesquad(
         measure = LebesgueMeasure(domain=domain, dim=input_dim)
 
     # Choose Method
-    bq_method = BayesianQuadrature.instantiate_default(
+    bq_method = BayesianQuadrature.from_interface(
         input_dim=input_dim, kernel=kernel, method=method, policy=policy
     )
 

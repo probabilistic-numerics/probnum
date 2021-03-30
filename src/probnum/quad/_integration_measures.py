@@ -156,9 +156,9 @@ class LebesgueMeasure(IntegrationMeasure):
         # Set normalization constant
         self.normalized = normalized
         if self.normalized:
-            self.normalization_constant = 1 / np.prod(self.domain[1] - self.domain[0])
+            self.normalization_constant = 1.0 / np.prod(self.domain[1] - self.domain[0])
         else:
-            self.normalization_constant = 1
+            self.normalization_constant = 1.0
 
         if self.normalization_constant in [0, np.Inf, -np.Inf]:
             raise ValueError(

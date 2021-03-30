@@ -32,7 +32,7 @@ class BayesianQuadrature:
         self.policy = policy
 
     @classmethod
-    def instantiate_default(
+    def from_interface(
         cls,
         input_dim: int,
         kernel: Optional[Kernel] = None,
