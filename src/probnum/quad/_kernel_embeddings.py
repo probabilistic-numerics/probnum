@@ -18,13 +18,13 @@ class _KernelEmbedding(abc.ABC):
 
     Parameters
     ----------
-    kernel: Kernel
+    kernel:
         Instance of a kernel
-    measure: IntegrationMeasure
+    measure:
         Instance of an integration measure
     """
 
-    def __init__(self, kernel: Kernel, measure: IntegrationMeasure):
+    def __init__(self, kernel: Kernel, measure: IntegrationMeasure) -> None:
         self.kernel = kernel
         self.measure = measure
 
@@ -40,13 +40,13 @@ class _KernelEmbedding(abc.ABC):
 
         Parameters
         ----------
-        x: np.ndarray with shape (n_eval, dim)
-            n_eval locations where to evaluate the kernel mean.
+        x:
+            n_eval locations where to evaluate the kernel mean, shape (n_eval, dim)
 
         Returns
         -------
-        k_mean: np.ndarray with shape (n_eval,)
-            The kernel integrated w.r.t. its first argument, evaluated at locations x
+        k_mean:
+            The kernel integrated w.r.t. its first argument, evaluated at locations x, shape (n_eval,)
         """
         raise NotImplementedError
 
@@ -55,7 +55,7 @@ class _KernelEmbedding(abc.ABC):
 
         Returns
         -------
-        k_var: float
+        k_var:
             The kernel integrated w.r.t. both arguments
         """
         raise NotImplementedError
@@ -69,13 +69,13 @@ class _KExpQuadMGauss(_KernelEmbedding):
 
     Parameters
     ----------
-    kernel: ExpQuad
+    kernel:
         Instance of an exponentiated quadratic kernel
-    measure: GaussianMeasure
+    measure:
         Instance of a Gaussian integration measure
     """
 
-    def __init__(self, kernel: ExpQuad, measure: GaussianMeasure):
+    def __init__(self, kernel: ExpQuad, measure: GaussianMeasure) -> None:
         super().__init__(kernel, measure)
 
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
@@ -124,13 +124,13 @@ class _KExpQuadMLebesgue(_KernelEmbedding):
 
     Parameters
     ----------
-    kernel: ExpQuad
+    kernel:
         Instance of an exponentiated quadratic kernel
-    measure: LebesgueMeasure
+    measure:
         Instance of a Lebesgue integration measure
     """
 
-    def __init__(self, kernel: ExpQuad, measure: LebesgueMeasure):
+    def __init__(self, kernel: ExpQuad, measure: LebesgueMeasure) -> None:
         super().__init__(kernel, measure)
 
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
@@ -159,19 +159,21 @@ class _KExpQuadMLebesgue(_KernelEmbedding):
         )
 
 
-def get_kernel_embedding(kernel: Kernel, measure: IntegrationMeasure):
+def get_kernel_embedding(
+    kernel: Kernel, measure: IntegrationMeasure
+) -> _KernelEmbedding:
     """Select the right kernel embedding given the kernel and integration measure.
 
     Parameters
     ----------
-    kernel: Kernel
+    kernel:
         Instance of a kernel
-    measure: IntegrationMeasure
+    measure:
         Instance of an integration measure
 
     Returns
     -------
-    an instance of KernelEmbedding
+    an instance of _KernelEmbedding
     """
 
     # Exponentiated quadratic kernel

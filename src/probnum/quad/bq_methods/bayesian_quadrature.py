@@ -10,10 +10,13 @@ from probnum.randvars import Normal
 
 from .._integration_measures import IntegrationMeasure
 from .._kernel_embeddings import get_kernel_embedding
+from ..policies import sample_from_measure
 
 
 class BayesianQuadrature:
-    r"""A Bayesian quadrature model to solve integrals of the type.
+    r"""A base class for Bayesian quadrature
+
+    Bayesian quadrature solves integrals of the form
 
     .. math:: F = \int_a^b f(x) d \mu(x),
 
@@ -30,7 +33,7 @@ class BayesianQuadrature:
         self.policy = policy
 
     @classmethod
-    def instantiate_default(
+    def from_interface(
         cls,
         input_dim: int,
         kernel: Optional[Kernel] = None,
@@ -45,7 +48,7 @@ class BayesianQuadrature:
             policy = sample_from_measure
         else:
             raise NotImplementedError(
-                "Policies outside random sampling are not available at the moment"
+                "Policies other than random sampling are not available at the moment."
             )
         return cls(kernel=kernel, policy=policy)
 
@@ -65,9 +68,9 @@ class BayesianQuadrature:
 
         Returns
         -------
-        F : RandomVariable
+        F :
             The integral of ``fun`` from ``a`` to ``b``.
-        info : dict
+        info :
             Information on the performance of the method.
         """
 
@@ -120,22 +123,3 @@ class BayesianQuadrature:
         jitter = 1.0e-6
         chol_gram = cho_factor(gram + jitter * np.eye(gram.shape[0]))
         return cho_solve(chol_gram, rhs)
-
-
-def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
-    r"""Acquisition policy: random samples from the integration measure
-
-    Parameters
-    ----------
-    nevals : int
-        Number of function evaluations.
-
-    measure :
-            integration measure :math:`\mu`
-
-    Returns
-    -------
-    x : np.ndarray
-        nodes where the integrand will be evaluated
-    """
-    return measure.sample(nevals).reshape(nevals, -1)
