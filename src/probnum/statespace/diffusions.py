@@ -17,7 +17,11 @@ class Diffusion(abc.ABC):
 
     @abc.abstractmethod
     def __call__(self, t) -> ToleranceDiffusionType:
-        """Evaluate the diffusion."""
+        """Evaluate the diffusion :math:`\sigma(t)` at :math:`t`."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def __getitem__(self, idx):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -34,13 +38,6 @@ class Diffusion(abc.ABC):
 
 class ConstantDiffusion(Diffusion):
     """Constant diffusion and its calibration.
-
-    Parameters
-    ----------
-    use_global_estimate_as_local_estimate :
-        Use the global diffusion estimate (which is the arithmetic mean of all previous diffusion estimates)
-        for error estimation and re-prediction in the ODE solver. Optional. Default is `True`, which corresponds to the
-        time-fixed diffusion model as used by Bosch et al. (2020) [1]_.
 
     References
     ----------
@@ -63,6 +60,14 @@ class ConstantDiffusion(Diffusion):
             )
         return self.diffusion * np.ones_like(t)
 
+    def __getitem__(self, idx):
+        if self.diffusion is None:
+            raise NotImplementedError(
+                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
+            )
+
+        return self.diffusion * np.ones_like(idx)
+
     def estimate_locally_and_update_in_place(
         self, meas_rv, meas_rv_assuming_zero_previous_cov, t
     ):
@@ -80,13 +85,13 @@ class ConstantDiffusion(Diffusion):
 class PiecewiseConstantDiffusion(Diffusion):
     r"""Piecewise constant diffusion.
 
-    It is defined by a set of diffusions :math:`(\sigma_0, ..., \sigma_N)` and a set of locations :math:`(t_0, ...,  t_N)`
+    It is defined by a set of diffusions :math:`(\sigma_1, ..., \sigma_N)` and a set of locations :math:`(t_0, ...,  t_N)`
     through
 
     .. math::
         \sigma(t) = \left\{
         \begin{array}{ll}
-        \sigma_0 & \text{ if } t < t_0\\
+        \sigma_1 & \text{ if } t < t_0\\
         \sigma_n & \text{ if } t_{n-1} \leq t < t_{n}, ~n=1, ..., N\\
         \sigma_N & \text{ if } t_{N} \leq t\\
         \end{array}
@@ -98,34 +103,52 @@ class PiecewiseConstantDiffusion(Diffusion):
 
     Parameters
     ----------
-    diffusions :
-        List of diffusions. Optional. Default is `None`, which implies that a list is created from scratch.
-        If values are provided, make sure they support an `.append` method (for instance, make them a list).
-    locations :
-        List of locations corresponding to the diffusions. Optional. Default is `None`, which implies that a list is created from scratch.
-        If values are provided, make sure they support an `.append` method (for instance, make them a list).
+    t0
+        Initial time point. This is the leftmost time-point of the interval on which the diffusion is calibrated.
+
     """
 
-    def __init__(self, diffusions=None, locations=None):
-        self._diffusions = [] if diffusions is None else diffusions
-        self._locations = [] if locations is None else locations
+    def __init__(self, t0):
+        self._diffusions = []
+        self._locations = [t0]
 
     def __repr__(self):
         return f"PiecewiseConstantDiffusion({self.diffusions})"
 
     def __call__(self, t) -> ToleranceDiffusionType:
-        if len(self._locations) == 0:
+        if len(self._locations) <= 1:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
             )
+        if np.isscalar(t):
+            t = np.atleast_1d(t)
+            t_has_been_promoted = True
+        else:
+            t_has_been_promoted = False
 
-        indices = np.searchsorted(self.locations[:-1], t, side="right")
+        indices = np.searchsorted(self.locations, t) - 1
+        indices[t < self.t0] = 0
+        indices[t > self.tmax] = -1
 
-        return self.diffusions[indices]
+        if t_has_been_promoted:
+            indices = indices[0]
+
+        return self[indices]
+
+    def __getitem__(self, idx):
+        if len(self._locations) <= 1:
+            raise NotImplementedError(
+                "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
+            )
+        return self.diffusions[idx]
 
     def estimate_locally_and_update_in_place(
         self, meas_rv, meas_rv_assuming_zero_previous_cov, t
     ):
+        if not t >= self.tmax:
+            raise ValueError(
+                "This time-point is not right of the current rightmost time-point."
+            )
         local_quasi_mle = _compute_local_quasi_mle(meas_rv_assuming_zero_previous_cov)
         self._diffusions.append(local_quasi_mle)
         self._locations.append(t)
@@ -138,6 +161,14 @@ class PiecewiseConstantDiffusion(Diffusion):
     @property
     def diffusions(self):
         return np.asarray(self._diffusions)
+
+    @property
+    def t0(self):
+        return self.locations[0]
+
+    @property
+    def tmax(self):
+        return self.locations[-1]
 
 
 def _compute_local_quasi_mle(meas_rv):

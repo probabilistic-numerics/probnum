@@ -94,7 +94,7 @@ class TestPiecewiseConstantDiffusion(DiffusionTestInterface):
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self.diffusion = statespace.PiecewiseConstantDiffusion()
+        self.diffusion = statespace.PiecewiseConstantDiffusion(t0=0.0)
 
     def test_call(self):
 
@@ -108,10 +108,10 @@ class TestPiecewiseConstantDiffusion(DiffusionTestInterface):
         self.diffusion._locations = np.arange(1.0, 11.0, step=1.0)
 
         times = [1.5, -1.0, 100.0, 11.0]
-        expected_values = [diffusions[1], diffusions[0], diffusions[-1], diffusions[-1]]
+        expected_values = [diffusions[0], diffusions[0], diffusions[-1], diffusions[-1]]
         for t, val in zip(times, expected_values):
             received = self.diffusion(t)
-
+            print(t)
             np.testing.assert_allclose(received, val)
 
         # Again, but vectorised
