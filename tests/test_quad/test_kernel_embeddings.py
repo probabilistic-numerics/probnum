@@ -31,7 +31,6 @@ def test_kmean_gaussian_measure(kernel_embedding, x_gauss):
     """Test kernel means for the Gaussian measure against Gauss-Hermite tensor product
     rule."""
     dim = kernel_embedding.dim
-    # Kernel means as computed by tensor-product Gauss-Hermite
     n_gh = 10
     x_gh_1d, w_gh = np.polynomial.hermite.hermgauss(n_gh)
     x_gh = (
@@ -43,11 +42,9 @@ def test_kmean_gaussian_measure(kernel_embedding, x_gauss):
     w_gh = np.prod(
         np.stack(np.meshgrid(*(w_gh,) * dim), -1).reshape(-1, dim), axis=1
     ) / (np.pi ** (dim / 2))
-    num_kernel_means = kernel_embedding.kernel(x_gauss, x_gh) @ w_gh
-    # True kernel means
-    # TODO: REMEMBER TO CHANGE TO NON-TMP VERSION!
-    true_kernel_means = kernel_embedding.kernel_mean_tmp(x_gauss)
 
+    num_kernel_means = kernel_embedding.kernel(x_gauss, x_gh) @ w_gh
+    true_kernel_means = kernel_embedding.kernel_mean(x_gauss)
     np.testing.assert_allclose(
         true_kernel_means, num_kernel_means, rtol=1.0e-2, atol=1.0e-2
     )
