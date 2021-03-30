@@ -92,7 +92,7 @@ def bayesquad(
     if domain is None and measure is None:
         raise ValueError(
             "You need to either specify an integration domain or an integration measure. "
-            "The Lebesgue measure can only operate on a finite domain"
+            "The Lebesgue measure can only operate on a finite domain."
         )
 
     # Integration measure

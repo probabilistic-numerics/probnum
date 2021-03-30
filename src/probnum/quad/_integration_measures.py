@@ -116,7 +116,7 @@ class IntegrationMeasure(abc.ABC):
         if dim_mismatch:
             raise ValueError(
                 "Domain limits must have the same length or at least "
-                "one of them has to be one-dimensional"
+                "one of them has to be one-dimensional."
             )
         if dim < 1:
             raise ValueError(f"Domain dimension dim = {dim} must be positive.")

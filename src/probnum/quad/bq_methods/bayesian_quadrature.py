@@ -47,7 +47,7 @@ class BayesianQuadrature:
             policy = sample_from_measure
         else:
             raise NotImplementedError(
-                "Policies outside random sampling are not available at the moment"
+                "Policies other than random sampling are not available at the moment."
             )
         return cls(kernel=kernel, policy=policy)
 
