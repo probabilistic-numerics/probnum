@@ -75,9 +75,9 @@ class TimeSeriesPosterior(abc.ABC):
         # reshaped ("squeezed") accordingly.
         if np.isscalar(t):
             t = np.atleast_1d(t)
-            squeeze_eventually = True
+            t_has_been_promoted = True
         else:
-            squeeze_eventually = False
+            t_has_been_promoted = False
 
         if not np.all(np.diff(t) >= 0.0):
             raise ValueError("Time-points have to be sorted.")
@@ -89,7 +89,7 @@ class TimeSeriesPosterior(abc.ABC):
         t_inter = t[(t0 <= t) & (t <= tmax)]
 
         # Indices of t where they would be inserted
-        # into self.locations ("left": right-closest states)
+        # into self.locations ("left": right-closest states -- this is the default in searchsorted)
         indices = np.searchsorted(self.locations, t_inter, side="left")
         interpolated_values = [
             self.interpolate(
@@ -116,7 +116,7 @@ class TimeSeriesPosterior(abc.ABC):
         dense_output_values.extend(interpolated_values)
         dense_output_values.extend(extrapolated_values_right)
 
-        if squeeze_eventually:
+        if t_has_been_promoted:
             return dense_output_values[0]
         return _randomvariablelist._RandomVariableList(dense_output_values)
 

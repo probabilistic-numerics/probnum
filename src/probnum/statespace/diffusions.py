@@ -148,6 +148,7 @@ class PiecewiseConstantDiffusion(Diffusion):
         else:
             t_has_been_promoted = False
 
+        # The "-1" in here makes up for the fact that the locations contains one more element than the diffusions.
         indices = np.searchsorted(self.locations, t) - 1
         indices[t < self.t0] = 0
         indices[t > self.tmax] = -1

@@ -253,9 +253,11 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the smoothed output
         """
-
+        diffusion_list = np.ones_like(filter_posterior.locations[1:])
         rv_list = self.dynamics_model.smooth_list(
-            filter_posterior.states, filter_posterior.locations
+            filter_posterior.states,
+            filter_posterior.locations,
+            _diffusion_list=diffusion_list,
         )
 
         return SmoothingPosterior(

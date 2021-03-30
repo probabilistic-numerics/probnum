@@ -20,7 +20,6 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
         Timesteps on which the states are to be sampled.
     random_state :
         Random state that is used to generate the samples from the latent state.
-        The measurement samples are not affected by this.
 
     Returns
     -------

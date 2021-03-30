@@ -51,11 +51,12 @@ class KalmanPosterior(TimeSeriesPosterior, abc.ABC):
         super().__init__(locations=locations, states=states)
         self.transition = transition
 
-        if isinstance(diffusion_model, statespace.PiecewiseConstantDiffusion):
-            self.diffusion_is_dynamic = True
-        else:
-            self.diffusion_is_dynamic = False
+        # if isinstance(diffusion_model, statespace.PiecewiseConstantDiffusion):
+        #     self.diffusion_is_dynamic = True
+        # else:
+        #     self.diffusion_is_dynamic = False
         self.diffusion_model = diffusion_model
+        self.diffusion_model_has_been_provided = diffusion_model is not None
 
     @abc.abstractmethod
     def interpolate(
@@ -192,16 +193,15 @@ class SmoothingPosterior(KalmanPosterior):
             return next_state
 
         # This block avoids calling self.diffusion_model, because we do not want
-        # to search the full index set -- we already know the index.
-        # Diffusion index: "prefer" the previous index, but accept the next index
-        # as well (which is required for e.g. left extrapolation).
-        diffusion_index = previous_index if previous_index is not None else next_index
-        if self.diffusion_model is None:
-            squared_diffusion = 1.0
-        elif self.diffusion_is_dynamic:
-            squared_diffusion = self.diffusion_model.diffusions[diffusion_index]
+        # to search the full index set -- we already know the index!
+        # This is the reason that `Diffusion` objects implement a __getitem__.
+        # The usual diffusion-index is the next index ('Diffusion's include the right-hand side gridpoint!),
+        # but if we are right of the domain, the previous_index matters.
+        diffusion_index = next_index if next_index is not None else previous_index
+        if self.diffusion_model_has_been_provided:
+            squared_diffusion = self.diffusion_model[diffusion_index]
         else:
-            squared_diffusion = self.diffusion_model.diffusion[diffusion_index]
+            squared_diffusion = 1.0
 
         # Corner case 2: are extrapolating to the left
         if previous_location is None:
@@ -288,14 +288,12 @@ class SmoothingPosterior(KalmanPosterior):
             raise ValueError("Time-points have to be sorted.")
 
         # Find locations of the diffusions, which amounts to finding the locations
-        # of the grid points in all_locations (which is done via np.searchsorted):
-        diffusion_indices = np.searchsorted(self.locations[:-2], t)
-        if self.diffusion_model is None:
-            squared_diffusion_list = np.ones_like(t)
-        elif self.diffusion_is_dynamic:
-            squared_diffusion_list = self.diffusion_model.diffusions[diffusion_indices]
+        # of the grid points in t (think: `all_locations`), which is done via np.searchsorted:
+        diffusion_indices = np.searchsorted(self.locations[1:], t)
+        if self.diffusion_model_has_been_provided:
+            squared_diffusion_list = self.diffusion_model[diffusion_indices]
         else:
-            squared_diffusion_list = self.diffusion_model.diffusion * np.ones_like(t)
+            squared_diffusion_list = np.ones_like(t)
 
         # Split into interpolation and extrapolation samples.
         # For extrapolation, samples are propagated forwards.
@@ -402,20 +400,19 @@ class FilteringPosterior(KalmanPosterior):
             #
             ############################################################
 
-        # Corner case 3: are extrapolating to the right
-        if next_location is None:
-            dt = t - previous_location
-            assert dt > 0.0
-            extrapolated_rv_right, _ = self.transition.forward_rv(
-                previous_state, t=previous_location, dt=dt
-            )
-            return extrapolated_rv_right
+        # Final case: we are extrapolating to the right.
+        # This is also how the filter-posterior interpolates
+        # (by extrapolating from the leftmost point)
 
         # Final case: we are interpolating. Both locations are not None.
+        if self.diffusion_model_has_been_provided:
+            diffusion = self.diffusion_model[next_index]
+        else:
+            diffusion = 1.0
         dt_left = t - previous_location
         assert dt_left > 0.0
         filtered_rv, _ = self.transition.forward_rv(
-            rv=previous_state, t=previous_location, dt=dt_left
+            rv=previous_state, t=previous_location, dt=dt_left, _diffusion=diffusion
         )
         return filtered_rv
 
