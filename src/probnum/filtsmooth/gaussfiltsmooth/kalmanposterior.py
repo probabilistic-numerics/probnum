@@ -198,6 +198,8 @@ class SmoothingPosterior(KalmanPosterior):
         # The usual diffusion-index is the next index ('Diffusion's include the right-hand side gridpoint!),
         # but if we are right of the domain, the previous_index matters.
         diffusion_index = next_index if next_index is not None else previous_index
+        if diffusion_index >= len(self.locations) - 1:
+            diffusion_index = -1
         if self.diffusion_model_has_been_provided:
             squared_diffusion = self.diffusion_model[diffusion_index]
         else:
@@ -289,8 +291,8 @@ class SmoothingPosterior(KalmanPosterior):
 
         # Find locations of the diffusions, which amounts to finding the locations
         # of the grid points in t (think: `all_locations`), which is done via np.searchsorted:
-        diffusion_indices = np.searchsorted(self.locations[1:], t)
-        diffusion_indices[diffusion_indices >= len(self.locations) - 1] = -1
+        diffusion_indices = np.searchsorted(self.locations[:-2], t[1:])
+        # diffusion_indices[diffusion_indices >= len(self.locations) - 1] = -1
         if self.diffusion_model_has_been_provided:
             squared_diffusion_list = self.diffusion_model[diffusion_indices]
         else:
@@ -406,7 +408,7 @@ class FilteringPosterior(KalmanPosterior):
         # (by extrapolating from the leftmost point)
         # previous_index is not None
         if self.diffusion_model_has_been_provided:
-            diffusion_index = previous_index + 1
+            diffusion_index = previous_index
             if diffusion_index >= len(self.locations) - 1:
                 diffusion_index = -1
             diffusion = self.diffusion_model[diffusion_index]

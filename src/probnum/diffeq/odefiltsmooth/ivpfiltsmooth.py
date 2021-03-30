@@ -380,8 +380,8 @@ class GaussianIVPFilter(ODESolver):
         """If specified (at initialisation), smooth the filter output."""
         locations = odesol.kalman_posterior.locations
         rv_list = odesol.kalman_posterior.states
-        if self._calibrate_all_states_post_hoc:
 
+        if self._calibrate_all_states_post_hoc:
             # Constant diffusion model is the only way to go here.
             s = self.diffusion_model.diffusion
 
@@ -401,13 +401,14 @@ class GaussianIVPFilter(ODESolver):
 
         if self.with_smoothing is True:
 
-            if isinstance(self.diffusion_model, statespace.PiecewiseConstantDiffusion):
-                squared_diffusion_list = self.diffusion_model.diffusions
-            else:
-                squared_diffusion_list = np.ones_like(locations)
-                if isinstance(self.diffusion_model, statespace.ConstantDiffusion):
-                    squared_diffusion_list *= self.diffusion_model.diffusion
+            # if isinstance(self.diffusion_model, statespace.PiecewiseConstantDiffusion):
+            #     squared_diffusion_list = self.diffusion_model.diffusions
+            # else:
+            #     squared_diffusion_list = np.ones_like(locations)
+            #     if isinstance(self.diffusion_model, statespace.ConstantDiffusion):
+            #         squared_diffusion_list *= self.diffusion_model.diffusion
 
+            squared_diffusion_list = self.diffusion_model(locations[1:])
             rv_list = self.dynamics_model.smooth_list(
                 rv_list, locations, _diffusion_list=squared_diffusion_list
             )
