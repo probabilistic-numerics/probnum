@@ -81,3 +81,7 @@ to every :math:`\tau` that allows arithmetic operations such as
 
 respectively. Currently, the array-support for diffusions is experimental (at best).
 """
+
+DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
+"""TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
+or an array of locations."""

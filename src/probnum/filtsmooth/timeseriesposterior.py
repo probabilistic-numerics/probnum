@@ -8,15 +8,12 @@ import numpy as np
 from probnum import _randomvariablelist, randvars
 from probnum.type import (
     ArrayLikeGetitemArgType,
+    DenseOutputLocationArgType,
     FloatArgType,
     IntArgType,
     RandomStateArgType,
     ShapeArgType,
 )
-
-DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
-"""TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
-or an array of locations."""
 
 DenseOutputValueType = Union[
     randvars.RandomVariable, _randomvariablelist._RandomVariableList

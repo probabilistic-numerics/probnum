@@ -2,11 +2,18 @@
 
 
 import abc
+from typing import Union
 
 import numpy as np
 import scipy.linalg
 
-from probnum.type import ToleranceDiffusionType
+from probnum import randvars
+from probnum.type import (
+    ArrayLikeGetitemArgType,
+    DenseOutputLocationArgType,
+    FloatArgType,
+    ToleranceDiffusionType,
+)
 
 
 class Diffusion(abc.ABC):
@@ -16,19 +23,26 @@ class Diffusion(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def __call__(self, t) -> ToleranceDiffusionType:
-        """Evaluate the diffusion :math:`\sigma(t)` at :math:`t`."""
+    def __call__(
+        self, t: DenseOutputLocationArgType
+    ) -> Union[ToleranceDiffusionType, np.ndarray]:
+        r"""Evaluate the diffusion :math:`\sigma(t)` at :math:`t`."""
         raise NotImplementedError
 
     @abc.abstractmethod
-    def __getitem__(self, idx):
+    def __getitem__(
+        self, idx: ArrayLikeGetitemArgType
+    ) -> Union[ToleranceDiffusionType, np.ndarray]:
         raise NotImplementedError
 
     @abc.abstractmethod
     def estimate_locally_and_update_in_place(
-        self, meas_rv, meas_rv_assuming_zero_previous_covariance, t
-    ):
-        """Estimate the (local) diffusion and update current (global) estimation in-
+        self,
+        meas_rv: randvars.RandomVariable,
+        meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
+        t: FloatArgType,
+    ) -> ToleranceDiffusionType:
+        r"""Estimate the (local) diffusion and update current (global) estimation in-
         place.
 
         Used for uncertainty calibration in the ODE solver.
@@ -37,7 +51,7 @@ class Diffusion(abc.ABC):
 
 
 class ConstantDiffusion(Diffusion):
-    """Constant diffusion and its calibration.
+    r"""Constant diffusion and its calibration.
 
     References
     ----------
@@ -53,14 +67,18 @@ class ConstantDiffusion(Diffusion):
     def __repr__(self):
         return f"ConstantDiffusion({self.diffusion})"
 
-    def __call__(self, t) -> ToleranceDiffusionType:
+    def __call__(
+        self, t: DenseOutputLocationArgType
+    ) -> Union[ToleranceDiffusionType, np.ndarray]:
         if self.diffusion is None:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
             )
         return self.diffusion * np.ones_like(t)
 
-    def __getitem__(self, idx):
+    def __getitem__(
+        self, idx: ArrayLikeGetitemArgType
+    ) -> Union[ToleranceDiffusionType, np.ndarray]:
         if self.diffusion is None:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
@@ -69,8 +87,11 @@ class ConstantDiffusion(Diffusion):
         return self.diffusion * np.ones_like(idx)
 
     def estimate_locally_and_update_in_place(
-        self, meas_rv, meas_rv_assuming_zero_previous_cov, t
-    ):
+        self,
+        meas_rv: randvars.RandomVariable,
+        meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
+        t: FloatArgType,
+    ) -> ToleranceDiffusionType:
         new_increment = _compute_local_quasi_mle(meas_rv)
         if self.diffusion is None:
             self.diffusion = new_increment
@@ -105,7 +126,6 @@ class PiecewiseConstantDiffusion(Diffusion):
     ----------
     t0
         Initial time point. This is the leftmost time-point of the interval on which the diffusion is calibrated.
-
     """
 
     def __init__(self, t0):
@@ -115,7 +135,9 @@ class PiecewiseConstantDiffusion(Diffusion):
     def __repr__(self):
         return f"PiecewiseConstantDiffusion({self.diffusions})"
 
-    def __call__(self, t) -> ToleranceDiffusionType:
+    def __call__(
+        self, t: DenseOutputLocationArgType
+    ) -> Union[ToleranceDiffusionType, np.ndarray]:
         if len(self._locations) <= 1:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
@@ -135,7 +157,9 @@ class PiecewiseConstantDiffusion(Diffusion):
 
         return self[indices]
 
-    def __getitem__(self, idx):
+    def __getitem__(
+        self, idx: ArrayLikeGetitemArgType
+    ) -> Union[ToleranceDiffusionType, np.ndarray]:
         if len(self._locations) <= 1:
             raise NotImplementedError(
                 "No diffusions seen yet. Call estimate_locally_and_update_in_place first."
@@ -143,8 +167,11 @@ class PiecewiseConstantDiffusion(Diffusion):
         return self.diffusions[idx]
 
     def estimate_locally_and_update_in_place(
-        self, meas_rv, meas_rv_assuming_zero_previous_cov, t
-    ):
+        self,
+        meas_rv: randvars.RandomVariable,
+        meas_rv_assuming_zero_previous_cov: randvars.RandomVariable,
+        t: FloatArgType,
+    ) -> ToleranceDiffusionType:
         if not t >= self.tmax:
             raise ValueError(
                 "This time-point is not right of the current rightmost time-point."
@@ -155,19 +182,19 @@ class PiecewiseConstantDiffusion(Diffusion):
         return local_quasi_mle
 
     @property
-    def locations(self):
+    def locations(self) -> np.ndarray:
         return np.asarray(self._locations)
 
     @property
-    def diffusions(self):
+    def diffusions(self) -> np.ndarray:
         return np.asarray(self._diffusions)
 
     @property
-    def t0(self):
+    def t0(self) -> float:
         return self.locations[0]
 
     @property
-    def tmax(self):
+    def tmax(self) -> float:
         return self.locations[-1]
 
 
