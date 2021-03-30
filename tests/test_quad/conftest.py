@@ -21,9 +21,7 @@ def fixture_random_state(request):
 
 
 @pytest.fixture(
-    params=[
-        pytest.param(num_data, id=f"ndata{num_data}") for num_data in [1, 2, 10, 100]
-    ],
+    params=[pytest.param(num_data, id=f"ndata{num_data}") for num_data in [1, 2, 20]],
     name="num_data",
 )
 def fixture_num_data(request) -> int:
@@ -33,7 +31,7 @@ def fixture_num_data(request) -> int:
 
 @pytest.fixture(
     params=[
-        pytest.param(input_dim, id=f"dim{input_dim}") for input_dim in [1, 10, 100]
+        pytest.param(input_dim, id=f"dim{input_dim}") for input_dim in [1, 2, 3, 5]
     ],
     name="input_dim",
 )
@@ -46,6 +44,14 @@ def fixture_input_dim(request) -> int:
 # TODO: We might not want to always use standard normal data
 @pytest.fixture(name="x")
 def fixture_x(
+    input_dim: int, num_data: int, random_state: np.random.RandomState
+) -> np.ndarray:
+    """Random data from a standard normal distribution."""
+    return random_state.normal(0, 1, size=(num_data, input_dim))
+
+
+@pytest.fixture(name="x_gauss")
+def fixture_x_gauss(
     input_dim: int, num_data: int, random_state: np.random.RandomState
 ) -> np.ndarray:
     """Random data from a standard normal distribution."""
