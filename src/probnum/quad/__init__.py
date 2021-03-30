@@ -8,7 +8,8 @@ from ._kernel_embeddings import (
     _KExpQuadMLebesgue,
     get_kernel_embedding,
 )
-from .bq_methods import BayesianQuadrature, sample_from_measure
+from .bq_methods import BayesianQuadrature
+from .policies import sample_from_measure
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

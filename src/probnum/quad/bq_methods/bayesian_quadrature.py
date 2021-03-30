@@ -10,6 +10,7 @@ from probnum.randvars import Normal
 
 from .._integration_measures import IntegrationMeasure
 from .._kernel_embeddings import get_kernel_embedding
+from ..policies import sample_from_measure
 
 
 class BayesianQuadrature:
@@ -122,22 +123,3 @@ class BayesianQuadrature:
         jitter = 1.0e-6
         chol_gram = cho_factor(gram + jitter * np.eye(gram.shape[0]))
         return cho_solve(chol_gram, rhs)
-
-
-def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
-    r"""Acquisition policy: random samples from the integration measure
-
-    Parameters
-    ----------
-    nevals : int
-        Number of function evaluations.
-
-    measure :
-            integration measure :math:`\mu`
-
-    Returns
-    -------
-    x : np.ndarray
-        nodes where the integrand will be evaluated
-    """
-    return measure.sample(nevals).reshape(nevals, -1)
