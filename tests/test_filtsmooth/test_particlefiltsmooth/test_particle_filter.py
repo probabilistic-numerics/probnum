@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 
-from probnum import filtsmooth, randvars, statespace
-from probnum.problems import RegressionProblem
+from probnum import filtsmooth, randvars
 
 from ..filtsmooth_testcases import pendulum
 
