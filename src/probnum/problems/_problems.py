@@ -25,9 +25,6 @@ class RegressionProblem:
         Observations of the latent process.
     locations
         Grid-points on which the observations were taken.
-    likelihood
-        Likelihood of the observations; that is, relation between the latent process and the observed values.
-        Encodes for example noise.
     solution
         Closed form, analytic solution to the problem. Used for testing and benchmarking.
 
@@ -37,7 +34,7 @@ class RegressionProblem:
     >>> loc = [0.1, 0.2]
     >>> rp = RegressionProblem(observations=obs, locations=loc)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], likelihood=None, solution=None)
+    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
     """

@@ -6,6 +6,7 @@ import numpy as np
 
 from probnum import randvars, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
+from probnum.problems import RegressionProblem
 from probnum.type import FloatArgType, IntArgType
 
 from ._particle_filter_posterior import ParticleFilterPosterior
@@ -89,7 +90,7 @@ class ParticleFilter(BayesFiltSmooth):
         # choice than the bootstrap.
         self.linearized_measurement_model = linearized_measurement_model
 
-    def filter(self, dataset, times):
+    def filter(self, regression_problem: RegressionProblem):
         """Apply Particle filtering to a data set.
 
         Parameters
@@ -105,6 +106,8 @@ class ParticleFilter(BayesFiltSmooth):
         ParticleFilterPosterior
             Posterior distribution of the filtered output.
         """
+
+        dataset, times = regression_problem.observations, regression_problem.locations
 
         # Initialize: condition on first data point using the initial random
         # variable as a dynamics rv (i.e. as the current prior).
