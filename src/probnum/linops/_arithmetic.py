@@ -8,7 +8,12 @@ import scipy.sparse
 import probnum.utils
 from probnum.type import ScalarArgType, ShapeArgType
 
-from ._linear_operator import BinaryOperandType, LinearOperator, MatrixMult, ScalarMult
+from ._linear_operator import (  # pylint: disable=cyclic-import
+    BinaryOperandType,
+    LinearOperator,
+    MatrixMult,
+    ScalarMult,
+)
 
 
 def add(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:
@@ -349,7 +354,7 @@ class InverseLinearOperator(MatrixMult):
     def __init__(self, linop: LinearOperator):
         self._linop = linop
 
-        super().__init__(A=np.inv(self._linop.todense()))
+        super().__init__(A=np.linalg.inv(self._linop.todense()))
 
     def inv(self) -> LinearOperator:
         return self._linop
