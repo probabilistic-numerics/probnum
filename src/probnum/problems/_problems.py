@@ -7,7 +7,6 @@ import numpy as np
 import scipy.sparse
 
 import probnum.linops as pnlo
-import probnum.statespace as pnss
 import probnum.type as pntp
 from probnum import randvars
 
