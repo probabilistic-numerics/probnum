@@ -31,7 +31,7 @@ all_resampling_configurations = pytest.mark.parametrize(
 
 @pytest.fixture
 def num_particles():
-    return 4
+    return 10
 
 
 @pytest.fixture
