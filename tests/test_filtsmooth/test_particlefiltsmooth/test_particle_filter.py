@@ -107,4 +107,4 @@ def test_rmse_particlefilter(pf_output, regression_problem):
     ) / np.sqrt(true_states.size)
 
     # RMSE of PF.mode strictly better than RMSE of data
-    assert rmse_mode < 0.9 * rmse_data
+    assert rmse_mode < rmse_data
