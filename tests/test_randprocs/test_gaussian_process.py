@@ -6,10 +6,10 @@ import pytest
 from probnum import randprocs, randvars, utils
 
 
-def test_no_kernel_covariance_no_dimensions_raises_error():
-    """Initializing a GP with a covariance function which is not a kernel and not
-    specifying in-/output dimension raises a ValueError."""
-    with pytest.raises(ValueError):
+def test_no_kernel_covariance_raises_error():
+    """Initializing a GP with a covariance function which is not a kernel raises a
+    TypeErrror."""
+    with pytest.raises(TypeError):
         randprocs.GaussianProcess(mean=np.zeros_like, cov=np.dot)
 
 
