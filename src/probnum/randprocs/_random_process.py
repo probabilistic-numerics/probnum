@@ -95,12 +95,17 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         """Data type of (elements of) the random process evaluated at an input."""
         return self._dtype
 
-    # @abc.abstractmethod
-    # def marginal(self, args: _InputType) -> _randomvariablelist._RandomVariableList:
-    #     """Stack of random variables defining the marginal distribution.
-    #     """
-    #     raise NotImplementedError
-    # TODO
+    def marginal(self, args: _InputType) -> _randomvariablelist._RandomVariableList:
+        """Batch of random variables defining the marginal distributions at the inputs.
+
+        Parameters
+        ----------
+        args
+            *shape=(input_dim,) or (n, input_dim)* -- Input(s) to evaluate random
+            process at.
+        """
+        # return self.__call__(args).marginal()
+        raise NotImplementedError
 
     @abc.abstractmethod
     def mean(self, args: _InputType) -> _OutputType:

@@ -4,8 +4,8 @@ from typing import Callable, Optional, Type, Union
 
 import numpy as np
 
-from probnum import kernels, randvars
-from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
+from probnum import _randomvariablelist, kernels, randvars
+from probnum.type import RandomStateArgType, ShapeArgType
 
 from . import _random_process
 
