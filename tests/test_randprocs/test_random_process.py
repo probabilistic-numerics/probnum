@@ -78,6 +78,15 @@ def test_samples_are_callables(
     assert callable(random_process.sample(random_state=random_state))
 
 
+def test_sample_paths_are_deterministic_functions(
+    random_process: randprocs.RandomProcess, args0: np.ndarray
+):
+    """When sampling paths from a random process, repeated evaluation of the sample path
+    at the same inputs should return the same values."""
+    sample_path = random_process.sample()
+    np.testing.assert_array_equal(sample_path(args0), sample_path(args0))
+
+
 def test_rp_mean_cov_evaluated_matches_rv_mean_cov(
     random_process: randprocs.RandomProcess, random_state: np.random.RandomState
 ):

@@ -22,10 +22,6 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     Parameters
     ----------
-    input_dim :
-        Shape of the input of the Gaussian process.
-    output_dim :
-        Shape of the output of the Gaussian process.
     mean :
         Mean function.
     cov :
@@ -68,25 +64,18 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def __init__(
         self,
         mean: Callable[[_InputType], _OutputType],
-        cov: Union[Callable[[_InputType], _OutputType], kernels.Kernel],
-        input_dim: IntArgType = None,
-        output_dim: IntArgType = None,
+        cov: kernels.Kernel,
     ):
-
-        if isinstance(cov, kernels.Kernel):
-            input_dim = cov.input_dim
-            output_dim = cov.output_dim
-
-        if input_dim is None or output_dim is None:
-            raise ValueError(
-                "If 'cov' is not a Kernel, 'input_dim' and 'output_dim' must be "
-                "specified."
+        if not isinstance(cov, kernels.Kernel):
+            raise TypeError(
+                "The covariance functions must be implemented as a " "`Kernel`."
             )
+
         self._meanfun = mean
         self._covfun = cov
         super().__init__(
-            input_dim=input_dim,
-            output_dim=output_dim,
+            input_dim=cov.input_dim,
+            output_dim=cov.output_dim,
             dtype=np.dtype(np.float_),
         )
 

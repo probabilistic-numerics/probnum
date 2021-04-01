@@ -5,7 +5,7 @@ from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
-from probnum import randvars
+from probnum import _randomvariablelist, randvars
 from probnum import utils as _utils
 from probnum.type import DTypeArgType, IntArgType, RandomStateArgType, ShapeArgType
 
@@ -94,6 +94,13 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def dtype(self) -> np.dtype:
         """Data type of (elements of) the random process evaluated at an input."""
         return self._dtype
+
+    # @abc.abstractmethod
+    # def marginal(self, args: _InputType) -> _randomvariablelist._RandomVariableList:
+    #     """Stack of random variables defining the marginal distribution.
+    #     """
+    #     raise NotImplementedError
+    # TODO
 
     @abc.abstractmethod
     def mean(self, args: _InputType) -> _OutputType:
@@ -243,6 +250,11 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             :class:`~numpy.random.RandomState` instance.
         """
         if args is None:
+
+            if random_state is None:
+                random_state = _utils.derive_random_seed(
+                    _utils.as_random_state(random_state)
+                )
 
             def _sample(args0):
                 return self._sample_at_input(
