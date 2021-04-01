@@ -607,7 +607,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 A + damping_factor * np.eye(A.shape[0], dtype=self.dtype),
                 lower=True,
             ),
-            dtype=self.dtype,
         )
 
     def _symmetric_kronecker_identical_factors_sample(

@@ -184,11 +184,12 @@ class Kronecker(_linear_operator.LinearOperator):
     """
 
     # todo: extend this to list of operators
-    def __init__(self, A, B, dtype=None):
+    def __init__(self, A, B):
         self.A = _utils.aslinop(A)
         self.B = _utils.aslinop(B)
+
         super().__init__(
-            dtype=dtype,
+            dtype=np.result_type(self.A.dtype, self.B.dtype),
             shape=(
                 self.A.shape[0] * self.B.shape[0],
                 self.A.shape[1] * self.B.shape[1],
@@ -211,18 +212,15 @@ class Kronecker(_linear_operator.LinearOperator):
 
     def transpose(self):
         # (A (x) B)^T = A^T (x) B^T
-        return Kronecker(A=self.A.transpose(), B=self.B.transpose(), dtype=self.dtype)
+        return Kronecker(A=self.A.transpose(), B=self.B.transpose())
 
     def inv(self):
-        #  (A (x) B)^-1 = A^-1 (x) B^-1
-        return Kronecker(A=self.A.inv(), B=self.B.inv(), dtype=self.dtype)
+        # (A (x) B)^-1 = A^-1 (x) B^-1
+        return Kronecker(A=self.A.inv(), B=self.B.inv())
 
     # Properties
     def rank(self):
         return self.A.rank() * self.B.rank()
-
-    def eigvals(self):
-        raise NotImplementedError
 
     def cond(self, p=None):
         return self.A.cond(p=p) * self.B.cond(p=p)
@@ -232,7 +230,7 @@ class Kronecker(_linear_operator.LinearOperator):
         if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
             return self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
         else:
-            raise NotImplementedError
+            return super().det()
 
     def logabsdet(self):
         # If A (m x m) and B (n x n), then det(A (x) B) = det(A)^n * det(B) * m
@@ -242,13 +240,13 @@ class Kronecker(_linear_operator.LinearOperator):
                 + self.A.shape[0] * self.B.logabsdet()
             )
         else:
-            raise NotImplementedError
+            return super().logabsdet()
 
     def trace(self):
         if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
             return self.A.trace() * self.B.trace()
         else:
-            raise NotImplementedError
+            return super().trace()
 
 
 class SymmetricKronecker(_linear_operator.LinearOperator):
@@ -287,7 +285,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1),
     # representation symmetric n2xn2
 
-    def __init__(self, A, B=None, dtype=None):
+    def __init__(self, A, B=None):
         # Set parameters
         self.A = _utils.aslinop(A)
         self._ABequal = False
@@ -302,8 +300,16 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
                 "Linear operators A and B must be square and have the same dimensions."
             )
 
+        if self._ABequal:
+            dtype = self.A.dtype
+        else:
+            dtype = np.result_type(self.A.dtype, self.B.dtype, 0.5)
+
         # Initiator of superclass
-        super().__init__(dtype=dtype, shape=(self._n ** 2, self._n ** 2))
+        super().__init__(
+            dtype=dtype,
+            shape=(self._n ** 2, self._n ** 2),
+        )
 
     def _matvec(self, x):
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
@@ -313,9 +319,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         X = x.reshape(self._n, self._n)
 
         # (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T)
-        Y1 = (self.A @ (self.B @ X).T).T
-        Y2 = (self.B @ (self.A @ X).T).T
-        Y = 0.5 * (Y1 + Y2)
+        if self._ABequal:
+            Y = (self.A @ (self.A @ X).T).T
+        else:
+            Y1 = (self.A @ (self.B @ X).T).T
+            Y2 = (self.B @ (self.A @ X).T).T
+            Y = 0.5 * (Y1 + Y2)
+
         return Y.ravel()
 
     def _rmatvec(self, x):
@@ -324,9 +334,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         X = x.reshape(self._n, self._n)
 
         # (A^T (x)_s B^T)vec(X) = 1/2 vec(B^T XA + A^T XB)
-        Y1 = (self.A.H @ (self.B.H @ X).T).T
-        Y2 = (self.B.H @ (self.A.H @ X).T).T
-        Y = 0.5 * (Y1 + Y2)
+        if self._ABequal:
+            Y = (self.A.H @ (self.A.H @ X).T).T
+        else:
+            Y1 = (self.A.H @ (self.B.H @ X).T).T
+            Y2 = (self.B.H @ (self.A.H @ X).T).T
+            Y = 0.5 * (Y1 + Y2)
+
         return Y.ravel()
 
     # TODO: add efficient implementation of _matmat based on (Symmetric) Kronecker
@@ -335,13 +349,24 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     def todense(self):
         """Dense representation of the symmetric Kronecker product."""
         # 1/2 (A (x) B + B (x) A)
-        A_dense = self.A.todense()
-        B_dense = self.B.todense()
-        return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
+        if self._ABequal:
+            A_dense = self.A.todense()
+            return np.kron(A_dense, A_dense)
+        else:
+            A_dense = self.A.todense()
+            B_dense = self.B.todense()
+            return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
+
+    def transpose(self):
+        # (A (x) B)^T = A^T (x) B^T
+        if self._ABequal:
+            return SymmetricKronecker(A=self.A.transpose())
+        else:
+            return SymmetricKronecker(A=self.A.transpose(), B=self.B.transpose())
 
     def inv(self):
         # (A (x)_s A)^-1 = A^-1 (x)_s A^-1
         if self._ABequal:
-            return SymmetricKronecker(A=self.A.inv(), dtype=self.dtype)
+            return SymmetricKronecker(A=self.A.inv())
         else:
-            return NotImplementedError
+            return super().inv()
