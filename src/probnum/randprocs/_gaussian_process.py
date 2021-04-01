@@ -1,19 +1,19 @@
 """Gaussian processes."""
 
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Type, Union
 
 import numpy as np
 
 from probnum import kernels, randvars
 from probnum.type import IntArgType, RandomStateArgType, ShapeArgType
 
-from ._random_process import RandomProcess
+from . import _random_process
 
 _InputType = Union[np.floating, np.ndarray]
 _OutputType = Union[np.floating, np.ndarray]
 
 
-class GaussianProcess(RandomProcess[_InputType, _OutputType]):
+class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     """Gaussian processes.
 
     A Gaussian process is a continuous stochastic process which if evaluated at a
@@ -90,21 +90,29 @@ class GaussianProcess(RandomProcess[_InputType, _OutputType]):
             dtype=np.dtype(np.float_),
         )
 
-    def __call__(self, x: _InputType) -> randvars.Normal:
-        return randvars.Normal(mean=self.mean(x), cov=self.cov(x))
+    def __call__(self, args: _InputType) -> randvars.Normal:
+        return randvars.Normal(mean=self.mean(args), cov=self.cov(args))
 
-    def mean(self, x: _InputType) -> _OutputType:
-        return self._meanfun(x)
+    def mean(self, args: _InputType) -> _OutputType:
+        return self._meanfun(args)
 
-    def cov(self, x0: _InputType, x1: Optional[_InputType] = None) -> _OutputType:
-        return self._covfun(x0, x1)
+    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
+        return self._covfun(args0, args1)
 
     def _sample_at_input(
         self,
-        x: _InputType,
+        args: _InputType,
         size: ShapeArgType = (),
         random_state: RandomStateArgType = None,
     ) -> _OutputType:
-        gaussian_rv = self.__call__(x)
+        gaussian_rv = self.__call__(args)
         gaussian_rv.random_state = random_state
         return gaussian_rv.sample(size=size)
+
+    def push_forward(
+        self,
+        args: _InputType,
+        sample: np.ndarray,
+        measure: Type[randvars.RandomVariable],
+    ) -> np.ndarray:
+        raise NotImplementedError

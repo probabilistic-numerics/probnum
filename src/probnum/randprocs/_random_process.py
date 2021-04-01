@@ -1,7 +1,7 @@
 """Random Processes."""
 
 import abc
-from typing import Callable, Generic, Optional, TypeVar, Union
+from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     Notes
     -----
     Random processes are assumed to have an (un-/countably) infinite domain. Random
-    processes with a finite index set are represented by :class:`RandomVariable` s.
+    processes with a finite index set are represented by :class:`RandomVariable`.
     """
 
     # pylint: disable=invalid-name
@@ -63,18 +63,18 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         )
 
     @abc.abstractmethod
-    def __call__(self, x: _InputType) -> randvars.RandomVariable[_OutputType]:
-        """Evaluate the random process at a set of inputs.
+    def __call__(self, args: _InputType) -> randvars.RandomVariable[_OutputType]:
+        """Evaluate the random process at a set of input arguments.
 
         Parameters
         ----------
-        x
+        args
             *shape=(input_dim,) or (n, input_dim)* -- Input(s) to evaluate random
             process at.
 
         Returns
         -------
-        f
+        randvars.RandomVariable
             *shape=(), (output_dim,) or (n, output_dim)* -- Random process evaluated at
             the inputs.
         """
@@ -96,72 +96,72 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         return self._dtype
 
     @abc.abstractmethod
-    def mean(self, x: _InputType) -> _OutputType:
+    def mean(self, args: _InputType) -> _OutputType:
         """Mean function.
 
         Returns the mean function evaluated at the given input(s).
 
         Parameters
         ----------
-        x
+        args
             *shape=(input_dim,) or (n, input_dim)* -- Input(s) where the mean
             function is evaluated.
 
         Returns
         -------
-        mean
+        _OutputType
             *shape=(), (output_dim, ) or (n, output_dim)* -- Mean function of the
             process evaluated at inputs ``x``.
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def cov(self, x0: _InputType, x1: Optional[_InputType] = None) -> _OutputType:
+    def cov(self, args0: _InputType, args1: Optional[_InputType] = None) -> _OutputType:
         r"""Covariance function or kernel.
 
         Returns the covariance function :math:`\operatorname{Cov}(f(x_0),
         f(x_1)) = \mathbb{E}[(f(x_0) - \mathbb{E}[f(x_0)])(f(x_0) - \mathbb{E}[f(
-        x_0)])^\top]` of the process evaluated at ``x0`` and ``x1``. If only ``x0`` is
-        given the covariance among the components of the random process at the
-        inputs defined by ``x0`` is computed.
+        x_0)])^\top]` of the process evaluated at :math:`x_0` and :math:`x_1`. If only
+        ``args0`` is given the covariance among the components of the random process
+        at the inputs defined by ``args0`` is computed.
 
         Parameters
         ----------
-        x0
+        args0
             *shape=(input_dim,) or (n0, input_dim)* -- First input to the covariance
             function.
-        x1
+        args1
             *shape=(input_dim,) or (n1, input_dim)* -- Second input to the covariance
             function.
 
         Returns
         -------
-        cov
+        _OutputType
             *shape=(), (output_dim, output_dim), (n0, n1) or (n0, n1, output_dim,
-            output_dim)* -- Covariance of the process at ``x0`` and ``x1``. If
-            only ``x0`` is given the kernel matrix :math:`K=k(X_0, X_0)` is computed.
+            output_dim)* -- Covariance of the process at ``args0`` and ``args1``. If
+            only ``args0`` is given the kernel matrix :math:`K=k(x_0, x_0)` is computed.
         """  # pylint: disable=trailing-whitespace
         raise NotImplementedError
 
-    def var(self, x: _InputType) -> _OutputType:
+    def var(self, args: _InputType) -> _OutputType:
         """Variance function.
 
         Returns the variance function which is the value of the covariance or kernel
-        evaluated elementwise at ``x`` for each output dimension separately.
+        evaluated elementwise at ``args`` for each output dimension separately.
 
         Parameters
         ----------
-        x
+        args
             *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the variance function.
 
         Returns
         -------
-        var
+        _OutputType
             *shape=(), (output_dim,) or (n, output_dim)* -- Variance of the
-            process at ``x``.
+            process at ``args``.
         """
         try:
-            cov = self.cov(x0=x)
+            cov = self.cov(args0=args)
             if cov.ndim < 2:
                 return cov
             elif cov.ndim == 2:
@@ -173,29 +173,53 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         except NotImplementedError as exc:
             raise NotImplementedError from exc
 
-    def std(self, x: _InputType) -> _OutputType:
+    def std(self, args: _InputType) -> _OutputType:
         """Standard deviation function.
 
         Parameters
         ----------
-        x
+        args
             *shape=(input_dim,) or (n, input_dim)* -- Input(s) to the standard
             deviation function.
 
         Returns
         -------
-        var
+        _OutputType
             *shape=(), (output_dim,) or (n, output_dim)* -- Standard deviation of the
-            process at ``x``.
+            process at ``args``.
         """
         try:
-            return np.sqrt(self.var(x=x))
+            return np.sqrt(self.var(args=args))
         except NotImplementedError as exc:
             raise NotImplementedError from exc
 
+    @abc.abstractmethod
+    def push_forward(
+        self,
+        args: _InputType,
+        sample: np.ndarray,
+        measure: Type[randvars.RandomVariable],
+    ) -> np.ndarray:
+        """Transform samples from a base measure into samples from the random process.
+
+        This function can be used to control sampling from the random process by
+        explicitly passing samples from a base measure evaluated at the input arguments.
+
+        Parameters
+        ----------
+        args
+            Input arguments.
+        sample
+            *shape=(sample_size, output_dim)* -- Sample(s) from a base measure
+            evaluated at the input arguments.
+        measure
+            Base measure. Given as a type of random variable.
+        """
+        raise NotImplementedError
+
     def sample(
         self,
-        x: _InputType = None,
+        args: _InputType = None,
         size: ShapeArgType = (),
         random_state: RandomStateArgType = None,
     ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
@@ -207,7 +231,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Parameters
         ----------
-        x
+        args
             *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process. If ``None``, sample paths, i.e. callables are
             returned.
@@ -218,17 +242,21 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             :mod:`numpy.random` state is used. If integer, it is used to seed the local
             :class:`~numpy.random.RandomState` instance.
         """
-        if x is None:
-            return lambda x0: self._sample_at_input(
-                x=x0, size=size, random_state=random_state
-            )
+        if args is None:
 
-        return self._sample_at_input(x=x, size=size, random_state=random_state)
+            def _sample(args0):
+                return self._sample_at_input(
+                    args=args0, size=size, random_state=random_state
+                )
+
+            return _sample
+
+        return self._sample_at_input(args=args, size=size, random_state=random_state)
 
     @abc.abstractmethod
     def _sample_at_input(
         self,
-        x: _InputType,
+        args: _InputType,
         size: ShapeArgType = (),
         random_state: RandomStateArgType = None,
     ) -> _OutputType:
@@ -240,7 +268,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Parameters
         ----------
-        x
+        args
             *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process.
         size

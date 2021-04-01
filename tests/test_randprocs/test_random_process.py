@@ -7,46 +7,49 @@ from probnum import randprocs, randvars
 # pylint: disable=invalid-name
 
 
-def test_output_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+def test_output_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether evaluations of the random process have the correct shape."""
     if random_process.output_dim == 1:
-        assert random_process(x0).ndim == 1
+        assert random_process(args0).ndim == 1
     else:
-        assert random_process(x0).shape[1] == random_process.output_dim
+        assert random_process(args0).shape[1] == random_process.output_dim
 
 
-def test_mean_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+def test_mean_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the mean of the random process has the correct shape."""
     if random_process.output_dim == 1:
-        assert random_process.mean(x0).ndim == 1
+        assert random_process.mean(args0).ndim == 1
     else:
-        assert random_process.mean(x0).shape[1] == random_process.output_dim
+        assert random_process.mean(args0).shape[1] == random_process.output_dim
 
 
-def test_var_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+def test_var_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the variance of the random process has the correct shape."""
     if random_process.output_dim == 1:
-        assert random_process.var(x0).ndim == 1
+        assert random_process.var(args0).ndim == 1
     else:
-        assert random_process.var(x0).shape[1] == random_process.output_dim
+        assert random_process.var(args0).shape[1] == random_process.output_dim
 
 
-def test_std_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+def test_std_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the standard deviation of the random process has the correct
     shape."""
     if random_process.output_dim == 1:
-        assert random_process.std(x0).ndim == 1
+        assert random_process.std(args0).ndim == 1
     else:
-        assert random_process.std(x0).shape[1] == random_process.output_dim
+        assert random_process.std(args0).shape[1] == random_process.output_dim
 
 
-def test_cov_shape(random_process: randprocs.RandomProcess, x0: np.ndarray):
+def test_cov_shape(random_process: randprocs.RandomProcess, args0: np.ndarray):
     """Test whether the covariance of the random process has the correct shape."""
-    n = x0.shape[0]
+    n = args0.shape[0]
     if random_process.output_dim == 1:
-        assert random_process.cov(x0).shape == (n, n) or random_process.cov(x0).ndim < 2
+        assert (
+            random_process.cov(args0).shape == (n, n)
+            or random_process.cov(args0).ndim < 2
+        )
     else:
-        assert random_process.cov(x0).shape == (
+        assert random_process.cov(args0).shape == (
             n,
             n,
             random_process.output_dim,
@@ -58,9 +61,9 @@ def test_evaluated_random_process_is_random_variable(
     random_process: randprocs.RandomProcess, random_state: np.random.RandomState
 ):
     """Test whether evaluating a random process returns a random variable."""
-    n_inputs_x0 = 10
-    x0 = random_state.normal(size=(n_inputs_x0, random_process.input_dim))
-    y0 = random_process(x0)
+    n_inputs_args0 = 10
+    args0 = random_state.normal(size=(n_inputs_args0, random_process.input_dim))
+    y0 = random_process(args0)
 
     assert isinstance(y0, randvars.RandomVariable), (
         f"Output of {repr(random_process)} is not a " f"random variable."

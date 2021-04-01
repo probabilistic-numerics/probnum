@@ -5,7 +5,7 @@ from typing import Callable
 import numpy as np
 import pytest
 
-from probnum import kernels, randprocs, statespace
+from probnum import kernels, randprocs, randvars, statespace
 
 
 @pytest.fixture(
@@ -99,19 +99,26 @@ def fixture_gaussian_process(mean, cov) -> randprocs.GaussianProcess:
 @pytest.fixture(
     params=[
         pytest.param(gmpdef, id=gmpdef[0])
-        for gmpdef in [("ibm", statespace.IBM(ordint=1, spatialdim=1), 0.0, 0.0)]
+        for gmpdef in [
+            (
+                "ibm",
+                statespace.IBM(ordint=1, spatialdim=1),
+                0.0,
+                randvars.Normal(0.0, 1.0),
+            )
+        ]
     ],
     name="gauss_markov_process",
 )
-def fixture_gauss_markov_process(request) -> randprocs.GaussMarkovProcess:
+def fixture_gauss_markov_process(request) -> randprocs.MarkovProcess:
     """Gauss-Markov process."""
-    return randprocs.GaussMarkovProcess(
-        linear_sde=request.param[1], t0=request.param[2], x0=request.param[3]
+    return randprocs.MarkovProcess(
+        transition=request.param[1], initarg=request.param[2], initrv=request.param[3]
     )
 
 
-@pytest.fixture(params=[pytest.param(n, id=f"n{n}") for n in [1, 10]], name="x0")
-def fixture_x0(
+@pytest.fixture(params=[pytest.param(n, id=f"n{n}") for n in [1, 10]], name="args0")
+def fixture_args0(
     request,
     random_process: randprocs.RandomProcess,
     random_state: np.random.RandomState,
