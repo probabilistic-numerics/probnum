@@ -4,17 +4,7 @@ import pytest
 import probnum.filtsmooth as pnfs
 from probnum.problems import RegressionProblem
 
-from ..filtsmooth_testcases import logistic_ode, pendulum
-
-
-def pendulum_problem():
-    """Pendulum problem."""
-    problem = pendulum()
-    dynmod, measmod, initrv, regression_problem = problem
-    dynmod = pnfs.DiscreteEKFComponent(dynmod)
-    measmod = pnfs.DiscreteEKFComponent(measmod)
-
-    return dynmod, measmod, initrv, regression_problem
+from ..filtsmooth_testcases import logistic_ode
 
 
 def logistic_ode_problem():
@@ -32,9 +22,7 @@ def logistic_ode_problem():
     return dynmod, measmod, initrv, regression_problem
 
 
-@pytest.fixture(
-    params=[logistic_ode_problem]
-)  # , pendulum_problem]) #TODO: Make pendulum work
+@pytest.fixture(params=[logistic_ode_problem])
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
