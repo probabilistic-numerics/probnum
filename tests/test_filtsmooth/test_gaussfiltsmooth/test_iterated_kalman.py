@@ -60,9 +60,7 @@ def test_rmse_filt_smooth(setup):
 
     # Compare only zeroth component
     # for compatibility with all test cases
-    filtms_rmse = np.mean(np.abs(filtms[:, 0] - truth[:, 0]))
     smooms_rmse = np.mean(np.abs(smooms[:, 0] - truth[:, 0]))
     iterms_rmse = np.mean(np.abs(iterms[:, 0] - truth[:, 0]))
 
     assert iterms_rmse < smooms_rmse
-    assert smooms_rmse < filtms_rmse
