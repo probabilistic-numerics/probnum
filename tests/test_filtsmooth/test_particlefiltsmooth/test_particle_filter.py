@@ -36,7 +36,7 @@ def num_particles():
 
 @pytest.fixture
 def problem():
-    return pendulum()
+    return pendulum(delta_t=16.0 * 0.0075)
 
 
 @pytest.fixture
@@ -95,7 +95,7 @@ def test_shape_pf_output(pf_output, regression_problem, num_particles):
 def test_rmse_particlefilter(pf_output, regression_problem):
     """Assert that the RMSE of the mode of the posterior of the PF is a lot smaller than
     the RMSE of the data."""
-    print(regression_problem.locations.shape)
+
     true_states = regression_problem.solution
 
     mode = pf_output.states.mode
@@ -107,4 +107,4 @@ def test_rmse_particlefilter(pf_output, regression_problem):
     ) / np.sqrt(true_states.size)
 
     # RMSE of PF.mode strictly better than RMSE of data
-    assert rmse_mode < rmse_data
+    assert rmse_mode < 0.9 * rmse_data

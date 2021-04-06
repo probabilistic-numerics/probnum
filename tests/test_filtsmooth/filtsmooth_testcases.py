@@ -104,14 +104,13 @@ def ornstein_uhlenbeck():
     return dynmod, measmod, initrv, regression_problem
 
 
-def pendulum():
+def pendulum(delta_t=0.0075):
 
     # Below is for consistency with pytest & unittest.
     # Without a seed, unittest passes but pytest fails.
     # I tried multiple seeds, they all work equally well.
     np.random.seed(12345)
 
-    delta_t = 0.0075
     var = 0.32 ** 2
     g = 9.81
 
