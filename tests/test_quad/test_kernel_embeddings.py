@@ -92,7 +92,7 @@ def test_kernel_mean_gaussian_measure(kernel_embedding, x_gauss):
     )
 
 
-@pytest.mark.parametrize("input_dim", [1, 2, 3])
+@pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["gauss"])
 def test_kernel_var_gaussian_measure(kernel_embedding):
     """Test kernel variance for the Gaussian measure against Gauss-Hermite tensor
