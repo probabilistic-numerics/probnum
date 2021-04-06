@@ -67,7 +67,7 @@ class IntegrationMeasure(abc.ABC):
             (n_sample,) or (n_sample,dim)
         """
         # pylint: disable=no-member
-        return np.squeeze(self.random_variable.sample(size=n_sample))
+        return self.random_variable.sample(size=(n_sample, self.dim))
 
     def _set_dimension_domain(
         self,
@@ -187,10 +187,8 @@ class LebesgueMeasure(IntegrationMeasure):
         return np.full(() if num_dat == 1 else (num_dat,), self.normalization_constant)
 
     def sample(self, n_sample: IntArgType) -> np.ndarray:
-        return np.squeeze(
-            self.random_variable.rvs(
-                size=(n_sample, self.dim), random_state=self.random_state
-            )
+        return self.random_variable.rvs(
+            size=(n_sample, self.dim), random_state=self.random_state
         )
 
 
