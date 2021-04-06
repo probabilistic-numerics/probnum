@@ -69,7 +69,7 @@ def test_kernel_mean_shape(kernel_embedding, x):
 
 def test_kernel_variance_float(kernel_embedding):
     """Test output of kernel variance."""
-    assert isinstance(kernel_embedding.kernel_variance(), np.float)
+    assert isinstance(kernel_embedding.kernel_variance(), float)
 
 
 # Tests for squared exponential kernel and Gaussian measure
