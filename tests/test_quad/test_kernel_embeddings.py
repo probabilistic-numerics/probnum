@@ -17,10 +17,7 @@ def gauss_hermite_tensor(
     cov: Union[np.ndarray, FloatArgType],
 ):
     """Returns the points and weights of a tensor-product Gauss-Hermite rule for
-    integration w.r.t.
-
-    a Gaussian measure.
-    """
+    integration w.r.t a Gaussian measure."""
     x_gh_1d, w_gh = np.polynomial.hermite.hermgauss(n_points)
     x_gh = (
         np.sqrt(2)
@@ -41,14 +38,13 @@ def gauss_legendre_tensor(
     normalized: Optional[bool] = False,
 ):
     """Returns the points and weights of a tensor-product Gauss-Legendre rule for
-    integration w.r.t.
-
-    the Lebesgue measure on a hyper-rectangle.
-    """
-    a, b = domain[0], domain[1]
-    x_gl_1d, w_gl = roots_legendre(n_points)
-    foo = [0.5 * (x_gl_1d * (b[i] - a[i]) + b[i] + a[i]) for i in range(0, dim)]
-    x_gl = np.stack(np.meshgrid(*foo), -1).reshape(-1, dim)
+    integration w.r.t the Lebesgue measure on a hyper-rectangle."""
+    x_1d, w_gl, _ = roots_legendre(n_points)
+    x_1d_shifted = [
+        0.5 * (x_1d * (domain[1][i] - domain[0][i]) + domain[1][i] + domain[0][i])
+        for i in range(0, dim)
+    ]
+    x_gl = np.stack(np.meshgrid(*x_1d_shifted), -1).reshape(-1, dim)
     w_gl = (
         np.prod(np.stack(np.meshgrid(*(w_gl,) * dim), -1).reshape(-1, dim), axis=1)
         / 2 ** dim
@@ -98,7 +94,6 @@ def test_kernel_mean_gaussian_measure(kernel_embedding, x_gauss):
 def test_kernel_var_gaussian_measure(kernel_embedding):
     """Test kernel variance for the Gaussian measure against Gauss-Hermite tensor
     product rule."""
-    dim = kernel_embedding.dim
     n_gh = 20
     x_gh, w_gh = gauss_hermite_tensor(
         n_points=n_gh,
