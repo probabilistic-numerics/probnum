@@ -8,7 +8,8 @@ import pytest
 import probnum.kernels as kernels
 import probnum.quad._integration_measures as measures
 import probnum.quad._kernel_embeddings as kernel_embeddings
-from probnum.type import FloatArgType
+
+# pylint: disable=unnecessary-lambda
 
 
 @pytest.fixture(
