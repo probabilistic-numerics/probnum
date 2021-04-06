@@ -7,6 +7,8 @@ from scipy.special import erf
 from probnum.kernels import ExpQuad
 from probnum.quad._integration_measures import LebesgueMeasure
 
+# pylint: disable=no-name-in-module
+
 
 def _kernel_mean_expquad_lebesgue(
     x: np.ndarray, kernel: ExpQuad, measure: LebesgueMeasure
@@ -60,7 +62,6 @@ def _kernel_variance_expquad_lebesgue(
     k_var :
         The kernel integrated w.r.t. both arguments
     """
-    # pylint: disable=invalid-name
 
     dim = kernel.input_dim
 
