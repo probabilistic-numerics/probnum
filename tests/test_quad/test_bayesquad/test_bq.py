@@ -13,8 +13,8 @@ def test_type_1d(f1d, kernel, measure):
     """Test that BQ outputs normal random variables for 1D integrands."""
     # pylint: disable=invalid-name
     bq = BayesianQuadrature(kernel=kernel, policy=sample_from_measure)
-    F, _ = bq.integrate(fun=f1d, measure=measure, nevals=10)
-    assert isinstance(F, Normal)
+    integral, _ = bq.integrate(fun=f1d, measure=measure, nevals=10)
+    assert isinstance(integral, Normal)
 
 
 @pytest.mark.parametrize("input_dim", [1])

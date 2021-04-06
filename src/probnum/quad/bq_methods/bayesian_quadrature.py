@@ -18,7 +18,7 @@ class BayesianQuadrature:
 
     Bayesian quadrature solves integrals of the form
 
-    .. math:: F = \int_a^b f(x) d \mu(x),
+    .. math:: F = \int_\Omega f(x) d \mu(x),
 
     Parameters
     ----------
@@ -69,14 +69,14 @@ class BayesianQuadrature:
         Returns
         -------
         F :
-            The integral of ``fun`` from ``a`` to ``b``.
+            The integral of ``fun`` against ``measure``
         info :
             Information on the performance of the method.
         """
 
         # Acquisition policy
         nodes = self.policy(nevals, measure)
-        y = fun(nodes)
+        fun_evals = fun(nodes)
 
         # compute integral mean and variance
         # Define kernel embedding
@@ -87,15 +87,15 @@ class BayesianQuadrature:
 
         weights = self._solve_gram(gram, kernel_mean)
 
-        integral_mean = np.squeeze(weights.T @ y)
+        integral_mean = np.squeeze(weights.T @ fun_evals)
         integral_variance = initial_error - weights.T @ kernel_mean
 
-        F = Normal(integral_mean, integral_variance)
+        integral = Normal(integral_mean, integral_variance)
 
         # Information on result
         info = {"model_fit_diagnostic": None}
 
-        return F, info
+        return integral, info
 
     # The following functions are here for the minimal version
     # and shall be factored out once BQ is expanded.
