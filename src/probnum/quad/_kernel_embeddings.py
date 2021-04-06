@@ -10,7 +10,7 @@ from ..kernels import ExpQuad, Kernel
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 
 
-class _KernelEmbedding(abc.ABC):
+class KernelEmbedding(abc.ABC):
     """Abstract class for integrals over kernels.
 
     Child classes implement integrals for a given combination of kernel and measure.
@@ -63,7 +63,7 @@ class _KernelEmbedding(abc.ABC):
         raise NotImplementedError
 
 
-class _KExpQuadMGauss(_KernelEmbedding):
+class _KExpQuadMGauss(KernelEmbedding):
     """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
     measure.
 
@@ -120,7 +120,7 @@ class _KExpQuadMGauss(_KernelEmbedding):
         return self.kernel.lengthscale ** self.dim / np.sqrt(denom)
 
 
-class _KExpQuadMLebesgue(_KernelEmbedding):
+class _KExpQuadMLebesgue(KernelEmbedding):
     """Kernel embedding of exponentiated quadratic kernel with Lebesgue integration
     measure.
 
@@ -162,7 +162,7 @@ class _KExpQuadMLebesgue(_KernelEmbedding):
 
 def get_kernel_embedding(
     kernel: Kernel, measure: IntegrationMeasure
-) -> _KernelEmbedding:
+) -> KernelEmbedding:
     """Select the right kernel embedding given the kernel and integration measure.
 
     Parameters

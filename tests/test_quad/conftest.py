@@ -163,7 +163,7 @@ def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
 @pytest.fixture(name="kernel_embedding")
 def fixture_kernel_embedding(
     request, kernel: kernels.Kernel, measure: measures.IntegrationMeasure
-) -> kernel_embeddings._KernelEmbedding:
+) -> kernel_embeddings.KernelEmbedding:
     """Set up kernel embedding."""
     return kernel_embeddings.get_kernel_embedding(kernel, measure)
 
