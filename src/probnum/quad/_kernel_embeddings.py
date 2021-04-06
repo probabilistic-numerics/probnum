@@ -95,10 +95,8 @@ class _KExpQuadMGauss(KernelEmbedding):
                 lower=True,
             )
             chol_inv_x = slinalg.cho_solve(chol, (x - self.measure.mean).T)
-            # pylint: disable=fixme
-            # TODO: Following constructs huge matrices when there are a lot of points.
-            exp_factor = np.diag(
-                np.atleast_2d(np.exp(-0.5 * (x - self.measure.mean) @ chol_inv_x))
+            exp_factor = np.exp(
+                -0.5 * ((x - self.measure.mean) * chol_inv_x.T).sum(axis=1)
             )
             det_factor = self.kernel.lengthscale ** self.dim / np.diag(chol[0]).prod()
 
