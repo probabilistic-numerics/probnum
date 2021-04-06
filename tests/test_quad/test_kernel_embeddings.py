@@ -10,6 +10,7 @@ from scipy.special import roots_legendre
 from probnum.type import FloatArgType, IntArgType
 
 
+# Auxiliary functions
 def gauss_hermite_tensor(
     n_points: IntArgType,
     dim: IntArgType,
@@ -39,7 +40,7 @@ def gauss_legendre_tensor(
 ):
     """Returns the points and weights of a tensor-product Gauss-Legendre rule for
     integration w.r.t the Lebesgue measure on a hyper-rectangle."""
-    x_1d, w_gl, _ = roots_legendre(n_points)
+    x_1d, w_gl, weight_sum = roots_legendre(n_points, True)
     x_1d_shifted = [
         0.5 * (x_1d * (domain[1][i] - domain[0][i]) + domain[1][i] + domain[0][i])
         for i in range(0, dim)
@@ -47,13 +48,14 @@ def gauss_legendre_tensor(
     x_gl = np.stack(np.meshgrid(*x_1d_shifted), -1).reshape(-1, dim)
     w_gl = (
         np.prod(np.stack(np.meshgrid(*(w_gl,) * dim), -1).reshape(-1, dim), axis=1)
-        / 2 ** dim
+        / weight_sum ** dim
     )
     if not normalized:
         w_gl = w_gl * np.prod(domain[1] - domain[0])
     return x_gl, w_gl
 
 
+# Common tests
 def test_kernel_mean_shape(kernel_embedding, x):
     """Test output shape of kernel mean."""
 
@@ -70,6 +72,7 @@ def test_kernel_variance_float(kernel_embedding):
     assert isinstance(kernel_embedding.kernel_variance(), np.float)
 
 
+# Tests for squared exponential kernel and Gaussian measure
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["gauss"])
 def test_kernel_mean_gaussian_measure(kernel_embedding, x_gauss):
@@ -109,6 +112,7 @@ def test_kernel_var_gaussian_measure(kernel_embedding):
     )
 
 
+# Tests for squared exponential kernel and Lebesgue measure
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
 def test_kernel_mean_lebesgue_measure(kernel_embedding, x):
