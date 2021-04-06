@@ -165,3 +165,20 @@ def fixture_kernel_embedding(
 ) -> kernel_embeddings._KernelEmbedding:
     """Set up kernel embedding."""
     return kernel_embeddings.get_kernel_embedding(kernel, measure)
+
+
+# Test functions
+@pytest.fixture(
+    params=[
+        pytest.param(fun, id=f"f={key}")
+        for key, fun in {
+            "x": lambda x: x,
+            "x**2": lambda x: x ** 2,
+            "sin(x)": lambda x: np.sin(x),
+        }.items()
+    ],
+    name="f1d",
+)
+def fixture_f1d(request):
+    """1D test function for BQ."""
+    return request.param

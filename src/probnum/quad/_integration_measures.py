@@ -25,8 +25,6 @@ class IntegrationMeasure(abc.ABC):
         respectively, of the rectangular integration domain.
     random_state :
         Random state of the random variable corresponding to the integration measure.
-    name :
-        Name of the integration measure.
     """
 
     def __init__(
@@ -34,12 +32,10 @@ class IntegrationMeasure(abc.ABC):
         dim: IntArgType,
         domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
         random_state: Optional[RandomStateArgType] = None,
-        name: Optional[str] = "Custom measure",
     ) -> None:
 
         self._set_dimension_domain(dim, domain)
         self.random_state = random_state
-        self.name = name
 
     def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
         """Evaluate the density function of the integration measure.
@@ -149,9 +145,7 @@ class LebesgueMeasure(IntegrationMeasure):
         normalized: Optional[bool] = False,
         random_state: Optional[RandomStateArgType] = None,
     ) -> None:
-        super().__init__(
-            dim=dim, domain=domain, random_state=random_state, name="Lebesgue measure"
-        )
+        super().__init__(dim=dim, domain=domain, random_state=random_state)
 
         # Set normalization constant
         self.normalized = normalized
@@ -168,10 +162,8 @@ class LebesgueMeasure(IntegrationMeasure):
 
         # Use scipy's uniform random variable since uniform random variables are not
         # yet implemented in probnum
-        self.random_variable = asrandvar(
-            scipy.stats.uniform(
-                loc=self.domain[0], scale=self.domain[1] - self.domain[0]
-            )
+        self.random_variable = scipy.stats.uniform(
+            loc=self.domain[0], scale=self.domain[1] - self.domain[0]
         )
 
     def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
@@ -238,5 +230,4 @@ class GaussianMeasure(IntegrationMeasure):
             dim=dim,
             domain=(np.full((dim,), -np.Inf), np.full((dim,), np.Inf)),
             random_state=random_state,
-            name="Gaussian measure",
         )
