@@ -40,7 +40,7 @@ def bayesquad(
     .. math:: F = \int_\Omega f(x) d \mu(x),
 
     of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated on the domain
-    :math:`\Omega \subset \mathbb{R}^D` gainst a measure :math:`\mu: \mathbb{R}^D
+    :math:`\Omega \subset \mathbb{R}^D` against a measure :math:`\mu: \mathbb{R}^D
     \mapsto \mathbb{R}`.
 
     Bayesian quadrature methods return a probability distribution over the solution :math:`F` with
