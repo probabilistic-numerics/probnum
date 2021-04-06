@@ -67,7 +67,9 @@ class IntegrationMeasure(abc.ABC):
             (n_sample,) or (n_sample,dim)
         """
         # pylint: disable=no-member
-        return self.random_variable.sample(size=(n_sample, self.dim))
+        return np.reshape(
+            self.random_variable.sample(size=n_sample), newshape=(n_sample, self.dim)
+        )
 
     def _set_dimension_domain(
         self,
