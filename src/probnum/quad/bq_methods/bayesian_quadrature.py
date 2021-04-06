@@ -9,7 +9,7 @@ from probnum.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 
 from .._integration_measures import IntegrationMeasure
-from .._kernel_embeddings import get_kernel_embedding
+from ..kernel_embeddings._kernel_embedding import KernelEmbedding
 from ..policies import sample_from_measure
 
 
@@ -80,7 +80,7 @@ class BayesianQuadrature:
 
         # compute integral mean and variance
         # Define kernel embedding
-        kernel_embedding = get_kernel_embedding(self.kernel, measure)
+        kernel_embedding = KernelEmbedding(self.kernel, measure)
         gram = self.kernel(nodes, nodes)
         kernel_mean = kernel_embedding.kernel_mean(nodes)
         initial_error = kernel_embedding.kernel_variance()

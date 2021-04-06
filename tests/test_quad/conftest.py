@@ -7,7 +7,7 @@ import pytest
 
 import probnum.kernels as kernels
 import probnum.quad._integration_measures as measures
-import probnum.quad._kernel_embeddings as kernel_embeddings
+from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
 
 # pylint: disable=unnecessary-lambda
 
@@ -163,9 +163,9 @@ def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
 @pytest.fixture(name="kernel_embedding")
 def fixture_kernel_embedding(
     request, kernel: kernels.Kernel, measure: measures.IntegrationMeasure
-) -> kernel_embeddings.KernelEmbedding:
+) -> KernelEmbedding:
     """Set up kernel embedding."""
-    return kernel_embeddings.get_kernel_embedding(kernel, measure)
+    return KernelEmbedding(kernel, measure)
 
 
 # Test functions
