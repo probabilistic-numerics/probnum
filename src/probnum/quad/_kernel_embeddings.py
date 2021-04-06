@@ -41,12 +41,12 @@ class KernelEmbedding(abc.ABC):
 
         Parameters
         ----------
-        x:
+        x :
             n_eval locations where to evaluate the kernel mean, shape (n_eval, dim)
 
         Returns
         -------
-        k_mean:
+        k_mean :
             The kernel integrated w.r.t. its first argument, evaluated at locations x,
             shape (n_eval,)
         """
@@ -57,7 +57,7 @@ class KernelEmbedding(abc.ABC):
 
         Returns
         -------
-        k_var:
+        k_var :
             The kernel integrated w.r.t. both arguments
         """
         raise NotImplementedError
@@ -69,9 +69,9 @@ class _KExpQuadMGauss(KernelEmbedding):
 
     Parameters
     ----------
-    kernel:
+    kernel :
         Instance of an exponentiated quadratic kernel
-    measure:
+    measure :
         Instance of a Gaussian integration measure
     """
 
@@ -124,9 +124,9 @@ class _KExpQuadMLebesgue(KernelEmbedding):
 
     Parameters
     ----------
-    kernel:
+    kernel :
         Instance of an exponentiated quadratic kernel
-    measure:
+    measure :
         Instance of a Lebesgue integration measure
     """
 
@@ -165,9 +165,9 @@ def get_kernel_embedding(
 
     Parameters
     ----------
-    kernel:
+    kernel :
         Instance of a kernel
-    measure:
+    measure :
         Instance of an integration measure
 
     Returns
