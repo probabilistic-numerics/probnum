@@ -6,7 +6,7 @@ from scipy.linalg import sqrtm
 from scipy.special import roots_legendre
 
 
-def test_kmean_shape(kernel_embedding, x):
+def test_kernel_mean_shape(kernel_embedding, x):
     """Test output shape of kernel mean."""
 
     kmean_shape = (np.atleast_2d(x).shape[0],)
@@ -17,7 +17,7 @@ def test_kmean_shape(kernel_embedding, x):
     )
 
 
-def test_kvar_float(kernel_embedding):
+def test_kernel_variance_float(kernel_embedding):
     """Test output of kernel variance."""
     assert isinstance(kernel_embedding.kernel_variance(), np.float)
 

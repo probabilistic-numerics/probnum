@@ -6,7 +6,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 import scipy.stats
 
-from probnum.randvars import Normal
+from probnum.randvars import Normal, asrandvar
 from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
 
@@ -168,8 +168,10 @@ class LebesgueMeasure(IntegrationMeasure):
 
         # Use scipy's uniform random variable since uniform random variables are not
         # yet implemented in probnum
-        self.random_variable = scipy.stats.uniform(
-            loc=self.domain[0], scale=self.domain[1] - self.domain[0]
+        self.random_variable = asrandvar(
+            scipy.stats.uniform(
+                loc=self.domain[0], scale=self.domain[1] - self.domain[0]
+            )
         )
 
     def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:

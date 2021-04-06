@@ -12,10 +12,7 @@ from .bq_methods import BayesianQuadrature
 from .policies import sample_from_measure
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = [
-    "bayesquad",
-    "BayesianQuadrature",
-]
+__all__ = ["bayesquad", "BayesianQuadrature", "IntegrationMeasure"]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 BayesianQuadrature.__module__ = "probnum.quad"

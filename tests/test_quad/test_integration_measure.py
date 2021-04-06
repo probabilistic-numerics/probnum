@@ -113,7 +113,7 @@ def test_lebesgue_normalization(input_dim: int):
         assert measure.normalization_constant == 1 / 2 ** input_dim
 
 
-def test_lebesgue_non_normalization(input_dim: int):
+def test_lebesgue_unnormalized(input_dim: int):
     """Check that normalization constants are handled properly when equal to one."""
     measure1 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=True)
     measure2 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=False)
