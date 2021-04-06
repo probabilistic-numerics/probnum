@@ -19,6 +19,7 @@ from ._integration_measures import IntegrationMeasure, LebesgueMeasure
 from .bq_methods import BayesianQuadrature
 
 
+# pylint: disable=too-many-arguments
 def bayesquad(
     fun: Callable,
     input_dim: int,
@@ -31,14 +32,15 @@ def bayesquad(
     method: str = "vanilla",
     policy: str = "bmc",
 ) -> Tuple[Normal, Dict]:
-    r"""Infer the solution of the uni- or multivariate integral :math:`\int_a^b f(x) d \mu(x)`.
+    r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
+    on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
 
     Bayesian quadrature (BQ) infers integrals of the form
 
-    .. math:: F = \int_a^b f(x) d \mu(x),
+    .. math:: F = \int_\Omega f(x) d \mu(x),
 
-    of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated between bounds
-    :math:`a` and :math:`b` against a measure :math:`\mu: \mathbb{R}^D \mapsto \mathbb{R}`.
+    of a function :math:`f:\mathbb{R}^D \mapsto \mathbb{R}` integrated on the domain
+    :math:`\Omega \subset \R^D` gainst a measure :math:`\mu: \mathbb{R}^D \mapsto \mathbb{R}`.
 
     Bayesian quadrature methods return a probability distribution over the solution :math:`F` with
     uncertainty arising from finite computation (here a finite number of function evaluations).
@@ -56,7 +58,8 @@ def bayesquad(
     kernel:
         the kernel used for the GP model
     domain :
-        Domain of integration. Contains lower and upper bound as int or ndarray, shape=(dim,)
+        Domain of integration. Contains lower and upper bound as int or ndarray,
+        shape=(dim,)
     measure:
         Integration measure, defaults to the Lebesgue measure.
     nevals :
@@ -91,8 +94,8 @@ def bayesquad(
     """
     if domain is None and measure is None:
         raise ValueError(
-            "You need to either specify an integration domain or an integration measure. "
-            "The Lebesgue measure can only operate on a finite domain."
+            "You need to either specify an integration domain or an integration "
+            "measure. The Lebesgue measure can only operate on a finite domain."
         )
 
     # Integration measure

@@ -6,7 +6,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 import scipy.stats
 
-from probnum.randvars import Normal, asrandvar
+from probnum.randvars import Normal
 from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
 
@@ -50,6 +50,7 @@ class IntegrationMeasure(abc.ABC):
         density_evals :
             (n_points,) or (n_points,dim)
         """
+        # pylint: disable=no-member
         return self.random_variable.pdf(points).squeeze()
 
     def sample(self, n_sample: IntArgType) -> np.ndarray:
@@ -65,6 +66,7 @@ class IntegrationMeasure(abc.ABC):
         points :
             (n_sample,) or (n_sample,dim)
         """
+        # pylint: disable=no-member
         return np.squeeze(self.random_variable.sample(size=n_sample))
 
     def _set_dimension_domain(
@@ -129,14 +131,28 @@ class IntegrationMeasure(abc.ABC):
 
         # Check that the domain is non-empty
         if not np.all(domain_a < domain_b):
-            raise ValueError(f"Domain must be non-empty.")
+            raise ValueError("Domain must be non-empty.")
 
         self.dim = dim
         self.domain = (domain_a, domain_b)
 
 
 class LebesgueMeasure(IntegrationMeasure):
-    """A Lebesgue measure."""
+    """Lebesgue measure on a hyper-rectangle.
+
+    Parameters
+    ----------
+    dim :
+        Dimension of the integration domain
+    domain :
+        Tuple which contains two arrays which define the start and end points,
+        respectively, of the rectangular integration domain.
+    normalized :
+         Boolean which controls whether or not the measure is normalized (i.e.,
+         integral over the domain is one)
+    random_state :
+        Random state of the random variable corresponding to the integration measure.
+    """
 
     def __init__(
         self,
@@ -178,8 +194,25 @@ class LebesgueMeasure(IntegrationMeasure):
         )
 
 
+# pylint: disable=too-few-public-methods
 class GaussianMeasure(IntegrationMeasure):
-    """A Gaussian measure."""
+    """Gaussian measure on Euclidean space with given mean and covariance.
+
+    If ``mean`` and ``cov`` are scalars but ``dim`` is larger than one, ``mean`` and
+    ``cov`` are extended to a constant vector and diagonal matrix, respectively,
+    of appropriate dimensions.
+
+    Parameters
+    ----------
+    mean :
+        Mean of the Gaussian measure, shape (dim,)
+    cov :
+        Covariance matrix of the Gaussian measure, shape (dim, dim)
+    dim :
+        Dimension of the integration domain
+    random_state :
+        Random state of the random variable corresponding to the integration measure.
+    """
 
     def __init__(
         self,
@@ -191,6 +224,7 @@ class GaussianMeasure(IntegrationMeasure):
 
         # Extend scalar mean and covariance to higher dimensions if dim has been
         # supplied by the user
+        # pylint: disable=fixme
         # TODO: This needs to be modified to account for cases where only either the
         #  mean or covariance is given in scalar form
         if (

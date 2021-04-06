@@ -35,6 +35,7 @@ class _KernelEmbedding(abc.ABC):
 
         self.dim = self.kernel.input_dim
 
+    # pylint: disable=invalid-name
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
         """Kernel mean w.r.t. its first argument against the integration measure.
 
@@ -46,7 +47,8 @@ class _KernelEmbedding(abc.ABC):
         Returns
         -------
         k_mean:
-            The kernel integrated w.r.t. its first argument, evaluated at locations x, shape (n_eval,)
+            The kernel integrated w.r.t. its first argument, evaluated at locations x,
+            shape (n_eval,)
         """
         raise NotImplementedError
 
@@ -64,8 +66,6 @@ class _KernelEmbedding(abc.ABC):
 class _KExpQuadMGauss(_KernelEmbedding):
     """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
     measure.
-
-    TODO: adopt the convention that arrays have shape (n_eval, dim)
 
     Parameters
     ----------
@@ -95,6 +95,7 @@ class _KExpQuadMGauss(_KernelEmbedding):
                 lower=True,
             )
             chol_inv_x = slinalg.cho_solve(chol, (x - self.measure.mean).T)
+            # pylint: disable=fixme
             # TODO: Following constructs huge matrices when there are a lot of points.
             exp_factor = np.diag(
                 np.atleast_2d(np.exp(-0.5 * (x - self.measure.mean) @ chol_inv_x))
@@ -106,21 +107,17 @@ class _KExpQuadMGauss(_KernelEmbedding):
     def kernel_variance(self) -> float:
 
         if self.measure.diagonal_covariance:
-            denom = np.sqrt(
-                (
-                    self.kernel.lengthscale ** 2
-                    + 2.0 * np.diag(np.atleast_2d(self.measure.cov))
-                ).prod()
-            )
+            denom = (
+                self.kernel.lengthscale ** 2
+                + 2.0 * np.diag(np.atleast_2d(self.measure.cov))
+            ).prod()
+
         else:
-            denom = np.sqrt(
-                np.linalg.det(
-                    self.kernel.lengthscale ** 2 * np.eye(self.dim)
-                    + 2.0 * self.measure.cov
-                )
+            denom = np.linalg.det(
+                self.kernel.lengthscale ** 2 * np.eye(self.dim) + 2.0 * self.measure.cov
             )
 
-        return self.kernel.lengthscale ** self.dim / denom
+        return self.kernel.lengthscale ** self.dim / np.sqrt(denom)
 
 
 class _KExpQuadMLebesgue(_KernelEmbedding):
@@ -139,19 +136,18 @@ class _KExpQuadMLebesgue(_KernelEmbedding):
         super().__init__(kernel, measure)
 
     def kernel_mean(self, x: np.ndarray) -> np.ndarray:
-        a = self.measure.domain[0]
-        b = self.measure.domain[1]
         ell = self.kernel.lengthscale
         return (
             self.measure.normalization_constant
             * (np.pi * ell ** 2 / 2) ** (self.dim / 2)
             * np.atleast_2d(
-                scipy.special.erf((b - x) / (ell * np.sqrt(2)))
-                - scipy.special.erf((a - x) / (ell * np.sqrt(2)))
+                scipy.special.erf((self.measure.domain[1] - x) / (ell * np.sqrt(2)))
+                - scipy.special.erf((self.measure.domain[0] - x) / (ell * np.sqrt(2)))
             ).prod(axis=1)
         )
 
     def kernel_variance(self) -> float:
+        # pylint: disable=invalid-name
         r = self.measure.domain[1] - self.measure.domain[0]
         ell = self.kernel.lengthscale
         return (
@@ -183,6 +179,7 @@ def get_kernel_embedding(
 
     # Exponentiated quadratic kernel
     if isinstance(kernel, ExpQuad):
+        # pylint: disable=no-else-return
         if isinstance(measure, GaussianMeasure):
             return _KExpQuadMGauss(kernel, measure)
         elif isinstance(measure, LebesgueMeasure):

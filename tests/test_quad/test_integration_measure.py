@@ -40,7 +40,7 @@ def test_gaussian_mean_shape_1d(mean, cov):
 def test_gaussian_negative_dimension(neg_dim):
     """Make sure that a negative dimension raises ValueError."""
     with pytest.raises(ValueError):
-        measure = quad.GaussianMeasure(0, 1, neg_dim)
+        quad.GaussianMeasure(0, 1, neg_dim)
 
 
 def test_gaussian_param_assignment(input_dim: int):
@@ -97,19 +97,19 @@ def test_lebesgue_dim_incorrect(domain_a, domain_b, dim):
     """Check that ValueError is raised if domain limits have mismatching dimensions or
     dimension is not positive."""
     with pytest.raises(ValueError):
-        measure = quad.LebesgueMeasure(domain=(domain_a, domain_b), dim=dim)
+        quad.LebesgueMeasure(domain=(domain_a, domain_b), dim=dim)
 
 
 def test_lebesgue_normalization(input_dim: int):
     """Check that normalization constants are handled properly when not equal to one."""
-    [a, b] = [0, 2]
-    if np.prod(np.full((input_dim,), b)) in [0, np.Inf, -np.Inf]:
+    domain = (0, 2)
+    if np.prod(np.full((input_dim,), domain[1])) in [0, np.Inf, -np.Inf]:
         with pytest.raises(ValueError):
             measure = quad.LebesgueMeasure(
-                domain=(a, b), dim=input_dim, normalized=True
+                domain=domain, dim=input_dim, normalized=True
             )
     else:
-        measure = quad.LebesgueMeasure(domain=(a, b), dim=input_dim, normalized=True)
+        measure = quad.LebesgueMeasure(domain=domain, dim=input_dim, normalized=True)
         assert measure.normalization_constant == 1 / 2 ** input_dim
 
 
