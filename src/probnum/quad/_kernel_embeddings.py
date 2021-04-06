@@ -67,8 +67,6 @@ class _KExpQuadMGauss(_KernelEmbedding):
     """Kernel embedding of exponentiated quadratic kernel with Gaussian integration
     measure.
 
-    TODO: adopt the convention that arrays have shape (n_eval, dim)
-
     Parameters
     ----------
     kernel:
@@ -109,21 +107,17 @@ class _KExpQuadMGauss(_KernelEmbedding):
     def kernel_variance(self) -> float:
 
         if self.measure.diagonal_covariance:
-            denom = np.sqrt(
-                (
-                    self.kernel.lengthscale ** 2
-                    + 2.0 * np.diag(np.atleast_2d(self.measure.cov))
-                ).prod()
-            )
+            denom = (
+                self.kernel.lengthscale ** 2
+                + 2.0 * np.diag(np.atleast_2d(self.measure.cov))
+            ).prod()
+
         else:
-            denom = np.sqrt(
-                np.linalg.det(
-                    self.kernel.lengthscale ** 2 * np.eye(self.dim)
-                    + 2.0 * self.measure.cov
-                )
+            denom = np.linalg.det(
+                self.kernel.lengthscale ** 2 * np.eye(self.dim) + 2.0 * self.measure.cov
             )
 
-        return self.kernel.lengthscale ** self.dim / denom
+        return self.kernel.lengthscale ** self.dim / np.sqrt(denom)
 
 
 class _KExpQuadMLebesgue(_KernelEmbedding):
