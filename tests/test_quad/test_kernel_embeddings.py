@@ -1,19 +1,71 @@
 """Test cases for kernel embeddings."""
 
+from typing import Optional, Tuple, Union
+
 import numpy as np
 import pytest
 from scipy.linalg import sqrtm
 from scipy.special import roots_legendre
 
+from probnum.type import FloatArgType, IntArgType
+
+
+def gauss_hermite_tensor(
+    n_points: IntArgType,
+    dim: IntArgType,
+    mean: Union[np.ndarray, FloatArgType],
+    cov: Union[np.ndarray, FloatArgType],
+):
+    """Returns the points and weights of a tensor-product Gauss-Hermite rule for
+    integration w.r.t.
+
+    a Gaussian measure.
+    """
+    x_gh_1d, w_gh = np.polynomial.hermite.hermgauss(n_points)
+    x_gh = (
+        np.sqrt(2)
+        * np.stack(np.meshgrid(*(x_gh_1d,) * dim), -1).reshape(-1, dim)
+        @ sqrtm(np.atleast_2d(cov))
+        + mean
+    )
+    w_gh = np.prod(
+        np.stack(np.meshgrid(*(w_gh,) * dim), -1).reshape(-1, dim), axis=1
+    ) / (np.pi ** (dim / 2))
+    return x_gh, w_gh
+
+
+def gauss_legendre_tensor(
+    n_points: IntArgType,
+    dim: IntArgType,
+    domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
+    normalized: Optional[bool] = False,
+):
+    """Returns the points and weights of a tensor-product Gauss-Legendre rule for
+    integration w.r.t.
+
+    the Lebesgue measure on a hyper-rectangle.
+    """
+    a, b = domain[0], domain[1]
+    x_gl_1d, w_gl = roots_legendre(n_points)
+    foo = [0.5 * (x_gl_1d * (b[i] - a[i]) + b[i] + a[i]) for i in range(0, dim)]
+    x_gl = np.stack(np.meshgrid(*foo), -1).reshape(-1, dim)
+    w_gl = (
+        np.prod(np.stack(np.meshgrid(*(w_gl,) * dim), -1).reshape(-1, dim), axis=1)
+        / 2 ** dim
+    )
+    if not normalized:
+        w_gl = w_gl * np.prod(domain[1] - domain[0])
+    return x_gl, w_gl
+
 
 def test_kernel_mean_shape(kernel_embedding, x):
     """Test output shape of kernel mean."""
 
-    kmean_shape = (np.atleast_2d(x).shape[0],)
+    kernel_mean_shape = (np.atleast_2d(x).shape[0],)
 
-    assert kernel_embedding.kernel_mean(x).shape == kmean_shape, (
-        f"Kernel mean of {type(kernel_embedding)} has shape {kernel_embedding.kernel_mean(x).shape} instead of"
-        f" {kmean_shape}"
+    assert kernel_embedding.kernel_mean(x).shape == kernel_mean_shape, (
+        f"Kernel mean of {type(kernel_embedding)} has shape"
+        f" {kernel_embedding.kernel_mean(x).shape} instead of {kernel_mean_shape}"
     )
 
 
@@ -27,19 +79,13 @@ def test_kernel_variance_float(kernel_embedding):
 def test_kernel_mean_gaussian_measure(kernel_embedding, x_gauss):
     """Test kernel means for the Gaussian measure against Gauss-Hermite tensor product
     rule."""
-    dim = kernel_embedding.dim
     n_gh = 10
-    x_gh_1d, w_gh = np.polynomial.hermite.hermgauss(n_gh)
-    x_gh = (
-        np.sqrt(2)
-        * np.stack(np.meshgrid(*(x_gh_1d,) * dim), -1).reshape(-1, dim)
-        @ sqrtm(np.atleast_2d(kernel_embedding.measure.cov))
-        + kernel_embedding.measure.mean
+    x_gh, w_gh = gauss_hermite_tensor(
+        n_points=n_gh,
+        dim=kernel_embedding.dim,
+        mean=kernel_embedding.measure.mean,
+        cov=kernel_embedding.measure.cov,
     )
-    w_gh = np.prod(
-        np.stack(np.meshgrid(*(w_gh,) * dim), -1).reshape(-1, dim), axis=1
-    ) / (np.pi ** (dim / 2))
-
     num_kernel_means = kernel_embedding.kernel(x_gauss, x_gh) @ w_gh
     true_kernel_means = kernel_embedding.kernel_mean(x_gauss)
     np.testing.assert_allclose(
@@ -54,16 +100,12 @@ def test_kernel_var_gaussian_measure(kernel_embedding):
     product rule."""
     dim = kernel_embedding.dim
     n_gh = 20
-    x_gh_1d, w_gh = np.polynomial.hermite.hermgauss(n_gh)
-    x_gh = (
-        np.sqrt(2)
-        * np.stack(np.meshgrid(*(x_gh_1d,) * dim), -1).reshape(-1, dim)
-        @ sqrtm(np.atleast_2d(kernel_embedding.measure.cov))
-        + kernel_embedding.measure.mean
+    x_gh, w_gh = gauss_hermite_tensor(
+        n_points=n_gh,
+        dim=kernel_embedding.dim,
+        mean=kernel_embedding.measure.mean,
+        cov=kernel_embedding.measure.cov,
     )
-    w_gh = np.prod(
-        np.stack(np.meshgrid(*(w_gh,) * dim), -1).reshape(-1, dim), axis=1
-    ) / (np.pi ** (dim / 2))
 
     num_kernel_variance = kernel_embedding.kernel_mean(x_gh) @ w_gh
     true_kernel_variance = kernel_embedding.kernel_variance()
@@ -77,17 +119,13 @@ def test_kernel_var_gaussian_measure(kernel_embedding):
 def test_kernel_mean_lebesgue_measure(kernel_embedding, x):
     """Test kernel means for the Lebesgue measure against Gauss-Legendre tensor product
     rule."""
-    dim = kernel_embedding.dim
-    a, b = kernel_embedding.measure.domain[0], kernel_embedding.measure.domain[1]
     n_gl = 10
-    x_gl_1d, w_gl = roots_legendre(n_gl)
-    foo = [0.5 * (x_gl_1d * (b[i] - a[i]) + b[i] + a[i]) for i in range(0, dim)]
-    x_gl = np.stack(np.meshgrid(*foo), -1).reshape(-1, dim)
-    w_gl = (
-        np.prod(np.stack(np.meshgrid(*(w_gl,) * dim), -1).reshape(-1, dim), axis=1)
-        / 2 ** dim
+    x_gl, w_gl = gauss_legendre_tensor(
+        n_points=n_gl,
+        dim=kernel_embedding.dim,
+        domain=kernel_embedding.measure.domain,
+        normalized=kernel_embedding.measure.normalized,
     )
-
     num_kernel_means = kernel_embedding.kernel(x, x_gl) @ w_gl
     true_kernel_means = kernel_embedding.kernel_mean(x)
     np.testing.assert_allclose(
@@ -100,17 +138,13 @@ def test_kernel_mean_lebesgue_measure(kernel_embedding, x):
 def test_kernel_var_lebesgue_measure(kernel_embedding):
     """Test kernel variance for the Lebesgue measure against Gauss-Legendre tensor
     product rule."""
-    dim = kernel_embedding.dim
-    a, b = kernel_embedding.measure.domain[0], kernel_embedding.measure.domain[1]
     n_gl = 20
-    x_gl_1d, w_gl = roots_legendre(n_gl)
-    foo = [0.5 * (x_gl_1d * (b[i] - a[i]) + b[i] + a[i]) for i in range(0, dim)]
-    x_gl = np.stack(np.meshgrid(*foo), -1).reshape(-1, dim)
-    w_gl = (
-        np.prod(np.stack(np.meshgrid(*(w_gl,) * dim), -1).reshape(-1, dim), axis=1)
-        / 2 ** dim
+    x_gl, w_gl = gauss_legendre_tensor(
+        n_points=n_gl,
+        dim=kernel_embedding.dim,
+        domain=kernel_embedding.measure.domain,
+        normalized=kernel_embedding.measure.normalized,
     )
-
     num_kernel_variance = kernel_embedding.kernel_mean(x_gl) @ w_gl
     true_kernel_variance = kernel_embedding.kernel_variance()
     np.testing.assert_allclose(
