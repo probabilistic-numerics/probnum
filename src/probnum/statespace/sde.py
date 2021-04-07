@@ -236,7 +236,7 @@ class LinearSDE(SDE):
         }
 
     def _solve_mde_forward_sqrt(self, rv, t, dt, _diffusion=1.0):
-        """Solve forward moment differential equations (MDEs)."""
+        """Solve forward moment differential equations (MDEs) using a square-root implementation."""
         mde, y0 = self._setup_vectorized_mde_forward_sqrt(
             rv,
             _diffusion=_diffusion,
