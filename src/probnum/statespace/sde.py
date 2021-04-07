@@ -311,6 +311,8 @@ class LinearSDE(SDE):
         new_mean = y_end[:dim]
         new_cov = y_end[dim:].reshape((dim, dim))
 
+        # Useful for backward transitions
+        # Aka continuous time smoothing.
         sol_mean = lambda t: sol.sol(t)[:dim]
         sol_cov = lambda t: sol.sol(t)[dim:].reshape((dim, dim))
 

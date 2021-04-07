@@ -216,7 +216,7 @@ def ltisde_as_linearsde(G_const, v_const, L_const):
 
 
 @pytest.fixture
-def ltisde_as_linearsde_forward_sqrt(G_const, v_const, L_const):
+def ltisde_as_linearsde_sqrt_forward_implementation(G_const, v_const, L_const):
     G = lambda t: G_const
     v = lambda t: v_const
     L = lambda t: L_const
@@ -245,7 +245,7 @@ def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, v_const, diffusio
 
 
 def test_solve_mde_forward_sqrt_values(
-    ltisde_as_linearsde, ltisde_as_linearsde_forward_sqrt, v_const, diffusion
+    ltisde_as_linearsde, ltisde_as_linearsde_sqrt_forward_implementation, v_const, diffusion
 ):
     """mde forward values in sqrt-implementation and classic implementation should be equal"""
     out_linear, _ = ltisde_as_linearsde.forward_realization(
@@ -255,7 +255,7 @@ def test_solve_mde_forward_sqrt_values(
     out_linear_2, _ = ltisde_as_linearsde.forward_rv(
         out_linear, t=0.1, dt=0.1, _diffusion=diffusion
     )
-    out_linear_2_sqrt, _ = ltisde_as_linearsde_forward_sqrt.forward_rv(
+    out_linear_2_sqrt, _ = ltisde_as_linearsde_sqrt_forward_implementation.forward_rv(
         out_linear, t=0.1, dt=0.1, _diffusion=diffusion
     )
 
