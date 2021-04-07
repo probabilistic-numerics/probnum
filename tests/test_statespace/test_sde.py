@@ -245,7 +245,10 @@ def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, v_const, diffusio
 
 
 def test_solve_mde_forward_sqrt_values(
-    ltisde_as_linearsde, ltisde_as_linearsde_sqrt_forward_implementation, v_const, diffusion
+    ltisde_as_linearsde,
+    ltisde_as_linearsde_sqrt_forward_implementation,
+    v_const,
+    diffusion,
 ):
     """mde forward values in sqrt-implementation and classic implementation should be equal"""
     out_linear, _ = ltisde_as_linearsde.forward_realization(
