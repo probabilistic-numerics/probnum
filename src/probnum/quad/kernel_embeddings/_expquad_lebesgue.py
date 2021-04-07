@@ -1,13 +1,13 @@
 """Kernel embedding of exponentiated quadratic kernel with Lebesgue integration
 measure."""
 
+# pylint: disable=no-name-in-module
+
 import numpy as np
 from scipy.special import erf
 
 from probnum.kernels import ExpQuad
 from probnum.quad._integration_measures import LebesgueMeasure
-
-# pylint: disable=no-name-in-module
 
 
 def _kernel_mean_expquad_lebesgue(

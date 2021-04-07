@@ -9,7 +9,7 @@ from probnum.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 
 from .._integration_measures import IntegrationMeasure
-from ..kernel_embeddings._kernel_embedding import KernelEmbedding
+from ..kernel_embeddings import KernelEmbedding
 from ..policies import sample_from_measure
 
 
