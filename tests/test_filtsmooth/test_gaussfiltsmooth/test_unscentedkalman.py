@@ -3,7 +3,7 @@ import unittest
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
 
-from . import filtsmooth_testcases as cases
+from .. import filtsmooth_testcases as cases
 
 
 class TestContinuousUKFComponent(unittest.TestCase):

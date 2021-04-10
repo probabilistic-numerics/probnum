@@ -1,169 +1,190 @@
-import unittest
-
 import numpy as np
+import pytest
 
 import probnum.filtsmooth as pnfs
+import probnum.randvars as pnrv
+import probnum.statespace as pnss
+from probnum import utils
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.diffeq import KalmanODESolution, probsolve_ivp
-from probnum.diffeq.ode import logistic, lotkavolterra
-from probnum.randvars import Constant, Normal
-from tests.testing import NumpyAssertions
+from probnum.diffeq import probsolve_ivp
+from probnum.diffeq.ode import lotkavolterra
+from probnum.randvars import Constant
 
 
-class TestODESolution(unittest.TestCase, NumpyAssertions):
-    def setUp(self):
-        initrv = Constant(20 * np.ones(2))
-        self.ivp = lotkavolterra([0.0, 0.5], initrv)
-        step = 0.1
-        f = self.ivp.rhs
-        t0, tmax = self.ivp.timespan
-        y0 = self.ivp.initrv.mean
-        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, adaptive=False)
+@pytest.fixture
+def stepsize():
+    return 0.1
 
-    def test_len(self):
-        self.assertTrue(len(self.solution) > 0)
-        self.assertEqual(len(self.solution.t), len(self.solution))
-        self.assertEqual(len(self.solution.y), len(self.solution))
 
-    def test_t(self):
-        self.assertArrayEqual(self.solution.t, np.sort(self.solution.t))
+@pytest.fixture
+def timespan():
+    return (0.0, 0.5)
 
-        self.assertApproxEqual(self.solution.t[0], self.ivp.t0)
-        self.assertApproxEqual(self.solution.t[-1], self.ivp.tmax)
 
-    def test_getitem(self):
-        self.assertArrayEqual(self.solution[0].mean, self.solution.y[0].mean)
-        self.assertArrayEqual(self.solution[0].cov, self.solution.y[0].cov)
+@pytest.fixture
+def posterior(stepsize, timespan):
+    """Kalman smoothing posterior."""
+    initrv = Constant(20 * np.ones(2))
+    ivp = lotkavolterra(timespan, initrv)
+    f = ivp.rhs
+    t0, tmax = ivp.timespan
+    y0 = ivp.initrv.mean
+    return probsolve_ivp(f, t0, tmax, y0, step=stepsize, adaptive=False)
 
-        self.assertArrayEqual(self.solution[-1].mean, self.solution.y[-1].mean)
-        self.assertArrayEqual(self.solution[-1].cov, self.solution.y[-1].cov)
 
-        self.assertArrayEqual(self.solution[:].mean, self.solution.y[:].mean)
-        self.assertArrayEqual(self.solution[:].cov, self.solution.y[:].cov)
+def test_len(posterior):
+    """__len__ performs as expected."""
+    assert len(posterior) > 0
+    assert len(posterior.locations) == len(posterior)
+    assert len(posterior.states) == len(posterior)
 
-    def test_y(self):
-        self.assertTrue(isinstance(self.solution.y, _RandomVariableList))
 
-        self.assertEqual(len(self.solution.y[0].shape), 1)
-        self.assertEqual(self.solution.y[0].shape[0], self.ivp.dimension)
+def test_locations(posterior, stepsize, timespan):
+    """Locations are stored correctly."""
+    np.testing.assert_allclose(posterior.locations, np.sort(posterior.locations))
 
-    def test_dy(self):
-        self.assertTrue(isinstance(self.solution.dy, _RandomVariableList))
+    t0, tmax = timespan
+    expected = np.arange(t0, tmax + stepsize, step=stepsize)
+    np.testing.assert_allclose(posterior.locations, expected)
 
-        self.assertEqual(len(self.solution.dy[0].shape), 1)
-        self.assertEqual(self.solution.dy[0].shape[0], self.ivp.dimension)
 
-    def test_call_error_if_small(self):
-        t = self.ivp.t0 - 0.5
-        self.assertLess(t, self.solution.t[0])
-        with self.assertRaises(ValueError):
-            self.solution(t)
+def test_getitem(posterior):
+    """Getitem performs as expected."""
 
-    def test_call_interpolation(self):
-        t = self.ivp.t0 + (self.ivp.tmax - self.ivp.t0) / np.pi
-        self.assertLess(self.solution.t[0], t)
-        self.assertGreater(self.solution.t[-1], t)
-        self.assertTrue(t not in self.solution.t)
-        self.solution(t)
+    np.testing.assert_allclose(posterior[0].mean, posterior.states[0].mean)
+    np.testing.assert_allclose(posterior[0].cov, posterior.states[0].cov)
 
-    def test_call_correctness(self):
-        t = self.ivp.t0 + 1e-6
-        self.assertAllClose(
-            self.solution[0].mean, self.solution(t).mean, atol=1e-4, rtol=0
+    np.testing.assert_allclose(posterior[-1].mean, posterior.states[-1].mean)
+    np.testing.assert_allclose(posterior[-1].cov, posterior.states[-1].cov)
+
+    np.testing.assert_allclose(posterior[:].mean, posterior.states[:].mean)
+    np.testing.assert_allclose(posterior[:].cov, posterior.states[:].cov)
+
+
+def test_states(posterior):
+    """RVs are stored correctly."""
+
+    assert isinstance(posterior.states, _RandomVariableList)
+    assert len(posterior.states[0].shape) == 1
+
+
+def test_call_error_if_small(posterior):
+    """Evaluating in the past of the data raises an error."""
+    assert -0.5 < posterior.locations[0]
+    with pytest.raises(NotImplementedError):
+        posterior(-0.5)
+
+
+def test_call_vectorisation(posterior):
+    """Evaluation allows vector inputs."""
+    locs = np.arange(0, 1, 20)
+    evals = posterior(locs)
+    assert len(evals) == len(locs)
+
+
+def test_call_interpolation(posterior):
+    """Interpolation is possible and returns a Normal RV."""
+
+    a = 0.4 + 0.1 * np.random.rand()
+    t0, t1 = posterior.locations[:2]
+    random_location_between_t0_and_t1 = t0 + a * (t1 - t0)
+    assert (
+        posterior.locations[0]
+        < random_location_between_t0_and_t1
+        < posterior.locations[-1]
+    )
+    assert random_location_between_t0_and_t1 not in posterior.locations
+    out_rv = posterior(random_location_between_t0_and_t1)
+    assert isinstance(out_rv, pnrv.Normal)
+
+
+def test_call_to_discrete(posterior):
+    """Called at a grid point, the respective disrete solution is returned."""
+
+    first_point = posterior.locations[0]
+    np.testing.assert_allclose(posterior(first_point).mean, posterior[0].mean)
+    np.testing.assert_allclose(posterior(first_point).cov, posterior[0].cov)
+
+    final_point = posterior.locations[-1]
+    np.testing.assert_allclose(posterior(final_point).mean, posterior[-1].mean)
+    np.testing.assert_allclose(posterior(final_point).cov, posterior[-1].cov)
+
+    mid_point = posterior.locations[4]
+    np.testing.assert_allclose(posterior(mid_point).mean, posterior[4].mean)
+    np.testing.assert_allclose(posterior(mid_point).cov, posterior[4].cov)
+
+
+def test_call_extrapolation(posterior):
+    """Extrapolation is possible and returns a Normal RV."""
+    assert posterior.locations[-1] < 30.0
+    out_rv = posterior(30.0)
+    assert isinstance(out_rv, pnrv.Normal)
+
+
+@pytest.fixture
+def seed():
+    return 42
+
+
+# Sampling shape checks include extrapolation phases
+IN_DOMAIN_DENSE_LOCS = np.arange(0.0, 0.5, 0.025)
+OUT_OF_DOMAIN_DENSE_LOCS = np.arange(0.0, 500.0, 25.0)
+
+
+@pytest.mark.parametrize("locs", [None, IN_DOMAIN_DENSE_LOCS, OUT_OF_DOMAIN_DENSE_LOCS])
+@pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
+def test_sampling_shapes(posterior, locs, size):
+    """Shape of the returned samples matches expectation."""
+    samples = posterior.sample(t=locs, size=size)
+
+    if isinstance(size, int):
+        size = (size,)
+    if locs is None:
+        expected_size = (
+            size + posterior.states.shape
+        )  # (*size, *posterior.states.shape)
+    else:
+        expected_size = (
+            size + locs.shape + posterior.states[0].shape
+        )  # (*size, *posterior(locs).mean.shape)
+
+    assert samples.shape == expected_size
+
+
+def test_transform_base_measure_realizations_raises_error(posterior):
+    """The KalmanODESolution does not implement transformation of base measure
+    realizations, but refers to KalmanPosterior instead."""
+    with pytest.raises(NotImplementedError):
+        posterior.transform_base_measure_realizations(None)
+
+
+@pytest.mark.parametrize("locs", [np.arange(0.0, 0.5, 0.025)])
+@pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
+def test_sampling_shapes_1d(locs, size):
+    """Make the sampling tests for a 1d posterior."""
+    locations = np.linspace(0, 2 * np.pi, 100)
+    data = 0.5 * np.random.randn(100) + np.sin(locations)
+
+    prior = pnss.IBM(0, 1)
+    measmod = pnss.DiscreteLTIGaussian(
+        state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
+    )
+    initrv = pnrv.Normal(np.zeros(1), np.eye(1))
+
+    kalman = pnfs.Kalman(prior, measmod, initrv)
+    posterior = kalman.filtsmooth(times=locations, dataset=data)
+
+    size = utils.as_shape(size)
+    if locs is None:
+        base_measure_reals = np.random.randn(*(size + posterior.locations.shape + (1,)))
+        samples = posterior.transform_base_measure_realizations(
+            base_measure_reals, t=posterior.locations
+        )
+    else:
+        locs = np.union1d(locs, posterior.locations)
+        base_measure_reals = np.random.randn(*(size + (len(locs),)) + (1,))
+        samples = posterior.transform_base_measure_realizations(
+            base_measure_reals, t=locs
         )
 
-    def test_call_endpoints(self):
-        self.assertArrayEqual(self.solution(self.ivp.t0).mean, self.solution[0].mean)
-        self.assertArrayEqual(self.solution(self.ivp.t0).cov, self.solution[0].cov)
-
-        self.assertArrayEqual(self.solution(self.ivp.tmax).mean, self.solution[-1].mean)
-        self.assertArrayEqual(self.solution(self.ivp.tmax).cov, self.solution[-1].cov)
-
-    def test_call_extrapolation(self):
-        t = 1.1 * self.ivp.tmax
-        self.assertGreater(t, self.solution.t[-1])
-        self.solution(t)
-
-    def test_filtering_solution(self):
-        filtpost = self.solution.filtering_solution
-        self.assertIsInstance(filtpost, KalmanODESolution)
-        self.assertIsInstance(filtpost.kalman_posterior, pnfs.FilteringPosterior)
-
-
-class TestODESolutionHigherOrderPrior(TestODESolution):
-    """Same as above, but higher-order prior to test for a different dimensionality."""
-
-    def setUp(self):
-        initrv = Constant(20 * np.ones(2))
-        self.ivp = lotkavolterra([0.0, 0.5], initrv)
-        step = 0.1
-        f = self.ivp.rhs
-        t0, tmax = self.ivp.timespan
-        y0 = self.ivp.initrv.mean
-
-        self.solution = probsolve_ivp(
-            f, t0, tmax, y0, algo_order=3, step=step, adaptive=False
-        )
-
-
-class TestODESolutionOneDimODE(TestODESolution):
-    """Same as above, but 1d IVP to test for a different dimensionality."""
-
-    def setUp(self):
-        initrv = Constant(0.1 * np.ones(1))
-        self.ivp = logistic([0.0, 1.5], initrv)
-        step = 0.1
-        f = self.ivp.rhs
-        t0, tmax = self.ivp.timespan
-        y0 = self.ivp.initrv.mean
-
-        self.solution = probsolve_ivp(
-            f, t0, tmax, y0, algo_order=3, step=step, adaptive=False
-        )
-
-
-class TestODESolutionAdaptive(TestODESolution):
-    """Same as above, but adaptive steps."""
-
-    def setUp(self):
-        super().setUp()
-        f = self.ivp.rhs
-        t0, tmax = self.ivp.timespan
-        y0 = self.ivp.initrv.mean
-
-        self.solution = probsolve_ivp(f, t0, tmax, y0, algo_order=2, atol=0.1, rtol=0.1)
-
-
-class TestODESolutionSampling(unittest.TestCase):
-    def setUp(self):
-        initrv = Normal(
-            20 * np.ones(2), 0.1 * np.eye(2), cov_cholesky=np.sqrt(0.1) * np.eye(2)
-        )
-        self.ivp = lotkavolterra([0.0, 0.5], initrv)
-        step = 0.1
-        f = self.ivp.rhs
-        t0, tmax = self.ivp.timespan
-        y0 = self.ivp.initrv.mean
-
-        self.solution = probsolve_ivp(f, t0, tmax, y0, step=step, adaptive=False)
-
-    def test_output_shape(self):
-        loc_inputs = [
-            None,
-            self.solution.t[[2, 3]],
-            np.arange(0.0, 0.5, 0.05),
-        ]
-        single_sample_shapes = [
-            (len(self.solution), self.ivp.dimension),
-            (2, self.ivp.dimension),
-            (len(loc_inputs[-1]), self.ivp.dimension),
-        ]
-
-        for size in [(), (2,), (2, 3, 4)]:
-            for loc, loc_shape in zip(loc_inputs, single_sample_shapes):
-                with self.subTest(size=size, loc=loc):
-                    sample = self.solution.sample(t=loc, size=size)
-                    if size == ():
-                        self.assertEqual(sample.shape, loc_shape)
-                    else:
-                        self.assertEqual(sample.shape, size + loc_shape)
+    assert samples.shape == base_measure_reals.shape

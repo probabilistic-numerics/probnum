@@ -4,7 +4,7 @@ import pytest
 import probnum.filtsmooth as pnfs
 import probnum.statespace as pnss
 
-from .filtsmooth_testcases import logistic_ode, pendulum
+from ..filtsmooth_testcases import logistic_ode, pendulum
 
 
 def pendulum_problem():
@@ -40,7 +40,7 @@ def kalman(problem):
     return pnfs.Kalman(dynmod, measmod, initrv)
 
 
-@pytest.mark.parametrize("problem", [logistic_ode_problem(), pendulum_problem()])
+@pytest.mark.parametrize("problem", [logistic_ode_problem()])
 def test_rmse_filt_smooth(kalman, problem):
     """Assert that iterated smoothing beats smoothing beats filtering."""
     *_, obs, times, truth = problem
@@ -52,9 +52,9 @@ def test_rmse_filt_smooth(kalman, problem):
 
     iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
 
-    filtms = posterior.filtering_posterior.state_rvs.mean
-    smooms = posterior.state_rvs.mean
-    iterms = iterated_posterior.state_rvs.mean
+    filtms = posterior.filtering_posterior.states.mean
+    smooms = posterior.states.mean
+    iterms = iterated_posterior.states.mean
 
     if filtms.ndim == 1:
         filtms = filtms.reshape((-1, 1))
@@ -70,4 +70,5 @@ def test_rmse_filt_smooth(kalman, problem):
     smooms_rmse = np.mean(np.abs(smooms[:, 0] - truth[:, 0]))
     iterms_rmse = np.mean(np.abs(iterms[:, 0] - truth[:, 0]))
 
-    assert iterms_rmse < smooms_rmse < filtms_rmse
+    assert iterms_rmse < smooms_rmse
+    assert smooms_rmse < filtms_rmse

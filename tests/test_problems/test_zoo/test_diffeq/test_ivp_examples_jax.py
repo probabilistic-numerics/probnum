@@ -28,7 +28,6 @@ only_if_jax_is_not_available = pytest.mark.skipif(
     reason="Imports will be successful, thus catching the ImportError will fail",
 )
 
-
 # Tests for when JAX is available
 
 

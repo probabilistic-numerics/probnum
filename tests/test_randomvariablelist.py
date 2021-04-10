@@ -47,6 +47,9 @@ class TestRandomVariableList(unittest.TestCase):
         item = self.rv_list[0]
         self.assertIsInstance(item, Constant)
 
+    def test_shape(self):
+        self.assertEqual(self.rv_list.shape, (2,))
+
 
 class TestEmptyRandomVariableList(unittest.TestCase):
     """Passing an empty list does not screw things up."""

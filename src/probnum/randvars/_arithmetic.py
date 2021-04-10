@@ -210,9 +210,11 @@ _sub_fns[(_Normal, _Normal)] = _Normal._sub_normal
 
 
 def _add_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
+    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
     return _Normal(
         mean=norm_rv.mean + constant_rv.support,
         cov=norm_rv.cov,
+        cov_cholesky=cov_cholesky,
         random_state=_utils.derive_random_seed(
             norm_rv.random_state, constant_rv.random_state
         ),
@@ -224,9 +226,11 @@ _add_fns[(_Constant, _Normal)] = _swap_operands(_add_normal_constant)
 
 
 def _sub_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
+    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
     return _Normal(
         mean=norm_rv.mean - constant_rv.support,
         cov=norm_rv.cov,
+        cov_cholesky=cov_cholesky,
         random_state=_utils.derive_random_seed(
             norm_rv.random_state, constant_rv.random_state
         ),
@@ -237,9 +241,11 @@ _sub_fns[(_Normal, _Constant)] = _sub_normal_constant
 
 
 def _sub_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
+    cov_cholesky = norm_rv.cov_cholesky if norm_rv.cov_cholesky_is_precomputed else None
     return _Normal(
         mean=constant_rv.support - norm_rv.mean,
         cov=norm_rv.cov,
+        cov_cholesky=cov_cholesky,
         random_state=_utils.derive_random_seed(
             constant_rv.random_state, norm_rv.random_state
         ),
@@ -261,9 +267,14 @@ def _mul_normal_constant(
                 ),
             )
         else:
+            if norm_rv.cov_cholesky_is_precomputed:
+                cov_cholesky = constant_rv.support * norm_rv.cov_cholesky
+            else:
+                cov_cholesky = None
             return _Normal(
                 mean=constant_rv.support * norm_rv.mean,
                 cov=(constant_rv.support ** 2) * norm_rv.cov,
+                cov_cholesky=cov_cholesky,
                 random_state=_utils.derive_random_seed(
                     norm_rv.random_state, constant_rv.random_state
                 ),
@@ -278,14 +289,25 @@ _mul_fns[(_Constant, _Normal)] = _swap_operands(_mul_normal_constant)
 
 def _matmul_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Normal:
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[0] == 1):
+        if norm_rv.cov_cholesky_is_precomputed:
+            cov_cholesky = _utils.linalg.cholesky_update(
+                constant_rv.support.T @ norm_rv.cov_cholesky
+            )
+        else:
+            cov_cholesky = None
         return _Normal(
             mean=norm_rv.mean @ constant_rv.support,
             cov=constant_rv.support.T @ (norm_rv.cov @ constant_rv.support),
+            cov_cholesky=cov_cholesky,
             random_state=_utils.derive_random_seed(
                 norm_rv.random_state, constant_rv.random_state
             ),
         )
     elif norm_rv.ndim == 2 and norm_rv.shape[0] > 1:
+        # This part does not do the Cholesky update,
+        # because of performance configurations: currently, there is no way of switching
+        # the Cholesky updates off, which might affect (large, potentially sparse) covariance matrices
+        # of matrix-variate Normal RVs. See Issue #335.
         cov_update = _linear_operators.Kronecker(
             _linear_operators.Identity(constant_rv.shape[0]), constant_rv.support
         )
@@ -309,9 +331,16 @@ _matmul_fns[(_Normal, _Constant)] = _matmul_normal_constant
 
 def _matmul_constant_normal(constant_rv: _Constant, norm_rv: _Normal) -> _Normal:
     if norm_rv.ndim == 1 or (norm_rv.ndim == 2 and norm_rv.shape[1] == 1):
+        if norm_rv.cov_cholesky_is_precomputed:
+            cov_cholesky = _utils.linalg.cholesky_update(
+                constant_rv.support @ norm_rv.cov_cholesky
+            )
+        else:
+            cov_cholesky = None
         return _Normal(
             mean=constant_rv.support @ norm_rv.mean,
             cov=constant_rv.support @ (norm_rv.cov @ constant_rv.support.T),
+            cov_cholesky=cov_cholesky,
             random_state=_utils.derive_random_seed(
                 constant_rv.random_state, norm_rv.random_state
             ),
@@ -331,9 +360,15 @@ def _truediv_normal_constant(norm_rv: _Normal, constant_rv: _Constant) -> _Norma
         if constant_rv.support == 0:
             raise ZeroDivisionError
 
+        if norm_rv.cov_cholesky_is_precomputed:
+            cov_cholesky = norm_rv.cov_cholesky / constant_rv.support
+        else:
+            cov_cholesky = None
+
         return _Normal(
             mean=norm_rv.mean / constant_rv.support,
             cov=norm_rv.cov / (constant_rv.support ** 2),
+            cov_cholesky=cov_cholesky,
             random_state=_utils.derive_random_seed(
                 norm_rv.random_state, constant_rv.random_state
             ),
