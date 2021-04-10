@@ -236,7 +236,8 @@ class LinearSDE(SDE):
         }
 
     def _solve_mde_forward_sqrt(self, rv, t, dt, _diffusion=1.0):
-        """Solve forward moment differential equations (MDEs) using a square-root implementation."""
+        """Solve forward moment differential equations (MDEs) using a square-root
+        implementation."""
         mde, y0 = self._setup_vectorized_mde_forward_sqrt(
             rv,
             _diffusion=_diffusion,
@@ -353,8 +354,8 @@ class LinearSDE(SDE):
         return f, y0
 
     def _setup_vectorized_mde_forward_sqrt(self, initrv, _diffusion=1.0):
-        """Set up forward moment differential equations (MDEs) using a square-root implementation.
-        (https://ieeexplore.ieee.org/document/4045974)
+        """Set up forward moment differential equations (MDEs) using a square-root
+        implementation. (https://ieeexplore.ieee.org/document/4045974)
 
         Compute an ODE vector field that represents the MDEs and is
         compatible with scipy.solve_ivp.
@@ -372,8 +373,11 @@ class LinearSDE(SDE):
             L = self.dispmatfun(t)
 
             new_mean = F @ mean + u
-            F_bar = np.linalg.solve(cov_sqrt, F @ cov_sqrt)
-            L_bar = np.sqrt(_diffusion) * np.linalg.solve(cov_sqrt, L)
+            cov_sqrt_lu, cov_sqrt_piv = scipy.linalg.lu_factor(cov_sqrt)
+            F_bar = scipy.linalg.lu_solve((cov_sqrt_lu, cov_sqrt_piv), F @ cov_sqrt)
+            L_bar = np.sqrt(_diffusion) * scipy.linalg.lu_solve(
+                (cov_sqrt_lu, cov_sqrt_piv), L
+            )
             M = F_bar + F_bar.T + L_bar @ L_bar.T
 
             new_cov_sqrt = cov_sqrt @ (np.tril(M, -1) + 1 / 2 * np.diag(np.diag(M)))
