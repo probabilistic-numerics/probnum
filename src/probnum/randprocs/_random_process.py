@@ -209,8 +209,8 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     def push_forward(
         self,
         args: _InputType,
+        base_measure: Type[randvars.RandomVariable],
         sample: np.ndarray,
-        measure: Type[randvars.RandomVariable],
     ) -> np.ndarray:
         """Transform samples from a base measure into samples from the random process.
 
@@ -221,11 +221,11 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
         ----------
         args
             Input arguments.
+        base_measure
+            Base measure. Given as a type of random variable.
         sample
             *shape=(sample_size, output_dim)* -- Sample(s) from a base measure
             evaluated at the input arguments.
-        measure
-            Base measure. Given as a type of random variable.
         """
         raise NotImplementedError
 

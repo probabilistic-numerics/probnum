@@ -101,7 +101,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     def push_forward(
         self,
         args: _InputType,
+        base_measure: Type[randvars.RandomVariable],
         sample: np.ndarray,
-        measure: Type[randvars.RandomVariable],
     ) -> np.ndarray:
         raise NotImplementedError
