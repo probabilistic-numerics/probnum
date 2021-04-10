@@ -30,7 +30,7 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     See Also
     --------
     RandomProcess : Random processes.
-    GaussMarkovProcess : Gaussian processes with the Markov property.
+    MarkovProcess : Random processes with the Markov property.
 
     Examples
     --------

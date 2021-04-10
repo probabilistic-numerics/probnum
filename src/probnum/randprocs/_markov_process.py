@@ -34,7 +34,7 @@ class MarkovProcess(_random_process.RandomProcess):
     See Also
     --------
     RandomProcess : Random processes.
-    GaussMarkovProcess : Gaussian processes with the Markov property.
+    GaussianProcess : Gaussian processes.
     """
 
     def __init__(
@@ -54,14 +54,6 @@ class MarkovProcess(_random_process.RandomProcess):
         )
 
     def __call__(self, args: _InputType) -> randvars.RandomVariable:
-        # TODO: currently the statespace.Transition does not support arbitrary steps as
-        #  defined by
-        #  the increments in ``args``, only fixed step sizes ``dt```. This has to
-        #  be added first before __call__, mean, etc. work as defined by the
-        #  RandomProcess interface.
-
-        # return self.transition.forward_rv(rv=self.init_state, t=self.init_arg,
-        # dt=args[-1] - args[-2])
         raise NotImplementedError
 
     def mean(self, args: _InputType) -> _OutputType:

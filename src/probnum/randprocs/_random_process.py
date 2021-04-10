@@ -35,7 +35,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
     --------
     RandomVariable : Random variables.
     GaussianProcess : Gaussian processes.
-    GaussMarkovProcess : Gaussian processes with the Markov property.
+    MarkovProcess : Random processes with the Markov property.
 
     Notes
     -----
