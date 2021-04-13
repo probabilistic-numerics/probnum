@@ -2,13 +2,14 @@
 
 from ._bayesquad import bayesquad
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from ._kernel_embeddings import (
-    KernelEmbedding,
-    _KExpQuadMGauss,
-    _KExpQuadMLebesgue,
-    get_kernel_embedding,
-)
 from .bq_methods import BayesianQuadrature
+from .kernel_embeddings import (
+    KernelEmbedding,
+    _kernel_mean_expquad_gauss,
+    _kernel_mean_expquad_lebesgue,
+    _kernel_variance_expquad_gauss,
+    _kernel_variance_expquad_lebesgue,
+)
 from .policies import sample_from_measure
 
 # Public classes and functions. Order is reflected in documentation.

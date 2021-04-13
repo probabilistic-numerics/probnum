@@ -43,12 +43,12 @@ class IntegrationMeasure(abc.ABC):
         Parameters
         ----------
         points :
-            (n_points,) or (n_points, dim)
+            Input locations (n_points,) or (n_points, dim)
 
         Returns
         -------
         density_evals :
-            (n_points,) or (n_points,dim)
+            Density evaluated at given locations, (n_points,)
         """
         # pylint: disable=no-member
         return self.random_variable.pdf(points).squeeze()
@@ -64,7 +64,7 @@ class IntegrationMeasure(abc.ABC):
         Returns
         -------
         points :
-            (n_sample,) or (n_sample,dim)
+            Sampled points, (n_sample,) or (n_sample,dim)
         """
         # pylint: disable=no-member
         return np.reshape(
