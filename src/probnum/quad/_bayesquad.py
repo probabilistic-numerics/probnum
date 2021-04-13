@@ -91,6 +91,19 @@ def bayesquad(
 
     References
     ----------
+    .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical computation?, *Statistical Science 34.1*, 2019, 1-22, 2019
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from probnum.quad import bayesquad
+    >>> def f(x):
+    ...     return x
+    >>> domain = (0, 1)
+    >>> input_dim = 1
+    >>> prob_integral, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
+    >>> print(prob_integral.mean)
+    0.49990646642606074
     """
     if domain is None and measure is None:
         raise ValueError(
