@@ -104,7 +104,7 @@ def bayesquad(
     ...     return x
     >>> F, info = bayesquad(fun=f, input_dim=input_dim, domain=domain)
     >>> print(F.mean)
-    0.5000045219311029
+    0.5000
     """
     if domain is None and measure is None:
         raise ValueError(
