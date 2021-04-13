@@ -14,18 +14,18 @@ from ..policies import sample_from_measure
 
 
 class BayesianQuadrature:
-    r"""A base class for Bayesian quadrature
+    r"""A base class for Bayesian quadrature.
 
     Bayesian quadrature solves integrals of the form
 
-    .. math:: F = \int_\Omega f(x) d \mu(x),
+    .. math:: F = \int_\Omega f(x) d \mu(x).
 
     Parameters
     ----------
     kernel:
-        the kernel used for the GP model
+        The kernel used for the GP model.
     policy:
-        the policy for acquiring nodes for function evaluations
+        The policy for acquiring nodes for function evaluations.
     """
 
     def __init__(self, kernel: Kernel, policy: Callable) -> None:
@@ -60,16 +60,16 @@ class BayesianQuadrature:
         Parameters
         ----------
         fun:
-            integrand function :math:`f`
+            The integrand function :math:`f`.
         measure :
-            integration measure :math:`\mu`
+            An integration measure :math:`\mu`.
         nevals :
             Number of function evaluations.
 
         Returns
         -------
         F :
-            The integral of ``fun`` against ``measure``
+            The integral of ``fun`` against ``measure``.
         info :
             Information on the performance of the method.
         """
@@ -106,19 +106,19 @@ class BayesianQuadrature:
     def _solve_gram(gram: np.ndarray, rhs: np.ndarray) -> np.ndarray:
         """Solve the linear system of the form.
 
-        .. math:: Kx=b,
+        .. math:: Kx=b.
 
         Parameters
         ----------
         gram :
-            symmetric pos. def. kernel Gram matrix :math:`K`, shape (nevals, nevals)
+            *shape=(nevals, nevals)* -- Symmetric pos. def. kernel Gram matrix :math:`K`.
         rhs :
-            right-hand-side :math:`b`, matrix or vector, shape (nevals, ...)
+            *shape=(nevals, ...)* -- Right-hand-side :math:`b`, matrix or vector.
 
         Returns
         -------
         x:
-            The solution to the linear system :math:`K x = b`
+            The solution to the linear system :math:`K x = b`.
         """
         jitter = 1.0e-6
         chol_gram = cho_factor(gram + jitter * np.eye(gram.shape[0]))

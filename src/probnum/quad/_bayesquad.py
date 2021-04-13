@@ -59,8 +59,7 @@ def bayesquad(
     kernel:
         the kernel used for the GP model
     domain :
-        Domain of integration. Contains lower and upper bound as int or ndarray,
-        shape=(dim,)
+        *shape=(dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
     measure:
         Integration measure, defaults to the Lebesgue measure.
     nevals :

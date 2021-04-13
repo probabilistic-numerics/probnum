@@ -13,7 +13,16 @@ from .kernel_embeddings import (
 from .policies import sample_from_measure
 
 # Public classes and functions. Order is reflected in documentation.
-__all__ = ["bayesquad", "BayesianQuadrature", "IntegrationMeasure", "KernelEmbedding"]
+__all__ = [
+    "bayesquad",
+    "BayesianQuadrature",
+    "IntegrationMeasure",
+    "KernelEmbedding",
+    "GaussianMeasure",
+    "LebesgueMeasure",
+]
 
 # Set correct module paths. Corrects links and module paths in documentation.
 BayesianQuadrature.__module__ = "probnum.quad"
+IntegrationMeasure.__module__ = "probnum.quad"
+KernelEmbedding.__module__ = "probnum.quad"

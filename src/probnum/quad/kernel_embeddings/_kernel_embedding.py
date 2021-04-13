@@ -24,9 +24,9 @@ class KernelEmbedding:
     Parameters
     ----------
     kernel:
-        Instance of a kernel
+        Instance of a kernel.
     measure:
-        Instance of an integration measure
+        Instance of an integration measure.
     """
 
     def __init__(self, kernel: Kernel, measure: IntegrationMeasure) -> None:
@@ -52,13 +52,12 @@ class KernelEmbedding:
         Parameters
         ----------
         x :
-            n_eval locations where to evaluate the kernel mean, shape (n_eval, dim)
+            *shape=(n_eval, dim)* -- n_eval locations where to evaluate the kernel mean.
 
         Returns
         -------
         k_mean :
-            The kernel integrated w.r.t. its first argument, evaluated at locations x,
-            shape (n_eval,)
+            *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
         """
         return self._kmean(x=x, kernel=self.kernel, measure=self.measure)
 
@@ -68,7 +67,7 @@ class KernelEmbedding:
         Returns
         -------
         k_var :
-            The kernel integrated w.r.t. both arguments
+            The kernel integrated w.r.t. both arguments.
         """
         return self._kvar(kernel=self.kernel, measure=self.measure)
 
@@ -81,13 +80,13 @@ def _get_kernel_embedding(
     Parameters
     ----------
     kernel :
-        Instance of a kernel
+        Instance of a kernel.
     measure :
-        Instance of an integration measure
+        Instance of an integration measure.
 
     Returns
     -------
-    an instance of _KernelEmbedding
+        An instance of _KernelEmbedding.
     """
 
     # Exponentiated quadratic kernel

@@ -19,7 +19,7 @@ class IntegrationMeasure(abc.ABC):
     Parameters
     ----------
     dim :
-        Dimension of the integration domain
+        Dimension of the integration domain.
     domain :
         Tuple which contains two arrays which define the start and end points,
         respectively, of the rectangular integration domain.
@@ -43,12 +43,12 @@ class IntegrationMeasure(abc.ABC):
         Parameters
         ----------
         points :
-            Input locations (n_points,) or (n_points, dim)
+            *shape=(n_points,) or (n_points, dim)* -- Input locations.
 
         Returns
         -------
         density_evals :
-            Density evaluated at given locations, (n_points,)
+            *shape=(n_points,)* -- Density evaluated at given locations.
         """
         # pylint: disable=no-member
         return self.random_variable.pdf(points).squeeze()
@@ -64,7 +64,7 @@ class IntegrationMeasure(abc.ABC):
         Returns
         -------
         points :
-            Sampled points, (n_sample,) or (n_sample,dim)
+            *shape=(n_sample,) or (n_sample,dim)* -- Sampled points
         """
         # pylint: disable=no-member
         return np.reshape(
@@ -151,7 +151,7 @@ class LebesgueMeasure(IntegrationMeasure):
         respectively, of the rectangular integration domain.
     normalized :
          Boolean which controls whether or not the measure is normalized (i.e.,
-         integral over the domain is one)
+         integral over the domain is one).
     random_state :
         Random state of the random variable corresponding to the integration measure.
     """
@@ -205,11 +205,11 @@ class GaussianMeasure(IntegrationMeasure):
     Parameters
     ----------
     mean :
-        Mean of the Gaussian measure, shape (dim,)
+        *shape=(dim,)* -- Mean of the Gaussian measure.
     cov :
-        Covariance matrix of the Gaussian measure, shape (dim, dim)
+        *shape=(dim, dim)* -- Covariance matrix of the Gaussian measure.
     dim :
-        Dimension of the integration domain
+        Dimension of the integration domain.
     random_state :
         Random state of the random variable corresponding to the integration measure.
     """

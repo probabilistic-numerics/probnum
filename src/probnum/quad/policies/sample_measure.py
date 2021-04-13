@@ -6,7 +6,7 @@ from probnum.quad._integration_measures import IntegrationMeasure
 
 
 def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
-    r"""Acquisition policy: random samples from the integration measure
+    r"""Acquisition policy: Draw random samples from the integration measure.
 
     Parameters
     ----------
@@ -14,11 +14,11 @@ def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
         Number of function evaluations.
 
     measure :
-            integration measure :math:`\mu`
+        The integration measure :math:`\mu`.
 
     Returns
     -------
     x : np.ndarray
-        nodes where the integrand will be evaluated
+        Nodes where the integrand will be evaluated.
     """
     return measure.sample(nevals).reshape(nevals, -1)
