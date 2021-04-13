@@ -42,17 +42,8 @@ def fixture_input_dim(request) -> int:
 
 
 # Datasets
-# TODO: We might not want to always use standard normal data
 @pytest.fixture(name="x")
 def fixture_x(
-    input_dim: int, num_data: int, random_state: np.random.RandomState
-) -> np.ndarray:
-    """Random data from a standard normal distribution."""
-    return random_state.normal(0, 1, size=(num_data, input_dim))
-
-
-@pytest.fixture(name="x_gauss")
-def fixture_x_gauss(
     input_dim: int, num_data: int, random_state: np.random.RandomState
 ) -> np.ndarray:
     """Random data from a standard normal distribution."""
