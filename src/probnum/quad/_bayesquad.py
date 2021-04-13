@@ -49,6 +49,7 @@ def bayesquad(
     to be integrated. Conditioned on either existing or acquired function evaluations according to a
     policy, they update the belief on :math:`f`, which is translated into a posterior measure over
     the integral :math:`F`.
+    See Briol et al. [1]_ for a review on Bayesian quadrature.
 
     Parameters
     ----------
