@@ -23,19 +23,15 @@ class IntegrationMeasure(abc.ABC):
     domain :
         Tuple which contains two arrays which define the start and end points,
         respectively, of the rectangular integration domain.
-    random_state :
-        Random state of the random variable corresponding to the integration measure.
     """
 
     def __init__(
         self,
         dim: IntArgType,
         domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
-        random_state: Optional[RandomStateArgType] = None,
     ) -> None:
 
         self._set_dimension_domain(dim, domain)
-        self.random_state = random_state
 
     def __call__(self, points: Union[float, np.floating, np.ndarray]) -> np.ndarray:
         """Evaluate the density function of the integration measure.
@@ -53,13 +49,19 @@ class IntegrationMeasure(abc.ABC):
         # pylint: disable=no-member
         return self.random_variable.pdf(points).squeeze()
 
-    def sample(self, n_sample: IntArgType) -> np.ndarray:
+    def sample(
+        self,
+        n_sample: IntArgType,
+        random_state: Optional[RandomStateArgType] = None,
+    ) -> np.ndarray:
         """Sample ``n_sample`` points from the integration measure.
 
         Parameters
         ----------
         n_sample :
             Number of points to be sampled
+        random_state :
+            Random state of the random variable corresponding to the integration measure.
 
         Returns
         -------
@@ -67,6 +69,7 @@ class IntegrationMeasure(abc.ABC):
             *shape=(n_sample,) or (n_sample,dim)* -- Sampled points
         """
         # pylint: disable=no-member
+        self.random_variable.random_state = random_state
         return np.reshape(
             self.random_variable.sample(size=n_sample), newshape=(n_sample, self.dim)
         )
@@ -152,8 +155,6 @@ class LebesgueMeasure(IntegrationMeasure):
     normalized :
          Boolean which controls whether or not the measure is normalized (i.e.,
          integral over the domain is one).
-    random_state :
-        Random state of the random variable corresponding to the integration measure.
     """
 
     def __init__(
@@ -161,9 +162,8 @@ class LebesgueMeasure(IntegrationMeasure):
         domain: Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]],
         dim: Optional[IntArgType] = None,
         normalized: Optional[bool] = False,
-        random_state: Optional[RandomStateArgType] = None,
     ) -> None:
-        super().__init__(dim=dim, domain=domain, random_state=random_state)
+        super().__init__(dim=dim, domain=domain)
 
         # Set normalization constant
         self.normalized = normalized
@@ -188,9 +188,13 @@ class LebesgueMeasure(IntegrationMeasure):
         num_dat = np.atleast_1d(points).shape[0]
         return np.full(() if num_dat == 1 else (num_dat,), self.normalization_constant)
 
-    def sample(self, n_sample: IntArgType) -> np.ndarray:
+    def sample(
+        self,
+        n_sample: IntArgType,
+        random_state: Optional[RandomStateArgType] = None,
+    ) -> np.ndarray:
         return self.random_variable.rvs(
-            size=(n_sample, self.dim), random_state=self.random_state
+            size=(n_sample, self.dim), random_state=random_state
         )
 
 
@@ -210,8 +214,6 @@ class GaussianMeasure(IntegrationMeasure):
         *shape=(dim, dim)* -- Covariance matrix of the Gaussian measure.
     dim :
         Dimension of the integration domain.
-    random_state :
-        Random state of the random variable corresponding to the integration measure.
     """
 
     def __init__(
@@ -219,7 +221,6 @@ class GaussianMeasure(IntegrationMeasure):
         mean: Union[float, np.floating, np.ndarray],
         cov: Union[float, np.floating, np.ndarray],
         dim: Optional[IntArgType] = None,
-        random_state: Optional[RandomStateArgType] = None,
     ) -> None:
 
         # Extend scalar mean and covariance to higher dimensions if dim has been
@@ -246,9 +247,7 @@ class GaussianMeasure(IntegrationMeasure):
             cov = np.diag(np.squeeze(cov))
 
         # Exploit random variables to carry out mean and covariance checks
-        self.random_variable = Normal(
-            mean=np.squeeze(mean), cov=np.squeeze(cov), random_state=random_state
-        )
+        self.random_variable = Normal(mean=np.squeeze(mean), cov=np.squeeze(cov))
         self.mean = self.random_variable.mean
         self.cov = self.random_variable.cov
 
@@ -263,5 +262,4 @@ class GaussianMeasure(IntegrationMeasure):
         super().__init__(
             dim=dim,
             domain=(np.full((dim,), -np.Inf), np.full((dim,), np.Inf)),
-            random_state=random_state,
         )
