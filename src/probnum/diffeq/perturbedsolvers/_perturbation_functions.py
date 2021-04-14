@@ -17,9 +17,9 @@ def perturb_uniform(step, order, noise_scale, seed=1):
     seed : int
         seed for pseudo-random number generator.
     """
-    np.random.seed(seed=seed)
+    random_state = np.random.mtrand.RandomState(seed=seed)
     if step < 1:
-        noisy_step = np.random.uniform(
+        noisy_step = random_state.uniform(
             step - noise_scale * step ** (order + 0.5),
             step + noise_scale * step ** (order + 0.5),
         )
@@ -43,8 +43,8 @@ def perturb_lognormal(step, order, noise_scale, seed=1):
     seed : int
         seed for pseudo-random number generator.
     """
-    np.random.seed(seed=seed)
+    random_state = np.random.mtrand.RandomState(seed=seed)
     mean = np.log(step) - np.log(np.sqrt(1 + noise_scale * (step ** (2 * order))))
     cov = np.log(1 + noise_scale * (step ** (2 * order)))
-    noisy_step = np.exp(np.random.normal(mean, cov))
+    noisy_step = np.exp(random_state.normal(mean, cov))
     return noisy_step
