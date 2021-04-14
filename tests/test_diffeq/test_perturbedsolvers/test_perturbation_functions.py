@@ -6,6 +6,7 @@ random_state = np.random.mtrand.RandomState(seed=1)
 
 
 def test_perturb_uniform():
+    random_state = np.random.mtrand.RandomState(seed=1)
     step = 0.2
     noise_scale = 1
     order = 4
@@ -18,6 +19,7 @@ def test_perturb_uniform():
 
 
 def test_perturb_lognormal():
+    random_state = np.random.mtrand.RandomState(seed=1)
     step = 0.2
     noise_scale = 1
     order = 4
