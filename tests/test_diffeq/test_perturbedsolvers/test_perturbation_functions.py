@@ -2,10 +2,33 @@ import numpy as np
 
 from probnum.diffeq.perturbedsolvers import _perturbation_functions
 
-random_state = np.random.mtrand.RandomState(seed=1234)
+random_state = np.random.mtrand.RandomState(seed=1)
 
 
 def test_perturb_uniform():
+    step = 0.2
+    noise_scale = 1
+    order = 4
+    noisy_step = random_state.uniform(
+        step - noise_scale * step ** (order + 0.5),
+        step + noise_scale * step ** (order + 0.5),
+    )
+    proposed_step = _perturbation_functions.perturb_uniform(step, order, noise_scale)
+    np.testing.assert_allclose(noisy_step, proposed_step, atol=1e-14, rtol=1e-14)
+
+
+def test_perturb_lognormal():
+    step = 0.2
+    noise_scale = 1
+    order = 4
+    mean = np.log(step) - np.log(np.sqrt(1 + noise_scale * (step ** (2 * order))))
+    cov = np.log(1 + noise_scale * (step ** (2 * order)))
+    noisy_step = np.exp(random_state.normal(mean, cov))
+    proposed_step = _perturbation_functions.perturb_lognormal(step, order, noise_scale)
+    np.testing.assert_allclose(noisy_step, proposed_step, atol=1e-14, rtol=1e-14)
+
+
+def test_perturb_uniform_avrg():
     num_samples = 100
     all_steps = 0
     unperturbed_step = 0.2
@@ -18,7 +41,7 @@ def test_perturb_uniform():
     )
 
 
-def test_perturb_lognormal():
+def test_perturb_lognormal_avrg():
     num_samples = 100
     all_steps = 0
     unperturbed_step = 0.2
