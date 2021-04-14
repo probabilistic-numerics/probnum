@@ -1,6 +1,19 @@
+"""Rules for adaptive and constant step-size selection."""
+
 from abc import ABC, abstractmethod
 
 import numpy as np
+
+
+def propose_firststep(ivp):
+    """Propose a suitable first step that can be taken by an ODE solver.
+
+    This function implements a lazy version of the algorithm on p. 169
+    of Hairer, Wanner, Norsett.
+    """
+    norm_y0 = np.linalg.norm(ivp.initrv.mean)
+    norm_dy0 = np.linalg.norm(ivp(ivp.t0, ivp.initrv.mean))
+    return 0.01 * norm_y0 / norm_dy0
 
 
 class StepRule(ABC):
@@ -76,7 +89,7 @@ class AdaptiveSteps(StepRule):
         firststep,
         atol,
         rtol,
-        limitchange=(0.1, 5.0),
+        limitchange=(0.2, 10.0),
         safetyscale=0.95,
         minstep=1e-15,
         maxstep=1e15,

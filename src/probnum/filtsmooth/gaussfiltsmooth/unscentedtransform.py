@@ -1,11 +1,7 @@
-"""See BFaS; p.
+"""Unscented Transform."""
 
-84f.
-"""
 
 import numpy as np
-
-__all__ = ["UnscentedTransform"]
 
 
 class UnscentedTransform:

@@ -1,15 +1,12 @@
-"""
-Update the belief over the parameters with observations in a 1D quadratic optimization
-problem.
-"""
+"""Update the belief over the parameters with observations in a 1D quadratic
+optimization problem."""
 
 from typing import Union
 
 import numpy as np
 
 import probnum as pn
-import probnum.linalg.linops as linops
-import probnum.random_variables as rvs
+from probnum import linops, randvars
 from probnum.type import FloatArgType
 
 
@@ -18,9 +15,8 @@ def gaussian_belief_update(
     action: FloatArgType,
     observation: FloatArgType,
     noise_cov: Union[np.ndarray, linops.LinearOperator],
-) -> pn.RandomVariable:
-    """
-    Update the belief over the parameters with an observation.
+) -> randvars.RandomVariable:
+    """Update the belief over the parameters with an observation.
 
     Parameters
     ----------
@@ -51,4 +47,4 @@ def gaussian_belief_update(
     # Posterior Covariance
     S = Sigma - Sigma @ Phi @ np.linalg.solve(gram, Phi.T @ Sigma)
 
-    return rvs.Normal(mean=m, cov=S)
+    return randvars.Normal(mean=m, cov=S)

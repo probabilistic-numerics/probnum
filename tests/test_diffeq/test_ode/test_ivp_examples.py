@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from probnum.diffeq.ode import ivp, ivp_examples
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 from tests.testing import NumpyAssertions
 
 
@@ -48,35 +48,6 @@ class TestConvenienceFunction(unittest.TestCase):
 
         self.assertIsInstance(lg1, ivp.IVP)
         self.assertIsInstance(lg2, ivp.IVP)
-
-    def test_rigidbody(self):
-        """Test the rigidbody ODE convenience function."""
-        rv = Constant(np.array([1.0, 1.0, 1.0]))
-        lg1 = ivp_examples.rigidbody(self.tspan, rv)
-
-        self.assertIsInstance(lg1, ivp.IVP)
-
-    def test_vanderpol(self):
-        """Test the Van der Pol ODE convenience function."""
-        rv = Constant(np.array([1.0, 1.0]))
-        lg1 = ivp_examples.vanderpol(self.tspan, rv)
-        lg2 = ivp_examples.vanderpol(self.tspan, rv, params=(2.0,))
-        lg3 = ivp_examples.vanderpol(self.tspan, rv, params=2.0)
-
-        self.assertIsInstance(lg1, ivp.IVP)
-        self.assertIsInstance(lg2, ivp.IVP)
-        self.assertIsInstance(lg3, ivp.IVP)
-
-    def test_threebody(self):
-        """Test the three-body ODE convenience function."""
-        rv = Constant(np.array([1.0, 1.0]))
-        lg1 = ivp_examples.threebody(self.tspan, rv)
-        lg2 = ivp_examples.threebody(self.tspan, rv, params=(0.012277471,))
-        lg3 = ivp_examples.threebody(self.tspan, rv, params=0.012277471)
-
-        self.assertIsInstance(lg1, ivp.IVP)
-        self.assertIsInstance(lg2, ivp.IVP)
-        self.assertIsInstance(lg3, ivp.IVP)
 
     def test_lorenz(self):
         """Test the Lorenz model ODE convenience function."""
@@ -123,24 +94,6 @@ class TestRHSEvaluation(unittest.TestCase, NumpyAssertions):
     def test_seir_rhs(self):
         rv = Constant(np.ones(4))
         lg1 = ivp_examples.seir(self.tspan, rv)
-
-        self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
-
-    def test_rigidbody_rhs(self):
-        rv = Constant(np.ones(3))
-        lg1 = ivp_examples.rigidbody(self.tspan, rv)
-
-        self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
-
-    def test_vanderpol_rhs(self):
-        rv = Constant(np.ones(2))
-        lg1 = ivp_examples.vanderpol(self.tspan, rv)
-
-        self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
-
-    def test_threebody_rhs(self):
-        rv = Constant(np.ones(4))
-        lg1 = ivp_examples.threebody(self.tspan, rv)
 
         self.assertEqual(lg1.rhs(0.1, rv).shape, rv.shape)
 
@@ -223,46 +176,6 @@ class TestJacobianEvaluation(unittest.TestCase, NumpyAssertions):
     def test_seir_jacobian(self):
         rv = Constant(np.ones(4))
         lg1 = ivp_examples.seir(self.tspan, rv)
-        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
-        random_point = 1 + np.random.rand(lg1.dimension)
-        fd_approx = (
-            0.5
-            * 1.0
-            / self.dt
-            * (
-                lg1(0.1, random_point + self.dt * random_direction)
-                - lg1(0.1, random_point - self.dt * random_direction)
-            )
-        )
-        self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction,
-            fd_approx,
-            rtol=self.rtol,
-        )
-
-    def test_rigidbody_jacobian(self):
-        rv = Constant(np.array([1.0, 1.0, 1.0]))
-        lg1 = ivp_examples.rigidbody(self.tspan, rv)
-        random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
-        random_point = 1 + np.random.rand(lg1.dimension)
-        fd_approx = (
-            0.5
-            * 1.0
-            / self.dt
-            * (
-                lg1(0.1, random_point + self.dt * random_direction)
-                - lg1(0.1, random_point - self.dt * random_direction)
-            )
-        )
-        self.assertAllClose(
-            lg1.jacobian(0.1, random_point) @ random_direction,
-            fd_approx,
-            rtol=self.rtol,
-        )
-
-    def test_vanderpol_jacobian(self):
-        rv = Constant(np.array([1.0, 1.0]))
-        lg1 = ivp_examples.vanderpol(self.tspan, rv)
         random_direction = 1 + 0.1 * np.random.rand(lg1.dimension)
         random_point = 1 + np.random.rand(lg1.dimension)
         fd_approx = (

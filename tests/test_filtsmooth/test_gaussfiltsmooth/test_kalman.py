@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 import probnum.filtsmooth as pnfs
-import probnum.filtsmooth.statespace as pnfss
+import probnum.statespace as pnss
 
-from .filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
+from ..filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 
 # Problems
 
@@ -40,7 +40,7 @@ def data(problem):
     """Create artificial data."""
     dynmod, measmod, initrv, info = problem
     times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnfss.generate_samples(
+    states, obs = pnss.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
     return obs, times, states
@@ -55,8 +55,8 @@ def test_rmse_filt_smooth(kalman, data):
 
     posterior = kalman.filtsmooth(obs, times)
 
-    filtms = posterior.filtering_posterior.state_rvs.mean
-    smooms = posterior.state_rvs.mean
+    filtms = posterior.filtering_posterior.states.mean
+    smooms = posterior.states.mean
 
     filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
     smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))
