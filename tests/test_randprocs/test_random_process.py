@@ -1,6 +1,7 @@
 """Tests for random processes."""
 
 import numpy as np
+import pytest
 
 from probnum import randprocs, randvars
 
@@ -70,6 +71,7 @@ def test_evaluated_random_process_is_random_variable(
     )
 
 
+@pytest.mark.xfail(reason="Not yet implemented for random processes.")
 def test_samples_are_callables(
     random_process: randprocs.RandomProcess, random_state: np.random.RandomState
 ):
@@ -78,6 +80,7 @@ def test_samples_are_callables(
     assert callable(random_process.sample(random_state=random_state))
 
 
+@pytest.mark.xfail(reason="Not yet implemented for random processes.")
 def test_sample_paths_are_deterministic_functions(
     random_process: randprocs.RandomProcess, args0: np.ndarray
 ):

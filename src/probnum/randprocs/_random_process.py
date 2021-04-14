@@ -255,18 +255,7 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
             :class:`~numpy.random.RandomState` instance.
         """
         if args is None:
-
-            if random_state is None:
-                random_state = _utils.derive_random_seed(
-                    _utils.as_random_state(random_state)
-                )
-
-            def _sample(args0):
-                return self._sample_at_input(
-                    args=args0, size=size, random_state=random_state
-                )
-
-            return _sample
+            raise NotImplementedError
 
         return self._sample_at_input(args=args, size=size, random_state=random_state)
 
