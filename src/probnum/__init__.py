@@ -19,6 +19,8 @@ linops
     Finite-dimensional linear operators.
 quad
     Bayesian quadrature / numerical integration.
+randprocs
+    Random processes representing uncertain functions.
 randvars
     Random variables representing uncertain values.
 problems
@@ -37,6 +39,7 @@ from . import (
     linops,
     problems,
     quad,
+    randprocs,
     randvars,
     statespace,
     utils,
