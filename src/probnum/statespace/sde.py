@@ -388,8 +388,11 @@ class LinearSDE(SDE):
 
             \dot S(t) = S(t)[M(t)]_{lt}
 
-        where lt denotes the lower-triangular part.
+        where lt denotes the lower-triangular operator defined by
 
+            {[M(t)]_{lt}}_{ij} = 0, for i < j
+                                 1/2 m(t)_{ij}, for i=j
+                                 m(t)_{ij}, for i > j
 
         Compute an ODE vector field that represents the MDEs and is
         compatible with scipy.solve_ivp.
