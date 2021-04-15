@@ -354,6 +354,43 @@ class LinearSDE(SDE):
         """Set up forward moment differential equations (MDEs) using a square-root
         implementation. (https://ieeexplore.ieee.org/document/4045974)
 
+        The covariance P(t) obeys the Ricatti equation
+
+            \dot P(t) = G(t)P(t) + P(t)G^\top(t) + L(t)L^\top(t)
+
+        let S(t) be a square-root of P(t), P(t) positive definite, then
+
+            P(t) = S(t)S^\top(t)
+
+        and we get the Riccati-Equation
+
+            \dot P(t) = G(t)S(t)S^\top(t) + 1/2 * L(t)L^\top(t)S^{-\top}S^\top
+                        + S(t)S^\top(t)G^\top(t) + 1/2 * S(t)S^{-1}(t)L(t)L^\top(t)
+
+        One solution can be found by the square-root \dot S(t)
+
+            \dot S(t) = G(t)S(t) + (A + 1/2 * L(t)L^\top(t))S^{-\top}
+
+        where A is an arbitrary symmetric matrix. A can be chosen to make S lower-triangular which can be achieved by
+
+            M(t) = S^{-1}(t)\dot S(t) + \dot S(t)^top S^{-\top}
+
+        and
+
+            M(t) = \bar G(t) + \bar G^\top(t) + \bar L(t) \bar L^\top(t)
+
+        and
+
+            \bar G(t) = S^{-1}(t)G(t)S(t),
+            \bar L(t) = S^{-1}L(t)
+
+        and
+
+            \dot S(t) = S(t)[M(t)]_{lt}
+
+        where lt denotes the lower-triangular part.
+
+
         Compute an ODE vector field that represents the MDEs and is
         compatible with scipy.solve_ivp.
         """
