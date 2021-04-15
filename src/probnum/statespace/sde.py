@@ -334,11 +334,11 @@ class LinearSDE(SDE):
             cov = cov_flat.reshape((dim, dim))
 
             # Apply iteration
-            F = self.driftmatfun(t)
+            G = self.driftmatfun(t)
             u = self.forcevecfun(t)
             L = self.dispmatfun(t)
-            new_mean = F @ mean + u
-            new_cov = F @ cov + cov @ F.T + _diffusion * L @ L.T
+            new_mean = G @ mean + u
+            new_cov = G @ cov + cov @ G.T + _diffusion * L @ L.T
 
             # Vectorize outcome
             new_cov_flat = new_cov.flatten()
@@ -402,17 +402,17 @@ class LinearSDE(SDE):
             cov_sqrt = cov_sqrt_flat.reshape((dim, dim))
 
             # Apply iteration
-            F = self.driftmatfun(t)
+            G = self.driftmatfun(t)
             u = self.forcevecfun(t)
             L = self.dispmatfun(t)
 
-            new_mean = F @ mean + u
+            new_mean = G @ mean + u
             cov_sqrt_lu, cov_sqrt_piv = scipy.linalg.lu_factor(cov_sqrt)
-            F_bar = scipy.linalg.lu_solve((cov_sqrt_lu, cov_sqrt_piv), F @ cov_sqrt)
+            G_bar = scipy.linalg.lu_solve((cov_sqrt_lu, cov_sqrt_piv), G @ cov_sqrt)
             L_bar = np.sqrt(_diffusion) * scipy.linalg.lu_solve(
                 (cov_sqrt_lu, cov_sqrt_piv), L
             )
-            M = F_bar + F_bar.T + L_bar @ L_bar.T
+            M = G_bar + G_bar.T + L_bar @ L_bar.T
 
             new_cov_sqrt = cov_sqrt @ (np.tril(M, -1) + 1 / 2 * np.diag(np.diag(M)))
 
@@ -440,7 +440,7 @@ class LinearSDE(SDE):
             cov = cov_flat.reshape((dim, dim))
 
             # Apply iteration
-            F = self.driftmatfun(t)
+            G = self.driftmatfun(t)
             u = self.forcevecfun(t)
             L = self.dispmatfun(t)
 
@@ -450,8 +450,8 @@ class LinearSDE(SDE):
             LL = _diffusion * L @ L.T
             LL_inv_cov = np.linalg.solve(mde_forward_sol_cov_mat, LL.T).T
 
-            new_mean = F @ mean + LL_inv_cov @ (mean - mde_forward_sol_mean_vec) + u
-            new_cov = (F + LL_inv_cov) @ cov + cov @ (F + LL_inv_cov).T - LL
+            new_mean = G @ mean + LL_inv_cov @ (mean - mde_forward_sol_mean_vec) + u
+            new_cov = (G + LL_inv_cov) @ cov + cov @ (G + LL_inv_cov).T - LL
 
             new_cov_flat = new_cov.flatten()
             y_new = np.hstack((new_mean, new_cov_flat))
