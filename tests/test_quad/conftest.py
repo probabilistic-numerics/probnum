@@ -50,21 +50,6 @@ def fixture_x(
     return random_state.normal(0, 1, size=(num_data, input_dim))
 
 
-# Kernels
-@pytest.fixture(
-    params=[
-        pytest.param(kerndef, id=kerndef[0].__name__)
-        for kerndef in [
-            (kernels.ExpQuad, {"lengthscale": 1.5}),
-        ]
-    ],
-    name="kernel",
-)
-def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
-    """Kernel / covariance function."""
-    return request.param[0](**request.param[1], input_dim=input_dim)
-
-
 # Measures
 @pytest.fixture(
     params=[

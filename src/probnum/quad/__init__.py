@@ -26,3 +26,5 @@ __all__ = [
 BayesianQuadrature.__module__ = "probnum.quad"
 IntegrationMeasure.__module__ = "probnum.quad"
 KernelEmbedding.__module__ = "probnum.quad"
+GaussianMeasure.__module__ = "probnum.quad"
+LebesgueMeasure.__module__ = "probnum.quad"
