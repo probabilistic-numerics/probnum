@@ -212,17 +212,13 @@ class LinearSDE(SDE):
 
     def _solve_mde_forward_classic(self, rv, t, dt, _diffusion=1.0):
         """Solve forward moment differential equations (MDEs)."""
-        mde, y0 = self._setup_vectorized_mde_forward(
+        dim = rv.mean.shape[0]
+        mde, y0 = self._setup_vectorized_mde_forward_classic(
             rv,
             _diffusion=_diffusion,
         )
 
-        sol = self._solve_mde_forward(mde, y0, t, dt)
-
-        dim = rv.mean.shape[0]
-        y_end = sol.y[:, -1]
-        new_mean = y_end[:dim]
-        new_cov = y_end[dim:].reshape((dim, dim))
+        sol, new_mean, new_cov = self._solve_mde_forward(mde, y0, t, dt, dim)
 
         # Useful for backward transitions
         # Aka continuous time smoothing.
@@ -238,17 +234,13 @@ class LinearSDE(SDE):
     def _solve_mde_forward_sqrt(self, rv, t, dt, _diffusion=1.0):
         """Solve forward moment differential equations (MDEs) using a square-root
         implementation."""
+        dim = rv.mean.shape[0]
         mde, y0 = self._setup_vectorized_mde_forward_sqrt(
             rv,
             _diffusion=_diffusion,
         )
 
-        sol = self._solve_mde_forward(mde, y0, t, dt)
-
-        dim = rv.mean.shape[0]
-        y_end = sol.y[:, -1]
-        new_mean = y_end[:dim]
-        new_cov_sqrt = y_end[dim:].reshape((dim, dim))
+        sol, new_mean, new_cov_sqrt = self._solve_mde_forward(mde, y0, t, dt, dim)
         new_cov = new_cov_sqrt @ new_cov_sqrt.T
 
         # Useful for backward transitions
@@ -267,7 +259,7 @@ class LinearSDE(SDE):
             "sol_cov": sol_cov,
         }
 
-    def _solve_mde_forward(self, mde, y0, t, dt):
+    def _solve_mde_forward(self, mde, y0, t, dt, dim):
         """Solve forward moment differential equations (MDEs)."""
         # Dense output for lambda-expression
         sol = scipy.integrate.solve_ivp(
@@ -279,8 +271,13 @@ class LinearSDE(SDE):
             rtol=self.mde_rtol,
             dense_output=True,
         )
+        y_end = sol.y[:, -1]
+        new_mean = y_end[:dim]
+        # If forward_sqrt is used, new_cov_or_cov_sqrt is the square-root of the covariance
+        # If forward_classic is used, new_cov_or_cov_sqrt is the covariance
+        new_cov_or_cov_sqrt = y_end[dim:].reshape((dim, dim))
 
-        return sol
+        return sol, new_mean, new_cov_or_cov_sqrt
 
     def _solve_mde_backward(self, rv_obtained, rv, t, dt, _diffusion=1.0):
         """Solve backward moment differential equations (MDEs)."""
@@ -323,7 +320,7 @@ class LinearSDE(SDE):
             "sol_cov": sol_cov,
         }
 
-    def _setup_vectorized_mde_forward(self, initrv, _diffusion=1.0):
+    def _setup_vectorized_mde_forward_classic(self, initrv, _diffusion=1.0):
         """Set up forward moment differential equations (MDEs).
 
         Compute an ODE vector field that represents the MDEs and is
