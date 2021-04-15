@@ -1,56 +1,60 @@
 import numpy as np
+import pytest
 
 from probnum.diffeq.perturbedsolvers import _perturbation_functions
 
 random_state = np.random.mtrand.RandomState(seed=1)
 
 
-def test_perturb_uniform():
-    random_state = np.random.mtrand.RandomState(seed=1)
-    step = 0.2
-    noise_scale = 1
-    order = 4
-    noisy_step = random_state.uniform(
-        step - noise_scale * step ** (order + 0.5),
-        step + noise_scale * step ** (order + 0.5),
+@pytest.fixture
+def step():
+    return 0.2
+
+
+@pytest.fixture
+def solver_order():
+    return 4
+
+
+@pytest.fixture
+def noise_scale():
+    return 1
+
+
+@pytest.fixture
+def num_samples():
+    return 100
+
+
+def test_perturb_uniform_mean(step, solver_order, noise_scale, num_samples):
+    suggested_steps = _perturbation_functions.perturb_uniform(
+        step, solver_order, noise_scale, random_state=1, size=num_samples
     )
-    proposed_step = _perturbation_functions.perturb_uniform(step, order, noise_scale)
-    np.testing.assert_allclose(noisy_step, proposed_step, atol=1e-14, rtol=1e-14)
+    mean_suggested_step = np.sum(suggested_steps) / num_samples
+    np.testing.assert_allclose(mean_suggested_step, step, atol=1e-4, rtol=1e-4)
 
 
-def test_perturb_lognormal():
-    random_state = np.random.mtrand.RandomState(seed=1)
-    step = 0.2
-    noise_scale = 1
-    order = 4
-    mean = np.log(step) - np.log(np.sqrt(1 + noise_scale * (step ** (2 * order))))
-    cov = np.log(1 + noise_scale * (step ** (2 * order)))
-    noisy_step = np.exp(random_state.normal(mean, cov))
-    proposed_step = _perturbation_functions.perturb_lognormal(step, order, noise_scale)
-    np.testing.assert_allclose(noisy_step, proposed_step, atol=1e-14, rtol=1e-14)
-
-
-def test_perturb_uniform_avrg():
-    num_samples = 100
-    all_steps = 0
-    unperturbed_step = 0.2
-    for _ in range(num_samples):
-        stp = _perturbation_functions.perturb_uniform(unperturbed_step, 4, 1)
-        all_steps += stp
-    mean_suggested_step = all_steps / num_samples
-    np.testing.assert_allclose(
-        mean_suggested_step, unperturbed_step, atol=1e-4, rtol=1e-4
+def test_perturb_lognormal_mean(step, solver_order, noise_scale, num_samples):
+    suggested_steps = _perturbation_functions.perturb_lognormal(
+        step, solver_order, noise_scale, random_state=1, size=num_samples
     )
+    mean_suggested_step = np.sum(suggested_steps) / num_samples
+    np.testing.assert_allclose(mean_suggested_step, step, atol=1e-6, rtol=1e-6)
 
 
-def test_perturb_lognormal_avrg():
-    num_samples = 100
-    all_steps = 0
-    unperturbed_step = 0.2
-    for _ in range(num_samples):
-        stp = _perturbation_functions.perturb_lognormal(unperturbed_step, 4, 1)
-        all_steps += stp
-    mean_suggested_step = all_steps / num_samples
-    np.testing.assert_allclose(
-        mean_suggested_step, unperturbed_step, atol=1e-4, rtol=1e-4
+def test_perturb_uniform_var(step, solver_order, noise_scale, num_samples):
+    expected_var = (1 / 3) * step ** (2 * solver_order + 1)
+    suggested_steps = _perturbation_functions.perturb_uniform(
+        step, solver_order, noise_scale, random_state=1, size=num_samples
     )
+    var = ((suggested_steps - step) ** 2) / num_samples
+    np.testing.assert_allclose(expected_var, var, atol=1e-4, rtol=1e-4)
+
+
+def test_perturb_lognormal_var(step, solver_order, noise_scale, num_samples):
+    expected_var = (1 / 3) * step ** (2 * solver_order + 1)
+    suggested_steps = _perturbation_functions.perturb_uniform(
+        step, solver_order, noise_scale, random_state=1, size=num_samples
+    )
+    var = ((suggested_steps - step) ** 2) / num_samples
+    np.testing.assert_allclose(expected_var, var, atol=1e-6, rtol=1e-6)
