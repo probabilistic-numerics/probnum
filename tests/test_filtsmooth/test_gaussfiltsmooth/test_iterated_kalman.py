@@ -33,7 +33,7 @@ def setup(request):
 
 
 def test_rmse_filt_smooth(setup):
-    """Assert that iterated smoothing beats smoothing beats filtering."""
+    """Assert that iterated smoothing beats smoothing."""
     kalman, regression_problem = setup
     truth = regression_problem.solution
 
