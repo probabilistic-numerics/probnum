@@ -42,6 +42,16 @@ class Kalman(BayesFiltSmooth):
         If the extended Kalman filter is used, this yields the IEKS. In
         any case, the result is an approximation to the maximum-a-
         posteriori estimate.
+
+        Parameters
+        ----------
+        regression_problem
+        stopcrit: StoppingCriterion
+            A stopping criterion for iterated filtering.
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
 
         if stopcrit is None:
@@ -74,23 +84,19 @@ class Kalman(BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem: RegressionProblem
-            A dataclass containing fields for both
-            - locations: array_like, shape (N, )
-            Temporal locations of the (time series) data points, has to be 1-dimensional.
-            The zero-th element is the location of the initial random variable.
-            - observations: array_like, shape(N, M)
-            Observations at the provided locations.
-            The zero-th element is the initial random variable.
+        regression_problem
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
-
 
         Returns
         -------
         KalmanPosterior
             Posterior distribution of the filtered output
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
         filter_posterior = self.filter(
             regression_problem, _previous_posterior=_previous_posterior
@@ -107,14 +113,7 @@ class Kalman(BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem: RegressionProblem
-            A dataclass containing fields for both
-            - locations: array_like, shape (N, )
-            Temporal locations of the (time series) data points, has to be 1-dimensional.
-            The zero-th element is the location of the initial random variable.
-            - observations: array_like, shape(N, M)
-            Observations at the provided locations.
-            The zero-th element is the initial random variable.
+        regression_problem
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -123,6 +122,10 @@ class Kalman(BayesFiltSmooth):
         -------
         KalmanPosterior
             Posterior distribution of the filtered output
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
         dataset, times = regression_problem.observations, regression_problem.locations
         rvs = []
