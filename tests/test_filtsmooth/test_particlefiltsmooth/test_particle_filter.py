@@ -36,7 +36,7 @@ def num_particles():
 
 @pytest.fixture
 def problem():
-    return pendulum(delta_t=16.0 * 0.0075)
+    return pendulum(delta_t=0.12)
 
 
 @pytest.fixture
