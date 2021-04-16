@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.filtsmooth as pnfs
-from probnum.problems import RegressionProblem
+from probnum import filtsmooth, problems
 
 from ..filtsmooth_testcases import logistic_ode
 
@@ -16,7 +15,7 @@ def logistic_ode_problem():
     obs = np.zeros((len(times), 1))
 
     states = info["ode"].solution(times)
-    regression_problem = RegressionProblem(
+    regression_problem = problems.RegressionProblem(
         observations=obs, locations=times, solution=states
     )
     return dynmod, measmod, initrv, regression_problem
@@ -28,7 +27,7 @@ def setup(request):
     problem = request.param
     dynmod, measmod, initrv, regression_problem = problem()
 
-    kalman = pnfs.Kalman(dynmod, measmod, initrv)
+    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
     return kalman, regression_problem
 
 
@@ -37,7 +36,7 @@ def test_rmse_filt_smooth(setup):
     kalman, regression_problem = setup
     truth = regression_problem.solution
 
-    stopcrit = pnfs.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
+    stopcrit = filtsmooth.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
     posterior = kalman.filter(regression_problem)
     posterior = kalman.smooth(posterior)

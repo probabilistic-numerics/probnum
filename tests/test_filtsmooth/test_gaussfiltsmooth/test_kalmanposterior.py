@@ -1,11 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
-from probnum import randvars, utils
+from probnum import filtsmooth, problems, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.problems import RegressionProblem
 
 from ..filtsmooth_testcases import car_tracking
 
@@ -21,7 +18,7 @@ def setup(problem):
     """Filter and regression problem."""
     dynmod, measmod, initrv, regression_problem = problem
 
-    kalman = pnfs.Kalman(dynmod, measmod, initrv)
+    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
     return kalman, regression_problem
 
 
@@ -149,14 +146,16 @@ def test_sampling_shapes_1d(locs, size):
     locations = np.linspace(0, 2 * np.pi, 100)
     data = 0.5 * np.random.randn(100) + np.sin(locations)
 
-    prior = pnss.IBM(0, 1)
-    measmod = pnss.DiscreteLTIGaussian(
+    prior = statespace.IBM(0, 1)
+    measmod = statespace.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
-    kalman = pnfs.Kalman(prior, measmod, initrv)
-    regression_problem = RegressionProblem(observations=data, locations=locations)
+    kalman = filtsmooth.Kalman(prior, measmod, initrv)
+    regression_problem = problems.RegressionProblem(
+        observations=data, locations=locations
+    )
     posterior = kalman.filtsmooth(regression_problem)
 
     size = utils.as_shape(size)

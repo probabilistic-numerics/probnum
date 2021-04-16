@@ -3,11 +3,7 @@ import unittest
 
 import numpy as np
 
-import probnum.diffeq as pnd  # ODE problem as test function
-import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
-from probnum.problems import RegressionProblem
-from probnum.randvars import Constant, Normal
+from probnum import diffeq, filtsmooth, problems, randvars, statespace
 from tests.testing import NumpyAssertions
 
 __all__ = [
@@ -46,23 +42,23 @@ def car_tracking():
     mean = np.zeros(4)
     cov = 0.5 * var * np.eye(4)
 
-    dynmod = pnss.DiscreteLTIGaussian(
+    dynmod = statespace.DiscreteLTIGaussian(
         state_trans_mat=dynamat, shift_vec=np.zeros(4), proc_noise_cov_mat=dynadiff
     )
-    measmod = pnss.DiscreteLTIGaussian(
+    measmod = statespace.DiscreteLTIGaussian(
         state_trans_mat=measmat,
         shift_vec=np.zeros(2),
         proc_noise_cov_mat=measdiff,
     )
-    initrv = Normal(mean, cov)
+    initrv = randvars.Normal(mean, cov)
 
     # Generate data
     t_max = 20
     times = np.arange(0.0, t_max, step=delta_t)
-    states, obs = pnss.generate_samples(
+    states, obs = statespace.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
-    regression_problem = RegressionProblem(
+    regression_problem = problems.RegressionProblem(
         observations=obs, locations=times, solution=states
     )
     return dynmod, measmod, initrv, regression_problem
@@ -80,25 +76,25 @@ def ornstein_uhlenbeck():
     drift = -lam * np.eye(1)
     force = np.zeros(1)
     disp = np.sqrt(q) * np.eye(1)
-    dynmod = pnss.LTISDE(
+    dynmod = statespace.LTISDE(
         driftmat=drift,
         forcevec=force,
         dispmat=disp,
     )
-    measmod = pnss.DiscreteLTIGaussian(
+    measmod = statespace.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=r * np.eye(1),
     )
-    initrv = Normal(10 * np.ones(1), np.eye(1))
+    initrv = randvars.Normal(10 * np.ones(1), np.eye(1))
 
     # Generate data
     t_max = 20
     times = np.arange(0.0, t_max, step=delta_t)
-    states, obs = pnss.generate_samples(
+    states, obs = statespace.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
-    regression_problem = RegressionProblem(
+    regression_problem = problems.RegressionProblem(
         observations=obs, locations=times, solution=states
     )
     return dynmod, measmod, initrv, regression_problem
@@ -142,29 +138,29 @@ def pendulum(delta_t=0.0075):
     r = var * np.eye(1)
     initmean = np.ones(2)
     initcov = var * np.eye(2)
-    dynmod = pnss.DiscreteGaussian(
+    dynmod = statespace.DiscreteGaussian(
         input_dim=2,
         output_dim=2,
         state_trans_fun=f,
         proc_noise_cov_mat_fun=lambda t: q,
         jacob_state_trans_fun=df,
     )
-    measmod = pnss.DiscreteGaussian(
+    measmod = statespace.DiscreteGaussian(
         input_dim=2,
         output_dim=1,
         state_trans_fun=h,
         proc_noise_cov_mat_fun=lambda t: r,
         jacob_state_trans_fun=dh,
     )
-    initrv = Normal(initmean, initcov)
+    initrv = randvars.Normal(initmean, initcov)
 
     # Generate data
     t_max = 4
     times = np.arange(0.0, t_max, step=delta_t)
-    states, obs = pnss.generate_samples(
+    states, obs = statespace.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
-    regression_problem = RegressionProblem(
+    regression_problem = problems.RegressionProblem(
         observations=obs, locations=times, solution=states
     )
     return dynmod, measmod, initrv, regression_problem
@@ -179,15 +175,17 @@ def logistic_ode():
     delta_t = 0.2
     tmax = 2
 
-    logistic = pnd.logistic((0, tmax), initrv=Constant(np.array([0.1])), params=(6, 1))
-    dynamod = pnss.IBM(ordint=3, spatialdim=1)
-    measmod = pnfs.DiscreteEKFComponent.from_ode(
+    logistic = diffeq.logistic(
+        (0, tmax), initrv=randvars.Constant(np.array([0.1])), params=(6, 1)
+    )
+    dynamod = statespace.IBM(ordint=3, spatialdim=1)
+    measmod = filtsmooth.DiscreteEKFComponent.from_ode(
         logistic, dynamod, np.zeros((1, 1)), ek0_or_ek1=1
     )
 
     initmean = np.array([0.1, 0, 0.0, 0.0])
     initcov = np.diag([0.0, 1.0, 1.0, 1.0])
-    initrv = Normal(initmean, initcov)
+    initrv = randvars.Normal(initmean, initcov)
 
     return dynamod, measmod, initrv, {"dt": delta_t, "tmax": tmax, "ode": logistic}
 
@@ -242,7 +240,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(measmod)
         ekf_dyna = self.linearising_component_pendulum(dynamod)
-        method = pnfs.Kalman(ekf_dyna, ekf_meas, initrv)
+        method = filtsmooth.Kalman(ekf_dyna, ekf_meas, initrv)
 
         # Compute filter/smoother solution
         posterior = method.filtsmooth(regression_problem)
@@ -321,9 +319,9 @@ def benes_daum():
 
     initmean = np.zeros(1)
     initcov = 3.0 * np.eye(1)
-    initrv = Normal(initmean, initcov)
-    dynamod = pnss.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
-    measmod = pnss.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
+    initrv = randvars.Normal(initmean, initcov)
+    dynamod = statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
+    measmod = statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
     return dynamod, measmod, initrv, {}
 
 

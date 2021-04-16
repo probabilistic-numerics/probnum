@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.filtsmooth as pnfs
+from probnum import filtsmooth
 
 from ..filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 
@@ -14,7 +14,7 @@ def setup(request):
     problem = request.param
     dynmod, measmod, initrv, regression_problem = problem()
 
-    kalman = pnfs.Kalman(dynmod, measmod, initrv)
+    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
     return kalman, regression_problem
 
 
