@@ -3,7 +3,7 @@ import scipy.integrate._ivp.rk as scipy_rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
-from probnum.diffeq import scipysolution as scisol
+from probnum.diffeq import scipyodesolution as scisol
 
 
 class ScipyODESolver(diffeq.ODESolver):

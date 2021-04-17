@@ -1,9 +1,9 @@
 """"""
 import numpy as np
 
-import probnum._randomvariablelist as pnrv_list
 import probnum.diffeq as pnd
 import probnum.randvars as pnrv
+from probnum import _randomvariablelist
 
 
 class ScipyODESolution(pnd.ODESolution):
@@ -20,8 +20,7 @@ class ScipyODESolution(pnd.ODESolution):
         """
         self.scipy_solution = scipy_solution
         self.times = times
-        # self.y = pnrv_list._RandomVariableList(rvs)
-        self.states = pnrv_list._RandomVariableList(rvs)
+        self.states = _randomvariablelist._RandomVariableList(rvs)
 
     @property
     def t(self):
@@ -31,12 +30,12 @@ class ScipyODESolution(pnd.ODESolution):
     @property
     def y(self):
         """Discrete-time solution."""
-        return np.array(self.y)
+        return self.states
 
     def __call__(self, t):
         """"solution as _RandomVariableList."""
         states = np.array(self.scipy_solution(t)).T
-        solution_as_rv = pnrv_list._RandomVariableList(
+        solution_as_rv = _randomvariablelist._RandomVariableList(
             list(map(lambda x: (pnrv.Constant(x)), states))
         )
         return solution_as_rv
@@ -50,4 +49,4 @@ class ScipyODESolution(pnd.ODESolution):
         return self.scipy_solution.interpolants[idx](self.scipy_solution.ts[idx])
 
     def sample(self, t=None, size=()):
-        return "Not possible"
+        return "Sampling not possible"

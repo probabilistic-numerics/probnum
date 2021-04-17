@@ -4,7 +4,7 @@ from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
-from probnum.diffeq import odesolution, scipysolution, scipysolver
+from probnum.diffeq import odesolution, scipyodesolution, scipysolver
 
 
 @pytest.fixture
@@ -160,6 +160,6 @@ def test_dense_output(scipysolver45, testsolver45, y, start_point, stop_point):
 
 def test_rvlist_to_odesol(times, dense_output, lst):
     scipy_sol = OdeSolution(times, dense_output)
-    probnum_solution = scipysolution.ScipyODESolution(scipy_sol, times, lst)
-    assert issubclass(scipysolution.ScipyODESolution, odesolution.ODESolution)
-    assert isinstance(probnum_solution, scipysolution.ScipyODESolution)
+    probnum_solution = scipyodesolution.ScipyODESolution(scipy_sol, times, lst)
+    assert issubclass(scipyodesolution.ScipyODESolution, odesolution.ODESolution)
+    assert isinstance(probnum_solution, scipyodesolution.ScipyODESolution)
