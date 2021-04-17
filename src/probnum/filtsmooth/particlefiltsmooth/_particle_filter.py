@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import problems, randvars, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.type import FloatArgType, IntArgType
 
@@ -89,22 +89,24 @@ class ParticleFilter(BayesFiltSmooth):
         # choice than the bootstrap.
         self.linearized_measurement_model = linearized_measurement_model
 
-    def filter(self, dataset, times):
+    def filter(self, regression_problem: problems.RegressionProblem):
         """Apply Particle filtering to a data set.
 
         Parameters
         ----------
-        dataset : array_like, shape (N, M)
-            Data set that is filtered.
-        times : array_like, shape (N,)
-            Temporal locations of the data points.
-            The zeroth element in times and dataset is the location of the initial random variable.
+        regression_problem
 
         Returns
         -------
         ParticleFilterPosterior
             Posterior distribution of the filtered output.
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
+
+        dataset, times = regression_problem.observations, regression_problem.locations
 
         # Initialize: condition on first data point using the initial random
         # variable as a dynamics rv (i.e. as the current prior).

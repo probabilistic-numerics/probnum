@@ -39,9 +39,15 @@ The following people contributed to the ProbNum repository.
 	<center>
 		<ul>
 			<li>
-				<a href="https://github.com/schmidtjonathan">
+				<a href="https://github.com/ninaeffenberger">
 					<img class="avatar" alt="ninaeffenberger" src="https://github.com/ninaeffenberger.png?v=3&s=96" width="64" height="64" />
 					<p>Nina Effenberger</p>
+				</a>
+			</li>
+			<li>
+				<a href="https://github.com/alpiges">
+					<img class="avatar" alt="alpiges" src="https://github.com/alpiges.png?v=3&s=96" width="64" height="64" />
+					<p>Alexandra Gessner</p>
 				</a>
 			</li>
 			<li>
@@ -50,6 +56,12 @@ The following people contributed to the ProbNum repository.
 					<p>Thomas Gläßle</p>
 				</a>
 			</li>
+			<li>
+				<a href="https://github.com/tskarvone">
+					<img class="avatar" alt="tskarvone" src="https://github.com/tskarvone.png?v=3&s=96" width="64" height="64" />
+					<p>Toni Karvonen</p>
+				</a>
+			</li>	
 			<li>
 				<a href="https://github.com/marvinpfoertner">
 					<img class="avatar" alt="marvinpfoertner" src="https://github.com/marvinpfoertner.png?v=3&s=96" width="64" height="64" />
@@ -78,11 +90,6 @@ The following people contributed to the ProbNum repository.
 **Feedback and Other:** People who give valuable feedback and input on the scientific direction or perform code reviews.
 
 <div>
-	<a href="https://github.com/alpiges">
-		<img class="avatar" alt="alpiges" src="https://github.com/alpiges.png?v
-		=3&s=96" width="28" height="28" />
-		Alexandra Gessner
-	</a>
 	<a href="https://github.com/philipphennig">
 		<img class="avatar" alt="philipphennig" src="https://github.com/philipphennig.png?v=3&s=96" width="28" height="28" />
 		Philipp Hennig
