@@ -1,11 +1,10 @@
 import numpy as np
 import pytest
-from pn_ode_benchmarks import scipy_solution
 from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
-from probnum.diffeq import odesolution, scipysolver
+from probnum.diffeq import odesolution, scipysolution, scipysolver
 
 
 @pytest.fixture
@@ -56,7 +55,7 @@ def times():
 
 @pytest.fixture
 def lst():
-    return list(randvars.Constant(1))
+    return list([randvars.Constant(1)])
 
 
 def test_initialise(testsolver45, scipysolver45):
@@ -161,6 +160,6 @@ def test_dense_output(scipysolver45, testsolver45, y, start_point, stop_point):
 
 def test_rvlist_to_odesol(times, dense_output, lst):
     scipy_sol = OdeSolution(times, dense_output)
-    probnum_solution = scipy_solution.ScipyODESolution(scipy_sol, times, lst)
-    assert issubclass(scipy_solution.ScipyODESolution, odesolution.ODESolution)
-    assert isinstance(probnum_solution, scipy_solution.ScipyODESolution)
+    probnum_solution = scipysolution.ScipyODESolution(scipy_sol, times, lst)
+    assert issubclass(scipysolution.ScipyODESolution, odesolution.ODESolution)
+    assert isinstance(probnum_solution, scipysolution.ScipyODESolution)

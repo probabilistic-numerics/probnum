@@ -20,7 +20,8 @@ class ScipyODESolution(pnd.ODESolution):
         """
         self.scipy_solution = scipy_solution
         self.times = times
-        self.y = pnrv_list._RandomVariableList(rvs)
+        # self.y = pnrv_list._RandomVariableList(rvs)
+        self.states = pnrv_list._RandomVariableList(rvs)
 
     @property
     def t(self):
