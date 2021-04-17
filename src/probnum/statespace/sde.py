@@ -351,7 +351,7 @@ class LinearSDE(SDE):
         return f, y0
 
     def _setup_vectorized_mde_forward_sqrt(self, initrv, _diffusion=1.0):
-        """Set up forward moment differential equations (MDEs) using a square-root
+        r"""Set up forward moment differential equations (MDEs) using a square-root
         implementation. (https://ieeexplore.ieee.org/document/4045974)
 
         The covariance P(t) obeys the Ricatti equation
@@ -371,7 +371,8 @@ class LinearSDE(SDE):
 
             \dot S(t) = G(t)S(t) + (A + 1/2 * L(t)L^\top(t))S^{-\top}
 
-        where A is an arbitrary symmetric matrix. A can be chosen to make S lower-triangular which can be achieved by
+        where A is an arbitrary symmetric matrix.
+        A can be chosen to make S lower-triangular which can be achieved by
 
             M(t) = S^{-1}(t)\dot S(t) + \dot S(t)^top S^{-\top}
 
