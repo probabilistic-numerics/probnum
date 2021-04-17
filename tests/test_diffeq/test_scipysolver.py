@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from pn_ode_benchmarks import scipy_solution
-from scipy import integrate
 from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 

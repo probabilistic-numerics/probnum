@@ -3,16 +3,14 @@
 
 @author: Nina Effenberger
 """
-
 import unittest
 
 import numpy as np
+import pytest
 import scipy.integrate as sci
-from pn_ode_benchmarks import scipy_solver
 
-import probnum.diffeq as pnd
-import probnum.random_variables as pnrv
-from probnum.diffeq import scipysolution
+from probnum import diffeq, randvars
+from probnum.diffeq import scipysolution, scipysolver
 
 
 class TestScipyODESolution:
@@ -53,12 +51,12 @@ class TestRungeKutta45(TestScipyODESolution, unittest.TestCase):
     """test class for RK23."""
 
     def setUp(self):
-        initrv = pnrv.Constant(np.array([0.1]))
-        self.ivp = pnd.logistic([0.0, 10], initrv)
-        steprule = pnd.ConstantSteps(0.1)
+        initrv = randvars.Constant(np.array([0.1]))
+        self.ivp = diffeq.logistic([0.0, 10], initrv)
+        steprule = diffeq.ConstantSteps(0.1)
         testsolver = sci.RK45(
             self.ivp.rhs, self.ivp.t0, self.ivp.initrv.mean, self.ivp.tmax
         )
-        self.solver = scipy_solver.ScipyRungeKutta(testsolver, order=4)
+        self.solver = scipysolver.ScipyRungeKutta(testsolver, order=4)
         self.solution = self.solver.solve(steprule)
         self.scipy_solution = self.solution.scipy_solution

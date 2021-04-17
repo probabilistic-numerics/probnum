@@ -1,14 +1,13 @@
 """Wrapper class of scipy.integrate."""
-import numpy as np
 import scipy.integrate._ivp.rk as scipy_rk
-from pn_ode_benchmarks import scipy_solution as scisol
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
+from probnum.diffeq import scipysolution as scisol
 
 
 class ScipyODESolver(diffeq.ODESolver):
-    """interface for scipy based ODE solvers."""
+    """Interface for scipy based ODE solvers."""
 
     def __init__(self, solver, order):
         self.solver = solver
@@ -24,9 +23,9 @@ class ScipyODESolver(diffeq.ODESolver):
         super().__init__(ivp=ivp, order=order)
 
     def initialise(self):
-        """
-        Returns t0 and y0 (for the solver, which might be different to ivp.y0)
-        and resets the solver/initializes
+        """Returns t0 and y0 (for the solver, which might be different to ivp.y0) and
+        initializes the solver. Resets when solving the ODE multiple times.
+
         Returns
         -------
         self.ivp.t0: float
@@ -44,15 +43,12 @@ class ScipyODESolver(diffeq.ODESolver):
 
 
 class ScipyRungeKutta(ScipyODESolver):
-    # pylint: disable=protected-access
-    """scipy wrapper class for Runge-Kutta methods.
-
-    Implements the stepfunction
-    """
+    """Wraps Runge-Kutta methods from Scipy, implements the stepfunction and dense
+    output."""
 
     def dense_output(self):
-        """
-        returns the dense output after having performed one step
+        """Returns the dense output after each step.
+
         Returns
         -------
         sol : scipy_rk.RkDenseOutput
@@ -62,10 +58,19 @@ class ScipyRungeKutta(ScipyODESolver):
         if self.method == "RK45" or self.method == "RK23":
             sol = self.dense_output_rk()
         else:
-            raise ("Dense Output is not implemented for" + self.method)
+            raise "Dense Output is not implemented for" + self.method
         return sol
 
     def dense_output_rk(self):
+        """Computes the interpolant after each step with a quartic interpolation
+        polynomial.
+
+        Returns
+        -------
+        sol : scipy_rk.RkDenseOutput
+            interpolated solution between two discrete locations.
+        """
+
         Q = self.solver.K.T.dot(self.solver.P)
         sol = scipy_rk.RkDenseOutput(
             self.solver.t_old, self.solver.t, self.solver.y_old.mean, Q
@@ -73,7 +78,8 @@ class ScipyRungeKutta(ScipyODESolver):
         return sol
 
     def step(self, start, stop, current, **kwargs):
-        """perform one ODE-step from start to stop
+        """Perform one ODE-step from start to stop.
+
         Parameters
         ----------
         start : float
@@ -82,6 +88,7 @@ class ScipyRungeKutta(ScipyODESolver):
             stopping location of the step
         current : :obj:`list` of :obj:`RandomVariable`
             current state of the ODE.
+
         Returns
         -------
         random_var : :obj:`list` of :obj:`RandomVariable`
@@ -115,7 +122,8 @@ class ScipyRungeKutta(ScipyODESolver):
         return random_var, error_estimation
 
     def rvlist_to_odesol(self, times, rvs):
-        """Create a ScipyODESolution object."""
+        """Create a ScipyODESolution object which is a subclass of
+        diffeq.ODESolution."""
         self.solver.scipy_solution = OdeSolution(times, self.interpolants)
         probnum_solution = scisol.ScipyODESolution(
             self.solver.scipy_solution, times, rvs
@@ -123,6 +131,6 @@ class ScipyRungeKutta(ScipyODESolver):
         return probnum_solution
 
     def method_callback(self, time, current_guess, current_error):
-        """compute dense output after each step and store it in self.interpolants."""
+        """Call dense output after each step and store the interpolants."""
         dense = self.dense_output()
         self.interpolants.append(dense)
