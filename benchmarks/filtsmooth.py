@@ -101,6 +101,9 @@ class Smoothing:
         _, self.observations = statespace.generate_samples(
             dynmod=dynmod, measmod=measmod, initrv=initrv, times=self.locations
         )
+        self.regression_problem = problems.RegressionProblem(
+            observations=self.observations, locations=self.locations
+        )
 
         linearized_dynmod = _lin_method(dynmod)
         linearized_measmod = _lin_method(measmod)
@@ -144,6 +147,9 @@ class DenseGridOperations:
         )
         _, self.observations = statespace.generate_samples(
             dynmod=dynmod, measmod=measmod, initrv=initrv, times=self.locations
+        )
+        self.regression_problem = problems.RegressionProblem(
+            observations=self.observations, locations=self.locations
         )
 
         linearized_dynmod = _lin_method(dynmod)
