@@ -1,9 +1,7 @@
 """Benchmarks for Gaussian filtering."""
 import numpy as np
 
-import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
-from probnum.randvars import Normal
+from probnum import filtsmooth, problems, randvars, statespace
 
 
 def load_pendulum():
@@ -43,9 +41,9 @@ def load_pendulum():
     r = var * np.eye(1)
     initmean = np.ones(2)
     initcov = var * np.eye(2)
-    dynamod = pnss.DiscreteGaussian(2, 2, f, lambda t: q, df)
-    measmod = pnss.DiscreteGaussian(2, 1, h, lambda t: r, dh)
-    initrv = Normal(initmean, initcov)
+    dynamod = statespace.DiscreteGaussian(2, 2, f, lambda t: q, df)
+    measmod = statespace.DiscreteGaussian(2, 1, h, lambda t: r, dh)
+    initrv = randvars.Normal(initmean, initcov)
     return dynamod, measmod, initrv, {"dt": delta_t, "tmax": 4}
 
 
@@ -58,29 +56,32 @@ class Filtering:
     def setup(self, linearization):
         dynmod, measmod, initrv, info = load_pendulum()
         _lin_method = {
-            "ekf": pnfs.DiscreteEKFComponent,
-            "ukf": pnfs.DiscreteUKFComponent,
+            "ekf": filtsmooth.DiscreteEKFComponent,
+            "ukf": filtsmooth.DiscreteUKFComponent,
         }[linearization]
 
         self.locations = np.arange(0.0, info["tmax"], step=info["dt"])
-        _, self.observations = pnss.generate_samples(
+        _, self.observations = statespace.generate_samples(
             dynmod=dynmod, measmod=measmod, initrv=initrv, times=self.locations
+        )
+        self.regression_problem = problems.RegressionProblem(
+            observations=self.observations, locations=self.locations
         )
 
         linearized_dynmod = _lin_method(dynmod)
         linearized_measmod = _lin_method(measmod)
 
-        self.kalman_filter = pnfs.Kalman(
+        self.kalman_filter = filtsmooth.Kalman(
             dynamics_model=linearized_dynmod,
             measurement_model=linearized_measmod,
             initrv=initrv,
         )
 
     def time_filter(self, linearization):
-        self.kalman_filter.filter(dataset=self.observations, times=self.locations)
+        self.kalman_filter.filter(self.regression_problem)
 
     def peakmem_filter(self, linearization):
-        self.kalman_filter.filter(dataset=self.observations, times=self.locations)
+        self.kalman_filter.filter(self.regression_problem)
 
 
 class Smoothing:
@@ -92,26 +93,24 @@ class Smoothing:
     def setup(self, linearization):
         dynmod, measmod, initrv, info = load_pendulum()
         _lin_method = {
-            "ekf": pnfs.DiscreteEKFComponent,
-            "ukf": pnfs.DiscreteUKFComponent,
+            "ekf": filtsmooth.DiscreteEKFComponent,
+            "ukf": filtsmooth.DiscreteUKFComponent,
         }[linearization]
 
         self.locations = np.arange(0.0, info["tmax"], step=info["dt"])
-        _, self.observations = pnss.generate_samples(
+        _, self.observations = statespace.generate_samples(
             dynmod=dynmod, measmod=measmod, initrv=initrv, times=self.locations
         )
 
         linearized_dynmod = _lin_method(dynmod)
         linearized_measmod = _lin_method(measmod)
 
-        self.kalman_filter = pnfs.Kalman(
+        self.kalman_filter = filtsmooth.Kalman(
             dynamics_model=linearized_dynmod,
             measurement_model=linearized_measmod,
             initrv=initrv,
         )
-        self.filtering_posterior = self.kalman_filter.filter(
-            dataset=self.observations, times=self.locations
-        )
+        self.filtering_posterior = self.kalman_filter.filter(self.regression_problem)
 
     def time_smooth(self, linearization):
         self.kalman_filter.smooth(filter_posterior=self.filtering_posterior)
@@ -129,26 +128,24 @@ class Sampling:
     def setup(self, linearization, num_samples):
         dynmod, measmod, initrv, info = load_pendulum()
         _lin_method = {
-            "ekf": pnfs.DiscreteEKFComponent,
-            "ukf": pnfs.DiscreteUKFComponent,
+            "ekf": filtsmooth.DiscreteEKFComponent,
+            "ukf": filtsmooth.DiscreteUKFComponent,
         }[linearization]
 
         self.locations = np.arange(0.0, info["tmax"], step=info["dt"])
-        _, self.observations = pnss.generate_samples(
+        _, self.observations = statespace.generate_samples(
             dynmod=dynmod, measmod=measmod, initrv=initrv, times=self.locations
         )
 
         linearized_dynmod = _lin_method(dynmod)
         linearized_measmod = _lin_method(measmod)
 
-        self.kalman_filter = pnfs.Kalman(
+        self.kalman_filter = filtsmooth.Kalman(
             dynamics_model=linearized_dynmod,
             measurement_model=linearized_measmod,
             initrv=initrv,
         )
-        filtering_posterior = self.kalman_filter.filter(
-            dataset=self.observations, times=self.locations
-        )
+        filtering_posterior = self.kalman_filter.filter(self.regression_problem)
         self.smoothing_posterior = self.kalman_filter.smooth(
             filter_posterior=filtering_posterior
         )
