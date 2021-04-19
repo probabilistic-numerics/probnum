@@ -119,8 +119,14 @@ class Smoothing:
         self.kalman_filter.smooth(filter_posterior=self.filtering_posterior)
 
 
-class Sampling:
-    """Benchmark posterior sampling for different linearization techniques."""
+class DenseGridOperations:
+    """Benchmark operations on a dense grid given the posteriors.
+
+    That includes
+        * Extrapolating / interpolating using the filter posterior
+        * Extrapolating / interpolating using the smoothing posterior
+        * Drawing samples from the smoothing posterior
+    """
 
     param_names = ["linearization", "num_samples"]
     params = [["ekf", "ukf"], [1, 10]]
@@ -133,6 +139,9 @@ class Sampling:
         }[linearization]
 
         self.locations = np.arange(0.0, info["tmax"], step=info["dt"])
+        self.dense_locations = np.arange(
+            0.0, 1.5 * info["tmax"], step=0.25 * info["dt"]
+        )
         _, self.observations = statespace.generate_samples(
             dynmod=dynmod, measmod=measmod, initrv=initrv, times=self.locations
         )
@@ -145,13 +154,25 @@ class Sampling:
             measurement_model=linearized_measmod,
             initrv=initrv,
         )
-        filtering_posterior = self.kalman_filter.filter(self.regression_problem)
+        self.filtering_posterior = self.kalman_filter.filter(self.regression_problem)
         self.smoothing_posterior = self.kalman_filter.smooth(
-            filter_posterior=filtering_posterior
+            filter_posterior=self.filtering_posterior
         )
 
     def time_sample(self, linearization, num_samples):
-        self.smoothing_posterior.sample(size=num_samples)
+        self.smoothing_posterior.sample(t=self.dense_locations, size=num_samples)
 
     def peakmem_sample(self, linearization, num_samples):
-        self.smoothing_posterior.sample(size=num_samples)
+        self.smoothing_posterior.sample(t=self.dense_locations, size=num_samples)
+
+    def time_dense_filter(self, linearization, num_samples):
+        self.filtering_posterior(self.dense_locations)
+
+    def peakmem_dense_filter(self, linearization, num_samples):
+        self.filtering_posterior(self.dense_locations)
+
+    def time_dense_smoother(self, linearization, num_samples):
+        self.smoothing_posterior(self.dense_locations)
+
+    def peakmem_dense_smoother(self, linearization, num_samples):
+        self.smoothing_posterior(self.dense_locations)
