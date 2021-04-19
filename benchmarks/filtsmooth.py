@@ -85,7 +85,7 @@ class Filtering:
 
 
 class Smoothing:
-    """Benchmark Kalman filter for different linearization techniques."""
+    """Benchmark Kalman smoother for different linearization techniques."""
 
     param_names = ["linearization"]
     params = [["ekf", "ukf"]]
@@ -120,7 +120,7 @@ class Smoothing:
 
 
 class Sampling:
-    """Benchmark Kalman filter for different linearization techniques."""
+    """Benchmark posterior sampling for different linearization techniques."""
 
     param_names = ["linearization", "num_samples"]
     params = [["ekf", "ukf"], [1, 10]]
