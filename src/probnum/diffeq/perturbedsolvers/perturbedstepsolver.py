@@ -12,10 +12,21 @@ class PerturbedStepSolver(diffeq.ODESolver):
     steps."""
 
     # pylint: disable=maybe-no-member
-    def __init__(self, solver, noise_scale, perturb_function):
+    def __init__(self, solver, noise_scale, perturb_function, random_state=None):
+        def perturbation_step_only(dt):
+            return perturb_function(
+                step=dt,
+                noise_scale=noise_scale,
+                solver_order=solver.order,
+                size=(),
+                random_state=random_state,
+            )
+
+        self.perturb_step = perturbation_step_only
+
         self.solver = solver
         self.scipy_solver = solver.solver
-        self.noise_scale = noise_scale
+        # self.noise_scale = noise_scale
         self.interpolants = None
         self.evaluated_times = None
         self.posjected_times = None
@@ -54,7 +65,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         # set stepsize
         self.original_t = stop
         laststep = stop - start
-        noisy_step = self.perturb(laststep)
+        noisy_step = self.perturb_step(laststep)
         y_new, f_new = rk.rk_step(
             self.scipy_solver.fun,
             start,
