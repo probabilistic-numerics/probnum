@@ -1,14 +1,15 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.filtsmooth as pn_filtsmooth_zoo
 from probnum import filtsmooth
-
-from ..filtsmooth_testcases import car_tracking, ornstein_uhlenbeck
 
 # Problems
 
 
-@pytest.fixture(params=[car_tracking, ornstein_uhlenbeck])
+@pytest.fixture(
+    params=[pn_filtsmooth_zoo.car_tracking, pn_filtsmooth_zoo.ornstein_uhlenbeck]
+)
 def setup(request):
     """Filter and regression problem."""
     problem = request.param

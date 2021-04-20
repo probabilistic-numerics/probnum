@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.filtsmooth as pn_filtsmooth_zoo
 from probnum import filtsmooth, randvars
-
-from ..filtsmooth_testcases import pendulum
 
 
 def test_effective_number_of_events():
@@ -36,7 +35,7 @@ def num_particles():
 
 @pytest.fixture
 def problem():
-    return pendulum(delta_t=0.12)
+    return pn_filtsmooth_zoo.pendulum(delta_t=0.12)
 
 
 @pytest.fixture

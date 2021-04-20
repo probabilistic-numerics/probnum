@@ -1,16 +1,15 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.filtsmooth as pn_filtsmooth_zoo
 from probnum import filtsmooth, problems, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
-
-from ..filtsmooth_testcases import car_tracking
 
 
 @pytest.fixture
 def problem():
     """Car-tracking problem."""
-    return car_tracking()
+    return pn_filtsmooth_zoo.car_tracking()
 
 
 @pytest.fixture
