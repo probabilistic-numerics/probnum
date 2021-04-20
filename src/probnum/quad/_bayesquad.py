@@ -13,13 +13,15 @@ import numpy as np
 
 from probnum.kernels import Kernel
 from probnum.randvars import Normal
-from probnum.type import FloatArgType
+from probnum.type import FloatArgType, IntArgType
 
 from ._integration_measures import IntegrationMeasure, LebesgueMeasure
 from .bq_methods import BayesianQuadrature
 
 
 # pylint: disable=too-many-arguments
+# TODO: Do we really need input_dim as a separate argument? Both kernel and measure have
+# TODO: either input_dim or dim that we could straightforwardly extract.
 def bayesquad(
     fun: Callable,
     input_dim: int,
@@ -27,12 +29,13 @@ def bayesquad(
     domain: Optional[
         Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
     ] = None,
-    nevals: int = None,
     measure: Optional[IntegrationMeasure] = None,
     method: str = "vanilla",
     policy: str = "bmc",
-    batch_size: int = 1,
-    stopping_criteria="integral_variance",
+    max_nevals: Optional[IntArgType] = None,
+    var_tol: Optional[FloatArgType] = None,
+    rel_tol: Optional[FloatArgType] = None,
+    batch_size: Optional[IntArgType] = 1,
 ) -> Tuple[Normal, Dict]:
     r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
@@ -115,28 +118,22 @@ def bayesquad(
             "measure. The Lebesgue measure can only operate on a finite domain."
         )
 
-        # Integration measure
     if measure is None:
         measure = LebesgueMeasure(domain=domain, dim=input_dim)
 
-        # Choose Method
-        # bq_method = BayesianQuadrature.from_interface(
-        #    input_dim=input_dim, kernel=kernel, method=method, policy=policy
-        # )
     bq_method = BayesianQuadrature.from_interface(
         input_dim=input_dim,
         kernel=kernel,
+        measure=measure,
         method=method,
         policy=policy,
+        max_nevals=max_nevals,
+        var_tol=var_tol,
+        rel_tol=rel_tol,
         batch_size=batch_size,
-        stopping_criteria=stopping_criteria,
     )
 
-    if nevals is None:
-        nevals = input_dim * 25
-
     # Integrate
-    # integral, info = bq_method.integrate(fun=fun, measure=measure, nevals=nevals)
     integral_belief, bq_state = bq_method.integrate(fun=fun, measure=measure)
 
     return integral_belief, bq_state.info

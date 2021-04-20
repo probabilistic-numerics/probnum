@@ -14,27 +14,28 @@ class StoppingCriterion:
 
 
 class IntegralVariance(StoppingCriterion):
-    def __init__(self, variance_tol: FloatArgType = None):
-        self.variance_tol = variance_tol
+    def __init__(self, var_tol: FloatArgType = None):
+        self.var_tol = var_tol
         super().__init__(stopping_criterion=self.__call__)
 
     def __call__(self, integral_belief, bq_state) -> bool:
-        if self.variance_tol is None:
-            _variance_tol = 1e-3
-        else:
-            _variance_tol = self.variance_tol
-        return integral_belief.var <= _variance_tol
+        return integral_belief.var <= self.var_tol
 
 
-class MaxIterations(StoppingCriterion):
-    def __init__(self, maxiter: IntArgType = None):
-        self.maxiter = maxiter
+class RelativeError(StoppingCriterion):
+    def __init__(self, rel_tol: FloatArgType = None):
+        self.rel_tol = rel_tol
+        super().__init__(stopping_criterion=self.__call__())
+
+    def __call__(self, integral_belief, bq_state) -> bool:
+        # TODO: IMPLEMENT THIS! WILL REQUIRE ALSO THE PREVIOUS BQ_STATE!
+        return True
+
+
+class MaxNevals(StoppingCriterion):
+    def __init__(self, max_nevals: IntArgType = None):
+        self.max_nevals = max_nevals
         super().__init__(stopping_criterion=self.__call__)
 
     def __call__(self, integral_belief, bq_state) -> bool:
-        if self.maxiter is None:
-            _maxiter = bq_state.dim * 20
-        else:
-            _maxiter = self.maxiter
-        print(_maxiter, bq_state.info.iteration)
-        return bq_state.info.iteration >= _maxiter
+        return bq_state.info.nevals >= self.max_nevals

@@ -5,7 +5,9 @@ import numpy as np
 from probnum.quad._integration_measures import IntegrationMeasure
 
 
-def sample_from_measure(nevals: int, measure: IntegrationMeasure) -> np.ndarray:
+def sample_from_measure(
+    nevals: int, measure: IntegrationMeasure, **kwargs
+) -> np.ndarray:
     r"""Acquisition policy: Draw random samples from the integration measure.
 
     Parameters

@@ -1,5 +1,6 @@
 """Probabilistic numerical methods for solving integrals."""
 
+from functools import partial
 from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
@@ -7,10 +8,18 @@ from scipy.linalg import cho_factor, cho_solve
 
 from probnum.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
+from probnum.type import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure
 from ..kernel_embeddings import KernelEmbedding
 from ..policies import sample_from_measure
+from .belief_updates._belief_update import BQStandardBeliefUpdate
+from .bq_state import BQState
+from .stop_criteria._stopping_criterion import (
+    IntegralVariance,
+    MaxNevals,
+    RelativeError,
+)
 
 
 class BayesianQuadrature:
@@ -29,9 +38,15 @@ class BayesianQuadrature:
     """
 
     def __init__(
-        self, kernel: Kernel, policy: Callable, belief_update, stopping_criteria
+        self,
+        kernel: Kernel,
+        measure: IntegrationMeasure,
+        policy: Callable,
+        belief_update,
+        stopping_criteria,
     ) -> None:
         self.kernel = kernel
+        self.measure = measure
         self.policy = policy
         self.belief_update = belief_update
         self.stopping_criteria = stopping_criteria
@@ -41,34 +56,46 @@ class BayesianQuadrature:
         cls,
         input_dim: int,
         kernel: Optional[Kernel] = None,
+        measure: IntegrationMeasure = None,
         method: str = "vanilla",
         policy: str = "bmc",
-        batch_size: int = 1,
-        stopping_criteria: str = ["integral_variance"],
+        max_nevals: IntArgType = None,
+        var_tol: FloatArgType = None,
+        rel_tol: FloatArgType = None,
+        batch_size: IntArgType = 1,
     ) -> "BayesianQuadrature":
 
         # Select policy and belief update
+        # TODO: Rewrite this logic
         if method != "vanilla":
             raise NotImplementedError
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "bmc":
-            policy = partial(sample_from_measure, batch_size)
+            policy = partial(sample_from_measure, nevals=batch_size, measure=measure)
             belief_update = BQStandardBeliefUpdate()
         else:
             raise NotImplementedError(
                 "Policies other than random sampling are not available at the moment."
             )
 
-        # Select stopping criteria
+        # Set stopping criteria
         _stopping_criteria = []
-        if "integral_variance" in stopping_criteria:
-            _stopping_criteria.append(IntegralVariance())
-        if "maximum_iterations" in stopping_criteria:
-            _stopping_criteria.append(MaxIterations())
+        if max_nevals is not None:
+            _stopping_criteria.append(MaxNevals(max_nevals))
+        if var_tol is not None:
+            _stopping_criteria.append(IntegralVariance(var_tol))
+        if rel_tol is not None:
+            _stopping_criteria.append(RelativeError(rel_tol))
+
+        # If no stopping criteria are given, use some default values
+        if not _stopping_criteria:
+            _stopping_criteria.append(IntegralVariance(var_tol=1e-6))
+            _stopping_criteria.append(MaxNevals(max_nevals=input_dim * 25))
 
         return cls(
             kernel=kernel,
+            measure=measure,
             policy=policy,
             belief_update=belief_update,
             stopping_criteria=_stopping_criteria,
@@ -94,9 +121,10 @@ class BayesianQuadrature:
         if integral_belief is None:
             if bq_state is not None:
                 integral_belief = bq_state.integral_belief
-            integral_belief = Normal(
-                0.0, KernelEmbedding(self.kernel, measure).kernel_variance()
-            )
+            else:
+                integral_belief = Normal(
+                    0.0, KernelEmbedding(self.kernel, measure).kernel_variance()
+                )
 
         if bq_state is None:
             bq_state = BQState(
@@ -143,6 +171,7 @@ class BayesianQuadrature:
             )
 
             bq_state.info.iteration += 1
+            bq_state.info.nevals += bq_state.batch_size
 
             # Evaluate stopping criteria
             _has_converged = self.has_converged(

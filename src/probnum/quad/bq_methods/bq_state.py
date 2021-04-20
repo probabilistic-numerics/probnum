@@ -11,9 +11,14 @@ from probnum.quad.kernel_embeddings import KernelEmbedding
 
 class BQInfo:
     def __init__(
-        self, iteration: int = 0, has_converged: bool = False, stopping_criterion=None
+        self,
+        iteration: int = 0,
+        nevals: int = 0,
+        has_converged: bool = False,
+        stopping_criterion=None,
     ):
         self.iteration = iteration
+        self.nevals = nevals
         self.has_converged = has_converged
         self.stopping_criterion = stopping_criterion
 
@@ -24,6 +29,7 @@ class BQState:
         fun: Callable,
         measure: IntegrationMeasure,
         kernel: Kernel,
+        batch_size: int,
         integral_belief=None,
         info: BQInfo = None,
         nodes: np.ndarray = None,
@@ -35,6 +41,7 @@ class BQState:
         self.kernel_embedding = KernelEmbedding(kernel, measure)
         self.integral_belief = integral_belief
         self.dim = measure.dim
+        self.batch_size = batch_size
         if nodes is None:
             self.nodes = np.empty((0, self.dim))
             self.fun_evals = np.array([])
