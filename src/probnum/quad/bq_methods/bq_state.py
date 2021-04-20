@@ -1,6 +1,6 @@
 """State of a Bayesian quadrature method."""
 
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -29,9 +29,9 @@ class BQState:
         fun: Callable,
         measure: IntegrationMeasure,
         kernel: Kernel,
-        batch_size: int,
         integral_belief=None,
         info: BQInfo = None,
+        batch_size: Optional[int] = 1,
         nodes: np.ndarray = None,
         fun_evals=None,
     ):
@@ -48,7 +48,9 @@ class BQState:
         else:
             self.nodes = nodes
             self.fun_evals = fun_evals
-        self.info = BQInfo()
+        if info is None:
+            info = BQInfo()
+        self.info = info
 
     @classmethod
     def from_new_data(cls, new_nodes, new_fun_evals, prev_state):

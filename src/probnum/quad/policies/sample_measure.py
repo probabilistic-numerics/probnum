@@ -2,25 +2,8 @@
 
 import numpy as np
 
-from probnum.quad._integration_measures import IntegrationMeasure
+from probnum.quad.bq_methods.bq_state import BQState
 
 
-def sample_from_measure(
-    nevals: int, measure: IntegrationMeasure, **kwargs
-) -> np.ndarray:
-    r"""Acquisition policy: Draw random samples from the integration measure.
-
-    Parameters
-    ----------
-    nevals : int
-        Number of function evaluations.
-
-    measure :
-        The integration measure :math:`\mu`.
-
-    Returns
-    -------
-    x : np.ndarray
-        Nodes where the integrand will be evaluated.
-    """
-    return measure.sample(nevals).reshape(nevals, -1)
+def sample_from_measure(batch_size: int, bq_state: BQState, **kwargs) -> np.ndarray:
+    return bq_state.measure.sample(batch_size)

@@ -72,7 +72,7 @@ class BayesianQuadrature:
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "bmc":
-            policy = partial(sample_from_measure, nevals=batch_size, measure=measure)
+            policy = partial(sample_from_measure, batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
         else:
             raise NotImplementedError(
@@ -115,23 +115,37 @@ class BayesianQuadrature:
         return False
 
     def bq_iterator(
-        self, fun, measure, integral_belief: Optional = None, bq_state: Optional = None
+        self,
+        fun,
+        nodes: Optional[np.ndarray] = None,
+        fun_evals: Optional[np.ndarray] = None,
+        integral_belief: Optional = None,
+        bq_state: Optional = None,
     ):
-        # Setup
-        if integral_belief is None:
-            if bq_state is not None:
-                integral_belief = bq_state.integral_belief
-            else:
-                integral_belief = Normal(
-                    0.0, KernelEmbedding(self.kernel, measure).kernel_variance()
-                )
 
+        # Setup
         if bq_state is None:
+            if integral_belief is None:
+                integral_belief = Normal(
+                    0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
+                )
             bq_state = BQState(
                 fun=fun,
-                measure=measure,
+                measure=self.measure,
                 kernel=self.kernel,
                 integral_belief=integral_belief,
+            )
+
+        integral_belief = bq_state.integral_belief
+
+        if nodes is not None:
+            if fun_evals is None:
+                fun_evals = fun(nodes)
+            integral_belief, bq_state = self._update_belief_state(
+                bq_state=bq_state,
+                integral_belief=integral_belief,
+                new_nodes=nodes,
+                new_fun_evals=fun_evals,
             )
 
         # Evaluate stopping criteria for the initial belief
@@ -142,6 +156,9 @@ class BayesianQuadrature:
         yield integral_belief, None, None, bq_state
 
         while True:
+            # Have we already converged?
+            if _has_converged:
+                break
 
             # Select new nodes via policy
             new_nodes = self.policy(
@@ -152,26 +169,16 @@ class BayesianQuadrature:
             # Evaluate the integrand at new nodes
             new_fun_evals = bq_state.fun(new_nodes)
 
-            # Update BQ state
-            bq_state = BQState.from_new_data(
-                new_nodes=new_nodes,
-                new_fun_evals=new_fun_evals,
-                prev_state=bq_state,
-            )
-
-            # Update integral belief
-            integral_belief, bq_state = self.belief_update(
-                fun=fun,
-                measure=measure,
-                kernel=self.kernel,
+            integral_belief, bq_state = self._update_belief_state(
+                bq_state=bq_state,
                 integral_belief=integral_belief,
                 new_nodes=new_nodes,
                 new_fun_evals=new_fun_evals,
-                bq_state=bq_state,
             )
 
             bq_state.info.iteration += 1
             bq_state.info.nevals += bq_state.batch_size
+            # TODO: batch_size disappears in policy. It could e.g. be retrieved from the number of nodes that the policy returns
 
             # Evaluate stopping criteria
             _has_converged = self.has_converged(
@@ -181,85 +188,37 @@ class BayesianQuadrature:
 
             yield integral_belief, new_nodes, new_fun_evals, bq_state
 
-            if _has_converged:
-                break
-
-    def integrate(self, fun: Callable, measure: IntegrationMeasure):
+    def integrate(
+        self,
+        fun: Callable,
+        nodes: Optional[np.ndarray] = None,
+        fun_evals: Optional[np.ndarray] = None,
+    ):
 
         bq_state = None
-        for (integral_belief, _, _, bq_state) in self.bq_iterator(fun, measure):
+        for (integral_belief, _, _, bq_state) in self.bq_iterator(
+            fun, nodes, fun_evals
+        ):
             pass
 
         return integral_belief, bq_state
 
-    def integrate_OLD(
-        self, fun: Callable, measure: IntegrationMeasure, nevals: int
-    ) -> Tuple[Normal, Dict]:
-        r"""Integrate the function ``fun``.
+    def _update_belief_state(self, bq_state, integral_belief, new_nodes, new_fun_evals):
+        # Update BQ state
+        bq_state = BQState.from_new_data(
+            new_nodes=new_nodes,
+            new_fun_evals=new_fun_evals,
+            prev_state=bq_state,
+        )
 
-        Parameters
-        ----------
-        fun:
-            The integrand function :math:`f`.
-        measure :
-            An integration measure :math:`\mu`.
-        nevals :
-            Number of function evaluations.
-
-        Returns
-        -------
-        F :
-            The integral of ``fun`` against ``measure``.
-        info :
-            Information on the performance of the method.
-        """
-
-        # Acquisition policy
-        nodes = self.policy(nevals, measure)
-        fun_evals = fun(nodes)
-
-        # compute integral mean and variance
-        # Define kernel embedding
-        kernel_embedding = KernelEmbedding(self.kernel, measure)
-        gram = self.kernel(nodes, nodes)
-        kernel_mean = kernel_embedding.kernel_mean(nodes)
-        initial_error = kernel_embedding.kernel_variance()
-
-        weights = self._solve_gram(gram, kernel_mean)
-
-        integral_mean = np.squeeze(weights.T @ fun_evals)
-        integral_variance = initial_error - weights.T @ kernel_mean
-
-        integral = Normal(integral_mean, integral_variance)
-
-        # Information on result
-        info = {"model_fit_diagnostic": None}
-
-        return integral, info
-
-    # The following functions are here for the minimal version
-    # and shall be factored out once BQ is expanded.
-    # 1. acquisition policy
-    # 2. GP inference
-
-    @staticmethod
-    def _solve_gram(gram: np.ndarray, rhs: np.ndarray) -> np.ndarray:
-        """Solve the linear system of the form.
-
-        .. math:: Kx=b.
-
-        Parameters
-        ----------
-        gram :
-            *shape=(nevals, nevals)* -- Symmetric pos. def. kernel Gram matrix :math:`K`.
-        rhs :
-            *shape=(nevals, ...)* -- Right-hand-side :math:`b`, matrix or vector.
-
-        Returns
-        -------
-        x:
-            The solution to the linear system :math:`K x = b`.
-        """
-        jitter = 1.0e-6
-        chol_gram = cho_factor(gram + jitter * np.eye(gram.shape[0]))
-        return cho_solve(chol_gram, rhs)
+        # Update integral belief
+        integral_belief, bq_state = self.belief_update(
+            fun=bq_state.fun,
+            measure=self.measure,
+            kernel=self.kernel,
+            integral_belief=integral_belief,
+            new_nodes=new_nodes,
+            new_fun_evals=new_fun_evals,
+            bq_state=bq_state,
+        )
+        return integral_belief, bq_state

@@ -25,7 +25,7 @@ class IntegralVariance(StoppingCriterion):
 class RelativeError(StoppingCriterion):
     def __init__(self, rel_tol: FloatArgType = None):
         self.rel_tol = rel_tol
-        super().__init__(stopping_criterion=self.__call__())
+        super().__init__(stopping_criterion=self.__call__)
 
     def __call__(self, integral_belief, bq_state) -> bool:
         # TODO: IMPLEMENT THIS! WILL REQUIRE ALSO THE PREVIOUS BQ_STATE!
