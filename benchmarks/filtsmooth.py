@@ -143,8 +143,12 @@ class DenseGridOperations:
 
         self.locations = np.arange(0.0, info["tmax"], step=info["dt"])
         self.dense_locations = np.sort(
-            np.random.uniform(
-                low=0.0, high=1.2 * info["tmax"], size=int(1.2 * len(self.locations))
+            np.unique(
+                np.random.uniform(
+                    low=0.0,
+                    high=1.2 * info["tmax"],
+                    size=int(1.2 * len(self.locations)),
+                )
             )
         )
 
