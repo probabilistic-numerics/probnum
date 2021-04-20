@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 
 import numpy as np
 
-from probnum.kernels import ExpQuad, Kernel
+from probnum.kernels import ExpQuad, Kernel, Matern, ProductMatern
 from probnum.quad._integration_measures import (
     GaussianMeasure,
     IntegrationMeasure,
@@ -13,6 +13,7 @@ from probnum.quad._integration_measures import (
 from probnum.quad.kernel_embeddings import (
     _kernel_mean_expquad_gauss,
     _kernel_mean_expquad_lebesgue,
+    _kernel_mean_matern_lebesgue,
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
@@ -97,6 +98,10 @@ def _get_kernel_embedding(
         elif isinstance(measure, LebesgueMeasure):
             return _kernel_mean_expquad_lebesgue, _kernel_variance_expquad_lebesgue
         raise NotImplementedError
+    # Matern
+    if isinstance(kernel, (Matern, ProductMatern)):
+        if isinstance(measure, LebesgueMeasure):
+            return _kernel_mean_matern_lebesgue, None
 
     # other kernels
     raise NotImplementedError

@@ -5,6 +5,7 @@ from ._kernel import Kernel
 from ._linear import Linear
 from ._matern import Matern
 from ._polynomial import Polynomial
+from ._product_matern import ProductMatern
 from ._rational_quadratic import RatQuad
 from ._white_noise import WhiteNoise
 
@@ -17,6 +18,7 @@ __all__ = [
     "ExpQuad",
     "RatQuad",
     "Matern",
+    "ProductMatern",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -27,3 +29,4 @@ Polynomial.__module__ = "probnum.kernels"
 ExpQuad.__module__ = "probnum.kernels"
 RatQuad.__module__ = "probnum.kernels"
 Matern.__module__ = "probnum.kernels"
+ProductMatern.__module__ = "probnum.kernels"
