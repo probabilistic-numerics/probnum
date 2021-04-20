@@ -30,10 +30,11 @@ def bayesquad(
         Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
-    method: str = "vanilla",
     policy: str = "bmc",
     max_nevals: Optional[IntArgType] = None,
-    var_tol: Optional[FloatArgType] = None,
+    var_tol: Optional[
+        FloatArgType
+    ] = None,  # TODO: shall we set a default variance tolerance?
     rel_tol: Optional[FloatArgType] = None,
     batch_size: Optional[IntArgType] = 1,
 ) -> Tuple[Normal, Dict]:
@@ -60,24 +61,14 @@ def bayesquad(
     ----------
     fun :
         Function to be integrated.
-    input_dim:
+    input_dim :
         Input dimension of the integration problem
-    kernel:
+    kernel :
         the kernel used for the GP model
     domain :
         *shape=(dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
     measure:
         Integration measure, defaults to the Lebesgue measure.
-    nevals :
-        Number of function evaluations.
-    method :
-        Type of Bayesian quadrature to use. The available options are
-
-        ====================  ===========
-         vanilla              ``vanilla``
-         WSABI                ``wsabi``
-        ====================  ===========
-
     policy :
         Type of acquisition strategy to use. Options are
 
@@ -88,12 +79,24 @@ def bayesquad(
          Integral Variance       ``iv``
         =======================  =======
 
+    max_nevals :
+        Maximum number of function evaluations.
+    var_tol :
+        Tolerance on the variance of the integral.
+    rel_tol :
+        Tolerance on consecutive updates of the integral mean.
+
     Returns
     -------
     integral :
         The integral of ``func`` on the domain.
     info :
         Information on the performance of the method.
+
+    Raises
+    ------
+    ValueError
+        If neither a domain nor a measure are given.
 
     References
     ----------
@@ -125,7 +128,6 @@ def bayesquad(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
-        method=method,
         policy=policy,
         max_nevals=max_nevals,
         var_tol=var_tol,

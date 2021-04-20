@@ -1,7 +1,7 @@
 """Probabilistic numerical methods for solving integrals."""
 
 from functools import partial
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
@@ -13,13 +13,9 @@ from probnum.type import FloatArgType, IntArgType
 from .._integration_measures import IntegrationMeasure
 from ..kernel_embeddings import KernelEmbedding
 from ..policies import sample_from_measure
-from .belief_updates._belief_update import BQStandardBeliefUpdate
+from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
-from .stop_criteria._stopping_criterion import (
-    IntegralVariance,
-    MaxNevals,
-    RelativeError,
-)
+from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
 
 
 class BayesianQuadrature:
@@ -31,10 +27,16 @@ class BayesianQuadrature:
 
     Parameters
     ----------
-    kernel:
+    kernel :
         The kernel used for the GP model.
-    policy:
+    measure :
+        The integration measure.
+    policy :
         The policy for acquiring nodes for function evaluations.
+    belief_update :
+        The inference method.
+    stopping_criteria :
+        List of criteria that determine convergence.
     """
 
     def __init__(
@@ -42,8 +44,8 @@ class BayesianQuadrature:
         kernel: Kernel,
         measure: IntegrationMeasure,
         policy: Callable,
-        belief_update,
-        stopping_criteria,
+        belief_update: BQBeliefUpdate,
+        stopping_criteria: List[StoppingCriterion],
     ) -> None:
         self.kernel = kernel
         self.measure = measure
@@ -66,9 +68,6 @@ class BayesianQuadrature:
     ) -> "BayesianQuadrature":
 
         # Select policy and belief update
-        # TODO: Rewrite this logic
-        if method != "vanilla":
-            raise NotImplementedError
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "bmc":
@@ -101,7 +100,21 @@ class BayesianQuadrature:
             stopping_criteria=_stopping_criteria,
         )
 
-    def has_converged(self, integral_belief, bq_state):
+    def has_converged(self, integral_belief: Normal, bq_state: BQState) -> bool:
+        """Checks if the BQ method has converged.
+
+        Parameters
+        ----------
+        integral_belief:
+            Current belief about the integral.
+        bq_state:
+            State of the Bayesian quadrature methods. Contains all necessary information about the problem and the computation.
+
+        Returns
+        -------
+        has_converged:
+            Whether or not the solver has converged.
+        """
 
         if bq_state.info.has_converged:
             return True
@@ -119,9 +132,37 @@ class BayesianQuadrature:
         fun,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
-        integral_belief: Optional = None,
-        bq_state: Optional = None,
+        integral_belief: Optional[Normal] = None,
+        bq_state: Optional[BQState] = None,
     ):
+        """Generator that implements the iteration of the BQ method.
+
+        This function exposes the state of the BQ method one step at a time while running the loop.
+
+        Parameters
+        ----------
+        fun :
+            The integrand.
+        nodes :
+            Optional nodes available from the start.
+        fun_evals :
+            Optional function evaluations available from the start.
+        integral_belief:
+            Current belief about the integral.
+        bq_state:
+            State of the Bayesian quadrature methods. Contains all necessary information about the problem and the computation.
+
+        Returns
+        -------
+        integral_belief:
+            Updated belief about the integral.
+        new_nodes:
+            The new location(s) found during the iteration.
+        new_fun_evals:
+            The function evaluations at the new locations.
+        bq_state:
+            Updated state of the Bayesian quadrature methods.
+        """
 
         # Setup
         if bq_state is None:
@@ -194,6 +235,26 @@ class BayesianQuadrature:
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
     ):
+        """Integrate the function ``fun``.
+
+        This function calls the generator ``bq_iterator`` until the first stopping criterion is met.
+
+        Parameters
+        ----------
+        fun :
+            The integrand.
+        nodes :
+            Optional nodes available from the start.
+        fun_evals :
+            Optional function evaluations available from the start.
+
+        Returns
+        -------
+        integral_belief:
+            Posterior belief about the integral.
+        bq_state:
+            Final state of the Bayesian quadrature methods.
+        """
 
         bq_state = None
         for (integral_belief, _, _, bq_state) in self.bq_iterator(
