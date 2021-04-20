@@ -32,6 +32,8 @@ def setup(request):
 
 def test_rmse_filt_smooth(setup):
     """Assert that iterated smoothing beats smoothing."""
+
+    np.random.seed(12345)
     kalman, regression_problem = setup
     truth = regression_problem.solution
 

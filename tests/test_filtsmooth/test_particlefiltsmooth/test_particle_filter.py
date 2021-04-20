@@ -81,6 +81,7 @@ def pf_output(particle_filter, regression_problem):
 @all_importance_distributions
 @all_resampling_configurations
 def test_shape_pf_output(pf_output, regression_problem, num_particles):
+    np.random.seed(12345)
 
     states = pf_output.states.support
     weights = pf_output.states.probabilities
@@ -94,6 +95,8 @@ def test_shape_pf_output(pf_output, regression_problem, num_particles):
 def test_rmse_particlefilter(pf_output, regression_problem):
     """Assert that the RMSE of the mode of the posterior of the PF is a lot smaller than
     the RMSE of the data."""
+
+    np.random.seed(12345)
 
     true_states = regression_problem.solution
 
