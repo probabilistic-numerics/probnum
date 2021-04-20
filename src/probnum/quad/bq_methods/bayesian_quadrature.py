@@ -101,7 +101,7 @@ class BayesianQuadrature:
         )
         bq_state = BQState(
             measure=measure,
-            kernel=self.kernel,
+            kernel=kernel,
             batch_size=batch_size,
             integral_belief=integral_belief,
         )
@@ -145,8 +145,8 @@ class BayesianQuadrature:
 
             # Select new nodes via policy
             # TODO: policy should get batch size?
+            # TODO: policy can retrieve integral_belief from bq_state
             new_nodes = self.policy(
-                integral_belief=integral_belief,
                 bq_state=self.bq_state,
             )
 
