@@ -4,7 +4,7 @@ from probnum import _randomvariablelist, diffeq, randvars
 from probnum.diffeq.odefiltsmooth import kalman_odesolution
 
 
-class NoisyStepSolution(diffeq.ODESolution):
+class PerturbedStepSolution(diffeq.ODESolution):
     """Output of NoisyStepSolver.
 
     Parameters
@@ -20,10 +20,10 @@ class NoisyStepSolution(diffeq.ODESolution):
         Interpolates the perturbations.
     """
 
-    def __init__(self, projected_times, evaluated_times, states, interpolants):
+    def __init__(self, projected_times, evaluated_times, ys, interpolants):
         self.projected_times = projected_times
         self.evaluated_times = evaluated_times
-        self.states = states
+        self.ys = ys
         self.interpolants = interpolants
 
     def __call__(self, t):
@@ -53,38 +53,39 @@ class NoisyStepSolution(diffeq.ODESolution):
                 )
                 + self.projected_times[closest_left_t]
             )
+            print(closest_left_t)
+            print(new_pos)
             interpolant = self.interpolants[closest_left_t]
             # evalution at timepoint t, not the interpolants' timepoint
             interpolation = randvars.Constant(interpolant(new_pos))
         # for the last element (as there's no interpolant that can be evaluated)
         else:
-            interpolation = self.states[-1]
+            interpolation = self.ys[-1]
         return interpolation
 
     @property
     def t(self):
         """Time points of the discrete-time solution."""
-        return self.projected_times
+        return np.array(self.projected_times)
 
     @property
-    def y(self):
+    def states(self):
         """Discrete-time solution."""
-        return _randomvariablelist._RandomVariableList(self.states)
+        return _randomvariablelist._RandomVariableList(self.ys)
 
     def __len__(self) -> int:
         """Number of points in the discrete-time solution."""
-        return len(self.states)
+        return len(self.ys)
 
-    def __getitem__(self, idx: int) -> _randomvariablelist.RandomVariable:
+    def __getitem__(self, idx: int) -> randvars.RandomVariable:
         """Access the :math:`i`th element of the discrete-time solution."""
-        return self.states[idx]
+        return self.ys[idx]
 
     def sample(self, t=None, size=()):
         return "Sampling not possible"
 
     def find_closest_left_element(self, times, t_new):
-        """
-
+        """in a sorted array times find the element t that is the closest before t_new
         Parameters
         ----------
         times : array

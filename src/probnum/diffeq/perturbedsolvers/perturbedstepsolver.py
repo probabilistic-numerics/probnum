@@ -1,12 +1,13 @@
 """ODE solver as proposed by Abdulle and Garegnani."""
 import numpy as np
-from pn_ode_benchmarks import noisy_step_rules, noisy_step_solution, scipy_solution
+from pn_ode_benchmarks import noisy_step_rules, scipy_solution
 from scipy.integrate._ivp import rk
 
 from probnum import diffeq, randvars
+from probnum.diffeq.perturbedsolvers import perturbedstepsolution
 
 
-class NoisyStepSolver(diffeq.ODESolver):
+class PerturbedStepSolver(diffeq.ODESolver):
     """ODE Solver based on Scipy that introduces uncertainty by perturbing the time-
     steps."""
 
@@ -93,7 +94,7 @@ class NoisyStepSolver(diffeq.ODESolver):
         projected_times = self.projected_times
         # those are the timepoints on which we project the solution that we actually evaluated at evaluated_timepoints
         evaluated_times = self.evaluated_times
-        probnum_solution = noisy_step_solution.NoisyStepSolution(
+        probnum_solution = perturbedstepsolution.PerturbedStepSolution(
             projected_times, evaluated_times, rvs, interpolants
         )
         return probnum_solution
