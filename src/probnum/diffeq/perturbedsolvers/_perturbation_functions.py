@@ -11,7 +11,7 @@ import scipy
 def perturb_uniform(step, solver_order, noise_scale, random_state=None, size=()):
     """Perturb the step with uniformly distributed noise scaled by noise-scale [1]_.
 
-    proposed by Abdulle and Garegnani(2020)
+    Proposed by Abdulle and Garegnani(2020)
 
     Parameters
     ----------
