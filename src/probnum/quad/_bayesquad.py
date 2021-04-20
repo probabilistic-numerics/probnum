@@ -31,6 +31,8 @@ def bayesquad(
     measure: Optional[IntegrationMeasure] = None,
     method: str = "vanilla",
     policy: str = "bmc",
+    batch_size: int = 1,
+    stopping_criteria="integral_variance",
 ) -> Tuple[Normal, Dict]:
     r"""Infer the solution of the uni- or multivariate integral :math:`\int_\Omega f(x) d \mu(x)`
     on a hyper-rectangle :math:`\Omega = [a_1, b_1] \times \cdots \times [a_D, b_D]`.
@@ -113,19 +115,28 @@ def bayesquad(
             "measure. The Lebesgue measure can only operate on a finite domain."
         )
 
-    # Integration measure
+        # Integration measure
     if measure is None:
         measure = LebesgueMeasure(domain=domain, dim=input_dim)
 
-    # Choose Method
+        # Choose Method
+        # bq_method = BayesianQuadrature.from_interface(
+        #    input_dim=input_dim, kernel=kernel, method=method, policy=policy
+        # )
     bq_method = BayesianQuadrature.from_interface(
-        input_dim=input_dim, kernel=kernel, method=method, policy=policy
+        input_dim=input_dim,
+        kernel=kernel,
+        method=method,
+        policy=policy,
+        batch_size=batch_size,
+        stopping_criteria=stopping_criteria,
     )
 
     if nevals is None:
         nevals = input_dim * 25
 
     # Integrate
-    integral, info = bq_method.integrate(fun=fun, measure=measure, nevals=nevals)
+    # integral, info = bq_method.integrate(fun=fun, measure=measure, nevals=nevals)
+    integral_belief, bq_state = bq_method.integrate(fun=fun, measure=measure)
 
-    return integral, info
+    return integral_belief, bq_state.info
