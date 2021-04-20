@@ -26,7 +26,6 @@ class BQInfo:
 class BQState:
     def __init__(
         self,
-        fun: Callable,
         measure: IntegrationMeasure,
         kernel: Kernel,
         batch_size: int,
@@ -35,7 +34,6 @@ class BQState:
         nodes: np.ndarray = None,
         fun_evals=None,
     ):
-        self.fun = fun
         self.measure = measure
         self.kernel = kernel
         self.kernel_embedding = KernelEmbedding(kernel, measure)
@@ -53,7 +51,6 @@ class BQState:
     @classmethod
     def from_new_data(cls, new_nodes, new_fun_evals, prev_state):
         return cls(
-            fun=prev_state.fun,
             measure=prev_state.measure,
             kernel=prev_state.kernel,
             integral_belief=prev_state.integral_belief,

@@ -43,12 +43,14 @@ class BayesianQuadrature:
         measure: IntegrationMeasure,
         policy: Callable,
         belief_update,
+        bq_state,
         stopping_criteria,
     ) -> None:
         self.kernel = kernel
         self.measure = measure
         self.policy = policy
         self.belief_update = belief_update
+        self.bq_state = bq_state
         self.stopping_criteria = stopping_criteria
 
     @classmethod
@@ -93,93 +95,88 @@ class BayesianQuadrature:
             _stopping_criteria.append(IntegralVariance(var_tol=1e-6))
             _stopping_criteria.append(MaxNevals(max_nevals=input_dim * 25))
 
+        # Intitialize BQ state that carries all the information
+        integral_belief = Normal(
+            0.0, KernelEmbedding(kernel, measure).kernel_variance()
+        )
+        bq_state = BQState(
+            measure=measure,
+            kernel=self.kernel,
+            batch_size=batch_size,
+            integral_belief=integral_belief,
+        )
+
         return cls(
             kernel=kernel,
             measure=measure,
             policy=policy,
             belief_update=belief_update,
+            bq_state=bq_state,
             stopping_criteria=_stopping_criteria,
         )
 
-    def has_converged(self, integral_belief, bq_state):
+    def has_converged(self):
 
-        if bq_state.info.has_converged:
+        if self.bq_state.info.has_converged:
             return True
 
         for stopping_criterion in self.stopping_criteria:
-            _has_converged = stopping_criterion(integral_belief, bq_state)
+            _has_converged = stopping_criterion(
+                self.bq_state.integral_belief, self.bq_state
+            )
             if _has_converged:
-                bq_state.info.has_converged = True
-                bq_state.info.stopping_criterion = stopping_criterion.__class__.__name__
+                self.bq_state.info.has_converged = True
+                self.bq_state.info.stopping_criterion = (
+                    stopping_criterion.__class__.__name__
+                )
                 return True
         return False
 
-    def bq_iterator(
-        self, fun, measure, integral_belief: Optional = None, bq_state: Optional = None
-    ):
-        # Setup
-        if integral_belief is None:
-            if bq_state is not None:
-                integral_belief = bq_state.integral_belief
-            else:
-                integral_belief = Normal(
-                    0.0, KernelEmbedding(self.kernel, measure).kernel_variance()
-                )
-
-        if bq_state is None:
-            bq_state = BQState(
-                fun=fun,
-                measure=measure,
-                kernel=self.kernel,
-                integral_belief=integral_belief,
-            )
-
+    def bq_iterator(self, fun: Callable, measure: IntegrationMeasure):
         # Evaluate stopping criteria for the initial belief
+        integral_belief = self.bq_state.integral_belief
         _has_converged = self.has_converged(
-            integral_belief=integral_belief, bq_state=bq_state
+            integral_belief=integral_belief, bq_state=self.bq_state
         )
 
-        yield integral_belief, None, None, bq_state
+        yield integral_belief, None, None, self.bq_state
 
         while True:
 
             # Select new nodes via policy
+            # TODO: policy should get batch size?
             new_nodes = self.policy(
                 integral_belief=integral_belief,
-                bq_state=bq_state,
+                bq_state=self.bq_state,
             )
 
             # Evaluate the integrand at new nodes
-            new_fun_evals = bq_state.fun(new_nodes)
+            new_fun_evals = fun(new_nodes)
 
             # Update BQ state
-            bq_state = BQState.from_new_data(
+            self.bq_state = BQState.from_new_data(
                 new_nodes=new_nodes,
                 new_fun_evals=new_fun_evals,
-                prev_state=bq_state,
+                prev_state=self.bq_state,
             )
 
             # Update integral belief
-            integral_belief, bq_state = self.belief_update(
-                fun=fun,
+            integral_belief, self.bq_state = self.belief_update(
                 measure=measure,
                 kernel=self.kernel,
                 integral_belief=integral_belief,
                 new_nodes=new_nodes,
                 new_fun_evals=new_fun_evals,
-                bq_state=bq_state,
+                bq_state=self.bq_state,
             )
 
-            bq_state.info.iteration += 1
-            bq_state.info.nevals += bq_state.batch_size
+            self.bq_state.info.iteration += 1
+            self.bq_state.info.nevals += self.bq_state.batch_size
 
             # Evaluate stopping criteria
-            _has_converged = self.has_converged(
-                integral_belief=integral_belief,
-                bq_state=bq_state,
-            )
+            _has_converged = self.has_converged()
 
-            yield integral_belief, new_nodes, new_fun_evals, bq_state
+            yield integral_belief, new_nodes, new_fun_evals, self.bq_state
 
             if _has_converged:
                 break
