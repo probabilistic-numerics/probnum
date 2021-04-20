@@ -38,7 +38,7 @@ def _kernel_mean_matern_lebesgue(
             domain=(measure.domain[0][dim], measure.domain[1][dim]),
         )
 
-    return kernel_mean
+    return measure.normalization_constant * kernel_mean
 
 
 def _kernel_mean_matern_1d_lebesgue(x: np.ndarray, kernel: Matern, domain: Tuple):
