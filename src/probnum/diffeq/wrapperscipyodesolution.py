@@ -6,22 +6,24 @@ from probnum import _randomvariablelist, diffeq, randvars
 
 class WrapperScipyODESolution(diffeq.ODESolution):
     def __init__(self, scipy_solution, locations, states):
-        """Evaluate the time-continuous solution at time t.
-        Parameters
-        ----------
-        t : float
-            Location / time at which to evaluate the continuous ODE solution.
-        Returns
-        -------
-        :obj:`RandomVariable`
-            Probabilistic estimate of the continuous-time solution at time ``t``.
-        """
         self.scipy_solution = scipy_solution
         self.locations = locations
         self.states = _randomvariablelist._RandomVariableList(states)
 
     def __call__(self, t):
-        """"solution as _RandomVariableList."""
+        """Evaluate the time-continuous solution at time t.
+
+        Parameters
+        ----------
+        t : float
+        Location / time at which to evaluate the continuous ODE solution.
+        Returns
+        -------
+        :obj:`RandomVariable`
+        Estimate of the continuous-time solution at time ``t`` based on a fourth
+        order polynomial.
+        """
+
         states = np.array(self.scipy_solution(t)).T
         solution_as_rv = _randomvariablelist._RandomVariableList(
             list(map(lambda x: (randvars.Constant(x)), states))

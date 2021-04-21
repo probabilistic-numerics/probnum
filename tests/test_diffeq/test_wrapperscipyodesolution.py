@@ -1,69 +1,61 @@
+import pathlib
+
 import numpy as np
 import pytest
+import pytest_cases
 from scipy.integrate._ivp import rk
 
 from probnum import diffeq
 from probnum.diffeq import wrapperscipysolver
 
-
-@pytest.fixture
-def initrv():
-    return np.array([0.1])
-
-
-@pytest.fixture
-def ivp():
-    return diffeq.logistic([0.0, 10], initrv)
+case_modules = [
+    ".test_wrapperscipyodesolution_cases." + path.stem
+    for path in (
+        pathlib.Path(__file__).parent / "test_wrapperscipyodesolution_cases"
+    ).glob("*_cases.py")
+]
 
 
 @pytest.fixture
-def testsolver45(ivp, initrv):
-    testsolver = rk.RK45(ivp.rhs, ivp.t0, initrv, ivp.tmax)
-    return wrapperscipysolver.WrapperScipyRungeKutta(testsolver, order=4)
+def solutiontest():
+    ivp = diffeq.logistic([0.0, 10], np.array([1]))
+    scipysolver = rk.RK45(ivp.rhs, ivp.t0, np.array([1]), ivp.tmax)
+    testsolver = wrapperscipysolver.WrapperScipyRungeKutta(scipysolver, order=4)
+    return testsolver.solve(diffeq.ConstantSteps(0.5))
 
 
-@pytest.fixture
-def steprule():
-    return diffeq.ConstantSteps(0.1)
-
-
-@pytest.fixture
-def solutiontest(testsolver45, steprule):
-    return testsolver45.solve(steprule)
-
-
-@pytest.fixture
-def solutionscipy(solutiontest):
-    return solutiontest.scipy_solution
-
-
-def test_locations(solutionscipy, solutiontest):
-    scipy_t = solutionscipy.ts
-    probnum_t = solutiontest.locations
+@pytest_cases.parametrize_with_cases("testsolution,scipysolution", cases=case_modules)
+def test_locations(testsolution, scipysolution):
+    scipy_t = scipysolution.ts
+    probnum_t = testsolution.locations
     np.testing.assert_allclose(scipy_t, probnum_t, atol=1e-14, rtol=1e-14)
 
 
-def test_states(solutionscipy, solutiontest):
-    scipy_states = np.array(solutionscipy(solutionscipy.ts)).T
-    probnum_states = np.array(solutiontest.states.mean)
+@pytest_cases.parametrize_with_cases("testsolution,scipysolution", cases=case_modules)
+def test_states(testsolution, scipysolution):
+    scipy_states = np.array(scipysolution(scipysolution.ts)).T
+    probnum_states = np.array(testsolution.states.mean)
     np.testing.assert_allclose(scipy_states, probnum_states, atol=1e-14, rtol=1e-14)
 
 
-def test_call__(solutionscipy, solutiontest):
-    scipy_call = solutionscipy(solutionscipy.ts)
-    probnum_call = solutiontest(solutionscipy.ts).mean.reshape(scipy_call.shape)
+@pytest_cases.parametrize_with_cases("testsolution,scipysolution", cases=case_modules)
+def test_call__(testsolution, scipysolution):
+    scipy_call = scipysolution(scipysolution.ts)
+    probnum_call = testsolution(scipysolution.ts).mean.T
     np.testing.assert_allclose(scipy_call, probnum_call, atol=1e-14, rtol=1e-14)
 
 
-def test_len__(solutionscipy, solutiontest):
-    scipy_len = len(solutionscipy.ts)
-    probnum_len = len(solutiontest)
+@pytest_cases.parametrize_with_cases("testsolution,scipysolution", cases=case_modules)
+def test_len__(testsolution, scipysolution):
+    scipy_len = len(scipysolution.ts)
+    probnum_len = len(testsolution)
     np.testing.assert_allclose(scipy_len, probnum_len, atol=1e-14, rtol=1e-14)
 
 
-def test_getitem__(solutionscipy, solutiontest):
-    scipy_item = solutionscipy.interpolants[1](solutionscipy.ts[1])
-    probnum_item = solutiontest[1]
+@pytest_cases.parametrize_with_cases("testsolution,scipysolution", cases=case_modules)
+def test_getitem__(testsolution, scipysolution):
+    scipy_item = scipysolution.interpolants[1](scipysolution.ts[1])
+    probnum_item = testsolution[1]
     np.testing.assert_allclose(scipy_item, probnum_item, atol=1e-14, rtol=1e-14)
 
 

@@ -24,7 +24,7 @@ class WrapperScipyODESolver(diffeq.ODESolver):
 
     def initialise(self):
         """Returns t0 and y0 (for the solver, which might be different to ivp.y0) and
-        initializes the solver. Resets when solving the ODE multiple times.
+        initializes the solver. Resets the solver when solving the ODE multiple times.
 
         Returns
         -------
@@ -96,6 +96,7 @@ class WrapperScipyRungeKutta(WrapperScipyODESolver):
         error_estimation : float
             estimated error after having performed the step.
         """
+
         y = current.mean
         # set stepsize
         h_abs = stop - start
