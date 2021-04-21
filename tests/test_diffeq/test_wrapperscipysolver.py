@@ -6,8 +6,8 @@ import pytest_cases
 from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import diffeq, randvars
-from probnum.diffeq import odesolution, wrapperscipyodesolution, wrapperscipysolver
+from probnum import randvars
+from probnum.diffeq import odesolution, wrapperscipyodesolution
 
 case_modules = [
     ".test_wrapperscipysolver_cases." + path.stem
