@@ -7,8 +7,8 @@ from probnum import _randomvariablelist, diffeq, randvars
 class WrapperScipyODESolution(diffeq.ODESolution):
     def __init__(self, scipy_solution, locations, states):
         self.scipy_solution = scipy_solution
-        self.locations = locations
-        self.states = _randomvariablelist._RandomVariableList(states)
+        rv_states = _randomvariablelist._RandomVariableList(states)
+        super().__init__(locations, rv_states)
 
     def __call__(self, t):
         """Evaluate the time-continuous solution at time t.
