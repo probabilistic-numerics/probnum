@@ -26,7 +26,7 @@ class WrapperScipyODESolution(diffeq.ODESolution):
 
         states = np.array(self.scipy_solution(t)).T
         solution_as_rv = _randomvariablelist._RandomVariableList(
-            list(map(lambda x: (randvars.Constant(x)), states))
+            list(randvars.Constant(states))
         )
         return solution_as_rv
 
