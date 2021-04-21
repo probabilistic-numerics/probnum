@@ -23,8 +23,8 @@ class WrapperScipyODESolver(diffeq.ODESolver):
         super().__init__(ivp=ivp, order=order)
 
     def initialise(self):
-        """Returns t0 and y0 (for the solver, which might be different to ivp.y0) and
-        initializes the solver. Resets the solver when solving the ODE multiple times.
+        """Return t0 and y0 (for the solver, which might be different to ivp.y0) and
+        initialize the solver. Reset the solver when solving the ODE multiple times.
 
         Returns
         -------
@@ -43,11 +43,11 @@ class WrapperScipyODESolver(diffeq.ODESolver):
 
 
 class WrapperScipyRungeKutta(WrapperScipyODESolver):
-    """Wraps Runge-Kutta methods from Scipy, implements the stepfunction and dense
-    output."""
+    """Wrappper for Runge-Kutta methods from Scipy, implements the stepfunction and
+    dense output."""
 
     def dense_output(self):
-        """Returns the dense output after each step.
+        """Return the dense output after each step.
 
         Returns
         -------
@@ -62,7 +62,7 @@ class WrapperScipyRungeKutta(WrapperScipyODESolver):
         return sol
 
     def dense_output_rk(self):
-        """Computes the interpolant after each step with a quartic interpolation
+        """Compute the interpolant after each step with a quartic interpolation
         polynomial.
 
         Returns
