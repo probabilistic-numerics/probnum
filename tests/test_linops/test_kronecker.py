@@ -35,13 +35,6 @@ def test_symmetric_kronecker_symmetric_factors(A, B):
     np.testing.assert_array_equal(linop_dense, linop_transpose.todense())
 
 
-@pytest.mark.parametrize("n", [-1, 0, 1.1, np.inf, np.nan])
-def test_vec2svec_dimension(n):
-    """Check faulty dimension for Q."""
-    with pytest.raises(ValueError):
-        pn.linops.Svec(dim=n)
-
-
 @pytest.mark.parametrize("n", [1, 2, 3, 5, 12])
 def test_symmetrize(n):
     np.random.seed(42)

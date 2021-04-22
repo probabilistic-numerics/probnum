@@ -1,7 +1,7 @@
 """Finite-dimensional Linear Operators."""
 
 from ._diagonal import Diagonal, Identity, ScalarMult
-from ._kronecker import Kronecker, Svec, SymmetricKronecker, Symmetrize, Vec
+from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import LinearOperator, MatrixMult
 from ._utils import aslinop
 
@@ -16,8 +16,6 @@ __all__ = [
     "Kronecker",
     "SymmetricKronecker",
     "Symmetrize",
-    "Vec",
-    "Svec",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -30,9 +28,7 @@ ScalarMult.__module__ = "probnum.linops"
 Identity.__module__ = "probnum.linops"
 
 Kronecker.__module__ = "probnum.linops"
-Svec.__module__ = "probnum.linops"
 SymmetricKronecker.__module__ = "probnum.linops"
 Symmetrize.__module__ = "probnum.linops"
-Vec.__module__ = "probnum.linops"
 
 aslinop.__module__ = "probnum.linops"
