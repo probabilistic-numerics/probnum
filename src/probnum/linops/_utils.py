@@ -35,6 +35,11 @@ def aslinop(A) -> _linear_operator.LinearOperator:
         return A
     elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
         return _linear_operator.MatrixMult(A=A)
+    elif isinstance(A, scipy.sparse.linalg.LinearOperator):
+        return _linear_operator.LinearOperator(
+            A.shape,
+            A.dtype,
+            matmul=_linear_operator.LinearOperator.broadcast_matvec(A.matvec),
+        )
     else:
-        op = scipy.sparse.linalg.aslinearoperator(A)
-        return _linear_operator.LinearOperator(op)
+        raise TypeError(f"Cannot interpret {A} as a linear operator.")
