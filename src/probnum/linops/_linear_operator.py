@@ -628,6 +628,9 @@ class MatrixMult(LinearOperator):
         shape = A.shape
         dtype = A.dtype
 
+        if isinstance(A, np.matrix):
+            A = np.asarray(A)
+
         self.A = A
 
         if isinstance(self.A, scipy.sparse.spmatrix):

@@ -55,7 +55,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
             ),
             (
-                linops.MatrixMult(A=sparsemat.toarray()),
+                linops.MatrixMult(A=sparsemat.todense()),
                 linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
             ),
             (
