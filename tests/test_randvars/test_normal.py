@@ -55,7 +55,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
             ),
             (
-                linops.MatrixMult(A=sparsemat.todense()),
+                linops.MatrixMult(A=sparsemat.toarray()),
                 linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
             ),
             (
@@ -120,10 +120,11 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         """Create a rv with a normal distribution with linear operator mean and
         Kronecker product kernels."""
 
-        def mv(v):
+        @linops.LinearOperator.broadcast_matvec
+        def _matmul(v):
             return np.array([2 * v[0], 3 * v[1]])
 
-        A = linops.LinearOperator(shape=(2, 2), matvec=mv)
+        A = linops.LinearOperator(shape=(2, 2), dtype=np.double, matmul=_matmul)
         V = linops.Kronecker(A, A)
         randvars.Normal(mean=A, cov=V)
 

@@ -29,9 +29,9 @@ def aslinop(A) -> _linear_operator.LinearOperator:
     >>> from probnum.linops import aslinop
     >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
     >>> aslinop(M)
-    <2x3 MatrixMult with dtype=int32>
+    <MatrixMult with shape=(2, 3) and dtype=int32>
     """
-    if isinstance(A, scipy.sparse.linalg.LinearOperator):
+    if isinstance(A, _linear_operator.LinearOperator):
         return A
     elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
         return _linear_operator.MatrixMult(A=A)

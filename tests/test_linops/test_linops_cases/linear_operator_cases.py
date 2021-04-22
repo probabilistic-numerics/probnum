@@ -14,8 +14,12 @@ matrices = [
 
 @pytest.mark.parametrize("matrix", matrices)
 def case_matvec(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    @pn.linops.LinearOperator.broadcast_matvec
+    def _matmul(vec: np.ndarray):
+        return matrix @ vec
+
     linop = pn.linops.LinearOperator(
-        shape=matrix.shape, dtype=matrix.dtype, matvec=lambda x: matrix @ x
+        shape=matrix.shape, dtype=matrix.dtype, matmul=_matmul
     )
 
     return linop, matrix
@@ -24,8 +28,3 @@ def case_matvec(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarra
 @pytest.mark.parametrize("matrix", matrices)
 def case_matrix(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
     return pn.linops.MatrixMult(matrix), matrix
-
-
-@pytest.mark.parametrize("n", [3, 4, 8, 12, 15])
-def case_identity(n: int) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
-    return pn.linops.Identity(shape=n), np.eye(n)

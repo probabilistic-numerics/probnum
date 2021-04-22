@@ -47,7 +47,7 @@ def suitesparse_matrix(
     --------
     >>> ssmat = suitesparse_matrix(name="ash85", group="HB")
     >>> ssmat
-    <85x85 SuiteSparseMatrix with dtype=float64>
+    <SuiteSparseMatrix with shape=(85, 85) and dtype=float64>
     >>> ssmat.trace()
     85.0
     """

@@ -344,7 +344,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
         # Select submatrix from covariance matrix
         cov = self.dense_cov.reshape(self.shape + self.shape)
-        cov = cov[key][tuple([slice(None)] * mean.ndim) + key]
+        cov = cov[key][(...,) + key]
 
         if mean.ndim > 0:
             cov = cov.reshape(mean.size, mean.size)

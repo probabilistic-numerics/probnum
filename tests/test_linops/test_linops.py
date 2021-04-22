@@ -82,11 +82,6 @@ def test_matmat_shape_mismatch(
     with pytest.raises(excinfo.type):
         linop @ mat  # pylint: disable=pointless-statement
 
-    mat = np.zeros((1, linop.shape[1], 10))
-
-    with pytest.raises(ValueError):
-        linop @ mat  # pylint: disable=pointless-statement
-
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_rmatvec(
@@ -96,8 +91,8 @@ def test_rmatvec(
 ):
     vec = random_state.normal(size=linop.shape[0])
 
-    linop_matvec = np.conj(vec) @ linop
-    matrix_matvec = np.conj(vec) @ matrix
+    linop_matvec = vec @ linop
+    matrix_matvec = vec @ matrix
 
     assert linop_matvec.ndim == 1
     assert linop_matvec.shape == matrix_matvec.shape
@@ -139,11 +134,6 @@ def test_rmatmat_shape_mismatch(
     with pytest.raises(excinfo.type):
         mat @ linop  # pylint: disable=pointless-statement
 
-    mat = np.zeros((1, 10, linop.shape[0]))
-
-    with pytest.raises(ValueError):
-        mat[None, :, :] @ linop  # pylint: disable=pointless-statement
-
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_todense(linop: pn.linops.LinearOperator, matrix: np.ndarray):
@@ -184,7 +174,7 @@ def test_eigvals(linop: pn.linops.LinearOperator, matrix: np.ndarray):
             linop.eigvals()
 
 
-@pytest.mark.parametrize("p", [None, 2])
+@pytest.mark.parametrize("p", [None, 2, -2])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_cond(linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int]):
     linop_cond = linop.cond(p=p)
@@ -195,6 +185,25 @@ def test_cond(linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None
     assert linop_cond.dtype == matrix_cond.dtype
 
     np.testing.assert_allclose(linop_cond, matrix_cond)
+
+
+@pytest.mark.parametrize("p", [1, np.inf, "fro", -1, -np.inf])
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_cond_square(
+    linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int]
+):
+    if linop.is_square:
+        linop_cond = linop.cond(p=p)
+        matrix_cond = np.linalg.cond(matrix, p=p)
+
+        assert isinstance(linop_cond, np.number)
+        assert linop_cond.shape == ()
+        assert linop_cond.dtype == matrix_cond.dtype
+
+        np.testing.assert_allclose(linop_cond, matrix_cond)
+    else:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.cond(p=p)
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
