@@ -1099,11 +1099,13 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         Wb = Ainv0_covfactor @ self.b_mean
         bWb = np.squeeze(Wb.T @ self.b_mean)
 
-        def _mv(x):
+        def _matmul(x):
             return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
 
         self.x_cov = linops.LinearOperator(
-            shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv
+            shape=(self.n, self.n),
+            dtype=np.result_type(bWb.dtype, Ainv0_covfactor.dtype, Wb.dtype),
+            matmul=_matmul,
         )
         if isinstance(x0, np.ndarray):
             self.x_mean = x0

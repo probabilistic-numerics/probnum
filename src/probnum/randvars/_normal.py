@@ -589,7 +589,6 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
                 B + damping_factor * np.eye(B.shape[0], dtype=self.dtype),
                 lower=True,
             ),
-            dtype=self.dtype,
         )
 
     # Matrixvariate Gaussian with symmetric Kronecker covariance from identical
