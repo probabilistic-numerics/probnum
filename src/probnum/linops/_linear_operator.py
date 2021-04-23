@@ -1,6 +1,6 @@
 """Finite-dimensional linear operators."""
 
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse.linalg
@@ -120,12 +120,12 @@ class LinearOperator:
         logabsdet: Optional[Callable[[], np.flexible]] = None,
         trace: Optional[Callable[[], np.number]] = None,
     ):
-        self.shape = probnum.utils.as_shape(shape, ndim=2)
+        self._shape = probnum.utils.as_shape(shape, ndim=2)
 
         # DType
-        self.dtype = np.dtype(dtype)
+        self._dtype = np.dtype(dtype)
 
-        if not np.issubdtype(self.dtype, np.number):
+        if not np.issubdtype(self._dtype, np.number):
             raise TypeError("The dtype of a linear operator must be numeric.")
 
         # Matrix multiplication (self @ x)
@@ -150,7 +150,7 @@ class LinearOperator:
             self.__todense = todense
         else:
             self.__todense = lambda: self @ np.eye(
-                self.shape[1], dtype=self.dtype, order="F"
+                self.shape[1], dtype=self._dtype, order="F"
             )
 
         # Transpose and Adjoint
@@ -158,7 +158,7 @@ class LinearOperator:
             self.__transpose = transpose
         elif adjoint is not None or hmatmul is not None:
             # Fast adjoint operator is available
-            if np.issubdtype(self.dtype, np.complexfloating):
+            if np.issubdtype(self._dtype, np.complexfloating):
                 self.__transpose = lambda: _TransposedLinearOperator(
                     self, matmul=lambda x: np.conj(self.H @ np.conj(x))
                 )
@@ -180,7 +180,7 @@ class LinearOperator:
             self.__adjoint = lambda: _AdjointLinearOperator(self, matmul=hmatmul)
         elif transpose is not None or rmatmul is not None:
             # Fast transpose operator is available
-            if np.issubdtype(self.dtype, np.complexfloating):
+            if np.issubdtype(self._dtype, np.complexfloating):
                 self.__adjoint = lambda: _AdjointLinearOperator(
                     self, matmul=lambda x: np.conj(self.T @ np.conj(x))
                 )
@@ -236,6 +236,14 @@ class LinearOperator:
         self.__det_cache = None
         self.__logabsdet_cache = None
         self.__trace_cache = None
+
+    @property
+    def shape(self) -> Tuple[int, int]:
+        return self._shape
+
+    @property
+    def dtype(self) -> np.dtype:
+        return self._dtype
 
     @property
     def is_square(self) -> bool:
