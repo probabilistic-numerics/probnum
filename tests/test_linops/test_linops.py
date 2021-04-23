@@ -180,7 +180,7 @@ def test_cond(linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None
     linop_cond = linop.cond(p=p)
     matrix_cond = np.linalg.cond(matrix, p=p)
 
-    assert isinstance(linop_cond, np.number)
+    assert isinstance(linop_cond, np.inexact)
     assert linop_cond.shape == ()
     assert linop_cond.dtype == matrix_cond.dtype
 
@@ -196,7 +196,7 @@ def test_cond_square(
         linop_cond = linop.cond(p=p)
         matrix_cond = np.linalg.cond(matrix, p=p)
 
-        assert isinstance(linop_cond, np.number)
+        assert isinstance(linop_cond, np.inexact)
         assert linop_cond.shape == ()
         assert linop_cond.dtype == matrix_cond.dtype
 
@@ -212,7 +212,7 @@ def test_det(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         linop_det = linop.det()
         matrix_det = np.linalg.det(matrix)
 
-        assert isinstance(linop_det, np.number)
+        assert isinstance(linop_det, np.inexact)
         assert linop_det.shape == ()
         assert linop_det.dtype == matrix_det.dtype
 

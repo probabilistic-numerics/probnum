@@ -111,7 +111,7 @@ class Diagonal(_linear_operator.LinearOperator):
                 eigvals = lambda: np.full(
                     shape[0], self._scalar, dtype=self._inexact_dtype
                 )
-                det = lambda: (self._scalar ** shape[0]).astype(self._inexact_dtype)
+                det = lambda: self._scalar.astype(self._inexact_dtype) ** shape[0]
                 logabsdet = lambda: shape[0] * np.log(np.abs(self._scalar))
                 trace = lambda: self.shape[0] * self._scalar
 
