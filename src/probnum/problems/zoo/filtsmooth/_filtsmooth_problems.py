@@ -195,7 +195,7 @@ def ornstein_uhlenbeck(
 
 def pendulum(
     measurement_variance: FloatArgType = 0.1024,
-    delta_t: FloatArgType = 0.0075,
+    step: FloatArgType = 0.0075,
     t_max: FloatArgType = 4.0,
     initrv: Optional[randvars.RandomVariable] = None,
 ):
@@ -226,7 +226,7 @@ def pendulum(
     ----------
     measurement_variance
         Marginal measurement variance.
-    delta_t
+    step
         The step size of the discretized time grid on which the model is considered.
     t_max
         The time limit of the grid.
@@ -257,14 +257,14 @@ def pendulum(
     # Define non-linear dynamics and measurements
     def f(t, x):
         x1, x2 = x
-        y1 = x1 + x2 * delta_t
-        y2 = x2 - g * np.sin(x1) * delta_t
+        y1 = x1 + x2 * step
+        y2 = x2 - g * np.sin(x1) * step
         return np.array([y1, y2])
 
     def df(t, x):
         x1, x2 = x
-        y1 = [1, delta_t]
-        y2 = [-g * np.cos(x1) * delta_t, 1]
+        y1 = [1, step]
+        y2 = [-g * np.cos(x1) * step, 1]
         return np.array([y1, y2])
 
     def h(t, x):
@@ -276,9 +276,9 @@ def pendulum(
         return np.array([[np.cos(x1), 0.0]])
 
     process_noise_cov = (
-        np.diag(np.array([delta_t ** 3 / 3, delta_t]))
-        + np.diag(np.array([delta_t ** 2 / 2]), 1)
-        + np.diag(np.array([delta_t ** 2 / 2]), -1)
+        np.diag(np.array([step ** 3 / 3, step]))
+        + np.diag(np.array([step ** 2 / 2]), 1)
+        + np.diag(np.array([step ** 2 / 2]), -1)
     )
 
     dynamics_model = statespace.DiscreteGaussian(
@@ -301,7 +301,7 @@ def pendulum(
         initrv = randvars.Normal(np.ones(2), measurement_variance * np.eye(2))
 
     # Generate data
-    times = np.arange(0.0, t_max, step=delta_t)
+    times = np.arange(0.0, t_max, step=step)
     states, obs = statespace.generate_samples(
         dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=times
     )
