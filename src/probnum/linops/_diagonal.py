@@ -154,6 +154,12 @@ class Diagonal(_linear_operator.LinearOperator):
 
         return self._diagonal
 
+    def astype(self, dtype: DTypeArgType) -> "Diagonal":
+        if self._scalar is not None:
+            return Diagonal(diagonal=self._scalar, shape=self.shape, dtype=dtype)
+        else:
+            return Diagonal(diagonal=self._diagonal, dtype=dtype)
+
     def _inverse_anisotropic(self) -> "Diagonal":
         if self.rank() != self.shape[0]:
             raise np.linalg.LinAlgError("The operator is singular.")

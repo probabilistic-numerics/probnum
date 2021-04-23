@@ -272,6 +272,14 @@ class LinearOperator:
         else:
             raise ValueError("The operand must be at least one dimensional.")
 
+    def astype(self, dtype: DTypeArgType) -> "LinearOperator":
+        dtype = np.dtype(dtype)
+
+        if self.dtype == dtype:
+            return self
+        else:
+            return _TypeCastLinearOperator(self, dtype)
+
     def todense(self, cache: bool = True) -> np.ndarray:
         """Dense matrix representation of the linear operator.
 
@@ -676,6 +684,9 @@ class _TransposedLinearOperator(LinearOperator):
             transpose=lambda: self._linop,
         )
 
+    def astype(self, dtype: DTypeArgType) -> "_TransposedLinearOperator":
+        return self._linop.astype(dtype).T
+
     def inv(self):
         return self._linop.inv().T
 
@@ -701,6 +712,9 @@ class _AdjointLinearOperator(LinearOperator):
             adjoint=lambda: self._linop,
         )
 
+    def astype(self, dtype: DTypeArgType) -> "_AdjointLinearOperator":
+        return self._linop.astype(dtype).H
+
 
 class _InverseLinearOperator(LinearOperator):
     def __init__(self, linop: LinearOperator):
@@ -709,18 +723,46 @@ class _InverseLinearOperator(LinearOperator):
 
         self._linop = linop
 
-        if np.issubdtype(self._linop.dtype, np.inexact):
-            dtype = self._linop.dtype
-        else:
-            dtype = np.double
-
         super().__init__(
             shape=self._linop.shape,
-            dtype=dtype,
+            dtype=self._linop._inexact_dtype,
             matmul=lambda x: self.todense() @ x,
             todense=lambda: np.linalg.inv(self._linop.todense(cache=False)),
             inverse=lambda: self._linop,
         )
+
+
+class _TypeCastLinearOperator(LinearOperator):
+    def __init__(self, linop: LinearOperator, dtype: DTypeArgType):
+        self._linop = linop
+
+        super().__init__(
+            self._linop.shape,
+            dtype,
+            matmul=lambda x: (self._linop @ x).astype(dtype, copy=False),
+            rmatmul=lambda x: (x @ self._linop).astype(dtype, copy=False),
+            apply=lambda x, axis: self._linop(x, axis=axis).astype(dtype, copy=False),
+            todense=lambda: self._linop.todense(cache=False).astype(dtype, copy=False),
+            transpose=lambda: self._linop.T.astype(dtype),
+            adjoint=lambda: self._linop.T.astype(dtype),
+            inverse=lambda: self._linop.inv().astype(self._inexact_dtype),
+            rank=self._linop.rank,
+            eigvals=lambda: self._linop.eigvals().astype(self._inexact_dtype),
+            cond=lambda p: self._linop.cond(p=p).astype(self._inexact_dtype),
+            det=lambda: self._linop.det().astype(self._inexact_dtype),
+            logabsdet=lambda: self._linop.logabsdet().astype(self._inexact_dtype),
+            trace=lambda: self._linop.trace().astype(dtype),
+        )
+
+    def astype(self, dtype: DTypeArgType) -> LinearOperator:
+        dtype = np.dtype(dtype)
+
+        if dtype == self.dtype:
+            return self
+        elif dtype == self._linop.dtype:
+            return self._linop
+        else:
+            return super().astype(dtype)
 
 
 class MatrixMult(LinearOperator):
@@ -778,6 +820,9 @@ class MatrixMult(LinearOperator):
             adjoint=adjoint,
             inverse=inverse,
         )
+
+    def astype(self, dtype: DTypeArgType) -> "MatrixMult":
+        return MatrixMult(self.A.astype(dtype))
 
     # Arithmetic operations
     # TODO: perform arithmetic operations between MatrixMult operators explicitly

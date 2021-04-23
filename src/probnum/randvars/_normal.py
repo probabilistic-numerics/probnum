@@ -112,23 +112,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         if not isinstance(mean, linops.LinearOperator):
             mean = mean.astype(dtype, order="C", casting="safe", subok=True, copy=False)
         else:
-            # TODO: Implement casting for linear operators
-            if mean.dtype != dtype:
-                raise ValueError(
-                    f"The mean must have type `{dtype.name}` not `{mean.dtype.name}`, "
-                    f"but a linear operator does not implement type casting."
-                )
+            mean = mean.astype(dtype)
 
         if not isinstance(cov, linops.LinearOperator):
             cov = cov.astype(dtype, order="C", casting="safe", subok=True, copy=False)
         else:
-            # TODO: Implement casting for linear operators
-            if cov.dtype != dtype:
-                raise ValueError(
-                    f"The covariance must have type `{dtype.name}` not "
-                    f"`{cov.dtype.name}`, but a linear operator does not implement "
-                    f"type casting."
-                )
+            cov = cov.astype(dtype)
 
         # Shape checking
         if len(mean.shape) not in [0, 1, 2]:

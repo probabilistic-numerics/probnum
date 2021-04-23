@@ -121,11 +121,65 @@ class Kronecker(_linear_operator.LinearOperator):
             trace=trace,
         )
 
+    def astype(self, dtype: DTypeArgType) -> "Kronecker":
+        return Kronecker(self.A.astype(dtype), self.B.astype(dtype))
+
     def _cond(self, p) -> np.inexact:
         if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
+
+
+def _kronecker_matmul(
+    A: _linear_operator.LinearOperator,
+    B: _linear_operator.LinearOperator,
+    x: _linear_operator.OperandType,
+):
+    """Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the
+    row-wise vectorization operator.
+    """
+    # vec(X) -> X, i.e. reshape into stack of matrices
+    y = np.swapaxes(x, -2, -1)
+
+    if y.flags.c_contiguous:
+        y = y.copy(order="C")
+
+    y = y.reshape(y.shape[:-1] + (A.shape[1], B.shape[1]))
+
+    # A @ X
+    y = A @ y
+
+    # (A @ X) @ B.T
+    y = B(y, axis=-1)
+
+    # vec(A @ X @ B.T), i.e. revert to stack of vectorized matrices
+    y = y.reshape(y.shape[:-2] + (-1,))
+    y = np.swapaxes(y, -1, -2)
+
+    return y
+
+
+def _kronecker_rmatmul(
+    A: _linear_operator.LinearOperator,
+    B: _linear_operator.LinearOperator,
+    x: _linear_operator.OperandType,
+) -> _linear_operator.OperandType:
+    # Reshape into stack of matrices
+    y = x
+
+    if y.flags.c_contiguous:
+        y = y.copy(order="C")
+
+    y = y.reshape(y.shape[:-1] + (A.shape[0], B.shape[0]))
+
+    # ((A.T) @ X) @ (B.T).T
+    y = (A.T @ y) @ B
+
+    # Revert to stack of vectorized matrices
+    y = y.reshape(y.shape[:-2] + (-1,))
+
+    return y
 
 
 class SymmetricKronecker(_linear_operator.LinearOperator):
@@ -227,6 +281,16 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             ),
         )
 
+    @property
+    def identical_factors(self) -> bool:
+        return self._ABequal
+
+    def astype(self, dtype: DTypeArgType) -> "SymmetricKronecker":
+        if self._ABequal:
+            return SymmetricKronecker(self.A.astype(dtype))
+        else:
+            return SymmetricKronecker(self.A.astype(dtype), self.B.astype(dtype))
+
     def _matmul_different_factors(
         self, x: _linear_operator.OperandType
     ) -> _linear_operator.OperandType:
@@ -304,54 +368,3 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
-
-
-def _kronecker_matmul(
-    A: _linear_operator.LinearOperator,
-    B: _linear_operator.LinearOperator,
-    x: _linear_operator.OperandType,
-):
-    """Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the
-    row-wise vectorization operator.
-    """
-    # vec(X) -> X, i.e. reshape into stack of matrices
-    y = np.swapaxes(x, -2, -1)
-
-    if y.flags.c_contiguous:
-        y = y.copy(order="C")
-
-    y = y.reshape(y.shape[:-1] + (A.shape[1], B.shape[1]))
-
-    # A @ X
-    y = A @ y
-
-    # (A @ X) @ B.T
-    y = B(y, axis=-1)
-
-    # vec(A @ X @ B.T), i.e. revert to stack of vectorized matrices
-    y = y.reshape(y.shape[:-2] + (-1,))
-    y = np.swapaxes(y, -1, -2)
-
-    return y
-
-
-def _kronecker_rmatmul(
-    A: _linear_operator.LinearOperator,
-    B: _linear_operator.LinearOperator,
-    x: _linear_operator.OperandType,
-) -> _linear_operator.OperandType:
-    # Reshape into stack of matrices
-    y = x
-
-    if y.flags.c_contiguous:
-        y = y.copy(order="C")
-
-    y = y.reshape(y.shape[:-1] + (A.shape[0], B.shape[0]))
-
-    # ((A.T) @ X) @ (B.T).T
-    y = (A.T @ y) @ B
-
-    # Revert to stack of vectorized matrices
-    y = y.reshape(y.shape[:-2] + (-1,))
-
-    return y
