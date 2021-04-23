@@ -90,7 +90,9 @@ class Kronecker(_linear_operator.LinearOperator):
             ),
             matmul=lambda x: _kronecker_matmul(self.A, self.B, x),
             rmatmul=lambda x: _kronecker_rmatmul(self.A, self.B, x),
-            todense=lambda: np.kron(self.A.todense(), self.B.todense()),
+            todense=lambda: np.kron(
+                self.A.todense(cache=False), self.B.todense(cache=False)
+            ),
             # (A (x) B)^T = A^T (x) B^T
             transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
             # (A (x) B)^H = A^H (x) B^H
@@ -277,13 +279,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     def _todense_identical_factors(self) -> np.ndarray:
         """Dense representation of the symmetric Kronecker product."""
         # 1/2 (A (x) B + B (x) A)
-        A_dense = self.A.todense()
+        A_dense = self.A.todense(cache=False)
         return np.kron(A_dense, A_dense)
 
     def _todense_different_factors(self) -> np.ndarray:
         # 1/2 (A (x) B + B (x) A)
-        A_dense = self.A.todense()
-        B_dense = self.B.todense()
+        A_dense = self.A.todense(cache=False)
+        B_dense = self.B.todense(cache=False)
         return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
 
     def trace(self):

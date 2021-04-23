@@ -153,8 +153,6 @@ class LinearOperator:
                 self.shape[1], dtype=self.dtype, order="F"
             )
 
-        self._dense = None
-
         # Transpose and Adjoint
         if transpose is not None:
             self.__transpose = transpose
@@ -229,6 +227,16 @@ class LinearOperator:
         else:
             self.__trace = self._trace_fallback
 
+        # Caches
+        self.__todense_cache = None
+
+        self.__rank_cache = None
+        self.__eigvals_cache = None
+        self.__cond_cache = {}
+        self.__det_cache = None
+        self.__logabsdet_cache = None
+        self.__trace_cache = None
+
     @property
     def is_square(self) -> bool:
         return self.shape[0] == self.shape[1]
@@ -264,7 +272,7 @@ class LinearOperator:
         else:
             raise ValueError("The operand must be at least one dimensional.")
 
-    def todense(self) -> np.ndarray:
+    def todense(self, cache: bool = True) -> np.ndarray:
         """Dense matrix representation of the linear operator.
 
         This method can be computationally very costly depending on the shape of the
@@ -275,10 +283,13 @@ class LinearOperator:
         matrix : np.ndarray
             Matrix representation of the linear operator.
         """
-        if self._dense is None:
-            self._dense = self.__todense()
+        if self.__todense_cache is None:
+            if not cache:
+                return self.__todense()
 
-        return self._dense
+            self.__todense_cache = self.__todense()
+
+        return self.__todense_cache
 
     ####################################################################################
     # Derived Quantities
@@ -286,18 +297,25 @@ class LinearOperator:
 
     def rank(self) -> np.intp:
         """Rank of the linear operator."""
-        return self.__rank()
+        if self.__rank_cache is None:
+            self.__rank_cache = self.__rank()
+
+        return self.__rank_cache
 
     def eigvals(self) -> np.ndarray:
         """Eigenvalue spectrum of the linear operator."""
-        if not self.is_square:
-            raise np.linalg.LinAlgError(
-                "Eigenvalues are only defined on square operators"
-            )
+        if self.__eigvals_cache is None:
+            if not self.is_square:
+                raise np.linalg.LinAlgError(
+                    "Eigenvalues are only defined on square operators"
+                )
 
-        return self.__eigvals()
+            self.__eigvals_cache = self.__eigvals()
+            self.__eigvals_cache.setflags(write=False)
 
-    def cond(self, p=None) -> np.number:
+        return self.__eigvals_cache
+
+    def cond(self, p=None) -> np.inexact:
         """Compute the condition number of the linear operator.
 
         The condition number of the linear operator with respect to the ``p`` norm. It
@@ -324,25 +342,34 @@ class LinearOperator:
         cond : {float, inf}
             The condition number of the linear operator. May be infinite.
         """
-        return self.__cond(p)
+        if p not in self.__cond_cache:
+            self.__cond_cache[p] = self.__cond(p)
 
-    def det(self) -> np.number:
+        return self.__cond_cache[p]
+
+    def det(self) -> np.inexact:
         """Determinant of the linear operator."""
-        if not self.is_square:
-            raise np.linalg.LinAlgError(
-                "The determinant is only defined on square operators"
-            )
+        if self.__det_cache is None:
+            if not self.is_square:
+                raise np.linalg.LinAlgError(
+                    "The determinant is only defined on square operators"
+                )
 
-        return self.__det()
+            self.__det_cache = self.__det()
+
+        return self.__det_cache
 
     def logabsdet(self) -> np.inexact:
         """Log absolute determinant of the linear operator."""
-        if not self.is_square:
-            raise np.linalg.LinAlgError(
-                "The determinant is only defined on square operators"
-            )
+        if self.__logabsdet_cache is None:
+            if not self.is_square:
+                raise np.linalg.LinAlgError(
+                    "The determinant is only defined on square operators"
+                )
 
-        return self.__logabsdet()
+            self.__logabsdet_cache = self.__logabsdet()
+
+        return self.__logabsdet_cache
 
     def trace(self) -> np.number:
         """Trace of the linear operator.
@@ -359,12 +386,15 @@ class LinearOperator:
         ------
         LinAlgError : If :meth:`trace` is called on a non-square matrix.
         """
-        if not self.is_square:
-            raise np.linalg.LinAlgError(
-                "The trace is only defined on square operators."
-            )
+        if self.__trace_cache is None:
+            if not self.is_square:
+                raise np.linalg.LinAlgError(
+                    "The trace is only defined on square operators."
+                )
 
-        return self.__trace()
+            self.__trace_cache = self.__trace()
+
+        return self.__trace_cache
 
     ####################################################################################
     # Unary Arithmetic
@@ -636,7 +666,7 @@ class _TransposedLinearOperator(LinearOperator):
             shape=(self._linop.shape[1], self._linop.shape[0]),
             dtype=self._linop.dtype,
             matmul=matmul,
-            todense=lambda: self._linop.todense().T.copy(order="C"),
+            todense=lambda: self._linop.todense(cache=False).T.copy(order="C"),
             transpose=lambda: self._linop,
         )
 
@@ -659,7 +689,9 @@ class _AdjointLinearOperator(LinearOperator):
             shape=(self._linop.shape[1], self._linop.shape[0]),
             dtype=self._linop.dtype,
             matmul=matmul,
-            todense=lambda: np.conj(self._linop.todense().T).copy(order="C"),
+            todense=lambda: (
+                np.conj(self._linop.todense(cache=False).T).copy(order="C")
+            ),
             adjoint=lambda: self._linop,
         )
 
@@ -680,7 +712,7 @@ class _InverseLinearOperator(LinearOperator):
             shape=self._linop.shape,
             dtype=dtype,
             matmul=lambda x: self.todense() @ x,
-            todense=lambda: np.linalg.inv(self._linop.todense()),
+            todense=lambda: np.linalg.inv(self._linop.todense(cache=False)),
             inverse=lambda: self._linop,
         )
 
