@@ -7,11 +7,11 @@ from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import randvars
-from probnum.diffeq import odesolution, wrapperscipyodesolution
+from probnum.diffeq import odesolution, wrappedscipyodesolution
 
 case_modules = [
-    ".test_wrapperscipysolver_cases." + path.stem
-    for path in (pathlib.Path(__file__).parent / "test_wrapperscipysolver_cases").glob(
+    ".test_wrappedscipysolver_cases." + path.stem
+    for path in (pathlib.Path(__file__).parent / "test_wrappedscipysolver_cases").glob(
         "*_cases.py"
     )
 ]
@@ -151,10 +151,8 @@ def test_dense_output(testsolver, scipysolver, y, start_point, stop_point):
 
 def test_rvlist_to_odesol(times, dense_output, lst):
     scipy_sol = OdeSolution(times, dense_output)
-    probnum_solution = wrapperscipyodesolution.WrapperScipyODESolution(
-        scipy_sol, times, lst
-    )
+    probnum_solution = wrappedscipyodesolution.WrappedScipyODESolution(scipy_sol, lst)
     assert issubclass(
-        wrapperscipyodesolution.WrapperScipyODESolution, odesolution.ODESolution
+        wrappedscipyodesolution.WrappedScipyODESolution, odesolution.ODESolution
     )
-    assert isinstance(probnum_solution, wrapperscipyodesolution.WrapperScipyODESolution)
+    assert isinstance(probnum_solution, wrappedscipyodesolution.WrappedScipyODESolution)
