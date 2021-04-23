@@ -14,7 +14,8 @@ class Filtering:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")]]
 
     def setup(self, linearization_implementation):
-        dynmod, measmod, initrv, regression_problem = filtsmooth_zoo.pendulum()
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
@@ -25,14 +26,14 @@ class Filtering:
             "ukf": filtsmooth.DiscreteUKFComponent,
         }[linearization]
 
-        linearized_dynmod = _lin_method(dynmod)
-        linearized_measmod = _lin_method(measmod)
+        linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
+        linearized_measmod = _lin_method(statespace_components["measurement_model"])
 
         self.regression_problem = regression_problem
         self.kalman_filter = filtsmooth.Kalman(
             dynamics_model=linearized_dynmod,
             measurement_model=linearized_measmod,
-            initrv=initrv,
+            initrv=statespace_components["initrv"],
         )
 
     def time_filter(self, linearization_implementation):
@@ -49,7 +50,8 @@ class Smoothing:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")]]
 
     def setup(self, linearization_implementation):
-        dynmod, measmod, initrv, regression_problem = filtsmooth_zoo.pendulum()
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
@@ -60,13 +62,13 @@ class Smoothing:
             "ukf": filtsmooth.DiscreteUKFComponent,
         }[linearization]
 
-        linearized_dynmod = _lin_method(dynmod)
-        linearized_measmod = _lin_method(measmod)
+        linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
+        linearized_measmod = _lin_method(statespace_components["measurement_model"])
 
         self.kalman_filter = filtsmooth.Kalman(
             dynamics_model=linearized_dynmod,
             measurement_model=linearized_measmod,
-            initrv=initrv,
+            initrv=statespace_components["initrv"],
         )
         self.filtering_posterior = self.kalman_filter.filter(regression_problem)
 
@@ -90,7 +92,8 @@ class DenseGridOperations:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")], [1, 10]]
 
     def setup(self, linearization_implementation, num_samples):
-        dynmod, measmod, initrv, regression_problem = filtsmooth_zoo.pendulum()
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
@@ -111,13 +114,13 @@ class DenseGridOperations:
             )
         )
 
-        linearized_dynmod = _lin_method(dynmod)
-        linearized_measmod = _lin_method(measmod)
+        linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
+        linearized_measmod = _lin_method(statespace_components["measurement_model"])
 
         self.kalman_filter = filtsmooth.Kalman(
             dynamics_model=linearized_dynmod,
             measurement_model=linearized_measmod,
-            initrv=initrv,
+            initrv=statespace_components["initrv"],
         )
         self.filtering_posterior = self.kalman_filter.filter(regression_problem)
         self.smoothing_posterior = self.kalman_filter.smooth(
