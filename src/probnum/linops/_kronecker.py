@@ -82,6 +82,21 @@ class Kronecker(_linear_operator.LinearOperator):
         self.A = _utils.aslinop(A)
         self.B = _utils.aslinop(B)
 
+        if self.A.is_square and self.B.is_square:
+            # det(A (x) B) = det(A)^n * det(B) * m
+            det = lambda: (
+                self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
+            )
+            logabsdet = lambda: (
+                self.B.shape[0] * self.A.logabsdet()
+                + self.A.shape[0] * self.B.logabsdet()
+            )
+            trace = lambda: self.A.trace() * self.B.trace()
+        else:
+            det = None
+            logabsdet = None
+            trace = None
+
         super().__init__(
             dtype=np.result_type(self.A.dtype, self.B.dtype),
             shape=(
@@ -99,37 +114,18 @@ class Kronecker(_linear_operator.LinearOperator):
             adjoint=lambda: Kronecker(A=self.A.H, B=self.B.H),
             # (A (x) B)^-1 = A^-1 (x) B^-1
             inverse=lambda: Kronecker(A=self.A.inv(), B=self.B.inv()),
+            rank=lambda: self.A.rank() * self.B.rank(),
+            cond=self._cond,
+            det=det,
+            logabsdet=logabsdet,
+            trace=trace,
         )
 
-    # Properties
-    def rank(self):
-        return self.A.rank() * self.B.rank()
+    def _cond(self, p) -> np.inexact:
+        if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
+            return self.A.cond(p=p) * self.B.cond(p=p)
 
-    def cond(self, p=None):
-        return self.A.cond(p=p) * self.B.cond(p=p)
-
-    def det(self):
-        # If A (m x m) and B (n x n), then det(A (x) B) = det(A)^n * det(B) * m
-        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
-            return self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
-        else:
-            return super().det()
-
-    def logabsdet(self):
-        # If A (m x m) and B (n x n), then det(A (x) B) = det(A)^n * det(B) * m
-        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
-            return (
-                self.B.shape[0] * self.A.logabsdet()
-                + self.A.shape[0] * self.B.logabsdet()
-            )
-        else:
-            return super().logabsdet()
-
-    def trace(self):
-        if self.A.shape[0] == self.A.shape[1] and self.B.shape[0] == self.B.shape[1]:
-            return self.A.trace() * self.B.trace()
-        else:
-            return super().trace()
+        return np.linalg.cond(self.todense(cache=False), p=p)
 
 
 class SymmetricKronecker(_linear_operator.LinearOperator):
@@ -194,6 +190,10 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             adjoint = lambda: SymmetricKronecker(A=self.A.H)
             # (A (x)_s A)^-1 = (A (x) A)^-1 = A^-1 (x) A^-1
             inverse = lambda: SymmetricKronecker(A=self.A.inv())
+            rank = lambda: self.A.rank() ** 2
+            cond = self._cond_identical_factors
+            det = lambda: self.A.det() ** (2 * self._n)
+            logabsdet = lambda: 2 * self._n * self.A.logabsdet()
         else:
             dtype = np.result_type(self.A.dtype, self.B.dtype, 0.5)
             matmul = self._matmul_different_factors
@@ -204,6 +204,10 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             # (A (x)_s B)^H = A^H (x)_s B^H
             adjoint = lambda: SymmetricKronecker(A=self.A.H, B=self.B.H)
             inverse = None
+            rank = None
+            cond = None
+            det = None
+            logabsdet = None
 
         super().__init__(
             dtype=dtype,
@@ -214,6 +218,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             transpose=transpose,
             adjoint=adjoint,
             inverse=inverse,
+            rank=rank,
+            cond=cond,
+            det=det,
+            logabsdet=logabsdet,
+            trace=lambda: (
+                (self.A.trace() * self.B.trace()).astype(self.dtype, copy=False)
+            ),
         )
 
     def _matmul_different_factors(
@@ -288,8 +299,11 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         B_dense = self.B.todense(cache=False)
         return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
 
-    def trace(self):
-        return (self.A.trace() * self.B.trace()).astype(self.dtype)
+    def _cond_identical_factors(self, p) -> np.inexact:
+        if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
+            return self.A.cond(p=p) * self.B.cond(p=p)
+
+        return np.linalg.cond(self.todense(cache=False), p=p)
 
 
 def _kronecker_matmul(
