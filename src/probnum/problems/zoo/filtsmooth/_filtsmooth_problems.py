@@ -437,7 +437,7 @@ def logistic_ode(
         timespan = (0.0, 2.0)
 
     if y0 is None:
-        y0 = 0.1
+        y0 = [0.1]
     y0 = np.array(y0)
 
     if params is None:
