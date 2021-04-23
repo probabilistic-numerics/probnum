@@ -269,18 +269,24 @@ def test_transpose(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_inv(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     if linop.is_square:
+        expected_exception = None
+
         try:
+            matrix_inv = np.linalg.inv(matrix)
+        except Exception as e:  # pylint: disable=broad-except
+            expected_exception = e
+
+        if expected_exception is None:
             linop_inv = linop.inv()
-        except np.linalg.LinAlgError:
-            return
 
-        matrix_inv = np.linalg.inv(matrix)
+            assert isinstance(linop_inv, pn.linops.LinearOperator)
+            assert linop_inv.shape == matrix_inv.shape
+            assert linop_inv.dtype == matrix_inv.dtype
 
-        assert isinstance(linop_inv, pn.linops.LinearOperator)
-        assert linop_inv.shape == matrix_inv.shape
-        assert linop_inv.dtype == matrix_inv.dtype
-
-        np.testing.assert_allclose(linop_inv.todense(), matrix_inv, atol=1e-12)
+            np.testing.assert_allclose(linop_inv.todense(), matrix_inv, atol=1e-12)
+        else:
+            with pytest.raises(type(expected_exception)):
+                linop.inv()
     else:
         with pytest.raises(np.linalg.LinAlgError):
             linop.inv()

@@ -19,6 +19,7 @@ class Diagonal(_linear_operator.LinearOperator):
         self._scalar = None
 
         if isinstance(diagonal, np.ndarray) and diagonal.ndim == 1:
+            # Anisotropic scaling
             self._diagonal = diagonal.astype(dtype, copy=False)
 
             shape = (self._diagonal.shape[0], self._diagonal.shape[0])
@@ -34,11 +35,11 @@ class Diagonal(_linear_operator.LinearOperator):
             else:
                 adjoint = lambda: self
 
-            inverse = lambda: Diagonal(1 / self._diagonal, shape=shape)
+            inverse = self._inverse_anisotropic
 
-            rank = lambda: np.count_nonzero(self.diagonal)
+            rank = lambda: np.count_nonzero(self.diagonal, axis=0)
             eigvals = lambda: self._diagonal
-            cond = self._cond_diagonal
+            cond = self._cond_anisotropic
             det = lambda: np.prod(self._diagonal).astype(self._inexact_dtype)
             logabsdet = None
             trace = lambda: np.sum(self._diagonal)
@@ -73,7 +74,7 @@ class Diagonal(_linear_operator.LinearOperator):
                 inverse = lambda: self
 
                 rank = lambda: np.intp(shape[0])
-                cond = self._cond_isotropic_scaling
+                cond = self._cond_isotropic
                 eigvals = lambda: np.ones(shape[0], dtype=self._inexact_dtype)
                 det = lambda: probnum.utils.as_numpy_scalar(
                     1.0, dtype=self._inexact_dtype
@@ -85,7 +86,7 @@ class Diagonal(_linear_operator.LinearOperator):
                     self.shape[0], dtype=self.dtype
                 )
             else:
-                # Isotropic Scaling
+                # Isotropic scaling
                 matmul = lambda x: self._scalar * x
                 rmatmul = lambda x: self._scalar * x
 
@@ -96,7 +97,7 @@ class Diagonal(_linear_operator.LinearOperator):
                 else:
                     adjoint = lambda: self
 
-                inverse = self._inv_isotropic_scaling
+                inverse = self._inv_isotropic
 
                 if self._scalar == 0:
                     rank = lambda: np.intp(0)
@@ -105,7 +106,7 @@ class Diagonal(_linear_operator.LinearOperator):
                     )
                 else:
                     rank = lambda: np.intp(shape[0])
-                    cond = self._cond_isotropic_scaling
+                    cond = self._cond_isotropic
 
                 eigvals = lambda: np.full(
                     shape[0], self._scalar, dtype=self._inexact_dtype
@@ -141,23 +142,27 @@ class Diagonal(_linear_operator.LinearOperator):
 
         return self._diagonal
 
-    def _cond_diagonal(self, p) -> np.number:
+    def _inverse_anisotropic(self) -> "Diagonal":
+        if self.rank() != self.shape[0]:
+            raise np.linalg.LinAlgError("The operator is singular.")
+
+        return Diagonal(1 / self._diagonal, shape=self.shape)
+
+    def _inv_isotropic(self) -> "Diagonal":
+        if self._scalar == 0:
+            raise np.linalg.LinAlgError("The operator is singular")
+
+        return Diagonal(1 / self._scalar, shape=self.shape)
+
+    def _cond_anisotropic(self, p) -> np.number:
         if p is None or p == 1 or p == 2 or p == np.inf:
             abs_diag = np.abs(self._diagonal)
             return np.max(abs_diag) / np.min(abs_diag)
 
         return np.linalg.cond(self.todense(), p=p)
 
-    def _cond_isotropic_scaling(self, p) -> np.inexact:
-        if (
-            p is None
-            or p == 2
-            or p == 1
-            or p == np.inf
-            or p == -2
-            or p == -1
-            or p == -np.inf
-        ):
+    def _cond_isotropic(self, p) -> np.inexact:
+        if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
         elif p == "fro":
             return probnum.utils.as_numpy_scalar(
@@ -165,12 +170,6 @@ class Diagonal(_linear_operator.LinearOperator):
             )
         else:
             return np.linalg.cond(self.todense(), p=p)
-
-    def _inv_isotropic_scaling(self) -> "Diagonal":
-        if self._scalar == 0:
-            raise np.linalg.LinAlgError("The operator is not invertible")
-
-        return Diagonal(1 / self._scalar, shape=self.shape)
 
 
 class ScalarMult(Diagonal):
