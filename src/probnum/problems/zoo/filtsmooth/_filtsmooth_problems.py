@@ -5,8 +5,8 @@ from probnum import diffeq, filtsmooth, problems, randvars, statespace
 __all__ = ["car_tracking", "logistic_ode", "ornstein_uhlenbeck", "pendulum"]
 
 
-def car_tracking(delta_t=0.2, measvar=0.5, t_max=20.0):
-    r"""State space model for a simple car-tracking scenario.
+def car_tracking(measurement_variance=0.5, times=None, initrv=None):
+    r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
     A linear, time-invariant Gaussian state space model for car-tracking, based on
     Example 3.6 in Särkkä, 2013. [1]_
@@ -17,10 +17,10 @@ def car_tracking(delta_t=0.2, measvar=0.5, t_max=20.0):
 
         X(t_{n}) &=
         \begin{pmatrix}
+          1 & 0 & \Delta t& 0 \\
+          0 & 1 & 0 & \Delta t \\
           0 & 0 & 1 & 0 \\
-          0 & 0 & 0 & 1 \\
-          0 & 0 & 0 & 0 \\
-          0 & 0 & 0 & 0
+          0 & 0 & 0 & 1
         \end{pmatrix} X(t_{n-1})
         +
         q(t_n) \\
@@ -39,7 +39,7 @@ def car_tracking(delta_t=0.2, measvar=0.5, t_max=20.0):
     ----------
     delta_t : float
         The step size of the discretized time grid on which the model is considered.
-    measvar : float
+    measurement_variance : float
         The marginal measurement variance.
     t_max : float
         The time limit of the grid.
@@ -62,40 +62,34 @@ def car_tracking(delta_t=0.2, measvar=0.5, t_max=20.0):
 
     """
 
-    dynamat = np.eye(4) + delta_t * np.diag(np.ones(2), 2)
-    dynadiff = (
-        np.diag(np.array([delta_t ** 3 / 3, delta_t ** 3 / 3, delta_t, delta_t]))
-        + np.diag(np.array([delta_t ** 2 / 2, delta_t ** 2 / 2]), 2)
-        + np.diag(np.array([delta_t ** 2 / 2, delta_t ** 2 / 2]), -2)
-    )
-    measmat = np.eye(2, 4)
-    measdiff = measvar * np.eye(2)
-    mean = np.zeros(4)
-    cov = 0.5 * measvar * np.eye(4)
+    dynmod = statespace.IBM(ordint=1, spatialdim=2)
 
-    dynmod = statespace.DiscreteLTIGaussian(
-        state_trans_mat=dynamat, shift_vec=np.zeros(4), proc_noise_cov_mat=dynadiff
-    )
+    measurement_matrix = np.eye(2, 4)
+    measurement_cov = measurement_variance * np.eye(2)
     measmod = statespace.DiscreteLTIGaussian(
-        state_trans_mat=measmat,
+        state_trans_mat=measurement_matrix,
         shift_vec=np.zeros(2),
-        proc_noise_cov_mat=measdiff,
+        proc_noise_cov_mat=measurement_cov,
     )
-    initrv = randvars.Normal(mean, cov)
+
+    if initrv is None:
+        initrv = randvars.Normal(np.zeros(4), 0.5 * measurement_variance * np.eye(4))
 
     # Generate data
-    times = np.arange(0.0, t_max, step=delta_t)
+    if times is None:
+        times = np.arange(0.0, 20.0, step=0.2)
     states, obs = statespace.generate_samples(
         dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
     )
     regression_problem = problems.RegressionProblem(
         observations=obs, locations=times, solution=states
     )
-    return dynmod, measmod, initrv, regression_problem
+    statespace_components = dict(dynmod=dynmod, measmod=measmod, initrv=initrv)
+    return regression_problem, statespace_components
 
 
 def ornstein_uhlenbeck(delta_t=0.2, lam=0.21, dynvar=0.5, measvar=0.1, t_max=20.0):
-    r"""State space model based on an Ornstein Uhlenbeck process.
+    r"""Filtering/smoothing setup based on an Ornstein Uhlenbeck process.
 
     A linear, time-invariant state space model for the dynamics of a time-invariant
     Ornstein-Uhlenbeck process. See e.g. Example 10.19 in Särkkä et. al, 2019. [1]_
@@ -169,7 +163,7 @@ def ornstein_uhlenbeck(delta_t=0.2, lam=0.21, dynvar=0.5, measvar=0.1, t_max=20.
 
 
 def pendulum(delta_t=0.0075, measvar=0.1024, t_max=4.0):
-    r"""State space model for a (noisy) pendulum.
+    r"""Filtering/smoothing setup for a (noisy) pendulum.
 
     A non-linear state space model for a pendulum with unknown forces acting on the
     dynamics, modeled as Gaussian noise. See e.g. Särkkä, 2013 [1]_ for more details.
@@ -279,7 +273,7 @@ def pendulum(delta_t=0.0075, measvar=0.1024, t_max=4.0):
 
 
 def logistic_ode(delta_t=0.2, t_max=2.0):
-    r"""State space model for a probabilistic ODE solver based on the logistic ODE.
+    r"""Filtering/smoothing setup for a probabilistic ODE solver based on the logistic ODE.
 
     This state space model puts an integrated Brownian motion prior on the dynamics
     and constructs the ODE likelihood based on the vector field defining the
