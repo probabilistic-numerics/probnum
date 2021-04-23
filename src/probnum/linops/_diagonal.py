@@ -25,6 +25,10 @@ class Diagonal(_linear_operator.LinearOperator):
             shape = (self._diagonal.shape[0], self._diagonal.shape[0])
             dtype = self._diagonal.dtype
 
+            apply = lambda x, axis: (
+                self._diagonal.reshape((-1,) + (x.ndim - 1 - axis) * (1,)) * x
+            )
+
             matmul = lambda x: self._diagonal[:, np.newaxis] * x
             rmatmul = lambda x: self._diagonal * x
 
@@ -65,6 +69,8 @@ class Diagonal(_linear_operator.LinearOperator):
 
             if self._scalar == 1:
                 # Identity
+                apply = lambda x, axis: x
+
                 matmul = lambda x: x
                 rmatmul = lambda x: x
 
@@ -87,6 +93,8 @@ class Diagonal(_linear_operator.LinearOperator):
                 )
             else:
                 # Isotropic scaling
+                apply = lambda x, axis: self._scalar * x
+
                 matmul = lambda x: self._scalar * x
                 rmatmul = lambda x: self._scalar * x
 
@@ -120,6 +128,7 @@ class Diagonal(_linear_operator.LinearOperator):
             dtype,
             matmul=matmul,
             rmatmul=rmatmul,
+            apply=apply,
             todense=todense,
             transpose=lambda: self,
             adjoint=adjoint,

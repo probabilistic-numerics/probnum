@@ -310,8 +310,7 @@ def _kronecker_matmul(
     y = A @ y
 
     # (A @ X) @ B.T
-    y = B @ y[..., np.newaxis]
-    y = y.squeeze(-1)
+    y = B(y, axis=-1)
 
     # vec(A @ X @ B.T), i.e. revert to stack of vectorized matrices
     y = y.reshape(y.shape[:-2] + (-1,))

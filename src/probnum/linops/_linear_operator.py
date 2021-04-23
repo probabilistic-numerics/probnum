@@ -105,6 +105,7 @@ class LinearOperator:
         *,
         matmul: Callable[[OperandType], OperandType],
         rmatmul: Optional[Callable[[OperandType], OperandType]] = None,
+        apply: Callable[[OperandType, int], OperandType] = None,
         todense: Optional[Callable[[], np.ndarray]] = None,
         transpose: Optional[Callable[[OperandType], OperandType]] = None,
         adjoint: Optional[Callable[[], "LinearOperator"]] = None,
@@ -134,8 +135,14 @@ class LinearOperator:
         if rmatmul is not None:
             self.__rmatmul = rmatmul
         else:
-            self.__rmatmul = lambda x: np.swapaxes(
-                self.T @ np.swapaxes(x, -2, -1), -2, -1
+            self.__rmatmul = lambda x: (self.T)(x, axis=-1)
+
+        # __call__
+        if apply is not None:
+            self.__apply = apply
+        else:
+            self.__apply = lambda x, axis: np.swapaxes(
+                self @ np.swapaxes(x, axis, -2), -2, axis
             )
 
         # Dense matrix representation
@@ -164,7 +171,7 @@ class LinearOperator:
             self.__transpose = lambda: _TransposedLinearOperator(
                 self,
                 # This is potentially slower than conjugating a vector twice
-                matmul=lambda x: np.swapaxes(rmatmul(np.swapaxes(x, -2, -1)), -2, -1),
+                matmul=lambda x: rmatmul(x[..., np.newaxis])[..., :],
             )
         else:
             self.__transpose = lambda: _TransposedLinearOperator(self)
@@ -233,8 +240,29 @@ class LinearOperator:
             f"dtype={str(self.dtype)}>"
         )
 
-    def __call__(self, x: OperandType) -> OperandType:
-        return self @ x
+    def __call__(self, x: OperandType, axis: Optional[int] = None) -> OperandType:
+        if axis is not None and (axis < -x.ndim or axis >= x.ndim):
+            raise ValueError(
+                f"Axis {axis} is out-of-bounds for operand of shape {np.shape(x)}."
+            )
+
+        if x.ndim == 1:
+            return self @ x
+        elif x.ndim > 1:
+            if axis is None:
+                axis = -1
+
+            if axis < 0:
+                axis += x.ndim
+
+            if axis == (x.ndim - 1):
+                return (self @ x[..., np.newaxis])[..., 0]
+            elif axis == (x.ndim - 2):
+                return self @ x
+            else:
+                return self.__apply(x, axis)
+        else:
+            raise ValueError("The operand must be at least one dimensional.")
 
     def todense(self) -> np.ndarray:
         """Dense matrix representation of the linear operator.
