@@ -1,9 +1,13 @@
-"""import numpy as np import pytest from scipy.integrate._ivp import base, rk from
-scipy.integrate._ivp.common import OdeSolution.
+import base
+import numpy as np
+import pytest
+import rk
+import scipy.integrate._ivp
+import scipy.integrate._ivp.common
+from pn_ode_benchmarks import scipy_solution, scipy_solver
 
 from probnum import diffeq, randvars
 from probnum.diffeq import odesolution
-from pn_ode_benchmarks import scipy_solution, scipy_solver
 
 
 @pytest.fixture
@@ -64,7 +68,6 @@ def test_initialise(testsolver45, scipysolver45):
     state_scipy = scipysolver45.y
     np.testing.assert_allclose(time, time_scipy, atol=1e-14, rtol=1e-14)
     np.testing.assert_allclose(state.mean[0], state_scipy[0], atol=1e-14, rtol=1e-14)
-
 
 
 def test_step_execution(scipysolver45, testsolver45, start_point, stop_point, y):
@@ -132,7 +135,9 @@ def test_dense_output(scipysolver45, testsolver45, y, start_point, stop_point):
     scipysolver45.step()
     # perform step of the same size
     testsolver45.step(
-        scipysolver45.t_old, scipysolver45.t, randvars.Constant(scipysolver45.y_old),
+        scipysolver45.t_old,
+        scipysolver45.t,
+        randvars.Constant(scipysolver45.y_old),
     )
     testsolver_dense = testsolver45.dense_output()
     scipy_dense = scipysolver45._dense_output_impl()
@@ -161,4 +166,3 @@ def test_rvlist_to_odesol(times, dense_output, lst):
     probnum_solution = scipy_solution.ScipyODESolution(scipy_sol, times, lst)
     assert issubclass(scipy_solution.ScipyODESolution, odesolution.ODESolution)
     assert isinstance(probnum_solution, scipy_solution.ScipyODESolution)
-"""
