@@ -21,12 +21,14 @@ class WrappedScipyODESolution(diffeq.ODESolution):
         ----------
         t : float
         Location / time at which to evaluate the continuous ODE solution.
+
         Returns
         -------
         randvars.RandomVariable or _randomvariablelist._RandomVariableList
             Estimate of the states at time ``t`` based on a fourth
         order polynomial.
         """
+
         states = self.scipy_solution(t).T
         if np.isscalar(t):
             solution_as_rv = randvars.Constant(states)
