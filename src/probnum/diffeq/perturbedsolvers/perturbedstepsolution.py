@@ -20,12 +20,14 @@ class PerturbedStepSolution(diffeq.ODESolution):
         Interpolates the perturbations.
     """
 
-    def __init__(self, projected_times, evaluated_times, ys, interpolants):
+    def __init__(self, scales, projected_times, ys, interpolants):
         self.projected_times = projected_times
-        self.evaluated_times = evaluated_times
+        # self.evaluated_times = evaluated_times
+        self.scales = scales
         self.ys = ys
         self.interpolants = interpolants
 
+    """
     def __call__(self, t):
         if not np.isscalar(t):
             # recursive evaluation (t can now be any array, not just length 1!)
@@ -53,8 +55,6 @@ class PerturbedStepSolution(diffeq.ODESolution):
                 )
                 + self.projected_times[closest_left_t]
             )
-            print(closest_left_t)
-            print(new_pos)
             interpolant = self.interpolants[closest_left_t]
             # evalution at timepoint t, not the interpolants' timepoint
             interpolation = randvars.Constant(interpolant(new_pos))
@@ -62,6 +62,23 @@ class PerturbedStepSolution(diffeq.ODESolution):
         else:
             interpolation = self.ys[-1]
         return interpolation
+    """
+
+    def __call__(self, t):
+        if not np.isscalar(t):
+            # recursive evaluation (t can now be any array, not just length 1!)
+            return _randomvariablelist._RandomVariableList(
+                [self.__call__(t_pt) for t_pt in np.asarray(t)]
+            )
+        # find closest left timepoint (í.e. correct interpolant) of evaluation.
+        closest_left_t = self.find_closest_left_element(self.projected_times, t)
+        print(closest_left_t)
+        interpolant = self.interpolants[closest_left_t - 1]
+        if self.projected_times[closest_left_t] == t:
+            res = randvars.Constant(interpolant(t))
+        else:
+            res = randvars.Constant(interpolant(t * self.scales[closest_left_t]))
+        return res
 
     @property
     def t(self):
@@ -105,7 +122,7 @@ class PerturbedStepSolution(diffeq.ODESolution):
         if t_new < times[1]:
             closest_left_t = 0
         # make sure that the point is on the left of the evaluation point
-        elif t_new < times[closest_t]:
+        elif t_new <= times[closest_t]:
             closest_left_t = closest_t - 1
         else:
             closest_left_t = closest_t

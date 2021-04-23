@@ -13,37 +13,38 @@ class PerturbedStepSolver(diffeq.ODESolver):
 
     # pylint: disable=maybe-no-member
     def __init__(self, solver, noise_scale, perturb_function, random_state=None):
-        def perturbation_step_only(dt):
+        def perturbation_step(step):
             return perturb_function(
-                step=dt,
-                noise_scale=noise_scale,
+                step=step,
                 solver_order=solver.order,
-                size=(),
+                noise_scale=noise_scale,
                 random_state=random_state,
+                size=(),
             )
 
-        self.perturb_step = perturbation_step_only
-
+        self.perturb_step = perturbation_step
         self.solver = solver
         self.scipy_solver = solver.solver
-        # self.noise_scale = noise_scale
         self.interpolants = None
         self.evaluated_times = None
         self.posjected_times = None
-        self.original_t = 0
-        # self.perturb_function = perturb_function
-        self.steprule = perturb_function
+        self.original_t = None
+        self.scale = None
+        self.scales = None
         super().__init__(ivp=solver.ivp, order=solver.order)
 
     def initialise(self):
-        """initialise the solver."""
+        """Initialise and reset the solver."""
         self.interpolants = []
         self.evaluated_times = [self.solver.ivp.t0]
         self.projected_times = [self.solver.ivp.t0]
+        self.scales = []
+        self.scale = 0
+        self.original_t = 0
         return self.solver.initialise()
 
     def step(self, start, stop, current, **kwargs):
-        """perform one perturbed ODE-step from start to noisy stop.
+        """Perform one perturbed ODE-step from start to perturbed stop.
 
         Parameters
         ----------
@@ -57,19 +58,17 @@ class PerturbedStepSolver(diffeq.ODESolver):
         Returns
         -------
         random_var : :obj:`list` of :obj:`RandomVariable`
-            Estimated states (in the state-space model view) of the discrete-time solution..
+            estimated states (in the state-space model view) of the discrete-time solution..
         error_estimation : float
             estimated error after having performed the step.
         """
-        y = current.mean
-        # set stepsize
         self.original_t = stop
-        laststep = stop - start
-        noisy_step = self.perturb_step(laststep)
+        stepsize = stop - start
+        noisy_step = self.perturb_step(stepsize)
         y_new, f_new = rk.rk_step(
             self.scipy_solver.fun,
             start,
-            y,
+            current.mean,
             self.scipy_solver.f,
             noisy_step,
             self.scipy_solver.A,
@@ -81,14 +80,17 @@ class PerturbedStepSolver(diffeq.ODESolver):
             self.scipy_solver.K, noisy_step
         )
         random_var = randvars.Constant(y_new)
-        self.scipy_solver.h_previous = laststep
+        self.scipy_solver.h_previous = stepsize
         self.scipy_solver.y_old = current
-        # those values are used to calculate the dense output of the original solution which is rescaled in noisy_step_solution
+        # those values are used to compute the dense output of the original solution
+        # which is rescaled in noisy_step_solution
         self.scipy_solver.t_old = start
         self.scipy_solver.t = start + noisy_step
         self.scipy_solver.y = y_new
-        self.scipy_solver.h_abs = laststep
+        self.scipy_solver.h_abs = stepsize
         self.scipy_solver.f = f_new
+        print(noisy_step)
+        self.scale = noisy_step / stepsize
         return random_var, error_estimation
 
     def method_callback(self, time, current_guess, current_error):
@@ -97,6 +99,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         which the perturbed solution is projected."""
         self.projected_times.append(self.original_t)
         self.evaluated_times.append(self.scipy_solver.t)
+        self.scales.append(self.scale)
         return self.solver.method_callback(time, current_guess, current_error)
 
     def rvlist_to_odesol(self, times, rvs):
@@ -105,29 +108,12 @@ class PerturbedStepSolver(diffeq.ODESolver):
         projected_times = self.projected_times
         # those are the timepoints on which we project the solution that we actually evaluated at evaluated_timepoints
         evaluated_times = self.evaluated_times
+        # scales
+        scales = self.scales
         probnum_solution = perturbedstepsolution.PerturbedStepSolution(
-            projected_times, evaluated_times, rvs, interpolants
+            scales, projected_times, rvs, interpolants
         )
         return probnum_solution
 
     def postprocess(self, odesol):
         return odesol
-
-    def perturb(self, step):
-        """perturbs the performed step according to the chosen steprule (uniform or
-        lognormal), scaled by the chosen noise-scale."""
-        if self.steprule == "uniform":
-            if step < 1:
-                noisy_step = np.random.uniform(
-                    step - self.noise_scale * step ** (self.order + 0.5),
-                    step + self.noise_scale * step ** (self.order + 0.5),
-                )
-            else:
-                print("Error: Stepsize too large (>=1), not possible")
-        if self.steprule == "log":
-            mean = np.log(step) - np.log(
-                np.sqrt(1 + self.noise_scale * (step ** (2 * self.order)))
-            )
-            cov = np.log(1 + self.noise_scale * (step ** (2 * self.order)))
-            noisy_step = np.exp(np.random.normal(mean, cov))
-        return noisy_step
