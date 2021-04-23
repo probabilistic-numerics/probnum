@@ -4,7 +4,11 @@ from pn_ode_benchmarks import scipy_solver
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq
-from probnum.diffeq.perturbedsolvers import perturbedstepsolution, perturbedstepsolver
+from probnum.diffeq.perturbedsolvers import (
+    _perturbation_functions,
+    perturbedstepsolution,
+    perturbedstepsolver,
+)
 
 
 @pytest.fixture
@@ -47,12 +51,14 @@ def testsolver45(ivp, y0):
 def noisysolver45(ivp, y0, sigma):
     testsolver = rk.RK45(ivp.rhs, ivp.t0, y0, ivp.tmax)
     scipysolver = scipy_solver.ScipyRungeKutta(testsolver, order=4)
-    return perturbedstepsolver.PerturbedStepSolver(scipysolver, sigma, "uniform")
+    return perturbedstepsolver.PerturbedStepSolver(
+        scipysolver, sigma, perturb_function=_perturbation_functions.perturb_uniform
+    )
 
 
 @pytest.fixture
 def steprule(stepsize):
-    return diffeq.ConstantSteps(stepsize)
+    return diffeq.AdaptiveSteps(firststep=0.001, atol=10 ** -12, rtol=10 ** -12)
 
 
 @pytest.fixture
@@ -65,47 +71,56 @@ def solutionnoisy(noisysolver45, steprule):
     return noisysolver45.solve(steprule)
 
 
-def test_t(solutionnoisy, start, stop, stepsize):
-    noisy_times = solutionnoisy.t
-    original_t = np.arange(start, stop + stepsize, stepsize)
-    np.testing.assert_allclose(
-        noisy_times[0:5], original_t[0:5], atol=1e-13, rtol=1e-13
-    )
-
-
 def test_states(solutionnoisy):
     assert isinstance(solutionnoisy.states, _randomvariablelist._RandomVariableList)
 
 
 def test_call(solutionnoisy):
     np.testing.assert_allclose(
-        solutionnoisy(solutionnoisy.t).mean,
-        solutionnoisy.states.mean,
+        solutionnoisy(solutionnoisy.locations[0:]).mean,
+        solutionnoisy.states[0:].mean,
         atol=1e-14,
         rtol=1e-14,
     )
     np.testing.assert_allclose(
-        solutionnoisy(solutionnoisy.t + 1e-14).mean,
-        solutionnoisy(solutionnoisy.t).mean,
-        atol=1e-10,
-        rtol=1e-10,
+        solutionnoisy(solutionnoisy.locations[0:-1] + 1e-14).mean,
+        solutionnoisy(solutionnoisy.locations[0:-1]).mean,
+        atol=1e-12,
+        rtol=1e-12,
+    )
+    np.testing.assert_allclose(
+        solutionnoisy(solutionnoisy.locations[1:] - 1e-14).mean,
+        solutionnoisy(solutionnoisy.locations[1:]).mean,
+        atol=1e-12,
+        rtol=1e-12,
     )
 
 
 def test_len(solutionnoisy):
     np.testing.assert_allclose(
-        len(solutionnoisy), len(solutionnoisy.t), atol=1e-14, rtol=1e-14
+        len(solutionnoisy), len(solutionnoisy.locations), atol=1e-14, rtol=1e-14
     )
 
 
 def test_getitem(solutionnoisy):
     np.testing.assert_allclose(
-        solutionnoisy.interpolants[1](solutionnoisy.t[1]),
+        solutionnoisy.interpolants[1](solutionnoisy.locations[1]),
         solutionnoisy[1].mean,
         atol=1e-14,
         rtol=1e-14,
     )
 
 
-def test_sample(solutionnoisy):
-    np.testing.assert_string_equal(solutionnoisy.sample(5), "Sampling not possible")
+@pytest.mark.parametrize(
+    "array, element, pos",
+    [
+        ([0.0, 1.0, 2.0], 0.0, 0.0),
+        ([0.0, 1.0, 2.0], 0.5, 0.0),
+        ([0.0, 1.0, 2.0], 1.1, 1.0),
+        ([0.0, 1.0, 2.0], 2.0, 1.0),
+        ([0.0, 1.0, 2.0], 1.9, 1.0),
+    ],
+)
+def test_get_interpolant(array, element, pos):
+    closest = perturbedstepsolution.get_interpolant(array, element)
+    assert closest == pos

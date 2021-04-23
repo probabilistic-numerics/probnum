@@ -1,10 +1,8 @@
-import base
 import numpy as np
 import pytest
-import rk
-import scipy.integrate._ivp
-import scipy.integrate._ivp.common
 from pn_ode_benchmarks import scipy_solution, scipy_solver
+from scipy.integrate._ivp import base, rk
+from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
 from probnum.diffeq import odesolution
