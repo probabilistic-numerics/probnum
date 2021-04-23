@@ -112,15 +112,18 @@ class Diagonal(_linear_operator.LinearOperator):
                     cond = lambda p: probnum.utils.as_numpy_scalar(
                         np.inf, dtype=self._inexact_dtype
                     )
+                    logabsdet = lambda: probnum.utils.as_numpy_scalar(
+                        -np.inf, dtype=self._inexact_dtype
+                    )
                 else:
                     rank = lambda: np.intp(shape[0])
                     cond = self._cond_isotropic
+                    logabsdet = lambda: shape[0] * np.log(np.abs(self._scalar))
 
                 eigvals = lambda: np.full(
                     shape[0], self._scalar, dtype=self._inexact_dtype
                 )
                 det = lambda: self._scalar.astype(self._inexact_dtype) ** shape[0]
-                logabsdet = lambda: shape[0] * np.log(np.abs(self._scalar))
                 trace = lambda: self.shape[0] * self._scalar
 
         super().__init__(
@@ -163,10 +166,31 @@ class Diagonal(_linear_operator.LinearOperator):
 
         return Diagonal(1 / self._scalar, shape=self.shape)
 
-    def _cond_anisotropic(self, p) -> np.number:
-        if p is None or p == 1 or p == 2 or p == np.inf:
+    def _cond_anisotropic(self, p) -> np.inexact:
+        if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
             abs_diag = np.abs(self._diagonal)
-            return np.max(abs_diag) / np.min(abs_diag)
+            abs_max = np.max(abs_diag)
+            abs_min = np.min(abs_diag)
+
+            if abs_min == 0.0:
+                if p == -2:
+                    # We return 0.0 for `p == -2`, since `np.linalg.cond` does so
+                    # This is likely a bug in the NumPy implementation.
+                    return probnum.utils.as_numpy_scalar(0, dtype=self._inexact_dtype)
+
+                return probnum.utils.as_numpy_scalar(np.inf, dtype=self._inexact_dtype)
+
+            if p is None or p in (2, 1, np.inf):
+                cond = abs_max / abs_min
+            else:  # p in (-2, -1, -np.inf)
+                if abs_max > 0:
+                    cond = abs_min / abs_max
+                else:
+                    cond = probnum.utils.as_numpy_scalar(
+                        np.inf, dtype=self._inexact_dtype
+                    )
+
+            return cond.astype(self._inexact_dtype)
 
         return np.linalg.cond(self.todense(), p=p)
 

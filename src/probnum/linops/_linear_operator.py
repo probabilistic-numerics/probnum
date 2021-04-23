@@ -220,7 +220,7 @@ class LinearOperator:
         if logabsdet is not None:
             self.__logabsdet = logabsdet
         else:
-            self.__logabsdet = lambda: np.log(np.abs(self.det()))
+            self.__logabsdet = self._logabsdet_fallback
 
         if trace is not None:
             self.__trace = trace
@@ -619,6 +619,12 @@ class LinearOperator:
             vec[i] = 0
 
         return trace
+
+    def _logabsdet_fallback(self) -> np.inexact:
+        if self.det() == 0:
+            return probnum.utils.as_numpy_scalar(-np.inf, dtype=self._inexact_dtype)
+        else:
+            return np.log(np.abs(self.det()))
 
     @property
     def _inexact_dtype(self) -> np.dtype:
