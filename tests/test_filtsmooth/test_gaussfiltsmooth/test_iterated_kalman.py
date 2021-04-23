@@ -7,26 +7,29 @@ from probnum import filtsmooth, problems
 
 def logistic_ode_problem():
     """Logistic ODE problem."""
-    problem = filtsmooth_zoo.logistic_ode()
-    dynmod, measmod, initrv, info = problem
+    logistic_ivp, statespace_components = filtsmooth_zoo.logistic_ode()
 
-    times = np.arange(0, info["tmax"], info["dt"])
+    times = np.arange(*logistic_ivp.timespan, step=0.2)
     obs = np.zeros((len(times), 1))
 
-    states = info["ode"].solution(times)
+    states = logistic_ivp.solution(times)
     regression_problem = problems.RegressionProblem(
         observations=obs, locations=times, solution=states
     )
-    return dynmod, measmod, initrv, regression_problem
+    return regression_problem, statespace_components
 
 
 @pytest.fixture(params=[logistic_ode_problem])
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
-    dynmod, measmod, initrv, regression_problem = problem()
+    regression_problem, statespace_components = problem()
 
-    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
+    )
     return kalman, regression_problem
 
 

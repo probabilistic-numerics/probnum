@@ -11,9 +11,13 @@ from probnum import filtsmooth
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
-    dynmod, measmod, initrv, regression_problem = problem()
+    regression_problem, statespace_components = problem()
 
-    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
+    )
     return kalman, regression_problem
 
 

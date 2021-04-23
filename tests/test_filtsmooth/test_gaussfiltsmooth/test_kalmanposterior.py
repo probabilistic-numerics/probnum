@@ -15,9 +15,13 @@ def problem():
 @pytest.fixture
 def setup(problem):
     """Filter and regression problem."""
-    dynmod, measmod, initrv, regression_problem = problem
+    regression_problem, statespace_components = problem
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
+    )
 
-    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
     return kalman, regression_problem
 
 

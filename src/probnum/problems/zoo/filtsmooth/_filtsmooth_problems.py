@@ -1,11 +1,17 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randvars, statespace
 from probnum.type import FloatArgType
 
-__all__ = ["car_tracking", "logistic_ode", "ornstein_uhlenbeck", "pendulum"]
+__all__ = [
+    "benes_daum",
+    "car_tracking",
+    "logistic_ode",
+    "ornstein_uhlenbeck",
+    "pendulum",
+]
 
 
 def car_tracking(
@@ -310,11 +316,85 @@ def pendulum(
     return regression_problem, statespace_components
 
 
+def benes_daum(
+    measurement_variance: FloatArgType = 0.1,
+    process_diffusion: FloatArgType = 1.0,
+    initrv: Optional[randvars.RandomVariable] = None,
+):
+    r"""Filtering/smoothing setup based on the Benes SDE.
+
+    A non-linear state space model for the dynamics of a Benes SDE.
+    Here, we formulate a continuous-discrete state space model:
+
+    .. math::
+
+        x(t_n) &= \tanh(x(t_{n-1})) + q(t_n) \\
+        y_n &= x(t_n) + r_n
+
+    for some scalar :math:`\lambda` and :math:`q(t_n) \sim \mathcal{N}(0, Q)`,
+    :math:`r_n \sim \mathcal{N}(0, R)` for process noise covariance matrix :math:`Q`
+    and measurement noise covariance matrix :math:`R`.
+
+    Parameters
+    ----------
+    measurement_variance
+        Marginal measurement variance.
+    process_diffusion
+        Diffusion constant for the dynamics
+    times
+        Time grid for the filtering/smoothing problem.
+    initrv
+        Initial random variable.
+
+    Returns
+    -------
+    statespace_components
+        Dictionary containing
+        - dynamics model
+        - measurement model
+        - initial random variable
+
+    Notes
+    -----
+    No ``RegressionProblem`` object is returned. The dynamics model has to be linearized
+    in order to generate data.
+
+    """
+
+    def f(t, x):
+        return np.tanh(x)
+
+    def df(t, x):
+        return 1.0 - np.tanh(x) ** 2
+
+    def l(t):
+        return process_diffusion * np.ones(1)
+
+    initmean = np.zeros(1)
+    initcov = 3.0 * np.eye(1)
+    initrv = randvars.Normal(initmean, initcov)
+    dynamics_model = statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
+    measurement_model = statespace.DiscreteLTIGaussian(
+        state_trans_mat=np.eye(1),
+        shift_vec=np.zeros(1),
+        proc_noise_cov_mat=measurement_variance * np.eye(1),
+    )
+
+    statespace_components = dict(
+        dynamics_model=dynamics_model,
+        measurement_model=measurement_model,
+        initrv=initrv,
+    )
+    return statespace_components
+
+
 def logistic_ode(
     ivp_initrv: Optional[randvars.RandomVariable] = None,
     solver_initrv: Optional[randvars.RandomVariable] = None,
     timespan: Optional[Tuple[float, float]] = None,
     params: Optional[Tuple[float, float]] = None,
+    evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
+    ek0_or_ek1: Optional[int] = None,
 ):
     r"""Filtering/smoothing setup for a probabilistic ODE solver based on the logistic ODE.
 
@@ -324,10 +404,18 @@ def logistic_ode(
 
     Parameters
     ----------
-    delta_t : float
-        The step size of the discretized time grid on which the model is considered.
-    t_max : float
-        The time limit of the grid.
+    ivp_initrv
+        Initial random variable of the Initial Value Problem
+    solver_initrv
+        Initial random variable of the probabilistic ODE solver
+    timespan
+        Time span of the problem
+    params
+        Parameters for the logistic ODE
+    evlvar
+        See :py:class:`probnum.diffeq.GaussianIVPFilter`
+    ek0_or_ek1
+        See :py:class:`probnum.diffeq.GaussianIVPFilter`
 
     Returns
     -------
@@ -354,10 +442,16 @@ def logistic_ode(
     if params is None:
         params = (6.0, 1.0)
 
+    if evlvar is None:
+        evlvar = np.zeros((1, 1))
+
+    if ek0_or_ek1 is None:
+        ek0_or_ek1 = 1
+
     logistic_ivp = diffeq.logistic(timespan=timespan, initrv=ivp_initrv, params=params)
     dynamics_model = statespace.IBM(ordint=3, spatialdim=1)
     measurement_model = filtsmooth.DiscreteEKFComponent.from_ode(
-        logistic_ivp, prior=dynamics_model, evlvar=np.zeros((1, 1)), ek0_or_ek1=1
+        logistic_ivp, prior=dynamics_model, evlvar=evlvar, ek0_or_ek1=ek0_or_ek1
     )
 
     if solver_initrv is None:

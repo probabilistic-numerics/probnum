@@ -42,15 +42,17 @@ def problem():
 def particle_filter(
     problem, num_particles, measmod_style, resampling_percentage_threshold
 ):
-    dynmod, measmod, initrv, _ = problem
+    _, statespace_components = problem
     linearized_measmod = (
-        filtsmooth.DiscreteUKFComponent(measmod) if measmod_style == "ukf" else None
+        filtsmooth.DiscreteUKFComponent(statespace_components["measurement_model"])
+        if measmod_style == "ukf"
+        else None
     )
 
     particle = filtsmooth.ParticleFilter(
-        dynmod,
-        measmod,
-        initrv,
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
         num_particles=num_particles,
         linearized_measurement_model=linearized_measmod,
         resampling_percentage_threshold=resampling_percentage_threshold,
@@ -61,7 +63,7 @@ def particle_filter(
 @pytest.fixture()
 def regression_problem(problem):
     """Filter and regression problem."""
-    *_, regression_problem = problem
+    regression_problem, _ = problem
 
     return regression_problem
 

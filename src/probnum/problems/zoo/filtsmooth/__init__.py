@@ -2,10 +2,17 @@
 
 
 from ._filtsmooth_problems import (
+    benes_daum,
     car_tracking,
     logistic_ode,
     ornstein_uhlenbeck,
     pendulum,
 )
 
-__all__ = ["car_tracking", "logistic_ode", "ornstein_uhlenbeck", "pendulum"]
+__all__ = [
+    "benes_daum",
+    "car_tracking",
+    "logistic_ode",
+    "ornstein_uhlenbeck",
+    "pendulum",
+]

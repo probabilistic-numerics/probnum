@@ -40,7 +40,9 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_transition_rv(self):
         """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
-        nonlinear_model, _, initrv, _ = filtsmooth_zoo.pendulum()
+        _, statespace_components = filtsmooth_zoo.pendulum()
+        nonlinear_model = statespace_components["dynamics_model"]
+        initrv = statespace_components["initrv"]
         linearised_model = self.linearising_component_pendulum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
@@ -52,14 +54,17 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_exactness_linear_model(self):
         """Applied to a linear model, the results should be unchanged."""
         # pylint: disable=not-callable
-        linear_model, _, initrv, _ = filtsmooth_zoo.car_tracking()
-        linearised_model = self.linearising_component_car(linear_model)
+        regression_problem, statespace_components = filtsmooth_zoo.car_tracking()
+        linear_model = statespace_components["dynamics_model"]
+        initrv = statespace_components["initrv"]
+        dt = regression_problem.locations[1] - regression_problem.locations[0]
+        linearised_model = self.linearising_component_car(linear_model.discretise(dt))
 
         with self.subTest("Different objects"):
             self.assertNotIsInstance(linear_model, type(linearised_model))
 
-        received, info1 = linear_model.forward_rv(initrv, 0.0)
-        expected, info2 = linearised_model.forward_rv(initrv, 0.0)
+        received, info1 = linear_model.forward_rv(initrv, 0.0, dt=dt)
+        expected, info2 = linearised_model.forward_rv(initrv, 0.0, dt=dt)
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
         rtol, atol = 1e-10, 1e-10
@@ -71,12 +76,16 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_filtsmooth_pendulum(self):
         # pylint: disable=not-callable
         # Set up test problem
-        dynamod, measmod, initrv, regression_problem = filtsmooth_zoo.pendulum()
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
 
         # Linearise problem
-        ekf_meas = self.linearising_component_pendulum(measmod)
-        ekf_dyna = self.linearising_component_pendulum(dynamod)
-        method = filtsmooth.Kalman(ekf_dyna, ekf_meas, initrv)
+        ekf_meas = self.linearising_component_pendulum(
+            statespace_components["measurement_model"]
+        )
+        ekf_dyna = self.linearising_component_pendulum(
+            statespace_components["dynamics_model"]
+        )
+        method = filtsmooth.Kalman(ekf_dyna, ekf_meas, statespace_components["initrv"])
 
         # Compute filter/smoother solution
         posterior = method.filtsmooth(regression_problem)
@@ -141,26 +150,6 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         self.assertLess(filtrmse, obs_rmse)
 
 
-def benes_daum():
-    """Benes-Daum testcase, example 10.17 in Applied SDEs."""
-
-    def f(t, x):
-        return np.tanh(x)
-
-    def df(t, x):
-        return 1.0 - np.tanh(x) ** 2
-
-    def l(t):
-        return np.ones(1)
-
-    initmean = np.zeros(1)
-    initcov = 3.0 * np.eye(1)
-    initrv = randvars.Normal(initmean, initcov)
-    dynamod = statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
-    measmod = statespace.DiscreteLTIGaussian(np.eye(1), np.zeros(1), np.eye(1))
-    return dynamod, measmod, initrv, {}
-
-
 class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions):
     """Test approximate Gaussian filtering and smoothing.
 
@@ -174,7 +163,9 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
     def test_transition_rv(self):
         """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
-        nonlinear_model, _, initrv, _ = benes_daum()
+        statespace_components = filtsmooth_zoo.benes_daum()
+        nonlinear_model = statespace_components["dynamics_model"]
+        initrv = statespace_components["initrv"]
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
@@ -187,7 +178,9 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
         """transition_real() not possible for original model but for the linearised
         model."""
         # pylint: disable=not-callable
-        nonlinear_model, _, initrv, _ = benes_daum()
+        statespace_components = filtsmooth_zoo.benes_daum()
+        nonlinear_model = statespace_components["dynamics_model"]
+        initrv = statespace_components["initrv"]
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
 
         with self.subTest("Baseline should not work."):
