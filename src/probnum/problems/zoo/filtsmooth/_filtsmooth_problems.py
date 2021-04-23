@@ -389,7 +389,7 @@ def benes_daum(
 
 
 def logistic_ode(
-    ivp_initrv: Optional[randvars.RandomVariable] = None,
+    y0: Optional[Union[np.ndarray, FloatArgType]] = None,
     solver_initrv: Optional[randvars.RandomVariable] = None,
     timespan: Optional[Tuple[float, float]] = None,
     params: Optional[Tuple[float, float]] = None,
@@ -404,8 +404,8 @@ def logistic_ode(
 
     Parameters
     ----------
-    ivp_initrv
-        Initial random variable of the Initial Value Problem
+    y0
+        Initial conditions of the Initial Value Problem
     solver_initrv
         Initial random variable of the probabilistic ODE solver
     timespan
@@ -436,8 +436,9 @@ def logistic_ode(
     if timespan is None:
         timespan = (0.0, 2.0)
 
-    if ivp_initrv is None:
-        ivp_initrv = randvars.Constant(np.array([0.1]))
+    if y0 is None:
+        y0 = 0.1
+    y0 = np.array(y0)
 
     if params is None:
         params = (6.0, 1.0)
@@ -448,7 +449,9 @@ def logistic_ode(
     if ek0_or_ek1 is None:
         ek0_or_ek1 = 1
 
-    logistic_ivp = diffeq.logistic(timespan=timespan, initrv=ivp_initrv, params=params)
+    logistic_ivp = diffeq.logistic(
+        timespan=timespan, initrv=randvars.Constant(y0), params=params
+    )
     dynamics_model = statespace.IBM(ordint=3, spatialdim=1)
     measurement_model = filtsmooth.DiscreteEKFComponent.from_ode(
         logistic_ivp, prior=dynamics_model, evlvar=evlvar, ek0_or_ek1=ek0_or_ek1
