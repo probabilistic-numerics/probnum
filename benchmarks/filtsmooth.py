@@ -3,7 +3,7 @@ import functools
 
 import numpy as np
 
-import probnum.problems.zoo.filtsmooth as pn_filtsmooth_zoo
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth
 
 
@@ -14,7 +14,7 @@ class Filtering:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")]]
 
     def setup(self, linearization_implementation):
-        dynmod, measmod, initrv, regression_problem = pn_filtsmooth_zoo.pendulum()
+        dynmod, measmod, initrv, regression_problem = filtsmooth_zoo.pendulum()
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
@@ -49,7 +49,7 @@ class Smoothing:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")]]
 
     def setup(self, linearization_implementation):
-        dynmod, measmod, initrv, regression_problem = pn_filtsmooth_zoo.pendulum()
+        dynmod, measmod, initrv, regression_problem = filtsmooth_zoo.pendulum()
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(
@@ -90,7 +90,7 @@ class DenseGridOperations:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")], [1, 10]]
 
     def setup(self, linearization_implementation, num_samples):
-        dynmod, measmod, initrv, regression_problem = pn_filtsmooth_zoo.pendulum()
+        dynmod, measmod, initrv, regression_problem = filtsmooth_zoo.pendulum()
         linearization, implementation = linearization_implementation
         _lin_method = {
             "ekf": functools.partial(

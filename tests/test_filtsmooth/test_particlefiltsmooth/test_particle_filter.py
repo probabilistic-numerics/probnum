@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.filtsmooth as pn_filtsmooth_zoo
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, randvars
 
 
@@ -35,7 +35,7 @@ def num_particles():
 
 @pytest.fixture
 def problem():
-    return pn_filtsmooth_zoo.pendulum(delta_t=0.12)
+    return filtsmooth_zoo.pendulum(delta_t=0.12)
 
 
 @pytest.fixture

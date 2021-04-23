@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 
-import probnum.problems.zoo.filtsmooth as pn_filtsmooth_zoo
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems
 
 
 def logistic_ode_problem():
     """Logistic ODE problem."""
-    problem = pn_filtsmooth_zoo.logistic_ode()
+    problem = filtsmooth_zoo.logistic_ode()
     dynmod, measmod, initrv, info = problem
 
     times = np.arange(0, info["tmax"], info["dt"])
