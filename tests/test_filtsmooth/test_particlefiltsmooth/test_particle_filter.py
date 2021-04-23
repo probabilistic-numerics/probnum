@@ -35,7 +35,7 @@ def num_particles():
 
 @pytest.fixture
 def problem():
-    return filtsmooth_zoo.pendulum(delta_t=0.12)
+    return filtsmooth_zoo.pendulum(step=0.12)
 
 
 @pytest.fixture
