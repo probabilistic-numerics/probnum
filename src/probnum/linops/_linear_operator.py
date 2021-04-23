@@ -497,7 +497,7 @@ class LinearOperator:
             return y
 
     ####################################################################################
-    # Automatic (r)mat{vec,mul} Broadcasting
+    # Automatic `(r)mat{vec,mat}`` to `(r)matmul` Broadcasting
     ####################################################################################
 
     @classmethod
@@ -513,6 +513,18 @@ class LinearOperator:
         return _matmul
 
     @classmethod
+    def broadcast_matmat(
+        cls, matmat: Callable[[OperandType], OperandType]
+    ) -> Callable[[OperandType], OperandType]:
+        def _matmul(x: OperandType) -> OperandType:
+            if x.ndim == 2:
+                return matmat(x)
+
+            return _apply_to_matrix_stack(matmat, x)
+
+        return _matmul
+
+    @classmethod
     def broadcast_rmatvec(
         cls, rmatvec: Callable[[OperandType], OperandType]
     ) -> Callable[[OperandType], OperandType]:
@@ -521,6 +533,18 @@ class LinearOperator:
                 return rmatvec(x[0, :])[np.newaxis, :]
 
             return np.apply_along_axis(rmatvec, -1, x)
+
+        return _rmatmul
+
+    @classmethod
+    def broadcast_rmatmat(
+        cls, rmatmat: Callable[[OperandType], OperandType]
+    ) -> Callable[[OperandType], OperandType]:
+        def _rmatmul(x: OperandType) -> OperandType:
+            if x.ndim == 2:
+                return rmatmat(x)
+
+            return _apply_to_matrix_stack(rmatmat, x)
 
         return _rmatmul
 
@@ -544,6 +568,27 @@ class LinearOperator:
             return self.dtype
         else:
             return np.double
+
+
+def _apply_to_matrix_stack(
+    mat_fn: Callable[[np.ndarray], np.ndarray], x: np.ndarray
+) -> np.ndarray:
+    idcs = np.ndindex(x.shape[:-2])
+
+    # Shape and dtype inference
+    idx0 = next(idcs)
+    y0 = mat_fn(x[idx0])
+
+    # Result buffer
+    y = np.empty(x.shape[:-2] + y0.shape, dtype=y0.dtype)
+
+    # Fill buffer
+    y[idx0] = y0
+
+    for idx in idcs:
+        y[idx] = mat_fn(x[idx])
+
+    return y
 
 
 class _TransposedLinearOperator(LinearOperator):
@@ -634,9 +679,14 @@ class MatrixMult(LinearOperator):
         self.A = A
 
         if isinstance(self.A, scipy.sparse.spmatrix):
+            matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
+            rmatmul = LinearOperator.broadcast_rmatmat(lambda x: x @ self.A)
             todense = self.A.toarray
             inverse = lambda: MatrixMult(scipy.sparse.linalg.inv(self.A))
+            trace = lambda: self.A.diagonal().sum()
         elif isinstance(self.A, np.ndarray):
+            matmul = lambda x: A @ x
+            rmatmul = lambda x: x @ A
             todense = lambda: self.A
             inverse = lambda: MatrixMult(np.linalg.inv(self.A))
         else:
@@ -655,8 +705,8 @@ class MatrixMult(LinearOperator):
         super().__init__(
             shape,
             dtype,
-            matmul=lambda x: A @ x,
-            rmatmul=lambda x: x @ A,
+            matmul=matmul,
+            rmatmul=rmatmul,
             todense=todense,
             transpose=transpose,
             adjoint=adjoint,
@@ -665,26 +715,3 @@ class MatrixMult(LinearOperator):
 
     # Arithmetic operations
     # TODO: perform arithmetic operations between MatrixMult operators explicitly
-
-    # Properties
-    def rank(self):
-        return np.linalg.matrix_rank(self.A)
-
-    def eigvals(self):
-        return np.linalg.eigvals(self.A)
-
-    def cond(self, p=None):
-        return np.linalg.cond(self.A, p=p)
-
-    def det(self):
-        return np.linalg.det(self.A)
-
-    def logabsdet(self):
-        _sign, logdet = np.linalg.slogdet(self.A)
-        return logdet
-
-    def trace(self):
-        if self.is_square:
-            return self.A.diagonal().sum()
-        else:
-            return super().trace()

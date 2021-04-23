@@ -39,7 +39,7 @@ def aslinop(A) -> _linear_operator.LinearOperator:
         return _linear_operator.LinearOperator(
             A.shape,
             A.dtype,
-            matmul=_linear_operator.LinearOperator.broadcast_matvec(A.matvec),
+            matmul=_linear_operator.LinearOperator.broadcast_matmat(A.matmat),
         )
     else:
         raise TypeError(f"Cannot interpret {A} as a linear operator.")
