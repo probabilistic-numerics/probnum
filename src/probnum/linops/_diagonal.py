@@ -192,7 +192,7 @@ class Diagonal(_linear_operator.LinearOperator):
 
             return cond.astype(self._inexact_dtype)
 
-        return np.linalg.cond(self.todense(), p=p)
+        return np.linalg.cond(self.todense(cache=False), p=p)
 
     def _cond_isotropic(self, p) -> np.inexact:
         if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
@@ -202,7 +202,7 @@ class Diagonal(_linear_operator.LinearOperator):
                 min(self.shape), dtype=self._inexact_dtype
             )
         else:
-            return np.linalg.cond(self.todense(), p=p)
+            return np.linalg.cond(self.todense(cache=False), p=p)
 
 
 class ScalarMult(Diagonal):

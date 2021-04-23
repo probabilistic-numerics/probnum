@@ -200,22 +200,22 @@ class LinearOperator:
         if rank is not None:
             self.__rank = rank
         else:
-            self.__rank = lambda: np.linalg.matrix_rank(self.todense())
+            self.__rank = lambda: np.linalg.matrix_rank(self.todense(cache=False))
 
         if eigvals is not None:
             self.__eigvals = eigvals
         else:
-            self.__eigvals = lambda: np.linalg.eigvals(self.todense())
+            self.__eigvals = lambda: np.linalg.eigvals(self.todense(cache=False))
 
         if cond is not None:
             self.__cond = cond
         else:
-            self.__cond = lambda p: np.linalg.cond(self.todense(), p=p)
+            self.__cond = lambda p: np.linalg.cond(self.todense(cache=False), p=p)
 
         if det is not None:
             self.__det = det
         else:
-            self.__det = lambda: np.linalg.det(self.todense())
+            self.__det = lambda: np.linalg.det(self.todense(cache=False))
 
         if logabsdet is not None:
             self.__logabsdet = logabsdet
@@ -666,7 +666,7 @@ class _TransposedLinearOperator(LinearOperator):
         self._linop = linop
 
         if matmul is None:
-            matmul = lambda x: self.todense() @ x
+            matmul = lambda x: self.todense(cache=True) @ x
 
         super().__init__(
             shape=(self._linop.shape[1], self._linop.shape[0]),
@@ -689,7 +689,7 @@ class _AdjointLinearOperator(LinearOperator):
         self._linop = linop
 
         if matmul is None:
-            matmul = lambda x: self.todense() @ x
+            matmul = lambda x: self.todense(cache=True) @ x
 
         super().__init__(
             shape=(self._linop.shape[1], self._linop.shape[0]),
