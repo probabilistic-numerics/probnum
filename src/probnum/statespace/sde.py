@@ -411,10 +411,9 @@ class LinearSDE(SDE):
             L = self.dispmatfun(t)
 
             new_mean = G @ mean + u
-            cov_sqrt_lu, cov_sqrt_piv = scipy.linalg.lu_factor(cov_sqrt)
-            G_bar = scipy.linalg.lu_solve((cov_sqrt_lu, cov_sqrt_piv), G @ cov_sqrt)
-            L_bar = np.sqrt(_diffusion) * scipy.linalg.lu_solve(
-                (cov_sqrt_lu, cov_sqrt_piv), L
+            G_bar = scipy.linalg.solve_triangular(cov_sqrt, G @ cov_sqrt, lower=True)
+            L_bar = np.sqrt(_diffusion) * scipy.linalg.solve_triangular(
+                cov_sqrt, L, lower=True
             )
             M = G_bar + G_bar.T + L_bar @ L_bar.T
 
