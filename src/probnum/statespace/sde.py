@@ -252,7 +252,7 @@ class LinearSDE(SDE):
             @ sol.sol(t)[dim:].reshape((dim, dim)).T
         )
 
-        return randvars.Normal(mean=new_mean, cov=new_cov), {
+        return randvars.Normal(mean=new_mean, cov=new_cov, cov_cholesky=new_cov_sqrt), {
             "sol": sol,
             "sol_mean": sol_mean,
             "sol_cov_sqrt": sol_cov_sqrt,
@@ -354,46 +354,58 @@ class LinearSDE(SDE):
         r"""Set up forward moment differential equations (MDEs) using a square-root
         implementation. (https://ieeexplore.ieee.org/document/4045974)
 
-        The covariance P(t) obeys the Ricatti equation
+        The covariance :math:`P(t)` obeys the Ricatti equation
 
-            \dot P(t) = G(t)P(t) + P(t)G^\top(t) + L(t)L^\top(t)
+        .. math::
+            \dot P(t) = G(t)P(t) + P(t)G^\top(t) + L(t)L^\top(t).
 
-        let S(t) be a square-root of P(t), P(t) positive definite, then
+        Let :math:`S(t)` be a square-root of :math:`P(t)`, :math:`P(t)` positive definite, then
 
+        .. math::
             P(t) = S(t)S^\top(t)
 
         and we get the Riccati-Equation
 
-            \dot P(t) = G(t)S(t)S^\top(t) + 1/2 * L(t)L^\top(t)S^{-\top}S^\top
-                        + S(t)S^\top(t)G^\top(t) + 1/2 * S(t)S^{-1}(t)L(t)L^\top(t)
+        .. math::
+            \dot P(t) = G(t)S(t)S^\top(t) + 1/2 \cdot L(t)L^\top(t)S^{-\top}S^\top
+                        + S(t)S^\top(t)G^\top(t) + 1/2 \cdot S(t)S^{-1}(t)L(t)L^\top(t).
 
-        One solution can be found by the square-root \dot S(t)
+        One solution can be found by the square-root :math:`\dot S(t)`
 
-            \dot S(t) = G(t)S(t) + (A + 1/2 * L(t)L^\top(t))S^{-\top}
+        .. math::
+            \dot S(t) = G(t)S(t) + (A + 1/2 \cdot L(t)L^\top(t))S^{-\top}
 
-        where A is an arbitrary symmetric matrix.
-        A can be chosen to make S lower-triangular which can be achieved by
+        where :math:`A` is an arbitrary symmetric matrix.
+        :math:`A` can be chosen to make S lower-triangular which can be achieved by
 
-            M(t) = S^{-1}(t)\dot S(t) + \dot S(t)^top S^{-\top}
+        .. math::
+            M(t) = S^{-1}(t)\dot S(t) + \dot S(t)^\top S^{-\top}
 
         and
 
+        .. math::
             M(t) = \bar G(t) + \bar G^\top(t) + \bar L(t) \bar L^\top(t)
 
         and
 
+        .. math::
             \bar G(t) = S^{-1}(t)G(t)S(t),
             \bar L(t) = S^{-1}L(t)
 
         and
 
-            \dot S(t) = S(t)[M(t)]_{lt}
+        .. math::
+            \dot S(t) = S(t)[M(t)]_{\mathrm{lt}}
 
-        where lt denotes the lower-triangular operator defined by
+        where :math:`\mathrm{lt}` denotes the lower-triangular operator defined by
 
-            {[M(t)]_{lt}}_{ij} = 0, for i < j
-                                 1/2 m(t)_{ij}, for i=j
-                                 m(t)_{ij}, for i > j
+        .. math::
+            [M(t)]{_{\mathrm{lt}}}_{ij} =
+                \begin{cases}
+                    0 & i < j\\
+                    1/2 m(t)_{ij} & i=j\\
+                    m(t)_{ij} & i > j
+                \end{cases}.
 
         Compute an ODE vector field that represents the MDEs and is
         compatible with scipy.solve_ivp.
