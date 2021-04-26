@@ -447,8 +447,8 @@ def logistic_ode(
     params: Tuple[FloatArgType, FloatArgType] = (6.0, 1.0),
     initrv: Optional[randvars.RandomVariable] = None,
     evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
-    ek0_or_ek1: Optional[IntArgType] = None,
-    order: Optional[IntArgType] = None,
+    ek0_or_ek1: IntArgType = 1,
+    order: IntArgType = 3,
 ):
     r"""Filtering/smoothing setup for a probabilistic ODE solver for the logistic ODE.
 
@@ -498,12 +498,6 @@ def logistic_ode(
 
     if evlvar is None:
         evlvar = np.zeros((1, 1))
-
-    if ek0_or_ek1 is None:
-        ek0_or_ek1 = 1
-
-    if order is None:
-        order = 3
 
     logistic_ivp = diffeq.logistic(
         timespan=timespan, initrv=randvars.Constant(y0), params=params
