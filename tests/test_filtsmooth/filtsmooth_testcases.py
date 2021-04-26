@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, randvars, statespace
+from probnum import filtsmooth
 from tests.testing import NumpyAssertions
 
 __all__ = [
