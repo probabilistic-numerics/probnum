@@ -106,15 +106,15 @@ def car_tracking(
         )
 
     # Set up regression problem
-    times = np.arange(*timespan, step=step)
+    time_grid = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
         dynmod=discrete_dynamics_model,
         measmod=measurement_model,
         initrv=initrv,
-        times=times,
+        times=time_grid,
     )
     regression_problem = problems.RegressionProblem(
-        observations=obs, locations=times, solution=states
+        observations=obs, locations=time_grid, solution=states
     )
 
     statespace_components = dict(
@@ -194,12 +194,12 @@ def ornstein_uhlenbeck(
 
     # Set up regression problem
     if time_grid is None:
-        times = np.arange(0.0, 20.0, step=0.2)
+        time_grid = np.arange(0.0, 20.0, step=0.2)
     states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=times
+        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
     )
     regression_problem = problems.RegressionProblem(
-        observations=obs, locations=times, solution=states
+        observations=obs, locations=time_grid, solution=states
     )
 
     statespace_components = dict(
@@ -330,12 +330,12 @@ def pendulum(
         initrv = randvars.Normal(np.ones(2), measurement_variance * np.eye(2))
 
     # Generate data
-    times = np.arange(*timespan, step=step)
+    time_grid = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=times
+        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
     )
     regression_problem = problems.RegressionProblem(
-        observations=obs, locations=times, solution=states
+        observations=obs, locations=time_grid, solution=states
     )
     statespace_components = dict(
         dynamics_model=dynamics_model,
