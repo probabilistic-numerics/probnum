@@ -1,20 +1,41 @@
-import pathlib
-
 import numpy as np
 import pytest
 import pytest_cases
 from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import randvars
-from probnum.diffeq import odesolution, wrappedscipyodesolution
+from probnum import diffeq, randvars
+from probnum.diffeq import odesolution, wrappedscipyodesolution, wrappedscipysolver
 
-case_modules = [
-    ".test_wrappedscipysolver_cases." + path.stem
-    for path in (pathlib.Path(__file__).parent / "test_wrappedscipysolver_cases").glob(
-        "*_cases.py"
+
+def case_lorenz():
+    y0 = np.array([0.0, 1.0, 1.05])
+    ode = diffeq.lorenz([0.0, 1.0], y0)
+    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
+        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax), order=4
     )
-]
+    return testsolver, scipysolver
+
+
+def case_logistic():
+    y0 = np.array([0.1])
+    ode = diffeq.logistic([0.0, 1.0], y0)
+    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
+        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax), order=4
+    )
+    return testsolver, scipysolver
+
+
+def case_lotkavolterra():
+    y0 = np.array([0.1, 0.1])
+    ode = diffeq.lotkavolterra([0.0, 1.0], y0)
+    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
+        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax), order=4
+    )
+    return testsolver, scipysolver
 
 
 @pytest.fixture
@@ -47,7 +68,7 @@ def lst():
     return list([randvars.Constant(1)])
 
 
-@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=case_modules)
+@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=".")
 def test_initialise(testsolver, scipysolver):
     time, state = testsolver.initialise()
     time_scipy = scipysolver.t
@@ -56,7 +77,7 @@ def test_initialise(testsolver, scipysolver):
     np.testing.assert_allclose(state.mean[0], state_scipy[0], atol=1e-14, rtol=1e-14)
 
 
-@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=case_modules)
+@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=".")
 def test_step_execution(testsolver, scipysolver, start_point, stop_point, y):
     scipy_y_new, f_new = rk.rk_step(
         scipysolver.fun,
@@ -81,7 +102,7 @@ def test_step_execution(testsolver, scipysolver, start_point, stop_point, y):
     )
 
 
-@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=case_modules)
+@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=".")
 def test_step_variables(testsolver, scipysolver, y, start_point, stop_point):
     solver_y_new, solver_error_estimation = testsolver.step(
         start_point, stop_point, randvars.Constant(y)
@@ -117,7 +138,7 @@ def test_step_variables(testsolver, scipysolver, y, start_point, stop_point):
     np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-14, rtol=1e-14)
 
 
-@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=case_modules)
+@pytest_cases.parametrize_with_cases("testsolver,scipysolver", cases=".")
 def test_dense_output(testsolver, scipysolver, y, start_point, stop_point):
     # step has to be performed before dense-output can be computed
     scipysolver.step()
