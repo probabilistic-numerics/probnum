@@ -4,7 +4,7 @@ import functools
 import numpy as np
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth
+from probnum import filtsmooth, randvars
 
 
 class Filtering:
@@ -14,7 +14,14 @@ class Filtering:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")]]
 
     def setup(self, linearization_implementation):
-        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+        measvar = 0.1024
+        initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum(
+            measurement_variance=measvar,
+            timespan=(0.0, 4.0),
+            step=0.0075,
+            initrv=initrv,
+        )
 
         linearization, implementation = linearization_implementation
         _lin_method = {
@@ -50,7 +57,14 @@ class Smoothing:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")]]
 
     def setup(self, linearization_implementation):
-        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+        measvar = 0.1024
+        initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum(
+            measurement_variance=measvar,
+            timespan=(0.0, 4.0),
+            step=0.0075,
+            initrv=initrv,
+        )
 
         linearization, implementation = linearization_implementation
         _lin_method = {
@@ -92,7 +106,14 @@ class DenseGridOperations:
     params = [[("ekf", "classic"), ("ekf", "sqrt"), ("ukf", "classic")], [1, 10]]
 
     def setup(self, linearization_implementation, num_samples):
-        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+        measvar = 0.1024
+        initrv = randvars.Normal(np.ones(2), measvar * np.eye(2))
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum(
+            measurement_variance=measvar,
+            timespan=(0.0, 4.0),
+            step=0.0075,
+            initrv=initrv,
+        )
 
         linearization, implementation = linearization_implementation
         _lin_method = {
