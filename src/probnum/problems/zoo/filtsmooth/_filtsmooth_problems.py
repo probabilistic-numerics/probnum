@@ -140,7 +140,7 @@ def ornstein_uhlenbeck(
 
     .. math::
 
-        d x(t) &= \lambda x(t) + L d w(t) \\
+        d x(t) &= \lambda x(t) d t + L d w(t) \\
         y_n &= x(t_n) + r_n
 
     for a drift constant :math:`\lambda` and a driving Wiener process :math:`w(t)`.
@@ -231,7 +231,7 @@ def pendulum(
         &=
         \begin{pmatrix}
           x_1(t_{n-1}) + x_2(t_{n-1}) \cdot h \\
-          x_2(t_{n-1}) - g \sin(x_1(t_{n-1})) h
+          x_2(t_{n-1}) - g \sin(x_1(t_{n-1})) \cdot h
         \end{pmatrix}
         +
         q_n \\
@@ -358,7 +358,7 @@ def benes_daum(
 
     .. math::
 
-        d x(t) &= \tanh(x(t)) + L d w(t) \\
+        d x(t) &= \tanh(x(t)) d t + L d w(t) \\
         y_n &= x(t_n) + r_n
 
     for a driving Wiener process :math:`w(t)` and Gaussian distributed measurement noise
