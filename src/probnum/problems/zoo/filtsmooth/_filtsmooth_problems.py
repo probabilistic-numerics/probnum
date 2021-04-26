@@ -66,9 +66,9 @@ def car_tracking(
         `RegressionProblem` object with time points and noisy observations.
     statespace_components
         Dictionary containing
-        - dynamics model
-        - measurement model
-        - initial random variable
+            * dynamics model
+            * measurement model
+            * initial random variable
 
     References
     ----------
@@ -127,9 +127,10 @@ def ornstein_uhlenbeck(
         x(t_n) &= \lambda x(t_{n-1}) + q(t_n) \\
         y_n &= x(t_n) + r_n
 
-    for some scalar :math:`\lambda` and :math:`q(t_n) \sim \mathcal{N}(0, Q)`,
-    :math:`r_n \sim \mathcal{N}(0, R)` for process noise covariance matrix :math:`Q`
-    and measurement noise covariance matrix :math:`R`.
+    for a scalar drift constant :math:`\lambda` and
+    :math:`q(t_n) \sim \mathcal{N}(0, Q)`, :math:`r_n \sim \mathcal{N}(0, R)`
+    for process noise covariance matrix :math:`Q` and
+    measurement noise covariance matrix :math:`R`.
     Note that the linear, time-invariant dynamics have an equivalent discretization.
 
     Parameters
@@ -152,9 +153,9 @@ def ornstein_uhlenbeck(
         `RegressionProblem` object with time points and noisy observations.
     statespace_components
         Dictionary containing
-        - dynamics model
-        - measurement model
-        - initial random variable
+            * dynamics model
+            * measurement model
+            * initial random variable
 
 
     References
@@ -239,9 +240,9 @@ def pendulum(
         `RegressionProblem` object with time points and noisy observations.
     statespace_components
         Dictionary containing
-        - dynamics model
-        - measurement model
-        - initial random variable
+            * dynamics model
+            * measurement model
+            * initial random variable
 
 
     References
@@ -331,7 +332,7 @@ def benes_daum(
         x(t_n) &= \tanh(x(t_{n-1})) + q(t_n) \\
         y_n &= x(t_n) + r_n
 
-    for some scalar :math:`\lambda` and :math:`q(t_n) \sim \mathcal{N}(0, Q)`,
+    for :math:`q(t_n) \sim \mathcal{N}(0, Q)` and
     :math:`r_n \sim \mathcal{N}(0, R)` for process noise covariance matrix :math:`Q`
     and measurement noise covariance matrix :math:`R`.
 
@@ -350,9 +351,9 @@ def benes_daum(
     -------
     statespace_components
         Dictionary containing
-        - dynamics model
-        - measurement model
-        - initial random variable
+            * dynamics model
+            * measurement model
+            * initial random variable
 
     Notes
     -----
@@ -370,9 +371,9 @@ def benes_daum(
     def l(t):
         return process_diffusion * np.ones(1)
 
-    initmean = np.zeros(1)
-    initcov = 3.0 * np.eye(1)
-    initrv = randvars.Normal(initmean, initcov)
+    if initrv is None:
+        initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
+
     dynamics_model = statespace.SDE(dimension=1, driftfun=f, dispmatfun=l, jacobfun=df)
     measurement_model = statespace.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
@@ -390,15 +391,16 @@ def benes_daum(
 
 def logistic_ode(
     y0: Optional[Union[np.ndarray, FloatArgType]] = None,
-    solver_initrv: Optional[randvars.RandomVariable] = None,
+    initrv: Optional[randvars.RandomVariable] = None,
     timespan: Optional[Tuple[float, float]] = None,
     params: Optional[Tuple[float, float]] = None,
     evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
     ek0_or_ek1: Optional[int] = None,
+    order: Optional[int] = None,
 ):
     r"""Filtering/smoothing setup for a probabilistic ODE solver based on the logistic ODE.
 
-    This state space model puts an integrated Brownian motion prior on the dynamics
+    This state space model assumes an integrated Brownian motion prior on the dynamics
     and constructs the ODE likelihood based on the vector field defining the
     logistic ODE.
 
@@ -406,7 +408,7 @@ def logistic_ode(
     ----------
     y0
         Initial conditions of the Initial Value Problem
-    solver_initrv
+    initrv
         Initial random variable of the probabilistic ODE solver
     timespan
         Time span of the problem
@@ -416,6 +418,8 @@ def logistic_ode(
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
     ek0_or_ek1
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
+    order
+        Order of integration for the Integrated Brownian Motion prior of the solver.
 
     Returns
     -------
@@ -449,22 +453,25 @@ def logistic_ode(
     if ek0_or_ek1 is None:
         ek0_or_ek1 = 1
 
+    if order is None:
+        order = 3
+
     logistic_ivp = diffeq.logistic(
         timespan=timespan, initrv=randvars.Constant(y0), params=params
     )
-    dynamics_model = statespace.IBM(ordint=3, spatialdim=1)
+    dynamics_model = statespace.IBM(ordint=order, spatialdim=1)
     measurement_model = filtsmooth.DiscreteEKFComponent.from_ode(
         logistic_ivp, prior=dynamics_model, evlvar=evlvar, ek0_or_ek1=ek0_or_ek1
     )
 
-    if solver_initrv is None:
+    if initrv is None:
         initmean = np.array([0.1, 0, 0.0, 0.0])
         initcov = np.diag([0.0, 1.0, 1.0, 1.0])
-        solver_initrv = randvars.Normal(initmean, initcov)
+        initrv = randvars.Normal(initmean, initcov)
 
     statespace_components = dict(
         dynamics_model=dynamics_model,
         measurement_model=measurement_model,
-        initrv=solver_initrv,
+        initrv=initrv,
     )
     return logistic_ivp, statespace_components
