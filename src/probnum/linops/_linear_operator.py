@@ -9,8 +9,6 @@ import scipy.sparse.linalg.interface
 import probnum.utils
 from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
 
-OperandType = Union[np.ndarray, "RandomVariable"]
-
 BinaryOperandType = Union[
     "LinearOperator", ScalarArgType, np.ndarray, scipy.sparse.spmatrix
 ]
@@ -103,13 +101,13 @@ class LinearOperator:
         shape: ShapeArgType,
         dtype: DTypeArgType,
         *,
-        matmul: Callable[[OperandType], OperandType],
-        rmatmul: Optional[Callable[[OperandType], OperandType]] = None,
-        apply: Callable[[OperandType, int], OperandType] = None,
+        matmul: Callable[[np.ndarray], np.ndarray],
+        rmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        apply: Callable[[np.ndarray, int], np.ndarray] = None,
         todense: Optional[Callable[[], np.ndarray]] = None,
-        transpose: Optional[Callable[[OperandType], OperandType]] = None,
+        transpose: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         adjoint: Optional[Callable[[], "LinearOperator"]] = None,
-        hmatmul: Optional[Callable[[OperandType], OperandType]] = None,
+        hmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         inverse: Optional[Callable[[], "LinearOperator"]] = None,
         rank: Optional[Callable[[], np.intp]] = None,
         eigvals: Optional[Callable[[], np.ndarray]] = None,
@@ -256,7 +254,7 @@ class LinearOperator:
             f"dtype={str(self.dtype)}>"
         )
 
-    def __call__(self, x: OperandType, axis: Optional[int] = None) -> OperandType:
+    def __call__(self, x: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
         if axis is not None and (axis < -x.ndim or axis >= x.ndim):
             raise ValueError(
                 f"Axis {axis} is out-of-bounds for operand of shape {np.shape(x)}."
@@ -576,9 +574,9 @@ class LinearOperator:
 
     @classmethod
     def broadcast_matvec(
-        cls, matvec: Callable[[OperandType], OperandType]
-    ) -> Callable[[OperandType], OperandType]:
-        def _matmul(x: OperandType) -> OperandType:
+        cls, matvec: Callable[[np.ndarray], np.ndarray]
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        def _matmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2 and x.shape[1] == 1:
                 return matvec(x[:, 0])[:, np.newaxis]
 
@@ -588,9 +586,9 @@ class LinearOperator:
 
     @classmethod
     def broadcast_matmat(
-        cls, matmat: Callable[[OperandType], OperandType]
-    ) -> Callable[[OperandType], OperandType]:
-        def _matmul(x: OperandType) -> OperandType:
+        cls, matmat: Callable[[np.ndarray], np.ndarray]
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        def _matmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2:
                 return matmat(x)
 
@@ -600,9 +598,9 @@ class LinearOperator:
 
     @classmethod
     def broadcast_rmatvec(
-        cls, rmatvec: Callable[[OperandType], OperandType]
-    ) -> Callable[[OperandType], OperandType]:
-        def _rmatmul(x: OperandType) -> OperandType:
+        cls, rmatvec: Callable[[np.ndarray], np.ndarray]
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        def _rmatmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2 and x.shape[0] == 1:
                 return rmatvec(x[0, :])[np.newaxis, :]
 
@@ -612,9 +610,9 @@ class LinearOperator:
 
     @classmethod
     def broadcast_rmatmat(
-        cls, rmatmat: Callable[[OperandType], OperandType]
-    ) -> Callable[[OperandType], OperandType]:
-        def _rmatmul(x: OperandType) -> OperandType:
+        cls, rmatmat: Callable[[np.ndarray], np.ndarray]
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        def _rmatmul(x: np.ndarray) -> np.ndarray:
             if x.ndim == 2:
                 return rmatmat(x)
 

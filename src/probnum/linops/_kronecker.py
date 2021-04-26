@@ -134,7 +134,7 @@ class Kronecker(_linear_operator.LinearOperator):
 def _kronecker_matmul(
     A: _linear_operator.LinearOperator,
     B: _linear_operator.LinearOperator,
-    x: _linear_operator.OperandType,
+    x: np.ndarray,
 ):
     """Efficient multiplication via (A (x) B)vec(X) = vec(AXB^T) where vec is the
     row-wise vectorization operator.
@@ -163,8 +163,8 @@ def _kronecker_matmul(
 def _kronecker_rmatmul(
     A: _linear_operator.LinearOperator,
     B: _linear_operator.LinearOperator,
-    x: _linear_operator.OperandType,
-) -> _linear_operator.OperandType:
+    x: np.ndarray,
+) -> np.ndarray:
     # Reshape into stack of matrices
     y = x
 
@@ -291,9 +291,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         else:
             return SymmetricKronecker(self.A.astype(dtype), self.B.astype(dtype))
 
-    def _matmul_different_factors(
-        self, x: _linear_operator.OperandType
-    ) -> _linear_operator.OperandType:
+    def _matmul_different_factors(self, x: np.ndarray) -> np.ndarray:
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where
         vec is the column-wise normalized symmetric stacking operator.
         """
@@ -326,9 +324,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         return y
 
-    def _rmatmul_different_factors(
-        self, x: _linear_operator.OperandType
-    ) -> _linear_operator.OperandType:
+    def _rmatmul_different_factors(self, x: np.ndarray) -> np.ndarray:
         # Reshape into stack of matrices
         y = x
 
