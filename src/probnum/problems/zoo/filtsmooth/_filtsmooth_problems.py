@@ -21,6 +21,8 @@ def car_tracking(
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
     step: FloatArgType = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
+    forward_implementation: str = "classic",
+    backward_implementation: str = "classic",
 ):
     r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
@@ -87,7 +89,12 @@ def car_tracking(
     state_dim = 2
     model_dim = state_dim * (model_ordint + 1)
     measurement_dim = 2
-    dynamics_model = statespace.IBM(ordint=model_ordint, spatialdim=state_dim)
+    dynamics_model = statespace.IBM(
+        ordint=model_ordint,
+        spatialdim=state_dim,
+        forward_implementation=forward_implementation,
+        backward_implementation=backward_implementation,
+    )
     dynamics_model.dispmat *= process_diffusion
 
     discrete_dynamics_model = dynamics_model.discretise(dt=step)
@@ -98,6 +105,8 @@ def car_tracking(
         state_trans_mat=measurement_matrix,
         shift_vec=np.zeros(measurement_dim),
         proc_noise_cov_mat=measurement_cov,
+        forward_implementation=forward_implementation,
+        backward_implementation=backward_implementation,
     )
 
     if initrv is None:
@@ -131,6 +140,8 @@ def ornstein_uhlenbeck(
     process_diffusion: FloatArgType = 0.5,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
+    forward_implementation: str = "classic",
+    backward_implementation: str = "classic",
 ):
     r"""Filtering/smoothing setup based on an Ornstein Uhlenbeck process.
 
@@ -180,13 +191,21 @@ def ornstein_uhlenbeck(
         Cambridge University Press, 2019
     """
 
-    dynamics_model = statespace.IOUP(ordint=0, spatialdim=1, driftspeed=driftspeed)
+    dynamics_model = statespace.IOUP(
+        ordint=0,
+        spatialdim=1,
+        driftspeed=driftspeed,
+        forward_implementation=forward_implementation,
+        backward_implementation=backward_implementation,
+    )
     dynamics_model.dispmat *= process_diffusion
 
     measurement_model = statespace.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1),
         shift_vec=np.zeros(1),
         proc_noise_cov_mat=measurement_variance * np.eye(1),
+        forward_implementation=forward_implementation,
+        backward_implementation=backward_implementation,
     )
 
     if initrv is None:
@@ -449,6 +468,8 @@ def logistic_ode(
     evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
     ek0_or_ek1: IntArgType = 1,
     order: IntArgType = 3,
+    forward_implementation: str = "classic",
+    backward_implementation: str = "classic",
 ):
     r"""Filtering/smoothing setup for a probabilistic ODE solver for the logistic ODE.
 
@@ -502,9 +523,19 @@ def logistic_ode(
     logistic_ivp = diffeq.logistic(
         timespan=timespan, initrv=randvars.Constant(y0), params=params
     )
-    dynamics_model = statespace.IBM(ordint=order, spatialdim=1)
+    dynamics_model = statespace.IBM(
+        ordint=order,
+        spatialdim=1,
+        forward_implementation=forward_implementation,
+        backward_implementation=backward_implementation,
+    )
     measurement_model = filtsmooth.DiscreteEKFComponent.from_ode(
-        logistic_ivp, prior=dynamics_model, evlvar=evlvar, ek0_or_ek1=ek0_or_ek1
+        logistic_ivp,
+        prior=dynamics_model,
+        evlvar=evlvar,
+        ek0_or_ek1=ek0_or_ek1,
+        forward_implementation=forward_implementation,
+        backward_implementation=backward_implementation,
     )
 
     if initrv is None:
