@@ -77,7 +77,6 @@ class PerturbedStepSolver(diffeq.ODESolver):
         probnum_solution = perturbedstepsolution.PerturbedStepSolution(
             self.scales, times, rvs, interpolants
         )
-        print(times)
         return probnum_solution
 
     def postprocess(self, odesol):

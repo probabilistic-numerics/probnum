@@ -65,6 +65,7 @@ def get_interpolant(times, t_new):
     closest left timepoint of t in times. Returns index of t if t is in times.
 
     """
+
     closest_t = (np.abs(t_new - np.array(times))).argmin()
     if t_new < times[1]:
         closest_left_t = 0
