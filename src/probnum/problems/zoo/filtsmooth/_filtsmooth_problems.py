@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 from probnum import diffeq, filtsmooth, problems, randvars, statespace
-from probnum.type import FloatArgType
+from probnum.type import FloatArgType, IntArgType
 
 __all__ = [
     "benes_daum",
@@ -17,13 +17,15 @@ __all__ = [
 def car_tracking(
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
-    times: Optional[np.ndarray] = None,
+    model_ordint: IntArgType = 1,
+    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 20.0),
+    step: FloatArgType = 0.2,
     initrv: Optional[randvars.RandomVariable] = None,
 ):
     r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
-    A linear, time-invariant Gaussian state space model for car-tracking, based on
-    Example 3.6 in Särkkä, 2013. [1]_
+    A discrete, linear, time-invariant Gaussian state space model for car-tracking,
+    based on Example 3.6 in Särkkä, 2013. [1]_
     Let :math:`X = (\dot{x}_1, \dot{x}_2, \ddot{x}_1, \ddot{x}_2)`. Then the state
     space model has the following discretized formulation
 
@@ -37,7 +39,7 @@ def car_tracking(
           0 & 0 & 0 & 1
         \end{pmatrix} X(t_{n-1})
         +
-        q(t_n) \\
+        q_n \\
         y_{n} &=
         \begin{pmatrix}
           1 & 0 & 0 & 0 \\
@@ -45,7 +47,7 @@ def car_tracking(
         \end{pmatrix} X(t_{n})
         + r_n
 
-    where :math:`q(t_n) \sim \mathcal{N}(0, Q)` and :math:`r_n \sim \mathcal{N}(0, R)`
+    where :math:`q_n \sim \mathcal{N}(0, Q)` and :math:`r_n \sim \mathcal{N}(0, R)`
     for process noise covariance matrix :math:`Q` and measurement noise covariance
     matrix :math:`R`.
 
@@ -55,20 +57,26 @@ def car_tracking(
         Marginal measurement variance.
     process_diffusion
         Diffusion constant for the dynamics.
-    times
-        Time grid for the filtering/smoothing problem.
+    model_ordint
+        Order of integration for the dynamics model. Defaults to one, which corresponds
+        to a Wiener velocity model.
+    timespan
+        :math:`t_0` and :math:`t_{\max}` of the time grid.
+    step
+        Step size of the time grid.
     initrv
         Initial random variable.
 
     Returns
     -------
     regression_problem
-        `RegressionProblem` object with time points and noisy observations.
+        ``RegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
-            * dynamics model
-            * measurement model
-            * initial random variable
+
+        * dynamics model
+        * measurement model
+        * initial random variable
 
     References
     ----------
@@ -76,33 +84,41 @@ def car_tracking(
         2013.
 
     """
-
-    dynamics_model = statespace.IBM(ordint=1, spatialdim=2)
+    state_dim = 2
+    model_dim = state_dim * (model_ordint + 1)
+    measurement_dim = 2
+    dynamics_model = statespace.IBM(ordint=model_ordint, spatialdim=state_dim)
     dynamics_model.dispmat *= process_diffusion
 
-    measurement_matrix = np.eye(2, 4)
-    measurement_cov = measurement_variance * np.eye(2)
+    discrete_dynamics_model = dynamics_model.discretise(dt=step)
+
+    measurement_matrix = np.eye(measurement_dim, model_dim)
+    measurement_cov = measurement_variance * np.eye(measurement_dim)
     measurement_model = statespace.DiscreteLTIGaussian(
         state_trans_mat=measurement_matrix,
-        shift_vec=np.zeros(2),
+        shift_vec=np.zeros(measurement_dim),
         proc_noise_cov_mat=measurement_cov,
     )
 
     if initrv is None:
-        initrv = randvars.Normal(np.zeros(4), 0.5 * measurement_variance * np.eye(4))
+        initrv = randvars.Normal(
+            np.zeros(model_dim), 0.5 * measurement_variance * np.eye(model_dim)
+        )
 
     # Set up regression problem
-    if times is None:
-        times = np.arange(0.0, 20.0, step=0.2)
+    times = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=times
+        dynmod=discrete_dynamics_model,
+        measmod=measurement_model,
+        initrv=initrv,
+        times=times,
     )
     regression_problem = problems.RegressionProblem(
         observations=obs, locations=times, solution=states
     )
 
     statespace_components = dict(
-        dynamics_model=dynamics_model,
+        dynamics_model=discrete_dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
     )
@@ -113,7 +129,7 @@ def ornstein_uhlenbeck(
     measurement_variance: FloatArgType = 0.1,
     driftspeed: FloatArgType = 0.21,
     process_diffusion: FloatArgType = 0.5,
-    times: Optional[np.ndarray] = None,
+    time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
 ):
     r"""Filtering/smoothing setup based on an Ornstein Uhlenbeck process.
@@ -124,13 +140,12 @@ def ornstein_uhlenbeck(
 
     .. math::
 
-        x(t_n) &= \lambda x(t_{n-1}) + q(t_n) \\
+        d x(t) &= \lambda x(t) + L d w(t) \\
         y_n &= x(t_n) + r_n
 
-    for a scalar drift constant :math:`\lambda` and
-    :math:`q(t_n) \sim \mathcal{N}(0, Q)`, :math:`r_n \sim \mathcal{N}(0, R)`
-    for process noise covariance matrix :math:`Q` and
-    measurement noise covariance matrix :math:`R`.
+    for a drift constant :math:`\lambda` and a driving Wiener process :math:`w(t)`.
+    :math:`r_n \sim \mathcal{N}(0, R)` is Gaussian distributed measurement noise
+    with covariance matrix :math:`R`.
     Note that the linear, time-invariant dynamics have an equivalent discretization.
 
     Parameters
@@ -141,7 +156,7 @@ def ornstein_uhlenbeck(
         Drift parameter of the Ornstein-Uhlenbeck process.
     process_diffusion
         Diffusion constant for the dynamics
-    times
+    time_grid
         Time grid for the filtering/smoothing problem.
     initrv
         Initial random variable.
@@ -150,12 +165,13 @@ def ornstein_uhlenbeck(
     Returns
     -------
     regression_problem
-        `RegressionProblem` object with time points and noisy observations.
+        ``RegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
-            * dynamics model
-            * measurement model
-            * initial random variable
+
+        * dynamics model
+        * measurement model
+        * initial random variable
 
 
     References
@@ -177,7 +193,7 @@ def ornstein_uhlenbeck(
         initrv = randvars.Normal(10.0 * np.ones(1), np.eye(1))
 
     # Set up regression problem
-    if times is None:
+    if time_grid is None:
         times = np.arange(0.0, 20.0, step=0.2)
     states, obs = statespace.generate_samples(
         dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=times
@@ -196,53 +212,65 @@ def ornstein_uhlenbeck(
 
 def pendulum(
     measurement_variance: FloatArgType = 0.1024,
+    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
     step: FloatArgType = 0.0075,
-    t_max: FloatArgType = 4.0,
     initrv: Optional[randvars.RandomVariable] = None,
 ):
     r"""Filtering/smoothing setup for a (noisy) pendulum.
 
-    A non-linear state space model for a pendulum with unknown forces acting on the
-    dynamics, modeled as Gaussian noise. See e.g. Särkkä, 2013 [1]_ for more details.
-    Let :math:`X = (\theta, \dot{\theta})`. Then the pendulum model can be formulated
-    as the following continuous-discrete state space model:
+    A non-linear, discretized state space model for a pendulum with unknown forces
+    acting on the dynamics, modeled as Gaussian noise.
+    See e.g. Särkkä, 2013 [1]_ for more details.
 
     .. math::
 
-        \dot{X}(t) &=
         \begin{pmatrix}
-          \dot{\theta}(t) \\
-          - g \cdot \sin (\theta(t))
+          x_1(t_n) \\
+          x_2(t_n)
+        \end{pmatrix}
+        &=
+        \begin{pmatrix}
+          x_1(t_{n-1}) + x_2(t_{n-1}) \cdot h \\
+          x_2(t_{n-1}) - g \sin(x_1(t_{n-1})) h
         \end{pmatrix}
         +
-        \begin{pmatrix}
-          0 \\
-          1
-        \end{pmatrix} W(t) \\
-        y_n &= \sin(\theta(t_n))
+        q_n \\
+        y_n &\sim \sin(x_1(t_n)) + r_n
 
-    where :math:`W(t)` is a one-dimensional Gaussian white noise process.
+    for some ``step`` size :math:`h` and Gaussian process noise
+    :math:`q_n \sim \mathcal{N}(0, Q)` with
+
+    .. math::
+        Q =
+        \begin{pmatrix}
+          \frac{h^3}{3} & \frac{h^2}{2} \\
+          \frac{h^2}{2} & h
+        \end{pmatrix}
+
+    :math:`g` denotes the gravitational constant and :math:`r_n \sim \mathcal{N}(0, R)`
+    is Gaussian mesurement noise with some covariance :math:`R`.
 
     Parameters
     ----------
     measurement_variance
         Marginal measurement variance.
+    timespan
+        :math:`t_0` and :math:`t_{\max}` of the time grid.
     step
-        The step size of the discretized time grid on which the model is considered.
-    t_max
-        The time limit of the grid.
+        Step size of the time grid.
     initrv
         Initial random variable.
 
     Returns
     -------
     regression_problem
-        `RegressionProblem` object with time points and noisy observations.
+        ``RegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
-            * dynamics model
-            * measurement model
-            * initial random variable
+
+        * dynamics model
+        * measurement model
+        * initial random variable
 
 
     References
@@ -302,7 +330,7 @@ def pendulum(
         initrv = randvars.Normal(np.ones(2), measurement_variance * np.eye(2))
 
     # Generate data
-    times = np.arange(0.0, t_max, step=step)
+    times = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
         dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=times
     )
@@ -320,21 +348,22 @@ def pendulum(
 def benes_daum(
     measurement_variance: FloatArgType = 0.1,
     process_diffusion: FloatArgType = 1.0,
+    time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
 ):
-    r"""Filtering/smoothing setup based on the Benes SDE.
+    r"""Filtering/smoothing setup based on the Beneš SDE.
 
-    A non-linear state space model for the dynamics of a Benes SDE.
+    A non-linear state space model for the dynamics of a Beneš SDE.
     Here, we formulate a continuous-discrete state space model:
 
     .. math::
 
-        x(t_n) &= \tanh(x(t_{n-1})) + q(t_n) \\
+        d x(t) &= \tanh(x(t)) + L d w(t) \\
         y_n &= x(t_n) + r_n
 
-    for :math:`q(t_n) \sim \mathcal{N}(0, Q)` and
-    :math:`r_n \sim \mathcal{N}(0, R)` for process noise covariance matrix :math:`Q`
-    and measurement noise covariance matrix :math:`R`.
+    for a driving Wiener process :math:`w(t)` and Gaussian distributed measurement noise
+    :math:`r_n \sim \mathcal{N}(0, R)` with measurement noise
+    covariance matrix :math:`R`.
 
     Parameters
     ----------
@@ -342,24 +371,28 @@ def benes_daum(
         Marginal measurement variance.
     process_diffusion
         Diffusion constant for the dynamics
-    times
+    time_grid
         Time grid for the filtering/smoothing problem.
     initrv
         Initial random variable.
 
     Returns
     -------
+    regression_problem
+        ``RegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
-            * dynamics model
-            * measurement model
-            * initial random variable
+
+        * dynamics model
+        * measurement model
+        * initial random variable
 
     Notes
     -----
-    No ``RegressionProblem`` object is returned. The dynamics model has to be linearized
-    in order to generate data.
-
+    In order to generate observations for the returned ``RegressionProblem`` object,
+    the non-linear Beneš SDE has to be linearized.
+    Here, a ``ContinuousEKFComponent`` is used, which corresponds to a first-order
+    linearization as used in the extended Kalman filter.
     """
 
     def f(t, x):
@@ -381,24 +414,43 @@ def benes_daum(
         proc_noise_cov_mat=measurement_variance * np.eye(1),
     )
 
+    # Generate data
+    if time_grid is None:
+        time_grid = np.arange(0.0, 4.0, step=0.2)
+    # The non-linear dynamics are linearized according to an EKF in order
+    # to generate samples.
+    linearized_dynamics_model = filtsmooth.ContinuousEKFComponent(
+        non_linear_model=dynamics_model
+    )
+    states, obs = statespace.generate_samples(
+        dynmod=linearized_dynamics_model,
+        measmod=measurement_model,
+        initrv=initrv,
+        times=time_grid,
+    )
+    regression_problem = problems.RegressionProblem(
+        observations=obs, locations=time_grid, solution=states
+    )
+
     statespace_components = dict(
         dynamics_model=dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
     )
-    return statespace_components
+    return regression_problem, statespace_components
 
 
 def logistic_ode(
     y0: Optional[Union[np.ndarray, FloatArgType]] = None,
+    timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 2.0),
+    step: FloatArgType = 0.1,
+    params: Tuple[FloatArgType, FloatArgType] = (6.0, 1.0),
     initrv: Optional[randvars.RandomVariable] = None,
-    timespan: Optional[Tuple[float, float]] = None,
-    params: Optional[Tuple[float, float]] = None,
     evlvar: Optional[Union[np.ndarray, FloatArgType]] = None,
-    ek0_or_ek1: Optional[int] = None,
-    order: Optional[int] = None,
+    ek0_or_ek1: Optional[IntArgType] = None,
+    order: Optional[IntArgType] = None,
 ):
-    r"""Filtering/smoothing setup for a probabilistic ODE solver based on the logistic ODE.
+    r"""Filtering/smoothing setup for a probabilistic ODE solver for the logistic ODE.
 
     This state space model assumes an integrated Brownian motion prior on the dynamics
     and constructs the ODE likelihood based on the vector field defining the
@@ -408,12 +460,12 @@ def logistic_ode(
     ----------
     y0
         Initial conditions of the Initial Value Problem
-    initrv
-        Initial random variable of the probabilistic ODE solver
     timespan
         Time span of the problem
     params
         Parameters for the logistic ODE
+    initrv
+        Initial random variable of the probabilistic ODE solver
     evlvar
         See :py:class:`probnum.diffeq.GaussianIVPFilter`
     ek0_or_ek1
@@ -423,13 +475,16 @@ def logistic_ode(
 
     Returns
     -------
-    logistic_ivp
-        The initial value problem based on the logistic ODE.
+    regression_problem
+        ``RegressionProblem`` object with time points and zero-observations.
+
     statespace_components
         Dictionary containing
-        - dynamics model
-        - measurement model
-        - initial random variable
+
+        * dynamics model
+        * measurement model
+        * initial random variable
+        * The initial value problem based on the logistic ODE.
 
     See Also
     --------
@@ -437,15 +492,9 @@ def logistic_ode(
 
     """
 
-    if timespan is None:
-        timespan = (0.0, 2.0)
-
     if y0 is None:
-        y0 = [0.1]
-    y0 = np.array(y0)
-
-    if params is None:
-        params = (6.0, 1.0)
+        y0 = np.array([0.1])
+    y0 = np.atleast_1d(y0)
 
     if evlvar is None:
         evlvar = np.zeros((1, 1))
@@ -469,9 +518,19 @@ def logistic_ode(
         initcov = np.diag([0.0, 1.0, 1.0, 1.0])
         initrv = randvars.Normal(initmean, initcov)
 
+    # Generate zero-data
+    time_grid = np.arange(*timespan, step=step)
+    solution = logistic_ivp.solution(time_grid)
+    regression_problem = problems.RegressionProblem(
+        observations=np.zeros(shape=(time_grid.size, 1)),
+        locations=time_grid,
+        solution=solution,
+    )
+
     statespace_components = dict(
         dynamics_model=dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
+        ivp=logistic_ivp,
     )
-    return logistic_ivp, statespace_components
+    return regression_problem, statespace_components

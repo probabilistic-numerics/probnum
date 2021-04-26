@@ -57,14 +57,13 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         regression_problem, statespace_components = filtsmooth_zoo.car_tracking()
         linear_model = statespace_components["dynamics_model"]
         initrv = statespace_components["initrv"]
-        dt = regression_problem.locations[1] - regression_problem.locations[0]
-        linearised_model = self.linearising_component_car(linear_model.discretise(dt))
+        linearised_model = self.linearising_component_car(linear_model)
 
         with self.subTest("Different objects"):
             self.assertNotIsInstance(linear_model, type(linearised_model))
 
-        received, info1 = linear_model.forward_rv(initrv, 0.0, dt=dt)
-        expected, info2 = linearised_model.forward_rv(initrv, 0.0, dt=dt)
+        received, info1 = linear_model.forward_rv(initrv, 0.0)
+        expected, info2 = linearised_model.forward_rv(initrv, 0.0)
         crosscov1 = info1["crosscov"]
         crosscov2 = info2["crosscov"]
         rtol, atol = 1e-10, 1e-10
@@ -163,7 +162,7 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
     def test_transition_rv(self):
         """forward_rv() not possible for original model but for the linearised model."""
         # pylint: disable=not-callable
-        statespace_components = filtsmooth_zoo.benes_daum()
+        _, statespace_components = filtsmooth_zoo.benes_daum()
         nonlinear_model = statespace_components["dynamics_model"]
         initrv = statespace_components["initrv"]
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)
@@ -178,7 +177,7 @@ class LinearisedContinuousTransitionTestCase(unittest.TestCase, NumpyAssertions)
         """transition_real() not possible for original model but for the linearised
         model."""
         # pylint: disable=not-callable
-        statespace_components = filtsmooth_zoo.benes_daum()
+        _, statespace_components = filtsmooth_zoo.benes_daum()
         nonlinear_model = statespace_components["dynamics_model"]
         initrv = statespace_components["initrv"]
         linearised_model = self.linearising_component_benes_daum(nonlinear_model)

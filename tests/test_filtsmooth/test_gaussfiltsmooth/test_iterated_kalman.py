@@ -2,24 +2,10 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, problems
+from probnum import filtsmooth
 
 
-def logistic_ode_problem():
-    """Logistic ODE problem."""
-    logistic_ivp, statespace_components = filtsmooth_zoo.logistic_ode()
-
-    times = np.arange(*logistic_ivp.timespan, step=0.2)
-    obs = np.zeros((len(times), 1))
-
-    states = logistic_ivp.solution(times)
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=times, solution=states
-    )
-    return regression_problem, statespace_components
-
-
-@pytest.fixture(params=[logistic_ode_problem])
+@pytest.fixture(params=[filtsmooth_zoo.logistic_ode])
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
