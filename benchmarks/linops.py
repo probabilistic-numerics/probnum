@@ -18,7 +18,6 @@ NO_RANK = (
     "matrix",
     "matrix_sparse",
     "symmetric_kronecker_distinct_factors",
-    "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
 )
 NO_EIGVALS = (
     "matrix",
@@ -31,49 +30,35 @@ NO_COND = {
     2: (
         "matrix",
         "matrix_sparse",
-        "isotropic_scaling",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
-        "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
     ),
     "fro": (
         "matrix",
         "matrix_sparse",
-        "isotropic_scaling",  # TODO: Remove after refactor
-        "identity",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
-        "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
     ),
     1: (
         "matrix",
         "matrix_sparse",
-        "isotropic_scaling",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
-        "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
     ),
     np.inf: (
         "matrix",
         "matrix_sparse",
-        "isotropic_scaling",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
-        "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
     ),
 }
 NO_DET = (
     "matrix",
     "matrix_sparse",
     "symmetric_kronecker_distinct_factors",
-    "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
 )
 NO_LOGABSDET = (
     "matrix",
     "matrix_sparse",
     "symmetric_kronecker_distinct_factors",
-    "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
 )
-NO_TRACE = (
-    "symmetric_kronecker_distinct_factors",  # TODO: Remove after refactor
-    "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
-)
+NO_TRACE = ()
 
 
 def get_linear_operator(name: str) -> pn.linops.LinearOperator:
