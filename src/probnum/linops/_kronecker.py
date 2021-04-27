@@ -360,7 +360,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         return 0.5 * (np.kron(A_dense, B_dense) + np.kron(B_dense, A_dense))
 
     def _cond_identical_factors(self, p) -> np.inexact:
-        if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
+        if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
             return self.A.cond(p=p) * self.B.cond(p=p)
 
         return np.linalg.cond(self.todense(cache=False), p=p)

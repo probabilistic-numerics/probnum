@@ -235,7 +235,7 @@ class ScalarMult(Diagonal):
         return self._scalar
 
 
-class Identity(ScalarMult):
+class Identity(Diagonal):
     """The identity operator.
 
     Parameters
@@ -247,6 +247,6 @@ class Identity(ScalarMult):
     def __init__(
         self,
         shape: ShapeArgType,
-        dtype: DTypeArgType = np.float_,
+        dtype: DTypeArgType = np.double,
     ):
-        super().__init__(shape, 1, dtype)
+        super().__init__(1, shape=shape, dtype=dtype)
