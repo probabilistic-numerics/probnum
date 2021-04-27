@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, randvars
-
-from ..filtsmooth_testcases import pendulum
 
 
 def test_effective_number_of_events():
@@ -36,22 +35,24 @@ def num_particles():
 
 @pytest.fixture
 def problem():
-    return pendulum(delta_t=0.12)
+    return filtsmooth_zoo.pendulum(step=0.12)
 
 
 @pytest.fixture
 def particle_filter(
     problem, num_particles, measmod_style, resampling_percentage_threshold
 ):
-    dynmod, measmod, initrv, _ = problem
+    _, statespace_components = problem
     linearized_measmod = (
-        filtsmooth.DiscreteUKFComponent(measmod) if measmod_style == "ukf" else None
+        filtsmooth.DiscreteUKFComponent(statespace_components["measurement_model"])
+        if measmod_style == "ukf"
+        else None
     )
 
     particle = filtsmooth.ParticleFilter(
-        dynmod,
-        measmod,
-        initrv,
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
         num_particles=num_particles,
         linearized_measurement_model=linearized_measmod,
         resampling_percentage_threshold=resampling_percentage_threshold,
@@ -62,7 +63,7 @@ def particle_filter(
 @pytest.fixture()
 def regression_problem(problem):
     """Filter and regression problem."""
-    *_, regression_problem = problem
+    regression_problem, _ = problem
 
     return regression_problem
 
@@ -82,6 +83,7 @@ def pf_output(particle_filter, regression_problem):
 @all_importance_distributions
 @all_resampling_configurations
 def test_shape_pf_output(pf_output, regression_problem, num_particles):
+    np.random.seed(12345)
 
     states = pf_output.states.support
     weights = pf_output.states.probabilities
@@ -95,6 +97,8 @@ def test_shape_pf_output(pf_output, regression_problem, num_particles):
 def test_rmse_particlefilter(pf_output, regression_problem):
     """Assert that the RMSE of the mode of the posterior of the PF is a lot smaller than
     the RMSE of the data."""
+
+    np.random.seed(12345)
 
     true_states = regression_problem.solution
 
