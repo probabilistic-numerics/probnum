@@ -176,6 +176,9 @@ class BayesianQuadrature:
                 measure=self.measure,
                 kernel=self.kernel,
                 integral_belief=integral_belief,
+                batch_size=self.policy.batch_size,
+                nodes=nodes,
+                fun_evals=fun_evals,
             )
 
         integral_belief = bq_state.integral_belief
@@ -183,11 +186,8 @@ class BayesianQuadrature:
         if nodes is not None:
             if fun_evals is None:
                 fun_evals = fun(nodes)
-            integral_belief, bq_state = self._update_belief_state(
+            integral_belief, bq_state = self.belief_update(
                 bq_state=bq_state,
-                integral_belief=integral_belief,
-                new_nodes=nodes,
-                new_fun_evals=fun_evals,
             )
 
         # Evaluate stopping criteria for the initial belief
@@ -210,16 +210,13 @@ class BayesianQuadrature:
             # Evaluate the integrand at new nodes
             new_fun_evals = bq_state.fun(new_nodes)
 
-            integral_belief, bq_state = self._update_belief_state(
+            integral_belief, bq_state = self.belief_update(
                 bq_state=bq_state,
-                integral_belief=integral_belief,
                 new_nodes=new_nodes,
                 new_fun_evals=new_fun_evals,
             )
 
-            bq_state.info.iteration += 1
-            bq_state.info.nevals += bq_state.batch_size
-            # TODO: batch_size disappears in policy. It could e.g. be retrieved from the number of nodes that the policy returns
+            bq_state.info.update_iteration(bq_state.batch_size)
 
             # Evaluate stopping criteria
             _has_converged = self.has_converged(
@@ -262,24 +259,4 @@ class BayesianQuadrature:
         ):
             pass
 
-        return integral_belief, bq_state
-
-    def _update_belief_state(self, bq_state, integral_belief, new_nodes, new_fun_evals):
-        # Update BQ state
-        bq_state = BQState.from_new_data(
-            new_nodes=new_nodes,
-            new_fun_evals=new_fun_evals,
-            prev_state=bq_state,
-        )
-
-        # Update integral belief
-        integral_belief, bq_state = self.belief_update(
-            fun=bq_state.fun,
-            measure=self.measure,
-            kernel=self.kernel,
-            integral_belief=integral_belief,
-            new_nodes=new_nodes,
-            new_fun_evals=new_fun_evals,
-            bq_state=bq_state,
-        )
         return integral_belief, bq_state

@@ -7,9 +7,24 @@ import numpy as np
 from probnum.kernels._kernel import Kernel
 from probnum.quad._integration_measures import IntegrationMeasure
 from probnum.quad.kernel_embeddings import KernelEmbedding
+from probnum.randvars import Normal
 
 
 class BQInfo:
+    """Collect information about the BQ loop.
+
+    Parameters
+    ----------
+    iteration :
+        Iteration of the loop.
+    nevals :
+        Number of evaluations collected.
+    has_converged :
+        True if the BQ loop fulfils a stopping criterion, otherwise False.
+    stopping_criterion:
+        The stopping criterion used to determine convergence.
+    """
+
     def __init__(
         self,
         iteration: int = 0,
@@ -22,18 +37,51 @@ class BQInfo:
         self.has_converged = has_converged
         self.stopping_criterion = stopping_criterion
 
+    def update_iteration(self, batch_size):
+        """
+        Update the quantities tracking iteration info.
+        Parameters
+        ----------
+        batch_size:
+            Number of points added in each iteration.
+        """
+        self.iteration += 1
+        self.nevals += batch_size
+
 
 class BQState:
+    """Container for the quantities defining the BQ problem and the BQ loop state.
+
+    Parameters
+    ----------
+    fun :
+        The integrand.
+    measure :
+        The integration measure.
+    kernel :
+        The kernel used for BQ.
+    integral_belief :
+        Normal distribution over the value of the integral.
+    info:
+        Information about the loop status.
+    batch_size:
+        Size of the batch when acquiring new nodes.
+    nodes:
+        All locations at which function evaluations are available.
+    fun_evals:
+        Function evaluations at nodes.
+    """
+
     def __init__(
         self,
         fun: Callable,
         measure: IntegrationMeasure,
         kernel: Kernel,
-        integral_belief=None,
-        info: BQInfo = None,
+        integral_belief: Optional[Normal] = None,
+        info: Optional[BQInfo] = None,
         batch_size: Optional[int] = 1,
-        nodes: np.ndarray = None,
-        fun_evals=None,
+        nodes: Optional[np.ndarray] = None,
+        fun_evals: Optional[np.ndarray] = None,
     ):
         self.fun = fun
         self.measure = measure
@@ -53,13 +101,14 @@ class BQState:
         self.info = info
 
     @classmethod
-    def from_new_data(cls, new_nodes, new_fun_evals, prev_state):
+    def from_new_data(cls, nodes, fun_evals, integral_belief, prev_state):
         return cls(
             fun=prev_state.fun,
             measure=prev_state.measure,
             kernel=prev_state.kernel,
-            integral_belief=prev_state.integral_belief,
+            integral_belief=integral_belief,
             info=prev_state.info,
-            nodes=np.concatenate((prev_state.nodes, new_nodes), axis=0),
-            fun_evals=np.append(prev_state.fun_evals, new_fun_evals),
+            batch_size=prev_state.batch_size,
+            nodes=nodes,
+            fun_evals=fun_evals,
         )
