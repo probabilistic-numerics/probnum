@@ -803,6 +803,7 @@ class MatrixMult(LinearOperator):
             rmatmul = lambda x: x @ A
             todense = lambda: self.A
             inverse = lambda: MatrixMult(np.linalg.inv(self.A))
+            trace = lambda: np.trace(self.A)
         else:
             raise TypeError(
                 f"`A` must be a `np.ndarray` or `scipy.sparse.spmatrix`, but a "
@@ -825,6 +826,7 @@ class MatrixMult(LinearOperator):
             transpose=transpose,
             adjoint=adjoint,
             inverse=inverse,
+            trace=trace,
         )
 
     def astype(self, dtype: DTypeArgType) -> "MatrixMult":
