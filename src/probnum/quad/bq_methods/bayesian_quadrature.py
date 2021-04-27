@@ -109,7 +109,8 @@ class BayesianQuadrature:
         integral_belief:
             Current belief about the integral.
         bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information about the problem and the computation.
+            State of the Bayesian quadrature methods. Contains all necessary information about the
+            problem and the computation.
 
         Returns
         -------
@@ -151,7 +152,8 @@ class BayesianQuadrature:
         integral_belief:
             Current belief about the integral.
         bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information about the problem and the computation.
+            State of the Bayesian quadrature methods. Contains all necessary information about the
+            problem and the computation.
 
         Returns
         -------

@@ -72,12 +72,12 @@ def bayesquad(
     policy :
         Type of acquisition strategy to use. Options are
 
-        =======================  =======
-         Bayesian Monte Carlo    ``bmc``
-         Uncertainty Sampling    ``us``
-         Mutual Information      ``mi``
-         Integral Variance       ``iv``
-        =======================  =======
+        ==========================  =======
+         Bayesian Monte Carlo [2]_  ``bmc``
+         Uncertainty Sampling       ``us``
+         Mutual Information         ``mi``
+         Integral Variance          ``iv``
+        ==========================  =======
 
     max_nevals :
         Maximum number of function evaluations.
@@ -102,6 +102,8 @@ def bayesquad(
     ----------
     .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical computation?,
        *Statistical Science 34.1*, 2019, 1-22, 2019
+    .. [2] Rasmussen, C. E., and Z. Ghahramani, Bayesian Monte Carlo, *Advances in
+        Neural Information Processing Systems*, 2003, 505-512.
 
     Examples
     --------

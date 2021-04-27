@@ -14,9 +14,7 @@ class Policy(abc.ABC):
     ----------
     batch_size :
         Size of batch that is found in every iteration of calling the policy.
-    bq_state :
-        Current state of the BQ method.
-     is_deterministic
+    is_deterministic :
         Is the policy a deterministic function of its arguments or stochastic (i.e.
         sampling-based)?
     """
