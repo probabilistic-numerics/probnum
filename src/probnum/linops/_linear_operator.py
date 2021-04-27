@@ -288,9 +288,9 @@ class LinearOperator:
     ) -> "LinearOperator":
         dtype = np.dtype(dtype)
 
-        if not np.can_cast(self._linop.dtype, self.dtype, casting=casting):
+        if not np.can_cast(self.dtype, dtype, casting=casting):
             raise TypeError(
-                f"Cannot cast linear operator from {self._linop.dtype} to {dtype} "
+                f"Cannot cast linear operator from {self.dtype} to {dtype} "
                 f"according to the rule {casting}"
             )
 
@@ -778,7 +778,7 @@ class _TypeCastLinearOperator(LinearOperator):
 
         dtype = np.dtype(dtype)
 
-        if not np.can_cast(self._linop.dtype, self.dtype, casting=casting):
+        if not np.can_cast(self._linop.dtype, dtype, casting=casting):
             raise TypeError(
                 f"Cannot cast linear operator from {self._linop.dtype} to {dtype} "
                 f"according to the rule {casting}"
