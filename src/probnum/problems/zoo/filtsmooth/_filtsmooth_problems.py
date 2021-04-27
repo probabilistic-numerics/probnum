@@ -111,7 +111,7 @@ def car_tracking(
 
     if initrv is None:
         initrv = randvars.Normal(
-            np.zeros(model_dim), 0.5 * measurement_variance * np.eye(model_dim)
+            np.zeros(model_dim), measurement_variance * np.eye(model_dim)
         )
 
     # Set up regression problem
