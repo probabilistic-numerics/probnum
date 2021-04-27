@@ -22,7 +22,7 @@ def fixture_random_state(request):
 
 
 @pytest.fixture(
-    params=[pytest.param(num_data, id=f"ndata{num_data}") for num_data in [1, 2, 20]],
+    params=[pytest.param(num_data, id=f"ndata={num_data}") for num_data in [1, 2, 20]],
     name="num_data",
 )
 def fixture_num_data(request) -> int:
@@ -32,7 +32,7 @@ def fixture_num_data(request) -> int:
 
 @pytest.fixture(
     params=[
-        pytest.param(input_dim, id=f"dim{input_dim}") for input_dim in [1, 2, 3, 5]
+        pytest.param(input_dim, id=f"dim={input_dim}") for input_dim in [1, 2, 3, 5]
     ],
     name="input_dim",
 )
@@ -171,45 +171,33 @@ def fixture_f1d(request):
     return request.param
 
 
-# New kernel stuff
+# Matern kernels
 @pytest.fixture(
-    params=[pytest.param(name, id=name) for name in ["expquad", "matern"]],
-    name="kernel_name_tmp",
+    params=[pytest.param(matern_nu, id=f"nu={matern_nu}") for matern_nu in [0.5]],
+    name="matern_nu",
 )
-def fixture_kernel_names_tmp(request) -> str:
+def fixture_matern_nu(request) -> int:
+    """Input dimension of the covariance function."""
     return request.param
-
-
-@pytest.fixture(name="kernel_tmp")
-def fixture_kernel_tmp(kernel_name_tmp, input_dim) -> kernels.Kernel:
-    if kernel_name_tmp == "matern":
-        lengthscales = 1.25
-        nus = 0.5
-        return kernels.ProductMatern(
-            input_dim=input_dim, nus=nus, lengthscales=lengthscales
-        )
-    if kernel_name_tmp == "expquad":
-        return "None"
 
 
 @pytest.fixture(
     params=[
-        pytest.param(kerndef, id=kerndef[0].__name__)
-        for kerndef in [
-            (kernels.ExpQuad, {"lengthscale": 1.25}),
-            (kernels.ExpQuad, {"lengthscale": 0.9}),
-        ]
+        pytest.param(matern_lengthscale, id=f"lengthscale={matern_lengthscale}")
+        for matern_lengthscale in [0.8, 1.0, 1.25]
     ],
-    name="kernel",
+    name="matern_lengthscale",
 )
-def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
-    """Kernel / covariance function."""
-    return request.param[0](**request.param[1], input_dim=input_dim)
+def fixture_matern_lengthscale(request) -> int:
+    """Input dimension of the covariance function."""
+    return request.param
 
 
-@pytest.fixture(name="kernel_embedding_tmp")
-def fixture_kernel_embedding_tmp(
-    request, kernel_tmp: kernels.Kernel, measure: measures.IntegrationMeasure
-) -> KernelEmbedding:
-    """Set up kernel embedding."""
-    return KernelEmbedding(kernel_tmp, measure)
+@pytest.fixture(name="matern_kernel")
+def fixture_matern_kernel(
+    request, input_dim: int, matern_nu: float, matern_lengthscale: float
+) -> kernels.Kernel:
+    """Set up Matern kernel."""
+    return kernels.ProductMatern(
+        input_dim=input_dim, nus=matern_nu, lengthscales=matern_lengthscale
+    )

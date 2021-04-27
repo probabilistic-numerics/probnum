@@ -4,9 +4,11 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 import pytest
+from scipy.integrate import quad
 from scipy.linalg import sqrtm
 from scipy.special import roots_legendre
 
+from probnum.quad import KernelEmbedding
 from probnum.type import FloatArgType, IntArgType
 
 
@@ -156,8 +158,29 @@ def test_kernel_var_expquad_lebesgue_measure(kernel_embedding):
 
 
 # Tests for Matern kernels and Lebesgue measure
-@pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
+@pytest.mark.parametrize("input_dim", [1, 2, 3])
+@pytest.mark.parametrize("num_data", [1, 2, 5])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
-@pytest.mark.parametrize("kernel_name_tmp", ["matern"])
-def test_kernel_mean_matern_lebesgue_measure(kernel_embedding_tmp):
-    print(kernel_embedding_tmp.kernel.lengthscales)
+def test_kernel_mean_matern_lebesgue_measure(matern_kernel, measure, num_data):
+    kernel_embedding = KernelEmbedding(matern_kernel, measure)
+    points = kernel_embedding.measure.sample(num_data)
+    # Numerical integration using scipy's quad
+    num_kernel_means = np.zeros((num_data,))
+    a, b = kernel_embedding.measure.domain
+    for indx in range(num_data):
+        integral_current_dim = 1.0
+        for dim in range(kernel_embedding.measure.dim):
+
+            def fun(x):
+                return kernel_embedding.kernel.one_d_materns[dim](points[indx][dim], x)
+
+            integral_current_dim *= quad(fun, a[dim], b[dim])[0]
+        num_kernel_means[indx] = (
+            integral_current_dim * kernel_embedding.measure.normalization_constant
+        )
+    # True kernel means
+    true_kernel_means = kernel_embedding.kernel_mean(points)
+    # Compare
+    np.testing.assert_allclose(
+        true_kernel_means, num_kernel_means, rtol=1.0e-5, atol=1.0e-5
+    )
