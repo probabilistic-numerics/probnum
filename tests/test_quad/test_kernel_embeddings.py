@@ -75,10 +75,10 @@ def test_kernel_variance_float(kernel_embedding):
 # Tests for squared exponential kernel and Gaussian measure
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["gauss"])
-def test_kernel_mean_gaussian_measure(kernel_embedding, num_data):
+def test_kernel_mean_expquad_gaussian_measure(kernel_embedding, num_data):
     """Test kernel means for the Gaussian measure against Gauss-Hermite tensor product
     rule."""
-    n_gh = 10
+    n_gh = 15
     x_gh, w_gh = gauss_hermite_tensor(
         n_points=n_gh,
         dim=kernel_embedding.dim,
@@ -96,7 +96,7 @@ def test_kernel_mean_gaussian_measure(kernel_embedding, num_data):
 
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["gauss"])
-def test_kernel_var_gaussian_measure(kernel_embedding):
+def test_kernel_var_expquad_gaussian_measure(kernel_embedding):
     """Test kernel variance for the Gaussian measure against Gauss-Hermite tensor
     product rule."""
     n_gh = 20
@@ -117,7 +117,7 @@ def test_kernel_var_gaussian_measure(kernel_embedding):
 # Tests for squared exponential kernel and Lebesgue measure
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
-def test_kernel_mean_lebesgue_measure(kernel_embedding, num_data):
+def test_kernel_mean_expquad_lebesgue_measure(kernel_embedding, num_data):
     """Test kernel means for the Lebesgue measure against Gauss-Legendre tensor product
     rule."""
     n_gl = 10
@@ -138,7 +138,7 @@ def test_kernel_mean_lebesgue_measure(kernel_embedding, num_data):
 
 @pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
-def test_kernel_var_lebesgue_measure(kernel_embedding):
+def test_kernel_var_expquad_lebesgue_measure(kernel_embedding):
     """Test kernel variance for the Lebesgue measure against Gauss-Legendre tensor
     product rule."""
     n_gl = 20
@@ -153,3 +153,11 @@ def test_kernel_var_lebesgue_measure(kernel_embedding):
     np.testing.assert_allclose(
         true_kernel_variance, num_kernel_variance, rtol=1.0e-3, atol=1.0e-3
     )
+
+
+# Tests for Matern kernels and Lebesgue measure
+@pytest.mark.parametrize("input_dim", [1, 2, 3, 5])
+@pytest.mark.parametrize("measure_name", ["lebesgue"])
+@pytest.mark.parametrize("kernel_name_tmp", ["matern"])
+def test_kernel_mean_matern_lebesgue_measure(kernel_embedding_tmp):
+    print(kernel_embedding_tmp.kernel.lengthscales)

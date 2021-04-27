@@ -35,6 +35,8 @@ class ProductMatern(Kernel[_InputType]):
                 Matern(input_dim=1, lengthscale=lengthscales[dim], nu=nus[dim])
             )
         self.one_d_materns = one_d_materns
+        self.nus = nus
+        self.lengthscales = lengthscales
 
         super().__init__(input_dim=input_dim, output_dim=1)
 

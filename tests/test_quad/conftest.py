@@ -120,12 +120,22 @@ def fixture_measure(measure_params) -> measures.IntegrationMeasure:
     raise NotImplementedError
 
 
+# Kernel Embeddings
+@pytest.fixture(name="kernel_embedding")
+def fixture_kernel_embedding(
+    request, kernel: kernels.Kernel, measure: measures.IntegrationMeasure
+) -> KernelEmbedding:
+    """Set up kernel embedding."""
+    return KernelEmbedding(kernel, measure)
+
+
 # Kernels
 @pytest.fixture(
     params=[
         pytest.param(kerndef, id=kerndef[0].__name__)
         for kerndef in [
             (kernels.ExpQuad, {"lengthscale": 1.25}),
+            (kernels.ExpQuad, {"lengthscale": 0.9}),
         ]
     ],
     name="kernel",
@@ -159,3 +169,47 @@ def fixture_kernel_embedding(
 def fixture_f1d(request):
     """1D test function for BQ."""
     return request.param
+
+
+# New kernel stuff
+@pytest.fixture(
+    params=[pytest.param(name, id=name) for name in ["expquad", "matern"]],
+    name="kernel_name_tmp",
+)
+def fixture_kernel_names_tmp(request) -> str:
+    return request.param
+
+
+@pytest.fixture(name="kernel_tmp")
+def fixture_kernel_tmp(kernel_name_tmp, input_dim) -> kernels.Kernel:
+    if kernel_name_tmp == "matern":
+        lengthscales = 1.25
+        nus = 0.5
+        return kernels.ProductMatern(
+            input_dim=input_dim, nus=nus, lengthscales=lengthscales
+        )
+    if kernel_name_tmp == "expquad":
+        return "None"
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(kerndef, id=kerndef[0].__name__)
+        for kerndef in [
+            (kernels.ExpQuad, {"lengthscale": 1.25}),
+            (kernels.ExpQuad, {"lengthscale": 0.9}),
+        ]
+    ],
+    name="kernel",
+)
+def fixture_kernel(request, input_dim: int) -> kernels.Kernel:
+    """Kernel / covariance function."""
+    return request.param[0](**request.param[1], input_dim=input_dim)
+
+
+@pytest.fixture(name="kernel_embedding_tmp")
+def fixture_kernel_embedding_tmp(
+    request, kernel_tmp: kernels.Kernel, measure: measures.IntegrationMeasure
+) -> KernelEmbedding:
+    """Set up kernel embedding."""
+    return KernelEmbedding(kernel_tmp, measure)
