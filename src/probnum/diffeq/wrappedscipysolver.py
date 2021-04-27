@@ -1,17 +1,22 @@
-"""Wrapper class of scipy.integrate."""
+"""Wrapper class of scipy.integrate. for RK23 and RK45.
+
+Dense-output can not be used for DOP853, if you use other RK-methods,
+make sure, that the current implementation works for them   .
+"""
 import numpy as np
 from scipy.integrate._ivp import rk
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
 from probnum.diffeq import wrappedscipyodesolution
+from probnum.type import FloatArgType
 
 
 class WrappedScipyRungeKutta(diffeq.ODESolver):
     """Wrappper for Runge-Kutta methods from Scipy, implements the stepfunction and
     dense output."""
 
-    def __init__(self, solver: rk, order):
+    def __init__(self, solver: rk.RungeKutta):
         self.solver = solver
         self.interpolants = None
 
@@ -21,7 +26,7 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
             initrv=randvars.Constant(self.solver.y),
             rhs=self.solver._fun,
         )
-        super().__init__(ivp=ivp, order=order)
+        super().__init__(ivp=ivp, order=solver.order)
 
     def initialise(self):
         """Return t0 and y0 (for the solver, which might be different to ivp.y0) and
@@ -44,7 +49,9 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         self.solver.f = self.solver.fun(self.solver.t, self.solver.y)
         return self.ivp.t0, self.ivp.initrv
 
-    def step(self, start: float, stop: float, current: randvars, **kwargs):
+    def step(
+        self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
+    ):
         """Perform one ODE-step from start to stop and set variables to the
         corresponding values.
 
@@ -62,7 +69,7 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         Returns
         -------
         random_var : randvars.RandomVariable
-            Estimated states (in the state-space model view) of the discrete-time solution.
+            Estimated states of the discrete-time solution.
         error_estimation : float
             estimated error after having performed the step.
         """
@@ -117,9 +124,8 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         Returns
         -------
         sol : rk.RkDenseOutput
-            interpolant between the last and current location.
+            Interpolant between the last and current location.
         """
-
         Q = self.solver.K.T.dot(self.solver.P)
         sol = rk.RkDenseOutput(
             self.solver.t_old, self.solver.t, self.solver.y_old.mean, Q
