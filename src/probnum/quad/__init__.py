@@ -2,7 +2,7 @@
 
 from ._bayesquad import bayesquad
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from .bq_methods import BayesianQuadrature
+from .bq_methods import *
 from .kernel_embeddings import (
     KernelEmbedding,
     _kernel_mean_expquad_gauss,
@@ -20,6 +20,7 @@ __all__ = [
     "KernelEmbedding",
     "GaussianMeasure",
     "LebesgueMeasure",
+    "StoppingCriterion",
 ]
 
 # Set correct module paths. Corrects links and module paths in documentation.
@@ -28,3 +29,4 @@ IntegrationMeasure.__module__ = "probnum.quad"
 KernelEmbedding.__module__ = "probnum.quad"
 GaussianMeasure.__module__ = "probnum.quad"
 LebesgueMeasure.__module__ = "probnum.quad"
+StoppingCriterion.__module__ = "probnum.quad"
