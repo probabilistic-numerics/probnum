@@ -2,7 +2,7 @@
 
 from typing import Callable, Optional
 
-from probnum.quad.bq_methods import BQState
+from probnum.quad.bq_methods.bq_state import BQState
 from probnum.randvars import Normal
 from probnum.type import FloatArgType, IntArgType
 

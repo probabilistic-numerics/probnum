@@ -1,10 +1,8 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from functools import partial
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, List, Optional
 
 import numpy as np
-from scipy.linalg import cho_factor, cho_solve
 
 from probnum.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
@@ -71,7 +69,6 @@ class BayesianQuadrature:
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "bmc":
-            # policy = partial(sample_from_measure, batch_size=batch_size)
             policy = RandomPolicy(measure, batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
         else:

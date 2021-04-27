@@ -2,6 +2,7 @@
 
 from ._bayesquad import bayesquad
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
+from .acquisitions import Acquisition
 from .bq_methods import *
 from .kernel_embeddings import (
     KernelEmbedding,
@@ -10,7 +11,7 @@ from .kernel_embeddings import (
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
-from .policies import OptimalPolicy, Policy, RandomPolicy, sample_from_measure
+from .policies import OptimalPolicy, Policy, RandomPolicy
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

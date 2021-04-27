@@ -70,7 +70,7 @@ class OptimalPolicy(Policy):
         nodes :
             *shape=(batch_size, dim)* -- Nodes found according to the policy.
         """
-        # TODO: That's where the optimization goes
+        # TODO: Here goes the optimization of the acquisition function.
         raise NotImplementedError
 
 

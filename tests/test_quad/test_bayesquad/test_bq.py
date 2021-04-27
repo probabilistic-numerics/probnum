@@ -9,7 +9,6 @@ from scipy.integrate import quad
 from probnum.quad import BayesianQuadrature, bayesquad
 from probnum.quad.bq_methods.belief_updates import BQStandardBeliefUpdate
 from probnum.quad.bq_methods.stop_criteria import MaxNevals
-from probnum.quad.policies import sample_from_measure
 from probnum.randvars import Normal
 
 
