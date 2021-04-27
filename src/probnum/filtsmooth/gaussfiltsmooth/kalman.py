@@ -6,7 +6,6 @@ from typing import Optional
 import numpy as np
 
 from probnum import problems
-from probnum.filtsmooth.gaussfiltsmooth import stoppingcriterion
 
 from ..bayesfiltsmooth import BayesFiltSmooth
 from ..timeseriesposterior import TimeSeriesPosterior
@@ -35,7 +34,7 @@ class Kalman(BayesFiltSmooth):
     def iterated_filtsmooth(
         self,
         regression_problem: problems.RegressionProblem,
-        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+        stopcrit: Optional[StoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -46,7 +45,7 @@ class Kalman(BayesFiltSmooth):
         Parameters
         ----------
         regression_problem
-        stopcrit: StoppingCriterion
+        stopcrit:
             A stopping criterion for iterated filtering.
 
         See Also
