@@ -278,13 +278,36 @@ class LinearOperator:
         else:
             raise ValueError("The operand must be at least one dimensional.")
 
-    def astype(self, dtype: DTypeArgType) -> "LinearOperator":
+    def astype(
+        self,
+        dtype: DTypeArgType,
+        order: str = "K",
+        casting: str = "unsafe",
+        subok: bool = True,
+        copy: bool = True,
+    ) -> "LinearOperator":
         dtype = np.dtype(dtype)
 
-        if self.dtype == dtype:
+        if not np.can_cast(self._linop.dtype, self.dtype, casting=casting):
+            raise TypeError(
+                f"Cannot cast linear operator from {self._linop.dtype} to {dtype} "
+                f"according to the rule {casting}"
+            )
+
+        if not subok:
+            raise NotImplementedError(
+                "Setting `subok` to `False` is not supported for linear operators"
+            )
+
+        return self._astype(dtype, order, casting, copy)
+
+    def _astype(
+        self, dtype: np.dtype, order: str, casting: str, copy: bool
+    ) -> "LinearOperator":
+        if self.dtype == dtype and not copy:
             return self
         else:
-            return _TypeCastLinearOperator(self, dtype)
+            return _TypeCastLinearOperator(self, dtype, order, casting, copy)
 
     def todense(self, cache: bool = True) -> np.ndarray:
         """Dense matrix representation of the linear operator.
@@ -690,8 +713,10 @@ class _TransposedLinearOperator(LinearOperator):
             transpose=lambda: self._linop,
         )
 
-    def astype(self, dtype: DTypeArgType) -> "_TransposedLinearOperator":
-        return self._linop.astype(dtype).T
+    def _astype(
+        self, dtype: np.dtype, order: str, casting: str, copy: bool
+    ) -> "LinearOperator":
+        return self._linop.astype(dtype, order=order, casting=casting, copy=copy).T
 
     def inv(self):
         return self._linop.inv().T
@@ -718,8 +743,10 @@ class _AdjointLinearOperator(LinearOperator):
             adjoint=lambda: self._linop,
         )
 
-    def astype(self, dtype: DTypeArgType) -> "_AdjointLinearOperator":
-        return self._linop.astype(dtype).H
+    def _astype(
+        self, dtype: np.dtype, order: str, casting: str, copy: bool
+    ) -> "LinearOperator":
+        return self._linop.astype(dtype, order=order, casting=casting, copy=copy).H
 
 
 class _InverseLinearOperator(LinearOperator):
@@ -739,18 +766,41 @@ class _InverseLinearOperator(LinearOperator):
 
 
 class _TypeCastLinearOperator(LinearOperator):
-    def __init__(self, linop: LinearOperator, dtype: DTypeArgType):
+    def __init__(
+        self,
+        linop: LinearOperator,
+        dtype: DTypeArgType,
+        order: str = "K",
+        casting: str = "unsafe",
+        copy: bool = True,
+    ):
         self._linop = linop
+
+        dtype = np.dtype(dtype)
+
+        if not np.can_cast(self._linop.dtype, self.dtype, casting=casting):
+            raise TypeError(
+                f"Cannot cast linear operator from {self._linop.dtype} to {dtype} "
+                f"according to the rule {casting}"
+            )
 
         super().__init__(
             self._linop.shape,
             dtype,
-            matmul=lambda x: (self._linop @ x).astype(dtype, copy=False),
-            rmatmul=lambda x: (x @ self._linop).astype(dtype, copy=False),
-            apply=lambda x, axis: self._linop(x, axis=axis).astype(dtype, copy=False),
-            todense=lambda: self._linop.todense(cache=False).astype(dtype, copy=False),
+            matmul=lambda x: (self._linop @ x).astype(
+                np.result_type(self.dtype, x.dtype), copy=False
+            ),
+            rmatmul=lambda x: (x @ self._linop).astype(
+                np.result_type(x.dtype, self.dtype), copy=False
+            ),
+            apply=lambda x, axis: self._linop(x, axis=axis).astype(
+                np.result_type(self.dtype, x.dtype), copy=False
+            ),
+            todense=lambda: self._linop.todense(cache=False).astype(
+                dtype, order=order, copy=copy
+            ),
             transpose=lambda: self._linop.T.astype(dtype),
-            adjoint=lambda: self._linop.T.astype(dtype),
+            adjoint=lambda: self._linop.H.astype(dtype),
             inverse=lambda: self._linop.inv().astype(self._inexact_dtype),
             rank=self._linop.rank,
             eigvals=lambda: self._linop.eigvals().astype(self._inexact_dtype),
@@ -760,15 +810,15 @@ class _TypeCastLinearOperator(LinearOperator):
             trace=lambda: self._linop.trace().astype(dtype),
         )
 
-    def astype(self, dtype: DTypeArgType) -> LinearOperator:
-        dtype = np.dtype(dtype)
-
-        if dtype == self.dtype:
+    def _astype(
+        self, dtype: np.dtype, order: str, casting: str, copy: bool
+    ) -> "LinearOperator":
+        if self.dtype == dtype and not copy:
             return self
-        elif dtype == self._linop.dtype:
+        elif dtype == self._linop.dtype and not copy:
             return self._linop
         else:
-            return super().astype(dtype)
+            return _TypeCastLinearOperator(self, dtype, order, casting, copy)
 
 
 class MatrixMult(LinearOperator):
@@ -829,8 +879,20 @@ class MatrixMult(LinearOperator):
             trace=trace,
         )
 
-    def astype(self, dtype: DTypeArgType) -> "MatrixMult":
-        return MatrixMult(self.A.astype(dtype))
+    def _astype(
+        self, dtype: np.dtype, order: str, casting: str, copy: bool
+    ) -> "LinearOperator":
+        if isinstance(self.A, np.ndarray):
+            A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
+        else:  # isinstance(self.A, np.ndarray)
+            assert isinstance(self.A, scipy.sparse.spmatrix)
+
+            A_astype = self.A.astype(dtype, casting=casting, copy=copy)
+
+        if A_astype is self.A:
+            return self
+
+        return MatrixMult(A_astype)
 
     # Arithmetic operations
     # TODO: perform arithmetic operations between MatrixMult operators explicitly
