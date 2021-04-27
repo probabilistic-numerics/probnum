@@ -10,7 +10,7 @@ from .kernel_embeddings import (
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
-from .policies import sample_from_measure
+from .policies import OptimalPolicy, Policy, RandomPolicy, sample_from_measure
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

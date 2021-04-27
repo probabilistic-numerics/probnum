@@ -12,7 +12,7 @@ from probnum.type import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure
 from ..kernel_embeddings import KernelEmbedding
-from ..policies import sample_from_measure
+from ..policies import Policy, RandomPolicy
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
 from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
@@ -43,7 +43,7 @@ class BayesianQuadrature:
         self,
         kernel: Kernel,
         measure: IntegrationMeasure,
-        policy: Callable,
+        policy: Policy,
         belief_update: BQBeliefUpdate,
         stopping_criteria: List[StoppingCriterion],
     ) -> None:
@@ -71,7 +71,8 @@ class BayesianQuadrature:
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "bmc":
-            policy = partial(sample_from_measure, batch_size=batch_size)
+            # policy = partial(sample_from_measure, batch_size=batch_size)
+            policy = RandomPolicy(measure, batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
         else:
             raise NotImplementedError(
@@ -203,7 +204,6 @@ class BayesianQuadrature:
 
             # Select new nodes via policy
             new_nodes = self.policy(
-                integral_belief=integral_belief,
                 bq_state=bq_state,
             )
 

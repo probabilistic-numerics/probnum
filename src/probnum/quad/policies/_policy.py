@@ -1,13 +1,10 @@
 """Abstract base class for BQ acquisition policies."""
 
 import abc
-from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum.quad.bq_methods import BQState
-from probnum.randvars import Normal
-from probnum.type import FloatArgType, IntArgType, RandomStateArgType
+from probnum.quad.bq_methods.bq_state import BQState
 
 
 class Policy(abc.ABC):
@@ -19,21 +16,16 @@ class Policy(abc.ABC):
         Size of batch that is found in every iteration of calling the policy.
     bq_state :
         Current state of the BQ method.
-    mode:
-        Whether the policy relies on sampling or optimization.
-
-        =======================  ============
-         Sample from objective   ``sample``
-         Optimize objective      ``optimize``
-        =======================  ============
+     is_deterministic
+        Is the policy a deterministic function of its arguments or stochastic (i.e.
+        sampling-based)?
     """
 
-    def __init__(self, batch_size: int, bq_state: BQState, mode: str) -> None:
+    def __init__(self, batch_size: int, is_deterministic: bool) -> None:
         self.batch_size = batch_size
-        self.bq_state = bq_state
-        self.mode = mode
+        self._is_deterministic = is_deterministic
 
-    def __call__(self) -> np.ndarray:
+    def __call__(self, bq_state: BQState) -> np.ndarray:
         """Find nodes according to the acquisition policy.
 
         The nodes found are the argmin of the given acquistion function
@@ -43,48 +35,75 @@ class Policy(abc.ABC):
         nodes :
             *shape=(batch_size, dim)* -- Nodes found according to the policy.
         """
-        if self.mode == "sample":
-            nodes = self._sample_from_objective()
-        elif self.mode == "optimize":
-            nodes = self._optimize_objective()
-        else:
-            raise ValueError(f"The option mode='{self.mode}' is not available.")
-        return nodes
+        raise NotImplementedError
 
-    def objective(self, nodes: np.ndarray) -> int:
-        """The acquisition function.
+    @property
+    def is_deterministic(self) -> bool:
+        """Is the policy a deterministic function of its arguments or stochastic?"""
+        return self._is_deterministic
+
+
+class OptimalPolicy(Policy):
+    """Optimal policy given an acquisition function.
+
+    Parameters
+    ----------
+    acquisition :
+        Acquisition function.
+    batch_size :
+        Size of batch that is found in every iteration of calling the policy.
+    bq_state :
+        Current state of the BQ method.
+    """
+
+    def __init__(self, acquisition, batch_size: int) -> None:
+        self.acquisition = acquisition
+        self.batch_size = batch_size
+
+        super().__init__(batch_size=batch_size, is_deterministic=True)
+
+    def __call__(self, bq_state: BQState) -> np.ndarray:
+        """Find nodes according to the acquisition policy.
+
+        The nodes found are the argmin of the given acquistion function
+
+        Returns
+        -------
+        nodes :
+            *shape=(batch_size, dim)* -- Nodes found according to the policy.
+        """
+        # TODO: That's where the optimization goes
+        raise NotImplementedError
+
+
+class RandomPolicy(Policy):
+    """Optimal policy given an acquisition function.
+
+    Parameters
+    ----------
+    sampling_objective :
+        Objective to sample from. Need to have a method ``sample``.
+    batch_size :
+        Size of batch that is found in every iteration of calling the policy.
+    """
+
+    def __init__(self, sampling_objective, batch_size: int) -> None:
+        self.sampling_objective = sampling_objective
+        self.batch_size = batch_size
+
+        super().__init__(batch_size=batch_size, is_deterministic=False)
+
+    def __call__(self, bq_state: BQState) -> np.ndarray:
+        """Sample nodes.
 
         Parameters
         ----------
-        nodes:
-            *shape=(n_eval, dim)* -- Nodes
-
-        Returns
-        -------
-        acq:
-            value of the acquisition function for input(s) ``nodes``.
-        """
-        raise NotImplementedError
-
-    def _sample_from_objective(self) -> np.ndarray:
-        """Sample from the objective.
-
-        Assumes that the objective is a positive function with a finite integral over the
-        integration domain.
+        bq_state :
+            Current state of the BQ method.
 
         Returns
         -------
         nodes :
-            *shape=(batch_size, dim)* -- Nodes found by optimizing the objective.
+            *shape=(batch_size, dim)* -- Nodes found according to the policy.
         """
-        raise NotImplementedError
-
-    def _optimize_objective(self) -> np.ndarray:
-        """Find the argmax of the objective.
-
-        Returns
-        -------
-        nodes :
-            *shape=(batch_size, dim)* -- Nodes found by optimizing the objective.
-        """
-        raise NotImplementedError
+        return self.sampling_objective.sample(self.batch_size)
