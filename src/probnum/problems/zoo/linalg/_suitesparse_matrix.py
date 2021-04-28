@@ -104,7 +104,7 @@ def suitesparse_matrix(
     return SuiteSparseMatrix.from_database_entry(matrix_attr_dict)
 
 
-class SuiteSparseMatrix(linops.MatrixMult):
+class SuiteSparseMatrix(linops.Matrix):
     """SuiteSparse Matrix.
 
     Sparse matrix from the `SuiteSparse Matrix Collection

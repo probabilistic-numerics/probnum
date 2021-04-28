@@ -826,7 +826,7 @@ class _TypeCastLinearOperator(LinearOperator):
             return _TypeCastLinearOperator(self, dtype, order, casting, copy)
 
 
-class MatrixMult(LinearOperator):
+class Matrix(LinearOperator):
     """A linear operator defined via a matrix.
 
     Parameters
@@ -851,13 +851,13 @@ class MatrixMult(LinearOperator):
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
             rmatmul = LinearOperator.broadcast_rmatmat(lambda x: x @ self.A)
             todense = self.A.toarray
-            inverse = lambda: MatrixMult(scipy.sparse.linalg.inv(self.A))
+            inverse = lambda: Matrix(scipy.sparse.linalg.inv(self.A))
             trace = lambda: self.A.diagonal().sum()
         elif isinstance(self.A, np.ndarray):
             matmul = lambda x: A @ x
             rmatmul = lambda x: x @ A
             todense = lambda: self.A
-            inverse = lambda: MatrixMult(np.linalg.inv(self.A))
+            inverse = lambda: Matrix(np.linalg.inv(self.A))
             trace = lambda: np.trace(self.A)
         else:
             raise TypeError(
@@ -865,10 +865,10 @@ class MatrixMult(LinearOperator):
                 f"`{type(self.A)}` was given."
             )
 
-        transpose = lambda: MatrixMult(self.A.T)
+        transpose = lambda: Matrix(self.A.T)
 
         if np.issubdtype(dtype, np.complexfloating):
-            adjoint = lambda: MatrixMult(np.conj(self.A.T))
+            adjoint = lambda: Matrix(np.conj(self.A.T))
         else:
             adjoint = transpose
 
@@ -897,7 +897,4 @@ class MatrixMult(LinearOperator):
         if A_astype is self.A:
             return self
 
-        return MatrixMult(A_astype)
-
-    # Arithmetic operations
-    # TODO: perform arithmetic operations between MatrixMult operators explicitly
+        return Matrix(A_astype)

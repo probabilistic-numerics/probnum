@@ -44,10 +44,10 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             # Operatorvariate
             (
                 np.array([1.0, -5.0]),
-                linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
+                linops.Matrix(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
             ),
             (
-                linops.MatrixMult(A=np.array([[0.0, -5.0]])),
+                linops.Matrix(A=np.array([[0.0, -5.0]])),
                 linops.Identity(shape=(2, 2)),
             ),
             (
@@ -55,11 +55,11 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
             ),
             (
-                linops.MatrixMult(A=sparsemat.todense()),
+                linops.Matrix(A=sparsemat.todense()),
                 linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
             ),
             (
-                linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
+                linops.Matrix(A=np.random.uniform(size=(2, 2))),
                 linops.SymmetricKronecker(
                     A=np.array([[1.0, 2.0], [2.0, 1.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),

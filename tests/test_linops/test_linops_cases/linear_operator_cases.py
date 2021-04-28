@@ -27,4 +27,4 @@ def case_matvec(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarra
 
 @pytest.mark.parametrize("matrix", matrices)
 def case_matrix(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
-    return pn.linops.MatrixMult(matrix), matrix
+    return pn.linops.Matrix(matrix), matrix

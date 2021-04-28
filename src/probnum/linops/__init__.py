@@ -2,14 +2,14 @@
 
 from ._diagonal import Diagonal, Identity
 from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
-from ._linear_operator import LinearOperator, MatrixMult
+from ._linear_operator import LinearOperator, Matrix
 from ._utils import aslinop
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "aslinop",
     "LinearOperator",
-    "MatrixMult",
+    "Matrix",
     "Diagonal",
     "Identity",
     "Kronecker",
@@ -20,7 +20,7 @@ __all__ = [
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearOperator.__module__ = "probnum.linops"
 
-MatrixMult.__module__ = "probnum.linops"
+Matrix.__module__ = "probnum.linops"
 
 Diagonal.__module__ = "probnum.linops"
 Identity.__module__ = "probnum.linops"

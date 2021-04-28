@@ -12,7 +12,7 @@ from ._diagonal import Diagonal
 from ._linear_operator import (  # pylint: disable=cyclic-import
     BinaryOperandType,
     LinearOperator,
-    MatrixMult,
+    Matrix,
 )
 
 
@@ -92,7 +92,7 @@ def _operand_to_linop(operand: Any, shape: ShapeArgType) -> Optional[LinearOpera
     elif np.ndim(operand) == 0:
         operand = Diagonal(operand, shape=shape)
     elif isinstance(operand, (np.ndarray, scipy.sparse.spmatrix)):
-        operand = MatrixMult(operand)
+        operand = Matrix(operand)
     else:
         operand = None
 
