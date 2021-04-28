@@ -250,6 +250,18 @@ def test_trace(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_conjugate(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    linop_conj = linop.conj()
+    matrix_conj = matrix.conj()
+
+    assert isinstance(linop_conj, pn.linops.LinearOperator)
+    assert linop_conj.shape == matrix_conj.shape
+    assert linop_conj.dtype == matrix_conj.dtype
+
+    np.testing.assert_allclose(linop_conj.todense(), matrix_conj)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_transpose(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     linop_transpose = linop.T
     matrix_transpose = matrix.T
@@ -259,6 +271,18 @@ def test_transpose(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     assert linop_transpose.dtype == matrix_transpose.dtype
 
     np.testing.assert_allclose(linop_transpose.todense(), matrix_transpose)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_adjoint(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    linop_adjoint = linop.H
+    matrix_adjoint = matrix.T.conj()
+
+    assert isinstance(linop_adjoint, pn.linops.LinearOperator)
+    assert linop_adjoint.shape == matrix_adjoint.shape
+    assert linop_adjoint.dtype == matrix_adjoint.dtype
+
+    np.testing.assert_allclose(linop_adjoint.todense(), matrix_adjoint)
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
