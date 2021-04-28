@@ -3,6 +3,7 @@ import typing
 from typing import Callable, Optional
 
 import numpy as np
+import scipy.linalg
 
 from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
