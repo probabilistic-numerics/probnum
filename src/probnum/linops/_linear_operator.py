@@ -103,8 +103,8 @@ class LinearOperator:
         rmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         apply: Callable[[np.ndarray, int], np.ndarray] = None,
         todense: Optional[Callable[[], np.ndarray]] = None,
-        conjugate: Optional[Callable[[np.ndarray], np.ndarray]] = None,
-        transpose: Optional[Callable[[np.ndarray], np.ndarray]] = None,
+        conjugate: Optional[Callable[[np.ndarray], "LinearOperator"]] = None,
+        transpose: Optional[Callable[[np.ndarray], "LinearOperator"]] = None,
         adjoint: Optional[Callable[[], "LinearOperator"]] = None,
         inverse: Optional[Callable[[], "LinearOperator"]] = None,
         rank: Optional[Callable[[], np.intp]] = None,
@@ -164,13 +164,13 @@ class LinearOperator:
                 lambda: self.H.conj()  # pylint: disable=unnecessary-lambda
             )
         elif rmatmul is not None:
-            self.__transpose = lambda: _TransposedLinearOperator(
+            self.__transpose = lambda: TransposedLinearOperator(
                 self,
                 # This is potentially slower than conjugating a vector twice
                 matmul=lambda x: rmatmul(x[..., np.newaxis])[..., :],
             )
         else:
-            self.__transpose = lambda: _TransposedLinearOperator(self)
+            self.__transpose = lambda: TransposedLinearOperator(self)
 
         if adjoint is not None:
             self.__adjoint = adjoint
@@ -178,7 +178,7 @@ class LinearOperator:
             # Fast transpose operator is available
             self.__adjoint = lambda: self.T.conj()  # pylint: disable=unnecessary-lambda
         else:
-            self.__adjoint = lambda: _AdjointLinearOperator(self)
+            self.__adjoint = lambda: AdjointLinearOperator(self)
 
         # Inverse
         if inverse is not None:
@@ -458,7 +458,7 @@ class LinearOperator:
         return self.__adjoint()
 
     @property
-    def H(self):
+    def H(self) -> "LinearOperator":
         return self.adjoint()
 
     def transpose(self) -> "LinearOperator":
@@ -469,7 +469,7 @@ class LinearOperator:
         return self.__transpose()
 
     @property
-    def T(self):
+    def T(self) -> "LinearOperator":
         return self.transpose()
 
     def inv(self) -> "LinearOperator":
@@ -702,7 +702,7 @@ def _apply_to_matrix_stack(
     return y
 
 
-class _TransposedLinearOperator(LinearOperator):
+class TransposedLinearOperator(LinearOperator):
     """Transposition of a linear operator."""
 
     def __init__(
@@ -737,7 +737,7 @@ class _TransposedLinearOperator(LinearOperator):
         return self._linop.astype(dtype, order=order, casting=casting, copy=copy).T
 
 
-class _AdjointLinearOperator(LinearOperator):
+class AdjointLinearOperator(LinearOperator):
     def __init__(
         self,
         linop: LinearOperator,
@@ -814,8 +814,8 @@ class _InverseLinearOperator(LinearOperator):
             dtype=self._linop._inexact_dtype,
             matmul=LinearOperator.broadcast_matmat(self._matmat),
             rmatmul=lambda x: tmatmul(x[..., np.newaxis])[..., 0],
-            transpose=lambda x: _TransposedLinearOperator(self, matmul=tmatmul),
-            adjoint=lambda x: _AdjointLinearOperator(self, matmul=hmatmul),
+            transpose=lambda x: TransposedLinearOperator(self, matmul=tmatmul),
+            adjoint=lambda x: AdjointLinearOperator(self, matmul=hmatmul),
             inverse=lambda: self._linop,
             det=lambda: 1 / self._linop.det(),
             logabsdet=lambda: -self._linop.logabsdet(),
@@ -825,7 +825,7 @@ class _InverseLinearOperator(LinearOperator):
     def factorization(self):
         if self.__factorization is None:
             self.__factorization = scipy.linalg.lu_factor(
-                self._linop.todense(), overwrite_a=False
+                self._linop.todense(cache=False), overwrite_a=False
             )
 
         return self.__factorization
@@ -909,31 +909,28 @@ class Matrix(LinearOperator):
         self,
         A: Union[np.ndarray, scipy.sparse.spmatrix],
     ):
-        shape = A.shape
-        dtype = A.dtype
+        if isinstance(A, scipy.sparse.spmatrix):
+            self.A = A
 
-        if isinstance(A, np.matrix):
-            A = np.asarray(A)
+            shape = self.A.shape
+            dtype = self.A.dtype
 
-        self.A = A
-
-        if isinstance(self.A, scipy.sparse.spmatrix):
             matmul = LinearOperator.broadcast_matmat(lambda x: self.A @ x)
             rmatmul = LinearOperator.broadcast_rmatmat(lambda x: x @ self.A)
             todense = self.A.toarray
             inverse = lambda: Matrix(scipy.sparse.linalg.inv(self.A))
             trace = lambda: self.A.diagonal().sum()
-        elif isinstance(self.A, np.ndarray):
+        else:
+            self.A = np.asarray(A)
+
+            shape = self.A.shape
+            dtype = self.A.dtype
+
             matmul = lambda x: A @ x
             rmatmul = lambda x: x @ A
             todense = lambda: self.A
             inverse = lambda: Matrix(np.linalg.inv(self.A))
             trace = lambda: np.trace(self.A)
-        else:
-            raise TypeError(
-                f"`A` must be a `np.ndarray` or `scipy.sparse.spmatrix`, but a "
-                f"`{type(self.A)}` was given."
-            )
 
         transpose = lambda: Matrix(self.A.T)
 
