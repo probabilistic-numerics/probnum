@@ -179,15 +179,6 @@ class Diagonal(_linear_operator.LinearOperator):
             else:
                 return Diagonal(self._diagonal, dtype=dtype)
 
-    def astype(self, dtype: DTypeArgType) -> "Diagonal":
-        if self._scalar is not None:
-            if type(self) is Identity:  # pylint: disable=unidiomatic-typecheck
-                return Identity(self.shape, dtype=dtype)
-
-            return Diagonal(diagonal=self._scalar, shape=self.shape, dtype=dtype)
-
-        return Diagonal(diagonal=self._diagonal, dtype=dtype)
-
     def _todense_isotropic(self) -> np.ndarray:
         dense = np.zeros(self.shape, dtype=self.dtype)
         np.fill_diagonal(dense, self._scalar)

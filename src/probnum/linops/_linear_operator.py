@@ -889,7 +889,7 @@ class Matrix(LinearOperator):
     ) -> "LinearOperator":
         if isinstance(self.A, np.ndarray):
             A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
-        else:  # isinstance(self.A, np.ndarray)
+        else:
             assert isinstance(self.A, scipy.sparse.spmatrix)
 
             A_astype = self.A.astype(dtype, casting=casting, copy=copy)
