@@ -94,8 +94,6 @@ class LinearOperator:
     array([1., 3.])
     """
 
-    ndim = 2
-
     def __init__(
         self,
         shape: ShapeArgType,
@@ -238,6 +236,10 @@ class LinearOperator:
     @property
     def shape(self) -> Tuple[int, int]:
         return self._shape
+
+    @property
+    def ndim(self) -> int:
+        return 2
 
     @property
     def dtype(self) -> np.dtype:
