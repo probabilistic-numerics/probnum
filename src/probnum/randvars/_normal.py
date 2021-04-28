@@ -80,7 +80,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         cov_cholesky: Optional[
             Union[float, np.floating, np.ndarray, linops.LinearOperator]
         ] = None,
-        random_state: RandomStateArgType = None,
+        # random_state: RandomStateArgType = None,
     ):
         # Type normalization
         if np.isscalar(mean):
@@ -255,7 +255,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         super().__init__(
             shape=mean.shape,
             dtype=mean.dtype,
-            random_state=random_state,
+            # random_state=random_state,
             parameters={"mean": self._mean, "cov": self._cov},
             sample=sample,
             in_support=in_support,
@@ -352,7 +352,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=mean,
             cov=cov,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def reshape(self, newshape: ShapeArgType) -> "Normal":
@@ -372,7 +372,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=reshaped_mean,
             cov=reshaped_cov,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def transpose(self, *axes: int) -> "Normal":
@@ -394,7 +394,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=mean_t,
             cov=cov_t,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     # Unary arithmetic operations
@@ -403,14 +403,14 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=-self._mean,
             cov=self._cov,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def __pos__(self) -> "Normal":
         return Normal(
             mean=+self._mean,
             cov=self._cov,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     # TODO: Overwrite __abs__ and add absolute moments of normal
@@ -428,9 +428,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=self._mean + other._mean,
             cov=self._cov + other._cov,
-            random_state=_utils.derive_random_seed(
-                self.random_state, other.random_state
-            ),
+            # random_state=_utils.derive_random_seed(
+            #     self.random_state, other.random_state
+            # ),
         )
 
     def _sub_normal(self, other: "Normal") -> "Normal":
@@ -443,9 +443,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return Normal(
             mean=self._mean - other._mean,
             cov=self._cov + other._cov,
-            random_state=_utils.derive_random_seed(
-                self.random_state, other.random_state
-            ),
+            # random_state=_utils.derive_random_seed(
+            #     self.random_state, other.random_state
+            # ),
         )
 
     # Univariate Gaussians
@@ -458,7 +458,9 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         self, size: ShapeType = ()
     ) -> Union[np.floating, np.ndarray]:
         sample = scipy.stats.norm.rvs(
-            loc=self._mean, scale=self.std, size=size, random_state=self.random_state
+            loc=self._mean,
+            scale=self.std,
+            size=size,  # random_state=self.random_state
         )
 
         if np.isscalar(sample):
@@ -513,7 +515,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
             size=size,
-            random_state=self.random_state,
+            # random_state=self.random_state,
         )
 
         return sample.reshape(sample.shape[:-1] + self.shape)
@@ -620,7 +622,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         size_sample = (n * n,) + size
 
         stdnormal_samples = scipy.stats.norm.rvs(
-            size=size_sample, random_state=self.random_state
+            size=size_sample,  # random_state=self.random_state
         )
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019

@@ -27,7 +27,7 @@ class Categorical(DiscreteRandomVariable):
         self,
         probabilities: np.ndarray,
         support: Optional[np.ndarray] = None,
-        random_state: Optional[RandomStateArgType] = None,
+        # random_state: Optional[RandomStateArgType] = None,
     ):
         # The set of events is names "support" to be aligned with the method
         # DiscreteRandomVariable.in_support().
@@ -81,7 +81,7 @@ class Categorical(DiscreteRandomVariable):
         super().__init__(
             shape=self._support[0].shape,
             dtype=self._support[0].dtype,
-            random_state=random_state,
+            # random_state=random_state,
             parameters=parameters,
             sample=_sample_categorical,
             pmf=_pmf_categorical,
@@ -112,5 +112,5 @@ class Categorical(DiscreteRandomVariable):
         return Categorical(
             support=new_support,
             probabilities=new_probabilities,
-            random_state=self.random_state,
+            # random_state=self.random_state,
         )

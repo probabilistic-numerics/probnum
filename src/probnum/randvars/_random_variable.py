@@ -122,7 +122,7 @@ class RandomVariable(Generic[_ValueType]):
         self,
         shape: ShapeArgType,
         dtype: DTypeArgType,
-        random_state: RandomStateArgType = None,
+        # random_state: RandomStateArgType = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
@@ -147,7 +147,7 @@ class RandomVariable(Generic[_ValueType]):
         self.__median_dtype = RandomVariable.infer_median_dtype(self.__dtype)
         self.__moment_dtype = RandomVariable.infer_moment_dtype(self.__dtype)
 
-        self._random_state = _utils.as_random_state(random_state)
+        # self._random_state = _utils.as_random_state(random_state)
 
         # Probability distribution of the random variable
         self.__parameters = parameters.copy() if parameters is not None else {}
@@ -225,27 +225,27 @@ class RandomVariable(Generic[_ValueType]):
         """
         return self.__moment_dtype
 
-    @property
-    def random_state(self) -> RandomStateType:
-        """Random state of the random variable.
+    # @property
+    # def random_state(self) -> RandomStateType:
+    #     """Random state of the random variable.
 
-        This attribute defines the RandomState object to use for drawing
-        realizations from this random variable. If None (or np.random),
-        the global np.random state is used. If integer, it is used to
-        seed the local :class:`~numpy.random.RandomState` instance.
-        """
-        return self._random_state
+    #     This attribute defines the RandomState object to use for drawing
+    #     realizations from this random variable. If None (or np.random),
+    #     the global np.random state is used. If integer, it is used to
+    #     seed the local :class:`~numpy.random.RandomState` instance.
+    #     """
+    #     return self._random_state
 
-    @random_state.setter
-    def random_state(self, seed: RandomStateArgType):
-        """Get or set the RandomState object of the random variable.
+    # @random_state.setter
+    # def random_state(self, seed: RandomStateArgType):
+    #     """Get or set the RandomState object of the random variable.
 
-        This can be either None or an existing RandomState object. If
-        None (or np.random), use the RandomState singleton used by
-        np.random. If already a RandomState instance, use it. If an int,
-        use a new RandomState instance seeded with seed.
-        """
-        self._random_state = _utils.as_random_state(seed)
+    #     This can be either None or an existing RandomState object. If
+    #     None (or np.random), use the RandomState singleton used by
+    #     np.random. If already a RandomState instance, use it. If an int,
+    #     use a new RandomState instance seeded with seed.
+    #     """
+    #     self._random_state = _utils.as_random_state(seed)
 
     @property
     def parameters(self) -> Dict[str, Any]:
@@ -564,7 +564,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=np.empty(shape=self.shape)[key].shape,
             dtype=self.dtype,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size: self.sample(size)[key],
             mode=lambda: self.mode[key],
             mean=lambda: self.mean[key],
@@ -588,7 +588,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=newshape,
             dtype=self.dtype,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size: self.sample(size).reshape(size + newshape),
             mode=lambda: self.mode.reshape(newshape),
             median=lambda: self.median.reshape(newshape),
@@ -611,7 +611,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=np.empty(shape=self.shape).transpose(*axes).shape,
             dtype=self.dtype,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size: self.sample(size).transpose(*axes),
             mode=lambda: self.mode.transpose(*axes),
             median=lambda: self.median.transpose(*axes),
@@ -631,7 +631,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size: -self.sample(size=size),
             in_support=lambda x: self.in_support(-x),
             mode=lambda: -self.mode,
@@ -647,7 +647,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size: +self.sample(size=size),
             in_support=lambda x: self.in_support(+x),
             mode=lambda: +self.mode,
@@ -663,7 +663,7 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size: abs(self.sample(size=size)),
         )
 
@@ -1006,7 +1006,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         self,
         shape: ShapeArgType,
         dtype: DTypeArgType,
-        random_state: Optional[RandomStateType] = None,
+        # random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
@@ -1031,7 +1031,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         super().__init__(
             shape=shape,
             dtype=dtype,
-            random_state=random_state,
+            # random_state=random_state,
             parameters=parameters,
             sample=sample,
             in_support=in_support,
@@ -1228,7 +1228,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         self,
         shape: ShapeArgType,
         dtype: DTypeArgType,
-        random_state: Optional[RandomStateType] = None,
+        # random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
@@ -1253,7 +1253,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         super().__init__(
             shape=shape,
             dtype=dtype,
-            random_state=random_state,
+            # random_state=random_state,
             parameters=parameters,
             sample=sample,
             in_support=in_support,

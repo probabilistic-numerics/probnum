@@ -69,7 +69,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
     def __init__(
         self,
         support: _ValueType,
-        random_state: RandomStateArgType = None,
+        # random_state: RandomStateArgType = None,
     ):
         if np.isscalar(support):
             support = _utils.as_numpy_scalar(support)
@@ -83,7 +83,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
         super().__init__(
             shape=self._support.shape,
             dtype=self._support.dtype,
-            random_state=random_state,
+            # random_state=random_state,
             parameters={"support": self._support},
             sample=self._sample,
             in_support=lambda x: np.all(x == self._support),
@@ -127,18 +127,18 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             Indices, slice objects and/or boolean masks specifying which entries to keep
             while marginalizing over all other entries.
         """
-        return Constant(support=self._support[key], random_state=self.random_state)
+        return Constant(support=self._support[key])  # , random_state=self.random_state)
 
     def reshape(self, newshape: ShapeType) -> "Constant":
         return Constant(
             support=self._support.reshape(newshape),
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def transpose(self, *axes: int) -> "Constant":
         return Constant(
             support=self._support.transpose(*axes),
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def _sample(self, size: ShapeArgType = ()) -> _ValueType:
@@ -154,19 +154,19 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
     def __neg__(self) -> "Constant":
         return Constant(
             support=-self.support,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def __pos__(self) -> "Constant":
         return Constant(
             support=+self.support,
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     def __abs__(self) -> "Constant":
         return Constant(
             support=abs(self.support),
-            random_state=_utils.derive_random_seed(self.random_state),
+            # random_state=_utils.derive_random_seed(self.random_state),
         )
 
     # Binary arithmetic operations
@@ -180,10 +180,10 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
         ) -> Constant:
             return Constant(
                 support=operator(constant_rv1.support, constant_rv2.support),
-                random_state=_utils.derive_random_seed(
-                    constant_rv1.random_state,
-                    constant_rv2.random_state,
-                ),
+                # random_state=_utils.derive_random_seed(
+                #     constant_rv1.random_state,
+                #     constant_rv2.random_state,
+                # ),
             )
 
         return _constant_rv_binary_operator
