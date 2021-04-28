@@ -41,18 +41,18 @@ def test_symmetrize(n):
 
     x = np.random.uniform(size=n * n)
     X = np.reshape(x, (n, n))
-    y = pn.linops.Symmetrize(dim=n) @ x
+    y = pn.linops.Symmetrize(n) @ x
 
     np.testing.assert_array_equal(
         y.reshape(n, n), 0.5 * (X + X.T), err_msg="Matrix not symmetric."
     )
 
     Z = np.random.uniform(size=(9, 5))
-    W = pn.linops.Symmetrize(dim=3) @ Z
+    W = pn.linops.Symmetrize(3) @ Z
 
     np.testing.assert_array_equal(
         W,
-        np.vstack([pn.linops.Symmetrize(dim=3) @ col for col in Z.T]).T,
+        np.vstack([pn.linops.Symmetrize(3) @ col for col in Z.T]).T,
         err_msg="Matrix columns were not symmetrized.",
     )
 

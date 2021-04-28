@@ -3,7 +3,7 @@
 from ._diagonal import Diagonal, Identity
 from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import LinearOperator, Matrix
-from ._utils import aslinop
+from ._utils import LinearOperatorLike, aslinop
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

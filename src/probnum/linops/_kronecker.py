@@ -3,6 +3,8 @@
 This module implements operators of Kronecker-type or linked to
 Kronecker-type products.
 """
+from typing import Optional, Union
+
 import numpy as np
 
 from probnum.type import DTypeArgType
@@ -22,20 +24,43 @@ class Symmetrize(_linear_operator.LinearOperator):
         Dimension of matrix X.
     """
 
-    def __init__(self, dim: int, dtype: DTypeArgType = np.double):
-        self._dim = dim
+    def __init__(self, n: int, dtype: DTypeArgType = np.double):
+        self._n = n
 
         super().__init__(
-            shape=(dim * dim, dim * dim),
+            shape=2 * (self._n ** 2,),
             dtype=dtype,
-            matmul=_linear_operator.LinearOperator.broadcast_matvec(self._matvec),
+            matmul=self._matmul,
         )
 
-    def _matvec(self, x):
-        """Assumes x=vec(X)."""
-        X = np.reshape(x.copy(), (self._dim, self._dim))
-        Y = 0.5 * (X + X.T)
-        return Y.reshape(-1)
+    def _astype(
+        self, dtype: np.dtype, order: str, casting: str, copy: bool
+    ) -> "Symmetrize":
+        if self.dtype == dtype:
+            return self
+        else:
+            return Symmetrize(self._n, dtype=dtype)
+
+    def _matmul(self, x: np.ndarray) -> np.ndarray:
+        # vec(X) -> X, i.e. reshape into stack of matrices
+        y = np.swapaxes(x, -2, -1)
+
+        if y.flags.c_contiguous:
+            y = y.copy(order="C")
+
+        y = y.reshape(y.shape[:-1] + (self._n, self._n))
+
+        # Symmetrize Matrices
+        y_transpose = np.swapaxes(y, -2, -1)
+        y = 0.5 * (y + y_transpose)
+
+        # Y -> vec(y), i.e. revert to stack of vectorized matrices
+        y = y.reshape(y.shape[:-2] + (-1,))
+        y = np.swapaxes(y, -1, -2)
+
+        return y.astype(
+            np.result_type(self.dtype, x.dtype), order="K", casting="safe", copy=False
+        )
 
 
 class Kronecker(_linear_operator.LinearOperator):
@@ -78,7 +103,7 @@ class Kronecker(_linear_operator.LinearOperator):
     """
 
     # todo: extend this to list of operators
-    def __init__(self, A, B):
+    def __init__(self, A: _utils.LinearOperatorLike, B: _utils.LinearOperatorLike):
         self.A = _utils.aslinop(A)
         self.B = _utils.aslinop(B)
 
@@ -121,8 +146,16 @@ class Kronecker(_linear_operator.LinearOperator):
             trace=trace,
         )
 
-    def astype(self, dtype: DTypeArgType) -> "Kronecker":
-        return Kronecker(self.A.astype(dtype), self.B.astype(dtype))
+    def _astype(
+        self, dtype: DTypeArgType, order: str, casting: str, copy: bool
+    ) -> "Kronecker":
+        A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
+        B_astype = self.B.astype(dtype, order=order, casting=casting, copy=copy)
+
+        if A_astype is self.A and B_astype is self.B:
+            return self
+
+        return Kronecker(A_astype, B_astype)
 
     def _cond(self, p) -> np.inexact:
         if p is None or p in (2, 1, np.inf, "fro", -2, -1, -np.inf):
@@ -218,22 +251,23 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
     # TODO: update documentation to map from n2xn2 to matrices of rank 1/2n(n+1),
     # representation symmetric n2xn2
 
-    def __init__(self, A, B=None):
-        # Set parameters
+    def __init__(
+        self,
+        A: _utils.LinearOperatorLike,
+        B: Optional[_utils.LinearOperatorLike] = None,
+    ):
         self.A = _utils.aslinop(A)
-        self._ABequal = False
-        if B is None:
-            self.B = self.A
-            self._ABequal = True
-        else:
-            self.B = _utils.aslinop(B)
-        self._n = self.A.shape[0]
-        if self.A.shape != self.B.shape or self.A.shape[1] != self._n:
-            raise ValueError(
-                "Linear operators A and B must be square and have the same dimensions."
-            )
 
-        if self._ABequal:
+        if not self.A.is_square:
+            raise ValueError("`A` must be square")
+
+        self._n = self.A.shape[0]
+
+        if B is None:
+            self._identical_factors = True
+
+            self.B = self.A
+
             dtype = self.A.dtype
             matmul = lambda x: _kronecker_matmul(self.A, self.A, x)
             rmatmul = lambda x: _kronecker_rmatmul(self.A, self.A, x)
@@ -249,6 +283,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             det = lambda: self.A.det() ** (2 * self._n)
             logabsdet = lambda: 2 * self._n * self.A.logabsdet()
         else:
+            self._identical_factors = False
+
+            self.B = _utils.aslinop(B)
+
+            if self.A.shape != self.B.shape:
+                raise ValueError("`A` and `B` must have the same shape")
+
             dtype = np.result_type(self.A.dtype, self.B.dtype, 0.5)
             matmul = self._matmul_different_factors
             rmatmul = self._rmatmul_different_factors
@@ -265,7 +306,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         super().__init__(
             dtype=dtype,
-            shape=(self._n ** 2, self._n ** 2),
+            shape=2 * (self._n ** 2,),
             matmul=matmul,
             rmatmul=rmatmul,
             todense=todense,
@@ -283,13 +324,28 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
     @property
     def identical_factors(self) -> bool:
-        return self._ABequal
+        return self._identical_factors
 
-    def astype(self, dtype: DTypeArgType) -> "SymmetricKronecker":
-        if self._ABequal:
-            return SymmetricKronecker(self.A.astype(dtype))
+    def _astype(
+        self, dtype: DTypeArgType, order: str, casting: str, copy: bool
+    ) -> Union["SymmetricKronecker", _linear_operator.LinearOperator]:
+        if self._identical_factors:
+            A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
+
+            if A_astype is self.A:
+                return self
+
+            return SymmetricKronecker(A_astype)
+        elif np.issubdtype(dtype, np.floating):
+            A_astype = self.A.astype(dtype, order=order, casting=casting, copy=copy)
+            B_astype = self.B.astype(dtype, order=order, casting=casting, copy=copy)
+
+            if A_astype is self.A and B_astype is self.B:
+                return self
+
+            return SymmetricKronecker(A_astype, B_astype)
         else:
-            return SymmetricKronecker(self.A.astype(dtype), self.B.astype(dtype))
+            return super()._astype(dtype, order, casting, copy)
 
     def _matmul_different_factors(self, x: np.ndarray) -> np.ndarray:
         """Efficient multiplication via (A (x)_s B)vec(X) = 1/2 vec(BXA^T + AXB^T) where

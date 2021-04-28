@@ -1,10 +1,19 @@
+from typing import Union
+
 import numpy as np
 import scipy.sparse
 
 from . import _linear_operator
 
+LinearOperatorLike = Union[
+    _linear_operator.LinearOperator,
+    np.ndarray,
+    scipy.sparse.spmatrix,
+    scipy.sparse.linalg.LinearOperator,
+]
 
-def aslinop(A) -> _linear_operator.LinearOperator:
+
+def aslinop(A: LinearOperatorLike) -> _linear_operator.LinearOperator:
     """Return ``A`` as a :class:`LinearOperator`.
 
     Parameters
