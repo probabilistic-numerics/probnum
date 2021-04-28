@@ -380,6 +380,11 @@ class LinearOperator:
             The condition number of the linear operator. May be infinite.
         """
         if p not in self.__cond_cache:
+            if not self.is_square:
+                raise np.linalg.LinAlgError(
+                    "The condition number is only defined on square operators"
+                )
+
             self.__cond_cache[p] = self.__cond(p)
 
         return self.__cond_cache[p]

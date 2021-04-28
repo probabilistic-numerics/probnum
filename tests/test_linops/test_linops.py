@@ -174,23 +174,10 @@ def test_eigvals(linop: pn.linops.LinearOperator, matrix: np.ndarray):
             linop.eigvals()
 
 
-@pytest.mark.parametrize("p", [None, 2, -2])
+@pytest.mark.parametrize("p", [None, 1, 2, np.inf, "fro", -1, -2, -np.inf])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
-def test_cond(linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int]):
-    linop_cond = linop.cond(p=p)
-    matrix_cond = np.linalg.cond(matrix, p=p)
-
-    assert isinstance(linop_cond, np.inexact)
-    assert linop_cond.shape == ()
-    assert linop_cond.dtype == matrix_cond.dtype
-
-    np.testing.assert_allclose(linop_cond, matrix_cond)
-
-
-@pytest.mark.parametrize("p", [1, np.inf, "fro", -1, -np.inf])
-@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
-def test_cond_square(
-    linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int]
+def test_cond(
+    linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int, float, str]
 ):
     if linop.is_square:
         linop_cond = linop.cond(p=p)
@@ -200,7 +187,15 @@ def test_cond_square(
         assert linop_cond.shape == ()
         assert linop_cond.dtype == matrix_cond.dtype
 
-        np.testing.assert_allclose(linop_cond, matrix_cond)
+        try:
+            np.testing.assert_allclose(linop_cond, matrix_cond)
+        except AssertionError as e:
+            if p == -2 and 0 < linop.rank() < linop.shape[0] and linop_cond == np.inf:
+                # `np.linalg.cond` returns 0.0 for p = -2 if the matrix is singular but
+                # not zero. This is a bug.
+                pass
+            else:
+                raise e
     else:
         with pytest.raises(np.linalg.LinAlgError):
             linop.cond(p=p)

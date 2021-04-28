@@ -8,7 +8,7 @@ import scipy.sparse
 import probnum.utils
 from probnum.type import ScalarArgType, ShapeArgType
 
-from ._diagonal import ScalarMult
+from ._diagonal import Diagonal
 from ._linear_operator import (  # pylint: disable=cyclic-import
     BinaryOperandType,
     LinearOperator,
@@ -90,7 +90,7 @@ def _operand_to_linop(operand: Any, shape: ShapeArgType) -> Optional[LinearOpera
     if isinstance(operand, LinearOperator):
         pass
     elif np.ndim(operand) == 0:
-        operand = ScalarMult(shape, operand)
+        operand = Diagonal(operand, shape=shape)
     elif isinstance(operand, (np.ndarray, scipy.sparse.spmatrix)):
         operand = MatrixMult(operand)
     else:

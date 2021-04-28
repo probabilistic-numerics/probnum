@@ -67,7 +67,7 @@ def get_linear_operator(name: str) -> pn.linops.LinearOperator:
     elif name == "matrix_sparse":
         linop = pn.linops.aslinop(scipy.sparse.random(10000, 10000, format="csr"))
     elif name == "isotropic_scaling":
-        linop = pn.linops.ScalarMult(shape=(10000, 10000), scalar=3.0)
+        linop = pn.linops.Diagonal(3.0, shape=(10000, 10000))
     elif name == "identity":
         linop = pn.linops.Identity(10000)
     elif name == "kronecker":

@@ -1,6 +1,6 @@
 """Finite-dimensional Linear Operators."""
 
-from ._diagonal import Diagonal, Identity, ScalarMult
+from ._diagonal import Diagonal, Identity
 from ._kronecker import Kronecker, SymmetricKronecker, Symmetrize
 from ._linear_operator import LinearOperator, MatrixMult
 from ._utils import aslinop
@@ -11,7 +11,6 @@ __all__ = [
     "LinearOperator",
     "MatrixMult",
     "Diagonal",
-    "ScalarMult",
     "Identity",
     "Kronecker",
     "SymmetricKronecker",
@@ -24,7 +23,6 @@ LinearOperator.__module__ = "probnum.linops"
 MatrixMult.__module__ = "probnum.linops"
 
 Diagonal.__module__ = "probnum.linops"
-ScalarMult.__module__ = "probnum.linops"
 Identity.__module__ = "probnum.linops"
 
 Kronecker.__module__ = "probnum.linops"
