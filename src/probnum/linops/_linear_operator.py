@@ -94,6 +94,8 @@ class LinearOperator:
     array([1., 3.])
     """
 
+    # pylint: disable=too-many-public-methods
+
     def __init__(
         self,
         shape: ShapeArgType,

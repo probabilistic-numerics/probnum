@@ -102,7 +102,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         cov = cov.astype(dtype, order="C", casting="safe", copy=False)
 
         # Shape checking
-        if not (0 <= mean.ndim <= 2):
+        if not 0 <= mean.ndim <= 2:
             raise ValueError(
                 f"Gaussian random variables must either be scalars, vectors, or "
                 f"matrices (or linear operators), but the given mean is a {mean.ndim}-"
