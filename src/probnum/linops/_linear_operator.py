@@ -3,6 +3,7 @@
 from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
+import scipy.linalg
 import scipy.sparse.linalg
 
 import probnum.utils
@@ -718,10 +719,16 @@ class _TransposedLinearOperator(LinearOperator):
             shape=(self._linop.shape[1], self._linop.shape[0]),
             dtype=self._linop.dtype,
             matmul=matmul,
+            rmatmul=lambda x: self._linop(x, axis=-1),
             todense=lambda: self._linop.todense(cache=False).T.copy(order="C"),
             transpose=lambda: self._linop,
             adjoint=self._linop.conj,
             conjugate=self._linop.adjoint,
+            inverse=None,  # lambda: self._linop.inv().T,
+            rank=self._linop.rank,
+            det=self._linop.det,
+            logabsdet=self._linop.logabsdet,
+            trace=self._linop.trace,
         )
 
     def _astype(
@@ -745,12 +752,17 @@ class _AdjointLinearOperator(LinearOperator):
             shape=(self._linop.shape[1], self._linop.shape[0]),
             dtype=self._linop.dtype,
             matmul=matmul,
+            rmatmul=lambda x: np.conj(self._linop(np.conj(x), axis=-1)),
             todense=lambda: (
                 np.conj(self._linop.todense(cache=False).T).copy(order="C")
             ),
             transpose=self._linop.conj,
             adjoint=lambda: self._linop,
             conjugate=self._linop.transpose,
+            inverse=None,  # lambda: self._linop.inv().H,
+            rank=self._linop.rank,
+            det=lambda: np.conj(self._linop.det()),
+            trace=lambda: np.conj(self._linop.trace()),
         )
 
     def _astype(
