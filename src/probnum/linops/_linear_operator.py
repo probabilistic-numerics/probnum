@@ -792,13 +792,40 @@ class _InverseLinearOperator(LinearOperator):
 
         self._linop = linop
 
+        self.__factorization = None
+
+        tmatmul = LinearOperator.broadcast_matmat(self._tmatmat)
+        hmatmul = LinearOperator.broadcast_matmat(self._hmatmat)
+
         super().__init__(
             shape=self._linop.shape,
             dtype=self._linop._inexact_dtype,
-            matmul=lambda x: self.todense() @ x,
-            todense=lambda: np.linalg.inv(self._linop.todense(cache=False)),
+            matmul=LinearOperator.broadcast_matmat(self._matmat),
+            rmatmul=lambda x: tmatmul(x[..., np.newaxis])[..., 0],
+            transpose=lambda x: _TransposedLinearOperator(self, matmul=tmatmul),
+            adjoint=lambda x: _AdjointLinearOperator(self, matmul=hmatmul),
             inverse=lambda: self._linop,
+            det=lambda: 1 / self._linop.det(),
+            logabsdet=lambda: -self._linop.logabsdet(),
         )
+
+    @property
+    def factorization(self):
+        if self.__factorization is None:
+            self.__factorization = scipy.linalg.lu_factor(
+                self._linop.todense(), overwrite_a=False
+            )
+
+        return self.__factorization
+
+    def _matmat(self, x: np.ndarray) -> np.ndarray:
+        return scipy.linalg.lu_solve(self.factorization, x, trans=0, overwrite_b=False)
+
+    def _tmatmat(self, x: np.ndarray) -> np.ndarray:
+        return scipy.linalg.lu_solve(self.factorization, x, trans=1, overwrite_b=False)
+
+    def _hmatmat(self, x: np.ndarray) -> np.ndarray:
+        return scipy.linalg.lu_solve(self.factorization, x, trans=2, overwrite_b=False)
 
 
 class _TypeCastLinearOperator(LinearOperator):
