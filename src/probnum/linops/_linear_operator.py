@@ -4,7 +4,6 @@ from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse.linalg
-import scipy.sparse.linalg.interface
 
 import probnum.utils
 from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
@@ -103,9 +102,9 @@ class LinearOperator:
         rmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         apply: Callable[[np.ndarray, int], np.ndarray] = None,
         todense: Optional[Callable[[], np.ndarray]] = None,
+        conjugate: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         transpose: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         adjoint: Optional[Callable[[], "LinearOperator"]] = None,
-        hmatmul: Optional[Callable[[np.ndarray], np.ndarray]] = None,
         inverse: Optional[Callable[[], "LinearOperator"]] = None,
         rank: Optional[Callable[[], np.intp]] = None,
         eigvals: Optional[Callable[[], np.ndarray]] = None,
@@ -149,18 +148,20 @@ class LinearOperator:
                 self.shape[1], dtype=self._dtype, order="F"
             )
 
+        # Conjugate
+        if conjugate is not None:
+            self.__conjugate = conjugate
+        else:
+            self.__conjugate = lambda: _ConjugateLinearOperator(self)
+
         # Transpose and Adjoint
         if transpose is not None:
             self.__transpose = transpose
-        elif adjoint is not None or hmatmul is not None:
+        elif adjoint is not None:
             # Fast adjoint operator is available
-            if np.issubdtype(self._dtype, np.complexfloating):
-                self.__transpose = lambda: _TransposedLinearOperator(
-                    self, matmul=lambda x: np.conj(self.H @ np.conj(x))
-                )
-            else:
-                # Transpose == adjoint
-                self.__transpose = lambda: self.H
+            self.__transpose = (
+                lambda: self.H.conj()  # pylint: disable=unnecessary-lambda
+            )
         elif rmatmul is not None:
             self.__transpose = lambda: _TransposedLinearOperator(
                 self,
@@ -172,17 +173,9 @@ class LinearOperator:
 
         if adjoint is not None:
             self.__adjoint = adjoint
-        elif hmatmul is not None:
-            self.__adjoint = lambda: _AdjointLinearOperator(self, matmul=hmatmul)
         elif transpose is not None or rmatmul is not None:
             # Fast transpose operator is available
-            if np.issubdtype(self._dtype, np.complexfloating):
-                self.__adjoint = lambda: _AdjointLinearOperator(
-                    self, matmul=lambda x: np.conj(self.T @ np.conj(x))
-                )
-            else:
-                # Adjoint == transpose
-                self.__adjoint = lambda: self.T
+            self.__adjoint = lambda: self.T.conj()  # pylint: disable=unnecessary-lambda
         else:
             self.__adjoint = lambda: _AdjointLinearOperator(self)
 
@@ -451,6 +444,15 @@ class LinearOperator:
 
         return NegatedLinearOperator(self)
 
+    def conjugate(self) -> "LinearOperator":
+        if np.issubdtype(self.dtype, np.complexfloating):
+            return self.__conjugate()
+        else:
+            return self
+
+    def conj(self) -> "LinearOperator":
+        return self.conjugate()
+
     def adjoint(self) -> "LinearOperator":
         return self.__adjoint()
 
@@ -718,15 +720,14 @@ class _TransposedLinearOperator(LinearOperator):
             matmul=matmul,
             todense=lambda: self._linop.todense(cache=False).T.copy(order="C"),
             transpose=lambda: self._linop,
+            adjoint=self._linop.conj,
+            conjugate=self._linop.adjoint,
         )
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
     ) -> "LinearOperator":
         return self._linop.astype(dtype, order=order, casting=casting, copy=copy).T
-
-    def inv(self):
-        return self._linop.inv().T
 
 
 class _AdjointLinearOperator(LinearOperator):
@@ -747,13 +748,41 @@ class _AdjointLinearOperator(LinearOperator):
             todense=lambda: (
                 np.conj(self._linop.todense(cache=False).T).copy(order="C")
             ),
+            transpose=self._linop.conj,
             adjoint=lambda: self._linop,
+            conjugate=self._linop.transpose,
         )
 
     def _astype(
         self, dtype: np.dtype, order: str, casting: str, copy: bool
     ) -> "LinearOperator":
         return self._linop.astype(dtype, order=order, casting=casting, copy=copy).H
+
+
+class _ConjugateLinearOperator(LinearOperator):
+    def __init__(self, linop: LinearOperator):
+        if not np.issubdtype(linop.dtype, np.complexfloating):
+            raise TypeError(
+                "Complex conjugation only makes sense on operators of complex dtype"
+            )
+
+        self._linop = linop
+
+        super().__init__(
+            self._linop.shape,
+            self._linop.dtype,
+            matmul=lambda x: np.conj(self._linop @ np.conj(x)),
+            rmatmul=lambda x: np.conj(np.conj(x) @ self._linop),
+            apply=lambda x, axis: np.conj(self._linop(np.conj(x), axis=axis)),
+            todense=lambda: np.conj(self._linop.todense(cache=False)),
+            transpose=lambda: self._linop.H,
+            adjoint=lambda: self._linop.T,
+            inverse=None,  # lambda: self._linop.inv().conj(),
+            rank=self._linop.rank,
+            eigvals=lambda: np.conj(self._linop.eigvals()),
+            det=lambda: np.conj(self._linop.det()),
+            trace=lambda: np.conj(self._linop.trace()),
+        )
 
 
 class _InverseLinearOperator(LinearOperator):
@@ -880,6 +909,7 @@ class Matrix(LinearOperator):
             matmul=matmul,
             rmatmul=rmatmul,
             todense=todense,
+            conjugate=lambda: Matrix(self.A.conj()),
             transpose=transpose,
             adjoint=adjoint,
             inverse=inverse,

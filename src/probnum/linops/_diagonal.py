@@ -57,7 +57,7 @@ class Diagonal(_linear_operator.LinearOperator):
 
                 todense = lambda: np.identity(shape[0], dtype=dtype)
 
-                adjoint = lambda: self
+                conjugate = lambda: self
                 inverse = lambda: self
 
                 rank = lambda: np.intp(shape[0])
@@ -75,7 +75,7 @@ class Diagonal(_linear_operator.LinearOperator):
 
                 todense = self._todense_isotropic
 
-                adjoint = lambda: (
+                conjugate = lambda: (
                     self
                     if np.imag(self._scalar) == 0
                     else Diagonal(np.conj(self._scalar), shape=shape)
@@ -114,7 +114,7 @@ class Diagonal(_linear_operator.LinearOperator):
 
             todense = lambda: np.diag(self._diagonal)
 
-            adjoint = lambda: (
+            conjugate = lambda: (
                 self
                 if (
                     not np.issubdtype(dtype, np.complexfloating)
@@ -144,8 +144,9 @@ class Diagonal(_linear_operator.LinearOperator):
             rmatmul=rmatmul,
             apply=apply,
             todense=todense,
+            conjugate=conjugate,
             transpose=lambda: self,
-            adjoint=adjoint,
+            adjoint=conjugate,
             inverse=inverse,
             rank=rank,
             eigvals=eigvals,
@@ -188,7 +189,7 @@ class Diagonal(_linear_operator.LinearOperator):
         if self.rank() < self.shape[0]:
             raise np.linalg.LinAlgError("The operator is singular.")
 
-        return Diagonal(1 / self._diagonal, shape=self.shape)
+        return Diagonal(1 / self._diagonal)
 
     def _inverse_isotropic(self) -> "Diagonal":
         if self.rank() < self.shape[0]:

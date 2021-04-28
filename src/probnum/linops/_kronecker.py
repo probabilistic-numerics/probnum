@@ -133,6 +133,7 @@ class Kronecker(_linear_operator.LinearOperator):
             todense=lambda: np.kron(
                 self.A.todense(cache=False), self.B.todense(cache=False)
             ),
+            conjugate=lambda: Kronecker(A=self.A.conj(), B=self.B.conj()),
             # (A (x) B)^T = A^T (x) B^T
             transpose=lambda: Kronecker(A=self.A.T, B=self.B.T),
             # (A (x) B)^H = A^H (x) B^H
@@ -272,6 +273,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             matmul = lambda x: _kronecker_matmul(self.A, self.A, x)
             rmatmul = lambda x: _kronecker_rmatmul(self.A, self.A, x)
             todense = self._todense_identical_factors
+            conjugate = lambda: SymmetricKronecker(A=self.A.conj())
             # (A (x)_s A)^T = A^T (x)_s A^T
             transpose = lambda: SymmetricKronecker(A=self.A.T)
             # (A (x)_s A)^H = A^H (x)_s A^H
@@ -294,6 +296,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             matmul = self._matmul_different_factors
             rmatmul = self._rmatmul_different_factors
             todense = self._todense_different_factors
+            conjugate = lambda: SymmetricKronecker(A=self.A.conj(), B=self.B.conj())
             # (A (x)_s B)^T = A^T (x)_s B^T
             transpose = lambda: SymmetricKronecker(A=self.A.T, B=self.B.T)
             # (A (x)_s B)^H = A^H (x)_s B^H
@@ -310,6 +313,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
             matmul=matmul,
             rmatmul=rmatmul,
             todense=todense,
+            conjugate=conjugate,
             transpose=transpose,
             adjoint=adjoint,
             inverse=inverse,
