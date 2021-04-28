@@ -19,13 +19,16 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
         """Resources for tests."""
         # Seed
-        np.random.seed(seed=42)
+        self.random_state = 42
+        np.random.seed(seed=self.random_state)
 
         # Parameters
         m = 7
         n = 3
         self.constants = [-1, -2.4, 0, 200, np.pi]
-        sparsemat = scipy.sparse.rand(m=m, n=n, density=0.1, random_state=1)
+        sparsemat = scipy.sparse.rand(
+            m=m, n=n, density=0.1, random_state=self.random_state
+        )
         self.normal_params = [
             # Univariate
             (-1.0, 3.0),
@@ -163,7 +166,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 # TODO: check dimension of each realization in rv_sample
                 rv = randvars.Normal(mean=mean, cov=cov)  # , random_state=1)
-                rv_sample = rv.sample(size=5)
+                rv_sample = rv.sample(size=5, random_state=self.random_state)
                 if not np.isscalar(rv.mean):
                     self.assertEqual(
                         rv_sample.shape[-rv.ndim :],
@@ -177,7 +180,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         for mean, cov in self.normal_params:
             with self.subTest():
                 rv = randvars.Normal(mean=mean, cov=0 * cov)  # , random_state=1)
-                rv_sample = rv.sample(size=1)
+                rv_sample = rv.sample(size=1, random_state=self.random_state)
                 assert_str = "Draw with kernels zero does not match mean."
                 if isinstance(rv.mean, linops.LinearOperator):
                     self.assertAllClose(rv_sample, rv.mean.todense(), msg=assert_str)
@@ -196,7 +199,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             cov=linops.SymmetricKronecker(A=A),
             # random_state=1,
         )
-        rv = rv.sample(size=10)
+        rv = rv.sample(size=10, random_state=self.random_state)
         for i, B in enumerate(rv):
             self.assertAllClose(
                 B,
@@ -375,6 +378,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
 
 class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
+        self.random_state = 42
+        np.random.seed(seed=self.random_state)
+
         self.params = (np.random.uniform(), np.random.gamma(shape=6, scale=1.0))
 
     def test_reshape_newaxis(self):
@@ -406,10 +412,10 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         # Test sampling
         # dist.random_state = 42
-        dist_sample = dist.sample(size=5)
+        dist_sample = dist.sample(size=5, random_state=self.random_state)
 
         # dist_t.random_state = 42
-        dist_t_sample = dist_t.sample(size=5)
+        dist_t_sample = dist_t.sample(size=5, random_state=self.random_state)
 
         self.assertArrayEqual(dist_t_sample, dist_sample)
 
@@ -475,6 +481,10 @@ class UnivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
 class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self):
+
+        self.random_state = 42
+        np.random.seed(seed=self.random_state)
+
         self.params = (np.random.uniform(size=10), random_spd_matrix(10))
 
     def test_newaxis(self):
@@ -497,10 +507,10 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         # Test sampling
         # rv.random_state = 42
-        dist_sample = rv.sample(size=5)
+        dist_sample = rv.sample(size=5, random_state=self.random_state)
 
         # reshaped_rv.random_state = 42
-        dist_reshape_sample = reshaped_rv.sample(size=5)
+        dist_reshape_sample = reshaped_rv.sample(size=5, random_state=self.random_state)
 
         self.assertArrayEqual(
             dist_reshape_sample, dist_sample.reshape((-1,) + newshape)
@@ -515,10 +525,10 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         # Test sampling
         # rv.random_state = 42
-        dist_sample = rv.sample(size=5)
+        dist_sample = rv.sample(size=5, random_state=self.random_state)
 
         # transposed_rv.random_state = 42
-        dist_t_sample = transposed_rv.sample(size=5)
+        dist_t_sample = transposed_rv.sample(size=5, random_state=self.random_state)
 
         self.assertArrayEqual(dist_t_sample, dist_sample)
 
@@ -614,6 +624,10 @@ class MultivariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
 
 class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
+    def setUp(self):
+        self.random_state = 42
+        np.random.seed(seed=self.random_state)
+
     def test_reshape(self):
         rv = randvars.Normal(
             mean=np.random.uniform(size=(4, 3)),
@@ -630,10 +644,10 @@ class MatrixvariateNormalTestCase(unittest.TestCase, NumpyAssertions):
 
         # Test sampling
         # rv.random_state = 42
-        dist_sample = rv.sample(size=5)
+        dist_sample = rv.sample(size=5, random_state=self.random_state)
 
         # reshaped_rv.random_state = 42
-        dist_reshape_sample = reshaped_rv.sample(size=5)
+        dist_reshape_sample = reshaped_rv.sample(size=5, random_state=self.random_state)
 
         self.assertArrayEqual(
             dist_reshape_sample, dist_sample.reshape((-1,) + newshape)

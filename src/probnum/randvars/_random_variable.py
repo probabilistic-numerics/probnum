@@ -124,7 +124,9 @@ class RandomVariable(Generic[_ValueType]):
         dtype: DTypeArgType,
         # random_state: RandomStateArgType = None,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[ShapeType], _ValueType]] = None,
+        sample: Optional[
+            Callable[[ShapeType, Optional[RandomStateArgType]], _ValueType]
+        ] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         cdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logcdf: Optional[Callable[[_ValueType], np.float_]] = None,
@@ -446,7 +448,9 @@ class RandomVariable(Generic[_ValueType]):
 
         return in_support
 
-    def sample(self, size: ShapeArgType = ()) -> _ValueType:
+    def sample(
+        self, size: ShapeArgType = (), random_state: RandomStateArgType = None
+    ) -> _ValueType:
         """Draw realizations from a random variable.
 
         Parameters
@@ -457,7 +461,9 @@ class RandomVariable(Generic[_ValueType]):
         if self.__sample is None:
             raise NotImplementedError("No sampling method provided.")
 
-        return self.__sample(_utils.as_shape(size))
+        return self.__sample(
+            _utils.as_shape(size), _utils.as_random_state(random_state)
+        )
 
     def cdf(self, x: _ValueType) -> np.float_:
         """Cumulative distribution function.
@@ -565,7 +571,7 @@ class RandomVariable(Generic[_ValueType]):
             shape=np.empty(shape=self.shape)[key].shape,
             dtype=self.dtype,
             # random_state=_utils.derive_random_seed(self.random_state),
-            sample=lambda size: self.sample(size)[key],
+            sample=lambda size, random_state=None: self.sample(size, random_state)[key],
             mode=lambda: self.mode[key],
             mean=lambda: self.mean[key],
             var=lambda: self.var[key],
@@ -589,7 +595,9 @@ class RandomVariable(Generic[_ValueType]):
             shape=newshape,
             dtype=self.dtype,
             # random_state=_utils.derive_random_seed(self.random_state),
-            sample=lambda size: self.sample(size).reshape(size + newshape),
+            sample=lambda size, random_state=None: self.sample(
+                size, random_state
+            ).reshape(size + newshape),
             mode=lambda: self.mode.reshape(newshape),
             median=lambda: self.median.reshape(newshape),
             mean=lambda: self.mean.reshape(newshape),
@@ -612,7 +620,9 @@ class RandomVariable(Generic[_ValueType]):
             shape=np.empty(shape=self.shape).transpose(*axes).shape,
             dtype=self.dtype,
             # random_state=_utils.derive_random_seed(self.random_state),
-            sample=lambda size: self.sample(size).transpose(*axes),
+            sample=lambda size, random_state=None: self.sample(
+                size, random_state
+            ).transpose(*axes),
             mode=lambda: self.mode.transpose(*axes),
             median=lambda: self.median.transpose(*axes),
             mean=lambda: self.mean.transpose(*axes),
@@ -632,7 +642,9 @@ class RandomVariable(Generic[_ValueType]):
             shape=self.shape,
             dtype=self.dtype,
             # random_state=_utils.derive_random_seed(self.random_state),
-            sample=lambda size: -self.sample(size=size),
+            sample=lambda size, random_state=None: -self.sample(
+                size=size, random_state=random_state
+            ),
             in_support=lambda x: self.in_support(-x),
             mode=lambda: -self.mode,
             median=lambda: -self.median,
@@ -648,7 +660,9 @@ class RandomVariable(Generic[_ValueType]):
             shape=self.shape,
             dtype=self.dtype,
             # random_state=_utils.derive_random_seed(self.random_state),
-            sample=lambda size: +self.sample(size=size),
+            sample=lambda size, random_state=None: +self.sample(
+                size=size, random_state=random_state
+            ),
             in_support=lambda x: self.in_support(+x),
             mode=lambda: +self.mode,
             median=lambda: +self.median,
@@ -664,7 +678,9 @@ class RandomVariable(Generic[_ValueType]):
             shape=self.shape,
             dtype=self.dtype,
             # random_state=_utils.derive_random_seed(self.random_state),
-            sample=lambda size: abs(self.sample(size=size)),
+            sample=lambda size, random_state=None: abs(
+                self.sample(size=size, random_state=random_state)
+            ),
         )
 
     # Binary arithmetic operations
@@ -1008,7 +1024,9 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         dtype: DTypeArgType,
         # random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
+        sample: Optional[
+            Callable[[ShapeArgType, Optional[RandomStateArgType]], _ValueType]
+        ] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         pmf: Optional[Callable[[_ValueType], np.float_]] = None,
         logpmf: Optional[Callable[[_ValueType], np.float_]] = None,
@@ -1230,7 +1248,9 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         dtype: DTypeArgType,
         # random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
-        sample: Optional[Callable[[ShapeArgType], _ValueType]] = None,
+        sample: Optional[
+            Callable[[ShapeArgType, Optional[RandomStateArgType]], _ValueType]
+        ] = None,
         in_support: Optional[Callable[[_ValueType], bool]] = None,
         pdf: Optional[Callable[[_ValueType], np.float_]] = None,
         logpdf: Optional[Callable[[_ValueType], np.float_]] = None,

@@ -84,7 +84,6 @@ def test_pmf_zero(categ):
     new_categ = randvars.Categorical(
         support=categ.support[:-1],
         probabilities=categ.probabilities[:-1],
-        random_state=categ.random_state,
     )
     zero_pmf_value = new_categ.pmf(x=categ.support[-1])
     np.testing.assert_almost_equal(zero_pmf_value, 0.0)

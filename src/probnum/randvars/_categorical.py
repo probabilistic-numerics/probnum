@@ -2,7 +2,9 @@
 from typing import Optional
 
 import numpy as np
+import scipy.stats
 
+from probnum import utils
 from probnum.type import RandomStateArgType
 
 from ._random_variable import DiscreteRandomVariable
@@ -44,7 +46,7 @@ class Categorical(DiscreteRandomVariable):
             "num_categories": num_categories,
         }
 
-        def _sample_categorical(size=()):
+        def _sample_categorical(size=(), random_state=None):
             """Sample from a categorical distribution.
 
             While on first sight, one might think that this
@@ -54,7 +56,13 @@ class Categorical(DiscreteRandomVariable):
             arrays with `ndim > 1`, but `self.support` can be just that.
             This detour via the `mask` avoids this problem.
             """
-            mask = np.random.choice(
+
+            # By the time this function is called, the random_state is a
+            # RandomState(MT19937) object, which offers a choice function.
+            # We cannot direct the call to SciPy, since it does not offer a
+            # Categorical distribution
+            # (and doing it via multinomial was too much reshaping, etc.)
+            mask = random_state.choice(
                 np.arange(len(self.support)), size=size, p=self.probabilities
             ).reshape(size)
             return self.support[mask]
@@ -98,7 +106,7 @@ class Categorical(DiscreteRandomVariable):
         """Support of the categorical distribution."""
         return self._support
 
-    def resample(self) -> "Categorical":
+    def resample(self, random_state: RandomStateArgType = None) -> "Categorical":
         """Resample the support of the categorical random variable.
 
         Return a new categorical random variable (RV), where the support
@@ -107,7 +115,7 @@ class Categorical(DiscreteRandomVariable):
         probabilities of the resulting categorical RV are all equal.
         """
         num_events = len(self.support)
-        new_support = self.sample(size=num_events)
+        new_support = self.sample(size=num_events, random_state=random_state)
         new_probabilities = np.ones(self.probabilities.shape) / num_events
         return Categorical(
             support=new_support,

@@ -141,7 +141,9 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             # random_state=_utils.derive_random_seed(self.random_state),
         )
 
-    def _sample(self, size: ShapeArgType = ()) -> _ValueType:
+    def _sample(
+        self, size: ShapeArgType = (), random_state: RandomStateArgType = None
+    ) -> _ValueType:
         size = _utils.as_shape(size)
 
         if size == ():

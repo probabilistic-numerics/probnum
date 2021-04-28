@@ -455,12 +455,12 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         return np.sqrt(self._cov + damping_factor)
 
     def _univariate_sample(
-        self, size: ShapeType = ()
+        self,
+        size: ShapeType = (),
+        random_state: RandomStateArgType = None,
     ) -> Union[np.floating, np.ndarray]:
         sample = scipy.stats.norm.rvs(
-            loc=self._mean,
-            scale=self.std,
-            size=size,  # random_state=self.random_state
+            loc=self._mean, scale=self.std, size=size, random_state=random_state
         )
 
         if np.isscalar(sample):
@@ -510,12 +510,14 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
             lower=True,
         )
 
-    def _dense_sample(self, size: ShapeType = ()) -> np.ndarray:
+    def _dense_sample(
+        self, size: ShapeType = (), random_state: RandomStateArgType = None
+    ) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
             size=size,
-            # random_state=self.random_state,
+            random_state=random_state,
         )
 
         return sample.reshape(sample.shape[:-1] + self.shape)
@@ -612,7 +614,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     def _symmetric_kronecker_identical_factors_sample(
-        self, size: ShapeType = ()
+        self, size: ShapeType = (), random_state: RandomStateArgType = None
     ) -> np.ndarray:
         assert isinstance(self._cov, linops.SymmetricKronecker) and self._cov._ABequal
 
@@ -622,7 +624,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         size_sample = (n * n,) + size
 
         stdnormal_samples = scipy.stats.norm.rvs(
-            size=size_sample,  # random_state=self.random_state
+            size=size_sample, random_state=random_state
         )
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
