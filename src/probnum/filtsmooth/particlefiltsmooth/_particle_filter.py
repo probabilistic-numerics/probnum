@@ -68,6 +68,7 @@ class ParticleFilter(BayesFiltSmooth):
         linearized_measurement_model: Optional[statespace.DiscreteGaussian] = None,
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,
+        random_state=None,
     ) -> None:
         super().__init__(
             dynamics_model=dynamics_model,
@@ -81,7 +82,7 @@ class ParticleFilter(BayesFiltSmooth):
         self.min_effective_num_of_particles = (
             resampling_percentage_threshold * num_particles
         )
-
+        self.random_state = random_state
         # If None, the dynamics model is used as a fallback option
         # which results in the bootstrap PF.
         # Any linearised measurement model that could be used in a
@@ -121,7 +122,8 @@ class ParticleFilter(BayesFiltSmooth):
         weights = np.stack(particles_and_weights[:, 1], axis=0)
         weights = np.array(weights) / np.sum(weights)
         curr_rv = randvars.Categorical(
-            support=particles, probabilities=weights, random_state=self.random_state
+            support=particles,
+            probabilities=weights,  # random_state=self.random_state
         )
         rvs = [curr_rv]
 
@@ -173,12 +175,12 @@ class ParticleFilter(BayesFiltSmooth):
         new_rv = randvars.Categorical(
             support=new_support,
             probabilities=new_weights,
-            random_state=self.random_state,
+            # random_state=self.random_state,
         )
 
         if self.with_resampling:
             if effective_number_of_events(new_rv) < self.min_effective_num_of_particles:
-                new_rv = new_rv.resample()
+                new_rv = new_rv.resample(random_state=self.random_state)
 
         return new_rv, {}
 
@@ -189,7 +191,7 @@ class ParticleFilter(BayesFiltSmooth):
         model and compute new weights via the respective PDFs.
         """
         proposal_rv = self.dynamics_to_proposal_rv(dynamics_rv, data=data, t=stop)
-        proposal_state = proposal_rv.sample()
+        proposal_state = proposal_rv.sample(random_state=self.random_state)
         meas_rv, _ = self.measurement_model.forward_realization(proposal_state, t=stop)
 
         # For the bootstrap PF, the dynamics and proposal PDFs cancel out.
@@ -221,10 +223,10 @@ class ParticleFilter(BayesFiltSmooth):
             )
         return proposal_rv
 
-    @property
-    def random_state(self):
-        """Random state of the particle filter.
+    # @property
+    # def random_state(self):
+    #     """Random state of the particle filter.
 
-        Inferred from the random state of the initial random variable.
-        """
-        return self.initrv.random_state
+    #     Inferred from the random state of the initial random variable.
+    #     """
+    #     return self.initrv.random_state

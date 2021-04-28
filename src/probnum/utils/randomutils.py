@@ -18,6 +18,7 @@ def derive_random_seed(*rngs: Union[np.random.RandomState, np.random.Generator])
     rngs
         Random number generators.
     """
+    raise RuntimeError
 
     def _sample(rng: Union[np.random.RandomState, np.random.Generator]) -> int:
         if isinstance(rng, np.random.RandomState):
