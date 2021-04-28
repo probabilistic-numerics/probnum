@@ -986,7 +986,7 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     ...     "p" : p}
     >>>
     >>> # Sampling function
-    >>> def sample_categorical(size=()):
+    >>> def sample_categorical(size=(), random_state=None):
     ...     return np.random.choice(a=support, size=size, p=p)
     >>>
     >>> # Probability mass function
@@ -1209,7 +1209,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     >>> parameters_uniform = {"bounds" : [a, b]}
     >>>
     >>> # Sampling function
-    >>> def sample_uniform(size=()):
+    >>> def sample_uniform(size=(), random_state=None):
     ...     return np.random.uniform(size=size)
     >>>
     >>> # Probability density function
