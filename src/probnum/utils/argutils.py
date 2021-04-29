@@ -36,7 +36,7 @@ def as_random_state(seed: RandomStateArgType) -> RandomStateType:
     return scipy._lib._util.check_random_state(seed)
 
 
-def as_shape(x: ShapeArgType, ndim: Optional[int] = None) -> ShapeType:
+def as_shape(x: ShapeArgType, ndim: Optional[numbers.Integral] = None) -> ShapeType:
     """Convert a shape representation into a shape defined as a tuple of ints.
 
     Parameters
@@ -61,7 +61,7 @@ def as_shape(x: ShapeArgType, ndim: Optional[int] = None) -> ShapeType:
 
         shape = tuple(int(item) for item in x)
 
-    if isinstance(ndim, int):
+    if isinstance(ndim, numbers.Integral):
         if len(shape) != ndim:
             raise TypeError(f"The given shape {shape} must have {ndim} dimensions.")
 
