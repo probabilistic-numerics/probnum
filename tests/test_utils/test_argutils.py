@@ -64,6 +64,19 @@ def test_as_shape_iterable(shape_arg, ndim):
 
 
 @pytest.mark.parametrize(
+    "shape_arg",
+    [
+        None,
+        "(1, 2, 3)",
+        tuple,
+    ],
+)
+def test_as_shape_wrong_type(shape_arg):
+    with pytest.raises(TypeError):
+        pnut.as_shape(shape_arg)
+
+
+@pytest.mark.parametrize(
     "shape_arg, ndim",
     [
         ((), 1),
