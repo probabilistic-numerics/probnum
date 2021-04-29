@@ -105,6 +105,20 @@ def get_linear_operator(name: str) -> pn.linops.LinearOperator:
     return linop
 
 
+class Construction:
+    param_names = ("operator",)
+    params = (ALL_LINOPS,)
+
+    def setup(self, operator: str):
+        np.random.seed(42)
+
+    def time_construction(self, operator: str):
+        get_linear_operator(operator)
+
+    def peakmem_matvec(self, operator: str):
+        get_linear_operator(operator)
+
+
 class MatVec:
     param_names = ("operator",)
     params = (ALL_LINOPS,)
