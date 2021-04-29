@@ -258,7 +258,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 sliced_rv = rv[slices]
 
                 # Compare with expected parameter values
-                slice_mask = np.zeros_like(rv.dense_mean, dtype=np.bool)
+                slice_mask = np.zeros_like(rv.dense_mean, dtype=np.bool_)
                 slice_mask[slices] = True
                 slice_mask = slice_mask.ravel()
 
@@ -352,7 +352,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     np.random.randint(dim_shape, size=10) for dim_shape in rv.shape
                 )
 
-                mask = np.zeros_like(rv.dense_mean, dtype=np.bool)
+                mask = np.zeros_like(rv.dense_mean, dtype=np.bool_)
                 mask[idcs] = True
 
                 # Mask distribution
