@@ -107,6 +107,54 @@ class Kalman(BayesFiltSmooth):
     def filter(
         self,
         regression_problem: problems.RegressionProblem,
+        return_info_dicts: bool = False,
+        _previous_posterior: Optional[TimeSeriesPosterior] = None,
+    ):
+        """Apply Gaussian filtering (no smoothing!) to a data set.
+
+        Parameters
+        ----------
+        regression_problem
+        return_info_dicts
+            If True, returns information collected during filtering. Defaults to False.
+        _previous_posterior: KalmanPosterior
+            If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
+            This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
+
+        Returns
+        ------
+        KalmanPosterior
+            Posterior distribution of the filtered output
+        info_dicts
+            Only if ``returns_info_dicts`` is ``True``: list of dictionaries containing
+            filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
+        """
+
+        filtered_rvs = []
+        info_dicts = []
+
+        for rv, info in self.filter_generator(regression_problem, _previous_posterior):
+            filtered_rvs.append(rv)
+            info_dicts.append(info)
+
+        posterior = FilteringPosterior(
+            locations=regression_problem.locations,
+            states=filtered_rvs,
+            transition=self.dynamics_model,
+        )
+
+        if return_info_dicts:
+            return posterior, info_dicts
+
+        return posterior
+
+    def filter_generator(
+        self,
+        regression_problem: problems.RegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
@@ -118,29 +166,28 @@ class Kalman(BayesFiltSmooth):
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
 
-        Returns
-        -------
-        KalmanPosterior
-            Posterior distribution of the filtered output
+        Yields
+        ------
+        filtrv
+            Random variable returned from prediction and update of the Kalman filter.
 
         See Also
         --------
         RegressionProblem: a regression problem data class
         """
         dataset, times = regression_problem.observations, regression_problem.locations
-        rvs = []
 
         _linearise_update_at = (
             None if _previous_posterior is None else _previous_posterior(times[0])
         )
-        filtrv, *_ = self.update(
+        filtrv, info_dict = self.update(
             data=dataset[0],
             rv=self.initrv,
             time=times[0],
             _linearise_at=_linearise_update_at,
         )
+        yield filtrv, info_dict
 
-        rvs.append(filtrv)
         for idx in range(1, len(times)):
             _linearise_predict_at = (
                 None
@@ -151,7 +198,7 @@ class Kalman(BayesFiltSmooth):
                 None if _previous_posterior is None else _previous_posterior(times[idx])
             )
 
-            filtrv, _ = self.filter_step(
+            filtrv, info_dict = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 current_rv=filtrv,
@@ -159,8 +206,8 @@ class Kalman(BayesFiltSmooth):
                 _linearise_predict_at=_linearise_predict_at,
                 _linearise_update_at=_linearise_update_at,
             )
-            rvs.append(filtrv)
-        return FilteringPosterior(times, rvs, self.dynamics_model)
+
+            yield filtrv, info_dict
 
     def filter_step(
         self,
