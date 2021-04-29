@@ -225,6 +225,8 @@ class Kalman(BayesFiltSmooth):
         ------
         filtrv
             Random variable returned from prediction and update of the Kalman filter.
+        info_dict
+            Dictionary containing filtering information
 
         See Also
         --------
