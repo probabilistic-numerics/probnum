@@ -38,7 +38,7 @@ def mul(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:
 
 
 def matmul(op1: LinearOperator, op2: LinearOperator) -> LinearOperator:
-    return _apply(_matmul_fns, op1, op2, fallback_operator=ProductLinearOperator)
+    return _apply(_matmul_fns, op1, op2, fallback_operator=_matmul_fallback)
 
 
 ########################################################################################
@@ -300,3 +300,14 @@ class ProductLinearOperator(LinearOperator):
                 expanded_factors.append(factor)
 
         return tuple(expanded_factors)
+
+
+def _matmul_fallback(
+    op1: BinaryOperandType, op2: BinaryOperandType
+) -> Union[LinearOperator, type(NotImplemented)]:
+    res = NotImplemented
+
+    if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):
+        res = ProductLinearOperator(op1, op2)
+
+    return res
