@@ -116,6 +116,7 @@ class Kalman(BayesFiltSmooth):
     def filtsmooth(
         self,
         regression_problem: problems.RegressionProblem,
+        return_info_dicts: bool = False,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering and smoothing to a data set.
@@ -123,6 +124,8 @@ class Kalman(BayesFiltSmooth):
         Parameters
         ----------
         regression_problem
+        return_info_dicts
+            If True, returns information collected during filtering. Defaults to False.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -131,16 +134,25 @@ class Kalman(BayesFiltSmooth):
         -------
         KalmanPosterior
             Posterior distribution of the filtered output
+        info_dicts
+            Only if ``returns_info_dicts`` is ``True``: list of dictionaries containing
+            filtering information
 
         See Also
         --------
         RegressionProblem: a regression problem data class
         """
-        filter_posterior = self.filter(
-            regression_problem, _previous_posterior=_previous_posterior
+        filter_result = self.filter(
+            regression_problem,
+            return_info_dicts=return_info_dicts,
+            _previous_posterior=_previous_posterior,
         )
-        smooth_posterior = self.smooth(filter_posterior)
-        return smooth_posterior
+        if return_info_dicts:
+            filter_posterior, info_dicts = filter_result
+            smooth_posterior = self.smooth(filter_posterior)
+            return smooth_posterior, info_dicts
+
+        return self.smooth(filter_result)
 
     def filter(
         self,
