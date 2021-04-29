@@ -6,9 +6,9 @@ import probnum as pn
 ALL_LINOPS = (
     "matrix",
     "matrix_sparse",
-    # "diagonal",
-    "diagonal_scalar",
     "identity",
+    "isotropic_scaling",
+    # "anisotropic_scaling",
     "kronecker",
     "symmetric_kronecker_distinct_factors",
     "symmetric_kronecker_identical_factors",
@@ -31,14 +31,14 @@ NO_COND = {
     2: (
         "matrix",
         "matrix_sparse",
-        "diagonal_scalar",  # TODO: Remove after refactor
+        "isotropic_scaling",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
         "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
     ),
     "fro": (
         "matrix",
         "matrix_sparse",
-        "diagonal_scalar",  # TODO: Remove after refactor
+        "isotropic_scaling",  # TODO: Remove after refactor
         "identity",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
         "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
@@ -46,14 +46,14 @@ NO_COND = {
     1: (
         "matrix",
         "matrix_sparse",
-        "diagonal_scalar",  # TODO: Remove after refactor
+        "isotropic_scaling",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
         "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
     ),
     np.inf: (
         "matrix",
         "matrix_sparse",
-        "diagonal_scalar",  # TODO: Remove after refactor
+        "isotropic_scaling",  # TODO: Remove after refactor
         "symmetric_kronecker_distinct_factors",
         "symmetric_kronecker_identical_factors",  # TODO: Remove after refactor
     ),
@@ -81,7 +81,7 @@ def get_linear_operator(name: str) -> pn.linops.LinearOperator:
         linop = pn.linops.aslinop(np.random.normal(size=(10000, 10000)))
     elif name == "matrix_sparse":
         linop = pn.linops.aslinop(scipy.sparse.random(10000, 10000, format="csr"))
-    elif name == "diagonal_scalar":
+    elif name == "isotropic_scaling":
         linop = pn.linops.ScalarMult(shape=(10000, 10000), scalar=3.0)
     elif name == "identity":
         linop = pn.linops.Identity(10000)
