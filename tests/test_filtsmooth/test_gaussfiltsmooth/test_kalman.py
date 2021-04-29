@@ -38,3 +38,15 @@ def test_rmse_filt_smooth(setup):
     obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
 
     assert smooms_rmse < filtms_rmse < obs_rmse
+
+
+def test_info_dicts(setup):
+    """Assert that smoothing beats filtering beats nothing."""
+
+    np.random.seed(12345)
+    kalman, regression_problem = setup
+
+    posterior, info_dicts = kalman.filtsmooth(regression_problem)
+
+    assert isinstance(info_dicts, list)
+    assert len(posterior) == len(info_dicts)

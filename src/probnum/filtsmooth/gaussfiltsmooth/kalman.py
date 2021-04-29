@@ -181,7 +181,7 @@ class Kalman(BayesFiltSmooth):
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
 
         Returns
-        ------
+        -------
         KalmanPosterior
             Posterior distribution of the filtered output
         info_dicts
