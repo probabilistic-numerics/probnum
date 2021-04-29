@@ -49,6 +49,43 @@ class Kalman(BayesFiltSmooth):
         stopcrit: StoppingCriterion
             A stopping criterion for iterated filtering.
 
+        Returns
+        -------
+        SmoothingPosterior
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
+        """
+
+        result = None
+        for iter_result in self.iterated_filtsmooth_generator(
+            regression_problem, stopcrit
+        ):
+            result = iter_result
+        return result
+
+    def iterated_filtsmooth_generator(
+        self,
+        regression_problem: problems.RegressionProblem,
+        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+    ):
+        """Compute iterated smoothing estimates with repeated posterior linearisation.
+
+        If the extended Kalman filter is used, this yields the IEKS. In
+        any case, the result is an approximation to the maximum-a-
+        posteriori estimate.
+
+        Parameters
+        ----------
+        regression_problem
+        stopcrit: StoppingCriterion
+            A stopping criterion for iterated filtering.
+
+        Yields
+        ------
+        SmoothingPosterior
+
         See Also
         --------
         RegressionProblem: a regression problem data class
@@ -63,6 +100,7 @@ class Kalman(BayesFiltSmooth):
             _previous_posterior=None,
         )
         new_posterior = old_posterior
+        yield new_posterior
         new_mean = new_posterior.states.mean
         old_mean = np.inf * np.ones(new_mean.shape)
         while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
@@ -71,9 +109,9 @@ class Kalman(BayesFiltSmooth):
                 regression_problem,
                 _previous_posterior=old_posterior,
             )
+            yield new_posterior
             new_mean = new_posterior.states.mean
             old_mean = old_posterior.states.mean
-        return new_posterior
 
     def filtsmooth(
         self,
