@@ -58,12 +58,11 @@ class Kalman(BayesFiltSmooth):
         RegressionProblem: a regression problem data class
         """
 
-        result = None
         for iter_result in self.iterated_filtsmooth_generator(
             regression_problem, stopcrit
         ):
-            result = iter_result
-        return result
+            pass
+        return iter_result  # pylint: disable=undefined-loop-variable
 
     def iterated_filtsmooth_generator(
         self,
