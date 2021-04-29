@@ -8,7 +8,7 @@ ALL_LINOPS = (
     "matrix_sparse",
     "identity",
     "isotropic_scaling",
-    # "anisotropic_scaling",
+    "anisotropic_scaling",
     "kronecker",
     "symmetric_kronecker_distinct_factors",
     "symmetric_kronecker_identical_factors",
@@ -66,10 +66,12 @@ def get_linear_operator(name: str) -> pn.linops.LinearOperator:
         linop = pn.linops.aslinop(np.random.normal(size=(10000, 10000)))
     elif name == "matrix_sparse":
         linop = pn.linops.aslinop(scipy.sparse.random(10000, 10000, format="csr"))
-    elif name == "isotropic_scaling":
-        linop = pn.linops.Scaling(3.0, shape=(10000, 10000))
     elif name == "identity":
         linop = pn.linops.Identity(10000)
+    elif name == "isotropic_scaling":
+        linop = pn.linops.Scaling(3.0, shape=(10000, 10000))
+    elif name == "anisotropic_scaling":
+        linop = pn.linops.Scaling(np.random.normal(size=(10000,)))
     elif name == "kronecker":
         linop = pn.linops.Kronecker(
             np.random.normal(size=(100, 100)),
