@@ -952,3 +952,71 @@ class Matrix(LinearOperator):
             return self
 
         return Matrix(A_astype)
+
+
+class Identity(LinearOperator):
+    """The identity operator.
+
+    Parameters
+    ----------
+    shape :
+        Shape of the identity operator.
+    """
+
+    def __init__(
+        self,
+        shape: ShapeArgType,
+        dtype: DTypeArgType = np.double,
+    ):
+        shape = probnum.utils.as_shape(shape)
+
+        if len(shape) == 1:
+            shape = 2 * shape
+        elif len(shape) != 2:
+            raise ValueError("The shape of a linear operator must be two-dimensional.")
+
+        if shape[0] != shape[1]:
+            raise np.linalg.LinAlgError("An identity operator must be square.")
+
+        super().__init__(
+            shape,
+            dtype,
+            matmul=lambda x: x.astype(np.result_type(self.dtype, x.dtype), copy=False),
+            rmatmul=lambda x: x.astype(np.result_type(self.dtype, x.dtype), copy=False),
+            apply=lambda x, axis: x.astype(
+                np.result_type(self.dtype, x.dtype), copy=False
+            ),
+            todense=lambda: np.identity(self.shape[0], dtype=dtype),
+            conjugate=lambda: self,
+            transpose=lambda: self,
+            adjoint=lambda: self,
+            inverse=lambda: self,
+            rank=lambda: np.intp(shape[0]),
+            eigvals=lambda: np.ones(shape[0], dtype=self._inexact_dtype),
+            cond=self._cond,
+            det=lambda: probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype),
+            logabsdet=lambda: probnum.utils.as_numpy_scalar(
+                0.0, dtype=self._inexact_dtype
+            ),
+            trace=lambda: probnum.utils.as_numpy_scalar(
+                self.shape[0], dtype=self.dtype
+            ),
+        )
+
+    def _cond(self, p: Union[None, int, float, str]) -> np.inexact:
+        if p is None or p in (2, 1, np.inf, -2, -1, -np.inf):
+            return probnum.utils.as_numpy_scalar(1.0, dtype=self._inexact_dtype)
+        elif p == "fro":
+            return probnum.utils.as_numpy_scalar(
+                self.shape[0], dtype=self._inexact_dtype
+            )
+        else:
+            return np.linalg.cond(self.todense(cache=False), p=p)
+
+    def _astype(
+        self, dtype: np.dtype, order: str, casting: str, copy: bool
+    ) -> "Identity":
+        if dtype == self.dtype and not copy:
+            return self
+        else:
+            return Identity(self.shape, dtype=dtype)

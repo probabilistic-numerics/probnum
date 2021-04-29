@@ -28,3 +28,8 @@ def case_matvec(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarra
 @pytest.mark.parametrize("matrix", matrices)
 def case_matrix(matrix: np.ndarray) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
     return pn.linops.Matrix(matrix), matrix
+
+
+@pytest.mark.parametrize("n", [3, 4, 8, 12, 15])
+def case_identity(n: int) -> Tuple[pn.linops.LinearOperator, np.ndarray]:
+    return pn.linops.Identity(shape=n), np.eye(n)

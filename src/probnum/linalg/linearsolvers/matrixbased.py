@@ -184,14 +184,14 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         def _matmul(M):
             return (x0 - alpha * b) @ (x0 - alpha * b).T @ M
 
-        Ainv0_mean = linops.Diagonal(
+        Ainv0_mean = linops.Scaling(
             alpha, shape=(self.n, self.n)
         ) + 2 / bx0 * linops.LinearOperator(
             shape=(self.n, self.n),
             dtype=np.result_type(x0.dtype, alpha.dtype, b.dtype),
             matmul=_matmul,
         )
-        A0_mean = linops.Diagonal(1 / alpha, shape=(self.n, self.n)) - 1 / (
+        A0_mean = linops.Scaling(1 / alpha, shape=(self.n, self.n)) - 1 / (
             alpha * np.squeeze((x0 - alpha * b).T @ x0)
         ) * linops.LinearOperator(
             shape=(self.n, self.n),
@@ -475,7 +475,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             unc_scale = 0
 
         if (
-            isinstance(self.Ainv_covfactor0, linops.Diagonal)
+            isinstance(self.Ainv_covfactor0, linops.Scaling)
             and self.Ainv_covfactor0.is_isotropic
         ):
             # Scalar prior mean

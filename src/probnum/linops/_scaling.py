@@ -8,23 +8,23 @@ from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType
 from . import _linear_operator
 
 
-class Diagonal(_linear_operator.LinearOperator):
+class Scaling(_linear_operator.LinearOperator):
     def __init__(
         self,
-        diagonal: Union[np.ndarray, ScalarArgType],
+        factors: Union[np.ndarray, ScalarArgType],
         shape: Optional[ShapeArgType] = None,
         dtype: Optional[DTypeArgType] = None,
     ):
-        self._diagonal = None
+        self._factors = None
         self._scalar = None
 
-        if np.ndim(diagonal) == 0:
+        if np.ndim(factors) == 0:
             # Isotropic scaling
-            self._scalar = probnum.utils.as_numpy_scalar(diagonal, dtype=dtype)
+            self._scalar = probnum.utils.as_numpy_scalar(factors, dtype=dtype)
 
             if shape is None:
                 raise ValueError(
-                    "When specifying the diagonal entries by a scalar, a shape must be"
+                    "When specifying the scaling factors by a scalar, a shape must be "
                     "specified."
                 )
 
@@ -38,7 +38,7 @@ class Diagonal(_linear_operator.LinearOperator):
                 )
 
             if shape[0] != shape[1]:
-                raise np.linalg.LinAlgError("Diagonal linear operators must be square.")
+                raise np.linalg.LinAlgError("Scaling operators must be square.")
 
             dtype = self._scalar.dtype
 
@@ -78,7 +78,7 @@ class Diagonal(_linear_operator.LinearOperator):
                 conjugate = lambda: (
                     self
                     if np.imag(self._scalar) == 0
-                    else Diagonal(np.conj(self._scalar), shape=shape)
+                    else Scaling(np.conj(self._scalar), shape=shape)
                 )
                 inverse = self._inverse_isotropic
 
@@ -97,44 +97,42 @@ class Diagonal(_linear_operator.LinearOperator):
                 )
 
             trace = lambda: self.shape[0] * self._scalar
-        elif np.ndim(diagonal) == 1:
+        elif np.ndim(factors) == 1:
             # Anisotropic scaling
-            self._diagonal = np.asarray(diagonal, dtype=dtype)
-            self._diagonal.setflags(write=False)
+            self._factors = np.asarray(factors, dtype=dtype)
+            self._factors.setflags(write=False)
 
-            shape = 2 * self._diagonal.shape
-            dtype = self._diagonal.dtype
+            shape = 2 * self._factors.shape
+            dtype = self._factors.dtype
 
-            matmul = lambda x: self._diagonal[:, np.newaxis] * x
-            rmatmul = lambda x: self._diagonal * x
+            matmul = lambda x: self._factors[:, np.newaxis] * x
+            rmatmul = lambda x: self._factors * x
 
             apply = lambda x, axis: (
-                self._diagonal.reshape((-1,) + (x.ndim - (axis + 1)) * (1,)) * x
+                self._factors.reshape((-1,) + (x.ndim - (axis + 1)) * (1,)) * x
             )
 
-            todense = lambda: np.diag(self._diagonal)
+            todense = lambda: np.diag(self._factors)
 
             conjugate = lambda: (
                 self
                 if (
                     not np.issubdtype(dtype, np.complexfloating)
-                    or np.all(np.imag(self._diagonal) == 0)
+                    or np.all(np.imag(self._factors) == 0)
                 )
-                else Diagonal(np.conj(self._diagonal))
+                else Scaling(np.conj(self._factors))
             )
             inverse = self._inverse_anisotropic
 
-            rank = lambda: np.count_nonzero(self.diagonal, axis=0)
-            eigvals = lambda: self._diagonal
+            rank = lambda: np.count_nonzero(self.factors, axis=0)
+            eigvals = lambda: self._factors
             cond = self._cond_anisotropic
-            det = lambda: np.prod(self._diagonal).astype(
-                self._inexact_dtype, copy=False
-            )
+            det = lambda: np.prod(self._factors).astype(self._inexact_dtype, copy=False)
             logabsdet = None
-            trace = lambda: np.sum(self._diagonal)
+            trace = lambda: np.sum(self._factors)
         else:
             raise TypeError(
-                "`diagonal` must either be a scalar or a 1-dimensional array-like"
+                "`factors` must either be a scalar or a 1-dimensional array-like"
             )
 
         super().__init__(
@@ -157,11 +155,11 @@ class Diagonal(_linear_operator.LinearOperator):
         )
 
     @property
-    def diagonal(self) -> np.ndarray:
-        if self._diagonal is None:
-            self._diagonal = np.full(self.shape[0], self._scalar, dtype=self._dtype)
+    def factors(self) -> np.ndarray:
+        if self._factors is None:
+            self._factors = np.full(self.shape[0], self._scalar, dtype=self._dtype)
 
-        return self._diagonal
+        return self._factors
 
     @property
     def scalar(self) -> Optional[np.number]:
@@ -171,34 +169,34 @@ class Diagonal(_linear_operator.LinearOperator):
     def is_isotropic(self) -> bool:
         return self._scalar is not None
 
-    def _astype(self, dtype, order, casting, copy) -> "Diagonal":
+    def _astype(self, dtype, order, casting, copy) -> "Scaling":
         if self.dtype == dtype and not copy:
             return self
         else:
             if self.is_isotropic:
-                return Diagonal(self._scalar, shape=self.shape, dtype=dtype)
+                return Scaling(self._scalar, shape=self.shape, dtype=dtype)
             else:
-                return Diagonal(self._diagonal, dtype=dtype)
+                return Scaling(self._factors, dtype=dtype)
 
     def _todense_isotropic(self) -> np.ndarray:
         dense = np.zeros(self.shape, dtype=self.dtype)
         np.fill_diagonal(dense, self._scalar)
         return dense
 
-    def _inverse_anisotropic(self) -> "Diagonal":
+    def _inverse_anisotropic(self) -> "Scaling":
         if self.rank() < self.shape[0]:
             raise np.linalg.LinAlgError("The operator is singular.")
 
-        return Diagonal(1 / self._diagonal)
+        return Scaling(1 / self._factors)
 
-    def _inverse_isotropic(self) -> "Diagonal":
+    def _inverse_isotropic(self) -> "Scaling":
         if self.rank() < self.shape[0]:
             raise np.linalg.LinAlgError("The operator is singular.")
 
-        return Diagonal(1 / self._scalar, shape=self.shape)
+        return Scaling(1 / self._scalar, shape=self.shape)
 
-    def _cond_anisotropic(self, p) -> np.inexact:
-        abs_diag = np.abs(self._diagonal)
+    def _cond_anisotropic(self, p: Union[None, int, float, str]) -> np.inexact:
+        abs_diag = np.abs(self._factors)
         abs_min = np.min(abs_diag)
 
         if abs_min == 0.0:
@@ -221,13 +219,13 @@ class Diagonal(_linear_operator.LinearOperator):
 
             return cond.astype(self._inexact_dtype, copy=False)
         elif p == "fro":
-            norm = np.linalg.norm(self._diagonal, ord=2)
-            norm_inv = np.linalg.norm(1 / self._diagonal, ord=2)
+            norm = np.linalg.norm(self._factors, ord=2)
+            norm_inv = np.linalg.norm(1 / self._factors, ord=2)
             return (norm * norm_inv).astype(self._inexact_dtype, copy=False)
 
         return np.linalg.cond(self.todense(cache=False), p=p)
 
-    def _cond_isotropic(self, p) -> np.inexact:
+    def _cond_isotropic(self, p: Union[None, int, float, str]) -> np.inexact:
         if self._scalar == 0:
             return self._inexact_dtype.type(np.inf)
 
@@ -239,28 +237,3 @@ class Diagonal(_linear_operator.LinearOperator):
             )
         else:
             return np.linalg.cond(self.todense(cache=False), p=p)
-
-
-class Identity(Diagonal):
-    """The identity operator.
-
-    Parameters
-    ----------
-    shape :
-        Shape of the identity operator.
-    """
-
-    def __init__(
-        self,
-        shape: ShapeArgType,
-        dtype: DTypeArgType = np.double,
-    ):
-        super().__init__(1, shape=shape, dtype=dtype)
-
-    def _astype(
-        self, dtype: np.dtype, order: str, casting: str, copy: bool
-    ) -> "Identity":
-        if dtype == self.dtype and not copy:
-            return self
-        else:
-            return Identity(self.shape, dtype=dtype)
