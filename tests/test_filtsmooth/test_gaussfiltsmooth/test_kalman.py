@@ -41,7 +41,7 @@ def test_rmse_filt_smooth(setup):
 
 
 def test_info_dict(setup):
-    """TODO."""
+    """Assert that the info dicts are returned correctly if specified."""
 
     np.random.seed(12345)
     kalman, regression_problem = setup
