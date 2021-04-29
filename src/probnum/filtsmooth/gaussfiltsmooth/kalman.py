@@ -35,6 +35,7 @@ class Kalman(BayesFiltSmooth):
     def iterated_filtsmooth(
         self,
         regression_problem: problems.RegressionProblem,
+        init_posterior: Optional[SmoothingPosterior] = None,
         stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
@@ -46,6 +47,10 @@ class Kalman(BayesFiltSmooth):
         Parameters
         ----------
         regression_problem
+        init_posterior
+            Initial posterior to linearize at. Defaults to computing a (non-iterated)
+            smoothing posterior, which amounts to linearizing at the prediction
+            random variable.
         stopcrit: StoppingCriterion
             A stopping criterion for iterated filtering.
 
@@ -58,15 +63,22 @@ class Kalman(BayesFiltSmooth):
         RegressionProblem: a regression problem data class
         """
 
-        for iter_result in self.iterated_filtsmooth_generator(
-            regression_problem, stopcrit
+        smoothing_post = init_posterior
+        info_dicts = None
+        for smoothing_post, info_dicts in self.iterated_filtsmooth_generator(
+            regression_problem, smoothing_post, stopcrit
         ):
             pass
-        return iter_result  # pylint: disable=undefined-loop-variable
+
+        if smoothing_post is None or info_dicts is None:
+            raise ValueError("Iterated filter did not perform a single iteration.")
+
+        return smoothing_post, info_dicts
 
     def iterated_filtsmooth_generator(
         self,
         regression_problem: problems.RegressionProblem,
+        init_posterior: Optional[SmoothingPosterior] = None,
         stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
     ):
         """Compute iterated smoothing estimates with repeated posterior linearisation.
@@ -78,12 +90,18 @@ class Kalman(BayesFiltSmooth):
         Parameters
         ----------
         regression_problem
+        init_posterior
+            Initial posterior to linearize at. Defaults to computing a (non-iterated)
+            smoothing posterior, which amounts to linearizing at the prediction
+            random variable.
         stopcrit: StoppingCriterion
             A stopping criterion for iterated filtering.
 
         Yields
         ------
         SmoothingPosterior
+        info_dicts
+            list of dictionaries containing filtering information
 
         See Also
         --------
@@ -93,29 +111,31 @@ class Kalman(BayesFiltSmooth):
         if stopcrit is None:
             stopcrit = StoppingCriterion()
 
-        # Initialise iterated smoother
-        old_posterior = self.filtsmooth(
-            regression_problem,
-            _previous_posterior=None,
-        )
-        new_posterior = old_posterior
-        yield new_posterior
+        info_dicts = []
+        if init_posterior is None:
+            # Initialise iterated smoother
+            init_posterior, info_dicts = self.filtsmooth(
+                regression_problem,
+                _previous_posterior=None,
+            )
+
+        new_posterior = init_posterior
+        yield new_posterior, info_dicts
         new_mean = new_posterior.states.mean
         old_mean = np.inf * np.ones(new_mean.shape)
         while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
             old_posterior = new_posterior
-            new_posterior = self.filtsmooth(
+            new_posterior, info_dicts = self.filtsmooth(
                 regression_problem,
                 _previous_posterior=old_posterior,
             )
-            yield new_posterior
+            yield new_posterior, info_dicts
             new_mean = new_posterior.states.mean
             old_mean = old_posterior.states.mean
 
     def filtsmooth(
         self,
         regression_problem: problems.RegressionProblem,
-        return_info_dicts: bool = False,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering and smoothing to a data set.
@@ -123,8 +143,6 @@ class Kalman(BayesFiltSmooth):
         Parameters
         ----------
         regression_problem
-        return_info_dicts
-            If True, returns information collected during filtering. Defaults to False.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -134,8 +152,7 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the filtered output
         info_dicts
-            Only if ``returns_info_dicts`` is ``True``: list of dictionaries containing
-            filtering information
+            list of dictionaries containing filtering information
 
         See Also
         --------
@@ -143,20 +160,15 @@ class Kalman(BayesFiltSmooth):
         """
         filter_result = self.filter(
             regression_problem,
-            return_info_dicts=return_info_dicts,
             _previous_posterior=_previous_posterior,
         )
-        if return_info_dicts:
-            filter_posterior, info_dicts = filter_result
-            smooth_posterior = self.smooth(filter_posterior)
-            return smooth_posterior, info_dicts
-
-        return self.smooth(filter_result)
+        filter_posterior, info_dicts = filter_result
+        smooth_posterior = self.smooth(filter_posterior)
+        return smooth_posterior, info_dicts
 
     def filter(
         self,
         regression_problem: problems.RegressionProblem,
-        return_info_dicts: bool = False,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
@@ -164,8 +176,6 @@ class Kalman(BayesFiltSmooth):
         Parameters
         ----------
         regression_problem
-        return_info_dicts
-            If True, returns information collected during filtering. Defaults to False.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -175,8 +185,7 @@ class Kalman(BayesFiltSmooth):
         KalmanPosterior
             Posterior distribution of the filtered output
         info_dicts
-            Only if ``returns_info_dicts`` is ``True``: list of dictionaries containing
-            filtering information
+            list of dictionaries containing filtering information
 
         See Also
         --------
@@ -196,10 +205,7 @@ class Kalman(BayesFiltSmooth):
             transition=self.dynamics_model,
         )
 
-        if return_info_dicts:
-            return posterior, info_dicts
-
-        return posterior
+        return posterior, info_dicts
 
     def filter_generator(
         self,
