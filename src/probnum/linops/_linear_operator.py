@@ -279,7 +279,7 @@ class LinearOperator:
         if self.__eigvals_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
-                    "Eigenvalues are only defined on square operators"
+                    "Eigenvalues are only defined for square operators"
                 )
 
             if self.__eigvals is not None:
@@ -315,13 +315,13 @@ class LinearOperator:
 
         Returns
         -------
-        cond : {float, inf}
+        cond :
             The condition number of the linear operator. May be infinite.
         """
         if p not in self.__cond_cache:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
-                    "The condition number is only defined on square operators"
+                    "The condition number is only defined for square operators"
                 )
 
             if self.__cond is not None:
@@ -336,7 +336,7 @@ class LinearOperator:
         if self.__det_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
-                    "The determinant is only defined on square operators"
+                    "The determinant is only defined for square operators"
                 )
 
             if self.__det is not None:
@@ -351,7 +351,7 @@ class LinearOperator:
         if self.__logabsdet_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
-                    "The determinant is only defined on square operators"
+                    "The determinant is only defined for square operators"
                 )
 
             if self.__logabsdet is not None:
@@ -385,7 +385,7 @@ class LinearOperator:
         if self.__trace_cache is None:
             if not self.is_square:
                 raise np.linalg.LinAlgError(
-                    "The trace is only defined on square operators."
+                    "The trace is only defined for square operators."
                 )
 
             if self.__trace is not None:

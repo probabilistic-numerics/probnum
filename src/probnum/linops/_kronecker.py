@@ -108,7 +108,7 @@ class Kronecker(_linear_operator.LinearOperator):
         self.B = _utils.aslinop(B)
 
         if self.A.is_square and self.B.is_square:
-            # det(A (x) B) = det(A)^n * det(B) * m
+            # det(A (x) B) = det(A)^n * det(B)^m
             det = lambda: (
                 self.A.det() ** self.B.shape[0] * self.B.det() ** self.A.shape[0]
             )
