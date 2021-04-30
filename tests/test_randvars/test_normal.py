@@ -41,14 +41,14 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (
                 np.random.uniform(size=(2, 2)),
                 linops.SymmetricKronecker(
-                    A=np.array([[1.0, 2.0], [2.0, 1.0]]),
+                    A=np.array([[1.0, 2.0], [2.0, 10.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
                 ).todense(),
             ),
             # Operatorvariate
             (
                 np.array([1.0, -5.0]),
-                linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
+                linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, 1.0]])),
             ),
             (
                 linops.MatrixMult(A=np.array([[0.0, -5.0]])),
@@ -65,7 +65,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             (
                 linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
                 linops.SymmetricKronecker(
-                    A=np.array([[1.0, 2.0], [2.0, 1.0]]),
+                    A=np.array([[1.0, 2.0], [2.0, 10.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
                 ),
             ),
@@ -167,6 +167,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 # TODO: check dimension of each realization in rv_sample
                 rv = randvars.Normal(mean=mean, cov=cov)
+
                 rv_sample = rv.sample(size=5, random_state=self.random_state)
                 if not np.isscalar(rv.mean):
                     self.assertEqual(

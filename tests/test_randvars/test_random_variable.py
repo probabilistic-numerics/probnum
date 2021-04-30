@@ -20,7 +20,7 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
         np.random.seed(42)
 
         # Random variable instantiation
-        self.scalars = [0, int(1), 0.1, np.nan, np.inf]
+        self.scalars = [0, int(1), 0.1]
         self.arrays = [np.empty(2), np.zeros(4), np.array([]), np.array([1, 2])]
 
         # Random variable arithmetic
