@@ -68,13 +68,6 @@ def regression_problem(problem):
     return regression_problem
 
 
-# @all_importance_distributions
-# @all_resampling_configurations
-# def test_random_state(particle_filter):
-#     initrv = particle_filter.initrv
-#     assert initrv.random_state == particle_filter.random_state
-
-
 @pytest.fixture
 def pf_output(particle_filter, regression_problem):
     return particle_filter.filter(regression_problem)

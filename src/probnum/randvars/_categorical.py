@@ -108,7 +108,6 @@ class Categorical(DiscreteRandomVariable):
         probabilities given by the current event probabilities. The
         probabilities of the resulting categorical RV are all equal.
 
-
         Parameters
         ----------
         random_state :

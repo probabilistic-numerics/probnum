@@ -167,7 +167,6 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 # TODO: check dimension of each realization in rv_sample
                 rv = randvars.Normal(mean=mean, cov=cov)
-
                 rv_sample = rv.sample(size=5, random_state=self.random_state)
                 if not np.isscalar(rv.mean):
                     self.assertEqual(
