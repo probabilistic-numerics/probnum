@@ -44,10 +44,6 @@ class RandomVariable(Generic[_ValueType]):
     dtype :
         Data type of realizations of this random variable. If of type :class:`object`
         the argument will be converted to :class:`numpy.dtype`.
-    random_state :
-        Random state of the random variable. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
     parameters :
         Parameters of the distribution of the random variable.
     sample :
@@ -122,7 +118,6 @@ class RandomVariable(Generic[_ValueType]):
         self,
         shape: ShapeArgType,
         dtype: DTypeArgType,
-        # random_state: RandomStateArgType = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[
             Callable[[ShapeType, Optional[RandomStateArgType]], _ValueType]
@@ -148,8 +143,6 @@ class RandomVariable(Generic[_ValueType]):
         self.__dtype = np.dtype(dtype)
         self.__median_dtype = RandomVariable.infer_median_dtype(self.__dtype)
         self.__moment_dtype = RandomVariable.infer_moment_dtype(self.__dtype)
-
-        # self._random_state = _utils.as_random_state(random_state)
 
         # Probability distribution of the random variable
         self.__parameters = parameters.copy() if parameters is not None else {}
@@ -226,28 +219,6 @@ class RandomVariable(Generic[_ValueType]):
         and :attr:`dtype`, respectively.
         """
         return self.__moment_dtype
-
-    # @property
-    # def random_state(self) -> RandomStateType:
-    #     """Random state of the random variable.
-
-    #     This attribute defines the RandomState object to use for drawing
-    #     realizations from this random variable. If None (or np.random),
-    #     the global np.random state is used. If integer, it is used to
-    #     seed the local :class:`~numpy.random.RandomState` instance.
-    #     """
-    #     return self._random_state
-
-    # @random_state.setter
-    # def random_state(self, seed: RandomStateArgType):
-    #     """Get or set the RandomState object of the random variable.
-
-    #     This can be either None or an existing RandomState object. If
-    #     None (or np.random), use the RandomState singleton used by
-    #     np.random. If already a RandomState instance, use it. If an int,
-    #     use a new RandomState instance seeded with seed.
-    #     """
-    #     self._random_state = _utils.as_random_state(seed)
 
     @property
     def parameters(self) -> Dict[str, Any]:
@@ -570,7 +541,6 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=np.empty(shape=self.shape)[key].shape,
             dtype=self.dtype,
-            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size, random_state=None: self.sample(size, random_state)[key],
             mode=lambda: self.mode[key],
             mean=lambda: self.mean[key],
@@ -594,7 +564,6 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=newshape,
             dtype=self.dtype,
-            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size, random_state=None: self.sample(
                 size, random_state
             ).reshape(size + newshape),
@@ -619,7 +588,6 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=np.empty(shape=self.shape).transpose(*axes).shape,
             dtype=self.dtype,
-            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size, random_state=None: self.sample(
                 size, random_state
             ).transpose(*axes),
@@ -641,7 +609,6 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size, random_state=None: -self.sample(
                 size=size, random_state=random_state
             ),
@@ -659,7 +626,6 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size, random_state=None: +self.sample(
                 size=size, random_state=random_state
             ),
@@ -677,7 +643,6 @@ class RandomVariable(Generic[_ValueType]):
         return RandomVariable(
             shape=self.shape,
             dtype=self.dtype,
-            # random_state=_utils.derive_random_seed(self.random_state),
             sample=lambda size, random_state=None: abs(
                 self.sample(size=size, random_state=random_state)
             ),
@@ -917,10 +882,6 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
     dtype :
         Data type of realizations of this random variable. If ``object`` will be
         converted to ``numpy.dtype``.
-    random_state :
-        Random state of the random variable. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
     parameters :
         Parameters of the distribution of the random variable.
     sample :
@@ -1022,7 +983,6 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         self,
         shape: ShapeArgType,
         dtype: DTypeArgType,
-        # random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[
             Callable[[ShapeArgType, Optional[RandomStateArgType]], _ValueType]
@@ -1049,7 +1009,6 @@ class DiscreteRandomVariable(RandomVariable[_ValueType]):
         super().__init__(
             shape=shape,
             dtype=dtype,
-            # random_state=random_state,
             parameters=parameters,
             sample=sample,
             in_support=in_support,
@@ -1141,10 +1100,6 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
     dtype :
         Data type of realizations of this random variable. If ``object`` will be
         converted to ``numpy.dtype``.
-    random_state :
-        Random state of the random variable. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
     parameters :
         Parameters of the distribution of the random variable.
     sample :
@@ -1246,7 +1201,6 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         self,
         shape: ShapeArgType,
         dtype: DTypeArgType,
-        # random_state: Optional[RandomStateType] = None,
         parameters: Optional[Dict[str, Any]] = None,
         sample: Optional[
             Callable[[ShapeArgType, Optional[RandomStateArgType]], _ValueType]
@@ -1273,7 +1227,6 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
         super().__init__(
             shape=shape,
             dtype=dtype,
-            # random_state=random_state,
             parameters=parameters,
             sample=sample,
             in_support=in_support,
