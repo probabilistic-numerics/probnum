@@ -1341,6 +1341,7 @@ class ContinuousRandomVariable(RandomVariable[_ValueType]):
                 "logpdf", self.__logpdf(self._as_value_type(x))
             )
         elif self.__pdf is not None:
+
             logpdf = np.log(self.__pdf(self._as_value_type(x)))
 
             assert isinstance(logpdf, np.float_)
