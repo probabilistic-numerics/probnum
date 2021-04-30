@@ -27,7 +27,6 @@ def asrandvar(obj: Any) -> _random_variable.RandomVariable:
     >>> from scipy.stats import bernoulli
     >>> import probnum as pn
     >>> bern = bernoulli(p=0.5)
-    >>> # bern.random_state = 42  # Seed for reproducibility
     >>> bern_pn = pn.asrandvar(bern)
     >>> bern_pn.sample(size=5, random_state=42)
     array([0, 1, 1, 1, 0])
