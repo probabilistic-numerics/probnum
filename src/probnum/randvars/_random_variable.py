@@ -10,7 +10,6 @@ from probnum.type import (
     DTypeArgType,
     FloatArgType,
     RandomStateArgType,
-    RandomStateType,
     ShapeArgType,
     ShapeType,
 )

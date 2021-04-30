@@ -2,9 +2,7 @@
 from typing import Optional
 
 import numpy as np
-import scipy.stats
 
-from probnum import utils
 from probnum.type import RandomStateArgType
 
 from ._random_variable import DiscreteRandomVariable
