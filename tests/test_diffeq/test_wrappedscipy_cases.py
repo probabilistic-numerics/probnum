@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.integrate._ivp import rk
-from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq
 from probnum.diffeq import wrappedscipysolver

@@ -8,20 +8,11 @@ from probnum import randvars
 from probnum.diffeq import odesolution, wrappedscipyodesolution
 
 
+# this Set up new solver to test the dense output independently.
 @pytest_cases.fixture
-@pytest_cases.parametrize_with_cases(
-    "testsolver, scipysolver", cases=".test_wrappedscipy_cases"
-)
-def solver_case(testsolver, scipysolver):
-    return testsolver, scipysolver
-
-
-# to test the dense output, new solvers have to be set up
-@pytest_cases.fixture
-@pytest_cases.parametrize_with_cases(
-    "testsolver, scipysolver", cases=".test_wrappedscipy_cases"
-)
-def dense_case(testsolver, scipysolver):
+@pytest_cases.parametrize_with_cases("solvers", cases=".test_wrappedscipy_cases")
+def solvers(solvers):
+    testsolver, scipysolver = solvers
     return testsolver, scipysolver
 
 
@@ -55,8 +46,8 @@ def list_of_randvars():
     return list([randvars.Constant(1)])
 
 
-def test_initialise(solver_case):
-    testsolver, scipysolver = solver_case
+def test_initialise(solvers):
+    testsolver, scipysolver = solvers
     time, state = testsolver.initialise()
     time_scipy = scipysolver.t
     state_scipy = scipysolver.y
@@ -64,20 +55,20 @@ def test_initialise(solver_case):
     np.testing.assert_allclose(state.mean[0], state_scipy[0], atol=1e-13, rtol=1e-13)
 
 
-def test_step_execution(solver_case):
-    testsolver, scipysolver = solver_case
+def test_step_execution(solvers):
+    testsolver, scipysolver = solvers
     scipysolver.step()
     # perform step of the same size
-    testsolver.step(
+    random_var, error_est = testsolver.step(
         scipysolver.t_old,
         scipysolver.t,
         randvars.Constant(scipysolver.y_old),
     )
-    np.testing.assert_allclose(scipysolver.y, testsolver.solver.y)
+    np.testing.assert_allclose(scipysolver.y, random_var.mean)
 
 
-def test_step_variables(solver_case, y, start_point, stop_point):
-    testsolver, scipysolver = solver_case
+def test_step_variables(solvers, y, start_point, stop_point):
+    testsolver, scipysolver = solvers
     solver_y_new, solver_error_estimation = testsolver.step(
         start_point, stop_point, randvars.Constant(y)
     )
@@ -119,8 +110,8 @@ def test_step_variables(solver_case, y, start_point, stop_point):
     np.testing.assert_allclose(testsolver.solver.f, f_new, atol=1e-14, rtol=1e-14)
 
 
-def test_dense_output(dense_case, y, start_point, stop_point):
-    testsolver, scipysolver = dense_case
+def test_dense_output(solvers, y, start_point, stop_point):
+    testsolver, scipysolver = solvers
     scipysolver.step()
     # perform step of the same size
     testsolver.step(
