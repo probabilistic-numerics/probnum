@@ -170,15 +170,6 @@ class ArithmeticTestCase(RandomVariableTestCase):
                     msg="Covariances of random variables do not match.",
                 )
 
-    # Random seed
-    def test_keep_fixed_seed(self):
-        """Arithmetic operation between two random variables with different seeds retain
-        a fixed seed."""
-        x = randvars.Normal(0, 1)  # , random_state=0)
-        y = randvars.Normal(0, 1)  # , random_state=1)
-        z = x + y
-        # self.assertIsNotNone(z.random_state)
-
 
 class ShapeTestCase(RandomVariableTestCase):
     """Test methods related to the shape of a random variable or its realizations."""
