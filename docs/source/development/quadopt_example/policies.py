@@ -28,11 +28,8 @@ def explore_exploit_policy(
         :class:`~numpy.random.RandomState` instance.
     """
     a0, b0, _ = fun_params0
-    return (
-        -b0.mean / a0.mean
-        + randvars.Normal(
-            0, np.trace(fun_params0.cov), random_state=random_state
-        ).sample()
+    return -b0.mean / a0.mean + randvars.Normal(0, np.trace(fun_params0.cov)).sample(
+        random_state=random_state
     )
 
 
@@ -54,4 +51,4 @@ def stochastic_policy(
         is used. If integer, it is used to seed the local
         :class:`~numpy.random.RandomState` instance.
     """
-    return randvars.Normal(mean=0.0, cov=1.0, random_state=random_state).sample()
+    return randvars.Normal(mean=0.0, cov=1.0).sample(random_state=random_state)
