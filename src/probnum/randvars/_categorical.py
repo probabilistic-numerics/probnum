@@ -21,15 +21,12 @@ class Categorical(DiscreteRandomVariable):
         Support of the categorical distribution. Optional. Default is None,
         in which case the support is chosen as :math:`(0, ..., K-1)` where
         :math:`K` is the number of elements in `event_probabilities`.
-    random_state :
-        Random state of the random variable.
     """
 
     def __init__(
         self,
         probabilities: np.ndarray,
         support: Optional[np.ndarray] = None,
-        # random_state: Optional[RandomStateArgType] = None,
     ):
         # The set of events is names "support" to be aligned with the method
         # DiscreteRandomVariable.in_support().
@@ -89,7 +86,6 @@ class Categorical(DiscreteRandomVariable):
         super().__init__(
             shape=self._support[0].shape,
             dtype=self._support[0].dtype,
-            # random_state=random_state,
             parameters=parameters,
             sample=_sample_categorical,
             pmf=_pmf_categorical,
@@ -113,6 +109,19 @@ class Categorical(DiscreteRandomVariable):
         is randomly chosen from the elements in the current support with
         probabilities given by the current event probabilities. The
         probabilities of the resulting categorical RV are all equal.
+
+
+        Parameters
+        ----------
+        random_state :
+            Random state of the random variable. If None (or np.random), the global
+            :mod:`numpy.random` state is used. If integer, it is used to seed the local
+            :class:`~numpy.random.RandomState` instance.
+
+        Returns
+        -------
+        Categorical
+            Categorical random variable with resampled support (according to self.probabilisties).
         """
         num_events = len(self.support)
         new_support = self.sample(size=num_events, random_state=random_state)
@@ -120,5 +129,4 @@ class Categorical(DiscreteRandomVariable):
         return Categorical(
             support=new_support,
             probabilities=new_probabilities,
-            # random_state=self.random_state,
         )
