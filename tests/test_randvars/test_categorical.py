@@ -20,14 +20,14 @@ all_supports = pytest.mark.parametrize(
     ],
 )
 
-# all_random_states = pytest.mark.parametrize(
-#     "random_state",
-#     [
-#         None,
-#         1,
-#         np.random.default_rng(),
-#     ],
-# )
+all_random_states = pytest.mark.parametrize(
+    "random_state",
+    [
+        None,
+        1,
+        np.random.default_rng(),
+    ],
+)
 
 
 @pytest.fixture
@@ -37,14 +37,10 @@ def probabilities():
 
 
 @pytest.fixture
-def categ(probabilities, support):  # , random_state):
-    return randvars.Categorical(
-        probabilities=probabilities, support=support
-    )  # , random_state=random_state
-    # )
+def categ(probabilities, support):
+    return randvars.Categorical(probabilities=probabilities, support=support)
 
 
-# @all_random_states
 @all_supports
 def test_probabilities(categ, probabilities):
     assert categ.probabilities.shape == (NDIM,)
@@ -52,23 +48,21 @@ def test_probabilities(categ, probabilities):
 
 
 @all_supports
-# @all_random_states
 def test_support(categ):
     assert len(categ.support) == NDIM
     assert isinstance(categ.support, np.ndarray)
 
 
 @all_supports
-# @all_random_states
+@all_random_states
 @pytest.mark.parametrize("size", [(), 1, (1,), (1, 1)])
-def test_sample(categ, size):
-    samples = categ.sample(size=size)
+def test_sample(categ, size, random_state):
+    samples = categ.sample(size=size, random_state=random_state)
     expected_shape = utils.as_shape(size) + categ.shape
     assert samples.shape == expected_shape
 
 
 @all_supports
-# @all_random_states
 @pytest.mark.parametrize("index", [0, -1])
 def test_pmf(categ, index):
     pmf_value = categ.pmf(x=categ.support[index])
@@ -76,7 +70,6 @@ def test_pmf(categ, index):
 
 
 @all_supports
-# @all_random_states
 def test_pmf_zero(categ):
     """Make a new Categorical RV that excludes the final point and check that the pmf
     rightfully evaluates to zero."""
@@ -101,16 +94,15 @@ def test_pmf_valueerror():
 
 
 @all_supports
-# @all_random_states
 def test_mode(categ):
     mode = categ.mode
     assert mode.shape == categ.shape
 
 
 @all_supports
-# @all_random_states
-def test_resample(categ):
-    new_categ = categ.resample()
+@all_random_states
+def test_resample(categ, random_state):
+    new_categ = categ.resample(random_state=random_state)
 
     assert isinstance(new_categ, randvars.Categorical)
     assert new_categ.shape == categ.shape
