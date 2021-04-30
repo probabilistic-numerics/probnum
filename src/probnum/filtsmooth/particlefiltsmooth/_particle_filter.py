@@ -6,7 +6,7 @@ import numpy as np
 
 from probnum import problems, randvars, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
-from probnum.type import FloatArgType, IntArgType
+from probnum.type import FloatArgType, IntArgType, RandomStateArgType
 
 from ._particle_filter_posterior import ParticleFilterPosterior
 
@@ -57,6 +57,8 @@ class ParticleFilter(BayesFiltSmooth):
         resampling is performed if :math:`N_{\text{eff}} < p \, N_\text{particles}` holds.
         Optional. Default is 0.1. If this value is non-positive, resampling is never performed.
         If it is larger than 1, resampling is performed after each step.
+    random_state :
+        Random state of the particle filter.
     """
 
     def __init__(
@@ -68,7 +70,7 @@ class ParticleFilter(BayesFiltSmooth):
         linearized_measurement_model: Optional[statespace.DiscreteGaussian] = None,
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,
-        random_state=None,
+        random_state: Optional[RandomStateArgType] = None,
     ) -> None:
         super().__init__(
             dynamics_model=dynamics_model,
@@ -83,6 +85,7 @@ class ParticleFilter(BayesFiltSmooth):
             resampling_percentage_threshold * num_particles
         )
         self.random_state = random_state
+
         # If None, the dynamics model is used as a fallback option
         # which results in the bootstrap PF.
         # Any linearised measurement model that could be used in a
@@ -123,7 +126,7 @@ class ParticleFilter(BayesFiltSmooth):
         weights = np.array(weights) / np.sum(weights)
         curr_rv = randvars.Categorical(
             support=particles,
-            probabilities=weights,  # random_state=self.random_state
+            probabilities=weights,
         )
         rvs = [curr_rv]
 
@@ -175,7 +178,6 @@ class ParticleFilter(BayesFiltSmooth):
         new_rv = randvars.Categorical(
             support=new_support,
             probabilities=new_weights,
-            # random_state=self.random_state,
         )
 
         if self.with_resampling:
@@ -222,11 +224,3 @@ class ParticleFilter(BayesFiltSmooth):
                 data, proposal_rv, t=t
             )
         return proposal_rv
-
-    # @property
-    # def random_state(self):
-    #     """Random state of the particle filter.
-
-    #     Inferred from the random state of the initial random variable.
-    #     """
-    #     return self.initrv.random_state
