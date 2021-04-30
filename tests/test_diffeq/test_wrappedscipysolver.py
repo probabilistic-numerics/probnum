@@ -60,6 +60,7 @@ def test_initialise(solvers):
 def test_step_execution(solvers):
     testsolver, scipysolver = solvers
     scipysolver.step()
+
     # perform step of the same size
     random_var, error_est = testsolver.step(
         scipysolver.t_old,
@@ -85,6 +86,7 @@ def test_step_variables(solvers, y, start_point, stop_point):
         scipysolver.C,
         scipysolver.K,
     )
+
     # error estimation is correct
     scipy_error_estimation = scipysolver._estimate_error(
         scipysolver.K, stop_point - start_point
@@ -92,6 +94,7 @@ def test_step_variables(solvers, y, start_point, stop_point):
     np.testing.assert_allclose(
         solver_error_estimation, scipy_error_estimation, atol=1e-14, rtol=1e-14
     )
+
     # locations are correct
     np.testing.assert_allclose(
         testsolver.solver.t_old, start_point, atol=1e-14, rtol=1e-14
@@ -103,6 +106,7 @@ def test_step_variables(solvers, y, start_point, stop_point):
         atol=1e-14,
         rtol=1e-14,
     )
+
     # evaluations are correct
     np.testing.assert_allclose(testsolver.solver.y_old.mean, y, atol=1e-14, rtol=1e-14)
     np.testing.assert_allclose(testsolver.solver.y, y_new, atol=1e-14, rtol=1e-14)
