@@ -82,11 +82,6 @@ def test_matmat_shape_mismatch(
     with pytest.raises(excinfo.type):
         linop @ mat  # pylint: disable=pointless-statement
 
-    mat = np.zeros((1, linop.shape[1], 10))
-
-    with pytest.raises(ValueError):
-        linop @ mat  # pylint: disable=pointless-statement
-
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_rmatvec(
@@ -96,8 +91,8 @@ def test_rmatvec(
 ):
     vec = random_state.normal(size=linop.shape[0])
 
-    linop_matvec = np.conj(vec) @ linop
-    matrix_matvec = np.conj(vec) @ matrix
+    linop_matvec = vec @ linop
+    matrix_matvec = vec @ matrix
 
     assert linop_matvec.ndim == 1
     assert linop_matvec.shape == matrix_matvec.shape
@@ -139,11 +134,6 @@ def test_rmatmat_shape_mismatch(
     with pytest.raises(excinfo.type):
         mat @ linop  # pylint: disable=pointless-statement
 
-    mat = np.zeros((1, 10, linop.shape[0]))
-
-    with pytest.raises(ValueError):
-        mat[None, :, :] @ linop  # pylint: disable=pointless-statement
-
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_todense(linop: pn.linops.LinearOperator, matrix: np.ndarray):
@@ -184,17 +174,31 @@ def test_eigvals(linop: pn.linops.LinearOperator, matrix: np.ndarray):
             linop.eigvals()
 
 
-@pytest.mark.parametrize("p", [None, 2])
+@pytest.mark.parametrize("p", [None, 1, 2, np.inf, "fro", -1, -2, -np.inf])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
-def test_cond(linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int]):
-    linop_cond = linop.cond(p=p)
-    matrix_cond = np.linalg.cond(matrix, p=p)
+def test_cond(
+    linop: pn.linops.LinearOperator, matrix: np.ndarray, p: Union[None, int, float, str]
+):
+    if linop.is_square:
+        linop_cond = linop.cond(p=p)
+        matrix_cond = np.linalg.cond(matrix, p=p)
 
-    assert isinstance(linop_cond, np.number)
-    assert linop_cond.shape == ()
-    assert linop_cond.dtype == matrix_cond.dtype
+        assert isinstance(linop_cond, np.inexact)
+        assert linop_cond.shape == ()
+        assert linop_cond.dtype == matrix_cond.dtype
 
-    np.testing.assert_allclose(linop_cond, matrix_cond)
+        try:
+            np.testing.assert_allclose(linop_cond, matrix_cond)
+        except AssertionError as e:
+            if p == -2 and 0 < linop.rank() < linop.shape[0] and linop_cond == np.inf:
+                # `np.linalg.cond` returns 0.0 for p = -2 if the matrix is singular but
+                # not zero. This is a bug.
+                pass
+            else:
+                raise e
+    else:
+        with pytest.raises(np.linalg.LinAlgError):
+            linop.cond(p=p)
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
@@ -203,7 +207,7 @@ def test_det(linop: pn.linops.LinearOperator, matrix: np.ndarray):
         linop_det = linop.det()
         matrix_det = np.linalg.det(matrix)
 
-        assert isinstance(linop_det, np.number)
+        assert isinstance(linop_det, np.inexact)
         assert linop_det.shape == ()
         assert linop_det.dtype == matrix_det.dtype
 
@@ -246,6 +250,18 @@ def test_trace(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_conjugate(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    linop_conj = linop.conj()
+    matrix_conj = matrix.conj()
+
+    assert isinstance(linop_conj, pn.linops.LinearOperator)
+    assert linop_conj.shape == matrix_conj.shape
+    assert linop_conj.dtype == matrix_conj.dtype
+
+    np.testing.assert_allclose(linop_conj.todense(), matrix_conj)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_transpose(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     linop_transpose = linop.T
     matrix_transpose = matrix.T
@@ -258,20 +274,38 @@ def test_transpose(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_adjoint(linop: pn.linops.LinearOperator, matrix: np.ndarray):
+    linop_adjoint = linop.H
+    matrix_adjoint = matrix.T.conj()
+
+    assert isinstance(linop_adjoint, pn.linops.LinearOperator)
+    assert linop_adjoint.shape == matrix_adjoint.shape
+    assert linop_adjoint.dtype == matrix_adjoint.dtype
+
+    np.testing.assert_allclose(linop_adjoint.todense(), matrix_adjoint)
+
+
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_inv(linop: pn.linops.LinearOperator, matrix: np.ndarray):
     if linop.is_square:
+        expected_exception = None
+
         try:
+            matrix_inv = np.linalg.inv(matrix)
+        except Exception as e:  # pylint: disable=broad-except
+            expected_exception = e
+
+        if expected_exception is None:
             linop_inv = linop.inv()
-        except np.linalg.LinAlgError:
-            return
 
-        matrix_inv = np.linalg.inv(matrix)
+            assert isinstance(linop_inv, pn.linops.LinearOperator)
+            assert linop_inv.shape == matrix_inv.shape
+            assert linop_inv.dtype == matrix_inv.dtype
 
-        assert isinstance(linop_inv, pn.linops.LinearOperator)
-        assert linop_inv.shape == matrix_inv.shape
-        assert linop_inv.dtype == matrix_inv.dtype
-
-        np.testing.assert_allclose(linop_inv.todense(), matrix_inv, atol=1e-12)
+            np.testing.assert_allclose(linop_inv.todense(), matrix_inv, atol=1e-12)
+        else:
+            with pytest.raises(type(expected_exception)):
+                linop.inv()
     else:
         with pytest.raises(np.linalg.LinAlgError):
             linop.inv()

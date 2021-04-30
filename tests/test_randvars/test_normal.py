@@ -44,10 +44,10 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             # Operatorvariate
             (
                 np.array([1.0, -5.0]),
-                linops.MatrixMult(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
+                linops.Matrix(A=np.array([[2.0, 1.0], [1.0, -0.1]])),
             ),
             (
-                linops.MatrixMult(A=np.array([[0.0, -5.0]])),
+                linops.Matrix(A=np.array([[0.0, -5.0]])),
                 linops.Identity(shape=(2, 2)),
             ),
             (
@@ -55,11 +55,11 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 linops.Kronecker(A=np.eye(3), B=5 * np.eye(2)),
             ),
             (
-                linops.MatrixMult(A=sparsemat.todense()),
+                linops.Matrix(A=sparsemat.todense()),
                 linops.Kronecker(0.1 * linops.Identity(m), linops.Identity(n)),
             ),
             (
-                linops.MatrixMult(A=np.random.uniform(size=(2, 2))),
+                linops.Matrix(A=np.random.uniform(size=(2, 2))),
                 linops.SymmetricKronecker(
                     A=np.array([[1.0, 2.0], [2.0, 1.0]]),
                     B=np.array([[5.0, -1.0], [-1.0, 10.0]]),
@@ -120,10 +120,11 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
         """Create a rv with a normal distribution with linear operator mean and
         Kronecker product kernels."""
 
-        def mv(v):
+        @linops.LinearOperator.broadcast_matvec
+        def _matmul(v):
             return np.array([2 * v[0], 3 * v[1]])
 
-        A = linops.LinearOperator(shape=(2, 2), matvec=mv)
+        A = linops.LinearOperator(shape=(2, 2), dtype=np.double, matmul=_matmul)
         V = linops.Kronecker(A, A)
         randvars.Normal(mean=A, cov=V)
 
@@ -257,7 +258,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                 sliced_rv = rv[slices]
 
                 # Compare with expected parameter values
-                slice_mask = np.zeros_like(rv.dense_mean, dtype=np.bool)
+                slice_mask = np.zeros_like(rv.dense_mean, dtype=np.bool_)
                 slice_mask[slices] = True
                 slice_mask = slice_mask.ravel()
 
@@ -351,7 +352,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
                     np.random.randint(dim_shape, size=10) for dim_shape in rv.shape
                 )
 
-                mask = np.zeros_like(rv.dense_mean, dtype=np.bool)
+                mask = np.zeros_like(rv.dense_mean, dtype=np.bool_)
                 mask[idcs] = True
 
                 # Mask distribution

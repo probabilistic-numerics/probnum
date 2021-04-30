@@ -4,6 +4,8 @@ from typing import Any
 import numpy as np
 import scipy.sparse
 
+import probnum.linops
+
 from . import _constant, _random_variable, _scipy_stats
 
 
@@ -41,11 +43,14 @@ def asrandvar(obj: Any) -> _random_variable.RandomVariable:
     # Scalar
     elif np.isscalar(obj):
         return _constant.Constant(support=obj)
-    # Numpy array, sparse array or linear operator
-    elif isinstance(
-        obj, (np.ndarray, scipy.sparse.spmatrix, scipy.sparse.linalg.LinearOperator)
-    ):
+    # Numpy array or sparse matrix
+    elif isinstance(obj, (np.ndarray, scipy.sparse.spmatrix)):
         return _constant.Constant(support=obj)
+    # Linear Operators
+    elif isinstance(
+        obj, (probnum.linops.LinearOperator, scipy.sparse.linalg.LinearOperator)
+    ):
+        return _constant.Constant(support=probnum.linops.aslinop(obj))
     # Scipy random variable
     elif isinstance(
         obj,
