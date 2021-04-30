@@ -1,24 +1,27 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
-
-from ..filtsmooth_testcases import car_tracking
 
 
 @pytest.fixture
 def problem():
     """Car-tracking problem."""
-    return car_tracking()
+    return filtsmooth_zoo.car_tracking()
 
 
 @pytest.fixture
 def setup(problem):
     """Filter and regression problem."""
-    dynmod, measmod, initrv, regression_problem = problem
+    regression_problem, statespace_components = problem
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
+    )
 
-    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
     return kalman, regression_problem
 
 
