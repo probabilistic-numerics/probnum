@@ -1,38 +1,28 @@
 import numpy as np
 import pytest
 
-from probnum import filtsmooth, problems
-
-from ..filtsmooth_testcases import logistic_ode
-
-
-def logistic_ode_problem():
-    """Logistic ODE problem."""
-    problem = logistic_ode()
-    dynmod, measmod, initrv, info = problem
-
-    times = np.arange(0, info["tmax"], info["dt"])
-    obs = np.zeros((len(times), 1))
-
-    states = info["ode"].solution(times)
-    regression_problem = problems.RegressionProblem(
-        observations=obs, locations=times, solution=states
-    )
-    return dynmod, measmod, initrv, regression_problem
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+from probnum import filtsmooth
 
 
-@pytest.fixture(params=[logistic_ode_problem])
+@pytest.fixture(params=[filtsmooth_zoo.logistic_ode])
 def setup(request):
     """Filter and regression problem."""
     problem = request.param
-    dynmod, measmod, initrv, regression_problem = problem()
+    regression_problem, statespace_components = problem()
 
-    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
+    )
     return kalman, regression_problem
 
 
 def test_rmse_filt_smooth(setup):
     """Assert that iterated smoothing beats smoothing."""
+
+    np.random.seed(12345)
     kalman, regression_problem = setup
     truth = regression_problem.solution
 
