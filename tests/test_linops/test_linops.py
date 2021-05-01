@@ -49,15 +49,17 @@ def test_matvec(
     np.testing.assert_allclose(linop_matvec, matrix_matvec)
 
 
-@pytest.mark.parametrize("n", [1, 2, 15, 100])
+@pytest.mark.parametrize("ncols", [1, 2, 15, 100])
+@pytest.mark.parametrize("order", ["F", "C"])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_matmat(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
     random_state: np.random.RandomState,
-    n: int,
+    ncols: int,
+    order: str,
 ):
-    mat = random_state.normal(size=(linop.shape[1], n))
+    mat = np.asarray(random_state.normal(size=(linop.shape[1], ncols)), order=order)
 
     linop_matmat = linop @ mat
     matrix_matmat = matrix @ mat
@@ -101,18 +103,20 @@ def test_rmatvec(
     np.testing.assert_allclose(linop_matvec, matrix_matvec)
 
 
-@pytest.mark.parametrize("n", [1, 2, 15, 100])
+@pytest.mark.parametrize("nrows", [1, 2, 15, 100])
+@pytest.mark.parametrize("order", ["F", "C"])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_rmatmat(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
     random_state: np.random.RandomState,
-    n: int,
+    nrows: int,
+    order: str,
 ):
-    mat = random_state.normal(size=(n, linop.shape[0]))
+    mat = np.asarray(random_state.normal(size=(nrows, linop.shape[0])), order=order)
 
-    linop_matmat = np.conj(mat) @ linop
-    matrix_matmat = np.conj(mat) @ matrix
+    linop_matmat = mat @ linop
+    matrix_matmat = mat @ matrix
 
     assert linop_matmat.ndim == 2
     assert linop_matmat.shape == matrix_matmat.shape
