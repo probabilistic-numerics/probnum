@@ -1,5 +1,5 @@
 import pathlib
-from typing import Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import pytest
@@ -49,15 +49,17 @@ def test_matvec(
     np.testing.assert_allclose(linop_matvec, matrix_matvec)
 
 
-@pytest.mark.parametrize("n", [1, 2, 15, 100])
+@pytest.mark.parametrize("ncols", [1, 2, 15, 100])
+@pytest.mark.parametrize("order", ["F", "C"])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_matmat(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
     random_state: np.random.RandomState,
-    n: int,
+    ncols: int,
+    order: str,
 ):
-    mat = random_state.normal(size=(linop.shape[1], n))
+    mat = np.asarray(random_state.normal(size=(linop.shape[1], ncols)), order=order)
 
     linop_matmat = linop @ mat
     matrix_matmat = matrix @ mat
@@ -101,18 +103,20 @@ def test_rmatvec(
     np.testing.assert_allclose(linop_matvec, matrix_matvec)
 
 
-@pytest.mark.parametrize("n", [1, 2, 15, 100])
+@pytest.mark.parametrize("nrows", [1, 2, 15, 100])
+@pytest.mark.parametrize("order", ["F", "C"])
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
 def test_rmatmat(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
     random_state: np.random.RandomState,
-    n: int,
+    nrows: int,
+    order: str,
 ):
-    mat = random_state.normal(size=(n, linop.shape[0]))
+    mat = np.asarray(random_state.normal(size=(nrows, linop.shape[0])), order=order)
 
-    linop_matmat = np.conj(mat) @ linop
-    matrix_matmat = np.conj(mat) @ matrix
+    linop_matmat = mat @ linop
+    matrix_matmat = mat @ matrix
 
     assert linop_matmat.ndim == 2
     assert linop_matmat.shape == matrix_matmat.shape
@@ -133,6 +137,44 @@ def test_rmatmat_shape_mismatch(
 
     with pytest.raises(excinfo.type):
         mat @ linop  # pylint: disable=pointless-statement
+
+
+@pytest.mark.parametrize(
+    "shape",
+    [
+        # axis=-2 (__matmul__)
+        (1, 1, None, 1),
+        (2, 8, None, 2),
+        # axis=-2 (__matmul__ on arr[..., np.newaxis])
+        (1, 1, 1, None),
+        (5, 2, 3, None),
+        (3, 5, 3, None),
+        # axis < -2
+        (1, None, 1, 1),
+        (5, None, 3, 3),
+        (None, 3, 4, 2),
+    ],
+)
+@pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
+def test_call(
+    linop: pn.linops.LinearOperator,
+    matrix: np.ndarray,
+    random_state: np.random.RandomState,
+    shape: Tuple[Optional[int], ...],
+):
+    axis = shape.index(None) - len(shape)
+    shape = tuple(entry if entry is not None else linop.shape[1] for entry in shape)
+
+    arr = random_state.normal(size=shape)
+
+    linop_call = linop(arr, axis=axis)
+    matrix_call = np.moveaxis(np.tensordot(matrix, arr, axes=(-1, axis)), 0, axis)
+
+    assert linop_call.ndim == 4
+    assert linop_call.shape == matrix_call.shape
+    assert linop_call.dtype == matrix_call.dtype
+
+    np.testing.assert_allclose(linop_call, matrix_call)
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)

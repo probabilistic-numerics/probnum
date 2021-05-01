@@ -199,7 +199,7 @@ class LinearOperator:
                 return self @ x
             else:
                 if self.__apply is None:
-                    return np.swapaxes(self @ np.swapaxes(x, axis, -2), -2, axis)
+                    return np.moveaxis(self @ np.moveaxis(x, axis, -2), -2, axis)
 
                 return self.__apply(x, axis)
         else:
