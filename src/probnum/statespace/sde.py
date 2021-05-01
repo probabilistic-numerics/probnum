@@ -354,7 +354,7 @@ class LinearSDE(SDE):
         r"""Set up forward moment differential equations (MDEs) using a square-root
         implementation. (https://ieeexplore.ieee.org/document/4045974)
 
-        The covariance :math:`P(t)` obeys the Ricatti equation
+        The covariance :math:`P(t)` obeys the Riccati equation
 
         .. math::
             \dot P(t) = G(t)P(t) + P(t)G^\top(t) + L(t)L^\top(t).
