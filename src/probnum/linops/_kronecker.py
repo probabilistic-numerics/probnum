@@ -45,7 +45,7 @@ class Symmetrize(_linear_operator.LinearOperator):
         # vec(X) -> X, i.e. reshape into stack of matrices
         y = np.swapaxes(x, -2, -1)
 
-        if y.flags.c_contiguous:
+        if not y.flags.c_contiguous:
             y = y.copy(order="C")
 
         y = y.reshape(y.shape[:-1] + (self._n, self._n))
@@ -176,7 +176,7 @@ def _kronecker_matmul(
     # vec(X) -> X, i.e. reshape into stack of matrices
     y = np.swapaxes(x, -2, -1)
 
-    if y.flags.c_contiguous:
+    if not y.flags.c_contiguous:
         y = y.copy(order="C")
 
     y = y.reshape(y.shape[:-1] + (A.shape[1], B.shape[1]))
@@ -202,7 +202,7 @@ def _kronecker_rmatmul(
     # Reshape into stack of matrices
     y = x
 
-    if y.flags.c_contiguous:
+    if not y.flags.c_contiguous:
         y = y.copy(order="C")
 
     y = y.reshape(y.shape[:-1] + (A.shape[0], B.shape[0]))
@@ -358,7 +358,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         # vec(X) -> X, i.e. reshape into stack of matrices
         y = np.swapaxes(x, -2, -1)
 
-        if y.flags.c_contiguous:
+        if not y.flags.c_contiguous:
             y = y.copy(order="C")
 
         y = y.reshape(y.shape[:-1] + (self._n, self._n))
@@ -388,7 +388,7 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
         # Reshape into stack of matrices
         y = x
 
-        if y.flags.c_contiguous:
+        if not y.flags.c_contiguous:
             y = y.copy(order="C")
 
         y = y.reshape(y.shape[:-1] + (self._n, self._n))
