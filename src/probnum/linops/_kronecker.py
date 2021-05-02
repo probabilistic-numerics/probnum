@@ -181,11 +181,11 @@ def _kronecker_matmul(
 
     y = y.reshape(y.shape[:-1] + (A.shape[1], B.shape[1]))
 
-    # A @ X
-    y = A @ y
+    # (X @ B.T).T = B @ X.T
+    y = B @ np.swapaxes(y, -1, -2)
 
-    # (A @ X) @ B.T
-    y = B(y, axis=-1)
+    # A @ X @ B.T = A @ (B @ X.T).T
+    y = A @ np.swapaxes(y, -1, -2)
 
     # vec(A @ X @ B.T), i.e. revert to stack of vectorized matrices
     y = y.reshape(y.shape[:-2] + (-1,))
@@ -363,17 +363,13 @@ class SymmetricKronecker(_linear_operator.LinearOperator):
 
         y = y.reshape(y.shape[:-1] + (self._n, self._n))
 
-        # A @ X @ B.T
-        y1 = self.A @ y
+        # A @ X @ B.T = A @ (B @ X.T).T
+        y1 = self.B @ np.swapaxes(y, -1, -2)
+        y1 = self.A @ np.swapaxes(y1, -1, -2)
 
-        y1 = self.B @ y1[..., np.newaxis]
-        y1 = y1.squeeze(-1)
-
-        # B @ X @ A.T
-        y2 = self.B @ y
-
-        y2 = self.A @ y2[..., np.newaxis]
-        y2 = y2.squeeze(-1)
+        # B @ X @ A.T = B @ (A @ X.T).T
+        y2 = self.A @ np.swapaxes(y, -1, -2)
+        y2 = self.B @ np.swapaxes(y2, -1, -2)
 
         # 1/2 (AXB^T + BXA^T)
         y = 0.5 * (y1 + y2)
