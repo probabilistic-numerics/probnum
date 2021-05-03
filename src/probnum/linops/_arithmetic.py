@@ -11,9 +11,9 @@ from probnum.type import ScalarArgType, ShapeArgType
 from ._linear_operator import (  # pylint: disable=cyclic-import
     BinaryOperandType,
     LinearOperator,
-    MatrixMult,
-    ScalarMult,
+    Matrix,
 )
+from ._scaling import Scaling
 
 
 def add(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:
@@ -34,13 +34,11 @@ def sub(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:
 
 
 def mul(op1: BinaryOperandType, op2: BinaryOperandType) -> LinearOperator:
-    op1, op2 = _operands_to_compatible_linops(op1, op2)
-
     return _apply(_mul_fns, op1, op2, fallback_operator=_mul_fallback)
 
 
 def matmul(op1: LinearOperator, op2: LinearOperator) -> LinearOperator:
-    return _apply(_matmul_fns, op1, op2, fallback_operator=ProductLinearOperator)
+    return _apply(_matmul_fns, op1, op2, fallback_operator=_matmul_fallback)
 
 
 ########################################################################################
@@ -92,9 +90,9 @@ def _operand_to_linop(operand: Any, shape: ShapeArgType) -> Optional[LinearOpera
     if isinstance(operand, LinearOperator):
         pass
     elif np.ndim(operand) == 0:
-        operand = ScalarMult(shape, operand)
+        operand = Scaling(operand, shape=shape)
     elif isinstance(operand, (np.ndarray, scipy.sparse.spmatrix)):
-        operand = MatrixMult(operand)
+        operand = Matrix(operand)
     else:
         operand = None
 
@@ -129,7 +127,7 @@ class ScaledLinearOperator(LinearOperator):
         if not isinstance(linop, LinearOperator):
             raise TypeError("`linop` must be a `LinearOperator`")
 
-        if not np.isscalar(scalar):
+        if np.ndim(scalar) != 0:
             raise TypeError("`scalar` must be a scalar.")
 
         dtype = np.result_type(linop.dtype, scalar)
@@ -137,31 +135,23 @@ class ScaledLinearOperator(LinearOperator):
         self._linop = linop
         self._scalar = probnum.utils.as_numpy_scalar(scalar, dtype)
 
-        super().__init__(dtype, self._linop.shape)
+        super().__init__(
+            self._linop.shape,
+            dtype=dtype,
+            matmul=lambda x: self._scalar * (self._linop @ x),
+            rmatmul=lambda x: self._scalar * (x @ self._linop),
+            todense=lambda: self._scalar * self._linop.todense(cache=False),
+            transpose=lambda: self._scalar * self._linop.T,
+            adjoint=lambda: np.conj(self._scalar) * self._linop.H,
+            inverse=self._inv,
+            trace=lambda: self._scalar * self._linop.trace(),
+        )
 
-    def _matvec(self, vec: np.ndarray) -> np.ndarray:
-        return self._scalar * self._linop.matvec(vec)
+    def _inv(self) -> "ScaledLinearOperator":
+        if self._scalar == 0:
+            raise np.linalg.LinAlgError("The operator is not invertible")
 
-    def _rmatvec(self, vec: np.ndarray) -> np.ndarray:
-        return np.conj(self._scalar) * self._linop.rmatvec(vec)
-
-    def _matmat(self, mat: np.ndarray) -> np.ndarray:
-        return self._scalar * self._linop.matmat(mat)
-
-    def _rmatmat(self, mat: np.ndarray) -> np.ndarray:
-        return np.conj(self._scalar) * self._linop.rmatmat(mat)
-
-    def _adjoint(self) -> LinearOperator:
-        return self._linop.H * np.conj(self._scalar)
-
-    def todense(self) -> np.ndarray:
-        return self._scalar * self._linop.todense()
-
-    def inv(self) -> "ScaledLinearOperator":
         return ScaledLinearOperator(self._linop.inv(), 1.0 / self._scalar)
-
-    def trace(self):
-        return self._scalar * self._linop.trace()
 
 
 class NegatedLinearOperator(ScaledLinearOperator):
@@ -188,44 +178,33 @@ class SumLinearOperator(LinearOperator):
         self._summands = SumLinearOperator._expand_sum_ops(*summands)
 
         super().__init__(
+            shape=summands[0].shape,
             dtype=np.find_common_type(
                 [summand.dtype for summand in self._summands], []
             ),
-            shape=summands[0].shape,
-        )
-
-    def _matvec(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(
-            operator.add, (summand.matvec(x) for summand in self._summands)
-        )
-
-    def _rmatvec(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(
-            operator.add, (summand.rmatvec(x) for summand in self._summands)
-        )
-
-    def _matmat(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(
-            operator.add, (summand.matmat(x) for summand in self._summands)
-        )
-
-    def _rmatmat(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(
-            operator.add, (summand.rmatmat(x) for summand in self._summands)
+            matmul=lambda x: functools.reduce(
+                operator.add, (summand @ x for summand in self._summands)
+            ),
+            rmatmul=lambda x: functools.reduce(
+                operator.add, (x @ summand for summand in self._summands)
+            ),
+            todense=lambda: functools.reduce(
+                operator.add,
+                (summand.todense(cache=False) for summand in self._summands),
+            ),
+            transpose=lambda: SumLinearOperator(
+                *(summand.T for summand in self._summands)
+            ),
+            adjoint=lambda: SumLinearOperator(
+                *(summand.H for summand in self._summands)
+            ),
+            trace=lambda: functools.reduce(
+                operator.add, (summand.trace() for summand in self._summands)
+            ),
         )
 
     def __neg__(self):
         return SumLinearOperator(*(-summand for summand in self._summands))
-
-    def todense(self) -> np.ndarray:
-        return functools.reduce(
-            operator.add, (summand.todense() for summand in self._summands)
-        )
-
-    def trace(self) -> np.floating:
-        return functools.reduce(
-            operator.add, (summand.trace() for summand in self._summands)
-        )
 
     @staticmethod
     def _expand_sum_ops(*summands: LinearOperator) -> Tuple[LinearOperator, ...]:
@@ -241,14 +220,20 @@ class SumLinearOperator(LinearOperator):
 
 
 def _mul_fallback(
-    op1: LinearOperator, op2: LinearOperator
+    op1: BinaryOperandType, op2: BinaryOperandType
 ) -> Union[LinearOperator, type(NotImplemented)]:
     res = NotImplemented
 
-    if isinstance(op1, ScalarMult):
-        res = ScaledLinearOperator(op2, op1._scalar)
-    elif isinstance(op2, ScalarMult):
-        res = ScaledLinearOperator(op1, op2._scalar)
+    if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):
+        pass  # TODO: Implement generic Hadamard product
+    elif isinstance(op1, LinearOperator):
+        if np.ndim(op2) == 0:
+            res = ScaledLinearOperator(op1, op2)
+    elif isinstance(op2, LinearOperator):
+        if np.ndim(op1) == 0:
+            res = ScaledLinearOperator(op2, op1)
+    else:
+        raise TypeError("At least one of the two operands must be a `LinearOperator`.")
 
     return res
 
@@ -275,38 +260,34 @@ class ProductLinearOperator(LinearOperator):
         self._factors = ProductLinearOperator._expand_prod_ops(*factors)
 
         super().__init__(
-            dtype=np.find_common_type([factor.dtype for factor in self._factors], []),
             shape=(self._factors[0].shape[0], self._factors[-1].shape[1]),
+            dtype=np.find_common_type([factor.dtype for factor in self._factors], []),
+            matmul=lambda x: functools.reduce(
+                lambda vec, op: op @ vec, reversed(self._factors), x
+            ),
+            rmatmul=lambda x: functools.reduce(
+                lambda vec, op: vec @ op, self._factors, x
+            ),
+            todense=lambda: functools.reduce(
+                operator.matmul,
+                (factor.todense(cache=False) for factor in self._factors),
+            ),
+            transpose=lambda: ProductLinearOperator(
+                *(factor.T for factor in reversed(self._factors))
+            ),
+            adjoint=lambda: ProductLinearOperator(
+                *(factor.H for factor in reversed(self._factors))
+            ),
+            inverse=lambda: ProductLinearOperator(
+                *(factor.inv() for factor in reversed(self._factors))
+            ),
+            det=lambda: functools.reduce(
+                operator.mul, (factor.det() for factor in self._factors)
+            ),
+            logabsdet=lambda: functools.reduce(
+                operator.add, (factor.logabsdet() for factor in self._factors)
+            ),
         )
-
-    def _matvec(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(
-            lambda vec, op: op.matvec(vec), reversed(self._factors), x
-        )
-
-    def _rmatvec(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(lambda vec, op: op.rmatvec(vec), self._factors, x)
-
-    def _matmat(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(
-            lambda vec, op: op.matmat(vec), reversed(self._factors), x
-        )
-
-    def _rmatmat(self, x: np.ndarray) -> np.ndarray:
-        return functools.reduce(lambda vec, op: op.rmatmat(vec), self._factors, x)
-
-    def todense(self) -> np.ndarray:
-        return functools.reduce(
-            operator.matmul, (factor.todense() for factor in self._factors)
-        )
-
-    def inv(self) -> np.ndarray:
-        return ProductLinearOperator(
-            *(factor.inv() for factor in reversed(self._factors))
-        )
-
-    def trace(self) -> np.floating:
-        return np.trace(self.todense())
 
     @staticmethod
     def _expand_prod_ops(*factors: LinearOperator) -> Tuple[LinearOperator, ...]:
@@ -321,40 +302,12 @@ class ProductLinearOperator(LinearOperator):
         return tuple(expanded_factors)
 
 
-class TransposedLinearOperator(LinearOperator):
-    """Transposition of a linear operator."""
+def _matmul_fallback(
+    op1: BinaryOperandType, op2: BinaryOperandType
+) -> Union[LinearOperator, type(NotImplemented)]:
+    res = NotImplemented
 
-    def __init__(self, linop: LinearOperator):
-        self._linop = linop
+    if isinstance(op1, LinearOperator) and isinstance(op2, LinearOperator):
+        res = ProductLinearOperator(op1, op2)
 
-        super().__init__(shape=(linop.shape[1], linop.shape[0]), dtype=linop.dtype)
-
-    def _matvec(self, x):
-        # NB. np.conj works also on sparse matrices
-        return np.conj(self._linop._rmatvec(np.conj(x)))
-
-    def _rmatvec(self, x):
-        return np.conj(self._linop._matvec(np.conj(x)))
-
-    def _matmat(self, x):
-        # NB. np.conj works also on sparse matrices
-        return np.conj(self._linop._rmatmat(np.conj(x)))
-
-    def _rmatmat(self, x):
-        return np.conj(self._linop._matmat(np.conj(x)))
-
-    def todense(self):
-        return self._linop.todense().T
-
-    def inv(self):
-        return self._linop.inv().T
-
-
-class InverseLinearOperator(MatrixMult):
-    def __init__(self, linop: LinearOperator):
-        self._linop = linop
-
-        super().__init__(A=np.linalg.inv(self._linop.todense()))
-
-    def inv(self) -> LinearOperator:
-        return self._linop
+    return res

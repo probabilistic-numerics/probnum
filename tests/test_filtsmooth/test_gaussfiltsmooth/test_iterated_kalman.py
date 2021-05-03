@@ -1,56 +1,39 @@
 import numpy as np
 import pytest
 
-import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
-
-from ..filtsmooth_testcases import logistic_ode, pendulum
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+from probnum import filtsmooth
 
 
-def pendulum_problem():
-    """Pendulum problem."""
-    problem = pendulum()
-    dynmod, measmod, initrv, info = problem
-    dynmod = pnfs.DiscreteEKFComponent(dynmod)
-    measmod = pnfs.DiscreteEKFComponent(measmod)
+@pytest.fixture(params=[filtsmooth_zoo.logistic_ode])
+def setup(request):
+    """Filter and regression problem."""
+    problem = request.param
+    regression_problem, statespace_components = problem()
 
-    times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnss.generate_samples(
-        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
     )
-    return dynmod, measmod, initrv, info, obs, times, states
+    return kalman, regression_problem
 
 
-def logistic_ode_problem():
-    """Logistic ODE problem."""
-    problem = logistic_ode()
-    dynmod, measmod, initrv, info = problem
+def test_rmse_filt_smooth(setup):
+    """Assert that iterated smoothing beats smoothing."""
 
-    times = np.arange(0, info["tmax"], info["dt"])
-    obs = np.zeros((len(times), 1))
+    np.random.seed(12345)
+    kalman, regression_problem = setup
+    truth = regression_problem.solution
 
-    states = info["ode"].solution(times)
-    return dynmod, measmod, initrv, info, obs, times, states
+    stopcrit = filtsmooth.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
-
-@pytest.fixture
-def kalman(problem):
-    """Create a Kalman object."""
-    dynmod, measmod, initrv, info, *_ = problem
-    return pnfs.Kalman(dynmod, measmod, initrv)
-
-
-@pytest.mark.parametrize("problem", [logistic_ode_problem()])
-def test_rmse_filt_smooth(kalman, problem):
-    """Assert that iterated smoothing beats smoothing beats filtering."""
-    *_, obs, times, truth = problem
-
-    stopcrit = pnfs.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
-
-    posterior = kalman.filter(obs, times)
+    posterior, _ = kalman.filter(regression_problem)
     posterior = kalman.smooth(posterior)
 
-    iterated_posterior = kalman.iterated_filtsmooth(obs, times, stopcrit=stopcrit)
+    iterated_posterior, _ = kalman.iterated_filtsmooth(
+        regression_problem, stopcrit=stopcrit
+    )
 
     filtms = posterior.filtering_posterior.states.mean
     smooms = posterior.states.mean
@@ -66,9 +49,7 @@ def test_rmse_filt_smooth(kalman, problem):
 
     # Compare only zeroth component
     # for compatibility with all test cases
-    filtms_rmse = np.mean(np.abs(filtms[:, 0] - truth[:, 0]))
     smooms_rmse = np.mean(np.abs(smooms[:, 0] - truth[:, 0]))
     iterms_rmse = np.mean(np.abs(iterms[:, 0] - truth[:, 0]))
 
     assert iterms_rmse < smooms_rmse
-    assert smooms_rmse < filtms_rmse

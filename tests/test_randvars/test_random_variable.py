@@ -31,7 +31,7 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
             np.array([1, -2.5]),
         ]
         self.matrices2d = [np.array([[1, 2], [3, 2]]), np.array([[0, 0], [1.0, -4.3]])]
-        self.linops2d = [linops.MatrixMult(A=np.array([[1, 2], [4, 5]]))]
+        self.linops2d = [linops.Matrix(A=np.array([[1, 2], [4, 5]]))]
         self.randvars2d = [
             randvars.Normal(mean=np.array([1, 2]), cov=np.array([[2, 0], [0, 5]]))
         ]
