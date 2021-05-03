@@ -1,5 +1,6 @@
 """Bayesian Filtering and Smoothing."""
 
+from ._utils import merge_regression_problems
 from .bayesfiltsmooth import BayesFiltSmooth
 from .gaussfiltsmooth import (
     ContinuousEKFComponent,
@@ -43,4 +44,5 @@ __all__ = [
     "ParticleFilter",
     "ParticleFilterPosterior",
     "effective_number_of_events",
+    "merge_regression_problems",
 ]
