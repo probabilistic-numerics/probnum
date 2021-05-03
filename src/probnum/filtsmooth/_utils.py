@@ -8,11 +8,17 @@ import numpy as np
 from probnum import problems
 
 
-def merge_regression_problems(
-    regression_problem1, measurement_models1, regression_problem2, measurement_models2
-):
+# def merge_regression_problems(
+#     regression_problem1, measurement_models1, regression_problem2, measurement_models2
+# ):
+def merge_regression_problems(problem_and_likelihood1, problem_and_likelihood2):
     """Make a new regression problem out of two other regression problems."""
 
+    regression_problem1, measurement_models1 = problem_and_likelihood1
+    regression_problem2, measurement_models2 = problem_and_likelihood2
+
+    # Check input types of measurement models: we explicitly want numpy arrays.
+    # More abstract merging (e.g. of lists or generators) is not supported currently.
     errormsg = (
         f"The measurement models are expected to be of type `{np.ndarray}'"
         f"but type `{type(measurement_models1)}' was received."
@@ -22,44 +28,50 @@ def merge_regression_problems(
     if not isinstance(measurement_models2, np.ndarray):
         raise TypeError(errormsg)
 
-    measurement_models1 = np.asarray(measurement_models1)
-    measurement_models2 = np.asarray(measurement_models2)
-
-    t1, y1 = regression_problem1.locations, regression_problem1.observations
-    t2, y2 = regression_problem2.locations, regression_problem2.observations
-
-    t = np.union1d(t1, t2)
-    t1_in_t = np.searchsorted(t, t1)
-    t2_in_t = np.searchsorted(t, t2)
-
-    assert y1.shape[1:] == y2.shape[1:]
-    new_shape = (len(y1) + len(y2),) + y1.shape[1:]
-    y = np.zeros(new_shape)
-    y[t1_in_t] = y1
-    y[t2_in_t] = y2
-
-    if (
-        regression_problem1.solution is not None
-        and regression_problem2.solution is not None
-    ):
-        assert (
-            regression_problem1.solution.shape[1:]
-            == regression_problem1.solution.shape[1:]
-        )
-        new_shape = (
-            len(regression_problem1.solution) + len(regression_problem2.solution),
-        ) + regression_problem2.solution.shape[1:]
-        new_solution = np.zeros(new_shape)
-        new_solution[t1_in_t] = regression_problem1.solution
-        new_solution[t2_in_t] = regression_problem2.solution
-    else:
-        new_solution = None
-
-    # Chain the measurement models
-    measurement_models = np.zeros((len(y1) + len(y2)), dtype=object)
-    measurement_models[t1_in_t] = measurement_models1
-    measurement_models[t2_in_t] = measurement_models2
-    return (
-        problems.RegressionProblem(locations=t, observations=y, solution=new_solution),
-        measurement_models,
+    # Some shorthand improves readibility of the inserts below.
+    locs1, data1, sol1 = (
+        regression_problem1.locations,
+        regression_problem1.observations,
+        regression_problem1.solution,
     )
+    locs2, data2, sol2 = (
+        regression_problem2.locations,
+        regression_problem2.observations,
+        regression_problem2.solution,
+    )
+
+    # Merge time locations
+    new_locs = np.union1d(locs1, locs2)
+    locs1_in_new_locs = np.searchsorted(new_locs, locs1)
+    locs2_in_new_locs = np.searchsorted(new_locs, locs2)
+
+    # Merge observations
+    new_num_obs = len(data1) + len(data2)
+    if not data1.shape[1:] == data2.shape[1:]:
+        raise ValueError("The data sets have incompatible dimension.")
+    new_data_shape = (new_num_obs,) + data1.shape[1:]
+    new_data = np.zeros(new_data_shape)
+    new_data[locs1_in_new_locs] = data1
+    new_data[locs2_in_new_locs] = data2
+
+    # Merge solutions
+    if sol1 is not None and sol2 is not None:
+        if not sol1.shape[1:] == sol2.shape[1:]:
+            raise ValueError("The solution arrays have incompatible dimension.")
+        new_sol_shape = (new_num_obs,) + sol1.shape[1:]
+        new_sol = np.zeros(new_sol_shape)
+        new_sol[locs1_in_new_locs] = sol1
+        new_sol[locs2_in_new_locs] = sol2
+    else:
+        new_sol = None
+
+    # Merge measurement models
+    new_measurement_models = np.zeros((new_num_obs,), dtype=object)
+    new_measurement_models[locs1_in_new_locs] = measurement_models1
+    new_measurement_models[locs2_in_new_locs] = measurement_models2
+
+    # Return merged arrays
+    new_regression_problem = problems.RegressionProblem(
+        locations=new_locs, observations=new_data, solution=new_sol
+    )
+    return new_regression_problem, new_measurement_models
