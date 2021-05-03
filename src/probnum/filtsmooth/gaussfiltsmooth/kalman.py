@@ -65,7 +65,7 @@ class Kalman(BayesFiltSmooth):
 
         smoothing_post = init_posterior
         info_dicts = None
-        for smoothing_post, info_dicts in self.iterated_filtsmooth_generator(
+        for smoothing_post, info_dicts in self.iterated_filtsmooth_posterior_generator(
             regression_problem, smoothing_post, stopcrit
         ):
             pass
@@ -75,7 +75,7 @@ class Kalman(BayesFiltSmooth):
 
         return smoothing_post, info_dicts
 
-    def iterated_filtsmooth_generator(
+    def iterated_filtsmooth_posterior_generator(
         self,
         regression_problem: problems.RegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
@@ -195,7 +195,9 @@ class Kalman(BayesFiltSmooth):
         filtered_rvs = []
         info_dicts = []
 
-        for rv, info in self.filter_generator(regression_problem, _previous_posterior):
+        for rv, info in self.filtered_states_generator(
+            regression_problem, _previous_posterior
+        ):
             filtered_rvs.append(rv)
             info_dicts.append(info)
 
@@ -207,7 +209,7 @@ class Kalman(BayesFiltSmooth):
 
         return posterior, info_dicts
 
-    def filter_generator(
+    def filtered_states_generator(
         self,
         regression_problem: problems.RegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
