@@ -8,11 +8,24 @@ import numpy as np
 from probnum import problems
 
 
-# def merge_regression_problems(
-#     regression_problem1, measurement_models1, regression_problem2, measurement_models2
-# ):
 def merge_regression_problems(problem_and_likelihood1, problem_and_likelihood2):
-    """Make a new regression problem out of two other regression problems."""
+    """Make a new regression problem out of two other regression problems.
+
+    Parameters
+    ----------
+    problem_and_likelihood1 :
+        Tuple of a RegressionProblem and an array of Transitions.
+    problem_and_likelihood2 :
+        Tuple of a RegressionProblem and an array of Transitions.
+
+    Returns
+    -------
+    Tuple of a RegressionProblem and an array of Transitions that merges locations, data, and measmods of both problems. The output is sorted according to the locations.
+
+    Note
+    ----
+    To merge more than two problems, combine this function with functools.reduce.
+    """
 
     regression_problem1, measurement_models1 = problem_and_likelihood1
     regression_problem2, measurement_models2 = problem_and_likelihood2
