@@ -70,9 +70,6 @@ class Kalman(BayesFiltSmooth):
         ):
             pass
 
-        if smoothing_post is None or info_dicts is None:
-            raise ValueError("Iterated filter did not perform a single iteration.")
-
         return smoothing_post, info_dicts
 
     def iterated_filtsmooth_posterior_generator(
