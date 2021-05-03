@@ -107,15 +107,16 @@ class Kalman(BayesFiltSmooth):
         if stopcrit is None:
             stopcrit = StoppingCriterion()
 
-        info_dicts = []
         if init_posterior is None:
             # Initialise iterated smoother
-            init_posterior, info_dicts = self.filtsmooth(
+            new_posterior, info_dicts = self.filtsmooth(
                 regression_problem,
                 _previous_posterior=None,
             )
+        else:
+            new_posterior = init_posterior
+            info_dicts = []
 
-        new_posterior = init_posterior
         yield new_posterior, info_dicts
         new_mean = new_posterior.states.mean
         old_mean = np.inf * np.ones(new_mean.shape)
