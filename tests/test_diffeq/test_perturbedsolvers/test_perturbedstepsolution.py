@@ -52,7 +52,9 @@ def noisysolver45(ivp, y0, sigma):
     testsolver = rk.RK45(ivp.rhs, ivp.t0, y0, ivp.tmax)
     scipysolver = scipy_solver.ScipyRungeKutta(testsolver, order=4)
     return perturbedstepsolver.PerturbedStepSolver(
-        scipysolver, sigma, perturb_function=_perturbation_functions.perturb_uniform
+        scipysolver,
+        noise_scale=1,
+        perturb_function=_perturbation_functions.perturb_uniform,
     )
 
 

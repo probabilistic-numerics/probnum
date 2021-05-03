@@ -1,32 +1,23 @@
 import numpy as np
 import pytest
-from pn_ode_benchmarks import scipy_solution, scipy_solver
-from scipy.integrate._ivp import base, rk
+import pytest_cases
+from pn_ode_benchmarks import scipy_solver
+from scipy.integrate._ivp import base
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import diffeq, randvars
 from probnum.diffeq import odesolution
+from probnum.diffeq.perturbedsolvers import perturbedstepsolution, perturbedstepsolver
 
 
-@pytest.fixture
-def initrv():
-    return np.array([0.1])
+@pytest_cases.fixture
+@pytest_cases.parametrize_with_cases("solvers", cases="test_perturbed_cases")
 
-
-@pytest.fixture
-def ivp():
-    return diffeq.logistic([0.0, 10], initrv)
-
-
-@pytest.fixture
-def scipysolver45(ivp, initrv):
-    return rk.RK45(ivp.rhs, ivp.t0, initrv, ivp.tmax)
-
-
-@pytest.fixture
-def testsolver45(ivp, initrv):
-    testsolver = rk.RK45(ivp.rhs, ivp.t0, initrv, ivp.tmax)
-    return scipy_solver.ScipyRungeKutta(testsolver, order=4)
+# Workaround: usually the input of this would be "testsolver, perturbedsolver" instead of "solvers"
+# see issue https://github.com/smarie/python-pytest-cases/issues/202
+def solvers(solvers):
+    testsolver, perturbedsolver = solvers
+    return testsolver, perturbedsolver
 
 
 @pytest.fixture
@@ -41,7 +32,7 @@ def stop_point():
 
 @pytest.fixture
 def y():
-    return np.array([0.1])
+    return randvars.Constant(0.1)
 
 
 @pytest.fixture
@@ -55,112 +46,54 @@ def times():
 
 
 @pytest.fixture
-def lst():
+def list_of_randvars():
     return list([randvars.Constant(1)])
 
 
-def test_initialise(testsolver45, scipysolver45):
-
-    time, state = testsolver45.initialise()
-    time_scipy = scipysolver45.t
-    state_scipy = scipysolver45.y
+def test_initialise(solvers):
+    testsolver, perturbedsolver = solvers
+    time, state = perturbedsolver.initialise()
+    time_scipy = testsolver.solver.t
+    state_scipy = testsolver.solver.y
     np.testing.assert_allclose(time, time_scipy, atol=1e-14, rtol=1e-14)
     np.testing.assert_allclose(state.mean[0], state_scipy[0], atol=1e-14, rtol=1e-14)
 
 
-def test_step_execution(scipysolver45, testsolver45, start_point, stop_point, y):
-    scipy_y_new, f_new = rk.rk_step(
-        scipysolver45.fun,
-        start_point,
-        y,
-        scipysolver45.f,
-        stop_point - start_point,
-        scipysolver45.A,
-        scipysolver45.B,
-        scipysolver45.C,
-        scipysolver45.K,
+def test_step(solvers, start_point, stop_point, y):
+
+    # Convergence of the perturbation functions is tested in the corresponding test file.
+    # Here it is checked that the perturbed steps are close to the original steps.
+    testsolver, perturbedsolver = solvers
+    noisy_step = perturbedsolver.perturb_step(
+        stop_point - start_point, random_state=123
     )
-    scipy_error_estimation = scipysolver45._estimate_error(
-        scipysolver45.K, stop_point - start_point
+    y_new, y_error_estimation = testsolver.step(
+        start_point, start_point + noisy_step, y
     )
-    solver_y_new, solver_error_estimation = testsolver45.step(
-        start_point, stop_point, randvars.Constant(0.1)
+    perturbed_y_new, perturbed_error_estimation = perturbedsolver.step(
+        start_point, stop_point, y
     )
-    np.testing.assert_allclose(solver_y_new.mean, scipy_y_new, atol=1e-14, rtol=1e-14)
+    np.testing.assert_allclose(perturbed_y_new.mean, y_new.mean, atol=1e-4, rtol=1e-4)
     np.testing.assert_allclose(
-        solver_error_estimation, scipy_error_estimation, atol=1e-14, rtol=1e-14
+        perturbed_error_estimation, y_error_estimation, atol=1e-4, rtol=1e-4
     )
 
 
-def test_step_variables(scipysolver45, testsolver45, y, start_point, stop_point):
-    solver_y_new, solver_error_estimation = testsolver45.step(
-        start_point, stop_point, randvars.Constant(y)
-    )
-    y_new, f_new = rk.rk_step(
-        scipysolver45.fun,
-        start_point,
-        y,
-        scipysolver45.f,
-        stop_point - start_point,
-        scipysolver45.A,
-        scipysolver45.B,
-        scipysolver45.C,
-        scipysolver45.K,
-    )
-    # locations are correct
-    np.testing.assert_allclose(
-        testsolver45.solver.t_old, start_point, atol=1e-14, rtol=1e-14
-    )
-    np.testing.assert_allclose(
-        testsolver45.solver.t, stop_point, atol=1e-14, rtol=1e-14
-    )
-    np.testing.assert_allclose(
-        testsolver45.solver.h_previous, stop_point - start_point, atol=1e-14, rtol=1e-14
-    )
-    # evaluations are correct
-    np.testing.assert_allclose(
-        testsolver45.solver.y_old.mean, y, atol=1e-14, rtol=1e-14
-    )
-    np.testing.assert_allclose(testsolver45.solver.y, y_new, atol=1e-14, rtol=1e-14)
-    np.testing.assert_allclose(
-        testsolver45.solver.h_abs, stop_point - start_point, atol=1e-14, rtol=1e-14
-    )
-    np.testing.assert_allclose(testsolver45.solver.f, f_new, atol=1e-14, rtol=1e-14)
+def test_method_callback(solvers, start_point, stop_point, y):
+    testsolver, perturbedstepsolver = solvers
+    perturbedstepsolver.initialise()
+    perturbedstepsolver.step(start_point, stop_point, y)
+    np.testing.assert_allclose(len(perturbedstepsolver.scales), 0)
+    perturbedstepsolver.method_callback(start_point, y, 0)
+    np.testing.assert_allclose(len(perturbedstepsolver.scales), 1)
 
 
-def test_dense_output(scipysolver45, testsolver45, y, start_point, stop_point):
-    # step has to be performed before dense-output can be computed
-    scipysolver45.step()
-    # perform step of the same size
-    testsolver45.step(
-        scipysolver45.t_old,
-        scipysolver45.t,
-        randvars.Constant(scipysolver45.y_old),
+def test_rvlist_to_odesol(solvers, times, list_of_randvars, dense_output):
+    testsolver, perturbedstepsolver = solvers
+    perturbedstepsolver.interpolants = dense_output
+    perturbedstepsolver.scales = [1]
+    probnum_solution = perturbedstepsolver.rvlist_to_odesol(times, list_of_randvars)
+    assert issubclass(
+        perturbedstepsolution.PerturbedStepSolution, odesolution.ODESolution
     )
-    testsolver_dense = testsolver45.dense_output()
-    scipy_dense = scipysolver45._dense_output_impl()
-    np.testing.assert_allclose(
-        testsolver_dense(scipysolver45.t_old),
-        scipy_dense(scipysolver45.t_old),
-        atol=1e-14,
-        rtol=1e-14,
-    )
-    np.testing.assert_allclose(
-        testsolver_dense(scipysolver45.t),
-        scipy_dense(scipysolver45.t),
-        atol=1e-14,
-        rtol=1e-14,
-    )
-    np.testing.assert_allclose(
-        testsolver_dense((scipysolver45.t_old + scipysolver45.t) / 2),
-        scipy_dense((scipysolver45.t_old + scipysolver45.t) / 2),
-        atol=1e-14,
-        rtol=1e-14,
-    )
-
-
-def test_rvlist_to_odesol(times, dense_output, lst):
-    scipy_sol = OdeSolution(times, dense_output)
-    probnum_solution = scipy_solution.ScipyODESolution(scipy_sol, times, lst)
-    assert issubclass(scipy_solution.ScipyODESolution, odesolution.ODESolution)
-    assert isinstance(probnum_solution, scipy_solution.ScipyODESolution)
+    assert isinstance(probnum_solution, perturbedstepsolution.PerturbedStepSolution)

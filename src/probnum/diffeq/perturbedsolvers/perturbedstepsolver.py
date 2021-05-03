@@ -1,10 +1,13 @@
 """ODE solver as proposed by Abdulle and Garegnani."""
 import numpy as np
-from pn_ode_benchmarks import noisy_step_rules, scipy_solution
+from pn_ode_benchmarks import noisy_step_rules, scipy_solution, scipy_solver
 from scipy.integrate._ivp import base, rk
 
 from probnum import diffeq, randvars
-from probnum.diffeq.perturbedsolvers import perturbedstepsolution
+from probnum.diffeq.perturbedsolvers import (
+    _perturbation_functions,
+    perturbedstepsolution,
+)
 
 
 class PerturbedStepSolver(diffeq.ODESolver):
@@ -12,8 +15,12 @@ class PerturbedStepSolver(diffeq.ODESolver):
     steps."""
 
     # pylint: disable=maybe-no-member
-    def __init__(self, solver, noise_scale, perturb_function, random_state=None):
-        def perturbation_step(step):
+    def __init__(
+        self, solver: scipy_solver, noise_scale, perturb_function, random_state=None
+    ):
+
+        # This enables to set the random_state for testing.
+        def perturbation_step(step, random_state=random_state):
             return perturb_function(
                 step=step,
                 solver_order=solver.order,
