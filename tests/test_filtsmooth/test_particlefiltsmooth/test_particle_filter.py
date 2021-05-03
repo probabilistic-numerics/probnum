@@ -77,7 +77,8 @@ def test_random_state(particle_filter):
 
 @pytest.fixture
 def pf_output(particle_filter, regression_problem):
-    return particle_filter.filter(regression_problem)
+    posterior, _ = particle_filter.filter(regression_problem)
+    return posterior
 
 
 @all_importance_distributions

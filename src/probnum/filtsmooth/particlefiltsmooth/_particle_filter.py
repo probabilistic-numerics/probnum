@@ -90,7 +90,7 @@ class ParticleFilter(BayesFiltSmooth):
         self.linearized_measurement_model = linearized_measurement_model
 
     def filter(self, regression_problem: problems.RegressionProblem):
-        """Apply Particle filtering to a data set.
+        """Apply particle filtering to a data set.
 
         Parameters
         ----------
@@ -98,8 +98,42 @@ class ParticleFilter(BayesFiltSmooth):
 
         Returns
         -------
-        ParticleFilterPosterior
-            Posterior distribution of the filtered output.
+        posterior
+            Posterior distribution of the filtered output
+        info_dicts
+            list of dictionaries containing filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
+        """
+        filtered_rvs = []
+        info_dicts = []
+
+        for rv, info in self.filter_generator(regression_problem):
+            filtered_rvs.append(rv)
+            info_dicts.append(info)
+
+        posterior = ParticleFilterPosterior(
+            states=filtered_rvs,
+            locations=regression_problem.locations,
+        )
+
+        return posterior, info_dicts
+
+    def filter_generator(self, regression_problem: problems.RegressionProblem):
+        """Apply Particle filtering to a data set.
+
+        Parameters
+        ----------
+        regression_problem
+
+        Yields
+        ------
+        curr_rv
+            Filtering random variable at each grid point.
+        info_dict
+            Dictionary containing filtering information
 
         See Also
         --------
@@ -123,17 +157,16 @@ class ParticleFilter(BayesFiltSmooth):
         curr_rv = randvars.Categorical(
             support=particles, probabilities=weights, random_state=self.random_state
         )
-        rvs = [curr_rv]
+        yield curr_rv, {}
 
         for idx in range(1, len(times)):
-            curr_rv, _ = self.filter_step(
+            curr_rv, info_dict = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 randvar=curr_rv,
                 data=dataset[idx],
             )
-            rvs.append(curr_rv)
-        return ParticleFilterPosterior(states=rvs, locations=times)
+            yield curr_rv, info_dict
 
     def filter_step(self, start, stop, randvar, data):
         """Perform a particle filter step.
