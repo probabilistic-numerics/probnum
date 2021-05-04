@@ -17,7 +17,7 @@ def setup_solver(y0, ode, steprule):
     )
     perturbfun = steprule
     perturbedsolver = perturbedstepsolver.PerturbedStepSolver(
-        testsolver2, noise_scale=1, perturb_function=perturbfun, random_state=123
+        testsolver2, noise_scale=10, perturb_function=perturbfun
     )
     return testsolver, perturbedsolver
 

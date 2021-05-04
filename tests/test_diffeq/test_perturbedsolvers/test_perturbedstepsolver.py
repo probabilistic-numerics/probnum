@@ -22,12 +22,12 @@ def solvers(solvers):
 
 @pytest.fixture
 def start_point():
-    return 0.5
+    return 0.0
 
 
 @pytest.fixture
 def stop_point():
-    return 0.6
+    return 0.1
 
 
 @pytest.fixture
@@ -59,6 +59,7 @@ def test_initialise(solvers):
     np.testing.assert_allclose(state.mean[0], state_scipy[0], atol=1e-14, rtol=1e-14)
 
 
+"""
 def test_step(solvers, start_point, stop_point, y):
 
     # Convergence of the perturbation functions is tested in the corresponding test file.
@@ -73,10 +74,43 @@ def test_step(solvers, start_point, stop_point, y):
     perturbed_y_new, perturbed_error_estimation = perturbedsolver.step(
         start_point, stop_point, y
     )
-    np.testing.assert_allclose(perturbed_y_new.mean, y_new.mean, atol=1e-4, rtol=1e-4)
+    np.testing.assert_allclose(perturbed_y_new.mean, y_new.mean, atol=1e-14, rtol=1e-14)
     np.testing.assert_allclose(
-        perturbed_error_estimation, y_error_estimation, atol=1e-4, rtol=1e-4
+        perturbed_error_estimation, y_error_estimation, atol=1e-14, rtol=1e-14
     )
+"""
+
+
+def test_step(solvers, start_point, stop_point, y):
+
+    # When performing two small similar steps, their output should be similar
+    testsolver, perturbedsolver = solvers
+
+    # The first step is deterministic.
+    first_step, first_error = perturbedsolver.step(start_point, stop_point, y)
+    perturbed_y_1, perturbed_error_estimation_1 = perturbedsolver.step(
+        stop_point, stop_point + start_point, y + first_step
+    )
+    # Reset noise_scales and dense_output.
+    perturbedsolver.initialise()
+    first_step, first_error = perturbedsolver.step(start_point, stop_point, y)
+    perturbed_y_2, perturbed_error_estimation_2 = perturbedsolver.step(
+        stop_point, stop_point + start_point, y + first_step
+    )
+    np.testing.assert_allclose(
+        perturbed_y_1.mean, perturbed_y_2.mean, atol=1e-14, rtol=1e-14
+    )
+    np.testing.assert_allclose(
+        perturbed_error_estimation_1,
+        perturbed_error_estimation_2,
+        atol=1e-14,
+        rtol=1e-14,
+    )
+    # np.testing.assert_(perturbed_y_1.mean.any() != perturbed_y_2.mean.any())
+
+
+# seed fixen, determinismus
+# solve aufrufen
 
 
 def test_method_callback(solvers, start_point, stop_point, y):
