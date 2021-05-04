@@ -185,14 +185,18 @@ def bayesquad_fixed(
     >>> import numpy as np
     >>> domain = (0, 1)
     >>> nodes = np.linspace(0, 1, 15)
-    Let :math:`f(x)=3x^2`
     >>> f_evals = 3*nodes**2
     >>> F, info = bayesquad_fixed(nodes=nodes, f_evals=f_evals, domain=domain)
     >>> print(F.mean)
     1.0001
     """
+    if nodes.ndim == 1:
+        n_evals = nodes.size
+        input_dim = 1
+    else:
+        n_evals, input_dim = nodes.shape
 
-    n_evals, input_dim = nodes.shape
+    nodes = nodes.reshape(n_evals, input_dim)
 
     # measure
     if domain is None and measure is None:
