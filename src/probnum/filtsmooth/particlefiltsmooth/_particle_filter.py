@@ -62,7 +62,6 @@ class ParticleFilter(BayesFiltSmooth):
     def __init__(
         self,
         dynamics_model: Union[statespace.LTISDE, statespace.DiscreteGaussian],
-        measurement_model: statespace.DiscreteGaussian,
         initrv: randvars.RandomVariable,
         num_particles: IntArgType,
         linearized_measurement_model: Optional[statespace.DiscreteGaussian] = None,
@@ -71,7 +70,6 @@ class ParticleFilter(BayesFiltSmooth):
     ) -> None:
         super().__init__(
             dynamics_model=dynamics_model,
-            measurement_model=measurement_model,
             initrv=initrv,
         )
         self.num_particles = num_particles
@@ -89,7 +87,11 @@ class ParticleFilter(BayesFiltSmooth):
         # choice than the bootstrap.
         self.linearized_measurement_model = linearized_measurement_model
 
-    def filter(self, regression_problem: problems.RegressionProblem):
+    def filter(
+        self,
+        regression_problem: problems.RegressionProblem,
+        measurement_model: statespace.DiscreteGaussian,
+    ):
         """Apply particle filtering to a data set.
 
         Parameters
@@ -110,7 +112,7 @@ class ParticleFilter(BayesFiltSmooth):
         filtered_rvs = []
         info_dicts = []
 
-        for rv, info in self.filter_generator(regression_problem):
+        for rv, info in self.filter_generator(regression_problem, measurement_model):
             filtered_rvs.append(rv)
             info_dicts.append(info)
 
@@ -121,7 +123,11 @@ class ParticleFilter(BayesFiltSmooth):
 
         return posterior, info_dicts
 
-    def filter_generator(self, regression_problem: problems.RegressionProblem):
+    def filter_generator(
+        self,
+        regression_problem: problems.RegressionProblem,
+        measurement_model: statespace.DiscreteGaussian,
+    ):
         """Apply Particle filtering to a data set.
 
         Parameters
@@ -140,6 +146,7 @@ class ParticleFilter(BayesFiltSmooth):
         RegressionProblem: a regression problem data class
         """
 
+        self.measurement_model = measurement_model
         dataset, times = regression_problem.observations, regression_problem.locations
 
         # Initialize: condition on first data point using the initial random

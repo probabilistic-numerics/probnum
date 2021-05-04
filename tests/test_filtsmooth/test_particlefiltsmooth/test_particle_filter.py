@@ -39,7 +39,7 @@ def problem():
 
 
 @pytest.fixture
-def particle_filter(
+def particle_filter_setup(
     problem, num_particles, measmod_style, resampling_percentage_threshold
 ):
     _, statespace_components = problem
@@ -51,13 +51,12 @@ def particle_filter(
 
     particle = filtsmooth.ParticleFilter(
         statespace_components["dynamics_model"],
-        statespace_components["measurement_model"],
         statespace_components["initrv"],
         num_particles=num_particles,
         linearized_measurement_model=linearized_measmod,
         resampling_percentage_threshold=resampling_percentage_threshold,
     )
-    return particle
+    return (particle, statespace_components["measurement_model"])
 
 
 @pytest.fixture()
@@ -70,14 +69,17 @@ def regression_problem(problem):
 
 @all_importance_distributions
 @all_resampling_configurations
-def test_random_state(particle_filter):
+def test_random_state(particle_filter_setup):
+    particle_filter, _ = particle_filter_setup
     initrv = particle_filter.initrv
     assert initrv.random_state == particle_filter.random_state
 
 
 @pytest.fixture
-def pf_output(particle_filter, regression_problem):
-    posterior, _ = particle_filter.filter(regression_problem)
+def pf_output(particle_filter_setup, regression_problem):
+    particle_filter, measmod = particle_filter_setup
+
+    posterior, _ = particle_filter.filter(regression_problem, measmod)
     return posterior
 
 
