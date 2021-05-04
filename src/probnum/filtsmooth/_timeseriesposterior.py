@@ -1,7 +1,7 @@
 """Abstract Base Class for posteriors over states after applying filtering/smoothing."""
 
 import abc
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 import numpy as np
 
@@ -34,9 +34,30 @@ class TimeSeriesPosterior(abc.ABC):
         Posterior random variables.
     """
 
-    def __init__(self, locations: np.ndarray, states: np.ndarray) -> None:
-        self.locations = np.asarray(locations)
-        self.states = _randomvariablelist._RandomVariableList(states)
+    def __init__(
+        self,
+        locations: Optional[Iterable[FloatArgType]] = None,
+        states: Optional[Iterable[randvars.RandomVariable]] = None,
+    ) -> None:
+        self._locations = list(locations) if locations is not None else []
+        self._states = list(states) if states is not None else []
+
+    def append(
+        self,
+        location: FloatArgType,
+        state: randvars.RandomVariable,
+    ) -> None:
+        # TODO: Type-checks here?
+        self._locations.append(location)
+        self._states.append(state)
+
+    @property
+    def locations(self):
+        return np.asarray(self._locations)
+
+    @property
+    def states(self):
+        return _randomvariablelist._RandomVariableList(self._states)
 
     def __len__(self) -> int:
         """Length of the discrete-time solution.
