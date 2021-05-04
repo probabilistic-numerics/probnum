@@ -64,7 +64,6 @@ class ParticleFilter(BayesFiltSmooth):
         dynamics_model: Union[statespace.LTISDE, statespace.DiscreteGaussian],
         initrv: randvars.RandomVariable,
         num_particles: IntArgType,
-        linearized_measurement_model: Optional[statespace.DiscreteGaussian] = None,
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,
     ) -> None:
@@ -80,17 +79,18 @@ class ParticleFilter(BayesFiltSmooth):
             resampling_percentage_threshold * num_particles
         )
 
-        # If None, the dynamics model is used as a fallback option
-        # which results in the bootstrap PF.
-        # Any linearised measurement model that could be used in a
-        # Gaussian filter can be used here and will likely be a better
-        # choice than the bootstrap.
-        self.linearized_measurement_model = linearized_measurement_model
+        # # If None, the dynamics model is used as a fallback option
+        # # which results in the bootstrap PF.
+        # # Any linearised measurement model that could be used in a
+        # # Gaussian filter can be used here and will likely be a better
+        # # choice than the bootstrap.
+        # self.linearized_measurement_model = linearized_measurement_model
 
     def filter(
         self,
         regression_problem: problems.RegressionProblem,
         measurement_model: statespace.DiscreteGaussian,
+        linearized_measurement_model: Optional[statespace.DiscreteGaussian] = None,
     ):
         """Apply particle filtering to a data set.
 
@@ -112,7 +112,9 @@ class ParticleFilter(BayesFiltSmooth):
         filtered_rvs = []
         info_dicts = []
 
-        for rv, info in self.filter_generator(regression_problem, measurement_model):
+        for rv, info in self.filter_generator(
+            regression_problem, measurement_model, linearized_measurement_model
+        ):
             filtered_rvs.append(rv)
             info_dicts.append(info)
 
@@ -127,6 +129,7 @@ class ParticleFilter(BayesFiltSmooth):
         self,
         regression_problem: problems.RegressionProblem,
         measurement_model: statespace.DiscreteGaussian,
+        linearized_measurement_model,
     ):
         """Apply Particle filtering to a data set.
 
@@ -147,6 +150,7 @@ class ParticleFilter(BayesFiltSmooth):
         """
 
         self.measurement_model = measurement_model
+        self.linearized_measurement_model = linearized_measurement_model
         dataset, times = regression_problem.observations, regression_problem.locations
 
         # Initialize: condition on first data point using the initial random
