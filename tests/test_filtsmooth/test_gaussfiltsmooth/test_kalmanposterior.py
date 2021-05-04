@@ -18,18 +18,21 @@ def setup(problem):
     regression_problem, statespace_components = problem
     kalman = filtsmooth.Kalman(
         statespace_components["dynamics_model"],
-        statespace_components["measurement_model"],
         statespace_components["initrv"],
     )
 
-    return kalman, regression_problem
+    return (
+        kalman,
+        regression_problem,
+        statespace_components["measurement_model"],
+    )
 
 
 @pytest.fixture
 def posterior(setup):
     """Kalman smoothing posterior."""
-    kalman, regression_problem = setup
-    posterior, _ = kalman.filtsmooth(regression_problem)
+    kalman, regression_problem, measurement_model = setup
+    posterior, _ = kalman.filtsmooth(regression_problem, measurement_model)
     return posterior
 
 
@@ -42,7 +45,7 @@ def test_len(posterior):
 
 def test_locations(posterior, setup):
     """Locations are stored correctly."""
-    _, regression_problem = setup
+    _, regression_problem, _ = setup
     times = regression_problem.locations
     np.testing.assert_allclose(posterior.locations, np.sort(posterior.locations))
     np.testing.assert_allclose(posterior.locations, times)
@@ -156,11 +159,11 @@ def test_sampling_shapes_1d(locs, size):
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
-    kalman = filtsmooth.Kalman(prior, measmod, initrv)
+    kalman = filtsmooth.Kalman(prior, initrv)
     regression_problem = problems.RegressionProblem(
         observations=data, locations=locations
     )
-    posterior, _ = kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(regression_problem, measmod)
 
     size = utils.as_shape(size)
     if locs is None:

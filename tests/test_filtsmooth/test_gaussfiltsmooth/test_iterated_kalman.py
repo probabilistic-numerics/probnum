@@ -13,26 +13,29 @@ def setup(request):
 
     kalman = filtsmooth.Kalman(
         statespace_components["dynamics_model"],
-        statespace_components["measurement_model"],
         statespace_components["initrv"],
     )
-    return kalman, regression_problem
+    return (
+        kalman,
+        regression_problem,
+        statespace_components["measurement_model"],
+    )
 
 
 def test_rmse_filt_smooth(setup):
     """Assert that iterated smoothing beats smoothing."""
 
     np.random.seed(12345)
-    kalman, regression_problem = setup
+    kalman, regression_problem, measurement_model = setup
     truth = regression_problem.solution
 
     stopcrit = filtsmooth.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
-    posterior, _ = kalman.filter(regression_problem)
+    posterior, _ = kalman.filter(regression_problem, measurement_model)
     posterior = kalman.smooth(posterior)
 
     iterated_posterior, _ = kalman.iterated_filtsmooth(
-        regression_problem, stopcrit=stopcrit
+        regression_problem, measurement_model, stopcrit=stopcrit
     )
 
     filtms = posterior.filtering_posterior.states.mean

@@ -15,20 +15,19 @@ def setup(request):
 
     kalman = filtsmooth.Kalman(
         statespace_components["dynamics_model"],
-        statespace_components["measurement_model"],
         statespace_components["initrv"],
     )
-    return kalman, regression_problem
+    return kalman, regression_problem, statespace_components["measurement_model"]
 
 
 def test_rmse_filt_smooth(setup):
     """Assert that smoothing beats filtering beats nothing."""
 
     np.random.seed(12345)
-    kalman, regression_problem = setup
+    kalman, regression_problem, measurement_model = setup
     truth = regression_problem.solution
 
-    posterior, _ = kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(regression_problem, measurement_model)
 
     filtms = posterior.filtering_posterior.states.mean
     smooms = posterior.states.mean
@@ -44,9 +43,9 @@ def test_info_dicts(setup):
     """Assert that smoothing beats filtering beats nothing."""
 
     np.random.seed(12345)
-    kalman, regression_problem = setup
+    kalman, regression_problem, measurement_model = setup
 
-    posterior, info_dicts = kalman.filtsmooth(regression_problem)
+    posterior, info_dicts = kalman.filtsmooth(regression_problem, measurement_model)
 
     assert isinstance(info_dicts, list)
     assert len(posterior) == len(info_dicts)

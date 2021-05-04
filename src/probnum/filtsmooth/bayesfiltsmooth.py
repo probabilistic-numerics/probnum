@@ -16,11 +16,9 @@ class BayesFiltSmooth(ABC):
     def __init__(
         self,
         dynamics_model: statespace.Transition,
-        measurement_model: statespace.Transition,
         initrv: randvars.RandomVariable,
     ):
         self.dynamics_model = dynamics_model
-        self.measurement_model = measurement_model
         self.initrv = initrv
 
     @abstractmethod

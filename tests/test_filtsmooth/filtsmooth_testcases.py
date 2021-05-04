@@ -84,10 +84,10 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         ekf_dyna = self.linearising_component_pendulum(
             statespace_components["dynamics_model"]
         )
-        method = filtsmooth.Kalman(ekf_dyna, ekf_meas, statespace_components["initrv"])
+        method = filtsmooth.Kalman(ekf_dyna, statespace_components["initrv"])
 
         # Compute filter/smoother solution
-        posterior, _ = method.filtsmooth(regression_problem)
+        posterior, _ = method.filtsmooth(regression_problem, ekf_meas)
         filtms = posterior.filtering_posterior.states.mean
         smooms = posterior.states.mean
 
