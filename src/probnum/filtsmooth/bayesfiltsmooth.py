@@ -21,7 +21,6 @@ class BayesFiltSmooth(ABC):
         self.dynamics_model = dynamics_model
         self.initrv = initrv
 
-    @abstractmethod
     def filter_step(
         self,
         start: FloatArgType,

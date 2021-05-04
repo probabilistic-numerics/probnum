@@ -1,6 +1,8 @@
 """Gaussian filtering and smoothing."""
 
 
+import itertools
+from collections import abc
 from typing import Iterable, Optional, Union
 
 import numpy as np
@@ -276,122 +278,154 @@ class Kalman(BayesFiltSmooth):
         --------
         RegressionProblem: a regression problem data class
         """
+
         dataset, times = regression_problem.observations, regression_problem.locations
 
-        _linearise_update_at = (
-            None if _previous_posterior is None else _previous_posterior(times[0])
-        )
+        if not isinstance(measurement_model, abc.Iterable):
+            measurement_model = itertools.repeat(measurement_model, len(times))
+
+        # _linearise_update_at = (
+        #     None if _previous_posterior is None else _previous_posterior(times[0])
+        # )
 
         self.measurement_model = measurement_model
-        info_dict = {"pred_rv": self.initrv, "info_pred": {}}
-        filtrv, info_dict["info_upd"] = self.update(
-            data=dataset[0],
-            rv=self.initrv,
-            time=times[0],
-            _linearise_at=_linearise_update_at,
-        )
-        yield filtrv, info_dict
+        # info_dict = {"pred_rv": self.initrv, "info_pred": {}}
 
-        for idx in range(1, len(times)):
-            _linearise_predict_at = (
-                None
-                if _previous_posterior is None
-                else _previous_posterior(times[idx - 1])
-            )
-            _linearise_update_at = (
-                None if _previous_posterior is None else _previous_posterior(times[idx])
-            )
+        t_old = times[0]  # will be initarg eventually
+        curr_rv = self.initrv
 
-            filtrv, info_dict = self.filter_step(
-                start=times[idx - 1],
-                stop=times[idx],
-                current_rv=filtrv,
-                data=dataset[idx],
-                _linearise_predict_at=_linearise_predict_at,
-                _linearise_update_at=_linearise_update_at,
+        for t, data, measmod in zip(times, dataset, measurement_model):
+            dt = t - t_old
+            info_dict = {}
+
+            # Potential prediction step
+            if dt > 0:
+                linearise_predict_at = (
+                    None if _previous_posterior is None else _previous_posterior(t_old)
+                )
+                curr_rv, info_dict["predict_info"] = self.dynamics_model.forward_rv(
+                    curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
+                )
+
+            # Update step
+            linearise_update_at = (
+                None if _previous_posterior is None else _previous_posterior(t)
+            )
+            curr_rv, info_dict["update_info"] = measmod.backward_realization(
+                realization_obtained=data, rv=curr_rv, _linearise_at=linearise_update_at
             )
 
-            yield filtrv, info_dict
+            yield curr_rv, info_dict
+            t_old = t
 
-    def filter_step(
-        self,
-        start,
-        stop,
-        current_rv,
-        data,
-        _linearise_predict_at=None,
-        _linearise_update_at=None,
-        _diffusion=1.0,
-    ):
-        """A single filter step.
+    #     filtrv, info_dict["info_upd"] = self.update(
+    #         data=dataset[0],
+    #         rv=self.initrv,
+    #         time=times[0],
+    #         _linearise_at=_linearise_update_at,
+    #     )
+    #     yield filtrv, info_dict
 
-        Consists of a prediction step (t -> t+1) and an update step (at t+1).
+    #     for idx in range(1, len(times)):
+    #         _linearise_predict_at = (
+    #             None
+    #             if _previous_posterior is None
+    #             else _previous_posterior(times[idx - 1])
+    #         )
+    #         _linearise_update_at = (
+    #             None if _previous_posterior is None else _previous_posterior(times[idx])
+    #         )
 
-        Parameters
-        ----------
-        start : float
-            Predict FROM this time point.
-        stop : float
-            Predict TO this time point.
-        current_rv : RandomVariable
-            Predict based on this random variable. For instance, this can be the result
-            of a previous call to filter_step.
-        data : array_like
-            Compute the update based on this data.
-        _linearise_predict_at
-            Linearise the prediction step at this RV. Used for iterated filtering and smoothing.
-        _linearise_update_at
-            Linearise the update step at this RV. Used for iterated filtering and smoothing.
-        _diffusion
-            Custom diffusion for the underlying Wiener process. Used in calibration.
+    #         filtrv, info_dict = self.filter_step(
+    #             start=times[idx - 1],
+    #             stop=times[idx],
+    #             current_rv=filtrv,
+    #             data=dataset[idx],
+    #             _linearise_predict_at=_linearise_predict_at,
+    #             _linearise_update_at=_linearise_update_at,
+    #         )
 
-        Returns
-        -------
-        RandomVariable
-            Resulting filter estimate after the single step.
-        dict
-            Additional information provided by predict() and update().
-            Contains keys `pred_rv`, `info_pred`, `meas_rv`, `info_upd`.
-        """
-        data = np.asarray(data)
-        info = {}
-        info["pred_rv"], info["info_pred"] = self.predict(
-            rv=current_rv,
-            start=start,
-            stop=stop,
-            _linearise_at=_linearise_predict_at,
-            _diffusion=_diffusion,
-        )
+    #         yield filtrv, info_dict
 
-        filtrv, info["info_upd"] = self.update(
-            rv=info["pred_rv"],
-            time=stop,
-            data=data,
-            _linearise_at=_linearise_update_at,
-        )
-        return filtrv, info
+    # def filter_step(
+    #     self,
+    #     start,
+    #     stop,
+    #     current_rv,
+    #     data,
+    #     _linearise_predict_at=None,
+    #     _linearise_update_at=None,
+    #     _diffusion=1.0,
+    # ):
+    #     """A single filter step.
 
-    def predict(self, rv, start, stop, _linearise_at=None, _diffusion=1.0):
-        return self.dynamics_model.forward_rv(
-            rv,
-            t=start,
-            dt=stop - start,
-            _linearise_at=_linearise_at,
-            _diffusion=_diffusion,
-        )
+    #     Consists of a prediction step (t -> t+1) and an update step (at t+1).
 
-    # Only here for compatibility reasons, not actually used in filter().
-    def measure(self, rv, time, _linearise_at=None):
-        return self.measurement_model.forward_rv(
-            rv,
-            t=time,
-            _linearise_at=_linearise_at,
-        )
+    #     Parameters
+    #     ----------
+    #     start : float
+    #         Predict FROM this time point.
+    #     stop : float
+    #         Predict TO this time point.
+    #     current_rv : RandomVariable
+    #         Predict based on this random variable. For instance, this can be the result
+    #         of a previous call to filter_step.
+    #     data : array_like
+    #         Compute the update based on this data.
+    #     _linearise_predict_at
+    #         Linearise the prediction step at this RV. Used for iterated filtering and smoothing.
+    #     _linearise_update_at
+    #         Linearise the update step at this RV. Used for iterated filtering and smoothing.
+    #     _diffusion
+    #         Custom diffusion for the underlying Wiener process. Used in calibration.
 
-    def update(self, rv, time, data, _linearise_at=None):
-        return self.measurement_model.backward_realization(
-            data, rv, t=time, _linearise_at=_linearise_at
-        )
+    #     Returns
+    #     -------
+    #     RandomVariable
+    #         Resulting filter estimate after the single step.
+    #     dict
+    #         Additional information provided by predict() and update().
+    #         Contains keys `pred_rv`, `info_pred`, `meas_rv`, `info_upd`.
+    #     """
+    #     data = np.asarray(data)
+    #     info = {}
+    #     info["pred_rv"], info["info_pred"] = self.predict(
+    #         rv=current_rv,
+    #         start=start,
+    #         stop=stop,
+    #         _linearise_at=_linearise_predict_at,
+    #         _diffusion=_diffusion,
+    #     )
+
+    #     filtrv, info["info_upd"] = self.update(
+    #         rv=info["pred_rv"],
+    #         time=stop,
+    #         data=data,
+    #         _linearise_at=_linearise_update_at,
+    #     )
+    #     return filtrv, info
+
+    # def predict(self, rv, start, stop, _linearise_at=None, _diffusion=1.0):
+    #     return self.dynamics_model.forward_rv(
+    #         rv,
+    #         t=start,
+    #         dt=stop - start,
+    #         _linearise_at=_linearise_at,
+    #         _diffusion=_diffusion,
+    #     )
+
+    # # Only here for compatibility reasons, not actually used in filter().
+    # def measure(self, rv, time, _linearise_at=None):
+    #     return self.measurement_model.forward_rv(
+    #         rv,
+    #         t=time,
+    #         _linearise_at=_linearise_at,
+    #     )
+
+    # def update(self, rv, time, data, _linearise_at=None):
+    #     return self.measurement_model.backward_realization(
+    #         data, rv, t=time, _linearise_at=_linearise_at
+    #     )
 
     def smooth(self, filter_posterior, _previous_posterior=None):
         """Apply Gaussian smoothing to the filtering outcome (i.e. a KalmanPosterior).
