@@ -35,7 +35,7 @@ class Kalman(BayesFiltSmooth):
         self,
         regression_problem: problems.RegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
-        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+        stopcrit: Optional[StoppingCriterion] = None,
     ):
         """Compute an iterated smoothing estimate with repeated posterior linearisation.
 
@@ -74,7 +74,7 @@ class Kalman(BayesFiltSmooth):
         self,
         regression_problem: problems.RegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
-        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+        stopcrit: Optional[StoppingCriterion] = None,
     ):
         """Compute iterated smoothing estimates with repeated posterior linearisation.
 

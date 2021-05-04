@@ -24,8 +24,8 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
     def __call__(
         self,
         bq_state: BQState,
-        new_nodes: Optional[np.ndarray] = None,
-        new_fun_evals: Optional[np.ndarray] = None,
+        new_nodes: np.ndarray = None,
+        new_fun_evals: np.ndarray = None,
     ):
         """Updates integral belief and BQ state according to the new data given.
 
@@ -48,14 +48,9 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
 
         # Update nodes and function evaluations
         old_nodes = bq_state.nodes
-        if new_nodes is None:
-            nodes = bq_state.nodes
-            fun_evals = bq_state.fun_evals
-        else:
-            if new_fun_evals is None:
-                new_fun_evals = bq_state.fun(new_nodes)
-            nodes = np.concatenate((bq_state.nodes, new_nodes), axis=0)
-            fun_evals = np.append(bq_state.fun_evals, new_fun_evals)
+
+        nodes = np.concatenate((bq_state.nodes, new_nodes), axis=0)
+        fun_evals = np.append(bq_state.fun_evals, new_fun_evals)
 
         # kernel quantities
         gram_new_new = np.atleast_2d(bq_state.kernel(new_nodes))

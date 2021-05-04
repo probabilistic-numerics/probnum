@@ -89,7 +89,7 @@ def bayesquad(
     Returns
     -------
     integral :
-        The integral of ``func`` on the domain.
+        The integral of ``fun`` on the domain.
     info :
         Information on the performance of the method.
 
@@ -139,5 +139,80 @@ def bayesquad(
 
     # Integrate
     integral_belief, bq_state = bq_method.integrate(fun=fun)
+
+    return integral_belief, bq_state.info
+
+
+def bayesquad_fixed(
+    nodes: np.ndarray,
+    f_evals: np.ndarray,
+    kernel: Optional[Kernel] = None,
+    domain: Optional[
+        Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
+    ] = None,
+    measure: Optional[IntegrationMeasure] = None,
+) -> Tuple[Normal, Dict]:
+    r"""Infer the value of an integral from a given set of nodes and function evaluations.
+
+    Parameters
+    ----------
+    nodes :
+        *shape=(n_eval, dim)* -- locations at which the function should be evaluated or where
+        function evaluations are already available as ``f_eval``.
+    f_evals :
+        *shape=(n_eval,)* -- function evaluations at ``nodes``.
+    kernel :
+        the kernel used for the GP model
+    domain :
+        *shape=(dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
+    measure:
+        Integration measure, defaults to the Lebesgue measure.
+
+    Returns
+    -------
+    integral :
+        The integral of ``fun`` on the domain.
+    info :
+        Information on the performance of the method.
+
+    Raises
+    ------
+    ValueError
+        If neither a domain nor a measure are given.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> domain = (0, 1)
+    >>> nodes = np.linspace(0, 1, 15)
+    Let :math:`f(x)=3x^2`
+    >>> f_evals = 3*nodes**2
+    >>> F, info = bayesquad_fixed(nodes=nodes, f_evals=f_evals, domain=domain)
+    >>> print(F.mean)
+    0.5000
+    """
+
+    n_evals, input_dim = nodes.shape
+
+    # measure
+    if domain is None and measure is None:
+        raise ValueError(
+            "You need to either specify an integration domain or an integration "
+            "measure. The Lebesgue measure can only operate on a finite domain."
+        )
+
+    if measure is None:
+        measure = LebesgueMeasure(domain=domain, dim=input_dim)
+
+    bq_method = BayesianQuadrature.from_interface(
+        input_dim=input_dim,
+        kernel=kernel,
+        measure=measure,
+        max_nevals=n_evals,
+        batch_size=n_evals,
+    )
+
+    # Integrate
+    integral_belief, bq_state = bq_method.integrate(nodes=nodes, fun_evals=f_evals)
 
     return integral_belief, bq_state.info

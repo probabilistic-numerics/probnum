@@ -54,8 +54,6 @@ class BQState:
 
     Parameters
     ----------
-    fun :
-        The integrand.
     measure :
         The integration measure.
     kernel :
@@ -92,14 +90,16 @@ class BQState:
         self.previous_integral_beliefs = previous_integral_beliefs
         self.dim = measure.dim
         self.batch_size = batch_size
+
         if nodes is None:
             self.nodes = np.empty((0, self.dim))
             self.fun_evals = np.array([])
         else:
             self.nodes = nodes
             self.fun_evals = fun_evals
+
         if info is None:
-            info = BQInfo()
+            info = BQInfo(nevals=self.fun_evals.size)
         self.info = info
         self.gram = gram
         self.kernel_means = kernel_means

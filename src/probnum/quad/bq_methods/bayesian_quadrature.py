@@ -43,13 +43,13 @@ class BayesianQuadrature:
         measure: IntegrationMeasure,
         policy: Policy,
         belief_update: BQBeliefUpdate,
+        bq_state: Optional[BQState],
         stopping_criteria: List[StoppingCriterion],
     ) -> None:
         self.kernel = kernel
         self.measure = measure
         self.policy = policy
         self.belief_update = belief_update
-        self.bq_state = bq_state
         self.stopping_criteria = stopping_criteria
 
     @classmethod
@@ -59,10 +59,10 @@ class BayesianQuadrature:
         kernel: Optional[Kernel] = None,
         measure: IntegrationMeasure = None,
         policy: str = "bmc",
-        max_nevals: IntArgType = None,
-        var_tol: FloatArgType = None,
-        rel_tol: FloatArgType = None,
-        batch_size: IntArgType = 1,
+        max_nevals: Optional[IntArgType] = None,
+        var_tol: Optional[FloatArgType] = None,
+        rel_tol: Optional[FloatArgType] = None,
+        batch_size: Optional[IntArgType] = 1,
     ) -> "BayesianQuadrature":
 
         # Select policy and belief update
@@ -90,36 +90,16 @@ class BayesianQuadrature:
             _stopping_criteria.append(IntegralVariance(var_tol=1e-6))
             _stopping_criteria.append(MaxNevals(max_nevals=input_dim * 25))
 
-        # Intitialize BQ state that carries all the information
-        integral_belief = Normal(
-            0.0, KernelEmbedding(kernel, measure).kernel_variance()
-        )
-        bq_state = BQState(
-            measure=measure,
-            kernel=kernel,
-            batch_size=batch_size,
-            integral_belief=integral_belief,
-        )
-
         return cls(
             kernel=kernel,
             measure=measure,
             policy=policy,
             belief_update=belief_update,
-            bq_state=bq_state,
             stopping_criteria=_stopping_criteria,
         )
 
-    def has_converged(self, integral_belief: Normal, bq_state: BQState) -> bool:
+    def has_converged(self) -> bool:
         """Checks if the BQ method has converged.
-
-        Parameters
-        ----------
-        integral_belief:
-            Current belief about the integral.
-        bq_state:
-            State of the Bayesian quadrature methods. Contains all necessary information about the
-            problem and the computation.
 
         Returns
         -------
@@ -144,7 +124,7 @@ class BayesianQuadrature:
 
     def bq_iterator(
         self,
-        fun,
+        fun: Optional[Callable] = None,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
         integral_belief: Optional[Normal] = None,
@@ -186,14 +166,12 @@ class BayesianQuadrature:
                 integral_belief = Normal(
                     0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
                 )
+
             bq_state = BQState(
-                fun=fun,
                 measure=self.measure,
                 kernel=self.kernel,
                 integral_belief=integral_belief,
                 batch_size=self.policy.batch_size,
-                nodes=nodes,
-                fun_evals=fun_evals,
             )
 
         integral_belief = bq_state.integral_belief
@@ -201,17 +179,17 @@ class BayesianQuadrature:
         if nodes is not None:
             if fun_evals is None:
                 fun_evals = fun(nodes)
+
             integral_belief, bq_state = self.belief_update(
                 bq_state=bq_state,
+                new_nodes=nodes,
+                new_fun_evals=fun_evals,
             )
 
         # Evaluate stopping criteria for the initial belief
-        integral_belief = self.bq_state.integral_belief
-        _has_converged = self.has_converged(
-            integral_belief=integral_belief, bq_state=self.bq_state
-        )
+        _has_converged = self.has_converged()
 
-        yield integral_belief, None, None, self.bq_state
+        yield integral_belief, None, None, bq_state
 
         while True:
             # Have we already converged?
@@ -219,11 +197,7 @@ class BayesianQuadrature:
                 break
 
             # Select new nodes via policy
-            # TODO: policy should get batch size?
-            # TODO: policy can retrieve integral_belief from bq_state
-            new_nodes = self.policy(
-                bq_state=bq_state,
-            )
+            new_nodes = self.policy(bq_state=bq_state)
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)
@@ -239,22 +213,23 @@ class BayesianQuadrature:
             # Evaluate stopping criteria
             _has_converged = self.has_converged()
 
-            yield integral_belief, new_nodes, new_fun_evals, self.bq_state
+            yield integral_belief, new_nodes, new_fun_evals, bq_state
 
     def integrate(
         self,
-        fun: Callable,
+        fun: Optional[Callable] = None,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
     ):
         """Integrate the function ``fun``.
 
+        ``fun`` may be analytically given, or numerically in terms of ``fun_evals`` at fixed nodes.
         This function calls the generator ``bq_iterator`` until the first stopping criterion is met.
 
         Parameters
         ----------
         fun :
-            The integrand.
+            The integrand. Optional when fixed function evaluations are instead passed.
         nodes :
             Optional nodes available from the start.
         fun_evals :
@@ -267,6 +242,8 @@ class BayesianQuadrature:
         bq_state:
             Final state of the Bayesian quadrature methods.
         """
+        if fun is None and fun_evals is None:
+            raise ValueError("You need to provide a function to be integrated!")
 
         bq_state = None
         for (integral_belief, _, _, bq_state) in self.bq_iterator(
