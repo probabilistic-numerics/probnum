@@ -4,4 +4,7 @@ from ._expquad_lebesgue import (
     _kernel_variance_expquad_lebesgue,
 )
 from ._kernel_embedding import KernelEmbedding
-from ._matern_lebesgue import _kernel_mean_matern_lebesgue
+from ._matern_lebesgue import (
+    _kernel_mean_matern_lebesgue,
+    _kernel_variance_matern_lebesgue,
+)

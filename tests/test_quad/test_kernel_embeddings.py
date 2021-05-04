@@ -184,3 +184,21 @@ def test_kernel_mean_matern_lebesgue_measure(matern_kernel, measure, num_data):
     np.testing.assert_allclose(
         true_kernel_means, num_kernel_means, rtol=1.0e-5, atol=1.0e-5
     )
+
+
+@pytest.mark.parametrize("input_dim", [1, 2, 3])
+@pytest.mark.parametrize("measure_name", ["lebesgue"])
+def test_kernel_variance_matern_lebesgue_measure(matern_kernel, measure):
+    kernel_embedding = KernelEmbedding(matern_kernel, measure)
+    n_gl = 20
+    x_gl, w_gl = gauss_legendre_tensor(
+        n_points=n_gl,
+        dim=kernel_embedding.dim,
+        domain=kernel_embedding.measure.domain,
+        normalized=kernel_embedding.measure.normalized,
+    )
+    num_kernel_variance = kernel_embedding.kernel_mean(x_gl) @ w_gl
+    true_kernel_variance = kernel_embedding.kernel_variance()
+    np.testing.assert_allclose(
+        true_kernel_variance, num_kernel_variance, rtol=1.0e-3, atol=1.0e-3
+    )

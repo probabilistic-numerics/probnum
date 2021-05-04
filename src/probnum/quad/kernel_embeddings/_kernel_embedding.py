@@ -16,6 +16,7 @@ from probnum.quad.kernel_embeddings import (
     _kernel_mean_matern_lebesgue,
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
+    _kernel_variance_matern_lebesgue,
 )
 
 
@@ -101,7 +102,7 @@ def _get_kernel_embedding(
     # Matern
     if isinstance(kernel, (Matern, ProductMatern)):
         if isinstance(measure, LebesgueMeasure):
-            return _kernel_mean_matern_lebesgue, None
+            return _kernel_mean_matern_lebesgue, _kernel_variance_matern_lebesgue
 
     # other kernels
     raise NotImplementedError

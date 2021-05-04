@@ -173,7 +173,10 @@ def fixture_f1d(request):
 
 # Matern kernels
 @pytest.fixture(
-    params=[pytest.param(matern_nu, id=f"nu={matern_nu}") for matern_nu in [0.5]],
+    params=[
+        pytest.param(matern_nu, id=f"nu={matern_nu}")
+        for matern_nu in [0.5, 1.5, 2.5, 3.5]
+    ],
     name="matern_nu",
 )
 def fixture_matern_nu(request) -> int:
