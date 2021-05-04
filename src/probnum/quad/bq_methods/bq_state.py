@@ -1,6 +1,6 @@
 """State of a Bayesian quadrature method."""
 
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
@@ -77,15 +77,19 @@ class BQState:
         measure: IntegrationMeasure,
         kernel: Kernel,
         integral_belief: Optional[Normal] = None,
+        previous_integral_beliefs: Optional[Tuple[Normal]] = (),
         info: Optional[BQInfo] = None,
         batch_size: Optional[int] = 1,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
+        gram=None,
+        kernel_means=None,
     ):
         self.measure = measure
         self.kernel = kernel
         self.kernel_embedding = KernelEmbedding(kernel, measure)
         self.integral_belief = integral_belief
+        self.previous_integral_beliefs = previous_integral_beliefs
         self.dim = measure.dim
         self.batch_size = batch_size
         if nodes is None:
@@ -97,15 +101,23 @@ class BQState:
         if info is None:
             info = BQInfo()
         self.info = info
+        self.gram = gram
+        self.kernel_means = kernel_means
 
     @classmethod
-    def from_new_data(cls, nodes, fun_evals, integral_belief, prev_state):
+    def from_new_data(
+        cls, nodes, fun_evals, integral_belief, prev_state, gram, kernel_means
+    ):
         return cls(
             measure=prev_state.measure,
             kernel=prev_state.kernel,
             integral_belief=integral_belief,
+            previous_integral_beliefs=prev_state.previous_integral_beliefs
+            + (prev_state.integral_belief,),
             info=prev_state.info,
             batch_size=prev_state.batch_size,
             nodes=nodes,
             fun_evals=fun_evals,
+            gram=gram,
+            kernel_means=kernel_means,
         )
