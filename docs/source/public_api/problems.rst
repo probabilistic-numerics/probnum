@@ -20,6 +20,12 @@ probnum.problems.zoo.diffeq
 .. automodapi:: probnum.problems.zoo.diffeq
     :no-heading:
 
+probnum.problems.zoo.filtsmooth
+-------------------------------
+
+.. automodapi:: probnum.problems.zoo.filtsmooth
+    :no-heading:
+
 probnum.problems.zoo.linalg
 ---------------------------
 

@@ -25,7 +25,7 @@ class RegressionProblem:
     locations
         Grid-points on which the observations were taken.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        Array containing solution to the problem at ``locations``. Used for testing and benchmarking.
 
     Examples
     --------

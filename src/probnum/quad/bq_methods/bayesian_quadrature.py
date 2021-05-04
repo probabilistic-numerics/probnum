@@ -1,10 +1,8 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from functools import partial
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, List, Optional
 
 import numpy as np
-from scipy.linalg import cho_factor, cho_solve
 
 from probnum.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
@@ -12,14 +10,10 @@ from probnum.type import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure
 from ..kernel_embeddings import KernelEmbedding
-from ..policies import sample_from_measure
-from .belief_updates._belief_update import BQStandardBeliefUpdate
+from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
-from .stop_criteria._stopping_criterion import (
-    IntegralVariance,
-    MaxNevals,
-    RelativeError,
-)
+from .policies import Policy, RandomPolicy
+from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
 
 
 class BayesianQuadrature:
@@ -31,20 +25,25 @@ class BayesianQuadrature:
 
     Parameters
     ----------
-    kernel:
+    kernel :
         The kernel used for the GP model.
-    policy:
+    measure :
+        The integration measure.
+    policy :
         The policy for acquiring nodes for function evaluations.
+    belief_update :
+        The inference method.
+    stopping_criteria :
+        List of criteria that determine convergence.
     """
 
     def __init__(
         self,
         kernel: Kernel,
         measure: IntegrationMeasure,
-        policy: Callable,
-        belief_update,
-        bq_state,
-        stopping_criteria,
+        policy: Policy,
+        belief_update: BQBeliefUpdate,
+        stopping_criteria: List[StoppingCriterion],
     ) -> None:
         self.kernel = kernel
         self.measure = measure
@@ -59,7 +58,6 @@ class BayesianQuadrature:
         input_dim: int,
         kernel: Optional[Kernel] = None,
         measure: IntegrationMeasure = None,
-        method: str = "vanilla",
         policy: str = "bmc",
         max_nevals: IntArgType = None,
         var_tol: FloatArgType = None,
@@ -68,13 +66,10 @@ class BayesianQuadrature:
     ) -> "BayesianQuadrature":
 
         # Select policy and belief update
-        # TODO: Rewrite this logic
-        if method != "vanilla":
-            raise NotImplementedError
         if kernel is None:
             kernel = ExpQuad(input_dim=input_dim)
         if policy == "bmc":
-            policy = partial(sample_from_measure, nevals=batch_size, measure=measure)
+            policy = RandomPolicy(measure, batch_size=batch_size)
             belief_update = BQStandardBeliefUpdate()
         else:
             raise NotImplementedError(
@@ -115,7 +110,22 @@ class BayesianQuadrature:
             stopping_criteria=_stopping_criteria,
         )
 
-    def has_converged(self):
+    def has_converged(self, integral_belief: Normal, bq_state: BQState) -> bool:
+        """Checks if the BQ method has converged.
+
+        Parameters
+        ----------
+        integral_belief:
+            Current belief about the integral.
+        bq_state:
+            State of the Bayesian quadrature methods. Contains all necessary information about the
+            problem and the computation.
+
+        Returns
+        -------
+        has_converged:
+            Whether or not the solver has converged.
+        """
 
         if self.bq_state.info.has_converged:
             return True
@@ -132,7 +142,69 @@ class BayesianQuadrature:
                 return True
         return False
 
-    def bq_iterator(self, fun: Callable, measure: IntegrationMeasure):
+    def bq_iterator(
+        self,
+        fun,
+        nodes: Optional[np.ndarray] = None,
+        fun_evals: Optional[np.ndarray] = None,
+        integral_belief: Optional[Normal] = None,
+        bq_state: Optional[BQState] = None,
+    ):
+        """Generator that implements the iteration of the BQ method.
+
+        This function exposes the state of the BQ method one step at a time while running the loop.
+
+        Parameters
+        ----------
+        fun :
+            The integrand.
+        nodes :
+            Optional nodes available from the start.
+        fun_evals :
+            Optional function evaluations available from the start.
+        integral_belief:
+            Current belief about the integral.
+        bq_state:
+            State of the Bayesian quadrature methods. Contains all necessary information about the
+            problem and the computation.
+
+        Returns
+        -------
+        integral_belief:
+            Updated belief about the integral.
+        new_nodes:
+            The new location(s) found during the iteration.
+        new_fun_evals:
+            The function evaluations at the new locations.
+        bq_state:
+            Updated state of the Bayesian quadrature methods.
+        """
+
+        # Setup
+        if bq_state is None:
+            if integral_belief is None:
+                integral_belief = Normal(
+                    0.0, KernelEmbedding(self.kernel, self.measure).kernel_variance()
+                )
+            bq_state = BQState(
+                fun=fun,
+                measure=self.measure,
+                kernel=self.kernel,
+                integral_belief=integral_belief,
+                batch_size=self.policy.batch_size,
+                nodes=nodes,
+                fun_evals=fun_evals,
+            )
+
+        integral_belief = bq_state.integral_belief
+
+        if nodes is not None:
+            if fun_evals is None:
+                fun_evals = fun(nodes)
+            integral_belief, bq_state = self.belief_update(
+                bq_state=bq_state,
+            )
+
         # Evaluate stopping criteria for the initial belief
         integral_belief = self.bq_state.integral_belief
         _has_converged = self.has_converged(
@@ -142,121 +214,64 @@ class BayesianQuadrature:
         yield integral_belief, None, None, self.bq_state
 
         while True:
+            # Have we already converged?
+            if _has_converged:
+                break
 
             # Select new nodes via policy
             # TODO: policy should get batch size?
             # TODO: policy can retrieve integral_belief from bq_state
             new_nodes = self.policy(
-                bq_state=self.bq_state,
+                bq_state=bq_state,
             )
 
             # Evaluate the integrand at new nodes
             new_fun_evals = fun(new_nodes)
 
-            # Update BQ state
-            self.bq_state = BQState.from_new_data(
+            integral_belief, bq_state = self.belief_update(
+                bq_state=bq_state,
                 new_nodes=new_nodes,
                 new_fun_evals=new_fun_evals,
-                prev_state=self.bq_state,
             )
 
-            # Update integral belief
-            integral_belief, self.bq_state = self.belief_update(
-                measure=measure,
-                kernel=self.kernel,
-                integral_belief=integral_belief,
-                new_nodes=new_nodes,
-                new_fun_evals=new_fun_evals,
-                bq_state=self.bq_state,
-            )
-
-            self.bq_state.info.iteration += 1
-            self.bq_state.info.nevals += self.bq_state.batch_size
+            bq_state.info.update_iteration(bq_state.batch_size)
 
             # Evaluate stopping criteria
             _has_converged = self.has_converged()
 
             yield integral_belief, new_nodes, new_fun_evals, self.bq_state
 
-            if _has_converged:
-                break
+    def integrate(
+        self,
+        fun: Callable,
+        nodes: Optional[np.ndarray] = None,
+        fun_evals: Optional[np.ndarray] = None,
+    ):
+        """Integrate the function ``fun``.
 
-    def integrate(self, fun: Callable, measure: IntegrationMeasure):
+        This function calls the generator ``bq_iterator`` until the first stopping criterion is met.
+
+        Parameters
+        ----------
+        fun :
+            The integrand.
+        nodes :
+            Optional nodes available from the start.
+        fun_evals :
+            Optional function evaluations available from the start.
+
+        Returns
+        -------
+        integral_belief:
+            Posterior belief about the integral.
+        bq_state:
+            Final state of the Bayesian quadrature methods.
+        """
 
         bq_state = None
-        for (integral_belief, _, _, bq_state) in self.bq_iterator(fun, measure):
+        for (integral_belief, _, _, bq_state) in self.bq_iterator(
+            fun, nodes, fun_evals
+        ):
             pass
 
         return integral_belief, bq_state
-
-    def integrate_OLD(
-        self, fun: Callable, measure: IntegrationMeasure, nevals: int
-    ) -> Tuple[Normal, Dict]:
-        r"""Integrate the function ``fun``.
-
-        Parameters
-        ----------
-        fun:
-            The integrand function :math:`f`.
-        measure :
-            An integration measure :math:`\mu`.
-        nevals :
-            Number of function evaluations.
-
-        Returns
-        -------
-        F :
-            The integral of ``fun`` against ``measure``.
-        info :
-            Information on the performance of the method.
-        """
-
-        # Acquisition policy
-        nodes = self.policy(nevals, measure)
-        fun_evals = fun(nodes)
-
-        # compute integral mean and variance
-        # Define kernel embedding
-        kernel_embedding = KernelEmbedding(self.kernel, measure)
-        gram = self.kernel(nodes, nodes)
-        kernel_mean = kernel_embedding.kernel_mean(nodes)
-        initial_error = kernel_embedding.kernel_variance()
-
-        weights = self._solve_gram(gram, kernel_mean)
-
-        integral_mean = np.squeeze(weights.T @ fun_evals)
-        integral_variance = initial_error - weights.T @ kernel_mean
-
-        integral = Normal(integral_mean, integral_variance)
-
-        # Information on result
-        info = {"model_fit_diagnostic": None}
-
-        return integral, info
-
-    # The following functions are here for the minimal version
-    # and shall be factored out once BQ is expanded.
-    # 1. acquisition policy
-    # 2. GP inference
-
-    @staticmethod
-    def _solve_gram(gram: np.ndarray, rhs: np.ndarray) -> np.ndarray:
-        """Solve the linear system of the form.
-
-        .. math:: Kx=b.
-
-        Parameters
-        ----------
-        gram :
-            *shape=(nevals, nevals)* -- Symmetric pos. def. kernel Gram matrix :math:`K`.
-        rhs :
-            *shape=(nevals, ...)* -- Right-hand-side :math:`b`, matrix or vector.
-
-        Returns
-        -------
-        x:
-            The solution to the linear system :math:`K x = b`.
-        """
-        jitter = 1.0e-6
-        chol_gram = cho_factor(gram + jitter * np.eye(gram.shape[0]))
-        return cho_solve(chol_gram, rhs)

@@ -30,10 +30,11 @@ def bayesquad(
         Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
-    method: str = "vanilla",
     policy: str = "bmc",
     max_nevals: Optional[IntArgType] = None,
-    var_tol: Optional[FloatArgType] = None,
+    var_tol: Optional[
+        FloatArgType
+    ] = None,  # TODO: shall we set a default variance tolerance?
     rel_tol: Optional[FloatArgType] = None,
     batch_size: Optional[IntArgType] = 1,
 ) -> Tuple[Normal, Dict]:
@@ -60,33 +61,30 @@ def bayesquad(
     ----------
     fun :
         Function to be integrated.
-    input_dim:
+    input_dim :
         Input dimension of the integration problem
-    kernel:
+    kernel :
         the kernel used for the GP model
     domain :
         *shape=(dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
     measure:
         Integration measure, defaults to the Lebesgue measure.
-    nevals :
-        Number of function evaluations.
-    method :
-        Type of Bayesian quadrature to use. The available options are
-
-        ====================  ===========
-         vanilla              ``vanilla``
-         WSABI                ``wsabi``
-        ====================  ===========
-
     policy :
         Type of acquisition strategy to use. Options are
 
-        =======================  =======
-         Bayesian Monte Carlo    ``bmc``
-         Uncertainty Sampling    ``us``
-         Mutual Information      ``mi``
-         Integral Variance       ``iv``
-        =======================  =======
+        ==========================  =======
+         Bayesian Monte Carlo [2]_  ``bmc``
+         Uncertainty Sampling       ``us``
+         Mutual Information         ``mi``
+         Integral Variance          ``iv``
+        ==========================  =======
+
+    max_nevals :
+        Maximum number of function evaluations.
+    var_tol :
+        Tolerance on the variance of the integral.
+    rel_tol :
+        Tolerance on consecutive updates of the integral mean.
 
     Returns
     -------
@@ -95,10 +93,17 @@ def bayesquad(
     info :
         Information on the performance of the method.
 
+    Raises
+    ------
+    ValueError
+        If neither a domain nor a measure are given.
+
     References
     ----------
     .. [1] Briol, F.-X., et al., Probabilistic integration: A role in statistical computation?,
        *Statistical Science 34.1*, 2019, 1-22, 2019
+    .. [2] Rasmussen, C. E., and Z. Ghahramani, Bayesian Monte Carlo, *Advances in
+        Neural Information Processing Systems*, 2003, 505-512.
 
     Examples
     --------
@@ -125,7 +130,6 @@ def bayesquad(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
-        method=method,
         policy=policy,
         max_nevals=max_nevals,
         var_tol=var_tol,
@@ -134,6 +138,6 @@ def bayesquad(
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(fun=fun, measure=measure)
+    integral_belief, bq_state = bq_method.integrate(fun=fun)
 
     return integral_belief, bq_state.info

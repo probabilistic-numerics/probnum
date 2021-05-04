@@ -1,10 +1,19 @@
+from typing import Union
+
 import numpy as np
 import scipy.sparse
 
 from . import _linear_operator
 
+LinearOperatorLike = Union[
+    _linear_operator.LinearOperator,
+    np.ndarray,
+    scipy.sparse.spmatrix,
+    scipy.sparse.linalg.LinearOperator,
+]
 
-def aslinop(A) -> _linear_operator.LinearOperator:
+
+def aslinop(A: LinearOperatorLike) -> _linear_operator.LinearOperator:
     """Return ``A`` as a :class:`LinearOperator`.
 
     Parameters
@@ -29,12 +38,17 @@ def aslinop(A) -> _linear_operator.LinearOperator:
     >>> from probnum.linops import aslinop
     >>> M = np.array([[1,2,3],[4,5,6]], dtype=np.int32)
     >>> aslinop(M)
-    <2x3 MatrixMult with dtype=int32>
+    <Matrix with shape=(2, 3) and dtype=int32>
     """
-    if isinstance(A, scipy.sparse.linalg.LinearOperator):
+    if isinstance(A, _linear_operator.LinearOperator):
         return A
     elif isinstance(A, (np.ndarray, scipy.sparse.spmatrix)):
-        return _linear_operator.MatrixMult(A=A)
+        return _linear_operator.Matrix(A=A)
+    elif isinstance(A, scipy.sparse.linalg.LinearOperator):
+        return _linear_operator.LinearOperator(
+            A.shape,
+            A.dtype,
+            matmul=_linear_operator.LinearOperator.broadcast_matmat(A.matmat),
+        )
     else:
-        op = scipy.sparse.linalg.aslinearoperator(A)
-        return _linear_operator.LinearOperator(op)
+        raise TypeError(f"Cannot interpret {A} as a linear operator.")
