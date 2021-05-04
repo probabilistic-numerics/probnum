@@ -1,17 +1,29 @@
 """Gaussian filtering and smoothing."""
 
 
-from typing import Optional
+from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import problems
+from probnum import problems, statespace
 from probnum.filtsmooth.gaussfiltsmooth import stoppingcriterion
 
 from ..bayesfiltsmooth import BayesFiltSmooth
 from ..timeseriesposterior import TimeSeriesPosterior
+from .extendedkalman import DiscreteEKFComponent
 from .kalmanposterior import FilteringPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
+from .unscentedkalman import DiscreteUKFComponent
+
+# Measurement models for a Kalman filter can be all sorts of things:
+KalmanSingleMeasurementModelType = Union[
+    statespace.DiscreteLinearGaussian,
+    DiscreteEKFComponent,
+    DiscreteUKFComponent,
+]
+KalmanMeasurementModelArgType = Union[
+    KalmanSingleMeasurementModelType, Iterable[KalmanSingleMeasurementModelType]
+]
 
 
 class Kalman(BayesFiltSmooth):
@@ -30,7 +42,7 @@ class Kalman(BayesFiltSmooth):
     def iterated_filtsmooth(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model,
+        measurement_model: KalmanMeasurementModelArgType,
         init_posterior: Optional[SmoothingPosterior] = None,
         stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
     ):
@@ -42,9 +54,10 @@ class Kalman(BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
         measurement_model
-            Measurement model. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
+            Measurement model as a transition or list of transitions. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
             This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
             For 2-dimensional observations, `L=2`.
             If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
@@ -75,7 +88,7 @@ class Kalman(BayesFiltSmooth):
     def iterated_filtsmooth_posterior_generator(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model,
+        measurement_model: KalmanMeasurementModelArgType,
         init_posterior: Optional[SmoothingPosterior] = None,
         stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
     ):
@@ -87,7 +100,13 @@ class Kalman(BayesFiltSmooth):
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
+        measurement_model
+            Measurement model as a transition or list of transitions. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
+            This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
+            For 2-dimensional observations, `L=2`.
+            If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
         init_posterior
             Initial posterior to linearize at. Defaults to computing a (non-iterated)
             smoothing posterior, which amounts to linearizing at the prediction
@@ -137,14 +156,20 @@ class Kalman(BayesFiltSmooth):
     def filtsmooth(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model,
+        measurement_model: KalmanMeasurementModelArgType,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
+        measurement_model
+            Measurement model as a transition or list of transitions. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
+            This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
+            For 2-dimensional observations, `L=2`.
+            If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -172,14 +197,20 @@ class Kalman(BayesFiltSmooth):
     def filter(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model,
+        measurement_model: KalmanMeasurementModelArgType,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
+        measurement_model
+            Measurement model as a transition or list of transitions. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
+            This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
+            For 2-dimensional observations, `L=2`.
+            If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
@@ -216,14 +247,20 @@ class Kalman(BayesFiltSmooth):
     def filtered_states_generator(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model,
+        measurement_model: KalmanMeasurementModelArgType,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
+        measurement_model
+            Measurement model as a transition or list of transitions. Usually an DiscreteLTIGaussian, but any DiscreteLinearGaussian is acceptable.
+            This model maps the `K` dimensional prior state (see above) to the `L` dimensional space in which the observation ''live''.
+            For 2-dimensional observations, `L=2`.
+            If an DiscreteLTIGaussian, the measurement matrix is :math:`L \\times K` dimensional, the forcevec is `L` dimensional and the meascov is `L \\times L` dimensional.
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.

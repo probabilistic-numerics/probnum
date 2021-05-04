@@ -1,6 +1,6 @@
 """Particle filters."""
 
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 import numpy as np
 
@@ -9,6 +9,14 @@ from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.type import FloatArgType, IntArgType
 
 from ._particle_filter_posterior import ParticleFilterPosterior
+
+# Terribly long variable names, but internal only, so no worries.
+ParticleFilterMeasurementModelArgType = Union[
+    statespace.DiscreteGaussian, Iterable[statespace.DiscreteGaussian]
+]
+ParticleFilterLinearisedMeasurementModelArgType = Union[
+    statespace.DiscreteGaussian, Iterable[statespace.DiscreteGaussian]
+]
 
 
 def effective_number_of_events(categ_rv: randvars.Categorical) -> float:
@@ -35,20 +43,10 @@ class ParticleFilter(BayesFiltSmooth):
         Prior dynamics. Since the PF is essentially a discrete-time algorithm,
         the prior must be a discrete model (or at least one with an equivalent discretisation).
         This transition must support `forward_realization`.
-    measurement_model :
-        Measurement model. Must be a discrete model that supports `forward_realization`.
     initrv :
         Initial random variable. Can be any `RandomVariable` object that implements `sample()`.
     num_particles :
         Number of particles to use.
-    linearized_measurement_model :
-        Linearized measurement model that is used as an importance density. In principle,
-        any discrete-time model that supports `backward_realization` is applicable.
-        In practice, it will almost always be one out of `DiscreteEKFComponent`, `DiscreteUKFComponent`,
-        or `IteratedDiscreteComponent`. Linear components are also possible, but would most often imply
-        that a particle filter is not required, because the filtering problem can be used much faster
-        with a Kalman filter. The exception to this rule is if the initial random variable is not Gaussian.
-        Optional. Default is None, which implies the bootstrap PF.
     with_resampling :
         Whether after each step the effective number of particles shall be checked, and, if too low,
         the state should be resampled. Optional. Default is `True`.
@@ -89,14 +87,27 @@ class ParticleFilter(BayesFiltSmooth):
     def filter(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model: statespace.DiscreteGaussian,
-        linearized_measurement_model: Optional[statespace.DiscreteGaussian] = None,
+        measurement_model: ParticleFilterMeasurementModelArgType,
+        linearized_measurement_model: Optional[
+            ParticleFilterLinearisedMeasurementModelArgType
+        ] = None,
     ):
         """Apply particle filtering to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
+        measurement_model :
+            Measurement model. Must be a discrete model that supports `forward_realization`.
+        linearized_measurement_model :
+            Linearized measurement model that is used as an importance density. In principle,
+            any discrete-time model that supports `backward_realization` is applicable.
+            In practice, it will almost always be one out of `DiscreteEKFComponent`, `DiscreteUKFComponent`,
+            or `IteratedDiscreteComponent`. Linear components are also possible, but would most often imply
+            that a particle filter is not required, because the filtering problem can be used much faster
+            with a Kalman filter. The exception to this rule is if the initial random variable is not Gaussian.
+            Optional. Default is None, which implies the bootstrap PF.
 
         Returns
         -------
@@ -128,14 +139,27 @@ class ParticleFilter(BayesFiltSmooth):
     def filter_generator(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model: statespace.DiscreteGaussian,
-        linearized_measurement_model,
+        measurement_model: ParticleFilterMeasurementModelArgType,
+        linearized_measurement_model: Optional[
+            ParticleFilterLinearisedMeasurementModelArgType
+        ] = None,
     ):
         """Apply Particle filtering to a data set.
 
         Parameters
         ----------
-        regression_problem
+        regression_problem :
+            Regression problem.
+        measurement_model :
+            Measurement model. Must be a discrete model that supports `forward_realization`.
+        linearized_measurement_model :
+            Linearized measurement model that is used as an importance density. In principle,
+            any discrete-time model that supports `backward_realization` is applicable.
+            In practice, it will almost always be one out of `DiscreteEKFComponent`, `DiscreteUKFComponent`,
+            or `IteratedDiscreteComponent`. Linear components are also possible, but would most often imply
+            that a particle filter is not required, because the filtering problem can be used much faster
+            with a Kalman filter. The exception to this rule is if the initial random variable is not Gaussian.
+            Optional. Default is None, which implies the bootstrap PF.
 
         Yields
         ------
