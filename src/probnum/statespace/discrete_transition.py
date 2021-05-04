@@ -155,7 +155,7 @@ class DiscreteGaussian(trans.Transition):
             )
             gain = info_forwarded["gain"]
         info = {"rv_forwarded": rv_forwarded}
-        return condition_state_on_rv(rv_forwarded, rv_forwarded, rv, gain), info
+        return condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain), info
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
