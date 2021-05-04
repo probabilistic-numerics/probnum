@@ -68,9 +68,8 @@ class GaussianIVPFilter(ODESolver):
                 cov_cholesky=np.eye(prior.dimension),
             )
 
-        self.gfilt = filtsmooth.Kalman(
-            dynamics_model=prior, measurement_model=measurement_model, initrv=initrv
-        )
+        self.gfilt = filtsmooth.Kalman(dynamics_model=prior, initrv=initrv)
+        self.measurement_model = measurement_model
 
         if not isinstance(prior, statespace.Integrator):
             raise ValueError(
@@ -214,7 +213,7 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # 2. Measure
-        meas_rv, info = self.gfilt.measurement_model.forward_rv(
+        meas_rv, info = self.measurement_model.forward_rv(
             rv=pred_rv, t=t_new, compute_gain=False
         )
 
@@ -227,13 +226,13 @@ class GaussianIVPFilter(ODESolver):
         )
 
         # 3.2 Update the measurement covariance (measure again)
-        meas_rv, info = self.gfilt.measurement_model.forward_rv(
+        meas_rv, info = self.measurement_model.forward_rv(
             rv=pred_rv, t=t_new, compute_gain=True
         )
 
         # 4. Update
         zero_data = np.zeros(meas_rv.mean.shape)
-        filt_rv, _ = self.gfilt.measurement_model.backward_realization(
+        filt_rv, _ = self.measurement_model.backward_realization(
             zero_data, pred_rv, rv_forwarded=meas_rv, gain=info["gain"]
         )
 
@@ -313,7 +312,7 @@ class GaussianIVPFilter(ODESolver):
             calibrated_proc_noise_cov,
             cov_cholesky=calibrated_proc_noise_cov_cholesky,
         )
-        local_meas_rv, _ = self.gfilt.measure(local_pred_rv, t_new)
+        local_meas_rv, _ = self.measurement_model.forward_rv(rv=local_pred_rv, t=t_new)
         error = local_meas_rv.cov.diagonal()
         return np.sqrt(np.abs(error))
 

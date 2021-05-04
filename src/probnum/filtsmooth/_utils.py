@@ -1,7 +1,5 @@
 """Utility functions for filtering and smoothing."""
 
-import collections
-import itertools
 
 import numpy as np
 

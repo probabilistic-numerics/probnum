@@ -129,10 +129,10 @@ def initialize_odefilter_with_rk(
     initcov = np.diag(initcov_diag)
     initcov_cholesky = np.diag(np.sqrt(initcov_diag))
     initrv = randvars.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
-    kalman = filtsmooth.Kalman(prior, measmod, initrv)
+    kalman = filtsmooth.Kalman(prior, initrv)
 
     regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
-    out, _ = kalman.filtsmooth(regression_problem)
+    out, _ = kalman.filtsmooth(regression_problem, measmod)
 
     estimated_initrv = out.states[0]
 

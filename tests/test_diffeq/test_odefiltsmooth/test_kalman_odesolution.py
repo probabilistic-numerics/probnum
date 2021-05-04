@@ -165,11 +165,11 @@ def test_sampling_shapes_1d(locs, size):
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
-    kalman = filtsmooth.Kalman(prior, measmod, initrv)
+    kalman = filtsmooth.Kalman(prior, initrv)
     regression_problem = problems.RegressionProblem(
         observations=data, locations=locations
     )
-    posterior, _ = kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(regression_problem, measmod)
 
     size = utils.as_shape(size)
     if locs is None:
