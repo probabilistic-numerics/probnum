@@ -43,7 +43,6 @@ class BayesianQuadrature:
         measure: IntegrationMeasure,
         policy: Policy,
         belief_update: BQBeliefUpdate,
-        bq_state: Optional[BQState],
         stopping_criteria: List[StoppingCriterion],
     ) -> None:
         self.kernel = kernel
@@ -98,8 +97,14 @@ class BayesianQuadrature:
             stopping_criteria=_stopping_criteria,
         )
 
-    def has_converged(self) -> bool:
+    def has_converged(self, bq_state: BQState) -> bool:
         """Checks if the BQ method has converged.
+
+        Parameters
+        ----------
+        bq_state:
+            State of the Bayesian quadrature methods. Contains all necessary information about the
+            problem and the computation.
 
         Returns
         -------
@@ -107,18 +112,14 @@ class BayesianQuadrature:
             Whether or not the solver has converged.
         """
 
-        if self.bq_state.info.has_converged:
+        if bq_state.info.has_converged:
             return True
 
         for stopping_criterion in self.stopping_criteria:
-            _has_converged = stopping_criterion(
-                self.bq_state.integral_belief, self.bq_state
-            )
+            _has_converged = stopping_criterion(bq_state.integral_belief, bq_state)
             if _has_converged:
-                self.bq_state.info.has_converged = True
-                self.bq_state.info.stopping_criterion = (
-                    stopping_criterion.__class__.__name__
-                )
+                bq_state.info.has_converged = True
+                bq_state.info.stopping_criterion = stopping_criterion.__class__.__name__
                 return True
         return False
 
@@ -187,7 +188,7 @@ class BayesianQuadrature:
             )
 
         # Evaluate stopping criteria for the initial belief
-        _has_converged = self.has_converged()
+        _has_converged = self.has_converged(bq_state=bq_state)
 
         yield integral_belief, None, None, bq_state
 
@@ -211,7 +212,7 @@ class BayesianQuadrature:
             bq_state.info.update_iteration(bq_state.batch_size)
 
             # Evaluate stopping criteria
-            _has_converged = self.has_converged()
+            _has_converged = self.has_converged(bq_state=bq_state)
 
             yield integral_belief, new_nodes, new_fun_evals, bq_state
 
