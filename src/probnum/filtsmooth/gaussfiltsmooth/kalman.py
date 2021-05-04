@@ -279,19 +279,30 @@ class Kalman(BayesFiltSmooth):
         RegressionProblem: a regression problem data class
         """
 
+        # Process inputs
         dataset, times = regression_problem.observations, regression_problem.locations
-
         if not isinstance(measurement_model, abc.Iterable):
             measurement_model = itertools.repeat(measurement_model, len(times))
 
+        # Initialise
         t_old = times[0]  # will be initarg eventually
         curr_rv = self.initrv
 
-        for t, data, measmod in zip(times, dataset, measurement_model):
+        # Iterate over data and measurement models
+        for t, data, measmod in itertools.zip_longest(
+            times, dataset, measurement_model, fillvalue=None
+        ):
+            if t is None or data is None or measmod is None:
+                errormsg = (
+                    "The lengths of the dataset, times and"
+                    "measurement models are inconsistent."
+                )
+                raise ValueError(errormsg)
+
             dt = t - t_old
             info_dict = {}
 
-            # Potential prediction step
+            # Predict if there is a time-increment
             if dt > 0:
                 linearise_predict_at = (
                     None if _previous_posterior is None else _previous_posterior(t_old)
@@ -300,7 +311,7 @@ class Kalman(BayesFiltSmooth):
                     curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
                 )
 
-            # Update step
+            # Update (all the time)
             linearise_update_at = (
                 None if _previous_posterior is None else _previous_posterior(t)
             )

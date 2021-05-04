@@ -1,5 +1,7 @@
 """Particle filters."""
 
+import itertools
+from collections import abc
 from typing import Iterable, Optional, Union
 
 import numpy as np
@@ -173,12 +175,66 @@ class ParticleFilter(BayesFiltSmooth):
         RegressionProblem: a regression problem data class
         """
 
-        self.measurement_model = measurement_model
-        self.linearized_measurement_model = linearized_measurement_model
         dataset, times = regression_problem.observations, regression_problem.locations
 
-        # Initialize: condition on first data point using the initial random
-        # variable as a dynamics rv (i.e. as the current prior).
+        # It is not clear to me at the moment how to handle this.
+        if not np.all(np.diff(times) > 0):
+            raise ValueError(
+                "Particle filtering cannot handle repeating time points currently."
+            )
+
+        if not isinstance(measurement_model, abc.Iterable):
+            measurement_model = itertools.repeat(measurement_model, len(times))
+        if not isinstance(linearized_measurement_model, abc.Iterable):
+            linearized_measurement_model = itertools.repeat(
+                linearized_measurement_model, len(times)
+            )
+
+        t_old = times[0]
+        particles = self.initrv.sample(size=self.num_particles)
+        weights = np.ones(self.num_particles) / self.num_particles
+        curr_rv = randvars.Categorical(
+            support=particles, probabilities=weights, random_state=self.random_state
+        )
+
+        # Iterate over data and measurement models
+        for t, data, measmod, lin_measmod in itertools.zip_longest(
+            times,
+            dataset,
+            measurement_model,
+            linearized_measurement_model,
+            fillvalue="None",
+        ):
+            if (
+                t == "None"
+                or data == "None"
+                or measmod == "None"
+                or lin_measmod == "None"
+            ):
+                errormsg = (
+                    "The lengths of the dataset, times and"
+                    "measurement models are inconsistent."
+                )
+                raise ValueError(errormsg)
+
+            dt = t - t_old
+            info_dict = {}
+
+            if dt > 0:
+                curr_rv, info_dict = self.filter_step(
+                    start=t_old,
+                    stop=t,
+                    randvar=curr_rv,
+                    data=data,
+                    measurement_model=measmod,
+                    linearized_measurement_model=lin_measmod,
+                )
+                yield curr_rv, info_dict
+
+        ################################
+        ################################
+        ################################
+        ################################
         particles_and_weights = np.array(
             [
                 self.compute_new_particle(dataset[0], times[0], self.initrv)
@@ -200,10 +256,12 @@ class ParticleFilter(BayesFiltSmooth):
                 stop=times[idx],
                 randvar=curr_rv,
                 data=dataset[idx],
+                measurement_model=measmod,
+                linearized_measurement_model=lin_measmod,
             )
             yield curr_rv, info_dict
 
-    def filter_step(self, start, stop, randvar, data):
+    def filter_step(self, start, stop, randvar, data, measmod, lin_measmod):
         """Perform a particle filter step.
 
         This method implements sequential importance (re)sampling.
@@ -232,7 +290,7 @@ class ParticleFilter(BayesFiltSmooth):
                 particle, t=start, dt=(stop - start)
             )
             proposal_state, proposal_weight = self.compute_new_particle(
-                data, stop, dynamics_rv
+                data, stop, dynamics_rv, measmod, lin_measmod
             )
             new_support[idx] = proposal_state
             new_weights[idx] = proposal_weight
@@ -250,19 +308,21 @@ class ParticleFilter(BayesFiltSmooth):
 
         return new_rv, {}
 
-    def compute_new_particle(self, data, stop, dynamics_rv):
+    def compute_new_particle(self, data, stop, dynamics_rv, measmod, lin_measmod):
         """Compute a new particle.
 
         Turn the dynamics RV into a proposal RV, apply the measurement
         model and compute new weights via the respective PDFs.
         """
-        proposal_rv = self.dynamics_to_proposal_rv(dynamics_rv, data=data, t=stop)
+        proposal_rv = self.dynamics_to_proposal_rv(
+            dynamics_rv, data=data, t=stop, measmod=measmod, lin_measmod=lin_measmod
+        )
         proposal_state = proposal_rv.sample()
-        meas_rv, _ = self.measurement_model.forward_realization(proposal_state, t=stop)
+        meas_rv, _ = measmod.forward_realization(proposal_state, t=stop)
 
         # For the bootstrap PF, the dynamics and proposal PDFs cancel out.
         # Therefore we make the following exception.
-        if self.linearized_measurement_model is None:
+        if lin_measmod is None:
             log_proposal_weight = meas_rv.logpdf(data)
         else:
             log_proposal_weight = (
@@ -274,7 +334,7 @@ class ParticleFilter(BayesFiltSmooth):
         proposal_weight = np.exp(log_proposal_weight)
         return proposal_state, proposal_weight
 
-    def dynamics_to_proposal_rv(self, dynamics_rv, data, t):
+    def dynamics_to_proposal_rv(self, dynamics_rv, data, t, measmod, lin_measmod):
         """Turn a dynamics RV into a proposal RV.
 
         The output of this function depends on the choice of PF. For the
@@ -283,10 +343,8 @@ class ParticleFilter(BayesFiltSmooth):
         approximate Gaussian importance densities are provided.
         """
         proposal_rv = dynamics_rv
-        if self.linearized_measurement_model is not None:
-            proposal_rv, _ = self.linearized_measurement_model.backward_realization(
-                data, proposal_rv, t=t
-            )
+        if lin_measmod is not None:
+            proposal_rv, _ = lin_measmod.backward_realization(data, proposal_rv, t=t)
         return proposal_rv
 
     @property
