@@ -80,8 +80,8 @@ class BQState:
         batch_size: Optional[int] = 1,
         nodes: Optional[np.ndarray] = None,
         fun_evals: Optional[np.ndarray] = None,
-        gram=None,
-        kernel_means=None,
+        gram=np.array([[]]),
+        kernel_means=np.array([]),
     ):
         self.measure = measure
         self.kernel = kernel
