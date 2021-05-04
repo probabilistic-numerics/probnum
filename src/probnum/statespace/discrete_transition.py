@@ -1,6 +1,6 @@
 """Discrete transitions."""
 import typing
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 import scipy.linalg
@@ -146,15 +146,16 @@ class DiscreteGaussian(trans.Transition):
     ):
 
         if rv_forwarded is None or gain is None:
-            rv_forwarded, info = self.forward_rv(
+            rv_forwarded, info_forwarded = self.forward_rv(
                 rv,
                 t=t,
                 compute_gain=True,
                 _diffusion=_diffusion,
                 _linearise_at=_linearise_at,
             )
-            gain = info["gain"]
-        return condition_state_on_rv(rv_obtained, rv_forwarded, rv, gain), {}
+            gain = info_forwarded["gain"]
+        info = {"rv_forwarded": rv_forwarded}
+        return condition_state_on_rv(rv_forwarded, rv_forwarded, rv, gain), info
 
     @lru_cache(maxsize=None)
     def proc_noise_cov_cholesky_fun(self, t):
@@ -323,7 +324,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def _forward_rv_classic(
         self, rv, t, compute_gain=False, _diffusion=1.0
-    ) -> (randvars.RandomVariable, typing.Dict):
+    ) -> Tuple[randvars.RandomVariable, typing.Dict]:
         H = self.state_trans_mat_fun(t)
         R = self.proc_noise_cov_mat_fun(t)
         shift = self.shift_vec_fun(t)
@@ -339,7 +340,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
 
     def _forward_rv_sqrt(
         self, rv, t, compute_gain=False, _diffusion=1.0
-    ) -> (randvars.RandomVariable, typing.Dict):
+    ) -> Tuple[randvars.RandomVariable, typing.Dict]:
 
         H = self.state_trans_mat_fun(t)
         SR = self.proc_noise_cov_cholesky_fun(t)
@@ -369,7 +370,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         gain=None,
         t=None,
         _diffusion=1.0,
-    ):
+    ) -> Tuple[randvars.RandomVariable, typing.Dict]:
         """See Section 4.1f of:
 
         ``https://www.sciencedirect.com/science/article/abs/pii/S0005109805001810``.
@@ -382,10 +383,10 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # make an extra prediction to compute the gain.
         if gain is None:
             if np.linalg.norm(rv_obtained.cov) > 0:
-                _, info = self.forward_rv(
+                rv_forwarded, info_forwarded = self.forward_rv(
                     rv, t=t, compute_gain=True, _diffusion=_diffusion
                 )
-                gain = info["gain"]
+                gain = info_forwarded["gain"]
             else:
                 gain = np.zeros((len(rv.mean), len(rv_obtained.mean)))
 
@@ -427,7 +428,8 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov_cholesky = tril_to_positive_tril(new_chol_triu.T)
         new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
-        return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), {}
+        info = {"rv_forwarded": rv_forwarded}
+        return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky), info
 
     def _backward_rv_joseph(
         self,
@@ -437,12 +439,14 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         gain=None,
         t=None,
         _diffusion=None,
-    ):
+    ) -> Tuple[randvars.RandomVariable, typing.Dict]:
         # forwarded_rv is ignored in Joseph updates.
 
         if gain is None:
-            _, info = self.forward_rv(rv, t=t, compute_gain=True, _diffusion=_diffusion)
-            gain = info["gain"]
+            rv_forwarded, info_forwarded = self.forward_rv(
+                rv, t=t, compute_gain=True, _diffusion=_diffusion
+            )
+            gain = info_forwarded["gain"]
 
         H = self.state_trans_mat_fun(t)
         R = _diffusion * self.proc_noise_cov_mat_fun(t)
@@ -455,7 +459,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             + gain @ R @ gain.T
             + gain @ rv_obtained.cov @ gain.T
         )
-        return randvars.Normal(new_mean, new_cov), {}
+
+        info = {"rv_forwarded": rv_forwarded}
+        return randvars.Normal(new_mean, new_cov), info
 
 
 class DiscreteLTIGaussian(DiscreteLinearGaussian):
