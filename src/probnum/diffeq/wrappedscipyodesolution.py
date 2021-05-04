@@ -9,7 +9,6 @@ from probnum.filtsmooth.timeseriesposterior import (
     DenseOutputLocationArgType,
     DenseOutputValueType,
 )
-from probnum.type import FloatArgType
 
 
 class WrappedScipyODESolution(diffeq.ODESolution):
