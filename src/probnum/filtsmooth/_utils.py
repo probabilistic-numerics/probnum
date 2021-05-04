@@ -54,7 +54,9 @@ def merge_regression_problems(problem_and_likelihood1, problem_and_likelihood2):
     )
 
     # Merge time locations
-    new_locs = np.union1d(locs1, locs2)
+    if np.any(np.in1d(locs1, locs2)):
+        raise ValueError("Regression problems must not share time locations.")
+    new_locs = np.sort(np.concatenate((locs1, locs2)))
     locs1_in_new_locs = np.searchsorted(new_locs, locs1)
     locs2_in_new_locs = np.searchsorted(new_locs, locs2)
 

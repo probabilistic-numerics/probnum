@@ -109,3 +109,12 @@ def test_merge_works_with_reduce(car_tracking1, car_tracking2, car_tracking3):
 
     assert isinstance(new_models, np.ndarray)
     assert new_models.shape == (N,)
+
+
+def test_shared_locations_raise_error(car_tracking1):
+
+    prob1, info1 = car_tracking1
+    measmod1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
+
+    with pytest.raises(ValueError):
+        filtsmooth.merge_regression_problems((prob1, measmod1), (prob1, measmod1))
