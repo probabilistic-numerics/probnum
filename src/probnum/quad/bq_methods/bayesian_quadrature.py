@@ -187,6 +187,9 @@ class BayesianQuadrature:
                 new_fun_evals=fun_evals,
             )
 
+            # make sure info get the number of initial nodes
+            bq_state.info.nevals = fun_evals.size
+
         # Evaluate stopping criteria for the initial belief
         _has_converged = self.has_converged(bq_state=bq_state)
 

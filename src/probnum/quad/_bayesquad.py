@@ -189,7 +189,7 @@ def bayesquad_fixed(
     >>> f_evals = 3*nodes**2
     >>> F, info = bayesquad_fixed(nodes=nodes, f_evals=f_evals, domain=domain)
     >>> print(F.mean)
-    0.5000
+    1.0001
     """
 
     n_evals, input_dim = nodes.shape
