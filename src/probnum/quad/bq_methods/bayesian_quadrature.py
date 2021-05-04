@@ -10,9 +10,9 @@ from probnum.type import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure
 from ..kernel_embeddings import KernelEmbedding
-from ..policies import Policy, RandomPolicy
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
+from .policies import Policy, RandomPolicy
 from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
 
 
@@ -57,7 +57,6 @@ class BayesianQuadrature:
         input_dim: int,
         kernel: Optional[Kernel] = None,
         measure: IntegrationMeasure = None,
-        method: str = "vanilla",
         policy: str = "bmc",
         max_nevals: IntArgType = None,
         var_tol: FloatArgType = None,

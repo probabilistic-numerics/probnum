@@ -4,7 +4,8 @@ import abc
 
 import numpy as np
 
-from probnum.quad.bq_methods.bq_state import BQState
+from ..acquisitions import Acquisition
+from ..bq_state import BQState
 
 
 class Policy(abc.ABC):
@@ -54,7 +55,7 @@ class OptimalPolicy(Policy):
         Current state of the BQ method.
     """
 
-    def __init__(self, acquisition, batch_size: int) -> None:
+    def __init__(self, acquisition: Acquisition, batch_size: int) -> None:
         self.acquisition = acquisition
         self.batch_size = batch_size
 
