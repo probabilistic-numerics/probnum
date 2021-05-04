@@ -46,7 +46,8 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
             Updated version of ``bq_state`` that contains all updated quantities.
         """
 
-        # update nodes and function evaluations
+        # Update nodes and function evaluations
+        old_nodes = bq_state.nodes
         if new_nodes is None:
             nodes = bq_state.nodes
             fun_evals = bq_state.fun_evals
@@ -57,20 +58,33 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
             fun_evals = np.append(bq_state.fun_evals, new_fun_evals)
 
         # kernel quantities
-        gram = bq_state.kernel(nodes, nodes)
-        kernel_mean = bq_state.kernel_embedding.kernel_mean(nodes)
+        gram_new_new = np.atleast_2d(bq_state.kernel(new_nodes))
+        gram_old_new = np.atleast_2d(bq_state.kernel(old_nodes, new_nodes))
+        gram = np.hstack(
+            (
+                np.vstack((bq_state.gram, gram_old_new)),
+                np.vstack((gram_old_new.T, gram_new_new)),
+            )
+        )
+        kernel_means = np.concatenate(
+            bq_state.kernel_means, bq_state.kernel_embedding.kernel_mean(new_nodes)
+        )
         initial_error = bq_state.kernel_embedding.kernel_variance()
-        weights = self._solve_gram(gram, kernel_mean)
+        weights = self._solve_gram(gram, kernel_means)
 
         # integral mean and variance
-        integral_mean = np.squeeze(weights.T @ fun_evals)
-        integral_variance = initial_error - weights.T @ kernel_mean
+        integral_mean = np.squeeze(weights @ fun_evals)
+        integral_variance = initial_error - weights @ kernel_means
 
         updated_belief = Normal(integral_mean, integral_variance)
         updated_state = BQState.from_new_data(
-            nodes, fun_evals, updated_belief, bq_state
+            nodes=nodes,
+            fun_evals=fun_evals,
+            integral_belief=updated_belief,
+            prv_state=bq_state,
+            gram=gram,
+            kernel_means=kernel_means,
         )
-        updated_state.integral_belief = updated_belief
 
         return updated_belief, updated_state
 
