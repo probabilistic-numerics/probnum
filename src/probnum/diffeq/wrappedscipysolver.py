@@ -20,12 +20,16 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         self.solver = solver
         self.interpolants = None
 
-        # probnum ODESolver needs an ivp
+        # ProbNum ODESolver needs an ivp
         ivp = diffeq.IVP(
             timespan=[self.solver.t, self.solver.t_bound],
             initrv=randvars.Constant(self.solver.y),
             rhs=self.solver._fun,
         )
+
+        # Dopri853 as implemented in SciPy computes the dense output differently
+        if isinstance(solver, rk.DOP853):
+            raise TypeError
         super().__init__(ivp=ivp, order=solver.order)
 
     def initialise(self):
@@ -118,8 +122,7 @@ class WrappedScipyRungeKutta(diffeq.ODESolver):
         self.interpolants.append(dense)
 
     def dense_output(self):
-        """Compute the interpolant after each step with a quartic interpolation
-        polynomial.
+        """Compute the interpolant after each step.
 
         Returns
         -------

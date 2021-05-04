@@ -5,20 +5,16 @@ import numpy as np
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import _randomvariablelist, diffeq, randvars
+from probnum.filtsmooth.timeseriesposterior import (
+    DenseOutputLocationArgType,
+    DenseOutputValueType,
+)
 from probnum.type import FloatArgType
-
-DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
-"""TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
-or an array of locations."""
-
-DenseOutputValueType = Union[
-    randvars.RandomVariable, _randomvariablelist._RandomVariableList
-]
-"""Dense evaluation of a TimeSeriesPosterior and derived classes return a RandomVariable if evaluated at a single location,
-and a _RandomVariableList if evaluated at an array of locations."""
 
 
 class WrappedScipyODESolution(diffeq.ODESolution):
+    """Make a ProbNum ODESolution out of a SciPy OdeSolution."""
+
     def __init__(self, scipy_solution: OdeSolution, rvs: list):
         self.scipy_solution = scipy_solution
 

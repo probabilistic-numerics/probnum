@@ -4,13 +4,12 @@ import pytest_cases
 from scipy.integrate._ivp import base, rk
 from scipy.integrate._ivp.common import OdeSolution
 
-from probnum import randvars
-from probnum.diffeq import odesolution, wrappedscipyodesolution
+from probnum import diffeq, randvars
+from probnum.diffeq import odesolution, wrappedscipyodesolution, wrappedscipysolver
 
 
 @pytest_cases.fixture
 @pytest_cases.parametrize_with_cases("solvers", cases=".test_wrappedscipy_cases")
-
 # Workaround: usually the input of this would be "testsolver, scipysolver" instead of "solvers"
 # see issue https://github.com/smarie/python-pytest-cases/issues/202
 def solvers(solvers):
@@ -46,6 +45,18 @@ def dense_output():
 @pytest.fixture
 def list_of_randvars():
     return list([randvars.Constant(1)])
+
+
+@pytest.fixture
+def doprisolver():
+    y0 = np.array([0.1])
+    ode = diffeq.logistic([0.0, 1.0], y0)
+    return rk.DOP853(ode.rhs, ode.t0, y0, ode.tmax)
+
+
+def test_init(doprisolver):
+    with pytest.raises(TypeError):
+        wrappedscipysolver.WrappedScipyRungeKutta(doprisolver)
 
 
 def test_initialise(solvers):
