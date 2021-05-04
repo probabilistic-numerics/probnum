@@ -1,6 +1,8 @@
 """Stopping criteria for Bayesian quadrature."""
 
-from typing import Callable, Optional
+from typing import Callable
+
+import numpy as np
 
 from probnum.quad.bq_methods.bq_state import BQState
 from probnum.randvars import Normal
@@ -56,7 +58,11 @@ class IntegralVariance(StoppingCriterion):
 
 class RelativeError(StoppingCriterion):
     """Stop once the relative change of consecutive integral estimates are smaller than
-    a tolerance.
+    a tolerance. That is, the stopping criterion is.
+
+        | (integrals[i] - integrals[i-1]) / integrals[i] | <= tol
+
+    where ``integrals`` holds the BQ integral means.
 
     Parameters
     ----------
@@ -69,8 +75,13 @@ class RelativeError(StoppingCriterion):
         super().__init__(stopping_criterion=self.__call__)
 
     def __call__(self, integral_belief: Normal, bq_state: BQState) -> bool:
-        # TODO: IMPLEMENT THIS! WILL REQUIRE ALSO THE PREVIOUS BQ_STATE!
-        return True
+        return (
+            np.abs(
+                (integral_belief.mean - bq_state.previous_integral_beliefs[-1].mean)
+                / integral_belief.mean
+            )
+            <= self.rel_tol
+        )
 
 
 class MaxNevals(StoppingCriterion):
