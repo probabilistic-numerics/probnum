@@ -151,3 +151,10 @@ def test_rvlist_to_odesol(solvers, times, list_of_randvars, dense_output):
         perturbedstepsolution.PerturbedStepSolution, odesolution.ODESolution
     )
     assert isinstance(probnum_solution, perturbedstepsolution.PerturbedStepSolution)
+
+
+def test_postprocess(solvers, steprule):
+    testsolver, perturbedstepsolver = solvers
+    odesol = perturbedstepsolver.solve(steprule)
+    post_process = perturbedstepsolver.postprocess(odesol)
+    assert isinstance(post_process, diffeq.ODESolution)
