@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth
+from probnum import filtsmooth, randprocs
 
 # Problems
 
@@ -13,10 +13,12 @@ def setup(request):
     problem = request.param
     regression_problem, statespace_components = problem()
 
-    kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
+    prior = randprocs.MarkovProcess(
+        transition=statespace_components["dynamics_model"],
+        initrv=statespace_components["initrv"],
+        initarg=regression_problem.locations[0],
     )
+    kalman = filtsmooth.Kalman(prior)
     return kalman, regression_problem, statespace_components["measurement_model"]
 
 
@@ -67,10 +69,13 @@ def test_kalman_smoother_high_order_ibm():
     )
     truth = regression_problem.solution
 
-    kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
+    prior = randprocs.MarkovProcess(
+        transition=statespace_components["dynamics_model"],
+        initrv=statespace_components["initrv"],
+        initarg=regression_problem.locations[0],
     )
+
+    kalman = filtsmooth.Kalman(prior)
 
     posterior, _ = kalman.filtsmooth(
         regression_problem,

@@ -5,7 +5,7 @@ from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import randprocs, randvars, statespace
 from probnum.filtsmooth.timeseriesposterior import TimeSeriesPosterior
 from probnum.type import FloatArgType
 
@@ -15,11 +15,11 @@ class BayesFiltSmooth(ABC):
 
     def __init__(
         self,
-        dynamics_model: statespace.Transition,
-        initrv: randvars.RandomVariable,
+        prior_process: randprocs.MarkovProcess,
     ):
-        self.dynamics_model = dynamics_model
-        self.initrv = initrv
+        self.dynamics_model = prior_process.transition
+        self.initrv = prior_process.initrv
+        self.prior_process = prior_process
 
     def filter_step(
         self,
