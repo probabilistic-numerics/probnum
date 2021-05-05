@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import diffeq, filtsmooth, problems, randvars, statespace
+from probnum import diffeq, filtsmooth, problems, randprocs, randvars, statespace
 from probnum.type import FloatArgType, IntArgType
 
 __all__ = [
@@ -130,10 +130,14 @@ def car_tracking(
         observations=obs, locations=time_grid, solution=states
     )
 
+    prior_process = randprocs.MarkovProcess(
+        transition=discrete_dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
     statespace_components = dict(
         dynamics_model=discrete_dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
+        prior_process=prior_process,
     )
     return regression_problem, statespace_components
 
@@ -225,10 +229,15 @@ def ornstein_uhlenbeck(
         observations=obs, locations=time_grid, solution=states
     )
 
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
+
     statespace_components = dict(
         dynamics_model=dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
+        prior_process=prior_process,
     )
     return regression_problem, statespace_components
 
@@ -360,10 +369,16 @@ def pendulum(
     regression_problem = problems.RegressionProblem(
         observations=obs, locations=time_grid, solution=states
     )
+
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
+
     statespace_components = dict(
         dynamics_model=dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
+        prior_process=prior_process,
     )
     return regression_problem, statespace_components
 
@@ -454,11 +469,15 @@ def benes_daum(
     regression_problem = problems.RegressionProblem(
         observations=obs, locations=time_grid, solution=states
     )
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
 
     statespace_components = dict(
         dynamics_model=dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
+        prior_process=prior_process,
     )
     return regression_problem, statespace_components
 
@@ -556,10 +575,14 @@ def logistic_ode(
         solution=solution,
     )
 
+    prior_process = randprocs.MarkovProcess(
+        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
+    )
     statespace_components = dict(
         dynamics_model=dynamics_model,
         measurement_model=measurement_model,
         initrv=initrv,
         ivp=logistic_ivp,
+        prior_process=prior_process,
     )
     return regression_problem, statespace_components

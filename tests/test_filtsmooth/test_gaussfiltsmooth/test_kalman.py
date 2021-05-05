@@ -13,12 +13,7 @@ def setup(request):
     problem = request.param
     regression_problem, statespace_components = problem()
 
-    prior = randprocs.MarkovProcess(
-        transition=statespace_components["dynamics_model"],
-        initrv=statespace_components["initrv"],
-        initarg=regression_problem.locations[0],
-    )
-    kalman = filtsmooth.Kalman(prior)
+    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
     return kalman, regression_problem, statespace_components["measurement_model"]
 
 
@@ -69,13 +64,7 @@ def test_kalman_smoother_high_order_ibm():
     )
     truth = regression_problem.solution
 
-    prior = randprocs.MarkovProcess(
-        transition=statespace_components["dynamics_model"],
-        initrv=statespace_components["initrv"],
-        initarg=regression_problem.locations[0],
-    )
-
-    kalman = filtsmooth.Kalman(prior)
+    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
 
     posterior, _ = kalman.filtsmooth(
         regression_problem,
