@@ -501,10 +501,10 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         super().__init__(
             input_dim,
             output_dim,
-            lambda t: state_trans_mat,
-            lambda t: shift_vec,
-            lambda t: proc_noise_cov_mat,
-            lambda t: proc_noise_cov_cholesky,
+            state_trans_mat_fun=lambda t: state_trans_mat,
+            shift_vec_fun=lambda t: shift_vec,
+            proc_noise_cov_mat_fun=lambda t: proc_noise_cov_mat,
+            proc_noise_cov_cholesky_fun=lambda t: proc_noise_cov_cholesky,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
