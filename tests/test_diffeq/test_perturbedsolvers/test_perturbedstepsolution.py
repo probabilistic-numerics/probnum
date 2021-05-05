@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import pytest_cases
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq
@@ -12,65 +13,20 @@ from probnum.diffeq.perturbedsolvers import (
 
 
 @pytest.fixture
-def y0():
-    return np.array([0.1])
-
-
-@pytest.fixture
-def start():
-    return 0.0
-
-
-@pytest.fixture
-def stop():
-    return 10.0
-
-
-@pytest.fixture
-def ivp(start, stop, y0):
-    return diffeq.logistic([start, stop], y0)
-
-
-@pytest.fixture
-def sigma():
-    return 1
-
-
-@pytest.fixture
-def stepsize():
-    return 0.1
-
-
-@pytest.fixture
-def testsolver45(ivp, y0):
-    testsolver = rk.RK45(ivp.rhs, ivp.t0, y0, ivp.tmax)
-    return wrappedscipysolver.WrappedScipyRungeKutta(testsolver)
-
-
-@pytest.fixture
-def noisysolver45(ivp, y0, sigma):
-    testsolver = rk.RK45(ivp.rhs, ivp.t0, y0, ivp.tmax)
-    scipysolver = wrappedscipysolver.WrappedScipyRungeKutta(testsolver)
-    return perturbedstepsolver.PerturbedStepSolver(
-        scipysolver,
+def solutionnoisy():
+    y0 = np.array([0.1, 0.1])
+    ode = diffeq.lotkavolterra([0.0, 1.0], y0)
+    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
+        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
+    )
+    sol = perturbedstepsolver.PerturbedStepSolver(
+        testsolver,
         noise_scale=1,
         perturb_function=_perturbation_functions.perturb_uniform,
+        random_state=123,
     )
-
-
-@pytest.fixture
-def steprule(stepsize):
-    return diffeq.AdaptiveSteps(firststep=0.001, atol=10 ** -12, rtol=10 ** -12)
-
-
-@pytest.fixture
-def solutiontest(testsolver45, steprule):
-    return testsolver45.solve(steprule)
-
-
-@pytest.fixture
-def solutionnoisy(noisysolver45, steprule):
-    return noisysolver45.solve(steprule)
+    return sol.solve(diffeq.AdaptiveSteps(0.1, atol=1e-14, rtol=1e-14))
 
 
 def test_states(solutionnoisy):
