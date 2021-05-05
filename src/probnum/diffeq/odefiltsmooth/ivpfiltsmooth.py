@@ -347,9 +347,9 @@ class GaussianIVPFilter(ODESolver):
         """Create an ODESolution object."""
 
         kalman_posterior = filtsmooth.FilteringPosterior(
-            times,
-            rvs,
-            self.prior_process.transition,
+            transition=self.prior_process.transition,
+            locations=times,
+            states=rvs,
             diffusion_model=self.diffusion_model,
         )
 
