@@ -241,22 +241,24 @@ class LinearSDE(SDE):
             _diffusion=_diffusion,
         )
 
-        sol, new_mean, new_cov_sqrt = self._solve_mde_forward(mde, y0, t, dt, dim)
-        new_cov = new_cov_sqrt @ new_cov_sqrt.T
+        sol, new_mean, new_cov_cholesky = self._solve_mde_forward(mde, y0, t, dt, dim)
+        new_cov = new_cov_cholesky @ new_cov_cholesky.T
 
         # Useful for backward transitions
         # Aka continuous time smoothing.
         sol_mean = lambda t: sol.sol(t)[:dim]
-        sol_cov_sqrt = lambda t: sol.sol(t)[dim:].reshape((dim, dim))
+        sol_cov_cholesky = lambda t: sol.sol(t)[dim:].reshape((dim, dim))
         sol_cov = (
             lambda t: sol.sol(t)[dim:].reshape((dim, dim))
             @ sol.sol(t)[dim:].reshape((dim, dim)).T
         )
 
-        return randvars.Normal(mean=new_mean, cov=new_cov, cov_cholesky=new_cov_sqrt), {
+        return randvars.Normal(
+            mean=new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky
+        ), {
             "sol": sol,
             "sol_mean": sol_mean,
-            "sol_cov_sqrt": sol_cov_sqrt,
+            "sol_cov_cholesky": sol_cov_cholesky,
             "sol_cov": sol_cov,
         }
 
