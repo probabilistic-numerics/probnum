@@ -181,20 +181,23 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
         # Construct prior mean of A and H
         alpha = 0.5 * bx0 / bb
 
-        def _mv(v):
-            return (x0 - alpha * b) * (x0 - alpha * b).T @ v
-
-        def _mm(M):
+        def _matmul(M):
             return (x0 - alpha * b) @ (x0 - alpha * b).T @ M
 
-        Ainv0_mean = linops.ScalarMult(
-            scalar=alpha, shape=(self.n, self.n)
+        Ainv0_mean = linops.Scaling(
+            alpha, shape=(self.n, self.n)
         ) + 2 / bx0 * linops.LinearOperator(
-            matvec=_mv, matmat=_mm, shape=(self.n, self.n)
+            shape=(self.n, self.n),
+            dtype=np.result_type(x0.dtype, alpha.dtype, b.dtype),
+            matmul=_matmul,
         )
-        A0_mean = linops.ScalarMult(scalar=1 / alpha, shape=(self.n, self.n)) - 1 / (
+        A0_mean = linops.Scaling(1 / alpha, shape=(self.n, self.n)) - 1 / (
             alpha * np.squeeze((x0 - alpha * b).T @ x0)
-        ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=(self.n, self.n))
+        ) * linops.LinearOperator(
+            shape=(self.n, self.n),
+            dtype=np.result_type(x0.dtype, alpha.dtype, b.dtype),
+            matmul=_matmul,
+        )
         return A0_mean, Ainv0_mean
 
     def has_converged(self, iter, maxiter, **kwargs):
@@ -471,7 +474,10 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         if unc_scale is None:
             unc_scale = 0
 
-        if isinstance(self.Ainv_covfactor0, linops.ScalarMult):
+        if (
+            isinstance(self.Ainv_covfactor0, linops.Scaling)
+            and self.Ainv_covfactor0.is_isotropic
+        ):
             # Scalar prior mean
             if self.is_calib_covclass and k > 0 and unc_scale != 0:
                 _trace = self.Ainv_covfactor0.scalar * k
@@ -675,13 +681,21 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         # Compute calibration term in the A view as a linear operator with scaling from
         # degrees of freedom
         calibration_term_A = linops.LinearOperator(
-            shape=(self.n, self.n), matvec=get_null_space_map(V=S, unc_scale=phi)
+            shape=(self.n, self.n),
+            dtype=S.dtype,
+            matmul=linops.LinearOperator.broadcast_matvec(
+                get_null_space_map(V=S, unc_scale=phi)
+            ),
         )
 
         # Compute calibration term in the Ainv view as a linear operator with scaling
         # from degrees of freedom
         calibration_term_Ainv = linops.LinearOperator(
-            shape=(self.n, self.n), matvec=get_null_space_map(V=Y, unc_scale=psi)
+            shape=(self.n, self.n),
+            dtype=S.dtype,
+            matmul=linops.LinearOperator.broadcast_matvec(
+                get_null_space_map(V=Y, unc_scale=psi)
+            ),
         )
 
         return calibration_term_A, calibration_term_Ainv
@@ -698,15 +712,19 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             # Posterior covariance factors
             if self.is_calib_covclass and (not phi is None) and (not psi is None):
                 # Ensure prior covariance class only acts in span(S) like A
-                def _matvec(x):
+                @linops.LinearOperator.broadcast_matvec
+                def _matmul(x):
                     # First term of calibration covariance class: AS(S'AS)^{-1}S'A
                     return (Y * sy ** -1) @ (Y.T @ x.ravel())
 
                 _A_covfactor0 = linops.LinearOperator(
-                    shape=(self.n, self.n), matvec=_matvec
+                    shape=(self.n, self.n),
+                    dtype=np.result_type(Y, sy),
+                    matmul=_matmul,
                 )
 
-                def _matvec(x):
+                @linops.LinearOperator.broadcast_matvec
+                def _matmul(x):
                     # Term in covariance class: A_0^{-1}Y(Y'A_0^{-1}Y)^{-1}Y'A_0^{-1}
                     # TODO: for efficiency ensure that we dont have to compute
                     # (Y.T Y)^{-1} two times! For a scalar mean this is the same as in
@@ -717,7 +735,9 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                     return self.Ainv_mean0 @ (Y @ YAinv0Y_inv_YAinv0x)
 
                 _Ainv_covfactor0 = linops.LinearOperator(
-                    shape=(self.n, self.n), matvec=_matvec
+                    shape=(self.n, self.n),
+                    dtype=np.result_type(Y, self.Ainv_mean0),
+                    matmul=_matmul,
                 )
 
                 # Set degrees of freedom based on uncertainty calibration in unexplored
@@ -758,11 +778,13 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         Wb = _Ainv_covfactor @ self.b
         bWb = np.squeeze(Wb.T @ self.b)
 
-        def _mv(x):
+        def _matmul(x):
             return 0.5 * (bWb * _Ainv_covfactor @ x + Wb @ (Wb.T @ x))
 
         cov_op = linops.LinearOperator(
-            shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv
+            shape=(self.n, self.n),
+            dtype=np.result_type(Wb.dtype, bWb.dtype),
+            matmul=_matmul,
         )
 
         x = randvars.Normal(mean=self.x_mean.ravel(), cov=cov_op)
@@ -778,19 +800,27 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
         """Linear operator implementing the symmetric rank 2 mean update (+= uv' +
         vu')."""
 
-        def mv(x):
+        def _matmul(x):
             return u @ (v.T @ x) + v @ (u.T @ x)
 
-        return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
+        return linops.LinearOperator(
+            shape=(self.n, self.n),
+            dtype=np.result_type(u.dtype, v.dtype),
+            matmul=_matmul,
+        )
 
     def _covariance_update(self, u, Ws):
         """Linear operator implementing the symmetric rank 2 kernels update (-= Ws
         u^T)."""
 
-        def mv(x):
+        def _matmul(x):
             return Ws @ (u.T @ x)
 
-        return linops.LinearOperator(shape=(self.n, self.n), matvec=mv, matmat=mv)
+        return linops.LinearOperator(
+            shape=(self.n, self.n),
+            dtype=np.result_type(u.dtype, Ws.dtype),
+            matmul=_matmul,
+        )
 
     def solve(
         self, callback=None, maxiter=None, atol=None, rtol=None, calibration=None
@@ -1072,11 +1102,13 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
         Wb = Ainv0_covfactor @ self.b_mean
         bWb = np.squeeze(Wb.T @ self.b_mean)
 
-        def _mv(x):
+        def _matmul(x):
             return 0.5 * (bWb * Ainv0_covfactor @ x + Wb @ (Wb.T @ x))
 
         self.x_cov = linops.LinearOperator(
-            shape=(self.n, self.n), dtype=float, matvec=_mv, matmat=_mv
+            shape=(self.n, self.n),
+            dtype=np.result_type(bWb.dtype, Ainv0_covfactor.dtype, Wb.dtype),
+            matmul=_matmul,
         )
         if isinstance(x0, np.ndarray):
             self.x_mean = x0
