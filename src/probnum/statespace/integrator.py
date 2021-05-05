@@ -168,7 +168,6 @@ class IBM(Integrator, sde.LTISDE):
         spatialdim,
         forward_implementation="classic",
         backward_implementation="classic",
-        _process_noise_damping=0.0,
     ):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
@@ -181,8 +180,6 @@ class IBM(Integrator, sde.LTISDE):
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
-
-        self._process_noise_damping = _process_noise_damping
 
     @cached_property
     def _driftmat(self):
@@ -219,10 +216,7 @@ class IBM(Integrator, sde.LTISDE):
         process_noise = np.kron(np.eye(self.spatialdim), process_noise_1d)
         empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
 
-        val = self._process_noise_damping
-        process_noise_cholesky_1d = np.linalg.cholesky(
-            process_noise_1d + val * np.eye(self.ordint + 1)
-        )
+        process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
         process_noise_cholesky = np.kron(
             np.eye(self.spatialdim), process_noise_cholesky_1d
         )

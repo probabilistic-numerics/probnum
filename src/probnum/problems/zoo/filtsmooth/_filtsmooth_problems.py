@@ -23,7 +23,6 @@ def car_tracking(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
-    _process_noise_damping: FloatArgType = 0.0,
 ):
     r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
@@ -95,7 +94,6 @@ def car_tracking(
         spatialdim=state_dim,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
-        _process_noise_damping=_process_noise_damping,
     )
     dynamics_model.dispmat *= process_diffusion
 
