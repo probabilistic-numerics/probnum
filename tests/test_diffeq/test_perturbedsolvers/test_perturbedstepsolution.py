@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
-from pn_ode_benchmarks import scipy_solver
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq
+from probnum.diffeq import wrappedscipysolver
 from probnum.diffeq.perturbedsolvers import (
     _perturbation_functions,
     perturbedstepsolution,
@@ -44,13 +44,13 @@ def stepsize():
 @pytest.fixture
 def testsolver45(ivp, y0):
     testsolver = rk.RK45(ivp.rhs, ivp.t0, y0, ivp.tmax)
-    return scipy_solver.ScipyRungeKutta(testsolver, order=4)
+    return wrappedscipysolver.WrappedScipyRungeKutta(testsolver)
 
 
 @pytest.fixture
 def noisysolver45(ivp, y0, sigma):
     testsolver = rk.RK45(ivp.rhs, ivp.t0, y0, ivp.tmax)
-    scipysolver = scipy_solver.ScipyRungeKutta(testsolver, order=4)
+    scipysolver = wrappedscipysolver.WrappedScipyRungeKutta(testsolver)
     return perturbedstepsolver.PerturbedStepSolver(
         scipysolver,
         noise_scale=1,

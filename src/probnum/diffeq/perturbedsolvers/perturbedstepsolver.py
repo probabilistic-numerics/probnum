@@ -1,13 +1,13 @@
 """ODE solver as proposed by Abdulle and Garegnani."""
 import numpy as np
-from pn_ode_benchmarks import noisy_step_rules, scipy_solution, scipy_solver
-from scipy.integrate._ivp import base, rk
 
 from probnum import diffeq, randvars
+from probnum.diffeq import wrappedscipysolver
 from probnum.diffeq.perturbedsolvers import (
     _perturbation_functions,
     perturbedstepsolution,
 )
+from probnum.type import FloatArgType
 
 
 class PerturbedStepSolver(diffeq.ODESolver):
@@ -16,11 +16,13 @@ class PerturbedStepSolver(diffeq.ODESolver):
 
     # pylint: disable=maybe-no-member
     def __init__(
-        self, solver: scipy_solver, noise_scale, perturb_function, random_state=None
+        self,
+        solver: wrappedscipysolver,
+        noise_scale: np.array,
+        perturb_function,
+        random_state=None,
     ):
-
-        # This enables to set the random_state for testing.
-        def perturbation_step(step, random_state=random_state):
+        def perturbation_step(step):
             return perturb_function(
                 step=step,
                 solver_order=solver.order,
@@ -32,7 +34,6 @@ class PerturbedStepSolver(diffeq.ODESolver):
         self.perturb_step = perturbation_step
         self.solver = solver
         self.scipy_solver = solver.solver
-        self.interpolants = None
         self.time = None
         self.scale = None
         self.scales = None
@@ -40,26 +41,26 @@ class PerturbedStepSolver(diffeq.ODESolver):
 
     def initialise(self):
         """Initialise and reset the solver."""
-        self.interpolants = []
         self.scales = []
         return self.solver.initialise()
 
-    def step(self, start, stop, current, **kwargs):
+    def step(
+        self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
+    ):
         """Perform one perturbed ODE-step from start to perturbed stop.
 
         Parameters
         ----------
         start : float
-            starting timepoint of the step
+            starting location of the step
         stop : float
-            stopping timepoint of the step
+            stopping location of the step
         current : :obj:`list` of :obj:`RandomVariable`
-            current states of the ODE.
-
+            current state of the ODE.
         Returns
         -------
-        random_var : :obj:`list` of :obj:`RandomVariable`
-            estimated states (in the state-space model view) of the discrete-time solution..
+        random_var : randvars.RandomVariable
+            Estimated states of the discrete-time solution.
         error_estimation : float
             estimated error after having performed the step.
         """
@@ -79,7 +80,7 @@ class PerturbedStepSolver(diffeq.ODESolver):
         self.scales.append(self.scale)
         return self.solver.method_callback(time, current_guess, current_error)
 
-    def rvlist_to_odesol(self, times, rvs):
+    def rvlist_to_odesol(self, times: np.array, rvs: np.array):
         interpolants = self.solver.interpolants
         probnum_solution = perturbedstepsolution.PerturbedStepSolution(
             self.scales, times, rvs, interpolants
