@@ -3,6 +3,8 @@
 import abc
 from typing import Dict, Tuple
 
+import numpy as np
+
 from probnum.randvars import RandomVariable
 
 __all__ = [
@@ -32,9 +34,13 @@ class ImportanceDistribution(abc.ABC):
         raise NotImplementedError
 
     def log_correction_factor(
-        self, proposal_state, importance_rv, dynamics_rv
+        self, proposal_state, importance_rv, dynamics_rv, old_weight
     ) -> float:
-        return dynamics_rv.logpdf(proposal_state) - importance_rv.logpdf(proposal_state)
+        return (
+            dynamics_rv.logpdf(proposal_state)
+            - importance_rv.logpdf(proposal_state)
+            + np.log(old_weight)
+        )
 
 
 class BootstrapImportanceDistribution(ImportanceDistribution):
@@ -51,7 +57,9 @@ class BootstrapImportanceDistribution(ImportanceDistribution):
         first data point."""
         return initrv, initrv, {}
 
-    def log_correction_factor(self, proposal_state, importance_rv, dynamics_rv):
+    def log_correction_factor(
+        self, proposal_state, importance_rv, dynamics_rv, old_weight
+    ) -> float:
         return 0.0
 
 

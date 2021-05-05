@@ -223,9 +223,10 @@ class ParticleFilter(BayesFiltSmooth):
                             proposal_state=new_particle,
                             importance_rv=importance_rv,
                             dynamics_rv=dynamics_rv,
+                            old_weight=w,
                         )
                     )
-                    new_weight = w * np.exp(loglikelihood + log_correction_factor)
+                    new_weight = np.exp(loglikelihood + log_correction_factor)
 
                     new_particles[idx] = new_particle
                     new_weights[idx] = new_weight
@@ -245,6 +246,7 @@ class ParticleFilter(BayesFiltSmooth):
                             proposal_state=new_particle,
                             importance_rv=importance_rv,
                             dynamics_rv=dynamics_rv,
+                            old_weight=w,
                         )
                     )
                     new_weight = np.exp(loglikelihood + log_correction_factor)

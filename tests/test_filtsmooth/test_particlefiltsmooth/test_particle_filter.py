@@ -133,12 +133,5 @@ def test_rmse_particlefilter(pf_output, regression_problem):
         regression_problem.observations - np.sin(true_states)
     ) / np.sqrt(true_states.size)
 
-    import matplotlib.pyplot as plt
-
-    plotting_states = pf_output.states.resample()
-    plt.plot(regression_problem.locations, regression_problem.solution[:, 0])
-    plt.plot(regression_problem.locations, regression_problem.observations)
-    plt.plot(pf_output.locations, plotting_states.support[:, :, 0], "o", color="gray")
-    plt.show()
     # RMSE of PF.mode strictly better than RMSE of data
     assert rmse_mode < 0.9 * rmse_data
