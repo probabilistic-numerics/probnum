@@ -168,6 +168,7 @@ class IBM(Integrator, sde.LTISDE):
         spatialdim,
         forward_implementation="classic",
         backward_implementation="classic",
+        _process_noise_damping=0.0,
     ):
         # initialise BOTH superclasses' inits.
         # I don't like it either, but it does the job.
@@ -180,6 +181,8 @@ class IBM(Integrator, sde.LTISDE):
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
+
+        self._process_noise_damping = _process_noise_damping
 
     @cached_property
     def _driftmat(self):
@@ -201,11 +204,15 @@ class IBM(Integrator, sde.LTISDE):
     def equivalent_discretisation_preconditioned(self):
         """Discretised IN THE PRECONDITIONED SPACE."""
         empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
+        process_noise_cov_cholesky = np.linalg.cholesky(
+            self._proc_noise_cov_mat
+            + self._process_noise_damping * np.eye(len(self._proc_noise_cov_mat))
+        )
         return discrete_transition.DiscreteLTIGaussian(
             state_trans_mat=self._state_trans_mat,
             shift_vec=empty_shift,
             proc_noise_cov_mat=self._proc_noise_cov_mat,
-            proc_noise_cov_cholesky=np.linalg.cholesky(self._proc_noise_cov_mat),
+            proc_noise_cov_cholesky=process_noise_cov_cholesky,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
@@ -307,7 +314,6 @@ class IBM(Integrator, sde.LTISDE):
         Only present for user's convenience and to maintain a clean
         interface. Not used for forward_rv, etc..
         """
-
         state_trans_mat = (
             self.precon(dt)
             @ self.equivalent_discretisation_preconditioned.state_trans_mat
@@ -319,10 +325,19 @@ class IBM(Integrator, sde.LTISDE):
             @ self.precon(dt).T
         )
         zero_shift = np.zeros(len(state_trans_mat))
+
+        # The Cholesky factor of the process noise covariance matrix of the IBM
+        # always exists, even for non-square root implementations.
+        proc_noise_cov_cholesky = (
+            self.precon(dt)
+            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
+        )
+
         return discrete_transition.DiscreteLTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,
+            proc_noise_cov_cholesky=proc_noise_cov_cholesky,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.forward_implementation,
         )
