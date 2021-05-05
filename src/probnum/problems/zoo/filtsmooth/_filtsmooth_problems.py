@@ -23,6 +23,7 @@ def car_tracking(
     initrv: Optional[randvars.RandomVariable] = None,
     forward_implementation: str = "classic",
     backward_implementation: str = "classic",
+    _process_noise_damping: FloatArgType = 0.0,
 ):
     r"""Filtering/smoothing setup for a simple car-tracking scenario.
 
@@ -94,6 +95,7 @@ def car_tracking(
         spatialdim=state_dim,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
+        _process_noise_damping=_process_noise_damping,
     )
     dynamics_model.dispmat *= process_diffusion
 
@@ -101,17 +103,21 @@ def car_tracking(
 
     measurement_matrix = np.eye(measurement_dim, model_dim)
     measurement_cov = measurement_variance * np.eye(measurement_dim)
+    measurement_cov_cholesky = np.sqrt(measurement_variance) * np.eye(measurement_dim)
     measurement_model = statespace.DiscreteLTIGaussian(
         state_trans_mat=measurement_matrix,
         shift_vec=np.zeros(measurement_dim),
         proc_noise_cov_mat=measurement_cov,
+        proc_noise_cov_cholesky=measurement_cov_cholesky,
         forward_implementation=forward_implementation,
         backward_implementation=backward_implementation,
     )
 
     if initrv is None:
         initrv = randvars.Normal(
-            np.zeros(model_dim), measurement_variance * np.eye(model_dim)
+            np.zeros(model_dim),
+            measurement_variance * np.eye(model_dim),
+            cov_cholesky=np.sqrt(measurement_variance) * np.eye(model_dim),
         )
 
     # Set up regression problem
