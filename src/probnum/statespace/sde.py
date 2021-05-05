@@ -8,6 +8,7 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
+from probnum.utils.linalg import cholesky_update
 
 from . import discrete_transition, transition
 from .sde_utils import matrix_fraction_decomposition
@@ -273,11 +274,11 @@ class LinearSDE(SDE):
         )
         y_end = sol.y[:, -1]
         new_mean = y_end[:dim]
-        # If forward_sqrt is used, new_cov_or_cov_sqrt is the square-root of the covariance
-        # If forward_classic is used, new_cov_or_cov_sqrt is the covariance
-        new_cov_or_cov_sqrt = y_end[dim:].reshape((dim, dim))
+        # If forward_sqrt is used, new_cov_or_cov_cholesky is a Cholesky factor of the covariance
+        # If forward_classic is used, new_cov_or_cov_cholesky is the covariance
+        new_cov_or_cov_cholesky = y_end[dim:].reshape((dim, dim))
 
-        return sol, new_mean, new_cov_or_cov_sqrt
+        return sol, new_mean, new_cov_or_cov_cholesky
 
     def _solve_mde_backward(self, rv_obtained, rv, t, dt, _diffusion=1.0):
         """Solve backward moment differential equations (MDEs)."""
@@ -414,8 +415,8 @@ class LinearSDE(SDE):
 
         def f(t, y):
             # Undo vectorization
-            mean, cov_sqrt_flat = y[:dim], y[dim:]
-            cov_sqrt = cov_sqrt_flat.reshape((dim, dim))
+            mean, cov_cholesky_flat = y[:dim], y[dim:]
+            cov_cholesky = cov_cholesky_flat.reshape((dim, dim))
 
             # Apply iteration
             G = self.driftmatfun(t)
@@ -423,21 +424,25 @@ class LinearSDE(SDE):
             L = self.dispmatfun(t)
 
             new_mean = G @ mean + u
-            G_bar = scipy.linalg.solve_triangular(cov_sqrt, G @ cov_sqrt, lower=True)
+            G_bar = scipy.linalg.solve_triangular(
+                cov_cholesky, G @ cov_cholesky, lower=True
+            )
             L_bar = np.sqrt(_diffusion) * scipy.linalg.solve_triangular(
-                cov_sqrt, L, lower=True
+                cov_cholesky, L, lower=True
             )
             M = G_bar + G_bar.T + L_bar @ L_bar.T
 
-            new_cov_sqrt = cov_sqrt @ (np.tril(M, -1) + 1 / 2 * np.diag(np.diag(M)))
+            new_cov_cholesky = cholesky_update(
+                cov_cholesky @ (np.tril(M, -1) + 1 / 2 * np.diag(np.diag(M)))
+            )
 
             # Vectorize outcome
-            new_cov_sqrt_flat = new_cov_sqrt.flatten()
-            y_new = np.hstack((new_mean, new_cov_sqrt_flat))
+            new_cov_cholesky_flat = new_cov_cholesky.flatten()
+            y_new = np.hstack((new_mean, new_cov_cholesky_flat))
             return y_new
 
-        initcov_sqrt_flat = initrv.cov_cholesky.flatten()
-        y0 = np.hstack((initrv.mean, initcov_sqrt_flat))
+        initcov_cholesky_flat = initrv.cov_cholesky.flatten()
+        y0 = np.hstack((initrv.mean, initcov_cholesky_flat))
 
         return f, y0
 
