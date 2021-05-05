@@ -145,3 +145,32 @@ def test_kalman_smoother_high_order_ibm_with_process_noise_damping():
     obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
 
     assert smooms_rmse < filtms_rmse < obs_rmse
+
+
+def test_kalman_filter_high_order_ibm_with_process_noise_damping():
+    """With damping, the filter achieves really high orders (we test 25, but 50 was
+    possible too, for some reason)."""
+    regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
+        model_ordint=25,
+        timespan=(0.0, 1),
+        step=1e-2,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+        _process_noise_damping=1e-15,
+    )
+    truth = regression_problem.solution
+
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
+    )
+
+    posterior, _ = kalman.filter(regression_problem)
+
+    filtms = posterior.states.mean
+
+    filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
+    obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
+
+    assert filtms_rmse < obs_rmse
