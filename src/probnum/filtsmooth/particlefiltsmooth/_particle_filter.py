@@ -205,224 +205,91 @@ class ParticleFilter(BayesFiltSmooth):
             dt = t - t_old
             new_particles = particles.copy()
             new_weights = weights.copy()
+
             # Initialization: no .apply, but .process_initrv_wiht_data...
             if t == initarg:
-                (
-                    importance_rv,
-                    dynamics_rv,
-                    _,
-                ) = importance_distribution.process_initrv_with_data(
-                    self.initrv, data, t, lin_measmod
+                particle_generator = self.importance_rv_generator_initial(
+                    importance_distribution,
+                    particles,
+                    weights,
+                    data,
+                    t_old,
+                    dt,
+                    t,
+                    lin_measmod,
                 )
-                for idx, (p, w) in enumerate(zip(particles, weights)):
-                    new_particle = importance_rv.sample()
-                    meas_rv, _ = measmod.forward_realization(new_particle, t=t)
-                    loglikelihood = meas_rv.logpdf(data)
-                    log_correction_factor = (
-                        importance_distribution.log_correction_factor(
-                            proposal_state=new_particle,
-                            importance_rv=importance_rv,
-                            dynamics_rv=dynamics_rv,
-                            old_weight=w,
-                        )
-                    )
-                    new_weight = np.exp(loglikelihood + log_correction_factor)
-
-                    new_particles[idx] = new_particle
-                    new_weights[idx] = new_weight
-
-            # Proper particle filter step
             else:
-                for idx, (p, w) in enumerate(zip(particles, weights)):
-                    importance_rv, dynamics_rv, _ = importance_distribution.apply(
-                        p, data, t_old, dt, lin_measurement_model=lin_measmod
-                    )
+                particle_generator = self.importance_rv_generator_later(
+                    importance_distribution,
+                    particles,
+                    weights,
+                    data,
+                    t_old,
+                    dt,
+                    t,
+                    lin_measmod,
+                )
 
-                    new_particle = importance_rv.sample()
-                    meas_rv, _ = measmod.forward_realization(new_particle, t=t)
-                    loglikelihood = meas_rv.logpdf(data)
-                    log_correction_factor = (
-                        importance_distribution.log_correction_factor(
-                            proposal_state=new_particle,
-                            importance_rv=importance_rv,
-                            dynamics_rv=dynamics_rv,
-                            old_weight=w,
-                        )
-                    )
-                    new_weight = np.exp(loglikelihood + log_correction_factor)
+            for idx, (importance_rv, dynamics_rv, p, w) in enumerate(
+                particle_generator
+            ):
 
-                    new_particles[idx] = new_particle
-                    new_weights[idx] = new_weight
+                new_particle = importance_rv.sample()
+                meas_rv, _ = measmod.forward_realization(new_particle, t=t)
+                loglikelihood = meas_rv.logpdf(data)
+                log_correction_factor = importance_distribution.log_correction_factor(
+                    proposal_state=new_particle,
+                    importance_rv=importance_rv,
+                    dynamics_rv=dynamics_rv,
+                    old_weight=w,
+                )
+                new_weight = np.exp(loglikelihood + log_correction_factor)
+
+                new_particles[idx] = new_particle
+                new_weights[idx] = new_weight
 
             weights = new_weights / np.sum(new_weights)
             particles = new_particles
             yield randvars.Categorical(
                 support=particles, probabilities=weights, random_state=self.random_state
             ), {}
-        #
-        # print(initrv)
-        # assert False
-        #
-        # particles = self.initrv.sample(size=self.num_particles)
-        # weights = np.ones(self.num_particles) / self.num_particles
-        # curr_rv = randvars.Categorical(
-        #     support=particles, probabilities=weights, random_state=self.random_state
-        # )
-        #
-        # # Iterate over data and measurement models
-        # # The fillvalue is "None", because the optional linearised measmod (i.e. importance density)
-        # # is indicated with None (if not specified.)
-        # for t, data, measmod, lin_measmod in itertools.zip_longest(
-        #     times,
-        #     dataset,
-        #     measurement_model,
-        #     linearized_measurement_model,
-        #     fillvalue="None",
-        # ):
-        #
-        #     # Check whether one of the lists is exhausted but the others are not.
-        #     # In this case we want to raise a warning.
-        #     # If you want this to be an error, tell python to treat warnings as errors.
-        #     if (
-        #         t == "None"
-        #         or data == "None"
-        #         or measmod == "None"
-        #         or lin_measmod == "None"
-        #     ):
-        #         warnings.warn(
-        #             "The lengths of the dataset, times and measurement models are inconsistent."
-        #         )
-        #
-        #     dt = t - t_old
-        #     info_dict = {}
-        #
-        #     if dt > 0:
-        #         curr_rv, info_dict = self.filter_step(
-        #             start=t_old,
-        #             stop=t,
-        #             randvar=curr_rv,
-        #             data=data,
-        #             measmod=measmod,
-        #             lin_measmod=lin_measmod,
-        #         )
-        #         yield curr_rv, info_dict
-        #     else:
-        #         raise RuntimeError
-        # ################################
-        # ################################
-        # ################################
-        # ################################
-        # particles_and_weights = np.array(
-        #     [
-        #         self.compute_new_particle(dataset[0], times[0], self.initrv)
-        #         for _ in range(self.num_particles)
-        #     ],
-        #     dtype=object,
-        # )
-        # particles = np.stack(particles_and_weights[:, 0], axis=0)
-        # weights = np.stack(particles_and_weights[:, 1], axis=0)
-        # weights = np.array(weights) / np.sum(weights)
-        # curr_rv = randvars.Categorical(
-        #     support=particles, probabilities=weights, random_state=self.random_state
-        # )
-        # yield curr_rv, {}
-        #
-        # for idx in range(1, len(times)):
-        #     curr_rv, info_dict = self.filter_step(
-        #         start=times[idx - 1],
-        #         stop=times[idx],
-        #         randvar=curr_rv,
-        #         data=dataset[idx],
-        #         measurement_model=measmod,
-        #         linearized_measurement_model=lin_measmod,
-        #     )
-        #     yield curr_rv, info_dict
 
-    def filter_step(self, start, stop, randvar, data, measmod, lin_measmod):
-        """Perform a particle filter step.
+    def importance_rv_generator_initial(
+        self,
+        importance_distribution,
+        particles,
+        weights,
+        data,
+        t_old,
+        dt,
+        t,
+        lin_measmod,
+    ):
 
-        This method implements sequential importance (re)sampling.
-
-        It consists of the following steps:
-        1. Propagating the "past" particles through the dynamics model.
-        2. Computing a "proposal" random variable.
-        This is either the prior dynamics model or the output of a filter step
-        of an (approximate) Gaussian filter.
-        3. Sample from the proposal random variable. This is the "new" particle.
-        4. Propagate the particle through the measurement model.
-        This is required in order to evaluate the PDF of the resulting RV at
-        the data. If this is small, the weight of the particle will be small.
-        5. Compute weights ("event probabilities") of the new particle.
-        This requires evaluating the PDFs of all three RVs (dynamics, proposal, measurement).
-
-        After this is done for all particles, the weights are normalized in order to sum to 1.
-        If the effective number of particles is low, the particles are resampled.
-        """
-        new_weights = randvar.probabilities.copy()
-        new_support = randvar.support.copy()
-
-        for idx, (particle, weight) in enumerate(zip(new_support, new_weights)):
-
-            dynamics_rv, _ = self.dynamics_model.forward_realization(
-                particle, t=start, dt=(stop - start)
-            )
-            proposal_state, proposal_weight = self.compute_new_particle(
-                data, stop, dynamics_rv, measmod, lin_measmod
-            )
-            new_support[idx] = proposal_state
-            new_weights[idx] = proposal_weight
-
-        new_weights = new_weights / np.sum(new_weights)
-        new_rv = randvars.Categorical(
-            support=new_support,
-            probabilities=new_weights,
-            random_state=self.random_state,
+        processed = importance_distribution.process_initrv_with_data(
+            self.initrv, data, t, lin_measmod
         )
+        importance_rv, dynamics_rv, _ = processed
+        for (p, w) in zip(particles, weights):
+            yield importance_rv, dynamics_rv, p, w
 
-        if self.with_resampling:
-            if effective_number_of_events(new_rv) < self.min_effective_num_of_particles:
-                new_rv = new_rv.resample()
+    def importance_rv_generator_later(
+        self,
+        importance_distribution,
+        particles,
+        weights,
+        data,
+        t_old,
+        dt,
+        t,
+        lin_measmod,
+    ):
 
-        return new_rv, {}
-
-    def compute_new_particle(self, data, stop, dynamics_rv, measmod, lin_measmod):
-        """Compute a new particle.
-
-        Turn the dynamics RV into a proposal RV, apply the measurement
-        model and compute new weights via the respective PDFs.
-        """
-        proposal_rv = self.dynamics_to_proposal_rv(
-            dynamics_rv, data=data, t=stop, measmod=measmod, lin_measmod=lin_measmod
-        )
-        proposal_state = proposal_rv.sample()
-        meas_rv, _ = measmod.forward_realization(proposal_state, t=stop)
-
-        # For the bootstrap PF, the dynamics and proposal PDFs cancel out.
-        # Therefore we make the following exception.
-        if lin_measmod is None:
-            log_proposal_weight = meas_rv.logpdf(data)
-        else:
-            log_proposal_weight = (
-                meas_rv.logpdf(data)
-                + dynamics_rv.logpdf(proposal_state)
-                - proposal_rv.logpdf(proposal_state)
+        for (p, w) in zip(particles, weights):
+            importance_rv, dynamics_rv, _ = importance_distribution.apply(
+                p, data, t_old, dt, lin_measurement_model=lin_measmod
             )
-
-        proposal_weight = np.exp(log_proposal_weight)
-        return proposal_state, proposal_weight
-
-    def dynamics_to_proposal_rv(self, dynamics_rv, data, t, measmod, lin_measmod):
-        """Turn a dynamics RV into a proposal RV.
-
-        The output of this function depends on the choice of PF. For the
-        bootstrap PF, nothing happens. For other PFs, the importance
-        density is used to improve the proposal. Currently, only
-        approximate Gaussian importance densities are provided.
-        """
-        proposal_rv = dynamics_rv
-        if lin_measmod is not None:
-            proposal_rv, _ = lin_measmod.backward_realization(data, proposal_rv, t=t)
-        return proposal_rv
+            yield importance_rv, dynamics_rv, p, w
 
     @property
     def random_state(self):
