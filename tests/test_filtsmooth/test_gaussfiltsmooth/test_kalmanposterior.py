@@ -1,24 +1,27 @@
 import numpy as np
 import pytest
 
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
-
-from ..filtsmooth_testcases import car_tracking
 
 
 @pytest.fixture
 def problem():
     """Car-tracking problem."""
-    return car_tracking()
+    return filtsmooth_zoo.car_tracking()
 
 
 @pytest.fixture
 def setup(problem):
     """Filter and regression problem."""
-    dynmod, measmod, initrv, regression_problem = problem
+    regression_problem, statespace_components = problem
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
+    )
 
-    kalman = filtsmooth.Kalman(dynmod, measmod, initrv)
     return kalman, regression_problem
 
 
@@ -26,7 +29,8 @@ def setup(problem):
 def posterior(setup):
     """Kalman smoothing posterior."""
     kalman, regression_problem = setup
-    return kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(regression_problem)
+    return posterior
 
 
 def test_len(posterior):
@@ -156,7 +160,7 @@ def test_sampling_shapes_1d(locs, size):
     regression_problem = problems.RegressionProblem(
         observations=data, locations=locations
     )
-    posterior = kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(regression_problem)
 
     size = utils.as_shape(size)
     if locs is None:

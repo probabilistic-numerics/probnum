@@ -132,7 +132,7 @@ def initialize_odefilter_with_rk(
     kalman = filtsmooth.Kalman(prior, measmod, initrv)
 
     regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
-    out = kalman.filtsmooth(regression_problem)
+    out, _ = kalman.filtsmooth(regression_problem)
 
     estimated_initrv = out.states[0]
 

@@ -1,6 +1,7 @@
 """Utility functions for argument types."""
 
 import numbers
+from typing import Optional
 
 import numpy as np
 import scipy._lib._util
@@ -35,7 +36,7 @@ def as_random_state(seed: RandomStateArgType) -> RandomStateType:
     return scipy._lib._util.check_random_state(seed)
 
 
-def as_shape(x: ShapeArgType) -> ShapeType:
+def as_shape(x: ShapeArgType, ndim: Optional[numbers.Integral] = None) -> ShapeType:
     """Convert a shape representation into a shape defined as a tuple of ints.
 
     Parameters
@@ -44,9 +45,9 @@ def as_shape(x: ShapeArgType) -> ShapeType:
         Shape representation.
     """
     if isinstance(x, (int, numbers.Integral, np.integer)):
-        return (int(x),)
+        shape = (int(x),)
     elif isinstance(x, tuple) and all(isinstance(item, int) for item in x):
-        return x
+        shape = x
     else:
         try:
             _ = iter(x)
@@ -58,7 +59,13 @@ def as_shape(x: ShapeArgType) -> ShapeType:
         if not all(isinstance(item, (int, numbers.Integral, np.integer)) for item in x):
             raise TypeError(f"The given shape {x} must only contain integer values.")
 
-        return tuple(int(item) for item in x)
+        shape = tuple(int(item) for item in x)
+
+    if isinstance(ndim, numbers.Integral):
+        if len(shape) != ndim:
+            raise TypeError(f"The given shape {shape} must have {ndim} dimensions.")
+
+    return shape
 
 
 def as_numpy_scalar(x: ScalarArgType, dtype: DTypeArgType = None) -> np.generic:

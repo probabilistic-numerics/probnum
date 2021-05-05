@@ -3,6 +3,7 @@ import typing
 from typing import Callable, Optional
 
 import numpy as np
+import scipy.linalg
 
 from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
@@ -332,7 +333,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            gain = crosscov @ np.linalg.inv(new_cov)
+            gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
             info["gain"] = gain
         return randvars.Normal(new_mean, cov=new_cov), info
 
@@ -352,8 +353,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         crosscov = rv.cov @ H.T
         info = {"crosscov": crosscov}
         if compute_gain:
-            gain = crosscov @ np.linalg.inv(new_cov)
-            info["gain"] = gain
+            info["gain"] = scipy.linalg.cho_solve(
+                (new_cov_cholesky, True), crosscov.T
+            ).T
         return (
             randvars.Normal(new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky),
             info,
@@ -417,9 +419,9 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         # no initial gain was provided.
         # Recall that above, gain was set to zero in this setting.
         if np.linalg.norm(gain) == 0.0:
-            gain = big_triu[:output_dim, output_dim:].T @ np.linalg.inv(
-                big_triu[:output_dim, :output_dim].T
-            )
+            R1 = big_triu[:output_dim, :output_dim]
+            R12 = big_triu[:output_dim, output_dim:]
+            gain = scipy.linalg.solve_triangular(R1, R12, lower=False).T
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - state_trans @ rv.mean - shift)
         new_cov_cholesky = tril_to_positive_tril(new_chol_triu.T)
@@ -499,10 +501,10 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         super().__init__(
             input_dim,
             output_dim,
-            lambda t: state_trans_mat,
-            lambda t: shift_vec,
-            lambda t: proc_noise_cov_mat,
-            lambda t: proc_noise_cov_cholesky,
+            state_trans_mat_fun=lambda t: state_trans_mat,
+            shift_vec_fun=lambda t: shift_vec,
+            proc_noise_cov_mat_fun=lambda t: proc_noise_cov_mat,
+            proc_noise_cov_cholesky_fun=lambda t: proc_noise_cov_cholesky,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )
