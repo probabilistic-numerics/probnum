@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-import pytest_cases
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq
