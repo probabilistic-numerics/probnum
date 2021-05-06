@@ -5,8 +5,6 @@ Iterative probabilistic numerical methods solving linear systems :math:`Ax = b`.
 
 from typing import Generator, List, Optional, Tuple
 
-import numpy as np
-
 from probnum import linops, randvars
 from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from probnum.linalg.solvers import (
@@ -17,7 +15,7 @@ from probnum.linalg.solvers import (
     policies,
     stop_criteria,
 )
-from probnum.linalg.solvers._state import LinearSolverInfo, LinearSolverState
+from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservation
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
@@ -28,7 +26,9 @@ __all__ = ["ProbabilisticLinearSolver"]
 
 
 class ProbabilisticLinearSolver(
-    ProbabilisticNumericalMethod[LinearSystem, beliefs.LinearSystemBelief]
+    ProbabilisticNumericalMethod[
+        LinearSystem, beliefs.LinearSystemBelief
+    ]  # pylint: disable="unsubscriptable-object"
 ):
     """Compose a custom probabilistic linear solver.
 

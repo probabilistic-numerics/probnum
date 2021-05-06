@@ -1,13 +1,11 @@
 """Belief assuming weak correspondence between the means of the matrix models."""
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import scipy.sparse
 
-import probnum
-import probnum.linops as linops
-import probnum.randvars as rvs
+from probnum import linops, randvars
 from probnum.linalg.solvers.beliefs._symmetric_normal_linear_system import (
     SymmetricNormalLinearSystemBelief,
 )
@@ -95,10 +93,10 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
 
     def __init__(
         self,
-        A: Union[rvs.Normal, MatrixArgType],
-        Ainv: Union[rvs.Normal, MatrixArgType],
-        b: Union[rvs.Constant, rvs.Normal],
-        x: Optional[rvs.Normal] = None,
+        A: Union[randvars.Normal, MatrixArgType],
+        Ainv: Union[randvars.Normal, MatrixArgType],
+        b: Union[randvars.Constant, randvars.Normal],
+        x: Optional[randvars.Normal] = None,
         uncertainty_scales: UncertaintyUnexploredSpace = UncertaintyUnexploredSpace(
             Phi=1.0, Psi=1.0
         ),
@@ -113,7 +111,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 uncertainty_scales=uncertainty_scales,
                 action_obs_innerprods=action_obs_innerprods,
             )
-            A = rvs.Normal(
+            A = randvars.Normal(
                 mean=self.A0,
                 cov=linops.SymmetricKronecker(A=cov_factor_A),
             )
@@ -126,7 +124,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 uncertainty_scales=uncertainty_scales
             )
 
-            Ainv = rvs.Normal(
+            Ainv = randvars.Normal(
                 mean=self.Ainv0,
                 cov=linops.SymmetricKronecker(A=cov_factor_Ainv),
             )
@@ -134,7 +132,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
             self.Ainv0 = Ainv.mean
 
         super().__init__(
-            x=x, Ainv=Ainv, A=A, b=rvs.asrandvar(b), hyperparams=uncertainty_scales
+            x=x, Ainv=Ainv, A=A, b=randvars.asrandvar(b), hyperparams=uncertainty_scales
         )
 
     def _cov_factor_matrix(
@@ -182,14 +180,18 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
 
             else:
 
-                def _matvec(x):
+                def _matmul(x):
                     return self.data.observations_arr.obsA @ np.linalg.solve(
                         action_obs_innerprods,
                         self.data.observations_arr.obsA.T @ x,
                     )
 
             action_space_op = linops.LinearOperator(
-                shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
+                shape=self.A0.shape,
+                matmul=_matmul,
+                dtype=np.result_type(
+                    action_obs_innerprods, self.data.observations_arr.obsA
+                ),
             )
 
             orthogonal_space_op = uncertainty_scales.Phi * (
@@ -227,7 +229,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                 observation_space_op = self.Ainv0.scalar * observation_proj
             else:
 
-                def _matvec(x):
+                def _matmul(x):
                     return self.Ainv0 @ (
                         linops.OrthogonalProjection(
                             subspace_basis=self.data.observations_arr.obsA,
@@ -238,7 +240,11 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
                     )
 
                 observation_space_op = linops.LinearOperator(
-                    shape=self.A0.shape, matvec=_matvec, matmat=_matvec, dtype=float
+                    shape=self.A0.shape,
+                    matmul=_matmul,
+                    dtype=np.result_type(
+                        self.Ainv0.dtype, self.data.observations_arr.obsA
+                    ),
                 )
 
             orthogonal_space_op = uncertainty_scales.Psi * (
@@ -266,7 +272,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         return cls(
             Ainv=Ainv0,
             A=A0,
-            b=rvs.asrandvar(b0),
+            b=randvars.asrandvar(b0),
         )
 
     @classmethod
@@ -370,7 +376,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         data :
             Actions and observations of the linear system.
         """
-        return cls(A=A0, Ainv=Ainv0, b=rvs.asrandvar(problem.b), data=data)
+        return cls(A=A0, Ainv=Ainv0, b=randvars.asrandvar(problem.b), data=data)
 
     @classmethod
     def from_scalar(

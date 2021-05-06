@@ -10,7 +10,7 @@ except ImportError:
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 import probnum.linops as linops
 import probnum.randvars as rvs
 from probnum.linalg.solvers._state import LinearSolverState
@@ -20,10 +20,7 @@ from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
     _SymmetricNormalLinearObsCache,
     _SystemMatrixSymmetricNormalLinearObsBeliefUpdate,
 )
-from probnum.linalg.solvers.beliefs import (
-    LinearSystemBelief,
-    WeakMeanCorrespondenceBelief,
-)
+from probnum.linalg.solvers.beliefs import WeakMeanCorrespondenceBelief
 from probnum.linalg.solvers.data import (
     LinearSolverAction,
     LinearSolverData,

@@ -13,24 +13,18 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
-import probnum
-import probnum.linops as linops
-import probnum.randvars as rvs
+import probnum  # pylint: disable="unused-import"
+from probnum import linops, randvars
 from probnum.linalg.solvers._state import LinearSolverCache
 from probnum.linalg.solvers.belief_updates import (
     LinearSolverBeliefUpdate,
     LinearSolverQoIBeliefUpdate,
 )
-from probnum.linalg.solvers.beliefs import (
-    LinearSystemBelief,
-    SymmetricNormalLinearSystemBelief,
-)
-from probnum.linalg.solvers.hyperparams import LinearSystemNoise
+from probnum.linalg.solvers.beliefs import SymmetricNormalLinearSystemBelief
 from probnum.problems import LinearSystem, NoisyLinearSystem
 
-# pylint: disable="invalid-name"
+# pylint: disable="invalid-name,too-many-public-methods"
 
-# Public classes and functions. Order is reflected in documentation.
 __all__ = ["SymmetricNormalLinearObsBeliefUpdate"]
 
 
@@ -252,8 +246,8 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
 
         return linops.LinearOperator(
             shape=self.belief.A.shape,
-            matvec=lambda x: u * (v.T @ x) + v * (u.T @ x),
-            matmat=lambda x: u @ (v.T @ x) + v @ (u.T @ x),
+            matmul=lambda x: u @ (v.T @ x) + v @ (u.T @ x),
+            dtype=np.result_type(u, v),
         )
 
     @cached_property
@@ -264,8 +258,8 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
 
         return linops.LinearOperator(
             shape=self.belief.Ainv.shape,
-            matvec=lambda x: u * (v.T @ x) + v * (u.T @ x),
-            matmat=lambda x: u @ (v.T @ x) + v @ (u.T @ x),
+            matmul=lambda x: u @ (v.T @ x) + v @ (u.T @ x),
+            dtype=np.result_type(u, v),
         )
 
     @cached_property
@@ -275,8 +269,8 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
 
         covfactor_update_op = linops.LinearOperator(
             shape=self.belief.A.shape,
-            matvec=lambda x: self.covfactorA_action * (u.T @ x),
-            matmat=lambda x: self.covfactorA_action @ (u.T @ x),
+            matmul=lambda x: self.covfactorA_action @ (u.T @ x),
+            dtype=u.dtype,
         )
         return covfactor_update_op, covfactor_update_op
 
@@ -287,8 +281,8 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
 
         covfactor_update_op = linops.LinearOperator(
             shape=self.belief.Ainv.shape,
-            matvec=lambda x: self.covfactorH_observation * (u.T @ x),
-            matmat=lambda x: self.covfactorH_observation @ (u.T @ x),
+            matmul=lambda x: self.covfactorH_observation @ (u.T @ x),
+            dtype=u.dtype,
         )
         return covfactor_update_op, covfactor_update_op
 
@@ -344,7 +338,7 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
         problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
-    ) -> rvs.Normal:
+    ) -> randvars.Normal:
         """Updated belief for the matrix."""
         if isinstance(problem, NoisyLinearSystem):
             if isinstance(hyperparams.epsA_cov.A, linops.Scaling):
@@ -375,7 +369,7 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
                 self.prior.A.cov.A - solver_state.cache.covfactorA_update_batch[0]
             )
 
-        return rvs.Normal(mean=mean, cov=cov)
+        return randvars.Normal(mean=mean, cov=cov)
 
 
 class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
@@ -387,7 +381,7 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
         problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
-    ) -> rvs.Normal:
+    ) -> randvars.Normal:
         """Updated belief for the inverse matrix."""
         if isinstance(problem, NoisyLinearSystem):
             if isinstance(hyperparams.epsA_cov.A, linops.Scaling):
@@ -418,7 +412,7 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
                 self.prior.Ainv.cov.A - solver_state.cache.covfactorH_update_batch[0]
             )
 
-        return rvs.Normal(mean=mean, cov=cov)
+        return randvars.Normal(mean=mean, cov=cov)
 
 
 class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate):
@@ -430,7 +424,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
         problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
-    ) -> Optional[Union[rvs.Normal, np.ndarray]]:
+    ) -> Optional[Union[randvars.Normal, np.ndarray]]:
         """Updated belief about the solution."""
         if isinstance(problem, NoisyLinearSystem):
             if isinstance(hyperparams.epsA_cov.A, linops.Scaling):
@@ -461,7 +455,7 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
         problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
-    ) -> Union[rvs.Constant, rvs.Normal]:
+    ) -> Union[randvars.Constant, randvars.Normal]:
         """Updated belief for the right hand side."""
         if isinstance(problem, NoisyLinearSystem):
             # TODO replace this with Gaussian inference
@@ -470,7 +464,7 @@ class _RightHandSideSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
                 + solver_state.cache.observation.obsb
             ) / (solver_state.info.iteration + 1)
         else:
-            return rvs.asrandvar(problem.b)
+            return randvars.asrandvar(problem.b)
 
 
 class SymmetricNormalLinearObsBeliefUpdate(LinearSolverBeliefUpdate):

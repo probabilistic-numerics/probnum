@@ -1,6 +1,6 @@
 from typing import Optional
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.data import LinearSolverAction
 from probnum.linalg.solvers.policies._policy import Policy
@@ -26,7 +26,7 @@ class Residual(Policy):
         self,
         problem: LinearSystem,
         belief: "probnum.linalg.solvers.beliefs.LinearSystemBelief",
-        solver_state: Optional["probnum.linalg.solvers.LinearSolverState"] = None,
+        solver_state: Optional[LinearSolverState] = None,
     ) -> LinearSolverAction:
 
         if solver_state is None:

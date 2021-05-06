@@ -1,6 +1,6 @@
 from typing import Optional
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum.linalg.solvers.data import LinearSolverAction
 from probnum.linalg.solvers.policies._policy import Policy
 from probnum.problems import LinearSystem

@@ -2,7 +2,7 @@
 
 from typing import Optional, Tuple
 
-import probnum.randvars as rvs
+from probnum import randvars
 from probnum.linalg.solvers import LinearSolverState, ProbabilisticLinearSolver
 from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.type import MatrixArgType
@@ -19,10 +19,10 @@ def problinsolve(
     atol: float = 10 ** -6,
     rtol: float = 10 ** -6,
 ) -> Tuple[
-    rvs.RandomVariable,
-    rvs.RandomVariable,
-    rvs.RandomVariable,
-    rvs.RandomVariable,
+    randvars.RandomVariable,
+    randvars.RandomVariable,
+    randvars.RandomVariable,
+    randvars.RandomVariable,
     LinearSolverState,
 ]:
     """Solve the linear system :math:`A x = b` in a Bayesian framework.
@@ -134,7 +134,9 @@ def problinsolve(
     """
     # pylint: disable=invalid-name,too-many-arguments
     if "noise" in assume_linsys:
-        linsys = NoisyLinearSystem.from_randvars(A=rvs.asrandvar(A), b=rvs.asrandvar(b))
+        linsys = NoisyLinearSystem.from_randvars(
+            A=randvars.asrandvar(A), b=randvars.asrandvar(b)
+        )
     else:
         linsys = LinearSystem(A=A, b=b)
 

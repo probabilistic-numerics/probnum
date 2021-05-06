@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum import linops, randvars
 from probnum.linalg.solvers.beliefs._linear_system import LinearSystemBelief
 from probnum.problems import LinearSystem
@@ -215,11 +215,11 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         Wb = self.Ainv.cov.A @ self.b.mean
         bWb = (Wb.T @ self.b.mean).item()
 
-        def _mv(vec):
-            return 0.5 * (bWb * self.Ainv.cov.A @ vec + Wb @ (Wb.T @ vec))
+        def _matmul(x):
+            return 0.5 * (bWb * self.Ainv.cov.A @ x + Wb @ (Wb.T @ x))
 
         x_cov = linops.LinearOperator(
-            shape=self.Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
+            shape=self.Ainv.shape, dtype=float, matmul=_matmul
         )
         # Efficient trace computation
         x_cov.trace = lambda: 0.5 * (self.Ainv.cov.A.trace() * bWb + (Wb.T @ Wb).item())

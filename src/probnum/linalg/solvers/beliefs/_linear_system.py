@@ -4,10 +4,9 @@ Base class defining a belief about the quantities of interest of a
 linear system such as its solution, the matrix inverse.
 """
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
-import scipy.sparse
 
 try:
     # functools.cached_property is only available in Python >=3.8
@@ -15,7 +14,7 @@ try:
 except ImportError:
     from cached_property import cached_property
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum import linops, randvars
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
@@ -290,21 +289,22 @@ class LinearSystemBelief:
             # Construct prior mean of A and Ainv
             alpha = 0.5 * bx0 / bb
 
-            def _mv(v):
-                return (x0 - alpha * b0) * (x0 - alpha * b0).T @ v
+            def _matmul(y):
+                return (x0 - alpha * b0) @ (x0 - alpha * b0).T @ y
 
-            def _mm(M):
-                return (x0 - alpha * b0) @ (x0 - alpha * b0).T @ M
+            _result_dtype = np.result_type(x0, alpha, b0)
 
             Ainv0 = linops.Scaling(
                 factors=alpha, shape=problem.A.shape
             ) + 2 / bx0 * linops.LinearOperator(
-                matvec=_mv, matmat=_mm, shape=problem.A.shape
+                matmul=_matmul, shape=problem.A.shape, dtype=_result_dtype
             )
 
             A0 = linops.Scaling(factors=1 / alpha, shape=problem.A.shape) - 1 / (
                 alpha * np.squeeze((x0 - alpha * b0).T @ x0)
-            ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
+            ) * linops.LinearOperator(
+                matmul=_matmul, shape=problem.A.shape, dtype=_result_dtype
+            )
 
         return x0, Ainv0, A0, b0
 

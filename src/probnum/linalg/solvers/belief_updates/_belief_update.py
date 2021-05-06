@@ -5,17 +5,12 @@ from typing import Optional, Tuple, Type
 import probnum  # pylint: disable="unused-import"
 from probnum import randvars
 from probnum.linalg.solvers._state import LinearSolverCache, LinearSolverState
-from probnum.linalg.solvers.beliefs import (
-    LinearSystemBelief,
-    NoisySymmetricNormalLinearSystemBelief,
-    SymmetricNormalLinearSystemBelief,
-)
+from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.linalg.solvers.data import (
     LinearSolverAction,
     LinearSolverData,
     LinearSolverObservation,
 )
-from probnum.linalg.solvers.observation_ops import ObservationOp
 from probnum.problems import LinearSystem
 
 # Public classes and functions. Order is reflected in documentation.
