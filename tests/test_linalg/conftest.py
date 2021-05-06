@@ -282,7 +282,9 @@ def preconditioner(
     if request.param == "scalar":
         return linops.Scaling(factors=5.0, shape=linsys_spd.A.shape)
     elif request.param == "jacobi":
-        return linops.Scaling(factors=np.diag(linsys_spd.A))
+        return linops.Scaling(factors=np.diag(linsys_spd.A), shape=linsys_spd.A.shape)
+    else:
+        raise ValueError(f"Preconditioner '{request.param}' not available.")
 
 
 ################################

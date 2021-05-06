@@ -6,7 +6,7 @@ import scipy.linalg
 
 import probnum.linops as linops
 from probnum.linalg.solvers.beliefs import WeakMeanCorrespondenceBelief
-from probnum.linalg.solvers.data import LinearSolverData, LinearSolverObservation
+from probnum.linalg.solvers.data import LinearSolverData
 from probnum.linalg.solvers.hyperparams import UncertaintyUnexploredSpace
 from probnum.problems import LinearSystem
 

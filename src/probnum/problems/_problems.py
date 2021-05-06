@@ -6,12 +6,6 @@ from typing import Callable, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 import probnum  # pylint: disable="unused-import"
 from probnum import randvars, utils
 from probnum.type import (
@@ -325,7 +319,7 @@ class NoisyLinearSystem(LinearSystem):
             if size == ():
                 return A_samples, b_samples
             samples = np.empty(size, dtype=object)
-            samples[:] = list(zip([Ai for Ai in A_samples], [bi for bi in b_samples]))
+            samples[:] = list(zip([A_samples, b_samples]))
 
             return samples
 

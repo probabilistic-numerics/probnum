@@ -83,7 +83,7 @@ def fixture_noisy_updated_belief(
     """Belief update for the symmetric normal belief and linear observations."""
     noise = hyperparams.LinearSystemNoise(
         epsA_cov=linops.SymmetricKronecker(
-            A=linops.Scaling(shape=(n, n), scalar=request.param)
+            A=linops.Scaling(factors=request.param, shape=(n, n))
         ),
     )
 

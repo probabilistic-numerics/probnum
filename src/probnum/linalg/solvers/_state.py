@@ -3,8 +3,6 @@
 import dataclasses
 from typing import Optional
 
-from probnum.linalg.solvers.data import LinearSolverData
-
 try:
     # functools.cached_property is only available in Python >=3.8
     from functools import cached_property
@@ -13,7 +11,8 @@ except ImportError:
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import"
+from probnum.linalg.solvers.data import LinearSolverData
 from probnum.problems import LinearSystem
 
 # pylint: disable="invalid-name"

@@ -16,8 +16,7 @@ except ImportError:
     from cached_property import cached_property
 
 import probnum
-import probnum.linops as linops
-import probnum.randvars as rvs
+from probnum import linops, randvars
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -75,10 +74,10 @@ class LinearSystemBelief:
 
     def __init__(
         self,
-        A: rvs.RandomVariable,
-        Ainv: rvs.RandomVariable,
-        b: rvs.RandomVariable,
-        x: Optional[rvs.RandomVariable] = None,
+        A: randvars.RandomVariable,
+        Ainv: randvars.RandomVariable,
+        b: randvars.RandomVariable,
+        x: Optional[randvars.RandomVariable] = None,
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
         ] = None,
@@ -94,12 +93,15 @@ class LinearSystemBelief:
 
     @staticmethod
     def _reshape_2d(
-        x: rvs.RandomVariable,
-        A: rvs.RandomVariable,
-        Ainv: rvs.RandomVariable,
-        b: rvs.RandomVariable,
+        x: randvars.RandomVariable,
+        A: randvars.RandomVariable,
+        Ainv: randvars.RandomVariable,
+        b: randvars.RandomVariable,
     ) -> Tuple[
-        rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable, rvs.RandomVariable
+        randvars.RandomVariable,
+        randvars.RandomVariable,
+        randvars.RandomVariable,
+        randvars.RandomVariable,
     ]:
         """Reshape inputs to 2d matrices."""
         if b.ndim == 1:
@@ -115,10 +117,10 @@ class LinearSystemBelief:
 
     @staticmethod
     def _check_shape_mismatch(
-        x: rvs.RandomVariable,
-        A: rvs.RandomVariable,
-        Ainv: rvs.RandomVariable,
-        b: rvs.RandomVariable,
+        x: randvars.RandomVariable,
+        A: randvars.RandomVariable,
+        Ainv: randvars.RandomVariable,
+        b: randvars.RandomVariable,
     ) -> None:
         """Check whether shapes of arguments match."""
 
@@ -149,27 +151,27 @@ class LinearSystemBelief:
         return self._hyperparams
 
     @cached_property
-    def x(self) -> rvs.RandomVariable:
+    def x(self) -> randvars.RandomVariable:
         """Belief over the solution."""
         if self._x is None:
             return self._induced_solution_belief()
         elif isinstance(self._x, np.ndarray):
-            return rvs.Normal(mean=self._x, cov=self._induced_solution_cov())
+            return randvars.Normal(mean=self._x, cov=self._induced_solution_cov())
         else:
             return self._x
 
     @property
-    def A(self) -> rvs.RandomVariable:
+    def A(self) -> randvars.RandomVariable:
         """Belief over the system matrix."""
         return self._A
 
     @property
-    def Ainv(self) -> rvs.RandomVariable:
+    def Ainv(self) -> randvars.RandomVariable:
         """Belief over the (pseudo-)inverse of the system matrix."""
         return self._Ainv
 
     @property
-    def b(self) -> rvs.RandomVariable:
+    def b(self) -> randvars.RandomVariable:
         """Belief over the right hand side."""
         return self._b
 
@@ -209,10 +211,10 @@ class LinearSystemBelief:
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
         return cls(
-            x=rvs.asrandvar(x0),
-            Ainv=rvs.asrandvar(Ainv0),
-            A=rvs.asrandvar(A0),
-            b=rvs.asrandvar(b0),
+            x=randvars.asrandvar(x0),
+            Ainv=randvars.asrandvar(Ainv0),
+            A=randvars.asrandvar(A0),
+            b=randvars.asrandvar(b0),
         )
 
     @staticmethod
@@ -259,7 +261,7 @@ class LinearSystemBelief:
             x0 = x0.reshape((-1, 1))
 
         # Instantiate belief over right hand side via sample in stochastic case
-        if isinstance(problem.b, rvs.RandomVariable):
+        if isinstance(problem.b, randvars.RandomVariable):
             b0 = problem.b.sample()
         else:
             b0 = problem.b
@@ -280,7 +282,7 @@ class LinearSystemBelief:
                 bx0 = -bx0
             elif check_for_better_x0 and np.abs(bx0) < 100 * np.finfo(float).eps:
                 # <x0, b> = 0, b != 0
-                if not isinstance(problem.A, rvs.RandomVariable):
+                if not isinstance(problem.A, randvars.RandomVariable):
                     bAb = (b0.T @ (problem.A @ b0)).item()
                     x0 = bb / bAb * b0
                     bx0 = bb ** 2 / bAb
@@ -295,7 +297,7 @@ class LinearSystemBelief:
                 return (x0 - alpha * b0) @ (x0 - alpha * b0).T @ M
 
             Ainv0 = linops.Scaling(
-                scalar=alpha, shape=problem.A.shape
+                factors=alpha, shape=problem.A.shape
             ) + 2 / bx0 * linops.LinearOperator(
                 matvec=_mv, matmat=_mm, shape=problem.A.shape
             )
@@ -326,9 +328,9 @@ class LinearSystemBelief:
         """
         return cls(
             x=None,
-            Ainv=rvs.asrandvar(Ainv0),
-            A=rvs.asrandvar(problem.A),
-            b=rvs.asrandvar(problem.b),
+            Ainv=randvars.asrandvar(Ainv0),
+            A=randvars.asrandvar(problem.A),
+            b=randvars.asrandvar(problem.b),
         )
 
     @classmethod
@@ -353,9 +355,9 @@ class LinearSystemBelief:
 
         return cls(
             x=None,
-            Ainv=rvs.asrandvar(Ainv0),
-            A=rvs.asrandvar(A0),
-            b=rvs.asrandvar(problem.b),
+            Ainv=randvars.asrandvar(Ainv0),
+            A=randvars.asrandvar(A0),
+            b=randvars.asrandvar(problem.b),
         )
 
     @classmethod
@@ -383,9 +385,9 @@ class LinearSystemBelief:
         """
         return cls(
             x=None,
-            Ainv=rvs.asrandvar(Ainv0),
-            A=rvs.asrandvar(A0),
-            b=rvs.asrandvar(problem.b),
+            Ainv=randvars.asrandvar(Ainv0),
+            A=randvars.asrandvar(A0),
+            b=randvars.asrandvar(problem.b),
         )
 
     @classmethod
@@ -410,7 +412,7 @@ class LinearSystemBelief:
         Ainv0 = linops.Scaling(factors=1 / scalar, shape=problem.A.shape)
         return cls.from_matrices(A0=A0, Ainv0=Ainv0, problem=problem)
 
-    def _induced_solution_belief(self) -> rvs.RandomVariable:
+    def _induced_solution_belief(self) -> randvars.RandomVariable:
         r"""Induced belief about the solution from a belief about the inverse.
 
         Computes the induced belief about the solution given by (an approximation

@@ -2,9 +2,7 @@
 solvers."""
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple, Union
-
-import numpy as np
+from typing import Optional
 
 import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem

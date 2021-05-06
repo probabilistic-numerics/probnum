@@ -76,7 +76,7 @@ class OrthogonalProjection(LinearOperator):
                 f"do not match."
             )
         self.innerprod_matrix = innerprod_matrix
-        super().__init__(shape=_shape, dtype=float)
+        super().__init__(matmul=self._matmul, shape=_shape, dtype=float)
 
     @cached_property
     def _transformed_basis(self):
@@ -101,7 +101,7 @@ class OrthogonalProjection(LinearOperator):
                 self.subspace_basis.T,
             ).T
 
-    def _matvec(self, x):
+    def _matmul(self, x):
         if (
             isinstance(self.innerprod_matrix, Identity)
             and self.subspace_basis.shape[1] >= self.subspace_basis.shape[0]
@@ -114,15 +114,12 @@ class OrthogonalProjection(LinearOperator):
                 @ (self.innerprod_matrix @ x)
             )
 
-    def _matmat(self, X):
-        return self._matvec(X)
-
     def _transpose(self):
         if isinstance(self.innerprod_matrix, Identity):
             return self
         else:
 
-            def _matvec(x):
+            def _matmul(x):
                 return (
                     self.innerprod_matrix
                     @ self.subspace_basis
@@ -130,8 +127,7 @@ class OrthogonalProjection(LinearOperator):
                 )
 
             return LinearOperator(
-                matvec=_matvec,
-                matmat=_matvec,
+                matmul=_matmul,
                 shape=self.shape,
                 dtype=float,
             )

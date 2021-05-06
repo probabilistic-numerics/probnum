@@ -1,7 +1,6 @@
 """Tests for the maximum column supremum norm policy."""
 
 import numpy as np
-import pytest
 
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.linalg.solvers.policies import Policy

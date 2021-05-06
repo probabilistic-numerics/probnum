@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum.linalg.solvers.stop_criteria._stopping_criterion import StoppingCriterion
 from probnum.problems import LinearSystem
 from probnum.type import ScalarArgType

@@ -1,10 +1,8 @@
 """Base class for policies of probabilistic linear solvers returning actions."""
-from typing import Callable, Optional, Tuple
-
-import numpy as np
+from typing import Callable, Optional
 
 import probnum  # pylint: disable="unused-import
-import probnum.utils
+from probnum import utils
 from probnum.problems import LinearSystem
 from probnum.type import RandomStateArgType
 
@@ -58,7 +56,7 @@ class Policy:
     ):
         self._policy = policy
         self._is_deterministic = is_deterministic
-        self.random_state = probnum.utils.as_random_state(random_state)
+        self.random_state = utils.as_random_state(random_state)
 
     def __call__(
         self,

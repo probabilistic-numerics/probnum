@@ -1,8 +1,10 @@
-from typing import List, Optional, Tuple, Union
+"""Posterior uncertainty calibration for linear solvers."""
+
+from typing import List, Optional
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
     _SymmetricNormalLinearObsCache,

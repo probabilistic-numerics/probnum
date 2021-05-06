@@ -252,6 +252,7 @@ class BoxProduct(_linear_operator.LinearOperator):
         self.A = _utils.aslinop(A)
         self.B = _utils.aslinop(B)
         super().__init__(
+            matmul=self._matmul,
             dtype=dtype,
             shape=(
                 self.A.shape[0] * self.B.shape[0],
@@ -259,7 +260,7 @@ class BoxProduct(_linear_operator.LinearOperator):
             ),
         )
 
-    def _matvec(self, X):
+    def _matmul(self, x):
         raise NotImplementedError
 
 

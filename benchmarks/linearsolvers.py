@@ -75,7 +75,9 @@ class PosteriorDist:
         self.A, self.b = load_poisson_linear_system()
 
         # Solve linear system
-        self.xhat, self.Ahat, self.Ainvhat, _ = problinsolve(A=self.A, b=self.b)
+        self.xhat, self.Ahat, self.Ainvhat, self.bhat, _ = problinsolve(
+            A=self.A, b=self.b
+        )
 
         # Benchmark parameters
         self.n_samples = 10

@@ -101,9 +101,8 @@ def test_multiple_rhs(linsys_spd_multiple_rhs: LinearSystem, linsolve: Callable)
     """Linear system with matrix right hand side."""
     x, _, _, _, _ = linsolve(A=linsys_spd_multiple_rhs.A, b=linsys_spd_multiple_rhs.b)
     assert (
-        x.shape == linsys_spd_multiple_rhs.b.shape,
-        "Shape of solution and right hand side do not match.",
-    )
+        x.shape == linsys_spd_multiple_rhs.b.shape
+    ), "Shape of solution and right hand side do not match."
     np.testing.assert_allclose(x.mean, linsys_spd_multiple_rhs.solution)
 
 

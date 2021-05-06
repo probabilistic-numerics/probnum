@@ -1,7 +1,7 @@
 """Matrix-vector product observations of a linear system."""
-from typing import Optional, Tuple
+from typing import Optional
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum.linalg.solvers.data import LinearSolverAction, LinearSolverObservation
 from probnum.linalg.solvers.observation_ops._observation_operator import ObservationOp
 from probnum.problems import LinearSystem, NoisyLinearSystem

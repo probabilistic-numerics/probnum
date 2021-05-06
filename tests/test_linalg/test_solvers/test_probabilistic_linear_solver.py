@@ -99,10 +99,10 @@ class TestProbabilisticLinearSolver:
             # Check positive definiteness
             eps = 10 ** 6 * np.finfo(float).eps
             assert np.all(
-                0 <= scipy.linalg.eigvalsh(belief.A.cov.A.todense()) + eps
+                scipy.linalg.eigvalsh(belief.A.cov.A.todense()) + eps >= 0
             ), "Covariance of A not positive semi-definite."
             assert np.all(
-                0 <= scipy.linalg.eigvalsh(belief.Ainv.cov.A.todense()) + eps
+                scipy.linalg.eigvalsh(belief.Ainv.cov.A.todense()) + eps >= 0
             ), "Covariance of Ainv not positive semi-definite."
 
 
