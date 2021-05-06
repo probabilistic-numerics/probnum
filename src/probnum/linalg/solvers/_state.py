@@ -11,7 +11,6 @@ try:
 except ImportError:
     from cached_property import cached_property
 
-
 import numpy as np
 
 import probnum

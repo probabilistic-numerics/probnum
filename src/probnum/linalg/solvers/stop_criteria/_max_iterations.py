@@ -6,7 +6,6 @@ from probnum.linalg.solvers.stop_criteria._stopping_criterion import StoppingCri
 from probnum.problems import LinearSystem
 from probnum.type import IntArgType
 
-# Public classes and functions. Order is reflected in documentation.
 __all__ = ["MaxIterations"]
 
 

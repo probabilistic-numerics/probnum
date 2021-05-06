@@ -160,7 +160,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         if self.data is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            return linops.Scaling(scalar=uncertainty_scales.Phi, shape=self.A0.shape)
+            return linops.Scaling(factors=uncertainty_scales.Phi, shape=self.A0.shape)
         else:
             if action_obs_innerprods is None:
                 action_obs_innerprods = np.squeeze(
@@ -215,7 +215,9 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         if self.data is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            return linops.Scaling(scalar=uncertainty_scales.Psi, shape=self.Ainv0.shape)
+            return linops.Scaling(
+                factors=uncertainty_scales.Psi, shape=self.Ainv0.shape
+            )
         else:
             observation_proj = linops.OrthogonalProjection(
                 subspace_basis=self.data.observations_arr.obsA, is_orthonormal=False
@@ -390,8 +392,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         """
         if scalar <= 0.0:
             raise ValueError(f"Scalar parameter alpha={scalar:.4f} must be positive.")
-        A0 = linops.Scaling(scalar=scalar, shape=problem.A.shape)
-        Ainv0 = linops.Scaling(scalar=1 / scalar, shape=problem.A.shape)
+        A0 = linops.Scaling(factors=scalar, shape=problem.A.shape)
+        Ainv0 = linops.Scaling(factors=1 / scalar, shape=problem.A.shape)
         return cls.from_matrices(
             A0=A0,
             Ainv0=Ainv0,

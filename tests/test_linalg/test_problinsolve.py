@@ -5,8 +5,7 @@ from typing import Callable
 import numpy as np
 import pytest
 
-import probnum.linops as linops
-from probnum import random_variables as rvs
+from probnum import linops, randvars
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
@@ -20,7 +19,7 @@ def test_preconditioner(
     linsys_spd: LinearSystem, preconditioner: MatrixArgType, linsolve: Callable
 ):
     """The solver should be able to take a preconditioner."""
-    x, _, _, _, state = linsolve(A=linsys_spd.A, b=linsys_spd.b, Ainv0=preconditioner)
+    x, _, _, _, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b, Ainv0=preconditioner)
     np.testing.assert_allclose(
         x.mean, linsys_spd.solution, atol=LINSOLVE_ABSTOL, rtol=LINSOLVE_RELTOL
     )
@@ -64,7 +63,7 @@ def test_randvar_output(linsys_spd: LinearSystem, linsolve: Callable):
     x, A, Ainv, b, _ = linsolve(A=linsys_spd.A, b=linsys_spd.b)
     for rv in [x, A, Ainv, b]:
         assert isinstance(
-            rv, rvs.RandomVariable
+            rv, randvars.RandomVariable
         ), "Output of probabilistic linear solver is not a random variable."
 
 

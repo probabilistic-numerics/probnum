@@ -2,13 +2,11 @@ from typing import Optional
 
 import numpy as np
 
-import probnum
 from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.stop_criteria._stopping_criterion import StoppingCriterion
 from probnum.problems import LinearSystem
 from probnum.type import ScalarArgType
 
-# Public classes and functions. Order is reflected in documentation.
 __all__ = ["ResidualNorm"]
 
 

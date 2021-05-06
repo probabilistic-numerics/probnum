@@ -134,7 +134,7 @@ class TestNoisyLinearSystem:
         n = 5
         A = rvs.Normal(
             mean=linops.Identity(n),
-            cov=linops.SymmetricKronecker(linops.Scaling(scalar=2.0, shape=(n, n))),
+            cov=linops.SymmetricKronecker(linops.Scaling(factors=2.0, shape=(n, n))),
         )
         b = rvs.Normal(mean=np.zeros(n), cov=np.eye(n))
         linsys_rand = NoisyLinearSystem.from_randvars(A=A, b=b)

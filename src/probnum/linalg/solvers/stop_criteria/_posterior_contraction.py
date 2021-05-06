@@ -7,7 +7,6 @@ from probnum.linalg.solvers.stop_criteria._stopping_criterion import StoppingCri
 from probnum.problems import LinearSystem
 from probnum.type import ScalarArgType
 
-# Public classes and functions. Order is reflected in documentation.
 __all__ = ["PosteriorContraction"]
 
 

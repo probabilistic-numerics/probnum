@@ -2,7 +2,6 @@
 
 from typing import Optional
 
-import probnum
 from probnum.type import MatrixArgType
 
 

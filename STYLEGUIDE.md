@@ -45,7 +45,7 @@ Types are always imported directly.
 
 Please do not abbreviate import paths unnecessarily. We do **not** use the following imports:
 - `import probnum.randvars as pnrv` or `import probnum.filtsmooth as pnfs` (correct would be `from probnum import randvars, filtsmooth`)
-- `from probnum import random_variables as rvs` or `import probnum.randvars as rvs` (the `randvars` name is sufficiently short and does not need to be abbreviated)
+- `from probnum import randvars as rvs` or `import probnum.randvars as rvs` (the `randvars` name is sufficiently short and does not need to be abbreviated)
 
 While all of these rules obey the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html),
 we use one import convention that deviates from this guide.

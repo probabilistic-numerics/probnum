@@ -78,7 +78,7 @@ def test_uncertainty_action_null_space_is_phi(
         pytest.skip("Action null space may be trivial.")
 
     scalar_linsys = LinearSystem.from_matrix(
-        A=linops.Scaling(scalar=2.5, shape=(n, n)), random_state=random_state
+        A=linops.Scaling(factors=2.5, shape=(n, n)), random_state=random_state
     )
     belief = WeakMeanCorrespondenceBelief(
         A=scalar_linsys.A,
@@ -120,7 +120,7 @@ def test_uncertainty_observation_null_space_is_psi(
         pytest.skip("Observation null space may be trivial.")
 
     scalar_linsys = LinearSystem.from_matrix(
-        A=linops.Scaling(scalar=2.5, shape=(n, n)), random_state=random_state
+        A=linops.Scaling(factors=2.5, shape=(n, n)), random_state=random_state
     )
     scalar_system_solver_data = LinearSolverData.from_arrays(
         actions_arr=solver_data.actions_arr,
@@ -233,7 +233,7 @@ def test_conjugate_actions_covariance(
     observations = linsys_spd.A @ conj_actions
 
     # Inverse prior mean
-    Ainv0 = linops.Scaling(scalar=alpha, shape=(n, n))
+    Ainv0 = linops.Scaling(factors=alpha, shape=(n, n))
 
     # Naive covariance factors
     W0_A = observations @ np.linalg.solve(
@@ -277,7 +277,7 @@ def test_conjugate_actions_covariance(
 def test_from_matrix_satisfies_mean_correspondence(linsys: LinearSystem):
     """Test whether for a belief constructed from an approximate system matrix, the
     prior mean of the inverse model corresponds."""
-    A0 = linops.Scaling(scalar=5.0, shape=linsys.A.shape)
+    A0 = linops.Scaling(factors=5.0, shape=linsys.A.shape)
     belief = WeakMeanCorrespondenceBelief.from_matrix(A0=A0, problem=linsys)
     np.testing.assert_allclose(
         belief.Ainv.mean.inv().todense(), belief.A.mean.todense()
@@ -287,7 +287,7 @@ def test_from_matrix_satisfies_mean_correspondence(linsys: LinearSystem):
 def test_from_inverse_satisfies_mean_correspondence(linsys: LinearSystem):
     """Test whether for a belief constructed from an approximate inverse, the prior mean
     of the system matrix model corresponds."""
-    Ainv0 = linops.Scaling(scalar=5.0, shape=linsys.A.shape)
+    Ainv0 = linops.Scaling(factors=5.0, shape=linsys.A.shape)
     belief = WeakMeanCorrespondenceBelief.from_inverse(Ainv0=Ainv0, problem=linsys)
     np.testing.assert_allclose(
         belief.Ainv.mean.inv().todense(), belief.A.mean.todense()

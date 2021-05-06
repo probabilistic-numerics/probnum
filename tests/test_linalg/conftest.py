@@ -220,12 +220,12 @@ def fixture_linsys_iid_noise(
     return NoisyLinearSystem.from_randvars(
         A=rvs.Normal(
             mean=spd_mat,
-            cov=linops.SymmetricKronecker(linops.Scaling(scalar=eps, shape=(n, n))),
+            cov=linops.SymmetricKronecker(linops.Scaling(factors=eps, shape=(n, n))),
             random_state=random_state,
         ),
         b=rvs.Normal(
             mean=b,
-            cov=linops.Scaling(scalar=eps ** 2, shape=(n, n)),
+            cov=linops.Scaling(factors=eps ** 2, shape=(n, n)),
             random_state=random_state,
         ),
         solution=solution,
@@ -241,7 +241,7 @@ def fixture_linsys_iid_noise(
                 rvs.Normal(
                     mean=random_spd_matrix(dim=10, random_state=1),
                     cov=linops.SymmetricKronecker(
-                        linops.Scaling(scalar=10 ** -2, shape=(10, 10))
+                        linops.Scaling(factors=10 ** -2, shape=(10, 10))
                     ),
                 ),
                 rvs.Constant(np.ones((10, 1))),
@@ -280,9 +280,9 @@ def preconditioner(
 ) -> MatrixArgType:
     """Preconditioner for a linear system."""
     if request.param == "scalar":
-        return linops.Scaling(scalar=5.0, shape=linsys_spd.A.shape)
+        return linops.Scaling(factors=5.0, shape=linsys_spd.A.shape)
     elif request.param == "jacobi":
-        return linops.DiagMult(diagonal=np.diag(linsys_spd.A))
+        return linops.Scaling(factors=np.diag(linsys_spd.A))
 
 
 ################################

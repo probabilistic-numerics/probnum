@@ -226,7 +226,7 @@ class LinearSystemBelief:
         Union[np.ndarray, linops.LinearOperator],
         np.ndarray,
     ]:
-        """Construct means for the belief from an approximate solution.
+        r"""Construct means for the belief from an approximate solution.
 
         Constructs matrices :math:`H_0` and :math:`A_0` such
         that :math:`H_0b = x_0`, :math:`H_0` symmetric positive definite and
@@ -300,7 +300,7 @@ class LinearSystemBelief:
                 matvec=_mv, matmat=_mm, shape=problem.A.shape
             )
 
-            A0 = linops.Scaling(scalar=1 / alpha, shape=problem.A.shape) - 1 / (
+            A0 = linops.Scaling(factors=1 / alpha, shape=problem.A.shape) - 1 / (
                 alpha * np.squeeze((x0 - alpha * b0).T @ x0)
             ) * linops.LinearOperator(matvec=_mv, matmat=_mm, shape=problem.A.shape)
 
@@ -406,8 +406,8 @@ class LinearSystemBelief:
         problem :
             Linear system to solve.
         """
-        A0 = linops.Scaling(scalar=scalar, shape=problem.A.shape)
-        Ainv0 = linops.Scaling(scalar=1 / scalar, shape=problem.A.shape)
+        A0 = linops.Scaling(factors=scalar, shape=problem.A.shape)
+        Ainv0 = linops.Scaling(factors=1 / scalar, shape=problem.A.shape)
         return cls.from_matrices(A0=A0, Ainv0=Ainv0, problem=problem)
 
     def _induced_solution_belief(self) -> rvs.RandomVariable:

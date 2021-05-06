@@ -5,7 +5,6 @@ from typing import Callable, Optional
 import probnum  # pylint: disable="unused-import
 from probnum.problems import LinearSystem
 
-# Public classes and functions. Order is reflected in documentation.
 __all__ = ["StoppingCriterion"]
 
 # pylint: disable="invalid-name,too-few-public-methods"
