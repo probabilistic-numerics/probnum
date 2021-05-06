@@ -21,7 +21,7 @@ def solutionnoisy():
     )
     sol = perturbedstepsolver.PerturbedStepSolver(
         testsolver,
-        noise_scale=1,
+        noise_scale=0.1,
         perturb_function=_perturbation_functions.perturb_uniform,
         random_state=123,
     )
