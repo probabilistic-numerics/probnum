@@ -2,7 +2,13 @@
 
 import dataclasses
 from collections import namedtuple
-from functools import cached_property
+
+try:
+    # functools.cached_property is only available in Python >=3.8
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
