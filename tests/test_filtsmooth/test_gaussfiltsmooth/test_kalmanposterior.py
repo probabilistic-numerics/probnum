@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, problems, randvars, statespace, utils
+from probnum import filtsmooth, problems, randprocs, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
 
 
@@ -17,8 +17,7 @@ def setup(problem):
     """Filter and regression problem."""
     regression_problem, statespace_components = problem
     kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
+        statespace_components["prior_process"],
     )
 
     return (
@@ -159,7 +158,10 @@ def test_sampling_shapes_1d(locs, size):
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
-    kalman = filtsmooth.Kalman(prior, initrv)
+    prior_process = randprocs.MarkovProcess(
+        transition=measmod, initrv=initrv, initarg=locations[0]
+    )
+    kalman = filtsmooth.Kalman(prior_process)
     regression_problem = problems.RegressionProblem(
         observations=data, locations=locations
     )

@@ -12,8 +12,7 @@ def setup(request):
     regression_problem, statespace_components = problem()
 
     kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
+        statespace_components["prior_process"],
     )
     return (
         kalman,

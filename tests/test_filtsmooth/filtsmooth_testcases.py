@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth
+from probnum import filtsmooth, randprocs
 from tests.testing import NumpyAssertions
 
 __all__ = [
@@ -84,7 +84,13 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         ekf_dyna = self.linearising_component_pendulum(
             statespace_components["dynamics_model"]
         )
-        method = filtsmooth.Kalman(ekf_dyna, statespace_components["initrv"])
+        initrv = statespace_components["initrv"]
+
+        prior_process = randprocs.MarkovProcess(
+            transition=ekf_dyna, initrv=initrv, initarg=regression_problem.locations[0]
+        )
+
+        method = filtsmooth.Kalman(prior_process)
 
         # Compute filter/smoother solution
         posterior, _ = method.filtsmooth(regression_problem, ekf_meas)
