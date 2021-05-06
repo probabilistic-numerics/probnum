@@ -23,7 +23,6 @@ def solutionnoisy():
         testsolver,
         noise_scale=0.1,
         perturb_function=_perturbation_functions.perturb_uniform,
-        # random_state=123,
     )
     return sol.solve(diffeq.AdaptiveSteps(0.1, atol=1e-14, rtol=1e-14))
 
