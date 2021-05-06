@@ -13,8 +13,7 @@ except ImportError:
     from cached_property import cached_property
 
 import probnum  # pylint: disable="unused-import"
-import probnum.filtsmooth as pnfs
-import probnum.random_variables as rvs
+from probnum import randvars, utils
 from probnum.type import (
     FloatArgType,
     MatrixArgType,
@@ -22,7 +21,6 @@ from probnum.type import (
     ShapeArgType,
     ShapeType,
 )
-from probnum.utils import as_random_state
 
 # pylint: disable="invalid-name"
 
@@ -41,11 +39,8 @@ class RegressionProblem:
         Observations of the latent process.
     locations
         Grid-points on which the observations were taken.
-    likelihood
-        Likelihood of the observations; that is, relation between the latent process and
-        the observed values. Encodes for example noise.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        Array containing solution to the problem at ``locations``. Used for testing and benchmarking.
 
     Examples
     --------
@@ -53,20 +48,15 @@ class RegressionProblem:
     >>> loc = [0.1, 0.2]
     >>> rp = RegressionProblem(observations=obs, locations=loc)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], likelihood=None, solution=None)
-    >>> rp._observation
+    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], solution=None)
+    >>> rp.observations
     [11.4123, -15.5123]
     """
 
     observations: np.ndarray
     locations: np.ndarray
 
-    # Optional, because it should be specifiable without explicit likelihood info.
-    # 'DiscreteGaussian' is currently in 'statespace', but can be used to define general
-    # Likelihood functions; see #282
-    likelihood: Optional[pnfs.statespace.DiscreteGaussian] = None
-
-    # For testing and benchmarking
+    # Optional: ground truth for testing and benchmarking
     solution: Optional[Callable[[np.ndarray], Union[float, np.ndarray]]] = None
 
 
@@ -123,8 +113,6 @@ class InitialValueProblem:
     y0: Union[FloatArgType, np.ndarray]
     df: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
     ddf: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
-
-    dy0_all: Optional[np.ndarray] = None
 
     # For testing and benchmarking
     solution: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
@@ -235,7 +223,7 @@ class LinearSystem:
             :mod:`numpy.random` state is used. If integer, it is used to seed the local
             :class:`~numpy.random.RandomState` instance.
         """
-        rng = as_random_state(random_state)
+        rng = utils.as_random_state(random_state)
         solution = rng.normal(size=(A.shape[1], 1))
         right_hand_side = A @ solution
 
@@ -313,8 +301,8 @@ class NoisyLinearSystem(LinearSystem):
     @classmethod
     def from_randvars(
         cls,
-        A: rvs.RandomVariable,
-        b: rvs.RandomVariable,
+        A: randvars.RandomVariable,
+        b: randvars.RandomVariable,
         solution: Optional[np.ndarray] = None,
     ):
         """Create a noisy linear system from random variables.
@@ -406,4 +394,4 @@ class QuadratureProblem:
     output_dim: Optional[int] = 1
 
     # For testing and benchmarking
-    solution: Optional[Union[float, np.ndarray, rvs.RandomVariable]] = None
+    solution: Optional[Union[float, np.ndarray, randvars.RandomVariable]] = None

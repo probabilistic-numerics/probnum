@@ -1,107 +1,63 @@
 """Tests for Kronecker-type linear operators."""
 
-import unittest
-
 import numpy as np
+import pytest
+import pytest_cases
 
-from probnum import linops
-from tests.testing import NumpyAssertions
+import probnum as pn
 
 
-class LinearOperatorKroneckerTestCase(unittest.TestCase, NumpyAssertions):
-    """Test Kronecker-type operators."""
+@pytest_cases.parametrize_with_cases(
+    "linop,matrix",
+    cases=".test_linops_cases.kronecker_cases",
+    has_tag="symmetric_kronecker",
+)
+def test_symmetric_kronecker_commutative(
+    linop: pn.linops.SymmetricKronecker, matrix: np.ndarray
+):
+    linop_commuted = pn.linops.SymmetricKronecker(linop.B, linop.A)
 
-    def setUp(self):
-        self.kronecker_matrices = [
-            (np.array([[4, 1, 4], [2, 3, 2]]), np.array([[-1, 4], [2, 1]])),
-            (np.array([[0.4, 2, 0.8], [-0.4, 0, -0.9]]), np.array([[1, 4]])),
-        ]
-        self.symmkronecker_matrices = [
-            (np.array([[4, 1], [2, 3]]), np.array([[-1, 4], [2, 1]])),
-            (
-                np.array([[0.4, 2, 0.8], [-0.4, 0, -0.9], [1, 0, 2]]),
-                np.array([[1, 4, 0], [-3, -0.4, -100], [0.18, -2, 10]]),
-            ),
-        ]
+    np.testing.assert_array_equal(linop.todense(), linop_commuted.todense())
+    np.testing.assert_almost_equal(linop_commuted.todense(), matrix)
 
-    def test_symmetrize(self):
-        """The Symmetrize operators should symmetrize vectors and columns of
-        matrices."""
-        for n in [1, 2, 3, 5, 12]:
-            with self.subTest():
-                x = np.random.uniform(size=n * n)
-                X = np.reshape(x, (n, n))
-                y = linops.Symmetrize(dim=n) @ x
 
-                self.assertArrayEqual(
-                    y.reshape(n, n), 0.5 * (X + X.T), msg="Matrix not symmetric."
-                )
+@pytest.mark.parametrize(
+    "A,B", [(np.array([[5, 1], [1, 10]]), np.array([[-2, 0.1], [0.1, 8]]))]
+)
+def test_symmetric_kronecker_symmetric_factors(A, B):
+    """Dense matrix from symmetric Kronecker product of two symmetric matrices must be
+    symmetric."""
+    linop = pn.linops.SymmetricKronecker(A, B)
+    linop_transpose = linop.T
+    linop_dense = linop.todense()
 
-                Z = np.random.uniform(size=(9, 5))
-                W = linops.Symmetrize(dim=3) @ Z
+    np.testing.assert_array_equal(linop_dense, linop_dense.T)
+    np.testing.assert_array_equal(linop_dense, linop_transpose.todense())
 
-                self.assertArrayEqual(
-                    W,
-                    np.vstack([linops.Symmetrize(dim=3) @ col for col in Z.T]).T,
-                    msg="Matrix columns were not symmetrized.",
-                )
 
-                self.assertArrayEqual(
-                    np.shape(W),
-                    np.shape(Z),
-                    msg="Symmetrized matrix columns do not have the right shape.",
-                )
+@pytest.mark.parametrize("n", [1, 2, 3, 5, 12])
+def test_symmetrize(n):
+    np.random.seed(42)
 
-    def test_kronecker_transpose(self):
-        """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
-        for A, B in self.kronecker_matrices:
-            with self.subTest():
-                W = linops.Kronecker(A=A, B=B)
-                V = linops.Kronecker(A=A.T, B=B.T)
+    x = np.random.uniform(size=n * n)
+    X = np.reshape(x, (n, n))
+    y = pn.linops.Symmetrize(n) @ x
 
-                self.assertAllClose(W.T.todense(), V.todense())
+    np.testing.assert_array_equal(
+        y.reshape(n, n), 0.5 * (X + X.T), err_msg="Matrix not symmetric."
+    )
 
-    def test_kronecker_explicit(self):
-        """Test the Kronecker operator against explicit matrix representations."""
-        for A, B in self.kronecker_matrices:
-            with self.subTest():
-                W = linops.Kronecker(A=A, B=B)
-                AkronB = np.kron(A, B)
+    Z = np.random.uniform(size=(9, 5))
+    W = pn.linops.Symmetrize(3) @ Z
 
-                self.assertAllClose(W.todense(), AkronB)
+    np.testing.assert_array_equal(
+        W,
+        np.vstack([pn.linops.Symmetrize(3) @ col for col in Z.T]).T,
+        err_msg="Matrix columns were not symmetrized.",
+    )
 
-    def test_symmkronecker_todense_symmetric(self):
-        """Dense matrix from symmetric Kronecker product of two symmetric matrices must
-        be symmetric."""
-        C = np.array([[5, 1], [1, 10]])
-        D = np.array([[-2, 0.1], [0.1, 8]])
-        Ws = linops.SymmetricKronecker(A=C, B=C)
-        Ws_dense = Ws.todense()
-        self.assertArrayEqual(
-            Ws_dense,
-            Ws_dense.T,
-            msg="Symmetric Kronecker product of symmetric matrices is not symmetric.",
-        )
-
-    def test_symmkronecker_explicit(self):
-        """Test the symmetric Kronecker operator against explicit matrix
-        representations."""
-        pass
-
-    def test_symmkronecker_transpose(self):
-        """Kronecker product transpose property: (A (x) B)^T = A^T (x) B^T."""
-        for A, B in self.symmkronecker_matrices:
-            with self.subTest():
-                W = linops.SymmetricKronecker(A=A, B=B)
-                V = linops.SymmetricKronecker(A=A.T, B=B.T)
-
-                self.assertAllClose(W.T.todense(), V.todense())
-
-    def test_symmkronecker_commutation(self):
-        """Symmetric Kronecker products fulfill A (x)_s B = B (x)_s A"""
-        for A, B in self.symmkronecker_matrices:
-            with self.subTest():
-                W = linops.SymmetricKronecker(A=A, B=B)
-                V = linops.SymmetricKronecker(A=B, B=A)
-
-                self.assertAllClose(W.todense(), V.todense())
+    np.testing.assert_array_equal(
+        np.shape(W),
+        np.shape(Z),
+        err_msg="Symmetrized matrix columns do not have the right shape.",
+    )

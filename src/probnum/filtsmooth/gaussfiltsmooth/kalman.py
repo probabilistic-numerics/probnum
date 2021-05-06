@@ -1,10 +1,15 @@
 """Gaussian filtering and smoothing."""
 
 
+from typing import Optional
+
 import numpy as np
 
-from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
+from probnum import problems
+from probnum.filtsmooth.gaussfiltsmooth import stoppingcriterion
 
+from ..bayesfiltsmooth import BayesFiltSmooth
+from ..timeseriesposterior import TimeSeriesPosterior
 from .kalmanposterior import FilteringPosterior, SmoothingPosterior
 from .stoppingcriterion import StoppingCriterion
 
@@ -27,77 +32,148 @@ class Kalman(BayesFiltSmooth):
         Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
     """
 
-    def iterated_filtsmooth(self, dataset, times, stopcrit=None):
-        """Compute an iterated smoothing estimate with repeated posterior linearisation.
+    def iterated_filtsmooth(
+        self,
+        regression_problem: problems.RegressionProblem,
+        init_posterior: Optional[SmoothingPosterior] = None,
+        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+    ):
+        """Compute an iterated smoothing estimate with repeated posterior linearization.
 
         If the extended Kalman filter is used, this yields the IEKS. In
         any case, the result is an approximation to the maximum-a-
         posteriori estimate.
+
+        Parameters
+        ----------
+        regression_problem
+        init_posterior
+            Initial posterior to linearize at. If not specified, linearizes
+            at the prediction random variable.
+        stopcrit:
+            A stopping criterion for iterated filtering.
+
+        Returns
+        -------
+        SmoothingPosterior
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
+        """
+
+        smoothing_post = init_posterior
+        info_dicts = None
+        for smoothing_post, info_dicts in self.iterated_filtsmooth_posterior_generator(
+            regression_problem, smoothing_post, stopcrit
+        ):
+            pass
+
+        return smoothing_post, info_dicts
+
+    def iterated_filtsmooth_posterior_generator(
+        self,
+        regression_problem: problems.RegressionProblem,
+        init_posterior: Optional[SmoothingPosterior] = None,
+        stopcrit: Optional[stoppingcriterion.StoppingCriterion] = None,
+    ):
+        """Compute iterated smoothing estimates with repeated posterior linearisation.
+
+        If the extended Kalman filter is used, this yields the IEKS. In
+        any case, the result is an approximation to the maximum-a-
+        posteriori estimate.
+
+        Parameters
+        ----------
+        regression_problem
+        init_posterior
+            Initial posterior to linearize at. Defaults to computing a (non-iterated)
+            smoothing posterior, which amounts to linearizing at the prediction
+            random variable.
+        stopcrit:
+            A stopping criterion for iterated filtering.
+
+        Yields
+        ------
+        SmoothingPosterior
+        info_dicts
+            list of dictionaries containing filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
 
         if stopcrit is None:
             stopcrit = StoppingCriterion()
 
-        # Initialise iterated smoother
-        old_posterior = self.filtsmooth(
-            dataset=dataset,
-            times=times,
-            _previous_posterior=None,
-        )
-        new_posterior = old_posterior
-        new_mean = new_posterior.state_rvs.mean
+        if init_posterior is None:
+            # Initialise iterated smoother
+            new_posterior, info_dicts = self.filtsmooth(
+                regression_problem,
+                _previous_posterior=None,
+            )
+        else:
+            new_posterior = init_posterior
+            info_dicts = []
+
+        yield new_posterior, info_dicts
+        new_mean = new_posterior.states.mean
         old_mean = np.inf * np.ones(new_mean.shape)
         while not stopcrit.terminate(error=new_mean - old_mean, reference=new_mean):
             old_posterior = new_posterior
-            new_posterior = self.filtsmooth(
-                dataset=dataset,
-                times=times,
+            new_posterior, info_dicts = self.filtsmooth(
+                regression_problem,
                 _previous_posterior=old_posterior,
             )
-            new_mean = new_posterior.state_rvs.mean
-            old_mean = old_posterior.state_rvs.mean
-        return new_posterior
+            yield new_posterior, info_dicts
+            new_mean = new_posterior.states.mean
+            old_mean = old_posterior.states.mean
 
-    def filtsmooth(self, dataset, times, _previous_posterior=None):
+    def filtsmooth(
+        self,
+        regression_problem: problems.RegressionProblem,
+        _previous_posterior: Optional[TimeSeriesPosterior] = None,
+    ):
         """Apply Gaussian filtering and smoothing to a data set.
 
         Parameters
         ----------
-        dataset : array_like, shape (N, M)
-            Data set that is filtered.
-        times : array_like, shape (N,)
-            Temporal locations of the data points.
-            The zeroth element in times and dataset is the location of the initial random variable.
+        regression_problem
         _previous_posterior: KalmanPosterior
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
-
 
         Returns
         -------
         KalmanPosterior
             Posterior distribution of the filtered output
+        info_dicts
+            list of dictionaries containing filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
-        dataset, times = np.asarray(dataset), np.asarray(times)
-        filter_posterior = self.filter(
-            dataset,
-            times,
+        filter_result = self.filter(
+            regression_problem,
             _previous_posterior=_previous_posterior,
         )
+        filter_posterior, info_dicts = filter_result
         smooth_posterior = self.smooth(filter_posterior)
-        return smooth_posterior
+        return smooth_posterior, info_dicts
 
-    def filter(self, dataset, times, _previous_posterior=None):
+    def filter(
+        self,
+        regression_problem: problems.RegressionProblem,
+        _previous_posterior: Optional[TimeSeriesPosterior] = None,
+    ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
 
         Parameters
         ----------
-        dataset : array_like, shape (N, M)
-            Data set that is filtered.
-        times : array_like, shape (N,)
-            Temporal locations of the data points.
-            The zeroth element in times and dataset is the location of the initial random variable.
-        _previous_posterior: KalmanPosterior
+        regression_problem
+        _previous_posterior:
             If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
             This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
 
@@ -105,21 +181,71 @@ class Kalman(BayesFiltSmooth):
         -------
         KalmanPosterior
             Posterior distribution of the filtered output
+        info_dicts
+            list of dictionaries containing filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
-        dataset, times = np.asarray(dataset), np.asarray(times)
-        rvs = []
+
+        filtered_rvs = []
+        info_dicts = []
+
+        for rv, info in self.filtered_states_generator(
+            regression_problem, _previous_posterior
+        ):
+            filtered_rvs.append(rv)
+            info_dicts.append(info)
+
+        posterior = FilteringPosterior(
+            locations=regression_problem.locations,
+            states=filtered_rvs,
+            transition=self.dynamics_model,
+        )
+
+        return posterior, info_dicts
+
+    def filtered_states_generator(
+        self,
+        regression_problem: problems.RegressionProblem,
+        _previous_posterior: Optional[TimeSeriesPosterior] = None,
+    ):
+        """Apply Gaussian filtering (no smoothing!) to a data set.
+
+        Parameters
+        ----------
+        regression_problem
+        _previous_posterior:
+            If specified, approximate Gaussian filtering and smoothing linearises at this, prescribed posterior.
+            This is used for iterated filtering and smoothing. For standard filtering, this can be ignored.
+
+        Yields
+        ------
+        filtrv
+            Random variable returned from prediction and update of the Kalman filter.
+        info_dict
+            Dictionary containing filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
+        """
+        dataset, times = regression_problem.observations, regression_problem.locations
 
         _linearise_update_at = (
             None if _previous_posterior is None else _previous_posterior(times[0])
         )
-        filtrv, *_ = self.update(
+
+        info_dict = {"pred_rv": self.initrv, "info_pred": {}}
+        filtrv, info_dict["info_upd"] = self.update(
             data=dataset[0],
             rv=self.initrv,
             time=times[0],
             _linearise_at=_linearise_update_at,
         )
+        yield filtrv, info_dict
 
-        rvs.append(filtrv)
         for idx in range(1, len(times)):
             _linearise_predict_at = (
                 None
@@ -130,7 +256,7 @@ class Kalman(BayesFiltSmooth):
                 None if _previous_posterior is None else _previous_posterior(times[idx])
             )
 
-            filtrv, _ = self.filter_step(
+            filtrv, info_dict = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 current_rv=filtrv,
@@ -138,8 +264,8 @@ class Kalman(BayesFiltSmooth):
                 _linearise_predict_at=_linearise_predict_at,
                 _linearise_update_at=_linearise_update_at,
             )
-            rvs.append(filtrv)
-        return FilteringPosterior(times, rvs, self.dynamics_model)
+
+            yield filtrv, info_dict
 
     def filter_step(
         self,
@@ -161,7 +287,7 @@ class Kalman(BayesFiltSmooth):
             Predict FROM this time point.
         stop : float
             Predict TO this time point.
-        current_rv : RandomVariable
+        current_rv :
             Predict based on this random variable. For instance, this can be the result
             of a previous call to filter_step.
         data : array_like
@@ -236,7 +362,7 @@ class Kalman(BayesFiltSmooth):
         """
 
         rv_list = self.dynamics_model.smooth_list(
-            filter_posterior.state_rvs, filter_posterior.locations
+            filter_posterior.states, filter_posterior.locations
         )
 
         return SmoothingPosterior(

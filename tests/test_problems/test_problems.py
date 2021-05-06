@@ -5,7 +5,7 @@ import unittest
 import numpy as np
 
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions

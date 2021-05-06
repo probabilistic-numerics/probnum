@@ -10,6 +10,8 @@ finite computational resources and stochastic input.
 +----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.filtsmooth`       | Bayesian filtering and smoothing.                            |
 +----------------------------------+--------------------------------------------------------------+
+| :mod:`~probnum.kernels`          | Kernels / covariance functions.                              |
++----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.linalg`           | Probabilistic numerical linear algebra.                      |
 +----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.linops`           | Finite-dimensional linear operators.                         |
@@ -18,7 +20,11 @@ finite computational resources and stochastic input.
 +----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.quad`             | Bayesian quadrature / numerical integration.                 |
 +----------------------------------+--------------------------------------------------------------+
-| :mod:`~probnum.random_variables` | Random variables representing uncertain values.              |
+| :mod:`~probnum.randprocs`        | Random processes representing uncertain functions.           |
++----------------------------------+--------------------------------------------------------------+
+| :mod:`~probnum.randvars`         | Random variables representing uncertain values.              |
++----------------------------------+--------------------------------------------------------------+
+| :mod:`~probnum.statespace`       | Probabilistic state space models.                            |
 +----------------------------------+--------------------------------------------------------------+
 | :mod:`~probnum.utils`            | Utility functions.                                           |
 +----------------------------------+--------------------------------------------------------------+
@@ -34,11 +40,13 @@ from . import (
     linops,
     problems,
     quad,
-    random_variables,
+    randprocs,
+    randvars,
+    statespace,
     utils,
 )
 from ._probabilistic_numerical_method import ProbabilisticNumericalMethod
-from .random_variables import asrandvar
+from .randvars import asrandvar
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

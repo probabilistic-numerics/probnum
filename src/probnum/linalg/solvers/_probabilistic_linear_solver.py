@@ -14,7 +14,7 @@ except ImportError:
     from cached_property import cached_property
 
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from probnum.linalg.solvers import (
     belief_updates,

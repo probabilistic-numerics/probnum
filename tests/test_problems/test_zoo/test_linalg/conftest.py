@@ -1,10 +1,15 @@
-"""Test fixtures for the linalg problem zoo."""
+"""Test fixtures for the linear algebra problem zoo."""
 
 import numpy as np
 import pytest
 import scipy.sparse
 
-from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_matrix
+from probnum.problems.zoo.linalg import (
+    SuiteSparseMatrix,
+    random_sparse_spd_matrix,
+    random_spd_matrix,
+    suitesparse_matrix,
+)
 
 
 @pytest.fixture(params=[pytest.param(n, id=f"dim{n}") for n in [2, 5, 10, 50, 100]])
@@ -52,3 +57,18 @@ def sparse_spd_mat(
     return random_sparse_spd_matrix(
         dim=n, random_state=random_state, density=sparsemat_density
     )
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(namegroup, id=f"{namegroup[0]}") for namegroup in (("wm1", "HB"),)
+    ],
+    name="suitesparse_mat",
+)
+def fixture_suitesparse_mat(request) -> SuiteSparseMatrix:
+    return suitesparse_matrix(name=request.param[0], group=request.param[1])
+
+
+@pytest.fixture(name="suitesparse_mycielskian")
+def fixture_suitesparse_mycielskian() -> SuiteSparseMatrix:
+    return suitesparse_matrix(group="Mycielski", name="mycielskian3", verbose=True)

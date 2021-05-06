@@ -4,12 +4,12 @@ from typing import Union
 
 import numpy as np
 
-import probnum.random_variables
+import probnum.randvars
 
 
 def as_colvec(
-    vec: Union[np.ndarray, "probnum.random_variables.RandomVariable"]
-) -> Union[np.ndarray, "probnum.random_variables.RandomVariable"]:
+    vec: Union[np.ndarray, "probnum.randvars.RandomVariable"]
+) -> Union[np.ndarray, "probnum.randvars.RandomVariable"]:
     """Transform the given vector or random variable to column format.
 
     Given a vector (or random variable) of dimension (n,) return an array with
@@ -20,7 +20,7 @@ def as_colvec(
     vec
         Vector, array or random variable to be transformed into a column vector.
     """
-    if isinstance(vec, probnum.random_variables.RandomVariable):
+    if isinstance(vec, probnum.randvars.RandomVariable):
         if vec.shape != (vec.shape[0], 1):
             vec.reshape(newshape=(vec.shape[0], 1))
     else:

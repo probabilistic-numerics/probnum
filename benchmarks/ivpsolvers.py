@@ -2,7 +2,7 @@
 import numpy as np
 
 from probnum.diffeq import lotkavolterra, probsolve_ivp
-from probnum.random_variables import Constant
+from probnum.randvars import Constant
 
 
 def load_lotkavolterra():
@@ -14,32 +14,49 @@ def load_lotkavolterra():
 
 
 class IVPSolve:
-    """Benchmark ODE-filter and ODE-smoother on small steps with high-order priors."""
+    """Benchmark ODE-filter and ODE-smoother with fixed steps and different priors and
+    information operators."""
 
-    param_names = ["method", "precond", "prior"]
-    params = [["eks0", "ekf0"], ["with", "without"], ["ibm4", "ioup4", "matern92"]]
+    param_names = ["method", "algo_order"]
+    params = [["ek0", "ek1"], [2, 3]]
 
-    def setup(self, method, precond, prior):
+    def setup(self, method, prior):
         # pylint: disable=invalid-name
         self.ivp = load_lotkavolterra()
-        self.stepsize = 1e-2
+        self.stepsize = 1e-1
 
-    def time_solve(self, method, precond, prior):
-        precond_step = self.stepsize if precond == "with" else 1.0
+    def time_solve(self, method, algo_order):
+        f = self.ivp.rhs
+        df = self.ivp.jacobian
+        t0, tmax = self.ivp.timespan
+        y0 = self.ivp.initrv.mean
         probsolve_ivp(
-            self.ivp,
+            f,
+            t0,
+            tmax,
+            y0,
+            df=df,
             method=method,
-            which_prior=prior,
+            dense_output=True,
+            algo_order=algo_order,
             step=self.stepsize,
-            precond_step=precond_step,
+            adaptive=False,
         )
 
-    def peakmem_solve(self, method, precond, prior):
-        precond_step = self.stepsize if precond == "with" else 1.0
+    def peakmem_solve(self, method, algo_order):
+        f = self.ivp.rhs
+        df = self.ivp.jacobian
+        t0, tmax = self.ivp.timespan
+        y0 = self.ivp.initrv.mean
         probsolve_ivp(
-            self.ivp,
+            f,
+            t0,
+            tmax,
+            y0,
+            df=df,
             method=method,
-            which_prior=prior,
+            dense_output=True,
+            algo_order=algo_order,
             step=self.stepsize,
-            precond_step=precond_step,
+            adaptive=False,
         )

@@ -15,7 +15,7 @@ import scipy.sparse
 
 import probnum
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers._state import LinearSolverCache
 from probnum.linalg.solvers.belief_updates import (
     LinearSolverBeliefUpdate,

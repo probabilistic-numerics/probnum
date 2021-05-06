@@ -1,23 +1,14 @@
 """ODE solutions returned by Gaussian ODE filtering."""
 
-import typing
+from typing import Optional
 
 import numpy as np
 
-import probnum._randomvariablelist as pnrv_list
-import probnum.filtsmooth as pnfs
-import probnum.random_variables as pnrv
-import probnum.type
-import probnum.utils
-from probnum.filtsmooth.statespace import cholesky_update
+from probnum import _randomvariablelist, filtsmooth, randvars, utils
+from probnum.filtsmooth.timeseriesposterior import DenseOutputLocationArgType
+from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 from ..odesolution import ODESolution
-
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
 
 
 class KalmanODESolution(ODESolution):
@@ -39,107 +30,141 @@ class KalmanODESolution(ODESolution):
     Examples
     --------
     >>> from probnum.diffeq import logistic, probsolve_ivp
-    >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Constant(0.15)
-    >>> ivp = logistic(timespan=[0., 1.5], initrv=initrv, params=(4, 1))
-    >>> solution = probsolve_ivp(ivp, method="ekf0", step=0.1)
+    >>> from probnum import randvars
+    >>>
+    >>> def f(t, x):
+    ...     return 4*x*(1-x)
+    >>>
+    >>> y0 = np.array([0.15])
+    >>> t0, tmax = 0., 1.5
+    >>> solution = probsolve_ivp(f, t0, tmax, y0, step=0.1, adaptive=False)
     >>> # Mean of the discrete-time solution
-    >>> print(solution.y.mean)
-    [[0.15      ]
-     [0.2076198 ]
-     [0.27932997]
-     [0.3649165 ]
-     [0.46054129]
-     [0.55945475]
-     [0.65374523]
-     [0.73686744]
-     [0.8053776 ]
-     [0.85895587]
-     [0.89928283]
-     [0.92882899]
-     [0.95007559]
-     [0.96515825]
-     [0.97577054]
-     [0.9831919 ]]
+    >>> print(np.round(solution.states.mean, 2))
+    [[0.15]
+     [0.21]
+     [0.28]
+     [0.37]
+     [0.47]
+     [0.57]
+     [0.66]
+     [0.74]
+     [0.81]
+     [0.87]
+     [0.91]
+     [0.94]
+     [0.96]
+     [0.97]
+     [0.98]
+     [0.99]]
+
     >>> # Times of the discrete-time solution
-    >>> print(solution.t)
+    >>> print(solution.locations)
     [0.  0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.5]
     >>> # Individual entries of the discrete-time solution can be accessed with
     >>> print(solution[5])
     <Normal with shape=(1,), dtype=float64>
-    >>> print(solution[5].mean)
-    [0.55945475]
+    >>> print(np.round(solution[5].mean, 2))
+    [0.56]
     >>> # Evaluate the continuous-time solution at a new time point t=0.65
-    >>> print(solution(0.65).mean)
-    [0.69875089]
+    >>> print(np.round(solution(0.65).mean, 2))
+    [0.70]
     """
 
-    def __init__(self, kalman_posterior: pnfs.KalmanPosterior):
+    def __init__(self, kalman_posterior: filtsmooth.KalmanPosterior):
         self.kalman_posterior = kalman_posterior
 
         # Pre-compute projection matrices.
         # The prior must be an integrator, if not, an error is thrown in 'GaussianIVPFilter'.
-        self.proj_to_y = kalman_posterior.transition.proj2coord(coord=0)
-        self.proj_to_dy = kalman_posterior.transition.proj2coord(coord=1)
+        self.proj_to_y = self.kalman_posterior.transition.proj2coord(coord=0)
+        self.proj_to_dy = self.kalman_posterior.transition.proj2coord(coord=1)
 
-    @property
-    def t(self) -> np.ndarray:
-        return self.kalman_posterior.locations
-
-    @cached_property
-    def y(self) -> pnrv_list._RandomVariableList:
-        y_rvs = [
-            _project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.state_rvs
-        ]
-        return pnrv_list._RandomVariableList(y_rvs)
-
-    @cached_property
-    def dy(self) -> pnrv_list._RandomVariableList:
-        dy_rvs = [
-            _project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.state_rvs
-        ]
-        return pnrv_list._RandomVariableList(dy_rvs)
-
-    def __call__(
-        self, t: float
-    ) -> typing.Union[pnrv.RandomVariable, pnrv_list._RandomVariableList]:
-        out_rv = self.kalman_posterior(t)
-
-        if np.isscalar(t):
-            return _project_rv(self.proj_to_y, out_rv)
-
-        return pnrv_list._RandomVariableList(
-            [_project_rv(self.proj_to_y, rv) for rv in out_rv]
+        states = _randomvariablelist._RandomVariableList(
+            [_project_rv(self.proj_to_y, rv) for rv in self.kalman_posterior.states]
         )
+        derivatives = _randomvariablelist._RandomVariableList(
+            [_project_rv(self.proj_to_dy, rv) for rv in self.kalman_posterior.states]
+        )
+        super().__init__(
+            locations=kalman_posterior.locations, states=states, derivatives=derivatives
+        )
+
+    def interpolate(
+        self,
+        t: FloatArgType,
+        previous_location: Optional[FloatArgType] = None,
+        previous_state: Optional[randvars.RandomVariable] = None,
+        next_location: Optional[FloatArgType] = None,
+        next_state: Optional[randvars.RandomVariable] = None,
+    ) -> randvars.RandomVariable:
+        out_rv = self.kalman_posterior.interpolate(
+            t, previous_location, previous_state, next_location, next_state
+        )
+        return _project_rv(self.proj_to_y, out_rv)
 
     def sample(
         self,
-        t: typing.Optional[float] = None,
-        size: typing.Optional[probnum.type.ShapeArgType] = (),
+        t: Optional[DenseOutputLocationArgType] = None,
+        size: Optional[ShapeArgType] = (),
+        random_state: Optional[RandomStateArgType] = None,
     ) -> np.ndarray:
-        """Sample from the Gaussian filtering ODE solution by sampling from the Gauss-
-        Markov posterior."""
-        size = probnum.utils.as_shape(size)
 
-        # implement only single samples, rest via recursion
-        # We cannot 'steal' the recursion from self.kalman_posterior.sample,
-        # because we need to project the respective states out of each sample.
-        if size != ():
-            return np.array([self.sample(t=t, size=size[1:]) for _ in range(size[0])])
+        samples = self.kalman_posterior.sample(
+            t=t, size=size, random_state=random_state
+        )
+        # Project the samples down to the "true" KalmanODESolution dimensions
+        # (which are a subset of the KalmanPosterior dimensions)
+        ode_samples = np.einsum("dq,...q->...d", self.proj_to_y, samples)
 
-        samples = self.kalman_posterior.sample(locations=t, size=size)
-        return np.array([self.proj_to_y @ sample for sample in samples])
+        return ode_samples
+
+    def transform_base_measure_realizations(
+        self,
+        base_measure_realizations: np.ndarray,
+        t: DenseOutputLocationArgType = None,
+    ) -> np.ndarray:
+        errormsg = (
+            "The KalmanODESolution does not implement transformation of realizations of a base measure."
+            "Try `KalmanODESolution.kalman_posterior.transform_base_measure_realizations` instead."
+        )
+
+        raise NotImplementedError(errormsg)
 
     @property
     def filtering_solution(self):
 
-        if isinstance(self.kalman_posterior, pnfs.FilteringPosterior):
+        if isinstance(self.kalman_posterior, filtsmooth.FilteringPosterior):
             return self
 
         # else: self.kalman_posterior is a SmoothingPosterior object, which has the field filter_posterior.
         return KalmanODESolution(
             kalman_posterior=self.kalman_posterior.filtering_posterior
         )
+
+    @property
+    def _states_left_of_location(self):
+        """Return the set of states that is used to find the LEFTMOST states of a given
+        time point in a way that supports slicing with the output of numpy.searchsorted.
+
+        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
+        because then the _RandomVariableList functionality would be lost.
+
+
+        Note: This exists as a property, because for the KalmanSmoothingPosterior, the leftmost states
+        are extracted from the filtering posterior, not the smoothing posterior, which can be overwritten here.
+        """
+        return self.kalman_posterior._states_left_of_location
+
+    @property
+    def _states_right_of_location(self):
+        """Return the set of states that is used to find the RIGHTMOST states of a given
+        time point in a way that supports slicing with the output of numpy.searchsorted.
+
+        Thus, the output is wrapped into a numpy array (which is not something we want all the time,
+        because then the _RandomVariableList functionality would be lost.
+
+        This exists as a property because the leftmost states exist as a property and who knows when we need it like that.
+        """
+        return self.kalman_posterior._states_right_of_location
 
 
 def _project_rv(projmat, rv):
@@ -152,5 +177,5 @@ def _project_rv(projmat, rv):
 
     new_mean = projmat @ rv.mean
     new_cov = projmat @ rv.cov @ projmat.T
-    new_cov_cholesky = cholesky_update(projmat @ rv.cov_cholesky)
-    return pnrv.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)
+    new_cov_cholesky = utils.linalg.cholesky_update(projmat @ rv.cov_cholesky)
+    return randvars.Normal(new_mean, new_cov, cov_cholesky=new_cov_cholesky)

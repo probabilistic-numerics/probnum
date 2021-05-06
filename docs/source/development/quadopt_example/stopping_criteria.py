@@ -4,13 +4,13 @@ from typing import Callable, Tuple, Union
 
 import numpy as np
 
-import probnum.random_variables as rvs
+from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
 
 
 def parameter_uncertainty(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: rvs.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     current_iter: IntArgType,
     abstol: FloatArgType,
     reltol: FloatArgType,
@@ -42,7 +42,7 @@ def parameter_uncertainty(
 
 def maximum_iterations(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: rvs.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     current_iter: IntArgType,
     maxiter: IntArgType,
 ) -> Tuple[bool, Union[str, None]]:
@@ -67,14 +67,14 @@ def maximum_iterations(
 
 def residual(
     fun: Callable[[FloatArgType], FloatArgType],
-    fun_params0: rvs.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     current_iter: IntArgType,
     abstol: FloatArgType,
     reltol: FloatArgType,
 ) -> Tuple[bool, Union[str, None]]:
-    """Termination based on the residual.
+    r"""Termination based on the residual.
 
-    Stop iterating whenever :math:`\\lVert f(x_*) \\rVert \\leq \\min(\\text{abstol}`.
+    Stop iterating whenever :math:`\lVert f(x_*) \rVert \leq \min(\text{abstol}`.
 
     Parameters
     ----------

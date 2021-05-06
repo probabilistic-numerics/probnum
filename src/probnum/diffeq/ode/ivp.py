@@ -4,7 +4,7 @@ might be more ode-based problems, such as bvp."""
 
 import numpy as np
 
-from probnum.diffeq.ode.ode import ODE
+from .ode import ODE
 
 
 class IVP(ODE):
@@ -34,7 +34,7 @@ class IVP(ODE):
         RandomVariable that  describes the belief about the initial
         value. Usually its distribution is Constant (noise-free)
         or Normal (noisy). To replicate "classical" initial values
-        use a :class:`~probnum.random_variables.Constant` random variable.
+        use a :class:`~probnum.randvars.Constant` random variable.
         Implementation depends on the mean of this RandomVariable,
         so please only use RandomVariable objects with available
         means, e.g. Constants or Normals.
@@ -63,8 +63,8 @@ class IVP(ODE):
     --------
     >>> from probnum.diffeq import IVP
     >>> rhsfun = lambda t, y, **kwargs: 2.0*y
-    >>> from probnum import random_variables as rvs
-    >>> initrv = rvs.Constant(0.1)
+    >>> from probnum import randvars
+    >>> initrv = randvars.Constant(0.1)
     >>> timespan = (0, 10)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> print(ivp.rhs(0., 2.))
@@ -74,7 +74,7 @@ class IVP(ODE):
     >>> print(ivp.t0)
     0
 
-    >>> initrv = rvs.Normal(0.1, 1.0)
+    >>> initrv = randvars.Normal(0.1, 1.0)
     >>> ivp = IVP(timespan, initrv, rhsfun)
     >>> jac = lambda t, y, **kwargs: 2.0
     >>> ivp = IVP(timespan, initrv, rhs=rhsfun, jac=jac)

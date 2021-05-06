@@ -1,7 +1,5 @@
 import pytest
 
-import probnum.diffeq as pnd
-import probnum.problems as pnprob
 import probnum.problems.zoo.diffeq as diffeq_zoo
 
 # Jax dependency handling
@@ -30,20 +28,7 @@ only_if_jax_is_not_available = pytest.mark.skipif(
     reason="Imports will be successful, thus catching the ImportError will fail",
 )
 
-
 # Tests for when JAX is available
-
-
-@pytest.mark.parametrize("ivp_jax", IVPs)
-@pytest.mark.parametrize("order", [0, 1, 2])
-@only_if_jax_available
-def test_compute_all_derivatives_terminates_successfully(ivp_jax, order):
-    """Test asserts that the examples in diffeq-zoo are compatible with
-    `compute_all_derivatives`, which happens if they are implemented in jax, and jax is
-    available in the current environment."""
-
-    ivp = pnd.compute_all_derivatives(ivp_jax, order=order)
-    assert isinstance(ivp, pnprob.InitialValueProblem)
 
 
 @pytest.mark.parametrize("ivp_jax", IVPs)

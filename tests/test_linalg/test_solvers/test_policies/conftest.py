@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 import pytest
 
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers import LinearSolverState, beliefs, policies
 from probnum.linalg.solvers.data import LinearSolverAction
 from probnum.problems import LinearSystem

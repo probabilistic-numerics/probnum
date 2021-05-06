@@ -6,7 +6,7 @@ import numpy as np
 
 import probnum
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers.beliefs._linear_system import LinearSystemBelief
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType

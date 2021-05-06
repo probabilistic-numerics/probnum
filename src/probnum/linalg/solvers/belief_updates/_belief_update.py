@@ -9,7 +9,7 @@ except ImportError:
     from cached_property import cached_property
 
 import probnum  # pylint: disable="unused-import"
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers._state import LinearSolverCache, LinearSolverState
 from probnum.linalg.solvers.beliefs import (
     LinearSystemBelief,

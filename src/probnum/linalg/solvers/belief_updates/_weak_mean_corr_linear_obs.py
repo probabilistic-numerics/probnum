@@ -12,7 +12,7 @@ import numpy as np
 
 import probnum
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
     SymmetricNormalLinearObsBeliefUpdate,

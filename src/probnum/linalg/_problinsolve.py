@@ -2,7 +2,7 @@
 
 from typing import Optional, Tuple
 
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers import LinearSolverState, ProbabilisticLinearSolver
 from probnum.problems import LinearSystem, NoisyLinearSystem
 from probnum.type import MatrixArgType

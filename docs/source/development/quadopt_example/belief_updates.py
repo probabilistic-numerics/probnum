@@ -5,23 +5,22 @@ from typing import Union
 
 import numpy as np
 
-import probnum.linops as linops
-import probnum.random_variables as rvs
+from probnum import linops, randvars
 from probnum.type import FloatArgType
 
 
 def gaussian_belief_update(
-    fun_params0: rvs.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     action: FloatArgType,
     observation: FloatArgType,
     noise_cov: Union[np.ndarray, linops.LinearOperator],
-) -> rvs.RandomVariable:
+) -> randvars.RandomVariable:
     """Update the belief about the parameters with an observation.
 
     Parameters
     ----------
     fun_params0 :
-        Belief over the parameters of the quadratic objective.
+        Belief about the parameters of the quadratic objective.
     action :
         Action of the probabilistic quadratic optimizer.
     observation :
@@ -47,4 +46,4 @@ def gaussian_belief_update(
     # Posterior Covariance
     S = Sigma - Sigma @ Phi @ np.linalg.solve(gram, Phi.T @ Sigma)
 
-    return rvs.Normal(mean=m, cov=S)
+    return randvars.Normal(mean=m, cov=S)

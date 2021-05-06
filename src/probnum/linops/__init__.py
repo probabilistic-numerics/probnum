@@ -13,18 +13,18 @@ Several algorithms in the :mod:`probnum.linalg` subpackage are able to operate o
 """
 
 from ._kronecker import BoxProduct, Kronecker, SymmetricKronecker, Symmetrize
-from ._linear_operator import DiagMult, Identity, LinearOperator, MatrixMult, ScalarMult
+from ._linear_operator import Identity, LinearOperator, Matrix
 from ._projections import OrthogonalProjection
-from ._utils import aslinop
+from ._scaling import Scaling
+from ._utils import LinearOperatorLike, aslinop
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "aslinop",
     "LinearOperator",
+    "Matrix",
+    "Scaling",
     "Identity",
-    "ScalarMult",
-    "DiagMult",
-    "MatrixMult",
     "OrthogonalProjection",
     "Kronecker",
     "BoxProduct",
@@ -35,10 +35,9 @@ __all__ = [
 # Set correct module paths. Corrects links and module paths in documentation.
 LinearOperator.__module__ = "probnum.linops"
 
+Matrix.__module__ = "probnum.linops"
 Identity.__module__ = "probnum.linops"
-ScalarMult.__module__ = "probnum.linops"
-DiagMult.__module__ = "probnum.linops"
-MatrixMult.__module__ = "probnum.linops"
+Scaling.__module__ = "probnum.linops"
 
 OrthogonalProjection.__module__ = "probnum.linops"
 

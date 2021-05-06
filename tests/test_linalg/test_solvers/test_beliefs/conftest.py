@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers import beliefs
 from probnum.linalg.solvers.data import LinearSolverData
 from probnum.problems import LinearSystem

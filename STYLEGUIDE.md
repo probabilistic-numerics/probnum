@@ -23,10 +23,40 @@ Use absolute imports over relative imports.
 
 Use `__all__ = [...]` in `__init__.py` files to fix the order in which the methods are visible in the documentation.
 This also avoids importing unnecessary functions via import statements ``from ... import *``.
-Almost all methods are "pulled up" to a higher-level namespace via `__init__.py` files. Import from there wherever there is no chance for
+Many classes and functions are "pulled up" to a higher-level namespace via `__init__.
+py`
+files. Import from there wherever there is no chance for
 confusion and/or circular imports. This makes imports more readable. When changing the namespace of classes make sure to
 to correct module paths in the documentation by adding `SuperClass.__module__ = "probnum.module"` to the corresponding
 `__init.py__`.
+
+#### Conventions
+If imports are shortened, the following conventions should be used. Full import
+paths are always acceptable.
+
+- `import probnum as pn`
+- `from probnum import randvars, linalg, diffeq, statespace`
+
+An exception from these rules are type-related modules, which include `typing` and `probnum.type`.
+Types are always imported directly.
+
+- `from typing import Optional, Callable`
+- `from probnum.type import FloatArgType`
+
+Please do not abbreviate import paths unnecessarily. We do **not** use the following imports:
+- `import probnum.randvars as pnrv` or `import probnum.filtsmooth as pnfs` (correct would be `from probnum import randvars, filtsmooth`)
+- `from probnum import random_variables as rvs` or `import probnum.randvars as rvs` (the `randvars` name is sufficiently short and does not need to be abbreviated)
+
+While all of these rules obey the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html),
+we use one import convention that deviates from this guide.
+If two objects (functions, classes) share the same namespace
+(i.e. `RandomVariable` and `Normal` are both imported via `probnum.randvars`, but their implementation is in different
+files, `randvars/_randomvariable.py` and `randvars/_normal.py`)
+and one object needs to be imported into the module of the other object, use relative imports. For instance, in `randvars/_normal.py` the import reads
+
+- `from ._randomvariables import RandomVariable`
+
+which helps with making the code in `Normal` more compact and readable.
 
 ### Type Standardization
 
@@ -87,8 +117,8 @@ Further conventions are
 - `unit2unit`: convert between types or units, e.g. `mat2arr`: convert matrix to array or `s2ms`: convert seconds to milliseconds. Can also be used for simple adapter methods, along the lines of `filt2odefilt`.
 - `proj`: projection (if required: `projmat`, `projvec`, `projlinop`, ...)
 - `precon`: preconditioner
-- `driftmat`: drift-matrix, `forcevec`: force-vector, `dispmat` dispersion-matrix, 
-`dynamicsmat` dynamics-matrix, `diffmat` diffusion-matrix, 
+- `driftmat`: drift-matrix, `forcevec`: force-vector, `dispmat` dispersion-matrix,
+`dynamicsmat` dynamics-matrix, `diffmat` diffusion-matrix,
 plus the respective `driftmatfun`, `driftfun`, `dispmatfun`, etc.
 - `inv*`: for inverse of a matrix; e.g. `invprecond`, `invcovmat`, ...
 - optional arguments via `**kwargs`, e.g.: `fun(t, x, **kwargs)`

@@ -7,7 +7,7 @@ import scipy.sparse
 
 import probnum
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers.beliefs._symmetric_normal_linear_system import (
     SymmetricNormalLinearSystemBelief,
 )

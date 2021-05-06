@@ -4,7 +4,7 @@ from typing import Tuple
 
 import numpy as np
 
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.linalg.solvers import LinearSolverState
 from probnum.linalg.solvers.beliefs import LinearSystemBelief
 from probnum.problems import LinearSystem

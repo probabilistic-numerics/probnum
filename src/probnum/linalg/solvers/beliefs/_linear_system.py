@@ -17,7 +17,7 @@ except ImportError:
 
 import probnum
 import probnum.linops as linops
-import probnum.random_variables as rvs
+import probnum.randvars as rvs
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
 
