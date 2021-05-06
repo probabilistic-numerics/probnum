@@ -7,14 +7,7 @@ from typing import Generator, List, Optional, Tuple
 
 import numpy as np
 
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
-import probnum.linops as linops
-import probnum.randvars as rvs
+from probnum import linops, randvars
 from probnum._probabilistic_numerical_method import ProbabilisticNumericalMethod
 from probnum.linalg.solvers import (
     belief_updates,
@@ -218,18 +211,20 @@ class ProbabilisticLinearSolver(
             )
 
         # Choose matrix based view if not clear from arguments
-        if (Ainv0 is not None or A0 is not None) and isinstance(x0, rvs.RandomVariable):
+        if (Ainv0 is not None or A0 is not None) and isinstance(
+            x0, randvars.RandomVariable
+        ):
             x0 = None
 
         # Extract information from system and priors
         # System matrix is symmetric
-        if isinstance(A0, rvs.RandomVariable):
+        if isinstance(A0, randvars.RandomVariable):
             if (
                 isinstance(A0.cov, linops.SymmetricKronecker)
                 and "sym" not in assume_linsys
             ):
                 assume_linsys += "sym"
-        if isinstance(Ainv0, rvs.RandomVariable):
+        if isinstance(Ainv0, randvars.RandomVariable):
             if (
                 isinstance(Ainv0.cov, linops.SymmetricKronecker)
                 and "sym" not in assume_linsys
@@ -237,8 +232,8 @@ class ProbabilisticLinearSolver(
                 assume_linsys += "sym"
         # System matrix or right hand side is stochastic
         if (
-            isinstance(problem.A, rvs.RandomVariable)
-            or isinstance(problem.b, rvs.RandomVariable)
+            isinstance(problem.A, randvars.RandomVariable)
+            or isinstance(problem.b, randvars.RandomVariable)
             and "noise" not in assume_linsys
         ):
             assume_linsys += "noise"

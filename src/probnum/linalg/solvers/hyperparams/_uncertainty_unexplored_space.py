@@ -1,7 +1,6 @@
 """Uncertainty in the unexplored space of a linear solver."""
 
 import dataclasses
-from typing import Optional
 
 from ._hyperparameters import LinearSolverHyperparams
 

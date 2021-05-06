@@ -4,8 +4,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-import probnum.linops as linops
-import probnum.randvars as rvs
+from probnum import linops, randvars
 from probnum.linalg.solvers.beliefs._symmetric_normal_linear_system import (
     SymmetricNormalLinearSystemBelief,
 )
@@ -43,17 +42,17 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
 
     def __init__(
         self,
-        A: rvs.Normal,
-        Ainv: rvs.Normal,
-        b: Union[rvs.Constant, rvs.Normal],
-        x: Optional[rvs.Normal] = None,
+        A: randvars.Normal,
+        Ainv: randvars.Normal,
+        b: Union[randvars.Constant, randvars.Normal],
+        x: Optional[randvars.Normal] = None,
         hyperparams: LinearSystemNoise = None,
     ):
         if hyperparams is None:
             eps = 10 ** -2
             n = A.shape[0]
             hyperparams = LinearSystemNoise(
-                epsA_cov=linops.SymmetricKronecker(A=eps * A.cov.A, dtype=A.dtype),
+                epsA_cov=linops.SymmetricKronecker(A=eps * A.cov.A),
                 epsb_cov=linops.Scaling(factors=eps, shape=(n, n)),
             )
 
@@ -76,21 +75,21 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         x0, Ainv0, A0, b0 = cls._belief_means_from_solution(
             x0=x0, problem=problem, check_for_better_x0=check_for_better_x0
         )
-        Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
-        A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+        Ainv = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        A = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
 
         return cls(
             x=x0,
             Ainv=Ainv,
             A=A,
-            b=rvs.asrandvar(b0),
+            b=randvars.asrandvar(b0),
             hyperparams=hyperparams,
         )
 
     @classmethod
     def from_inverse(
         cls,
-        Ainv0: Union[MatrixArgType, rvs.RandomVariable],
+        Ainv0: Union[MatrixArgType, randvars.RandomVariable],
         problem: LinearSystem,
         hyperparams: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
@@ -109,8 +108,8 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         hyperparams :
             Noise on the system matrix and right hand side.
         """
-        if not isinstance(Ainv0, rvs.Normal):
-            Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        if not isinstance(Ainv0, randvars.Normal):
+            Ainv = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
         else:
             Ainv = Ainv0
             Ainv0 = Ainv.mean
@@ -123,20 +122,20 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
                 "Additionally, specify an inverse prior (mean) instead or wrap into "
                 "a linear operator with an .inv() function."
             ) from exc
-        A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+        A = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
 
         return cls(
             x=None,
             Ainv=Ainv,
             A=A,
-            b=rvs.asrandvar(problem.b),
+            b=randvars.asrandvar(problem.b),
             hyperparams=hyperparams,
         )
 
     @classmethod
     def from_matrix(
         cls,
-        A0: Union[MatrixArgType, rvs.RandomVariable],
+        A0: Union[MatrixArgType, randvars.RandomVariable],
         problem: LinearSystem,
         hyperparams: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
@@ -155,8 +154,8 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         hyperparams :
             Noise on the system matrix and right hand side.
         """
-        if not isinstance(A0, rvs.Normal):
-            A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+        if not isinstance(A0, randvars.Normal):
+            A = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
         else:
             A = A0
             A0 = A.mean
@@ -169,21 +168,21 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
                 "Additionally, specify an inverse prior (mean) instead or wrap into "
                 "a linear operator with an .inv() function."
             ) from exc
-        Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        Ainv = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
             x=None,
             Ainv=Ainv,
             A=A,
-            b=rvs.asrandvar(problem.b),
+            b=randvars.asrandvar(problem.b),
             hyperparams=hyperparams,
         )
 
     @classmethod
     def from_matrices(
         cls,
-        A0: Union[MatrixArgType, rvs.RandomVariable],
-        Ainv0: Union[MatrixArgType, rvs.RandomVariable],
+        A0: Union[MatrixArgType, randvars.RandomVariable],
+        Ainv0: Union[MatrixArgType, randvars.RandomVariable],
         problem: LinearSystem,
         hyperparams: Optional[LinearSystemNoise] = None,
     ) -> "NoisySymmetricNormalLinearSystemBelief":
@@ -205,16 +204,16 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
         hyperparams :
             Noise on the system matrix and right hand side.
         """
-        if not isinstance(A0, rvs.Normal):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
-        if not isinstance(Ainv0, rvs.Normal):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        if not isinstance(A0, randvars.Normal):
+            A0 = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+        if not isinstance(Ainv0, randvars.Normal):
+            Ainv0 = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
             x=None,
             Ainv=Ainv0,
             A=A0,
-            b=rvs.asrandvar(problem.b),
+            b=randvars.asrandvar(problem.b),
             hyperparams=hyperparams,
         )
 
@@ -229,16 +228,16 @@ class NoisySymmetricNormalLinearSystemBelief(SymmetricNormalLinearSystemBelief):
             Wb = self.Ainv.cov.B.A @ self.b.mean
             bWb = (Wb.T @ self.b.mean).item()
 
-            def _mv(vec):
+            def _matmul(x):
                 return 0.5 * (
-                    bVb * self.Ainv.cov.A.A @ vec
-                    + bWb * self.Ainv.cov.B.A @ vec
-                    + Vb @ (Vb.T @ vec)
-                    + Wb @ (Wb.T @ vec)
+                    bVb * self.Ainv.cov.A.A @ x
+                    + bWb * self.Ainv.cov.B.A @ x
+                    + Vb @ (Vb.T @ x)
+                    + Wb @ (Wb.T @ x)
                 )
 
             x_cov = linops.LinearOperator(
-                shape=self.Ainv.shape, dtype=float, matvec=_mv, matmat=_mv
+                shape=self.Ainv.shape, dtype=float, matmul=_matmul
             )
             # Efficient trace computation
             x_cov.trace = lambda: 0.5 * (

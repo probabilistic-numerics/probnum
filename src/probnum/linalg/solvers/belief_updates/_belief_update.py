@@ -2,14 +2,8 @@
 import abc
 from typing import Optional, Tuple, Type
 
-try:
-    # functools.cached_property is only available in Python >=3.8
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
-
 import probnum  # pylint: disable="unused-import"
-import probnum.randvars as rvs
+from probnum import randvars
 from probnum.linalg.solvers._state import LinearSolverCache, LinearSolverState
 from probnum.linalg.solvers.beliefs import (
     LinearSystemBelief,
@@ -44,7 +38,7 @@ class LinearSolverQoIBeliefUpdate(abc.ABC):
         problem: LinearSystem,
         hyperparams: "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams",
         solver_state: "probnum.linalg.solvers.LinearSolverState",
-    ) -> rvs.RandomVariable:
+    ) -> randvars.RandomVariable:
         """Update the belief about the quantity of interest given observations.
 
         Parameters

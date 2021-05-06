@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.data import LinearSolverAction
 from probnum.linalg.solvers.policies._policy import Policy

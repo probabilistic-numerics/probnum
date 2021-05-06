@@ -1,11 +1,11 @@
 import math
-from typing import List, Optional, Tuple, Union
+from typing import Optional
 
 import numpy as np
 import scipy
 
-import probnum
-import probnum.linops as linops
+import probnum  # pylint: disable="unused-import"
+from probnum import linops
 from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.belief_updates._symmetric_normal_linear_obs import (
     _SymmetricNormalLinearObsCache,

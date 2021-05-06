@@ -5,8 +5,7 @@ from typing import Optional, Union
 import numpy as np
 
 import probnum
-import probnum.linops as linops
-import probnum.randvars as rvs
+from probnum import linops, randvars
 from probnum.linalg.solvers.beliefs._linear_system import LinearSystemBelief
 from probnum.problems import LinearSystem
 from probnum.type import MatrixArgType
@@ -70,10 +69,10 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
 
     def __init__(
         self,
-        A: rvs.Normal,
-        Ainv: rvs.Normal,
-        b: Union[rvs.Constant, rvs.Normal],
-        x: Optional[rvs.Normal] = None,
+        A: randvars.Normal,
+        Ainv: randvars.Normal,
+        b: Union[randvars.Constant, randvars.Normal],
+        x: Optional[randvars.Normal] = None,
         hyperparams: Optional[
             "probnum.linalg.solvers.hyperparams.LinearSolverHyperparams"
         ] = None,
@@ -82,10 +81,10 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
 
     @staticmethod
     def _check_shape_mismatch(
-        x: rvs.RandomVariable,
-        A: rvs.RandomVariable,
-        Ainv: rvs.RandomVariable,
-        b: rvs.RandomVariable,
+        x: randvars.RandomVariable,
+        A: randvars.RandomVariable,
+        Ainv: randvars.RandomVariable,
+        b: randvars.RandomVariable,
     ) -> None:
         LinearSystemBelief._check_shape_mismatch(x=x, A=A, Ainv=Ainv, b=b)
         if A.shape[0] != A.shape[1]:
@@ -106,91 +105,91 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
 
         # If b = 0, set x0 = 0
         if check_for_better_x0 and np.all(x0 == problem.b):
-            A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
-            Ainv = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+            A = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
+            Ainv = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=A0))
 
             return cls(
-                x=rvs.Normal(
+                x=randvars.Normal(
                     mean=x0,
                     cov=linops.Scaling(
-                        scalar=np.finfo(float).eps, shape=problem.A.shape
+                        factors=np.finfo(float).eps, shape=problem.A.shape
                     ),
                 ),
                 Ainv=Ainv,
                 A=A,
-                b=rvs.asrandvar(b0),
+                b=randvars.asrandvar(b0),
             )
         else:
-            Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
-            A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
+            Ainv = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+            A = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
 
             return cls(
                 x=None,
                 Ainv=Ainv,
                 A=A,
-                b=rvs.asrandvar(b0),
+                b=randvars.asrandvar(b0),
             )
 
     @classmethod
     def from_inverse(
         cls,
-        Ainv0: Union[MatrixArgType, rvs.RandomVariable],
+        Ainv0: Union[MatrixArgType, randvars.RandomVariable],
         problem: LinearSystem,
     ) -> "SymmetricNormalLinearSystemBelief":
-        if not isinstance(Ainv0, rvs.Normal):
-            Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        if not isinstance(Ainv0, randvars.Normal):
+            Ainv = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
         else:
             Ainv = Ainv0
-        A = rvs.Normal(mean=problem.A, cov=linops.SymmetricKronecker(A=problem.A))
+        A = randvars.Normal(mean=problem.A, cov=linops.SymmetricKronecker(A=problem.A))
 
         return cls(
             x=None,
             Ainv=Ainv,
             A=A,
-            b=rvs.asrandvar(problem.b),
+            b=randvars.asrandvar(problem.b),
         )
 
     @classmethod
     def from_matrix(
         cls,
-        A0: Union[MatrixArgType, rvs.RandomVariable],
+        A0: Union[MatrixArgType, randvars.RandomVariable],
         problem: LinearSystem,
     ) -> "SymmetricNormalLinearSystemBelief":
-        if not isinstance(A0, rvs.Normal):
-            A = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
+        if not isinstance(A0, randvars.Normal):
+            A = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
         else:
             A = A0
 
         Ainv0 = linops.Identity(shape=A0.shape)
-        Ainv = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        Ainv = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
             x=None,
             Ainv=Ainv,
             A=A,
-            b=rvs.asrandvar(problem.b),
+            b=randvars.asrandvar(problem.b),
         )
 
     @classmethod
     def from_matrices(
         cls,
-        A0: Union[MatrixArgType, rvs.RandomVariable],
-        Ainv0: Union[MatrixArgType, rvs.RandomVariable],
+        A0: Union[MatrixArgType, randvars.RandomVariable],
+        Ainv0: Union[MatrixArgType, randvars.RandomVariable],
         problem: LinearSystem,
     ) -> "SymmetricNormalLinearSystemBelief":
-        if not isinstance(A0, rvs.Normal):
-            A0 = rvs.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
-        if not isinstance(Ainv0, rvs.Normal):
-            Ainv0 = rvs.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
+        if not isinstance(A0, randvars.Normal):
+            A0 = randvars.Normal(mean=A0, cov=linops.SymmetricKronecker(A=problem.A))
+        if not isinstance(Ainv0, randvars.Normal):
+            Ainv0 = randvars.Normal(mean=Ainv0, cov=linops.SymmetricKronecker(A=Ainv0))
 
         return cls(
             x=None,
             Ainv=Ainv0,
             A=A0,
-            b=rvs.asrandvar(problem.b),
+            b=randvars.asrandvar(problem.b),
         )
 
-    def _induced_solution_belief(self) -> rvs.Normal:
+    def _induced_solution_belief(self) -> randvars.Normal:
         r"""Induced belief about the solution from a belief about the inverse.
 
         Approximates the induced random variable :math:`x=Hb` for :math:`H \sim
@@ -198,7 +197,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
         \Sigma)` with :math:`\mu=\mathbb{E}[H]\mathbb{E}[b]` and :math:`\Sigma=\frac{
         1}{2}(Wb^\top Wb + Wb b^\top W)`.
         """
-        return rvs.Normal(
+        return randvars.Normal(
             mean=self.Ainv.mean @ self.b.mean,
             cov=self._induced_solution_cov(),
         )

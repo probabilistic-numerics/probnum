@@ -1,6 +1,6 @@
 from typing import Optional
 
-import probnum
+import probnum  # pylint: disable="unused-import"
 from probnum.linalg.solvers._state import LinearSolverState
 from probnum.linalg.solvers.stop_criteria._stopping_criterion import StoppingCriterion
 from probnum.problems import LinearSystem
