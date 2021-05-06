@@ -57,8 +57,7 @@ def particle_filter_setup(
         )
 
     particle = filtsmooth.ParticleFilter(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
+        statespace_components["prior_process"],
         num_particles=num_particles,
         resampling_percentage_threshold=resampling_percentage_threshold,
     )

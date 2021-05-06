@@ -7,7 +7,7 @@ from typing import Iterable, Optional, Union
 
 import numpy as np
 
-from probnum import problems, randvars, statespace
+from probnum import problems, randprocs, randvars, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.type import FloatArgType, IntArgType
 
@@ -63,15 +63,13 @@ class ParticleFilter(BayesFiltSmooth):
 
     def __init__(
         self,
-        dynamics_model: Union[statespace.LTISDE, statespace.DiscreteGaussian],
-        initrv: randvars.RandomVariable,
+        prior_process: randprocs.MarkovProcess,
         num_particles: IntArgType,
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,
     ) -> None:
         super().__init__(
-            dynamics_model=dynamics_model,
-            initrv=initrv,
+            prior_process=prior_process,
         )
         self.num_particles = num_particles
 
