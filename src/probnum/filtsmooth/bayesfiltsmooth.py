@@ -1,11 +1,11 @@
 """Interfaces for Bayesian filtering and smoothing."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 
-from probnum import randprocs, randvars, statespace
+from probnum import randprocs, randvars
 from probnum.filtsmooth.timeseriesposterior import TimeSeriesPosterior
 from probnum.type import FloatArgType
 
