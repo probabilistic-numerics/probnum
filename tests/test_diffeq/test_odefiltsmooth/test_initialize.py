@@ -3,8 +3,7 @@ import pytest
 
 import probnum.diffeq as pnde
 import probnum.problems.zoo.diffeq as diffeq_zoo
-import probnum.statespace as pnss
-from probnum import randvars
+from probnum import randprocs, randvars, statespace
 
 from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
 
@@ -44,7 +43,7 @@ def lv():
 def lv_inits(order):
     lv_dim = 2
     vals = LV_INITS[: lv_dim * (order + 1)]
-    return pnss.Integrator._convert_derivwise_to_coordwise(
+    return statespace.Integrator._convert_derivwise_to_coordwise(
         vals, ordint=order, spatialdim=lv_dim
     )
 
@@ -52,7 +51,7 @@ def lv_inits(order):
 def test_initialize_with_rk(lv, lv_inits, order):
     """Make sure that the values are close(ish) to the truth."""
     ode_dim = len(lv.initrv.mean)
-    prior = pnss.IBM(
+    prior = statespace.IBM(
         ordint=order,
         spatialdim=ode_dim,
         forward_implementation="sqrt",
@@ -84,13 +83,13 @@ def test_initialize_with_taylormode(any_order):
     """Make sure that the values are close(ish) to the truth."""
     r2b_jax = diffeq_zoo.threebody_jax()
     ode_dim = 4
-    expected = pnss.Integrator._convert_derivwise_to_coordwise(
+    expected = statespace.Integrator._convert_derivwise_to_coordwise(
         THREEBODY_INITS[: ode_dim * (any_order + 1)],
         ordint=any_order,
         spatialdim=ode_dim,
     )
 
-    prior = pnss.IBM(
+    prior = statespace.IBM(
         ordint=any_order,
         spatialdim=ode_dim,
         forward_implementation="sqrt",
