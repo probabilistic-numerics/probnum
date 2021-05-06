@@ -73,7 +73,7 @@ def random_data(n: int, p: int, random_state: RandomStateArgType = None):
                 kernels.Matern(input_dim=2)(random_data(n=100, p=2, random_state=1)),
             ),
             ("idop", linops.Identity(20)),
-            ("matop", linops.MatrixMult(random_spd_matrix(10, random_state=1))),
+            ("matop", linops.Matrix(random_spd_matrix(10, random_state=1))),
         ]
     ],
     name="mat",
@@ -220,12 +220,12 @@ def fixture_linsys_iid_noise(
     return NoisyLinearSystem.from_randvars(
         A=rvs.Normal(
             mean=spd_mat,
-            cov=linops.SymmetricKronecker(linops.ScalarMult(scalar=eps, shape=(n, n))),
+            cov=linops.SymmetricKronecker(linops.Scaling(scalar=eps, shape=(n, n))),
             random_state=random_state,
         ),
         b=rvs.Normal(
             mean=b,
-            cov=linops.ScalarMult(scalar=eps ** 2, shape=(n, n)),
+            cov=linops.Scaling(scalar=eps ** 2, shape=(n, n)),
             random_state=random_state,
         ),
         solution=solution,
@@ -241,7 +241,7 @@ def fixture_linsys_iid_noise(
                 rvs.Normal(
                     mean=random_spd_matrix(dim=10, random_state=1),
                     cov=linops.SymmetricKronecker(
-                        linops.ScalarMult(scalar=10 ** -2, shape=(10, 10))
+                        linops.Scaling(scalar=10 ** -2, shape=(10, 10))
                     ),
                 ),
                 rvs.Constant(np.ones((10, 1))),
@@ -280,7 +280,7 @@ def preconditioner(
 ) -> MatrixArgType:
     """Preconditioner for a linear system."""
     if request.param == "scalar":
-        return linops.ScalarMult(scalar=5.0, shape=linsys_spd.A.shape)
+        return linops.Scaling(scalar=5.0, shape=linsys_spd.A.shape)
     elif request.param == "jacobi":
         return linops.DiagMult(diagonal=np.diag(linsys_spd.A))
 

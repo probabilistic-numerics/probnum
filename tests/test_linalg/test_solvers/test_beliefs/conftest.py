@@ -20,7 +20,7 @@ from probnum.problems.zoo.linalg import random_sparse_spd_matrix, random_spd_mat
             (
                 "weakmeancorr_scalar",
                 beliefs.WeakMeanCorrespondenceBelief,
-                lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n)),
+                lambda n: linops.Scaling(scalar=1.0, shape=(n, n)),
             ),
             (
                 "symmnormal_dense",

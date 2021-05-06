@@ -23,7 +23,7 @@ def test_induced_solution_has_correct_distribution(
     W = symm_belief.Ainv.cov.A
     Wb = W @ linsys_spd.b
     bWb = (Wb.T @ linsys_spd.b).item()
-    Sigma = 0.5 * (bWb * W + linops.MatrixMult(Wb @ Wb.T))
+    Sigma = 0.5 * (bWb * W + linops.Matrix(Wb @ Wb.T))
     np.testing.assert_allclose(
         symm_belief.x.cov.todense(),
         Sigma.todense(),

@@ -96,7 +96,7 @@ def belief_groundtruth(linsys_spd: LinearSystem) -> beliefs.LinearSystemBelief:
             (
                 "weakmeancorr_scalar",
                 beliefs.WeakMeanCorrespondenceBelief,
-                lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n)),
+                lambda n: linops.Scaling(scalar=1.0, shape=(n, n)),
             ),
             (
                 "symmnormal_dense",
@@ -133,14 +133,14 @@ def fixture_symm_belief(
     params=[
         pytest.param(inv, id=inv[0])
         for inv in [
-            ("scalar", lambda n: linops.ScalarMult(scalar=1.0, shape=(n, n))),
+            ("scalar", lambda n: linops.Scaling(scalar=1.0, shape=(n, n))),
             (
                 "spd",
-                lambda n: linops.MatrixMult(A=random_spd_matrix(n, random_state=42)),
+                lambda n: linops.Matrix(A=random_spd_matrix(n, random_state=42)),
             ),
             (
                 "sparse",
-                lambda n: linops.MatrixMult(
+                lambda n: linops.Matrix(
                     A=random_sparse_spd_matrix(n, density=0.1, random_state=42)
                 ),
             ),
@@ -175,11 +175,11 @@ def fixture_prior_noise(
 ):
     """Prior for noisy linear systems."""
     return beliefs.NoisySymmetricNormalLinearSystemBelief.from_inverse(
-        Ainv0=linops.ScalarMult(scalar=request.param[0], shape=linsys_noise.A.shape),
+        Ainv0=linops.Scaling(scalar=request.param[0], shape=linsys_noise.A.shape),
         problem=linsys_noise,
         hyperparams=hyperparams.LinearSystemNoise(
             epsA_cov=linops.SymmetricKronecker(
-                linops.ScalarMult(scalar=request.param[1], shape=linsys_noise.A.shape)
+                linops.Scaling(scalar=request.param[1], shape=linsys_noise.A.shape)
             )
         ),
     )

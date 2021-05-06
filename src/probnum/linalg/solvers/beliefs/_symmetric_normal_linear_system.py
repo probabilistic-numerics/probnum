@@ -112,7 +112,7 @@ class SymmetricNormalLinearSystemBelief(LinearSystemBelief):
             return cls(
                 x=rvs.Normal(
                     mean=x0,
-                    cov=linops.ScalarMult(
+                    cov=linops.Scaling(
                         scalar=np.finfo(float).eps, shape=problem.A.shape
                     ),
                 ),

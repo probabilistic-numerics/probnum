@@ -76,7 +76,6 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
 
     >>> import numpy as np
     >>> from probnum.linalg.solvers.beliefs import WeakMeanCorrespondenceBelief
-    >>> from probnum.linops import ScalarMult
     >>> from probnum.problems import LinearSystem
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
     >>> # Linear system
@@ -161,7 +160,7 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         if self.data is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            return linops.ScalarMult(scalar=uncertainty_scales.Phi, shape=self.A0.shape)
+            return linops.Scaling(scalar=uncertainty_scales.Phi, shape=self.A0.shape)
         else:
             if action_obs_innerprods is None:
                 action_obs_innerprods = np.squeeze(
@@ -216,15 +215,13 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         if self.data is None:
             # For no actions taken, the uncertainty scales determine the overall
             # uncertainty, since :math:`{0}^\perp=\mathbb{R}^n`.
-            return linops.ScalarMult(
-                scalar=uncertainty_scales.Psi, shape=self.Ainv0.shape
-            )
+            return linops.Scaling(scalar=uncertainty_scales.Psi, shape=self.Ainv0.shape)
         else:
             observation_proj = linops.OrthogonalProjection(
                 subspace_basis=self.data.observations_arr.obsA, is_orthonormal=False
             )
 
-            if isinstance(self.Ainv0, linops.ScalarMult):
+            if isinstance(self.Ainv0, linops.Scaling):
                 observation_space_op = self.Ainv0.scalar * observation_proj
             else:
 
@@ -393,8 +390,8 @@ class WeakMeanCorrespondenceBelief(SymmetricNormalLinearSystemBelief):
         """
         if scalar <= 0.0:
             raise ValueError(f"Scalar parameter alpha={scalar:.4f} must be positive.")
-        A0 = linops.ScalarMult(scalar=scalar, shape=problem.A.shape)
-        Ainv0 = linops.ScalarMult(scalar=1 / scalar, shape=problem.A.shape)
+        A0 = linops.Scaling(scalar=scalar, shape=problem.A.shape)
+        Ainv0 = linops.Scaling(scalar=1 / scalar, shape=problem.A.shape)
         return cls.from_matrices(
             A0=A0,
             Ainv0=Ainv0,

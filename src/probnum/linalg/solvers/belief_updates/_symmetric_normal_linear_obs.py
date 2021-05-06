@@ -132,7 +132,7 @@ class _SymmetricNormalLinearObsCache(LinearSolverCache):
         r"""Step size :math:`\alpha_i` of the solver viewed as a quadratic optimizer
         taking steps :math:`x_{i+1} = x_i + \alpha_i s_i`."""
         if isinstance(self.problem, NoisyLinearSystem):
-            if isinstance(self.hyperparams.epsA_cov.A, linops.ScalarMult):
+            if isinstance(self.hyperparams.epsA_cov.A, linops.Scaling):
                 eps_sq = self.hyperparams.epsA_cov.A.scalar ** 2
                 return (
                     -self.action.actA.T
@@ -347,7 +347,7 @@ class _SystemMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpd
     ) -> rvs.Normal:
         """Updated belief for the matrix."""
         if isinstance(problem, NoisyLinearSystem):
-            if isinstance(hyperparams.epsA_cov.A, linops.ScalarMult):
+            if isinstance(hyperparams.epsA_cov.A, linops.Scaling):
                 eps_sq = hyperparams.epsA_cov.A.scalar ** 2
                 mean = (
                     linops.aslinop(self.prior.A.mean)
@@ -390,7 +390,7 @@ class _InverseMatrixSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUp
     ) -> rvs.Normal:
         """Updated belief for the inverse matrix."""
         if isinstance(problem, NoisyLinearSystem):
-            if isinstance(hyperparams.epsA_cov.A, linops.ScalarMult):
+            if isinstance(hyperparams.epsA_cov.A, linops.Scaling):
                 eps_sq = hyperparams.epsA_cov.A.scalar ** 2
                 mean = (
                     linops.aslinop(self.prior.Ainv.mean)
@@ -433,7 +433,7 @@ class _SolutionSymmetricNormalLinearObsBeliefUpdate(LinearSolverQoIBeliefUpdate)
     ) -> Optional[Union[rvs.Normal, np.ndarray]]:
         """Updated belief about the solution."""
         if isinstance(problem, NoisyLinearSystem):
-            if isinstance(hyperparams.epsA_cov.A, linops.ScalarMult):
+            if isinstance(hyperparams.epsA_cov.A, linops.Scaling):
                 return (
                     solver_state.cache.belief.x.mean
                     + solver_state.cache.meanH_update_op

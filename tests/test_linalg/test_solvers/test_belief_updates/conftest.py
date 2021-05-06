@@ -51,7 +51,7 @@ def fixture_symlin_updated_belief(
 ) -> Tuple[beliefs.LinearSystemBelief, LinearSolverState]:
     """Belief update for a Gaussian prior and linear observations."""
     prior = request.param[1].from_inverse(
-        linops.MatrixMult(random_spd_matrix(dim=n, random_state=random_state)),
+        linops.Matrix(random_spd_matrix(dim=n, random_state=random_state)),
         problem=linsys_spd,
     )
     belief_update = request.param[2](prior=prior)
@@ -83,7 +83,7 @@ def fixture_noisy_updated_belief(
     """Belief update for the symmetric normal belief and linear observations."""
     noise = hyperparams.LinearSystemNoise(
         epsA_cov=linops.SymmetricKronecker(
-            A=linops.ScalarMult(shape=(n, n), scalar=request.param)
+            A=linops.Scaling(shape=(n, n), scalar=request.param)
         ),
     )
 
