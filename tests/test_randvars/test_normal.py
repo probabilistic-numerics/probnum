@@ -88,7 +88,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 normrv = const * randvars.Normal(mean=mean, cov=cov)
 
-                self.assertIsInstance(normrv, probnum.RandomVariable)
+                self.assertIsInstance(normrv, randvars.RandomVariable)
 
                 if const != 0:
                     self.assertIsInstance(normrv, randvars.Normal)

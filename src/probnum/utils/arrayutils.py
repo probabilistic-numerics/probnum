@@ -5,7 +5,7 @@ from typing import Union
 import numpy as np
 import scipy
 
-import probnum
+from probnum import randvars
 
 
 def atleast_1d(*rvs):
@@ -31,7 +31,7 @@ def atleast_1d(*rvs):
             result = rv
         elif isinstance(rv, np.ndarray):
             result = np.atleast_1d(rv)
-        elif isinstance(rv, probnum.RandomVariable):
+        elif isinstance(rv, randvars.RandomVariable):
             raise NotImplementedError
         else:
             result = rv
@@ -43,8 +43,8 @@ def atleast_1d(*rvs):
 
 
 def as_colvec(
-    vec: Union[np.ndarray, "probnum.RandomVariable"]
-) -> Union[np.ndarray, "probnum.RandomVariable"]:
+    vec: Union[np.ndarray, randvars.RandomVariable]
+) -> Union[np.ndarray, randvars.RandomVariable]:
     """Transform the given vector or random variable to column format. Given a vector
     (or random variable) of dimension (n,) return an array with dimensions (n, 1)
     instead. Higher-dimensional arrays are not changed.
@@ -54,7 +54,7 @@ def as_colvec(
     vec
         Vector, array or random variable to be transformed into a column vector.
     """
-    if isinstance(vec, probnum.RandomVariable):
+    if isinstance(vec, randvars.RandomVariable):
         if vec.shape != (vec.shape[0], 1):
             vec.reshape(newshape=(vec.shape[0], 1))
     else:
