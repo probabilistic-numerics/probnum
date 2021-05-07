@@ -7,7 +7,6 @@ import scipy.linalg
 import scipy.sparse
 import scipy.stats
 
-import probnum
 from probnum import linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
