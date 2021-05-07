@@ -191,7 +191,6 @@ class ParticleFilter(BayesFiltSmooth):
         initarg = times[0]
         t_old = times[0]  # will be replaced by initarg soon.
 
-        importance_rv = None  # will be overwritten in the first part of the loop
         particles = np.nan * np.ones((self.num_particles,) + self.initrv.shape)
         weights = np.ones(self.num_particles) / self.num_particles
 
@@ -247,9 +246,17 @@ class ParticleFilter(BayesFiltSmooth):
 
             weights = new_weights / np.sum(new_weights)
             particles = new_particles
-            yield randvars.Categorical(
+            new_rv = randvars.Categorical(
                 support=particles, probabilities=weights, random_state=self.random_state
-            ), {}
+            )
+
+            if self.with_resampling:
+                if (
+                    effective_number_of_events(new_rv)
+                    < self.min_effective_num_of_particles
+                ):
+                    new_rv = new_rv.resample()
+            yield new_rv, {}
 
     def importance_rv_generator_initial(
         self,

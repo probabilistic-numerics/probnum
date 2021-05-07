@@ -39,7 +39,7 @@ class ImportanceDistribution(abc.ABC):
         return (
             dynamics_rv.logpdf(proposal_state)
             - importance_rv.logpdf(proposal_state)
-            + np.log(old_weight)
+            + np.log(old_weight + 1e-14)
         )
 
 
