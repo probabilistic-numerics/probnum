@@ -11,18 +11,6 @@ __all__ = [
     "LinearisedDiscreteTransitionTestCase",
 ]
 
-# Show plots in tests?
-VISUALISE = False
-
-if VISUALISE:
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError as err:
-        raise ImportError(
-            "Install matplotlib to visualise the test functions."
-        ) from err
-
-
 np.random.seed(12345)
 
 
@@ -75,7 +63,10 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_filtsmooth_pendulum(self):
         # pylint: disable=not-callable
         # Set up test problem
-        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+        # regression_problem, statespace_components = filtsmooth_zoo.pendulum(measurement_variance=0.001)
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum(
+            measurement_variance=0.0001
+        )
 
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(
@@ -101,7 +92,15 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
         )
 
         # If desired, visualise.
-        if VISUALISE:
+        if self.visualise:
+
+            try:
+                import matplotlib.pyplot as plt
+            except ImportError as err:
+                raise ImportError(
+                    "Install matplotlib to visualise the test functions."
+                ) from err
+
             obs, tms, states = (
                 regression_problem.observations,
                 regression_problem.locations,
@@ -113,7 +112,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
                 + "< %.2f < %.2f?)" % (filtrmse, obs_rmse)
             )
             ax1.set_title("Horizontal position")
-            ax1.plot(tms[1:], obs[:, 0], ".", alpha=0.25, label="Observations")
+            ax1.plot(tms[0:], obs[:, 0], ".", alpha=0.25, label="Observations")
             ax1.plot(
                 tms[1:],
                 np.sin(states)[1:, 0],
