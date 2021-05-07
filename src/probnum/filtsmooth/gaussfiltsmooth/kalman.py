@@ -241,7 +241,7 @@ class Kalman(BayesFiltSmooth):
         posterior = FilteringPosterior(
             locations=regression_problem.locations,
             states=filtered_rvs,
-            transition=self.dynamics_model,
+            transition=self.prior_process.transition,
         )
 
         return posterior, info_dicts
@@ -286,7 +286,7 @@ class Kalman(BayesFiltSmooth):
 
         # Initialise
         t_old = times[0]  # will be initarg eventually
-        curr_rv = self.initrv
+        curr_rv = self.prior_process.initrv
 
         # Iterate over data and measurement models
         for t, data, measmod in itertools.zip_longest(
@@ -307,7 +307,10 @@ class Kalman(BayesFiltSmooth):
                 linearise_predict_at = (
                     None if _previous_posterior is None else _previous_posterior(t_old)
                 )
-                curr_rv, info_dict["predict_info"] = self.dynamics_model.forward_rv(
+                (
+                    curr_rv,
+                    info_dict["predict_info"],
+                ) = self.prior_process.transition.forward_rv(
                     curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
                 )
 
@@ -336,13 +339,13 @@ class Kalman(BayesFiltSmooth):
             Posterior distribution of the smoothed output
         """
 
-        rv_list = self.dynamics_model.smooth_list(
+        rv_list = self.prior_process.transition.smooth_list(
             filter_posterior.states, filter_posterior.locations
         )
 
         return SmoothingPosterior(
             filter_posterior.locations,
             rv_list,
-            self.dynamics_model,
+            self.prior_process.transition,
             filtering_posterior=filter_posterior,
         )

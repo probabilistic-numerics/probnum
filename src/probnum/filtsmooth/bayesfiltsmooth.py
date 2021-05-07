@@ -17,8 +17,6 @@ class BayesFiltSmooth(ABC):
         self,
         prior_process: randprocs.MarkovProcess,
     ):
-        self.dynamics_model = prior_process.transition
-        self.initrv = prior_process.initrv
         self.prior_process = prior_process
 
     def filter_step(
