@@ -33,12 +33,11 @@ class Kalman(BayesFiltSmooth):
 
     Parameters
     ----------
-    dynamics_model
-        Prior dynamics. Usually an LTISDE object or an Integrator, but LinearSDE, ContinuousEKFComponent,
+    prior_process
+        Prior Gauss-Markov process. Usually a :class:`MarkovProcess` with a :class:`Normal` initial random variable,
+        and an LTISDE transition or an Integrator transition, but LinearSDE, ContinuousEKFComponent,
         or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
-        If an integrator, `K=spatialdim(ordint+1)` for some spatialdim and ordint.
-    initrv
-        Initial random variable for the prior. This is a `K` dimensional Gaussian distribution (not `L`, because it belongs to the prior)
+        If the transition is an integrator, `K=spatialdim(ordint+1)` for some spatialdim and ordint.
     """
 
     def iterated_filtsmooth(
@@ -285,14 +284,14 @@ class Kalman(BayesFiltSmooth):
             measurement_model = itertools.repeat(measurement_model, len(times))
 
         # Initialise
-        t_old = times[0]  # will be initarg eventually
+        t_old = self.prior_process.initarg
         curr_rv = self.prior_process.initrv
 
         # Iterate over data and measurement models
         for t, data, measmod in itertools.zip_longest(
-            times, dataset, measurement_model, fillvalue=None
+            times, dataset, measurement_model, fillvalue="None"
         ):
-            if t is None or data is None or measmod is None:
+            if t is "None" or data is "None" or measmod is "None":
                 errormsg = (
                     "The lengths of the dataset, times and"
                     "measurement models are inconsistent."
@@ -314,7 +313,7 @@ class Kalman(BayesFiltSmooth):
                     curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
                 )
 
-            # Update (all the time)
+            # Update (even if there is no increment)
             linearise_update_at = (
                 None if _previous_posterior is None else _previous_posterior(t)
             )
