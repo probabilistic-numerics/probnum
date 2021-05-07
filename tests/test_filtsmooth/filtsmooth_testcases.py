@@ -75,7 +75,9 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_filtsmooth_pendulum(self):
         # pylint: disable=not-callable
         # Set up test problem
-        regression_problem, statespace_components = filtsmooth_zoo.pendulum()
+        regression_problem, statespace_components = filtsmooth_zoo.pendulum(
+            measurement_variance=0.0001
+        )
 
         # Linearise problem
         ekf_meas = self.linearising_component_pendulum(
