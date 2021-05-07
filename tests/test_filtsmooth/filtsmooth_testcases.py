@@ -96,7 +96,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
 
         # If desired, visualise.
         if self.visualise:
-            # pylint-disable: import-outside-toplevel
+            # pylint: disable=import-outside-toplevel
             try:
                 import matplotlib.pyplot as plt
             except ImportError as err:
