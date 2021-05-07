@@ -63,6 +63,10 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
     def test_filtsmooth_pendulum(self):
         # pylint: disable=not-callable
         # Set up test problem
+
+        # If this measurement variance is not really small, the sampled
+        # test data can contain an outlier every now and then which
+        # breaks the test, even though it has not been touched.
         regression_problem, statespace_components = filtsmooth_zoo.pendulum(
             measurement_variance=0.0001
         )
