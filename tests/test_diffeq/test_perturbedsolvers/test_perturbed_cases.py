@@ -3,19 +3,14 @@ import pytest
 from scipy.integrate._ivp import rk
 
 from probnum import diffeq
-from probnum.diffeq import wrappedscipysolver
-from probnum.diffeq.perturbedsolvers import _perturbation_functions, perturbedstepsolver
+from probnum.diffeq.perturbedsolvers import _perturbation_functions
 
 
 def setup_solver(y0, ode, perturbfun):
     scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
-        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    )
-    testsolver2 = wrappedscipysolver.WrappedScipyRungeKutta(
-        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    )
-    perturbedsolver = perturbedstepsolver.PerturbedStepSolver(
+    testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
+    testsolver2 = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
+    perturbedsolver = diffeq.PerturbedStepSolver(
         testsolver2, noise_scale=1, perturb_function=perturbfun
     )
     return testsolver, perturbedsolver

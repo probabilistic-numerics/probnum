@@ -1,12 +1,7 @@
 """ODE solver as proposed by Abdulle and Garegnani."""
 import numpy as np
 
-from probnum import diffeq, randvars
-from probnum.diffeq import wrappedscipysolver
-from probnum.diffeq.perturbedsolvers import (
-    _perturbation_functions,
-    perturbedstepsolution,
-)
+from probnum import _randomvariablelist, diffeq, randvars, utils
 from probnum.type import FloatArgType
 
 
@@ -14,11 +9,11 @@ class PerturbedStepSolver(diffeq.ODESolver):
     """ODE Solver based on Scipy that introduces uncertainty by perturbing the time-
     steps."""
 
-    # pylint: disable=maybe-no-member
     def __init__(
         self,
-        solver: wrappedscipysolver,
-        noise_scale: np.array,
+        # diffeq.WrappedScipyRungeKutta
+        solver,
+        noise_scale: FloatArgType,
         perturb_function,
         random_state=None,
     ):
@@ -27,13 +22,12 @@ class PerturbedStepSolver(diffeq.ODESolver):
                 step=step,
                 solver_order=solver.order,
                 noise_scale=noise_scale,
-                random_state=random_state,
+                random_state=utils.as_random_state(random_state),
                 size=(),
             )
 
         self.perturb_step = perturbation_step
         self.solver = solver
-        self.scipy_solver = solver.solver
         self.time = None
         self.scale = None
         self.scales = None
@@ -47,7 +41,8 @@ class PerturbedStepSolver(diffeq.ODESolver):
     def step(
         self, start: FloatArgType, stop: FloatArgType, current: randvars, **kwargs
     ):
-        """Perform one perturbed ODE-step from start to perturbed stop.
+        """Perturb the original stopping point, perform one perturbed step and project
+        the solution back to the original stopping point.
 
         Parameters
         ----------
@@ -80,9 +75,11 @@ class PerturbedStepSolver(diffeq.ODESolver):
         self.scales.append(self.scale)
         return self.solver.method_callback(time, current_guess, current_error)
 
-    def rvlist_to_odesol(self, times: np.array, rvs: np.array):
+    def rvlist_to_odesol(
+        self, times: np.ndarray, rvs: _randomvariablelist._RandomVariableList
+    ):
         interpolants = self.solver.interpolants
-        probnum_solution = perturbedstepsolution.PerturbedStepSolution(
+        probnum_solution = diffeq.PerturbedStepSolution(
             self.scales, times, rvs, interpolants
         )
         return probnum_solution

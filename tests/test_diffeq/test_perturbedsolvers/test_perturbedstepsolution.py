@@ -3,12 +3,7 @@ import pytest
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq
-from probnum.diffeq import wrappedscipysolver
-from probnum.diffeq.perturbedsolvers import (
-    _perturbation_functions,
-    perturbedstepsolution,
-    perturbedstepsolver,
-)
+from probnum.diffeq.perturbedsolvers import _perturbation_functions
 
 
 @pytest.fixture
@@ -16,15 +11,13 @@ def solutionnoisy():
     y0 = np.array([0.1, 0.1])
     ode = diffeq.lotkavolterra([0.0, 1.0], y0)
     scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
-        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    )
-    sol = perturbedstepsolver.PerturbedStepSolver(
+    testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
+    sol = diffeq.PerturbedStepSolver(
         testsolver,
         noise_scale=0.1,
         perturb_function=_perturbation_functions.perturb_uniform,
     )
-    return sol.solve(diffeq.AdaptiveSteps(0.1, atol=1e-14, rtol=1e-14))
+    return sol.solve(diffeq.AdaptiveSteps(0.1, atol=1e-4, rtol=1e-4))
 
 
 def test_states(solutionnoisy):
@@ -32,6 +25,9 @@ def test_states(solutionnoisy):
 
 
 def test_call(solutionnoisy):
+
+    # Test for continuity of the dense output. Small changes of the locations should
+    # come with small changes of the states.
     np.testing.assert_allclose(
         solutionnoisy(solutionnoisy.locations[0:]).mean,
         solutionnoisy.states[0:].mean,
@@ -65,19 +61,3 @@ def test_getitem(solutionnoisy):
         atol=1e-14,
         rtol=1e-14,
     )
-
-
-@pytest.mark.parametrize(
-    "array, element, pos",
-    [
-        ([0.0, 1.0, 2.0], 0.0, 0.0),
-        ([0.0, 1.0, 2.0], -1.0, 0.0),
-        ([0.0, 1.0, 2.0], 0.5, 0.0),
-        ([0.0, 1.0, 2.0], 1.1, 1.0),
-        ([0.0, 1.0, 2.0], 2.0, 1.0),
-        ([0.0, 1.0, 2.0], 1.9, 1.0),
-    ],
-)
-def test_get_interpolant(array, element, pos):
-    closest = perturbedstepsolution.get_interpolant(array, element)
-    assert closest == pos

@@ -10,9 +10,13 @@ from .odefiltsmooth import (
 )
 from .odesolution import ODESolution
 from .odesolver import ODESolver
+from .perturbedsolvers.perturbedstepsolution import PerturbedStepSolution
+from .perturbedsolvers.perturbedstepsolver import PerturbedStepSolver
 from .steprule import AdaptiveSteps, ConstantSteps, StepRule, propose_firststep
+from .wrappedscipysolver import WrappedScipyRungeKutta
 
 # Public classes and functions. Order is reflected in documentation.
+
 __all__ = [
     "ODE",
     "IVP",
@@ -32,6 +36,9 @@ __all__ = [
     "propose_firststep",
     "initialize_odefilter_with_rk",
     "initialize_odefilter_with_taylormode",
+    "PerturbedStepSolver",
+    "PerturbedStepSolution",
+    "WrappedScipyRungeKutta",
 ]
 
 # Set correct module paths (for superclasses).

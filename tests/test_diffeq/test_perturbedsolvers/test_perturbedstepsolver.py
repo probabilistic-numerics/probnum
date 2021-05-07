@@ -4,12 +4,7 @@ import pytest_cases
 from scipy.integrate._ivp import base, rk
 
 from probnum import diffeq, randvars
-from probnum.diffeq import odesolution, wrappedscipysolver
-from probnum.diffeq.perturbedsolvers import (
-    _perturbation_functions,
-    perturbedstepsolution,
-    perturbedstepsolver,
-)
+from probnum.diffeq.perturbedsolvers import _perturbation_functions
 
 
 @pytest_cases.fixture
@@ -61,10 +56,8 @@ def deterministicsolver():
     y0 = np.array([0.0, 1.0, 1.05])
     ode = diffeq.lorenz([0.0, 1.0], y0)
     scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    testsolver = wrappedscipysolver.WrappedScipyRungeKutta(
-        rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
-    )
-    return perturbedstepsolver.PerturbedStepSolver(
+    testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
+    return diffeq.PerturbedStepSolver(
         testsolver,
         noise_scale=1,
         perturb_function=_perturbation_functions.perturb_uniform,
@@ -147,10 +140,8 @@ def test_rvlist_to_odesol(solvers, times, list_of_randvars, dense_output):
     perturbedstepsolver.interpolants = dense_output
     perturbedstepsolver.scales = [1]
     probnum_solution = perturbedstepsolver.rvlist_to_odesol(times, list_of_randvars)
-    assert issubclass(
-        perturbedstepsolution.PerturbedStepSolution, odesolution.ODESolution
-    )
-    assert isinstance(probnum_solution, perturbedstepsolution.PerturbedStepSolution)
+    assert issubclass(diffeq.PerturbedStepSolution, diffeq.ODESolution)
+    assert isinstance(probnum_solution, diffeq.PerturbedStepSolution)
 
 
 def test_postprocess(solvers, steprule):

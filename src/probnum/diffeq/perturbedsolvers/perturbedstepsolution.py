@@ -1,11 +1,10 @@
+from typing import Optional
+
 import numpy as np
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq, randvars
-from probnum.filtsmooth.timeseriesposterior import (
-    DenseOutputLocationArgType,
-    DenseOutputValueType,
-)
+from probnum.type import FloatArgType
 
 
 class PerturbedStepSolution(diffeq.ODESolution):
@@ -13,62 +12,39 @@ class PerturbedStepSolution(diffeq.ODESolution):
 
     def __init__(
         self,
-        scales: np.array,
-        times: np.array,
-        rvs: np.array,
+        scales: list,
+        times: np.ndarray,
+        rvs: _randomvariablelist._RandomVariableList,
         interpolants: rk.RkDenseOutput,
     ):
         self.scales = scales
         self.interpolants = interpolants
         super().__init__(times, rvs)
 
-    def __call__(self, t: DenseOutputLocationArgType) -> DenseOutputValueType:
-        if not np.isscalar(t):
+    def interpolate(
+        self,
+        t: FloatArgType,
+        previous_location: Optional[FloatArgType] = None,
+        previous_state: Optional[randvars.RandomVariable] = None,
+        next_location: Optional[FloatArgType] = None,
+        next_state: Optional[randvars.RandomVariable] = None,
+    ):
+        discrete_location = list(self.locations).index(previous_location)
 
-            # recursive evaluation (t can now be any array, not just length 1!)
-            return _randomvariablelist._RandomVariableList(
-                [self.__call__(t_pt) for t_pt in np.asarray(t)]
-            )
-
-        # Access last state directly.
+        # For the first and last state, no interpolation has to be performed.
         if t == self.locations[-1]:
             res = self.states[-1]
+        if t == self.locations[0]:
+            res = self.states[0]
         else:
-
-            # get index of closest left interpolant (í.e. correct interpolant).
-            closest_left_t = get_interpolant(self.locations, t)
-            interpolant = self.interpolants[closest_left_t]
-            if self.locations[closest_left_t] == t:
+            interpolant = self.interpolants[discrete_location]
+            if self.locations[discrete_location] == t:
                 res = randvars.Constant(interpolant(t))
             else:
-                relative_time = (t - self.locations[closest_left_t]) * self.scales[
-                    closest_left_t
+                relative_time = (t - self.locations[discrete_location]) * self.scales[
+                    discrete_location
                 ]
                 res = randvars.Constant(
-                    interpolant(self.locations[closest_left_t] + relative_time)
+                    interpolant(self.locations[discrete_location] + relative_time)
                 )
         return res
-
-
-def get_interpolant(times: np.array, t_new: float):
-    """in a sorted array times find the element t that is the closest before t_new
-    Parameters
-    ----------
-    times : array
-        array of discrete evaluation points [t_1, t_2, ...t_n]
-    t_new : float
-        timepoint t_new of which we want to find the closest left point in
-        times
-    Returns
-    -------
-    closest left timepoint of t in times. Returns index of t if t is in times.
-    """
-
-    closest_t = (np.abs(t_new - np.array(times))).argmin()
-    if t_new < times[1]:
-        closest_left_t = 0
-    elif closest_t == len(times) - 1:
-        closest_left_t = len(times) - 2
-    else:
-        closest_left_t = closest_t
-    return closest_left_t
