@@ -38,13 +38,10 @@ class PerturbedStepSolution(diffeq.ODESolution):
             res = self.states[0]
         else:
             interpolant = self.interpolants[discrete_location]
-            if self.locations[discrete_location] == t:
-                res = randvars.Constant(interpolant(t))
-            else:
-                relative_time = (t - self.locations[discrete_location]) * self.scales[
-                    discrete_location
-                ]
-                res = randvars.Constant(
-                    interpolant(self.locations[discrete_location] + relative_time)
-                )
+            relative_time = (t - self.locations[discrete_location]) * self.scales[
+                discrete_location
+            ]
+            res = randvars.Constant(
+                interpolant(self.locations[discrete_location] + relative_time)
+            )
         return res
