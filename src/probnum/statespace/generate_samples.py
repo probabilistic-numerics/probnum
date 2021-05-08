@@ -14,7 +14,7 @@ def generate_samples(dynmod, measmod, initrv, times, random_state=None):
         Transition model describing the prior dynamics.
     measmod : statespace.Transition
         Transition model describing the measurement model.
-    initrv : probnum.RandomVariable object
+    initrv : randvars.RandomVariable object
         Random variable according to initial distribution
     times : np.ndarray, shape (n,)
         Timesteps on which the states are to be sampled.
