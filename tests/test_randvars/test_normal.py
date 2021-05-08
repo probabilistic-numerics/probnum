@@ -7,7 +7,6 @@ import scipy.linalg
 import scipy.sparse
 import scipy.stats
 
-import probnum
 from probnum import linops, randvars
 from probnum.problems.zoo.linalg import random_spd_matrix
 from tests.testing import NumpyAssertions
@@ -88,7 +87,7 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
             with self.subTest():
                 normrv = const * randvars.Normal(mean=mean, cov=cov)
 
-                self.assertIsInstance(normrv, probnum.RandomVariable)
+                self.assertIsInstance(normrv, randvars.RandomVariable)
 
                 if const != 0:
                     self.assertIsInstance(normrv, randvars.Normal)
