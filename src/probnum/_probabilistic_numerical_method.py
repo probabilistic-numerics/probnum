@@ -15,10 +15,6 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     method [1]_ [2]_. A PN method solves a numerical problem by treating it as a
     probabilistic inference task.
 
-    All PN methods should subclass this base class. Typically convenience functions
-    (such as :meth:`~probnum.linalg.problinsolve`) will instantiate an object of a
-    derived subclass.
-
     Parameters
     ----------
     prior :
@@ -36,6 +32,12 @@ class ProbabilisticNumericalMethod(ABC, Generic[ProblemType, BeliefType]):
     --------
     ~probnum.linalg.solvers.ProbabilisticLinearSolver : Compose a custom
         probabilistic linear solver.
+
+    Notes
+    -----
+    All PN methods should subclass this base class. Typically convenience functions
+    (such as :meth:`~probnum.linalg.problinsolve`) will instantiate an object of a
+    derived subclass.
     """
 
     def __init__(self, prior: BeliefType):

@@ -1,7 +1,7 @@
 """Differential Equations.
 
-This package implements probabilistic solvers for (ordinary)
-differential equations.
+This package defines common dynamical models and probabilistic solvers
+for differential equations.
 """
 
 from .ode import IVP, ODE, fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
