@@ -5,7 +5,7 @@ All code contributions to ProbNum should be made via pull requests (PR) to the
 
 To ensure a smooth workflow, please keep PRs as compact as possible. 
 Each PR should only contain one enhancement at a time. 
-If you implemented multiple changes, open more than one PR (one for each).
+If you implemented multiple changes, split them into several PRs.
 
 
 ### Code quality
@@ -21,9 +21,9 @@ Code quality is an essential component in a collaborative open-source project.
 - To make life more simple, code should be formatted with [*Black*](https://github.com/psf/black).
   
 
-For more thorough Python code style guides we refer to [PEP 8](https://www.python.org/dev/peps/pep-0008/) 
+For more thorough Python code style guides please refer to [PEP 8](https://www.python.org/dev/peps/pep-0008/) 
 and to [the Black code style](https://github.com/psf/black/blob/master/docs/the_black_code_style.md).
-For all of the above the existing ProbNum code is a good initial reference point.
+For all the above, the existing ProbNum code is a good initial reference point.
 
 ### Black
 
@@ -31,7 +31,7 @@ For all of the above the existing ProbNum code is a good initial reference point
 ```shell
 $ pip install black
 ```
-Format a single python file.
+Format a single Python file.
 
 ```shell
 $ black my-file.py
@@ -39,7 +39,7 @@ $ black my-file.py
 Black takes care of most of the PEP8 formatting rules. 
 Formatting with Black can also be done via tox. 
 
-## Forking the repo
+### Forking the repo
 
 In order to do pull requests, begin by forking the repository on GitHub. 
 Then, clone your fork to a local machine.
@@ -48,7 +48,7 @@ Then, clone your fork to a local machine.
 $ git clone git@github.com:MyGithubAccount/probnum.git
 ```
 Any code changes should be done in your fork. Github as official guides on [how to fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) 
-a repo and [how to pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
+and [how to pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
 ### Multiple remotes
 In order to keep your fork up-to-date with the main repository, one convenient
@@ -83,8 +83,7 @@ $ git checkout -b probnum-master upstream/master
 ```
 
 ### Code changes
-Next, create a new branch in your
-forked repository describing the feature you would like to implement. 
+Next, create a new branch describing the feature you would like to implement. 
 ```shell
 $ git checkout -b my-new-feature
 ```
@@ -103,7 +102,7 @@ $ git checkout my-new-feature
 $ git merge probnum-master
 ```
 ### Open a pull-request
-Once you are happy with your PR, make sure your branch it up-to-date with upstream `master`, and re-run all tests.
+Once you are happy with your PR, make sure your branch is up-to-date with upstream `master`, and re-run all tests.
 Then, from your local branch, push the changes to your remote branch
 ```shell
 $ git push
@@ -115,9 +114,9 @@ and do the PR via the github interface. There, briefly explain the changes as we
 ## Virtual environments
 
 Virtual environments (venvs) help you to get a separate, clean installation of ProbNum. 
-Each venv uses a specific python version.
-Venvs are useful as you may need different python versions and dependencies for different projects.
-So, first make sure that you are using the correct python version, and also that your pip 
+Each venv uses a specific Python version.
+Venvs are useful as you may need different Python versions and dependencies for different projects.
+So, first make sure that you are using the correct Python version, and also that your pip 
 installation is up to date.
 
 Install the [virtualenv](https://virtualenv.pypa.io/en/latest/) package.
@@ -127,7 +126,7 @@ $ pip install virtualenv
 
 Go to the probnum root directory. 
 Then, create a virtual environment wit the name `venv_probnum`. 
-This uses the python version the `python` alias is linked to. 
+This uses the Python version the `python` alias is linked to. 
 ```shell
 $ python -m venv venv_probnum
 ```
@@ -138,8 +137,8 @@ Activate the venv (the command below works for bash, other shells might require 
 $ source venv_probnum/bin/activate
 ```
 
-Check if your venv uses the correct python path and python version.
-(The python path should show something like this `/home/MyUserName/probnum/.venv_probnum/bin/python`.)
+Check if your venv uses the correct Python path and Python version.
+(The Python path should show something like this `/home/MyUserName/probnum/venv_probnum/bin/python`.)
 ```shell
 $ which python
 $ python --version
@@ -175,12 +174,12 @@ Make sure ProbNum is installed including test requirements in your virtual envir
 installing ProbNum that way will already have installed pytest.
 (If you are unsure, use `pip freeze` to check the installation in your active venv). 
 
-Run tests with the python version in the venv.
+Run tests with the Python version in the venv.
 ```shell
 $ pytest
 ```
-This should normally be enough to catch the biggest bugs. If you want to run the whole testsuite for several python 
-versions with tox.
+This should normally be enough to catch the biggest bugs. If you want to run the whole testsuite for several Python 
+versions, the preferred way is to use tox.
 
 
 ## tox
@@ -189,9 +188,9 @@ versions with tox.
 
 Probnum uses [tox](https://tox.readthedocs.io/en/latest/) in its [continuous integration (CI)](#continuous-integration)
 pipeline to run tests, build documentation, check code formatting and code quality. Under the hood, tox builds virtual
-environments following the specifications in `./tox.ini` in order to run tests across multiple python versions, while
+environments following the specifications in `./tox.ini` in order to run tests across multiple Python versions, while
 making sure that all the necessary dependencies are installed. Using tox unifies the
-*local* development process with continuous integration builds (via Github Actions),
+local development process with continuous integration builds (via GitHub Actions),
 such that local test results should match the outcomes of the CI builds more closely.
 This ensures that your pull request can be merged seamlessly into ProbNum's codebase.
 
@@ -199,8 +198,8 @@ Install tox from the Python Package Index (PyPI) via
 ```shell
 $ pip install -U tox
 ```
-Some command, such as building the documentation locally requires additional packages 
-(e.g. for inheritance diagrams). These are
+Some commands, such as building the documentation locally, requires additional packages 
+(e.g., for inheritance diagrams). These are
 `.github/workflows/CI-build.yml`. These packages are currently:
 - [pandoc](https://pandoc.org/): In Ubuntu, install via `sudo apt install pandoc`
 - [graphviz](https://graphviz.org/): In Ubuntu, install via `sudo apt install graphviz`
