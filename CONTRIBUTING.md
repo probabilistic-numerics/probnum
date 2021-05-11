@@ -44,9 +44,6 @@ someone else hasn't addressed the problem already.
 If your PR is larger please open an issue first to discuss any significant work - we would hate 
 for your time to be wasted. 
 
-## Reviewing pull requests
-TBD.
-
 That's it! Thanks for contributing to ProbNum!
 
 (Contribution guide, inspired by [Emukit's](https://github.com/EmuKit/emukit/blob/master/CONTRIBUTING.md) contribution guide.)
