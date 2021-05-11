@@ -72,7 +72,8 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    :caption: Contributing to ProbNum
 
    development/contributing
-   development/developer_guides
+   development/contributing_code
+   development/tutorials
    development/styleguide
    development/benchmarking
 
