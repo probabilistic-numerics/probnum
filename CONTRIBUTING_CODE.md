@@ -8,7 +8,7 @@ Each PR should only contain one enhancement at a time.
 If you implemented multiple changes, split them into several PRs.
 
 
-### Code quality
+### Code Quality
 
 Code quality is an essential component in a collaborative open-source project.
 
@@ -39,7 +39,7 @@ $ black my-file.py
 Black takes care of most of the PEP8 formatting rules. 
 Formatting with Black can also be done via tox. 
 
-### Forking the repo
+### Forking the Repo
 
 In order to do pull requests, begin by forking the repository on GitHub. 
 Then, clone your fork to a local machine.
@@ -48,9 +48,9 @@ Then, clone your fork to a local machine.
 $ git clone git@github.com:MyGithubAccount/probnum.git
 ```
 Any code changes should be done in your fork. Github as official guides on [how to fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) 
-and [how to pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
+and [how to create a pull request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
-### Multiple remotes
+### Multiple Remotes
 In order to keep your fork up-to-date with the main repository, one convenient
 way to do so is to set up [multiple remotes](https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes)
 for `git`.
@@ -82,7 +82,7 @@ $ git fetch upstream
 $ git checkout -b probnum-master upstream/master
 ```
 
-### Code changes
+### Code Changes
 Next, create a new branch describing the feature you would like to implement. 
 ```shell
 $ git checkout -b my-new-feature
@@ -101,17 +101,17 @@ $ git pull
 $ git checkout my-new-feature
 $ git merge probnum-master
 ```
-### Open a pull-request
+### Creating a Pull-Request
 Once you are happy with your PR, make sure your branch is up-to-date with upstream `master`, and re-run all tests.
 Then, from your local branch, push the changes to your remote branch
 ```shell
 $ git push
 ```
 
-and do the PR via the github interface. There, briefly explain the changes as well as how they were tested. That's it!
+and create the PR via the GitHub interface. There, briefly explain the changes as well as how they were tested. That's it!
 
 
-## Virtual environments
+## Virtual Environments
 
 Virtual environments (venvs) help you to get a separate, clean installation of ProbNum. 
 Each venv uses a specific Python version.
@@ -125,7 +125,7 @@ $ pip install virtualenv
 ```
 
 Go to the probnum root directory. 
-Then, create a virtual environment wit the name `venv_probnum`. 
+Then, create a virtual environment with the name `venv_probnum`. 
 This uses the Python version the `python` alias is linked to. 
 ```shell
 $ python -m venv venv_probnum
@@ -152,7 +152,7 @@ $ deactivate
 
 
 
-Install probnum in your environment (activate it first). 
+Install ProbNum in your environment (activate it first). 
 ```shell
 $ pip install -e .
 ```
