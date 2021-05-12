@@ -7,7 +7,6 @@ from probnum.diffeq.perturbedsolvers import _perturbation_functions
 
 
 def setup_solver(y0, ode, perturbfun):
-    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
     testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
     testsolver2 = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
     perturbedsolver = diffeq.PerturbedStepSolver(

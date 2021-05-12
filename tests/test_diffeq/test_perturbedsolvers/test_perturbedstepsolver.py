@@ -11,8 +11,6 @@ from probnum.diffeq.perturbedsolvers import _perturbation_functions
 @pytest_cases.parametrize_with_cases(
     "testsolver, perturbedsolver", cases="test_perturbed_cases"
 )
-# Workaround: usually the input of this would be "testsolver, perturbedsolver" instead of "solvers"
-# see issue https://github.com/smarie/python-pytest-cases/issues/202
 def solvers(testsolver, perturbedsolver):
     return testsolver, perturbedsolver
 
@@ -56,7 +54,6 @@ def list_of_randvars():
 def deterministicsolver():
     y0 = np.array([0.0, 1.0, 1.05])
     ode = diffeq.lorenz([0.0, 1.0], y0)
-    scipysolver = rk.RK45(ode.rhs, ode.t0, y0, ode.tmax)
     testsolver = diffeq.WrappedScipyRungeKutta(rk.RK45(ode.rhs, ode.t0, y0, ode.tmax))
     return diffeq.PerturbedStepSolver(
         testsolver,
