@@ -81,7 +81,7 @@ def regression_problem(problem):
 @all_resampling_configurations
 def test_random_state(particle_filter_setup):
     particle_filter, *_ = particle_filter_setup
-    initrv = particle_filter.initrv
+    initrv = particle_filter.prior_process.initrv
     assert initrv.random_state == particle_filter.random_state
 
 

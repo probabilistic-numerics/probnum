@@ -191,7 +191,9 @@ class ParticleFilter(BayesFiltSmooth):
         initarg = times[0]
         t_old = times[0]  # will be replaced by initarg soon.
 
-        particles = np.nan * np.ones((self.num_particles,) + self.initrv.shape)
+        particles = np.nan * np.ones(
+            (self.num_particles,) + self.prior_process.initrv.shape
+        )
         weights = np.ones(self.num_particles) / self.num_particles
 
         for t, data, measmod, lin_measmod in zip(
@@ -271,7 +273,7 @@ class ParticleFilter(BayesFiltSmooth):
     ):
 
         processed = importance_distribution.process_initrv_with_data(
-            self.initrv, data, t, lin_measmod
+            self.prior_process.initrv, data, t, lin_measmod
         )
         importance_rv, dynamics_rv, _ = processed
         for (p, w) in zip(particles, weights):
@@ -301,4 +303,4 @@ class ParticleFilter(BayesFiltSmooth):
 
         Inferred from the random state of the initial random variable.
         """
-        return self.initrv.random_state
+        return self.prior_process.initrv.random_state
