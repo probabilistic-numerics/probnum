@@ -23,7 +23,7 @@ class ProbabilisticLinearSolver(abc.ABC):
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
         A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~probnum.RandomVariable`. If an array or linear operator is given,
+        :class:`~randvars.RandomVariable`. If an array or linear operator is given,
         a prior distribution is chosen automatically.
     b : RandomVariable, shape=(n,) or (n, nrhs)
         Right-hand side vector, matrix or RandomVariable of :math:`A x = b`.
@@ -99,7 +99,7 @@ class MatrixBasedSolver(ProbabilisticLinearSolver, abc.ABC):
     ----------
     A : array-like or LinearOperator or RandomVariable, shape=(n,n)
         A square matrix or linear operator. A prior distribution can be provided as a
-        :class:`~probnum.RandomVariable`. If an array or linear operator is given,
+        :class:`~randvars.RandomVariable`. If an array or linear operator is given,
         a prior distribution is
         chosen automatically.
     b : RandomVariable, shape=(n,) or (n, nrhs)
@@ -281,7 +281,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
 
         # Assume constant right hand side
-        if isinstance(b, probnum.RandomVariable):
+        if isinstance(b, randvars.RandomVariable):
             _b = b.sample(size=1)
         else:
             _b = b
@@ -371,12 +371,12 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
                 # Symmetric posterior correspondence
                 A0_covfactor = self.A
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
-            elif isinstance(x0, probnum.RandomVariable):
+            elif isinstance(x0, randvars.RandomVariable):
                 raise NotImplementedError
 
         # Prior on Ainv specified
-        if not isinstance(A0, probnum.RandomVariable) and Ainv0 is not None:
-            if isinstance(Ainv0, probnum.RandomVariable):
+        if not isinstance(A0, randvars.RandomVariable) and Ainv0 is not None:
+            if isinstance(Ainv0, randvars.RandomVariable):
                 Ainv0_mean = Ainv0.mean
                 Ainv0_covfactor = Ainv0.cov.A
             else:
@@ -386,7 +386,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             try:
                 if A0 is not None:
                     A0_mean = A0
-                elif isinstance(Ainv0, probnum.RandomVariable):
+                elif isinstance(Ainv0, randvars.RandomVariable):
                     A0_mean = Ainv0.mean.inv()
                 else:
                     A0_mean = Ainv0.inv()
@@ -408,8 +408,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
 
         # Prior on A specified
-        elif A0 is not None and not isinstance(Ainv0, probnum.RandomVariable):
-            if isinstance(A0, probnum.RandomVariable):
+        elif A0 is not None and not isinstance(Ainv0, randvars.RandomVariable):
+            if isinstance(A0, randvars.RandomVariable):
                 A0_mean = A0.mean
                 A0_covfactor = A0.cov.A
             else:
@@ -419,7 +419,7 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             try:
                 if Ainv0 is not None:
                     Ainv0_mean = Ainv0
-                elif isinstance(A0, probnum.RandomVariable):
+                elif isinstance(A0, randvars.RandomVariable):
                     Ainv0_mean = A0.mean.inv()
                 else:
                     Ainv0_mean = A0.inv()
@@ -440,8 +440,8 @@ class SymmetricMatrixBasedSolver(MatrixBasedSolver):
             Ainv0_covfactor = Ainv0_mean
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor
         # Both matrix priors on A and H specified via random variables
-        elif isinstance(A0, probnum.RandomVariable) and isinstance(
-            Ainv0, probnum.RandomVariable
+        elif isinstance(A0, randvars.RandomVariable) and isinstance(
+            Ainv0, randvars.RandomVariable
         ):
             A0_mean = A0.mean
             A0_covfactor = A0.cov.A
@@ -1072,7 +1072,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
     def __init__(self, A, b, A0=None, Ainv0=None, x0=None):
 
         # Transform right hand side to random variable
-        if not isinstance(b, probnum.RandomVariable):
+        if not isinstance(b, randvars.RandomVariable):
             _b = probnum.asrandvar(b)
         else:
             _b = b
@@ -1174,7 +1174,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             # Construct matrix priors from initial guess x0
             elif isinstance(x0, np.ndarray):
                 # Sample from linear operator for prior construction
-                if isinstance(self.A, probnum.RandomVariable):
+                if isinstance(self.A, randvars.RandomVariable):
                     _A = self.A.sample([1])[0]
                 else:
                     _A = self.A
@@ -1187,12 +1187,12 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
                 # TODO: should this be a sample from A to achieve symm. posterior
                 # correspondence?
                 return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
-            elif isinstance(x0, probnum.RandomVariable):
+            elif isinstance(x0, randvars.RandomVariable):
                 raise NotImplementedError
 
         # Prior on Ainv specified
-        if not isinstance(A0, probnum.RandomVariable) and Ainv0 is not None:
-            if isinstance(Ainv0, probnum.RandomVariable):
+        if not isinstance(A0, randvars.RandomVariable) and Ainv0 is not None:
+            if isinstance(Ainv0, randvars.RandomVariable):
                 Ainv0_mean = Ainv0.mean
                 Ainv0_covfactor = Ainv0.cov.A
             else:
@@ -1201,7 +1201,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             try:
                 if A0 is not None:
                     A0_mean = A0
-                elif isinstance(Ainv0, probnum.RandomVariable):
+                elif isinstance(Ainv0, randvars.RandomVariable):
                     A0_mean = Ainv0.mean.inv()
                 else:
                     A0_mean = Ainv0.inv()
@@ -1225,8 +1225,8 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
 
         # Prior on A specified
-        elif A0 is not None and not isinstance(Ainv0, probnum.RandomVariable):
-            if isinstance(A0, probnum.RandomVariable):
+        elif A0 is not None and not isinstance(Ainv0, randvars.RandomVariable):
+            if isinstance(A0, randvars.RandomVariable):
                 A0_mean = A0.mean
                 A0_covfactor = A0.cov.A
             else:
@@ -1235,7 +1235,7 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             try:
                 if Ainv0 is not None:
                     Ainv0_mean = Ainv0
-                elif isinstance(A0, probnum.RandomVariable):
+                elif isinstance(A0, randvars.RandomVariable):
                     Ainv0_mean = A0.mean.inv()
                 else:
                     Ainv0_mean = A0.inv()
@@ -1256,8 +1256,8 @@ class NoisySymmetricMatrixBasedSolver(MatrixBasedSolver):
             Ainv0_covfactor = Ainv0_mean
             return A0_mean, A0_covfactor, Ainv0_mean, Ainv0_covfactor, b_mean
         # Both matrix priors on A and H specified via random variables
-        elif isinstance(A0, probnum.RandomVariable) and isinstance(
-            Ainv0, probnum.RandomVariable
+        elif isinstance(A0, randvars.RandomVariable) and isinstance(
+            Ainv0, randvars.RandomVariable
         ):
             A0_mean = A0.mean
             A0_covfactor = A0.cov.A

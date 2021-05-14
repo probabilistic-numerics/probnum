@@ -1,4 +1,8 @@
-"""Differential Equations."""
+"""Differential Equations.
+
+This package defines common dynamical models and probabilistic solvers
+for differential equations.
+"""
 
 from .ode import IVP, ODE, fitzhughnagumo, logistic, lorenz, lotkavolterra, seir
 from .odefiltsmooth import (

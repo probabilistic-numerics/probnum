@@ -12,8 +12,7 @@ from typing import Callable, Dict, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse
 
-import probnum
-from probnum import linops, utils
+from probnum import linops, randvars, utils
 from probnum.linalg.linearsolvers.matrixbased import (
     AsymmetricMatrixBasedSolver,
     NoisySymmetricMatrixBasedSolver,
@@ -23,9 +22,9 @@ from probnum.linalg.linearsolvers.solutionbased import SolutionBasedSolver
 
 # Type aliases
 SquareLinOp = Union[
-    np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "probnum.RandomVariable"
+    np.ndarray, scipy.sparse.spmatrix, linops.LinearOperator, "randvars.RandomVariable"
 ]
-RandomVecMat = Union[np.ndarray, "probnum.RandomVariable"]
+RandomVecMat = Union[np.ndarray, "randvars.RandomVariable"]
 
 
 def problinsolve(
@@ -41,7 +40,10 @@ def problinsolve(
     callback: Optional[Callable] = None,
     **kwargs
 ) -> Tuple[
-    "probnum.RandomVariable", "probnum.RandomVariable", "probnum.RandomVariable", Dict
+    "randvars.RandomVariable",
+    "randvars.RandomVariable",
+    "randvars.RandomVariable",
+    Dict,
 ]:
     """Infer a solution to the linear system :math:`A x = b` in a Bayesian framework.
 
@@ -327,9 +329,9 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
         np.ndarray,
         scipy.sparse.spmatrix,
         scipy.sparse.linalg.LinearOperator,
-        probnum.RandomVariable,
+        randvars.RandomVariable,
     )
-    vector_types = (np.ndarray, scipy.sparse.spmatrix, probnum.RandomVariable)
+    vector_types = (np.ndarray, scipy.sparse.spmatrix, randvars.RandomVariable)
     if not isinstance(A, linop_types):
         raise ValueError(
             "A must be either an array, a linear operator or a random variable."
@@ -338,7 +340,7 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
         raise ValueError(
             "The right hand side must be a (sparse) array or a random variable."
         )
-    if A0 is not None and not isinstance(A0, probnum.RandomVariable):
+    if A0 is not None and not isinstance(A0, randvars.RandomVariable):
         raise ValueError("The prior belief over A must be a random variable.")
     if Ainv0 is not None and not isinstance(Ainv0, linop_types):
         raise ValueError(
@@ -350,9 +352,9 @@ def _check_linear_system(A, b, A0=None, Ainv0=None, x0=None):
 
     # Prior distribution mismatch
     if (
-        isinstance(A0, probnum.RandomVariable)
-        or isinstance(Ainv0, probnum.RandomVariable)
-    ) and isinstance(x0, probnum.RandomVariable):
+        isinstance(A0, randvars.RandomVariable)
+        or isinstance(Ainv0, randvars.RandomVariable)
+    ) and isinstance(x0, randvars.RandomVariable):
         raise ValueError(
             "Cannot specify distributions on the linear operator and the solution "
             "simultaneously."
@@ -404,7 +406,7 @@ def _preprocess_linear_system(A, b, x0=None):
         ``Ainv0`` is given.
     """
     # Transform linear system to correct dimensions
-    if not isinstance(b, probnum.RandomVariable):
+    if not isinstance(b, randvars.RandomVariable):
         b = utils.as_colvec(b)  # (n,) -> (n, 1)
     if x0 is not None:
         x0 = utils.as_colvec(x0)  # (n,) -> (n, 1)
@@ -450,7 +452,9 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
         systems.
     """
     # Choose matrix based view if not clear from arguments
-    if (Ainv0 is not None or A0 is not None) and isinstance(x0, probnum.RandomVariable):
+    if (Ainv0 is not None or A0 is not None) and isinstance(
+        x0, randvars.RandomVariable
+    ):
         warnings.warn(
             "Cannot use prior uncertainty on both the matrix (inverse) and the "
             "solution. The latter will be ignored."
@@ -459,15 +463,15 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
 
     # Extract information from priors
     # System matrix is symmetric
-    if isinstance(A0, probnum.RandomVariable):
+    if isinstance(A0, randvars.RandomVariable):
         if isinstance(A0.cov, linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
-    if isinstance(Ainv0, probnum.RandomVariable):
+    if isinstance(Ainv0, randvars.RandomVariable):
         if isinstance(Ainv0.cov, linops.SymmetricKronecker) and "sym" not in assume_A:
             assume_A += "sym"
     # System matrix is NOT stochastic
     if (
-        not isinstance(A, probnum.RandomVariable)
+        not isinstance(A, randvars.RandomVariable)
         and not isinstance(A, scipy.sparse.linalg.LinearOperator)
         and "noise" in assume_A
     ):
@@ -477,7 +481,7 @@ def _init_solver(A, b, A0, Ainv0, x0, assume_A):
         )
 
     # Solution-based view
-    if isinstance(x0, probnum.RandomVariable):
+    if isinstance(x0, randvars.RandomVariable):
         return SolutionBasedSolver(A=A, b=b, x0=x0)
     # Matrix-based view
     else:
