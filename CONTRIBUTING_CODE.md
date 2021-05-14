@@ -1,4 +1,4 @@
-# Contributing via Pull Request
+# Creating a Pull Request
 
 All code contributions to ProbNum should be made via pull requests (PR) to the
 [master branch](https://github.com/probabilistic-numerics/probnum/tree/master) on GitHub. 
@@ -108,7 +108,8 @@ Then, from your local branch, push the changes to your remote branch
 $ git push
 ```
 
-and create the PR via the GitHub interface. There, briefly explain the changes as well as how they were tested. That's it!
+and create the PR via the GitHub interface. There, briefly explain the changes. That's it!
+If possible, please try running the test suite with tox or pytest before creating the PR.
 
 
 ## Virtual Environments
@@ -170,8 +171,8 @@ add the venv you created above to your project in the editor.
 
 ## Testing
 Tests are run with the [pytest package](https://docs.pytest.org/en/stable/). 
-Make sure ProbNum is installed including test requirements in your virtual environment; 
-installing ProbNum that way will already have installed pytest.
+Make sure ProbNum is installed including test requirements (`pip install -e .[test])`) in your virtual 
+environment; installing ProbNum that way will already have installed pytest.
 (If you are unsure, use `pip freeze` to check the installation in your active venv). 
 
 Run tests with the Python version in the venv.
