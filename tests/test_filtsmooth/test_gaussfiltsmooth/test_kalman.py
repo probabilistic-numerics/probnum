@@ -69,11 +69,12 @@ def test_kalman_smoother_high_order_ibm():
 
     kalman = filtsmooth.Kalman(
         statespace_components["dynamics_model"],
-        statespace_components["measurement_model"],
         statespace_components["initrv"],
     )
 
-    posterior, _ = kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(
+        regression_problem, statespace_components["measurement_model"]
+    )
 
     filtms = posterior.filtering_posterior.states.mean
     smooms = posterior.states.mean
