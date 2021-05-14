@@ -84,3 +84,34 @@ def test_kalman_smoother_high_order_ibm():
     obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
 
     assert smooms_rmse < filtms_rmse < obs_rmse
+
+
+def test_kalman_multiple_measurement_models():
+    regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
+        model_ordint=11,
+        timespan=(0.0, 1e-3),
+        step=1e-5,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+    truth = regression_problem.solution
+
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["initrv"],
+    )
+
+    posterior, _ = kalman.filtsmooth(
+        regression_problem,
+        [statespace_components["measurement_model"]]
+        * len(regression_problem.locations),
+    )
+
+    filtms = posterior.filtering_posterior.states.mean
+    smooms = posterior.states.mean
+
+    filtms_rmse = np.mean(np.abs(filtms[:, :2] - truth[:, :2]))
+    smooms_rmse = np.mean(np.abs(smooms[:, :2] - truth[:, :2]))
+    obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
+
+    assert smooms_rmse < filtms_rmse < obs_rmse
