@@ -199,38 +199,36 @@ class IBM(Integrator, sde.LTISDE):
 
     @cached_property
     def equivalent_discretisation_preconditioned(self):
-        """Discretised IN THE PRECONDITIONED SPACE."""
+        """Discretised IN THE PRECONDITIONED SPACE.
+
+        The preconditioned state transition is the flipped Pascal matrix.
+        The preconditioned process noise covariance is the flipped Hilbert matrix.
+        The shift is always zero.
+
+        Reference: https://arxiv.org/abs/2012.10106
+        """
+
+        state_transition_1d = np.flip(
+            scipy.linalg.pascal(self.ordint + 1, kind="lower", exact=False)
+        )
+        state_transition = np.kron(np.eye(self.spatialdim), state_transition_1d)
+        process_noise_1d = np.flip(scipy.linalg.hilbert(self.ordint + 1))
+        process_noise = np.kron(np.eye(self.spatialdim), process_noise_1d)
         empty_shift = np.zeros(self.spatialdim * (self.ordint + 1))
+
+        process_noise_cholesky_1d = np.linalg.cholesky(process_noise_1d)
+        process_noise_cholesky = np.kron(
+            np.eye(self.spatialdim), process_noise_cholesky_1d
+        )
+
         return discrete_transition.DiscreteLTIGaussian(
-            state_trans_mat=self._state_trans_mat,
+            state_trans_mat=state_transition,
             shift_vec=empty_shift,
-            proc_noise_cov_mat=self._proc_noise_cov_mat,
-            proc_noise_cov_cholesky=np.linalg.cholesky(self._proc_noise_cov_mat),
+            proc_noise_cov_mat=process_noise,
+            proc_noise_cov_cholesky=process_noise_cholesky,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
         )
-
-    @cached_property
-    def _state_trans_mat(self):
-        # Loop, but cached anyway
-        driftmat_1d = np.array(
-            [
-                [
-                    scipy.special.binom(self.ordint - i, self.ordint - j)
-                    for j in range(0, self.ordint + 1)
-                ]
-                for i in range(0, self.ordint + 1)
-            ]
-        )
-        return np.kron(np.eye(self.spatialdim), driftmat_1d)
-
-    @cached_property
-    def _proc_noise_cov_mat(self):
-        # Optimised with broadcasting
-        range = np.arange(0, self.ordint + 1)
-        denominators = 2.0 * self.ordint + 1.0 - range[:, None] - range[None, :]
-        proc_noise_cov_mat_1d = 1.0 / denominators
-        return np.kron(np.eye(self.spatialdim), proc_noise_cov_mat_1d)
 
     def forward_rv(
         self,
@@ -307,7 +305,6 @@ class IBM(Integrator, sde.LTISDE):
         Only present for user's convenience and to maintain a clean
         interface. Not used for forward_rv, etc..
         """
-
         state_trans_mat = (
             self.precon(dt)
             @ self.equivalent_discretisation_preconditioned.state_trans_mat
@@ -319,10 +316,19 @@ class IBM(Integrator, sde.LTISDE):
             @ self.precon(dt).T
         )
         zero_shift = np.zeros(len(state_trans_mat))
+
+        # The Cholesky factor of the process noise covariance matrix of the IBM
+        # always exists, even for non-square root implementations.
+        proc_noise_cov_cholesky = (
+            self.precon(dt)
+            @ self.equivalent_discretisation_preconditioned.proc_noise_cov_cholesky
+        )
+
         return discrete_transition.DiscreteLTIGaussian(
             state_trans_mat=state_trans_mat,
             shift_vec=zero_shift,
             proc_noise_cov_mat=proc_noise_cov_mat,
+            proc_noise_cov_cholesky=proc_noise_cov_cholesky,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.forward_implementation,
         )
