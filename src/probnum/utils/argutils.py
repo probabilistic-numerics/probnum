@@ -1,6 +1,5 @@
 """Utility functions for argument types."""
 
-import itertools
 import numbers
 from typing import Optional
 

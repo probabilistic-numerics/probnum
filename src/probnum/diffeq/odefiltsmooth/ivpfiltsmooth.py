@@ -4,7 +4,7 @@ from typing import Callable, Optional
 
 import numpy as np
 
-from probnum import filtsmooth, randvars, statespace
+from probnum import filtsmooth, randprocs, randvars, statespace
 
 from ..ode import IVP
 from ..odesolver import ODESolver
@@ -68,7 +68,10 @@ class GaussianIVPFilter(ODESolver):
                 cov_cholesky=np.eye(prior.dimension),
             )
 
-        self.gfilt = filtsmooth.Kalman(dynamics_model=prior, initrv=initrv)
+        prior_process = randprocs.MarkovProcess(
+            transition=prior, initrv=initrv, initarg=ivp.t0
+        )
+        self.gfilt = filtsmooth.Kalman(prior_process)
         self.measurement_model = measurement_model
 
         if not isinstance(prior, statespace.Integrator):

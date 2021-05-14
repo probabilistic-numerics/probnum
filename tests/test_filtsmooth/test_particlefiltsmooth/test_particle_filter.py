@@ -43,19 +43,30 @@ def particle_filter_setup(
     problem, num_particles, measmod_style, resampling_percentage_threshold
 ):
     _, statespace_components = problem
-    linearized_measmod = (
-        filtsmooth.DiscreteUKFComponent(statespace_components["measurement_model"])
-        if measmod_style == "ukf"
-        else None
-    )
+    if measmod_style == "ukf":
+        linearized_measmod = filtsmooth.DiscreteUKFComponent(
+            statespace_components["measurement_model"]
+        )
+        importance_distribution = filtsmooth.LinearizationImportanceDistribution(
+            statespace_components["dynamics_model"]
+        )
+    else:
+        linearized_measmod = None
+        importance_distribution = filtsmooth.BootstrapImportanceDistribution(
+            statespace_components["dynamics_model"]
+        )
 
     particle = filtsmooth.ParticleFilter(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
+        statespace_components["prior_process"],
         num_particles=num_particles,
         resampling_percentage_threshold=resampling_percentage_threshold,
     )
-    return particle, statespace_components["measurement_model"], linearized_measmod
+    return (
+        particle,
+        statespace_components["measurement_model"],
+        linearized_measmod,
+        importance_distribution,
+    )
 
 
 @pytest.fixture()
@@ -76,10 +87,17 @@ def test_random_state(particle_filter_setup):
 
 @pytest.fixture
 def pf_output(particle_filter_setup, regression_problem):
-    particle_filter, measmod, linearized_measmod = particle_filter_setup
-
+    (
+        particle_filter,
+        measmod,
+        linearized_measmod,
+        importance_dist,
+    ) = particle_filter_setup
     posterior, _ = particle_filter.filter(
-        regression_problem, measmod, linearized_measmod
+        regression_problem,
+        measmod,
+        importance_distribution=importance_dist,
+        linearized_measurement_model=linearized_measmod,
     )
     return posterior
 

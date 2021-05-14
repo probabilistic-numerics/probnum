@@ -13,10 +13,7 @@ def setup(request):
     problem = request.param
     regression_problem, statespace_components = problem()
 
-    kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
-    )
+    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
     return kalman, regression_problem, statespace_components["measurement_model"]
 
 
@@ -67,10 +64,7 @@ def test_kalman_smoother_high_order_ibm():
     )
     truth = regression_problem.solution
 
-    kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
-    )
+    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
 
     posterior, _ = kalman.filtsmooth(
         regression_problem, statespace_components["measurement_model"]
@@ -88,18 +82,14 @@ def test_kalman_smoother_high_order_ibm():
 
 def test_kalman_multiple_measurement_models():
     regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
-        model_ordint=11,
+        model_ordint=4,
         timespan=(0.0, 1e-3),
         step=1e-5,
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
     truth = regression_problem.solution
-
-    kalman = filtsmooth.Kalman(
-        statespace_components["dynamics_model"],
-        statespace_components["initrv"],
-    )
+    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
 
     posterior, _ = kalman.filtsmooth(
         regression_problem,

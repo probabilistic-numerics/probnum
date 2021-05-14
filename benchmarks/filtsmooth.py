@@ -4,7 +4,7 @@ import functools
 import numpy as np
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, randvars
+from probnum import filtsmooth, randprocs, randvars
 
 
 class Filtering:
@@ -34,20 +34,24 @@ class Filtering:
         }[linearization]
 
         linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
-        linearized_measmod = _lin_method(statespace_components["measurement_model"])
-
-        self.regression_problem = regression_problem
-        self.kalman_filter = filtsmooth.Kalman(
-            dynamics_model=linearized_dynmod,
-            measurement_model=linearized_measmod,
-            initrv=statespace_components["initrv"],
+        self.linearized_measmod = _lin_method(
+            statespace_components["measurement_model"]
         )
 
+        prior_process = randprocs.MarkovProcess(
+            transition=linearized_dynmod,
+            initrv=statespace_components["initrv"],
+            initarg=regression_problem.locations[0],
+        )
+        self.regression_problem = regression_problem
+
+        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+
     def time_filter(self, linearization_implementation):
-        self.kalman_filter.filter(self.regression_problem)
+        self.kalman_filter.filter(self.regression_problem, self.linearized_measmod)
 
     def peakmem_filter(self, linearization_implementation):
-        self.kalman_filter.filter(self.regression_problem)
+        self.kalman_filter.filter(self.regression_problem, self.linearized_measmod)
 
 
 class Smoothing:
@@ -77,14 +81,20 @@ class Smoothing:
         }[linearization]
 
         linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
-        linearized_measmod = _lin_method(statespace_components["measurement_model"])
-
-        self.kalman_filter = filtsmooth.Kalman(
-            dynamics_model=linearized_dynmod,
-            measurement_model=linearized_measmod,
-            initrv=statespace_components["initrv"],
+        self.linearized_measmod = _lin_method(
+            statespace_components["measurement_model"]
         )
-        self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
+
+        prior_process = randprocs.MarkovProcess(
+            transition=linearized_dynmod,
+            initrv=statespace_components["initrv"],
+            initarg=regression_problem.locations[0],
+        )
+
+        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+        self.filtering_posterior, _ = self.kalman_filter.filter(
+            regression_problem, self.linearized_measmod
+        )
 
     def time_smooth(self, linearization_implementation):
         self.kalman_filter.smooth(filter_posterior=self.filtering_posterior)
@@ -138,12 +148,17 @@ class DenseGridOperations:
         linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
         linearized_measmod = _lin_method(statespace_components["measurement_model"])
 
-        self.kalman_filter = filtsmooth.Kalman(
-            dynamics_model=linearized_dynmod,
-            measurement_model=linearized_measmod,
+        prior_process = randprocs.MarkovProcess(
+            transition=linearized_dynmod,
             initrv=statespace_components["initrv"],
+            initarg=regression_problem.locations[0],
         )
-        self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
+
+        self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
+
+        self.filtering_posterior, _ = self.kalman_filter.filter(
+            regression_problem, linearized_measmod
+        )
         self.smoothing_posterior = self.kalman_filter.smooth(
             filter_posterior=self.filtering_posterior
         )

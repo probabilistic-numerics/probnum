@@ -24,6 +24,9 @@ from .gaussfiltsmooth import (
     UnscentedTransform,
 )
 from .particlefiltsmooth import (
+    BootstrapImportanceDistribution,
+    ImportanceDistribution,
+    LinearizationImportanceDistribution,
     ParticleFilter,
     ParticleFilterPosterior,
     effective_number_of_events,
@@ -52,4 +55,7 @@ __all__ = [
     "ParticleFilterPosterior",
     "effective_number_of_events",
     "merge_regression_problems",
+    "ImportanceDistribution",
+    "BootstrapImportanceDistribution",
+    "LinearizationImportanceDistribution",
 ]
