@@ -67,11 +67,13 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    public_api/statespace
    public_api/utils
 
+
 .. toctree::
    :maxdepth: 1
-   :caption: Contributing to ProbNum
+   :caption: Development
 
    development/contributing
+   development/contributing_code
    development/developer_guides
    development/styleguide
    development/benchmarking
