@@ -3,7 +3,6 @@ import pytest
 from scipy.integrate._ivp import rk
 
 from probnum import diffeq
-from probnum.diffeq.perturbedsolvers import _perturbation_functions
 
 
 def setup_solver(y0, ode, perturbfun):
@@ -18,8 +17,8 @@ def setup_solver(y0, ode, perturbfun):
 @pytest.mark.parametrize(
     "perturbfun",
     [
-        _perturbation_functions.perturb_lognormal,
-        _perturbation_functions.perturb_uniform,
+        diffeq.perturb_lognormal,
+        diffeq.perturb_uniform,
     ],
 )
 def case_lorenz(perturbfun):
@@ -31,8 +30,8 @@ def case_lorenz(perturbfun):
 @pytest.mark.parametrize(
     "perturbfun",
     [
-        _perturbation_functions.perturb_lognormal,
-        _perturbation_functions.perturb_uniform,
+        diffeq.perturb_lognormal,
+        diffeq.perturb_uniform,
     ],
 )
 def case_logistic(perturbfun):
@@ -44,8 +43,8 @@ def case_logistic(perturbfun):
 @pytest.mark.parametrize(
     "perturbfun",
     [
-        _perturbation_functions.perturb_lognormal,
-        _perturbation_functions.perturb_uniform,
+        diffeq.perturb_lognormal,
+        diffeq.perturb_uniform,
     ],
 )
 def case_lotkavolterra(perturbfun):

@@ -1,25 +1,43 @@
-"""ODE solver as proposed by Abdulle and Garegnani[1]_.
+"""ODE solver as proposed by Abdulle and Garegnani.
 
 References
 ----------
 .. [1] https://arxiv.org/abs/1801.01340
 """
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 
 from probnum import _randomvariablelist, diffeq, randvars, utils
 from probnum.diffeq.wrappedscipysolver import WrappedScipyRungeKutta
-from probnum.type import FloatArgType
+from probnum.type import FloatArgType, RandomStateArgType
 
 
 class PerturbedStepSolver(diffeq.ODESolver):
+
+    """ODE-Solver based on Abdulle and Garegnani[1]_. Perturbs the steps accordingly and
+    projects the solution back to the originally proposed time points.
+
+    Parameters
+    ----------
+    solver :
+        Currently this has to be a Runge-Kutta method based on SciPy.
+    noise-scale :
+        Scales the amount of noise that is introduced.
+    perturb_function :
+        Defines how the stepsize is distributed. This can be either one of
+        perturb_lognormal() or perturb_uniform() or any other perturbation function with
+        input parameters step, solver_order, noise_scale, random_state and size.
+    random_state :
+        Random state (seed, generator) to be used for sampling base measure realizations.
+    """
+
     def __init__(
         self,
         solver: WrappedScipyRungeKutta,
         noise_scale: FloatArgType,
         perturb_function: Callable,
-        random_state=None,
+        random_state: Optional[RandomStateArgType] = None,
     ):
         random_state = utils.as_random_state(random_state)
 
@@ -34,7 +52,6 @@ class PerturbedStepSolver(diffeq.ODESolver):
 
         self.perturb_step = perturb_step
         self.solver = solver
-        self.scale = None
         self.scales = None
         super().__init__(ivp=solver.ivp, order=solver.order)
 
@@ -90,4 +107,4 @@ class PerturbedStepSolver(diffeq.ODESolver):
         return probnum_solution
 
     def postprocess(self, odesol):
-        return odesol
+        return self.solver.postprocess(odesol)

@@ -46,7 +46,7 @@ def steprule():
 
 @pytest.fixture
 def list_of_randvars():
-    return list([randvars.Constant(1)])
+    return list(randvars.Constant(1))
 
 
 def test_initialise(solvers):
@@ -90,17 +90,17 @@ def test_step(solvers, start_point, stop_point, y):
 
 
 def test_solve(solvers, steprule):
-    testsolver, perturbedstepsolver = solvers
+    _, perturbedstepsolver = solvers
     solution = perturbedstepsolver.solve(steprule)
     assert isinstance(solution, diffeq.ODESolution)
 
 
 def test_rvlist_to_odesol(solvers, times, list_of_randvars, dense_output):
-    testsolver, perturbedstepsolver = solvers
+    _, perturbedstepsolver = solvers
     perturbedstepsolver.interpolants = dense_output
     perturbedstepsolver.scales = [1]
     probnum_solution = perturbedstepsolver.rvlist_to_odesol(times, list_of_randvars)
-    assert issubclass(diffeq.PerturbedStepSolution, diffeq.ODESolution)
+    assert isinstance(probnum_solution, diffeq.ODESolution)
     assert isinstance(probnum_solution, diffeq.PerturbedStepSolution)
 
 

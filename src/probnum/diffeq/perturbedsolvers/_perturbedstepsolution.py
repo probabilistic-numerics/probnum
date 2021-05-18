@@ -12,7 +12,7 @@ class PerturbedStepSolution(diffeq.ODESolution):
 
     def __init__(
         self,
-        scales: list,
+        scales: List[float],
         times: np.ndarray,
         rvs: _randomvariablelist._RandomVariableList,
         interpolants: List[rk.DenseOutput],
@@ -34,10 +34,13 @@ class PerturbedStepSolution(diffeq.ODESolution):
         discrete_location = list(self.locations).index(previous_location)
 
         # For the first state, no interpolation has to be performed.
-        if t == self.locations[0]:
-            res = self.states[0]
+        if t == previous_location:
+            res = previous_location
+        if t == next_location:
+            return next_state
         else:
             interpolant = self.interpolants[discrete_location]
             relative_time = (t - previous_location) * self.scales[discrete_location]
-            res = randvars.Constant(interpolant(previous_location + relative_time))
-        return res
+            evaluation = interpolant(previous_location + relative_time)
+            res_as_rv = randvars.Constant(evaluation)
+        return res_as_rv

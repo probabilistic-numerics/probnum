@@ -13,8 +13,8 @@ from probnum.type import FloatArgType
 
 
 class WrappedScipyRungeKutta(diffeq.ODESolver):
-    """Wrappper for Runge-Kutta methods from Scipy, implements the stepfunction and
-    dense output."""
+    """Wrapper for Runge-Kutta methods from Scipy, implements the stepfunction and dense
+    output."""
 
     def __init__(self, solver: rk.RungeKutta):
         self.solver = solver
