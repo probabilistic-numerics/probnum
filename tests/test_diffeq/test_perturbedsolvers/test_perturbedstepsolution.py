@@ -3,7 +3,7 @@ import pytest
 from scipy.integrate._ivp import rk
 
 from probnum import _randomvariablelist, diffeq
-from probnum.diffeq.perturbedsolvers import _perturbation_functions
+from probnum.diffeq import _perturbation_functions
 
 
 @pytest.fixture
@@ -26,8 +26,11 @@ def test_states(solutionnoisy):
 
 def test_call(solutionnoisy):
 
-    # Test for continuity of the dense output. Small changes of the locations should
-    # come with small changes of the states.
+    """Test for continuity of the dense output.
+
+    Small changes of the locations should come with small changes of the
+    states.
+    """
     np.testing.assert_allclose(
         solutionnoisy(solutionnoisy.locations[0:]).mean,
         solutionnoisy.states[0:].mean,

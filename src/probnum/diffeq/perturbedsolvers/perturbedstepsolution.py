@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 from scipy.integrate._ivp import rk
@@ -15,7 +15,7 @@ class PerturbedStepSolution(diffeq.ODESolution):
         scales: list,
         times: np.ndarray,
         rvs: _randomvariablelist._RandomVariableList,
-        interpolants: rk.RkDenseOutput,
+        interpolants: List[rk.DenseOutput],
     ):
         self.scales = scales
         self.interpolants = interpolants
@@ -29,19 +29,15 @@ class PerturbedStepSolution(diffeq.ODESolution):
         next_location: Optional[FloatArgType] = None,
         next_state: Optional[randvars.RandomVariable] = None,
     ):
+        # Find the index of the previous location. This is needed to access the correct
+        # interpolant as the interpolation in SciPy is a concatenation of dense outputs.
         discrete_location = list(self.locations).index(previous_location)
 
-        # For the first and last state, no interpolation has to be performed.
-        if t == self.locations[-1]:
-            res = self.states[-1]
+        # For the first state, no interpolation has to be performed.
         if t == self.locations[0]:
             res = self.states[0]
         else:
             interpolant = self.interpolants[discrete_location]
-            relative_time = (t - self.locations[discrete_location]) * self.scales[
-                discrete_location
-            ]
-            res = randvars.Constant(
-                interpolant(self.locations[discrete_location] + relative_time)
-            )
+            relative_time = (t - previous_location) * self.scales[discrete_location]
+            res = randvars.Constant(interpolant(previous_location + relative_time))
         return res

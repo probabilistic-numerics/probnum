@@ -14,6 +14,7 @@ from .odefiltsmooth import (
 )
 from .odesolution import ODESolution
 from .odesolver import ODESolver
+from .perturbedsolvers import _perturbation_functions
 from .perturbedsolvers.perturbedstepsolution import PerturbedStepSolution
 from .perturbedsolvers.perturbedstepsolver import PerturbedStepSolver
 from .steprule import AdaptiveSteps, ConstantSteps, StepRule, propose_firststep
@@ -43,6 +44,7 @@ __all__ = [
     "PerturbedStepSolver",
     "PerturbedStepSolution",
     "WrappedScipyRungeKutta",
+    "_perturbation_functions",
 ]
 
 # Set correct module paths (for superclasses).
