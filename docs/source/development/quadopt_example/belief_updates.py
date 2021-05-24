@@ -11,7 +11,7 @@ from probnum.type import FloatArgType
 
 
 def gaussian_belief_update(
-    fun_params0: pn.RandomVariable,
+    fun_params0: randvars.RandomVariable,
     action: FloatArgType,
     observation: FloatArgType,
     noise_cov: Union[np.ndarray, linops.LinearOperator],
