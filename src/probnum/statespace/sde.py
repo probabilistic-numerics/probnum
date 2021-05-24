@@ -8,7 +8,7 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
-from probnum.utils.linalg import cholesky_update
+from probnum.utils.linalg import tril_to_positive_tril
 
 from . import discrete_transition, transition
 from .sde_utils import matrix_fraction_decomposition
@@ -434,7 +434,7 @@ class LinearSDE(SDE):
             )
             M = G_bar + G_bar.T + L_bar @ L_bar.T
 
-            new_cov_cholesky = cholesky_update(
+            new_cov_cholesky = tril_to_positive_tril(
                 cov_cholesky @ (np.tril(M, -1) + 1 / 2 * np.diag(np.diag(M)))
             )
 
