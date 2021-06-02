@@ -8,6 +8,7 @@ import scipy.linalg
 
 from probnum import randvars
 from probnum.type import FloatArgType, IntArgType
+from probnum.utils.linalg import tril_to_positive_tril
 
 from . import discrete_transition, transition
 from .sde_utils import matrix_fraction_decomposition
@@ -138,9 +139,19 @@ class LinearSDE(SDE):
         mde_atol: Optional[FloatArgType] = 1e-6,
         mde_rtol: Optional[FloatArgType] = 1e-6,
         mde_solver: Optional[str] = "LSODA",
+        forward_implementation: Optional[str] = "classic",
     ):
 
-        # Once different filtering and smoothing algorithms are available,
+        # Choose implementation for forward transitions
+        choose_mde_forward_implementation = {
+            "classic": self._solve_mde_forward_classic,
+            "sqrt": self._solve_mde_forward_sqrt,
+        }
+        self._mde_forward_implementation = choose_mde_forward_implementation[
+            forward_implementation
+        ]
+
+        # Once different smoothing algorithms are available,
         # replicate the scheme from DiscreteGaussian here, in which
         # the initialisation decides between, e.g., classic and sqrt implementations.
 
@@ -170,7 +181,8 @@ class LinearSDE(SDE):
             raise ValueError(
                 "Continuous-time transitions require a time-increment ``dt``."
             )
-        return self._solve_mde_forward(rv, t, dt, _diffusion=_diffusion)
+
+        return self._mde_forward_implementation(rv, t, dt, _diffusion=_diffusion)
 
     def backward_rv(
         self,
@@ -199,26 +211,15 @@ class LinearSDE(SDE):
 
     # Forward and backward implementation(s)
 
-    def _solve_mde_forward(self, rv, t, dt, _diffusion=1.0):
+    def _solve_mde_forward_classic(self, rv, t, dt, _diffusion=1.0):
         """Solve forward moment differential equations (MDEs)."""
-        mde, y0 = self._setup_vectorized_mde_forward(
+        dim = rv.mean.shape[0]
+        mde, y0 = self._setup_vectorized_mde_forward_classic(
             rv,
             _diffusion=_diffusion,
         )
-        # Dense output for lambda-expression
-        sol = scipy.integrate.solve_ivp(
-            mde,
-            (t, t + dt),
-            y0,
-            method=self.mde_solver,
-            atol=self.mde_atol,
-            rtol=self.mde_rtol,
-            dense_output=True,
-        )
-        dim = rv.mean.shape[0]
-        y_end = sol.y[:, -1]
-        new_mean = y_end[:dim]
-        new_cov = y_end[dim:].reshape((dim, dim))
+
+        sol, new_mean, new_cov = self._solve_mde_forward(mde, y0, t, dt, dim)
 
         # Useful for backward transitions
         # Aka continuous time smoothing.
@@ -231,9 +232,61 @@ class LinearSDE(SDE):
             "sol_cov": sol_cov,
         }
 
+    def _solve_mde_forward_sqrt(self, rv, t, dt, _diffusion=1.0):
+        """Solve forward moment differential equations (MDEs) using a square-root
+        implementation."""
+        dim = rv.mean.shape[0]
+        mde, y0 = self._setup_vectorized_mde_forward_sqrt(
+            rv,
+            _diffusion=_diffusion,
+        )
+
+        sol, new_mean, new_cov_cholesky = self._solve_mde_forward(mde, y0, t, dt, dim)
+        new_cov = new_cov_cholesky @ new_cov_cholesky.T
+
+        # Useful for backward transitions
+        # Aka continuous time smoothing.
+        sol_mean = lambda t: sol.sol(t)[:dim]
+        sol_cov_cholesky = lambda t: sol.sol(t)[dim:].reshape((dim, dim))
+        sol_cov = (
+            lambda t: sol.sol(t)[dim:].reshape((dim, dim))
+            @ sol.sol(t)[dim:].reshape((dim, dim)).T
+        )
+
+        return randvars.Normal(
+            mean=new_mean, cov=new_cov, cov_cholesky=new_cov_cholesky
+        ), {
+            "sol": sol,
+            "sol_mean": sol_mean,
+            "sol_cov_cholesky": sol_cov_cholesky,
+            "sol_cov": sol_cov,
+        }
+
+    def _solve_mde_forward(self, mde, y0, t, dt, dim):
+        """Solve forward moment differential equations (MDEs)."""
+        # Dense output for lambda-expression
+        sol = scipy.integrate.solve_ivp(
+            mde,
+            (t, t + dt),
+            y0,
+            method=self.mde_solver,
+            atol=self.mde_atol,
+            rtol=self.mde_rtol,
+            dense_output=True,
+        )
+        y_end = sol.y[:, -1]
+        new_mean = y_end[:dim]
+        # If forward_sqrt is used, new_cov_or_cov_cholesky is a Cholesky factor of the covariance
+        # If forward_classic is used, new_cov_or_cov_cholesky is the covariance
+        new_cov_or_cov_cholesky = y_end[dim:].reshape((dim, dim))
+
+        return sol, new_mean, new_cov_or_cov_cholesky
+
     def _solve_mde_backward(self, rv_obtained, rv, t, dt, _diffusion=1.0):
         """Solve backward moment differential equations (MDEs)."""
-        _, mde_forward_info = self._solve_mde_forward(rv, t, dt, _diffusion=_diffusion)
+        _, mde_forward_info = self._mde_forward_implementation(
+            rv, t, dt, _diffusion=_diffusion
+        )
 
         mde_forward_sol_mean = mde_forward_info["sol_mean"]
         mde_forward_sol_cov = mde_forward_info["sol_cov"]
@@ -259,6 +312,8 @@ class LinearSDE(SDE):
         new_mean = y_end[:dim]
         new_cov = y_end[dim:].reshape((dim, dim))
 
+        # Useful for backward transitions
+        # Aka continuous time smoothing.
         sol_mean = lambda t: sol.sol(t)[:dim]
         sol_cov = lambda t: sol.sol(t)[dim:].reshape((dim, dim))
 
@@ -268,7 +323,7 @@ class LinearSDE(SDE):
             "sol_cov": sol_cov,
         }
 
-    def _setup_vectorized_mde_forward(self, initrv, _diffusion=1.0):
+    def _setup_vectorized_mde_forward_classic(self, initrv, _diffusion=1.0):
         """Set up forward moment differential equations (MDEs).
 
         Compute an ODE vector field that represents the MDEs and is
@@ -282,11 +337,11 @@ class LinearSDE(SDE):
             cov = cov_flat.reshape((dim, dim))
 
             # Apply iteration
-            F = self.driftmatfun(t)
+            G = self.driftmatfun(t)
             u = self.forcevecfun(t)
             L = self.dispmatfun(t)
-            new_mean = F @ mean + u
-            new_cov = F @ cov + cov @ F.T + _diffusion * L @ L.T
+            new_mean = G @ mean + u
+            new_cov = G @ cov + cov @ G.T + _diffusion * L @ L.T
 
             # Vectorize outcome
             new_cov_flat = new_cov.flatten()
@@ -295,6 +350,101 @@ class LinearSDE(SDE):
 
         initcov_flat = initrv.cov.flatten()
         y0 = np.hstack((initrv.mean, initcov_flat))
+
+        return f, y0
+
+    def _setup_vectorized_mde_forward_sqrt(self, initrv, _diffusion=1.0):
+        r"""Set up forward moment differential equations (MDEs) using a square-root
+        implementation. (https://ieeexplore.ieee.org/document/4045974)
+
+        The covariance :math:`P(t)` obeys the Riccati equation
+
+        .. math::
+            \dot P(t) = G(t)P(t) + P(t)G^\top(t) + L(t)L^\top(t).
+
+        Let :math:`S(t)` be a square-root of :math:`P(t)`, :math:`P(t)` positive definite, then
+
+        .. math::
+            P(t) = S(t)S^\top(t)
+
+        and we get the Riccati-Equation
+
+        .. math::
+            \dot P(t) = G(t)S(t)S^\top(t) + 1/2 \cdot L(t)L^\top(t)S^{-\top}S^\top
+                        + S(t)S^\top(t)G^\top(t) + 1/2 \cdot S(t)S^{-1}(t)L(t)L^\top(t).
+
+        One solution can be found by the square-root :math:`\dot S(t)`
+
+        .. math::
+            \dot S(t) = G(t)S(t) + (A + 1/2 \cdot L(t)L^\top(t))S^{-\top}
+
+        where :math:`A` is an arbitrary symmetric matrix.
+        :math:`A` can be chosen to make S lower-triangular which can be achieved by
+
+        .. math::
+            M(t) = S^{-1}(t)\dot S(t) + \dot S(t)^\top S^{-\top}
+
+        and
+
+        .. math::
+            M(t) = \bar G(t) + \bar G^\top(t) + \bar L(t) \bar L^\top(t)
+
+        and
+
+        .. math::
+            \bar G(t) = S^{-1}(t)G(t)S(t),
+            \bar L(t) = S^{-1}L(t)
+
+        and
+
+        .. math::
+            \dot S(t) = S(t)[M(t)]_{\mathrm{lt}}
+
+        where :math:`\mathrm{lt}` denotes the lower-triangular operator defined by
+
+        .. math::
+            [M(t)]{_{\mathrm{lt}}}_{ij} =
+                \begin{cases}
+                    0 & i < j\\
+                    1/2 m(t)_{ij} & i=j\\
+                    m(t)_{ij} & i > j
+                \end{cases}.
+
+        Compute an ODE vector field that represents the MDEs and is
+        compatible with scipy.solve_ivp.
+        """
+        dim = len(initrv.mean)
+
+        def f(t, y):
+            # Undo vectorization
+            mean, cov_cholesky_flat = y[:dim], y[dim:]
+            cov_cholesky = cov_cholesky_flat.reshape((dim, dim))
+
+            # Apply iteration
+            G = self.driftmatfun(t)
+            u = self.forcevecfun(t)
+            L = self.dispmatfun(t)
+
+            new_mean = G @ mean + u
+            G_bar = scipy.linalg.solve_triangular(
+                cov_cholesky, G @ cov_cholesky, lower=True
+            )
+            L_bar = np.sqrt(_diffusion) * scipy.linalg.solve_triangular(
+                cov_cholesky, L, lower=True
+            )
+            M = G_bar + G_bar.T + L_bar @ L_bar.T
+
+            new_cov_cholesky = tril_to_positive_tril(
+                cov_cholesky @ (np.tril(M, -1) + 1 / 2 * np.diag(np.diag(M)))
+            )
+
+            # Vectorize outcome
+            new_cov_cholesky_flat = new_cov_cholesky.flatten()
+            y_new = np.hstack((new_mean, new_cov_cholesky_flat))
+            return y_new
+
+        initcov_cholesky_flat = initrv.cov_cholesky.flatten()
+        y0 = np.hstack((initrv.mean, initcov_cholesky_flat))
 
         return f, y0
 
@@ -312,7 +462,7 @@ class LinearSDE(SDE):
             cov = cov_flat.reshape((dim, dim))
 
             # Apply iteration
-            F = self.driftmatfun(t)
+            G = self.driftmatfun(t)
             u = self.forcevecfun(t)
             L = self.dispmatfun(t)
 
@@ -322,8 +472,8 @@ class LinearSDE(SDE):
             LL = _diffusion * L @ L.T
             LL_inv_cov = np.linalg.solve(mde_forward_sol_cov_mat, LL.T).T
 
-            new_mean = F @ mean + LL_inv_cov @ (mean - mde_forward_sol_mean_vec) + u
-            new_cov = (F + LL_inv_cov) @ cov + cov @ (F + LL_inv_cov).T - LL
+            new_mean = G @ mean + LL_inv_cov @ (mean - mde_forward_sol_mean_vec) + u
+            new_cov = (G + LL_inv_cov) @ cov + cov @ (G + LL_inv_cov).T - LL
 
             new_cov_flat = new_cov.flatten()
             y_new = np.hstack((new_mean, new_cov_flat))
