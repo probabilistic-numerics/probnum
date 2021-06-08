@@ -216,6 +216,18 @@ def ltisde_as_linearsde(G_const, v_const, L_const):
 
 
 @pytest.fixture
+def ltisde_as_linearsde_sqrt_forward_implementation(G_const, v_const, L_const):
+    G = lambda t: G_const
+    v = lambda t: v_const
+    L = lambda t: L_const
+    dim = 2
+
+    return pnss.LinearSDE(
+        dim, G, v, L, mde_atol=1e-12, mde_rtol=1e-12, forward_implementation="sqrt"
+    )
+
+
+@pytest.fixture
 def ltisde(G_const, v_const, L_const):
     return pnss.LTISDE(G_const, v_const, L_const)
 
@@ -230,6 +242,28 @@ def test_solve_mde_forward_values(ltisde_as_linearsde, ltisde, v_const, diffusio
 
     np.testing.assert_allclose(out_linear.mean, out_lti.mean)
     np.testing.assert_allclose(out_linear.cov, out_lti.cov)
+
+
+def test_solve_mde_forward_sqrt_values(
+    ltisde_as_linearsde,
+    ltisde_as_linearsde_sqrt_forward_implementation,
+    v_const,
+    diffusion,
+):
+    """mde forward values in sqrt-implementation and classic implementation should be equal"""
+    out_linear, _ = ltisde_as_linearsde.forward_realization(
+        v_const, t=0.0, dt=0.1, _diffusion=diffusion
+    )
+
+    out_linear_2, _ = ltisde_as_linearsde.forward_rv(
+        out_linear, t=0.1, dt=0.1, _diffusion=diffusion
+    )
+    out_linear_2_sqrt, _ = ltisde_as_linearsde_sqrt_forward_implementation.forward_rv(
+        out_linear, t=0.1, dt=0.1, _diffusion=diffusion
+    )
+
+    np.testing.assert_allclose(out_linear_2_sqrt.mean, out_linear_2.mean)
+    np.testing.assert_allclose(out_linear_2_sqrt.cov, out_linear_2.cov)
 
 
 def test_solve_mde_backward_values(ltisde_as_linearsde, ltisde, v_const, diffusion):
