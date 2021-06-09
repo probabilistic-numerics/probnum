@@ -289,9 +289,9 @@ class Kalman(BayesFiltSmooth):
 
         # Iterate over data and measurement models
         for t, data, measmod in itertools.zip_longest(
-            times, dataset, measurement_model, fillvalue="None"
+            times, dataset, measurement_model, fillvalue=None
         ):
-            if t == "None" or data == "None" or measmod == "None":
+            if t is None or data is None or measmod is None:
                 errormsg = (
                     "The lengths of the dataset, times and"
                     "measurement models are inconsistent."

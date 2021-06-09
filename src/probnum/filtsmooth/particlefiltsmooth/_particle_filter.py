@@ -1,6 +1,7 @@
 """Particle filters."""
 
 import itertools
+import warnings
 from collections import abc
 from typing import Iterable, Optional, Union
 
@@ -190,6 +191,7 @@ class ParticleFilter(BayesFiltSmooth):
 
         initarg = times[0]
         t_old = times[0]  # will be replaced by initarg soon.
+        warnings.warn("Initarg is not used by PF.")
 
         particles = np.nan * np.ones(
             (self.num_particles,) + self.prior_process.initrv.shape
