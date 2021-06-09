@@ -27,8 +27,8 @@ class GaussianIVPFilter(ODESolver):
     ----------
     ivp
         Initial value problem to be solved.
-    prior
-        Prior distribution.
+    prior_process
+        Prior Gauss-Markov process.
     measurement_model
         ODE measurement model.
     with_smoothing
@@ -36,10 +36,6 @@ class GaussianIVPFilter(ODESolver):
     init_implementation
         Initialization algorithm. Either via Scipy (``initialize_odefilter_with_rk``) or via Taylor-mode AD (``initialize_odefilter_with_taylormode``).
         For more convenient construction, consider :func:`GaussianIVPFilter.construct_with_rk_init` and :func:`GaussianIVPFilter.construct_with_taylormode_init`.
-    initrv
-        Initial random variable to be used by the filter. Optional. Default is `None`, which amounts to choosing a standard-normal initial RV.
-        As part of `GaussianIVPFilter.initialise()` (called in `GaussianIVPFilter.solve()`), this variable is improved upon with the help of the
-        initialisation algorithm. The influence of this choice on the posterior may vary depending on the initialization strategy, but is almost always weak.
     """
 
     def __init__(
@@ -86,11 +82,8 @@ class GaussianIVPFilter(ODESolver):
 
         and user-specified measurement noise covariance :math:`R`. Almost always, the measurement noise covariance is zero.
 
-        Compute either type filter, each with a different interpretation of the Jacobian :math:`J_g`:
-
-        - EKF0 thinks :math:`J_g(m) = H_1`
-        - EKF1 thinks :math:`J_g(m) = H_1 - J_f(t, H_0 m(t)) H_0^\\top`
-        - UKF thinks: ''What is a Jacobian?'' and uses the unscented transform to compute a tractable approximation of the transition densities.
+        EK0, EK1, and UK derive a tractable approximation of this intractable model with zeroth-order or first-order Taylor series approximations,
+        respectively the unscented transform.
         """
         measurement_model_string = measurement_model_string.upper()
 
