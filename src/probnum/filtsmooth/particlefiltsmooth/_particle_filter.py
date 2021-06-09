@@ -8,9 +8,9 @@ from typing import Iterable, Optional, Union
 import numpy as np
 
 from probnum import problems, randprocs, randvars, statespace
-from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.type import FloatArgType, IntArgType
 
+from .._bayesfiltsmooth import BayesFiltSmooth
 from ._importance_distributions import ImportanceDistribution
 from ._particle_filter_posterior import ParticleFilterPosterior
 

@@ -6,8 +6,9 @@ from typing import Dict, Optional, Tuple, Union
 import numpy as np
 
 from probnum import randprocs, randvars
-from probnum.filtsmooth.timeseriesposterior import TimeSeriesPosterior
 from probnum.type import FloatArgType
+
+from ._timeseriesposterior import TimeSeriesPosterior
 
 
 class BayesFiltSmooth(ABC):

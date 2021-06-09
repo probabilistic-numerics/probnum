@@ -10,8 +10,8 @@ import numpy as np
 
 from probnum import problems, statespace
 
-from ..bayesfiltsmooth import BayesFiltSmooth
-from ..timeseriesposterior import TimeSeriesPosterior
+from .._bayesfiltsmooth import BayesFiltSmooth
+from .._timeseriesposterior import TimeSeriesPosterior
 from ._extendedkalman import DiscreteEKFComponent
 from ._kalmanposterior import FilteringPosterior, SmoothingPosterior
 from ._stoppingcriterion import StoppingCriterion

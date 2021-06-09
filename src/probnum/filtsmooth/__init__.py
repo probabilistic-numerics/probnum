@@ -7,7 +7,9 @@ use. Filtering considers all observations up to a given point, while
 smoothing takes the entire set of observations into account.
 """
 
-from .bayesfiltsmooth import BayesFiltSmooth
+from ._bayesfiltsmooth import BayesFiltSmooth
+from ._timeseriesposterior import TimeSeriesPosterior
+from ._utils import merge_regression_problems
 from .gaussfiltsmooth import (
     ContinuousEKFComponent,
     ContinuousUKFComponent,
@@ -31,8 +33,6 @@ from .particlefiltsmooth import (
     ParticleFilterPosterior,
     effective_number_of_events,
 )
-from .timeseriesposterior import TimeSeriesPosterior
-from .utils import merge_regression_problems
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
