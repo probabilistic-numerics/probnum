@@ -5,9 +5,7 @@ from typing import Optional
 import numpy as np
 
 from probnum import _randomvariablelist, filtsmooth, randvars, utils
-from probnum.filtsmooth._timeseriesposterior import (  # Steal a type
-    DenseOutputLocationArgType,
-)
+from probnum.filtsmooth._timeseriesposterior import DenseOutputLocationArgType
 from probnum.type import FloatArgType, RandomStateArgType, ShapeArgType
 
 from ..odesolution import ODESolution

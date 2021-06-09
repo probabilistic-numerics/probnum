@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.diffeq as pnde
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import randprocs, randvars, statespace
+from probnum import diffeq, randprocs, randvars, statespace
 
 from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
 
@@ -65,7 +64,7 @@ def test_initialize_with_rk(lv, lv_inits, order):
     prior_process = randprocs.MarkovProcess(
         transition=prior, initrv=initrv, initarg=lv.t0
     )
-    received_rv = pnde.initialize_odefilter_with_rk(
+    received_rv = diffeq.initialize_odefilter_with_rk(
         lv.rhs,
         lv.initrv.mean,
         lv.t0,
@@ -107,7 +106,7 @@ def test_initialize_with_taylormode(any_order):
         transition=prior, initrv=initrv, initarg=r2b_jax.t0
     )
 
-    received_rv = pnde.initialize_odefilter_with_taylormode(
+    received_rv = diffeq.initialize_odefilter_with_taylormode(
         r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior_process=prior_process
     )
 

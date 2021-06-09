@@ -105,3 +105,45 @@ def test_kalman_multiple_measurement_models():
     obs_rmse = np.mean(np.abs(regression_problem.observations - truth[:, :2]))
 
     assert smooms_rmse < filtms_rmse < obs_rmse
+
+
+def test_kalman_value_error_repeating_timepoints():
+    regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
+        model_ordint=4,
+        timespan=(0.0, 1e-3),
+        step=1e-5,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
+
+    # This should raise a ValueError
+    regression_problem.locations[1] = regression_problem.locations[0]
+
+    with pytest.raises(ValueError):
+        posterior, _ = kalman.filtsmooth(
+            regression_problem,
+            [statespace_components["measurement_model"]]
+            * len(regression_problem.locations),
+        )
+
+
+def test_kalman_value_error_unequal_lengths_of_problems():
+    regression_problem, statespace_components = filtsmooth_zoo.car_tracking(
+        model_ordint=4,
+        timespan=(0.0, 1e-3),
+        step=1e-5,
+        forward_implementation="sqrt",
+        backward_implementation="sqrt",
+    )
+    kalman = filtsmooth.Kalman(statespace_components["prior_process"])
+
+    # This should raise a ValueError
+    regression_problem.locations = regression_problem.locations[:4]
+
+    with pytest.raises(ValueError):
+        posterior, _ = kalman.filtsmooth(
+            regression_problem,
+            [statespace_components["measurement_model"]]
+            * len(regression_problem.locations),
+        )

@@ -2,7 +2,6 @@
 
 
 import itertools
-import warnings
 from collections import abc
 from typing import Iterable, Optional, Union
 
@@ -302,7 +301,11 @@ class Kalman(BayesFiltSmooth):
                     "The lengths of the dataset, times and"
                     "measurement models are inconsistent."
                 )
-                warnings.warn(errormsg)
+
+                # At first sight, it seems desirable to raise a Warning instead of throwing an
+                # error. However, the remaining code will not work if one of the three
+                # (t, data, measmod) is not defined. Therefore, we throw a ValueError.
+                raise ValueError(errormsg)
 
             dt = t - t_old
             info_dict = {}
