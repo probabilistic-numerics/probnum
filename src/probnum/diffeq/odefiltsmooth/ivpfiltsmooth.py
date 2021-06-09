@@ -45,7 +45,7 @@ class GaussianIVPFilter(ODESolver):
     def __init__(
         self,
         ivp: IVP,
-        prior: statespace.Integrator,
+        prior_process: randprocs.MarkovProcess,
         measurement_model: statespace.DiscreteGaussian,
         with_smoothing: bool,
         init_implementation: Callable[
@@ -59,32 +59,23 @@ class GaussianIVPFilter(ODESolver):
             ],
             randvars.Normal,
         ],
-        initrv: Optional[randvars.Normal] = None,
     ):
-        if not isinstance(prior, statespace.Integrator):
+        if not isinstance(prior_process.transition, statespace.Integrator):
             raise ValueError(
                 "Please initialise a Gaussian filter with an Integrator (see `probnum.statespace`)"
             )
-        if initrv is None:
-            initrv = randvars.Normal(
-                np.zeros(prior.dimension),
-                np.eye(prior.dimension),
-                cov_cholesky=np.eye(prior.dimension),
-            )
 
-        self.prior_process = randprocs.MarkovProcess(
-            transition=prior, initrv=initrv, initarg=ivp.t0
-        )
+        self.prior_process = prior_process
         self.measurement_model = measurement_model
 
         self.sigma_squared_mle = 1.0
         self.with_smoothing = with_smoothing
         self.init_implementation = init_implementation
-        super().__init__(ivp=ivp, order=prior.ordint)
+        super().__init__(ivp=ivp, order=prior_process.transition.ordint)
 
     @staticmethod
     def string_to_measurement_model(
-        measurement_model_string, ivp, prior, measurement_noise_covariance=0.0
+        measurement_model_string, ivp, prior_process, measurement_noise_covariance=0.0
     ):
         """Construct a measurement model :math:`\\mathcal{N}(g(m), R)` for an ODE.
 
@@ -109,7 +100,7 @@ class GaussianIVPFilter(ODESolver):
         choose_meas_model = {
             "EK0": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
-                prior=prior,
+                prior=prior_process.transition,
                 ek0_or_ek1=0,
                 evlvar=measurement_noise_covariance,
                 forward_implementation="sqrt",
@@ -117,7 +108,7 @@ class GaussianIVPFilter(ODESolver):
             ),
             "EK1": filtsmooth.DiscreteEKFComponent.from_ode(
                 ivp,
-                prior=prior,
+                prior=prior_process.transition,
                 ek0_or_ek1=1,
                 evlvar=measurement_noise_covariance,
                 forward_implementation="sqrt",
@@ -125,7 +116,7 @@ class GaussianIVPFilter(ODESolver):
             ),
             "UK": filtsmooth.DiscreteUKFComponent.from_ode(
                 ivp,
-                prior,
+                prior=prior_process.transition,
                 evlvar=measurement_noise_covariance,
             ),
         }
@@ -143,7 +134,7 @@ class GaussianIVPFilter(ODESolver):
     def construct_with_rk_init(
         cls,
         ivp,
-        prior,
+        prior_process,
         measurement_model,
         with_smoothing,
         initrv=None,
@@ -167,26 +158,24 @@ class GaussianIVPFilter(ODESolver):
 
         return cls(
             ivp,
-            prior,
+            prior_process,
             measurement_model,
             with_smoothing,
             init_implementation=init_implementation,
-            initrv=initrv,
         )
 
     @classmethod
     def construct_with_taylormode_init(
-        cls, ivp, prior, measurement_model, with_smoothing, initrv=None
+        cls, ivp, prior_process, measurement_model, with_smoothing, initrv=None
     ):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_taylormode`."""
         return cls(
             ivp,
-            prior,
+            prior_process,
             measurement_model,
             with_smoothing,
             init_implementation=initialize_odefilter_with_taylormode,
-            initrv=initrv,
         )
 
     def initialise(self):
