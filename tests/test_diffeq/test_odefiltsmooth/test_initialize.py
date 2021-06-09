@@ -73,7 +73,7 @@ def test_initialize_with_rk(lv, lv_inits, order):
     # Extract the relevant values
     expected = lv_inits
 
-    # The higher derivatives will have absolute difference ~8%
+    # The higher derivatives will have absolute difference ~36%
     # if things work out correctly
     np.testing.assert_allclose(received_rv.mean, expected, rtol=0.4)
     assert np.linalg.norm(received_rv.std) > 0
@@ -99,9 +99,12 @@ def test_initialize_with_taylormode(any_order):
     )
 
     initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
+    prior_process = randprocs.MarkovProcess(
+        transition=prior, initrv=initrv, initarg=r2b_jax.t0
+    )
 
     received_rv = pnde.initialize_odefilter_with_taylormode(
-        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior=prior, initrv=initrv
+        r2b_jax.f, r2b_jax.y0, r2b_jax.t0, prior_process=prior_process
     )
 
     np.testing.assert_allclose(received_rv.mean, expected)

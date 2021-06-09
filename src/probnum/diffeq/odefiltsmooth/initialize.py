@@ -65,6 +65,7 @@ def initialize_odefilter_with_rk(
     >>> from probnum.randvars import Normal
     >>> from probnum.statespace import IBM
     >>> from probnum.problems.zoo.diffeq import vanderpol
+    >>> from probnum.randprocs import MarkovProcess
 
     Compute the initial values of the van-der-Pol problem as follows
 
@@ -73,8 +74,9 @@ def initialize_odefilter_with_rk(
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior=prior, initrv=initrv, df=df)
-    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> improved_initrv = initialize_odefilter_with_rk(f, y0, t0, prior_process=prior_process, df=df)
+    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(np.round(improved_initrv.mean, 1))
     [    2.      0.     -2.     58.2     0.     -2.     60.  -1745.7]
@@ -84,7 +86,8 @@ def initialize_odefilter_with_rk(
     y0 = np.asarray(y0)
     ode_dim = y0.shape[0] if y0.ndim > 0 else 1
     order = prior_process.transition.ordint
-    proj_to_y = prior_process.transition.proj2coord(0)
+
+    proj_to_y = prior_process.transition.proj2coord(coord=0)
     zeros_shift = np.zeros(ode_dim)
     zeros_cov = np.zeros((ode_dim, ode_dim))
     measmod = statespace.DiscreteLTIGaussian(
@@ -112,18 +115,16 @@ def initialize_odefilter_with_rk(
 
     ts = sol.t[:num_steps]
     ys = sol.y[:, :num_steps].T
+    regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
 
     kalman = filtsmooth.Kalman(prior_process)
-
-    regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
     out, _ = kalman.filtsmooth(regression_problem, measmod)
 
     estimated_initrv = out.states[0]
-
     return estimated_initrv
 
 
-def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
+def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     """Initialize an ODE filter with Taylor-mode automatic differentiation.
 
     This requires JAX. For an explanation of what happens ``under the hood``, see [1]_.
@@ -213,7 +214,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv):
             "dependencies jax and jaxlib. Try installing them via `pip install jax jaxlib`."
         ) from err
 
-    order = prior.ordint
+    order = prior_process.transition.ordint
 
     def total_derivative(z_t):
         """Total derivative."""
