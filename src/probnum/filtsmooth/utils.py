@@ -72,6 +72,24 @@ def merge_regression_problems(
     [0.   0.25 0.5  0.75 1.   1.25 1.5  1.75 2.   2.25 2.5  2.75 3.   3.25
      3.5  3.75 4.   4.25 4.5  4.75 5.   5.25 5.5  5.75 6.   6.25 6.5  6.75
      7.   7.25 7.5  7.75 8.   8.25 8.5  8.75 9.   9.25 9.5  9.75]
+
+    If you have more than two problems that you want to merge, do this with functools.reduce.
+
+    >>> import functools
+    >>> prob3, info3 = filtsmooth_zoo.car_tracking(
+    ...     measurement_variance=2.0, timespan=(0.35, 10.35), step=0.5
+    ... )
+    >>> measmods3 = np.asarray([info3["measurement_model"]] * len(prob3.locations))
+    >>> new_prob, new_models = functools.reduce(
+    ...     merge_regression_problems,
+    ...     ((prob1, measmods1), (prob2, measmods2), (prob3, measmods3)),
+    ... )
+    >>> print(new_prob.locations)
+    [0.   0.25 0.35 0.5  0.75 0.85 1.   1.25 1.35 1.5  1.75 1.85 2.   2.25
+     2.35 2.5  2.75 2.85 3.   3.25 3.35 3.5  3.75 3.85 4.   4.25 4.35 4.5
+     4.75 4.85 5.   5.25 5.35 5.5  5.75 5.85 6.   6.25 6.35 6.5  6.75 6.85
+     7.   7.25 7.35 7.5  7.75 7.85 8.   8.25 8.35 8.5  8.75 8.85 9.   9.25
+     9.35 9.5  9.75 9.85]
     """
 
     regression_problem1, measurement_models1 = problem_and_likelihood1
