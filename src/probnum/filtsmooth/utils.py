@@ -1,6 +1,8 @@
 """Utility functions for filtering and smoothing."""
 
 
+from typing import Tuple
+
 import numpy as np
 
 from probnum import problems
@@ -8,7 +10,10 @@ from probnum import problems
 __all__ = ["merge_regression_problems"]
 
 
-def merge_regression_problems(problem_and_likelihood1, problem_and_likelihood2):
+def merge_regression_problems(
+    problem_and_likelihood1: Tuple[problems.RegressionProblem, np.ndarray],
+    problem_and_likelihood2: Tuple[problems.RegressionProblem, np.ndarray],
+):
     """Make a new regression problem out of two other regression problems.
 
     Parameters
