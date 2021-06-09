@@ -35,7 +35,38 @@ def merge_regression_problems(problem_and_likelihood1, problem_and_likelihood2):
     Note
     ----
     To merge more than two problems, combine this function with functools.reduce.
-    For the moment, the locations in both regression problems are expected to be disjoint.
+
+    Examples
+    --------
+
+    Create two car-tracking problems with similar parameters and disjoint locations.
+
+    >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+    >>> prob1, info1 = filtsmooth_zoo.car_tracking(
+    ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
+    ... )
+    >>> measmods1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
+    >>> print(prob1.locations)
+    [0.  0.5 1.  1.5 2.  2.5 3.  3.5 4.  4.5 5.  5.5 6.  6.5 7.  7.5 8.  8.5
+     9.  9.5]
+
+    >>> prob2, info2 = filtsmooth_zoo.car_tracking(
+    ...     measurement_variance=2.0, timespan=(0.25, 10.25), step=0.5
+    ... )
+    >>> measmods2 = np.asarray([info2["measurement_model"]] * len(prob2.locations))
+    >>> print(prob2.locations)
+    [0.25 0.75 1.25 1.75 2.25 2.75 3.25 3.75 4.25 4.75 5.25 5.75 6.25 6.75
+     7.25 7.75 8.25 8.75 9.25 9.75]
+
+    Merge them with merge_regression_problems
+
+    >>> new_prob, new_models = merge_regression_problems(
+    ...     (prob1, measmods1), (prob2, measmods2)
+    ... )
+    >>> print(new_prob.locations)
+    [0.   0.25 0.5  0.75 1.   1.25 1.5  1.75 2.   2.25 2.5  2.75 3.   3.25
+     3.5  3.75 4.   4.25 4.5  4.75 5.   5.25 5.5  5.75 6.   6.25 6.5  6.75
+     7.   7.25 7.5  7.75 8.   8.25 8.5  8.75 9.   9.25 9.5  9.75]
     """
 
     regression_problem1, measurement_models1 = problem_and_likelihood1
