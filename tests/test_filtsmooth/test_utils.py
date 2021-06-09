@@ -151,3 +151,17 @@ def test_data_sets_incompatible_dimensions(car_tracking1, car_tracking2):
 
     with pytest.raises(ValueError):
         filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, measmod2))
+
+
+def test_solutions_incompatible_dimensions(car_tracking1, car_tracking2):
+    prob1, info1 = car_tracking1
+    measmod1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
+
+    prob2, info2 = car_tracking2
+    measmod2 = np.asarray([info2["measurement_model"]] * len(prob2.locations))
+
+    # Change the dimension of the data of one of the problems
+    prob1.solution = prob1.solution[:, 1:]
+
+    with pytest.raises(ValueError):
+        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, measmod2))
