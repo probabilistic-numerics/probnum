@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://probnum.readthedocs.io"><img align="center" src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/img/probnum_logo_text_below.svg" alt="probabilistic numerics" width="400" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics in Python"/>
+    <a href="https://probnum.readthedocs.io"><img align="center" src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/img/probnum_logo_dark_txtbelow.svg" alt="probabilistic numerics" width="400" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics in Python"/>
 </a>
     <h3 align="center">Learn to Approximate. Approximate to Learn.</h3>
     <p align="center">
