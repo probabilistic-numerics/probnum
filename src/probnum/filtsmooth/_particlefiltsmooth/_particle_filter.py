@@ -43,12 +43,10 @@ class ParticleFilter(BayesFiltSmooth):
 
     Parameters
     ----------
-    dynamics_model :
-        Prior dynamics. Since the PF is essentially a discrete-time algorithm,
-        the prior must be a discrete model (or at least one with an equivalent discretisation).
-        This transition must support `forward_realization`.
-    initrv :
-        Initial random variable. Can be any `RandomVariable` object that implements `sample()`.
+    prior_process :
+        Prior Gauss-Markov process.
+    importance_distribution :
+        Importance distribution.
     num_particles :
         Number of particles to use.
     with_resampling :
@@ -160,9 +158,8 @@ class ParticleFilter(BayesFiltSmooth):
         initarg = self.prior_process.initarg
         t_old = self.prior_process.initarg
 
-        particles = np.nan * np.ones(
-            (self.num_particles,) + self.prior_process.initrv.shape
-        )
+        particle_set_shape = (self.num_particles,) + self.prior_process.initrv.shape
+        particles = np.nan * np.ones(particle_set_shape)
         weights = np.ones(self.num_particles) / self.num_particles
 
         for t, data, measmod in zip(times, dataset, measurement_model):
@@ -171,32 +168,18 @@ class ParticleFilter(BayesFiltSmooth):
             new_particles = particles.copy()
             new_weights = weights.copy()
 
-            # Initialization: no .generate_importance_rv, but .process_initrv_with_data...
+            # Capture the inputs in a variable for more compact code layout
+            inputs = measmod, particles, weights, data, t_old, dt, t
             if t == initarg:
-                particle_generator = self.importance_rv_generator_initial_time(
-                    measmod,
-                    particles,
-                    weights,
-                    data,
-                    t_old,
-                    dt,
-                    t,
-                )
+                particle_generator = self.importance_rv_generator_initial_time(*inputs)
             else:
-                particle_generator = self.importance_rv_generator(
-                    measmod,
-                    particles,
-                    weights,
-                    data,
-                    t_old,
-                    dt,
-                    t,
-                )
+                particle_generator = self.importance_rv_generator(*inputs)
 
             for idx, (importance_rv, dynamics_rv, p, w) in enumerate(
                 particle_generator
             ):
 
+                # Importance sampling step
                 new_particle = importance_rv.sample()
                 meas_rv, _ = measmod.forward_realization(new_particle, t=t)
                 loglikelihood = meas_rv.logpdf(data)
@@ -220,10 +203,8 @@ class ParticleFilter(BayesFiltSmooth):
             )
 
             if self.with_resampling:
-                if (
-                    effective_number_of_events(new_rv)
-                    < self.min_effective_num_of_particles
-                ):
+                N = effective_number_of_events(new_rv)
+                if N < self.min_effective_num_of_particles:
                     new_rv = new_rv.resample()
             yield new_rv, {}
 
@@ -242,7 +223,7 @@ class ParticleFilter(BayesFiltSmooth):
             self.prior_process.initrv, data, t, measurement_model=measmod
         )
         importance_rv, dynamics_rv, _ = processed
-        for (p, w) in zip(particles, weights):
+        for p, w in zip(particles, weights):
             yield importance_rv, dynamics_rv, p, w
 
     def importance_rv_generator(
@@ -256,14 +237,12 @@ class ParticleFilter(BayesFiltSmooth):
         t,
     ):
 
-        for (p, w) in zip(particles, weights):
-            (
-                importance_rv,
-                dynamics_rv,
-                _,
-            ) = self.importance_distribution.generate_importance_rv(
+        for p, w in zip(particles, weights):
+            output = self.importance_distribution.generate_importance_rv(
                 p, data, t_old, dt, measurement_model=measmod
             )
+
+            importance_rv, dynamics_rv, _ = output
             yield importance_rv, dynamics_rv, p, w
 
     @property

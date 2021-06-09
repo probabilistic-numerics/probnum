@@ -18,6 +18,8 @@ __all__ = [
 
 
 class ImportanceDistribution(abc.ABC):
+    """Importance distributions used in particle filtering."""
+
     def __init__(self, dynamics_model):
         self.dynamics_model = dynamics_model
 
@@ -25,15 +27,14 @@ class ImportanceDistribution(abc.ABC):
     def generate_importance_rv(
         self, particle, data, t, dt=None, measurement_model=None
     ) -> Tuple[RandomVariable, RandomVariable, Dict]:
-        """Apply the importance distribution."""
+        """Generate an importance distribution."""
         raise NotImplementedError
 
     @abc.abstractmethod
     def process_initrv_with_data(
         self, initrv, data, t, measurement_model=None
     ) -> Tuple[RandomVariable, RandomVariable, Dict]:
-        """Process the initial random variable if the initarg is the location of the
-        first data point."""
+        """Process the initial random variable based on data."""
         raise NotImplementedError
 
     def log_correction_factor(
