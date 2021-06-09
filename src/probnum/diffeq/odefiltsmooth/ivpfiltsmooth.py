@@ -137,20 +137,18 @@ class GaussianIVPFilter(ODESolver):
         prior_process,
         measurement_model,
         with_smoothing,
-        initrv=None,
         init_h0=0.01,
         init_method="DOP853",
     ):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_rk`."""
 
-        def init_implementation(f, y0, t0, prior, initrv, df=None):
+        def init_implementation(f, y0, t0, prior_process, df=None):
             return initialize_odefilter_with_rk(
                 f=f,
                 y0=y0,
                 t0=t0,
-                prior=prior,
-                initrv=initrv,
+                prior_process=prior_process,
                 df=df,
                 h0=init_h0,
                 method=init_method,
@@ -166,7 +164,7 @@ class GaussianIVPFilter(ODESolver):
 
     @classmethod
     def construct_with_taylormode_init(
-        cls, ivp, prior_process, measurement_model, with_smoothing, initrv=None
+        cls, ivp, prior_process, measurement_model, with_smoothing
     ):
         """Create a Gaussian IVP filter that is initialised via
         :func:`initialize_odefilter_with_taylormode`."""
@@ -183,8 +181,7 @@ class GaussianIVPFilter(ODESolver):
             self.ivp.rhs,
             self.ivp.initrv.mean,
             self.ivp.t0,
-            self.prior_process.transition,
-            self.prior_process.initrv,
+            self.prior_process,
             self.ivp._jac,
         )
 

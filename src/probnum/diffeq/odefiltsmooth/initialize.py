@@ -90,7 +90,7 @@ def initialize_odefilter_with_rk(
     proj_to_y = prior_process.transition.proj2coord(coord=0)
     zeros_shift = np.zeros(ode_dim)
     zeros_cov = np.zeros((ode_dim, ode_dim))
-    measmod = statespace.DiscreteLTIGaussian(
+    measmod_scipy = statespace.DiscreteLTIGaussian(
         proj_to_y,
         zeros_shift,
         zeros_cov,
@@ -114,11 +114,41 @@ def initialize_odefilter_with_rk(
     )
 
     ts = sol.t[:num_steps]
-    ys = sol.y[:, :num_steps].T
+    ys = list(sol.y[:, :num_steps].T)
+
+    proj_to_dy = prior_process.transition.proj2coord(coord=1)
+    if df is not None:
+        proj_to_ddy = prior_process.transition.proj2coord(coord=2)
+        zeros_shift = np.zeros(3 * ode_dim)
+        zeros_cov = np.zeros((3 * ode_dim, 3 * ode_dim))
+        measmod_initcond = statespace.DiscreteLTIGaussian(
+            np.vstack((proj_to_y, proj_to_dy, proj_to_ddy)),
+            zeros_shift,
+            zeros_cov,
+            proc_noise_cov_cholesky=zeros_cov,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
+        ys[0] = np.hstack((y0, f(t0, y0), df(t0, y0) @ f(t0, y0)))
+
+    else:
+        zeros_shift = np.zeros(2 * ode_dim)
+        zeros_cov = np.zeros((2 * ode_dim, 2 * ode_dim))
+        measmod_initcond = statespace.DiscreteLTIGaussian(
+            np.vstack((proj_to_y, proj_to_dy)),
+            zeros_shift,
+            zeros_cov,
+            proc_noise_cov_cholesky=zeros_cov,
+            forward_implementation="sqrt",
+            backward_implementation="sqrt",
+        )
+        ys[0] = np.hstack((y0, f(t0, y0)))
+
+    measmod_list = [measmod_initcond] + [measmod_scipy] * (len(ts) - 1)
     regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
 
     kalman = filtsmooth.Kalman(prior_process)
-    out, _ = kalman.filtsmooth(regression_problem, measmod)
+    out, _ = kalman.filtsmooth(regression_problem, measmod_list)
 
     estimated_initrv = out.states[0]
     return estimated_initrv

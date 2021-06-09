@@ -57,7 +57,11 @@ def test_initialize_with_rk(lv, lv_inits, order):
         forward_implementation="sqrt",
         backward_implementation="sqrt",
     )
-    initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
+    initrv = randvars.Normal(
+        np.zeros(prior.dimension),
+        np.eye(prior.dimension),
+        cov_cholesky=np.eye(prior.dimension),
+    )
     prior_process = randprocs.MarkovProcess(
         transition=prior, initrv=initrv, initarg=lv.t0
     )
@@ -73,9 +77,9 @@ def test_initialize_with_rk(lv, lv_inits, order):
     # Extract the relevant values
     expected = lv_inits
 
-    # The higher derivatives will have absolute difference ~36%
+    # The higher derivatives will have absolute difference ~8%
     # if things work out correctly
-    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.4)
+    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.25)
     assert np.linalg.norm(received_rv.std) > 0
 
 
