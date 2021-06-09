@@ -19,7 +19,9 @@ def test_effective_number_of_events():
 #####################################
 
 # Measmod style checks bootstrap and Gaussian proposals.
-all_importance_distributions = pytest.mark.parametrize("measmod_style", ["ukf", "none"])
+all_importance_distributions = pytest.mark.parametrize(
+    "measmod_style", ["ukf", "ekf", "none"]
+)
 
 # Resampling percentage threshold checks that
 # resampling is performed a) never, b) sometimes, c) always
@@ -43,30 +45,30 @@ def particle_filter_setup(
     problem, num_particles, measmod_style, resampling_percentage_threshold
 ):
     _, statespace_components = problem
-    if measmod_style == "ukf":
-        linearized_measmod = filtsmooth.DiscreteUKFComponent(
-            statespace_components["measurement_model"]
+    if measmod_style == "ekf":
+        importance_distribution = (
+            filtsmooth.LinearizationImportanceDistribution.from_ukf(
+                statespace_components["dynamics_model"]
+            )
         )
-        importance_distribution = filtsmooth.LinearizationImportanceDistribution(
-            statespace_components["dynamics_model"]
+    elif measmod_style == "ukf":
+        importance_distribution = (
+            filtsmooth.LinearizationImportanceDistribution.from_ekf(
+                statespace_components["dynamics_model"]
+            )
         )
     else:
-        linearized_measmod = None
         importance_distribution = filtsmooth.BootstrapImportanceDistribution(
             statespace_components["dynamics_model"]
         )
 
     particle = filtsmooth.ParticleFilter(
         statespace_components["prior_process"],
+        importance_distribution=importance_distribution,
         num_particles=num_particles,
         resampling_percentage_threshold=resampling_percentage_threshold,
     )
-    return (
-        particle,
-        statespace_components["measurement_model"],
-        linearized_measmod,
-        importance_distribution,
-    )
+    return (particle, statespace_components["measurement_model"])
 
 
 @pytest.fixture()
@@ -80,25 +82,15 @@ def regression_problem(problem):
 @all_importance_distributions
 @all_resampling_configurations
 def test_random_state(particle_filter_setup):
-    particle_filter, *_ = particle_filter_setup
+    particle_filter, _ = particle_filter_setup
     initrv = particle_filter.prior_process.initrv
     assert initrv.random_state == particle_filter.random_state
 
 
 @pytest.fixture
 def pf_output(particle_filter_setup, regression_problem):
-    (
-        particle_filter,
-        measmod,
-        linearized_measmod,
-        importance_dist,
-    ) = particle_filter_setup
-    posterior, _ = particle_filter.filter(
-        regression_problem,
-        measmod,
-        importance_distribution=importance_dist,
-        linearized_measurement_model=linearized_measmod,
-    )
+    particle_filter, measmod = particle_filter_setup
+    posterior, _ = particle_filter.filter(regression_problem, measmod)
     return posterior
 
 

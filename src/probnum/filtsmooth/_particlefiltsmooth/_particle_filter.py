@@ -117,12 +117,7 @@ class ParticleFilter(BayesFiltSmooth):
         filtered_rvs = []
         info_dicts = []
 
-        for rv, info in self.filter_generator(
-            regression_problem,
-            measurement_model,
-            importance_distribution,
-            linearized_measurement_model,
-        ):
+        for rv, info in self.filter_generator(regression_problem, measurement_model):
             filtered_rvs.append(rv)
             info_dicts.append(info)
 
@@ -196,7 +191,6 @@ class ParticleFilter(BayesFiltSmooth):
             # Initialization: no .apply, but .process_initrv_with_data...
             if t == initarg:
                 particle_generator = self.importance_rv_generator_initial(
-                    importance_distribution,
                     measmod,
                     particles,
                     weights,
@@ -207,7 +201,6 @@ class ParticleFilter(BayesFiltSmooth):
                 )
             else:
                 particle_generator = self.importance_rv_generator_later(
-                    importance_distribution,
                     measmod,
                     particles,
                     weights,
@@ -224,11 +217,13 @@ class ParticleFilter(BayesFiltSmooth):
                 new_particle = importance_rv.sample()
                 meas_rv, _ = measmod.forward_realization(new_particle, t=t)
                 loglikelihood = meas_rv.logpdf(data)
-                log_correction_factor = importance_distribution.log_correction_factor(
-                    proposal_state=new_particle,
-                    importance_rv=importance_rv,
-                    dynamics_rv=dynamics_rv,
-                    old_weight=w,
+                log_correction_factor = (
+                    self.importance_distribution.log_correction_factor(
+                        proposal_state=new_particle,
+                        importance_rv=importance_rv,
+                        dynamics_rv=dynamics_rv,
+                        old_weight=w,
+                    )
                 )
                 new_weight = np.exp(loglikelihood + log_correction_factor)
 
@@ -251,7 +246,6 @@ class ParticleFilter(BayesFiltSmooth):
 
     def importance_rv_generator_initial(
         self,
-        importance_distribution,
         measmod,
         particles,
         weights,
@@ -261,7 +255,7 @@ class ParticleFilter(BayesFiltSmooth):
         t,
     ):
 
-        processed = importance_distribution.process_initrv_with_data(
+        processed = self.importance_distribution.process_initrv_with_data(
             self.prior_process.initrv, data, t, measurement_model=measmod
         )
         importance_rv, dynamics_rv, _ = processed
@@ -270,7 +264,6 @@ class ParticleFilter(BayesFiltSmooth):
 
     def importance_rv_generator_later(
         self,
-        importance_distribution,
         measmod,
         particles,
         weights,
@@ -281,7 +274,7 @@ class ParticleFilter(BayesFiltSmooth):
     ):
 
         for (p, w) in zip(particles, weights):
-            importance_rv, dynamics_rv, _ = importance_distribution.apply(
+            importance_rv, dynamics_rv, _ = self.importance_distribution.apply(
                 p, data, t_old, dt, measurement_model=measmod
             )
             yield importance_rv, dynamics_rv, p, w
