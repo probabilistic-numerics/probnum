@@ -35,7 +35,7 @@ def lv():
     y0 = randvars.Constant(np.array([20.0, 20.0]))
 
     # tmax is ignored anyway
-    return pnde.lotkavolterra([0.0, np.inf], y0)
+    return diffeq.lotkavolterra([0.0, np.inf], y0)
 
 
 @pytest.fixture
