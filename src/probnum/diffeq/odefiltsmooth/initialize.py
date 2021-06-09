@@ -79,9 +79,9 @@ def initialize_odefilter_with_rk(
     >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(np.round(improved_initrv.mean, 1))
-    [    2.     -0.     -1.9    43.5     0.     -2.     57.8 -1306.5]
+    [    2.      0.     -2.     58.2     0.     -2.     60.  -1745.7]
     >>> print(np.round(np.log10(improved_initrv.std), 1))
-    [-13.8  -5.8  -3.3  -1.  -13.8  -5.8  -3.3  -1. ]
+    [-13.8 -11.3  -9.   -1.5 -13.8 -11.3  -9.   -1.5]
     """
     y0 = np.asarray(y0)
     ode_dim = y0.shape[0] if y0.ndim > 0 else 1
@@ -117,7 +117,7 @@ def initialize_odefilter_with_rk(
     ys = list(sol.y[:, :num_steps].T)
 
     proj_to_dy = prior_process.transition.proj2coord(coord=1)
-    if df is not None:
+    if df is not None and order > 1:
         proj_to_ddy = prior_process.transition.proj2coord(coord=2)
         zeros_shift = np.zeros(3 * ode_dim)
         zeros_cov = np.zeros((3 * ode_dim, 3 * ode_dim))
