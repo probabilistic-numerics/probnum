@@ -71,7 +71,7 @@ typehints_document_rtype = True
 source_suffix = [".rst", ".md", ".ipynb"]
 
 # The master toctree document.
-master_doc = "index"
+master_doc = "contents"
 
 # General information about the project.
 project = "probnum"
@@ -177,6 +177,8 @@ html_css_files = ["custom.css", "probnum-style.css"]
 #     app.add_css_file("probnum-style.css")  # also can be a full URL
 #     # app.add_css_file("ANOTHER.css")
 
+# Additional pages generated from .html files
+html_additional_pages = {"index": "index.html"}
 
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {
