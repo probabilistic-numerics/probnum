@@ -40,10 +40,8 @@ def initialize_odefilter_with_rk(
         Initial value.
     t0
         Initial time point.
-    prior
-        Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
-    initrv
-        Initial random variable.
+    prior_process
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
     df
         Jacobian of the ODE vector field. Optional. If specified, more components of the result will be exact.
     h0
@@ -172,10 +170,8 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
         Initial value.
     t0
         Initial time point.
-    prior
-        Prior distribution used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
-    initrv
-        Initial random variable.
+    prior_process
+        Prior Gauss-Markov process used for the ODE solver. For instance an integrated Brownian motion prior (``IBM``).
 
     Returns
     -------
