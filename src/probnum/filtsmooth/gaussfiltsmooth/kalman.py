@@ -2,6 +2,7 @@
 
 
 import itertools
+import warnings
 from collections import abc
 from typing import Iterable, Optional, Union
 
@@ -283,6 +284,12 @@ class Kalman(BayesFiltSmooth):
         if not isinstance(measurement_model, abc.Iterable):
             measurement_model = itertools.repeat(measurement_model, len(times))
 
+        # It is not clear at the moment how to implement this cleanly.
+        if not np.all(np.diff(times) > 0):
+            raise ValueError(
+                "Gaussian filtering cannot handle repeating time points currently."
+            )
+
         # Initialise
         t_old = self.prior_process.initarg
         curr_rv = self.prior_process.initrv
@@ -296,7 +303,7 @@ class Kalman(BayesFiltSmooth):
                     "The lengths of the dataset, times and"
                     "measurement models are inconsistent."
                 )
-                raise ValueError(errormsg)
+                warnings.warn(errormsg)
 
             dt = t - t_old
             info_dict = {}
@@ -306,12 +313,10 @@ class Kalman(BayesFiltSmooth):
                 linearise_predict_at = (
                     None if _previous_posterior is None else _previous_posterior(t_old)
                 )
-                (
-                    curr_rv,
-                    info_dict["predict_info"],
-                ) = self.prior_process.transition.forward_rv(
+                output = self.prior_process.transition.forward_rv(
                     curr_rv, t, dt=dt, _linearise_at=linearise_predict_at
                 )
+                curr_rv, info_dict["predict_info"] = output
 
             # Update (even if there is no increment)
             linearise_update_at = (
