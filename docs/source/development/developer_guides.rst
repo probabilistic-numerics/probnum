@@ -1,5 +1,5 @@
-Developer Guides
-=======================
+Detailed Developer Guides
+=========================
 
 Do you want to join the ProbNum development effort, but are unsure how? The developer guides below give step-by-step
 instructions on how to contribute in different ways. All additions to ProbNum are made via a pull request to the
