@@ -22,7 +22,7 @@ class ImportanceDistribution(abc.ABC):
         self.dynamics_model = dynamics_model
 
     @abc.abstractmethod
-    def apply(
+    def generate_importance_rv(
         self, particle, data, t, dt=None, measurement_model=None
     ) -> Tuple[RandomVariable, RandomVariable, Dict]:
         """Apply the importance distribution."""
@@ -49,7 +49,9 @@ class ImportanceDistribution(abc.ABC):
 class BootstrapImportanceDistribution(ImportanceDistribution):
     """Bootstrap particle filter importance distribution."""
 
-    def apply(self, particle, data, t, dt=None, measurement_model=None):
+    def generate_importance_rv(
+        self, particle, data, t, dt=None, measurement_model=None
+    ):
         dynamics_rv, info = self.dynamics_model.forward_realization(
             realization=particle, t=t, dt=dt
         )
@@ -108,7 +110,9 @@ class LinearizationImportanceDistribution(ImportanceDistribution):
             dynamics_model=dynamics_model, linearization_strategy=linearization_strategy
         )
 
-    def apply(self, particle, data, t, dt=None, measurement_model=None):
+    def generate_importance_rv(
+        self, particle, data, t, dt=None, measurement_model=None
+    ):
 
         if measurement_model is None:
             raise ValueError(

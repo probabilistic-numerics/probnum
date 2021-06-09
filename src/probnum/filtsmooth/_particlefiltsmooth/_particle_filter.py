@@ -188,7 +188,7 @@ class ParticleFilter(BayesFiltSmooth):
             new_particles = particles.copy()
             new_weights = weights.copy()
 
-            # Initialization: no .apply, but .process_initrv_with_data...
+            # Initialization: no .generate_importance_rv, but .process_initrv_with_data...
             if t == initarg:
                 particle_generator = self.importance_rv_generator_initial(
                     measmod,
@@ -274,7 +274,11 @@ class ParticleFilter(BayesFiltSmooth):
     ):
 
         for (p, w) in zip(particles, weights):
-            importance_rv, dynamics_rv, _ = self.importance_distribution.apply(
+            (
+                importance_rv,
+                dynamics_rv,
+                _,
+            ) = self.importance_distribution.generate_importance_rv(
                 p, data, t_old, dt, measurement_model=measmod
             )
             yield importance_rv, dynamics_rv, p, w
