@@ -1,9 +1,8 @@
 """Particle filters."""
 
 import itertools
-import warnings
 from collections import abc
-from typing import Iterable, Optional, Union
+from typing import Iterable, Union
 
 import numpy as np
 
