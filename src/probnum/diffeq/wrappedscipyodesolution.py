@@ -3,7 +3,7 @@ import numpy as np
 from scipy.integrate._ivp.common import OdeSolution
 
 from probnum import _randomvariablelist, diffeq, randvars
-from probnum.filtsmooth.timeseriesposterior import (
+from probnum.filtsmooth._timeseriesposterior import (
     DenseOutputLocationArgType,
     DenseOutputValueType,
 )

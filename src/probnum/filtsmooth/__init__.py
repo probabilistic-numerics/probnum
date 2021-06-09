@@ -8,9 +8,7 @@ smoothing takes the entire set of observations into account.
 """
 
 from ._bayesfiltsmooth import BayesFiltSmooth
-from ._timeseriesposterior import TimeSeriesPosterior
-from ._utils import merge_regression_problems
-from .gaussfiltsmooth import (
+from ._gaussfiltsmooth import (
     ContinuousEKFComponent,
     ContinuousUKFComponent,
     DiscreteEKFComponent,
@@ -25,7 +23,7 @@ from .gaussfiltsmooth import (
     UKFComponent,
     UnscentedTransform,
 )
-from .particlefiltsmooth import (
+from ._particlefiltsmooth import (
     BootstrapImportanceDistribution,
     ImportanceDistribution,
     LinearizationImportanceDistribution,
@@ -33,6 +31,8 @@ from .particlefiltsmooth import (
     ParticleFilterPosterior,
     effective_number_of_events,
 )
+from ._timeseriesposterior import TimeSeriesPosterior
+from ._utils import merge_regression_problems
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
