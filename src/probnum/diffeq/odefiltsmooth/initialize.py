@@ -14,7 +14,7 @@ SMALL_VALUE = 1e-28
 
 
 def initialize_odefilter_with_rk(
-    f, y0, t0, prior, initrv, df=None, h0=1e-2, method="DOP853"
+    f, y0, t0, prior_process, df=None, h0=1e-2, method="DOP853"
 ):
     r"""Initialize an ODE filter by fitting the prior process to a few steps of an approximate ODE solution computed with Scipy's RK.
 
@@ -83,8 +83,8 @@ def initialize_odefilter_with_rk(
     """
     y0 = np.asarray(y0)
     ode_dim = y0.shape[0] if y0.ndim > 0 else 1
-    order = prior.ordint
-    proj_to_y = prior.proj2coord(0)
+    order = prior_process.transition.ordint
+    proj_to_y = prior_process.transition.proj2coord(0)
     zeros_shift = np.zeros(ode_dim)
     zeros_cov = np.zeros((ode_dim, ode_dim))
     measmod = statespace.DiscreteLTIGaussian(
@@ -113,25 +113,6 @@ def initialize_odefilter_with_rk(
     ts = sol.t[:num_steps]
     ys = sol.y[:, :num_steps].T
 
-    initmean = initrv.mean.copy()
-    initmean[0 :: (order + 1)] = y0
-    initmean[1 :: (order + 1)] = f(t0, y0)
-
-    initcov_diag = np.diag(initrv.cov).copy()
-    initcov_diag[0 :: (order + 1)] = SMALL_VALUE
-    initcov_diag[1 :: (order + 1)] = SMALL_VALUE
-
-    if df is not None:
-        if order > 1:
-            initmean[2 :: (order + 1)] = df(t0, y0) @ f(t0, y0)
-            initcov_diag[2 :: (order + 1)] = SMALL_VALUE
-
-    initcov = np.diag(initcov_diag)
-    initcov_cholesky = np.diag(np.sqrt(initcov_diag))
-    initrv = randvars.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
-    prior_process = randprocs.MarkovProcess(
-        transition=prior, initrv=initrv, initarg=ts[0]
-    )
     kalman = filtsmooth.Kalman(prior_process)
 
     regression_problem = problems.RegressionProblem(observations=ys, locations=ts)

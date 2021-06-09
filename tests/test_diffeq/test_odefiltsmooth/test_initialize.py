@@ -3,7 +3,7 @@ import pytest
 
 import probnum.diffeq as pnde
 import probnum.problems.zoo.diffeq as diffeq_zoo
-from probnum import randvars, statespace
+from probnum import randprocs, randvars, statespace
 
 from ._known_initial_derivatives import LV_INITS, THREEBODY_INITS
 
@@ -58,12 +58,14 @@ def test_initialize_with_rk(lv, lv_inits, order):
         backward_implementation="sqrt",
     )
     initrv = randvars.Normal(np.zeros(prior.dimension), np.eye(prior.dimension))
+    prior_process = randprocs.MarkovProcess(
+        transition=prior, initrv=initrv, initarg=lv.t0
+    )
     received_rv = pnde.initialize_odefilter_with_rk(
         lv.rhs,
         lv.initrv.mean,
         lv.t0,
-        prior=prior,
-        initrv=initrv,
+        prior_process=prior_process,
         df=lv.jacobian,
         h0=1e-1,
         method="RK45",
@@ -73,7 +75,7 @@ def test_initialize_with_rk(lv, lv_inits, order):
 
     # The higher derivatives will have absolute difference ~8%
     # if things work out correctly
-    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.25)
+    np.testing.assert_allclose(received_rv.mean, expected, rtol=0.4)
     assert np.linalg.norm(received_rv.std) > 0
 
 
