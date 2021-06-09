@@ -35,7 +35,8 @@ def merge_regression_problems(
 
     Returns
     -------
-    Tuple of a RegressionProblem and an array of Transitions that merges locations, data, and measmods of both problems. The output is sorted according to the locations.
+    merged_problem_and_likelihood : Tuple[problems.RegressionProblem, np.ndarray]
+        Tuple of a RegressionProblem and an array of Transitions that merges locations, data, and measmods of both problems. The output is sorted according to the locations.
 
     Note
     ----
