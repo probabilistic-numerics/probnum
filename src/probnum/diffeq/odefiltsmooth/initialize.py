@@ -79,9 +79,9 @@ def initialize_odefilter_with_rk(
     >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(np.round(improved_initrv.mean, 1))
-    [    2.      0.     -2.     58.2     0.     -2.     60.  -1745.7]
+    [    2.     -0.     -1.9    43.5     0.     -2.     57.8 -1306.5]
     >>> print(np.round(np.log10(improved_initrv.std), 1))
-    [-13.8 -11.3  -9.   -1.5 -13.8 -11.3  -9.   -1.5]
+    [-13.8  -5.8  -3.3  -1.  -13.8  -5.8  -3.3  -1. ]
     """
     y0 = np.asarray(y0)
     ode_dim = y0.shape[0] if y0.ndim > 0 else 1
@@ -168,6 +168,7 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     >>> from probnum.randvars import Normal
     >>> from probnum.problems.zoo.diffeq import threebody_jax, vanderpol_jax
     >>> from probnum.statespace import IBM
+    >>> from probnum.randprocs import MarkovProcess
 
     Compute the initial values of the restricted three-body problem as follows
 
@@ -177,8 +178,9 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
 
     >>> prior = IBM(ordint=3, spatialdim=4)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv)
-    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
+    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [ 0.994       0.          0.         -2.00158511]
     >>> print(improved_initrv.mean)
     [ 9.94000000e-01  0.00000000e+00 -3.15543023e+02  0.00000000e+00
@@ -193,8 +195,9 @@ def initialize_odefilter_with_taylormode(f, y0, t0, prior_process):
     [2. 0.]
     >>> prior = IBM(ordint=3, spatialdim=2)
     >>> initrv = Normal(mean=np.zeros(prior.dimension), cov=np.eye(prior.dimension))
-    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior, initrv)
-    >>> print(prior.proj2coord(0) @ improved_initrv.mean)
+    >>> prior_process = MarkovProcess(transition=prior, initrv=initrv, initarg=t0)
+    >>> improved_initrv = initialize_odefilter_with_taylormode(f, y0, t0, prior_process=prior_process)
+    >>> print(prior_process.transition.proj2coord(0) @ improved_initrv.mean)
     [2. 0.]
     >>> print(improved_initrv.mean)
     [    2.     0.    -2.    60.     0.    -2.    60. -1798.]
