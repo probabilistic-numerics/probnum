@@ -53,37 +53,56 @@ def test_merge_regression_problems(car_tracking1, car_tracking2):
     assert new_models.shape == (N,)
 
 
-def test_merge_raises_type_error(car_tracking1, car_tracking2):
+def test_merge_raises_type_error_first_input(car_tracking1, car_tracking2):
+    """Assert that a number of non-array types for measurement models are rejected."""
     prob1, info1 = car_tracking1
     prob2, info2 = car_tracking2
 
-    # Single models are rejected
+    good_input = np.tile([info1["measurement_model"]], reps=len(prob1.locations))
+
+    # Single models are rejected (1st input)
     with pytest.raises(TypeError):
         measmod1 = info1["measurement_model"]
-        measmod2 = info2["measurement_model"]
-        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, measmod2))
+        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, good_input))
 
-    # Lists are rejected
+    # Single models are rejected (2nd input)
+    with pytest.raises(TypeError):
+        measmod2 = info2["measurement_model"]
+        filtsmooth.merge_regression_problems((prob1, good_input), (prob2, measmod2))
+
+    # Lists are rejected (1st input)
     with pytest.raises(TypeError):
         measmod1 = [info1["measurement_model"]] * len(prob1.locations)
-        measmod2 = [info2["measurement_model"]] * len(prob2.locations)
-        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, measmod2))
+        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, good_input))
 
-    # Tuples are rejected
+    # Lists are rejected (2nd input)
+    with pytest.raises(TypeError):
+        measmod2 = [info1["measurement_model"]] * len(prob2.locations)
+        filtsmooth.merge_regression_problems((prob1, good_input), (prob2, measmod2))
+
+    # Tuples are rejected (1st input)
     with pytest.raises(TypeError):
         measmod1 = (info1["measurement_model"]) * len(prob1.locations)
+        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, good_input))
+
+    # Tuples are rejected (2nd input)
+    with pytest.raises(TypeError):
         measmod2 = (info2["measurement_model"]) * len(prob2.locations)
-        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, measmod2))
+        filtsmooth.merge_regression_problems((prob1, good_input), (prob2, measmod2))
 
     # Generators are rejected
     with pytest.raises(TypeError):
         measmod1 = itertools.repeat(info1["measurement_model"], n=len(prob1.locations))
+        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, good_input))
+
+    # Generators are rejected (2nd input)
+    with pytest.raises(TypeError):
         measmod2 = itertools.repeat(info2["measurement_model"], n=len(prob2.locations))
-        filtsmooth.merge_regression_problems((prob1, measmod1), (prob2, measmod2))
+        filtsmooth.merge_regression_problems((prob1, good_input), (prob2, measmod2))
 
 
 def test_merge_works_with_reduce(car_tracking1, car_tracking2, car_tracking3):
-
+    """Assert that the merge function is compatible with functools.reduce."""
     prob1, info1 = car_tracking1
     measmod1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
 
@@ -112,7 +131,7 @@ def test_merge_works_with_reduce(car_tracking1, car_tracking2, car_tracking3):
 
 
 def test_shared_locations_raise_error(car_tracking1):
-
+    """Assert that both problems are not allowed to share locations."""
     prob1, info1 = car_tracking1
     measmod1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
 

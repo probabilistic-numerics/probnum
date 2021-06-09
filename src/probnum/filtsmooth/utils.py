@@ -52,22 +52,6 @@ def merge_regression_problems(problem_and_likelihood1, problem_and_likelihood2):
     if not isinstance(measurement_models2, np.ndarray):
         raise TypeError(errormsg_type_measmods)
 
-    # The time arrays need to be disjoint, because this is what the Kalman and ParticleFilter
-    # require.
-    errormsg_locations_not_disjoint = (
-        "The locations in both regression problems need to be disjoint (as sets)."
-    )
-    if not np.all(
-        np.setdiff(regression_problem1.locations, regression_problem2.locations)
-        == regression_problem1.locations
-    ):
-        raise ValueError(errormsg_locations_not_disjoint)
-    if not np.all(
-        np.setdiff(regression_problem2.locations, regression_problem1.locations)
-        == regression_problem2.locations
-    ):
-        raise ValueError(errormsg_locations_not_disjoint)
-
     # Some shorthand improves readibility of the inserts below.
     locs1, data1, sol1 = (
         regression_problem1.locations,
