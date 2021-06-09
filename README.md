@@ -18,6 +18,8 @@ Currently, available solvers are:
 - ODE solvers: Solve *dy/dt = f(y(t), t)* for *y*.
 - Quadrature solvers: Solve *F = integral f(x) p(x) dx* for *F*.
 
+- <img src="https://latex.codecogs.com/gif.latex?\text {Linear solvers: Solve } Ax=b \text { for } x. " />
+
 Lower level structure includes:
 
 - Some efficient random variable arithmetics, especially for Gaussian distributions.
