@@ -168,7 +168,8 @@ def test_solutions_incompatible_dimensions(car_tracking1, car_tracking2):
 
 
 def test_solutions_not_available(car_tracking1, car_tracking2):
-
+    """As soon as ONE of the problems does not have a solution, the merged problem does
+    not have one."""
     prob1, info1 = car_tracking1
     measmod1 = np.asarray([info1["measurement_model"]] * len(prob1.locations))
     prob2, info2 = car_tracking2
