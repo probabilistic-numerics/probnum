@@ -72,10 +72,9 @@ class GaussianIVPFilter(ODESolver):
                 cov_cholesky=np.eye(prior.dimension),
             )
 
-        prior_process = randprocs.MarkovProcess(
+        self.prior_process = randprocs.MarkovProcess(
             transition=prior, initrv=initrv, initarg=ivp.t0
         )
-        self.gfilt = filtsmooth.Kalman(prior_process)
         self.measurement_model = measurement_model
 
         self.sigma_squared_mle = 1.0
@@ -195,8 +194,8 @@ class GaussianIVPFilter(ODESolver):
             self.ivp.rhs,
             self.ivp.initrv.mean,
             self.ivp.t0,
-            self.gfilt.prior_process.transition,
-            self.gfilt.prior_process.initrv,
+            self.prior_process.transition,
+            self.prior_process.initrv,
             self.ivp._jac,
         )
 
@@ -206,12 +205,12 @@ class GaussianIVPFilter(ODESolver):
         """Gaussian IVP filter step as nonlinear Kalman filtering with zero data."""
 
         # Read the diffusion matrix; required for calibration / error estimation
-        discrete_dynamics = self.gfilt.prior_process.transition.discretise(t_new - t)
+        discrete_dynamics = self.prior_process.transition.discretise(t_new - t)
         proc_noise_cov = discrete_dynamics.proc_noise_cov_mat
         proc_noise_cov_cholesky = discrete_dynamics.proc_noise_cov_cholesky
 
         # 1. Predict
-        pred_rv, _ = self.gfilt.prior_process.transition.forward_rv(
+        pred_rv, _ = self.prior_process.transition.forward_rv(
             rv=current_rv, t=t, dt=t_new - t
         )
 
@@ -224,7 +223,7 @@ class GaussianIVPFilter(ODESolver):
         self.sigma_squared_mle = self._estimate_diffusion(meas_rv)
 
         # 3.1. Adjust the prediction covariance to include the diffusion
-        pred_rv, _ = self.gfilt.prior_process.transition.forward_rv(
+        pred_rv, _ = self.prior_process.transition.forward_rv(
             rv=current_rv, t=t, dt=t_new - t, _diffusion=self.sigma_squared_mle
         )
 
@@ -254,7 +253,7 @@ class GaussianIVPFilter(ODESolver):
         """Create an ODESolution object."""
 
         kalman_posterior = filtsmooth.FilteringPosterior(
-            times, rvs, self.gfilt.prior_process.transition
+            times, rvs, self.prior_process.transition
         )
 
         return KalmanODESolution(kalman_posterior)
@@ -287,7 +286,9 @@ class GaussianIVPFilter(ODESolver):
         -------
         smoothed_solution: ODESolution
         """
-        smoothing_posterior = self.gfilt.smooth(ode_solution.kalman_posterior)
+        smoothing_posterior = filtsmooth.Kalman(self.prior_process).smooth(
+            ode_solution.kalman_posterior
+        )
         return KalmanODESolution(smoothing_posterior)
 
     def _estimate_local_error(
@@ -339,4 +340,4 @@ class GaussianIVPFilter(ODESolver):
 
     @property
     def prior(self):
-        return self.gfilt.prior_process.transition
+        return self.prior_process.transition
