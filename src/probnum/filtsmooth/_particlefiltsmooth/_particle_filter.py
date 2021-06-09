@@ -65,6 +65,7 @@ class ParticleFilter(BayesFiltSmooth):
         self,
         prior_process: randprocs.MarkovProcess,
         num_particles: IntArgType,
+        importance_distribution: ImportanceDistribution,
         with_resampling: bool = True,
         resampling_percentage_threshold: FloatArgType = 0.1,
     ) -> None:
@@ -72,6 +73,7 @@ class ParticleFilter(BayesFiltSmooth):
             prior_process=prior_process,
         )
         self.num_particles = num_particles
+        self.importance_distribution = importance_distribution
 
         self.with_resampling = with_resampling
         self.resampling_percentage_threshold = resampling_percentage_threshold
@@ -83,10 +85,6 @@ class ParticleFilter(BayesFiltSmooth):
         self,
         regression_problem: problems.RegressionProblem,
         measurement_model: ParticleFilterMeasurementModelArgType,
-        importance_distribution: ImportanceDistribution,
-        linearized_measurement_model: Optional[
-            ParticleFilterLinearisedMeasurementModelArgType
-        ] = None,
     ):
         """Apply particle filtering to a data set.
 
@@ -139,10 +137,6 @@ class ParticleFilter(BayesFiltSmooth):
         self,
         regression_problem: problems.RegressionProblem,
         measurement_model: ParticleFilterMeasurementModelArgType,
-        importance_distribution: ImportanceDistribution,
-        linearized_measurement_model: Optional[
-            ParticleFilterLinearisedMeasurementModelArgType
-        ] = None,
     ):
         """Apply Particle filtering to a data set.
 
@@ -175,19 +169,14 @@ class ParticleFilter(BayesFiltSmooth):
 
         dataset, times = regression_problem.observations, regression_problem.locations
 
-        # It is not clear to me at the moment how to handle this.
+        # It is not clear at the moment how to handle this.
         if not np.all(np.diff(times) > 0):
             raise ValueError(
                 "Particle filtering cannot handle repeating time points currently."
-                "Or, rather: if you know how, teach me."
             )
 
         if not isinstance(measurement_model, abc.Iterable):
             measurement_model = itertools.repeat(measurement_model, len(times))
-        if not isinstance(linearized_measurement_model, abc.Iterable):
-            linearized_measurement_model = itertools.repeat(
-                linearized_measurement_model, len(times)
-            )
 
         initarg = times[0]
         t_old = times[0]  # will be replaced by initarg soon.
@@ -198,36 +187,34 @@ class ParticleFilter(BayesFiltSmooth):
         )
         weights = np.ones(self.num_particles) / self.num_particles
 
-        for t, data, measmod, lin_measmod in zip(
-            times, dataset, measurement_model, linearized_measurement_model
-        ):
+        for t, data, measmod in zip(times, dataset, measurement_model):
 
             dt = t - t_old
             new_particles = particles.copy()
             new_weights = weights.copy()
 
-            # Initialization: no .apply, but .process_initrv_wiht_data...
+            # Initialization: no .apply, but .process_initrv_with_data...
             if t == initarg:
                 particle_generator = self.importance_rv_generator_initial(
                     importance_distribution,
+                    measmod,
                     particles,
                     weights,
                     data,
                     t_old,
                     dt,
                     t,
-                    lin_measmod,
                 )
             else:
                 particle_generator = self.importance_rv_generator_later(
                     importance_distribution,
+                    measmod,
                     particles,
                     weights,
                     data,
                     t_old,
                     dt,
                     t,
-                    lin_measmod,
                 )
 
             for idx, (importance_rv, dynamics_rv, p, w) in enumerate(
@@ -265,17 +252,17 @@ class ParticleFilter(BayesFiltSmooth):
     def importance_rv_generator_initial(
         self,
         importance_distribution,
+        measmod,
         particles,
         weights,
         data,
         t_old,
         dt,
         t,
-        lin_measmod,
     ):
 
         processed = importance_distribution.process_initrv_with_data(
-            self.prior_process.initrv, data, t, lin_measmod
+            self.prior_process.initrv, data, t, measurement_model=measmod
         )
         importance_rv, dynamics_rv, _ = processed
         for (p, w) in zip(particles, weights):
@@ -284,18 +271,18 @@ class ParticleFilter(BayesFiltSmooth):
     def importance_rv_generator_later(
         self,
         importance_distribution,
+        measmod,
         particles,
         weights,
         data,
         t_old,
         dt,
         t,
-        lin_measmod,
     ):
 
         for (p, w) in zip(particles, weights):
             importance_rv, dynamics_rv, _ = importance_distribution.apply(
-                p, data, t_old, dt, lin_measurement_model=lin_measmod
+                p, data, t_old, dt, measurement_model=measmod
             )
             yield importance_rv, dynamics_rv, p, w
 
