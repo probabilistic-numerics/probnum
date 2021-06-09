@@ -30,7 +30,7 @@ all_resampling_configurations = pytest.mark.parametrize(
 
 @pytest.fixture
 def num_particles():
-    return 10
+    return 20
 
 
 @pytest.fixture
@@ -133,4 +133,4 @@ def test_rmse_particlefilter(pf_output, regression_problem):
     ) / np.sqrt(true_states.size)
 
     # RMSE of PF.mode strictly better than RMSE of data
-    assert rmse_mode < 0.9 * rmse_data
+    assert rmse_mode < rmse_data
