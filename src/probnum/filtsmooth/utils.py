@@ -80,7 +80,8 @@ def merge_regression_problems(problem_and_likelihood1, problem_and_likelihood2):
     new_data[locs1_in_new_locs] = data1
     new_data[locs2_in_new_locs] = data2
 
-    # Merge solutions
+    # Merge solutions.
+    # The resulting problem will only have a solution of BOTH problems have one.
     if sol1 is not None and sol2 is not None:
         if not sol1.shape[1:] == sol2.shape[1:]:
             raise ValueError("The solution arrays have incompatible dimension.")
