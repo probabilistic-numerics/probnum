@@ -1,4 +1,12 @@
-# <a href="https://probnum.readthedocs.io"><img align="left" src="https://raw.githubusercontent.com/JonathanWenger/probnum/master/docs/source/img/probnum_logo_text_below.svg" alt="probabilistic numerics" width="64" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics in Python"/></a> ProbNum
+<p align="center">
+    <a href="https://probnum.readthedocs.io"><img align="center" src="https://raw.githubusercontent.com/JonathanWenger/probnum/new-website/docs/source/img/probnum_logo_text_below.svg" alt="probabilistic numerics" width="400" style="padding-right: 10px; padding left: 10px;" title="Probabilistic Numerics in Python"/>
+</a>
+    <h3 align="center">Learn to Approximate. Approximate to Learn.</h3>
+    <p align="center">
+        Probabilistic Numerics in Python.
+    </p>
+</p>
+
 [![CI build](https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?logo=github&logoColor=white&label=CI-build)](https://github.com/probabilistic-numerics/probnum/actions?query=workflow%3ACI-build)
 [![Coverage Status](https://img.shields.io/codecov/c/gh/probabilistic-numerics/probnum/master?label=Coverage&logo=codecov&logoColor=white)](https://codecov.io/gh/probabilistic-numerics/probnum/branch/master)
 [![Documentation](https://img.shields.io/readthedocs/probnum.svg?logo=read%20the%20docs&logoColor=white&label=Documentation)](https://probnum.readthedocs.io)
