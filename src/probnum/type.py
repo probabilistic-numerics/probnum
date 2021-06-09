@@ -63,3 +63,8 @@ RandomStateArgType = Union[None, int, np.random.RandomState, np.random.Generator
 """Type of a public API argument for supplying a random number generator. Values of this
 type should always be converted into :class:`RandomStateType` using the function
 :func:`probnum.utils.as_random_state` before further internal processing."""
+
+
+DenseOutputLocationArgType = Union[FloatArgType, np.ndarray]
+"""TimeSeriesPosteriors and derived classes can be evaluated at a single location 't'
+or an array of locations."""
