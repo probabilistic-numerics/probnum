@@ -14,70 +14,12 @@ uncertainty (the error) which inevitably arises from finite computational resour
 
 Currently, available solvers are:
 
-- Linear solver: Solve 
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <mi>A</mi>
-    <mi>x</mi>
-    <mo>=</mo>
-    <mi>b</mi>
-  </math>
-  for
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <mi>x</mi>
-  </math>.
-  
-- ODE solvers: Solve
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <mrow data-mjx-texclass="ORD">
-      <mover>
-        <mi>y</mi>
-        <mo>&#x2D9;</mo>
-      </mover>
-    </mrow>
-    <mo stretchy="false">(</mo>
-    <mi>t</mi>
-    <mo stretchy="false">)</mo>
-    <mo>=</mo>
-    <mi>f</mi>
-    <mo stretchy="false">(</mo>
-    <mi>y</mi>
-    <mo stretchy="false">(</mo>
-    <mi>t</mi>
-    <mo stretchy="false">)</mo>
-    <mo>,</mo>
-    <mi>t</mi>
-    <mo stretchy="false">)</mo>
-  </math>
-  for 
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <mi>y</mi>
-  </math>.
-  
-- Quadrature solvers: Solve 
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <mi>F</mi>
-    <mo>=</mo>
-    <msub>
-      <mo data-mjx-texclass="OP">&#x222B;</mo>
-      <mrow data-mjx-texclass="ORD">
-        <mi mathvariant="normal">&#x3A9;</mi>
-      </mrow>
-    </msub>
-    <mi>f</mi>
-    <mo stretchy="false">(</mo>
-    <mi>x</mi>
-    <mo stretchy="false">)</mo>
-    <mi>p</mi>
-    <mo stretchy="false">(</mo>
-    <mi>x</mi>
-    <mo stretchy="false">)</mo>
-    <mi>d</mi>
-    <mi>x</mi>
-  </math>  
-  for 
-  <math xmlns="http://www.w3.org/1998/Math/MathML">
-    <mi>F</mi>
-  </math>.
+
+- Linear solvers: Solve *Ax=b* for *x*.
+- ODE solvers: Solve *dy/dt = f(y(t), t)* for *y*.
+- Quadrature solvers: Solve *F = &#8747; &#x222b; f(x) p(x) dx* for *F*.
+
+ 
 
 Lower level structure includes:
 
