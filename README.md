@@ -19,6 +19,7 @@ Currently, available solvers are:
 - Quadrature solvers: Solve *F = integral f(x) p(x) dx* for *F*.
 
 - Linear solvers: Solve <img src="https://latex.codecogs.com/svg.image?Ax=b" /> for <img src="https://latex.codecogs.com/svg.image?x" /> .
+- Linear solvers: Solve <img src="https://latex.codecogs.com/png.image?\dpi{110}&space;Ax=b" title="Ax=b" /> for <img src="https://latex.codecogs.com/png.image?\dpi{110}&space;x" title="x" /> .
 
 Lower level structure includes:
 
