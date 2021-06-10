@@ -15,19 +15,19 @@ uncertainty (the error) which inevitably arises from finite computational resour
 Currently, available solvers are:
 
 
-- Linear solvers: Solve *Ax = b* for *x*.
-- ODE solvers: Solve *&#7823;(t) = f(&#8201;y(t), t&#8201;)* for *y*.
-- Quadrature solvers: Solve *F = &#x222b; f(x)&#8201;p(x)&#8201;dx* for *F*.
+- **Linear solvers:** Solve *Ax = b* for *x*.
+- **ODE solvers:** Solve *&#7823;(t) = f(&#8201;y(t), t&#8201;)* for *y*.
+- **Quadrature solvers:** Solve *F = &#x222b; f(x)&#8201;p(x)&#8201;dx* for *F*.
 
  
 
 Lower level structure includes:
 
-- Some efficient random variable arithmetics, especially for Gaussian distributions.
-- Structure for efficient computation with linear operators.
-- Structure for random processes (espcially Gauss-Markov processes).
-- Filters and smothers for probabilistic state space models, mostly variants of Kalman filters.  
-- Structure for probabilistic state space models.
+- Some efficient **random variable arithmetics**, especially for Gaussian distributions.
+- Structure for efficient computation with **linear operators**.
+- Structure for **random processes** (espcially Gauss-Markov processes).
+- **Filters and smothers** for probabilistic state space models, mostly variants of Kalman filters.  
+- Structure for **probabilistic state space models**.
 
 The ProbNum library is related to [Probabilistic numerics](http://probabilistic-numerics.org/) (PN) 
 which is a research field existing at the intersection of machine learning, and numerics.
