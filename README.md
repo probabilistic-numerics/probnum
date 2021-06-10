@@ -15,9 +15,9 @@ uncertainty (the error) which inevitably arises from finite computational resour
 Currently, available solvers are:
 
 
-- Linear solvers: Solve *Ax=b* for *x*.
-- ODE solvers: Solve *dy/dt = f(y(t), t)* for *y*.
-- Quadrature solvers: Solve *F = &#8747; &#x222b; f(x) p(x) dx* for *F*.
+- Linear solvers: Solve *Ax = b* for *x*.
+- ODE solvers: Solve *&#7823;(t) = f(&#8201;y(t), t&#8201;)* for *y*.
+- Quadrature solvers: Solve *F = &#x222b; f(x)&#8201;p(x)&#8201;dx* for *F*.
 
  
 
