@@ -12,25 +12,25 @@ uncertainty (the error) which certainly arises from finite computational resourc
 
 Currently, available solvers are:
 
-- Linear solvers: Solve :math:`Ax=b` for :math:`x`.
+- **Linear solvers:** Solve :math:`Ax=b` for :math:`x`.
 
-- ODE solvers: Solve :math:`\dot{y}(t)= f(y(t), t)` for :math:`y`.
+- **ODE solvers:** Solve :math:`\dot{y}(t)= f(y(t), t)` for :math:`y`.
 
-- Quadrature Solvers: solve :math:`F = \int_{\Omega} f(x) p(x) dx` for :math:`F`.
+- **Quadrature Solvers:** solve :math:`F = \int_{\Omega} f(x) p(x) dx` for :math:`F`.
 
 Lower level structure in ProbNum includes:
 
-- Some efficient random variable arithmetics, especially for Gaussian distributions.
+- Some efficient **random variable arithmetics**, especially for Gaussian distributions.
 
-- Structure for efficient computation with linear operators.
+- Structure for efficient computation with **linear operators**.
 
-- Structure for random processes (espcially Gauss-Markov processes).
+- Structure for **random processes** (especially Gauss-Markov processes).
 
-- Filters and smothers for probabilistic state space models, mostly variants of Kalman filters.
+- **Filters and smothers** for probabilistic state space models, mostly variants of Kalman filters.
 
-- Structure for probabilistic state space models.
+- Structure for **probabilistic state space models**.
 
-The ProbNum library is related to `Probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN)
+The ProbNum library is related to `probabilistic numerics <http://probabilistic-numerics.org/>`_ (PN)
 which is a research field existing at the intersection of machine learning, and numerics.
 PN aims to quantify uncertainty arising from intractable or incomplete numerical computation and from stochastic input
 using the tools of probability theory. The general vision of probabilistic numerics is to provide well-calibrated

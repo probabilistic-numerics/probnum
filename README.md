@@ -8,28 +8,25 @@
 
 ---
 
-ProbNum is a Python toolkit for solving numerical problems in linear algebra, optimization, quadrature and 
-differential equations. ProbNum solvers not only estimate the solution of the numerical problem, but also its 
-uncertainty (the error) which inevitably arises from finite computational resources, discretization, and stochastic input. 
+ProbNum is a Python toolkit for solving numerical problems in linear algebra, optimization, quadrature and
+differential equations. ProbNum solvers not only estimate the solution of the numerical problem, but also its
+uncertainty (the error) which certainly arises from finite computational resources, discretization, and stochastic input.
 
 Currently, available solvers are:
-
 
 - **Linear solvers:** Solve *Ax = b* for *x*.
 - **ODE solvers:** Solve *&#7823;(t) = f(&#8201;y(t), t&#8201;)* for *y*.
 - **Quadrature solvers:** Solve *F = &#x222b; f(x)&#8201;p(x)&#8201;dx* for *F*.
 
- 
-
 Lower level structure includes:
 
 - Some efficient **random variable arithmetics**, especially for Gaussian distributions.
 - Structure for efficient computation with **linear operators**.
-- Structure for **random processes** (espcially Gauss-Markov processes).
+- Structure for **random processes** (especially Gauss-Markov processes).
 - **Filters and smothers** for probabilistic state space models, mostly variants of Kalman filters.  
 - Structure for **probabilistic state space models**.
 
-The ProbNum library is related to [Probabilistic numerics](http://probabilistic-numerics.org/) (PN) 
+The ProbNum library is related to [probabilistic numerics](http://probabilistic-numerics.org/) (PN) 
 which is a research field existing at the intersection of machine learning, and numerics.
 PN aims to quantify uncertainty arising from intractable or incomplete numerical computation and from stochastic input 
 using the tools of probability theory. The general vision of probabilistic numerics is to provide well-calibrated 
@@ -50,7 +47,9 @@ pip install git+https://github.com/probabilistic-numerics/probnum.git
 
 ## Documentation and Examples
 For tips on getting started and how to use this package please refer to the
-[**documentation**](https://probnum.readthedocs.io). It contains a [quickstart guide](https://probnum.readthedocs.io/en/latest/introduction/quickstart.html) and Jupyter notebooks illustrating the basic usage of implemented probabilistic numerics routines.
+[**documentation**](https://probnum.readthedocs.io). It contains a 
+[quickstart guide](https://probnum.readthedocs.io/en/latest/introduction/quickstart.html) 
+and Jupyter notebooks illustrating the basic usage of the ProbNum solvers.
 
 ## Package Development
 This repository is currently under development and benefits from contribution to the code, examples or documentation.
