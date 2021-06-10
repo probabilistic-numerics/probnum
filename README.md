@@ -14,12 +14,16 @@ uncertainty (the error) which inevitably arises from finite computational resour
 
 Currently, available solvers are:
 
-- Linear solvers: Solve *Ax=b* for *x*.
-- ODE solvers: Solve *dy/dt = f(y(t), t)* for *y*.
-- Quadrature solvers: Solve *F = integral f(x) p(x) dx* for *F*.
+- Linear solvers: 
+  Solve ![image](docs/source/img/fomulas_readme/lin.svg) 
+  for ![image](docs/source/img/fomulas_readme/x.svg) .
+- ODE solvers: 
+  Solve ![image](docs/source/img/fomulas_readme/ode.svg) 
+  for ![image](docs/source/img/fomulas_readme/y.svg) .
+- Quadrature solvers: 
+  Solve ![image](docs/source/img/fomulas_readme/quad.svg) 
+  for ![image](docs/source/img/fomulas_readme/F.svg) .
 
-- Linear solvers: Solve <img src="https://latex.codecogs.com/svg.image?Ax=b" /> for <img src="https://latex.codecogs.com/svg.image?x" /> .
-- Linear solvers: Solve <img src="https://latex.codecogs.com/png.image?\dpi{110}&space;Ax=b" title="Ax=b" /> for <img src="https://latex.codecogs.com/png.image?\dpi{110}&space;x" title="x" /> .
 
 Lower level structure includes:
 
