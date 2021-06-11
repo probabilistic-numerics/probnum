@@ -36,7 +36,7 @@ class Kalman(BayesFiltSmooth):
         Prior Gauss-Markov process. Usually a :class:`MarkovProcess` with a :class:`Normal` initial random variable,
         and an LTISDE transition or an Integrator transition, but LinearSDE, ContinuousEKFComponent,
         or ContinuousUKFComponent are also valid. Describes a random process in :math:`K` dimensions.
-        If the transition is an integrator, `K=spatialdim(ordint+1)` for some spatialdim and ordint.
+        If the transition is an integrator, `K=spatialdim*(ordint+1)` for some spatialdim and ordint.
     """
 
     def iterated_filtsmooth(
@@ -285,7 +285,7 @@ class Kalman(BayesFiltSmooth):
         # It is not clear at the moment how to implement this cleanly.
         if not np.all(np.diff(times) > 0):
             raise ValueError(
-                "Gaussian filtering cannot handle repeating time points currently."
+                "Gaussian filtering expects sorted, non-repeating time points."
             )
 
         # Initialise
