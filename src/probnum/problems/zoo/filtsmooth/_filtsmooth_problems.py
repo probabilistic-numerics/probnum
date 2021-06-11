@@ -72,7 +72,7 @@ def car_tracking(
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
 
@@ -126,7 +126,7 @@ def car_tracking(
         initrv=initrv,
         times=time_grid,
     )
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
         locations=time_grid,
         measurement_models=measurement_model,
@@ -187,7 +187,7 @@ def ornstein_uhlenbeck(
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
 
@@ -228,7 +228,7 @@ def ornstein_uhlenbeck(
     states, obs = statespace.generate_samples(
         dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
     )
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
         locations=time_grid,
         measurement_models=measurement_model,
@@ -302,7 +302,7 @@ def pendulum(
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
 
@@ -372,7 +372,7 @@ def pendulum(
     states, obs = statespace.generate_samples(
         dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
     )
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
         locations=time_grid,
         measurement_models=measurement_model,
@@ -426,7 +426,7 @@ def benes_daum(
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and noisy observations.
+        ``TimeSeriesRegressionProblem`` object with time points and noisy observations.
     statespace_components
         Dictionary containing
 
@@ -436,7 +436,7 @@ def benes_daum(
 
     Notes
     -----
-    In order to generate observations for the returned ``RegressionProblem`` object,
+    In order to generate observations for the returned ``TimeSeriesRegressionProblem`` object,
     the non-linear Beneš SDE has to be linearized.
     Here, a ``ContinuousEKFComponent`` is used, which corresponds to a first-order
     linearization as used in the extended Kalman filter.
@@ -475,7 +475,7 @@ def benes_daum(
         initrv=initrv,
         times=time_grid,
     )
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,
         locations=time_grid,
         measurement_models=measurement_model,
@@ -532,7 +532,7 @@ def logistic_ode(
     Returns
     -------
     regression_problem
-        ``RegressionProblem`` object with time points and zero-observations.
+        ``TimeSeriesRegressionProblem`` object with time points and zero-observations.
 
     statespace_components
         Dictionary containing
@@ -581,7 +581,7 @@ def logistic_ode(
     # Generate zero-data
     time_grid = np.arange(*timespan, step=step)
     solution = logistic_ivp.solution(time_grid)
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=np.zeros(shape=(time_grid.size, 1)),
         locations=time_grid,
         measurement_models=measurement_model,

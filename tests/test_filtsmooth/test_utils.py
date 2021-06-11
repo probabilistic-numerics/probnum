@@ -44,7 +44,7 @@ def test_merge_regression_problems(car_tracking1, car_tracking2):
     d1 = prob1.solution.shape[1:]
     d2 = prob1.observations.shape[1:]
 
-    assert isinstance(new_prob, problems.RegressionProblem)
+    assert isinstance(new_prob, problems.TimeSeriesRegressionProblem)
     assert new_prob.locations.shape == (N,)
     assert new_prob.solution.shape == (N,) + d1
     assert new_prob.observations.shape == (N,) + d2
@@ -121,7 +121,7 @@ def test_merge_works_with_reduce(car_tracking1, car_tracking2, car_tracking3):
     d1 = prob1.solution.shape[1:]
     d2 = prob1.observations.shape[1:]
 
-    assert isinstance(new_prob, problems.RegressionProblem)
+    assert isinstance(new_prob, problems.TimeSeriesRegressionProblem)
     assert new_prob.locations.shape == (N,)
     assert new_prob.solution.shape == (N,) + d1
     assert new_prob.observations.shape == (N,) + d2

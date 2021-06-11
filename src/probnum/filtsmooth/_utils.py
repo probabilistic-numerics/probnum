@@ -11,17 +11,17 @@ __all__ = ["merge_regression_problems"]
 
 
 def merge_regression_problems(
-    problem_and_likelihood1: Tuple[problems.RegressionProblem, np.ndarray],
-    problem_and_likelihood2: Tuple[problems.RegressionProblem, np.ndarray],
-) -> Tuple[problems.RegressionProblem, np.ndarray]:
+    problem_and_likelihood1: Tuple[problems.TimeSeriesRegressionProblem, np.ndarray],
+    problem_and_likelihood2: Tuple[problems.TimeSeriesRegressionProblem, np.ndarray],
+) -> Tuple[problems.TimeSeriesRegressionProblem, np.ndarray]:
     """Make a new regression problem out of two other regression problems.
 
     Parameters
     ----------
     problem_and_likelihood1 :
-        Tuple of a RegressionProblem and an array of Transitions.
+        Tuple of a TimeSeriesRegressionProblem and an array of Transitions.
     problem_and_likelihood2 :
-        Tuple of a RegressionProblem and an array of Transitions.
+        Tuple of a TimeSeriesRegressionProblem and an array of Transitions.
 
     Raises
     ------
@@ -35,8 +35,8 @@ def merge_regression_problems(
 
     Returns
     -------
-    merged_problem_and_likelihood : Tuple[problems.RegressionProblem, np.ndarray]
-        Tuple of a RegressionProblem and an array of Transitions that merges locations, data, and measmods of both problems. The output is sorted according to the locations.
+    merged_problem_and_likelihood : Tuple[problems.TimeSeriesRegressionProblem, np.ndarray]
+        Tuple of a TimeSeriesRegressionProblem and an array of Transitions that merges locations, data, and measmods of both problems. The output is sorted according to the locations.
 
     Note
     ----
@@ -153,7 +153,7 @@ def merge_regression_problems(
     new_measurement_models[locs2_in_new_locs] = measurement_models2
 
     # Return merged arrays
-    new_regression_problem = problems.RegressionProblem(
+    new_regression_problem = problems.TimeSeriesRegressionProblem(
         locations=new_locs,
         observations=new_data,
         measurement_models=new_measurement_models,

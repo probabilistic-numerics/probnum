@@ -80,7 +80,7 @@ class ParticleFilter(BayesFiltSmooth):
 
     def filter(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
     ):
         """Apply particle filtering to a data set.
 
@@ -98,7 +98,7 @@ class ParticleFilter(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
         filtered_rvs = []
         info_dicts = []
@@ -116,7 +116,7 @@ class ParticleFilter(BayesFiltSmooth):
 
     def filter_generator(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
     ):
         """Apply Particle filtering to a data set.
 
@@ -134,7 +134,7 @@ class ParticleFilter(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         # It is not clear at the moment how to handle this.

@@ -162,7 +162,7 @@ def test_sampling_shapes_1d(locs, size):
         transition=prior, initrv=initrv, initarg=locations[0]
     )
     kalman = filtsmooth.Kalman(prior_process)
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=data, measurement_models=measmod, locations=locations
     )
     posterior, _ = kalman.filtsmooth(regression_problem)

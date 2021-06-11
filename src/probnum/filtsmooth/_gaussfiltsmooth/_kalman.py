@@ -41,7 +41,7 @@ class Kalman(BayesFiltSmooth):
 
     def iterated_filtsmooth(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
         stopcrit: Optional[StoppingCriterion] = None,
     ):
@@ -67,7 +67,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         smoothing_post = init_posterior
@@ -81,7 +81,7 @@ class Kalman(BayesFiltSmooth):
 
     def iterated_filtsmooth_posterior_generator(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         init_posterior: Optional[SmoothingPosterior] = None,
         stopcrit: Optional[StoppingCriterion] = None,
     ):
@@ -110,7 +110,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         if stopcrit is None:
@@ -141,7 +141,7 @@ class Kalman(BayesFiltSmooth):
 
     def filtsmooth(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering and smoothing to a data set.
@@ -163,7 +163,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
         filter_result = self.filter(
             regression_problem,
@@ -175,7 +175,7 @@ class Kalman(BayesFiltSmooth):
 
     def filter(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
@@ -197,7 +197,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         filtered_rvs = []
@@ -219,7 +219,7 @@ class Kalman(BayesFiltSmooth):
 
     def filtered_states_generator(
         self,
-        regression_problem: problems.RegressionProblem,
+        regression_problem: problems.TimeSeriesRegressionProblem,
         _previous_posterior: Optional[TimeSeriesPosterior] = None,
     ):
         """Apply Gaussian filtering (no smoothing!) to a data set.
@@ -241,7 +241,7 @@ class Kalman(BayesFiltSmooth):
 
         See Also
         --------
-        RegressionProblem: a regression problem data class
+        TimeSeriesRegressionProblem: a regression problem data class
         """
 
         # It is not clear at the moment how to implement this cleanly.

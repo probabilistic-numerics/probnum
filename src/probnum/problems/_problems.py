@@ -13,7 +13,7 @@ from probnum.type import FloatArgType
 
 
 @dataclasses.dataclass
-class RegressionProblem:
+class TimeSeriesRegressionProblem:
     r"""Time series regression problem.
 
     Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
@@ -38,13 +38,13 @@ class RegressionProblem:
     >>> loc = [0.1, 0.2]
     >>> model = statespace.DiscreteLTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
     >>> measurement_models = [model, model]
-    >>> rp = RegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
+    >>> rp = TimeSeriesRegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp
-    RegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
+    TimeSeriesRegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
 
-    Regression problems are also sliceable.
+    Regression problems are also indexable.
 
     >>> len(rp)
     2

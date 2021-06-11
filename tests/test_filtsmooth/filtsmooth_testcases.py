@@ -79,7 +79,7 @@ class LinearisedDiscreteTransitionTestCase(unittest.TestCase, NumpyAssertions):
             statespace_components["dynamics_model"]
         )
 
-        regression_problem = problems.RegressionProblem(
+        regression_problem = problems.TimeSeriesRegressionProblem(
             locations=regression_problem.locations,
             observations=regression_problem.observations,
             measurement_models=ekf_meas,

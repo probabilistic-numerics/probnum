@@ -139,7 +139,7 @@ def initialize_odefilter_with_rk(
     ys = list(sol.y[:, :num_steps].T)
     ys[0] = initial_data
     measmod_list = [measmod_initcond] + [measmod_scipy] * (len(ts) - 1)
-    regression_problem = problems.RegressionProblem(
+    regression_problem = problems.TimeSeriesRegressionProblem(
         observations=ys, locations=ts, measurement_models=measmod_list
     )
 

@@ -168,10 +168,10 @@ def test_sampling_shapes_1d(locs, size):
         transition=prior, initrv=initrv, initarg=locations[0]
     )
     kalman = filtsmooth.Kalman(prior_process)
-    regression_problem = problems.RegressionProblem(
-        observations=data, locations=locations
+    regression_problem = problems.TimeSeriesRegressionProblem(
+        observations=data, locations=locations, measurement_models=measmod
     )
-    posterior, _ = kalman.filtsmooth(regression_problem, measmod)
+    posterior, _ = kalman.filtsmooth(regression_problem)
 
     size = utils.as_shape(size)
     if locs is None:

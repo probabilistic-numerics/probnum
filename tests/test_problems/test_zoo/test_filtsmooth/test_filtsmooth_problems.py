@@ -19,7 +19,7 @@ all_filtmooth_setups = pytest.mark.parametrize(
 @all_filtmooth_setups
 def test_types(filtsmooth_setup):
     regression_problem, statespace_components = filtsmooth_setup
-    assert isinstance(regression_problem, problems.RegressionProblem)
+    assert isinstance(regression_problem, problems.TimeSeriesRegressionProblem)
     assert isinstance(regression_problem.observations, np.ndarray)
     assert isinstance(regression_problem.locations, np.ndarray)
     assert isinstance(regression_problem.solution, np.ndarray)
