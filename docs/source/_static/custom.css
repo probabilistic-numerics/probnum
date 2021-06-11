@@ -1,0 +1,167 @@
+/* Theme configuration */
+
+:root {
+    --pst-header-height: 60px;
+    /* Fonts */
+    --pst-font-family-base-system: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --pst-font-family-monospace-system: "SFMono-Regular", Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+    --pst-font-family-base: var(--pst-font-family-base-system);
+    --pst-font-family-heading: var(--pst-font-family-base);
+    --pst-font-family-monospace: var(--pst-font-family-monospace-system);
+    /* Font size and weight*/
+    --pst-font-size-base: 100%;
+    --pst-font-size-h1: 2rem;
+    --pst-font-size-h2: 1.5rem;
+    --pst-font-size-h3: 1.25rem;
+    --pst-font-size-h4: 1rem;
+    --pst-font-size-h5: 0.875rem;
+    --pst-font-size-h6: 0.85rem;
+    --pst-font-size-milli: 80%;
+    --pst-font-size-code: 95%;
+    --pst-sidebar-font-size: 0.9rem;
+    --pst-sidebar-caption-font-size: 0.9rem;
+    --pst-font-weight-light: 300;
+    --pst-font-weight-normal: 400;
+    --pst-font-weight-semibold: 500;
+    --pst-font-weight-bold: 700;
+    --pst-font-weight-base: var(--pst-font-weight-normal);
+    /* Colors (defined in RGB: "red, green, blue" */
+    --pst-color-primary: 22, 179, 173;
+    --pst-color-success: 40, 167, 69;
+    --pst-color-info: 0, 123, 255;
+    --pst-color-warning: 255, 193, 7;
+    --pst-color-danger: 220, 53, 69;
+    --pst-color-text-base: 51, 51, 51;
+    --pst-color-h1: var(--pst-color-primary);
+    --pst-color-h2: var(--pst-color-primary);
+    --pst-color-h3: var(--pst-color-text-base);
+    --pst-color-h4: var(--pst-color-text-base);
+    --pst-color-h5: var(--pst-color-text-base);
+    --pst-color-h6: var(--pst-color-text-base);
+    --pst-color-paragraph: var(--pst-color-text-base);
+    --pst-color-link: 0, 91, 129;
+    --pst-color-link-hover: 227, 46, 0;
+    --pst-color-headerlink: 198, 15, 15;
+    --pst-color-headerlink-hover: 255, 255, 255;
+    --pst-color-preformatted-text: 34, 34, 34;
+    --pst-color-preformatted-background: 250, 250, 250;
+    --pst-color-inline-code: 232, 62, 140;
+    --pst-color-active-navigation: var(--pst-color-primary);
+    --pst-color-navbar-link: 19, 6, 84;
+    --pst-color-navbar-link-hover: var(--pst-color-active-navigation);
+    --pst-color-navbar-link-active: var(--pst-color-active-navigation);
+    --pst-color-sidebar-link: 77, 77, 77;
+    --pst-color-sidebar-link-hover: var(--pst-color-active-navigation);
+    --pst-color-sidebar-link-active: var(--pst-color-active-navigation);
+    --pst-color-sidebar-expander-background-hover: 244, 244, 244;
+    --pst-color-sidebar-caption: 77, 77, 77;
+    --pst-color-toc-link: 119, 117, 122;
+    --pst-color-toc-link-hover: var(--pst-color-active-navigation);
+    --pst-color-toc-link-active: var(--pst-color-active-navigation);
+    /* Icons */
+    /* font awesome icons*/
+    --pst-icon-check-circle: '\f058';
+    --pst-icon-info-circle: '\f05a';
+    --pst-icon-exclamation-triangle: '\f071';
+    --pst-icon-exclamation-circle: '\f06a';
+    --pst-icon-times-circle: '\f057';
+    --pst-icon-lightbulb: '\f0eb';
+    /* Admonitions */
+    --pst-color-admonition-default: var(--pst-color-info);
+    --pst-color-admonition-note: var(--pst-color-info);
+    --pst-color-admonition-attention: var(--pst-color-warning);
+    --pst-color-admonition-caution: var(--pst-color-warning);
+    --pst-color-admonition-warning: var(--pst-color-warning);
+    --pst-color-admonition-danger: var(--pst-color-danger);
+    --pst-color-admonition-error: var(--pst-color-danger);
+    --pst-color-admonition-hint: var(--pst-color-success);
+    --pst-color-admonition-tip: var(--pst-color-success);
+    --pst-color-admonition-important: var(--pst-color-success);
+    --pst-icon-admonition-default: var(--pst-icon-info-circle);
+    --pst-icon-admonition-note: var(--pst-icon-info-circle);
+    --pst-icon-admonition-attention: var(--pst-icon-exclamation-circle);
+    --pst-icon-admonition-caution: var(--pst-icon-exclamation-triangle);
+    --pst-icon-admonition-warning: var(--pst-icon-exclamation-triangle);
+    --pst-icon-admonition-danger: var(--pst-icon-exclamation-triangle);
+    --pst-icon-admonition-error: var(--pst-icon-times-circle);
+    --pst-icon-admonition-hint: var(--pst-icon-lightbulb);
+    --pst-icon-admonition-tip: var(--pst-icon-lightbulb);
+    --pst-icon-admonition-important: var(--pst-icon-exclamation-circle);
+    /* Buttons */
+    --pst-button-background-color: inherit;
+    --pst-button-border-color: var(--pst-button-background-color);
+    --pst-button-border-width: var(--pst-global-border-width);
+    --pst-button-color: var(--pst-font-color-base-inverse);
+    --pst-button-font-weight: var(--pst-font-weight-bold);
+    --pst-button-padding-horizontal: 1.5rem;
+    --pst-button-padding-vertical: 0.375rem;
+    --pst-button-size-multiplier: 1;
+    --pst-button-transition-duration: var(--pst-transition-fast);
+    --pst-button-border-radius: calc( var(--pst-global-radius) * var(--pst-button-size-multiplier));
+    --pst-button-group-margin: 2px;
+    /* Transitions */
+    --pst-transition-fast: 200ms;
+    --pst-transition-slow: 400ms;
+    --pst-transition-timing-default: cubic-bezier(0.08, 0.52, 0.52, 1);
+    /* Other */
+    --pst-global-border-width: 1px;
+    --pst-global-radius: 0.4rem;
+}
+
+/* Background */
+
+.bg-dark {
+    background-color: #303846 !important;
+}
+
+/* Navigation bar */
+
+.navbar-brand img {
+    height: 80%
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: var(--pst-color-navbar-link);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: var(--pst-color-navbar-link-hover);
+}
+
+.navbar-dark .navbar-nav .nav-link:active {
+    color: var(--pst-color-navbar-link-active);
+}
+
+/* Code */
+
+code {
+    font-size: var(--pst-font-size-code);
+    font-family: var(--pst-font-family-monospace)
+}
+
+/* Buttons */
+
+.custom-button {
+    appearance: none;
+    background-color: var(--pst-button-background-color);
+    border-color: var(--pst-button-border-color);
+    border-radius: var(--pst-button-border-radius);
+    border-style: solid;
+    border-width: var(--pst-button-border-width);
+    color: var(--pst-button-color);
+    cursor: pointer;
+    display: inline-block;
+    font-size: calc(0.875rem * var(--pst-button-size-multiplier));
+    font-weight: var(--pst-button-font-weight);
+    line-height: 1.5;
+    padding: calc( var(--pst-button-padding-vertical) * var(--pst-button-size-multiplier)) calc( var(--pst-button-padding-horizontal) * var(--pst-button-size-multiplier));
+    text-align: center;
+    text-decoration: none;
+    -webkit-user-select: none;
+    user-select: none;
+    vertical-align: middle;
+    white-space: nowrap;
+    transition-property: color, background, border-color;
+    transition-duration: var(--pst-button-transition-duration);
+    transition-timing-function: var(--pst-transition-timing-default);
+}

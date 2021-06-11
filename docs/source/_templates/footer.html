@@ -65,3 +65,37 @@
         </div>
       </div>
     </div>
+
+    <div role="contentinfo">
+        {%- block contentinfo %}
+          <p>
+          {%- if show_copyright %}
+            {%- if hasdoc('copyright') %}
+              {%- trans path=pathto('copyright'), copyright=copyright|e %}&#169; <a href="{{ path }}">Copyright</a> {{ copyright }}.{% endtrans %}
+            {%- else %}
+              {%- trans copyright=copyright|e %}&#169; Copyright {{ copyright }}.{% endtrans %}
+            {%- endif %}
+          {%- endif %}
+
+          {%- if build_id and build_url %}
+            <span class="build">
+              {#- Translators: Build is a noun, not a verb -#}
+              {%- trans %}Build{% endtrans -%}
+              <a href="{{ build_url }}">{{ build_id }}</a>.
+            </span>
+          {%- elif commit %}
+            <span class="commit">
+              {#- Translators: the phrase "revision" comes from Git, referring to a commit #}
+              {%- trans %}Revision{% endtrans %} <code>{{ commit }}</code>.
+            </span>
+          {%- endif %}
+          {%- if last_updated %}
+            <span class="lastupdated">
+              {%- trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}
+            </span>
+          {%- endif -%}
+
+          </p>
+        {%- endblock %}
+        </div>
+</footer>

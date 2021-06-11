@@ -10,52 +10,10 @@
   --background-gray: #fcfcfc;
 }
 
-/* Font */
-body {
-	font-family: Roboto light, Helvetica, sans-serif;
-}
-
-.rst-content .toctree-wrapper > p.caption, h1, h2, h3, h4, h5, h6, legend {
-    margin-top: 0;
-    font-weight: 700;
-    font-family: Open sans light, Helvetica, sans-serif;
-}
 
 /* Content */
-.wy-nav-content {
-  max-width: 1320px;
-}
 .wy-nav-content a:visited {
 	color: var(--pn-green);
-}
-
-/* Sidebar */
-
-/* Logo area */
-.wy-nav-top {
-	background: var(--pn-green);
-}
-.wy-nav-side {
-	background: var(--pn-darkgray);
-}
-/* Home button */
-.wy-side-nav-search .wy-dropdown > a, .wy-side-nav-search > a {
-	color: var(--pn-darkgray);
-}
-/* Version number */
-.wy-side-nav-search > div.version {
-	color: var(--pn-darkgray);
-}
-/* Sidebar headers */
-.wy-menu-vertical header, .wy-menu-vertical p.caption {
-	color: var(--pn-brightgreen);
-}
-/* Sidebar links */
-.wy-menu-vertical a:active {
-	background-color: var(--pn-green);
-}
-.wy-menu-vertical a:hover {
-	color: var(--pn-brightgreen);
 }
 
 /* Hyperlinks */
@@ -130,7 +88,7 @@ div.sphx-glr-thumbcontainer:hover {
 }
 
 /* Author attribution */
-.rst-content .section .authorlist ul li{
+.authorlist ul li{
     float: left;
     list-style: none;
     margin-left: 16px;
@@ -140,21 +98,4 @@ div.sphx-glr-thumbcontainer:hover {
 .avatar {
   vertical-align: middle;
   border-radius: 10%;
-}
-
-/* ReadTheDocs */
-.fa {
-	font: Open Sans light, Helvetica, sans-serif;
-}
-
-.rst-versions {
-	font-family: Open sans light, Helvetica, sans-serif;
-}
-
-.rst-versions .rst-current-version {
-	color: var(--pn-brightgreen);
-}
-
-.keep-us-sustainable {
-    border: 1px dotted var(--pn-lightgray);
 }

@@ -34,66 +34,20 @@ Alternatively, you can install the package from source.
 To learn how to use ProbNum check out the `quickstart guide <introduction/quickstart.html>`_ and the tutorials.
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Introduction
+   :maxdepth: 3
+   :hidden:
 
-   introduction/probabilistic_numerics
-   introduction/quickstart
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Tutorials and Examples
-
-   tutorials/pn_methods
-   tutorials/probability
-   tutorials/linear_algebra
-   tutorials/ordinary_differential_equations
-   tutorials/bayesian_filtering_smoothing
-
-.. toctree::
-   :maxdepth: 1
-   :caption: API Documentation
-
-   public_api/probnum
-   public_api/diffeq
-   public_api/filtsmooth
-   public_api/kernels
-   public_api/linalg
-   public_api/linops
-   public_api/problems
-   public_api/quad
-   public_api/randprocs
-   public_api/randvars
-   public_api/statespace
-   public_api/utils
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Development
-
-   development/contributing
-   development/contributing_code
-   development/developer_guides
-   development/styleguide
-   development/benchmarking
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Other
-
-   GitHub Repository <https://github.com/probabilistic-numerics/probnum>
-   development/code_contributors
-   license
-
+   introduction
+   tutorials
+   api_docs
+   development
+   other
 
 Indices
 """""""
 
 * :ref:`genindex`
 * :ref:`modindex`
-
-
 
 
 .. |CI Status| image:: https://img.shields.io/github/workflow/status/probabilistic-numerics/probnum/Linting?logo=github&logoColor=white&label=CI-build
