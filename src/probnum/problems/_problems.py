@@ -51,8 +51,8 @@ class RegressionProblem:
     >>> rp[0]
     (11.4123, 0.1, DiscreteLTIGaussian(input_dim=1, output_dim=1))
     """
-    observations: np.ndarray
     locations: np.ndarray
+    observations: np.ndarray
     measurement_models: np.ndarray
 
     # For testing and benchmarking
@@ -89,8 +89,8 @@ class RegressionProblem:
 
     def __getitem__(self, item):
         return (
-            self.observations[item],
             self.locations[item],
+            self.observations[item],
             self.measurement_models[item],
         )
 

@@ -30,11 +30,11 @@ def test_rmse_filt_smooth(setup):
 
     stopcrit = filtsmooth.StoppingCriterion(atol=1e-1, rtol=1e-1, maxit=10)
 
-    posterior, _ = kalman.filter(regression_problem, measurement_model)
+    posterior, _ = kalman.filter(regression_problem)
     posterior = kalman.smooth(posterior)
 
     iterated_posterior, _ = kalman.iterated_filtsmooth(
-        regression_problem, measurement_model, stopcrit=stopcrit
+        regression_problem, stopcrit=stopcrit
     )
 
     filtms = posterior.filtering_posterior.states.mean
