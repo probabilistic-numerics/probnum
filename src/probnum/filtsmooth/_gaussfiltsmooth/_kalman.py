@@ -1,8 +1,6 @@
 """Gaussian filtering and smoothing."""
 
 
-import itertools
-from collections import abc
 from typing import Iterable, Optional, Union
 
 import numpy as np

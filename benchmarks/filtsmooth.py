@@ -34,8 +34,9 @@ class Filtering:
         }[linearization]
 
         linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
-        self.linearized_measmod = _lin_method(
-            statespace_components["measurement_model"]
+        linearized_measmod = _lin_method(statespace_components["measurement_model"])
+        regression_problem.measurement_models = np.array(
+            [linearized_measmod] * len(regression_problem.locations)
         )
 
         prior_process = randprocs.MarkovProcess(
@@ -48,10 +49,10 @@ class Filtering:
         self.kalman_filter = filtsmooth.Kalman(prior_process=prior_process)
 
     def time_filter(self, linearization_implementation):
-        self.kalman_filter.filter(self.regression_problem, self.linearized_measmod)
+        self.kalman_filter.filter(self.regression_problem)
 
     def peakmem_filter(self, linearization_implementation):
-        self.kalman_filter.filter(self.regression_problem, self.linearized_measmod)
+        self.kalman_filter.filter(self.regression_problem)
 
 
 class Smoothing:

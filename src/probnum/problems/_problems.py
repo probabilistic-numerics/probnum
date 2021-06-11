@@ -2,13 +2,12 @@
 
 import dataclasses
 from collections import abc
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 import scipy.sparse
 
-import probnum.linops as pnlo
-from probnum import randvars
+from probnum import linops, randvars
 from probnum.type import FloatArgType
 
 
@@ -60,12 +59,16 @@ class TimeSeriesRegressionProblem:
     solution: Optional[np.ndarray] = None
 
     def __post_init__(self):
-        """Wrap the measurement models into an iterable of measurement models (by
-        default, a numpy array).
+        """Some postprocessing of the time-series regression problem inits.
 
-        Also check that all inputs have the same length.
+        1. Wrap the measurement models into an iterable of measurement models (by
+        default, a numpy array).
+        2. Check that all inputs have the same length.
 
         Numpy arrays are the default choice here for consistency with the data type of observations and locations.
+        Inputs are not transformed into numpy arrays by default, because this would forbid
+        having data points of different dimension (lists can handle this, arrays cannot).
+        This has application in, for instance, initialization of ODE filters.
         """
         if not isinstance(self.measurement_models, abc.Iterable):
             self.measurement_models = np.array(
@@ -181,7 +184,7 @@ class LinearSystem:
     A: Union[
         np.ndarray,
         scipy.sparse.spmatrix,
-        pnlo.LinearOperator,
+        linops.LinearOperator,
         randvars.RandomVariable,
     ]
     b: Union[np.ndarray, randvars.RandomVariable]
