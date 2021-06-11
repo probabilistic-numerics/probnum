@@ -139,11 +139,13 @@ def initialize_odefilter_with_rk(
     ys = list(sol.y[:, :num_steps].T)
     ys[0] = initial_data
     measmod_list = [measmod_initcond] + [measmod_scipy] * (len(ts) - 1)
-    regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
+    regression_problem = problems.RegressionProblem(
+        observations=ys, locations=ts, measurement_models=measmod_list
+    )
 
     # Infer the solution
     kalman = filtsmooth.Kalman(prior_process)
-    out, _ = kalman.filtsmooth(regression_problem, measmod_list)
+    out, _ = kalman.filtsmooth(regression_problem)
     estimated_initrv = out.states[0]
     return estimated_initrv
 

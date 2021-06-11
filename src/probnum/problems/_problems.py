@@ -40,7 +40,7 @@ class RegressionProblem:
     >>> measurement_models = [model, model]
     >>> rp = RegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
+    RegressionProblem(locations=[0.1, 0.2], observations=[11.4123, -15.5123], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
 
@@ -49,7 +49,7 @@ class RegressionProblem:
     >>> len(rp)
     2
     >>> rp[0]
-    (11.4123, 0.1, DiscreteLTIGaussian(input_dim=1, output_dim=1))
+    (0.1, 11.4123, DiscreteLTIGaussian(input_dim=1, output_dim=1))
     """
     locations: np.ndarray
     observations: np.ndarray
