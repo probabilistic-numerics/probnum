@@ -81,7 +81,6 @@ class ParticleFilter(BayesFiltSmooth):
     def filter(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model: ParticleFilterMeasurementModelArgType,
     ):
         """Apply particle filtering to a data set.
 
@@ -89,8 +88,6 @@ class ParticleFilter(BayesFiltSmooth):
         ----------
         regression_problem :
             Regression problem.
-        measurement_model :
-            Measurement model. Must be a discrete model that supports `forward_realization`.
 
         Returns
         -------
@@ -106,7 +103,7 @@ class ParticleFilter(BayesFiltSmooth):
         filtered_rvs = []
         info_dicts = []
 
-        for rv, info in self.filter_generator(regression_problem, measurement_model):
+        for rv, info in self.filter_generator(regression_problem):
             filtered_rvs.append(rv)
             info_dicts.append(info)
 
@@ -120,7 +117,6 @@ class ParticleFilter(BayesFiltSmooth):
     def filter_generator(
         self,
         regression_problem: problems.RegressionProblem,
-        measurement_model: ParticleFilterMeasurementModelArgType,
     ):
         """Apply Particle filtering to a data set.
 
@@ -128,8 +124,6 @@ class ParticleFilter(BayesFiltSmooth):
         ----------
         regression_problem :
             Regression problem.
-        measurement_model :
-            Measurement model. Must be a discrete model that supports `forward_realization`.
 
         Yields
         ------
@@ -143,16 +137,11 @@ class ParticleFilter(BayesFiltSmooth):
         RegressionProblem: a regression problem data class
         """
 
-        dataset, times = regression_problem.observations, regression_problem.locations
-
         # It is not clear at the moment how to handle this.
-        if not np.all(np.diff(times) > 0):
+        if not np.all(np.diff(regression_problem.locations) > 0):
             raise ValueError(
                 "Particle filtering cannot handle repeating time points currently."
             )
-
-        if not isinstance(measurement_model, abc.Iterable):
-            measurement_model = itertools.repeat(measurement_model, len(times))
 
         initarg = self.prior_process.initarg
         t_old = self.prior_process.initarg
@@ -161,7 +150,7 @@ class ParticleFilter(BayesFiltSmooth):
         particles = np.nan * np.ones(particle_set_shape)
         weights = np.ones(self.num_particles) / self.num_particles
 
-        for t, data, measmod in zip(times, dataset, measurement_model):
+        for t, data, measmod in regression_problem:
 
             dt = t - t_old
             new_particles = particles.copy()

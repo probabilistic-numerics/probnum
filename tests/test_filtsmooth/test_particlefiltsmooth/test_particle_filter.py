@@ -90,7 +90,7 @@ def test_random_state(particle_filter_setup):
 @pytest.fixture
 def pf_output(particle_filter_setup, regression_problem):
     particle_filter, measmod = particle_filter_setup
-    posterior, _ = particle_filter.filter(regression_problem, measmod)
+    posterior, _ = particle_filter.filter(regression_problem)
     return posterior
 
 
