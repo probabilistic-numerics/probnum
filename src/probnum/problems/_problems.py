@@ -1,19 +1,20 @@
 """Definitions of problems currently solved by probabilistic numerical methods."""
 
 import dataclasses
-import typing
+from collections import abc
+from typing import Callable, Iterable, Optional, Union
 
 import numpy as np
 import scipy.sparse
 
 import probnum.linops as pnlo
-import probnum.type as pntp
 from probnum import randvars
+from probnum.type import FloatArgType
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(repr=True)
 class RegressionProblem:
-    r"""Regression problem.
+    r"""Time series regression problem.
 
     Fit a stochastic process to data, given a likelihood (realised by a :obj:`DiscreteGaussian` transition).
     Solved by filters and smoothers in :mod:`probnum.filtsmooth`.
@@ -24,27 +25,35 @@ class RegressionProblem:
         Observations of the latent process.
     locations
         Grid-points on which the observations were taken.
+    measurement_models
+        Measurement models.
     solution
         Array containing solution to the problem at ``locations``. Used for testing and benchmarking.
 
     Examples
     --------
+    >>> import numpy as np
+    >>> from probnum import statespace
     >>> obs = [11.4123, -15.5123]
     >>> loc = [0.1, 0.2]
-    >>> rp = RegressionProblem(observations=obs, locations=loc)
+    >>> model = statespace.DiscreteLTIGaussian(np.ones((1, 1)), np.ones(1), np.ones((1,1)))
+    >>> measurement_models = [model, model]
+    >>> rp = RegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], solution=None)
+    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=(None,))
     >>> rp.observations
     [11.4123, -15.5123]
     """
-
     observations: np.ndarray
     locations: np.ndarray
+    measurement_models: Iterable
+    solution: Optional[Callable[[np.ndarray], Union[float, np.ndarray]]] = None
 
-    # Optional: ground truth for testing and benchmarking
-    solution: typing.Optional[
-        typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
-    ] = None
+    def __post_init__(self):
+        if not isinstance(self.measurement_models, abc.Iterable):
+            self.measurement_models = np.array(
+                [self.measurement_models] * len(self.locations)
+            )
 
 
 @dataclasses.dataclass
@@ -91,15 +100,15 @@ class InitialValueProblem:
     0.09
     """
 
-    f: typing.Callable[[float, np.ndarray], np.ndarray]
+    f: Callable[[float, np.ndarray], np.ndarray]
     t0: float
     tmax: float
-    y0: typing.Union[pntp.FloatArgType, np.ndarray]
-    df: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
-    ddf: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+    y0: Union[FloatArgType, np.ndarray]
+    df: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
+    ddf: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Callable[[float, np.ndarray], np.ndarray]] = None
+    solution: Optional[Callable[[float, np.ndarray], np.ndarray]] = None
 
 
 @dataclasses.dataclass
@@ -130,16 +139,16 @@ class LinearSystem:
            [0., 0., 1.]]), b=array([0, 1, 2]), solution=None)
     """
 
-    A: typing.Union[
+    A: Union[
         np.ndarray,
         scipy.sparse.spmatrix,
         pnlo.LinearOperator,
         randvars.RandomVariable,
     ]
-    b: typing.Union[np.ndarray, randvars.RandomVariable]
+    b: Union[np.ndarray, randvars.RandomVariable]
 
     # For testing and benchmarking
-    solution: typing.Optional[typing.Union[np.ndarray, randvars.RandomVariable]] = None
+    solution: Optional[Union[np.ndarray, randvars.RandomVariable]] = None
 
 
 @dataclasses.dataclass
@@ -188,12 +197,10 @@ class QuadratureProblem:
     [1.0, 1.0]
     """
 
-    integrand: typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
-    lower_bd: typing.Union[pntp.FloatArgType, np.ndarray]
-    upper_bd: typing.Union[pntp.FloatArgType, np.ndarray]
-    output_dim: typing.Optional[int] = 1
+    integrand: Callable[[np.ndarray], Union[float, np.ndarray]]
+    lower_bd: Union[FloatArgType, np.ndarray]
+    upper_bd: Union[FloatArgType, np.ndarray]
+    output_dim: Optional[int] = 1
 
     # For testing and benchmarking
-    solution: typing.Optional[
-        typing.Union[float, np.ndarray, randvars.RandomVariable]
-    ] = None
+    solution: Optional[Union[float, np.ndarray, randvars.RandomVariable]] = None
