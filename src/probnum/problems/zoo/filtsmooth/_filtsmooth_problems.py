@@ -127,7 +127,10 @@ def car_tracking(
         times=time_grid,
     )
     regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
 
     prior_process = randprocs.MarkovProcess(
@@ -226,7 +229,10 @@ def ornstein_uhlenbeck(
         dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
     )
     regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
 
     prior_process = randprocs.MarkovProcess(
@@ -367,7 +373,10 @@ def pendulum(
         dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
     )
     regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
 
     prior_process = randprocs.MarkovProcess(
@@ -467,7 +476,10 @@ def benes_daum(
         times=time_grid,
     )
     regression_problem = problems.RegressionProblem(
-        observations=obs, locations=time_grid, solution=states
+        observations=obs,
+        locations=time_grid,
+        measurement_models=measurement_model,
+        solution=states,
     )
     prior_process = randprocs.MarkovProcess(
         transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
@@ -572,6 +584,7 @@ def logistic_ode(
     regression_problem = problems.RegressionProblem(
         observations=np.zeros(shape=(time_grid.size, 1)),
         locations=time_grid,
+        measurement_models=measurement_model,
         solution=solution,
     )
 

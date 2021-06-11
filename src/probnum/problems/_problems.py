@@ -12,7 +12,7 @@ from probnum import randvars
 from probnum.type import FloatArgType
 
 
-@dataclasses.dataclass(repr=True)
+@dataclasses.dataclass
 class RegressionProblem:
     r"""Time series regression problem.
 

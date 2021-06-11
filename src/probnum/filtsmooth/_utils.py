@@ -154,6 +154,9 @@ def merge_regression_problems(
 
     # Return merged arrays
     new_regression_problem = problems.RegressionProblem(
-        locations=new_locs, observations=new_data, solution=new_sol
+        locations=new_locs,
+        observations=new_data,
+        measurement_models=new_measurement_models,
+        solution=new_sol,
     )
     return new_regression_problem, new_measurement_models

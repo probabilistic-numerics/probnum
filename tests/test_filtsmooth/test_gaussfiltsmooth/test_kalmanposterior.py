@@ -159,11 +159,11 @@ def test_sampling_shapes_1d(locs, size):
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
     prior_process = randprocs.MarkovProcess(
-        transition=measmod, initrv=initrv, initarg=locations[0]
+        transition=prior, initrv=initrv, initarg=locations[0]
     )
     kalman = filtsmooth.Kalman(prior_process)
     regression_problem = problems.RegressionProblem(
-        observations=data, locations=locations
+        observations=data, measurement_models=measmod, locations=locations
     )
     posterior, _ = kalman.filtsmooth(regression_problem, measmod)
 
