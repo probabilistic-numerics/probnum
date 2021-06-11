@@ -40,20 +40,59 @@ class RegressionProblem:
     >>> measurement_models = [model, model]
     >>> rp = RegressionProblem(observations=obs, locations=loc, measurement_models=measurement_models)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=(None,))
+    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], measurement_models=[DiscreteLTIGaussian(input_dim=1, output_dim=1), DiscreteLTIGaussian(input_dim=1, output_dim=1)], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
+
+    Regression problems are also sliceable.
+
+    >>> len(rp)
+    2
+    >>> rp[0]
+    (11.4123, 0.1, DiscreteLTIGaussian(input_dim=1, output_dim=1))
     """
     observations: np.ndarray
     locations: np.ndarray
-    measurement_models: Iterable
-    solution: Optional[Callable[[np.ndarray], Union[float, np.ndarray]]] = None
+    measurement_models: np.ndarray
+
+    # For testing and benchmarking
+    # The solution here is an array of the values of the truth at the location.
+    solution: Optional[np.ndarray] = None
 
     def __post_init__(self):
+        """Wrap the measurement models into an iterable of measurement models (by
+        default, a numpy array).
+
+        Also check that all inputs have the same length.
+
+        Numpy arrays are the default choice here for consistency with the data type of observations and locations.
+        """
         if not isinstance(self.measurement_models, abc.Iterable):
             self.measurement_models = np.array(
                 [self.measurement_models] * len(self.locations)
             )
+
+        lengths_equal = (
+            len(self.observations)
+            == len(self.locations)
+            == len(self.measurement_models)
+        )
+        if not lengths_equal:
+            errormsg = "Lengths of the inputs do not match. "
+            len_obs = f"len(observations)={len(self.observations)}. "
+            len_loc = f"len(locations)={len(self.locations)}. "
+            len_mm = f"len(measurement_models)={len(self.measurement_models)}."
+            raise ValueError(errormsg + len_obs + len_loc + len_mm)
+
+    def __len__(self):
+        return len(self.observations)
+
+    def __getitem__(self, item):
+        return (
+            self.observations[item],
+            self.locations[item],
+            self.measurement_models[item],
+        )
 
 
 @dataclasses.dataclass
