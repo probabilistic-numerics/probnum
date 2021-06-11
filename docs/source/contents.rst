@@ -40,6 +40,7 @@ To learn how to use ProbNum check out the `quickstart guide <introduction/quicks
    introduction
    tutorials
    api_docs
+   community
    development
    other
 

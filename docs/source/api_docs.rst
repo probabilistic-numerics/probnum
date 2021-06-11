@@ -1,8 +1,8 @@
 .. _api_docs:
 
-=========
-API Docs
-=========
+=================
+API Documentation
+=================
 
 .. toctree::
     :maxdepth: 2

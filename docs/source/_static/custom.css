@@ -1,6 +1,9 @@
 /* Theme configuration */
 
 :root {
+    /* Page geometry */
+    --pst-container-width: 1140px;
+    --pst-container-width-xl: 1320px;
     --pst-header-height: 60px;
     /* Fonts */
     --pst-font-family-base-system: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -47,7 +50,7 @@
     --pst-color-preformatted-background: 250, 250, 250;
     --pst-color-inline-code: 232, 62, 140;
     --pst-color-active-navigation: var(--pst-color-primary);
-    --pst-color-navbar-link: 19, 6, 84;
+    --pst-color-navbar-link: 255, 255, 255;
     --pst-color-navbar-link-hover: var(--pst-color-active-navigation);
     --pst-color-navbar-link-active: var(--pst-color-active-navigation);
     --pst-color-sidebar-link: 77, 77, 77;
@@ -103,6 +106,9 @@
     --pst-transition-fast: 200ms;
     --pst-transition-slow: 400ms;
     --pst-transition-timing-default: cubic-bezier(0.08, 0.52, 0.52, 1);
+    /* Code */
+    --pst-code-background: rgb(246, 247, 248);
+    --pst-code-border-radius: var(--pst-global-radius);
     /* Other */
     --pst-global-border-width: 1px;
     --pst-global-radius: 0.4rem;
@@ -121,22 +127,30 @@
 }
 
 .navbar-dark .navbar-nav .nav-link {
-    color: var(--pst-color-navbar-link);
+    color: rgba(var(--pst-color-navbar-link));
 }
 
 .navbar-dark .navbar-nav .nav-link:hover {
-    color: var(--pst-color-navbar-link-hover);
+    color: rgba(var(--pst-color-navbar-link-hover));
 }
 
-.navbar-dark .navbar-nav .nav-link:active {
-    color: var(--pst-color-navbar-link-active);
+.navbar-dark .navbar-nav .active>.nav-link, .navbar-dark .navbar-nav .nav-link.active, .navbar-dark .navbar-nav .nav-link.show, .navbar-dark .navbar-nav .show>.nav-link {
+    color: rgba(var(--pst-color-navbar-link-active));
+}
+
+#navbar-icon-links i.fa, #navbar-icon-links i.fab, #navbar-icon-links i.far, #navbar-icon-links i.fas {
+    font-size: 2rem;
 }
 
 /* Code */
 
 code {
     font-size: var(--pst-font-size-code);
-    font-family: var(--pst-font-family-monospace)
+    font-family: var(--pst-font-family-monospace);
+}
+
+.highlight {
+    background: var(--pst-code-background);
 }
 
 /* Buttons */

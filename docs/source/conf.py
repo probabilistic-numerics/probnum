@@ -85,7 +85,7 @@ author = "ProbNum Authors"
 try:
     # The full version, including alpha/beta/rc tags.
     release = get_distribution(project).version
-    # The short X.Y version.
+    # The short X.Y.Z version.
     version = ".".join(release.split(".")[:2])
 except DistributionNotFound:
     version = ""
@@ -150,6 +150,14 @@ intersphinx_mapping = {
 # a list of builtin themes.
 html_theme = "pydata_sphinx_theme"
 
+html_title = f"{project} {version} documentation"
+html_context = {
+    "AUTHOR": author,
+    "DESCRIPTION": "ProbNum: Probabilistic Numerics in Python.",
+    "SITEMAP_BASE_URL": "http://probnum.org/",  # Trailing slash is needed
+    "VERSION": version,
+}
+
 # (Optional) Logo. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.
 html_logo = "img/probnum_logo_light_txtright.svg"
@@ -158,7 +166,20 @@ html_logo = "img/probnum_logo_light_txtright.svg"
 # further. For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "github_url": "https://github.com/probabilistic-numerics/probnum",
+    "navbar_align": "right",
+    "show_toc_level": 2,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/probabilistic-numerics/probnum",
+            "icon": "fab fa-github",
+        },
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/probnum",
+            "icon": "fab fa-python",
+        },
+    ],
 }
 
 # The name of an image file (within the static path) to use as favicon of the
