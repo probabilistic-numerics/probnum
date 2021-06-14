@@ -5,10 +5,13 @@ import pytest
 from probnum import filtsmooth
 
 from .. import filtsmooth_testcases as cases
-from ._linearization_test_interface import InterfaceTestDiscreteLinearization
+from ._linearization_test_interface import (
+    InterfaceContinuousLinearizationTest,
+    InterfaceDiscreteLinearizationTest,
+)
 
 
-class TestDiscreteEKFComponent(InterfaceTestDiscreteLinearization):
+class TestDiscreteEKFComponent(InterfaceDiscreteLinearizationTest):
 
     # Replacement for an __init__ in the pytest language. See:
     # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
@@ -20,9 +23,10 @@ class TestDiscreteEKFComponent(InterfaceTestDiscreteLinearization):
         )
 
 
-class TestContinuousEKFComponent(cases.LinearisedContinuousTransitionTestCase):
-    """Implementation incomplete, hence check that an error is raised."""
+class TestContinuousEKFComponent(InterfaceContinuousLinearizationTest):
 
-    def setUp(self):
-        self.linearising_component_benes_daum = filtsmooth.ContinuousEKFComponent
-        self.visualise = False
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.linearizing_component = filtsmooth.ContinuousEKFComponent

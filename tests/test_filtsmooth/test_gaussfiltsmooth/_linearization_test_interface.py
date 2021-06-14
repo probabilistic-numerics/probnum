@@ -7,11 +7,11 @@ import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
 from probnum import filtsmooth, problems, randprocs, randvars
 
 
-class InterfaceTestDiscreteLinearization:
+class InterfaceDiscreteLinearizationTest:
     """Test approximate Gaussian filtering and smoothing.
 
-    1. Transition RV is enabled by linearising
-    2. Applied to a linear model, the outcome is exact
+    1. forward_rv is unlocked by linearization
+    2. Applied to a linear model, the outcome is exactly the same as the original transition.
     3. Smoothing RMSE < Filtering RMSE < Data RMSE on the pendulum example.
     """
 
@@ -90,6 +90,68 @@ class InterfaceTestDiscreteLinearization:
 
         # Compute filter/smoother solution
         posterior, _ = method.filtsmooth(linearized_problem)
+        filtms = posterior.filtering_posterior.states.mean
+        smooms = posterior.states.mean
+
+        # Compute RMSEs and assert they are well-behaved.
+        comp = regression_problem.solution[:, 0]
+        normaliser = np.sqrt(comp.size)
+        filtrmse = np.linalg.norm(filtms[:, 0] - comp) / normaliser
+        smoormse = np.linalg.norm(smooms[:, 0] - comp) / normaliser
+        obs_rmse = (
+            np.linalg.norm(regression_problem.observations[:, 0] - comp) / normaliser
+        )
+        assert smoormse < filtrmse < obs_rmse
+
+
+class InterfaceContinuousLinearizationTest:
+    """Interface for tests of approximate, nonlinear Gaussian filtering and
+    smoothing."""
+
+    # Replacement for an __init__ in the pytest language. See:
+    # https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.linearizing_component = None
+
+    def test_transition_rv(self):
+        """forward_rv() not possible for original model but for the linearised model."""
+        # pylint: disable=not-callable
+        _, statespace_components = filtsmooth_zoo.benes_daum()
+        non_linear_model = statespace_components["dynamics_model"]
+
+        initrv = statespace_components["initrv"]
+        linearized_model = self.linearizing_component(non_linear_model)
+
+        # Baseline: non-linear model should not work
+        with pytest.raises(NotImplementedError):
+            non_linear_model.forward_rv(initrv, t=0.0, dt=0.1)
+
+        # Linearized model works
+        rv, _ = linearized_model.forward_rv(initrv, t=0.0, dt=0.1)
+        assert isinstance(rv, randvars.RandomVariable)
+
+    def test_filtsmooth_benes_daum(self):
+        # pylint: disable=not-callable
+        # Set up test problem
+
+        # If this measurement variance is not really small, the sampled
+        # test data can contain an outlier every now and then which
+        # breaks the test, even though it has not been touched.
+        regression_problem, statespace_components = filtsmooth_zoo.benes_daum(
+            measurement_variance=1e-4
+        )
+        ekf_dyna = self.linearizing_component(statespace_components["dynamics_model"])
+
+        initrv = statespace_components["initrv"]
+        prior_process = randprocs.MarkovProcess(
+            transition=ekf_dyna, initrv=initrv, initarg=regression_problem.locations[0]
+        )
+        method = filtsmooth.Kalman(prior_process)
+
+        # Compute filter/smoother solution
+        posterior, _ = method.filter(regression_problem)
+        posterior = method.smooth(posterior)
         filtms = posterior.filtering_posterior.states.mean
         smooms = posterior.states.mean
 

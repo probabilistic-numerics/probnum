@@ -449,7 +449,7 @@ def benes_daum(
         return 1.0 - np.tanh(x) ** 2
 
     def l(t):
-        return process_diffusion * np.ones(1)
+        return process_diffusion * np.ones((1, 1))
 
     if initrv is None:
         initrv = randvars.Normal(np.zeros(1), 3.0 * np.eye(1))
