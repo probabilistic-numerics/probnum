@@ -235,7 +235,9 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
         forward_implementation="classic",
         backward_implementation="classic",
     ):
-        """
+        """Wrap non-linear measurement models inside a regression problems into EKF
+        components.
+
         Examples
         --------
         >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo

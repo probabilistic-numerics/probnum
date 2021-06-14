@@ -1,4 +1,4 @@
-import unittest
+"""Tests for unscented Kalman filtering."""
 
 import pytest
 

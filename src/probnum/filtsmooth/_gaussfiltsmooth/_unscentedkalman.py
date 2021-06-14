@@ -263,7 +263,9 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
         priorpar: Optional[FloatArgType] = 2.0,
         special_scale: Optional[FloatArgType] = 0.0,
     ):
-        """
+        """Wrap non-linear measurement models inside a regression problems into UKF
+        components.
+
         Examples
         --------
         >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
