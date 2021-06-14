@@ -9,7 +9,12 @@ from probnum import problems
 
 from ._gaussfiltsmooth import DiscreteEKFComponent, DiscreteUKFComponent
 
-__all__ = ["merge_regression_problems"]
+__all__ = [
+    "merge_regression_problems",
+    "linearize_regression_problem",
+    "linearize_regression_problem_ekf",
+    "linearize_regression_problem_ukf",
+]
 
 
 def merge_regression_problems(

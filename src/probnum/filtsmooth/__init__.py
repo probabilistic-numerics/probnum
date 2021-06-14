@@ -32,7 +32,12 @@ from ._particlefiltsmooth import (
     effective_number_of_events,
 )
 from ._timeseriesposterior import TimeSeriesPosterior
-from ._utils import merge_regression_problems
+from ._utils import (
+    linearize_regression_problem,
+    linearize_regression_problem_ekf,
+    linearize_regression_problem_ukf,
+    merge_regression_problems,
+)
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [
@@ -55,6 +60,9 @@ __all__ = [
     "ParticleFilterPosterior",
     "effective_number_of_events",
     "merge_regression_problems",
+    "linearize_regression_problem",
+    "linearize_regression_problem_ekf",
+    "linearize_regression_problem_ukf",
     "ImportanceDistribution",
     "BootstrapImportanceDistribution",
     "LinearizationImportanceDistribution",
