@@ -2,7 +2,7 @@
 
 import dataclasses
 from collections import abc
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Sequence, Union
 
 import numpy as np
 import scipy.sparse
@@ -50,31 +50,33 @@ class TimeSeriesRegressionProblem:
     >>> rp[0]
     (0.1, 11.4123, DiscreteLTIGaussian(input_dim=1, output_dim=1))
     """
-    locations: np.ndarray
-    observations: np.ndarray
-    measurement_models: np.ndarray
+
+    # The types are 'Sequence' (e.g. lists, tuples) or 'ndarray',
+    # because we need __len__ and __getitem__, which both provide.
+    # 'ndarray's are not 'Sequence's: https://github.com/numpy/numpy/issues/2776
+    locations: Union[Sequence, np.ndarray]
+    observations: Union[Sequence, np.ndarray]
+    measurement_models: Union[Sequence, np.ndarray]
 
     # For testing and benchmarking
-    # The solution here is an array of the values of the truth at the location.
-    solution: Optional[np.ndarray] = None
+    # The solution here is a Sequence or array of the values of the truth at the location.
+    solution: Optional[Union[Sequence, np.ndarray]] = None
 
     def __post_init__(self):
         """Some postprocessing of the time-series regression problem inits.
 
         1. Wrap the measurement models into an iterable of measurement models (by
-        default, a numpy array).
+        default, a list).
         2. Check that all inputs have the same length.
-
-        Numpy arrays are the default choice here for consistency with the data type of observations and locations.
-        Inputs are not transformed into numpy arrays by default, because this would forbid
-        having data points of different dimension (lists can handle this, arrays cannot).
-        This has application in, for instance, initialization of ODE filters.
         """
-        if not isinstance(self.measurement_models, abc.Iterable):
-            self.measurement_models = np.array(
-                [self.measurement_models] * len(self.locations)
-            )
 
+        # If a single measurement model has been provided, transform it into a list of models
+        # to ensure that there is a measurement model for every (t, y) combination.
+        if not isinstance(self.measurement_models, abc.Iterable):
+            self.measurement_models = [self.measurement_models] * len(self.locations)
+
+        # Check that the lengths align. Uneven lengths are not supported
+        # at the moment, because it is not clear how these should be handled.
         lengths_equal = (
             len(self.observations)
             == len(self.locations)
