@@ -47,7 +47,6 @@ class TimeSeriesPosterior(abc.ABC):
         location: FloatArgType,
         state: randvars.RandomVariable,
     ) -> None:
-        # TODO: Type-checks here?
         self._locations.append(location)
         self._states.append(state)
 
