@@ -397,6 +397,7 @@ def benes_daum(
     process_diffusion: FloatArgType = 1.0,
     time_grid: Optional[np.ndarray] = None,
     initrv: Optional[randvars.RandomVariable] = None,
+    random_state=None,
 ):
     r"""Filtering/smoothing setup based on the Beneš SDE.
 
@@ -474,6 +475,7 @@ def benes_daum(
         measmod=measurement_model,
         initrv=initrv,
         times=time_grid,
+        random_state=random_state,
     )
     regression_problem = problems.TimeSeriesRegressionProblem(
         observations=obs,

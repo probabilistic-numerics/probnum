@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-from probnum import filtsmooth, problems, randprocs, randvars
+from probnum import filtsmooth, problems, randprocs, randvars, utils
 
 
 class InterfaceDiscreteLinearizationTest:
@@ -137,8 +137,11 @@ class InterfaceContinuousLinearizationTest:
         # If this measurement variance is not really small, the sampled
         # test data can contain an outlier every now and then which
         # breaks the test, even though it has not been touched.
+        time_grid = np.arange(0.0, 5.0, step=0.1)
+
+        random_state = utils.as_random_state(123)
         regression_problem, statespace_components = filtsmooth_zoo.benes_daum(
-            measurement_variance=1e-4
+            measurement_variance=1e-1, time_grid=time_grid, random_state=random_state
         )
         ekf_dyna = self.linearizing_component(statespace_components["dynamics_model"])
 
