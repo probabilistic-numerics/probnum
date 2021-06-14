@@ -169,74 +169,75 @@ def merge_regression_problems(
     return new_regression_problem, new_measurement_models
 
 
-def linearize_regression_problem(regression_problem, strategy):
-    measmods = regression_problem.measurement_models
-    new_measmods = [strategy(mm) for mm in measmods]
-    return problems.TimeSeriesRegressionProblem(
-        locations=regression_problem.locations,
-        observations=regression_problem.observations,
-        solution=regression_problem.solution,
-        measurement_models=new_measmods,
-    )
+#
+# def linearize_regression_problem(regression_problem, strategy):
+#     measmods = regression_problem.measurement_models
+#     new_measmods = [strategy(mm) for mm in measmods]
+#     return problems.TimeSeriesRegressionProblem(
+#         locations=regression_problem.locations,
+#         observations=regression_problem.observations,
+#         solution=regression_problem.solution,
+#         measurement_models=new_measmods,
+#     )
 
-
-def linearize_regression_problem_ekf(
-    regression_problem,
-    forward_implementation="classic",
-    backward_implementation="classic",
-):
-    """
-    Examples
-    --------
-    >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-    >>> problem, _ = filtsmooth_zoo.pendulum(
-    ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
-    ... )
-    >>> linearized_problem = linearize_regression_problem_ekf(problem)
-    >>> print(linearized_problem.measurement_models[0])
-    DiscreteEKFComponent(input_dim=2, output_dim=1)
-    >>> print(linearized_problem.measurement_models[0].forward_implementation)
-    classic
-    >>> linearized_problem_sqrt = linearize_regression_problem_ekf(problem, forward_implementation="sqrt")
-    >>> print(linearized_problem_sqrt.measurement_models[0])
-    DiscreteEKFComponent(input_dim=2, output_dim=1)
-    >>> print(linearized_problem_sqrt.measurement_models[0].forward_implementation)
-    sqrt
-    """
-
-    def ekf_lin(
-        measmod, forw_impl=forward_implementation, backw_impl=backward_implementation
-    ):
-        return DiscreteEKFComponent(
-            non_linear_model=measmod,
-            forward_implementation=forw_impl,
-            backward_implementation=backw_impl,
-        )
-
-    return linearize_regression_problem(regression_problem, strategy=ekf_lin)
-
-
-def linearize_regression_problem_ukf(
-    regression_problem, spread=1e-4, priorpar=2.0, special_scale=0.0
-):
-    """
-    Examples
-    --------
-    >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
-    >>> problem, _ = filtsmooth_zoo.pendulum(
-    ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
-    ... )
-    >>> linearized_problem = linearize_regression_problem_ukf(problem)
-    >>> print(linearized_problem.measurement_models[0])
-    DiscreteUKFComponent(input_dim=2, output_dim=1)
-    """
-
-    def ukf_lin(measmod, spread=spread, priorpar=priorpar, special_scale=special_scale):
-        return DiscreteUKFComponent(
-            non_linear_model=measmod,
-            spread=spread,
-            priorpar=priorpar,
-            special_scale=special_scale,
-        )
-
-    return linearize_regression_problem(regression_problem, strategy=ukf_lin)
+#
+# def linearize_regression_problem_ekf(
+#     regression_problem,
+#     forward_implementation="classic",
+#     backward_implementation="classic",
+# ):
+#     """
+#     Examples
+#     --------
+#     >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+#     >>> problem, _ = filtsmooth_zoo.pendulum(
+#     ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
+#     ... )
+#     >>> linearized_problem = DiscreteEKFComponent.wrap_regression_problem(problem)
+#     >>> print(linearized_problem.measurement_models[0])
+#     DiscreteEKFComponent(input_dim=2, output_dim=1)
+#     >>> print(linearized_problem.measurement_models[0].forward_implementation)
+#     classic
+#     >>> linearized_problem_sqrt = linearize_regression_problem_ekf(problem, forward_implementation="sqrt")
+#     >>> print(linearized_problem_sqrt.measurement_models[0])
+#     DiscreteEKFComponent(input_dim=2, output_dim=1)
+#     >>> print(linearized_problem_sqrt.measurement_models[0].forward_implementation)
+#     sqrt
+#     """
+#
+#     def ekf_lin(
+#         measmod, forw_impl=forward_implementation, backw_impl=backward_implementation
+#     ):
+#         return DiscreteEKFComponent(
+#             non_linear_model=measmod,
+#             forward_implementation=forw_impl,
+#             backward_implementation=backw_impl,
+#         )
+#
+#     return linearize_regression_problem(regression_problem, strategy=ekf_lin)
+#
+#
+# def linearize_regression_problem_ukf(
+#     regression_problem, spread=1e-4, priorpar=2.0, special_scale=0.0
+# ):
+#     """
+#     Examples
+#     --------
+#     >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+#     >>> problem, _ = filtsmooth_zoo.pendulum(
+#     ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
+#     ... )
+#     >>> linearized_problem = linearize_regression_problem_ukf(problem)
+#     >>> print(linearized_problem.measurement_models[0])
+#     DiscreteUKFComponent(input_dim=2, output_dim=1)
+#     """
+#
+#     def ukf_lin(measmod, spread=spread, priorpar=priorpar, special_scale=special_scale):
+#         return DiscreteUKFComponent(
+#             non_linear_model=measmod,
+#             spread=spread,
+#             priorpar=priorpar,
+#             special_scale=special_scale,
+#         )
+#
+#     return linearize_regression_problem(regression_problem, strategy=ukf_lin)

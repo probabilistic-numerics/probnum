@@ -9,7 +9,7 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import problems, randvars, statespace
 from probnum.type import FloatArgType
 
 from ._unscentedtransform import UnscentedTransform
@@ -255,6 +255,44 @@ class DiscreteUKFComponent(UKFComponent, statespace.DiscreteGaussian):
     @property
     def dimension(self) -> int:
         return self.ut.dimension
+
+    @staticmethod
+    def wrap_regression_problem(
+        regression_problem,
+        spread: Optional[FloatArgType] = 1e-4,
+        priorpar: Optional[FloatArgType] = 2.0,
+        special_scale: Optional[FloatArgType] = 0.0,
+    ):
+        """
+        Examples
+        --------
+        >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+        >>> problem, _ = filtsmooth_zoo.pendulum(
+        ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
+        ... )
+        >>> linearized_problem = DiscreteUKFComponent.wrap_regression_problem(problem)
+        >>> print(linearized_problem.measurement_models[0])
+        DiscreteUKFComponent(input_dim=2, output_dim=1)
+        """
+
+        def ukf_lin(
+            measmod, spread=spread, priorpar=priorpar, special_scale=special_scale
+        ):
+            return DiscreteUKFComponent(
+                non_linear_model=measmod,
+                spread=spread,
+                priorpar=priorpar,
+                special_scale=special_scale,
+            )
+
+        measmods = regression_problem.measurement_models
+        new_measmods = [ukf_lin(mm) for mm in measmods]
+        return problems.TimeSeriesRegressionProblem(
+            locations=regression_problem.locations,
+            observations=regression_problem.observations,
+            solution=regression_problem.solution,
+            measurement_models=new_measmods,
+        )
 
     @classmethod
     def from_ode(

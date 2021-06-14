@@ -20,7 +20,6 @@ class InterfaceDiscreteLinearizationTest:
     @pytest.fixture(autouse=True)
     def _setup(self):
         self.linearizing_component = None
-        self.linearizing_function_regression_problem = None
 
     def test_transition_rv(self):
         """forward_rv() not possible for original model but for the linearised model."""
@@ -78,7 +77,7 @@ class InterfaceDiscreteLinearizationTest:
             measurement_models=statespace_components["measurement_model"],
             solution=regression_problem.solution,
         )
-        linearized_problem = self.linearizing_function_regression_problem(
+        linearized_problem = self.linearizing_component.wrap_regression_problem(
             regression_problem
         )
 

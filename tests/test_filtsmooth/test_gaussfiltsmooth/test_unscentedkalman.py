@@ -4,7 +4,6 @@ import pytest
 
 from probnum import filtsmooth, statespace
 
-from .. import filtsmooth_testcases as cases
 from ._linearization_test_interface import InterfaceDiscreteLinearizationTest
 
 
@@ -24,6 +23,3 @@ class TestDiscreteUKFComponent(InterfaceDiscreteLinearizationTest):
     @pytest.fixture(autouse=True)
     def _setup(self):
         self.linearizing_component = filtsmooth.DiscreteUKFComponent
-        self.linearizing_function_regression_problem = (
-            filtsmooth.linearize_regression_problem_ukf
-        )

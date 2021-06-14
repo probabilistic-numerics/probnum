@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import problems, randvars, statespace
 
 
 class EKFComponent(abc.ABC):
@@ -227,6 +227,51 @@ class DiscreteEKFComponent(EKFComponent, statespace.DiscreteGaussian):
             proc_noise_cov_cholesky_fun=self.non_linear_model.proc_noise_cov_cholesky_fun,
             forward_implementation=self.forward_implementation,
             backward_implementation=self.backward_implementation,
+        )
+
+    @staticmethod
+    def wrap_regression_problem(
+        regression_problem,
+        forward_implementation="classic",
+        backward_implementation="classic",
+    ):
+        """
+        Examples
+        --------
+        >>> import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+        >>> problem, _ = filtsmooth_zoo.pendulum(
+        ...     measurement_variance=2.0, timespan=(0.0, 10.0), step=0.5
+        ... )
+        >>> linearized_problem = DiscreteEKFComponent.wrap_regression_problem(problem)
+        >>> print(linearized_problem.measurement_models[0])
+        DiscreteEKFComponent(input_dim=2, output_dim=1)
+        >>> print(linearized_problem.measurement_models[0].forward_implementation)
+        classic
+        >>> linearized_problem_sqrt = DiscreteEKFComponent.wrap_regression_problem(problem, forward_implementation="sqrt")
+        >>> print(linearized_problem_sqrt.measurement_models[0])
+        DiscreteEKFComponent(input_dim=2, output_dim=1)
+        >>> print(linearized_problem_sqrt.measurement_models[0].forward_implementation)
+        sqrt
+        """
+
+        def ekf_lin(
+            measmod,
+            forw_impl=forward_implementation,
+            backw_impl=backward_implementation,
+        ):
+            return DiscreteEKFComponent(
+                non_linear_model=measmod,
+                forward_implementation=forw_impl,
+                backward_implementation=backw_impl,
+            )
+
+        measmods = regression_problem.measurement_models
+        new_measmods = [ekf_lin(mm) for mm in measmods]
+        return problems.TimeSeriesRegressionProblem(
+            locations=regression_problem.locations,
+            observations=regression_problem.observations,
+            solution=regression_problem.solution,
+            measurement_models=new_measmods,
         )
 
     @classmethod

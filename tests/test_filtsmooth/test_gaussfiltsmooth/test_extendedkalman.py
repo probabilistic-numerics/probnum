@@ -4,7 +4,6 @@ import pytest
 
 from probnum import filtsmooth
 
-from .. import filtsmooth_testcases as cases
 from ._linearization_test_interface import (
     InterfaceContinuousLinearizationTest,
     InterfaceDiscreteLinearizationTest,
@@ -18,9 +17,6 @@ class TestDiscreteEKFComponent(InterfaceDiscreteLinearizationTest):
     @pytest.fixture(autouse=True)
     def _setup(self):
         self.linearizing_component = filtsmooth.DiscreteEKFComponent
-        self.linearizing_function_regression_problem = (
-            filtsmooth.linearize_regression_problem_ekf
-        )
 
 
 class TestContinuousEKFComponent(InterfaceContinuousLinearizationTest):
