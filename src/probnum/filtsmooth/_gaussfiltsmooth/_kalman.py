@@ -201,10 +201,10 @@ class Kalman(BayesFiltSmooth):
         posterior = FilteringPosterior(transition=self.dynamics_model)
         info_dicts = []
 
-        for idx, (rv, info) in enumerate(
-            self.filtered_states_generator(regression_problem, _previous_posterior)
+        for t, rv, info in self.filtered_states_generator(
+            regression_problem, _previous_posterior
         ):
-            posterior.append(location=regression_problem.locations[idx], state=rv)
+            posterior.append(location=t, state=rv)
             info_dicts.append(info)
 
         return posterior, info_dicts
