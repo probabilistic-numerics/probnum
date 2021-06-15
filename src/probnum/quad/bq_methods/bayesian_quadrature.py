@@ -12,7 +12,7 @@ from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
 from ..policies import Policy, RandomPolicy
 from ..stop_criteria import (
-    IntegralVariance,
+    IntegralVarianceTolerance,
     MaxNevals,
     RelativeError,
     StoppingCriterion,
@@ -57,11 +57,11 @@ class BayesianQuadrature:
         self.stopping_criteria = stopping_criteria
 
     @classmethod
-    def from_interface(
+    def from_bayesquad(
         cls,
         input_dim: int,
         kernel: Optional[Kernel] = None,
-        measure: IntegrationMeasure = None,
+        measure: Optional[IntegrationMeasure] = None,
         domain: Optional[
             Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
         ] = None,
@@ -80,7 +80,7 @@ class BayesianQuadrature:
             )
 
         if measure is None:
-            measure = LebesgueMeasure(domain=domain, dim=input_dim)
+            measure = LebesgueMeasure(domain=domain, input_dim=input_dim)
 
         # Select policy and belief update
         if kernel is None:
@@ -94,17 +94,18 @@ class BayesianQuadrature:
             )
 
         # Set stopping criteria
+        # If multiple stopping criteria are given, BQ stops once the first criterion is fulfilled.
         _stopping_criteria = []
         if max_nevals is not None:
             _stopping_criteria.append(MaxNevals(max_nevals))
         if var_tol is not None:
-            _stopping_criteria.append(IntegralVariance(var_tol))
+            _stopping_criteria.append(IntegralVarianceTolerance(var_tol))
         if rel_tol is not None:
             _stopping_criteria.append(RelativeError(rel_tol))
 
         # If no stopping criteria are given, use some default values
         if not _stopping_criteria:
-            _stopping_criteria.append(IntegralVariance(var_tol=1e-6))
+            _stopping_criteria.append(IntegralVarianceTolerance(var_tol=1e-6))
             _stopping_criteria.append(MaxNevals(max_nevals=input_dim * 25))
 
         return cls(

@@ -33,12 +33,12 @@ class KernelEmbedding:
         self.kernel = kernel
         self.measure = measure
 
-        if self.kernel.input_dim != self.measure.dim:
+        if self.kernel.input_dim != self.measure.input_dim:
             raise ValueError(
                 "Input dimensions of kernel and measure need to be the same."
             )
 
-        self.dim = self.kernel.input_dim
+        self.input_dim = self.kernel.input_dim
 
         # retrieve the functions for the provided combination of kernel and measure
         self._kmean, self._kvar = _get_kernel_embedding(
@@ -52,7 +52,7 @@ class KernelEmbedding:
         Parameters
         ----------
         x :
-            *shape=(n_eval, dim)* -- n_eval locations where to evaluate the kernel mean.
+            *shape=(n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
 
         Returns
         -------

@@ -58,13 +58,14 @@ def bayesquad(
     Parameters
     ----------
     fun :
-        Function to be integrated.
+        Function to be integrated. It needs to accept a shape=(n_eval, input_dim) ``np.ndarray'' and return a
+        shape=(n_eval,) ``np.ndarray''
     input_dim :
         Input dimension of the integration problem
     kernel :
         the kernel used for the GP model
     domain :
-        *shape=(dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
     measure:
         Integration measure, defaults to the Lebesgue measure.
     policy :
@@ -72,9 +73,6 @@ def bayesquad(
 
         ==========================  =======
          Bayesian Monte Carlo [2]_  ``bmc``
-         Uncertainty Sampling       ``us``
-         Mutual Information         ``mi``
-         Integral Variance          ``iv``
         ==========================  =======
 
     max_nevals :
@@ -116,7 +114,7 @@ def bayesquad(
     0.5000
     """
 
-    bq_method = BayesianQuadrature.from_interface(
+    bq_method = BayesianQuadrature.from_bayesquad(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
@@ -136,7 +134,7 @@ def bayesquad(
 
 def bayesquad_fixed(
     nodes: np.ndarray,
-    f_evals: np.ndarray,
+    fun_evals: np.ndarray,
     kernel: Optional[Kernel] = None,
     domain: Optional[
         Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
@@ -148,14 +146,14 @@ def bayesquad_fixed(
     Parameters
     ----------
     nodes :
-        *shape=(n_eval, dim)* -- locations at which the function should be evaluated or where
+        *shape=(n_eval, input_dim)* -- locations at which the function should be evaluated or where
         function evaluations are already available as ``f_eval``.
-    f_evals :
+    fun_evals :
         *shape=(n_eval,)* -- function evaluations at ``nodes``.
     kernel :
         the kernel used for the GP model
     domain :
-        *shape=(dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
     measure:
         Integration measure, defaults to the Lebesgue measure.
 
@@ -176,8 +174,8 @@ def bayesquad_fixed(
     >>> import numpy as np
     >>> domain = (0, 1)
     >>> nodes = np.linspace(0, 1, 15)
-    >>> f_evals = 3*nodes**2
-    >>> F, info = bayesquad_fixed(nodes=nodes, f_evals=f_evals, domain=domain)
+    >>> fun_evals = 3*nodes**2
+    >>> F, info = bayesquad_fixed(nodes=nodes, fun_evals=fun_evals, domain=domain)
     >>> print(F.mean)
     1.0001
     """
@@ -189,7 +187,7 @@ def bayesquad_fixed(
 
     nodes = nodes.reshape(n_evals, input_dim)
 
-    bq_method = BayesianQuadrature.from_interface(
+    bq_method = BayesianQuadrature.from_bayesquad(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
@@ -199,6 +197,6 @@ def bayesquad_fixed(
     )
 
     # Integrate
-    integral_belief, bq_state = bq_method.integrate(nodes=nodes, fun_evals=f_evals)
+    integral_belief, bq_state = bq_method.integrate(nodes=nodes, fun_evals=fun_evals)
 
     return integral_belief, bq_state.info

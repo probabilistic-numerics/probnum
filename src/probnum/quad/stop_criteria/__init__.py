@@ -1,5 +1,5 @@
 from ._stopping_criterion import (
-    IntegralVariance,
+    IntegralVarianceTolerance,
     MaxNevals,
     RelativeError,
     StoppingCriterion,

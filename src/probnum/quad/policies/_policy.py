@@ -32,7 +32,7 @@ class Policy(abc.ABC):
         Returns
         -------
         nodes :
-            *shape=(batch_size, dim)* -- Nodes found according to the policy.
+            *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
         raise NotImplementedError
 
@@ -56,10 +56,8 @@ class OptimalPolicy(Policy):
     """
 
     def __init__(self, acquisition: Acquisition, batch_size: int) -> None:
-        self.acquisition = acquisition
-        self.batch_size = batch_size
-
         super().__init__(batch_size=batch_size, is_deterministic=True)
+        self.acquisition = acquisition
 
     def __call__(self, bq_state: BQState) -> np.ndarray:
         """Find nodes according to the acquisition policy.
@@ -69,7 +67,7 @@ class OptimalPolicy(Policy):
         Returns
         -------
         nodes :
-            *shape=(batch_size, dim)* -- Nodes found according to the policy.
+            *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
         # TODO: Here goes the optimization of the acquisition function.
         raise NotImplementedError
@@ -87,10 +85,8 @@ class RandomPolicy(Policy):
     """
 
     def __init__(self, sampling_objective, batch_size: int) -> None:
-        self.sampling_objective = sampling_objective
-        self.batch_size = batch_size
-
         super().__init__(batch_size=batch_size, is_deterministic=False)
+        self.sampling_objective = sampling_objective
 
     def __call__(self, bq_state: BQState) -> np.ndarray:
         """Sample nodes.
@@ -103,6 +99,6 @@ class RandomPolicy(Policy):
         Returns
         -------
         nodes :
-            *shape=(batch_size, dim)* -- Nodes found according to the policy.
+            *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
         return self.sampling_objective.sample(self.batch_size)

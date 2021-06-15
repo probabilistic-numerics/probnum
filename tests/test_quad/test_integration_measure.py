@@ -31,7 +31,7 @@ def test_gaussian_mean_shape_1d(mean, cov):
     """Test that different types of one-dimensional means and covariances yield one-
     dimensional Gaussian measures when no dimension is given."""
     measure = quad.GaussianMeasure(mean, cov)
-    assert measure.dim == 1
+    assert measure.input_dim == 1
     assert measure.mean.size == 1
     assert measure.cov.size == 1
 
@@ -62,10 +62,10 @@ def test_gaussian_param_assignment(input_dim: int):
 )
 def test_gaussian_vector_cov(cov_vector):
     """Check that Gaussian with diagonal covariance inputted as a vector works."""
-    dim = cov_vector.size
-    mean = np.zeros(dim)
+    input_dim = cov_vector.size
+    mean = np.zeros(input_dim)
     measure = quad.GaussianMeasure(mean, cov_vector)
-    assert measure.cov.shape == (dim, dim)
+    assert measure.cov.shape == (input_dim, input_dim)
 
 
 def test_gaussian_scalar():
@@ -86,18 +86,18 @@ def test_lebesgue_dim_correct(input_dim: int, domain_a):
     domain2 = (domain_b2, domain_a)
     measure1 = quad.LebesgueMeasure(domain=domain1)
     measure2 = quad.LebesgueMeasure(domain=domain2)
-    assert measure1.dim == input_dim
-    assert measure2.dim == input_dim
+    assert measure1.input_dim == input_dim
+    assert measure2.input_dim == input_dim
 
 
 @pytest.mark.parametrize("domain_a", [0, np.full((3,), 0), np.full((13,), 0)])
 @pytest.mark.parametrize("domain_b", [np.full((4,), 1.2), np.full((14,), 1.2)])
-@pytest.mark.parametrize("dim", [-10, -2, 0, 2, 12, 122])
-def test_lebesgue_dim_incorrect(domain_a, domain_b, dim):
+@pytest.mark.parametrize("input_dim", [-10, -2, 0, 2, 12, 122])
+def test_lebesgue_dim_incorrect(domain_a, domain_b, input_dim):
     """Check that ValueError is raised if domain limits have mismatching dimensions or
     dimension is not positive."""
     with pytest.raises(ValueError):
-        quad.LebesgueMeasure(domain=(domain_a, domain_b), dim=dim)
+        quad.LebesgueMeasure(domain=(domain_a, domain_b), input_dim=input_dim)
 
 
 def test_lebesgue_normalization(input_dim: int):
@@ -106,17 +106,21 @@ def test_lebesgue_normalization(input_dim: int):
     if np.prod(np.full((input_dim,), domain[1])) in [0, np.Inf, -np.Inf]:
         with pytest.raises(ValueError):
             measure = quad.LebesgueMeasure(
-                domain=domain, dim=input_dim, normalized=True
+                domain=domain, input_dim=input_dim, normalized=True
             )
     else:
-        measure = quad.LebesgueMeasure(domain=domain, dim=input_dim, normalized=True)
+        measure = quad.LebesgueMeasure(
+            domain=domain, input_dim=input_dim, normalized=True
+        )
         assert measure.normalization_constant == 1 / 2 ** input_dim
 
 
 def test_lebesgue_unnormalized(input_dim: int):
     """Check that normalization constants are handled properly when equal to one."""
-    measure1 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=True)
-    measure2 = quad.LebesgueMeasure(domain=(0, 1), dim=input_dim, normalized=False)
+    measure1 = quad.LebesgueMeasure(domain=(0, 1), input_dim=input_dim, normalized=True)
+    measure2 = quad.LebesgueMeasure(
+        domain=(0, 1), input_dim=input_dim, normalized=False
+    )
     assert measure1.normalization_constant == measure2.normalization_constant
 
 

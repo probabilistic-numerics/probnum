@@ -88,11 +88,11 @@ class BQState:
         self.kernel_embedding = KernelEmbedding(kernel, measure)
         self.integral_belief = integral_belief
         self.previous_integral_beliefs = previous_integral_beliefs
-        self.dim = measure.dim
+        self.input_dim = measure.input_dim
         self.batch_size = batch_size
 
         if nodes is None:
-            self.nodes = np.empty((0, self.dim))
+            self.nodes = np.empty((0, self.input_dim))
             self.fun_evals = np.array([])
         else:
             self.nodes = nodes

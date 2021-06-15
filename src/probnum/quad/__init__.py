@@ -24,7 +24,12 @@ from .kernel_embeddings import (
     _kernel_variance_expquad_lebesgue,
 )
 from .policies import OptimalPolicy, Policy, RandomPolicy
-from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
+from .stop_criteria import (
+    IntegralVarianceTolerance,
+    MaxNevals,
+    RelativeError,
+    StoppingCriterion,
+)
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

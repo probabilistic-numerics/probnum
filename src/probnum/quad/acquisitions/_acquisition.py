@@ -27,7 +27,7 @@ class Acquisition(abc.ABC):
         Parameters
         ----------
         nodes :
-            *shape=(batch_size, dim)* -- Locations for which to query the acquisition function.
+            *shape=(batch_size, input_dim)* -- Locations for which to query the acquisition function.
 
         Returns
         -------
@@ -59,7 +59,7 @@ class Acquisition(abc.ABC):
         Returns
         -------
         nodes:
-            *shape=(batch_size, dim)* -- Sampled nodes.
+            *shape=(batch_size, input_dim)* -- Sampled nodes.
         """
         raise NotImplementedError(
             "Sampling is not available for this acquisition function"

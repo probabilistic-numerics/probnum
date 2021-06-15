@@ -39,7 +39,7 @@ class StoppingCriterion:
         return self._stopping_criterion(bq_state)
 
 
-class IntegralVariance(StoppingCriterion):
+class IntegralVarianceTolerance(StoppingCriterion):
     """Stop once the integral variance is below some tolerance.
 
     Parameters

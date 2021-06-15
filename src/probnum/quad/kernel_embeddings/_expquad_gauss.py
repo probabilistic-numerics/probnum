@@ -18,7 +18,7 @@ def _kernel_mean_expquad_gauss(
     Parameters
     ----------
     x :
-        *shape=(n_eval, dim)* -- n_eval locations where to evaluate the kernel mean.
+        *shape=(n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
     kernel :
         Instance of an ExpQuad kernel.
     measure :
@@ -29,23 +29,23 @@ def _kernel_mean_expquad_gauss(
     k_mean :
         *shape (n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
     """
-    dim = kernel.input_dim
+    input_dim = kernel.input_dim
 
     if measure.diagonal_covariance:
         cov_diag = np.diag(np.atleast_2d(measure.cov))
         chol_inv_x = (x - measure.mean) / np.sqrt(kernel.lengthscale ** 2 + cov_diag)
-        det_factor = kernel.lengthscale ** dim / np.sqrt(
+        det_factor = kernel.lengthscale ** input_dim / np.sqrt(
             (kernel.lengthscale ** 2 + cov_diag).prod()
         )
         exp_factor = np.exp(-0.5 * (np.atleast_2d(chol_inv_x) ** 2).sum(axis=1))
     else:
         chol = slinalg.cho_factor(
-            kernel.lengthscale ** 2 * np.eye(dim) + measure.cov,
+            kernel.lengthscale ** 2 * np.eye(input_dim) + measure.cov,
             lower=True,
         )
         chol_inv_x = slinalg.cho_solve(chol, (x - measure.mean).T)
         exp_factor = np.exp(-0.5 * ((x - measure.mean) * chol_inv_x.T).sum(axis=1))
-        det_factor = kernel.lengthscale ** dim / np.diag(chol[0]).prod()
+        det_factor = kernel.lengthscale ** input_dim / np.diag(chol[0]).prod()
 
     return det_factor * exp_factor
 
@@ -66,7 +66,7 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
     k_var :
         The kernel integrated w.r.t. both arguments.
     """
-    dim = kernel.input_dim
+    input_dim = kernel.input_dim
 
     if measure.diagonal_covariance:
         denom = (
@@ -74,6 +74,8 @@ def _kernel_variance_expquad_gauss(kernel: ExpQuad, measure: GaussianMeasure) ->
         ).prod()
 
     else:
-        denom = np.linalg.det(kernel.lengthscale ** 2 * np.eye(dim) + 2.0 * measure.cov)
+        denom = np.linalg.det(
+            kernel.lengthscale ** 2 * np.eye(input_dim) + 2.0 * measure.cov
+        )
 
-    return kernel.lengthscale ** dim / np.sqrt(denom)
+    return kernel.lengthscale ** input_dim / np.sqrt(denom)

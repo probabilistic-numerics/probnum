@@ -19,7 +19,7 @@ def _kernel_mean_expquad_lebesgue(
     Parameters
     ----------
     x :
-        *shape (n_eval, dim)* -- n_eval locations where to evaluate the kernel mean.
+        *shape (n_eval, input_dim)* -- n_eval locations where to evaluate the kernel mean.
     kernel :
         Instance of an ExpQuad kernel.
     measure :
@@ -30,12 +30,12 @@ def _kernel_mean_expquad_lebesgue(
     k_mean :
         *shape=(n_eval,)* -- The kernel integrated w.r.t. its first argument, evaluated at locations x.
     """
-    dim = kernel.input_dim
+    input_dim = kernel.input_dim
 
     ell = kernel.lengthscale
     return (
         measure.normalization_constant
-        * (np.pi * ell ** 2 / 2) ** (dim / 2)
+        * (np.pi * ell ** 2 / 2) ** (input_dim / 2)
         * np.atleast_2d(
             erf((measure.domain[1] - x) / (ell * np.sqrt(2)))
             - erf((measure.domain[0] - x) / (ell * np.sqrt(2)))
@@ -62,13 +62,13 @@ def _kernel_variance_expquad_lebesgue(
         The kernel integrated w.r.t. both arguments.
     """
 
-    dim = kernel.input_dim
+    input_dim = kernel.input_dim
 
     r = measure.domain[1] - measure.domain[0]
     ell = kernel.lengthscale
     return (
         measure.normalization_constant ** 2
-        * (2 * np.pi * ell ** 2) ** (dim / 2)
+        * (2 * np.pi * ell ** 2) ** (input_dim / 2)
         * np.atleast_2d(
             ell * np.sqrt(2 / np.pi) * (np.exp(-(r ** 2) / (2 * ell ** 2)) - 1)
             + r * erf(r / (ell * np.sqrt(2)))

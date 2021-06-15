@@ -23,8 +23,8 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
     def __call__(
         self,
         bq_state: BQState,
-        new_nodes: np.ndarray = None,
-        new_fun_evals: np.ndarray = None,
+        new_nodes: np.ndarray,
+        new_fun_evals: np.ndarray,
     ):
         """Updates integral belief and BQ state according to the new data given.
 
@@ -71,12 +71,12 @@ class BQStandardBeliefUpdate(BQBeliefUpdate):
                 )
             )
 
-        initial_error = bq_state.kernel_embedding.kernel_variance()
+        initial_integral_variance = bq_state.kernel_embedding.kernel_variance()
         weights = self._solve_gram(gram, kernel_means)
 
         # integral mean and variance
         integral_mean = np.squeeze(weights @ fun_evals)
-        integral_variance = initial_error - weights @ kernel_means
+        integral_variance = initial_integral_variance - weights @ kernel_means
 
         updated_belief = Normal(integral_mean, integral_variance)
         updated_state = BQState.from_new_data(
