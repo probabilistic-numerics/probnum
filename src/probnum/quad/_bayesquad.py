@@ -94,6 +94,8 @@ def bayesquad(
     ------
     ValueError
         If neither a domain nor a measure are given.
+    ValueError
+        If a domain is given with a Gaussian measure.
 
     References
     ----------
@@ -184,6 +186,8 @@ def bayesquad_fixed(
     ------
     ValueError
         If neither a domain nor a measure are given.
+    ValueError
+        If a domain is given with a Gaussian measure.
 
     Examples
     --------
