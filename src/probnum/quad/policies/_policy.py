@@ -19,7 +19,6 @@ class Policy(abc.ABC):
 
     def __init__(self, batch_size: int) -> None:
         self.batch_size = batch_size
-        self._is_deterministic = is_deterministic
 
     def __call__(self, bq_state: BQState) -> np.ndarray:
         """Find nodes according to the acquisition policy.
