@@ -29,7 +29,7 @@ def bayesquad(
         Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
     ] = None,
     measure: Optional[IntegrationMeasure] = None,
-    policy: str = "bmc",
+    policy: Optional[str] = "bmc",
     max_nevals: Optional[IntArgType] = None,
     var_tol: Optional[
         FloatArgType
@@ -125,9 +125,9 @@ def bayesquad(
         )
 
     if domain is not None:
-        if measure is GaussianMeasure:
+        if isinstance(measure, GaussianMeasure):
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        elif measure is LebesgueMeasure:
+        elif isinstance(measure, LebesgueMeasure):
             warnings.warn(
                 "Both domain and a LebesgueMeasure are specified. The domain information will be ignored."
             )
@@ -208,9 +208,9 @@ def bayesquad_fixed(
         )
 
     if domain is not None:
-        if measure is GaussianMeasure:
+        if isinstance(measure, GaussianMeasure):
             raise ValueError("GaussianMeasure cannot be used with finite bounds.")
-        elif measure is LebesgueMeasure:
+        elif isinstance(measure, LebesgueMeasure):
             warnings.warn(
                 "Both domain and a LebesgueMeasure are specified. The domain information will be ignored."
             )

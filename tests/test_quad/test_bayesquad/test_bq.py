@@ -102,3 +102,24 @@ def test_integral_values_kernel_translate(kernel, measure, input_dim, x):
         )
         true_integral = kernel_embedding.kernel_mean(np.atleast_2d(translate_point))
         np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
+
+
+@pytest.mark.parametrize("input_dim", [1])
+@pytest.mark.parametrize("measure_name", ["gauss"])
+def test_domain_and_gaussian_measure_raises_error(measure, input_dim):
+    """Test that errors are correctly raised when both domain and a Gaussian measure is
+    given."""
+    domain = (0, 1)
+    fun = lambda x: x
+
+    with pytest.raises(ValueError):
+        bayesquad(fun=fun, input_dim=input_dim, domain=domain, measure=measure)
+
+
+def test_no_domain_or_measure_raises_error(input_dim):
+    """Test that errors are correctly raised when both domain and a Gaussian measure is
+    given."""
+    fun = lambda x: x
+
+    with pytest.raises(ValueError):
+        bayesquad(fun=fun, input_dim=input_dim)
