@@ -22,8 +22,8 @@ class Acquisition(abc.ABC):
         self.bq_state = bq_state
 
     def __call__(self, nodes: np.ndarray) -> Union[float, Tuple[float, np.ndarray]]:
-        """
-        Evaluate the acquisition function.
+        """Evaluate the acquisition function.
+
         Parameters
         ----------
         nodes :

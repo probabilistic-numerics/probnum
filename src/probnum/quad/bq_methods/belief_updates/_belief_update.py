@@ -1,7 +1,6 @@
 """Belief updates for Bayesian quadrature."""
 
 import abc
-from typing import Optional
 
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve

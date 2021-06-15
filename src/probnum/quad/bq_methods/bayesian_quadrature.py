@@ -263,6 +263,8 @@ class BayesianQuadrature:
             raise ValueError("You need to provide a function to be integrated!")
 
         bq_state = None
+        integral_belief = None
+
         for (integral_belief, _, _, bq_state) in self.bq_iterator(
             fun, nodes, fun_evals
         ):
