@@ -76,12 +76,12 @@ class OptimalPolicy(Policy):
 
 
 class RandomPolicy(Policy):
-    """Optimal policy given an acquisition function.
+    """Random sampling from an objective.
 
     Parameters
     ----------
     sampling_objective :
-        Objective to sample from. Need to have a method ``sample``.
+        Objective to sample from. Needs to have a method ``sample``.
     batch_size :
         Size of batch that is found in every iteration of calling the policy.
     """

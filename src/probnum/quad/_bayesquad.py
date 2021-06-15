@@ -15,13 +15,11 @@ from probnum.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.type import FloatArgType, IntArgType
 
-from ._integration_measures import IntegrationMeasure, LebesgueMeasure
+from ._integration_measures import IntegrationMeasure
 from .bq_methods import BayesianQuadrature
 
 
 # pylint: disable=too-many-arguments
-# TODO: Do we really need input_dim as a separate argument? Both kernel and measure have
-# TODO: either input_dim or dim that we could straightforwardly extract.
 def bayesquad(
     fun: Callable,
     input_dim: int,
@@ -117,19 +115,12 @@ def bayesquad(
     >>> print(F.mean)
     0.5000
     """
-    if domain is None and measure is None:
-        raise ValueError(
-            "You need to either specify an integration domain or an integration "
-            "measure. The Lebesgue measure can only operate on a finite domain."
-        )
-
-    if measure is None:
-        measure = LebesgueMeasure(domain=domain, dim=input_dim)
 
     bq_method = BayesianQuadrature.from_interface(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
+        domain=domain,
         policy=policy,
         max_nevals=max_nevals,
         var_tol=var_tol,
@@ -198,20 +189,11 @@ def bayesquad_fixed(
 
     nodes = nodes.reshape(n_evals, input_dim)
 
-    # measure
-    if domain is None and measure is None:
-        raise ValueError(
-            "You need to either specify an integration domain or an integration "
-            "measure. The Lebesgue measure can only operate on a finite domain."
-        )
-
-    if measure is None:
-        measure = LebesgueMeasure(domain=domain, dim=input_dim)
-
     bq_method = BayesianQuadrature.from_interface(
         input_dim=input_dim,
         kernel=kernel,
         measure=measure,
+        domain=domain,
         max_nevals=n_evals,
         batch_size=n_evals,
     )

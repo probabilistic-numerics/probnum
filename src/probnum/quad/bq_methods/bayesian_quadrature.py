@@ -1,6 +1,6 @@
 """Probabilistic numerical methods for solving integrals."""
 
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -8,7 +8,7 @@ from probnum.kernels import ExpQuad, Kernel
 from probnum.randvars import Normal
 from probnum.type import FloatArgType, IntArgType
 
-from .._integration_measures import IntegrationMeasure
+from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
@@ -57,12 +57,25 @@ class BayesianQuadrature:
         input_dim: int,
         kernel: Optional[Kernel] = None,
         measure: IntegrationMeasure = None,
+        domain: Optional[
+            Tuple[Union[np.ndarray, FloatArgType], Union[np.ndarray, FloatArgType]]
+        ] = None,
         policy: str = "bmc",
         max_nevals: Optional[IntArgType] = None,
         var_tol: Optional[FloatArgType] = None,
         rel_tol: Optional[FloatArgType] = None,
         batch_size: Optional[IntArgType] = 1,
     ) -> "BayesianQuadrature":
+
+        # Set up integration measure
+        if domain is None and measure is None:
+            raise ValueError(
+                "You need to either specify an integration domain or an integration "
+                "measure. The Lebesgue measure can only operate on a finite domain."
+            )
+
+        if measure is None:
+            measure = LebesgueMeasure(domain=domain, dim=input_dim)
 
         # Select policy and belief update
         if kernel is None:
