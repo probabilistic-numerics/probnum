@@ -7,6 +7,7 @@ value of the integral. Bayesian quadrature methods return a random
 variable, specifying the belief about the true value of the integral.
 """
 
+import warnings
 from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
@@ -15,7 +16,7 @@ from probnum.kernels import Kernel
 from probnum.randvars import Normal
 from probnum.type import FloatArgType, IntArgType
 
-from ._integration_measures import IntegrationMeasure
+from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
 from .bq_methods import BayesianQuadrature
 
 
@@ -114,6 +115,21 @@ def bayesquad(
     0.5000
     """
 
+    # Error management
+    if domain is None and measure is None:
+        raise ValueError(
+            "You need to either specify an integration domain or an integration "
+            "measure. The Lebesgue measure can only operate on a finite domain."
+        )
+
+    if domain is not None:
+        if measure is GaussianMeasure:
+            raise ValueError("GaussianMeasure cannot be used with finite bounds.")
+        elif measure is LebesgueMeasure:
+            warnings.warn(
+                "Both domain and a LebesgueMeasure are specified. The domain information will be ignored."
+            )
+
     bq_method = BayesianQuadrature.from_bayesquad(
         input_dim=input_dim,
         kernel=kernel,
@@ -179,6 +195,22 @@ def bayesquad_fixed(
     >>> print(F.mean)
     1.0001
     """
+
+    # Error management
+    if domain is None and measure is None:
+        raise ValueError(
+            "You need to either specify an integration domain or an integration "
+            "measure. The Lebesgue measure can only operate on a finite domain."
+        )
+
+    if domain is not None:
+        if measure is GaussianMeasure:
+            raise ValueError("GaussianMeasure cannot be used with finite bounds.")
+        elif measure is LebesgueMeasure:
+            warnings.warn(
+                "Both domain and a LebesgueMeasure are specified. The domain information will be ignored."
+            )
+
     if nodes.ndim == 1:
         n_evals = nodes.size
         input_dim = 1

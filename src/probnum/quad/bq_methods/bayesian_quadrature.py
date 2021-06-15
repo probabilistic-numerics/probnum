@@ -73,12 +73,6 @@ class BayesianQuadrature:
     ) -> "BayesianQuadrature":
 
         # Set up integration measure
-        if domain is None and measure is None:
-            raise ValueError(
-                "You need to either specify an integration domain or an integration "
-                "measure. The Lebesgue measure can only operate on a finite domain."
-            )
-
         if measure is None:
             measure = LebesgueMeasure(domain=domain, input_dim=input_dim)
 
