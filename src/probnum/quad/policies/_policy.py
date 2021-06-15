@@ -15,12 +15,9 @@ class Policy(abc.ABC):
     ----------
     batch_size :
         Size of batch that is found in every iteration of calling the policy.
-    is_deterministic :
-        Is the policy a deterministic function of its arguments or stochastic (i.e.
-        sampling-based)?
     """
 
-    def __init__(self, batch_size: int, is_deterministic: bool) -> None:
+    def __init__(self, batch_size: int) -> None:
         self.batch_size = batch_size
         self._is_deterministic = is_deterministic
 
@@ -35,11 +32,6 @@ class Policy(abc.ABC):
             *shape=(batch_size, input_dim)* -- Nodes found according to the policy.
         """
         raise NotImplementedError
-
-    @property
-    def is_deterministic(self) -> bool:
-        """Is the policy a deterministic function of its arguments or stochastic?"""
-        return self._is_deterministic
 
 
 class OptimalPolicy(Policy):
@@ -56,7 +48,7 @@ class OptimalPolicy(Policy):
     """
 
     def __init__(self, acquisition: Acquisition, batch_size: int) -> None:
-        super().__init__(batch_size=batch_size, is_deterministic=True)
+        super().__init__(batch_size=batch_size)
         self.acquisition = acquisition
 
     def __call__(self, bq_state: BQState) -> np.ndarray:
@@ -85,7 +77,7 @@ class RandomPolicy(Policy):
     """
 
     def __init__(self, sampling_objective, batch_size: int) -> None:
-        super().__init__(batch_size=batch_size, is_deterministic=False)
+        super().__init__(batch_size=batch_size)
         self.sampling_objective = sampling_objective
 
     def __call__(self, bq_state: BQState) -> np.ndarray:

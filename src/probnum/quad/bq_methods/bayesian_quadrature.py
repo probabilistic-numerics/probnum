@@ -14,7 +14,7 @@ from ..policies import Policy, RandomPolicy
 from ..stop_criteria import (
     IntegralVarianceTolerance,
     MaxNevals,
-    RelativeError,
+    RelativeMeanChange,
     StoppingCriterion,
 )
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
@@ -101,7 +101,7 @@ class BayesianQuadrature:
         if var_tol is not None:
             _stopping_criteria.append(IntegralVarianceTolerance(var_tol))
         if rel_tol is not None:
-            _stopping_criteria.append(RelativeError(rel_tol))
+            _stopping_criteria.append(RelativeMeanChange(rel_tol))
 
         # If no stopping criteria are given, use some default values
         if not _stopping_criteria:

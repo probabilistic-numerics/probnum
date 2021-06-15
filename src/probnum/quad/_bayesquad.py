@@ -58,14 +58,14 @@ def bayesquad(
     Parameters
     ----------
     fun :
-        Function to be integrated. It needs to accept a shape=(n_eval, input_dim) ``np.ndarray'' and return a
-        shape=(n_eval,) ``np.ndarray''
+        Function to be integrated. It needs to accept a shape=(n_eval, input_dim) ``np.ndarray`` and return a
+        shape=(n_eval,) ``np.ndarray``
     input_dim :
         Input dimension of the integration problem
     kernel :
         the kernel used for the GP model
     domain :
-        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as int or ndarray.
+        *shape=(input_dim,)* -- Domain of integration. Contains lower and upper bound as ``int`` or ``np.ndarray``.
     measure:
         Integration measure, defaults to the Lebesgue measure.
     policy :

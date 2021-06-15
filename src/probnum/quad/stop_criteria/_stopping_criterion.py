@@ -56,7 +56,7 @@ class IntegralVarianceTolerance(StoppingCriterion):
         return integral_belief.var <= self.var_tol
 
 
-class RelativeError(StoppingCriterion):
+class RelativeMeanChange(StoppingCriterion):
     """Stop once the relative change of consecutive integral estimates are smaller than
     a tolerance. That is, the stopping criterion is.
 

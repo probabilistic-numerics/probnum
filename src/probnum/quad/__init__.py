@@ -27,7 +27,7 @@ from .policies import OptimalPolicy, Policy, RandomPolicy
 from .stop_criteria import (
     IntegralVarianceTolerance,
     MaxNevals,
-    RelativeError,
+    RelativeMeanChange,
     StoppingCriterion,
 )
 
