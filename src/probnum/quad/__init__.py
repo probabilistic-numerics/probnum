@@ -8,7 +8,14 @@ choosing points to evaluate the integrand based on said model.
 
 from ._bayesquad import bayesquad, bayesquad_fixed
 from ._integration_measures import GaussianMeasure, IntegrationMeasure, LebesgueMeasure
-from .bq_methods import *
+from .acquisitions import Acquisition
+from .bq_methods import (
+    BayesianQuadrature,
+    BQBeliefUpdate,
+    BQInfo,
+    BQStandardBeliefUpdate,
+    BQState,
+)
 from .kernel_embeddings import (
     KernelEmbedding,
     _kernel_mean_expquad_gauss,
@@ -16,6 +23,8 @@ from .kernel_embeddings import (
     _kernel_variance_expquad_gauss,
     _kernel_variance_expquad_lebesgue,
 )
+from .policies import OptimalPolicy, Policy, RandomPolicy
+from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
 
 # Public classes and functions. Order is reflected in documentation.
 __all__ = [

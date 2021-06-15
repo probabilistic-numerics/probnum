@@ -4,8 +4,8 @@ import abc
 
 import numpy as np
 
-from ..acquisitions import Acquisition
-from ..bq_state import BQState
+from probnum.quad.acquisitions import Acquisition
+from probnum.quad.bq_methods.bq_state import BQState
 
 
 class Policy(abc.ABC):

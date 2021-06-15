@@ -6,7 +6,7 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from ..bq_state import BQState
+from probnum.quad.bq_methods.bq_state import BQState
 
 
 class Acquisition(abc.ABC):

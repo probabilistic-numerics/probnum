@@ -10,10 +10,15 @@ from probnum.type import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
+from ..policies import Policy, RandomPolicy
+from ..stop_criteria import (
+    IntegralVariance,
+    MaxNevals,
+    RelativeError,
+    StoppingCriterion,
+)
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
-from .policies import Policy, RandomPolicy
-from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
 
 
 class BayesianQuadrature:
