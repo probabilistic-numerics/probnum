@@ -1,7 +1,5 @@
 """Test cases for Bayesian quadrature."""
 
-from functools import partial
-
 import numpy as np
 import pytest
 from scipy.integrate import quad
@@ -43,10 +41,8 @@ def test_integral_values_1d(f1d, kernel, measure, input_dim):
 @pytest.mark.parametrize("measure_name", ["gauss"])
 @pytest.mark.parametrize("cov_diagonal", [True])
 def test_integral_values_x2_gaussian(kernel, measure, input_dim):
-    """Test numerical integration of c[1]*x[1]**2 + ...
-
-    + c[d]*x[d]**2
-    """
+    """Test numerical integration of x**2 in higher dimensions."""
+    # pylint: disable=invalid-name
     c = np.linspace(0.1, 2.2, input_dim)
     fun = lambda x: np.sum(c * x ** 2, 1)
     true_integral = np.sum(c * (measure.mean ** 2 + np.diag(measure.cov)))
@@ -65,6 +61,7 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim):
 @pytest.mark.parametrize("measure_name", ["lebesgue"])
 def test_integral_values_sin_lebesgue(kernel, measure, input_dim):
     """Test numerical integration of products of sinusoids."""
+    # pylint: disable=invalid-name
     c = np.linspace(0.1, 0.5, input_dim)
     (a, b) = measure.domain
     fun = lambda x: np.prod(np.sin(c * x), 1)
@@ -87,9 +84,11 @@ def test_integral_values_sin_lebesgue(kernel, measure, input_dim):
 
 @pytest.mark.parametrize("input_dim", [2, 3, 4])
 @pytest.mark.parametrize("num_data", [1])
+# pylint: disable=invalid-name
 def test_integral_values_kernel_translate(kernel, measure, input_dim, x):
     """Test numerical integration of kernel translates."""
     kernel_embedding = KernelEmbedding(kernel, measure)
+    # pylint: disable=cell-var-from-loop
     for translate_point in x:
         fun = lambda y: kernel(translate_point, y)
         bq_integral, _ = bayesquad(
