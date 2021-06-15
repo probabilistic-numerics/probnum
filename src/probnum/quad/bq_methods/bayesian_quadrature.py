@@ -10,10 +10,15 @@ from probnum.type import FloatArgType, IntArgType
 
 from .._integration_measures import IntegrationMeasure, LebesgueMeasure
 from ..kernel_embeddings import KernelEmbedding
+from ..policies import Policy, RandomPolicy
+from ..stop_criteria import (
+    IntegralVariance,
+    MaxNevals,
+    RelativeError,
+    StoppingCriterion,
+)
 from .belief_updates import BQBeliefUpdate, BQStandardBeliefUpdate
 from .bq_state import BQState
-from .policies import Policy, RandomPolicy
-from .stop_criteria import IntegralVariance, MaxNevals, RelativeError, StoppingCriterion
 
 
 class BayesianQuadrature:
@@ -263,6 +268,8 @@ class BayesianQuadrature:
             raise ValueError("You need to provide a function to be integrated!")
 
         bq_state = None
+        integral_belief = None
+
         for (integral_belief, _, _, bq_state) in self.bq_iterator(
             fun, nodes, fun_evals
         ):

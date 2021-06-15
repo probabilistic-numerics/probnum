@@ -1,6 +1,6 @@
 """State of a Bayesian quadrature method."""
 
-from typing import Callable, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -38,8 +38,8 @@ class BQInfo:
         self.stopping_criterion = stopping_criterion
 
     def update_iteration(self, batch_size):
-        """
-        Update the quantities tracking iteration info.
+        """Update the quantities tracking iteration info.
+
         Parameters
         ----------
         batch_size:

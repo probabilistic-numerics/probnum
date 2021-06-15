@@ -6,7 +6,7 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from ..bq_state import BQState
+from probnum.quad.bq_methods.bq_state import BQState
 
 
 class Acquisition(abc.ABC):
@@ -22,8 +22,8 @@ class Acquisition(abc.ABC):
         self.bq_state = bq_state
 
     def __call__(self, nodes: np.ndarray) -> Union[float, Tuple[float, np.ndarray]]:
-        """
-        Evaluate the acquisition function.
+        """Evaluate the acquisition function.
+
         Parameters
         ----------
         nodes :
