@@ -30,6 +30,8 @@
     --pst-font-weight-base: var(--pst-font-weight-normal);
     /* Colors (defined in RGB: "red, green, blue" */
     --pst-color-primary: 22, 179, 173;
+    --pst-color-background: 252, 252, 252;
+    --pst-color-background-dark: 19, 22, 27;
     --pst-color-success: 40, 167, 69;
     --pst-color-info: 0, 123, 255;
     --pst-color-warning: 255, 193, 7;
@@ -114,10 +116,17 @@
     --pst-global-radius: 0.4rem;
 }
 
+/* Page body */
+
+body {
+    padding-top: calc(var(--pst-header-height));
+    background-color: rgb(var(--pst-color-background));
+}
+
 /* Background */
 
 .bg-dark {
-    background-color: #303846 !important;
+    background-color: rgb(var(--pst-color-background-dark)) !important;
 }
 
 /* Navigation bar */
@@ -142,6 +151,17 @@
     font-size: 2rem;
 }
 
+/* Footer */
+
+
+/* Landing Page Banner */
+
+.hero-banner {
+    background: rgba(var(--pst-color-primary), 0.2);
+    padding-bottom: 20px;
+    padding-top: 20px;
+}
+
 /* Code */
 
 code {
@@ -156,6 +176,7 @@ code {
 /* Buttons */
 
 .custom-button {
+    width: 200px;
     appearance: none;
     background-color: var(--pst-button-background-color);
     border-color: var(--pst-button-border-color);
