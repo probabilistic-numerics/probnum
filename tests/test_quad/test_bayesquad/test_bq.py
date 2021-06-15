@@ -115,11 +115,44 @@ def test_domain_and_gaussian_measure_raises_error(measure, input_dim):
     with pytest.raises(ValueError):
         bayesquad(fun=fun, input_dim=input_dim, domain=domain, measure=measure)
 
+    nodes = np.linspace(0, 1, 3)
+    fun_evals = fun(nodes)
+    with pytest.raises(ValueError):
+        bayesquad_fixed(
+            nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
+        )
+
 
 def test_no_domain_or_measure_raises_error(input_dim):
     """Test that errors are correctly raised when both domain and a Gaussian measure is
     given."""
     fun = lambda x: x
+    nodes = np.linspace(0, 1, 3)
+    fun_evals = fun(nodes)
 
     with pytest.raises(ValueError):
         bayesquad(fun=fun, input_dim=input_dim)
+
+    with pytest.raises(ValueError):
+        bayesquad_fixed(nodes=nodes, fun_evals=fun_evals)
+
+
+@pytest.mark.parametrize("input_dim", [1])
+@pytest.mark.parametrize("measure_name", ["lebesgue"])
+def test_domain_ignored_if_lebesgue(input_dim, measure):
+    domain = (0, 1)
+    fun = lambda x: x
+
+    # standard BQ
+    bq_integral, _ = bayesquad(
+        fun=fun, input_dim=input_dim, domain=domain, measure=measure
+    )
+    assert isinstance(bq_integral, Normal)
+
+    # fixed nodes BQ
+    nodes = np.linspace(0, 1, 3)
+    fun_evals = fun(nodes)
+    bq_integral, _ = bayesquad_fixed(
+        nodes=nodes, fun_evals=fun_evals, domain=domain, measure=measure
+    )
+    assert isinstance(bq_integral, Normal)
