@@ -48,11 +48,11 @@ def test_integral_values_x2_gaussian(kernel, measure, input_dim):
     true_integral = np.sum(c * (measure.mean ** 2 + np.diag(measure.cov)))
     n_gh = 8  # Be very careful about increasing this - yields huge kernel matrices
     nodes, _ = gauss_hermite_tensor(
-        n_points=n_gh, dim=input_dim, mean=measure.mean, cov=measure.cov
+        n_points=n_gh, input_dim=input_dim, mean=measure.mean, cov=measure.cov
     )
     fun_evals = fun(nodes)
     bq_integral, _ = bayesquad_fixed(
-        nodes=nodes, f_evals=fun_evals, kernel=kernel, measure=measure
+        nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
 
@@ -71,13 +71,13 @@ def test_integral_values_sin_lebesgue(kernel, measure, input_dim):
     n_gl = 8  # Be very careful about increasing this - yields huge kernel matrices
     nodes, _ = gauss_legendre_tensor(
         n_points=n_gl,
-        dim=input_dim,
+        input_dim=input_dim,
         domain=measure.domain,
         normalized=measure.normalized,
     )
     fun_evals = fun(nodes)
     bq_integral, _ = bayesquad_fixed(
-        nodes=nodes, f_evals=fun_evals, kernel=kernel, measure=measure
+        nodes=nodes, fun_evals=fun_evals, kernel=kernel, measure=measure
     )
     np.testing.assert_almost_equal(bq_integral.mean, true_integral, decimal=2)
 
