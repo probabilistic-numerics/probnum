@@ -8,7 +8,7 @@ from probnum.quad import bayesquad, bayesquad_fixed
 from probnum.quad.kernel_embeddings._kernel_embedding import KernelEmbedding
 from probnum.randvars import Normal
 
-from ..aux import gauss_hermite_tensor, gauss_legendre_tensor
+from ..util import gauss_hermite_tensor, gauss_legendre_tensor
 
 
 @pytest.mark.parametrize("input_dim", [1], ids=["dim1"])

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from .aux import gauss_hermite_tensor, gauss_legendre_tensor
+from .util import gauss_hermite_tensor, gauss_legendre_tensor
 
 
 # Common tests
