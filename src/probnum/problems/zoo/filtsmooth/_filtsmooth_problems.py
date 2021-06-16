@@ -15,6 +15,7 @@ __all__ = [
 
 
 def car_tracking(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.5,
     process_diffusion: FloatArgType = 1.0,
     model_ordint: IntArgType = 1,
@@ -55,6 +56,8 @@ def car_tracking(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     process_diffusion
@@ -121,6 +124,7 @@ def car_tracking(
     # Set up regression problem
     time_grid = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
+        rng=rng,
         dynmod=discrete_dynamics_model,
         measmod=measurement_model,
         initrv=initrv,
@@ -139,6 +143,7 @@ def car_tracking(
 
 
 def ornstein_uhlenbeck(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1,
     driftspeed: FloatArgType = 0.21,
     process_diffusion: FloatArgType = 0.5,
@@ -165,6 +170,8 @@ def ornstein_uhlenbeck(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     driftspeed
@@ -219,7 +226,11 @@ def ornstein_uhlenbeck(
     if time_grid is None:
         time_grid = np.arange(0.0, 20.0, step=0.2)
     states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
+        rng=rng,
+        dynmod=dynamics_model,
+        measmod=measurement_model,
+        initrv=initrv,
+        times=time_grid,
     )
     regression_problem = problems.RegressionProblem(
         observations=obs, locations=time_grid, solution=states
@@ -234,6 +245,7 @@ def ornstein_uhlenbeck(
 
 
 def pendulum(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1024,
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
     step: FloatArgType = 0.0075,
@@ -275,6 +287,8 @@ def pendulum(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     timespan
@@ -355,7 +369,11 @@ def pendulum(
     # Generate data
     time_grid = np.arange(*timespan, step=step)
     states, obs = statespace.generate_samples(
-        dynmod=dynamics_model, measmod=measurement_model, initrv=initrv, times=time_grid
+        rng=rng,
+        dynmod=dynamics_model,
+        measmod=measurement_model,
+        initrv=initrv,
+        times=time_grid,
     )
     regression_problem = problems.RegressionProblem(
         observations=obs, locations=time_grid, solution=states
@@ -369,6 +387,7 @@ def pendulum(
 
 
 def benes_daum(
+    rng: np.random.Generator,
     measurement_variance: FloatArgType = 0.1,
     process_diffusion: FloatArgType = 1.0,
     time_grid: Optional[np.ndarray] = None,
@@ -390,6 +409,8 @@ def benes_daum(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     measurement_variance
         Marginal measurement variance.
     process_diffusion
@@ -446,6 +467,7 @@ def benes_daum(
         non_linear_model=dynamics_model
     )
     states, obs = statespace.generate_samples(
+        rng=rng,
         dynmod=linearized_dynamics_model,
         measmod=measurement_model,
         initrv=initrv,

@@ -13,14 +13,14 @@ class RandomSPDMatrixTestCase(unittest.TestCase, NumpyAssertions):
 
     def setUp(self) -> None:
         """Define parameters and define test problems."""
-        self.rng = np.random.default_rng(42)
+        self.rng = np.random.default_rng(seed=42)
         self.dim_list = [1, 2, 25, 100, 250]
         self.spd_matrices = [
-            random_spd_matrix(dim=n, random_state=self.rng) for n in self.dim_list
+            random_spd_matrix(rng=self.rng, dim=n) for n in self.dim_list
         ]
         self.density = 0.01
         self.sparse_spd_matrices = [
-            random_sparse_spd_matrix(dim=n, density=self.density, random_state=self.rng)
+            random_sparse_spd_matrix(rng=self.rng, dim=n, density=self.density)
             for n in self.dim_list
         ]
         self.matrices = self.spd_matrices + self.sparse_spd_matrices
@@ -59,7 +59,7 @@ class RandomSPDMatrixTestCase(unittest.TestCase, NumpyAssertions):
         spectrum."""
         dim = 10
         spectrum = np.sort(self.rng.uniform(0.1, 1, size=dim))
-        spdmat = random_spd_matrix(dim=dim, spectrum=spectrum, random_state=self.rng)
+        spdmat = random_spd_matrix(rng=self.rng, dim=dim, spectrum=spectrum)
         eigvals = np.sort(np.linalg.eigvals(spdmat))
         self.assertAllClose(
             spectrum,
@@ -70,7 +70,7 @@ class RandomSPDMatrixTestCase(unittest.TestCase, NumpyAssertions):
     def test_negative_eigenvalues_throws_error(self):
         """Test whether a non-positive spectrum throws an error."""
         with self.assertRaises(ValueError):
-            random_spd_matrix(dim=3, spectrum=[-1, 1, 2], random_state=self.rng)
+            random_spd_matrix(rng=self.rng, dim=3, spectrum=[-1, 1, 2])
 
     def test_matrix_is_sparse(self):
         """Test whether the matrix has a sufficient degree of sparsity."""
