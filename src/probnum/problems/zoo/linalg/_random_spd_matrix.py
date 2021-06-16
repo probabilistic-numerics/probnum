@@ -1,12 +1,11 @@
 """Random symmetric positive definite matrices."""
 
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy as np
 import scipy.stats
 
-import probnum.utils as _utils
-from probnum.type import IntArgType, RandomStateArgType
+from probnum.type import IntArgType
 
 
 def random_spd_matrix(

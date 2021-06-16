@@ -6,14 +6,7 @@ from typing import Optional
 import numpy as np
 import scipy._lib._util
 
-from probnum.type import (
-    DTypeArgType,
-    RandomStateArgType,
-    RandomStateType,
-    ScalarArgType,
-    ShapeArgType,
-    ShapeType,
-)
+from probnum.type import DTypeArgType, ScalarArgType, ShapeArgType, ShapeType
 
 __all__ = ["as_shape", "as_numpy_scalar"]
 

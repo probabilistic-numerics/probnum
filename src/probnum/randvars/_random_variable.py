@@ -9,7 +9,6 @@ from probnum.type import (
     ArrayLikeGetitemArgType,
     DTypeArgType,
     FloatArgType,
-    RandomStateArgType,
     ShapeArgType,
     ShapeType,
 )
