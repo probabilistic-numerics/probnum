@@ -35,8 +35,8 @@ class Filtering:
 
         linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
         linearized_measmod = _lin_method(statespace_components["measurement_model"])
-        regression_problem = linearized_measmod.wrap_regression_problem(
-            regression_problem
+        regression_problem.measurement_models = [linearized_measmod] * len(
+            regression_problem.locations
         )
 
         prior_process = randprocs.MarkovProcess(
@@ -83,8 +83,8 @@ class Smoothing:
 
         linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
         linearized_measmod = _lin_method(statespace_components["measurement_model"])
-        regression_problem = linearized_measmod.wrap_regression_problem(
-            regression_problem
+        regression_problem.measurement_models = [linearized_measmod] * len(
+            regression_problem.locations
         )
 
         prior_process = randprocs.MarkovProcess(
@@ -147,8 +147,8 @@ class DenseGridOperations:
 
         linearized_dynmod = _lin_method(statespace_components["dynamics_model"])
         linearized_measmod = _lin_method(statespace_components["measurement_model"])
-        regression_problem = linearized_measmod.wrap_regression_problem(
-            regression_problem
+        regression_problem.measurement_models = [linearized_measmod] * len(
+            regression_problem.locations
         )
 
         prior_process = randprocs.MarkovProcess(
