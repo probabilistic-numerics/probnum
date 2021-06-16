@@ -55,10 +55,12 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
     Examples
     --------
     >>> from probnum import randvars
+    >>> import numpy as np
     >>> rv1 = randvars.Constant(support=0.)
     >>> rv2 = randvars.Constant(support=1.)
     >>> rv = rv1 + rv2
-    >>> rv.sample(size=5)
+    >>> rng = np.random.default_rng(seed=42)
+    >>> rv.sample(rng, size=5)
     array([1., 1., 1., 1., 1.])
     """
 
@@ -133,9 +135,7 @@ class Constant(_random_variable.DiscreteRandomVariable[_ValueType]):
             support=self._support.transpose(*axes),
         )
 
-    def _sample(
-        self, size: ShapeArgType = (), random_state: RandomStateArgType = None
-    ) -> _ValueType:
+    def _sample(self, rng: np.random.Generator, size: ShapeArgType = ()) -> _ValueType:
         size = _utils.as_shape(size)
 
         if size == ():
