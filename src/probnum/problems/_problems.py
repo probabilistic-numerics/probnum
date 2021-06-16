@@ -7,7 +7,6 @@ import numpy as np
 import scipy.sparse
 
 import probnum.linops as pnlo
-import probnum.statespace as pnss
 import probnum.type as pntp
 from probnum import randvars
 
@@ -25,11 +24,8 @@ class RegressionProblem:
         Observations of the latent process.
     locations
         Grid-points on which the observations were taken.
-    likelihood
-        Likelihood of the observations; that is, relation between the latent process and the observed values.
-        Encodes for example noise.
     solution
-        Closed form, analytic solution to the problem. Used for testing and benchmarking.
+        Array containing solution to the problem at ``locations``. Used for testing and benchmarking.
 
     Examples
     --------
@@ -37,7 +33,7 @@ class RegressionProblem:
     >>> loc = [0.1, 0.2]
     >>> rp = RegressionProblem(observations=obs, locations=loc)
     >>> rp
-    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], likelihood=None, solution=None)
+    RegressionProblem(observations=[11.4123, -15.5123], locations=[0.1, 0.2], solution=None)
     >>> rp.observations
     [11.4123, -15.5123]
     """
@@ -45,12 +41,7 @@ class RegressionProblem:
     observations: np.ndarray
     locations: np.ndarray
 
-    # Optional, because it should be specifiable without explicit likelihood info.
-    # 'DiscreteGaussian' is currently in 'statespace', but can be used to define general
-    # Likelihood functions; see #282
-    likelihood: typing.Optional[pnss.DiscreteGaussian] = None
-
-    # For testing and benchmarking
+    # Optional: ground truth for testing and benchmarking
     solution: typing.Optional[
         typing.Callable[[np.ndarray], typing.Union[float, np.ndarray]]
     ] = None

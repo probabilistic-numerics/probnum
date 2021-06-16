@@ -1,39 +1,36 @@
 import numpy as np
 import pytest
 
-import probnum.filtsmooth as pnfs
-import probnum.statespace as pnss
-from probnum import randvars, utils
+import probnum.problems.zoo.filtsmooth as filtsmooth_zoo
+from probnum import filtsmooth, problems, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
-
-from ..filtsmooth_testcases import car_tracking
 
 
 @pytest.fixture
 def problem():
     """Car-tracking problem."""
-    problem = car_tracking()
-    dynmod, measmod, initrv, info = problem
+    return filtsmooth_zoo.car_tracking()
 
-    times = np.arange(0, info["tmax"], info["dt"])
-    states, obs = pnss.generate_samples(
-        dynmod=dynmod, measmod=measmod, initrv=initrv, times=times
+
+@pytest.fixture
+def setup(problem):
+    """Filter and regression problem."""
+    regression_problem, statespace_components = problem
+    kalman = filtsmooth.Kalman(
+        statespace_components["dynamics_model"],
+        statespace_components["measurement_model"],
+        statespace_components["initrv"],
     )
-    return dynmod, measmod, initrv, info, obs, times, states
+
+    return kalman, regression_problem
 
 
 @pytest.fixture
-def kalman(problem):
-    """Standard Kalman filter."""
-    dynmod, measmod, initrv, *_ = problem
-    return pnfs.Kalman(dynmod, measmod, initrv)
-
-
-@pytest.fixture
-def posterior(kalman, problem):
+def posterior(setup):
     """Kalman smoothing posterior."""
-    *_, obs, times, states = problem
-    return kalman.filtsmooth(obs, times)
+    kalman, regression_problem = setup
+    posterior, _ = kalman.filtsmooth(regression_problem)
+    return posterior
 
 
 def test_len(posterior):
@@ -43,9 +40,10 @@ def test_len(posterior):
     assert len(posterior.states) == len(posterior)
 
 
-def test_locations(posterior, problem):
+def test_locations(posterior, setup):
     """Locations are stored correctly."""
-    *_, obs, times, states = problem
+    _, regression_problem = setup
+    times = regression_problem.locations
     np.testing.assert_allclose(posterior.locations, np.sort(posterior.locations))
     np.testing.assert_allclose(posterior.locations, times)
 
@@ -152,14 +150,17 @@ def test_sampling_shapes_1d(locs, size):
     locations = np.linspace(0, 2 * np.pi, 100)
     data = 0.5 * np.random.randn(100) + np.sin(locations)
 
-    prior = pnss.IBM(0, 1)
-    measmod = pnss.DiscreteLTIGaussian(
+    prior = statespace.IBM(0, 1)
+    measmod = statespace.DiscreteLTIGaussian(
         state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
     )
     initrv = randvars.Normal(np.zeros(1), np.eye(1))
 
-    kalman = pnfs.Kalman(prior, measmod, initrv)
-    posterior = kalman.filtsmooth(times=locations, dataset=data)
+    kalman = filtsmooth.Kalman(prior, measmod, initrv)
+    regression_problem = problems.RegressionProblem(
+        observations=data, locations=locations
+    )
+    posterior, _ = kalman.filtsmooth(regression_problem)
 
     size = utils.as_shape(size)
     if locs is None:

@@ -22,6 +22,7 @@ from .sde import LTISDE, SDE, LinearSDE
 from .sde_utils import matrix_fraction_decomposition
 from .transition import Transition
 
+# Public classes and functions. Order is reflected in documentation.
 __all__ = [
     "Transition",
     "SDE",
@@ -44,3 +45,18 @@ __all__ = [
     "ConstantDiffusion",
     "PiecewiseConstantDiffusion",
 ]
+
+# Set correct module paths. Corrects links and module paths in documentation.
+Transition.__module__ = "probnum.statespace"
+SDE.__module__ = "probnum.statespace"
+LinearSDE.__module__ = "probnum.statespace"
+LTISDE.__module__ = "probnum.statespace"
+Integrator.__module__ = "probnum.statespace"
+IBM.__module__ = "probnum.statespace"
+IOUP.__module__ = "probnum.statespace"
+Matern.__module__ = "probnum.statespace"
+DiscreteGaussian.__module__ = "probnum.statespace"
+DiscreteLinearGaussian.__module__ = "probnum.statespace"
+DiscreteLTIGaussian.__module__ = "probnum.statespace"
+Preconditioner.__module__ = "probnum.statespace"
+NordsieckLikeCoordinates.__module__ = "probnum.statespace"

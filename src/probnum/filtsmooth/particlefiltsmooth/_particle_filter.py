@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from probnum import randvars, statespace
+from probnum import problems, randvars, statespace
 from probnum.filtsmooth.bayesfiltsmooth import BayesFiltSmooth
 from probnum.type import FloatArgType, IntArgType
 
@@ -89,22 +89,58 @@ class ParticleFilter(BayesFiltSmooth):
         # choice than the bootstrap.
         self.linearized_measurement_model = linearized_measurement_model
 
-    def filter(self, dataset, times):
+    def filter(self, regression_problem: problems.RegressionProblem):
+        """Apply particle filtering to a data set.
+
+        Parameters
+        ----------
+        regression_problem
+
+        Returns
+        -------
+        posterior
+            Posterior distribution of the filtered output
+        info_dicts
+            list of dictionaries containing filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
+        """
+        filtered_rvs = []
+        info_dicts = []
+
+        for rv, info in self.filter_generator(regression_problem):
+            filtered_rvs.append(rv)
+            info_dicts.append(info)
+
+        posterior = ParticleFilterPosterior(
+            states=filtered_rvs,
+            locations=regression_problem.locations,
+        )
+
+        return posterior, info_dicts
+
+    def filter_generator(self, regression_problem: problems.RegressionProblem):
         """Apply Particle filtering to a data set.
 
         Parameters
         ----------
-        dataset : array_like, shape (N, M)
-            Data set that is filtered.
-        times : array_like, shape (N,)
-            Temporal locations of the data points.
-            The zeroth element in times and dataset is the location of the initial random variable.
+        regression_problem
 
-        Returns
-        -------
-        ParticleFilterPosterior
-            Posterior distribution of the filtered output.
+        Yields
+        ------
+        curr_rv
+            Filtering random variable at each grid point.
+        info_dict
+            Dictionary containing filtering information
+
+        See Also
+        --------
+        RegressionProblem: a regression problem data class
         """
+
+        dataset, times = regression_problem.observations, regression_problem.locations
 
         # Initialize: condition on first data point using the initial random
         # variable as a dynamics rv (i.e. as the current prior).
@@ -121,17 +157,16 @@ class ParticleFilter(BayesFiltSmooth):
         curr_rv = randvars.Categorical(
             support=particles, probabilities=weights, random_state=self.random_state
         )
-        rvs = [curr_rv]
+        yield curr_rv, {}
 
         for idx in range(1, len(times)):
-            curr_rv, _ = self.filter_step(
+            curr_rv, info_dict = self.filter_step(
                 start=times[idx - 1],
                 stop=times[idx],
                 randvar=curr_rv,
                 data=dataset[idx],
             )
-            rvs.append(curr_rv)
-        return ParticleFilterPosterior(states=rvs, locations=times)
+            yield curr_rv, info_dict
 
     def filter_step(self, start, stop, randvar, data):
         """Perform a particle filter step.

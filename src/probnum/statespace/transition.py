@@ -1,7 +1,6 @@
 """Markov transition rules: continuous and discrete."""
 
 import abc
-from typing import Optional
 
 import numpy as np
 
@@ -338,9 +337,7 @@ class Transition(abc.ABC):
         for idx in reversed(range(1, len(t))):
             unsmoothed_rv = rv_list[idx - 1]
             _linearise_smooth_step_at = (
-                None
-                if _previous_posterior is None
-                else _previous_posterior(locations[idx - 1])
+                None if _previous_posterior is None else _previous_posterior(t[idx - 1])
             )
 
             # Condition on the 'future' realization and sample
@@ -408,9 +405,7 @@ class Transition(abc.ABC):
         for idx in range(1, len(t)):
 
             _linearise_prediction_step_at = (
-                None
-                if _previous_posterior is None
-                else _previous_posterior(locations[idx - 1])
+                None if _previous_posterior is None else _previous_posterior(t[idx - 1])
             )
 
             squared_diffusion = _diffusion_list[idx - 1]

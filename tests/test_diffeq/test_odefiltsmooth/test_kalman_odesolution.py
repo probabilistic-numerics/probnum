@@ -1,11 +1,8 @@
 import numpy as np
 import pytest
 
-import probnum.randvars as pnrv
+from probnum import diffeq, filtsmooth, problems, randvars, statespace, utils
 from probnum._randomvariablelist import _RandomVariableList
-from probnum.diffeq import probsolve_ivp
-from probnum.diffeq.ode import lotkavolterra
-from probnum.randvars import Constant
 
 
 @pytest.fixture
@@ -21,12 +18,12 @@ def timespan():
 @pytest.fixture
 def posterior(stepsize, timespan):
     """Kalman smoothing posterior."""
-    initrv = Constant(20 * np.ones(2))
-    ivp = lotkavolterra(timespan, initrv)
+    initrv = randvars.Constant(20 * np.ones(2))
+    ivp = diffeq.ode.lotkavolterra(timespan, initrv)
     f = ivp.rhs
     t0, tmax = ivp.timespan
     y0 = ivp.initrv.mean
-    return probsolve_ivp(f, t0, tmax, y0, step=stepsize, adaptive=False)
+    return diffeq.probsolve_ivp(f, t0, tmax, y0, step=stepsize, adaptive=False)
 
 
 def test_len(posterior):
@@ -92,7 +89,7 @@ def test_call_interpolation(posterior):
     )
     assert random_location_between_t0_and_t1 not in posterior.locations
     out_rv = posterior(random_location_between_t0_and_t1)
-    assert isinstance(out_rv, pnrv.Normal)
+    assert isinstance(out_rv, randvars.Normal)
 
 
 def test_call_to_discrete(posterior):
@@ -115,7 +112,7 @@ def test_call_extrapolation(posterior):
     """Extrapolation is possible and returns a Normal RV."""
     assert posterior.locations[-1] < 30.0
     out_rv = posterior(30.0)
-    assert isinstance(out_rv, pnrv.Normal)
+    assert isinstance(out_rv, randvars.Normal)
 
 
 @pytest.fixture
@@ -153,3 +150,38 @@ def test_transform_base_measure_realizations_raises_error(posterior):
     realizations, but refers to KalmanPosterior instead."""
     with pytest.raises(NotImplementedError):
         posterior.transform_base_measure_realizations(None)
+
+
+@pytest.mark.parametrize("locs", [np.arange(0.0, 0.5, 0.025)])
+@pytest.mark.parametrize("size", [(), 2, (2,), (2, 2)])
+def test_sampling_shapes_1d(locs, size):
+    """Make the sampling tests for a 1d posterior."""
+    locations = np.linspace(0, 2 * np.pi, 100)
+    data = 0.5 * np.random.randn(100) + np.sin(locations)
+
+    prior = statespace.IBM(0, 1)
+    measmod = statespace.DiscreteLTIGaussian(
+        state_trans_mat=np.eye(1), shift_vec=np.zeros(1), proc_noise_cov_mat=np.eye(1)
+    )
+    initrv = randvars.Normal(np.zeros(1), np.eye(1))
+
+    kalman = filtsmooth.Kalman(prior, measmod, initrv)
+    regression_problem = problems.RegressionProblem(
+        observations=data, locations=locations
+    )
+    posterior, _ = kalman.filtsmooth(regression_problem)
+
+    size = utils.as_shape(size)
+    if locs is None:
+        base_measure_reals = np.random.randn(*(size + posterior.locations.shape + (1,)))
+        samples = posterior.transform_base_measure_realizations(
+            base_measure_reals, t=posterior.locations
+        )
+    else:
+        locs = np.union1d(locs, posterior.locations)
+        base_measure_reals = np.random.randn(*(size + (len(locs),)) + (1,))
+        samples = posterior.transform_base_measure_realizations(
+            base_measure_reals, t=locs
+        )
+
+    assert samples.shape == base_measure_reals.shape

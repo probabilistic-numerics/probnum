@@ -333,7 +333,7 @@ class DiscreteLinearGaussian(DiscreteGaussian):
         new_cov = H @ crosscov + _diffusion * R
         info = {"crosscov": crosscov}
         if compute_gain:
-            gain = crosscov @ np.linalg.inv(new_cov)
+            gain = scipy.linalg.solve(new_cov.T, crosscov.T, assume_a="sym").T
             info["gain"] = gain
         return randvars.Normal(new_mean, cov=new_cov), info
 
@@ -422,7 +422,6 @@ class DiscreteLinearGaussian(DiscreteGaussian):
             R1 = big_triu[:output_dim, :output_dim]
             R12 = big_triu[:output_dim, output_dim:]
             gain = scipy.linalg.solve_triangular(R1, R12, lower=False).T
-            # gain = R12.T @ np.linalg.inv(R1.T)
 
         new_mean = rv.mean + gain @ (rv_obtained.mean - state_trans @ rv.mean - shift)
         new_cov_cholesky = tril_to_positive_tril(new_chol_triu.T)
@@ -502,10 +501,10 @@ class DiscreteLTIGaussian(DiscreteLinearGaussian):
         super().__init__(
             input_dim,
             output_dim,
-            lambda t: state_trans_mat,
-            lambda t: shift_vec,
-            lambda t: proc_noise_cov_mat,
-            lambda t: proc_noise_cov_cholesky,
+            state_trans_mat_fun=lambda t: state_trans_mat,
+            shift_vec_fun=lambda t: shift_vec,
+            proc_noise_cov_mat_fun=lambda t: proc_noise_cov_mat,
+            proc_noise_cov_cholesky_fun=lambda t: proc_noise_cov_cholesky,
             forward_implementation=forward_implementation,
             backward_implementation=backward_implementation,
         )

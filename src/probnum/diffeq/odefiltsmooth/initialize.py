@@ -5,7 +5,7 @@
 import numpy as np
 import scipy.integrate as sci
 
-from probnum import filtsmooth, randvars, statespace
+from probnum import filtsmooth, problems, randvars, statespace
 
 # In the initialisation-via-RK function below, this value is added to the marginal stds of the initial derivatives that are known.
 # If we put in zero, there are linalg errors (because a zero-cov RV is conditioned on a dirac likelihood).
@@ -131,7 +131,8 @@ def initialize_odefilter_with_rk(
     initrv = randvars.Normal(initmean, initcov, cov_cholesky=initcov_cholesky)
     kalman = filtsmooth.Kalman(prior, measmod, initrv)
 
-    out = kalman.filtsmooth(ys, ts)
+    regression_problem = problems.RegressionProblem(observations=ys, locations=ts)
+    out, _ = kalman.filtsmooth(regression_problem)
 
     estimated_initrv = out.states[0]
 

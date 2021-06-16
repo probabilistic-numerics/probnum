@@ -24,7 +24,7 @@ class LinearOperatorArithmeticTestCase(unittest.TestCase, NumpyAssertions):
         """Matrix linear operator multiplication with scalars."""
         for A, alpha in list(itertools.product(self.arrays, self.scalars)):
             with self.subTest():
-                Aop = linops.MatrixMult(A)
+                Aop = linops.Matrix(A)
 
                 self.assertAllClose((alpha * Aop).todense(), alpha * A)
 
@@ -32,7 +32,7 @@ class LinearOperatorArithmeticTestCase(unittest.TestCase, NumpyAssertions):
         """Linear operator addition."""
         for A, B in list(zip(self.arrays, self.arrays)):
             with self.subTest():
-                Aop = linops.MatrixMult(A)
-                Bop = linops.MatrixMult(B)
+                Aop = linops.Matrix(A)
+                Bop = linops.Matrix(B)
 
                 self.assertAllClose((Aop + Bop).todense(), A + B)
