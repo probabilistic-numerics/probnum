@@ -8,6 +8,5 @@ __all__ = [
     "as_colvec",
     "atleast_1d",
     "as_numpy_scalar",
-    "as_random_state",
     "as_shape",
 ]
