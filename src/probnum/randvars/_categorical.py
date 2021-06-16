@@ -41,7 +41,7 @@ class Categorical(DiscreteRandomVariable):
             "num_categories": num_categories,
         }
 
-        def _sample_categorical(size=(), random_state=None):
+        def _sample_categorical(rng, size=()):
             """Sample from a categorical distribution.
 
             While on first sight, one might think that this
@@ -57,7 +57,7 @@ class Categorical(DiscreteRandomVariable):
             # We cannot direct the call to SciPy, since it does not offer a
             # Categorical distribution
             # (and doing it via multinomial was too much reshaping, etc.)
-            mask = random_state.choice(
+            mask = rng.choice(
                 np.arange(len(self.support)), size=size, p=self.probabilities
             ).reshape(size)
             return self.support[mask]
@@ -100,7 +100,7 @@ class Categorical(DiscreteRandomVariable):
         """Support of the categorical distribution."""
         return self._support
 
-    def resample(self, random_state: RandomStateArgType = None) -> "Categorical":
+    def resample(self, rng: np.random.Generator) -> "Categorical":
         """Resample the support of the categorical random variable.
 
         Return a new categorical random variable (RV), where the support
@@ -110,10 +110,8 @@ class Categorical(DiscreteRandomVariable):
 
         Parameters
         ----------
-        random_state :
-            Random state of the random variable. If None (or np.random), the global
-            :mod:`numpy.random` state is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
+        rng :
+            Random number generator.
 
         Returns
         -------
@@ -121,7 +119,7 @@ class Categorical(DiscreteRandomVariable):
             Categorical random variable with resampled support (according to self.probabilisties).
         """
         num_events = len(self.support)
-        new_support = self.sample(size=num_events, random_state=random_state)
+        new_support = self.sample(rng=rng, size=num_events)
         new_probabilities = np.ones(self.probabilities.shape) / num_events
         return Categorical(
             support=new_support,

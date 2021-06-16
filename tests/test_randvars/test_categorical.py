@@ -20,19 +20,15 @@ all_supports = pytest.mark.parametrize(
     ],
 )
 
-all_random_states = pytest.mark.parametrize(
-    "random_state",
-    [
-        None,
-        1,
-        np.random.default_rng(),
-    ],
-)
+
+@pytest.fixture
+def rng():
+    return np.random.default_rng(seed=123)
 
 
 @pytest.fixture
-def probabilities():
-    probabilities = np.random.rand(NDIM)
+def probabilities(rng):
+    probabilities = rng.uniform(size=NDIM)
     return probabilities / np.sum(probabilities)
 
 
@@ -54,10 +50,9 @@ def test_support(categ):
 
 
 @all_supports
-@all_random_states
 @pytest.mark.parametrize("size", [(), 1, (1,), (1, 1)])
-def test_sample(categ, size, random_state):
-    samples = categ.sample(size=size, random_state=random_state)
+def test_sample(categ, size, rng):
+    samples = categ.sample(rng=rng, size=size)
     expected_shape = utils.as_shape(size) + categ.shape
     assert samples.shape == expected_shape
 
@@ -100,9 +95,8 @@ def test_mode(categ):
 
 
 @all_supports
-@all_random_states
-def test_resample(categ, random_state):
-    new_categ = categ.resample(random_state=random_state)
+def test_resample(categ, rng):
+    new_categ = categ.resample(rng=rng)
 
     assert isinstance(new_categ, randvars.Categorical)
     assert new_categ.shape == categ.shape
