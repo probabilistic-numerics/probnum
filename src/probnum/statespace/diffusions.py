@@ -55,14 +55,7 @@ class Diffusion(abc.ABC):
 
 
 class ConstantDiffusion(Diffusion):
-    r"""Constant diffusion and its calibration.
-
-    References
-    ----------
-    .. [1] Bosch, N., and Hennig, P., and Tronarp, F..
-        Calibrated Adaptive Probabilistic ODE Solvers.
-        2021.
-    """
+    r"""Constant diffusion and its calibration."""
 
     def __init__(self):
         self.diffusion = None
