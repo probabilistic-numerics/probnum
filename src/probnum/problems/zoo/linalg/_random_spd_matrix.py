@@ -10,9 +10,9 @@ from probnum.type import IntArgType, RandomStateArgType
 
 
 def random_spd_matrix(
+    rng: np.random.Generator,
     dim: IntArgType,
     spectrum: Sequence = None,
-    random_state: Optional[RandomStateArgType] = None,
 ) -> np.ndarray:
     """Random symmetric positive definite matrix.
 
@@ -25,14 +25,12 @@ def random_spd_matrix(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     dim
         Matrix dimension.
     spectrum
         Eigenvalues of the matrix.
-    random_state
-        Random state of the random variable. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
@@ -41,7 +39,9 @@ def random_spd_matrix(
     Examples
     --------
     >>> from probnum.problems.zoo.linalg import random_spd_matrix
-    >>> mat = random_spd_matrix(dim=5, random_state=0)
+    >>> import numpy as np
+    >>> rng = np.random.default_rng(1)
+    >>> mat = random_spd_matrix(rng, dim=5)
     >>> mat
     array([[10.49868572, -0.80840778,  0.79781892,  1.9229059 ,  0.73413367],
            [-0.80840778, 15.79117417,  0.52641887, -1.8727916 , -0.9309482 ],
@@ -56,9 +56,8 @@ def random_spd_matrix(
     >>> np.linalg.eigvals(mat)
     array([ 6.93542496, 10.96494454,  9.34928449, 16.25401501, 16.71332395])
     """
-    # Initialization
-    random_state = _utils.as_random_state(random_state)
 
+    # Initialization
     if spectrum is None:
         # Create a custom ordered spectrum if none is given.
         spectrum_shape: float = 10.0
@@ -70,7 +69,7 @@ def random_spd_matrix(
             loc=spectrum_offset,
             scale=spectrum_scale,
             size=dim,
-            random_state=random_state,
+            random_state=rng,
         )
         spectrum = np.sort(spectrum)[::-1]
 
@@ -84,7 +83,7 @@ def random_spd_matrix(
         return spectrum.reshape((1, 1))
 
     # Draw orthogonal matrix with respect to the Haar measure
-    orth_mat = scipy.stats.special_ortho_group.rvs(dim, random_state=random_state)
+    orth_mat = scipy.stats.special_ortho_group.rvs(dim, random_state=rng)
     spd_mat = orth_mat @ np.diag(spectrum) @ orth_mat.T
 
     # Symmetrize to avoid numerically not symmetric matrix
@@ -93,11 +92,11 @@ def random_spd_matrix(
 
 
 def random_sparse_spd_matrix(
+    rng: np.random.Generator,
     dim: IntArgType,
     density: float,
     chol_entry_min: float = 0.1,
     chol_entry_max: float = 1.0,
-    random_state: Optional[RandomStateArgType] = None,
 ) -> np.ndarray:
     """Random sparse symmetric positive definite matrix.
 
@@ -109,6 +108,8 @@ def random_sparse_spd_matrix(
 
     Parameters
     ----------
+    rng
+        Random number generator.
     dim
         Matrix dimension.
     density
@@ -118,10 +119,6 @@ def random_sparse_spd_matrix(
         Lower bound on the entries of the Cholesky factor.
     chol_entry_max
         Upper bound on the entries of the Cholesky factor.
-    random_state
-        Random state of the random variable. If None (or np.random), the global
-        :mod:`numpy.random` state is used. If integer, it is used to seed the local
-        :class:`~numpy.random.RandomState` instance.
 
     See Also
     --------
@@ -130,7 +127,9 @@ def random_sparse_spd_matrix(
     Examples
     --------
     >>> from probnum.problems.zoo.linalg import random_sparse_spd_matrix
-    >>> sparsemat = random_sparse_spd_matrix(dim=5, density=0.1, random_state=42)
+    >>> import numpy as np
+    >>> rng = np.random.Generator(42)
+    >>> sparsemat = random_sparse_spd_matrix(rng, dim=5, density=0.1)
     >>> sparsemat
     array([[1.        , 0.        , 0.        , 0.        , 0.        ],
            [0.        , 1.        , 0.        , 0.        , 0.        ],
@@ -140,7 +139,6 @@ def random_sparse_spd_matrix(
     """
 
     # Initialization
-    random_state = _utils.as_random_state(random_state)
     if not 0 <= density <= 1:
         raise ValueError(f"Density must be between 0 and 1, but is {density}.")
     chol = np.eye(dim)
@@ -156,7 +154,7 @@ def random_sparse_spd_matrix(
         nonzero_entry_ids = (entry_ids[0][idx_samples], entry_ids[1][idx_samples])
 
         # Fill Cholesky factor
-        chol[nonzero_entry_ids] = random_state.uniform(
+        chol[nonzero_entry_ids] = rng.uniform(
             low=chol_entry_min, high=chol_entry_max, size=num_nonzero_entries
         )
 

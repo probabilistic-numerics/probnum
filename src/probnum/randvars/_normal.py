@@ -61,11 +61,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from probnum import randvars
     >>> x = randvars.Normal(mean=0.5, cov=1.0)
-    >>> x.sample(size=(2, 2), random_state=42)
-    array([[0.99671415, 0.3617357 ],
-           [1.14768854, 2.02302986]])
+    >>> rng = np.random.default_rng(42)
+    >>> x.sample(rng=rng, size=(2, 2))
+    array([[ 0.80471708, -0.53998411],
+           [ 1.2504512 ,  1.44056472]])
     """
 
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
@@ -410,11 +412,11 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
 
     def _univariate_sample(
         self,
+        rng: np.random.Generator,
         size: ShapeType = (),
-        random_state: RandomStateArgType = None,
     ) -> Union[np.floating, np.ndarray]:
         sample = scipy.stats.norm.rvs(
-            loc=self._mean, scale=self.std, size=size, random_state=random_state
+            loc=self._mean, scale=self.std, size=size, random_state=rng
         )
 
         if np.isscalar(sample):
@@ -465,13 +467,13 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     def _dense_sample(
-        self, size: ShapeType = (), random_state: RandomStateArgType = None
+        self, rng: np.random.Generator, size: ShapeType = ()
     ) -> np.ndarray:
         sample = scipy.stats.multivariate_normal.rvs(
             mean=self.dense_mean.ravel(),
             cov=self.dense_cov,
             size=size,
-            random_state=random_state,
+            random_state=rng,
         )
 
         return sample.reshape(sample.shape[:-1] + self.shape)
@@ -570,7 +572,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         )
 
     def _symmetric_kronecker_identical_factors_sample(
-        self, size: ShapeType = (), random_state: RandomStateArgType = None
+        self, rng: np.random.Generator, size: ShapeType = ()
     ) -> np.ndarray:
         assert (
             isinstance(self._cov, linops.SymmetricKronecker)
@@ -582,9 +584,7 @@ class Normal(_random_variable.ContinuousRandomVariable[_ValueType]):
         # Draw standard normal samples
         size_sample = (n * n,) + size
 
-        stdnormal_samples = scipy.stats.norm.rvs(
-            size=size_sample, random_state=random_state
-        )
+        stdnormal_samples = scipy.stats.norm.rvs(size=size_sample, random_state=rng)
 
         # Appendix E: Bartels, S., Probabilistic Linear Algebra, PhD Thesis 2019
         samples_scaled = linops.Symmetrize(n) @ (self.cov_cholesky @ stdnormal_samples)
