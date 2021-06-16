@@ -29,7 +29,8 @@ def setup(problem):
 def posterior(setup):
     """Kalman smoothing posterior."""
     kalman, regression_problem = setup
-    return kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(regression_problem)
+    return posterior
 
 
 def test_len(posterior):
@@ -159,7 +160,7 @@ def test_sampling_shapes_1d(locs, size):
     regression_problem = problems.RegressionProblem(
         observations=data, locations=locations
     )
-    posterior = kalman.filtsmooth(regression_problem)
+    posterior, _ = kalman.filtsmooth(regression_problem)
 
     size = utils.as_shape(size)
     if locs is None:

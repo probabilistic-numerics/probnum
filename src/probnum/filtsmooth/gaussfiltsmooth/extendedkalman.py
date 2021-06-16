@@ -136,6 +136,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         mde_atol=1e-5,
         mde_rtol=1e-5,
         mde_solver="LSODA",
+        forward_implementation="classic",
     ) -> None:
 
         statespace.SDE.__init__(
@@ -150,6 +151,8 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
         self.mde_atol = mde_atol
         self.mde_rtol = mde_rtol
         self.mde_solver = mde_solver
+
+        self.forward_implementation = forward_implementation
 
     def linearize(self, at_this_rv: randvars.Normal):
         """Linearize the drift function with a first order Taylor expansion."""
@@ -173,6 +176,7 @@ class ContinuousEKFComponent(EKFComponent, statespace.SDE):
             mde_atol=self.mde_atol,
             mde_rtol=self.mde_rtol,
             mde_solver=self.mde_solver,
+            forward_implementation=self.forward_implementation,
         )
 
 

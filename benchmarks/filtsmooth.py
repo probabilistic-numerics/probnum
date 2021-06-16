@@ -84,7 +84,7 @@ class Smoothing:
             measurement_model=linearized_measmod,
             initrv=statespace_components["initrv"],
         )
-        self.filtering_posterior = self.kalman_filter.filter(regression_problem)
+        self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
 
     def time_smooth(self, linearization_implementation):
         self.kalman_filter.smooth(filter_posterior=self.filtering_posterior)
@@ -143,7 +143,7 @@ class DenseGridOperations:
             measurement_model=linearized_measmod,
             initrv=statespace_components["initrv"],
         )
-        self.filtering_posterior = self.kalman_filter.filter(regression_problem)
+        self.filtering_posterior, _ = self.kalman_filter.filter(regression_problem)
         self.smoothing_posterior = self.kalman_filter.smooth(
             filter_posterior=self.filtering_posterior
         )
