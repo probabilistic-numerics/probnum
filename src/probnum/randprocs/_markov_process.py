@@ -69,7 +69,6 @@ class MarkovProcess(_random_process.RandomProcess):
         rng: np.random.Generator,
         args: _InputType,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> _OutputType:
         randvar = self.__call__(args=args)
         return randvar.sample(rng=rng, size=size)

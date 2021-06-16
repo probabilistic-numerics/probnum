@@ -24,9 +24,6 @@ import numpy as np
 
 ShapeType = Tuple[int, ...]
 
-RandomStateType = Union[np.random.RandomState, np.random.Generator]
-"""Type of a random number generator."""
-
 ########################################################################################
 # Argument Types
 ########################################################################################
@@ -58,8 +55,3 @@ ArrayLikeGetitemArgType = Union[
     type(Ellipsis),
     Tuple[Union[int, slice, np.ndarray, np.newaxis, None, type(Ellipsis)], ...],
 ]
-
-RandomStateArgType = np.random.Generator
-"""Type of a public API argument for supplying a random number generator. Values of this
-type should always be converted into :class:`RandomStateType` using the function
-:func:`probnum.utils.as_random_state` before further internal processing."""

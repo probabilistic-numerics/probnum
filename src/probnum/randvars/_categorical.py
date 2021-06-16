@@ -52,15 +52,10 @@ class Categorical(DiscreteRandomVariable):
             This detour via the `mask` avoids this problem.
             """
 
-            # By the time this function is called, the random_state is a
-            # RandomState(MT19937) object, which offers a choice function.
-            # We cannot direct the call to SciPy, since it does not offer a
-            # Categorical distribution
-            # (and doing it via multinomial was too much reshaping, etc.)
-            mask = rng.choice(
+            indices = rng.choice(
                 np.arange(len(self.support)), size=size, p=self.probabilities
             ).reshape(size)
-            return self.support[mask]
+            return self.support[indices]
 
         def _pmf_categorical(x):
             """PMF of a categorical distribution.
