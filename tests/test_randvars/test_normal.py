@@ -189,9 +189,9 @@ class NormalTestCase(unittest.TestCase, NumpyAssertions):
     def test_symmetric_samples(self):
         """Samples from a normal distribution with symmetric Kronecker kernels of two
         symmetric matrices are symmetric."""
-        np.random.seed(42)
+
         n = 3
-        A = np.random.uniform(size=(n, n))
+        A = self.rng.uniform(size=(n, n))
         A = 0.5 * (A + A.T) + n * np.eye(n)
         rv = randvars.Normal(
             mean=np.eye(A.shape[0]),

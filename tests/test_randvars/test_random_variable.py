@@ -176,7 +176,6 @@ class ShapeTestCase(RandomVariableTestCase):
 
     def test_reshape(self):
         """Reshape a random variable and test for correct output shape."""
-        np.random.seed(42)
         for rv in self.randvars2x2:
             for shape in [(4, 1), (2, 2), (4,), (1, 4)]:
                 with self.subTest():
