@@ -17,8 +17,8 @@ case_modules = [
     scope="function",
     params=[pytest.param(seed, id=f"seed{seed}") for seed in [1, 42, 256]],
 )
-def random_state(request) -> np.random.RandomState:
-    return np.random.RandomState(seed=request.param)
+def rng(request) -> np.random.Generator:
+    return np.random.default_rng(seed=request.param)
 
 
 @pytest_cases.parametrize_with_cases("linop,matrix", cases=case_modules)
@@ -35,9 +35,9 @@ def test_case_valid(linop: pn.linops.LinearOperator, matrix: np.ndarray):
 def test_matvec(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
-    random_state: np.random.RandomState,
+    rng: np.random.Generator,
 ):
-    vec = random_state.normal(size=linop.shape[1])
+    vec = rng.normal(size=linop.shape[1])
 
     linop_matvec = linop @ vec
     matrix_matvec = matrix @ vec
@@ -55,11 +55,11 @@ def test_matvec(
 def test_matmat(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
-    random_state: np.random.RandomState,
+    rng: np.random.Generator,
     ncols: int,
     order: str,
 ):
-    mat = np.asarray(random_state.normal(size=(linop.shape[1], ncols)), order=order)
+    mat = np.asarray(rng.normal(size=(linop.shape[1], ncols)), order=order)
 
     linop_matmat = linop @ mat
     matrix_matmat = matrix @ mat
@@ -89,9 +89,9 @@ def test_matmat_shape_mismatch(
 def test_rmatvec(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
-    random_state: np.random.RandomState,
+    rng: np.random.Generator,
 ):
-    vec = random_state.normal(size=linop.shape[0])
+    vec = rng.normal(size=linop.shape[0])
 
     linop_matvec = vec @ linop
     matrix_matvec = vec @ matrix
@@ -109,11 +109,11 @@ def test_rmatvec(
 def test_rmatmat(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
-    random_state: np.random.RandomState,
+    rng: np.random.Generator,
     nrows: int,
     order: str,
 ):
-    mat = np.asarray(random_state.normal(size=(nrows, linop.shape[0])), order=order)
+    mat = np.asarray(rng.normal(size=(nrows, linop.shape[0])), order=order)
 
     linop_matmat = mat @ linop
     matrix_matmat = mat @ matrix
@@ -159,13 +159,13 @@ def test_rmatmat_shape_mismatch(
 def test_call(
     linop: pn.linops.LinearOperator,
     matrix: np.ndarray,
-    random_state: np.random.RandomState,
+    rng: np.random.Generator,
     shape: Tuple[Optional[int], ...],
 ):
     axis = shape.index(None) - len(shape)
     shape = tuple(entry if entry is not None else linop.shape[1] for entry in shape)
 
-    arr = random_state.normal(size=shape)
+    arr = rng.normal(size=shape)
 
     linop_call = linop(arr, axis=axis)
     matrix_call = np.moveaxis(np.tensordot(matrix, arr, axes=(-1, axis)), 0, axis)
