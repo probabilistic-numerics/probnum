@@ -17,7 +17,7 @@ class RandomVariableTestCase(unittest.TestCase, NumpyAssertions):
     def setUp(self) -> None:
         """Scalars, arrays, linear operators and random variables for tests."""
         # Seed
-        np.random.seed(42)
+        self.rng = np.random.default_rng(42)
 
         # Random variable instantiation
         self.scalars = [0, int(1), 0.1]
@@ -184,7 +184,9 @@ class ShapeTestCase(RandomVariableTestCase):
                         reshaped_rv = rv.reshape(newshape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
-                        self.assertEqual(reshaped_rv.sample(size=1).shape, shape)
+                        self.assertEqual(
+                            reshaped_rv.sample(rng=self.rng, size=1).shape, shape
+                        )
                     except NotImplementedError:
                         pass
         for rv in self.randvars2d:
@@ -194,7 +196,9 @@ class ShapeTestCase(RandomVariableTestCase):
                         reshaped_rv = rv.reshape(newshape=shape)
 
                         self.assertEqual(reshaped_rv.shape, shape)
-                        self.assertEqual(reshaped_rv.sample(size=1).shape, shape)
+                        self.assertEqual(
+                            reshaped_rv.sample(rng=self.rng, size=1).shape, shape
+                        )
                     except NotImplementedError:
                         pass
 

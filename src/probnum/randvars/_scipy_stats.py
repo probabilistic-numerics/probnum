@@ -219,10 +219,18 @@ def _rv_init_kwargs_from_scipy_rv(
     else:
         in_support = None
 
+    def sample_from_scipy_rv(rng, size):
+        return scipy_rv.rvs(size=size, random_state=rng)
+
+    if hasattr(scipy_rv, "rvs"):
+        sample_wrapper = sample_from_scipy_rv
+    else:
+        sample_wrapper = None
+
     return {
         "shape": shape,
         "dtype": dtype,
-        "sample": _return_numpy(getattr(scipy_rv, "rvs", None), dtype),
+        "sample": _return_numpy(sample_wrapper, dtype),
         "in_support": in_support,
         "cdf": _return_numpy(getattr(scipy_rv, "cdf", None), np.float_),
         "logcdf": _return_numpy(getattr(scipy_rv, "logcdf", None), np.float_),
