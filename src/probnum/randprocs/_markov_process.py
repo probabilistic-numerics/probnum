@@ -66,13 +66,13 @@ class MarkovProcess(_random_process.RandomProcess):
 
     def _sample_at_input(
         self,
+        rng: np.random.Generator,
         args: _InputType,
         size: ShapeArgType = (),
         random_state: RandomStateArgType = None,
     ) -> _OutputType:
         randvar = self.__call__(args=args)
-        randvar.random_state = random_state
-        return randvar.sample(size=size)
+        return randvar.sample(rng=rng, size=size)
 
     def push_forward(
         self,

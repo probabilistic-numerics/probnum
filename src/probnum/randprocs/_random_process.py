@@ -231,9 +231,9 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
     def sample(
         self,
+        rng: np.random.Generator,
         args: _InputType = None,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> Union[Callable[[_InputType], _OutputType], _OutputType]:
         """Sample paths from the random process.
 
@@ -243,28 +243,26 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Parameters
         ----------
+        rng
+            Random number generator.
         args
             *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process. If ``None``, sample paths, i.e. callables are
             returned.
         size
             Size of the sample.
-        random_state :
-            Random state of the random process. If None (or np.random), the global
-            :mod:`numpy.random` state is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
         """
         if args is None:
             raise NotImplementedError
 
-        return self._sample_at_input(args=args, size=size, random_state=random_state)
+        return self._sample_at_input(rng=rng, args=args, size=size)
 
     @abc.abstractmethod
     def _sample_at_input(
         self,
+        rng: np.random.Generator,
         args: _InputType,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> _OutputType:
         """Evaluate a set of sample paths at the given inputs.
 
@@ -274,14 +272,12 @@ class RandomProcess(Generic[_InputType, _OutputType], abc.ABC):
 
         Parameters
         ----------
+        rng
+            Random number generator.
         args
             *shape=(input_dim,) or (n, input_dim)* -- Evaluation input(s) of the
             sample paths of the process.
         size
             Size of the sample.
-        random_state :
-            Random state of the random process. If None (or np.random), the global
-            :mod:`numpy.random` state is used. If integer, it is used to seed the local
-            :class:`~numpy.random.RandomState` instance.
         """
         raise NotImplementedError

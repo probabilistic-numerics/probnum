@@ -46,13 +46,13 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
     Sample from the Gaussian process.
 
     >>> x = np.linspace(-1, 1, 5)[:, None]
-    >>> np.random.seed(42)
-    >>> gp.sample(x)
-    array([[-0.35187364],
-           [-0.41301096],
-           [-0.65094306],
-           [-0.56817194],
-           [ 0.01173088]])
+    >>> rng = np.random.default_rng(seed=42)
+    >>> gp.sample(rng, x)
+    array([[-0.7539949 ],
+           [-0.6658092 ],
+           [-0.52972512],
+           [ 0.0674298 ],
+           [ 0.72066223]])
     >>> gp.cov(x)
     array([[1.        , 0.8824969 , 0.60653066, 0.32465247, 0.13533528],
            [0.8824969 , 1.        , 0.8824969 , 0.60653066, 0.32465247],
@@ -90,13 +90,12 @@ class GaussianProcess(_random_process.RandomProcess[_InputType, _OutputType]):
 
     def _sample_at_input(
         self,
+        rng: np.random.Generator,
         args: _InputType,
         size: ShapeArgType = (),
-        random_state: RandomStateArgType = None,
     ) -> _OutputType:
         gaussian_rv = self.__call__(args)
-        gaussian_rv.random_state = random_state
-        return gaussian_rv.sample(size=size)
+        return gaussian_rv.sample(rng=rng, size=size)
 
     def push_forward(
         self,
