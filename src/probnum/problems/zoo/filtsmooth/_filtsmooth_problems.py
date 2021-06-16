@@ -278,6 +278,7 @@ def pendulum(
     timespan: Tuple[FloatArgType, FloatArgType] = (0.0, 4.0),
     step: FloatArgType = 0.0075,
     initrv: Optional[randvars.RandomVariable] = None,
+    initarg: Optional[float] = None,
     random_state: Optional[RandomStateArgType] = None,
 ):
     r"""Filtering/smoothing setup for a (noisy) pendulum.
@@ -324,6 +325,9 @@ def pendulum(
         Step size of the time grid.
     initrv
         Initial random variable.
+    initarg
+        Initial time point of the prior process.
+        Optional. Default is the left boundary of timespan.
     random_state
         Random state that is used to generate samples from the state space model.
         This argument is passed down to `filtsmooth.generate_samples`.
@@ -412,8 +416,10 @@ def pendulum(
         solution=states,
     )
 
+    if initarg is None:
+        initarg = time_grid[0]
     prior_process = randprocs.MarkovProcess(
-        transition=dynamics_model, initrv=initrv, initarg=time_grid[0]
+        transition=dynamics_model, initrv=initrv, initarg=initarg
     )
 
     statespace_components = dict(

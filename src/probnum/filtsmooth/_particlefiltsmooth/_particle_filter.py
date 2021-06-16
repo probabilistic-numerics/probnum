@@ -144,14 +144,20 @@ class ParticleFilter(BayesFiltSmooth):
         initarg = self.prior_process.initarg
         t_old = self.prior_process.initarg
 
-        particle_set_shape = (self.num_particles,) + self.prior_process.initrv.shape
-        particles = np.nan * np.ones(particle_set_shape)
+        # If the initial time of the prior equals the location of the first data point,
+        # the initial set of particles is overwritten. Here, we set them to unimportant values.
+        # If the initial time of the prior is NOT the location of the first data point,
+        # we have to sample an initial set of particles.
         weights = np.ones(self.num_particles) / self.num_particles
+        particle_set_shape = (self.num_particles,) + self.prior_process.initrv.shape
+        if regression_problem.locations[0] == initarg:
+            particles = np.nan * np.ones(particle_set_shape)
+        else:
+            particles = self.prior_process.initrv.sample(size=(self.num_particles,))
 
         for t, data, measmod in regression_problem:
 
             dt = t - t_old
-            print(t_old, dt, t)
             new_particles = particles.copy()
             new_weights = weights.copy()
 
@@ -225,14 +231,10 @@ class ParticleFilter(BayesFiltSmooth):
         t,
     ):
 
-        if t_old == self.prior_process.initarg:
-            particles = self.prior_process.initrv.sample(size=(self.num_particles,))
-
         for p, w in zip(particles, weights):
             output = self.importance_distribution.generate_importance_rv(
                 p, data, t_old, dt, measurement_model=measmod
             )
-
             importance_rv, dynamics_rv, _ = output
             yield importance_rv, dynamics_rv, p, w
 

@@ -35,9 +35,14 @@ def num_particles():
     return 20
 
 
-@pytest.fixture
-def problem():
-    return filtsmooth_zoo.pendulum(step=0.12)
+# Parameterize initarg with None and -10 to test both initial setups for the PF:
+# if None, the initrv is processed (through the importance distribution)
+# before sampling an initial set of particles.
+# If -10, the initial set of particles is sampled immediately.
+@pytest.fixture(params=[None, -10])
+def problem(request):
+    initarg = request.param
+    return filtsmooth_zoo.pendulum(step=0.12, initarg=initarg)
 
 
 @pytest.fixture
@@ -62,7 +67,6 @@ def particle_filter_setup(
             statespace_components["dynamics_model"]
         )
     prior_process = statespace_components["prior_process"]
-    # prior_process.initarg = -10.0
     particle = filtsmooth.ParticleFilter(
         prior_process,
         importance_distribution=importance_distribution,
