@@ -66,19 +66,19 @@ class InterfaceDiscreteLinearizationTest:
         # test data can contain an outlier every now and then which
         # breaks the test, even though it has not been touched.
         regression_problem, statespace_components = filtsmooth_zoo.pendulum(
-            measurement_variance=0.0001
+            measurement_variance=0.0001, random_state=1
         )
 
         ekf_dyna = self.linearizing_component(statespace_components["dynamics_model"])
+        ekf_meas = self.linearizing_component(
+            statespace_components["measurement_model"]
+        )
 
         regression_problem = problems.TimeSeriesRegressionProblem(
             locations=regression_problem.locations,
             observations=regression_problem.observations,
-            measurement_models=statespace_components["measurement_model"],
+            measurement_models=ekf_meas,
             solution=regression_problem.solution,
-        )
-        linearized_problem = self.linearizing_component.wrap_regression_problem(
-            regression_problem
         )
 
         initrv = statespace_components["initrv"]
@@ -88,7 +88,7 @@ class InterfaceDiscreteLinearizationTest:
         method = filtsmooth.Kalman(prior_process)
 
         # Compute filter/smoother solution
-        posterior, _ = method.filtsmooth(linearized_problem)
+        posterior, _ = method.filtsmooth(regression_problem)
         filtms = posterior.filtering_posterior.states.mean
         smooms = posterior.states.mean
 
@@ -100,6 +100,7 @@ class InterfaceDiscreteLinearizationTest:
         obs_rmse = (
             np.linalg.norm(regression_problem.observations[:, 0] - comp) / normaliser
         )
+
         assert smoormse < filtrmse < obs_rmse
 
 
